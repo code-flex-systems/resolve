@@ -1,0 +1,10 @@
+.node:hover {
+	background-color: #e8e9ed;
+	transition: background-color 100ms ease;
+	cursor: pointer;
+}
+
+.node-selected {
+	background-color: #dfe2e7;
+	cursor: pointer;
+}

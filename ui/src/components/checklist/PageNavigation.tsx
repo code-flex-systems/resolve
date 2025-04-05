@@ -1,0 +1,54 @@
+import { Collapse, Divider, Paper, Typography } from '@mui/material';
+import { OFFWHITE_COLOR } from '../../styles/theme';
+import { useChecklistSlice } from '../../state/store';
+import { usePageInstanceTree } from '../../api/queries/page-queries';
+import * as actions from '../../state/checklist/actions';
+import Toolbar from '../common/Toolbar';
+import TreeNode from './TreeNode';
+import BasicButton from '../common/BasicButton';
+
+export default function PageNavigation() {
+	const expandAll = useChecklistSlice((state) => state.expandAll);
+	const pages = useChecklistSlice((state) => state.pages);
+	const { isFetching, refetch } = usePageInstanceTree(actions.updateTree);
+	const tree = useChecklistSlice((state) => state.tree);
+	console.log(pages.get(2));
+
+	return (
+		<Paper style={styles.container}>
+			<Toolbar
+				left={
+					<Typography fontSize={17} fontWeight="bold">
+						Checklist 1
+					</Typography>
+				}
+				right={
+					<BasicButton
+						buttonProps={{
+							onClick: actions.toggleExpandAll,
+						}}
+					>
+						{expandAll ? 'Collase' : 'Expand'} All
+					</BasicButton>
+				}
+				padding={0}
+				height={35}
+			/>
+			<Divider />
+			<Collapse in={!isFetching}>
+				{tree.map((node) => (
+					<TreeNode key={node.id} level={0} {...node} />
+				))}
+			</Collapse>
+		</Paper>
+	);
+}
+
+const styles = {
+	container: {
+		width: 300,
+		height: '100%',
+		backgroundColor: OFFWHITE_COLOR,
+		padding: 10,
+	},
+};
