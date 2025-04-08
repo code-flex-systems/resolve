@@ -1,6 +1,6 @@
 drop table if exists answer;
 drop table if exists question;
-drop table if exists page_instance;
+drop table if exists page_instance cascade;
 drop table if exists page_instance_parent;
 drop table if exists page;
 drop table if exists checklist;
@@ -48,8 +48,10 @@ create table answer(
 	question_id integer not null references question(id) on delete cascade,
 	a_order integer not null,
 	a_text text not null,
+    a_desc text,
 	a_type text,
-	a_desc text,
+    a_freeform_lines integer,
+	a_freeform_placeholder text,
 	doc_id integer references doc(id),
 	calls_page_id integer references page(id)
 );
@@ -111,10 +113,11 @@ values
 
 insert into answer
 values
-(default, 1, 1, 'John', 'single', null, null, null),
-(default, 1, 2, 'Mary', 'single', null, null, null),
-(default, 1, 3, 'Joe', 'single', 'Joe is a great guy', null, null),
-(default, 3, 1, 'Great', null, null, null, null),
-(default, 3, 2, 'Fine', null, null, null, null),
-(default, 3, 3, 'Okay', null, null, 3, null),
-(default, 3, 4, 'Awful', 'other', null, null, 3);
+(default, 1, 1, 'John', null, null, null, null, null, null),
+(default, 1, 2, 'Mary', null, null, null, null, null, null),
+(default, 1, 3, 'Joe', 'Joe is a great guy', null, null, null, null, null),
+(default, 3, 1, 'Great', null, null, null, null, null, null),
+(default, 3, 2, 'Fine', null, null, null, null, null, null),
+(default, 3, 3, 'Okay', null, null, null, null, 3, null),
+(default, 3, 4, 'Awful', null, null, null, null, null, 3),
+(default, 4, 1, 'N/A', null, 'freeform', 2, 'You should fill this in', null, 3);

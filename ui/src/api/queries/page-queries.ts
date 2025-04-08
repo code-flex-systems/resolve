@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { PageInstance, Question, TreeNode } from '../../types';
+import { Answer, Question, TreeNode } from '../../types';
+import * as actions from '../../state/checklist/actions';
 
 export function usePageInstanceTree(callback: (data: TreeNode[]) => void, enabled?: boolean) {
 	return useQuery({
@@ -36,5 +37,67 @@ export function useQuestions(
 			}
 		},
 		enabled: !!pageId && enabled,
+	});
+}
+
+export function useAddUpdateQuestion(pageId: number) {
+	return useMutation({
+		mutationKey: ['pages', pageId, 'questions', 'update'],
+		mutationFn: async (variables: { question: Omit<Question, 'answers'> }) => {
+			try {
+				const { question } = variables;
+				let data =
+					variables.question.id === -1
+						? await axiosRoutes.createQuestion(pageId, question)
+						: await axiosRoutes.modifyQuestion(question.id, question);
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useAddUpdateAnswer(questionId: number) {
+	return useMutation({
+		mutationKey: ['questions', questionId, 'answers', 'update'],
+		mutationFn: async (variables: { answer: Answer }) => {
+			try {
+				const { answer } = variables;
+				let data =
+					variables.answer.id === -1
+						? await axiosRoutes.createAnswer(questionId, answer)
+						: await axiosRoutes.modifyAnswer(answer.id, answer);
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useDeleteQuestion(questionId: number) {
+	return useMutation({
+		mutationKey: ['questions', questionId, 'delete'],
+		mutationFn: async () => {
+			try {
+				await axiosRoutes.deleteQuestion(questionId);
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useDeleteAnswer(answerId: number) {
+	return useMutation({
+		mutationKey: ['answers', answerId, 'delete'],
+		mutationFn: async () => {
+			try {
+				await axiosRoutes.deleteAnswer(answerId);
+			} catch (e) {
+				console.error(e);
+			}
+		},
 	});
 }

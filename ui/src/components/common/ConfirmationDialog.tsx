@@ -1,7 +1,7 @@
-import { Dialog, DialogActions, DialogContent } from '@mui/material';
+import { Dialog, DialogActions } from '@mui/material';
 import { PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
-import theme, { BASE_COLOR } from '../../styles/theme';
+import theme from '../../styles/theme';
 
 export default function ConfirmationDialog(
 	props: {

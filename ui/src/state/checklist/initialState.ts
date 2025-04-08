@@ -6,7 +6,9 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	expandAll: false,
 	mode: ChecklistMode.VIEW,
 	pages: new Map(),
+	selectedAnswer: null,
 	selectedPage: null,
+	selectedQuestion: null,
 	tree: [],
 });
 

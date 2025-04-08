@@ -12,7 +12,6 @@ export default function PageNavigation() {
 	const pages = useChecklistSlice((state) => state.pages);
 	const { isFetching, refetch } = usePageInstanceTree(actions.updateTree);
 	const tree = useChecklistSlice((state) => state.tree);
-	console.log(pages.get(2));
 
 	return (
 		<Paper style={styles.container}>
@@ -46,7 +45,7 @@ export default function PageNavigation() {
 
 const styles = {
 	container: {
-		width: 300,
+		minWidth: 300,
 		height: '100%',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,

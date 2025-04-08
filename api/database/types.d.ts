@@ -11,6 +11,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export interface Answer {
   a_desc: string | null;
+  a_freeform_lines: number | null;
+  a_freeform_placeholder: string | null;
   a_order: number;
   a_text: string;
   a_type: string | null;

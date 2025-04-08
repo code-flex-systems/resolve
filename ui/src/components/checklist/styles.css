@@ -1,3 +1,18 @@
+.info {
+	color: #449cd9;
+}
+
+.info:hover {
+	color: #1f6b91;
+	transition: color 100ms ease;
+	cursor: pointer;
+}
+
+.info:hover + .popper {
+	visibility: visible;
+	opacity: 1;
+}
+
 .node:hover {
 	background-color: #e8e9ed;
 	transition: background-color 100ms ease;
@@ -7,4 +22,13 @@
 .node-selected {
 	background-color: #dfe2e7;
 	cursor: pointer;
+}
+
+.node-q:hover {
+	color: #449cd9;
+}
+
+.popper {
+	visibility: hidden;
+	opacity: 0;
 }

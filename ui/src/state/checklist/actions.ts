@@ -27,9 +27,25 @@ export function toggleExpandAll() {
 	});
 }
 
-export function updateSelectedPage(newPage: number | null) {
+export function updateSelectedAnswer(questionId: number, answerId: number | null) {
 	setState((state) => {
-		state.selectedPage = newPage;
+		state.selectedQuestion = questionId;
+		state.selectedAnswer = answerId;
+	});
+}
+
+export function updateSelectedPage(pageId: number | null) {
+	setState((state) => {
+		state.selectedAnswer = null;
+		state.selectedPage = pageId;
+		state.selectedQuestion = null;
+	});
+}
+
+export function updateSelectedQuestion(questionId: number | null) {
+	setState((state) => {
+		state.selectedAnswer = null;
+		state.selectedQuestion = questionId;
 	});
 }
 

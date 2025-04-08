@@ -7,7 +7,9 @@ export interface ChecklistSlice {
 	expandAll: boolean;
 	mode: ChecklistMode;
 	pages: Map<number, Question[]>;
+	selectedAnswer: number | null;
 	selectedPage: number | null;
+	selectedQuestion: number | null;
 	tree: TreeNode[];
 }
 

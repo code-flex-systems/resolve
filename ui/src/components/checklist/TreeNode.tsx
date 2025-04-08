@@ -1,14 +1,21 @@
 import { Collapse, Fade, IconButton, Typography } from '@mui/material';
 import * as actions from '../../state/checklist/actions';
-import { useChecklistSlice } from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import { KeyboardArrowRight } from '@mui/icons-material';
 import './styles.css';
 import { TreeNode } from '../../types';
 import { useQuestions } from '../../api/queries/page-queries';
+import * as selectors from '../../state/checklist/selectors';
+import { useShallow } from 'zustand/react/shallow';
+import QuestionNode from './QuestionNode';
+import { DEFAULT_QUESTION } from '../../config/defaults';
+import { ChecklistMode } from '../../config/enums';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
 	const { level, id, title, children = [] } = props;
 	const selectedPage = useChecklistSlice((state) => state.selectedPage);
+	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
+	const mode = useChecklistSlice((state) => state.mode);
 	const pages = useChecklistSlice((state) => state.pages);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const expanded = !!useChecklistSlice((state) => state.expanded).get(id);
@@ -42,7 +49,10 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					) : (
 						<div style={{ width: 30 }} />
 					)}
-					<Typography>{title}</Typography>
+					<Typography>
+						{title}
+						{mode === ChecklistMode.EDIT ? ` (p${id})` : ''}
+					</Typography>
 					<Fade in={isFetching}>
 						<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
 							Loading...
@@ -50,10 +60,38 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					</Fade>
 				</div>
 			</div>
+
+			{selectedPageData && (
+				<Collapse in={selected && !isFetching}>
+					{selectedPageData.map((q, i) => (
+						<QuestionNode
+							key={`p${id}.q${q.id}`}
+							pageId={id}
+							questionId={q.id}
+							questionText={q.q_text}
+							questionAnswers={q.answers}
+							level={level + 1}
+							idx={i}
+						/>
+					))}
+					{mode === ChecklistMode.EDIT && (
+						<QuestionNode
+							key={`p${id}.q${0}`}
+							pageId={id}
+							questionId={-1}
+							questionText="New Question"
+							questionAnswers={[]}
+							level={level + 1}
+							idx={-1}
+						/>
+					)}
+				</Collapse>
+			)}
+
 			{!!children.length && (
 				<Collapse in={expanded || expandAll === true}>
 					{children.map((c) => (
-						<TreeNode key={c.id} {...c} level={level + 1} />
+						<TreeNode key={`p${c.id}`} {...c} level={level + 1} />
 					))}
 				</Collapse>
 			)}
