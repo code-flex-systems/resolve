@@ -5,7 +5,7 @@ export interface Answer {
 	a_desc: string | null;
 	a_text: string;
 	a_order: number;
-	a_type: string | null;
+	a_type: string;
 	a_freeform_lines: number | null;
 	a_freeform_placeholder: string | null;
 	calls_page_id: number | null;
@@ -29,7 +29,9 @@ export interface PageInstance {
 }
 
 export interface TreeNode {
-	id: number;
+	instanceId: number;
+	parentInstanceId: number | null;
+	pageId: number;
 	title: string;
 	children?: TreeNode[];
 }
@@ -38,7 +40,7 @@ export interface Question {
 	id: number;
 	page_id: number;
 	q_text: string;
-	q_type: string | null;
+	q_type: string;
 	q_desc: string | null;
 	doc_id: number | null;
 	answers: Answer[];

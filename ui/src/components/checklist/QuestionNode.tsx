@@ -6,19 +6,19 @@ import './styles.css';
 import { Answer } from '../../types';
 import AnswerNode from './AnswerNode';
 import { useState } from 'react';
-import { ChecklistMode } from '../../config/enums';
+import { QuestionType } from '../../config/enums';
 
 export default function QuestionNode(props: {
 	pageId: number;
 	questionId: number;
 	questionText: string;
+	questionType: QuestionType;
 	questionAnswers: Answer[];
 	level: number;
 	idx: number;
 }) {
-	const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
+	const { pageId, questionId, questionText, questionType, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
-	const mode = useChecklistSlice((state) => state.mode);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	let selected = selectedQuestion === questionId;
 	let isPlaceholder = questionId === -1;
@@ -26,7 +26,7 @@ export default function QuestionNode(props: {
 		<>
 			<div
 				style={{ ...styles.node, paddingLeft: level * 15 }}
-				onClick={mode === ChecklistMode.EDIT ? () => actions.updateSelectedQuestion(questionId) : undefined}
+				onClick={() => actions.updateSelectedQuestion(questionId)}
 				className="flex-row-between"
 			>
 				<div className="flex-row-left">
@@ -54,10 +54,11 @@ export default function QuestionNode(props: {
 						color={selected ? 'info' : isPlaceholder ? 'primary' : ''}
 						fontWeight={isPlaceholder ? 'bold' : ''}
 						sx={{ cursor: 'pointer' }}
-						className={mode === ChecklistMode.EDIT ? 'node-q' : undefined}
+						className={'node-q'}
 					>
+						{questionId === -1 ? '' : `${idx + 1}. `}
 						{questionText}
-						{questionId === -1 || mode === ChecklistMode.VIEW ? '' : ` (p${pageId}.q${questionId})`}
+						{questionId === -1 ? '' : ` (p${pageId}.q${questionId})`}
 					</Typography>
 				</div>
 			</div>
@@ -74,7 +75,7 @@ export default function QuestionNode(props: {
 							level={level + 1}
 						/>
 					))}
-				{mode === ChecklistMode.EDIT && (
+				{questionType !== QuestionType.FREEFORM && (
 					<AnswerNode
 						key={`p${pageId}.q${questionId}.a${0}`}
 						pageId={pageId}

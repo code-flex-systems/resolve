@@ -104,7 +104,7 @@ async function getPageInstances(checklistId: number, parentId?: number) {
 			.selectFrom('page as p')
 			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
 			.leftJoin('page_instance_parent as r', 'r.instance_id', 'i.id')
-			.select(['p.id', 'p.title', 'i.id as instance_id', 'r.parent_instance_id as parent_id'])
+			.select(['p.id', 'p.title', 'i.id as instance_id', 'r.parent_instance_id'])
 			.where((eb) => {
 				let andClause = [eb('i.checklist_id', '=', checklistId)];
 				if (parentId === -1) {

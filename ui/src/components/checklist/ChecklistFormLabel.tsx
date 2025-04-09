@@ -15,9 +15,8 @@ export default function ChecklistFormLabel(props: {
 	const { id, value, idx, question, resetField } = props;
 	return (
 		<FormLabel className="flex-row-left">
-			<Typography fontWeight="bold">Question #{idx + 1}</Typography>
-			<Typography marginLeft="10px" fontStyle="italic">
-				{question.q_text}
+			<Typography fontWeight="bold">
+				{idx + 1}. {question.q_text}
 			</Typography>
 			<Tooltip title="Reset question" enterDelay={500}>
 				<span>

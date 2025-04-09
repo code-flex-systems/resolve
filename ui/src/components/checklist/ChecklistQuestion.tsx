@@ -33,7 +33,14 @@ export function ChecklistQuestion(props: {
 							return <ChecklistAnswerFreeform key={question.id} field={field} question={question} />;
 						case QuestionType.MULTI:
 						case QuestionType.SINGLE:
-							return <ChecklistAnswerRadio key={question.id} field={field} question={question} />;
+							return (
+								<ChecklistAnswerRadio
+									key={question.id}
+									field={field}
+									question={question}
+									watch={watch}
+								/>
+							);
 						default:
 							return <></>;
 					}

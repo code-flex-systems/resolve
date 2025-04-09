@@ -1,9 +1,8 @@
 import { Typography } from '@mui/material';
 import * as actions from '../../state/checklist/actions';
 import { useChecklistSlice } from '../../state/store';
-import { Answer } from '../../types';
+import { ChecklistMode, QuestionType } from '../../config/enums';
 import './styles.css';
-import { ChecklistMode } from '../../config/enums';
 
 export default function AnswerNode(props: {
 	pageId: number;
@@ -19,7 +18,7 @@ export default function AnswerNode(props: {
 	let isPlaceholder = answerId === -1;
 	return (
 		<div
-			style={{ ...styles.node, paddingLeft: level * 20 }}
+			style={{ ...styles.node, paddingLeft: level * 25 }}
 			onClick={mode === ChecklistMode.EDIT ? () => actions.updateSelectedAnswer(questionId, answerId) : undefined}
 			className="flex-row-between"
 		>

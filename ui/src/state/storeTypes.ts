@@ -8,14 +8,15 @@ export interface ChecklistSlice {
 	mode: ChecklistMode;
 	pages: Map<number, Question[]>;
 	selectedAnswer: number | null;
-	selectedPage: number | null;
+	selectedPageInstance: number | null;
+	selectedPageInfo: TreeNode | null;
 	selectedQuestion: number | null;
 	tree: TreeNode[];
 }
 
 export interface GlobalSlice {
 	navOpen: boolean;
-	selectedPage: string;
+	selectedPageInstance: string;
 	user: number;
 }
 

@@ -1,6 +1,7 @@
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '../database/kysely';
 import { DB } from '../database/types';
+import { Transaction } from 'kysely';
 
 export default {
 	createAnswer,
@@ -11,10 +12,10 @@ export default {
 	modifyAnswer,
 };
 
-async function createAnswer(questionId: number, params: object) {
+async function createAnswer(questionId: number, params: object, trx?: Transaction<DB>) {
 	try {
 		let answerCount = (await getAnswerCount(questionId)) ?? 0;
-		return await db
+		return await (trx ?? db)
 			.insertInto('answer')
 			.values({
 				question_id: questionId,
@@ -23,7 +24,7 @@ async function createAnswer(questionId: number, params: object) {
 				a_type: params.a_type,
 				a_desc: params.a_desc,
 				a_freeform_lines: params.a_freeform_lines,
-				a_freeform_placeholder: params.a_freeform_lines,
+				a_freeform_placeholder: params.a_freeform_placeholder,
 				calls_page_id: params.calls_page_id,
 			})
 			.returningAll()

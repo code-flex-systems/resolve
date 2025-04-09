@@ -1,10 +1,8 @@
-import { DEFAULT_ANSWER, DEFAULT_QUESTION } from '../../config/defaults';
+import { DEFAULT_ANSWER, DEFAULT_QUESTION, DEFAULT_TREE_NODE } from '../../config/defaults';
 import { State } from '../store';
 import { SLICES } from '../storeConfig';
 
 const getSlice = (state: State) => state[SLICES.CHECKLIST];
-
-export function selectedPageInfo(state: State) {}
 
 export function selectedAnswerData(state: State) {
 	const { selectedQuestion, selectedAnswer } = getSlice(state);
@@ -17,8 +15,13 @@ export function selectedAnswerData(state: State) {
 }
 
 export function selectedPageData(state: State) {
-	const { selectedPage, pages } = getSlice(state);
-	return selectedPage ? pages.get(selectedPage) : undefined;
+	const { pages } = getSlice(state);
+	return pages.get(selectedPageInfo(state).pageId);
+}
+
+export function selectedPageInfo(state: State) {
+	const { selectedPageInfo } = getSlice(state);
+	return selectedPageInfo ?? DEFAULT_TREE_NODE;
 }
 
 export function selectedQuestionData(state: State) {

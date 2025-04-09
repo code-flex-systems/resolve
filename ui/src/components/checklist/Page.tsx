@@ -1,6 +1,6 @@
 import { Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
-import useStore from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { QuestionType } from '../../config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
@@ -30,6 +30,7 @@ function generateDefaultValues(questions?: Question[]) {
 
 export default function Page() {
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
+	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
 
 	useEffect(() => {
@@ -44,7 +45,7 @@ export default function Page() {
 				left={
 					<>
 						<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
-						<Typography fontSize={20}>Page 2</Typography>
+						<Typography fontSize={20}>{selectedPageInfo.title}</Typography>
 					</>
 				}
 				right={

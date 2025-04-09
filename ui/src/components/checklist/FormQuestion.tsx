@@ -1,8 +1,5 @@
 import { Controller, Form, useForm } from 'react-hook-form';
-import useStore, { useChecklistSlice } from '../../state/store';
 import { useShallow } from 'zustand/react/shallow';
-import * as selectors from '../../state/checklist/selectors';
-import { Question } from '../../types';
 import {
 	Button,
 	Divider,
@@ -14,13 +11,17 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { ContactSupport } from '@mui/icons-material';
+
 import { QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
 import { useAddUpdateQuestion, useDeleteQuestion, useQuestions } from '../../api/queries/page-queries';
 import Toolbar from '../common/Toolbar';
-import { Description } from '@mui/icons-material';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
+import useStore, { useChecklistSlice } from '../../state/store';
+import * as selectors from '../../state/checklist/selectors';
+import { Question } from '../../types';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	let formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -29,12 +30,12 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
-	const selectedPage = useChecklistSlice((state) => state.selectedPage) ?? -1;
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
+	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-	const { isPending: updating, mutateAsync: addUpdateQuestion } = useAddUpdateQuestion(selectedPage);
+	const { isPending: updating, mutateAsync: addUpdateQuestion } = useAddUpdateQuestion(selectedPageInfo.pageId);
 	const { isPending: deleting, mutateAsync: deleteQuestion } = useDeleteQuestion(selectedQuestionData.id);
-	const { isFetching: refetching, refetch } = useQuestions(selectedPage, false, actions.updatePage);
+	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
 	const {
 		control,
 		handleSubmit,
@@ -70,15 +71,17 @@ export default function FormQuestion() {
 
 	useEffect(() => {
 		reset({ ...getDefaults(selectedQuestionData) });
-	}, [selectedQuestionData, selectedPage]);
+	}, [selectedQuestionData, selectedPageInfo.pageId]);
 
 	return (
 		<>
 			<Toolbar
 				left={
 					<>
-						<Description sx={styles.toolbar} />
-						<Typography fontSize={20}>Page 2</Typography>
+						<ContactSupport sx={styles.toolbar} />
+						<Typography fontSize={20}>
+							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
+						</Typography>
 					</>
 				}
 				right={

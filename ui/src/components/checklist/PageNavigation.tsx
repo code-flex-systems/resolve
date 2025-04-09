@@ -9,7 +9,6 @@ import BasicButton from '../common/BasicButton';
 
 export default function PageNavigation() {
 	const expandAll = useChecklistSlice((state) => state.expandAll);
-	const pages = useChecklistSlice((state) => state.pages);
 	const { isFetching, refetch } = usePageInstanceTree(actions.updateTree);
 	const tree = useChecklistSlice((state) => state.tree);
 
@@ -36,7 +35,7 @@ export default function PageNavigation() {
 			<Divider />
 			<Collapse in={!isFetching}>
 				{tree.map((node) => (
-					<TreeNode key={node.id} level={0} {...node} />
+					<TreeNode key={node.instanceId} level={0} {...node} />
 				))}
 			</Collapse>
 		</Paper>

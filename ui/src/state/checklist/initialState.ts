@@ -4,10 +4,11 @@ import { ChecklistSlice } from '../storeTypes';
 const checklistSlice: ChecklistSlice = Object.freeze({
 	expanded: new Map(),
 	expandAll: false,
-	mode: ChecklistMode.VIEW,
+	mode: ChecklistMode.EDIT,
 	pages: new Map(),
 	selectedAnswer: null,
-	selectedPage: null,
+	selectedPageInstance: null,
+	selectedPageInfo: null,
 	selectedQuestion: null,
 	tree: [],
 });

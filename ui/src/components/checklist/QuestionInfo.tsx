@@ -1,16 +1,18 @@
 import { Info } from '@mui/icons-material';
 import './styles.css';
-import BasicPopper from '../common/BasicPopper';
-import { Fade, Paper, Popper, PopperProps, Typography } from '@mui/material';
-import { useRef, useState } from 'react';
+import { Fade, Paper, Popper, Tooltip, Typography } from '@mui/material';
+import { useRef } from 'react';
 import theme from '../../styles/theme';
 
 export default function QuestionInfo(props: { description: string | null; filename: string | null }) {
+	const { description } = props;
 	const ref = useRef(null);
 
 	return (
 		<>
-			<Info ref={ref} sx={{ color: 'info.main', marginLeft: '5px' }} className="info" />
+			<Tooltip title={description ?? ''} placement="top" arrow>
+				<Info ref={ref} sx={{ color: 'info.main', marginLeft: '5px' }} className="info" />
+			</Tooltip>
 
 			<Popper
 				open={true}

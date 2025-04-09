@@ -1,5 +1,6 @@
 export enum AnswerType {
 	FREEFORM = 'freeform',
+	STANDARD = 'standard',
 }
 
 export enum ChecklistMode {

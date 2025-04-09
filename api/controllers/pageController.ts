@@ -1,4 +1,5 @@
 import pageQueries from '../queries/pageQueries';
+import { TreeNode } from '../types/types';
 
 export default {
 	createPage,
@@ -74,18 +75,17 @@ async function getPageInstances(checklistId: number, parentId: number) {
 	}
 }
 
-export interface TreeNode {
-	id: number;
-	title: string;
-	children?: TreeNode[];
-}
-
 async function getPageInstanceTree(checklistId: number) {
 	try {
 		let results = (await pageQueries.getPageInstances(checklistId)) ?? [];
 		let tree: TreeNode[] = results
-			.filter((row) => !row.parent_id)
-			.map((row) => ({ id: row.instance_id, title: row.title }));
+			.filter((row) => !row.parent_instance_id)
+			.map((row) => ({
+				instanceId: row.instance_id,
+				parentInstanceId: row.parent_instance_id,
+				pageId: row.id,
+				title: row.title,
+			}));
 		for (let node of tree) {
 			addChildrenToTree(node, results);
 		}
@@ -112,12 +112,17 @@ function addChildrenToTree(
 		id: number;
 		title: string;
 		instance_id: number;
-		parent_id: number | null;
+		parent_instance_id: number | null;
 	}[]
 ) {
-	let children = results
-		.filter((row) => row.parent_id === +node.id)
-		.map((row) => ({ id: row.instance_id, title: row.title }));
+	let children: TreeNode[] = results
+		.filter((row) => row.parent_instance_id === +node.instanceId)
+		.map((row) => ({
+			instanceId: row.instance_id,
+			pageId: row.id,
+			parentInstanceId: row.parent_instance_id,
+			title: row.title,
+		}));
 	node.children = children.length ? children : undefined;
 	if (node.children) {
 		for (let c of node.children) {

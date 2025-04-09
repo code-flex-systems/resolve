@@ -4,6 +4,7 @@ import { Answer } from '../types/types';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { DB } from '../database/types';
 import { InsertExpression } from 'kysely/dist/cjs/parser/insert-values-parser';
+import answerQueries from './answerQueries';
 
 export default {
 	createQuestion,
@@ -15,16 +16,34 @@ export default {
 
 async function createQuestion(pageId: number, params: object) {
 	try {
-		return await db
-			.insertInto('question')
-			.values({
-				page_id: pageId,
-				q_text: params.q_text,
-				q_type: params.q_type,
-				q_desc: params.q_desc,
-			})
-			.returningAll()
-			.executeTakeFirst();
+		let newQuestion: any;
+		await db.transaction().execute(async (trx) => {
+			try {
+				newQuestion = await trx
+					.insertInto('question')
+					.values({
+						page_id: pageId,
+						q_text: params.q_text,
+						q_type: params.q_type,
+						q_desc: params.q_desc,
+					})
+					.returningAll()
+					.executeTakeFirst();
+				if (params.q_type === 'freeform') {
+					await answerQueries.createAnswer(
+						newQuestion.id,
+						{
+							a_text: 'New answer',
+							a_type: 'freeform',
+						},
+						trx
+					);
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		});
+		return newQuestion;
 	} catch (e) {
 		console.error(e);
 	}

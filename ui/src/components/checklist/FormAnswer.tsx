@@ -5,6 +5,7 @@ import * as selectors from '../../state/checklist/selectors';
 import { Answer } from '../../types';
 import {
 	Button,
+	Collapse,
 	Divider,
 	FormControl,
 	FormControlLabel,
@@ -12,34 +13,40 @@ import {
 	Radio,
 	RadioGroup,
 	TextField,
+	Tooltip,
 	Typography,
 } from '@mui/material';
-import { AnswerType } from '../../config/enums';
+import { AnswerType, QuestionType } from '../../config/enums';
 import { useEffect } from 'react';
-import { Description } from '@mui/icons-material';
+import { InsertComment } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import { useAddUpdateAnswer, useDeleteAnswer, useQuestions } from '../../api/queries/page-queries';
 import * as actions from '../../state/checklist/actions';
 
 export default function FormAnswer() {
-	const selectedPage = useChecklistSlice((state) => state.selectedPage);
+	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
+	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedAnswerData = useStore(useShallow(selectors.selectedAnswerData));
 	const { isPending: updating, mutateAsync: addUpdateAnswer } = useAddUpdateAnswer(selectedQuestion);
 	const { isPending: deleting, mutateAsync: deleteAnswer } = useDeleteAnswer(selectedAnswerData.id);
-	const { isFetching: refetching, refetch } = useQuestions(selectedPage, false, actions.updatePage);
+	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
 	const {
 		control,
 		handleSubmit,
 		reset,
 		formState: { errors },
+		watch,
 	} = useForm<Answer>({
 		defaultValues: {
 			...selectedAnswerData,
 		},
 	});
+	const answerType = watch('a_type');
 	let isPlaceholder = selectedAnswerData.id === -1;
+	let isFreeform = selectedQuestionData.q_type === QuestionType.FREEFORM;
 	let inTransition = updating || deleting || refetching;
+	let scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -70,22 +77,35 @@ export default function FormAnswer() {
 			<Toolbar
 				left={
 					<>
-						<Description sx={styles.toolbar} />
-						<Typography fontSize={20}>Page 2</Typography>
+						<InsertComment sx={styles.toolbar} />
+						<Typography fontSize={20}>
+							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
+							{isPlaceholder ? '?' : selectedAnswerData.id}
+						</Typography>
 					</>
 				}
 				right={
 					<>
 						{!isPlaceholder && (
-							<Button
-								disabled={inTransition}
-								variant="contained"
-								color="error"
-								onClick={onDelete}
-								sx={{ height: 25, marginRight: '10px' }}
+							<Tooltip
+								title={
+									isFreeform
+										? `Question ${scopedQuestionId} is free-form. Please change the question type to remove this answer.`
+										: ''
+								}
 							>
-								Delete
-							</Button>
+								<span>
+									<Button
+										disabled={inTransition || isFreeform}
+										variant="contained"
+										color="error"
+										onClick={onDelete}
+										sx={{ height: 25, marginRight: '10px' }}
+									>
+										Delete
+									</Button>
+								</span>
+							</Tooltip>
 						)}
 						<Button onClick={onSubmit} disabled={inTransition} variant="contained" sx={{ height: 25 }}>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -137,19 +157,68 @@ export default function FormAnswer() {
 						name="a_type"
 						control={control}
 						render={({ field }) => (
-							<FormControl style={styles.item}>
-								<FormLabel>Answer type</FormLabel>
-								<RadioGroup {...field} row>
-									<FormControlLabel
-										control={<Radio />}
-										label="Free-form"
-										value={AnswerType.FREEFORM}
-									/>
-								</RadioGroup>
-							</FormControl>
+							<Tooltip
+								title={
+									isFreeform
+										? `Question ${scopedQuestionId} is free-form. Please change the question type to edit the answer type.`
+										: ''
+								}
+							>
+								<FormControl disabled={isFreeform} style={styles.item}>
+									<FormLabel>Answer type</FormLabel>
+									<RadioGroup {...field} row>
+										<FormControlLabel
+											control={<Radio />}
+											label="Standard"
+											value={AnswerType.STANDARD}
+										/>
+										<FormControlLabel
+											control={<Radio />}
+											label="Free-form"
+											value={AnswerType.FREEFORM}
+										/>
+									</RadioGroup>
+								</FormControl>
+							</Tooltip>
 						)}
 					/>
 				</div>
+				{answerType === AnswerType.FREEFORM && (
+					<div style={styles.row} className="flex-row-left">
+						<Controller
+							name="a_freeform_placeholder"
+							control={control}
+							render={({ field }) => (
+								<TextField
+									label="Free-form placeholder (optional)"
+									placeholder="e.g. "
+									variant="outlined"
+									{...field}
+									value={field.value ?? ''}
+									sx={styles.textFieldOverrides}
+									style={styles.item}
+								/>
+							)}
+						/>
+
+						<Controller
+							name="a_freeform_lines"
+							control={control}
+							render={({ field }) => (
+								<TextField
+									label="Free-form # of lines (optional)"
+									placeholder="e.g. "
+									variant="outlined"
+									type="number"
+									{...field}
+									value={field.value ?? ''}
+									sx={{ ...styles.textFieldOverrides, width: 200 }}
+									style={styles.item}
+								/>
+							)}
+						/>
+					</div>
+				)}
 			</Form>
 		</>
 	);
