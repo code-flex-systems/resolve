@@ -1,14 +1,13 @@
-import { Checkbox, FormControlLabel, Link, Radio, TextField, Tooltip } from '@mui/material';
-import { QuestionType } from '../../config/enums';
-import { Question } from '../../types';
+import { TextField } from '@mui/material';
+import { Answer } from '../../types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 
 export default function ChecklistAnswerFreeform(props: {
 	field: ControllerRenderProps<FieldValues, string>;
-	question: Question;
+	answer?: Answer;
+	disabled?: boolean;
 }) {
-	const { field, question } = props;
-	let answer = question.answers?.[0];
+	const { field, answer, disabled } = props;
 	if (!answer) return <></>;
 	return (
 		<TextField
@@ -17,6 +16,7 @@ export default function ChecklistAnswerFreeform(props: {
 			multiline={!!answer.additional_info_num_lines}
 			rows={answer.additional_info_num_lines ?? 0}
 			{...field}
+			disabled={disabled}
 			sx={{
 				width: 300,
 				marginTop: '5px',

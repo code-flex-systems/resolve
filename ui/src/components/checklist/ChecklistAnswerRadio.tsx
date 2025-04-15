@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, Link, Radio, Tooltip } from '@mui/material';
+import { Checkbox, FormControlLabel, Link, Radio, TextField, Tooltip } from '@mui/material';
 import { QuestionType } from '../../config/enums';
 import { Question } from '../../types';
 import { ControllerRenderProps, FieldValues, UseFormWatch } from 'react-hook-form';
@@ -18,26 +18,26 @@ export default function ChecklistAnswerRadio(props: {
 						control={
 							question.type === QuestionType.MULTI ? (
 								<Checkbox
-									checked={!!field.value?.includes(a.text)}
+									checked={!!field.value?.includes(a.id)}
 									onChange={(e) => {
 										const newValue = e.target.checked
-											? [...(field.value ?? []), a.text]
-											: field.value?.filter((value: any) => value !== a.text);
+											? [...(field.value ?? []), a.id]
+											: field.value?.filter((value: any) => value !== a.id);
 										field.onChange(newValue);
 									}}
 								/>
 							) : (
 								<Radio
-									checked={!!field.value?.includes(a.text)}
+									checked={!!field.value?.includes(a.id)}
 									onChange={(e) => {
-										const newValue = e.target.checked ? [a.text] : [];
+										const newValue = e.target.checked ? [a.id] : [];
 										field.onChange(newValue);
 									}}
 								/>
 							)
 						}
 						label={
-							a.calls_instance_id && field.value?.includes(a.text) ? (
+							a.calls_instance_id && field.value?.includes(a.id) ? (
 								<Link
 									color="info"
 									onClick={() => {

@@ -44,7 +44,7 @@ export interface Checklist {
   name: string;
 }
 
-export interface ClaimDummy {
+export interface Claim {
   checklist_id: number;
   claim_amount: Numeric | null;
   claim_number: string | null;
@@ -93,6 +93,7 @@ export interface Question {
 
 export interface QuestionResponse {
   checklist_id: number;
+  claim_id: number;
   created_at: Generated<Timestamp | null>;
   id: Generated<number>;
   instance_id: number;
@@ -111,6 +112,7 @@ export interface QuestionResponseAnswer {
 export interface ResponseAuditLogs {
   action: string;
   checklist_id: number;
+  claim_id: number;
   id: Generated<number>;
   instance_id: number;
   new_additional_info: Json | null;
@@ -128,7 +130,7 @@ export interface ResponseAuditLogs {
 export interface DB {
   answer: Answer;
   checklist: Checklist;
-  claim_dummy: ClaimDummy;
+  claim: Claim;
   doc: Doc;
   page: Page;
   page_instance: PageInstance;

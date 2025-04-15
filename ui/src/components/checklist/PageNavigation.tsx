@@ -1,6 +1,6 @@
 import { Collapse, Divider, Paper, Typography } from '@mui/material';
 import { OFFWHITE_COLOR } from '../../styles/theme';
-import { useChecklistSlice } from '../../state/store';
+import { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import { usePageInstanceTree } from '../../api/queries/page-queries';
 import * as actions from '../../state/checklist/actions';
 import Toolbar from '../common/Toolbar';
@@ -8,6 +8,7 @@ import TreeNode from './TreeNode';
 import BasicButton from '../common/BasicButton';
 
 export default function PageNavigation() {
+	const checklist = useGlobalSlice((state) => state.checklist);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const { isFetching, refetch } = usePageInstanceTree(actions.updateTree);
 	const tree = useChecklistSlice((state) => state.tree);
@@ -17,7 +18,7 @@ export default function PageNavigation() {
 			<Toolbar
 				left={
 					<Typography fontSize={17} fontWeight="bold">
-						Checklist 1
+						{checklist?.name ?? ''}
 					</Typography>
 				}
 				right={

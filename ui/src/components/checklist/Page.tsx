@@ -1,26 +1,42 @@
 import { Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
-import useStore, { useChecklistSlice } from '../../state/store';
+import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { QuestionType } from '../../config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
-import { Question } from '../../types';
+import { Question, QuestionResponse } from '../../types';
 import { useEffect } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description } from '@mui/icons-material';
 import ClaimInfo from './ClaimInfo';
+import { upsertResponses } from '../../api/axios-routes';
+import { useAllResponses, useResponses } from '../../api/queries/response-queries';
+import * as actions from '../../state/checklist/actions';
 
-function generateDefaultValues(questions?: Question[]) {
-	let defaults: Record<string, string[] | string> = {};
+function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
+	let defaults: Record<string, number[] | string> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
 		switch (q.type) {
+			case QuestionType.DROPDOWN:
 			case QuestionType.MULTI:
 			case QuestionType.SINGLE:
-				defaults[q.id.toString()] = [];
+				if (responses?.[q.id]) {
+					let answers = responses[q.id].selected_answers ?? [];
+					let answerOther = q.answers.find((a) => a.has_additional_info);
+					defaults[q.id.toString()] = answers.map((a) => a.answer_id);
+					if (answerOther) {
+						defaults[`${q.id}-${answerOther.id}-${QuestionType.FREEFORM}`] =
+							answers.find((a) => a.answer_id === answerOther.id)?.additional_info ?? '';
+					}
+				} else {
+					defaults[q.id.toString()] = [];
+				}
 				break;
 			case QuestionType.FREEFORM:
+				defaults[q.id.toString()] = responses?.[q.id]?.response_text ?? '';
+				break;
 			default:
 				defaults[q.id.toString()] = '';
 				break;
@@ -30,16 +46,56 @@ function generateDefaultValues(questions?: Question[]) {
 }
 
 export default function Page() {
+	const checklist = useGlobalSlice((state) => state.checklist);
+	const claim = useChecklistSlice((state) => state.claim);
+	const responses = useChecklistSlice((state) => state.responses);
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
+	const { isFetching: loadingAll } = useAllResponses(
+		claim?.id ?? -1,
+		actions.updateAllResponses,
+		!Object.keys(responses).length
+	);
+	const { refetch, isFetching: loading } = useResponses(
+		claim?.id ?? -1,
+		selectedPageInstance ?? -1,
+		actions.updateInstanceResponses,
+		false
+	);
 
 	useEffect(() => {
-		reset({ ...generateDefaultValues(selectedPageData) });
-	}, [selectedPageData]);
+		reset({ ...generateDefaultValues(selectedPageData, responses) });
+	}, [selectedPageData, responses]);
 
-	const onSubmit = handleSubmit((data) => console.log(data));
+	const onSubmit = handleSubmit(async (data) => {
+		try {
+			let responses: QuestionResponse[] = Object.keys(data)
+				.filter((field) => !field.endsWith(QuestionType.FREEFORM))
+				.map((field) => {
+					let questionId = parseInt(field);
+					let response: QuestionResponse = {
+						checklist_id: checklist?.id ?? -1,
+						instance_id: selectedPageInstance ?? -1,
+						claim_id: claim.id,
+						question_id: questionId,
+						response_text: typeof data[field] === 'string' ? data[field] : undefined,
+						selected_answers: Array.isArray(data[field])
+							? data[field].map((id) => ({
+									answer_id: id,
+									additional_info: data[`${questionId}-${id}-${QuestionType.FREEFORM}`],
+							  }))
+							: [],
+					};
+					return response;
+				});
+			await upsertResponses(responses);
+			await refetch();
+		} catch (e) {
+			console.error(e);
+		}
+	});
 
 	return (
 		<div style={styles.container}>
@@ -64,7 +120,7 @@ export default function Page() {
 							<>
 								<Button
 									variant="outlined"
-									onClick={() => reset({ ...generateDefaultValues(selectedPageData) })}
+									onClick={() => reset({ ...generateDefaultValues(selectedPageData, responses) })}
 									sx={{ height: 25, marginRight: '10px' }}
 								>
 									Reset

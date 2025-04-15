@@ -14,6 +14,11 @@ export interface Answer {
 	calls_instance_id: number | null;
 }
 
+export interface Checklist {
+	id: number;
+	name: string;
+}
+
 export interface NavListItem {
 	color?: string;
 	icon?: JSX.Element;
@@ -47,4 +52,18 @@ export interface Question {
 	page_id: number;
 	placeholder: string | null;
 	type: string;
+}
+
+export interface QuestionResponse {
+	checklist_id: number;
+	instance_id: number;
+	claim_id: number;
+	question_id: number;
+	response_text?: string;
+	selected_answers: QuestionResponseAnswer[];
+}
+
+export interface QuestionResponseAnswer {
+	answer_id: number;
+	additional_info?: string;
 }

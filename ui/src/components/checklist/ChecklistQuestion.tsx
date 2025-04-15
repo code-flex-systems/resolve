@@ -16,6 +16,8 @@ export function ChecklistQuestion(props: {
 	const { control, question, resetField, watch, idx } = props;
 	const fieldName = question.id.toString();
 	const fieldValue = watch(fieldName);
+	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
+	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
 	return (
 		<div style={styles.container} className="flex-col-left">
 			<ChecklistFormLabel
@@ -33,7 +35,13 @@ export function ChecklistQuestion(props: {
 						case QuestionType.DROPDOWN:
 							return <ChecklistAnswerDropdown key={question.id} field={field} question={question} />;
 						case QuestionType.FREEFORM:
-							return <ChecklistAnswerFreeform key={question.id} field={field} question={question} />;
+							return (
+								<ChecklistAnswerFreeform
+									key={question.id}
+									field={field}
+									answer={question.answers?.[0]}
+								/>
+							);
 						case QuestionType.MULTI:
 						case QuestionType.SINGLE:
 							return (
@@ -49,6 +57,20 @@ export function ChecklistQuestion(props: {
 					}
 				}}
 			/>
+			{question.type === QuestionType.SINGLE && !!additionalInfoAnswer && (
+				<Controller
+					name={fieldFreeformName}
+					control={control}
+					render={({ field }) => (
+						<ChecklistAnswerFreeform
+							key={fieldFreeformName}
+							field={field}
+							answer={additionalInfoAnswer}
+							disabled={!fieldValue || !fieldValue.includes(additionalInfoAnswer.id)}
+						/>
+					)}
+				/>
+			)}
 		</div>
 	);
 }

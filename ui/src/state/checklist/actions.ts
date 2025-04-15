@@ -1,6 +1,6 @@
 import { TreeViewBaseItem } from '@mui/x-tree-view';
 import { ChecklistMode } from '../../config/enums';
-import { PageInstance, Question, TreeNode } from '../../types';
+import { PageInstance, Question, QuestionResponse, TreeNode } from '../../types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
@@ -30,6 +30,20 @@ export function toggleExpandAll() {
 	setState((state) => {
 		state.expandAll = !state.expandAll;
 		if (!state.expandAll) state.expanded = new Map();
+	});
+}
+
+export function updateAllResponses(responses: Record<number, QuestionResponse>) {
+	setState((state) => {
+		state.responses = responses;
+	});
+}
+
+export function updateInstanceResponses(responses: Record<number, QuestionResponse>) {
+	setState((state) => {
+		Object.keys(responses).forEach((id) => {
+			state.responses[+id] = responses[+id];
+		});
 	});
 }
 

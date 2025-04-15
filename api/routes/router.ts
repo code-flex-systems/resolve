@@ -13,6 +13,7 @@ import pageRoutes from './routeHandlers/pageRoutes';
 import questionRoutes from './routeHandlers/questionRoutes';
 import docRoutes from './routeHandlers/docRoutes';
 import claimRoutes from './routeHandlers/claimRoutes';
+import responseRoutes from './routeHandlers/responseRoutes';
 
 export const router = express.Router();
 
@@ -56,6 +57,10 @@ router.get('/docs/:docId', docRoutes.getDoc);
 router.get('/:pageId/questions', questionRoutes.getQuestions);
 router.get('/questions/:questionId', questionRoutes.getQuestion);
 
+// responses
+router.get('/:checklistId/:claimId/responses', responseRoutes.getResponsesForClaimChecklist);
+router.get('/:checklistId/:claimId/:instanceId/responses', responseRoutes.getResponsesForInstance);
+
 //
 // POST
 //
@@ -65,6 +70,7 @@ router.post('/checklists', checklistRoutes.createChecklist);
 router.post('/docs', docRoutes.createDoc);
 router.post('/:pageId/questions', questionRoutes.createQuestion);
 router.post('/:pageId/questions/copy/:questionId', questionRoutes.copyQuestion);
+router.post('/responses', responseRoutes.upsertQuestionResponses);
 
 // pages
 router.post('/:checklistId/pages/:parentId', pageRoutes.createPage);

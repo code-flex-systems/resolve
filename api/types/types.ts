@@ -19,3 +19,17 @@ export interface TreeNode {
 	title: string;
 	children?: TreeNode[];
 }
+
+export interface QuestionResponse {
+	checklist_id: number;
+	instance_id: number;
+	claim_id: number;
+	question_id: number;
+	response_text: string | null;
+	selected_answers: QuestionResponseAnswer[];
+}
+
+export interface QuestionResponseAnswer {
+	answer_id: number;
+	additional_info: string | null;
+}

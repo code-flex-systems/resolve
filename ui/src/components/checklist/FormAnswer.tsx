@@ -5,18 +5,17 @@ import * as selectors from '../../state/checklist/selectors';
 import { Answer } from '../../types';
 import {
 	Button,
-	Collapse,
+	Checkbox,
 	Divider,
 	FormControl,
-	FormControlLabel,
 	FormLabel,
-	Radio,
-	RadioGroup,
+	MenuItem,
+	Select,
 	TextField,
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import { AnswerType, QuestionType } from '../../config/enums';
+import { QuestionType } from '../../config/enums';
 import { useEffect } from 'react';
 import { InsertComment } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
@@ -43,6 +42,7 @@ export default function FormAnswer() {
 			...selectedAnswerData,
 		},
 	});
+	const hasAdditionalInfo = watch('has_additional_info');
 	let isPlaceholder = selectedAnswerData.id === -1;
 	let isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	let inTransition = copying || updating || deleting || refetching;
@@ -183,7 +183,47 @@ export default function FormAnswer() {
 						)}
 					/>
 				</div>
-				{selectedQuestionData.type === QuestionType.FREEFORM && (
+				<div style={styles.row} className="flex-row-left">
+					<Controller
+						name="position"
+						control={control}
+						rules={{ required: true }}
+						render={({ field }) => (
+							<FormControl style={styles.item}>
+								<FormLabel sx={{ fontSize: 12 }}>Order</FormLabel>
+								<Select
+									variant="outlined"
+									error={!!errors.position}
+									{...field}
+									sx={{ ...styles.textFieldOverrides, width: 50 }}
+									style={styles.item}
+								>
+									<MenuItem key={1} value={'1'}>
+										1
+									</MenuItem>
+									<MenuItem key={2} value={'2'}>
+										2
+									</MenuItem>
+									<MenuItem key={3} value={'3'}>
+										3
+									</MenuItem>
+								</Select>
+							</FormControl>
+						)}
+					/>
+
+					<Controller
+						name="has_additional_info"
+						control={control}
+						render={({ field }) => (
+							<FormControl style={{ ...styles.item, marginLeft: 15 }}>
+								<FormLabel sx={{ fontSize: 12 }}>Additional info?</FormLabel>
+								<Checkbox {...field} sx={{ width: 35, height: 35 }} />
+							</FormControl>
+						)}
+					/>
+				</div>
+				{hasAdditionalInfo && (
 					<div style={styles.row} className="flex-row-left">
 						<Controller
 							name="additional_info_placeholder"

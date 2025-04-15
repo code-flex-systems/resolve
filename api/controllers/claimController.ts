@@ -7,7 +7,7 @@ export default {
 export async function getClaim(checklistId: number, claimId: number) {
 	try {
 		return await db
-			.selectFrom('claim_dummy')
+			.selectFrom('claim')
 			.selectAll()
 			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('id', '=', claimId)]))
 			.executeTakeFirst();

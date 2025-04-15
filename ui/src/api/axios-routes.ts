@@ -1,3 +1,4 @@
+import { QuestionResponse } from '../types';
 import { performAsyncDelete, performAsyncGet, performAsyncPost, performAsyncPut } from './axios-utils';
 
 const ROUTES = {
@@ -7,6 +8,7 @@ const ROUTES = {
 	INSTANCES: '/instances',
 	PAGES: '/pages',
 	QUESTIONS: '/questions',
+	RESPONSES: '/responses',
 	USERS: '/users',
 };
 
@@ -130,4 +132,16 @@ export function getQuestions(pageId: number) {
 
 export function modifyQuestion(questionId: number, updates: object) {
 	return performAsyncPut(`${ROUTES.QUESTIONS}/${questionId}`, updates);
+}
+
+export function getAllResponses(checklistId: number, claimId: number) {
+	return performAsyncGet(`/${checklistId}/${claimId}${ROUTES.RESPONSES}`);
+}
+
+export function getResponses(checklistId: number, claimId: number, instanceId: number) {
+	return performAsyncGet(`/${checklistId}/${claimId}/${instanceId}${ROUTES.RESPONSES}`);
+}
+
+export function upsertResponses(responses: QuestionResponse[]) {
+	return performAsyncPost(ROUTES.RESPONSES, { responses });
 }

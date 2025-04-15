@@ -133,6 +133,7 @@ async function getQuestions(pageId: number) {
                         'position', ${eb.ref('a.position')},
                         'additional_info_num_lines', ${eb.ref('a.additional_info_num_lines')},
                         'additional_info_placeholder', ${eb.ref('a.additional_info_placeholder')},
+                        'has_additional_info', ${eb.ref('a.has_additional_info')},
                         'calls_instance_id', ${eb.ref('a.calls_instance_id')}
                     )
                 ) filter (where a.id is not null)`

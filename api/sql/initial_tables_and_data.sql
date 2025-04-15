@@ -14,7 +14,7 @@ create table checklist(
 	name text not null
 );
 
-create table claim_dummy(
+create table claim(
 	id serial not null primary key,
     checklist_id integer not null references checklist(id) on delete cascade,
 	claim_number text,
@@ -79,11 +79,12 @@ CREATE TABLE question_response (
     id SERIAL PRIMARY KEY,
     checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
     instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
+    claim_id INTEGER NOT NULL REFERENCES claim(id) ON DELETE CASCADE,
     question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
     response_text TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(checklist_id, instance_id, question_id)
+    UNIQUE(checklist_id, instance_id, claim_id, question_id)
 );
 
 CREATE TABLE question_response_answer (
@@ -99,6 +100,7 @@ CREATE TABLE response_audit_logs (
     user_id INTEGER NOT NULL, -- assuming a users table will be added
     checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
     instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
+    claim_id INTEGER NOT NULL REFERENCES claim(id) ON DELETE CASCADE,
     question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
 
     action TEXT NOT NULL CHECK (action IN ('insert', 'update', 'delete')),
@@ -120,7 +122,7 @@ INSERT INTO checklist (name) VALUES
 ('Checklist B');
 
 -- Insert claims
-INSERT INTO claim_dummy (
+INSERT INTO claim (
     checklist_id, claim_number, client, client_adjuster, insured, claim_amount,
     total_incurred, date_of_loss, loss_location, last_updated_by, last_update, expected_recovery
 ) VALUES
@@ -157,10 +159,10 @@ INSERT INTO answer (question_id, text, position, has_additional_info, additional
 (3, 'No', 2, true, 'Please explain dissatisfaction...', 3, false);
 
 -- Insert question responses
-INSERT INTO question_response (checklist_id, instance_id, question_id, response_text) VALUES 
-(1, 1, 1, 'Water leak from pipe burst'),
-(1, 2, 2, NULL),
-(1, 2, 3, NULL);
+INSERT INTO question_response (checklist_id, instance_id, claim_id, question_id, response_text) VALUES 
+(1, 1, 1, 1, 'Water leak from pipe burst'),
+(1, 2, 1, 2, NULL),
+(1, 2, 1, 3, NULL);
 
 -- Insert response answers
 INSERT INTO question_response_answer (response_id, answer_id, additional_info) VALUES
@@ -170,11 +172,11 @@ INSERT INTO question_response_answer (response_id, answer_id, additional_info) V
 
 -- Insert audit logs
 INSERT INTO response_audit_logs (
-    response_id, user_id, checklist_id, instance_id, question_id, action,
+    response_id, user_id, checklist_id, instance_id, claim_id, question_id, action,
     old_response_text, new_response_text, old_answer_ids, new_answer_ids,
     old_additional_info, new_additional_info
 ) VALUES 
-(3, 1001, 1, 2, 3, 'update', 
+(3, 1001, 1, 2, 1, 3, 'update', 
  NULL, 'No', 
  '["3"]', '["4"]',
  NULL, '{"4": "Delayed response from adjuster"}');

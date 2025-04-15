@@ -7,6 +7,7 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	expandAll: false,
 	mode: ChecklistMode.VIEW,
 	pages: new Map(),
+	responses: {},
 	selectedAnswer: null,
 	selectedPageInstance: null,
 	selectedPageInfo: null,

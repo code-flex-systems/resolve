@@ -125,6 +125,7 @@ const styles = {
 	},
 	innerContainer: {
 		width: '50%',
+		maxWidth: 450,
 		padding: '0px 10px 10px',
 	},
 	row: {
