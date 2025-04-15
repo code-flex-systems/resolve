@@ -64,14 +64,14 @@ export default function QuestionNode(props: {
 			</div>
 			<Collapse in={expanded}>
 				{[...questionAnswers]
-					.sort((a, b) => a.a_order - b.a_order)
+					.sort((a, b) => a.position - b.position)
 					.map((a) => (
 						<AnswerNode
 							key={`p${pageId}.q${questionId}.a${a.id}`}
 							pageId={pageId}
 							questionId={questionId}
 							answerId={a.id}
-							answerText={a.a_text}
+							answerText={a.text}
 							level={level + 1}
 						/>
 					))}

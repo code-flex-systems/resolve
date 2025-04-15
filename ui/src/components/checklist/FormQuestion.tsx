@@ -19,7 +19,7 @@ import { useAddUpdateQuestion, useCopyQuestion, useDeleteQuestion, useQuestions 
 import Toolbar from '../common/Toolbar';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
-import useStore, { useChecklistSlice } from '../../state/store';
+import useStore from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { Question } from '../../types';
 
@@ -141,7 +141,7 @@ export default function FormQuestion() {
 			<Form control={control} style={{ width: '100%' }}>
 				<div style={styles.row} className="flex-row-left">
 					<Controller
-						name="q_text"
+						name="text"
 						control={control}
 						rules={{ required: true }}
 						render={({ field }) => (
@@ -150,7 +150,7 @@ export default function FormQuestion() {
 								placeholder="e.g. "
 								variant="outlined"
 								{...field}
-								error={!!errors.q_text}
+								error={!!errors.text}
 								sx={styles.textFieldOverrides}
 								style={styles.item}
 							/>
@@ -158,7 +158,7 @@ export default function FormQuestion() {
 					/>
 
 					<Controller
-						name="q_desc"
+						name="description_text"
 						control={control}
 						render={({ field }) => (
 							<TextField
@@ -175,12 +175,12 @@ export default function FormQuestion() {
 				</div>
 				<div style={styles.row} className="flex-row-left">
 					<Controller
-						name="q_type"
+						name="type"
 						control={control}
 						rules={{ required: true }}
 						render={({ field }) => (
 							<FormControl style={styles.item}>
-								<FormLabel sx={styles.formLabel} error={!!errors.q_type}>
+								<FormLabel sx={styles.formLabel} error={!!errors.type}>
 									Question type
 								</FormLabel>
 								<RadioGroup {...field} row>
@@ -191,6 +191,11 @@ export default function FormQuestion() {
 										value={QuestionType.SINGLE}
 									/>
 									<FormControlLabel control={<Radio />} label="Multi" value={QuestionType.MULTI} />
+									<FormControlLabel
+										control={<Radio />}
+										label="Dropdown"
+										value={QuestionType.DROPDOWN}
+									/>
 									<FormControlLabel
 										control={<Radio />}
 										label="Free-form"

@@ -5,7 +5,7 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	claim: null,
 	expanded: new Map(),
 	expandAll: false,
-	mode: ChecklistMode.EDIT,
+	mode: ChecklistMode.VIEW,
 	pages: new Map(),
 	selectedAnswer: null,
 	selectedPageInstance: null,

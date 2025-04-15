@@ -3,9 +3,9 @@ import { AnswerType, QuestionType } from './enums';
 
 export const DEFAULT_ANSWER: Answer = {
 	id: -1,
-	a_desc: '',
-	a_text: '',
-	a_order: -1,
+	description_text: '',
+	text: '',
+	position: -1,
 	a_type: AnswerType.STANDARD,
 	a_freeform_lines: null,
 	a_freeform_placeholder: null,
@@ -25,9 +25,9 @@ export const DEFAULT_TREE_NODE: TreeNode = {
 export const DEFAULT_QUESTION: Question = {
 	id: -1,
 	page_id: -1,
-	q_text: '',
-	q_type: QuestionType.SINGLE,
-	q_desc: '',
+	text: '',
+	type: QuestionType.SINGLE,
+	description_text: '',
 	answers: [],
 	doc_id: null,
 	q_filename: null,

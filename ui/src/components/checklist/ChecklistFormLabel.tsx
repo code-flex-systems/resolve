@@ -16,13 +16,13 @@ export default function ChecklistFormLabel(props: {
 	return (
 		<FormLabel className="flex-row-left">
 			<Typography fontWeight="bold">
-				{idx + 1}. {question.q_text}
+				{idx + 1}. {question.text}
 			</Typography>
 			<Tooltip title="Reset question" enterDelay={500}>
 				<span>
 					<IconButton
 						onClick={() =>
-							resetField(id, { defaultValue: question.q_type === QuestionType.FREEFORM ? '' : [] })
+							resetField(id, { defaultValue: question.type === QuestionType.FREEFORM ? '' : [] })
 						}
 						disabled={!value?.length}
 						sx={{ marginLeft: '10px' }}
@@ -31,7 +31,9 @@ export default function ChecklistFormLabel(props: {
 					</IconButton>
 				</span>
 			</Tooltip>
-			{!!question.q_desc && <QuestionInfo description={question.q_desc} filename={question.q_filename} />}
+			{!!question.description_text && (
+				<QuestionInfo description={question.description_text} filename={question.description_image_url} />
+			)}
 		</FormLabel>
 	);
 }

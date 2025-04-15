@@ -43,9 +43,8 @@ export default function FormAnswer() {
 			...selectedAnswerData,
 		},
 	});
-	const answerType = watch('a_type');
 	let isPlaceholder = selectedAnswerData.id === -1;
-	let isFreeform = selectedQuestionData.q_type === QuestionType.FREEFORM;
+	let isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	let inTransition = copying || updating || deleting || refetching;
 	let scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
 
@@ -152,7 +151,7 @@ export default function FormAnswer() {
 			<Form control={control} style={{ width: '100%' }}>
 				<div style={styles.row} className="flex-row-left">
 					<Controller
-						name="a_text"
+						name="text"
 						control={control}
 						rules={{ required: true }}
 						render={({ field }) => (
@@ -160,7 +159,7 @@ export default function FormAnswer() {
 								label="Answer text"
 								placeholder="e.g. "
 								variant="outlined"
-								error={!!errors.a_text}
+								error={!!errors.text}
 								{...field}
 								sx={styles.textFieldOverrides}
 								style={styles.item}
@@ -169,7 +168,7 @@ export default function FormAnswer() {
 					/>
 
 					<Controller
-						name="a_desc"
+						name="description_text"
 						control={control}
 						render={({ field }) => (
 							<TextField
@@ -184,41 +183,10 @@ export default function FormAnswer() {
 						)}
 					/>
 				</div>
-				<div style={styles.row} className="flex-row-left">
-					<Controller
-						name="a_type"
-						control={control}
-						render={({ field }) => (
-							<Tooltip
-								title={
-									isFreeform
-										? `Question ${scopedQuestionId} is free-form. Please change the question type to edit the answer type.`
-										: ''
-								}
-							>
-								<FormControl disabled={isFreeform} style={styles.item}>
-									<FormLabel sx={styles.formLabel}>Answer type</FormLabel>
-									<RadioGroup {...field} row>
-										<FormControlLabel
-											control={<Radio />}
-											label="Standard"
-											value={AnswerType.STANDARD}
-										/>
-										<FormControlLabel
-											control={<Radio />}
-											label="Free-form"
-											value={AnswerType.FREEFORM}
-										/>
-									</RadioGroup>
-								</FormControl>
-							</Tooltip>
-						)}
-					/>
-				</div>
-				{answerType === AnswerType.FREEFORM && (
+				{selectedQuestionData.type === QuestionType.FREEFORM && (
 					<div style={styles.row} className="flex-row-left">
 						<Controller
-							name="a_freeform_placeholder"
+							name="additional_info_placeholder"
 							control={control}
 							render={({ field }) => (
 								<TextField
@@ -234,7 +202,7 @@ export default function FormAnswer() {
 						/>
 
 						<Controller
-							name="a_freeform_lines"
+							name="additional_info_num_lines"
 							control={control}
 							render={({ field }) => (
 								<TextField

@@ -8,14 +8,14 @@ export default function ChecklistAnswerFreeform(props: {
 	question: Question;
 }) {
 	const { field, question } = props;
-	let answer = question.answers[0];
+	let answer = question.answers?.[0];
 	if (!answer) return <></>;
 	return (
 		<TextField
 			variant="outlined"
-			placeholder={answer.a_freeform_placeholder ?? ''}
-			multiline={!!answer.a_freeform_lines}
-			rows={answer.a_freeform_lines ?? 0}
+			placeholder={answer.additional_info_placeholder ?? ''}
+			multiline={!!answer.additional_info_num_lines}
+			rows={answer.additional_info_num_lines ?? 0}
 			{...field}
 			sx={{
 				width: 300,

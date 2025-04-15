@@ -13,42 +13,42 @@ export default function ChecklistAnswerRadio(props: {
 	return (
 		<div className="flex-row-left">
 			{question.answers.map((a) => (
-				<Tooltip key={a.id} placement="top" title={a.a_desc ?? ''} arrow>
+				<Tooltip key={a.id} placement="top" title={a.description_text ?? ''} arrow>
 					<FormControlLabel
 						control={
-							question.q_type === QuestionType.MULTI ? (
+							question.type === QuestionType.MULTI ? (
 								<Checkbox
-									checked={!!field.value?.includes(a.a_text)}
+									checked={!!field.value?.includes(a.text)}
 									onChange={(e) => {
 										const newValue = e.target.checked
-											? [...(field.value ?? []), a.a_text]
-											: field.value?.filter((value: any) => value !== a.a_text);
+											? [...(field.value ?? []), a.text]
+											: field.value?.filter((value: any) => value !== a.text);
 										field.onChange(newValue);
 									}}
 								/>
 							) : (
 								<Radio
-									checked={!!field.value?.includes(a.a_text)}
+									checked={!!field.value?.includes(a.text)}
 									onChange={(e) => {
-										const newValue = e.target.checked ? [a.a_text] : [];
+										const newValue = e.target.checked ? [a.text] : [];
 										field.onChange(newValue);
 									}}
 								/>
 							)
 						}
 						label={
-							a.calls_page_id && field.value?.includes(a.a_text) ? (
+							a.calls_instance_id && field.value?.includes(a.text) ? (
 								<Link
 									color="info"
 									onClick={() => {
-										actions.updateSelectedPage(a.calls_page_id);
-										actions.updateSelectedPageInfoSearch(a.calls_page_id!);
+										actions.updateSelectedPage(a.calls_instance_id);
+										actions.updateSelectedPageInfoSearch(a.calls_instance_id!);
 									}}
 								>
-									{a.a_text}
+									{a.text}
 								</Link>
 							) : (
-								a.a_text
+								a.text
 							)
 						}
 					/>

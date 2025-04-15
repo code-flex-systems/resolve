@@ -9,21 +9,34 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [x: string]: JsonValue | undefined;
+};
+
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Answer {
-  a_desc: string | null;
-  a_freeform_lines: number | null;
-  a_freeform_placeholder: string | null;
-  a_order: number;
-  a_text: string;
-  a_type: string;
-  calls_page_id: number | null;
-  doc_id: number | null;
+  additional_info_num_lines: number | null;
+  additional_info_placeholder: string | null;
+  calls_instance_id: number | null;
+  description_image_url: string | null;
+  description_text: string | null;
+  has_additional_info: Generated<boolean | null>;
   hidden: Generated<boolean | null>;
   id: Generated<number>;
+  position: number;
+  question_id: number;
+  text: string;
 }
 
 export interface Checklist {
@@ -31,12 +44,8 @@ export interface Checklist {
   name: string;
 }
 
-export interface ChecklistClaim {
-  checklist_id: number;
-  claim_id: number;
-}
-
 export interface ClaimDummy {
+  checklist_id: number;
   claim_amount: Numeric | null;
   claim_number: string | null;
   client: string | null;
@@ -67,42 +76,64 @@ export interface PageInstance {
   checklist_id: number;
   id: Generated<number>;
   page_id: number;
-}
-
-export interface PageInstanceParent {
-  instance_id: number;
   parent_instance_id: number | null;
 }
 
-export interface PageQuestion {
-  page_id: number;
-  question_id: number;
-}
-
 export interface Question {
-  doc_id: number | null;
+  description_image_url: string | null;
+  description_text: string | null;
   hidden: Generated<boolean | null>;
   id: Generated<number>;
-  q_desc: string | null;
-  q_text: string;
-  q_type: string;
+  num_lines: number | null;
+  page_id: number;
+  placeholder: string | null;
+  text: string;
+  type: string;
 }
 
-export interface QuestionAnswer {
-  answer_id: number;
+export interface QuestionResponse {
+  checklist_id: number;
+  created_at: Generated<Timestamp | null>;
+  id: Generated<number>;
+  instance_id: number;
   question_id: number;
+  response_text: string | null;
+  updated_at: Generated<Timestamp | null>;
+}
+
+export interface QuestionResponseAnswer {
+  additional_info: string | null;
+  answer_id: number;
+  id: Generated<number>;
+  response_id: number;
+}
+
+export interface ResponseAuditLogs {
+  action: string;
+  checklist_id: number;
+  id: Generated<number>;
+  instance_id: number;
+  new_additional_info: Json | null;
+  new_answer_ids: Json | null;
+  new_response_text: string | null;
+  old_additional_info: Json | null;
+  old_answer_ids: Json | null;
+  old_response_text: string | null;
+  question_id: number;
+  response_id: number | null;
+  timestamp: Generated<Timestamp | null>;
+  user_id: number;
 }
 
 export interface DB {
   answer: Answer;
   checklist: Checklist;
-  checklist_claim: ChecklistClaim;
   claim_dummy: ClaimDummy;
   doc: Doc;
   page: Page;
   page_instance: PageInstance;
-  page_instance_parent: PageInstanceParent;
-  page_question: PageQuestion;
   question: Question;
-  question_answer: QuestionAnswer;
+  question_response: QuestionResponse;
+  question_response_answer: QuestionResponseAnswer;
+  response_audit_logs: ResponseAuditLogs;
 }

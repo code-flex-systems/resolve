@@ -44,7 +44,8 @@ export default function PageNavigation() {
 
 const styles = {
 	container: {
-		minWidth: 300,
+		width: 'fit-content',
+		minWidth: 500,
 		height: '100%',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,

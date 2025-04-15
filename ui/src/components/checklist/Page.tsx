@@ -15,7 +15,7 @@ function generateDefaultValues(questions?: Question[]) {
 	let defaults: Record<string, string[] | string> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
-		switch (q.q_type) {
+		switch (q.type) {
 			case QuestionType.MULTI:
 			case QuestionType.SINGLE:
 				defaults[q.id.toString()] = [];

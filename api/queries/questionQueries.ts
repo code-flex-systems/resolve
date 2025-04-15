@@ -22,26 +22,13 @@ async function createQuestion(pageId: number, params: object) {
 				newQuestion = await trx
 					.insertInto('question')
 					.values({
-						q_text: params.q_text,
-						q_type: params.q_type,
-						q_desc: params.q_desc,
+						page_id: pageId,
+						text: params.text,
+						type: params.type,
+						description_text: params.description_text,
 					})
 					.returningAll()
 					.executeTakeFirst();
-				await trx
-					.insertInto('page_question')
-					.values({ page_id: params.page_id, question_id: newQuestion.id })
-					.execute();
-				if (params.q_type === 'freeform') {
-					await answerQueries.createAnswer(
-						newQuestion.id,
-						{
-							a_text: 'New answer',
-							a_type: 'freeform',
-						},
-						trx
-					);
-				}
 			} catch (e) {
 				console.error(e);
 			}
@@ -59,48 +46,50 @@ async function copyQuestion(pageId: number, questionId: number) {
 			try {
 				newQuestion = await trx
 					.insertInto('question')
-					.columns(['q_desc', 'q_text', 'q_type'])
+					.columns(['page_id', 'description_text', 'text', 'type'])
 					.expression((eb) =>
-						eb.selectFrom('question').select(['q_desc', 'q_text', 'q_type']).where('id', '=', questionId)
+						eb
+							.selectFrom('question')
+							.select(['page_id', 'description_text', 'text', 'type'])
+							.where('id', '=', questionId)
 					)
 					.returningAll()
 					.executeTakeFirstOrThrow(() => new Error('Question does not exist'));
 				await trx
-					.insertInto('page_question')
-					.values({ page_id: pageId, question_id: newQuestion.id })
-					.execute();
-				let newAnswers = await trx
 					.insertInto('answer')
-					.columns(['a_desc', 'a_freeform_lines', 'a_freeform_placeholder', 'a_order', 'a_text', 'a_type'])
+					.columns([
+						'additional_info_num_lines',
+						'additional_info_placeholder',
+						'position',
+						'text',
+						'description_text',
+						'description_image_url',
+						'has_additional_info',
+						'question_id',
+						'calls_instance_id',
+					])
 					.expression((eb) =>
 						eb
 							.selectFrom('answer')
-							.select([
-								'a_desc',
-								'a_freeform_lines',
-								'a_freeform_placeholder',
-								'a_order',
-								'a_text',
-								'a_type',
+							.select((eb) => [
+								'additional_info_num_lines',
+								'additional_info_placeholder',
+								'position',
+								'text',
+								'description_text',
+								'description_image_url',
+								'has_additional_info',
+								eb.val(newQuestion.id).as('question_id'),
+								'calls_instance_id',
 							])
 							.where(
 								'id',
 								'in',
-								eb
-									.selectFrom('answer as a')
-									.innerJoin('question_answer as qa', 'a.id', 'qa.answer_id')
-									.select('a.id')
-									.where('qa.question_id', '=', questionId)
+								eb.selectFrom('answer').select('id').where('question_id', '=', questionId)
 							)
 					)
 					.returning('id')
 					.execute();
-				if (newAnswers.length) {
-					await trx
-						.insertInto('question_answer')
-						.values(newAnswers.map((a) => ({ answer_id: a.id, question_id: newQuestion.id })))
-						.execute();
-				}
 			} catch (e) {
 				console.error(e);
 			}
@@ -121,13 +110,7 @@ async function deleteQuestion(questionId: number) {
 
 async function getQuestion(questionId: number) {
 	try {
-		return await db
-			.selectFrom('question as q')
-			.leftJoin('doc as d', 'd.id', 'q.doc_id')
-			.selectAll('q')
-			.select(['d.filename', 'd.alias'])
-			.where('q.id', '=', questionId)
-			.executeTakeFirst();
+		return await db.selectFrom('question').selectAll().where('id', '=', questionId).executeTakeFirst();
 	} catch (e) {
 		console.error(e);
 	}
@@ -137,41 +120,29 @@ async function getQuestions(pageId: number) {
 	try {
 		let results = await db
 			.selectFrom('question as q')
-			.innerJoin('page_question as p', 'q.id', 'p.question_id')
-			.leftJoin('question_answer as qa', 'q.id', 'qa.question_id')
-			.leftJoin('answer as a', 'qa.answer_id', 'a.id')
-			.leftJoin('doc as d1', 'd1.id', 'q.doc_id')
-			.leftJoin('doc as d2', 'd2.id', 'a.doc_id')
+			.leftJoin('answer as a', 'a.question_id', 'q.id')
 			.selectAll('q')
-			.select('p.page_id')
 			.select((eb) => [
 				sql`array_agg(
                     jsonb_build_object(
                         'id', ${eb.ref('a.id')},
-                        'a_desc', ${eb.ref('a.a_desc')},
-                        'a_text', ${eb.ref('a.a_text')},
-                        'a_order', ${eb.ref('a.a_order')},
-                        'a_type', ${eb.ref('a.a_type')},
-                        'a_freeform_lines', ${eb.ref('a.a_freeform_lines')},
-                        'a_freeform_placeholder', ${eb.ref('a.a_freeform_placeholder')},
-                        'calls_page_id', ${eb.ref('a.calls_page_id')},
-                        'doc_id', ${eb.ref('a.doc_id')},
-                        'filename', ${eb.ref('d2.filename')},
-				        'alias', ${eb.ref('d2.alias')}
+                        'description_text', ${eb.ref('a.description_text')},
+                        'text', ${eb.ref('a.text')},
+                        'description_text', ${eb.ref('a.description_text')},
+                        'description_image_url', ${eb.ref('a.description_image_url')},
+                        'position', ${eb.ref('a.position')},
+                        'additional_info_num_lines', ${eb.ref('a.additional_info_num_lines')},
+                        'additional_info_placeholder', ${eb.ref('a.additional_info_placeholder')},
+                        'calls_instance_id', ${eb.ref('a.calls_instance_id')}
                     )
-                )`
+                ) filter (where a.id is not null)`
 					.$castTo<Answer[]>()
 					.as('answers'),
-				'd1.filename as q_filename',
-				'd1.alias as q_alias',
 			])
-			.where('p.page_id', '=', pageId)
-			.groupBy(['q.doc_id', 'q.id', 'p.page_id', 'q.q_desc', 'q.q_text', 'q.q_type', 'd1.filename', 'd1.alias'])
+			.where('q.page_id', '=', pageId)
+			.groupBy(['q.id'])
 			.orderBy('id')
 			.execute();
-		results.forEach((q) => {
-			if (q.answers[0]?.id == null) q.answers = [];
-		});
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -181,9 +152,9 @@ async function getQuestions(pageId: number) {
 async function modifyQuestion(questionId: number, params: object) {
 	try {
 		let updates: UpdateObjectExpression<DB, 'question'> = {};
-		if (params.q_text) updates.q_text = params.q_text;
-		if (params.q_type) updates.q_type = params.q_type;
-		if (params.q_desc != null) updates.q_desc = params.q_desc;
+		if (params.text) updates.text = params.text;
+		if (params.type) updates.type = params.type;
+		if (params.description_text != null) updates.description_text = params.description_text;
 		return await db
 			.updateTable('question')
 			.set({

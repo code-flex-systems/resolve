@@ -4,6 +4,7 @@ import ChecklistFormLabel from './ChecklistFormLabel';
 import ChecklistAnswerRadio from './ChecklistAnswerRadio';
 import { QuestionType } from '../../config/enums';
 import ChecklistAnswerFreeform from './ChecklistAnswerFreeform';
+import ChecklistAnswerDropdown from './ChecklistAnswerDropdown';
 
 export function ChecklistQuestion(props: {
 	control: Control<FieldValues, any, FieldValues>;
@@ -28,7 +29,9 @@ export function ChecklistQuestion(props: {
 				name={fieldName}
 				control={control}
 				render={({ field }) => {
-					switch (question.q_type) {
+					switch (question.type) {
+						case QuestionType.DROPDOWN:
+							return <ChecklistAnswerDropdown key={question.id} field={field} question={question} />;
 						case QuestionType.FREEFORM:
 							return <ChecklistAnswerFreeform key={question.id} field={field} question={question} />;
 						case QuestionType.MULTI:

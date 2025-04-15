@@ -103,14 +103,13 @@ async function getPageInstances(checklistId: number, parentId?: number) {
 		return await db
 			.selectFrom('page as p')
 			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
-			.leftJoin('page_instance_parent as r', 'r.instance_id', 'i.id')
-			.select(['p.id', 'p.title', 'i.id as instance_id', 'r.parent_instance_id'])
+			.select(['p.id', 'p.title', 'i.id as instance_id', 'i.parent_instance_id'])
 			.where((eb) => {
 				let andClause = [eb('i.checklist_id', '=', checklistId)];
 				if (parentId === -1) {
-					andClause.push(eb('r.parent_instance_id', 'is', null));
+					andClause.push(eb('i.parent_instance_id', 'is', null));
 				} else if (parentId) {
-					andClause.push(eb('r.parent_instance_id', '=', parentId));
+					andClause.push(eb('i.parent_instance_id', '=', parentId));
 				}
 				return eb.and(andClause);
 			})
@@ -145,18 +144,10 @@ async function createPageInstancePrivate(checklistId: number, pageId: number, pa
 			.values({
 				checklist_id: checklistId,
 				page_id: pageId,
+				parent_instance_id: parentId === -1 ? null : parentId,
 			})
 			.returningAll()
 			.executeTakeFirst();
-		if (newInstance && parentId !== -1) {
-			await trx
-				.insertInto('page_instance_parent')
-				.values({
-					instance_id: newInstance?.id,
-					parent_instance_id: parentId,
-				})
-				.execute();
-		}
 		return newInstance;
 	} catch (e) {
 		console.error(e);

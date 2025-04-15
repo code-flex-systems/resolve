@@ -1,16 +1,22 @@
-drop table if exists claim_dummy;
-drop table if exists question_answer;
-drop table if exists answer;
-drop table if exists page_question;
-drop table if exists question;
+drop table if exists response_audit_logs;
+drop table if exists question_response_answer;
+drop table if exists question_response;
+drop table if exists answer cascade;
+drop table if exists question cascade;
 drop table if exists page_instance cascade;
-drop table if exists page_instance_parent;
-drop table if exists page;
+drop table if exists page cascade;
+drop table if exists claim_dummy;
 drop table if exists checklist;
 drop table if exists doc;
 
+create table checklist(
+	id serial not null primary key,
+	name text not null
+);
+
 create table claim_dummy(
 	id serial not null primary key,
+    checklist_id integer not null references checklist(id) on delete cascade,
 	claim_number text,
 	client text,
 	client_adjuster text,
@@ -24,19 +30,6 @@ create table claim_dummy(
 	expected_recovery numeric
 );
 
-create table checklist(
-	id serial not null primary key,
-	name text not null
-);
-
-create table checklist_claim(
-	checklist_id integer not null references checklist(id),
-	claim_id integer not null references claim_dummy(id)
-);
-insert into checklist_claim
-values
-(1, 1);
-
 create table page(
 	id serial not null primary key,
 	title text not null,
@@ -46,11 +39,7 @@ create table page(
 create table page_instance(
 	id serial not null primary key,
 	page_id integer not null references page(id) on delete cascade,
-	checklist_id integer not null references checklist(id) on delete cascade
-);
-
-create table page_instance_parent(
-	instance_id integer not null references page_instance(id) on delete cascade,
+	checklist_id integer not null references checklist(id) on delete cascade,
 	parent_instance_id integer references page_instance(id) on delete cascade
 );
 
@@ -62,120 +51,130 @@ create table doc(
 
 create table question(
 	id serial not null primary key,
-	q_text text not null,
-	q_type text not null,
-	q_desc text,
-	doc_id integer references doc(id),
-    hidden boolean default false
-);
-
-create table page_question(
     page_id integer not null references page(id) on delete cascade,
-    question_id integer not null references question(id) on delete cascade
+	text text not null,
+	type text not null check (type in ('multi', 'single', 'dropdown', 'freeform')),
+	description_text text,
+    description_image_url text,
+    placeholder text,
+    num_lines integer check (num_lines > 0),
+    hidden boolean default false
 );
 
 create table answer(
 	id serial not null primary key,
-	a_order integer not null,
-	a_text text not null,
-    a_type text not null,
-    a_desc text,
-    a_freeform_lines integer,
-	a_freeform_placeholder text,
-	doc_id integer references doc(id),
-	calls_page_id integer references page(id),
+	question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    text text not null,
+    position INTEGER NOT NULL,
+    description_text TEXT,
+    description_image_url TEXT,
+    has_additional_info BOOLEAN DEFAULT FALSE,
+    additional_info_placeholder TEXT,
+    additional_info_num_lines INTEGER CHECK (additional_info_num_lines > 0),
+    calls_instance_id INTEGER REFERENCES page_instance(id),
     hidden boolean default false
 );
 
-create table question_answer(
-    question_id integer not null references question(id) on delete cascade,
-    answer_id integer not null references answer(id) on delete cascade
+CREATE TABLE question_response (
+    id SERIAL PRIMARY KEY,
+    checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
+    instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
+    question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    response_text TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(checklist_id, instance_id, question_id)
 );
 
-insert into checklist
-values
-(default, 'Checklist 1'),
-(default, 'Checklist 2');
+CREATE TABLE question_response_answer (
+    id SERIAL PRIMARY KEY,
+    response_id INTEGER NOT NULL REFERENCES question_response(id) ON DELETE CASCADE,
+    answer_id INTEGER NOT NULL REFERENCES answer(id),
+    additional_info TEXT
+);
 
-insert into page
-values
-(default, 'Page 1'),
-(default, 'Page 2'),
-(default, 'Page 3'),
-(default, 'Page 4'),
-(default, 'Page 5'),
-(default, 'Page 6'),
-(default, 'Page 7'),
-(default, 'Page 8'),
-(default, 'Page 9'),
-(default, 'Page 10');
+CREATE TABLE response_audit_logs (
+    id SERIAL PRIMARY KEY,
+    response_id INTEGER REFERENCES question_response(id) ON DELETE SET NULL,
+    user_id INTEGER NOT NULL, -- assuming a users table will be added
+    checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
+    instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
+    question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
 
-insert into page_instance
-values
-(default, 1, 1),
-(default, 2, 1),
-(default, 3, 1),
-(default, 4, 1),
-(default, 5, 1),
-(default, 6, 1),
-(default, 7, 1),
-(default, 8, 1),
-(default, 9, 1),
-(default, 10, 1);
+    action TEXT NOT NULL CHECK (action IN ('insert', 'update', 'delete')),
+    old_response_text TEXT,
+    new_response_text TEXT,
 
-insert into page_instance_parent
-values
-(3, 1),
-(2, 1),
-(7, 6),
-(8, 6),
-(9, 8),
-(10, 8);
+    old_answer_ids JSONB,
+    new_answer_ids JSONB,
 
-insert into doc
-values
-(default, '12345.txt', 'File 1'),
-(default, '12345.txt', 'File 2'),
-(default, '12345.txt', 'File 3'),
-(default, '12345.txt', 'File 4'),
-(default, '12345.txt', 'File 5');
+    old_additional_info JSONB,
+    new_additional_info JSONB,
 
-insert into question
-values
-(default, 'Who are you?', 'single', 'Tell me who you are', null),
-(default, 'What are you?', 'single', null, 1),
-(default, 'How are you?', 'multi', null, 2),
-(default, 'Why are you?', 'single', null, null);
+    timestamp TIMESTAMP DEFAULT NOW()
+);
 
-insert into page_question
-values
-(2, 1),
-(2, 2),
-(2, 3),
-(2, 4);
+-- Insert checklists
+INSERT INTO checklist (name) VALUES 
+('Checklist A'),
+('Checklist B');
 
-insert into answer
-values
-(default, 1, 'John', 'standard', null, null, null, null, null),
-(default, 2, 'Mary', 'standard', null, null, null, null, null),
-(default, 3, 'Joe', 'standard', 'Joe is a great guy', null, null, null, null),
-(default, 1, 'Great', 'standard', null, null, null, null, null),
-(default, 2, 'Fine', 'standard', null, null, null, null, null),
-(default, 3, 'Okay', 'standard', null, null, null, 3, null),
-(default, 4, 'Awful', 'standard', null, null, null, null, 3),
-(default, 1, 'N/A', 'freeform', null, 2, 'You should fill this in', null, 3);
+-- Insert claims
+INSERT INTO claim_dummy (
+    checklist_id, claim_number, client, client_adjuster, insured, claim_amount,
+    total_incurred, date_of_loss, loss_location, last_updated_by, last_update, expected_recovery
+) VALUES
+(1, 'CLM123456', 'Acme Corp', 'John Doe', 'Jane Smith', 10000.00, 7500.00, '2024-01-15', '123 Main St', 'audit_bot', '2024-03-01', 2000.00),
+(2, 'CLM654321', 'Beta Inc', 'Alice Roe', 'Bob White', 25000.00, 12000.00, '2024-02-20', '456 Elm St', 'user_admin', '2024-03-05', 5000.00);
 
-insert into question_answer
-values
-(1, 1),
-(1, 2),
-(1, 3),
-(3, 4),
-(3, 5),
-(3, 6),
-(3, 7),
-(4, 8);
+-- Insert pages
+INSERT INTO page (title, hidden) VALUES 
+('Welcome Page', false),
+('Details Page', false);
 
-insert into claim_dummy
-values
-(default, '52B53112100001', 'The Main Street America Group', 'Adjuster Not Found on CLMS', 'MICHELE AXTMANN', 77249.31, 77249.31, '01/09/2015', '40 Web Avenue North Kingstown, RI', 'KYOUNG', '04/08/2025', 0);
+-- Insert page instances
+INSERT INTO page_instance (page_id, checklist_id, parent_instance_id) VALUES
+(1, 1, NULL),
+(2, 1, 1),
+(1, 2, NULL);
+
+-- Insert documents
+INSERT INTO doc (filename, alias) VALUES 
+('policy.pdf', 'Insurance Policy'),
+('photo.jpg', 'Loss Site Photo');
+
+-- Insert questions
+INSERT INTO question (page_id, text, type, description_text, description_image_url, placeholder, num_lines, hidden) VALUES 
+(2, 'What is the cause of loss?', 'freeform', 'Describe how the damage occurred.', NULL, 'Enter details here...', 3, false),
+(2, 'Select all applicable damages:', 'multi', NULL, NULL, NULL, NULL, false),
+(2, 'Is the policyholder satisfied?', 'single', NULL, NULL, NULL, NULL, false);
+
+-- Insert answers
+INSERT INTO answer (question_id, text, position, has_additional_info, additional_info_placeholder, additional_info_num_lines, hidden) VALUES
+(2, 'Water Damage', 1, false, NULL, NULL, false),
+(2, 'Fire Damage', 2, true, 'Explain fire source...', 2, false),
+(3, 'Yes', 1, false, NULL, NULL, false),
+(3, 'No', 2, true, 'Please explain dissatisfaction...', 3, false);
+
+-- Insert question responses
+INSERT INTO question_response (checklist_id, instance_id, question_id, response_text) VALUES 
+(1, 1, 1, 'Water leak from pipe burst'),
+(1, 2, 2, NULL),
+(1, 2, 3, NULL);
+
+-- Insert response answers
+INSERT INTO question_response_answer (response_id, answer_id, additional_info) VALUES
+(2, 1, NULL),
+(2, 2, 'Electrical fire from kitchen appliance'),
+(3, 4, 'Delayed response from adjuster');
+
+-- Insert audit logs
+INSERT INTO response_audit_logs (
+    response_id, user_id, checklist_id, instance_id, question_id, action,
+    old_response_text, new_response_text, old_answer_ids, new_answer_ids,
+    old_additional_info, new_additional_info
+) VALUES 
+(3, 1001, 1, 2, 3, 'update', 
+ NULL, 'No', 
+ '["3"]', '["4"]',
+ NULL, '{"4": "Delayed response from adjuster"}');

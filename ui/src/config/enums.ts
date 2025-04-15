@@ -9,6 +9,7 @@ export enum ChecklistMode {
 }
 
 export enum QuestionType {
+	DROPDOWN = 'dropdown',
 	FREEFORM = 'freeform',
 	MULTI = 'multi',
 	SINGLE = 'single',

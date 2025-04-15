@@ -42,13 +42,7 @@ async function deleteAnswer(answerId: number) {
 
 async function getAnswer(answerId: number) {
 	try {
-		return await db
-			.selectFrom('answer as a')
-			.leftJoin('doc as d', 'd.id', 'a.doc_id')
-			.selectAll('a')
-			.select(['d.filename', 'd.alias'])
-			.where('a.id', '=', answerId)
-			.executeTakeFirst();
+		return await db.selectFrom('answer as a').selectAll('a').where('a.id', '=', answerId).executeTakeFirst();
 	} catch (e) {
 		console.error(e);
 	}
@@ -58,12 +52,9 @@ async function getAnswers(questionId: number) {
 	try {
 		return await db
 			.selectFrom('answer as a')
-			.innerJoin('question_answer as q', 'a.id', 'q.answer_id')
-			.leftJoin('doc as d', 'd.id', 'a.doc_id')
 			.selectAll('a')
-			.select(['d.filename', 'd.alias'])
-			.where('q.question_id', '=', questionId)
-			.orderBy('a.a_order')
+			.where('a.question_id', '=', questionId)
+			.orderBy('a.position')
 			.execute();
 	} catch (e) {
 		console.error(e);
@@ -74,9 +65,8 @@ async function getAnswerCount(questionId: number) {
 	try {
 		let answerCountRecord = await db
 			.selectFrom('answer as a')
-			.innerJoin('question_answer as q', 'a.id', 'q.answer_id')
 			.select(({ fn }) => fn.countAll().as('count'))
-			.where('q.question_id', '=', questionId)
+			.where('a.question_id', '=', questionId)
 			.executeTakeFirst();
 		return parseInt(answerCountRecord?.count?.toString() ?? '0');
 	} catch (e) {
@@ -87,13 +77,13 @@ async function getAnswerCount(questionId: number) {
 async function modifyAnswer(answerId: number, params: object) {
 	try {
 		let updates: UpdateObjectExpression<DB, 'answer'> = {};
-		if (params.a_order) updates.a_order = params.a_order;
-		if (params.a_text) updates.a_text = params.a_text;
-		if (params.a_type) updates.a_type = params.a_type;
-		if (params.a_desc != null) updates.a_desc = params.a_desc;
-		if (params.a_freeform_lines) updates.a_freeform_lines = params.a_freeform_lines;
-		if (params.a_freeform_placeholder != null) updates.a_freeform_placeholder = params.a_freeform_lines;
-		if (params.calls_page_id) updates.calls_page_id = params.calls_page_id;
+		if (params.position) updates.position = params.position;
+		if (params.text) updates.text = params.text;
+		if (params.description_text != null) updates.description_text = params.description_text;
+		if (params.additional_info_num_lines) updates.additional_info_num_lines = params.additional_info_num_lines;
+		if (params.additional_info_placeholder != null)
+			updates.additional_info_placeholder = params.additional_info_placeholder;
+		if (params.calls_instance_id) updates.calls_instance_id = params.calls_instance_id;
 		return await db
 			.updateTable('answer')
 			.set({
@@ -115,17 +105,16 @@ async function createAnswerPrivate(questionId: number, params: object, trx: Tran
 		let newAnswer = await trx
 			.insertInto('answer')
 			.values({
-				a_order: answerCount + 1,
-				a_text: params.a_text,
-				a_type: params.a_type,
-				a_desc: params.a_desc,
-				a_freeform_lines: params.a_freeform_lines,
-				a_freeform_placeholder: params.a_freeform_placeholder,
-				calls_page_id: params.calls_page_id,
+				question_id: questionId,
+				position: answerCount + 1,
+				text: params.text,
+				description_text: params.description_text,
+				additional_info_num_lines: params.additional_info_num_lines,
+				additional_info_placeholder: params.additional_info_placeholder,
+				calls_instance_id: params.calls_instance_id,
 			})
 			.returningAll()
 			.executeTakeFirst();
-		await trx.insertInto('question_answer').values({ question_id: questionId, answer_id: newAnswer.id }).execute();
 		return newAnswer;
 	} catch (e) {
 		console.error(e);

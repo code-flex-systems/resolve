@@ -8,7 +8,6 @@ import { useQuestions } from '../../api/queries/page-queries';
 import * as selectors from '../../state/checklist/selectors';
 import { useShallow } from 'zustand/react/shallow';
 import QuestionNode from './QuestionNode';
-import { DEFAULT_QUESTION } from '../../config/defaults';
 import { ChecklistMode, QuestionType } from '../../config/enums';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
@@ -52,7 +51,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					) : (
 						<div style={{ width: 30 }} />
 					)}
-					<Typography>
+					<Typography noWrap>
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId})` : ''}
 					</Typography>
@@ -71,9 +70,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							key={`p${pageId}.q${q.id}`}
 							pageId={pageId}
 							questionId={q.id}
-							questionText={q.q_text}
-							questionType={q.q_type}
-							questionAnswers={q.answers}
+							questionText={q.text}
+							questionType={q.type as QuestionType}
+							questionAnswers={q.answers ?? []}
 							level={level + 1}
 							idx={i}
 						/>
