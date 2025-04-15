@@ -8,6 +8,12 @@ import { getStateBuilder, setStateBuilder } from '../storeUtilities';
 const getState = getStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 
+export function setClaimData(claim: any) {
+	setState((state) => {
+		state.claim = claim;
+	});
+}
+
 export function updatePage(pageId: number, questions: Question[]) {
 	setState((state) => {
 		state.pages.set(pageId, questions);

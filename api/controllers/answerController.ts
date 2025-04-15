@@ -2,6 +2,7 @@ import answerQueries from '../queries/answerQueries';
 
 export default {
 	createAnswer,
+	copyAnswer,
 	deleteAnswer,
 	getAnswer,
 	getAnswers,
@@ -11,6 +12,17 @@ export default {
 async function createAnswer(questionId: number, params: object) {
 	try {
 		let results = await answerQueries.createAnswer(questionId, params);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function copyAnswer(questionId: number, answerId: number) {
+	try {
+		let existingAnswer = await answerQueries.getAnswer(answerId);
+		if (!existingAnswer) throw new Error('Answer does not exist');
+		let results = await answerQueries.createAnswer(questionId, existingAnswer);
 		return results;
 	} catch (e) {
 		console.error(e);

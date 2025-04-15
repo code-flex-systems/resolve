@@ -15,7 +15,7 @@ import { ContactSupport } from '@mui/icons-material';
 
 import { QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
-import { useAddUpdateQuestion, useDeleteQuestion, useQuestions } from '../../api/queries/page-queries';
+import { useAddUpdateQuestion, useCopyQuestion, useDeleteQuestion, useQuestions } from '../../api/queries/page-queries';
 import Toolbar from '../common/Toolbar';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
@@ -34,6 +34,10 @@ export default function FormQuestion() {
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const { isPending: updating, mutateAsync: addUpdateQuestion } = useAddUpdateQuestion(selectedPageInfo.pageId);
+	const { isPending: copying, mutateAsync: copyQuestion } = useCopyQuestion(
+		selectedPageInfo.pageId,
+		selectedQuestionData.id
+	);
 	const { isPending: deleting, mutateAsync: deleteQuestion } = useDeleteQuestion(selectedQuestionData.id);
 	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
 	const {
@@ -47,7 +51,7 @@ export default function FormQuestion() {
 		},
 	});
 	let isPlaceholder = selectedQuestionData.id === -1;
-	let inTransition = updating || deleting || refetching;
+	let inTransition = copying || updating || deleting || refetching;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -58,6 +62,16 @@ export default function FormQuestion() {
 			console.error(e);
 		}
 	});
+
+	const onCopy = async () => {
+		try {
+			let newQuestion = await copyQuestion();
+			await refetch();
+			actions.updateSelectedQuestion(newQuestion.id);
+		} catch (e) {
+			console.error(e);
+		}
+	};
 
 	const onDelete = async () => {
 		try {
@@ -87,21 +101,32 @@ export default function FormQuestion() {
 				right={
 					<>
 						{!isPlaceholder && (
-							<Button
-								disabled={inTransition}
-								variant="contained"
-								color="error"
-								onClick={() => {
-									if (selectedQuestionData.answers.length) {
-										setShowDeleteDialog(true);
-									} else {
-										onDelete();
-									}
-								}}
-								sx={{ height: 25, marginRight: '10px' }}
-							>
-								Delete
-							</Button>
+							<>
+								<Button
+									disabled={inTransition}
+									variant="contained"
+									color="error"
+									onClick={() => {
+										if (selectedQuestionData.answers.length) {
+											setShowDeleteDialog(true);
+										} else {
+											onDelete();
+										}
+									}}
+									sx={{ height: 25, marginRight: '10px' }}
+								>
+									Delete
+								</Button>
+								<Button
+									disabled={inTransition}
+									variant="contained"
+									color="secondary"
+									onClick={onCopy}
+									sx={{ height: 25, marginRight: '10px' }}
+								>
+									Copy
+								</Button>
+							</>
 						)}
 						<Button onClick={onSubmit} disabled={inTransition} variant="contained" sx={{ height: 25 }}>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -155,7 +180,9 @@ export default function FormQuestion() {
 						rules={{ required: true }}
 						render={({ field }) => (
 							<FormControl style={styles.item}>
-								<FormLabel error={!!errors.q_type}>Question type</FormLabel>
+								<FormLabel sx={styles.formLabel} error={!!errors.q_type}>
+									Question type
+								</FormLabel>
 								<RadioGroup {...field} row>
 									<FormControlLabel
 										defaultChecked
@@ -200,6 +227,9 @@ const styles = {
 		width: '100%',
 		height: 1,
 		marginBottom: 5,
+	},
+	formLabel: {
+		fontSize: 12,
 	},
 	item: {
 		margin: 5,

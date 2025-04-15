@@ -20,7 +20,7 @@ import { AnswerType, QuestionType } from '../../config/enums';
 import { useEffect } from 'react';
 import { InsertComment } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
-import { useAddUpdateAnswer, useDeleteAnswer, useQuestions } from '../../api/queries/page-queries';
+import { useAddUpdateAnswer, useCopyAnswer, useDeleteAnswer, useQuestions } from '../../api/queries/page-queries';
 import * as actions from '../../state/checklist/actions';
 
 export default function FormAnswer() {
@@ -29,6 +29,7 @@ export default function FormAnswer() {
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedAnswerData = useStore(useShallow(selectors.selectedAnswerData));
 	const { isPending: updating, mutateAsync: addUpdateAnswer } = useAddUpdateAnswer(selectedQuestion);
+	const { isPending: copying, mutateAsync: copyAnswer } = useCopyAnswer(selectedQuestion, selectedAnswerData.id);
 	const { isPending: deleting, mutateAsync: deleteAnswer } = useDeleteAnswer(selectedAnswerData.id);
 	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
 	const {
@@ -45,7 +46,7 @@ export default function FormAnswer() {
 	const answerType = watch('a_type');
 	let isPlaceholder = selectedAnswerData.id === -1;
 	let isFreeform = selectedQuestionData.q_type === QuestionType.FREEFORM;
-	let inTransition = updating || deleting || refetching;
+	let inTransition = copying || updating || deleting || refetching;
 	let scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
 
 	const onSubmit = handleSubmit(async (data) => {
@@ -57,6 +58,16 @@ export default function FormAnswer() {
 			console.error(e);
 		}
 	});
+
+	const onCopy = async () => {
+		try {
+			let newAnswer = await copyAnswer();
+			await refetch();
+			actions.updateSelectedAnswer(selectedQuestion, newAnswer.id);
+		} catch (e) {
+			console.error(e);
+		}
+	};
 
 	const onDelete = async () => {
 		try {
@@ -87,25 +98,46 @@ export default function FormAnswer() {
 				right={
 					<>
 						{!isPlaceholder && (
-							<Tooltip
-								title={
-									isFreeform
-										? `Question ${scopedQuestionId} is free-form. Please change the question type to remove this answer.`
-										: ''
-								}
-							>
-								<span>
-									<Button
-										disabled={inTransition || isFreeform}
-										variant="contained"
-										color="error"
-										onClick={onDelete}
-										sx={{ height: 25, marginRight: '10px' }}
-									>
-										Delete
-									</Button>
-								</span>
-							</Tooltip>
+							<>
+								<Tooltip
+									title={
+										isFreeform
+											? `Question ${scopedQuestionId} is free-form. Please change the question type to remove this answer.`
+											: ''
+									}
+								>
+									<span>
+										<Button
+											disabled={inTransition || isFreeform}
+											variant="contained"
+											color="error"
+											onClick={onDelete}
+											sx={{ height: 25, marginRight: '10px' }}
+										>
+											Delete
+										</Button>
+									</span>
+								</Tooltip>
+								<Tooltip
+									title={
+										isFreeform
+											? `Question ${scopedQuestionId} is free-form. Please change the question type to copy this answer.`
+											: ''
+									}
+								>
+									<span>
+										<Button
+											disabled={inTransition || isFreeform}
+											variant="contained"
+											color="secondary"
+											onClick={onCopy}
+											sx={{ height: 25, marginRight: '10px' }}
+										>
+											Copy
+										</Button>
+									</span>
+								</Tooltip>
+							</>
 						)}
 						<Button onClick={onSubmit} disabled={inTransition} variant="contained" sx={{ height: 25 }}>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -165,7 +197,7 @@ export default function FormAnswer() {
 								}
 							>
 								<FormControl disabled={isFreeform} style={styles.item}>
-									<FormLabel>Answer type</FormLabel>
+									<FormLabel sx={styles.formLabel}>Answer type</FormLabel>
 									<RadioGroup {...field} row>
 										<FormControlLabel
 											control={<Radio />}
@@ -229,6 +261,9 @@ const styles = {
 		width: '100%',
 		height: 1,
 		marginBottom: 5,
+	},
+	formLabel: {
+		fontSize: 12,
 	},
 	item: {
 		margin: 5,

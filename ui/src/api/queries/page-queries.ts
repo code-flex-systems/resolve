@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { Answer, Question, TreeNode } from '../../types';
-import * as actions from '../../state/checklist/actions';
 
 export function usePageInstanceTree(callback: (data: TreeNode[]) => void, enabled?: boolean) {
 	return useQuery({
@@ -68,6 +67,34 @@ export function useAddUpdateAnswer(questionId: number) {
 					variables.answer.id === -1
 						? await axiosRoutes.createAnswer(questionId, answer)
 						: await axiosRoutes.modifyAnswer(answer.id, answer);
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useCopyQuestion(pageId: number, questionId: number) {
+	return useMutation({
+		mutationKey: ['pages', pageId, 'questions', questionId, 'copy'],
+		mutationFn: async () => {
+			try {
+				let data = await axiosRoutes.copyQuestion(pageId, questionId);
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useCopyAnswer(questionId: number, answerId: number) {
+	return useMutation({
+		mutationKey: ['questions', questionId, 'answers', answerId, 'copy'],
+		mutationFn: async () => {
+			try {
+				let data = await axiosRoutes.copyAnswer(questionId, answerId);
 				return data.data;
 			} catch (e) {
 				console.error(e);

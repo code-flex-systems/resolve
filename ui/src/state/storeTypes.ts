@@ -3,6 +3,7 @@ import { ChecklistMode } from '../config/enums';
 import { Question, TreeNode } from '../types';
 
 export interface ChecklistSlice {
+	claim: any;
 	expanded: Map<number, boolean>;
 	expandAll: boolean;
 	mode: ChecklistMode;

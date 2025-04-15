@@ -14,21 +14,19 @@ export default {
 
 async function createAnswer(questionId: number, params: object, trx?: Transaction<DB>) {
 	try {
-		let answerCount = (await getAnswerCount(questionId)) ?? 0;
-		return await (trx ?? db)
-			.insertInto('answer')
-			.values({
-				question_id: questionId,
-				a_order: answerCount + 1,
-				a_text: params.a_text,
-				a_type: params.a_type,
-				a_desc: params.a_desc,
-				a_freeform_lines: params.a_freeform_lines,
-				a_freeform_placeholder: params.a_freeform_placeholder,
-				calls_page_id: params.calls_page_id,
-			})
-			.returningAll()
-			.executeTakeFirst();
+		let newAnswer: any;
+		if (trx) {
+			newAnswer = await createAnswerPrivate(questionId, params, trx);
+		} else {
+			await db.transaction().execute(async (newTrx) => {
+				try {
+					newAnswer = await createAnswerPrivate(questionId, params, newTrx);
+				} catch (e) {
+					console.error(e);
+				}
+			});
+		}
+		return newAnswer;
 	} catch (e) {
 		console.error(e);
 	}
@@ -60,10 +58,11 @@ async function getAnswers(questionId: number) {
 	try {
 		return await db
 			.selectFrom('answer as a')
+			.innerJoin('question_answer as q', 'a.id', 'q.answer_id')
 			.leftJoin('doc as d', 'd.id', 'a.doc_id')
 			.selectAll('a')
 			.select(['d.filename', 'd.alias'])
-			.where('a.question_id', '=', questionId)
+			.where('q.question_id', '=', questionId)
 			.orderBy('a.a_order')
 			.execute();
 	} catch (e) {
@@ -74,9 +73,10 @@ async function getAnswers(questionId: number) {
 async function getAnswerCount(questionId: number) {
 	try {
 		let answerCountRecord = await db
-			.selectFrom('answer')
+			.selectFrom('answer as a')
+			.innerJoin('question_answer as q', 'a.id', 'q.answer_id')
 			.select(({ fn }) => fn.countAll().as('count'))
-			.where('question_id', '=', questionId)
+			.where('q.question_id', '=', questionId)
 			.executeTakeFirst();
 		return parseInt(answerCountRecord?.count?.toString() ?? '0');
 	} catch (e) {
@@ -102,6 +102,31 @@ async function modifyAnswer(answerId: number, params: object) {
 			.where('id', '=', answerId)
 			.returningAll()
 			.executeTakeFirst();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+// private methods
+
+async function createAnswerPrivate(questionId: number, params: object, trx: Transaction<DB>) {
+	try {
+		let answerCount = (await getAnswerCount(questionId)) ?? 0;
+		let newAnswer = await trx
+			.insertInto('answer')
+			.values({
+				a_order: answerCount + 1,
+				a_text: params.a_text,
+				a_type: params.a_type,
+				a_desc: params.a_desc,
+				a_freeform_lines: params.a_freeform_lines,
+				a_freeform_placeholder: params.a_freeform_placeholder,
+				calls_page_id: params.calls_page_id,
+			})
+			.returningAll()
+			.executeTakeFirst();
+		await trx.insertInto('question_answer').values({ question_id: questionId, answer_id: newAnswer.id }).execute();
+		return newAnswer;
 	} catch (e) {
 		console.error(e);
 	}

@@ -10,8 +10,18 @@ const ROUTES = {
 	USERS: '/users',
 };
 
+// DUMMY
+export function getClaim(checklistId: number, claimId: number) {
+	return performAsyncGet(`/${checklistId}/claims/${claimId}`);
+}
+// DUMMY
+
 export function createAnswer(questionId: number, answer: object) {
 	return performAsyncPost(`/${questionId}${ROUTES.ANSWERS}`, answer);
+}
+
+export function copyAnswer(questionId: number, answerId: number) {
+	return performAsyncPost(`/${questionId}${ROUTES.ANSWERS}/copy/${answerId}`, {});
 }
 
 export function deleteAnswer(answerId: number) {
@@ -100,6 +110,10 @@ export function modifyPage(pageId: number, updates: object) {
 
 export function createQuestion(pageId: number, question: object) {
 	return performAsyncPost(`/${pageId}${ROUTES.QUESTIONS}`, question);
+}
+
+export function copyQuestion(pageId: number, questionId: number) {
+	return performAsyncPost(`/${pageId}${ROUTES.QUESTIONS}/copy/${questionId}`, {});
 }
 
 export function deleteQuestion(questionId: number) {

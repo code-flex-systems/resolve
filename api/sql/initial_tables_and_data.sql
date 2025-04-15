@@ -1,4 +1,7 @@
+drop table if exists claim_dummy;
+drop table if exists question_answer;
 drop table if exists answer;
+drop table if exists page_question;
 drop table if exists question;
 drop table if exists page_instance cascade;
 drop table if exists page_instance_parent;
@@ -6,10 +9,33 @@ drop table if exists page;
 drop table if exists checklist;
 drop table if exists doc;
 
+create table claim_dummy(
+	id serial not null primary key,
+	claim_number text,
+	client text,
+	client_adjuster text,
+	insured text,
+	claim_amount numeric,
+	total_incurred numeric,
+	date_of_loss date,
+	loss_location text,
+	last_updated_by text,
+	last_update date,
+	expected_recovery numeric
+);
+
 create table checklist(
 	id serial not null primary key,
 	name text not null
 );
+
+create table checklist_claim(
+	checklist_id integer not null references checklist(id),
+	claim_id integer not null references claim_dummy(id)
+);
+insert into checklist_claim
+values
+(1, 1);
 
 create table page(
 	id serial not null primary key,
@@ -36,24 +62,34 @@ create table doc(
 
 create table question(
 	id serial not null primary key,
-	page_id integer not null references page(id) on delete cascade,
 	q_text text not null,
 	q_type text not null,
 	q_desc text,
-	doc_id integer references doc(id)
+	doc_id integer references doc(id),
+    hidden boolean default false
+);
+
+create table page_question(
+    page_id integer not null references page(id) on delete cascade,
+    question_id integer not null references question(id) on delete cascade
 );
 
 create table answer(
 	id serial not null primary key,
-	question_id integer not null references question(id) on delete cascade,
 	a_order integer not null,
 	a_text text not null,
+    a_type text not null,
     a_desc text,
-	a_type text,
     a_freeform_lines integer,
 	a_freeform_placeholder text,
 	doc_id integer references doc(id),
-	calls_page_id integer references page(id)
+	calls_page_id integer references page(id),
+    hidden boolean default false
+);
+
+create table question_answer(
+    question_id integer not null references question(id) on delete cascade,
+    answer_id integer not null references answer(id) on delete cascade
 );
 
 insert into checklist
@@ -106,18 +142,40 @@ values
 
 insert into question
 values
-(default, 2, 'Who are you?', 'single', 'Tell me who you are', null),
-(default, 2, 'What are you?', 'single', null, 1),
-(default, 2, 'How are you?', 'multi', null, 2),
-(default, 2, 'Why are you?', 'single', null, null);
+(default, 'Who are you?', 'single', 'Tell me who you are', null),
+(default, 'What are you?', 'single', null, 1),
+(default, 'How are you?', 'multi', null, 2),
+(default, 'Why are you?', 'single', null, null);
+
+insert into page_question
+values
+(2, 1),
+(2, 2),
+(2, 3),
+(2, 4);
 
 insert into answer
 values
-(default, 1, 1, 'John', null, null, null, null, null, null),
-(default, 1, 2, 'Mary', null, null, null, null, null, null),
-(default, 1, 3, 'Joe', 'Joe is a great guy', null, null, null, null, null),
-(default, 3, 1, 'Great', null, null, null, null, null, null),
-(default, 3, 2, 'Fine', null, null, null, null, null, null),
-(default, 3, 3, 'Okay', null, null, null, null, 3, null),
-(default, 3, 4, 'Awful', null, null, null, null, null, 3),
-(default, 4, 1, 'N/A', null, 'freeform', 2, 'You should fill this in', null, 3);
+(default, 1, 'John', 'standard', null, null, null, null, null),
+(default, 2, 'Mary', 'standard', null, null, null, null, null),
+(default, 3, 'Joe', 'standard', 'Joe is a great guy', null, null, null, null),
+(default, 1, 'Great', 'standard', null, null, null, null, null),
+(default, 2, 'Fine', 'standard', null, null, null, null, null),
+(default, 3, 'Okay', 'standard', null, null, null, 3, null),
+(default, 4, 'Awful', 'standard', null, null, null, null, 3),
+(default, 1, 'N/A', 'freeform', null, 2, 'You should fill this in', null, 3);
+
+insert into question_answer
+values
+(1, 1),
+(1, 2),
+(1, 3),
+(3, 4),
+(3, 5),
+(3, 6),
+(3, 7),
+(4, 8);
+
+insert into claim_dummy
+values
+(default, '52B53112100001', 'The Main Street America Group', 'Adjuster Not Found on CLMS', 'MICHELE AXTMANN', 77249.31, 77249.31, '01/09/2015', '40 Web Avenue North Kingstown, RI', 'KYOUNG', '04/08/2025', 0);

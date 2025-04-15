@@ -4,6 +4,7 @@ import { getId } from '../route-utils';
 
 export default {
 	createQuestion,
+	copyQuestion,
 	deleteQuestion,
 	getQuestion,
 	getQuestions,
@@ -13,6 +14,15 @@ export default {
 async function createQuestion(req: Request, res: Response) {
 	try {
 		let ret = await questionController.createQuestion(getId(req, 'page'), req.body);
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function copyQuestion(req: Request, res: Response) {
+	try {
+		let ret = await questionController.copyQuestion(getId(req, 'page'), getId(req, 'question'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

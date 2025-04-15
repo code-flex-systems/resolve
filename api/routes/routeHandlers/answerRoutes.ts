@@ -4,6 +4,7 @@ import { getId } from '../route-utils';
 
 export default {
 	createAnswer,
+	copyAnswer,
 	deleteAnswer,
 	getAnswer,
 	getAnswers,
@@ -13,6 +14,15 @@ export default {
 async function createAnswer(req: Request, res: Response) {
 	try {
 		let ret = await answerController.createAnswer(getId(req, 'question'), req.body);
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function copyAnswer(req: Request, res: Response) {
+	try {
+		let ret = await answerController.copyAnswer(getId(req, 'question'), getId(req, 'answer'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

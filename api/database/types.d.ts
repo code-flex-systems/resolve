@@ -9,22 +9,46 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Numeric = ColumnType<string, number | string, number | string>;
+
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
 export interface Answer {
   a_desc: string | null;
   a_freeform_lines: number | null;
   a_freeform_placeholder: string | null;
   a_order: number;
   a_text: string;
-  a_type: string | null;
+  a_type: string;
   calls_page_id: number | null;
   doc_id: number | null;
+  hidden: Generated<boolean | null>;
   id: Generated<number>;
-  question_id: number;
 }
 
 export interface Checklist {
   id: Generated<number>;
   name: string;
+}
+
+export interface ChecklistClaim {
+  checklist_id: number;
+  claim_id: number;
+}
+
+export interface ClaimDummy {
+  claim_amount: Numeric | null;
+  claim_number: string | null;
+  client: string | null;
+  client_adjuster: string | null;
+  date_of_loss: Timestamp | null;
+  expected_recovery: Numeric | null;
+  id: Generated<number>;
+  insured: string | null;
+  last_update: Timestamp | null;
+  last_updated_by: string | null;
+  loss_location: string | null;
+  total_incurred: Numeric | null;
 }
 
 export interface Doc {
@@ -50,21 +74,35 @@ export interface PageInstanceParent {
   parent_instance_id: number | null;
 }
 
+export interface PageQuestion {
+  page_id: number;
+  question_id: number;
+}
+
 export interface Question {
   doc_id: number | null;
+  hidden: Generated<boolean | null>;
   id: Generated<number>;
-  page_id: number;
   q_desc: string | null;
   q_text: string;
   q_type: string;
 }
 
+export interface QuestionAnswer {
+  answer_id: number;
+  question_id: number;
+}
+
 export interface DB {
   answer: Answer;
   checklist: Checklist;
+  checklist_claim: ChecklistClaim;
+  claim_dummy: ClaimDummy;
   doc: Doc;
   page: Page;
   page_instance: PageInstance;
   page_instance_parent: PageInstanceParent;
+  page_question: PageQuestion;
   question: Question;
+  question_answer: QuestionAnswer;
 }

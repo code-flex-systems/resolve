@@ -3,11 +3,11 @@ import { db } from '../database/kysely';
 import { Answer } from '../types/types';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { DB } from '../database/types';
-import { InsertExpression } from 'kysely/dist/cjs/parser/insert-values-parser';
 import answerQueries from './answerQueries';
 
 export default {
 	createQuestion,
+	copyQuestion,
 	deleteQuestion,
 	getQuestion,
 	getQuestions,
@@ -22,13 +22,16 @@ async function createQuestion(pageId: number, params: object) {
 				newQuestion = await trx
 					.insertInto('question')
 					.values({
-						page_id: pageId,
 						q_text: params.q_text,
 						q_type: params.q_type,
 						q_desc: params.q_desc,
 					})
 					.returningAll()
 					.executeTakeFirst();
+				await trx
+					.insertInto('page_question')
+					.values({ page_id: params.page_id, question_id: newQuestion.id })
+					.execute();
 				if (params.q_type === 'freeform') {
 					await answerQueries.createAnswer(
 						newQuestion.id,
@@ -38,6 +41,65 @@ async function createQuestion(pageId: number, params: object) {
 						},
 						trx
 					);
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		});
+		return newQuestion;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function copyQuestion(pageId: number, questionId: number) {
+	try {
+		let newQuestion: any;
+		await db.transaction().execute(async (trx) => {
+			try {
+				newQuestion = await trx
+					.insertInto('question')
+					.columns(['q_desc', 'q_text', 'q_type'])
+					.expression((eb) =>
+						eb.selectFrom('question').select(['q_desc', 'q_text', 'q_type']).where('id', '=', questionId)
+					)
+					.returningAll()
+					.executeTakeFirstOrThrow(() => new Error('Question does not exist'));
+				await trx
+					.insertInto('page_question')
+					.values({ page_id: pageId, question_id: newQuestion.id })
+					.execute();
+				let newAnswers = await trx
+					.insertInto('answer')
+					.columns(['a_desc', 'a_freeform_lines', 'a_freeform_placeholder', 'a_order', 'a_text', 'a_type'])
+					.expression((eb) =>
+						eb
+							.selectFrom('answer')
+							.select([
+								'a_desc',
+								'a_freeform_lines',
+								'a_freeform_placeholder',
+								'a_order',
+								'a_text',
+								'a_type',
+							])
+							.where(
+								'id',
+								'in',
+								eb
+									.selectFrom('answer as a')
+									.innerJoin('question_answer as qa', 'a.id', 'qa.answer_id')
+									.select('a.id')
+									.where('qa.question_id', '=', questionId)
+							)
+					)
+					.returning('id')
+					.execute();
+				if (newAnswers.length) {
+					await trx
+						.insertInto('question_answer')
+						.values(newAnswers.map((a) => ({ answer_id: a.id, question_id: newQuestion.id })))
+						.execute();
 				}
 			} catch (e) {
 				console.error(e);
@@ -75,10 +137,13 @@ async function getQuestions(pageId: number) {
 	try {
 		let results = await db
 			.selectFrom('question as q')
-			.leftJoin('answer as a', 'a.question_id', 'q.id')
+			.innerJoin('page_question as p', 'q.id', 'p.question_id')
+			.leftJoin('question_answer as qa', 'q.id', 'qa.question_id')
+			.leftJoin('answer as a', 'qa.answer_id', 'a.id')
 			.leftJoin('doc as d1', 'd1.id', 'q.doc_id')
 			.leftJoin('doc as d2', 'd2.id', 'a.doc_id')
 			.selectAll('q')
+			.select('p.page_id')
 			.select((eb) => [
 				sql`array_agg(
                     jsonb_build_object(
@@ -100,8 +165,8 @@ async function getQuestions(pageId: number) {
 				'd1.filename as q_filename',
 				'd1.alias as q_alias',
 			])
-			.where('q.page_id', '=', pageId)
-			.groupBy(['q.doc_id', 'q.id', 'q.page_id', 'q.q_desc', 'q.q_text', 'q.q_type', 'd1.filename', 'd1.alias'])
+			.where('p.page_id', '=', pageId)
+			.groupBy(['q.doc_id', 'q.id', 'p.page_id', 'q.q_desc', 'q.q_text', 'q.q_type', 'd1.filename', 'd1.alias'])
 			.orderBy('id')
 			.execute();
 		results.forEach((q) => {

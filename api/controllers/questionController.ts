@@ -2,6 +2,7 @@ import questionQueries from '../queries/questionQueries';
 
 export default {
 	createQuestion,
+	copyQuestion,
 	deleteQuestion,
 	getQuestion,
 	getQuestions,
@@ -11,6 +12,15 @@ export default {
 async function createQuestion(pageId: number, params: object) {
 	try {
 		let results = await questionQueries.createQuestion(pageId, params);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function copyQuestion(pageId: number, questionId: number) {
+	try {
+		let results = await questionQueries.copyQuestion(pageId, questionId);
 		return results;
 	} catch (e) {
 		console.error(e);

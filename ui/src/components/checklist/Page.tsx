@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description } from '@mui/icons-material';
+import ClaimInfo from './ClaimInfo';
 
 function generateDefaultValues(questions?: Question[]) {
 	let defaults: Record<string, string[] | string> = {};
@@ -29,6 +30,7 @@ function generateDefaultValues(questions?: Question[]) {
 }
 
 export default function Page() {
+	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
@@ -41,46 +43,56 @@ export default function Page() {
 
 	return (
 		<div style={styles.container}>
-			<Toolbar
-				left={
-					<>
-						<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
-						<Typography fontSize={20}>{selectedPageInfo.title}</Typography>
-					</>
-				}
-				right={
-					<>
-						<Button
-							variant="outlined"
-							onClick={() => reset({ ...generateDefaultValues(selectedPageData) })}
-							sx={{ height: 25, marginRight: '10px' }}
-						>
-							Reset
-						</Button>
-						<Button variant="contained" onClick={onSubmit} sx={{ height: 25 }}>
-							Save
-						</Button>
-					</>
-				}
-				padding={0}
-			/>
-			<div style={styles.divider}>
-				<Divider />
-			</div>
-			<Fade in={!!selectedPageData}>
-				<Form control={control} style={styles.form}>
-					{(selectedPageData ?? []).map((question, i) => (
-						<ChecklistQuestion
-							key={question.id}
-							control={control}
-							resetField={resetField}
-							watch={watch}
-							question={question}
-							idx={i}
-						/>
-					))}
-				</Form>
-			</Fade>
+			<ClaimInfo />
+			{!selectedPageData && (
+				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
+					<Typography fontStyle="italic">
+						{selectedPageInstance ? 'Loading...' : 'No page selected'}
+					</Typography>
+				</div>
+			)}
+			{!!selectedPageData && (
+				<>
+					<Toolbar
+						left={
+							<>
+								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
+								<Typography fontSize={20}>{selectedPageInfo.title}</Typography>
+							</>
+						}
+						right={
+							<>
+								<Button
+									variant="outlined"
+									onClick={() => reset({ ...generateDefaultValues(selectedPageData) })}
+									sx={{ height: 25, marginRight: '10px' }}
+								>
+									Reset
+								</Button>
+								<Button variant="contained" onClick={onSubmit} sx={{ height: 25 }}>
+									Save
+								</Button>
+							</>
+						}
+						padding={0}
+					/>
+					<div style={styles.divider}>
+						<Divider />
+					</div>
+					<Form control={control} style={styles.form}>
+						{(selectedPageData ?? []).map((question, i) => (
+							<ChecklistQuestion
+								key={question.id}
+								control={control}
+								resetField={resetField}
+								watch={watch}
+								question={question}
+								idx={i}
+							/>
+						))}
+					</Form>
+				</>
+			)}
 		</div>
 	);
 }

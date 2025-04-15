@@ -12,6 +12,7 @@ import checklistRoutes from './routeHandlers/checklistRoutes';
 import pageRoutes from './routeHandlers/pageRoutes';
 import questionRoutes from './routeHandlers/questionRoutes';
 import docRoutes from './routeHandlers/docRoutes';
+import claimRoutes from './routeHandlers/claimRoutes';
 
 export const router = express.Router();
 
@@ -29,6 +30,9 @@ router.delete('/questions/:questionId', questionRoutes.deleteQuestion);
 //
 // GET
 //
+// DUMMY CLAIM
+router.get('/:checklistId/claims/:claimId', claimRoutes.getClaim);
+
 // answers
 router.get('/:questionId/answers', answerRoutes.getAnswers);
 router.get('/answers/:answerId', answerRoutes.getAnswer);
@@ -56,9 +60,11 @@ router.get('/questions/:questionId', questionRoutes.getQuestion);
 // POST
 //
 router.post('/:questionId/answers', answerRoutes.createAnswer);
+router.post('/:questionId/answers/copy/:answerId', answerRoutes.copyAnswer);
 router.post('/checklists', checklistRoutes.createChecklist);
 router.post('/docs', docRoutes.createDoc);
 router.post('/:pageId/questions', questionRoutes.createQuestion);
+router.post('/:pageId/questions/copy/:questionId', questionRoutes.copyQuestion);
 
 // pages
 router.post('/:checklistId/pages/:parentId', pageRoutes.createPage);

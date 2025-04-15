@@ -6,6 +6,7 @@ import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
 import { Description } from '@mui/icons-material';
+import ClaimInfo from './ClaimInfo';
 
 export default function PageEditor() {
 	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
@@ -15,6 +16,7 @@ export default function PageEditor() {
 
 	return (
 		<div style={styles.container}>
+			<ClaimInfo />
 			{!!selectedPageData && !selectedQuestion && !selectedAnswer && (
 				<>
 					<Toolbar
