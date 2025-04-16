@@ -98,6 +98,7 @@ export default function FormQuestion() {
 						</Typography>
 					</>
 				}
+				leftWidth="60%"
 				right={
 					<>
 						{!isPlaceholder && (
@@ -133,7 +134,7 @@ export default function FormQuestion() {
 						</Button>
 					</>
 				}
-				padding={0}
+				rightWidth="40%"
 			/>
 			<div style={styles.divider}>
 				<Divider />

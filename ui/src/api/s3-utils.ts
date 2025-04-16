@@ -24,7 +24,6 @@ export async function uploadFile(file: File) {
 				'Content-Type': file.type,
 			},
 		});
-		console.log(uploadResponse);
 	} catch (e) {
 		console.error(e);
 	}

@@ -7,7 +7,7 @@ export function usePageInstanceTree(callback: (data: TreeNode[]) => void, enable
 		queryKey: ['pages', 'instances'],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getPageInstanceTree(1);
+				let data = await axiosRoutes.getPageInstanceTree(3);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {

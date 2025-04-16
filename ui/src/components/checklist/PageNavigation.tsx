@@ -34,10 +34,12 @@ export default function PageNavigation() {
 				height={35}
 			/>
 			<Divider />
-			<Collapse in={!isFetching}>
-				{tree.map((node) => (
-					<TreeNode key={node.instanceId} level={0} {...node} />
-				))}
+			<Collapse in={!isFetching} style={{ width: '100%', height: '100%' }}>
+				<div style={{ width: '100%', height: 'calc(100% - 35px)', overflow: 'auto' }}>
+					{tree.map((node) => (
+						<TreeNode key={node.instanceId} level={0} {...node} />
+					))}
+				</div>
 			</Collapse>
 		</Paper>
 	);
@@ -47,8 +49,9 @@ const styles = {
 	container: {
 		width: 'fit-content',
 		minWidth: 500,
-		height: '100%',
+		height: 'calc(100vh - 60px)',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
+		overflow: 'hidden',
 	},
 };

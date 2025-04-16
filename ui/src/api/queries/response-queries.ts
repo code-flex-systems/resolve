@@ -8,10 +8,10 @@ export function useAllResponses(
 	enabled?: boolean
 ) {
 	return useQuery({
-		queryKey: [1, claimId, 'responses'],
+		queryKey: [3, claimId, 'responses'],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getAllResponses(1, claimId);
+				let data = await axiosRoutes.getAllResponses(3, claimId);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {
@@ -29,10 +29,10 @@ export function useResponses(
 	enabled?: boolean
 ) {
 	return useQuery({
-		queryKey: [1, claimId, instanceId, 'responses'],
+		queryKey: [3, claimId, instanceId, 'responses'],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getResponses(1, claimId, instanceId);
+				let data = await axiosRoutes.getResponses(3, claimId, instanceId);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {

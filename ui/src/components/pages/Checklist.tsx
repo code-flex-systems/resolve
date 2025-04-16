@@ -13,7 +13,7 @@ export default function Checklist() {
 	useChecklist(1, actions.updateChecklist, !checklist);
 	return (
 		<PageWrapper route="/checklist">
-			<div style={styles.container} className="flex-row-left">
+			<div style={styles.container}>
 				<PageNavigation />
 				{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
 			</div>
@@ -25,5 +25,8 @@ const styles = {
 	container: {
 		width: '100%',
 		height: '100%',
+		display: 'flex',
+		justifyContent: 'flex-start',
+		alignItems: 'flex-start',
 	},
 };

@@ -23,12 +23,13 @@ export default function PageEditor() {
 						left={
 							<>
 								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
-								<Typography fontSize={20}>
+								<Typography lineHeight={'21px'} fontSize={19}>
 									{selectedPageInfo.title} (p{selectedPageInfo.pageId})
 								</Typography>
 							</>
 						}
-						padding={0}
+						height={60}
+						padding={'10px 0px'}
 					/>
 					<div style={styles.divider}>
 						<Divider />

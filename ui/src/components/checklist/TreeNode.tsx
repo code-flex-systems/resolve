@@ -51,7 +51,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					) : (
 						<div style={{ width: 30 }} />
 					)}
-					<Typography noWrap>
+					<Typography>
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId})` : ''}
 					</Typography>
@@ -104,7 +104,8 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 const styles = {
 	node: {
 		width: '100%',
-		height: 30,
+		minHeight: 30,
+		margin: '5px 0px',
 		borderRadius: 5,
 	},
 };

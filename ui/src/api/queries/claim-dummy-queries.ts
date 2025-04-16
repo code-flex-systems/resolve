@@ -6,7 +6,7 @@ export function useClaimDummy(callback: (data: any) => void, enabled?: boolean) 
 		queryKey: ['claims', 1],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getClaim(1, 1);
+				let data = await axiosRoutes.getClaim(3, 1);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {

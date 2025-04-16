@@ -113,7 +113,7 @@ async function getPageInstances(checklistId: number, parentId?: number) {
 				}
 				return eb.and(andClause);
 			})
-			.orderBy('p.id')
+			.orderBy('i.id')
 			.execute();
 	} catch (e) {
 		console.error(e);

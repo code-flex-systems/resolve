@@ -13,6 +13,7 @@ import ClaimInfo from './ClaimInfo';
 import { upsertResponses } from '../../api/axios-routes';
 import { useAllResponses, useResponses } from '../../api/queries/response-queries';
 import * as actions from '../../state/checklist/actions';
+import PageToolbar from './PageToolbar';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	let defaults: Record<string, number[] | string> = {};
@@ -100,6 +101,7 @@ export default function Page() {
 	return (
 		<div style={styles.container}>
 			<ClaimInfo />
+			<PageToolbar />
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
 					<Typography fontStyle="italic">
@@ -113,9 +115,12 @@ export default function Page() {
 						left={
 							<>
 								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
-								<Typography fontSize={20}>{selectedPageInfo.title}</Typography>
+								<Typography lineHeight={'21px'} fontSize={19}>
+									{selectedPageInfo.title}
+								</Typography>
 							</>
 						}
+						leftWidth="70%"
 						right={
 							<>
 								<Button
@@ -130,7 +135,9 @@ export default function Page() {
 								</Button>
 							</>
 						}
-						padding={0}
+						rightWidth="30%"
+						height={60}
+						padding={'10px 0px'}
 					/>
 					<div style={styles.divider}>
 						<Divider />

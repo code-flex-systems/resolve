@@ -88,12 +88,13 @@ export default function FormAnswer() {
 				left={
 					<>
 						<InsertComment sx={styles.toolbar} />
-						<Typography fontSize={20}>
+						<Typography lineHeight={'21px'} fontSize={19}>
 							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
 							{isPlaceholder ? '?' : selectedAnswerData.id}
 						</Typography>
 					</>
 				}
+				leftWidth="60%"
 				right={
 					<>
 						{!isPlaceholder && (
@@ -143,7 +144,7 @@ export default function FormAnswer() {
 						</Button>
 					</>
 				}
-				padding={0}
+				rightWidth="40%"
 			/>
 			<div style={styles.divider}>
 				<Divider />
@@ -218,7 +219,12 @@ export default function FormAnswer() {
 						render={({ field }) => (
 							<FormControl style={{ ...styles.item, marginLeft: 15 }}>
 								<FormLabel sx={{ fontSize: 12 }}>Additional info?</FormLabel>
-								<Checkbox {...field} sx={{ width: 35, height: 35 }} />
+								<Checkbox
+									{...field}
+									onChange={(e) => field.onChange(e.target.checked)}
+									checked={!!field?.value}
+									sx={{ width: 35, height: 35 }}
+								/>
 							</FormControl>
 						)}
 					/>

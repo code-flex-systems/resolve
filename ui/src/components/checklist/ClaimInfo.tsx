@@ -61,7 +61,7 @@ export default function ClaimInfo() {
 					}
 					setOpen((prev) => !prev);
 				}}
-				style={{ ...styles.container, width: open ? 900 : 500, height: open ? 200 : 30 }}
+				style={{ ...styles.container, width: open ? 900 : 500, height: open ? 170 : 30 }}
 			>
 				{showData ? (
 					<>

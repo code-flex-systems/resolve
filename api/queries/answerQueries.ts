@@ -84,6 +84,7 @@ async function modifyAnswer(answerId: number, params: object) {
 		if (params.additional_info_placeholder != null)
 			updates.additional_info_placeholder = params.additional_info_placeholder;
 		if (params.calls_instance_id) updates.calls_instance_id = params.calls_instance_id;
+		if (params.has_additional_info != null) updates.has_additional_info = params.has_additional_info;
 		return await db
 			.updateTable('answer')
 			.set({
@@ -112,6 +113,7 @@ async function createAnswerPrivate(questionId: number, params: object, trx: Tran
 				additional_info_num_lines: params.additional_info_num_lines,
 				additional_info_placeholder: params.additional_info_placeholder,
 				calls_instance_id: params.calls_instance_id,
+				has_additional_info: params.has_additional_info,
 			})
 			.returningAll()
 			.executeTakeFirst();
