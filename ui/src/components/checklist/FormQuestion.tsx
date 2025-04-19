@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import {
 	Button,
 	Divider,
+	Fade,
 	FormControl,
 	FormControlLabel,
 	FormLabel,
@@ -11,7 +12,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { ContactSupport } from '@mui/icons-material';
+import { ContactSupport, TaskAlt } from '@mui/icons-material';
 
 import { QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
@@ -33,6 +34,7 @@ export default function FormQuestion() {
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
 	const { isPending: updating, mutateAsync: addUpdateQuestion } = useAddUpdateQuestion(selectedPageInfo.pageId);
 	const { isPending: copying, mutateAsync: copyQuestion } = useCopyQuestion(
 		selectedPageInfo.pageId,
@@ -40,6 +42,7 @@ export default function FormQuestion() {
 	);
 	const { isPending: deleting, mutateAsync: deleteQuestion } = useDeleteQuestion(selectedQuestionData.id);
 	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
+
 	const {
 		control,
 		handleSubmit,
@@ -50,6 +53,8 @@ export default function FormQuestion() {
 			...getDefaults(selectedQuestionData),
 		},
 	});
+
+	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	let isPlaceholder = selectedQuestionData.id === -1;
 	let inTransition = copying || updating || deleting || refetching;
 
@@ -58,6 +63,8 @@ export default function FormQuestion() {
 			let newQuestion = await addUpdateQuestion({ question: data });
 			await refetch();
 			actions.updateSelectedQuestion(newQuestion.id);
+			setShowUpdateMsg(true);
+			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
 			console.error(e);
 		}
@@ -96,6 +103,14 @@ export default function FormQuestion() {
 						<Typography fontSize={20}>
 							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
 						</Typography>
+						<Fade in={showUpdateMsg} timeout={500}>
+							<div style={{ marginLeft: 10 }} className="flex-row-left">
+								<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
+								<Typography color="success" fontStyle="italic">
+									Saved!
+								</Typography>
+							</div>
+						</Fade>
 					</>
 				}
 				leftWidth="60%"

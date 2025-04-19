@@ -41,3 +41,8 @@
 	visibility: hidden;
 	opacity: 0;
 }
+
+.text-hover:hover {
+	outline: 2px solid #344979;
+	transition: outline 100ms ease;
+}

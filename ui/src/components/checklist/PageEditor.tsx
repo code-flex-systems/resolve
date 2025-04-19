@@ -1,15 +1,22 @@
 import { useShallow } from 'zustand/react/shallow';
 import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
-import { Divider, Typography } from '@mui/material';
+import { Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
-import { ContentCopy, Delete, Description, East, SubdirectoryArrowRight } from '@mui/icons-material';
+import { ContentCopy, Delete, Description, East, SubdirectoryArrowRight, TaskAlt } from '@mui/icons-material';
 import ClaimInfo from './ClaimInfo';
-import { useAddPage, useCopyPage, useDeletePage, usePageInstanceTree } from '../../api/queries/page-queries';
+import {
+	useAddPage,
+	useCopyPage,
+	useDeletePage,
+	useModifyPage,
+	usePageInstanceTree,
+} from '../../api/queries/page-queries';
 import BasicButton from '../common/BasicButton';
 import * as actions from '../../state/checklist/actions';
+import { useState } from 'react';
 
 export default function PageEditor() {
 	const checklistId = useGlobalSlice((state) => state.checklist)?.id ?? -1;
@@ -17,11 +24,17 @@ export default function PageEditor() {
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+
 	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklistId ?? -1);
 	const { mutateAsync: copyPage, isPending: copying } = useCopyPage(checklistId ?? -1, selectedPageInfo.pageId);
 	const { mutateAsync: deletePage, isPending: deleting } = useDeletePage(selectedPageInfo.instanceId);
+	const { mutateAsync: modifyPage, isPending: updating } = useModifyPage(selectedPageInfo.pageId);
 	const { isFetching, refetch } = usePageInstanceTree(actions.updateTree, false);
 	let inTransition = adding || copying || deleting || isFetching;
+
+	const [pageTitle, setPageTitle] = useState('');
+	const [editingPageTitle, setEditingPageTitle] = useState(false);
+	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	const onAddPage = async (passedParentId: number | null) => {
 		try {
@@ -60,6 +73,36 @@ export default function PageEditor() {
 		}
 	};
 
+	const onModifyPage = async () => {
+		try {
+			let modifiedPage = await modifyPage({ title: pageTitle });
+			actions.updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const startEditing = () => {
+		if (!updating) {
+			setEditingPageTitle(true);
+			setPageTitle(selectedPageInfo.title);
+		}
+	};
+
+	const stopEditing = async () => {
+		if (!updating) {
+			try {
+				if (pageTitle && pageTitle !== selectedPageInfo.title) await onModifyPage();
+				setEditingPageTitle(false);
+				setPageTitle('');
+				setShowUpdateMsg(true);
+				setTimeout(() => setShowUpdateMsg(false), 1000);
+			} catch (e) {
+				console.error(e);
+			}
+		}
+	};
+
 	return (
 		<div style={styles.container}>
 			<ClaimInfo />
@@ -68,10 +111,39 @@ export default function PageEditor() {
 					<Toolbar
 						left={
 							<>
-								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
-								<Typography lineHeight={'21px'} fontSize={19}>
-									{selectedPageInfo.title} (p{selectedPageInfo.pageId})
-								</Typography>
+								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '10px' }} />
+								{editingPageTitle ? (
+									<TextField
+										autoFocus
+										value={pageTitle}
+										onChange={(e) => setPageTitle(e.target.value)}
+										placeholder="e.g. New Page"
+										onBlur={stopEditing}
+										error={!pageTitle}
+										variant="outlined"
+										disabled={updating}
+										sx={styles.textFieldOverrides}
+									/>
+								) : (
+									<Typography
+										onClick={startEditing}
+										className="text-hover"
+										padding="5px"
+										lineHeight={'21px'}
+										fontSize={19}
+										width={300}
+									>
+										{selectedPageInfo.title} (p{selectedPageInfo.pageId})
+									</Typography>
+								)}
+								<Fade in={showUpdateMsg} timeout={500}>
+									<div style={{ marginLeft: 10 }} className="flex-row-left">
+										<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
+										<Typography color="success" fontStyle="italic">
+											Updated!
+										</Typography>
+									</div>
+								</Fade>
 							</>
 						}
 						height={60}
@@ -157,5 +229,18 @@ const styles = {
 		width: '100%',
 		height: 1,
 		marginBottom: 5,
+	},
+	textFieldOverrides: {
+		width: 300,
+		'& .MuiInputBase-root': {
+			fontSize: 19,
+			lineHeight: '21px',
+			borderRadius: 0,
+			padding: '2px',
+		},
+		'& .MuiOutlinedInput-input': {
+			borderRadius: 0,
+			padding: '2px 10px',
+		},
 	},
 };

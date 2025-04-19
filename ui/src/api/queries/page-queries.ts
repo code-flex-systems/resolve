@@ -83,6 +83,20 @@ export function useDeletePage(instanceId: number) {
 	});
 }
 
+export function useModifyPage(pageId: number) {
+	return useMutation({
+		mutationKey: ['pages', pageId, 'update'],
+		mutationFn: async (variables: { title: string }) => {
+			try {
+				let data = await axiosRoutes.modifyPage(pageId, variables);
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
 export function useUpdatePage(pageId: number) {
 	return useMutation({
 		mutationKey: ['pages', pageId, 'update'],

@@ -12,7 +12,7 @@ export default function ChecklistAnswerRadio(props: {
 	const { field, question, watch } = props;
 	return (
 		<div className="flex-row-left">
-			{question.answers.map((a) => (
+			{(question.answers ?? []).map((a) => (
 				<Tooltip key={a.id} placement="top" title={a.description_text ?? ''} arrow>
 					<FormControlLabel
 						control={

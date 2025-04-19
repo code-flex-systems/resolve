@@ -5,10 +5,10 @@ import * as selectors from '../../state/checklist/selectors';
 import { QuestionType } from '../../config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '../../types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import { Description } from '@mui/icons-material';
+import { Description, TaskAlt } from '@mui/icons-material';
 import ClaimInfo from './ClaimInfo';
 import { upsertResponses } from '../../api/axios-routes';
 import { useAllResponses, useResponses } from '../../api/queries/response-queries';
@@ -53,7 +53,9 @@ export default function Page() {
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
+
 	const { isFetching: loadingAll } = useAllResponses(
 		claim?.id ?? -1,
 		actions.updateAllResponses,
@@ -65,6 +67,8 @@ export default function Page() {
 		actions.updateInstanceResponses,
 		false
 	);
+
+	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	useEffect(() => {
 		reset({ ...generateDefaultValues(selectedPageData, responses) });
@@ -93,6 +97,8 @@ export default function Page() {
 				});
 			await upsertResponses(responses);
 			await refetch();
+			setShowUpdateMsg(true);
+			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
 			console.error(e);
 		}
@@ -114,10 +120,18 @@ export default function Page() {
 					<Toolbar
 						left={
 							<>
-								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '5px' }} />
+								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '10px' }} />
 								<Typography lineHeight={'21px'} fontSize={19}>
 									{selectedPageInfo.title}
 								</Typography>
+								<Fade in={showUpdateMsg} timeout={500}>
+									<div style={{ marginLeft: 10 }} className="flex-row-left">
+										<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
+										<Typography color="success" fontStyle="italic">
+											Saved!
+										</Typography>
+									</div>
+								</Fade>
 							</>
 						}
 						leftWidth="70%"

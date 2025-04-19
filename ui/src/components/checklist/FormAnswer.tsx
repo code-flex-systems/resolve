@@ -8,6 +8,7 @@ import {
 	Checkbox,
 	Collapse,
 	Divider,
+	Fade,
 	FormControl,
 	FormLabel,
 	MenuItem,
@@ -17,8 +18,8 @@ import {
 	Typography,
 } from '@mui/material';
 import { QuestionType } from '../../config/enums';
-import { useEffect } from 'react';
-import { InsertComment } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+import { InsertComment, TaskAlt } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import { useAddUpdateAnswer, useCopyAnswer, useDeleteAnswer, useQuestions } from '../../api/queries/page-queries';
 import * as actions from '../../state/checklist/actions';
@@ -28,10 +29,12 @@ export default function FormAnswer() {
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedAnswerData = useStore(useShallow(selectors.selectedAnswerData));
+
 	const { isPending: updating, mutateAsync: addUpdateAnswer } = useAddUpdateAnswer(selectedQuestion);
 	const { isPending: copying, mutateAsync: copyAnswer } = useCopyAnswer(selectedQuestion, selectedAnswerData.id);
 	const { isPending: deleting, mutateAsync: deleteAnswer } = useDeleteAnswer(selectedAnswerData.id);
 	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
+
 	const {
 		control,
 		handleSubmit,
@@ -43,6 +46,8 @@ export default function FormAnswer() {
 			...selectedAnswerData,
 		},
 	});
+
+	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const hasAdditionalInfo = watch('has_additional_info');
 	let isPlaceholder = selectedAnswerData.id === -1;
 	let isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
@@ -58,6 +63,8 @@ export default function FormAnswer() {
 			let newAnswer = await addUpdateAnswer({ answer: data });
 			await refetch();
 			actions.updateSelectedAnswer(selectedQuestion, newAnswer.id);
+			setShowUpdateMsg(true);
+			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
 			console.error(e);
 		}
@@ -103,6 +110,14 @@ export default function FormAnswer() {
 							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
 							{isPlaceholder ? '?' : selectedAnswerData.id}
 						</Typography>
+						<Fade in={showUpdateMsg} timeout={500}>
+							<div style={{ marginLeft: 10 }} className="flex-row-left">
+								<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
+								<Typography color="success" fontStyle="italic">
+									Saved!
+								</Typography>
+							</div>
+						</Fade>
 					</>
 				}
 				leftWidth="60%"

@@ -78,6 +78,14 @@ export function updateSelectedPageInfoSearch(instanceId: number) {
 	}
 }
 
+export function updateSelectedPageTitle(instanceId: number, newTitle: string) {
+	setState((state) => {
+		let node = findTreeNode(instanceId, state.tree);
+		if (node) node.title = newTitle;
+		if (state.selectedPageInfo) state.selectedPageInfo.title = newTitle;
+	});
+}
+
 export function updateSelectedQuestion(questionId: number | null) {
 	setState((state) => {
 		state.selectedAnswer = null;
