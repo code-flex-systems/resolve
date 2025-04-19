@@ -78,8 +78,16 @@ export function getDocs() {
 	return performAsyncGet(ROUTES.DOCS);
 }
 
-export function createPage(checklistId: number, parentId: number, page: object) {
-	return performAsyncPost(`/${checklistId}${ROUTES.PAGES}/${parentId}`, page);
+export function createPage(checklistId: number, params: { title: string; parentId: number; position: number }) {
+	return performAsyncPost(`/${checklistId}${ROUTES.PAGES}`, params);
+}
+
+export function createPageInstance(
+	checklistId: number,
+	pageId: number,
+	params: { parentId: number; position: number }
+) {
+	return performAsyncPost(`/${checklistId}${ROUTES.PAGES}/${pageId}`, params);
 }
 
 export function deletePageInstance(instanceId: number) {

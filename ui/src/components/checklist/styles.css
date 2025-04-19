@@ -13,6 +13,15 @@
 	opacity: 1;
 }
 
+.list-button-inner {
+	color: 'inherit';
+}
+
+.list-item-outer:hover .list-button-inner {
+	color: #449cd9;
+	transition: color 100ms ease;
+}
+
 .node:hover {
 	background-color: #e8e9ed;
 	transition: background-color 100ms ease;

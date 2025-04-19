@@ -108,7 +108,7 @@ export default function FormQuestion() {
 									variant="contained"
 									color="error"
 									onClick={() => {
-										if (selectedQuestionData.answers.length) {
+										if (selectedQuestionData.answers?.length) {
 											setShowDeleteDialog(true);
 										} else {
 											onDelete();
@@ -148,7 +148,7 @@ export default function FormQuestion() {
 						render={({ field }) => (
 							<TextField
 								label="Question text"
-								placeholder="e.g. "
+								placeholder="e.g. What is the cause of loss?"
 								variant="outlined"
 								{...field}
 								error={!!errors.text}
@@ -163,12 +163,12 @@ export default function FormQuestion() {
 						control={control}
 						render={({ field }) => (
 							<TextField
-								label="Additional info (optional)"
-								placeholder="e.g. "
+								label="Question description (optional)"
+								placeholder="e.g. Describe how the damage occurred"
 								variant="outlined"
 								{...field}
 								value={field.value ?? ''}
-								sx={styles.textFieldOverrides}
+								sx={{ ...styles.textFieldOverrides, width: 400 }}
 								style={styles.item}
 							/>
 						)}

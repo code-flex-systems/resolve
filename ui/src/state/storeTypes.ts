@@ -5,6 +5,7 @@ export interface ChecklistSlice {
 	claim: any;
 	expanded: Map<number, boolean>;
 	expandAll: boolean;
+	maxPageInstancePosition: number;
 	mode: ChecklistMode;
 	pages: Map<number, Question[]>;
 	responses: Record<number, QuestionResponse>;

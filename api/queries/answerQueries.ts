@@ -42,7 +42,7 @@ async function deleteAnswer(answerId: number) {
 
 async function getAnswer(answerId: number) {
 	try {
-		return await db.selectFrom('answer as a').selectAll('a').where('a.id', '=', answerId).executeTakeFirst();
+		return await db.selectFrom('answer').selectAll().where('id', '=', answerId).executeTakeFirst();
 	} catch (e) {
 		console.error(e);
 	}
@@ -51,10 +51,10 @@ async function getAnswer(answerId: number) {
 async function getAnswers(questionId: number) {
 	try {
 		return await db
-			.selectFrom('answer as a')
-			.selectAll('a')
-			.where('a.question_id', '=', questionId)
-			.orderBy('a.position')
+			.selectFrom('answer')
+			.selectAll()
+			.where('question_id', '=', questionId)
+			.orderBy('position')
 			.execute();
 	} catch (e) {
 		console.error(e);
@@ -78,6 +78,7 @@ async function modifyAnswer(answerId: number, params: object) {
 	try {
 		let updates: UpdateObjectExpression<DB, 'answer'> = {};
 		if (params.position) updates.position = params.position;
+		if (params.grade) updates.grade = params.grade;
 		if (params.text) updates.text = params.text;
 		if (params.description_text != null) updates.description_text = params.description_text;
 		if (params.additional_info_num_lines) updates.additional_info_num_lines = params.additional_info_num_lines;
@@ -108,6 +109,7 @@ async function createAnswerPrivate(questionId: number, params: object, trx: Tran
 			.values({
 				question_id: questionId,
 				position: answerCount + 1,
+				grade: params.grade,
 				text: params.text,
 				description_text: params.description_text,
 				additional_info_num_lines: params.additional_info_num_lines,

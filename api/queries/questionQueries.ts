@@ -26,6 +26,7 @@ async function createQuestion(pageId: number, params: object) {
 						text: params.text,
 						type: params.type,
 						description_text: params.description_text,
+						position: params.position,
 					})
 					.returningAll()
 					.executeTakeFirst();
@@ -42,15 +43,26 @@ async function createQuestion(pageId: number, params: object) {
 async function copyQuestion(pageId: number, questionId: number) {
 	try {
 		let newQuestion: any;
+		let maxPosition = await db
+			.selectFrom('question')
+			.select(({ fn }) => fn.max('position').as('max_position'))
+			.where('page_id', '=', pageId)
+			.executeTakeFirstOrThrow();
 		await db.transaction().execute(async (trx) => {
 			try {
 				newQuestion = await trx
 					.insertInto('question')
-					.columns(['page_id', 'description_text', 'text', 'type'])
+					.columns(['page_id', 'description_text', 'text', 'type', 'position'])
 					.expression((eb) =>
 						eb
 							.selectFrom('question')
-							.select(['page_id', 'description_text', 'text', 'type'])
+							.select((eb) => [
+								'page_id',
+								'description_text',
+								'text',
+								'type',
+								eb.val(+maxPosition.max_position.toString() + 1).as('position'),
+							])
 							.where('id', '=', questionId)
 					)
 					.returningAll()
@@ -61,6 +73,7 @@ async function copyQuestion(pageId: number, questionId: number) {
 						'additional_info_num_lines',
 						'additional_info_placeholder',
 						'position',
+						'grade',
 						'text',
 						'description_text',
 						'description_image_url',
@@ -75,6 +88,7 @@ async function copyQuestion(pageId: number, questionId: number) {
 								'additional_info_num_lines',
 								'additional_info_placeholder',
 								'position',
+								'grade',
 								'text',
 								'description_text',
 								'description_image_url',

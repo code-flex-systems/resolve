@@ -6,6 +6,7 @@ import { Answer } from '../../types';
 import {
 	Button,
 	Checkbox,
+	Collapse,
 	Divider,
 	FormControl,
 	FormLabel,
@@ -48,6 +49,10 @@ export default function FormAnswer() {
 	let inTransition = copying || updating || deleting || refetching;
 	let scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
 
+	useEffect(() => {
+		reset({ ...selectedAnswerData });
+	}, [selectedAnswerData]);
+
 	const onSubmit = handleSubmit(async (data) => {
 		try {
 			let newAnswer = await addUpdateAnswer({ answer: data });
@@ -78,9 +83,15 @@ export default function FormAnswer() {
 		}
 	};
 
-	useEffect(() => {
-		reset({ ...selectedAnswerData });
-	}, [selectedAnswerData]);
+	const getPositionOptions = () => {
+		let options: number[] = [];
+		let limit = selectedQuestionData.answers.length;
+		if (isPlaceholder) limit += 1;
+		for (let i = 1; i <= limit; i++) {
+			options.push(i);
+		}
+		return options;
+	};
 
 	return (
 		<>
@@ -158,7 +169,7 @@ export default function FormAnswer() {
 						render={({ field }) => (
 							<TextField
 								label="Answer text"
-								placeholder="e.g. "
+								placeholder="e.g. Water Damage"
 								variant="outlined"
 								error={!!errors.text}
 								{...field}
@@ -173,63 +184,78 @@ export default function FormAnswer() {
 						control={control}
 						render={({ field }) => (
 							<TextField
-								label="Additional info (optional)"
-								placeholder="e.g. "
+								label="Answer description (optional)"
+								placeholder="e.g. Damage as a result of leaks or condensation"
 								variant="outlined"
 								{...field}
 								value={field.value ?? ''}
-								sx={styles.textFieldOverrides}
+								sx={{ ...styles.textFieldOverrides, width: 400 }}
 								style={styles.item}
 							/>
 						)}
 					/>
 				</div>
-				<div style={styles.row} className="flex-row-left">
+				<div style={{ ...styles.row, height: 55 }} className="flex-row-left">
+					<Controller
+						name="grade"
+						control={control}
+						render={({ field }) => (
+							<TextField
+								label="Grade (optional)"
+								placeholder="e.g. 1.1"
+								variant="outlined"
+								type="number"
+								{...field}
+								value={field.value ?? ''}
+								sx={{ ...styles.textFieldOverrides, width: 120 }}
+								style={styles.item}
+							/>
+						)}
+					/>
+
 					<Controller
 						name="position"
 						control={control}
 						rules={{ required: true }}
 						render={({ field }) => (
-							<FormControl style={styles.item}>
+							<FormControl style={{ padding: '0px 5px 15px' }}>
 								<FormLabel sx={{ fontSize: 12 }}>Order</FormLabel>
 								<Select
 									variant="outlined"
 									error={!!errors.position}
 									{...field}
 									sx={{ ...styles.textFieldOverrides, width: 50 }}
-									style={styles.item}
 								>
-									<MenuItem key={1} value={'1'}>
-										1
-									</MenuItem>
-									<MenuItem key={2} value={'2'}>
-										2
-									</MenuItem>
-									<MenuItem key={3} value={'3'}>
-										3
-									</MenuItem>
+									{getPositionOptions().map((o) => (
+										<MenuItem key={o} value={o}>
+											{o}
+										</MenuItem>
+									))}
 								</Select>
 							</FormControl>
 						)}
 					/>
-
+				</div>
+				<div style={{ ...styles.row, height: 40 }} className="flex-row-left">
 					<Controller
 						name="has_additional_info"
 						control={control}
 						render={({ field }) => (
-							<FormControl style={{ ...styles.item, marginLeft: 15 }}>
-								<FormLabel sx={{ fontSize: 12 }}>Additional info?</FormLabel>
-								<Checkbox
-									{...field}
-									onChange={(e) => field.onChange(e.target.checked)}
-									checked={!!field?.value}
-									sx={{ width: 35, height: 35 }}
-								/>
+							<FormControl style={styles.item}>
+								<div className="flex-row-left">
+									<Checkbox
+										{...field}
+										onChange={(e) => field.onChange(e.target.checked)}
+										checked={Boolean(field?.value)}
+										sx={{ width: 35, height: 35 }}
+									/>
+									<FormLabel sx={{ fontSize: 12 }}>Requires additional info...</FormLabel>
+								</div>
 							</FormControl>
 						)}
 					/>
 				</div>
-				{hasAdditionalInfo && (
+				<Collapse in={hasAdditionalInfo}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
 							name="additional_info_placeholder"
@@ -237,7 +263,7 @@ export default function FormAnswer() {
 							render={({ field }) => (
 								<TextField
 									label="Free-form placeholder (optional)"
-									placeholder="e.g. "
+									placeholder="e.g. Please list"
 									variant="outlined"
 									{...field}
 									value={field.value ?? ''}
@@ -253,7 +279,7 @@ export default function FormAnswer() {
 							render={({ field }) => (
 								<TextField
 									label="Free-form # of lines (optional)"
-									placeholder="e.g. "
+									placeholder="e.g. 2"
 									variant="outlined"
 									type="number"
 									{...field}
@@ -264,7 +290,7 @@ export default function FormAnswer() {
 							)}
 						/>
 					</div>
-				)}
+				</Collapse>
 			</Form>
 		</>
 	);

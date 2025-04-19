@@ -5,7 +5,7 @@ drop table if exists answer cascade;
 drop table if exists question cascade;
 drop table if exists page_instance cascade;
 drop table if exists page cascade;
-drop table if exists claim_dummy;
+drop table if exists claim;
 drop table if exists checklist;
 drop table if exists doc;
 
@@ -40,7 +40,8 @@ create table page_instance(
 	id serial not null primary key,
 	page_id integer not null references page(id) on delete cascade,
 	checklist_id integer not null references checklist(id) on delete cascade,
-	parent_instance_id integer references page_instance(id) on delete cascade
+	parent_instance_id integer references page_instance(id) on delete cascade,
+    position integer not null
 );
 
 create table doc(
@@ -53,11 +54,11 @@ create table question(
 	id serial not null primary key,
     page_id integer not null references page(id) on delete cascade,
 	text text not null,
+    position integer not null,
 	type text not null check (type in ('multi', 'single', 'dropdown', 'freeform')),
 	description_text text,
     description_image_url text,
     placeholder text,
-    num_lines integer check (num_lines > 0),
     hidden boolean default false
 );
 
@@ -66,6 +67,7 @@ create table answer(
 	question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
     text text not null,
     position INTEGER NOT NULL,
+    grade NUMERIC,
     description_text TEXT,
     description_image_url TEXT,
     has_additional_info BOOLEAN DEFAULT FALSE,
@@ -135,10 +137,10 @@ INSERT INTO page (title, hidden) VALUES
 ('Details Page', false);
 
 -- Insert page instances
-INSERT INTO page_instance (page_id, checklist_id, parent_instance_id) VALUES
-(1, 1, NULL),
-(2, 1, 1),
-(1, 2, NULL);
+INSERT INTO page_instance (page_id, checklist_id, parent_instance_id, position) VALUES
+(1, 1, NULL, 1),
+(2, 1, 1, 2),
+(1, 2, NULL, 3);
 
 -- Insert documents
 INSERT INTO doc (filename, alias) VALUES 
@@ -146,10 +148,10 @@ INSERT INTO doc (filename, alias) VALUES
 ('photo.jpg', 'Loss Site Photo');
 
 -- Insert questions
-INSERT INTO question (page_id, text, type, description_text, description_image_url, placeholder, num_lines, hidden) VALUES 
-(2, 'What is the cause of loss?', 'freeform', 'Describe how the damage occurred.', NULL, 'Enter details here...', 3, false),
-(2, 'Select all applicable damages:', 'multi', NULL, NULL, NULL, NULL, false),
-(2, 'Is the policyholder satisfied?', 'single', NULL, NULL, NULL, NULL, false);
+INSERT INTO question (page_id, text, position, type, description_text, description_image_url, placeholder, hidden) VALUES 
+(2, 'What is the cause of loss?', 1, 'freeform', 'Describe how the damage occurred.', NULL, 'Enter details here...', false),
+(2, 'Select all applicable damages:', 2, 'multi', NULL, NULL, NULL, false),
+(2, 'Is the policyholder satisfied?', 3, 'single', NULL, NULL, NULL, false);
 
 -- Insert answers
 INSERT INTO answer (question_id, text, position, has_additional_info, additional_info_placeholder, additional_info_num_lines, hidden) VALUES

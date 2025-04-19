@@ -31,6 +31,7 @@ export interface Answer {
   calls_instance_id: number | null;
   description_image_url: string | null;
   description_text: string | null;
+  grade: Numeric | null;
   has_additional_info: Generated<boolean | null>;
   hidden: Generated<boolean | null>;
   id: Generated<number>;
@@ -77,6 +78,7 @@ export interface PageInstance {
   id: Generated<number>;
   page_id: number;
   parent_instance_id: number | null;
+  position: number;
 }
 
 export interface Question {
@@ -84,9 +86,9 @@ export interface Question {
   description_text: string | null;
   hidden: Generated<boolean | null>;
   id: Generated<number>;
-  num_lines: number | null;
   page_id: number;
   placeholder: string | null;
+  position: number;
   text: string;
   type: string;
 }

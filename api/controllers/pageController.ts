@@ -22,9 +22,9 @@ async function createPage(checklistId: number, params: object) {
 	}
 }
 
-async function createPageInstance(checklistId: number, pageId: number, parentId: number) {
+async function createPageInstance(checklistId: number, pageId: number, params: object) {
 	try {
-		let results = await pageQueries.createPageInstance(checklistId, pageId, parentId);
+		let results = await pageQueries.createPageInstance(checklistId, pageId, params.parentId, params.position);
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -84,12 +84,13 @@ async function getPageInstanceTree(checklistId: number) {
 				instanceId: row.instance_id,
 				parentInstanceId: row.parent_instance_id,
 				pageId: row.id,
+				position: row.position,
 				title: row.title,
 			}));
 		for (let node of tree) {
 			addChildrenToTree(node, results);
 		}
-		return tree;
+		return { tree, maxPosition: results.length };
 	} catch (e) {
 		console.error(e);
 	}
@@ -112,6 +113,7 @@ function addChildrenToTree(
 		id: number;
 		title: string;
 		instance_id: number;
+		position: number;
 		parent_instance_id: number | null;
 	}[]
 ) {
@@ -121,6 +123,7 @@ function addChildrenToTree(
 			instanceId: row.instance_id,
 			pageId: row.id,
 			parentInstanceId: row.parent_instance_id,
+			position: row.position,
 			title: row.title,
 		}));
 	node.children = children.length ? children : undefined;

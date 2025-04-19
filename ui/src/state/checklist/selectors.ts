@@ -9,9 +9,8 @@ export function selectedAnswerData(state: State) {
 	const pageData = selectedPageData(state);
 	let defaultAnswer = { ...DEFAULT_ANSWER };
 	if (!pageData || !selectedQuestion || !selectedAnswer) return defaultAnswer;
-	return (
-		pageData.find((q) => q.id === selectedQuestion)?.answers?.find((a) => a.id === selectedAnswer) ?? defaultAnswer
-	);
+	const answers = pageData.find((q) => q.id === selectedQuestion)?.answers;
+	return answers?.find((a) => a.id === selectedAnswer) ?? { ...defaultAnswer, position: (answers?.length ?? 0) + 1 };
 }
 
 export function selectedPageData(state: State) {
@@ -28,5 +27,8 @@ export function selectedQuestionData(state: State) {
 	const { selectedQuestion } = getSlice(state);
 	const pageData = selectedPageData(state);
 	if (!pageData || !selectedQuestion) return DEFAULT_QUESTION;
-	return pageData.find((q) => q.id === selectedQuestion) ?? DEFAULT_QUESTION;
+	const maxPosition = pageData.reduce((prevValue, q) => {
+		return q.position > prevValue ? q.position : prevValue;
+	}, 0);
+	return pageData.find((q) => q.id === selectedQuestion) ?? { ...DEFAULT_QUESTION, position: maxPosition + 1 };
 }

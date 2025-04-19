@@ -3,6 +3,7 @@ export interface Answer {
 	question_id: number;
 	text: string;
 	position: number;
+	grade: number | null;
 	description_text: string | null;
 	description_image_url: string | null;
 	has_additional_info: boolean;
@@ -16,6 +17,7 @@ export interface TreeNode {
 	instanceId: number;
 	parentInstanceId: number | null;
 	pageId: number;
+	position: number;
 	title: string;
 	children?: TreeNode[];
 }

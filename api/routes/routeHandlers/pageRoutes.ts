@@ -25,11 +25,7 @@ async function createPage(req: Request, res: Response) {
 
 async function createPageInstance(req: Request, res: Response) {
 	try {
-		let ret = await pageController.createPageInstance(
-			getId(req, 'checklist'),
-			getId(req, 'page'),
-			getId(req, 'parent')
-		);
+		let ret = await pageController.createPageInstance(getId(req, 'checklist'), getId(req, 'page'), req.body);
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

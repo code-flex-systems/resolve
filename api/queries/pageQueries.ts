@@ -1,4 +1,4 @@
-import { Transaction } from 'kysely';
+import { sql, Transaction } from 'kysely';
 import { db } from '../database/kysely';
 import { DB } from '../database/types';
 
@@ -26,7 +26,7 @@ async function createPage(checklistId: number, params: object) {
 					})
 					.returningAll()
 					.executeTakeFirst();
-				newInstance = await createPageInstance(checklistId, newPage.id, params.parentId, trx);
+				newInstance = await createPageInstance(checklistId, newPage.id, params.parentId, params.position, trx);
 			} catch (e) {
 				console.error(e);
 			}
@@ -41,15 +41,21 @@ async function createPage(checklistId: number, params: object) {
 	}
 }
 
-async function createPageInstance(checklistId: number, pageId: number, parentId: number, trx?: Transaction<DB>) {
+async function createPageInstance(
+	checklistId: number,
+	pageId: number,
+	parentId: number,
+	position: number,
+	trx?: Transaction<DB>
+) {
 	try {
 		let newInstance: any;
 		if (trx) {
-			newInstance = await createPageInstancePrivate(checklistId, pageId, parentId, trx);
+			newInstance = await createPageInstancePrivate(checklistId, pageId, parentId, position, trx);
 		} else {
 			await db.transaction().execute(async (localTrx) => {
 				try {
-					newInstance = await createPageInstancePrivate(checklistId, pageId, parentId, localTrx);
+					newInstance = await createPageInstancePrivate(checklistId, pageId, parentId, position, localTrx);
 				} catch (e) {
 					console.error(e);
 				}
@@ -63,7 +69,22 @@ async function createPageInstance(checklistId: number, pageId: number, parentId:
 
 async function deletePageInstance(instanceId: number) {
 	try {
-		await db.deleteFrom('page_instance').where('id', '=', instanceId).execute();
+		await db.transaction().execute(async (trx) => {
+			try {
+				const deletedRow = await trx
+					.deleteFrom('page_instance')
+					.where('id', '=', instanceId)
+					.returning('position')
+					.executeTakeFirstOrThrow();
+				await trx
+					.updateTable('page_instance')
+					.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+					.where('position', '>', deletedRow.position)
+					.execute();
+			} catch (e) {
+				console.error(e);
+			}
+		});
 	} catch (e) {
 		console.error(e);
 	}
@@ -90,7 +111,7 @@ async function getPageInstance(instanceId: number) {
 		return await db
 			.selectFrom('page as p')
 			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
-			.select(['p.id', 'p.title', 'i.id as instance_id'])
+			.select(['p.id', 'p.title', 'i.id as instance_id', 'i.position'])
 			.where('i.id', '=', instanceId)
 			.executeTakeFirst();
 	} catch (e) {
@@ -103,7 +124,7 @@ async function getPageInstances(checklistId: number, parentId?: number) {
 		return await db
 			.selectFrom('page as p')
 			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
-			.select(['p.id', 'p.title', 'i.id as instance_id', 'i.parent_instance_id'])
+			.select(['p.id', 'p.title', 'i.id as instance_id', 'i.parent_instance_id', 'i.position'])
 			.where((eb) => {
 				let andClause = [eb('i.checklist_id', '=', checklistId)];
 				if (parentId === -1) {
@@ -113,7 +134,7 @@ async function getPageInstances(checklistId: number, parentId?: number) {
 				}
 				return eb.and(andClause);
 			})
-			.orderBy('i.id')
+			.orderBy('i.position')
 			.execute();
 	} catch (e) {
 		console.error(e);
@@ -137,7 +158,13 @@ async function modifyPage(pageId: number, params: object) {
 
 // private methods
 
-async function createPageInstancePrivate(checklistId: number, pageId: number, parentId: number, trx: Transaction<DB>) {
+async function createPageInstancePrivate(
+	checklistId: number,
+	pageId: number,
+	parentId: number,
+	position: number,
+	trx: Transaction<DB>
+) {
 	try {
 		let newInstance = await trx
 			.insertInto('page_instance')
@@ -145,9 +172,16 @@ async function createPageInstancePrivate(checklistId: number, pageId: number, pa
 				checklist_id: checklistId,
 				page_id: pageId,
 				parent_instance_id: parentId === -1 ? null : parentId,
+				position,
 			})
 			.returningAll()
 			.executeTakeFirst();
+		// Update positions for all page instances below the one we're inserting
+		await trx
+			.updateTable('page_instance')
+			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+			.where('position', '>=', position)
+			.execute();
 		return newInstance;
 	} catch (e) {
 		console.error(e);

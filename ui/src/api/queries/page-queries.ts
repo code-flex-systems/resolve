@@ -2,13 +2,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { Answer, Question, TreeNode } from '../../types';
 
-export function usePageInstanceTree(callback: (data: TreeNode[]) => void, enabled?: boolean) {
+export function usePageInstanceTree(callback: (data: TreeNode[], maxPosition: number) => void, enabled?: boolean) {
 	return useQuery({
 		queryKey: ['pages', 'instances'],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getPageInstanceTree(3);
-				if (data.data) callback(data.data);
+				let data = await axiosRoutes.getPageInstanceTree(1);
+				if (data.data) callback(data.data.tree, data.data.maxPosition);
 				return data;
 			} catch (e) {
 				console.error(e);
@@ -36,6 +36,65 @@ export function useQuestions(
 			}
 		},
 		enabled: !!pageId && enabled,
+	});
+}
+
+export function useAddPage(checklistId: number) {
+	return useMutation({
+		mutationKey: [checklistId, 'pages', 'create'],
+		mutationFn: async (variables: { title: string; parentId: number; position: number }) => {
+			try {
+				const { parentId, title, position } = variables;
+				let data = await axiosRoutes.createPage(checklistId, { title, parentId, position });
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useCopyPage(checklistId: number, pageId: number) {
+	return useMutation({
+		mutationKey: [checklistId, 'pages', pageId, 'copy'],
+		mutationFn: async (variables: { parentId: number; position: number }) => {
+			try {
+				const { parentId, position } = variables;
+				let data = await axiosRoutes.createPageInstance(checklistId, pageId, { parentId, position });
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useDeletePage(instanceId: number) {
+	return useMutation({
+		mutationKey: ['pages', 'instances', instanceId, 'delete'],
+		mutationFn: async () => {
+			try {
+				let data = await axiosRoutes.deletePageInstance(instanceId);
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+	});
+}
+
+export function useUpdatePage(pageId: number) {
+	return useMutation({
+		mutationKey: ['pages', pageId, 'update'],
+		mutationFn: async (variables: { title: string }) => {
+			try {
+				const { title } = variables;
+				let data = await axiosRoutes.modifyPage(pageId, { title });
+				return data.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
 	});
 }
 

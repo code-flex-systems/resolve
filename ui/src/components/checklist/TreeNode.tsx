@@ -67,7 +67,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 				<Collapse in={selected && !isFetching}>
 					{selectedPageData.map((q, i) => (
 						<QuestionNode
-							key={`p${pageId}.q${q.id}`}
+							key={i}
 							pageId={pageId}
 							questionId={q.id}
 							questionText={q.text}
@@ -78,7 +78,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						/>
 					))}
 					<QuestionNode
-						key={`p${pageId}.q${0}`}
+						key={-1}
 						pageId={pageId}
 						questionId={-1}
 						questionText="New Question"
@@ -93,7 +93,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			{!!children.length && (
 				<Collapse in={expanded || expandAll === true}>
 					{children.map((c) => (
-						<TreeNode key={`p${c.pageId}`} {...c} level={level + 1} />
+						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
 					))}
 				</Collapse>
 			)}
@@ -105,7 +105,7 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		margin: '5px 0px',
+		margin: '2px 0px',
 		borderRadius: 5,
 	},
 };

@@ -73,8 +73,8 @@ router.post('/:pageId/questions/copy/:questionId', questionRoutes.copyQuestion);
 router.post('/responses', responseRoutes.upsertQuestionResponses);
 
 // pages
-router.post('/:checklistId/pages/:parentId', pageRoutes.createPage);
-router.post('/:checklistId/pages/:pageId/:parentId', pageRoutes.createPageInstance);
+router.post('/:checklistId/pages', pageRoutes.createPage);
+router.post('/:checklistId/pages/:pageId', pageRoutes.createPageInstance);
 
 //
 // PUT

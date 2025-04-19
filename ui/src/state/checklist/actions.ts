@@ -85,9 +85,10 @@ export function updateSelectedQuestion(questionId: number | null) {
 	});
 }
 
-export function updateTree(tree: TreeNode[]) {
+export function updateTree(tree: TreeNode[], maxPosition: number) {
 	setState((state) => {
 		state.tree = tree;
+		state.maxPageInstancePosition = maxPosition;
 	});
 }
 

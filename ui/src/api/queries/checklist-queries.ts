@@ -7,7 +7,7 @@ export function useChecklist(id: number, callback: (newChecklist: Checklist) => 
 		queryKey: ['checklists', id],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getChecklist(3);
+				let data = await axiosRoutes.getChecklist(1);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {

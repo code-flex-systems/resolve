@@ -65,9 +65,9 @@ export default function QuestionNode(props: {
 			<Collapse in={expanded}>
 				{[...questionAnswers]
 					.sort((a, b) => a.position - b.position)
-					.map((a) => (
+					.map((a, i) => (
 						<AnswerNode
-							key={`p${pageId}.q${questionId}.a${a.id}`}
+							key={i}
 							pageId={pageId}
 							questionId={questionId}
 							answerId={a.id}
@@ -75,16 +75,14 @@ export default function QuestionNode(props: {
 							level={level + 1}
 						/>
 					))}
-				{questionType !== QuestionType.FREEFORM && (
-					<AnswerNode
-						key={`p${pageId}.q${questionId}.a${0}`}
-						pageId={pageId}
-						questionId={questionId}
-						answerId={-1}
-						answerText="New Answer"
-						level={level + 1}
-					/>
-				)}
+				<AnswerNode
+					key={-1}
+					pageId={pageId}
+					questionId={questionId}
+					answerId={-1}
+					answerText="New Answer"
+					level={level + 1}
+				/>
 			</Collapse>
 		</>
 	);
