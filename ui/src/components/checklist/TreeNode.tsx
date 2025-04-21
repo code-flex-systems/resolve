@@ -55,7 +55,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId})` : ''}
 					</Typography>
-					<Fade in={isFetching}>
+					<Fade in={isFetching && selected}>
 						<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
 							Loading...
 						</Typography>

@@ -33,17 +33,9 @@ export function toggleExpandAll() {
 	});
 }
 
-export function updateAllResponses(responses: Record<number, QuestionResponse>) {
+export function updateInstanceResponses(instanceId: number, responses: Record<number, QuestionResponse>) {
 	setState((state) => {
-		state.responses = responses;
-	});
-}
-
-export function updateInstanceResponses(responses: Record<number, QuestionResponse>) {
-	setState((state) => {
-		Object.keys(responses).forEach((id) => {
-			state.responses[+id] = responses[+id];
-		});
+		state.responses.set(instanceId, responses);
 	});
 }
 

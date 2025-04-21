@@ -25,15 +25,15 @@ export function useAllResponses(
 export function useResponses(
 	claimId: number,
 	instanceId: number,
-	callback: (data: Record<number, QuestionResponse>) => void,
+	callback: (instanceId: number, data: Record<number, QuestionResponse>) => void,
 	enabled?: boolean
 ) {
 	return useQuery({
 		queryKey: [1, claimId, instanceId, 'responses'],
-		queryFn: async () => {
+		queryFn: async ({ queryKey }) => {
 			try {
-				let data = await axiosRoutes.getResponses(1, claimId, instanceId);
-				if (data.data) callback(data.data);
+				let data = await axiosRoutes.getResponses(1, claimId, +queryKey[2]);
+				if (data.data) callback(+queryKey[2], data.data);
 				return data;
 			} catch (e) {
 				console.error(e);

@@ -56,23 +56,18 @@ export default function Page() {
 
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
 
-	const { isFetching: loadingAll } = useAllResponses(
-		claim?.id ?? -1,
-		actions.updateAllResponses,
-		!Object.keys(responses).length
-	);
 	const { refetch, isFetching: loading } = useResponses(
 		claim?.id ?? -1,
 		selectedPageInstance ?? -1,
 		actions.updateInstanceResponses,
-		false
+		!responses.get(selectedPageInstance ?? -1)
 	);
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	useEffect(() => {
-		reset({ ...generateDefaultValues(selectedPageData, responses) });
-	}, [selectedPageData, responses]);
+		reset({ ...generateDefaultValues(selectedPageData, responses.get(selectedPageInstance ?? -1)) });
+	}, [selectedPageData, responses, selectedPageInstance]);
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -139,7 +134,7 @@ export default function Page() {
 							<>
 								<Button
 									variant="outlined"
-									onClick={() => reset({ ...generateDefaultValues(selectedPageData, responses) })}
+									onClick={() => reset({ ...generateDefaultValues(selectedPageData) })}
 									sx={{ height: 25, marginRight: '10px' }}
 								>
 									Reset
