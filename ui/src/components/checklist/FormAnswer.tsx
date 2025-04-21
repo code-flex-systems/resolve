@@ -234,7 +234,7 @@ export default function FormAnswer() {
 						rules={{ required: true }}
 						render={({ field }) => (
 							<FormControl style={{ padding: '0px 5px 15px' }}>
-								<FormLabel sx={{ fontSize: 12 }}>Order</FormLabel>
+								<FormLabel sx={styles.formLabel}>Order</FormLabel>
 								<Select
 									variant="outlined"
 									error={!!errors.position}
@@ -318,6 +318,7 @@ const styles = {
 		marginBottom: 5,
 	},
 	formLabel: {
+		paddingLeft: '10px',
 		fontSize: 12,
 	},
 	item: {
@@ -328,6 +329,7 @@ const styles = {
 	},
 	textFieldOverrides: {
 		width: 300,
+		borderRadius: 0,
 		'& .MuiInputBase-root': {
 			borderRadius: 0,
 			padding: '3px 5px',

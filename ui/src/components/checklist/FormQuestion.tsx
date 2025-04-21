@@ -7,8 +7,10 @@ import {
 	FormControl,
 	FormControlLabel,
 	FormLabel,
+	MenuItem,
 	Radio,
 	RadioGroup,
+	Select,
 	TextField,
 	Typography,
 } from '@mui/material';
@@ -16,11 +18,17 @@ import { ContactSupport, TaskAlt } from '@mui/icons-material';
 
 import { QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
-import { useAddUpdateQuestion, useCopyQuestion, useDeleteQuestion, useQuestions } from '../../api/queries/page-queries';
+import {
+	useAddUpdateQuestion,
+	useCopyQuestion,
+	useDeleteQuestion,
+	usePageInstanceTree,
+	useQuestions,
+} from '../../api/queries/page-queries';
 import Toolbar from '../common/Toolbar';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
-import useStore from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { Question } from '../../types';
 
@@ -33,7 +41,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 export default function FormQuestion() {
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
-	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
 
 	const { isPending: updating, mutateAsync: addUpdateQuestion } = useAddUpdateQuestion(selectedPageInfo.pageId);
 	const { isPending: copying, mutateAsync: copyQuestion } = useCopyQuestion(
@@ -41,7 +49,12 @@ export default function FormQuestion() {
 		selectedQuestionData.id
 	);
 	const { isPending: deleting, mutateAsync: deleteQuestion } = useDeleteQuestion(selectedQuestionData.id);
-	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
+	const { isFetching: refetchingQuestions, refetch: refetchQuestions } = useQuestions(
+		selectedPageInfo.pageId,
+		false,
+		actions.updatePage
+	);
+	const { isFetching: refetchingTree, refetch: refetchTree } = usePageInstanceTree(actions.updateTree, false);
 
 	const {
 		control,
@@ -54,14 +67,19 @@ export default function FormQuestion() {
 		},
 	});
 
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	let isPlaceholder = selectedQuestionData.id === -1;
-	let inTransition = copying || updating || deleting || refetching;
+	let inTransition = copying || updating || deleting || refetchingQuestions || refetchingTree;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
 			let newQuestion = await addUpdateQuestion({ question: data });
-			await refetch();
+			if (newQuestion.page_id !== selectedPageInfo.pageId) {
+				await Promise.all([refetchQuestions(), refetchTree()]);
+			} else {
+				await refetchQuestions();
+			}
 			actions.updateSelectedQuestion(newQuestion.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
@@ -73,7 +91,7 @@ export default function FormQuestion() {
 	const onCopy = async () => {
 		try {
 			let newQuestion = await copyQuestion();
-			await refetch();
+			await refetchQuestions();
 			actions.updateSelectedQuestion(newQuestion.id);
 		} catch (e) {
 			console.error(e);
@@ -84,7 +102,7 @@ export default function FormQuestion() {
 		try {
 			await deleteQuestion();
 			actions.updateSelectedQuestion(null);
-			await refetch();
+			await refetchQuestions();
 		} catch (e) {
 			console.error(e);
 		}
@@ -155,6 +173,25 @@ export default function FormQuestion() {
 				<Divider />
 			</div>
 			<Form control={control} style={{ width: '100%' }}>
+				<div style={styles.row} className="flex-row-left">
+					<Controller
+						name="page_id"
+						control={control}
+						rules={{ required: true }}
+						render={({ field }) => (
+							<FormControl style={{ padding: '0px 5px 15px' }}>
+								<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
+								<Select error={!!errors.page_id} {...field} sx={styles.textFieldOverrides}>
+									{pageTemplates.map((o) => (
+										<MenuItem key={o.id} value={o.id}>
+											{o.title} (p{o.id})
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						)}
+					/>
+				</div>
 				<div style={styles.row} className="flex-row-left">
 					<Controller
 						name="text"
@@ -250,6 +287,7 @@ const styles = {
 		marginBottom: 5,
 	},
 	formLabel: {
+		paddingLeft: '10px',
 		fontSize: 12,
 	},
 	item: {
@@ -260,6 +298,7 @@ const styles = {
 	},
 	textFieldOverrides: {
 		width: 300,
+		borderRadius: 0,
 		'& .MuiInputBase-root': {
 			borderRadius: 0,
 			padding: '3px 5px',

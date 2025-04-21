@@ -30,7 +30,7 @@ export default function AnswerNode(props: {
 					className={mode === ChecklistMode.EDIT ? 'node-q' : undefined}
 					sx={{ cursor: 'pointer' }}
 				>
-					{answerText} p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId}
+					{answerText} (p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId})
 				</Typography>
 			</div>
 		</div>

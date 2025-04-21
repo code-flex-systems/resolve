@@ -145,6 +145,7 @@ async function getQuestions(pageId: number) {
                         'description_text', ${eb.ref('a.description_text')},
                         'description_image_url', ${eb.ref('a.description_image_url')},
                         'position', ${eb.ref('a.position')},
+                        'grade', ${eb.ref('a.grade')},
                         'additional_info_num_lines', ${eb.ref('a.additional_info_num_lines')},
                         'additional_info_placeholder', ${eb.ref('a.additional_info_placeholder')},
                         'has_additional_info', ${eb.ref('a.has_additional_info')},
@@ -170,6 +171,7 @@ async function modifyQuestion(questionId: number, params: object) {
 		if (params.text) updates.text = params.text;
 		if (params.type) updates.type = params.type;
 		if (params.description_text != null) updates.description_text = params.description_text;
+		if (params.page_id) updates.page_id = params.page_id;
 		return await db
 			.updateTable('question')
 			.set({

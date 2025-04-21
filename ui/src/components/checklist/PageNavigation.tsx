@@ -1,4 +1,4 @@
-import { Collapse, Divider, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Collapse, Divider, Fade, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { Add, Settings, Visibility } from '@mui/icons-material';
 import { OFFWHITE_COLOR } from '../../styles/theme';
 import { useChecklistSlice, useGlobalSlice } from '../../state/store';
@@ -41,19 +41,21 @@ export default function PageNavigation() {
 					</Typography>
 				}
 				right={
-					<Collapse in={mode === ChecklistMode.EDIT} orientation="horizontal">
-						<BasicButton
-							buttonProps={{
-								onClick: () => onAddPage().catch((e) => console.error(e)),
-								disabled: isFetching || adding,
-								variant: 'contained',
-								sx: { height: 25, marginLeft: '15px', minWidth: 120 },
-								startIcon: <Add sx={{ color: 'white' }} />,
-							}}
-						>
-							New Page
-						</BasicButton>
-					</Collapse>
+					<Fade in={mode === ChecklistMode.EDIT}>
+						<span>
+							<BasicButton
+								buttonProps={{
+									onClick: () => onAddPage().catch((e) => console.error(e)),
+									disabled: isFetching || adding,
+									variant: 'contained',
+									sx: styles.button,
+									startIcon: <Add sx={{ color: 'white' }} />,
+								}}
+							>
+								New Page
+							</BasicButton>
+						</span>
+					</Fade>
 				}
 				padding={0}
 				height={35}
@@ -112,6 +114,11 @@ export default function PageNavigation() {
 }
 
 const styles = {
+	button: {
+		height: 25,
+		marginLeft: '15px',
+		minWidth: 120,
+	},
 	container: {
 		width: 'fit-content',
 		minWidth: 500,

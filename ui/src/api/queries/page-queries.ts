@@ -1,6 +1,22 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { Answer, Question, TreeNode } from '../../types';
+import { Answer, PageTemplate, Question, TreeNode } from '../../types';
+
+export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boolean) {
+	return useQuery({
+		queryKey: ['pages', 'templates'],
+		queryFn: async () => {
+			try {
+				let data = await axiosRoutes.getPages();
+				if (data.data) callback(data.data);
+				return data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+		enabled,
+	});
+}
 
 export function usePageInstanceTree(callback: (data: TreeNode[], maxPosition: number) => void, enabled?: boolean) {
 	return useQuery({

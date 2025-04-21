@@ -34,6 +34,12 @@ export interface PageInstance {
 	instance_id: number;
 }
 
+export interface PageTemplate {
+	hidden: boolean;
+	id: number;
+	title: string;
+}
+
 export interface TreeNode {
 	instanceId: number;
 	parentInstanceId: number | null;

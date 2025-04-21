@@ -78,7 +78,7 @@ async function modifyAnswer(answerId: number, params: object) {
 	try {
 		let updates: UpdateObjectExpression<DB, 'answer'> = {};
 		if (params.position) updates.position = params.position;
-		if (params.grade) updates.grade = params.grade;
+		if (params.grade != null) updates.grade = params.grade || null;
 		if (params.text) updates.text = params.text;
 		if (params.description_text != null) updates.description_text = params.description_text;
 		if (params.additional_info_num_lines) updates.additional_info_num_lines = params.additional_info_num_lines;

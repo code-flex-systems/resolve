@@ -100,7 +100,7 @@ async function getPage(pageId: number) {
 
 async function getPages() {
 	try {
-		return await db.selectFrom('page as p').selectAll('p').execute();
+		return await db.selectFrom('page as p').selectAll('p').where('hidden', 'is', false).execute();
 	} catch (e) {
 		console.error(e);
 	}

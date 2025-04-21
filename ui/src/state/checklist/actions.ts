@@ -1,6 +1,6 @@
 import { TreeViewBaseItem } from '@mui/x-tree-view';
 import { ChecklistMode } from '../../config/enums';
-import { PageInstance, Question, QuestionResponse, TreeNode } from '../../types';
+import { PageInstance, PageTemplate, Question, QuestionResponse, TreeNode } from '../../types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
@@ -17,6 +17,12 @@ export function setClaimData(claim: any) {
 export function updatePage(pageId: number, questions: Question[]) {
 	setState((state) => {
 		state.pages.set(pageId, questions);
+	});
+}
+
+export function updatePageTemplates(newTemplates: PageTemplate[]) {
+	setState((state) => {
+		state.pageTemplates = newTemplates;
 	});
 }
 

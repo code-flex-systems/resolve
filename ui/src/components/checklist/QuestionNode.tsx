@@ -61,7 +61,7 @@ export default function QuestionNode(props: {
 						className={'node-q'}
 					>
 						{questionId === -1 ? '' : `${idx + 1}. `}
-						{questionText} p{pageId}.q{questionId === -1 ? '?' : questionId}
+						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>
 			</div>
