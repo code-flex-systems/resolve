@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material';
 import * as actions from '../../state/checklist/actions';
 import { useChecklistSlice } from '../../state/store';
-import { ChecklistMode, QuestionType } from '../../config/enums';
+import { ChecklistMode } from '../../config/enums';
 import './styles.css';
 
 export default function AnswerNode(props: {
@@ -13,8 +13,9 @@ export default function AnswerNode(props: {
 }) {
 	const { pageId, questionId, answerId, answerText, level } = props;
 	const mode = useChecklistSlice((state) => state.mode);
+	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
-	let selected = selectedAnswer === answerId;
+	let selected = selectedAnswer === answerId && selectedQuestion === questionId;
 	let isPlaceholder = answerId === -1;
 	return (
 		<div
@@ -29,8 +30,7 @@ export default function AnswerNode(props: {
 					className={mode === ChecklistMode.EDIT ? 'node-q' : undefined}
 					sx={{ cursor: 'pointer' }}
 				>
-					{answerText}
-					{answerId === -1 || mode === ChecklistMode.VIEW ? '' : ` (p${pageId}.q${questionId}.a${answerId})`}
+					{answerText} p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId}
 				</Typography>
 			</div>
 		</div>

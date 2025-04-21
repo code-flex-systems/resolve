@@ -5,7 +5,7 @@ import { Add } from '@mui/icons-material';
 import './styles.css';
 import { Answer } from '../../types';
 import AnswerNode from './AnswerNode';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QuestionType } from '../../config/enums';
 
 export default function QuestionNode(props: {
@@ -19,9 +19,13 @@ export default function QuestionNode(props: {
 }) {
 	const { pageId, questionId, questionText, questionType, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
+	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	let selected = selectedQuestion === questionId;
 	let isPlaceholder = questionId === -1;
+
+	useEffect(() => setExpanded(expandAll), [expandAll]);
+
 	return (
 		<>
 			<div
@@ -57,8 +61,7 @@ export default function QuestionNode(props: {
 						className={'node-q'}
 					>
 						{questionId === -1 ? '' : `${idx + 1}. `}
-						{questionText}
-						{questionId === -1 ? '' : ` (p${pageId}.q${questionId})`}
+						{questionText} p{pageId}.q{questionId === -1 ? '?' : questionId}
 					</Typography>
 				</div>
 			</div>
@@ -75,14 +78,16 @@ export default function QuestionNode(props: {
 							level={level + 1}
 						/>
 					))}
-				<AnswerNode
-					key={-1}
-					pageId={pageId}
-					questionId={questionId}
-					answerId={-1}
-					answerText="New Answer"
-					level={level + 1}
-				/>
+				{questionId !== -1 && (
+					<AnswerNode
+						key={-1}
+						pageId={pageId}
+						questionId={questionId}
+						answerId={-1}
+						answerText="New Answer"
+						level={level + 1}
+					/>
+				)}
 			</Collapse>
 		</>
 	);

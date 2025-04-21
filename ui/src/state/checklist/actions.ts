@@ -20,16 +20,9 @@ export function updatePage(pageId: number, questions: Question[]) {
 	});
 }
 
-export function toggleExpanded(id: number) {
-	setState((state) => {
-		state.expanded.set(id, !state.expanded.get(id));
-	});
-}
-
 export function toggleExpandAll() {
 	setState((state) => {
 		state.expandAll = !state.expandAll;
-		if (!state.expandAll) state.expanded = new Map();
 	});
 }
 

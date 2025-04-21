@@ -9,6 +9,7 @@ import * as selectors from '../../state/checklist/selectors';
 import { useShallow } from 'zustand/react/shallow';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, QuestionType } from '../../config/enums';
+import { useEffect, useState } from 'react';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
 	const { level, instanceId, pageId, title, children = [] } = props;
@@ -17,9 +18,12 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const mode = useChecklistSlice((state) => state.mode);
 	const pages = useChecklistSlice((state) => state.pages);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
-	const expanded = !!useChecklistSlice((state) => state.expanded).get(instanceId);
+	const [expanded, setExpanded] = useState(false);
 	let selected = selectedPageInstance === instanceId;
+
 	const { isFetching } = useQuestions(pageId, selected && !pages.has(pageId), actions.updatePage);
+
+	useEffect(() => setExpanded(expandAll), [expandAll]);
 
 	return (
 		<>
@@ -35,7 +39,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					{!!children.length ? (
 						<IconButton
 							onClick={(e) => {
-								actions.toggleExpanded(instanceId);
+								setExpanded((prev) => !prev);
 								e.stopPropagation();
 								e.preventDefault();
 							}}
@@ -43,7 +47,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						>
 							<KeyboardArrowRight
 								sx={{
-									transform: expanded || expandAll === true ? 'rotate(90deg)' : undefined,
+									transform: expanded ? 'rotate(90deg)' : undefined,
 									transition: 'transform 100ms ease',
 								}}
 							/>
@@ -91,7 +95,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			)}
 
 			{!!children.length && (
-				<Collapse in={expanded || expandAll === true}>
+				<Collapse in={expanded}>
 					{children.map((c) => (
 						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
 					))}

@@ -207,7 +207,11 @@ export default function PageEditor() {
 			)}
 			{!!selectedQuestion && !selectedAnswer && <FormQuestion />}
 			{!!selectedAnswer && <FormAnswer />}
-			{!selectedPageData && !selectedQuestion && <Typography fontStyle="italic">No page selected</Typography>}
+			{!selectedPageData && !selectedQuestion && (
+				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
+					<Typography fontStyle="italic">No page selected</Typography>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -50,7 +50,7 @@ export default function Page() {
 	const checklist = useGlobalSlice((state) => state.checklist);
 	const claim = useChecklistSlice((state) => state.claim);
 	const responses = useChecklistSlice((state) => state.responses);
-	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
+	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 
@@ -58,15 +58,15 @@ export default function Page() {
 
 	const { refetch, isFetching: loading } = useResponses(
 		claim?.id ?? -1,
-		selectedPageInstance ?? -1,
+		selectedPageInstance,
 		actions.updateInstanceResponses,
-		!responses.get(selectedPageInstance ?? -1)
+		!responses.get(selectedPageInstance)
 	);
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	useEffect(() => {
-		reset({ ...generateDefaultValues(selectedPageData, responses.get(selectedPageInstance ?? -1)) });
+		reset({ ...generateDefaultValues(selectedPageData, responses.get(selectedPageInstance)) });
 	}, [selectedPageData, responses, selectedPageInstance]);
 
 	const onSubmit = handleSubmit(async (data) => {
@@ -106,7 +106,7 @@ export default function Page() {
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
 					<Typography fontStyle="italic">
-						{selectedPageInstance ? 'Loading...' : 'No page selected'}
+						{selectedPageInstance === -1 ? 'No page selected' : 'Loading...'}
 					</Typography>
 				</div>
 			)}

@@ -3,7 +3,6 @@ import { Checklist, Question, QuestionResponse, TreeNode } from '../types';
 
 export interface ChecklistSlice {
 	claim: any;
-	expanded: Map<number, boolean>;
 	expandAll: boolean;
 	maxPageInstancePosition: number;
 	mode: ChecklistMode;
