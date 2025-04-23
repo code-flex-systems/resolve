@@ -105,7 +105,6 @@ export default function PageEditor() {
 
 	return (
 		<div style={styles.container}>
-			<ClaimInfo />
 			{!!selectedPageData && !selectedQuestion && !selectedAnswer && (
 				<>
 					<Toolbar

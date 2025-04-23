@@ -1,7 +1,7 @@
 import { Collapse, Fade, IconButton, Typography } from '@mui/material';
 import * as actions from '../../state/checklist/actions';
 import useStore, { useChecklistSlice } from '../../state/store';
-import { KeyboardArrowRight } from '@mui/icons-material';
+import { BarChart, KeyboardArrowRight } from '@mui/icons-material';
 import './styles.css';
 import { TreeNode } from '../../types';
 import { useQuestions } from '../../api/queries/page-queries';
@@ -10,6 +10,7 @@ import { useShallow } from 'zustand/react/shallow';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
+import BasicButton from '../common/BasicButton';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
 	const { level, instanceId, pageId, title, children = [] } = props;
@@ -65,10 +66,23 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						</Typography>
 					</Fade>
 				</div>
+				{mode === ChecklistMode.EDIT && (
+					<BasicButton
+						buttonProps={{
+							onClick: actions.toggleStatsDialog,
+						}}
+						tooltipProps={{
+							title: 'Open report',
+							placement: 'bottom-end',
+							arrow: true,
+						}}
+						icon={<BarChart className="node-report-icon" sx={styles.reportIcon} />}
+					/>
+				)}
 			</div>
 
 			{selectedPageData && mode === ChecklistMode.EDIT && (
-				<Collapse in={selected && !isFetching}>
+				<Collapse in={selected && !isFetching} unmountOnExit>
 					{selectedPageData.map((q, i) => (
 						<QuestionNode
 							key={i}
@@ -95,7 +109,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			)}
 
 			{!!children.length && (
-				<Collapse in={expanded}>
+				<Collapse in={expanded} unmountOnExit>
 					{children.map((c) => (
 						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
 					))}
@@ -111,5 +125,9 @@ const styles = {
 		minHeight: 30,
 		margin: '2px 0px',
 		borderRadius: 5,
+	},
+	reportIcon: {
+		color: 'primary.main',
+		margin: '0px 5px',
 	},
 };

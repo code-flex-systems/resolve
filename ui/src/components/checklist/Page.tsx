@@ -172,7 +172,7 @@ export default function Page() {
 const styles = {
 	container: {
 		width: '100%',
-		height: '100%',
+		height: 'calc(100% - 50px)',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',

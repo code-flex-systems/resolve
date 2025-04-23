@@ -1,9 +1,19 @@
 import responseQueries from '../queries/responseQueries';
 
 export default {
+	getResponsesForAnswer,
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
 };
+
+async function getResponsesForAnswer(answerId: number) {
+	try {
+		let results = await responseQueries.getResponsesForAnswer(answerId);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
 
 async function getResponsesForClaimChecklist(checklistId: number, claimId: number, instanceId?: number) {
 	try {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { QuestionResponse } from '../../types';
+import { AnswerResponse, QuestionResponse } from '../../types';
 
 export function useAllResponses(
 	claimId: number,
@@ -34,6 +34,26 @@ export function useResponses(
 			try {
 				let data = await axiosRoutes.getResponses(1, claimId, +queryKey[2]);
 				if (data.data) callback(+queryKey[2], data.data);
+				return data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+		enabled,
+	});
+}
+
+export function useResponsesForAnswer(
+	answerId: number,
+	callback: (answerId: number, data: AnswerResponse[]) => void,
+	enabled?: boolean
+) {
+	return useQuery({
+		queryKey: [answerId, 'responses'],
+		queryFn: async ({ queryKey }) => {
+			try {
+				let data = await axiosRoutes.getResponsesForAnswer(+queryKey[0]);
+				if (data.data) callback(+queryKey[0], data.data);
 				return data;
 			} catch (e) {
 				console.error(e);

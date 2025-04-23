@@ -1,3 +1,4 @@
+import { ButtonOwnProps } from '@mui/material';
 import { JSX } from 'react';
 
 export interface Answer {
@@ -15,9 +16,31 @@ export interface Answer {
 	calls_instance_id: number | null;
 }
 
+export interface AnswerStat {
+	answer_count: number;
+	answer_id: number;
+	answer_text: string;
+}
+
+export interface AnswerResponse {
+	created_at: Date | null;
+	additional_info: string | null;
+	claim_number: string | null;
+	client: string | null;
+	id: number;
+}
+
 export interface Checklist {
 	id: number;
 	name: string;
+}
+
+export interface DialogAction {
+	label: string;
+	onClick: () => void;
+	disabled?: boolean;
+	hidden?: boolean;
+	color?: ButtonOwnProps['color'];
 }
 
 export interface NavListItem {
@@ -74,4 +97,10 @@ export interface QuestionResponse {
 export interface QuestionResponseAnswer {
 	answer_id: number;
 	additional_info?: string;
+}
+
+export interface QuestionStat {
+	question_id: number;
+	question_text: string;
+	answers: AnswerStat[];
 }

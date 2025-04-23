@@ -8,10 +8,12 @@ import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
 import BasicButton from '../common/BasicButton';
 import { ChecklistMode } from '../../config/enums';
+import QuestionStatsDialog from './QuestionStatsDialog';
 
 export default function PageNavigation() {
 	const checklist = useGlobalSlice((state) => state.checklist);
 	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
+	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist?.id ?? -1);
@@ -33,83 +35,90 @@ export default function PageNavigation() {
 	};
 
 	return (
-		<Paper style={styles.container}>
-			<Toolbar
-				left={
-					<Typography fontSize={19} fontWeight="bold">
-						{checklist?.name ?? ''}
-					</Typography>
-				}
-				right={
-					<Fade in={mode === ChecklistMode.EDIT}>
-						<span>
-							<BasicButton
-								buttonProps={{
-									onClick: () => onAddPage().catch((e) => console.error(e)),
-									disabled: isFetching || adding,
-									variant: 'contained',
-									sx: styles.button,
-									startIcon: <Add sx={{ color: 'white' }} />,
-								}}
-							>
-								New Page
-							</BasicButton>
-						</span>
-					</Fade>
-				}
-				padding={0}
-				height={35}
-			/>
-			<Toolbar
-				left={
-					<ToggleButtonGroup
-						color="secondary"
-						value={mode}
-						exclusive
-						onChange={(_, value) => actions.updateMode(value)}
-					>
-						<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
-							<Visibility
-								sx={{
-									...styles.icon,
-									color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
-								}}
-							/>
-							View
-						</ToggleButton>
-						<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
-							<Settings
-								sx={{
-									...styles.icon,
-									color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
-								}}
-							/>
-							Edit
-						</ToggleButton>
-					</ToggleButtonGroup>
-				}
-				right={
-					<BasicButton
-						buttonProps={{
-							onClick: actions.toggleExpandAll,
-							sx: { height: 25 },
-						}}
-					>
-						{expandAll ? 'Collase' : 'Expand'} All
-					</BasicButton>
-				}
-				padding={0}
-				height={35}
-			/>
-			<Divider />
-			<Collapse in={!isFetching} style={styles.nodeContainer}>
-				<div style={styles.nodeContainerInner}>
-					{tree.map((node) => (
-						<TreeNode key={node.instanceId} level={0} {...node} />
-					))}
+		<>
+			<Paper style={styles.container}>
+				<Toolbar
+					left={
+						<Typography fontSize={19} fontWeight="bold">
+							{checklist?.name ?? ''}
+						</Typography>
+					}
+					right={
+						<Fade in={mode === ChecklistMode.EDIT}>
+							<span>
+								<BasicButton
+									buttonProps={{
+										onClick: () => onAddPage().catch((e) => console.error(e)),
+										disabled: isFetching || adding,
+										variant: 'contained',
+										sx: styles.button,
+										startIcon: <Add sx={{ color: 'white' }} />,
+									}}
+								>
+									New Page
+								</BasicButton>
+							</span>
+						</Fade>
+					}
+					leftWidth="70%"
+					rightWidth="30%"
+					padding={0}
+					height={35}
+				/>
+				<Toolbar
+					left={
+						<ToggleButtonGroup
+							color="secondary"
+							value={mode}
+							exclusive
+							onChange={(_, value) => actions.updateMode(value)}
+						>
+							<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
+								<Visibility
+									sx={{
+										...styles.icon,
+										color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
+									}}
+								/>
+								View
+							</ToggleButton>
+							<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
+								<Settings
+									sx={{
+										...styles.icon,
+										color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
+									}}
+								/>
+								Edit
+							</ToggleButton>
+						</ToggleButtonGroup>
+					}
+					right={
+						<BasicButton
+							buttonProps={{
+								onClick: actions.toggleExpandAll,
+								sx: { height: 25 },
+							}}
+						>
+							{expandAll ? 'Collase' : 'Expand'} All
+						</BasicButton>
+					}
+					padding={0}
+					height={35}
+				/>
+				<Divider />
+				<div style={styles.nodeContainer}>
+					<Collapse in={!isFetching} style={styles.nodeContainerInner}>
+						<div style={styles.nodeContainerInner}>
+							{tree.map((node) => (
+								<TreeNode key={node.instanceId} level={0} {...node} />
+							))}
+						</div>
+					</Collapse>
 				</div>
-			</Collapse>
-		</Paper>
+			</Paper>
+			{showStatsDialog && <QuestionStatsDialog />}
+		</>
 	);
 }
 
@@ -132,7 +141,7 @@ const styles = {
 	},
 	nodeContainer: {
 		width: '100%',
-		height: 'calc(100% - 35px)',
+		height: 'calc(100% - 75px)',
 		overflow: 'auto',
 	},
 	nodeContainerInner: {

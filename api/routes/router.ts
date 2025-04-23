@@ -54,10 +54,12 @@ router.get('/docs', docRoutes.getDocs);
 router.get('/docs/:docId', docRoutes.getDoc);
 
 // questions
+router.get('/:pageId/questions/stats', questionRoutes.getQuestionStats);
 router.get('/:pageId/questions', questionRoutes.getQuestions);
 router.get('/questions/:questionId', questionRoutes.getQuestion);
 
 // responses
+router.get('/:answerId/responses', responseRoutes.getResponsesForAnswer);
 router.get('/:checklistId/:claimId/responses', responseRoutes.getResponsesForClaimChecklist);
 router.get('/:checklistId/:claimId/:instanceId/responses', responseRoutes.getResponsesForInstance);
 

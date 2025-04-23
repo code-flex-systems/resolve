@@ -49,7 +49,7 @@ export default function BasicDialog(
 						</div>
 					)}
 				</div>
-				<div style={{ ...styles.titleSide, justifyContent: 'flex-end' }}>
+				<div style={{ ...styles.titleSide, width: '10%', justifyContent: 'flex-end' }}>
 					<IconButton onClick={onClose} disabled={closeDisabled}>
 						<Clear />
 					</IconButton>
@@ -109,7 +109,7 @@ const styles = {
 		padding: '0px 10px',
 	},
 	titleSide: {
-		width: '50%',
+		width: '90%',
 		display: 'flex',
 		alignItems: 'center',
 	},

@@ -27,6 +27,7 @@ import * as actions from '../../state/checklist/actions';
 export default function FormAnswer() {
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
+	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedAnswerData = useStore(useShallow(selectors.selectedAnswerData));
 
@@ -270,6 +271,25 @@ export default function FormAnswer() {
 						)}
 					/>
 				</div>
+				{/* <div style={styles.row} className="flex-row-left">
+					<Controller
+						name="calls_instance_id"
+						control={control}
+						rules={{ required: true }}
+						render={({ field }) => (
+							<FormControl style={{ padding: '0px 5px 15px' }}>
+								<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
+								<Select error={!!errors.calls_instance_id} {...field} sx={styles.textFieldOverrides}>
+									{pageTemplates.map((o) => (
+										<MenuItem key={o.id} value={o.id}>
+											{o.title} (p{o.id})
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						)}
+					/>
+				</div> */}
 				<Collapse in={hasAdditionalInfo}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller

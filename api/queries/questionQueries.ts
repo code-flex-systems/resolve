@@ -3,7 +3,6 @@ import { db } from '../database/kysely';
 import { Answer } from '../types/types';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { DB } from '../database/types';
-import answerQueries from './answerQueries';
 
 export default {
 	createQuestion,
@@ -11,6 +10,7 @@ export default {
 	deleteQuestion,
 	getQuestion,
 	getQuestions,
+	getQuestionStats,
 	modifyQuestion,
 };
 
@@ -158,6 +158,30 @@ async function getQuestions(pageId: number) {
 			.where('q.page_id', '=', pageId)
 			.groupBy(['q.id'])
 			.orderBy('id')
+			.execute();
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getQuestionStats(pageId: number) {
+	try {
+		let results = await db
+			.selectFrom('question as q')
+			.innerJoin('answer as a', 'q.id', 'a.question_id')
+			.leftJoin('question_response_answer as qra', 'a.id', 'qra.answer_id')
+			.leftJoin('question_response as qr', 'qra.response_id', 'qr.id')
+			.select(({ eb, fn }) => [
+				'q.text as question_text',
+				'a.question_id',
+				'a.id as answer_id',
+				'a.text as answer_text',
+				fn.sum(eb.case().when('qr.id', 'is', null).then(0).else(1).end()).$castTo<string>().as('answer_count'),
+			])
+			.where('q.page_id', '=', pageId)
+			.groupBy(['q.text', 'a.question_id', 'a.id', 'a.text', 'q.position', 'a.position'])
+			.orderBy(['q.position', 'a.position'])
 			.execute();
 		return results;
 	} catch (e) {

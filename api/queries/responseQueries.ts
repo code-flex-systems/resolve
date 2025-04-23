@@ -4,9 +4,26 @@ import { QuestionResponse } from '../types/types';
 import { QuestionResponseAnswer } from '../types/types';
 
 export default {
+	getResponsesForAnswer,
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
 };
+
+async function getResponsesForAnswer(answerId: number) {
+	try {
+		let results = await db
+			.selectFrom('question_response as qr')
+			.innerJoin('question_response_answer as qra', 'qr.id', 'qra.response_id')
+			.innerJoin('claim as c', 'qr.claim_id', 'c.id')
+			.select(['qr.id', 'qr.created_at', 'qra.additional_info', 'c.claim_number', 'c.client'])
+			.where('qra.answer_id', '=', answerId)
+			.orderBy('qr.created_at desc')
+			.execute();
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
 
 async function getResponsesForClaimChecklist(checklistId: number, claimId: number, instanceId?: number) {
 	try {

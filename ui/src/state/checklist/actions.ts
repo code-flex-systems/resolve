@@ -1,6 +1,6 @@
 import { TreeViewBaseItem } from '@mui/x-tree-view';
 import { ChecklistMode } from '../../config/enums';
-import { PageInstance, PageTemplate, Question, QuestionResponse, TreeNode } from '../../types';
+import { AnswerResponse, PageInstance, PageTemplate, Question, QuestionResponse, TreeNode } from '../../types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
@@ -14,6 +14,31 @@ export function setClaimData(claim: any) {
 	});
 }
 
+export function toggleExpandAll() {
+	setState((state) => {
+		state.expandAll = !state.expandAll;
+	});
+}
+
+export function toggleStatsDialog() {
+	setState((state) => {
+		if (state.showStatsDialog) state.answerResponses = new Map();
+		state.showStatsDialog = !state.showStatsDialog;
+	});
+}
+
+export function updateAnswerResponses(answerId: number, newResponses: AnswerResponse[]) {
+	setState((state) => {
+		state.answerResponses.set(answerId, newResponses);
+	});
+}
+
+export function updateMode(newMode: ChecklistMode) {
+	setState((state) => {
+		state.mode = newMode;
+	});
+}
+
 export function updatePage(pageId: number, questions: Question[]) {
 	setState((state) => {
 		state.pages.set(pageId, questions);
@@ -23,12 +48,6 @@ export function updatePage(pageId: number, questions: Question[]) {
 export function updatePageTemplates(newTemplates: PageTemplate[]) {
 	setState((state) => {
 		state.pageTemplates = newTemplates;
-	});
-}
-
-export function toggleExpandAll() {
-	setState((state) => {
-		state.expandAll = !state.expandAll;
 	});
 }
 
@@ -91,11 +110,7 @@ export function updateTree(tree: TreeNode[], maxPosition: number) {
 	});
 }
 
-export function updateMode(newMode: ChecklistMode) {
-	setState((state) => {
-		state.mode = newMode;
-	});
-}
+// private methods
 
 function findTreeNode(instanceId: number, tree: TreeNode[]) {
 	for (let p of tree) {

@@ -9,6 +9,7 @@ const ROUTES = {
 	PAGES: '/pages',
 	QUESTIONS: '/questions',
 	RESPONSES: '/responses',
+	STATS: '/stats',
 	USERS: '/users',
 };
 
@@ -138,6 +139,10 @@ export function getQuestions(pageId: number) {
 	return performAsyncGet(`/${pageId}${ROUTES.QUESTIONS}`);
 }
 
+export function getQuestionStats(pageId: number) {
+	return performAsyncGet(`/${pageId}${ROUTES.QUESTIONS}${ROUTES.STATS}`);
+}
+
 export function modifyQuestion(questionId: number, updates: object) {
 	return performAsyncPut(`${ROUTES.QUESTIONS}/${questionId}`, updates);
 }
@@ -148,6 +153,10 @@ export function getAllResponses(checklistId: number, claimId: number) {
 
 export function getResponses(checklistId: number, claimId: number, instanceId: number) {
 	return performAsyncGet(`/${checklistId}/${claimId}/${instanceId}${ROUTES.RESPONSES}`);
+}
+
+export function getResponsesForAnswer(answerId: number) {
+	return performAsyncGet(`/${answerId}${ROUTES.RESPONSES}`);
 }
 
 export function upsertResponses(responses: QuestionResponse[]) {

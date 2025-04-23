@@ -3,10 +3,20 @@ import responseController from '../../controllers/responseController';
 import { getId } from '../route-utils';
 
 export default {
+	getResponsesForAnswer,
 	getResponsesForClaimChecklist,
 	getResponsesForInstance,
 	upsertQuestionResponses,
 };
+
+async function getResponsesForAnswer(req: Request, res: Response) {
+	try {
+		let ret = await responseController.getResponsesForAnswer(getId(req, 'answer'));
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
 
 async function getResponsesForClaimChecklist(req: Request, res: Response) {
 	try {

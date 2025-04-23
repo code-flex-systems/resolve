@@ -18,7 +18,7 @@ export default function ChecklistAnswerFreeform(props: {
 			{...field}
 			disabled={disabled}
 			sx={{
-				width: 300,
+				width: 400,
 				marginTop: '5px',
 				'& .MuiInputBase-root': {
 					borderRadius: 0,

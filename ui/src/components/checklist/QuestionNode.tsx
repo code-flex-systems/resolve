@@ -60,12 +60,12 @@ export default function QuestionNode(props: {
 						sx={{ cursor: 'pointer' }}
 						className={'node-q'}
 					>
-						{questionId === -1 ? '' : `${idx + 1}. `}
+						{questionId === -1 ? '' : <b>{idx + 1}. </b>}
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>
 			</div>
-			<Collapse in={expanded}>
+			<Collapse in={expanded} unmountOnExit>
 				{[...questionAnswers]
 					.sort((a, b) => a.position - b.position)
 					.map((a, i) => (

@@ -1,7 +1,8 @@
 import { ChecklistMode } from '../config/enums';
-import { Checklist, PageTemplate, Question, QuestionResponse, TreeNode } from '../types';
+import { AnswerResponse, Checklist, PageTemplate, Question, QuestionResponse, TreeNode } from '../types';
 
 export interface ChecklistSlice {
+	answerResponses: Map<number, AnswerResponse[]>;
 	claim: any;
 	expandAll: boolean;
 	maxPageInstancePosition: number;
@@ -14,6 +15,8 @@ export interface ChecklistSlice {
 	selectedPageInfo: TreeNode | null;
 	selectedQuestion: number | null;
 	tree: TreeNode[];
+	// dialogs
+	showStatsDialog: boolean;
 }
 
 export interface GlobalSlice {

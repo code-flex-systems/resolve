@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { Answer, PageTemplate, Question, TreeNode } from '../../types';
+import { Answer, PageTemplate, Question, QuestionStat, TreeNode } from '../../types';
 
 export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boolean) {
 	return useQuery({
@@ -47,6 +47,22 @@ export function useQuestions(
 				let data = await axiosRoutes.getQuestions(pageId);
 				if (data.data) callback(pageId, data.data);
 				return data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+		enabled: !!pageId && enabled,
+	});
+}
+
+export function useQuestionStats(pageId: number | null, enabled: boolean) {
+	return useQuery({
+		queryKey: ['pages', pageId, 'questions', 'stats'],
+		queryFn: async ({ queryKey }) => {
+			try {
+				let pageId = +queryKey[1]!;
+				let data = await axiosRoutes.getQuestionStats(pageId);
+				return data.data as QuestionStat[];
 			} catch (e) {
 				console.error(e);
 			}

@@ -8,6 +8,7 @@ export default {
 	deleteQuestion,
 	getQuestion,
 	getQuestions,
+	getQuestionStats,
 	modifyQuestion,
 };
 
@@ -50,6 +51,15 @@ async function getQuestion(req: Request, res: Response) {
 async function getQuestions(req: Request, res: Response) {
 	try {
 		let ret = await questionController.getQuestions(getId(req, 'page'));
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getQuestionStats(req: Request, res: Response) {
+	try {
+		let ret = await questionController.getQuestionStats(getId(req, 'page'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

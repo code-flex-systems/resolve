@@ -13,6 +13,12 @@ export interface Answer {
 	calls_instance_id: number | null;
 }
 
+export interface AnswerStat {
+	answer_count: number;
+	answer_id: number;
+	answer_text: string;
+}
+
 export interface TreeNode {
 	instanceId: number;
 	parentInstanceId: number | null;
@@ -34,4 +40,10 @@ export interface QuestionResponse {
 export interface QuestionResponseAnswer {
 	answer_id: number;
 	additional_info: string | null;
+}
+
+export interface QuestionStat {
+	question_id: number;
+	question_text: string;
+	answers: AnswerStat[];
 }
