@@ -10,6 +10,7 @@ export default {
 	getPageInstance,
 	getPageInstances,
 	getPageInstanceTree,
+	getVisibilePageInstances,
 	modifyPage,
 };
 
@@ -91,6 +92,15 @@ async function getPageInstanceTree(checklistId: number) {
 			addChildrenToTree(node, results);
 		}
 		return { tree, maxPosition: results.length };
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getVisibilePageInstances(checklistId: number, claimId: number) {
+	try {
+		let results = await pageQueries.getVisiblePageInstances(checklistId, claimId);
+		return results;
 	} catch (e) {
 		console.error(e);
 	}

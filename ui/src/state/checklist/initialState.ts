@@ -15,6 +15,7 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	selectedPageInfo: null,
 	selectedQuestion: null,
 	tree: [],
+	visibleInstanceIds: [],
 	// dialogs
 	showStatsDialog: false,
 });

@@ -19,6 +19,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const mode = useChecklistSlice((state) => state.mode);
 	const pages = useChecklistSlice((state) => state.pages);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
+	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
 	const [expanded, setExpanded] = useState(false);
 	let selected = selectedPageInstance === instanceId;
 
@@ -110,9 +111,11 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 			{!!children.length && (
 				<Collapse in={expanded} unmountOnExit>
-					{children.map((c) => (
-						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
-					))}
+					{children
+						.filter((c) => visibleInstanceIds.includes(c.instanceId))
+						.map((c) => (
+							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
+						))}
 				</Collapse>
 			)}
 		</>

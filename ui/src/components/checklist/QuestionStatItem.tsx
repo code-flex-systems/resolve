@@ -40,11 +40,11 @@ export default function QuestionStatItem(props: {
 								</Typography>
 							</div>
 							{a.answer_count > 0 ? (
-								<Link className="link" fontStyle="italic" marginLeft="10px">
+								<Link className="link" marginLeft="10px">
 									{a.answer_text} (p{selectedPageInfo.pageId}.q{question_id}.a{a.answer_id})
 								</Link>
 							) : (
-								<Typography fontStyle="italic" marginLeft="10px">
+								<Typography marginLeft="10px">
 									{a.answer_text} (p{selectedPageInfo.pageId}.q{question_id}.a{a.answer_id})
 								</Typography>
 							)}
@@ -59,7 +59,7 @@ export default function QuestionStatItem(props: {
 const styles = {
 	accordion: {
 		backgroundColor: OFFWHITE_COLOR,
-		outline: `1px solid ${BACKDROP_COLOR}`,
+		outline: `1px solid #E8E8F3`,
 	},
 	accordionSummary: {
 		minHeight: 40,

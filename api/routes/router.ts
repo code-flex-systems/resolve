@@ -48,6 +48,7 @@ router.get('/pages/:pageId', pageRoutes.getPage);
 router.get('/:checklistId/pages/instances/tree', pageRoutes.getPageInstanceTree);
 router.get('/:checklistId/pages/instances/:instanceId', pageRoutes.getPageInstance);
 router.get('/:checklistId/pages/:parentId', pageRoutes.getPageInstances);
+router.get('/:checklistId/:claimId/pages/instances', pageRoutes.getVisiblePageInstances);
 
 // docs
 router.get('/docs', docRoutes.getDocs);

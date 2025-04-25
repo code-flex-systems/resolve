@@ -42,8 +42,8 @@ async function getResponsesForInstance(req: Request, res: Response) {
 
 async function upsertQuestionResponses(req: Request, res: Response) {
 	try {
-		await responseController.upsertQuestionResponses(req.body);
-		res.status(200).send();
+		let ret = await responseController.upsertQuestionResponses(req.body);
+		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);
 	}

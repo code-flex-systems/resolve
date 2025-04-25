@@ -1,6 +1,9 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { Answer, PageTemplate, Question, QuestionStat, TreeNode } from '../../types';
+import { useChecklistSlice, useGlobalSlice } from '../../state/store';
+import { ChecklistMode } from '../../config/enums';
+import * as checklistActions from '../../state/checklist/actions';
 
 export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boolean) {
 	return useQuery({
@@ -18,12 +21,16 @@ export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boo
 	});
 }
 
-export function usePageInstanceTree(callback: (data: TreeNode[], maxPosition: number) => void, enabled?: boolean) {
+export function usePageInstanceTreeForAdmin(
+	checklistId: number,
+	callback: (data: TreeNode[], maxPosition: number) => void,
+	enabled?: boolean
+) {
 	return useQuery({
-		queryKey: ['pages', 'instances'],
+		queryKey: [checklistId, 'pages', 'instances'],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getPageInstanceTree(1);
+				let data = await axiosRoutes.getPageInstanceTree(checklistId);
 				if (data.data) callback(data.data.tree, data.data.maxPosition);
 				return data;
 			} catch (e) {
@@ -31,6 +38,36 @@ export function usePageInstanceTree(callback: (data: TreeNode[], maxPosition: nu
 			}
 		},
 		enabled,
+	});
+}
+
+export function usePageInstanceTreeForUser() {
+	const checklistId = useGlobalSlice((state) => state.checklist)?.id ?? -1;
+	const claimId = useChecklistSlice((state) => state.claim)?.id ?? -1;
+	const mode = useChecklistSlice((state) => state.mode);
+	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
+	return useQuery({
+		queryKey: [checklistId, claimId, 'pages', 'instances'],
+		queryFn: async () => {
+			try {
+				if (mode === ChecklistMode.VIEW && !visibleInstanceIds.length) {
+					const [tree, visiblePages] = await Promise.all([
+						axiosRoutes.getPageInstanceTree(checklistId),
+						axiosRoutes.getVisiblePageInstances(checklistId, claimId),
+					]);
+					if (tree.data && visiblePages.data) {
+						checklistActions.updateTree(tree.data.tree, tree.data.maxPosition, visiblePages.data);
+					}
+					return tree;
+				} else {
+					const tree = await axiosRoutes.getPageInstanceTree(checklistId);
+					if (tree.data) checklistActions.updateTree(tree.data.tree, tree.data.maxPosition);
+					return tree;
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		},
 	});
 }
 

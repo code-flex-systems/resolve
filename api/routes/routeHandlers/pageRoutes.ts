@@ -11,6 +11,7 @@ export default {
 	getPageInstance,
 	getPageInstances,
 	getPageInstanceTree,
+	getVisiblePageInstances,
 	modifyPage,
 };
 
@@ -80,6 +81,15 @@ async function getPageInstances(req: Request, res: Response) {
 async function getPageInstanceTree(req: Request, res: Response) {
 	try {
 		let ret = await pageController.getPageInstanceTree(getId(req, 'checklist'));
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getVisiblePageInstances(req: Request, res: Response) {
+	try {
+		let ret = await pageController.getVisibilePageInstances(getId(req, 'checklist'), getId(req, 'claim'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

@@ -10,6 +10,7 @@ export default {
 	getPages,
 	getPageInstance,
 	getPageInstances,
+	getVisiblePageInstances,
 	modifyPage,
 };
 
@@ -136,6 +137,37 @@ async function getPageInstances(checklistId: number, parentId?: number) {
 			})
 			.orderBy('i.position')
 			.execute();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getVisiblePageInstances(checklistId: number, claimId: number) {
+	try {
+		let results = await db
+			.withRecursive('visible_pages', (eb) =>
+				eb
+					.selectFrom('page_instance as p')
+					.select(['id'])
+					.where('p.checklist_id', '=', checklistId)
+					.where('p.parent_instance_id', 'is', null)
+					.unionAll(
+						eb
+							.selectFrom('answer as a')
+							.innerJoin('question_response_answer as qra', 'qra.answer_id', 'a.id')
+							.innerJoin('question_response as qr', 'qr.id', 'qra.response_id')
+							.select(['a.calls_instance_id as id'])
+							.$castTo<{ id: number }>()
+							.where('qr.checklist_id', '=', checklistId)
+							.where('qr.claim_id', '=', claimId)
+							.where('a.calls_instance_id', 'is not', null)
+					)
+			)
+			.selectFrom('visible_pages')
+			.select('id')
+			.distinct()
+			.execute();
+		return results.map((row) => row.id);
 	} catch (e) {
 		console.error(e);
 	}

@@ -12,7 +12,7 @@ export default function SiteHeader() {
 		<Paper style={styles.paper}>
 			<Toolbar
 				left={
-					<Typography fontSize={25} fontWeight="bold">
+					<Typography color="primary" fontSize={25} fontWeight="bold">
 						Manifest
 					</Typography>
 				}

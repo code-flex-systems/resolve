@@ -19,6 +19,11 @@ export interface AnswerStat {
 	answer_text: string;
 }
 
+export type Interval<T> = {
+	from: T;
+	to: T;
+};
+
 export interface TreeNode {
 	instanceId: number;
 	parentInstanceId: number | null;

@@ -15,6 +15,7 @@ export interface ChecklistSlice {
 	selectedPageInfo: TreeNode | null;
 	selectedQuestion: number | null;
 	tree: TreeNode[];
+	visibleInstanceIds: number[];
 	// dialogs
 	showStatsDialog: boolean;
 }

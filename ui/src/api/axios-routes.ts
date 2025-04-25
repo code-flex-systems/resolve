@@ -115,6 +115,10 @@ export function getPageInstanceTree(checklistId: number) {
 	return performAsyncGet(`/${checklistId}${ROUTES.PAGES}${ROUTES.INSTANCES}/tree`);
 }
 
+export function getVisiblePageInstances(checklistId: number, claimId: number) {
+	return performAsyncGet(`/${checklistId}/${claimId}${ROUTES.PAGES}${ROUTES.INSTANCES}`);
+}
+
 export function modifyPage(pageId: number, updates: object) {
 	return performAsyncPut(`${ROUTES.PAGES}/${pageId}`, updates);
 }

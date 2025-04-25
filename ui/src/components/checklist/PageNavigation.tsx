@@ -2,7 +2,7 @@ import { Collapse, Divider, Fade, Paper, ToggleButton, ToggleButtonGroup, Typogr
 import { Add, Settings, Visibility } from '@mui/icons-material';
 import { OFFWHITE_COLOR } from '../../styles/theme';
 import { useChecklistSlice, useGlobalSlice } from '../../state/store';
-import { useAddPage, usePageInstanceTree } from '../../api/queries/page-queries';
+import { useAddPage, usePageInstanceTreeForUser } from '../../api/queries/page-queries';
 import * as actions from '../../state/checklist/actions';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
@@ -16,8 +16,9 @@ export default function PageNavigation() {
 	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
+	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
 	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist?.id ?? -1);
-	const { isFetching, refetch } = usePageInstanceTree(actions.updateTree);
+	const { isFetching, refetch } = usePageInstanceTreeForUser();
 	const tree = useChecklistSlice((state) => state.tree);
 
 	const onAddPage = async () => {
@@ -110,9 +111,11 @@ export default function PageNavigation() {
 				<div style={styles.nodeContainer}>
 					<Collapse in={!isFetching} style={styles.nodeContainerInner}>
 						<div style={styles.nodeContainerInner}>
-							{tree.map((node) => (
-								<TreeNode key={node.instanceId} level={0} {...node} />
-							))}
+							{tree
+								.filter((node) => visibleInstanceIds.includes(node.instanceId))
+								.map((node) => (
+									<TreeNode key={node.instanceId} level={0} {...node} />
+								))}
 						</div>
 					</Collapse>
 				</div>

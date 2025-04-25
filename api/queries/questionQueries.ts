@@ -1,6 +1,6 @@
 import { sql } from 'kysely';
 import { db } from '../database/kysely';
-import { Answer } from '../types/types';
+import { Answer, Interval } from '../types/types';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { DB } from '../database/types';
 
@@ -165,7 +165,7 @@ async function getQuestions(pageId: number) {
 	}
 }
 
-async function getQuestionStats(pageId: number) {
+async function getQuestionStats(pageId: number, interval?: Interval<Date>) {
 	try {
 		let results = await db
 			.selectFrom('question as q')
@@ -179,7 +179,16 @@ async function getQuestionStats(pageId: number) {
 				'a.text as answer_text',
 				fn.sum(eb.case().when('qr.id', 'is', null).then(0).else(1).end()).$castTo<string>().as('answer_count'),
 			])
-			.where('q.page_id', '=', pageId)
+			.where((eb) => {
+				let andClause = [eb('q.page_id', '=', pageId)];
+				if (interval) {
+					andClause.push(eb('qr.created_at', '>=', interval.from));
+					andClause.push(eb('qr.created_at', '<=', interval.to));
+				} else {
+					andClause.push(eb('qr.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()));
+				}
+				return eb.and(andClause);
+			})
 			.groupBy(['q.text', 'a.question_id', 'a.id', 'a.text', 'q.position', 'a.position'])
 			.orderBy(['q.position', 'a.position'])
 			.execute();

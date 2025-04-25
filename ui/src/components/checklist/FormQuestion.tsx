@@ -22,13 +22,13 @@ import {
 	useAddUpdateQuestion,
 	useCopyQuestion,
 	useDeleteQuestion,
-	usePageInstanceTree,
+	usePageInstanceTreeForAdmin,
 	useQuestions,
 } from '../../api/queries/page-queries';
 import Toolbar from '../common/Toolbar';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
-import useStore, { useChecklistSlice } from '../../state/store';
+import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { Question } from '../../types';
 
@@ -39,6 +39,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
+	const checklistId = useGlobalSlice((state) => state.checklist)?.id ?? -1;
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
@@ -54,7 +55,11 @@ export default function FormQuestion() {
 		false,
 		actions.updatePage
 	);
-	const { isFetching: refetchingTree, refetch: refetchTree } = usePageInstanceTree(actions.updateTree, false);
+	const { isFetching: refetchingTree, refetch: refetchTree } = usePageInstanceTreeForAdmin(
+		checklistId,
+		actions.updateTree,
+		false
+	);
 
 	const {
 		control,

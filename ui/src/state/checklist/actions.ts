@@ -103,10 +103,11 @@ export function updateSelectedQuestion(questionId: number | null) {
 	});
 }
 
-export function updateTree(tree: TreeNode[], maxPosition: number) {
+export function updateTree(tree: TreeNode[], maxPosition: number, visibleIds?: number[]) {
 	setState((state) => {
 		state.tree = tree;
 		state.maxPageInstancePosition = maxPosition;
+		if (visibleIds) state.visibleInstanceIds = visibleIds;
 	});
 }
 
