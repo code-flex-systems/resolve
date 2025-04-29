@@ -24,7 +24,6 @@ export function useClaims(callback?: (data: Claim[]) => void, enabled?: boolean)
 		queryFn: async () => {
 			try {
 				let data = await axiosRoutes.getClaims();
-				console.log(data.data);
 				if (data.data && typeof callback === 'function') callback(data.data);
 				return data;
 			} catch (e) {

@@ -16,7 +16,6 @@ export default function Checklists() {
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
 	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
 	const showChecklistClaimDialog = useChecklistsSlice((state) => state.showChecklistClaimDialog);
-	console.log(selectedChecklist);
 
 	return (
 		<PageWrapper route="checklists">

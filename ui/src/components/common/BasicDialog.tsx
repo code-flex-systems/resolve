@@ -52,9 +52,13 @@ export default function BasicDialog(
 				>
 					{title && (
 						<div style={styles.titleCard}>
-							<Typography fontSize={17} lineHeight="21px">
-								{title}
-							</Typography>
+							{typeof title === 'string' ? (
+								<Typography fontSize={17} lineHeight="21px">
+									{title}
+								</Typography>
+							) : (
+								title
+							)}
 						</div>
 					)}
 				</div>

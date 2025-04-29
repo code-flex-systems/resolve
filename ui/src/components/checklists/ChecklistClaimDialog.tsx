@@ -7,7 +7,7 @@ import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme from '../../styles/theme';
 import { JSX, useCallback, useEffect, useState } from 'react';
-import { ArrowCircleRightOutlined } from '@mui/icons-material';
+import { ArrowCircleRightOutlined, Checklist, ContentPasteSearch } from '@mui/icons-material';
 import { useNavigate } from 'react-router';
 
 export default function ChecklistClaimDialog() {
@@ -51,9 +51,16 @@ export default function ChecklistClaimDialog() {
 	return (
 		<BasicDialog
 			title={
-				<p style={styles.p}>
-					Open <b>{selectedChecklist?.name ?? ''}</b> with Claim <b>{selectedClaim?.claim_number ?? ''}</b>
-				</p>
+				<div className="flex-row-left">
+					<ContentPasteSearch sx={styles.icon} />
+					<Typography fontSize={17} fontWeight="bold" lineHeight="21px">
+						{selectedClaim?.claim_number ?? ''}
+					</Typography>
+					<Checklist sx={{ ...styles.icon, marginLeft: '10px' }} />
+					<Typography fontSize={17} fontWeight="bold" lineHeight="21px">
+						{selectedChecklist?.name ?? ''}
+					</Typography>
+				</div>
 			}
 			width={500}
 			height={175}
@@ -85,6 +92,9 @@ export default function ChecklistClaimDialog() {
 }
 
 const styles = {
+	icon: {
+		marginRight: '5px',
+	},
 	p: {
 		margin: 0,
 	},
