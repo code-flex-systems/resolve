@@ -32,15 +32,18 @@ router.delete('/questions/:questionId', questionRoutes.deleteQuestion);
 // GET
 //
 // DUMMY CLAIM
-router.get('/:checklistId/claims/:claimId', claimRoutes.getClaim);
+router.get('/claims', claimRoutes.getClaims);
+router.get('/claims/:claimId', claimRoutes.getClaim);
 
 // answers
 router.get('/:questionId/answers', answerRoutes.getAnswers);
 router.get('/answers/:answerId', answerRoutes.getAnswer);
 
 // checklists
-router.get('/checklists', checklistRoutes.getChecklists);
+router.get('/checklists/recents', checklistRoutes.getRecentChecklistClaims);
+router.get('/checklists/:checklistId/claims/:claimId', checklistRoutes.getChecklistClaim);
 router.get('/checklists/:checklistId', checklistRoutes.getChecklist);
+router.get('/checklists', checklistRoutes.getChecklists);
 
 // pages
 router.get('/pages', pageRoutes.getPages);
@@ -69,7 +72,7 @@ router.get('/:checklistId/:claimId/:instanceId/responses', responseRoutes.getRes
 //
 router.post('/:questionId/answers', answerRoutes.createAnswer);
 router.post('/:questionId/answers/copy/:answerId', answerRoutes.copyAnswer);
-router.post('/checklists', checklistRoutes.createChecklist);
+router.post('/checklists/:claimId', checklistRoutes.createChecklist);
 router.post('/docs', docRoutes.createDoc);
 router.post('/:pageId/questions', questionRoutes.createQuestion);
 router.post('/:pageId/questions/copy/:questionId', questionRoutes.copyQuestion);

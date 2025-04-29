@@ -1,16 +1,24 @@
-import { db } from '../database/kysely';
+import claimQueries from '../queries/claimQueries';
+import { ClaimSearchType } from '../types/types';
 
 export default {
 	getClaim,
+	getClaims,
 };
 
-export async function getClaim(checklistId: number, claimId: number) {
+async function getClaim(claimId: number) {
 	try {
-		return await db
-			.selectFrom('claim')
-			.selectAll()
-			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('id', '=', claimId)]))
-			.executeTakeFirst();
+		let results = await claimQueries.getClaim(claimId);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getClaims(searchTerm?: { value: string; type: ClaimSearchType }) {
+	try {
+		let results = await claimQueries.getClaims(searchTerm);
+		return results;
 	} catch (e) {
 		console.error(e);
 	}

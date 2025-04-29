@@ -3,6 +3,11 @@
 	transition: scale 200ms ease;
 }
 
+.bump-lg:hover {
+	scale: 1.1;
+	transition: scale 200ms ease;
+}
+
 .cursor-pointer {
 	cursor: pointer;
 }

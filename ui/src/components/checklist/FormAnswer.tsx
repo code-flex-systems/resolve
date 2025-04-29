@@ -50,6 +50,7 @@ export default function FormAnswer() {
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const hasAdditionalInfo = watch('has_additional_info');
+	const pageInstanceOptions = actions.getPageInstancesFromTree(selectedPageInfo.instanceId);
 	let isPlaceholder = selectedAnswerData.id === -1;
 	let isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	let inTransition = copying || updating || deleting || refetching;
@@ -247,6 +248,30 @@ export default function FormAnswer() {
 											{o}
 										</MenuItem>
 									))}
+								</Select>
+							</FormControl>
+						)}
+					/>
+
+					<Controller
+						name="calls_instance_id"
+						control={control}
+						render={({ field }) => (
+							<FormControl style={{ padding: '0px 5px 15px' }}>
+								<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
+								<Select
+									variant="outlined"
+									error={!!errors.calls_instance_id}
+									{...field}
+									sx={{ ...styles.textFieldOverrides, maxHeight: 300 }}
+								>
+									{pageInstanceOptions
+										.sort((a, b) => a.pageId - b.pageId)
+										.map((o) => (
+											<MenuItem key={o.instanceId} value={o.instanceId}>
+												p{o.pageId}.i{o.instanceId}
+											</MenuItem>
+										))}
 								</Select>
 							</FormControl>
 						)}

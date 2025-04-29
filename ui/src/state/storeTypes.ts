@@ -1,5 +1,15 @@
 import { ChecklistMode } from '../config/enums';
-import { AnswerResponse, Checklist, PageTemplate, Question, QuestionResponse, TreeNode } from '../types';
+import {
+	AnswerResponse,
+	Checklist,
+	ChecklistClaim,
+	Claim,
+	PageTemplate,
+	Question,
+	QuestionResponse,
+	TreeNode,
+	User,
+} from '../types';
 
 export interface ChecklistSlice {
 	answerResponses: Map<number, AnswerResponse[]>;
@@ -20,11 +30,19 @@ export interface ChecklistSlice {
 	showStatsDialog: boolean;
 }
 
+export interface ChecklistsSlice {
+	recentChecklistClaims: ChecklistClaim[];
+	selectedChecklist: Checklist | null;
+	selectedClaim: Claim | null;
+	// dialogs
+	showChecklistClaimDialog: boolean;
+}
+
 export interface GlobalSlice {
 	checklist: Checklist | null;
 	navOpen: boolean;
-	selectedPageInstance: string;
-	user: number;
+	selectedPage: string;
+	user: User;
 }
 
 export interface HomeSlice {}

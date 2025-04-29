@@ -20,6 +20,33 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiDataGrid: {
+			styleOverrides: {
+				root: {
+					'& .MuiDataGrid-row:hover': {
+						backgroundColor: 'rgba(90,126,209,0.2)',
+					},
+					'& .MuiDataGrid-row.Mui-selected': {
+						backgroundColor: 'rgba(90,126,209,0.4)',
+					},
+					'& .MuiDataGrid-row.Mui-selected:hover': {
+						backgroundColor: 'rgba(90,126,209,0.5)',
+					},
+					'& .MuiDataGrid-cell:focus': {
+						outline: 'none',
+					},
+					'& .MuiDataGrid-cell:focus-within': {
+						outline: 'none',
+					},
+					'& .MuiDataGrid-columHeader:focus': {
+						outline: 'none',
+					},
+					'& .MuiDataGrid-columHeader:focus-within': {
+						outline: 'none',
+					},
+				},
+			},
+		},
 		MuiIconButton: {
 			defaultProps: {
 				size: 'small',

@@ -5,12 +5,14 @@ export default {
 	deleteChecklist,
 	getChecklist,
 	getChecklists,
+	getChecklistClaim,
+	getRecentChecklistClaims,
 	modifyChecklist,
 };
 
-async function createChecklist(params: object) {
+async function createChecklist(claimId: number, params: object) {
 	try {
-		let results = await checklistQueries.createChecklist(params);
+		let results = await checklistQueries.createChecklist(claimId, params);
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -34,9 +36,27 @@ async function getChecklist(id: number) {
 	}
 }
 
-async function getChecklists() {
+async function getChecklists(searchTerm?: string) {
 	try {
-		let results = await checklistQueries.getChecklists();
+		let results = await checklistQueries.getChecklists(searchTerm);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getChecklistClaim(checklistId: number, claimId: number) {
+	try {
+		let results = await checklistQueries.getChecklistClaim(checklistId, claimId);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getRecentChecklistClaims() {
+	try {
+		let results = await checklistQueries.getRecentChecklistClaims();
 		return results;
 	} catch (e) {
 		console.error(e);

@@ -132,7 +132,8 @@ export default function PageEditor() {
 										fontSize={19}
 										width={300}
 									>
-										{selectedPageInfo.title} (p{selectedPageInfo.pageId})
+										{selectedPageInfo.title} (p{selectedPageInfo.pageId}.i
+										{selectedPageInfo.instanceId})
 									</Typography>
 								)}
 								<Fade in={showUpdateMsg} timeout={500}>

@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import theme from './styles/theme';
 import './styles/global-styles.css';
 import Checklist from './components/pages/Checklist';
+import ChecklistPageBreakdown from './components/pages/ChecklistPageBreakdown';
+import Checklists from './components/pages/Checklists';
 
 const queryClient = new QueryClient();
 
@@ -15,7 +17,14 @@ export default function App() {
 				<BrowserRouter>
 					<Routes>
 						<Route path="/" element={<Home />} />
-						<Route path="/checklist" element={<Checklist />} />
+						<Route path="/checklists/*" element={<Checklists />} />
+						<Route path="/checklist/*" element={<Checklist />} />
+						<Route path="/checklist/:checklistId/*" element={<Checklist />} />
+						<Route path="/checklist/:checklistId/claim/:claimId/*" element={<Checklist />} />
+						<Route
+							path="/checklist/:checklistId/page-instances/:instanceId/*"
+							element={<ChecklistPageBreakdown />}
+						/>
 					</Routes>
 				</BrowserRouter>
 			</ThemeProvider>

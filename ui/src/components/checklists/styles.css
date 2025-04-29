@@ -1,0 +1,18 @@
+.cell-bold {
+	font-weight: 500;
+}
+
+.hovered-button:hover {
+	scale: 1.1;
+	transition: scale 100ms ease;
+}
+
+.hovered-row:hover {
+	scale: 1.005;
+	transition: scale 100ms ease;
+	cursor: pointer;
+}
+
+.striped {
+	background-color: #f5f5f5;
+}

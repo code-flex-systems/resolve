@@ -13,7 +13,7 @@ import config from '../../config/config';
 
 export default function Sidebar() {
 	const navigate = useNavigate();
-	const selectedPageInstance = useGlobalSlice((state) => state.selectedPageInstance);
+	const selectedPage = useGlobalSlice((state) => state.selectedPage);
 	const navOpen = useGlobalSlice((state) => state.navOpen);
 
 	const navGroups: Record<string, NavListItem[]> = useMemo(() => {
@@ -23,17 +23,17 @@ export default function Sidebar() {
 					label: 'Home',
 					route: '',
 					color: 'primary.main',
-					icon: <Home sx={styles.icon('' === selectedPageInstance)} />,
+					icon: <Home sx={styles.icon('' === selectedPage)} />,
 				},
 				{
-					label: 'Checklist',
-					route: 'checklist',
+					label: 'Checklists',
+					route: 'checklists',
 					color: 'primary.main',
-					icon: <Checklist sx={styles.icon('checklist' === selectedPageInstance)} />,
+					icon: <Checklist sx={styles.icon('checklists' === selectedPage)} />,
 				},
 			],
 		};
-	}, [selectedPageInstance]);
+	}, [selectedPage]);
 
 	return (
 		<Paper sx={styles.paper}>
@@ -70,13 +70,13 @@ export default function Sidebar() {
 							>
 								<MenuItem
 									key={navItem.route}
-									selected={navItem.route === selectedPageInstance}
+									selected={navItem.route === selectedPage}
 									onClick={() => {
 										navigate(`/${navItem.route}`);
 										actions.updateSelectedPage(navItem.route);
 									}}
 									style={{
-										backgroundColor: navItem.route === selectedPageInstance ? 'white' : 'inherit',
+										backgroundColor: navItem.route === selectedPage ? 'white' : 'inherit',
 									}}
 									sx={{ ...styles.menuItem }}
 								>
@@ -88,7 +88,7 @@ export default function Sidebar() {
 													{navItem.label.toUpperCase()}
 												</Typography>
 											}
-											sx={styles.text(navItem.route === selectedPageInstance)}
+											sx={styles.text(navItem.route === selectedPage)}
 										/>
 									</Collapse>
 								</MenuItem>

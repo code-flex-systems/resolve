@@ -19,6 +19,8 @@ export interface AnswerStat {
 	answer_text: string;
 }
 
+export type ClaimSearchType = 'claim_number' | 'client';
+
 export type Interval<T> = {
 	from: T;
 	to: T;

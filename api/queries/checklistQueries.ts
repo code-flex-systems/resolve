@@ -1,3 +1,4 @@
+import { sql } from 'kysely';
 import { db } from '../database/kysely';
 
 export default {
@@ -5,18 +6,35 @@ export default {
 	deleteChecklist,
 	getChecklist,
 	getChecklists,
+	getChecklistClaim,
+	getRecentChecklistClaims,
 	modifyChecklist,
 };
 
-async function createChecklist(params: object) {
+async function createChecklist(claimId: number, params: object) {
 	try {
-		return await db
-			.insertInto('checklist')
-			.values({
-				...params,
-			})
-			.returningAll()
-			.executeTakeFirst();
+		let newChecklist: any;
+		await db.transaction().execute(async (trx) => {
+			try {
+				newChecklist = await trx
+					.insertInto('checklist')
+					.values({
+						name: params.name,
+					})
+					.returningAll()
+					.executeTakeFirstOrThrow();
+				await trx
+					.insertInto('checklist_claim')
+					.values({
+						claim_id: claimId,
+						checklist_id: newChecklist.id,
+					})
+					.execute();
+			} catch (e) {
+				console.error(e);
+			}
+		});
+		return newChecklist;
 	} catch (e) {
 		console.error(e);
 	}
@@ -38,9 +56,41 @@ async function getChecklist(checklistId: number) {
 	}
 }
 
-async function getChecklists() {
+async function getChecklists(searchTerm?: string) {
 	try {
-		return await db.selectFrom('checklist').selectAll().orderBy('id').execute();
+		let query = db.selectFrom('checklist').selectAll().orderBy('id');
+		if (searchTerm) {
+			query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));
+		}
+		return await query.execute();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getChecklistClaim(checklistId: number, claimId: number) {
+	try {
+		return await db
+			.selectFrom('checklist_claim')
+			.selectAll()
+			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)]))
+			.executeTakeFirst();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getRecentChecklistClaims() {
+	try {
+		return await db
+			.selectFrom('checklist as c')
+			.innerJoin('checklist_claim as cc', 'c.id', 'cc.checklist_id')
+			.innerJoin('claim as cl', 'cl.id', 'cc.claim_id')
+			.selectAll('cc')
+			.select(['c.name as checklist_name', 'cl.claim_number', 'cl.client'])
+			.orderBy('cc.last_opened desc')
+			.limit(15)
+			.execute();
 	} catch (e) {
 		console.error(e);
 	}

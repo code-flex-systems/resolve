@@ -5,6 +5,7 @@ export enum AnswerType {
 
 export enum ChecklistMode {
 	VIEW,
+	TEST,
 	EDIT,
 }
 

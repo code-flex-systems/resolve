@@ -1,16 +1,17 @@
 import Clear from '@mui/icons-material/Clear';
 import { Dialog, DialogActions, DialogContent, Fade, IconButton, Typography } from '@mui/material';
-import { PropsWithChildren } from 'react';
+import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '../../types';
 
 export default function BasicDialog(
 	props: {
-		title?: string;
+		title?: string | JSX.Element;
 		onClose: () => void;
 		closeDisabled?: boolean;
 		primaryAction?: DialogAction;
 		secondaryActions?: DialogAction[];
+		iconActions?: JSX.Element[];
 		width?: number | string;
 		height?: number | string;
 		maxHeight?: number | string;
@@ -22,10 +23,12 @@ export default function BasicDialog(
 		closeDisabled,
 		primaryAction,
 		secondaryActions = [],
+		iconActions = [],
 		width = 'fit-content',
 		height = 'fit-content',
 		maxHeight,
 	} = props;
+	let iconActionsPercentage = 10 * (iconActions.length + 1);
 	return (
 		<Dialog
 			open={true}
@@ -40,7 +43,13 @@ export default function BasicDialog(
 			}}
 		>
 			<div style={styles.title}>
-				<div style={{ ...styles.titleSide, justifyContent: 'flex-start' }}>
+				<div
+					style={{
+						...styles.titleSide,
+						width: `${100 - iconActionsPercentage}%`,
+						justifyContent: 'flex-start',
+					}}
+				>
 					{title && (
 						<div style={styles.titleCard}>
 							<Typography fontSize={17} lineHeight="21px">
@@ -49,7 +58,8 @@ export default function BasicDialog(
 						</div>
 					)}
 				</div>
-				<div style={{ ...styles.titleSide, width: '10%', justifyContent: 'flex-end' }}>
+				<div style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}>
+					{...iconActions}
 					<IconButton onClick={onClose} disabled={closeDisabled}>
 						<Clear />
 					</IconButton>
@@ -69,6 +79,7 @@ export default function BasicDialog(
 										variant: 'outlined',
 										disabled: action.disabled,
 										color: action.color,
+										startIcon: action.icon,
 									}}
 								>
 									{action.label}
@@ -86,6 +97,7 @@ export default function BasicDialog(
 										variant: 'contained',
 										disabled: primaryAction.disabled,
 										color: primaryAction.color,
+										startIcon: primaryAction.icon,
 									}}
 								>
 									{primaryAction.label}
@@ -110,7 +122,6 @@ const styles = {
 		padding: '0px 10px',
 	},
 	titleSide: {
-		width: '90%',
 		display: 'flex',
 		alignItems: 'center',
 	},

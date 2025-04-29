@@ -59,7 +59,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					)}
 					<Typography>
 						{title}
-						{mode === ChecklistMode.EDIT ? ` (p${pageId})` : ''}
+						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
 					</Typography>
 					<Fade in={isFetching && selected}>
 						<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
@@ -111,11 +111,12 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 			{!!children.length && (
 				<Collapse in={expanded} unmountOnExit>
-					{children
-						.filter((c) => visibleInstanceIds.includes(c.instanceId))
-						.map((c) => (
-							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
-						))}
+					{(mode === ChecklistMode.VIEW
+						? children.filter((c) => visibleInstanceIds.includes(c.instanceId))
+						: children
+					).map((c) => (
+						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
+					))}
 				</Collapse>
 			)}
 		</>

@@ -1,14 +1,16 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { SLICES } from './storeConfig';
-import { ChecklistSlice, GlobalSlice, HomeSlice } from './storeTypes';
+import { ChecklistSlice, ChecklistsSlice, GlobalSlice, HomeSlice } from './storeTypes';
 import globalSlice from './global/initialState';
 import homeSlice from './home/initialState';
 import { enableMapSet } from 'immer';
 import checklistSlice from './checklist/initialState';
+import checklistsSlice from './checklists/initialState';
 
 export const initialState = {
 	[SLICES.CHECKLIST]: checklistSlice,
+	[SLICES.CHECKLISTS]: checklistsSlice,
 	[SLICES.GLOBAL]: globalSlice,
 	[SLICES.HOME]: homeSlice,
 } as const;
@@ -29,6 +31,10 @@ export const resetStoreSlice = (slice: Slice) => {
 
 export const useChecklistSlice = <T>(callback: (state: ChecklistSlice) => T): T => {
 	return useStore((state) => callback(state[SLICES.CHECKLIST]));
+};
+
+export const useChecklistsSlice = <T>(callback: (state: ChecklistsSlice) => T): T => {
+	return useStore((state) => callback(state[SLICES.CHECKLISTS]));
 };
 
 export const useGlobalSlice = <T>(callback: (state: GlobalSlice) => T): T => {

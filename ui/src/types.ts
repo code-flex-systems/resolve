@@ -1,5 +1,6 @@
 import { ButtonOwnProps } from '@mui/material';
 import { JSX } from 'react';
+import config from './config/config';
 
 export interface Answer {
 	id: number;
@@ -30,9 +31,35 @@ export interface AnswerResponse {
 	id: number;
 }
 
+export interface Claim {
+	id: number;
+	claim_number: string | null;
+	client: string | null;
+	client_adjuster: string | null;
+	insured: string | null;
+	claim_amount: number | null;
+	total_incurred: number | null;
+	date_of_loss: Date | null;
+	loss_location: string | null;
+	last_updated_by: string | null;
+	last_update: Date | null;
+	expected_recovery: number | null;
+}
+
+export type ClaimSearchType = 'claim_number' | 'client';
+
 export interface Checklist {
 	id: number;
 	name: string;
+}
+
+export interface ChecklistClaim {
+	checklist_id: number;
+	checklist_name: string;
+	claim_id: number;
+	claim_number: string;
+	client: string;
+	last_opened: Date;
 }
 
 export interface DialogAction {
@@ -41,6 +68,12 @@ export interface DialogAction {
 	disabled?: boolean;
 	hidden?: boolean;
 	color?: ButtonOwnProps['color'];
+	icon?: JSX.Element;
+}
+
+export interface InstanceListItem {
+	instanceId: number;
+	pageId: number;
 }
 
 export interface NavListItem {
@@ -104,3 +137,12 @@ export interface QuestionStat {
 	question_text: string;
 	answers: AnswerStat[];
 }
+
+export interface User {
+	email: string;
+	roles: UserRole[];
+	userid: number;
+	username: string;
+}
+
+export type UserRole = (typeof config.ROLES)[keyof typeof config.ROLES];

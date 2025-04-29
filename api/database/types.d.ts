@@ -45,8 +45,13 @@ export interface Checklist {
   name: string;
 }
 
-export interface Claim {
+export interface ChecklistClaim {
   checklist_id: number;
+  claim_id: number;
+  last_opened: Generated<Timestamp>;
+}
+
+export interface Claim {
   claim_amount: Numeric | null;
   claim_number: string | null;
   client: string | null;
@@ -132,6 +137,7 @@ export interface ResponseAuditLogs {
 export interface DB {
   answer: Answer;
   checklist: Checklist;
+  checklist_claim: ChecklistClaim;
   claim: Claim;
   doc: Doc;
   page: Page;

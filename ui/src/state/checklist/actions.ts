@@ -1,12 +1,18 @@
-import { TreeViewBaseItem } from '@mui/x-tree-view';
 import { ChecklistMode } from '../../config/enums';
-import { AnswerResponse, PageInstance, PageTemplate, Question, QuestionResponse, TreeNode } from '../../types';
+import { AnswerResponse, InstanceListItem, PageTemplate, Question, QuestionResponse, TreeNode } from '../../types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
 
 const getState = getStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
+
+export function getPageInstancesFromTree(currentInstanceId: number) {
+	const tree = getState().tree;
+	let instances: InstanceListItem[] = [];
+	getInstances(tree, currentInstanceId, instances);
+	return instances;
+}
 
 export function setClaimData(claim: any) {
 	setState((state) => {
@@ -127,4 +133,16 @@ function findTreeNodePrivate(instanceId: number, treeNode: TreeNode) {
 	for (let c of treeNode.children) {
 		return findTreeNodePrivate(instanceId, c);
 	}
+}
+
+function getInstances(tree: TreeNode[], currentInstanceId: number, instances: InstanceListItem[]) {
+	tree.forEach((node) => {
+		if (node.instanceId !== currentInstanceId) {
+			instances.push({ instanceId: node.instanceId, pageId: node.pageId });
+		}
+
+		if (node.children) {
+			getInstances(node.children, currentInstanceId, instances);
+		}
+	});
 }

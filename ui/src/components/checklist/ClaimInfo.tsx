@@ -1,18 +1,17 @@
 import { Divider, Paper, Skeleton, Typography } from '@mui/material';
-import { useClaimDummy } from '../../api/queries/claim-dummy-queries';
+import { useClaim } from '../../api/queries/claim-queries';
 import * as actions from '../../state/checklist/actions';
 import { useChecklistSlice } from '../../state/store';
 import dayjs from 'dayjs';
 import Separator from '../common/Separator';
 import theme from '../../styles/theme';
 import { useState } from 'react';
+import { formatAmount } from '../../utils/utils';
 
 function Row(props: { label: string; value: string | number; loading: boolean; amount?: boolean; date?: boolean }) {
 	const getFormattedValue = () => {
 		if (props.amount) {
-			return `$${parseFloat(props.value.toString()).toLocaleString('en-US', {
-				minimumFractionDigits: 2,
-			})}`;
+			return formatAmount(props.value, true);
 		}
 		if (props.date) {
 			return dayjs(props.value).format('DD/MM/YYYY');
@@ -48,7 +47,7 @@ export default function ClaimInfo() {
 	const claim = useChecklistSlice((state) => state.claim);
 	const [open, setOpen] = useState(false);
 	const [showData, setShowData] = useState(false);
-	const { isFetching } = useClaimDummy(actions.setClaimData, !claim);
+	const { isFetching } = useClaim(actions.setClaimData, !claim);
 	if (!claim) return <></>;
 	return (
 		<>

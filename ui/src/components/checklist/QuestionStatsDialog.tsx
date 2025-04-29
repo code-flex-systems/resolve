@@ -6,15 +6,30 @@ import * as selectors from '../../state/checklist/selectors';
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
-import { Collapse, Typography } from '@mui/material';
+import { Collapse, IconButton, Typography } from '@mui/material';
+import { OpenInNew, Warning } from '@mui/icons-material';
+import BasicButton from '../common/BasicButton';
+import { useNavigate } from 'react-router';
 
 export default function QuestionStatsDialog() {
+	const navigate = useNavigate();
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const { isPending: loading, data = [] } = useQuestionStats(selectedPageInfo.pageId, true);
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 	return (
 		<BasicDialog
 			title={`Breakdown for ${selectedPageInfo.title} (p${selectedPageInfo.pageId})`}
+			iconActions={[
+				<BasicButton
+					buttonProps={{
+						onClick: () => navigate(`page-instances/${selectedPageInfo.instanceId}`),
+					}}
+					tooltipProps={{
+						title: 'Go to analysis',
+					}}
+					icon={<OpenInNew />}
+				/>,
+			]}
 			onClose={actions.toggleStatsDialog}
 			width={600}
 			maxHeight={600}
@@ -25,6 +40,12 @@ export default function QuestionStatsDialog() {
 				</div>
 			)}
 			<Collapse in={!loading}>
+				<div style={styles.row} className="flex-row-left">
+					<Warning sx={{ color: 'warning.main' }} />
+					<Typography color="warning" fontStyle="italic" marginLeft="5px">
+						This summary only shows responses for the last <b>30</b> days.
+					</Typography>
+				</div>
 				{data.map((stat, i) => (
 					<QuestionStatItem
 						key={i}
@@ -43,5 +64,8 @@ const styles = {
 	loadingContainer: {
 		width: '100%',
 		height: 50,
+	},
+	row: {
+		padding: 10,
 	},
 };

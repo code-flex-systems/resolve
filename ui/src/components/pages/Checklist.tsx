@@ -15,11 +15,11 @@ export default function Checklist() {
 	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
 	const checklist = useGlobalSlice((state) => state.checklist);
 
-	useChecklist(1, globalActions.updateChecklist, !checklist);
+	// useChecklist(1, globalActions.updateChecklist, !checklist);
 	usePages(actions.updatePageTemplates, !pageTemplates.length);
 
 	return (
-		<PageWrapper route="/checklist">
+		<PageWrapper route="checklist">
 			<div style={styles.container}>
 				<PageNavigation />
 				{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}

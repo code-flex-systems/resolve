@@ -20,6 +20,6 @@ export function updateChecklist(newChecklist: Checklist | null) {
 
 export function updateSelectedPage(newPage: string) {
 	setState((state) => {
-		state.selectedPageInstance = newPage;
+		state.selectedPage = newPage;
 	});
 }

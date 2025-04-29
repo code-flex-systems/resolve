@@ -1,9 +1,10 @@
-import { QuestionResponse } from '../types';
+import { ClaimSearchType, QuestionResponse } from '../types';
 import { performAsyncDelete, performAsyncGet, performAsyncPost, performAsyncPut } from './axios-utils';
 
 const ROUTES = {
 	ANSWERS: '/answers',
 	CHECKLISTS: '/checklists',
+	CLAIMS: '/claims',
 	DOCS: '/docs',
 	INSTANCES: '/instances',
 	PAGES: '/pages',
@@ -14,8 +15,13 @@ const ROUTES = {
 };
 
 // DUMMY
-export function getClaim(checklistId: number, claimId: number) {
-	return performAsyncGet(`/${checklistId}/claims/${claimId}`);
+export function getClaim(claimId: number) {
+	return performAsyncGet(`${ROUTES.CLAIMS}/${claimId}`);
+}
+
+export function getClaims(searchTerm?: { type: ClaimSearchType; value: string }) {
+	let searchTermQuery = searchTerm ? `?type=${searchTerm.type}&value=${searchTerm.value}` : '';
+	return performAsyncGet(`${ROUTES.CLAIMS}${searchTermQuery}`);
 }
 // DUMMY
 
@@ -43,8 +49,8 @@ export function modifyAnswer(answerId: number, updates: object) {
 	return performAsyncPut(`${ROUTES.ANSWERS}/${answerId}`, updates);
 }
 
-export function createChecklist(checklist: object) {
-	return performAsyncPost(ROUTES.CHECKLISTS, checklist);
+export function createChecklist(claimId: number, checklist: object) {
+	return performAsyncPost(`${ROUTES.CHECKLISTS}/${claimId}`, checklist);
 }
 
 export function deleteChecklist(checklistId: number) {
@@ -55,8 +61,17 @@ export function getChecklist(checklistId: number) {
 	return performAsyncGet(`${ROUTES.CHECKLISTS}/${checklistId}`);
 }
 
-export function getChecklists() {
-	return performAsyncGet(ROUTES.CHECKLISTS);
+export function getChecklists(searchTerm?: string) {
+	const searchTermQuery = searchTerm ? `?searchTerm=${searchTerm}` : '';
+	return performAsyncGet(`${ROUTES.CHECKLISTS}${searchTermQuery}`);
+}
+
+export function getChecklistClaim(checklistId: number, claimId: number) {
+	return performAsyncGet(`${ROUTES.CHECKLISTS}/${checklistId}${ROUTES.CLAIMS}/${claimId}`);
+}
+
+export function getRecentChecklistClaims() {
+	return performAsyncGet(`${ROUTES.CHECKLISTS}/recents`);
 }
 
 export function modifyChecklist(checklistId: number, updates: object) {

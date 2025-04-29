@@ -1,8 +1,22 @@
 import dayjs from 'dayjs';
 
+export function formatAmount(value?: number | string, currency = false) {
+	if (value == null) return '';
+	let roundedValue = Math.round(parseFloat(value.toString()) * 100) / 100;
+	let formattedValue = roundedValue.toLocaleString('en-US', {
+		minimumFractionDigits: 2,
+	});
+	return currency ? '$' + formattedValue : formattedValue;
+}
+
 export function formatMDY(date?: string) {
 	if (!date) return '';
 	return dayjs(date).format('MMMM D, YYYY');
+}
+
+export function formatMDYAbv(date?: string) {
+	if (!date) return '';
+	return dayjs(date).format('MM/DD/YY');
 }
 
 export function getExtension(filename: string) {

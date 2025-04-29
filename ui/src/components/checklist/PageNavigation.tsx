@@ -1,5 +1,5 @@
 import { Collapse, Divider, Fade, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { Add, Settings, Visibility } from '@mui/icons-material';
+import { Add, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
 import { OFFWHITE_COLOR } from '../../styles/theme';
 import { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import { useAddPage, usePageInstanceTreeForUser } from '../../api/queries/page-queries';
@@ -9,9 +9,12 @@ import TreeNode from './TreeNode';
 import BasicButton from '../common/BasicButton';
 import { ChecklistMode } from '../../config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
+import config from '../../config/config';
 
 export default function PageNavigation() {
 	const checklist = useGlobalSlice((state) => state.checklist);
+	const user = useGlobalSlice((state) => state.user);
+
 	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
 	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);
@@ -68,31 +71,46 @@ export default function PageNavigation() {
 				/>
 				<Toolbar
 					left={
-						<ToggleButtonGroup
-							color="secondary"
-							value={mode}
-							exclusive
-							onChange={(_, value) => actions.updateMode(value)}
-						>
-							<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
-								<Visibility
-									sx={{
-										...styles.icon,
-										color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
-									}}
-								/>
-								View
-							</ToggleButton>
-							<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
-								<Settings
-									sx={{
-										...styles.icon,
-										color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
-									}}
-								/>
-								Edit
-							</ToggleButton>
-						</ToggleButtonGroup>
+						<>
+							{user.roles.includes(config.ROLES.ADMIN) ? (
+								<ToggleButtonGroup
+									color="secondary"
+									value={mode}
+									exclusive
+									onChange={(_, value) => actions.updateMode(value)}
+								>
+									<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
+										<Visibility
+											sx={{
+												...styles.icon,
+												color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
+											}}
+										/>
+										View
+									</ToggleButton>
+									<ToggleButton value={ChecklistMode.TEST} sx={styles.toggleButton}>
+										<MovieCreationOutlined
+											sx={{
+												...styles.icon,
+												color: mode === ChecklistMode.TEST ? 'secondary.main' : '#787878',
+											}}
+										/>
+										Test
+									</ToggleButton>
+									<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
+										<MovieEdit
+											sx={{
+												...styles.icon,
+												color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
+											}}
+										/>
+										Edit
+									</ToggleButton>
+								</ToggleButtonGroup>
+							) : (
+								<></>
+							)}
+						</>
 					}
 					right={
 						<BasicButton
@@ -111,11 +129,12 @@ export default function PageNavigation() {
 				<div style={styles.nodeContainer}>
 					<Collapse in={!isFetching} style={styles.nodeContainerInner}>
 						<div style={styles.nodeContainerInner}>
-							{tree
-								.filter((node) => visibleInstanceIds.includes(node.instanceId))
-								.map((node) => (
-									<TreeNode key={node.instanceId} level={0} {...node} />
-								))}
+							{(mode === ChecklistMode.VIEW
+								? tree.filter((c) => visibleInstanceIds.includes(c.instanceId))
+								: tree
+							).map((node) => (
+								<TreeNode key={node.instanceId} level={0} {...node} />
+							))}
 						</div>
 					</Collapse>
 				</div>

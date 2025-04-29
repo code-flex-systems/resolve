@@ -5,6 +5,7 @@ drop table if exists answer cascade;
 drop table if exists question cascade;
 drop table if exists page_instance cascade;
 drop table if exists page cascade;
+drop table if exists checklist_claim;
 drop table if exists claim;
 drop table if exists checklist;
 drop table if exists doc;
@@ -28,6 +29,12 @@ create table claim(
 	last_updated_by text,
 	last_update date,
 	expected_recovery numeric
+);
+
+create table checklist_claim(
+    claim_id integer not null references claim(id),
+	checklist_id integer not null references checklist(id),
+    last_opened not null date default now()
 );
 
 create table page(
