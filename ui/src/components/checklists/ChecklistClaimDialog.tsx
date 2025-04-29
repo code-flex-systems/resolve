@@ -2,6 +2,7 @@ import { useChecklistClaim } from '../../api/queries/checklist-queries';
 import { useChecklistsSlice } from '../../state/store';
 import BasicDialog from '../common/BasicDialog';
 import * as actions from '../../state/checklists/actions';
+import * as checklistActions from '../../state/checklist/actions';
 import { Fade, Typography } from '@mui/material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
@@ -69,7 +70,11 @@ export default function ChecklistClaimDialog() {
 					? undefined
 					: {
 							label: data ? 'Keep working' : 'Get started',
-							onClick: () => navigate(`/checklist/${selectedChecklist?.id}/claim/${selectedClaim?.id}`),
+							onClick: () => {
+								checklistActions.setChecklistData(selectedChecklist!);
+								checklistActions.setClaimData(selectedClaim!);
+								navigate(`/checklist/${selectedChecklist?.id}/claim/${selectedClaim?.id}`);
+							},
 							icon: <ArrowCircleRightOutlined sx={{ color: 'white' }} />,
 					  }
 			}

@@ -1,4 +1,4 @@
-import { Collapse, Fade, Typography } from '@mui/material';
+import { Collapse, Typography } from '@mui/material';
 import ClaimsSearch from '../checklists/ClaimsSearch';
 import Recents from '../checklists/Recents';
 import PageWrapper from '../common/PageWrapper';
@@ -22,45 +22,45 @@ export default function Checklists() {
 			<div style={styles.container}>
 				<Recents />
 				<div style={styles.innerContainer} className="flex-col-center">
-					<Typography fontSize={25} fontStyle="italic">
+					<Typography fontSize={25} fontStyle="italic" height={80}>
 						Welcome to Checklists!
 					</Typography>
-					<Typography>Find a claim to get started.</Typography>
+					<Typography>Find a claim to work.</Typography>
 					<ClaimsSearch />
-					<Collapse in={Boolean(selectedClaim)} className="flex-col-center">
-						<div className="flex-col-center">
+					<div className="flex-col-center">
+						<Collapse in={Boolean(selectedClaim)} className="flex-col-center">
 							<ClaimMenuItem claim={selectedClaim} clearable />
-							<div style={{ height: 100 }} className="flex-row-center">
-								<Separator />
-								<Separator />
-								<Separator />
-							</div>
-							<Typography>Find a checklist to fill out.</Typography>
-							<ChecklistsSearch />
+						</Collapse>
+						<div style={{ height: 80 }} className="flex-row-center">
+							<Separator />
+							<Separator />
+							<Separator />
 						</div>
-					</Collapse>
+						<Typography>Find a checklist to fill out.</Typography>
+						<ChecklistsSearch />
+					</div>
 					<Collapse in={Boolean(selectedChecklist)} className="flex-col-center">
 						<ChecklistMenuItem checklist={selectedChecklist} clearable />
 					</Collapse>
-					<Fade in={!!selectedClaim && !!selectedChecklist}>
-						<span>
-							<BasicButton
-								buttonProps={{
-									onClick: actions.toggleChecklistClaimDialog,
-									variant: 'contained',
-									startIcon: <ArrowCircleRightOutlined sx={{ color: 'white' }} />,
-									sx: {
-										marginTop: '20px',
-										fontSize: 20,
-									},
-									className: 'bump-lg',
-									disabled: !selectedClaim || !selectedChecklist,
-								}}
-							>
-								Go
-							</BasicButton>
-						</span>
-					</Fade>
+					<BasicButton
+						buttonProps={{
+							onClick: actions.toggleChecklistClaimDialog,
+							variant: 'contained',
+							startIcon: (
+								<ArrowCircleRightOutlined
+									sx={{ color: !selectedClaim || !selectedChecklist ? '#A6A6A6' : 'white' }}
+								/>
+							),
+							sx: {
+								marginTop: '20px',
+								fontSize: 20,
+							},
+							className: 'bump-lg',
+							disabled: !selectedClaim || !selectedChecklist,
+						}}
+					>
+						Go
+					</BasicButton>
 				</div>
 			</div>
 
@@ -79,6 +79,6 @@ const styles = {
 	},
 	innerContainer: {
 		width: '100%',
-		height: '100%',
+		height: 'calc(100% - 100px)',
 	},
 };

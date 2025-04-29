@@ -3,6 +3,7 @@ import { ChecklistSlice } from '../storeTypes';
 
 const checklistSlice: ChecklistSlice = Object.freeze({
 	answerResponses: new Map(),
+	checklist: null,
 	claim: null,
 	expandAll: false,
 	maxPageInstancePosition: 0,

@@ -7,11 +7,18 @@ import Separator from '../common/Separator';
 import theme from '../../styles/theme';
 import { useState } from 'react';
 import { formatAmount } from '../../utils/utils';
+import { useParams } from 'react-router';
 
-function Row(props: { label: string; value: string | number; loading: boolean; amount?: boolean; date?: boolean }) {
+function Row(props: {
+	label: string;
+	value: string | number | null;
+	loading: boolean;
+	amount?: boolean;
+	date?: boolean;
+}) {
 	const getFormattedValue = () => {
 		if (props.amount) {
-			return formatAmount(props.value, true);
+			return formatAmount(props.value!, true);
 		}
 		if (props.date) {
 			return dayjs(props.value).format('DD/MM/YYYY');
@@ -44,10 +51,11 @@ function Row(props: { label: string; value: string | number; loading: boolean; a
 }
 
 export default function ClaimInfo() {
+	const params = useParams<{ checklistId?: string; claimId?: string }>();
 	const claim = useChecklistSlice((state) => state.claim);
 	const [open, setOpen] = useState(false);
 	const [showData, setShowData] = useState(false);
-	const { isFetching } = useClaim(actions.setClaimData, !claim);
+	const { isFetching } = useClaim(+(params.claimId ?? '-1'), actions.setClaimData, !claim);
 	if (!claim) return <></>;
 	return (
 		<>
@@ -74,10 +82,15 @@ export default function ClaimInfo() {
 						</div>
 						<div style={styles.innerContainer} className="flex-col-start">
 							<Row label="Grade" value={''} loading={isFetching} />
-							<Row label="Date of Loss" date value={claim.date_of_loss} loading={isFetching} />
+							<Row
+								label="Date of Loss"
+								date
+								value={claim.date_of_loss?.toString() ?? ''}
+								loading={isFetching}
+							/>
 							<Row label="Loss Location" value={claim.loss_location} loading={isFetching} />
 							<Row label="Last Update" value={claim.last_updated_by} loading={isFetching} />
-							<Row label="" date value={claim.last_update} loading={isFetching} />
+							<Row label="" date value={claim.last_update?.toString() ?? ''} loading={isFetching} />
 							<Row
 								label="Expected Recovery"
 								amount

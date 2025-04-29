@@ -1,6 +1,6 @@
 import { useShallow } from 'zustand/react/shallow';
 import { useQuestionStats } from '../../api/queries/page-queries';
-import useStore from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import * as actions from '../../state/checklist/actions';
 import * as selectors from '../../state/checklist/selectors';
 import BasicDialog from '../common/BasicDialog';
@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router';
 
 export default function QuestionStatsDialog() {
 	const navigate = useNavigate();
+	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const { isPending: loading, data = [] } = useQuestionStats(selectedPageInfo.pageId, true);
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -22,7 +23,9 @@ export default function QuestionStatsDialog() {
 			iconActions={[
 				<BasicButton
 					buttonProps={{
-						onClick: () => navigate(`page-instances/${selectedPageInfo.instanceId}`),
+						onClick: () => {
+							navigate(`/checklist/${checklistId}/page-instances/${selectedPageInfo.instanceId}`);
+						},
 					}}
 					tooltipProps={{
 						title: 'Go to analysis',

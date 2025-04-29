@@ -1,5 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
-import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
@@ -19,7 +19,7 @@ import * as actions from '../../state/checklist/actions';
 import { useState } from 'react';
 
 export default function PageEditor() {
-	const checklistId = useGlobalSlice((state) => state.checklist)?.id ?? -1;
+	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
 	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));

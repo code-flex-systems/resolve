@@ -21,6 +21,8 @@ import { Claim, ClaimSearchType } from '../../types';
 import BasicSwitch from '../common/BasicSwitch';
 import ClaimMenuItem from './ClaimMenuItem';
 import { useChecklistsSlice } from '../../state/store';
+import { Orbit } from 'ldrs/react';
+import 'ldrs/react/Orbit.css';
 
 export default function ClaimsSearch() {
 	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
@@ -61,7 +63,7 @@ export default function ClaimsSearch() {
 	};
 
 	return (
-		<div style={styles.container} className="flex-row-left">
+		<div style={styles.container} className="flex-col-center">
 			<ClickAwayListener onClickAway={onClose}>
 				<span>
 					<TextField
@@ -80,9 +82,13 @@ export default function ClaimsSearch() {
 								),
 								endAdornment: query && (
 									<InputAdornment position="end">
-										<IconButton onClick={handleClearInput}>
-											<ClearIcon />
-										</IconButton>
+										{searching ? (
+											<Orbit size="30" speed="1.5" color="black" />
+										) : (
+											<IconButton size="small" onClick={handleClearInput}>
+												<ClearIcon sx={{ fontSize: 17 }} />
+											</IconButton>
+										)}
 									</InputAdornment>
 								),
 							},
@@ -129,7 +135,7 @@ export default function ClaimsSearch() {
 				</span>
 			</ClickAwayListener>
 
-			<div style={{ marginLeft: 15, padding: '5px 0px' }} className="flex-row-left">
+			<div style={styles.switch} className="flex-row-left">
 				<BasicSwitch
 					checked={type === 'client'}
 					onChange={(e, value) => {
@@ -169,6 +175,10 @@ const styles = {
 		width: '100%',
 		outline: '1px solid #E0E0E0',
 		transform: 'translate(-25px, 5px)',
+	},
+	switch: {
+		width: '100%',
+		padding: '10px 0px 0px',
 	},
 	textField: {
 		width: 300,

@@ -28,7 +28,7 @@ import {
 import Toolbar from '../common/Toolbar';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
-import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { Question } from '../../types';
 
@@ -39,7 +39,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
-	const checklistId = useGlobalSlice((state) => state.checklist)?.id ?? -1;
+	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);

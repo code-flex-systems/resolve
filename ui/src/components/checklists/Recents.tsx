@@ -33,25 +33,6 @@ export default function Recents() {
 					</Link>
 				))}
 			</div>
-
-			{/* {recentChecklistClaims.map((c, i) => (
-				<MenuItem key={i} sx={styles.menuItem}>
-					<Paper style={styles.menuItemInner} className="flex-row-between">
-						<div className="flex-row-left">
-							<ContentPasteSearch sx={{ ...styles.icon, marginLeft: 0 }} />
-							<Typography fontStyle="italic" width={120}>
-								{c.claim_number}
-							</Typography>
-							<Checklist sx={styles.icon} />
-							<Typography fontStyle="italic">{c.checklist_name}</Typography>
-						</div>
-						<div className="flex-row-right">
-							<AccessTimeFilled sx={styles.icon} />
-							<Typography fontStyle="italic">{formatMDYAbv(c.last_opened.toString())}</Typography>
-						</div>
-					</Paper>
-				</MenuItem>
-			))} */}
 		</Paper>
 	);
 }

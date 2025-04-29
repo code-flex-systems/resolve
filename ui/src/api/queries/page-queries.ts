@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { Answer, PageTemplate, Question, QuestionStat, TreeNode } from '../../types';
-import { useChecklistSlice, useGlobalSlice } from '../../state/store';
+import { useChecklistSlice } from '../../state/store';
 import { ChecklistMode } from '../../config/enums';
 import * as checklistActions from '../../state/checklist/actions';
 
@@ -42,7 +42,7 @@ export function usePageInstanceTreeForAdmin(
 }
 
 export function usePageInstanceTreeForUser() {
-	const checklistId = useGlobalSlice((state) => state.checklist)?.id ?? -1;
+	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
 	const claimId = useChecklistSlice((state) => state.claim)?.id ?? -1;
 	const mode = useChecklistSlice((state) => state.mode);
 	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);

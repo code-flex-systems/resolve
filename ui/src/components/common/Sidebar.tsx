@@ -21,15 +21,15 @@ export default function Sidebar() {
 			group0: [
 				{
 					label: 'Home',
-					route: '',
+					route: 'checklists',
 					color: 'primary.main',
-					icon: <Home sx={styles.icon('' === selectedPage)} />,
+					icon: <Home sx={styles.icon('checklists' === selectedPage)} />,
 				},
 				{
 					label: 'Checklists',
-					route: 'checklists',
+					route: 'checklist',
 					color: 'primary.main',
-					icon: <Checklist sx={styles.icon('checklists' === selectedPage)} />,
+					icon: <Checklist sx={styles.icon('checklist' === selectedPage)} />,
 				},
 			],
 		};

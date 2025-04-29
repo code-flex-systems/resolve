@@ -12,12 +12,6 @@ export function toggleNavOpen() {
 	});
 }
 
-export function updateChecklist(newChecklist: Checklist | null) {
-	setState((state) => {
-		state.checklist = newChecklist;
-	});
-}
-
 export function updateSelectedPage(newPage: string) {
 	setState((state) => {
 		state.selectedPage = newPage;

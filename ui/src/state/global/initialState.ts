@@ -2,7 +2,6 @@ import config from '../../config/config';
 import { GlobalSlice } from '../storeTypes';
 
 const globalSlice: GlobalSlice = Object.freeze({
-	checklist: null,
 	navOpen: false,
 	selectedPage: '',
 	user: {

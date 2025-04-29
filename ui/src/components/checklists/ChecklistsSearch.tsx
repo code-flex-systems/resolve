@@ -19,9 +19,9 @@ import useDebounce from '../../utils/useDebounce';
 import * as axiosRoutes from '../../api/axios-routes';
 import { Checklist } from '../../types';
 import { useChecklistsSlice } from '../../state/store';
-import * as actions from '../../state/checklists/actions';
-import { CheckCircle } from '@mui/icons-material';
 import ChecklistMenuItem from './ChecklistMenuItem';
+import { Orbit } from 'ldrs/react';
+import 'ldrs/react/Orbit.css';
 
 export default function ChecklistsSearch() {
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
@@ -80,9 +80,15 @@ export default function ChecklistsSearch() {
 								),
 								endAdornment: query && (
 									<InputAdornment position="end">
-										<IconButton onClick={handleClearInput}>
-											<ClearIcon />
-										</IconButton>
+										<InputAdornment position="end">
+											{searching ? (
+												<Orbit size="30" speed="1.5" color="black" />
+											) : (
+												<IconButton size="small" onClick={handleClearInput}>
+													<ClearIcon sx={{ fontSize: 17 }} />
+												</IconButton>
+											)}
+										</InputAdornment>
 									</InputAdornment>
 								),
 							},

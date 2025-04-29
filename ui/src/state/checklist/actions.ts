@@ -1,5 +1,14 @@
 import { ChecklistMode } from '../../config/enums';
-import { AnswerResponse, InstanceListItem, PageTemplate, Question, QuestionResponse, TreeNode } from '../../types';
+import {
+	AnswerResponse,
+	Checklist,
+	Claim,
+	InstanceListItem,
+	PageTemplate,
+	Question,
+	QuestionResponse,
+	TreeNode,
+} from '../../types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
@@ -14,7 +23,13 @@ export function getPageInstancesFromTree(currentInstanceId: number) {
 	return instances;
 }
 
-export function setClaimData(claim: any) {
+export function setChecklistData(newChecklist: Checklist) {
+	setState((state) => {
+		state.checklist = newChecklist;
+	});
+}
+
+export function setClaimData(claim: Claim) {
 	setState((state) => {
 		state.claim = claim;
 	});

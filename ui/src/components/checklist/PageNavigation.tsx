@@ -12,9 +12,9 @@ import QuestionStatsDialog from './QuestionStatsDialog';
 import config from '../../config/config';
 
 export default function PageNavigation() {
-	const checklist = useGlobalSlice((state) => state.checklist);
 	const user = useGlobalSlice((state) => state.user);
 
+	const checklist = useChecklistSlice((state) => state.checklist);
 	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
 	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);

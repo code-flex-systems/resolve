@@ -13,7 +13,8 @@ import {
 
 export interface ChecklistSlice {
 	answerResponses: Map<number, AnswerResponse[]>;
-	claim: any;
+	checklist: Checklist | null;
+	claim: Claim | null;
 	expandAll: boolean;
 	maxPageInstancePosition: number;
 	mode: ChecklistMode;
@@ -39,7 +40,6 @@ export interface ChecklistsSlice {
 }
 
 export interface GlobalSlice {
-	checklist: Checklist | null;
 	navOpen: boolean;
 	selectedPage: string;
 	user: User;

@@ -1,6 +1,6 @@
 import { Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
-import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
+import useStore, { useChecklistSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
 import { QuestionType } from '../../config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
@@ -11,7 +11,7 @@ import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description, TaskAlt } from '@mui/icons-material';
 import ClaimInfo from './ClaimInfo';
 import { upsertResponses } from '../../api/axios-routes';
-import { useAllResponses, useResponses } from '../../api/queries/response-queries';
+import { useResponses } from '../../api/queries/response-queries';
 import * as actions from '../../state/checklist/actions';
 import PageToolbar from './PageToolbar';
 
@@ -47,7 +47,7 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 }
 
 export default function Page() {
-	const checklist = useGlobalSlice((state) => state.checklist);
+	const checklist = useChecklistSlice((state) => state.checklist);
 	const claim = useChecklistSlice((state) => state.claim);
 	const responses = useChecklistSlice((state) => state.responses);
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
