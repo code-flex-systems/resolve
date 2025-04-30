@@ -132,6 +132,12 @@ export function updateTree(tree: TreeNode[], maxPosition: number, visibleIds?: n
 	});
 }
 
+export function updateVisibleInstanceIds(newIds: number[]) {
+	setState((state) => {
+		state.visibleInstanceIds = newIds;
+	});
+}
+
 // private methods
 
 function findTreeNode(instanceId: number, tree: TreeNode[]) {

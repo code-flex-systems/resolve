@@ -12,8 +12,9 @@ export function ChecklistQuestion(props: {
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
 	idx: number;
+	disabled?: boolean;
 }) {
-	const { control, question, resetField, watch, idx } = props;
+	const { control, question, resetField, watch, idx, disabled } = props;
 	const fieldName = question.id.toString();
 	const fieldValue = watch(fieldName);
 	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
@@ -33,13 +34,21 @@ export function ChecklistQuestion(props: {
 				render={({ field }) => {
 					switch (question.type) {
 						case QuestionType.DROPDOWN:
-							return <ChecklistAnswerDropdown key={question.id} field={field} question={question} />;
+							return (
+								<ChecklistAnswerDropdown
+									key={question.id}
+									field={field}
+									question={question}
+									disabled={disabled}
+								/>
+							);
 						case QuestionType.FREEFORM:
 							return (
 								<ChecklistAnswerFreeform
 									key={question.id}
 									field={field}
 									answer={question.answers?.[0]}
+									disabled={disabled}
 								/>
 							);
 						case QuestionType.MULTI:
@@ -49,7 +58,7 @@ export function ChecklistQuestion(props: {
 									key={question.id}
 									field={field}
 									question={question}
-									watch={watch}
+									disabled={disabled}
 								/>
 							);
 						default:
@@ -66,7 +75,7 @@ export function ChecklistQuestion(props: {
 							key={fieldFreeformName}
 							field={field}
 							answer={additionalInfoAnswer}
-							disabled={!fieldValue || !fieldValue.includes(additionalInfoAnswer.id)}
+							disabled={disabled || !fieldValue || !fieldValue.includes(additionalInfoAnswer.id)}
 						/>
 					)}
 				/>

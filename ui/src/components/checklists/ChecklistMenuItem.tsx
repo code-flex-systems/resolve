@@ -32,7 +32,7 @@ export default function ChecklistMenuItem(props: {
 			}
 			disableRipple={clearable}
 		>
-			<Paper elevation={clearable ? 1 : 0} style={{ width: '100%' }} className="flex-row-between">
+			<Paper elevation={0} style={{ width: '100%' }} className="flex-row-between">
 				<div style={styles.menuItemInner} className="flex-row-left">
 					<Checklist sx={styles.icon} />
 					<Typography>{checklist?.name}</Typography>

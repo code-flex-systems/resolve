@@ -15,8 +15,9 @@ import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 export default function ChecklistAnswerDropdown(props: {
 	field: ControllerRenderProps<FieldValues, string>;
 	question: Question;
+	disabled?: boolean;
 }) {
-	const { field, question } = props;
+	const { field, question, disabled } = props;
 	return (
 		<Select
 			variant="outlined"
@@ -43,6 +44,7 @@ export default function ChecklistAnswerDropdown(props: {
 					padding: '2px 5px',
 				},
 			}}
+			disabled={disabled}
 		>
 			{question.answers.map((a) => (
 				<MenuItem key={a.id} value={a.id}>

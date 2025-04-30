@@ -2,7 +2,7 @@ import { Collapse, Typography } from '@mui/material';
 import ClaimsSearch from '../checklists/ClaimsSearch';
 import Recents from '../checklists/Recents';
 import PageWrapper from '../common/PageWrapper';
-import { useChecklistsSlice } from '../../state/store';
+import { resetStoreSlice, useChecklistsSlice } from '../../state/store';
 import ClaimMenuItem from '../checklists/ClaimMenuItem';
 import ChecklistsSearch from '../checklists/ChecklistsSearch';
 import ChecklistMenuItem from '../checklists/ChecklistMenuItem';
@@ -11,11 +11,17 @@ import BasicButton from '../common/BasicButton';
 import { ArrowCircleRightOutlined } from '@mui/icons-material';
 import * as actions from '../../state/checklists/actions';
 import ChecklistClaimDialog from '../checklists/ChecklistClaimDialog';
+import { useEffect } from 'react';
+import { SLICES } from '../../state/storeConfig';
 
 export default function Checklists() {
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
 	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
 	const showChecklistClaimDialog = useChecklistsSlice((state) => state.showChecklistClaimDialog);
+
+	useEffect(() => {
+		return () => resetStoreSlice(SLICES.CHECKLISTS);
+	}, []);
 
 	return (
 		<PageWrapper route="checklists">

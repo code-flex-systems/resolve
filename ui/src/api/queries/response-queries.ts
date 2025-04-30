@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { AnswerResponse, QuestionResponse } from '../../types';
+import * as actions from '../../state/checklist/actions';
 
 export function useAllResponses(
 	claimId: number,
@@ -66,10 +67,16 @@ export function useResponsesForAnswer(
 export function useUpsertResponses(instanceId: number) {
 	return useMutation({
 		mutationKey: ['responses', instanceId, 'update'],
-		mutationFn: async (variables: { responses: QuestionResponse[] }) => {
+		mutationFn: async (variables: { instanceId: number; responses: QuestionResponse[] }) => {
 			try {
-				const { responses } = variables;
-				await axiosRoutes.upsertResponses(responses);
+				const { instanceId, responses } = variables;
+				const data = await axiosRoutes.upsertResponses(responses);
+				const responseMap: Record<number, QuestionResponse> = {};
+				responses.forEach((r) => {
+					responseMap[r.question_id] = r;
+				});
+				actions.updateInstanceResponses(instanceId, responseMap);
+				if (data.data) actions.updateVisibleInstanceIds(data.data);
 			} catch (e) {
 				console.error(e);
 			}

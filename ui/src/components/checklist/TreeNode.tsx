@@ -22,6 +22,8 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
 	const [expanded, setExpanded] = useState(false);
 	let selected = selectedPageInstance === instanceId;
+	let filteredChildren =
+		mode === ChecklistMode.VIEW ? children.filter((c) => visibleInstanceIds.includes(c.instanceId)) : children;
 
 	const { isFetching } = useQuestions(pageId, selected && !pages.has(pageId), actions.updatePage);
 
@@ -38,7 +40,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 				className={selected ? 'node node-selected flex-row-between' : 'node flex-row-between'}
 			>
 				<div className="flex-row-left">
-					{!!children.length ? (
+					{!!filteredChildren.length ? (
 						<IconButton
 							onClick={(e) => {
 								setExpanded((prev) => !prev);
@@ -109,12 +111,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 				</Collapse>
 			)}
 
-			{!!children.length && (
+			{!!filteredChildren.length && (
 				<Collapse in={expanded} unmountOnExit>
-					{(mode === ChecklistMode.VIEW
-						? children.filter((c) => visibleInstanceIds.includes(c.instanceId))
-						: children
-					).map((c) => (
+					{filteredChildren.map((c) => (
 						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
 					))}
 				</Collapse>

@@ -1,15 +1,15 @@
-import { Checkbox, FormControlLabel, Link, Radio, TextField, Tooltip } from '@mui/material';
+import { Checkbox, FormControlLabel, Link, Radio, Tooltip } from '@mui/material';
 import { QuestionType } from '../../config/enums';
 import { Question } from '../../types';
-import { ControllerRenderProps, FieldValues, UseFormWatch } from 'react-hook-form';
+import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import * as actions from '../../state/checklist/actions';
 
 export default function ChecklistAnswerRadio(props: {
 	field: ControllerRenderProps<FieldValues, string>;
 	question: Question;
-	watch: UseFormWatch<FieldValues>;
+	disabled?: boolean;
 }) {
-	const { field, question, watch } = props;
+	const { field, question, disabled } = props;
 	return (
 		<div className="flex-row-left">
 			{(question.answers ?? []).map((a) => (
@@ -25,6 +25,7 @@ export default function ChecklistAnswerRadio(props: {
 											: field.value?.filter((value: any) => value !== a.id);
 										field.onChange(newValue);
 									}}
+									disabled={disabled}
 								/>
 							) : (
 								<Radio
@@ -33,6 +34,7 @@ export default function ChecklistAnswerRadio(props: {
 										const newValue = e.target.checked ? [a.id] : [];
 										field.onChange(newValue);
 									}}
+									disabled={disabled}
 								/>
 							)
 						}

@@ -10,8 +10,7 @@ import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description, TaskAlt } from '@mui/icons-material';
 import ClaimInfo from './ClaimInfo';
-import { upsertResponses } from '../../api/axios-routes';
-import { useResponses } from '../../api/queries/response-queries';
+import { useResponses, useUpsertResponses } from '../../api/queries/response-queries';
 import * as actions from '../../state/checklist/actions';
 import PageToolbar from './PageToolbar';
 
@@ -56,11 +55,12 @@ export default function Page() {
 
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
 
-	const { refetch, isFetching: loading } = useResponses(
+	const { isPending: updating, mutateAsync: upsertResponses } = useUpsertResponses(selectedPageInstance);
+	const { isFetching: loading } = useResponses(
 		claim?.id ?? -1,
 		selectedPageInstance,
 		actions.updateInstanceResponses,
-		!responses.get(selectedPageInstance)
+		!responses.has(selectedPageInstance)
 	);
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
@@ -77,8 +77,8 @@ export default function Page() {
 					let questionId = parseInt(field);
 					let response: QuestionResponse = {
 						checklist_id: checklist?.id ?? -1,
-						instance_id: selectedPageInstance ?? -1,
-						claim_id: claim.id,
+						instance_id: selectedPageInstance,
+						claim_id: claim!.id,
 						question_id: questionId,
 						response_text: typeof data[field] === 'string' ? data[field] : undefined,
 						selected_answers: Array.isArray(data[field])
@@ -90,8 +90,7 @@ export default function Page() {
 					};
 					return response;
 				});
-			await upsertResponses(responses);
-			await refetch();
+			await upsertResponses({ instanceId: selectedPageInstance, responses });
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
@@ -105,9 +104,7 @@ export default function Page() {
 			<PageToolbar />
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Typography fontStyle="italic">
-						{selectedPageInstance === -1 ? 'No page selected' : 'Loading...'}
-					</Typography>
+					<Typography fontStyle="italic">{loading ? 'No page selected' : 'Loading...'}</Typography>
 				</div>
 			)}
 			{!!selectedPageData && (
@@ -160,6 +157,7 @@ export default function Page() {
 								watch={watch}
 								question={question}
 								idx={i}
+								disabled={updating}
 							/>
 						))}
 					</Form>

@@ -23,6 +23,8 @@ export default function PageNavigation() {
 	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist?.id ?? -1);
 	const { isFetching, refetch } = usePageInstanceTreeForUser();
 	const tree = useChecklistSlice((state) => state.tree);
+	let filteredTree =
+		mode === ChecklistMode.VIEW ? tree.filter((c) => visibleInstanceIds.includes(c.instanceId)) : tree;
 
 	const onAddPage = async () => {
 		try {
@@ -127,15 +129,10 @@ export default function PageNavigation() {
 				/>
 				<Divider />
 				<div style={styles.nodeContainer}>
-					<Collapse in={!isFetching} style={styles.nodeContainerInner}>
-						<div style={styles.nodeContainerInner}>
-							{(mode === ChecklistMode.VIEW
-								? tree.filter((c) => visibleInstanceIds.includes(c.instanceId))
-								: tree
-							).map((node) => (
-								<TreeNode key={node.instanceId} level={0} {...node} />
-							))}
-						</div>
+					<Collapse in={!isFetching} unmountOnExit style={styles.nodeContainerInner}>
+						{filteredTree.map((node) => (
+							<TreeNode key={node.instanceId} level={0} {...node} />
+						))}
 					</Collapse>
 				</div>
 			</Paper>
