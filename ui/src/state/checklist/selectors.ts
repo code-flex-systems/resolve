@@ -1,4 +1,5 @@
 import { DEFAULT_ANSWER, DEFAULT_QUESTION, DEFAULT_TREE_NODE } from '../../config/defaults';
+import { ChecklistMode } from '../../config/enums';
 import { State } from '../store';
 import { SLICES } from '../storeConfig';
 
@@ -24,11 +25,22 @@ export function selectedPageInfo(state: State) {
 }
 
 export function selectedQuestionData(state: State) {
-	const { selectedQuestion } = getSlice(state);
+	const { selectedQuestion, selectedPageInfo } = getSlice(state);
 	const pageData = selectedPageData(state);
 	if (!pageData || !selectedQuestion) return DEFAULT_QUESTION;
 	const maxPosition = pageData.reduce((prevValue, q) => {
 		return q.position > prevValue ? q.position : prevValue;
 	}, 0);
-	return pageData.find((q) => q.id === selectedQuestion) ?? { ...DEFAULT_QUESTION, position: maxPosition + 1 };
+	return (
+		pageData.find((q) => q.id === selectedQuestion) ?? {
+			...DEFAULT_QUESTION,
+			page_id: selectedPageInfo?.pageId ?? -1,
+			position: maxPosition + 1,
+		}
+	);
+}
+
+export function showChecklistData(state: State) {
+	const { checklist, claim, mode } = getSlice(state);
+	return mode === ChecklistMode.VIEW ? !!checklist && !!claim : !!checklist;
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import pageController from '../../controllers/pageController';
-import { getId } from '../route-utils';
+import { getId, getQueryId } from '../route-utils';
 
 export default {
 	createPage,
@@ -80,7 +80,7 @@ async function getPageInstances(req: Request, res: Response) {
 
 async function getPageInstanceTree(req: Request, res: Response) {
 	try {
-		let ret = await pageController.getPageInstanceTree(getId(req, 'checklist'));
+		let ret = await pageController.getPageInstanceTree(getId(req, 'checklist'), getQueryId(req, 'claim'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

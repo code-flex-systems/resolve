@@ -9,6 +9,13 @@ export enum ChecklistMode {
 	EDIT,
 }
 
+export enum PageInstanceStatus {
+	UNSTARTED = 'unstarted',
+	IN_PROGRESS = 'in-progress',
+	COMPLETE = 'complete',
+	STALE = 'stale',
+}
+
 export enum QuestionType {
 	DROPDOWN = 'dropdown',
 	FREEFORM = 'freeform',

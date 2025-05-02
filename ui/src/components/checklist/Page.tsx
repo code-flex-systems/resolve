@@ -57,6 +57,7 @@ export default function Page() {
 
 	const { isPending: updating, mutateAsync: upsertResponses } = useUpsertResponses(selectedPageInstance);
 	const { isFetching: loading } = useResponses(
+		checklist?.id ?? -1,
 		claim?.id ?? -1,
 		selectedPageInstance,
 		actions.updateInstanceResponses,
@@ -104,7 +105,7 @@ export default function Page() {
 			<PageToolbar />
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Typography fontStyle="italic">{loading ? 'No page selected' : 'Loading...'}</Typography>
+					<Typography fontStyle="italic">{loading ? 'Loading...' : 'No page selected'}</Typography>
 				</div>
 			)}
 			{!!selectedPageData && (
@@ -157,7 +158,6 @@ export default function Page() {
 								watch={watch}
 								question={question}
 								idx={i}
-								disabled={updating}
 							/>
 						))}
 					</Form>

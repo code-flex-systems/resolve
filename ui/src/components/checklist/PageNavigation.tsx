@@ -1,8 +1,9 @@
 import { Collapse, Divider, Fade, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { Add, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
 import { OFFWHITE_COLOR } from '../../styles/theme';
-import { useChecklistSlice, useGlobalSlice } from '../../state/store';
-import { useAddPage, usePageInstanceTreeForUser } from '../../api/queries/page-queries';
+import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
+import { useAddPage, usePageInstanceTree } from '../../api/queries/page-queries';
+import * as selectors from '../../state/checklist/selectors';
 import * as actions from '../../state/checklist/actions';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
@@ -13,18 +14,19 @@ import config from '../../config/config';
 
 export default function PageNavigation() {
 	const user = useGlobalSlice((state) => state.user);
-
+	const showChecklistData = useStore(selectors.showChecklistData);
 	const checklist = useChecklistSlice((state) => state.checklist);
 	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
 	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
-	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist?.id ?? -1);
-	const { isFetching, refetch } = usePageInstanceTreeForUser();
 	const tree = useChecklistSlice((state) => state.tree);
 	let filteredTree =
 		mode === ChecklistMode.VIEW ? tree.filter((c) => visibleInstanceIds.includes(c.instanceId)) : tree;
+
+	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist?.id ?? -1);
+	const { isFetching, refetch } = usePageInstanceTree();
 
 	const onAddPage = async () => {
 		try {
@@ -129,7 +131,7 @@ export default function PageNavigation() {
 				/>
 				<Divider />
 				<div style={styles.nodeContainer}>
-					<Collapse in={!isFetching} unmountOnExit style={styles.nodeContainerInner}>
+					<Collapse in={showChecklistData && !isFetching} unmountOnExit style={styles.nodeContainerInner}>
 						{filteredTree.map((node) => (
 							<TreeNode key={node.instanceId} level={0} {...node} />
 						))}

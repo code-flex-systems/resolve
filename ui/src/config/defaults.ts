@@ -1,5 +1,5 @@
 import { Answer, Question, TreeNode } from '../types';
-import { QuestionType } from './enums';
+import { PageInstanceStatus, QuestionType } from './enums';
 
 export const DEFAULT_ANSWER: Answer = {
 	id: -1,
@@ -22,6 +22,8 @@ export const DEFAULT_TREE_NODE: TreeNode = {
 	pageId: -1,
 	position: -1,
 	title: '',
+	status: PageInstanceStatus.UNSTARTED,
+	template_version: -1,
 };
 
 export const DEFAULT_QUESTION: Question = {

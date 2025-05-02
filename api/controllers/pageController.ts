@@ -69,16 +69,16 @@ async function getPageInstance(instanceId: number) {
 
 async function getPageInstances(checklistId: number, parentId: number) {
 	try {
-		let results = await pageQueries.getPageInstances(checklistId, parentId);
+		let results = await pageQueries.getPageInstances(checklistId, -1, parentId);
 		return results;
 	} catch (e) {
 		console.error(e);
 	}
 }
 
-async function getPageInstanceTree(checklistId: number) {
+async function getPageInstanceTree(checklistId: number, claimId?: number) {
 	try {
-		let results = (await pageQueries.getPageInstances(checklistId)) ?? [];
+		let results = (await pageQueries.getPageInstances(checklistId, claimId)) ?? [];
 		let tree: TreeNode[] = results
 			.filter((row) => !row.parent_instance_id)
 			.map((row) => ({
@@ -87,6 +87,8 @@ async function getPageInstanceTree(checklistId: number) {
 				pageId: row.id,
 				position: row.position,
 				title: row.title,
+				status: row.status,
+				template_version: row.template_version,
 			}));
 		for (let node of tree) {
 			addChildrenToTree(node, results);
@@ -117,16 +119,7 @@ async function modifyPage(id: number, params: object) {
 
 // private methods
 
-function addChildrenToTree(
-	node: TreeNode,
-	results: {
-		id: number;
-		title: string;
-		instance_id: number;
-		position: number;
-		parent_instance_id: number | null;
-	}[]
-) {
+function addChildrenToTree(node: TreeNode, results: Awaited<ReturnType<typeof pageQueries.getPageInstances>> = []) {
 	let children: TreeNode[] = results
 		.filter((row) => row.parent_instance_id === +node.instanceId)
 		.map((row) => ({
@@ -135,6 +128,8 @@ function addChildrenToTree(
 			parentInstanceId: row.parent_instance_id,
 			position: row.position,
 			title: row.title,
+			status: row.status,
+			template_version: row.template_version,
 		}));
 	node.children = children.length ? children : undefined;
 	if (node.children) {

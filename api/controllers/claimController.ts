@@ -6,9 +6,9 @@ export default {
 	getClaims,
 };
 
-async function getClaim(claimId: number) {
+async function getClaim(checklistId: number, claimId: number) {
 	try {
-		let results = await claimQueries.getClaim(claimId);
+		let results = await claimQueries.getClaim(checklistId, claimId);
 		return results;
 	} catch (e) {
 		console.error(e);

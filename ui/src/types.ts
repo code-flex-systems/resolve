@@ -1,6 +1,7 @@
 import { ButtonOwnProps } from '@mui/material';
 import { JSX } from 'react';
 import config from './config/config';
+import { PageInstanceStatus } from './config/enums';
 
 export interface Answer {
 	id: number;
@@ -46,7 +47,7 @@ export interface Claim {
 	expected_recovery: number | null;
 }
 
-export type ClaimSearchType = 'claim_number' | 'client';
+export type ClaimSearchType = 'claim_number' | 'insured';
 
 export interface Checklist {
 	id: number;
@@ -94,6 +95,7 @@ export interface PageTemplate {
 	hidden: boolean;
 	id: number;
 	title: string;
+	version: number;
 }
 
 export interface TreeNode {
@@ -103,6 +105,8 @@ export interface TreeNode {
 	position: number;
 	title: string;
 	children?: TreeNode[];
+	status: PageInstanceStatus;
+	template_version: number | null;
 }
 
 export interface Question {

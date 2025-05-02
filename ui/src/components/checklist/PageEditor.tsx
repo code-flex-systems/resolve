@@ -6,13 +6,12 @@ import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
 import { ContentCopy, Delete, Description, East, SubdirectoryArrowRight, TaskAlt } from '@mui/icons-material';
-import ClaimInfo from './ClaimInfo';
 import {
 	useAddPage,
 	useCopyPage,
 	useDeletePage,
 	useModifyPage,
-	usePageInstanceTreeForAdmin,
+	usePageInstanceTree,
 } from '../../api/queries/page-queries';
 import BasicButton from '../common/BasicButton';
 import * as actions from '../../state/checklist/actions';
@@ -29,7 +28,7 @@ export default function PageEditor() {
 	const { mutateAsync: copyPage, isPending: copying } = useCopyPage(checklistId ?? -1, selectedPageInfo.pageId);
 	const { mutateAsync: deletePage, isPending: deleting } = useDeletePage(selectedPageInfo.instanceId);
 	const { mutateAsync: modifyPage, isPending: updating } = useModifyPage(selectedPageInfo.pageId);
-	const { isFetching, refetch } = usePageInstanceTreeForAdmin(checklistId, actions.updateTree, false);
+	const { isFetching, refetch } = usePageInstanceTree(false);
 	let inTransition = adding || copying || deleting || isFetching;
 
 	const [pageTitle, setPageTitle] = useState('');

@@ -1,4 +1,4 @@
-import { ChecklistMode } from '../../config/enums';
+import { ChecklistMode, PageInstanceStatus } from '../../config/enums';
 import {
 	AnswerResponse,
 	Checklist,
@@ -60,9 +60,14 @@ export function updateMode(newMode: ChecklistMode) {
 	});
 }
 
-export function updatePage(pageId: number, questions: Question[]) {
+export function updatePage(pageId: number, questions: Question[] | null) {
 	setState((state) => {
-		state.pages.set(pageId, questions);
+		if (questions) {
+			state.pages.set(pageId, questions);
+		} else {
+			// Invalidate page cache to force a reload next time the user visits
+			state.pages.delete(pageId);
+		}
 	});
 }
 
@@ -129,6 +134,13 @@ export function updateTree(tree: TreeNode[], maxPosition: number, visibleIds?: n
 		state.tree = tree;
 		state.maxPageInstancePosition = maxPosition;
 		if (visibleIds) state.visibleInstanceIds = visibleIds;
+	});
+}
+
+export function updateTreeNodeStatus(instanceId: number, newStatus: PageInstanceStatus) {
+	setState((state) => {
+		let node = findTreeNode(instanceId, state.tree);
+		if (node) node.status = newStatus;
 	});
 }
 

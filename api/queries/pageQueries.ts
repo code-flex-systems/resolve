@@ -1,6 +1,7 @@
 import { sql, Transaction } from 'kysely';
 import { db } from '../database/kysely';
 import { DB } from '../database/types';
+import { PageInstanceStatus } from '../config/enums';
 
 export default {
 	createPage,
@@ -72,6 +73,11 @@ async function deletePageInstance(instanceId: number) {
 	try {
 		await db.transaction().execute(async (trx) => {
 			try {
+				await trx
+					.updateTable('answer')
+					.set({ calls_instance_id: null })
+					.where('calls_instance_id', '=', instanceId)
+					.execute();
 				const deletedRow = await trx
 					.deleteFrom('page_instance')
 					.where('id', '=', instanceId)
@@ -120,12 +126,32 @@ async function getPageInstance(instanceId: number) {
 	}
 }
 
-async function getPageInstances(checklistId: number, parentId?: number) {
+async function getPageInstances(checklistId: number, claimId = -1, parentId?: number) {
 	try {
 		return await db
 			.selectFrom('page as p')
 			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
-			.select(['p.id', 'p.title', 'i.id as instance_id', 'i.parent_instance_id', 'i.position'])
+			.leftJoin('page_instance_status as s', (join) =>
+				join.onRef('s.page_instance_id', '=', 'i.id').on('s.claim_id', '=', claimId)
+			)
+			.select((eb) => [
+				'p.id',
+				'p.title',
+				'i.id as instance_id',
+				'i.parent_instance_id',
+				'i.position',
+				's.template_version',
+				eb
+					.case()
+					.when('s.id', 'is', null)
+					.then(PageInstanceStatus.UNSTARTED)
+					.when('s.template_version', '<>', eb.ref('p.version'))
+					.then(PageInstanceStatus.STALE)
+					.else(eb.ref('s.status'))
+					.end()
+					.$castTo<PageInstanceStatus>()
+					.as('status'),
+			])
 			.where((eb) => {
 				let andClause = [eb('i.checklist_id', '=', checklistId)];
 				if (parentId === -1) {
@@ -198,6 +224,12 @@ async function createPageInstancePrivate(
 	trx: Transaction<DB>
 ) {
 	try {
+		// Update positions for all page instances below the one we're inserting
+		await trx
+			.updateTable('page_instance')
+			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+			.where('position', '>=', position)
+			.execute();
 		let newInstance = await trx
 			.insertInto('page_instance')
 			.values({
@@ -208,12 +240,6 @@ async function createPageInstancePrivate(
 			})
 			.returningAll()
 			.executeTakeFirst();
-		// Update positions for all page instances below the one we're inserting
-		await trx
-			.updateTable('page_instance')
-			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
-			.where('position', '>=', position)
-			.execute();
 		return newInstance;
 	} catch (e) {
 		console.error(e);

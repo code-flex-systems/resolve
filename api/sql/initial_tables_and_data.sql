@@ -34,13 +34,15 @@ create table claim(
 create table checklist_claim(
     claim_id integer not null references claim(id),
 	checklist_id integer not null references checklist(id),
-    last_opened not null date default now()
+    last_opened not null timestamp without time zone default now(),
+    unique(checklist_id, claim_id)
 );
 
 create table page(
 	id serial not null primary key,
 	title text not null,
-	hidden boolean not null default false
+	hidden boolean not null default false,
+    version integer not null default 0
 );
 
 create table page_instance(
@@ -50,6 +52,18 @@ create table page_instance(
 	parent_instance_id integer references page_instance(id) on delete cascade,
     position integer not null
 );
+
+CREATE TABLE page_instance_status (
+  id SERIAL PRIMARY KEY,
+  claim_id INTEGER NOT NULL REFERENCES claim(id) ON DELETE CASCADE,
+  page_instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (status IN ('unstarted', 'in-progress', 'complete')),
+  template_version INTEGER NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (claim_id, page_instance_id)
+);
+CREATE INDEX idx_status_lookup ON page_instance_status (claim_id, page_instance_id);
+CREATE INDEX idx_status_template_version ON page_instance_status (template_version);
 
 create table doc(
 	id serial not null primary key,

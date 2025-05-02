@@ -7,3 +7,11 @@ export function getId(req: Request, key: string) {
 	}
 	return parseInt(id);
 }
+
+export function getQueryId(req: Request, key: string) {
+	let id = req.query[`${key}Id`]?.toString();
+	if (!id || isNaN(parseInt(id))) {
+		throw new Error(`Invalid ${key}`);
+	}
+	return parseInt(id);
+}

@@ -1,3 +1,4 @@
+import { PageInstanceStatus } from '../config/enums';
 import pageQueries from '../queries/pageQueries';
 import responseQueries from '../queries/responseQueries';
 import { QuestionResponse } from '../types/types';
@@ -31,7 +32,14 @@ async function upsertQuestionResponses(params: object) {
 		const sampleResponse = params.responses?.[0] as QuestionResponse;
 		if (!sampleResponse) throw new Error('Invalid responses');
 		await responseQueries.upsertQuestionResponses(params);
-		return await pageQueries.getVisiblePageInstances(sampleResponse.checklist_id, sampleResponse.claim_id);
+		const visibleIds = await pageQueries.getVisiblePageInstances(
+			sampleResponse.checklist_id,
+			sampleResponse.claim_id
+		);
+		return {
+			status: PageInstanceStatus,
+			visibleIds,
+		};
 	} catch (e) {
 		console.error(e);
 	}

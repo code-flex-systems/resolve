@@ -18,13 +18,7 @@ import { ContactSupport, TaskAlt } from '@mui/icons-material';
 
 import { QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
-import {
-	useAddUpdateQuestion,
-	useCopyQuestion,
-	useDeleteQuestion,
-	usePageInstanceTreeForAdmin,
-	useQuestions,
-} from '../../api/queries/page-queries';
+import { useAddUpdateQuestion, useCopyQuestion, useDeleteQuestion, useQuestions } from '../../api/queries/page-queries';
 import Toolbar from '../common/Toolbar';
 import * as actions from '../../state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
@@ -39,7 +33,6 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
-	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
@@ -54,11 +47,6 @@ export default function FormQuestion() {
 		selectedPageInfo.pageId,
 		false,
 		actions.updatePage
-	);
-	const { isFetching: refetchingTree, refetch: refetchTree } = usePageInstanceTreeForAdmin(
-		checklistId,
-		actions.updateTree,
-		false
 	);
 
 	const {
@@ -75,17 +63,17 @@ export default function FormQuestion() {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	let isPlaceholder = selectedQuestionData.id === -1;
-	let inTransition = copying || updating || deleting || refetchingQuestions || refetchingTree;
+	let inTransition = copying || updating || deleting || refetchingQuestions;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
 			let newQuestion = await addUpdateQuestion({ question: data });
+			await refetchQuestions();
 			if (newQuestion.page_id !== selectedPageInfo.pageId) {
-				await Promise.all([refetchQuestions(), refetchTree()]);
+				actions.updatePage(newQuestion.page_id, null);
 			} else {
-				await refetchQuestions();
+				actions.updateSelectedQuestion(newQuestion.id);
 			}
-			actions.updateSelectedQuestion(newQuestion.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {

@@ -15,8 +15,8 @@ const ROUTES = {
 };
 
 // DUMMY
-export function getClaim(claimId: number) {
-	return performAsyncGet(`${ROUTES.CLAIMS}/${claimId}`);
+export function getClaim(checklistId: number, claimId: number) {
+	return performAsyncGet(`${ROUTES.CLAIMS}/${claimId}?checklistId=${checklistId}`);
 }
 
 export function getClaims(searchTerm?: { type: ClaimSearchType; value: string }) {
@@ -126,8 +126,10 @@ export function getPageInstances(checklistId: number, parentId: number) {
 	return performAsyncGet(`/${checklistId}${ROUTES.PAGES}/${parentId}`);
 }
 
-export function getPageInstanceTree(checklistId: number) {
-	return performAsyncGet(`/${checklistId}${ROUTES.PAGES}${ROUTES.INSTANCES}/tree`);
+export function getPageInstanceTree(checklistId: number, claimId?: number) {
+	return performAsyncGet(
+		`/${checklistId}${ROUTES.PAGES}${ROUTES.INSTANCES}/tree${claimId ? `?claimId=${claimId}` : ''}`
+	);
 }
 
 export function getVisiblePageInstances(checklistId: number, claimId: number) {

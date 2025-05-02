@@ -1,8 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { Answer, PageTemplate, Question, QuestionStat, TreeNode } from '../../types';
+import { Answer, PageTemplate, Question, QuestionStat } from '../../types';
 import { useChecklistSlice } from '../../state/store';
-import { ChecklistMode } from '../../config/enums';
 import * as checklistActions from '../../state/checklist/actions';
 
 export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boolean) {
@@ -17,42 +16,20 @@ export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boo
 				console.error(e);
 			}
 		},
-		enabled,
+		enabled: enabled !== false,
 	});
 }
 
-export function usePageInstanceTreeForAdmin(
-	checklistId: number,
-	callback: (data: TreeNode[], maxPosition: number) => void,
-	enabled?: boolean
-) {
-	return useQuery({
-		queryKey: [checklistId, 'pages', 'instances'],
-		queryFn: async () => {
-			try {
-				let data = await axiosRoutes.getPageInstanceTree(checklistId);
-				if (data.data) callback(data.data.tree, data.data.maxPosition);
-				return data;
-			} catch (e) {
-				console.error(e);
-			}
-		},
-		enabled,
-	});
-}
-
-export function usePageInstanceTreeForUser() {
+export function usePageInstanceTree(enabled?: boolean) {
 	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
 	const claimId = useChecklistSlice((state) => state.claim)?.id ?? -1;
-	const mode = useChecklistSlice((state) => state.mode);
-	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
 	return useQuery({
 		queryKey: [checklistId, claimId, 'pages', 'instances'],
 		queryFn: async () => {
 			try {
-				if (mode === ChecklistMode.VIEW && !visibleInstanceIds.length) {
+				if (claimId !== -1) {
 					const [tree, visiblePages] = await Promise.all([
-						axiosRoutes.getPageInstanceTree(checklistId),
+						axiosRoutes.getPageInstanceTree(checklistId, claimId),
 						axiosRoutes.getVisiblePageInstances(checklistId, claimId),
 					]);
 					if (tree.data && visiblePages.data) {
@@ -68,6 +45,7 @@ export function usePageInstanceTreeForUser() {
 				console.error(e);
 			}
 		},
+		enabled: enabled !== false && checklistId !== -1,
 	});
 }
 
@@ -88,7 +66,7 @@ export function useQuestions(
 				console.error(e);
 			}
 		},
-		enabled: !!pageId && enabled,
+		enabled: !!pageId && enabled !== false,
 	});
 }
 
@@ -104,7 +82,7 @@ export function useQuestionStats(pageId: number | null, enabled: boolean) {
 				console.error(e);
 			}
 		},
-		enabled: !!pageId && enabled,
+		enabled: !!pageId && enabled !== false,
 	});
 }
 

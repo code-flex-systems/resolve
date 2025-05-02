@@ -36,7 +36,7 @@ export default function ClaimMenuItem(props: {
 					</div>
 					<AccountCircle sx={styles.icon} />
 					<Typography fontSize={13} width={120} noWrap>
-						{claim?.client ?? ''}
+						{claim?.insured ?? ''}
 					</Typography>
 					<div style={styles.verticalDiv}>
 						<Divider orientation="vertical" />
@@ -49,7 +49,7 @@ export default function ClaimMenuItem(props: {
 					</div>
 					<div className="flex-row-center">
 						<AccessTimeFilled sx={styles.icon} />
-						<Typography fontSize={13}>{formatMDYAbv(claim?.last_update?.toString())}</Typography>
+						<Typography fontSize={13}>{formatMDYAbv(claim?.date_of_loss?.toString())}</Typography>
 					</div>
 				</div>
 				<div className="flex-row-right">

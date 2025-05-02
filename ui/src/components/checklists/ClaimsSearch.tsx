@@ -67,7 +67,7 @@ export default function ClaimsSearch() {
 			<ClickAwayListener onClickAway={onClose}>
 				<span>
 					<TextField
-						placeholder={`Start typing a ${type === 'claim_number' ? 'claim number' : 'client name'}...`}
+						placeholder={`Start typing a ${type === 'claim_number' ? 'claim number' : 'name'}...`}
 						fullWidth
 						value={query}
 						onChange={handleInputChange}
@@ -137,17 +137,17 @@ export default function ClaimsSearch() {
 
 			<div style={styles.switch} className="flex-row-left">
 				<BasicSwitch
-					checked={type === 'client'}
+					checked={type === 'insured'}
 					onChange={(e, value) => {
 						e.stopPropagation();
 						e.preventDefault();
-						setType(value ? 'client' : 'claim_number');
+						setType(value ? 'insured' : 'claim_number');
 						handleClearInput();
 						setResults([]);
 					}}
 				/>
-				<Typography fontSize={13} fontWeight={type === 'client' ? 'bold' : undefined} marginLeft="10px">
-					Search by client
+				<Typography fontSize={13} fontWeight={type === 'insured' ? 'bold' : undefined} marginLeft="10px">
+					Search by insured
 				</Typography>
 			</div>
 		</div>

@@ -55,7 +55,12 @@ export default function ClaimInfo() {
 	const claim = useChecklistSlice((state) => state.claim);
 	const [open, setOpen] = useState(false);
 	const [showData, setShowData] = useState(false);
-	const { isFetching } = useClaim(+(params.claimId ?? '-1'), actions.setClaimData, !claim);
+	const { isFetching } = useClaim(
+		+(params.checklistId ?? '-1'),
+		+(params.claimId ?? '-1'),
+		actions.setClaimData,
+		!claim
+	);
 	if (!claim) return <></>;
 	return (
 		<>

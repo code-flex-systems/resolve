@@ -7,8 +7,13 @@ export default {
 	getClaims,
 };
 
-async function getClaim(claimId: number) {
+async function getClaim(checklistId: number, claimId: number) {
 	try {
+		await db
+			.insertInto('checklist_claim')
+			.values({ checklist_id: checklistId, claim_id: claimId })
+			.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
+			.execute();
 		return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirst();
 	} catch (e) {
 		console.error(e);

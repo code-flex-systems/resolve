@@ -94,7 +94,7 @@ export default function FormAnswer() {
 
 	const getPositionOptions = () => {
 		let options: number[] = [];
-		let limit = selectedQuestionData.answers.length;
+		let limit = selectedQuestionData.answers?.length ?? 0;
 		if (isPlaceholder) limit += 1;
 		for (let i = 1; i <= limit; i++) {
 			options.push(i);

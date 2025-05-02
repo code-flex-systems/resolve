@@ -1,3 +1,5 @@
+import { PageInstanceStatus } from '../config/enums';
+
 export interface Answer {
 	id: number;
 	question_id: number;
@@ -19,7 +21,7 @@ export interface AnswerStat {
 	answer_text: string;
 }
 
-export type ClaimSearchType = 'claim_number' | 'client';
+export type ClaimSearchType = 'claim_number' | 'insured';
 
 export type Interval<T> = {
 	from: T;
@@ -33,6 +35,8 @@ export interface TreeNode {
 	position: number;
 	title: string;
 	children?: TreeNode[];
+	status: PageInstanceStatus;
+	template_version: number | null;
 }
 
 export interface QuestionResponse {

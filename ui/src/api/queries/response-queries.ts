@@ -4,15 +4,16 @@ import { AnswerResponse, QuestionResponse } from '../../types';
 import * as actions from '../../state/checklist/actions';
 
 export function useAllResponses(
+	checklistId: number,
 	claimId: number,
 	callback: (data: Record<number, QuestionResponse>) => void,
 	enabled?: boolean
 ) {
 	return useQuery({
-		queryKey: [1, claimId, 'responses'],
+		queryKey: [checklistId, claimId, 'responses'],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getAllResponses(1, claimId);
+				let data = await axiosRoutes.getAllResponses(checklistId, claimId);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {
@@ -24,23 +25,24 @@ export function useAllResponses(
 }
 
 export function useResponses(
+	checklistId: number,
 	claimId: number,
 	instanceId: number,
 	callback: (instanceId: number, data: Record<number, QuestionResponse>) => void,
 	enabled?: boolean
 ) {
 	return useQuery({
-		queryKey: [1, claimId, instanceId, 'responses'],
+		queryKey: [checklistId, claimId, instanceId, 'responses'],
 		queryFn: async ({ queryKey }) => {
 			try {
-				let data = await axiosRoutes.getResponses(1, claimId, +queryKey[2]);
+				let data = await axiosRoutes.getResponses(checklistId, claimId, +queryKey[2]);
 				if (data.data) callback(+queryKey[2], data.data);
 				return data;
 			} catch (e) {
 				console.error(e);
 			}
 		},
-		enabled,
+		enabled: enabled !== false && claimId !== -1 && instanceId !== -1,
 	});
 }
 
@@ -76,7 +78,10 @@ export function useUpsertResponses(instanceId: number) {
 					responseMap[r.question_id] = r;
 				});
 				actions.updateInstanceResponses(instanceId, responseMap);
-				if (data.data) actions.updateVisibleInstanceIds(data.data);
+				if (data.data) {
+					actions.updateTreeNodeStatus(instanceId, data.data.status);
+					actions.updateVisibleInstanceIds(data.data.visibleIds);
+				}
 			} catch (e) {
 				console.error(e);
 			}

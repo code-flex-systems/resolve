@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { Claim } from '../../types';
 
-export function useClaim(claimId: number, callback: (data: Claim) => void, enabled?: boolean) {
+export function useClaim(checklistId: number, claimId: number, callback: (data: Claim) => void, enabled?: boolean) {
 	return useQuery({
-		queryKey: ['claims', claimId],
+		queryKey: ['checklists', checklistId, 'claims', claimId],
 		queryFn: async () => {
 			try {
-				let data = await axiosRoutes.getClaim(claimId);
+				let data = await axiosRoutes.getClaim(checklistId, claimId);
 				if (data.data) callback(data.data);
 				return data;
 			} catch (e) {

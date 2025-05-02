@@ -76,6 +76,7 @@ export interface Page {
   hidden: Generated<boolean>;
   id: Generated<number>;
   title: string;
+  version: Generated<number>;
 }
 
 export interface PageInstance {
@@ -84,6 +85,15 @@ export interface PageInstance {
   page_id: number;
   parent_instance_id: number | null;
   position: number;
+}
+
+export interface PageInstanceStatus {
+  claim_id: number;
+  id: Generated<number>;
+  page_instance_id: number;
+  status: string;
+  template_version: number;
+  updated_at: Generated<Timestamp | null>;
 }
 
 export interface Question {
@@ -142,6 +152,7 @@ export interface DB {
   doc: Doc;
   page: Page;
   page_instance: PageInstance;
+  page_instance_status: PageInstanceStatus;
   question: Question;
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;

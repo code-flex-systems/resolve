@@ -2,6 +2,7 @@ import { sql } from 'kysely';
 import { db } from '../database/kysely';
 import { QuestionResponse } from '../types/types';
 import { QuestionResponseAnswer } from '../types/types';
+import { PageInstanceStatus } from '../config/enums';
 
 export default {
 	getResponsesForAnswer,
@@ -68,6 +69,8 @@ async function getResponsesForClaimChecklist(checklistId: number, claimId: numbe
 async function upsertQuestionResponses(params: { responses: QuestionResponse[] }) {
 	try {
 		const { responses } = params;
+		const updatedPageStatus = getUpdatedPageStatus(responses);
+
 		await db.transaction().execute(async (trx) => {
 			for (const response of responses) {
 				const shouldClear =
@@ -117,8 +120,44 @@ async function upsertQuestionResponses(params: { responses: QuestionResponse[] }
 						.execute();
 				}
 			}
+
+			// Update page instance status
+			let sampleResponse = responses[0];
+			let template = await trx
+				.selectFrom('page as p')
+				.innerJoin('page_instance as i', 'p.id', 'i.page_id')
+				.select('version')
+				.where('i.id', '=', sampleResponse.instance_id)
+				.executeTakeFirstOrThrow();
+			await trx
+				.insertInto('page_instance_status')
+				.values({
+					claim_id: sampleResponse.claim_id,
+					page_instance_id: sampleResponse.instance_id,
+					status: updatedPageStatus,
+					template_version: template.version,
+					updated_at: sql`now()`,
+				})
+				.onConflict((oc) =>
+					oc.columns(['claim_id', 'page_instance_id']).doUpdateSet({
+						status: updatedPageStatus,
+						updated_at: sql`now()`,
+					})
+				)
+				.executeTakeFirst();
 		});
+
+		return updatedPageStatus;
 	} catch (e) {
 		console.error(e);
 	}
+}
+
+// private methods
+
+function getUpdatedPageStatus(responses: QuestionResponse[]) {
+	let filledCount = responses.filter((r) => !!r.response_text || r.selected_answers.length).length;
+	if (filledCount === responses.length) return PageInstanceStatus.COMPLETE;
+	if (filledCount > 0) return PageInstanceStatus.IN_PROGRESS;
+	return PageInstanceStatus.UNSTARTED;
 }
