@@ -63,7 +63,8 @@ export function updateMode(newMode: ChecklistMode) {
 export function updatePage(pageId: number, questions: Question[] | null) {
 	setState((state) => {
 		if (questions) {
-			state.pages.set(pageId, questions);
+			const newVersion = (state.pages.get(pageId)?.version ?? 0) + 1;
+			state.pages.set(pageId, { version: newVersion, questions });
 		} else {
 			// Invalidate page cache to force a reload next time the user visits
 			state.pages.delete(pageId);
@@ -77,9 +78,13 @@ export function updatePageTemplates(newTemplates: PageTemplate[]) {
 	});
 }
 
-export function updateInstanceResponses(instanceId: number, responses: Record<number, QuestionResponse>) {
+export function updateInstanceResponses(
+	instanceId: number,
+	version: number,
+	responses: Record<number, QuestionResponse>
+) {
 	setState((state) => {
-		state.responses.set(instanceId, responses);
+		state.responses.set(instanceId, { version, responses });
 	});
 }
 

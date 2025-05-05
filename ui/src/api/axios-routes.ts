@@ -25,16 +25,16 @@ export function getClaims(searchTerm?: { type: ClaimSearchType; value: string })
 }
 // DUMMY
 
-export function createAnswer(questionId: number, answer: object) {
-	return performAsyncPost(`/${questionId}${ROUTES.ANSWERS}`, answer);
+export function createAnswer(pageId: number, questionId: number, answer: object) {
+	return performAsyncPost(`/${pageId}/${questionId}${ROUTES.ANSWERS}`, answer);
 }
 
-export function copyAnswer(questionId: number, answerId: number) {
-	return performAsyncPost(`/${questionId}${ROUTES.ANSWERS}/copy/${answerId}`, {});
+export function copyAnswer(pageId: number, questionId: number, answerId: number) {
+	return performAsyncPost(`/${pageId}/${questionId}${ROUTES.ANSWERS}/copy/${answerId}`, {});
 }
 
-export function deleteAnswer(answerId: number) {
-	return performAsyncDelete(`${ROUTES.ANSWERS}/${answerId}`);
+export function deleteAnswer(pageId: number, answerId: number) {
+	return performAsyncDelete(`/${pageId}${ROUTES.ANSWERS}/${answerId}`);
 }
 
 export function getAnswer(answerId: number) {
@@ -45,8 +45,8 @@ export function getAnswers(questionId: number) {
 	return performAsyncGet(`/${questionId}${ROUTES.ANSWERS}`);
 }
 
-export function modifyAnswer(answerId: number, updates: object) {
-	return performAsyncPut(`${ROUTES.ANSWERS}/${answerId}`, updates);
+export function modifyAnswer(pageId: number, answerId: number, updates: object) {
+	return performAsyncPut(`/${pageId}${ROUTES.ANSWERS}/${answerId}`, updates);
 }
 
 export function createChecklist(claimId: number, checklist: object) {
@@ -148,8 +148,8 @@ export function copyQuestion(pageId: number, questionId: number) {
 	return performAsyncPost(`/${pageId}${ROUTES.QUESTIONS}/copy/${questionId}`, {});
 }
 
-export function deleteQuestion(questionId: number) {
-	return performAsyncDelete(`${ROUTES.QUESTIONS}/${questionId}`);
+export function deleteQuestion(pageId: number, questionId: number) {
+	return performAsyncDelete(`/${pageId}${ROUTES.QUESTIONS}/${questionId}`);
 }
 
 export function getQuestion(questionId: number) {
@@ -164,8 +164,12 @@ export function getQuestionStats(pageId: number) {
 	return performAsyncGet(`/${pageId}${ROUTES.QUESTIONS}${ROUTES.STATS}`);
 }
 
-export function modifyQuestion(questionId: number, updates: object) {
-	return performAsyncPut(`${ROUTES.QUESTIONS}/${questionId}`, updates);
+export function modifyQuestion(pageId: number, questionId: number, updates: object) {
+	return performAsyncPut(`/${pageId}${ROUTES.QUESTIONS}/${questionId}`, updates);
+}
+
+export function evaluateResponses(checklistId: number, claimId: number, instanceId: number) {
+	return performAsyncPut(`/${checklistId}/${claimId}/${instanceId}${ROUTES.RESPONSES}/evaluate`, {});
 }
 
 export function getAllResponses(checklistId: number, claimId: number) {

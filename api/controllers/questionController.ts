@@ -30,9 +30,9 @@ async function copyQuestion(pageId: number, questionId: number) {
 	}
 }
 
-async function deleteQuestion(id: number) {
+async function deleteQuestion(pageId: number, questionId: number) {
 	try {
-		await questionQueries.deleteQuestion(id);
+		await questionQueries.deleteQuestion(pageId, questionId);
 	} catch (e) {
 		console.error(e);
 	}
@@ -85,9 +85,9 @@ async function getQuestionStats(pageId: number) {
 	}
 }
 
-async function modifyQuestion(id: number, params: object) {
+async function modifyQuestion(pageId: number, questionId: number, params: object) {
 	try {
-		let results = await questionQueries.modifyQuestion(id, params);
+		let results = await questionQueries.modifyQuestion(pageId, questionId, params);
 		return results;
 	} catch (e) {
 		console.error(e);

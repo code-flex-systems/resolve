@@ -18,9 +18,9 @@ export interface ChecklistSlice {
 	expandAll: boolean;
 	maxPageInstancePosition: number;
 	mode: ChecklistMode;
-	pages: Map<number, Question[]>;
+	pages: Map<number, { version: number; questions: Question[] }>;
 	pageTemplates: PageTemplate[];
-	responses: Map<number, Record<number, QuestionResponse>>;
+	responses: Map<number, { version: number; responses: Record<number, QuestionResponse> }>;
 	selectedAnswer: number | null;
 	selectedPageInstance: number | null;
 	selectedPageInfo: TreeNode | null;

@@ -12,7 +12,7 @@ import { useParams } from 'react-router';
 function Row(props: {
 	label: string;
 	value: string | number | null;
-	loading: boolean;
+	loading?: boolean;
 	amount?: boolean;
 	date?: boolean;
 }) {
@@ -55,12 +55,6 @@ export default function ClaimInfo() {
 	const claim = useChecklistSlice((state) => state.claim);
 	const [open, setOpen] = useState(false);
 	const [showData, setShowData] = useState(false);
-	const { isFetching } = useClaim(
-		+(params.checklistId ?? '-1'),
-		+(params.claimId ?? '-1'),
-		actions.setClaimData,
-		!claim
-	);
 	if (!claim) return <></>;
 	return (
 		<>
@@ -78,39 +72,29 @@ export default function ClaimInfo() {
 				{showData ? (
 					<>
 						<div style={styles.innerContainer} className="flex-col-start">
-							<Row label="Claim Number" value={claim.claim_number} loading={isFetching} />
-							<Row label="Client" value={claim.client} loading={isFetching} />
-							<Row label="Client Adjuster" value={claim.client_adjuster} loading={isFetching} />
-							<Row label="Insured" value={claim.insured} loading={isFetching} />
-							<Row label="Claim Amount" amount value={claim.claim_amount} loading={isFetching} />
-							<Row label="Total Incurred" amount value={claim.total_incurred} loading={isFetching} />
+							<Row label="Claim Number" value={claim.claim_number} />
+							<Row label="Client" value={claim.client} />
+							<Row label="Client Adjuster" value={claim.client_adjuster} />
+							<Row label="Insured" value={claim.insured} />
+							<Row label="Claim Amount" amount value={claim.claim_amount} />
+							<Row label="Total Incurred" amount value={claim.total_incurred} />
 						</div>
 						<div style={styles.innerContainer} className="flex-col-start">
-							<Row label="Grade" value={''} loading={isFetching} />
-							<Row
-								label="Date of Loss"
-								date
-								value={claim.date_of_loss?.toString() ?? ''}
-								loading={isFetching}
-							/>
-							<Row label="Loss Location" value={claim.loss_location} loading={isFetching} />
-							<Row label="Last Update" value={claim.last_updated_by} loading={isFetching} />
-							<Row label="" date value={claim.last_update?.toString() ?? ''} loading={isFetching} />
-							<Row
-								label="Expected Recovery"
-								amount
-								value={claim.expected_recovery}
-								loading={isFetching}
-							/>
+							<Row label="Grade" value={''} />
+							<Row label="Date of Loss" date value={claim.date_of_loss?.toString() ?? ''} />
+							<Row label="Loss Location" value={claim.loss_location} />
+							<Row label="Last Update" value={claim.last_updated_by} />
+							<Row label="" date value={claim.last_update?.toString() ?? ''} />
+							<Row label="Expected Recovery" amount value={claim.expected_recovery} />
 						</div>
 					</>
 				) : (
 					<>
 						<div style={{ ...styles.innerContainer, width: '65%' }} className="flex-col-start">
-							<Row label="Claim Number" value={claim.claim_number} loading={isFetching} />
+							<Row label="Claim Number" value={claim.claim_number} />
 						</div>
 						<div style={{ ...styles.innerContainer, width: '35%' }} className="flex-col-start">
-							<Row label="Grade" value={''} loading={isFetching} />
+							<Row label="Grade" value={''} />
 						</div>
 					</>
 				)}

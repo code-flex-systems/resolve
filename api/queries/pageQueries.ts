@@ -2,6 +2,7 @@ import { sql, Transaction } from 'kysely';
 import { db } from '../database/kysely';
 import { DB } from '../database/types';
 import { PageInstanceStatus } from '../config/enums';
+import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 
 export default {
 	createPage,
@@ -11,8 +12,10 @@ export default {
 	getPages,
 	getPageInstance,
 	getPageInstances,
+	getPageInstancesForClaim,
 	getVisiblePageInstances,
 	modifyPage,
+	modifyPageInstanceStatus,
 };
 
 async function createPage(checklistId: number, params: object) {
@@ -99,7 +102,7 @@ async function deletePageInstance(instanceId: number) {
 
 async function getPage(pageId: number) {
 	try {
-		return await db.selectFrom('page as p').selectAll('p').where('p.id', '=', pageId).executeTakeFirst();
+		return await db.selectFrom('page').selectAll().where('id', '=', pageId).executeTakeFirst();
 	} catch (e) {
 		console.error(e);
 	}
@@ -118,7 +121,8 @@ async function getPageInstance(instanceId: number) {
 		return await db
 			.selectFrom('page as p')
 			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
-			.select(['p.id', 'p.title', 'i.id as instance_id', 'i.position'])
+			.selectAll('p')
+			.select(['i.id as instance_id', 'i.position'])
 			.where('i.id', '=', instanceId)
 			.executeTakeFirst();
 	} catch (e) {
@@ -126,7 +130,37 @@ async function getPageInstance(instanceId: number) {
 	}
 }
 
-async function getPageInstances(checklistId: number, claimId = -1, parentId?: number) {
+async function getPageInstances(checklistId: number, parentId?: number) {
+	try {
+		return await db
+			.selectFrom('page as p')
+			.innerJoin('page_instance as i', 'i.page_id', 'p.id')
+			.select((eb) => [
+				'p.id',
+				'p.title',
+				'i.id as instance_id',
+				'i.parent_instance_id',
+				'i.position',
+				'p.version as template_version',
+				eb.val(PageInstanceStatus.UNSTARTED).as('status'),
+			])
+			.where((eb) => {
+				let andClause = [eb('i.checklist_id', '=', checklistId)];
+				if (parentId === -1) {
+					andClause.push(eb('i.parent_instance_id', 'is', null));
+				} else if (parentId) {
+					andClause.push(eb('i.parent_instance_id', '=', parentId));
+				}
+				return eb.and(andClause);
+			})
+			.orderBy('i.position')
+			.execute();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getPageInstancesForClaim(checklistId: number, claimId: number, parentId?: number) {
 	try {
 		return await db
 			.selectFrom('page as p')
@@ -140,7 +174,7 @@ async function getPageInstances(checklistId: number, claimId = -1, parentId?: nu
 				'i.id as instance_id',
 				'i.parent_instance_id',
 				'i.position',
-				's.template_version',
+				sql`coalesce(s.template_version, 1)`.$castTo<number>().as('template_version'),
 				eb
 					.case()
 					.when('s.id', 'is', null)
@@ -201,14 +235,50 @@ async function getVisiblePageInstances(checklistId: number, claimId: number) {
 
 async function modifyPage(pageId: number, params: object) {
 	try {
+		let updates: UpdateObjectExpression<DB, 'page'> = {};
+		if (params.title) updates.title = params.title;
+		if (params.hidden != null) updates.hidden = params.hidden;
+		if (!Object.keys(updates).length) throw new Error('No updates');
 		return await db
 			.updateTable('page')
 			.set({
-				title: params.title,
+				...updates,
 			})
 			.where('id', '=', pageId)
 			.returningAll()
 			.executeTakeFirst();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function modifyPageInstanceStatus(params: {
+	claimId: number;
+	instanceIds: number[];
+	newStatus: PageInstanceStatus;
+	templateVersion: number;
+	trx?: Transaction<DB>;
+}) {
+	try {
+		for (const id of params.instanceIds) {
+			await (params.trx ?? db)
+				.insertInto('page_instance_status')
+				.values({
+					claim_id: params.claimId,
+					page_instance_id: id,
+					status: params.newStatus,
+					template_version: params.templateVersion,
+					updated_at: sql`now()`,
+				})
+				.onConflict((oc) =>
+					oc.columns(['claim_id', 'page_instance_id']).doUpdateSet({
+						status: params.newStatus,
+						template_version: params.templateVersion,
+						updated_at: sql`now()`,
+					})
+				)
+				.executeTakeFirst();
+		}
 	} catch (e) {
 		console.error(e);
 	}

@@ -1,4 +1,4 @@
-import { sql } from 'kysely';
+import { sql, Transaction } from 'kysely';
 import { db } from '../database/kysely';
 import { Answer, Interval } from '../types/types';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
@@ -9,6 +9,7 @@ export default {
 	copyQuestion,
 	deleteQuestion,
 	getQuestion,
+	getQuestionCount,
 	getQuestions,
 	getQuestionStats,
 	modifyQuestion,
@@ -30,6 +31,7 @@ async function createQuestion(pageId: number, params: object) {
 					})
 					.returningAll()
 					.executeTakeFirst();
+				await bumpPageVersion(pageId, trx);
 			} catch (e) {
 				console.error(e);
 			}
@@ -104,6 +106,7 @@ async function copyQuestion(pageId: number, questionId: number) {
 					)
 					.returning('id')
 					.execute();
+				await bumpPageVersion(pageId, trx);
 			} catch (e) {
 				console.error(e);
 			}
@@ -114,9 +117,12 @@ async function copyQuestion(pageId: number, questionId: number) {
 	}
 }
 
-async function deleteQuestion(questionId: number) {
+async function deleteQuestion(pageId: number, questionId: number) {
 	try {
-		await db.deleteFrom('question').where('id', '=', questionId).execute();
+		await db.transaction().execute(async (trx) => {
+			await trx.deleteFrom('question').where('id', '=', questionId).execute();
+			await bumpPageVersion(pageId, trx);
+		});
 	} catch (e) {
 		console.error(e);
 	}
@@ -125,6 +131,19 @@ async function deleteQuestion(questionId: number) {
 async function getQuestion(questionId: number) {
 	try {
 		return await db.selectFrom('question').selectAll().where('id', '=', questionId).executeTakeFirst();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getQuestionCount(pageId: number) {
+	try {
+		const countRow = await db
+			.selectFrom('question')
+			.select(({ fn }) => fn.countAll().as('count'))
+			.where('page_id', '=', pageId)
+			.executeTakeFirst();
+		return parseInt(countRow?.count?.toString() ?? '0');
 	} catch (e) {
 		console.error(e);
 	}
@@ -198,21 +217,41 @@ async function getQuestionStats(pageId: number, interval?: Interval<Date>) {
 	}
 }
 
-async function modifyQuestion(questionId: number, params: object) {
+async function modifyQuestion(pageId: number, questionId: number, params: object) {
 	try {
 		let updates: UpdateObjectExpression<DB, 'question'> = {};
 		if (params.text) updates.text = params.text;
 		if (params.type) updates.type = params.type;
 		if (params.description_text != null) updates.description_text = params.description_text;
 		if (params.page_id) updates.page_id = params.page_id;
-		return await db
-			.updateTable('question')
-			.set({
-				...updates,
-			})
-			.where('id', '=', questionId)
-			.returningAll()
-			.executeTakeFirst();
+		let newQuestion: any;
+		await db.transaction().execute(async (trx) => {
+			newQuestion = await trx
+				.updateTable('question')
+				.set({
+					...updates,
+				})
+				.where('id', '=', questionId)
+				.returningAll()
+				.executeTakeFirst();
+			await bumpPageVersion(pageId, trx);
+			if (params.page_id) await bumpPageVersion(params.page_id, trx);
+		});
+		return newQuestion;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+// private methods
+
+async function bumpPageVersion(pageId: number, trx: Transaction<DB>) {
+	try {
+		await trx
+			.updateTable('page')
+			.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
+			.where('id', '=', pageId)
+			.execute();
 	} catch (e) {
 		console.error(e);
 	}

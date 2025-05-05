@@ -22,11 +22,11 @@ router.use('/public', express.static(path.join(process.cwd(), 'public')));
 //
 // DELETE
 //
-router.delete('/answers/:answerId', answerRoutes.deleteAnswer);
+router.delete('/:pageId/answers/:answerId', answerRoutes.deleteAnswer);
 router.delete('/checklists/:checklistId', checklistRoutes.deleteChecklist);
 router.delete('/docs/:docId', docRoutes.deleteDoc);
 router.delete('/pages/instances/:instanceId', pageRoutes.deletePageInstance);
-router.delete('/questions/:questionId', questionRoutes.deleteQuestion);
+router.delete('/:pageId/questions/:questionId', questionRoutes.deleteQuestion);
 
 //
 // GET
@@ -70,8 +70,8 @@ router.get('/:checklistId/:claimId/:instanceId/responses', responseRoutes.getRes
 //
 // POST
 //
-router.post('/:questionId/answers', answerRoutes.createAnswer);
-router.post('/:questionId/answers/copy/:answerId', answerRoutes.copyAnswer);
+router.post('/:pageId/:questionId/answers', answerRoutes.createAnswer);
+router.post('/:pageId/:questionId/answers/copy/:answerId', answerRoutes.copyAnswer);
 router.post('/checklists/:claimId', checklistRoutes.createChecklist);
 router.post('/docs', docRoutes.createDoc);
 router.post('/:pageId/questions', questionRoutes.createQuestion);
@@ -85,7 +85,8 @@ router.post('/:checklistId/pages/:pageId', pageRoutes.createPageInstance);
 //
 // PUT
 //
-router.put('/answers/:answerId', answerRoutes.modifyAnswer);
+router.put('/:pageId/answers/:answerId', answerRoutes.modifyAnswer);
 router.put('/checklists/:checklistId', checklistRoutes.modifyChecklist);
 router.put('/pages/:pageId', pageRoutes.modifyPage);
-router.put('/questions/:questionId', questionRoutes.modifyQuestion);
+router.put('/:pageId/questions/:questionId', questionRoutes.modifyQuestion);
+router.put('/:checklistId/:claimId/:instanceId/responses/evaluate', responseRoutes.evaluateResponses);

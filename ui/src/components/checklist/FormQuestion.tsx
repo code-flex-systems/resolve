@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { ContactSupport, TaskAlt } from '@mui/icons-material';
 
-import { QuestionType } from '../../config/enums';
+import { PageInstanceStatus, QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
 import { useAddUpdateQuestion, useCopyQuestion, useDeleteQuestion, useQuestions } from '../../api/queries/page-queries';
 import Toolbar from '../common/Toolbar';
@@ -42,7 +42,10 @@ export default function FormQuestion() {
 		selectedPageInfo.pageId,
 		selectedQuestionData.id
 	);
-	const { isPending: deleting, mutateAsync: deleteQuestion } = useDeleteQuestion(selectedQuestionData.id);
+	const { isPending: deleting, mutateAsync: deleteQuestion } = useDeleteQuestion(
+		selectedPageInfo.pageId,
+		selectedQuestionData.id
+	);
 	const { isFetching: refetchingQuestions, refetch: refetchQuestions } = useQuestions(
 		selectedPageInfo.pageId,
 		false,

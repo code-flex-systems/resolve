@@ -1,7 +1,7 @@
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '../database/kysely';
 import { DB } from '../database/types';
-import { Transaction } from 'kysely';
+import { sql, Transaction } from 'kysely';
 
 export default {
 	createAnswer,
@@ -12,7 +12,7 @@ export default {
 	modifyAnswer,
 };
 
-async function createAnswer(questionId: number, params: object, trx?: Transaction<DB>) {
+async function createAnswer(pageId: number, questionId: number, params: object, trx?: Transaction<DB>) {
 	try {
 		let newAnswer: any;
 		if (trx) {
@@ -21,6 +21,8 @@ async function createAnswer(questionId: number, params: object, trx?: Transactio
 			await db.transaction().execute(async (newTrx) => {
 				try {
 					newAnswer = await createAnswerPrivate(questionId, params, newTrx);
+					// Only bump the version if this action isn't part of another update
+					await bumpPageVersion(pageId, newTrx);
 				} catch (e) {
 					console.error(e);
 				}
@@ -32,9 +34,12 @@ async function createAnswer(questionId: number, params: object, trx?: Transactio
 	}
 }
 
-async function deleteAnswer(answerId: number) {
+async function deleteAnswer(pageId: number, answerId: number) {
 	try {
-		await db.deleteFrom('answer').where('id', '=', answerId).execute();
+		await db.transaction().execute(async (trx) => {
+			await trx.deleteFrom('answer').where('id', '=', answerId).execute();
+			await bumpPageVersion(pageId, trx);
+		});
 	} catch (e) {
 		console.error(e);
 	}
@@ -74,7 +79,7 @@ async function getAnswerCount(questionId: number) {
 	}
 }
 
-async function modifyAnswer(answerId: number, params: object) {
+async function modifyAnswer(pageId: number, answerId: number, params: object) {
 	try {
 		let updates: UpdateObjectExpression<DB, 'answer'> = {};
 		if (params.position) updates.position = params.position;
@@ -86,20 +91,37 @@ async function modifyAnswer(answerId: number, params: object) {
 			updates.additional_info_placeholder = params.additional_info_placeholder;
 		if (params.calls_instance_id) updates.calls_instance_id = params.calls_instance_id;
 		if (params.has_additional_info != null) updates.has_additional_info = params.has_additional_info;
-		return await db
-			.updateTable('answer')
-			.set({
-				...updates,
-			})
-			.where('id', '=', answerId)
-			.returningAll()
-			.executeTakeFirst();
+		let newAnswer: any;
+		await db.transaction().execute(async (trx) => {
+			newAnswer = await trx
+				.updateTable('answer')
+				.set({
+					...updates,
+				})
+				.where('id', '=', answerId)
+				.returningAll()
+				.executeTakeFirst();
+			await bumpPageVersion(pageId, trx);
+		});
+		return newAnswer;
 	} catch (e) {
 		console.error(e);
 	}
 }
 
 // private methods
+
+async function bumpPageVersion(pageId: number, trx: Transaction<DB>) {
+	try {
+		await trx
+			.updateTable('page')
+			.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
+			.where('id', '=', pageId)
+			.execute();
+	} catch (e) {
+		console.error(e);
+	}
+}
 
 async function createAnswerPrivate(questionId: number, params: object, trx: Transaction<DB>) {
 	try {

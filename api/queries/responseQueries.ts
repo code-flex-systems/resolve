@@ -2,13 +2,34 @@ import { sql } from 'kysely';
 import { db } from '../database/kysely';
 import { QuestionResponse } from '../types/types';
 import { QuestionResponseAnswer } from '../types/types';
-import { PageInstanceStatus } from '../config/enums';
+import { getUpdatedPageStatus } from '../utils/utils';
+import pageQueries from './pageQueries';
 
 export default {
+	getResponseCount,
 	getResponsesForAnswer,
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
 };
+
+async function getResponseCount(checklistId: number, claimId: number, instanceId: number) {
+	try {
+		const countRow = await db
+			.selectFrom('question_response')
+			.select(({ fn }) => fn.countAll().as('count'))
+			.where((eb) =>
+				eb.and([
+					eb('checklist_id', '=', checklistId),
+					eb('claim_id', '=', claimId),
+					eb('instance_id', '=', instanceId),
+				])
+			)
+			.executeTakeFirst();
+		return parseInt(countRow?.count?.toString() ?? '0');
+	} catch (e) {
+		console.error(e);
+	}
+}
 
 async function getResponsesForAnswer(answerId: number) {
 	try {
@@ -69,7 +90,10 @@ async function getResponsesForClaimChecklist(checklistId: number, claimId: numbe
 async function upsertQuestionResponses(params: { responses: QuestionResponse[] }) {
 	try {
 		const { responses } = params;
-		const updatedPageStatus = getUpdatedPageStatus(responses);
+		const updatedPageStatus = getUpdatedPageStatus(
+			responses.length,
+			responses.filter((r) => !!r.response_text || r.selected_answers.length).length
+		);
 
 		await db.transaction().execute(async (trx) => {
 			for (const response of responses) {
@@ -122,42 +146,24 @@ async function upsertQuestionResponses(params: { responses: QuestionResponse[] }
 			}
 
 			// Update page instance status
-			let sampleResponse = responses[0];
+			const sampleResponse = responses[0];
 			let template = await trx
 				.selectFrom('page as p')
 				.innerJoin('page_instance as i', 'p.id', 'i.page_id')
 				.select('version')
 				.where('i.id', '=', sampleResponse.instance_id)
 				.executeTakeFirstOrThrow();
-			await trx
-				.insertInto('page_instance_status')
-				.values({
-					claim_id: sampleResponse.claim_id,
-					page_instance_id: sampleResponse.instance_id,
-					status: updatedPageStatus,
-					template_version: template.version,
-					updated_at: sql`now()`,
-				})
-				.onConflict((oc) =>
-					oc.columns(['claim_id', 'page_instance_id']).doUpdateSet({
-						status: updatedPageStatus,
-						updated_at: sql`now()`,
-					})
-				)
-				.executeTakeFirst();
+			await pageQueries.modifyPageInstanceStatus({
+				claimId: sampleResponse.claim_id,
+				instanceIds: [sampleResponse.instance_id],
+				newStatus: updatedPageStatus,
+				templateVersion: template.version,
+				trx,
+			});
 		});
 
 		return updatedPageStatus;
 	} catch (e) {
 		console.error(e);
 	}
-}
-
-// private methods
-
-function getUpdatedPageStatus(responses: QuestionResponse[]) {
-	let filledCount = responses.filter((r) => !!r.response_text || r.selected_answers.length).length;
-	if (filledCount === responses.length) return PageInstanceStatus.COMPLETE;
-	if (filledCount > 0) return PageInstanceStatus.IN_PROGRESS;
-	return PageInstanceStatus.UNSTARTED;
 }

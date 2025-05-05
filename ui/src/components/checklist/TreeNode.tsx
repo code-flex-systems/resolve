@@ -1,4 +1,4 @@
-import { Collapse, Fade, IconButton, Typography } from '@mui/material';
+import { Collapse, Fade, IconButton, Tooltip, Typography } from '@mui/material';
 import * as actions from '../../state/checklist/actions';
 import useStore, { useChecklistSlice } from '../../state/store';
 import { BarChart, KeyboardArrowRight } from '@mui/icons-material';
@@ -8,12 +8,14 @@ import { useQuestions } from '../../api/queries/page-queries';
 import * as selectors from '../../state/checklist/selectors';
 import { useShallow } from 'zustand/react/shallow';
 import QuestionNode from './QuestionNode';
-import { ChecklistMode, QuestionType } from '../../config/enums';
+import { ChecklistMode, PageInstanceStatus, QuestionType } from '../../config/enums';
 import { useEffect, useState } from 'react';
 import BasicButton from '../common/BasicButton';
+import { IconAlertCircleFilled, IconCircle, IconCircleCheckFilled, IconPercentage50 } from '@tabler/icons-react';
+import theme from '../../styles/theme';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
-	const { level, instanceId, pageId, title, children = [] } = props;
+	const { level, instanceId, pageId, status, title, children = [] } = props;
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const mode = useChecklistSlice((state) => state.mode);
@@ -28,6 +30,29 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const { isFetching } = useQuestions(pageId, selected && !pages.has(pageId), actions.updatePage);
 
 	useEffect(() => setExpanded(expandAll), [expandAll]);
+
+	const getStatusIcon = () => {
+		switch (status) {
+			case PageInstanceStatus.UNSTARTED:
+				return <IconCircle size={18} color={theme.palette.secondary.main} style={styles.icon} />;
+			case PageInstanceStatus.IN_PROGRESS:
+				return (
+					<IconPercentage50
+						style={{ ...styles.icon, color: theme.palette.secondary.main, transform: 'scaleX(-1)' }}
+						className="status-icon"
+						size={18}
+					/>
+				);
+			case PageInstanceStatus.COMPLETE:
+				return <IconCircleCheckFilled color={theme.palette.secondary.main} size={18} style={styles.icon} />;
+			case PageInstanceStatus.STALE:
+				return (
+					<Tooltip title="This page has changed">
+						<IconAlertCircleFilled color={theme.palette.warning.main} size={18} style={styles.icon} />
+					</Tooltip>
+				);
+		}
+	};
 
 	return (
 		<>
@@ -82,6 +107,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						icon={<BarChart className="node-report-icon" sx={styles.reportIcon} />}
 					/>
 				)}
+				{mode === ChecklistMode.VIEW && getStatusIcon()}
 			</div>
 
 			{selectedPageData && mode === ChecklistMode.EDIT && (
@@ -123,6 +149,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 }
 
 const styles = {
+	icon: {
+		margin: '0px 5px',
+	},
 	node: {
 		width: '100%',
 		minHeight: 30,

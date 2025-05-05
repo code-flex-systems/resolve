@@ -11,11 +11,13 @@ import BasicButton from '../common/BasicButton';
 import { ChecklistMode } from '../../config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
 import config from '../../config/config';
+import { useEffect } from 'react';
 
 export default function PageNavigation() {
+	const checklist = useChecklistSlice((state) => state.checklist)!;
+	const claimId = useChecklistSlice((state) => state.claim)?.id;
 	const user = useGlobalSlice((state) => state.user);
 	const showChecklistData = useStore(selectors.showChecklistData);
-	const checklist = useChecklistSlice((state) => state.checklist);
 	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
 	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);
@@ -25,8 +27,12 @@ export default function PageNavigation() {
 	let filteredTree =
 		mode === ChecklistMode.VIEW ? tree.filter((c) => visibleInstanceIds.includes(c.instanceId)) : tree;
 
-	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist?.id ?? -1);
-	const { isFetching, refetch } = usePageInstanceTree();
+	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist.id);
+	const { isFetching, refetch } = usePageInstanceTree(true, checklist.id, claimId);
+
+	useEffect(() => {
+		if (mode === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
+	}, [mode, refetch]);
 
 	const onAddPage = async () => {
 		try {

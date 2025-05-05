@@ -27,13 +27,22 @@ import * as actions from '../../state/checklist/actions';
 export default function FormAnswer() {
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
-	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
 	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
 	const selectedAnswerData = useStore(useShallow(selectors.selectedAnswerData));
 
-	const { isPending: updating, mutateAsync: addUpdateAnswer } = useAddUpdateAnswer(selectedQuestion);
-	const { isPending: copying, mutateAsync: copyAnswer } = useCopyAnswer(selectedQuestion, selectedAnswerData.id);
-	const { isPending: deleting, mutateAsync: deleteAnswer } = useDeleteAnswer(selectedAnswerData.id);
+	const { isPending: updating, mutateAsync: addUpdateAnswer } = useAddUpdateAnswer(
+		selectedPageInfo.pageId,
+		selectedQuestion
+	);
+	const { isPending: copying, mutateAsync: copyAnswer } = useCopyAnswer(
+		selectedPageInfo.pageId,
+		selectedQuestion,
+		selectedAnswerData.id
+	);
+	const { isPending: deleting, mutateAsync: deleteAnswer } = useDeleteAnswer(
+		selectedPageInfo.pageId,
+		selectedAnswerData.id
+	);
 	const { isFetching: refetching, refetch } = useQuestions(selectedPageInfo.pageId, false, actions.updatePage);
 
 	const {

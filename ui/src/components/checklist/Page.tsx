@@ -11,7 +11,6 @@ import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description, TaskAlt } from '@mui/icons-material';
 import ClaimInfo from './ClaimInfo';
 import { useResponses, useUpsertResponses } from '../../api/queries/response-queries';
-import * as actions from '../../state/checklist/actions';
 import PageToolbar from './PageToolbar';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
@@ -52,22 +51,20 @@ export default function Page() {
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+	const shouldFetchResponses = useStore(useShallow(selectors.shouldFetchResponses));
 
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
 
-	const { isPending: updating, mutateAsync: upsertResponses } = useUpsertResponses(selectedPageInstance);
-	const { isFetching: loading } = useResponses(
-		checklist?.id ?? -1,
-		claim?.id ?? -1,
+	const { isPending: updating, mutateAsync: upsertResponses } = useUpsertResponses(
 		selectedPageInstance,
-		actions.updateInstanceResponses,
-		!responses.has(selectedPageInstance)
+		selectedPageInfo?.template_version ?? 1
 	);
+	const { isFetching: loading } = useResponses(shouldFetchResponses);
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	useEffect(() => {
-		reset({ ...generateDefaultValues(selectedPageData, responses.get(selectedPageInstance)) });
+		reset({ ...generateDefaultValues(selectedPageData, responses.get(selectedPageInstance)?.responses) });
 	}, [selectedPageData, responses, selectedPageInstance]);
 
 	const onSubmit = handleSubmit(async (data) => {

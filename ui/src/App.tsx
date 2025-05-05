@@ -16,7 +16,7 @@ export default function App() {
 			<ThemeProvider theme={theme}>
 				<BrowserRouter>
 					<Routes>
-						<Route path="/" element={<Home />} />
+						<Route path="/" element={<Checklists />} />
 						<Route path="/checklists/*" element={<Checklists />} />
 						<Route path="/checklist/*" element={<Checklist />} />
 						<Route path="/checklist/:checklistId/*" element={<Checklist />} />

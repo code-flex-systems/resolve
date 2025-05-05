@@ -62,6 +62,10 @@
 	opacity: 0;
 }
 
+.status-icon path[fill='black'] {
+	fill: currentColor !important;
+}
+
 .text-hover:hover {
 	outline: 2px solid #344979;
 	transition: outline 100ms ease;

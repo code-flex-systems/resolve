@@ -20,14 +20,12 @@ export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boo
 	});
 }
 
-export function usePageInstanceTree(enabled?: boolean) {
-	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
-	const claimId = useChecklistSlice((state) => state.claim)?.id ?? -1;
+export function usePageInstanceTree(enabled: boolean, checklistId: number, claimId?: number) {
 	return useQuery({
 		queryKey: [checklistId, claimId, 'pages', 'instances'],
 		queryFn: async () => {
 			try {
-				if (claimId !== -1) {
+				if (claimId) {
 					const [tree, visiblePages] = await Promise.all([
 						axiosRoutes.getPageInstanceTree(checklistId, claimId),
 						axiosRoutes.getVisiblePageInstances(checklistId, claimId),
@@ -45,7 +43,7 @@ export function usePageInstanceTree(enabled?: boolean) {
 				console.error(e);
 			}
 		},
-		enabled: enabled !== false && checklistId !== -1,
+		enabled: enabled !== false,
 	});
 }
 
@@ -168,7 +166,7 @@ export function useAddUpdateQuestion(pageId: number) {
 				let data =
 					variables.question.id === -1
 						? await axiosRoutes.createQuestion(pageId, question)
-						: await axiosRoutes.modifyQuestion(question.id, question);
+						: await axiosRoutes.modifyQuestion(pageId, question.id, question);
 				return data.data;
 			} catch (e) {
 				console.error(e);
@@ -177,16 +175,16 @@ export function useAddUpdateQuestion(pageId: number) {
 	});
 }
 
-export function useAddUpdateAnswer(questionId: number) {
+export function useAddUpdateAnswer(pageId: number, questionId: number) {
 	return useMutation({
-		mutationKey: ['questions', questionId, 'answers', 'update'],
+		mutationKey: [pageId, 'questions', questionId, 'answers', 'update'],
 		mutationFn: async (variables: { answer: Answer }) => {
 			try {
 				const { answer } = variables;
 				let data =
 					variables.answer.id === -1
-						? await axiosRoutes.createAnswer(questionId, answer)
-						: await axiosRoutes.modifyAnswer(answer.id, answer);
+						? await axiosRoutes.createAnswer(pageId, questionId, answer)
+						: await axiosRoutes.modifyAnswer(pageId, answer.id, answer);
 				return data.data;
 			} catch (e) {
 				console.error(e);
@@ -209,12 +207,12 @@ export function useCopyQuestion(pageId: number, questionId: number) {
 	});
 }
 
-export function useCopyAnswer(questionId: number, answerId: number) {
+export function useCopyAnswer(pageId: number, questionId: number, answerId: number) {
 	return useMutation({
-		mutationKey: ['questions', questionId, 'answers', answerId, 'copy'],
+		mutationKey: [pageId, 'questions', questionId, 'answers', answerId, 'copy'],
 		mutationFn: async () => {
 			try {
-				let data = await axiosRoutes.copyAnswer(questionId, answerId);
+				let data = await axiosRoutes.copyAnswer(pageId, questionId, answerId);
 				return data.data;
 			} catch (e) {
 				console.error(e);
@@ -223,12 +221,12 @@ export function useCopyAnswer(questionId: number, answerId: number) {
 	});
 }
 
-export function useDeleteQuestion(questionId: number) {
+export function useDeleteQuestion(pageId: number, questionId: number) {
 	return useMutation({
-		mutationKey: ['questions', questionId, 'delete'],
+		mutationKey: [pageId, 'questions', questionId, 'delete'],
 		mutationFn: async () => {
 			try {
-				await axiosRoutes.deleteQuestion(questionId);
+				await axiosRoutes.deleteQuestion(pageId, questionId);
 			} catch (e) {
 				console.error(e);
 			}
@@ -236,12 +234,12 @@ export function useDeleteQuestion(questionId: number) {
 	});
 }
 
-export function useDeleteAnswer(answerId: number) {
+export function useDeleteAnswer(pageId: number, answerId: number) {
 	return useMutation({
-		mutationKey: ['answers', answerId, 'delete'],
+		mutationKey: [pageId, 'answers', answerId, 'delete'],
 		mutationFn: async () => {
 			try {
-				await axiosRoutes.deleteAnswer(answerId);
+				await axiosRoutes.deleteAnswer(pageId, answerId);
 			} catch (e) {
 				console.error(e);
 			}

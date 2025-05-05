@@ -1,7 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
 import { AnswerResponse, QuestionResponse } from '../../types';
+import { PageInstanceStatus } from '../../config/enums';
+import useStore, { useChecklistSlice } from '../../state/store';
+import { useShallow } from 'zustand/react/shallow';
 import * as actions from '../../state/checklist/actions';
+import * as selectors from '../../state/checklist/selectors';
 
 export function useAllResponses(
 	checklistId: number,
@@ -24,25 +28,35 @@ export function useAllResponses(
 	});
 }
 
-export function useResponses(
-	checklistId: number,
-	claimId: number,
-	instanceId: number,
-	callback: (instanceId: number, data: Record<number, QuestionResponse>) => void,
-	enabled?: boolean
-) {
+export function useResponses(enabled?: boolean) {
+	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
+	const claimId = useChecklistSlice((state) => state.claim)?.id ?? -1;
+	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+	const pageVersion = useChecklistSlice((state) => state.pages).get(selectedPageInfo.pageId)?.version ?? 1;
 	return useQuery({
-		queryKey: [checklistId, claimId, instanceId, 'responses'],
+		queryKey: [checklistId, claimId, selectedPageInfo.instanceId, pageVersion, 'responses'],
 		queryFn: async ({ queryKey }) => {
 			try {
-				let data = await axiosRoutes.getResponses(checklistId, claimId, +queryKey[2]);
-				if (data.data) callback(+queryKey[2], data.data);
-				return data;
+				if (selectedPageInfo.status === PageInstanceStatus.STALE) {
+					const [responseData, evaluationData] = await Promise.all([
+						axiosRoutes.getResponses(+queryKey[0], +queryKey[1], +queryKey[2]),
+						axiosRoutes.evaluateResponses(+queryKey[0], +queryKey[1], +queryKey[2]),
+					]);
+					if (responseData && evaluationData) {
+						actions.updateInstanceResponses(+queryKey[2], +queryKey[3], responseData.data);
+						actions.updateTreeNodeStatus(+queryKey[2], evaluationData.data);
+					}
+					return responseData;
+				} else {
+					const data = await axiosRoutes.getResponses(+queryKey[0], +queryKey[1], +queryKey[2]);
+					if (data.data) actions.updateInstanceResponses(+queryKey[2], +queryKey[3], data.data);
+					return data;
+				}
 			} catch (e) {
 				console.error(e);
 			}
 		},
-		enabled: enabled !== false && claimId !== -1 && instanceId !== -1,
+		enabled: enabled !== false && claimId !== -1 && selectedPageInfo.instanceId !== -1,
 	});
 }
 
@@ -66,7 +80,7 @@ export function useResponsesForAnswer(
 	});
 }
 
-export function useUpsertResponses(instanceId: number) {
+export function useUpsertResponses(instanceId: number, version: number) {
 	return useMutation({
 		mutationKey: ['responses', instanceId, 'update'],
 		mutationFn: async (variables: { instanceId: number; responses: QuestionResponse[] }) => {
@@ -77,7 +91,7 @@ export function useUpsertResponses(instanceId: number) {
 				responses.forEach((r) => {
 					responseMap[r.question_id] = r;
 				});
-				actions.updateInstanceResponses(instanceId, responseMap);
+				actions.updateInstanceResponses(instanceId, version, responseMap);
 				if (data.data) {
 					actions.updateTreeNodeStatus(instanceId, data.data.status);
 					actions.updateVisibleInstanceIds(data.data.visibleIds);

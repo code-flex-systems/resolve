@@ -32,7 +32,7 @@ async function copyQuestion(req: Request, res: Response) {
 
 async function deleteQuestion(req: Request, res: Response) {
 	try {
-		let ret = await questionController.deleteQuestion(getId(req, 'question'));
+		let ret = await questionController.deleteQuestion(getId(req, 'page'), getId(req, 'question'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);
@@ -68,7 +68,7 @@ async function getQuestionStats(req: Request, res: Response) {
 
 async function modifyQuestion(req: Request, res: Response) {
 	try {
-		let ret = await questionController.modifyQuestion(getId(req, 'question'), req.body);
+		let ret = await questionController.modifyQuestion(getId(req, 'page'), getId(req, 'question'), req.body);
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

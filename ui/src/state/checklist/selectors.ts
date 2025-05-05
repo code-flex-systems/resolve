@@ -5,6 +5,18 @@ import { SLICES } from '../storeConfig';
 
 const getSlice = (state: State) => state[SLICES.CHECKLIST];
 
+// function pageStatus(state: State) {
+//     const { responses, pages, selectedPageInfo } = getSlice(state);
+//     const responsesForPage = responses.get(selectedPageInfo?.instanceId)
+// 	if (!responses) return 'unstarted';
+
+// 	const answeredCount = responses.filter((r) => r.response_text || r.answer_ids?.length).length;
+
+// 	if (answeredCount === 0) return 'unstarted';
+// 	if (answeredCount < expectedQuestions.length) return 'in-progress';
+// 	return 'complete';
+// }
+
 export function selectedAnswerData(state: State) {
 	const { selectedQuestion, selectedAnswer } = getSlice(state);
 	const pageData = selectedPageData(state);
@@ -16,7 +28,7 @@ export function selectedAnswerData(state: State) {
 
 export function selectedPageData(state: State) {
 	const { pages } = getSlice(state);
-	return pages.get(selectedPageInfo(state).pageId);
+	return pages.get(selectedPageInfo(state).pageId)?.questions;
 }
 
 export function selectedPageInfo(state: State) {
@@ -38,6 +50,15 @@ export function selectedQuestionData(state: State) {
 			position: maxPosition + 1,
 		}
 	);
+}
+
+export function shouldFetchResponses(state: State) {
+	const { selectedPageInfo, pages, responses } = getSlice(state);
+	if (!selectedPageInfo) return false;
+	if (!responses.has(selectedPageInfo.instanceId)) return true;
+	const pageTemplateVersion = pages.get(selectedPageInfo.pageId)?.version;
+	const responsesVersion = responses.get(selectedPageInfo.instanceId)?.version;
+	return !pageTemplateVersion || !responsesVersion || pageTemplateVersion !== responsesVersion;
 }
 
 export function showChecklistData(state: State) {

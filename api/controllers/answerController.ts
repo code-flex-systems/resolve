@@ -9,29 +9,29 @@ export default {
 	modifyAnswer,
 };
 
-async function createAnswer(questionId: number, params: object) {
+async function createAnswer(pageId: number, questionId: number, params: object) {
 	try {
-		let results = await answerQueries.createAnswer(questionId, params);
+		let results = await answerQueries.createAnswer(pageId, questionId, params);
 		return results;
 	} catch (e) {
 		console.error(e);
 	}
 }
 
-async function copyAnswer(questionId: number, answerId: number) {
+async function copyAnswer(pageId: number, questionId: number, answerId: number) {
 	try {
 		let existingAnswer = await answerQueries.getAnswer(answerId);
 		if (!existingAnswer) throw new Error('Answer does not exist');
-		let results = await answerQueries.createAnswer(questionId, existingAnswer);
+		let results = await answerQueries.createAnswer(pageId, questionId, existingAnswer);
 		return results;
 	} catch (e) {
 		console.error(e);
 	}
 }
 
-async function deleteAnswer(id: number) {
+async function deleteAnswer(pageId: number, answerId: number) {
 	try {
-		await answerQueries.deleteAnswer(id);
+		await answerQueries.deleteAnswer(pageId, answerId);
 	} catch (e) {
 		console.error(e);
 	}
@@ -55,9 +55,9 @@ async function getAnswers(questionId: number) {
 	}
 }
 
-async function modifyAnswer(id: number, params: object) {
+async function modifyAnswer(pageId: number, answerId: number, params: object) {
 	try {
-		let results = await answerQueries.modifyAnswer(id, params);
+		let results = await answerQueries.modifyAnswer(pageId, answerId, params);
 		return results;
 	} catch (e) {
 		console.error(e);

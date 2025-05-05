@@ -13,7 +13,7 @@ export default {
 
 async function createAnswer(req: Request, res: Response) {
 	try {
-		let ret = await answerController.createAnswer(getId(req, 'question'), req.body);
+		let ret = await answerController.createAnswer(getId(req, 'page'), getId(req, 'question'), req.body);
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);
@@ -22,7 +22,7 @@ async function createAnswer(req: Request, res: Response) {
 
 async function copyAnswer(req: Request, res: Response) {
 	try {
-		let ret = await answerController.copyAnswer(getId(req, 'question'), getId(req, 'answer'));
+		let ret = await answerController.copyAnswer(getId(req, 'page'), getId(req, 'question'), getId(req, 'answer'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);
@@ -31,7 +31,7 @@ async function copyAnswer(req: Request, res: Response) {
 
 async function deleteAnswer(req: Request, res: Response) {
 	try {
-		let ret = await answerController.deleteAnswer(getId(req, 'answer'));
+		let ret = await answerController.deleteAnswer(getId(req, 'page'), getId(req, 'answer'));
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);
@@ -58,7 +58,7 @@ async function getAnswers(req: Request, res: Response) {
 
 async function modifyAnswer(req: Request, res: Response) {
 	try {
-		let ret = await answerController.modifyAnswer(getId(req, 'answer'), req.body);
+		let ret = await answerController.modifyAnswer(getId(req, 'page'), getId(req, 'answer'), req.body);
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

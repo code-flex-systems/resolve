@@ -16,19 +16,21 @@ import {
 import BasicButton from '../common/BasicButton';
 import * as actions from '../../state/checklist/actions';
 import { useState } from 'react';
+import { useParams } from 'react-router';
 
 export default function PageEditor() {
-	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
+	const checklistId = useChecklistSlice((state) => state.checklist)!.id;
+	const claimId = useChecklistSlice((state) => state.claim)?.id;
 	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 
-	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklistId ?? -1);
-	const { mutateAsync: copyPage, isPending: copying } = useCopyPage(checklistId ?? -1, selectedPageInfo.pageId);
+	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklistId);
+	const { mutateAsync: copyPage, isPending: copying } = useCopyPage(checklistId, selectedPageInfo.pageId);
 	const { mutateAsync: deletePage, isPending: deleting } = useDeletePage(selectedPageInfo.instanceId);
 	const { mutateAsync: modifyPage, isPending: updating } = useModifyPage(selectedPageInfo.pageId);
-	const { isFetching, refetch } = usePageInstanceTree(false);
+	const { isFetching, refetch } = usePageInstanceTree(false, checklistId, claimId);
 	let inTransition = adding || copying || deleting || isFetching;
 
 	const [pageTitle, setPageTitle] = useState('');

@@ -69,7 +69,7 @@ async function getPageInstance(instanceId: number) {
 
 async function getPageInstances(checklistId: number, parentId: number) {
 	try {
-		let results = await pageQueries.getPageInstances(checklistId, -1, parentId);
+		let results = await pageQueries.getPageInstances(checklistId, parentId);
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -78,7 +78,10 @@ async function getPageInstances(checklistId: number, parentId: number) {
 
 async function getPageInstanceTree(checklistId: number, claimId?: number) {
 	try {
-		let results = (await pageQueries.getPageInstances(checklistId, claimId)) ?? [];
+		let results =
+			(claimId
+				? await pageQueries.getPageInstancesForClaim(checklistId, claimId)
+				: await pageQueries.getPageInstances(checklistId)) ?? [];
 		let tree: TreeNode[] = results
 			.filter((row) => !row.parent_instance_id)
 			.map((row) => ({
