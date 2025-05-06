@@ -5,6 +5,7 @@ export const BASE_COLOR_LIGHT = '#91979e';
 export const BACKDROP_COLOR = '#ebedf1';
 export const HOVERED_COLOR = '#cdced8';
 export const OFFWHITE_COLOR = '#f7f7f7';
+export const ORANGE_COLOR = '#FA7601';
 export const OUTLINE_COLOR = '#e0e0e0';
 
 // Create a default theme
@@ -107,7 +108,7 @@ const theme = createTheme({
 		MuiSvgIcon: {
 			styleOverrides: {
 				root: {
-					color: BASE_COLOR,
+					// color: BASE_COLOR,
 					fontSize: 19,
 				},
 			},
@@ -170,10 +171,14 @@ const theme = createTheme({
 	palette: {
 		mode: 'light',
 		primary: {
-			main: '#354A7A',
+			main: '#216BC4',
 		},
 		secondary: {
-			main: '#5D82D8',
+			main: '#144178',
+		},
+		warning: {
+			main: ORANGE_COLOR,
+			contrastText: 'white',
 		},
 	},
 	typography: {

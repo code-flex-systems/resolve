@@ -4,28 +4,35 @@ import { formatAmount, formatMDYAbv } from '../../utils/utils';
 import { Claim } from '../../types';
 import * as actions from '../../state/checklists/actions';
 import BasicButton from '../common/BasicButton';
+import { BACKDROP_COLOR, OFFWHITE_COLOR } from '../../styles/theme';
 
 export default function ClaimMenuItem(props: {
 	claim: Claim | null;
 	clearable?: boolean;
 	onClose?: () => void;
 	selected?: boolean;
+	showDiv?: boolean;
 }) {
-	const { claim, clearable, onClose, selected } = props;
-	return (
-		<MenuItem
-			style={styles.menuItem}
-			onClick={
-				clearable
-					? undefined
-					: () => {
-							actions.updateSelectedClaim(claim);
-							if (typeof onClose === 'function') onClose();
-					  }
-			}
-			disableRipple={clearable}
+	const { claim, clearable, onClose, selected, showDiv } = props;
+	return [
+		<Paper
+			key="item"
+			elevation={clearable ? 1 : 0}
+			sx={{ width: '100%', backgroundColor: clearable ? OFFWHITE_COLOR : undefined, borderRadius: 1 }}
 		>
-			<Paper elevation={0} style={{ width: '100%' }} className="flex-row-between">
+			<MenuItem
+				style={styles.menuItem}
+				onClick={
+					clearable
+						? undefined
+						: () => {
+								actions.updateSelectedClaim(claim);
+								if (typeof onClose === 'function') onClose();
+						  }
+				}
+				disableRipple={clearable}
+				className="flex-row-between"
+			>
 				<div style={styles.menuItemInner} className="flex-row-left">
 					<ContentPasteSearch sx={styles.icon} />
 					<Typography fontSize={13} fontWeight="bold" color="primary" width={110}>
@@ -68,19 +75,19 @@ export default function ClaimMenuItem(props: {
 							icon={<Cancel sx={styles.clearIcon} />}
 						/>
 					) : selected ? (
-						<CheckCircle sx={{ color: 'success.main', marginLeft: '10px' }} />
+						<CheckCircle sx={{ color: 'primary.main', marginLeft: '10px' }} />
 					) : (
 						<></>
 					)}
 				</div>
-			</Paper>
-		</MenuItem>
-	);
+			</MenuItem>
+		</Paper>,
+		// ...(showDiv ? [<Divider />] : []),
+	];
 }
 
 const styles = {
 	clearIcon: {
-		color: 'error.main',
 		fontSize: 17,
 	},
 	icon: {

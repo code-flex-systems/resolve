@@ -9,7 +9,7 @@ import * as selectors from '../../state/checklist/selectors';
 import { useShallow } from 'zustand/react/shallow';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus, QuestionType } from '../../config/enums';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import BasicButton from '../common/BasicButton';
 import { IconAlertCircleFilled, IconCircle, IconCircleCheckFilled, IconPercentage50 } from '@tabler/icons-react';
 import theme from '../../styles/theme';
@@ -31,20 +31,20 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 	useEffect(() => setExpanded(expandAll), [expandAll]);
 
-	const getStatusIcon = () => {
+	const statusIcon = useMemo(() => {
 		switch (status) {
 			case PageInstanceStatus.UNSTARTED:
-				return <IconCircle size={18} color={theme.palette.secondary.main} style={styles.icon} />;
+				return <IconCircle size={18} color={theme.palette.primary.main} style={styles.icon} />;
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
 					<IconPercentage50
-						style={{ ...styles.icon, color: theme.palette.secondary.main, transform: 'scaleX(-1)' }}
+						style={{ ...styles.icon, color: theme.palette.primary.main, transform: 'scaleX(-1)' }}
 						className="status-icon"
 						size={18}
 					/>
 				);
 			case PageInstanceStatus.COMPLETE:
-				return <IconCircleCheckFilled color={theme.palette.secondary.main} size={18} style={styles.icon} />;
+				return <IconCircleCheckFilled color={theme.palette.primary.main} size={18} style={styles.icon} />;
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip title="This page has changed">
@@ -52,7 +52,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					</Tooltip>
 				);
 		}
-	};
+	}, [status]);
 
 	return (
 		<>
@@ -88,7 +88,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
 					</Typography>
-					<Fade in={isFetching && selected}>
+					<Fade in={isFetching && selected} unmountOnExit>
 						<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
 							Loading...
 						</Typography>
@@ -107,7 +107,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						icon={<BarChart className="node-report-icon" sx={styles.reportIcon} />}
 					/>
 				)}
-				{mode === ChecklistMode.VIEW && getStatusIcon()}
+				<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
+					{statusIcon}
+				</Fade>
 			</div>
 
 			{selectedPageData && mode === ChecklistMode.EDIT && (

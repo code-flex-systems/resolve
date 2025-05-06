@@ -11,6 +11,7 @@ import { formatAmount, formatMDYAbv } from '../../utils/utils';
 import { Checklist as ChecklistType, Claim } from '../../types';
 import * as actions from '../../state/checklists/actions';
 import BasicButton from '../common/BasicButton';
+import { OFFWHITE_COLOR } from '../../styles/theme';
 
 export default function ChecklistMenuItem(props: {
 	checklist: ChecklistType | null;
@@ -20,22 +21,48 @@ export default function ChecklistMenuItem(props: {
 }) {
 	const { checklist, clearable, onClose, selected } = props;
 	return (
-		<MenuItem
-			style={styles.menuItem}
-			onClick={
-				clearable
-					? undefined
-					: () => {
-							actions.updateSelectedChecklist(checklist);
-							if (typeof onClose === 'function') onClose();
-					  }
-			}
-			disableRipple={clearable}
+		<Paper
+			elevation={clearable ? 1 : 0}
+			sx={{ width: '100%', backgroundColor: clearable ? OFFWHITE_COLOR : undefined, borderRadius: 1 }}
 		>
-			<Paper elevation={0} style={{ width: '100%' }} className="flex-row-between">
+			<MenuItem
+				style={styles.menuItem}
+				onClick={
+					clearable
+						? undefined
+						: () => {
+								actions.updateSelectedChecklist(checklist);
+								if (typeof onClose === 'function') onClose();
+						  }
+				}
+				disableRipple={clearable}
+				className="flex-row-between"
+			>
 				<div style={styles.menuItemInner} className="flex-row-left">
 					<Checklist sx={styles.icon} />
-					<Typography>{checklist?.name}</Typography>
+					<Typography fontSize={13} fontWeight="bold" color="primary" width={110}>
+						{checklist?.name}
+					</Typography>
+					<div style={styles.verticalDiv}>
+						<Divider orientation="vertical" />
+					</div>
+					<AccountCircle sx={styles.icon} />
+					<Typography fontSize={13} width={120}>
+						{checklist?.created_by}
+					</Typography>
+					<div style={styles.verticalDiv}>
+						<Divider orientation="vertical" />
+					</div>
+					<div style={{ width: 80 }} className="flex-row-center">
+						<Typography fontSize={13}>{checklist?.page_count?.toLocaleString() ?? '0'} pages</Typography>
+					</div>
+					<div style={styles.verticalDiv}>
+						<Divider orientation="vertical" />
+					</div>
+					<div className="flex-row-center">
+						<AccessTimeFilled sx={styles.icon} />
+						<Typography fontSize={13}>{formatMDYAbv(checklist?.updated_at?.toString())}</Typography>
+					</div>
 				</div>
 				<div className="flex-row-right">
 					{clearable ? (
@@ -53,29 +80,33 @@ export default function ChecklistMenuItem(props: {
 							icon={<Cancel sx={styles.clearIcon} />}
 						/>
 					) : selected ? (
-						<CheckCircle sx={{ color: 'success.main', marginLeft: '10px' }} />
+						<CheckCircle sx={{ color: 'primary.main', marginLeft: '10px' }} />
 					) : (
 						<></>
 					)}
 				</div>
-			</Paper>
-		</MenuItem>
+			</MenuItem>
+		</Paper>
 	);
 }
 
 const styles = {
 	clearIcon: {
-		color: 'error.main',
 		fontSize: 17,
 	},
 	icon: {
 		marginRight: '5px',
 	},
 	menuItem: {
-		width: 'fit-content',
+		width: '100%',
 		minWidth: 300,
 	},
 	menuItemInner: {
 		padding: 5,
+	},
+	verticalDiv: {
+		height: 20,
+		width: 1,
+		margin: '0px 10px',
 	},
 };

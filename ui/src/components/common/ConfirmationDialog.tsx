@@ -40,7 +40,7 @@ export default function ConfirmationDialog(
 					buttonProps={{
 						onClick: onConfirm,
 						variant: 'outlined',
-						color: negative ? 'error' : undefined,
+						color: negative ? 'warning' : undefined,
 						sx: styles.button,
 					}}
 				>

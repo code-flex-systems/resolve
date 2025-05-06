@@ -84,7 +84,7 @@ const styles = {
 	dot: {
 		minWidth: 40,
 		height: 21,
-		backgroundColor: theme.palette.secondary.main,
+		backgroundColor: theme.palette.primary.main,
 		borderRadius: 5,
 		cursor: 'pointer',
 		boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',

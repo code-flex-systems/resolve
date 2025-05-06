@@ -26,6 +26,7 @@ export default function ChecklistAnswerRadio(props: {
 										field.onChange(newValue);
 									}}
 									disabled={disabled}
+									sx={{ color: 'primary.main' }}
 								/>
 							) : (
 								<Radio
@@ -35,6 +36,7 @@ export default function ChecklistAnswerRadio(props: {
 										field.onChange(newValue);
 									}}
 									disabled={disabled}
+									color="primary"
 								/>
 							)
 						}

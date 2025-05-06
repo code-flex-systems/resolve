@@ -55,12 +55,12 @@ export default function QuestionNode(props: {
 						</IconButton>
 					)}
 					<Typography
-						color={selected ? 'info' : isPlaceholder ? 'primary' : ''}
+						color={selected || isPlaceholder ? 'primary' : ''}
 						fontWeight={isPlaceholder ? 'bold' : ''}
 						sx={{ cursor: 'pointer' }}
 						className={'node-q'}
 					>
-						{questionId === -1 ? '' : <b>{idx + 1}. </b>}
+						{questionId === -1 ? '' : <b style={{ color: '#787878' }}>{idx + 1}. </b>}
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>

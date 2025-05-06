@@ -111,7 +111,7 @@ export default function PageEditor() {
 					<Toolbar
 						left={
 							<>
-								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '10px' }} />
+								<Description sx={{ color: 'secondary.main', fontSize: 25, marginRight: '5px' }} />
 								{editingPageTitle ? (
 									<TextField
 										autoFocus
@@ -139,8 +139,8 @@ export default function PageEditor() {
 								)}
 								<Fade in={showUpdateMsg} timeout={500}>
 									<div style={{ marginLeft: 10 }} className="flex-row-left">
-										<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
-										<Typography color="success" fontStyle="italic">
+										<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
+										<Typography color="warning" fontStyle="italic">
 											Updated!
 										</Typography>
 									</div>
@@ -163,7 +163,7 @@ export default function PageEditor() {
 							onClick: () => onCopyPage().catch((e) => console.error(e)),
 							disabled: inTransition,
 							variant: 'contained',
-							color: 'secondary',
+							color: 'primary',
 							sx: styles.button,
 							startIcon: <ContentCopy sx={{ color: 'white' }} />,
 						}}
@@ -175,6 +175,7 @@ export default function PageEditor() {
 							onClick: () => onAddPage(selectedPageInfo.parentInstanceId).catch((e) => console.error(e)),
 							disabled: inTransition,
 							variant: 'contained',
+							color: 'secondary',
 							sx: styles.button,
 							startIcon: <East sx={{ color: 'white', fontSize: 17 }} />,
 						}}
@@ -186,6 +187,7 @@ export default function PageEditor() {
 							onClick: () => onAddPage(selectedPageInfo.instanceId).catch((e) => console.error(e)),
 							disabled: inTransition,
 							variant: 'contained',
+							color: 'secondary',
 							sx: styles.button,
 							startIcon: <SubdirectoryArrowRight sx={{ color: 'white' }} />,
 						}}
@@ -197,7 +199,7 @@ export default function PageEditor() {
 							onClick: () => onDeletePage().catch((e) => console.error(e)),
 							disabled: inTransition,
 							variant: 'contained',
-							color: 'error',
+							color: 'warning',
 							sx: styles.button,
 							startIcon: <Delete sx={{ color: 'white' }} />,
 						}}

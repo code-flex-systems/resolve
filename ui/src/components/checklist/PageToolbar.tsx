@@ -1,18 +1,35 @@
-import { Button, Divider } from '@mui/material';
+import { Button, Collapse, Divider } from '@mui/material';
+import { useChecklistSlice } from '../../state/store';
+import { ChecklistMode } from '../../config/enums';
 
 export default function PageToolbar() {
+	const mode = useChecklistSlice((state) => state.mode);
 	return (
 		<>
-			<div style={styles.container}>
-				<Button style={styles.button}>Summary</Button>
-				<Button style={styles.button}>Results</Button>
-				<Button style={styles.button}>Unknowns</Button>
-				<Button style={styles.button}>Incompletes</Button>
-				<Button style={styles.button}>Evaluation</Button>
-			</div>
-			<div style={styles.divider}>
-				<Divider />
-			</div>
+			<Collapse style={styles.container} in={mode === ChecklistMode.VIEW} unmountOnExit>
+				<div style={styles.container}>
+					<Button color="secondary" style={styles.button}>
+						Summary
+					</Button>
+					<Button color="secondary" style={styles.button}>
+						Results
+					</Button>
+					<Button color="secondary" style={styles.button}>
+						Unknowns
+					</Button>
+					<Button color="secondary" style={styles.button}>
+						Incompletes
+					</Button>
+					<Button color="secondary" style={styles.button}>
+						Evaluation
+					</Button>
+				</div>
+			</Collapse>
+			{mode === ChecklistMode.VIEW && (
+				<div style={styles.divider}>
+					<Divider />
+				</div>
+			)}
 		</>
 	);
 }

@@ -1,6 +1,6 @@
-import { Collapse, Divider, Fade, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { Add, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
-import { OFFWHITE_COLOR } from '../../styles/theme';
+import { Collapse, Divider, Fade, Link, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Add, ContentPasteSearch, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
+import { BACKDROP_COLOR, BASE_COLOR, OFFWHITE_COLOR, ORANGE_COLOR } from '../../styles/theme';
 import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import { useAddPage, usePageInstanceTree } from '../../api/queries/page-queries';
 import * as selectors from '../../state/checklist/selectors';
@@ -12,10 +12,11 @@ import { ChecklistMode } from '../../config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
 import config from '../../config/config';
 import { useEffect } from 'react';
+import ChecklistLogo from '../../resources/images/ChecklistLogo.png';
 
 export default function PageNavigation() {
 	const checklist = useChecklistSlice((state) => state.checklist)!;
-	const claimId = useChecklistSlice((state) => state.claim)?.id;
+	const claim = useChecklistSlice((state) => state.claim);
 	const user = useGlobalSlice((state) => state.user);
 	const showChecklistData = useStore(selectors.showChecklistData);
 	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
@@ -28,11 +29,24 @@ export default function PageNavigation() {
 		mode === ChecklistMode.VIEW ? tree.filter((c) => visibleInstanceIds.includes(c.instanceId)) : tree;
 
 	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist.id);
-	const { isFetching, refetch } = usePageInstanceTree(true, checklist.id, claimId);
+	const { isFetching, refetch } = usePageInstanceTree(true, checklist.id, claim?.id);
 
 	useEffect(() => {
 		if (mode === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
 	}, [mode, refetch]);
+
+	const getTitle = () => {
+		return claim ? (
+			<div className="flex-row-left">
+				<ContentPasteSearch sx={{ color: 'primary.main' }} />
+				<Link marginLeft="5px" color="primary">
+					{claim.claim_number} ({checklist?.name ?? ''})
+				</Link>
+			</div>
+		) : (
+			<Typography color="primary">{checklist?.name ?? ''}</Typography>
+		);
+	};
 
 	const onAddPage = async () => {
 		try {
@@ -52,11 +66,7 @@ export default function PageNavigation() {
 		<>
 			<Paper style={styles.container}>
 				<Toolbar
-					left={
-						<Typography fontSize={19} fontWeight="bold">
-							{checklist?.name ?? ''}
-						</Typography>
-					}
+					left={getTitle()}
 					right={
 						<Fade in={mode === ChecklistMode.EDIT}>
 							<span>
@@ -66,6 +76,7 @@ export default function PageNavigation() {
 										disabled: isFetching || adding,
 										variant: 'contained',
 										sx: styles.button,
+										color: 'secondary',
 										startIcon: <Add sx={{ color: 'white' }} />,
 									}}
 								>
@@ -84,7 +95,7 @@ export default function PageNavigation() {
 						<>
 							{user.roles.includes(config.ROLES.ADMIN) ? (
 								<ToggleButtonGroup
-									color="secondary"
+									color="primary"
 									value={mode}
 									exclusive
 									onChange={(_, value) => actions.updateMode(value)}
@@ -93,7 +104,7 @@ export default function PageNavigation() {
 										<Visibility
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
+												color: mode === ChecklistMode.VIEW ? 'primary.main' : '#787878',
 											}}
 										/>
 										View
@@ -102,7 +113,7 @@ export default function PageNavigation() {
 										<MovieCreationOutlined
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.TEST ? 'secondary.main' : '#787878',
+												color: mode === ChecklistMode.TEST ? 'primary.main' : '#787878',
 											}}
 										/>
 										Test
@@ -111,7 +122,7 @@ export default function PageNavigation() {
 										<MovieEdit
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
+												color: mode === ChecklistMode.EDIT ? 'primary.main' : '#787878',
 											}}
 										/>
 										Edit
@@ -154,6 +165,10 @@ const styles = {
 		height: 25,
 		marginLeft: '15px',
 		minWidth: 120,
+	},
+	checklistCard: {
+		backgroundColor: 'white',
+		padding: '2px 5px',
 	},
 	container: {
 		width: 'fit-content',

@@ -2,7 +2,7 @@ import { Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
 import useStore, { useChecklistSlice } from '../../state/store';
 import * as selectors from '../../state/checklist/selectors';
-import { QuestionType } from '../../config/enums';
+import { ChecklistMode, QuestionType } from '../../config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '../../types';
 import { useEffect, useState } from 'react';
@@ -48,6 +48,7 @@ export default function Page() {
 	const checklist = useChecklistSlice((state) => state.checklist);
 	const claim = useChecklistSlice((state) => state.claim);
 	const responses = useChecklistSlice((state) => state.responses);
+	const mode = useChecklistSlice((state) => state.mode);
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
@@ -64,8 +65,13 @@ export default function Page() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	useEffect(() => {
-		reset({ ...generateDefaultValues(selectedPageData, responses.get(selectedPageInstance)?.responses) });
-	}, [selectedPageData, responses, selectedPageInstance]);
+		reset({
+			...generateDefaultValues(
+				selectedPageData,
+				mode === ChecklistMode.VIEW ? responses.get(selectedPageInstance)?.responses : undefined
+			),
+		});
+	}, [selectedPageData, responses, selectedPageInstance, mode]);
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -98,7 +104,7 @@ export default function Page() {
 
 	return (
 		<div style={styles.container}>
-			<ClaimInfo />
+			{/* <ClaimInfo /> */}
 			<PageToolbar />
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
@@ -110,14 +116,14 @@ export default function Page() {
 					<Toolbar
 						left={
 							<>
-								<Description sx={{ color: 'primary.main', fontSize: 20, marginRight: '10px' }} />
+								<Description sx={{ color: 'secondary.main', fontSize: 25, marginRight: '5px' }} />
 								<Typography lineHeight={'21px'} fontSize={19}>
 									{selectedPageInfo.title}
 								</Typography>
-								<Fade in={showUpdateMsg} timeout={500}>
+								<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
 									<div style={{ marginLeft: 10 }} className="flex-row-left">
-										<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
-										<Typography color="success" fontStyle="italic">
+										<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
+										<Typography color="warning" fontStyle="italic">
 											Saved!
 										</Typography>
 									</div>
@@ -126,18 +132,21 @@ export default function Page() {
 						}
 						leftWidth="70%"
 						right={
-							<>
-								<Button
-									variant="outlined"
-									onClick={() => reset({ ...generateDefaultValues(selectedPageData) })}
-									sx={{ height: 25, marginRight: '10px' }}
-								>
-									Reset
-								</Button>
-								<Button variant="contained" onClick={onSubmit} sx={{ height: 25 }}>
-									Save
-								</Button>
-							</>
+							<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
+								<div className="flex-row-right">
+									<Button
+										variant="outlined"
+										color="secondary"
+										onClick={() => reset({ ...generateDefaultValues(selectedPageData) })}
+										sx={{ height: 25, marginRight: '10px' }}
+									>
+										Reset
+									</Button>
+									<Button variant="contained" color="primary" onClick={onSubmit} sx={{ height: 25 }}>
+										Save
+									</Button>
+								</div>
+							</Fade>
 						}
 						rightWidth="30%"
 						height={60}

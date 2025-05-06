@@ -28,7 +28,7 @@ export default function Checklists() {
 			<div style={styles.container}>
 				<Recents />
 				<div style={styles.innerContainer} className="flex-col-center">
-					<Typography fontSize={25} fontStyle="italic" height={80}>
+					<Typography fontSize={25} fontStyle="italic" color="primary" height={80}>
 						Welcome to Checklists!
 					</Typography>
 					<Typography>Find a claim to work.</Typography>
@@ -45,13 +45,14 @@ export default function Checklists() {
 						<Typography>Find a checklist to fill out.</Typography>
 						<ChecklistsSearch />
 					</div>
-					<Collapse in={Boolean(selectedChecklist)} className="flex-col-center">
+					<Collapse in={Boolean(selectedChecklist)} style={{ marginTop: 5 }} className="flex-col-center">
 						<ChecklistMenuItem checklist={selectedChecklist} clearable />
 					</Collapse>
 					<BasicButton
 						buttonProps={{
 							onClick: actions.toggleChecklistClaimDialog,
 							variant: 'contained',
+							color: 'primary',
 							startIcon: (
 								<ArrowCircleRightOutlined
 									sx={{ color: !selectedClaim || !selectedChecklist ? '#A6A6A6' : 'white' }}

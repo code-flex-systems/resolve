@@ -3,6 +3,7 @@ import * as actions from '../../state/checklist/actions';
 import { useChecklistSlice } from '../../state/store';
 import { ChecklistMode } from '../../config/enums';
 import './styles.css';
+import { ORANGE_COLOR } from '../../styles/theme';
 
 export default function AnswerNode(props: {
 	pageId: number;
@@ -25,9 +26,9 @@ export default function AnswerNode(props: {
 		>
 			<div className="flex-row-left">
 				<Typography
-					color={selected ? 'info' : isPlaceholder ? 'primary' : ''}
+					color={selected ? ORANGE_COLOR : isPlaceholder ? 'primary' : ''}
 					fontWeight={isPlaceholder ? 'bold' : ''}
-					className={mode === ChecklistMode.EDIT ? 'node-q' : undefined}
+					className={mode === ChecklistMode.EDIT ? 'node-a' : undefined}
 					sx={{ cursor: 'pointer' }}
 				>
 					{answerText} (p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId})

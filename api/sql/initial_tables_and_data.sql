@@ -12,7 +12,10 @@ drop table if exists doc;
 
 create table checklist(
 	id serial not null primary key,
-	name text not null
+	name text not null,
+    created_by text not null,
+    created_at text not null default now(),
+    updated_at text not null default now()
 );
 
 create table claim(

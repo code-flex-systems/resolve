@@ -123,8 +123,8 @@ export default function FormAnswer() {
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
-								<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
-								<Typography color="success" fontStyle="italic">
+								<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
+								<Typography color="warning" fontStyle="italic">
 									Saved!
 								</Typography>
 							</div>
@@ -147,7 +147,7 @@ export default function FormAnswer() {
 										<Button
 											disabled={inTransition || isFreeform}
 											variant="contained"
-											color="error"
+											color="warning"
 											onClick={onDelete}
 											sx={{ height: 25, marginRight: '10px' }}
 										>
@@ -176,7 +176,13 @@ export default function FormAnswer() {
 								</Tooltip>
 							</>
 						)}
-						<Button onClick={onSubmit} disabled={inTransition} variant="contained" sx={{ height: 25 }}>
+						<Button
+							onClick={onSubmit}
+							color="primary"
+							disabled={inTransition}
+							variant="contained"
+							sx={{ height: 25 }}
+						>
 							{isPlaceholder ? 'Add' : 'Save'}
 						</Button>
 					</>
@@ -312,25 +318,7 @@ export default function FormAnswer() {
 						)}
 					/>
 				</div>
-				{/* <div style={styles.row} className="flex-row-left">
-					<Controller
-						name="calls_instance_id"
-						control={control}
-						rules={{ required: true }}
-						render={({ field }) => (
-							<FormControl style={{ padding: '0px 5px 15px' }}>
-								<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
-								<Select error={!!errors.calls_instance_id} {...field} sx={styles.textFieldOverrides}>
-									{pageTemplates.map((o) => (
-										<MenuItem key={o.id} value={o.id}>
-											{o.title} (p{o.id})
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-						)}
-					/>
-				</div> */}
+
 				<Collapse in={hasAdditionalInfo}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
@@ -401,7 +389,7 @@ const styles = {
 		},
 	},
 	toolbar: {
-		color: 'primary.main',
+		color: 'secondary.main',
 		fontSize: 20,
 		marginRight: '5px',
 	},

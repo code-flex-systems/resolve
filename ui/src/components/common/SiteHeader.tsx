@@ -1,20 +1,24 @@
 import { Collapse, Paper, Typography } from '@mui/material';
-import config from '../../config/config';
 import ProfileAvatar from './ProfileAvatar';
 import Toolbar from './Toolbar';
-import theme, { BACKDROP_COLOR, OFFWHITE_COLOR } from '../../styles/theme';
+import { OFFWHITE_COLOR } from '../../styles/theme';
 import { useGlobalSlice } from '../../state/store';
-import logo from '../../resources/images/logo-green.png';
+import logo from '../../resources/images/ChecklistLogo.png';
 
 export default function SiteHeader() {
 	const navOpen = useGlobalSlice((state) => state.navOpen);
 	return (
-		<Paper style={styles.paper}>
+		<Paper style={styles.paper} className="flex-row-left">
 			<Toolbar
 				left={
-					<Typography color="primary" fontSize={25} fontWeight="bold">
-						Manifest
-					</Typography>
+					<Collapse in={!navOpen} orientation="horizontal">
+						<div className="flex-row-left">
+							<img src={logo} height={35} />
+							<Typography fontSize={30} marginLeft="5px">
+								Manifest
+							</Typography>
+						</div>
+					</Collapse>
 				}
 				right={<ProfileAvatar />}
 				height={60}

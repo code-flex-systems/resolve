@@ -1,4 +1,5 @@
 import { styled, Switch } from '@mui/material';
+import { ORANGE_COLOR } from '../../styles/theme';
 
 const BasicSwitch = styled(Switch)(({ theme }) => ({
 	width: 28,
@@ -20,7 +21,7 @@ const BasicSwitch = styled(Switch)(({ theme }) => ({
 			color: '#fff',
 			'& + .MuiSwitch-track': {
 				opacity: 1,
-				backgroundColor: theme.palette.secondary.main,
+				backgroundColor: ORANGE_COLOR,
 				...theme.applyStyles('dark', {
 					backgroundColor: '#177ddc',
 				}),

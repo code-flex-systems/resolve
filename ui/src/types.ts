@@ -51,7 +51,11 @@ export type ClaimSearchType = 'claim_number' | 'insured';
 
 export interface Checklist {
 	id: number;
+	created_at: string;
+	created_by: string;
 	name: string;
+	page_count?: number;
+	updated_at: string;
 }
 
 export interface ChecklistClaim {

@@ -41,8 +41,11 @@ export interface Answer {
 }
 
 export interface Checklist {
+  created_at: Generated<string>;
+  created_by: Generated<string>;
   id: Generated<number>;
   name: string;
+  updated_at: Generated<string>;
 }
 
 export interface ChecklistClaim {

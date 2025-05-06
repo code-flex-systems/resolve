@@ -20,6 +20,7 @@ async function createChecklist(claimId: number, params: object) {
 					.insertInto('checklist')
 					.values({
 						name: params.name,
+						created_by: params.username,
 					})
 					.returningAll()
 					.executeTakeFirstOrThrow();
@@ -58,7 +59,13 @@ async function getChecklist(checklistId: number) {
 
 async function getChecklists(searchTerm?: string) {
 	try {
-		let query = db.selectFrom('checklist').selectAll().orderBy('id');
+		let query = db
+			.selectFrom('checklist as c')
+			.innerJoin('page_instance as p', 'c.id', 'p.checklist_id')
+			.selectAll('c')
+			.select(({ fn }) => fn.countAll().as('page_count'))
+			.groupBy('c.id')
+			.orderBy('c.id');
 		if (searchTerm) {
 			query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));
 		}

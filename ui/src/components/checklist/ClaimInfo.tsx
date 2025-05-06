@@ -4,7 +4,7 @@ import * as actions from '../../state/checklist/actions';
 import { useChecklistSlice } from '../../state/store';
 import dayjs from 'dayjs';
 import Separator from '../common/Separator';
-import theme from '../../styles/theme';
+import theme, { OFFWHITE_COLOR } from '../../styles/theme';
 import { useState } from 'react';
 import { formatAmount } from '../../utils/utils';
 import { useParams } from 'react-router';
@@ -51,7 +51,6 @@ function Row(props: {
 }
 
 export default function ClaimInfo() {
-	const params = useParams<{ checklistId?: string; claimId?: string }>();
 	const claim = useChecklistSlice((state) => state.claim);
 	const [open, setOpen] = useState(false);
 	const [showData, setShowData] = useState(false);
@@ -99,9 +98,9 @@ export default function ClaimInfo() {
 					</>
 				)}
 			</Paper>
-			<div style={styles.divider}>
+			{/* <div style={styles.divider}>
 				<Divider />
-			</div>
+			</div> */}
 		</>
 	);
 }
@@ -118,6 +117,8 @@ const styles = {
 		transition: 'width 500ms ease, height 350ms ease',
 		marginBottom: 20,
 		cursor: 'pointer',
+		borderRadius: 5,
+		backgroundColor: OFFWHITE_COLOR,
 	},
 	divider: {
 		width: '100%',

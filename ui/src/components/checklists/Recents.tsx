@@ -26,6 +26,7 @@ export default function Recents() {
 						key={i}
 						onClick={() => navigate(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
 						style={styles.link}
+						color="primary"
 						className="flex-row-left"
 					>
 						<ContentPasteSearch sx={styles.icon} />
@@ -51,7 +52,7 @@ const styles = {
 		width: '100%',
 	},
 	icon: {
-		color: 'primary.main',
+		// color: 'primary.main',
 		marginRight: '5px',
 	},
 	link: {

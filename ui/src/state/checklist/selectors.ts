@@ -53,8 +53,8 @@ export function selectedQuestionData(state: State) {
 }
 
 export function shouldFetchResponses(state: State) {
-	const { selectedPageInfo, pages, responses } = getSlice(state);
-	if (!selectedPageInfo) return false;
+	const { selectedPageInfo, pages, responses, mode } = getSlice(state);
+	if (!selectedPageInfo || mode !== ChecklistMode.VIEW) return false;
 	if (!responses.has(selectedPageInfo.instanceId)) return true;
 	const pageTemplateVersion = pages.get(selectedPageInfo.pageId)?.version;
 	const responsesVersion = responses.get(selectedPageInfo.instanceId)?.version;

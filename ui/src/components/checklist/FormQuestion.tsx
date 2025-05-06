@@ -119,8 +119,8 @@ export default function FormQuestion() {
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
-								<TaskAlt sx={{ color: 'success.main', marginRight: '5px' }} />
-								<Typography color="success" fontStyle="italic">
+								<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
+								<Typography color="warning" fontStyle="italic">
 									Saved!
 								</Typography>
 							</div>
@@ -135,7 +135,7 @@ export default function FormQuestion() {
 								<Button
 									disabled={inTransition}
 									variant="contained"
-									color="error"
+									color="warning"
 									onClick={() => {
 										if (selectedQuestionData.answers?.length) {
 											setShowDeleteDialog(true);
@@ -158,7 +158,13 @@ export default function FormQuestion() {
 								</Button>
 							</>
 						)}
-						<Button onClick={onSubmit} disabled={inTransition} variant="contained" sx={{ height: 25 }}>
+						<Button
+							onClick={onSubmit}
+							color="primary"
+							disabled={inTransition}
+							variant="contained"
+							sx={{ height: 25 }}
+						>
 							{isPlaceholder ? 'Add' : 'Save'}
 						</Button>
 					</>
@@ -305,7 +311,7 @@ const styles = {
 		},
 	},
 	toolbar: {
-		color: 'primary.main',
+		color: 'secondary.main',
 		fontSize: 20,
 		marginRight: '5px',
 	},

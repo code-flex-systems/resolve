@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Avatar, Divider, Link, Paper, PopperProps, Typography } from '@mui/material';
 import Email from '@mui/icons-material/Email';
 import Phone from '@mui/icons-material/Phone';
-import theme from '../../styles/theme';
+import theme, { BASE_COLOR } from '../../styles/theme';
 import BasicPopper from './BasicPopper';
 
 export default function ProfileAvatar() {
@@ -54,7 +54,7 @@ const styles = {
 		width: 35,
 		height: 35,
 		fontSize: 15,
-		bgcolor: 'primary.main',
+		bgcolor: BASE_COLOR,
 		cursor: 'pointer',
 	},
 	divider: {

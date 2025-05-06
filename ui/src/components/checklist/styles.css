@@ -27,7 +27,7 @@
 }
 
 .list-item-outer:hover .list-button-inner {
-	color: #449cd9;
+	color: #216bc4;
 	transition: color 100ms ease;
 }
 
@@ -53,8 +53,12 @@
 	cursor: pointer;
 }
 
+.node-a:hover {
+	color: #fa7601;
+}
+
 .node-q:hover {
-	color: #449cd9;
+	color: #216bc4;
 }
 
 .popper {
@@ -67,6 +71,6 @@
 }
 
 .text-hover:hover {
-	outline: 2px solid #344979;
+	outline: 1px solid #216bc4;
 	transition: outline 100ms ease;
 }

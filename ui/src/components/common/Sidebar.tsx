@@ -22,13 +22,13 @@ export default function Sidebar() {
 				{
 					label: 'Home',
 					route: 'checklists',
-					color: 'primary.main',
+					color: 'secondary.main',
 					icon: <Home sx={styles.icon('checklists' === selectedPage)} />,
 				},
 				{
 					label: 'Checklists',
 					route: 'checklist',
-					color: 'primary.main',
+					color: 'secondary.main',
 					icon: <Checklist sx={styles.icon('checklist' === selectedPage)} />,
 				},
 			],
@@ -83,7 +83,7 @@ export default function Sidebar() {
 									{navItem.icon}
 									<Collapse in={navOpen} orientation="horizontal">
 										<ListItemText
-											primary={
+											secondary={
 												<Typography fontSize={14} color="white">
 													{navItem.label.toUpperCase()}
 												</Typography>
@@ -130,7 +130,7 @@ const styles = {
 	},
 	icon: (selected: boolean) => ({
 		fontSize: 25,
-		color: selected ? 'primary.main' : 'white',
+		color: selected ? 'secondary.main' : 'white',
 	}),
 	menuItem: {
 		width: '100%',
@@ -141,7 +141,7 @@ const styles = {
 		width: '100%',
 		height: 60,
 		minHeight: 60,
-		backgroundColor: 'primary.main',
+		backgroundColor: 'secondary.main',
 	},
 	mainMenuItemContainer: {
 		width: 57,
@@ -153,7 +153,7 @@ const styles = {
 	paper: {
 		width: 'fit-content',
 		borderRight: '1px solid #e0e0e0',
-		backgroundColor: 'primary.main',
+		backgroundColor: 'secondary.main',
 	},
 	text: (selected: boolean) => ({
 		width: 200,
@@ -161,7 +161,7 @@ const styles = {
 		'& .MuiTypography-root': {
 			fontSize: 14,
 			textWrap: 'nowrap',
-			color: selected ? 'primary.main' : 'white',
+			color: selected ? 'secondary.main' : 'white',
 		},
 	}),
 };

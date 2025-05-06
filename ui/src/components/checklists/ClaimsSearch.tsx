@@ -121,6 +121,7 @@ export default function ClaimsSearch() {
 										<Collapse key={i}>
 											<ClaimMenuItem
 												claim={c}
+												showDiv={i < results.length}
 												onClose={() => {
 													onClose();
 													setQuery('');
@@ -174,7 +175,9 @@ const styles = {
 		overflowY: 'auto' as const,
 		width: '100%',
 		outline: '1px solid #E0E0E0',
-		transform: 'translate(-25px, 5px)',
+		transform: 'translate(-26px, 0px)',
+		borderBottomLeftRadius: 2,
+		borderBottomRightRadius: 2,
 	},
 	switch: {
 		width: '100%',
