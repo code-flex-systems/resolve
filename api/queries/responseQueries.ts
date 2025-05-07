@@ -1,6 +1,6 @@
 import { sql } from 'kysely';
 import { db } from '../database/kysely';
-import { QuestionResponse } from '../types/types';
+import { Interval, QuestionResponse } from '../types/types';
 import { QuestionResponseAnswer } from '../types/types';
 import { getUpdatedPageStatus } from '../utils/utils';
 import pageQueries from './pageQueries';
@@ -31,14 +31,23 @@ async function getResponseCount(checklistId: number, claimId: number, instanceId
 	}
 }
 
-async function getResponsesForAnswer(answerId: number) {
+async function getResponsesForAnswer(answerId: number, interval?: Interval<string>) {
 	try {
 		let results = await db
 			.selectFrom('question_response as qr')
 			.innerJoin('question_response_answer as qra', 'qr.id', 'qra.response_id')
 			.innerJoin('claim as c', 'qr.claim_id', 'c.id')
 			.select(['qr.id', 'qr.created_at', 'qra.additional_info', 'c.claim_number', 'c.client'])
-			.where('qra.answer_id', '=', answerId)
+			.where((eb) => {
+				let andClause = [eb('qra.answer_id', '=', answerId)];
+				if (interval) {
+					if (interval.from) andClause.push(eb('qr.created_at', '>=', new Date(interval.from)));
+					if (interval.to) andClause.push(eb('qr.created_at', '<=', new Date(interval.to)));
+				} else {
+					andClause.push(eb('qr.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()));
+				}
+				return eb.and(andClause);
+			})
 			.orderBy('qr.created_at desc')
 			.execute();
 		return results;

@@ -3,6 +3,7 @@ import { Dialog, DialogActions, DialogContent, Fade, IconButton, Typography } fr
 import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '../../types';
+import { Cancel } from '@mui/icons-material';
 
 export default function BasicDialog(
 	props: {
@@ -65,7 +66,7 @@ export default function BasicDialog(
 				<div style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}>
 					{...iconActions}
 					<IconButton onClick={onClose} disabled={closeDisabled}>
-						<Clear />
+						<Cancel sx={{ fontSize: 21 }} />
 					</IconButton>
 				</div>
 			</div>

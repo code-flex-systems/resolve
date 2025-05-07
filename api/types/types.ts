@@ -24,8 +24,8 @@ export interface AnswerStat {
 export type ClaimSearchType = 'claim_number' | 'insured';
 
 export type Interval<T> = {
-	from: T;
-	to: T;
+	from?: T;
+	to?: T;
 };
 
 export interface TreeNode {

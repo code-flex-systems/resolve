@@ -1,13 +1,9 @@
-import { Divider, Paper, Skeleton, Typography } from '@mui/material';
-import { useClaim } from '../../api/queries/claim-queries';
-import * as actions from '../../state/checklist/actions';
+import { Fade, Paper, Popper, PopperProps, Skeleton, Typography } from '@mui/material';
 import { useChecklistSlice } from '../../state/store';
 import dayjs from 'dayjs';
 import Separator from '../common/Separator';
 import theme, { OFFWHITE_COLOR } from '../../styles/theme';
-import { useState } from 'react';
 import { formatAmount } from '../../utils/utils';
-import { useParams } from 'react-router';
 
 function Row(props: {
 	label: string;
@@ -35,7 +31,7 @@ function Row(props: {
 					<div className="flex-row-left">
 						{props.label && (
 							<>
-								<Separator />
+								<Separator color={theme.palette.warning.main} />
 								<Typography minWidth="fit-content" marginRight="10px" fontWeight="bold">
 									{props.label}
 								</Typography>
@@ -50,85 +46,46 @@ function Row(props: {
 	);
 }
 
-export default function ClaimInfo() {
+export default function ClaimInfo(props: { anchorEl: PopperProps['anchorEl'] }) {
+	const { anchorEl } = props;
 	const claim = useChecklistSlice((state) => state.claim);
-	const [open, setOpen] = useState(false);
-	const [showData, setShowData] = useState(false);
 	if (!claim) return <></>;
 	return (
-		<>
-			<Paper
-				onClick={() => {
-					if (open) {
-						setShowData(false);
-					} else {
-						setTimeout(() => setShowData(true), 350);
-					}
-					setOpen((prev) => !prev);
-				}}
-				style={{ ...styles.container, width: open ? 900 : 500, height: open ? 170 : 30 }}
-			>
-				{showData ? (
-					<>
-						<div style={styles.innerContainer} className="flex-col-start">
+		<Popper open={!!anchorEl} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 100 }} transition>
+			{({ TransitionProps }) => (
+				<Fade {...TransitionProps} timeout={350}>
+					<span>
+						<Paper style={styles.container} className="flex-col-start">
 							<Row label="Claim Number" value={claim.claim_number} />
 							<Row label="Client" value={claim.client} />
 							<Row label="Client Adjuster" value={claim.client_adjuster} />
 							<Row label="Insured" value={claim.insured} />
 							<Row label="Claim Amount" amount value={claim.claim_amount} />
 							<Row label="Total Incurred" amount value={claim.total_incurred} />
-						</div>
-						<div style={styles.innerContainer} className="flex-col-start">
-							<Row label="Grade" value={''} />
 							<Row label="Date of Loss" date value={claim.date_of_loss?.toString() ?? ''} />
 							<Row label="Loss Location" value={claim.loss_location} />
 							<Row label="Last Update" value={claim.last_updated_by} />
 							<Row label="" date value={claim.last_update?.toString() ?? ''} />
 							<Row label="Expected Recovery" amount value={claim.expected_recovery} />
-						</div>
-					</>
-				) : (
-					<>
-						<div style={{ ...styles.innerContainer, width: '65%' }} className="flex-col-start">
-							<Row label="Claim Number" value={claim.claim_number} />
-						</div>
-						<div style={{ ...styles.innerContainer, width: '35%' }} className="flex-col-start">
 							<Row label="Grade" value={''} />
-						</div>
-					</>
-				)}
-			</Paper>
-			{/* <div style={styles.divider}>
-				<Divider />
-			</div> */}
-		</>
+						</Paper>
+					</span>
+				</Fade>
+			)}
+		</Popper>
 	);
 }
 
 const styles = {
 	container: {
-		width: '100%',
-		maxWidth: 1000,
-		height: 275,
-		display: 'flex',
-		justifyContent: 'space-between',
-		alignItems: 'flex-start',
-		outline: `1px solid ${theme.palette.primary.main}`,
-		transition: 'width 500ms ease, height 350ms ease',
-		marginBottom: 20,
-		cursor: 'pointer',
-		borderRadius: 5,
-		backgroundColor: OFFWHITE_COLOR,
-	},
-	divider: {
-		width: '100%',
-		height: 1,
-		marginBottom: 5,
-	},
-	innerContainer: {
-		width: '50%',
+		width: 450,
 		maxWidth: 450,
 		padding: '0px 10px 10px',
+		height: 'fit-content',
+		borderTopRightRadius: 5,
+		borderBottomLeftRadius: 5,
+		borderBottomRightRadius: 5,
+		border: `1px solid ${theme.palette.secondary.main}`,
 	},
 	row: {
 		width: '100%',

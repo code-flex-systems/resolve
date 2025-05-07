@@ -66,28 +66,30 @@ export default function QuestionNode(props: {
 				</div>
 			</div>
 			<Collapse in={expanded} unmountOnExit>
-				{[...questionAnswers]
-					.sort((a, b) => a.position - b.position)
-					.map((a, i) => (
+				<span>
+					{[...questionAnswers]
+						.sort((a, b) => a.position - b.position)
+						.map((a, i) => (
+							<AnswerNode
+								key={i}
+								pageId={pageId}
+								questionId={questionId}
+								answerId={a.id}
+								answerText={a.text}
+								level={level + 1}
+							/>
+						))}
+					{questionId !== -1 && (
 						<AnswerNode
-							key={i}
+							key={-1}
 							pageId={pageId}
 							questionId={questionId}
-							answerId={a.id}
-							answerText={a.text}
+							answerId={-1}
+							answerText="New Answer"
 							level={level + 1}
 						/>
-					))}
-				{questionId !== -1 && (
-					<AnswerNode
-						key={-1}
-						pageId={pageId}
-						questionId={questionId}
-						answerId={-1}
-						answerText="New Answer"
-						level={level + 1}
-					/>
-				)}
+					)}
+				</span>
 			</Collapse>
 		</>
 	);

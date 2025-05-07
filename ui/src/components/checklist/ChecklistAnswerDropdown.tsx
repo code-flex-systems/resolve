@@ -1,14 +1,4 @@
-import {
-	Checkbox,
-	FormControlLabel,
-	Link,
-	MenuItem,
-	Radio,
-	Select,
-	TextField,
-	Tooltip,
-	Typography,
-} from '@mui/material';
+import { MenuItem, Select, Tooltip, Typography } from '@mui/material';
 import { Question } from '../../types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 

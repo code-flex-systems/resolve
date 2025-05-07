@@ -89,9 +89,11 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
 					</Typography>
 					<Fade in={isFetching && selected} unmountOnExit>
-						<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
-							Loading...
-						</Typography>
+						<span>
+							<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
+								Loading...
+							</Typography>
+						</span>
 					</Fade>
 				</div>
 				{mode === ChecklistMode.EDIT && (
@@ -108,42 +110,46 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					/>
 				)}
 				<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
-					{statusIcon}
+					<span>{statusIcon}</span>
 				</Fade>
 			</div>
 
 			{selectedPageData && mode === ChecklistMode.EDIT && (
 				<Collapse in={selected && !isFetching} unmountOnExit>
-					{selectedPageData.map((q, i) => (
+					<span>
+						{selectedPageData.map((q, i) => (
+							<QuestionNode
+								key={i}
+								pageId={pageId}
+								questionId={q.id}
+								questionText={q.text}
+								questionType={q.type as QuestionType}
+								questionAnswers={q.answers ?? []}
+								level={level + 1}
+								idx={i}
+							/>
+						))}
 						<QuestionNode
-							key={i}
+							key={-1}
 							pageId={pageId}
-							questionId={q.id}
-							questionText={q.text}
-							questionType={q.type as QuestionType}
-							questionAnswers={q.answers ?? []}
+							questionId={-1}
+							questionText="New Question"
+							questionType={QuestionType.SINGLE}
+							questionAnswers={[]}
 							level={level + 1}
-							idx={i}
+							idx={-1}
 						/>
-					))}
-					<QuestionNode
-						key={-1}
-						pageId={pageId}
-						questionId={-1}
-						questionText="New Question"
-						questionType={QuestionType.SINGLE}
-						questionAnswers={[]}
-						level={level + 1}
-						idx={-1}
-					/>
+					</span>
 				</Collapse>
 			)}
 
 			{!!filteredChildren.length && (
 				<Collapse in={expanded} unmountOnExit>
-					{filteredChildren.map((c) => (
-						<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
-					))}
+					<span>
+						{filteredChildren.map((c) => (
+							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
+						))}
+					</span>
 				</Collapse>
 			)}
 		</>
@@ -152,7 +158,8 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 const styles = {
 	icon: {
-		margin: '0px 5px',
+		marginLeft: '5px',
+		marginRight: '10px',
 	},
 	node: {
 		width: '100%',

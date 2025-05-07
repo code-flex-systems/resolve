@@ -1,8 +1,28 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { Answer, PageTemplate, Question, QuestionStat } from '../../types';
-import { useChecklistSlice } from '../../state/store';
+import { Answer, Interval, PageInstance, PageTemplate, Question, QuestionStat } from '../../types';
 import * as checklistActions from '../../state/checklist/actions';
+
+export function usePageInstance(
+	checklistId: number,
+	pageId: number,
+	callback: (data: PageInstance) => void,
+	enabled?: boolean
+) {
+	return useQuery({
+		queryKey: [checklistId, 'pages', pageId],
+		queryFn: async () => {
+			try {
+				let data = await axiosRoutes.getPageInstance(checklistId, pageId);
+				if (data.data) callback(data.data);
+				return data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+		enabled: checklistId !== -1 && pageId !== -1 && enabled !== false,
+	});
+}
 
 export function usePages(callback: (data: PageTemplate[]) => void, enabled?: boolean) {
 	return useQuery({
@@ -68,19 +88,31 @@ export function useQuestions(
 	});
 }
 
-export function useQuestionStats(pageId: number | null, enabled: boolean) {
+export function useQuestionStats(
+	pageId: number | null,
+	enabled: boolean,
+	callback?: (pageId: number, data: QuestionStat[], from?: string, to?: string) => void,
+	interval?: Interval<string>
+) {
+	const formattedInterval = interval && (interval.from || interval.to) ? interval : undefined;
+	let queryKey: (string | number | null)[] = ['pages', pageId, 'questions', 'stats'];
+	if (formattedInterval?.from) queryKey.push(formattedInterval.from);
+	if (formattedInterval?.to) queryKey.push(formattedInterval.to);
 	return useQuery({
-		queryKey: ['pages', pageId, 'questions', 'stats'],
+		queryKey,
 		queryFn: async ({ queryKey }) => {
 			try {
 				let pageId = +queryKey[1]!;
-				let data = await axiosRoutes.getQuestionStats(pageId);
+				let data = await axiosRoutes.getQuestionStats(pageId, formattedInterval);
+				if (typeof callback === 'function' && data.data) {
+					callback(pageId, data.data, queryKey[4]?.toString(), queryKey[5]?.toString());
+				}
 				return data.data as QuestionStat[];
 			} catch (e) {
 				console.error(e);
 			}
 		},
-		enabled: !!pageId && enabled !== false,
+		enabled: !!pageId && enabled,
 	});
 }
 

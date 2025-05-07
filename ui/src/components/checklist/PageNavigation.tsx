@@ -1,4 +1,14 @@
-import { Collapse, Divider, Fade, Link, Paper, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import {
+	Collapse,
+	Divider,
+	Fade,
+	Link,
+	Paper,
+	PopperProps,
+	ToggleButton,
+	ToggleButtonGroup,
+	Typography,
+} from '@mui/material';
 import { Add, ContentPasteSearch, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
 import { BACKDROP_COLOR, BASE_COLOR, OFFWHITE_COLOR, ORANGE_COLOR } from '../../styles/theme';
 import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
@@ -11,8 +21,9 @@ import BasicButton from '../common/BasicButton';
 import { ChecklistMode } from '../../config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
 import config from '../../config/config';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ChecklistLogo from '../../resources/images/ChecklistLogo.png';
+import ClaimInfo from './ClaimInfo';
 
 export default function PageNavigation() {
 	const checklist = useChecklistSlice((state) => state.checklist)!;
@@ -25,6 +36,7 @@ export default function PageNavigation() {
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
 	const tree = useChecklistSlice((state) => state.tree);
+	const [claimAnchorEl, setClaimAnchorEl] = useState<PopperProps['anchorEl']>(null);
 	let filteredTree =
 		mode === ChecklistMode.VIEW ? tree.filter((c) => visibleInstanceIds.includes(c.instanceId)) : tree;
 
@@ -38,13 +50,19 @@ export default function PageNavigation() {
 	const getTitle = () => {
 		return claim ? (
 			<div className="flex-row-left">
-				<ContentPasteSearch sx={{ color: 'primary.main' }} />
-				<Link marginLeft="5px" color="primary">
+				<ContentPasteSearch sx={{ color: 'secondary.main' }} />
+				<Link
+					marginLeft="5px"
+					color="secondary"
+					onMouseEnter={(e) => setClaimAnchorEl(e.currentTarget)}
+					onMouseLeave={() => setClaimAnchorEl(null)}
+				>
 					{claim.claim_number} ({checklist?.name ?? ''})
 				</Link>
+				<ClaimInfo anchorEl={claimAnchorEl} />
 			</div>
 		) : (
-			<Typography color="primary">{checklist?.name ?? ''}</Typography>
+			<Typography color="secondary">{checklist?.name ?? ''}</Typography>
 		);
 	};
 
@@ -149,9 +167,11 @@ export default function PageNavigation() {
 				<Divider />
 				<div style={styles.nodeContainer}>
 					<Collapse in={showChecklistData && !isFetching} unmountOnExit style={styles.nodeContainerInner}>
-						{filteredTree.map((node) => (
-							<TreeNode key={node.instanceId} level={0} {...node} />
-						))}
+						<span>
+							{filteredTree.map((node) => (
+								<TreeNode key={node.instanceId} level={0} {...node} />
+							))}
+						</span>
 					</Collapse>
 				</div>
 			</Paper>

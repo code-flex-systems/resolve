@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as axiosRoutes from '../axios-routes';
-import { AnswerResponse, QuestionResponse } from '../../types';
+import { AnswerResponse, Interval, QuestionResponse } from '../../types';
 import { PageInstanceStatus } from '../../config/enums';
 import useStore, { useChecklistSlice } from '../../state/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -62,15 +62,20 @@ export function useResponses(enabled?: boolean) {
 
 export function useResponsesForAnswer(
 	answerId: number,
-	callback: (answerId: number, data: AnswerResponse[]) => void,
-	enabled?: boolean
+	callback: (answerId: number, data: AnswerResponse[], from?: string, to?: string) => void,
+	enabled: boolean,
+	interval?: Interval<string>
 ) {
+	const formattedInterval = interval && (interval.from || interval.to) ? interval : undefined;
+	let queryKey: (string | number | null)[] = [answerId, 'responses'];
+	if (formattedInterval?.from) queryKey.push(formattedInterval.from);
+	if (formattedInterval?.to) queryKey.push(formattedInterval.to);
 	return useQuery({
-		queryKey: [answerId, 'responses'],
+		queryKey,
 		queryFn: async ({ queryKey }) => {
 			try {
-				let data = await axiosRoutes.getResponsesForAnswer(+queryKey[0]);
-				if (data.data) callback(+queryKey[0], data.data);
+				let data = await axiosRoutes.getResponsesForAnswer(+queryKey[0]!, formattedInterval);
+				if (data.data) callback(+queryKey[0]!, data.data, queryKey[2]?.toString(), queryKey[3]?.toString());
 				return data;
 			} catch (e) {
 				console.error(e);

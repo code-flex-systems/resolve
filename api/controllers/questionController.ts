@@ -1,6 +1,6 @@
 import { r } from 'react-router/dist/development/fog-of-war-BaM-ohjc';
 import questionQueries from '../queries/questionQueries';
-import { AnswerStat, QuestionStat } from '../types/types';
+import { AnswerStat, Interval, QuestionStat } from '../types/types';
 
 export default {
 	createQuestion,
@@ -56,9 +56,9 @@ async function getQuestions(pageId: number) {
 	}
 }
 
-async function getQuestionStats(pageId: number) {
+async function getQuestionStats(pageId: number, interval?: Interval<string>) {
 	try {
-		let results = await questionQueries.getQuestionStats(pageId);
+		let results = await questionQueries.getQuestionStats(pageId, interval);
 		let formattedResults: QuestionStat[] = [];
 		let seenQuestionIds = new Set<number>();
 		(results ?? []).forEach((row) => {

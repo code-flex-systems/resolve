@@ -76,6 +76,11 @@ export interface DialogAction {
 	icon?: JSX.Element;
 }
 
+export type Interval<T> = {
+	from?: T;
+	to?: T;
+};
+
 export interface InstanceListItem {
 	instanceId: number;
 	pageId: number;

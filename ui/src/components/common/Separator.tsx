@@ -1,6 +1,6 @@
 import theme from '../../styles/theme';
 
-export default function Separator() {
+export default function Separator(props: { color?: string }) {
 	return (
 		<div
 			style={{
@@ -8,7 +8,7 @@ export default function Separator() {
 				minWidth: 7,
 				height: 7,
 				margin: '0px 10px',
-				backgroundColor: theme.palette.primary.main,
+				backgroundColor: props.color ?? theme.palette.primary.main,
 			}}
 		/>
 	);

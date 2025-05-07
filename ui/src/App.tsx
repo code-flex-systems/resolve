@@ -22,7 +22,7 @@ export default function App() {
 						<Route path="/checklist/:checklistId/*" element={<Checklist />} />
 						<Route path="/checklist/:checklistId/claim/:claimId/*" element={<Checklist />} />
 						<Route
-							path="/checklist/:checklistId/page-instances/:instanceId/*"
+							path="/checklist/:checklistId/pages/:pageId/page-instances/:instanceId/*"
 							element={<ChecklistPageBreakdown />}
 						/>
 					</Routes>

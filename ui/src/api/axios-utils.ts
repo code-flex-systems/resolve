@@ -3,8 +3,17 @@ import axios from 'axios';
 const axiosInstance = axios.create({
 	withCredentials: false,
 	baseURL: 'http://localhost:8080/api',
-	timeout: 100000
+	timeout: 100000,
 });
+
+export function buildQuery(params?: Record<string, any>) {
+	if (!params) return '';
+	let query: any[] = [];
+	Object.keys(params).forEach((key) => {
+		if (params[key]) query.push(`${key}=${params[key]}`);
+	});
+	return query.length ? `?${query.join('&')}` : '';
+}
 
 export function performAsyncDelete(route: string, config?: any) {
 	return axiosInstance.delete(route, config);

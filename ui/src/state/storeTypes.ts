@@ -4,12 +4,24 @@ import {
 	Checklist,
 	ChecklistClaim,
 	Claim,
+	Interval,
+	PageInstance,
 	PageTemplate,
 	Question,
 	QuestionResponse,
+	QuestionStat,
 	TreeNode,
 	User,
 } from '../types';
+
+export interface BreakdownSlice {
+	answerBreakdowns: Map<string, AnswerResponse[]>;
+	breakdownInterval: Interval<string>;
+	pageInstance: PageInstance | null;
+	selectedAnswerId: number | null;
+	selectedQuestionId: number | null;
+	questionStats: Map<string, QuestionStat[]>;
+}
 
 export interface ChecklistSlice {
 	answerResponses: Map<number, AnswerResponse[]>;

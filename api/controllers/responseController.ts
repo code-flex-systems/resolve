@@ -2,7 +2,7 @@ import { PageInstanceStatus } from '../config/enums';
 import pageQueries from '../queries/pageQueries';
 import questionQueries from '../queries/questionQueries';
 import responseQueries from '../queries/responseQueries';
-import { QuestionResponse } from '../types/types';
+import { Interval, QuestionResponse } from '../types/types';
 import { getUpdatedPageStatus } from '../utils/utils';
 
 export default {
@@ -33,9 +33,9 @@ async function evaluateResponses(checklistId: number, claimId: number, instanceI
 	}
 }
 
-async function getResponsesForAnswer(answerId: number) {
+async function getResponsesForAnswer(answerId: number, interval?: Interval<string>) {
 	try {
-		let results = await responseQueries.getResponsesForAnswer(answerId);
+		let results = await responseQueries.getResponsesForAnswer(answerId, interval);
 		return results;
 	} catch (e) {
 		console.error(e);

@@ -1,5 +1,5 @@
-import { ClaimSearchType, QuestionResponse } from '../types';
-import { performAsyncDelete, performAsyncGet, performAsyncPost, performAsyncPut } from './axios-utils';
+import { ClaimSearchType, Interval, QuestionResponse } from '../types';
+import { buildQuery, performAsyncDelete, performAsyncGet, performAsyncPost, performAsyncPut } from './axios-utils';
 
 const ROUTES = {
 	ANSWERS: '/answers',
@@ -20,8 +20,7 @@ export function getClaim(checklistId: number, claimId: number) {
 }
 
 export function getClaims(searchTerm?: { type: ClaimSearchType; value: string }) {
-	let searchTermQuery = searchTerm ? `?type=${searchTerm.type}&value=${searchTerm.value}` : '';
-	return performAsyncGet(`${ROUTES.CLAIMS}${searchTermQuery}`);
+	return performAsyncGet(`${ROUTES.CLAIMS}${buildQuery(searchTerm)}`);
 }
 // DUMMY
 
@@ -62,8 +61,7 @@ export function getChecklist(checklistId: number) {
 }
 
 export function getChecklists(searchTerm?: string) {
-	const searchTermQuery = searchTerm ? `?searchTerm=${searchTerm}` : '';
-	return performAsyncGet(`${ROUTES.CHECKLISTS}${searchTermQuery}`);
+	return performAsyncGet(`${ROUTES.CHECKLISTS}${buildQuery({ searchTerm })}`);
 }
 
 export function getChecklistClaim(checklistId: number, claimId: number) {
@@ -127,9 +125,7 @@ export function getPageInstances(checklistId: number, parentId: number) {
 }
 
 export function getPageInstanceTree(checklistId: number, claimId?: number) {
-	return performAsyncGet(
-		`/${checklistId}${ROUTES.PAGES}${ROUTES.INSTANCES}/tree${claimId ? `?claimId=${claimId}` : ''}`
-	);
+	return performAsyncGet(`/${checklistId}${ROUTES.PAGES}${ROUTES.INSTANCES}/tree${buildQuery({ claimId })}`);
 }
 
 export function getVisiblePageInstances(checklistId: number, claimId: number) {
@@ -160,8 +156,8 @@ export function getQuestions(pageId: number) {
 	return performAsyncGet(`/${pageId}${ROUTES.QUESTIONS}`);
 }
 
-export function getQuestionStats(pageId: number) {
-	return performAsyncGet(`/${pageId}${ROUTES.QUESTIONS}${ROUTES.STATS}`);
+export function getQuestionStats(pageId: number, interval?: Interval<string>) {
+	return performAsyncGet(`/${pageId}${ROUTES.QUESTIONS}${ROUTES.STATS}${buildQuery(interval)}`);
 }
 
 export function modifyQuestion(pageId: number, questionId: number, updates: object) {
@@ -180,8 +176,8 @@ export function getResponses(checklistId: number, claimId: number, instanceId: n
 	return performAsyncGet(`/${checklistId}/${claimId}/${instanceId}${ROUTES.RESPONSES}`);
 }
 
-export function getResponsesForAnswer(answerId: number) {
-	return performAsyncGet(`/${answerId}${ROUTES.RESPONSES}`);
+export function getResponsesForAnswer(answerId: number, interval?: Interval<string>) {
+	return performAsyncGet(`/${answerId}${ROUTES.RESPONSES}${buildQuery(interval)}`);
 }
 
 export function upsertResponses(responses: QuestionResponse[]) {

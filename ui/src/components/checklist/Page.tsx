@@ -9,9 +9,11 @@ import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description, TaskAlt } from '@mui/icons-material';
-import ClaimInfo from './ClaimInfo';
 import { useResponses, useUpsertResponses } from '../../api/queries/response-queries';
 import PageToolbar from './PageToolbar';
+import { LineWobble } from 'ldrs/react';
+import 'ldrs/react/LineWobble.css';
+import theme from '../../styles/theme';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	let defaults: Record<string, number[] | string> = {};
@@ -53,6 +55,7 @@ export default function Page() {
 	const selectedPageData = useStore(useShallow(selectors.selectedPageData));
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const shouldFetchResponses = useStore(useShallow(selectors.shouldFetchResponses));
+	const pageResponses = responses.get(selectedPageInstance)?.responses;
 
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
 
@@ -65,13 +68,11 @@ export default function Page() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	useEffect(() => {
+		if (loading) return;
 		reset({
-			...generateDefaultValues(
-				selectedPageData,
-				mode === ChecklistMode.VIEW ? responses.get(selectedPageInstance)?.responses : undefined
-			),
+			...generateDefaultValues(selectedPageData, mode === ChecklistMode.VIEW ? pageResponses : undefined),
 		});
-	}, [selectedPageData, responses, selectedPageInstance, mode]);
+	}, [selectedPageData, pageResponses, selectedPageInstance, mode, loading]);
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -104,11 +105,25 @@ export default function Page() {
 
 	return (
 		<div style={styles.container}>
-			{/* <ClaimInfo /> */}
-			<PageToolbar />
+			{/* <PageToolbar /> */}
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Typography fontStyle="italic">{loading ? 'Loading...' : 'No page selected'}</Typography>
+					{loading ? (
+						<>
+							<Typography fontStyle="italic" color="primary">
+								Loading...
+							</Typography>
+							<LineWobble
+								size="200"
+								stroke="5"
+								bgOpacity="0.1"
+								speed="2"
+								color={theme.palette.primary.main}
+							/>
+						</>
+					) : (
+						<Typography fontStyle="italic">No page selected</Typography>
+					)}
 				</div>
 			)}
 			{!!selectedPageData && (
@@ -155,18 +170,20 @@ export default function Page() {
 					<div style={styles.divider}>
 						<Divider />
 					</div>
-					<Form control={control} style={styles.form}>
-						{(selectedPageData ?? []).map((question, i) => (
-							<ChecklistQuestion
-								key={question.id}
-								control={control}
-								resetField={resetField}
-								watch={watch}
-								question={question}
-								idx={i}
-							/>
-						))}
-					</Form>
+					{!loading && (
+						<Form control={control} style={styles.form}>
+							{selectedPageData.map((question, i) => (
+								<ChecklistQuestion
+									key={question.id}
+									control={control}
+									resetField={resetField}
+									watch={watch}
+									question={question}
+									idx={i}
+								/>
+							))}
+						</Form>
+					)}
 				</>
 			)}
 		</div>
@@ -181,7 +198,7 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		padding: 20,
+		padding: '0px 20px 20px',
 	},
 	divider: {
 		width: '100%',

@@ -184,7 +184,7 @@ async function getQuestions(pageId: number) {
 	}
 }
 
-async function getQuestionStats(pageId: number, interval?: Interval<Date>) {
+async function getQuestionStats(pageId: number, interval?: Interval<string>) {
 	try {
 		let results = await db
 			.selectFrom('question as q')
@@ -201,8 +201,8 @@ async function getQuestionStats(pageId: number, interval?: Interval<Date>) {
 			.where((eb) => {
 				let andClause = [eb('q.page_id', '=', pageId)];
 				if (interval) {
-					andClause.push(eb('qr.created_at', '>=', interval.from));
-					andClause.push(eb('qr.created_at', '<=', interval.to));
+					if (interval.from) andClause.push(eb('qr.created_at', '>=', new Date(interval.from)));
+					if (interval.to) andClause.push(eb('qr.created_at', '<=', new Date(interval.to)));
 				} else {
 					andClause.push(eb('qr.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()));
 				}

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import questionController from '../../controllers/questionController';
 import { getId } from '../route-utils';
+import { Interval } from '../../types/types';
 
 export default {
 	createQuestion,
@@ -59,7 +60,11 @@ async function getQuestions(req: Request, res: Response) {
 
 async function getQuestionStats(req: Request, res: Response) {
 	try {
-		let ret = await questionController.getQuestionStats(getId(req, 'page'));
+		const interval: Interval<string> | undefined =
+			req.query.from || req.query.to
+				? { from: req.query.from?.toString(), to: req.query.to?.toString() }
+				: undefined;
+		let ret = await questionController.getQuestionStats(getId(req, 'page'), interval);
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

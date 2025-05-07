@@ -5,8 +5,8 @@ import { ChecklistMode } from '../../config/enums';
 export default function PageToolbar() {
 	const mode = useChecklistSlice((state) => state.mode);
 	return (
-		<>
-			<Collapse style={styles.container} in={mode === ChecklistMode.VIEW} unmountOnExit>
+		<Collapse style={{ width: '100%', height: 45 }} in={mode === ChecklistMode.VIEW}>
+			<div style={{ width: '100%', height: 45, minHeight: 45, maxHeight: 45 }}>
 				<div style={styles.container}>
 					<Button color="secondary" style={styles.button}>
 						Summary
@@ -24,23 +24,21 @@ export default function PageToolbar() {
 						Evaluation
 					</Button>
 				</div>
-			</Collapse>
-			{mode === ChecklistMode.VIEW && (
 				<div style={styles.divider}>
 					<Divider />
 				</div>
-			)}
-		</>
+			</div>
+		</Collapse>
 	);
 }
 
 const styles = {
 	button: {
+		height: 30,
 		margin: 5,
 	},
 	container: {
 		width: '100%',
-		height: 50,
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',

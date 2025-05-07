@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import responseController from '../../controllers/responseController';
 import { getId } from '../route-utils';
+import { Interval } from '../../types/types';
 
 export default {
 	evaluateResponses,
@@ -25,7 +26,11 @@ async function evaluateResponses(req: Request, res: Response) {
 
 async function getResponsesForAnswer(req: Request, res: Response) {
 	try {
-		let ret = await responseController.getResponsesForAnswer(getId(req, 'answer'));
+		const interval: Interval<string> | undefined =
+			req.query.from || req.query.to
+				? { from: req.query.from?.toString(), to: req.query.to?.toString() }
+				: undefined;
+		let ret = await responseController.getResponsesForAnswer(getId(req, 'answer'), interval);
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);
