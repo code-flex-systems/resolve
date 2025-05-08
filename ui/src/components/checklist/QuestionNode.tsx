@@ -54,13 +54,18 @@ export default function QuestionNode(props: {
 							/>
 						</IconButton>
 					)}
+					{questionId !== -1 && (
+						<Typography fontWeight="bold" paddingRight="10px">
+							{idx + 1}.
+						</Typography>
+					)}
 					<Typography
 						color={selected || isPlaceholder ? 'primary' : ''}
 						fontWeight={isPlaceholder ? 'bold' : ''}
+						lineHeight="19px"
 						sx={{ cursor: 'pointer' }}
 						className={'node-q'}
 					>
-						{questionId === -1 ? '' : <b style={{ color: '#787878' }}>{idx + 1}. </b>}
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>
@@ -98,7 +103,7 @@ export default function QuestionNode(props: {
 const styles = {
 	node: {
 		width: '100%',
-		height: 30,
-		borderRadius: 5,
+		minHeight: 30,
+		padding: '2px 0px',
 	},
 };

@@ -20,6 +20,7 @@ export default function ChecklistAnswerFreeform(props: {
 			sx={{
 				width: 400,
 				marginTop: '5px',
+				padding: '0px 10px',
 				'& .MuiInputBase-root': {
 					borderRadius: 0,
 					padding: '2px 5px',

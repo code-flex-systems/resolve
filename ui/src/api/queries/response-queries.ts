@@ -33,11 +33,13 @@ export function useResponses(enabled?: boolean) {
 	const claimId = useChecklistSlice((state) => state.claim)?.id ?? -1;
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const pageVersion = useChecklistSlice((state) => state.pages).get(selectedPageInfo.pageId)?.version ?? 1;
+	const responseVersion =
+		useChecklistSlice((state) => state.responses).get(selectedPageInfo.instanceId)?.version ?? 0;
 	return useQuery({
 		queryKey: [checklistId, claimId, selectedPageInfo.instanceId, pageVersion, 'responses'],
 		queryFn: async ({ queryKey }) => {
 			try {
-				if (selectedPageInfo.status === PageInstanceStatus.STALE) {
+				if (pageVersion !== responseVersion) {
 					const [responseData, evaluationData] = await Promise.all([
 						axiosRoutes.getResponses(+queryKey[0], +queryKey[1], +queryKey[2]),
 						axiosRoutes.evaluateResponses(+queryKey[0], +queryKey[1], +queryKey[2]),

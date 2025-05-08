@@ -14,10 +14,7 @@ export default function ChecklistFormLabel(props: {
 }) {
 	const { id, value, idx, question, resetField } = props;
 	return (
-		<FormLabel className="flex-row-left">
-			<Typography fontWeight="bold">
-				{idx + 1}. {question.text}
-			</Typography>
+		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
 			<Tooltip title="Reset question" enterDelay={500}>
 				<span>
 					<IconButton
@@ -25,12 +22,15 @@ export default function ChecklistFormLabel(props: {
 							resetField(id, { defaultValue: question.type === QuestionType.FREEFORM ? '' : [] })
 						}
 						disabled={!value?.length}
-						sx={{ marginLeft: '10px' }}
+						sx={{ marginRight: '10px' }}
 					>
 						<Replay sx={{ fontSize: 17 }} />
 					</IconButton>
 				</span>
 			</Tooltip>
+			<Typography fontWeight="bold">
+				{idx + 1}. {question.text}
+			</Typography>
 			{!!question.description_text && (
 				<QuestionInfo description={question.description_text} filename={question.description_image_url} />
 			)}

@@ -11,7 +11,7 @@ export default function QuestionInfo(props: { description: string | null; filena
 	return (
 		<>
 			<Tooltip title={description ?? ''} placement="top" arrow>
-				<Info ref={ref} sx={{ color: 'primary.main', marginLeft: '5px' }} className="info" />
+				<Info ref={ref} sx={{ color: 'primary.main', marginLeft: '10px' }} className="info" />
 			</Tooltip>
 
 			<Popper

@@ -224,7 +224,8 @@ const styles = {
 		marginTop: '10px',
 	},
 	container: {
-		width: '100%',
+		flex: 1,
+		minWidth: 0,
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,

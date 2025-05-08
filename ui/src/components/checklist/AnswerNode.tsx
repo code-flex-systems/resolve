@@ -29,6 +29,7 @@ export default function AnswerNode(props: {
 					color={selected ? ORANGE_COLOR : isPlaceholder ? 'primary' : ''}
 					fontWeight={isPlaceholder ? 'bold' : ''}
 					className={mode === ChecklistMode.EDIT ? 'node-a' : undefined}
+					lineHeight="19px"
 					sx={{ cursor: 'pointer' }}
 				>
 					{answerText} (p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId})
@@ -41,7 +42,7 @@ export default function AnswerNode(props: {
 const styles = {
 	node: {
 		width: '100%',
-		height: 30,
-		borderRadius: 5,
+		minHeight: 30,
+		padding: '2px 0px',
 	},
 };

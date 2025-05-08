@@ -87,6 +87,6 @@ export function ChecklistQuestion(props: {
 const styles = {
 	container: {
 		width: '100%',
-		padding: 10,
+		padding: '10px 0px',
 	},
 };

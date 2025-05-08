@@ -22,6 +22,7 @@ import { useChecklistsSlice } from '../../state/store';
 import ChecklistMenuItem from './ChecklistMenuItem';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
+import theme from '../../styles/theme';
 
 export default function ChecklistsSearch() {
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
@@ -82,7 +83,7 @@ export default function ChecklistsSearch() {
 									<InputAdornment position="end">
 										<InputAdornment position="end">
 											{searching ? (
-												<Orbit size="30" speed="1.5" color="black" />
+												<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
 											) : (
 												<IconButton size="small" onClick={handleClearInput}>
 													<ClearIcon sx={{ fontSize: 17 }} />
@@ -151,7 +152,9 @@ const styles = {
 		overflowY: 'auto' as const,
 		width: '100%',
 		outline: '1px solid #E0E0E0',
-		transform: 'translate(-25px, 5px)',
+		transform: 'translate(-26px, 0px)',
+		borderBottomLeftRadius: 2,
+		borderBottomRightRadius: 2,
 	},
 	textField: {
 		width: 300,

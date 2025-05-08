@@ -23,14 +23,15 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 
 const styles = {
 	container: {
-		width: '100%',
-		height: '100%',
+		width: '100vw',
+		height: '100vh',
 		display: 'flex',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 	},
 	content: {
-		width: '100%',
+		flex: 1,
+		minWidth: 0,
 		height: '100vh',
 		display: 'flex',
 		flexDirection: 'column' as const,

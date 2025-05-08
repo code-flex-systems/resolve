@@ -10,7 +10,6 @@ import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description, TaskAlt } from '@mui/icons-material';
 import { useResponses, useUpsertResponses } from '../../api/queries/response-queries';
-import PageToolbar from './PageToolbar';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme from '../../styles/theme';
@@ -56,12 +55,13 @@ export default function Page() {
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const shouldFetchResponses = useStore(useShallow(selectors.shouldFetchResponses));
 	const pageResponses = responses.get(selectedPageInstance)?.responses;
+	const responseVersion = responses.get(selectedPageInstance)?.version;
 
 	const { control, resetField, reset, watch, handleSubmit } = useForm();
 
 	const { isPending: updating, mutateAsync: upsertResponses } = useUpsertResponses(
 		selectedPageInstance,
-		selectedPageInfo?.template_version ?? 1
+		responseVersion ?? 1
 	);
 	const { isFetching: loading } = useResponses(shouldFetchResponses);
 
@@ -105,7 +105,6 @@ export default function Page() {
 
 	return (
 		<div style={styles.container}>
-			{/* <PageToolbar /> */}
 			{!selectedPageData && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
 					{loading ? (
@@ -192,7 +191,8 @@ export default function Page() {
 
 const styles = {
 	container: {
-		width: '100%',
+		flex: 1,
+		minWidth: 0,
 		height: 'calc(100% - 50px)',
 		display: 'flex',
 		flexDirection: 'column' as const,

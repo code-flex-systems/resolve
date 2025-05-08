@@ -10,7 +10,7 @@ import {
 	Typography,
 } from '@mui/material';
 import { Add, ContentPasteSearch, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
-import { BACKDROP_COLOR, BASE_COLOR, OFFWHITE_COLOR, ORANGE_COLOR } from '../../styles/theme';
+import { OFFWHITE_COLOR } from '../../styles/theme';
 import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import { useAddPage, usePageInstanceTree } from '../../api/queries/page-queries';
 import * as selectors from '../../state/checklist/selectors';
@@ -22,7 +22,6 @@ import { ChecklistMode } from '../../config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
 import config from '../../config/config';
 import { useEffect, useState } from 'react';
-import ChecklistLogo from '../../resources/images/ChecklistLogo.png';
 import ClaimInfo from './ClaimInfo';
 
 export default function PageNavigation() {
@@ -193,6 +192,7 @@ const styles = {
 	container: {
 		width: 'fit-content',
 		minWidth: 500,
+		maxWidth: 500,
 		height: 'calc(100vh - 60px)',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,

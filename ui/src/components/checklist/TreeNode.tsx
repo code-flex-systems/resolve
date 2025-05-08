@@ -82,9 +82,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							/>
 						</IconButton>
 					) : (
-						<div style={{ width: 30 }} />
+						<div style={{ width: 30, minWidth: 30 }} />
 					)}
-					<Typography>
+					<Typography maxWidth={350}>
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
 					</Typography>

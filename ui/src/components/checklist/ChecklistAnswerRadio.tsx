@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, Link, Radio, Tooltip } from '@mui/material';
+import { Checkbox, FormControlLabel, Link, Radio, Stack, Tooltip, Typography } from '@mui/material';
 import { QuestionType } from '../../config/enums';
 import { Question } from '../../types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
@@ -11,7 +11,7 @@ export default function ChecklistAnswerRadio(props: {
 }) {
 	const { field, question, disabled } = props;
 	return (
-		<div className="flex-row-left">
+		<Stack direction="row" flexWrap="wrap" spacing={0.5} useFlexGap padding="0px 10px">
 			{(question.answers ?? []).map((a) => (
 				<Tooltip key={a.id} placement="top" title={a.description_text ?? ''} arrow>
 					<FormControlLabel
@@ -52,12 +52,12 @@ export default function ChecklistAnswerRadio(props: {
 									{a.text}
 								</Link>
 							) : (
-								a.text
+								<Typography noWrap>{a.text}</Typography>
 							)
 						}
 					/>
 				</Tooltip>
 			))}
-		</div>
+		</Stack>
 	);
 }

@@ -23,6 +23,7 @@ import ClaimMenuItem from './ClaimMenuItem';
 import { useChecklistsSlice } from '../../state/store';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
+import theme from '../../styles/theme';
 
 export default function ClaimsSearch() {
 	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
@@ -83,7 +84,7 @@ export default function ClaimsSearch() {
 								endAdornment: query && (
 									<InputAdornment position="end">
 										{searching ? (
-											<Orbit size="30" speed="1.5" color="black" />
+											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
 										) : (
 											<IconButton size="small" onClick={handleClearInput}>
 												<ClearIcon sx={{ fontSize: 17 }} />

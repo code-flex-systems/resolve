@@ -144,8 +144,9 @@ export function updateTree(tree: TreeNode[], maxPosition: number, visibleIds?: n
 
 export function updateTreeNodeStatus(instanceId: number, newStatus: PageInstanceStatus) {
 	setState((state) => {
-		let node = findTreeNode(instanceId, state.tree);
+		const node = findTreeNode(instanceId, state.tree);
 		if (node) node.status = newStatus;
+		if (state.selectedPageInfo?.instanceId === instanceId) state.selectedPageInfo.status = newStatus;
 	});
 }
 

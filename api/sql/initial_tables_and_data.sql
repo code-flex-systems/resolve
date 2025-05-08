@@ -3,6 +3,7 @@ drop table if exists question_response_answer;
 drop table if exists question_response;
 drop table if exists answer cascade;
 drop table if exists question cascade;
+drop table if exists page_instance_status cascade;
 drop table if exists page_instance cascade;
 drop table if exists page cascade;
 drop table if exists checklist_claim;
@@ -37,7 +38,7 @@ create table claim(
 create table checklist_claim(
     claim_id integer not null references claim(id),
 	checklist_id integer not null references checklist(id),
-    last_opened not null timestamp without time zone default now(),
+    last_opened timestamp without time zone not null default now(),
     unique(checklist_id, claim_id)
 );
 
