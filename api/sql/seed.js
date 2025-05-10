@@ -96,7 +96,11 @@ let respId = 1;
 let respAnsId = 1;
 
 // 3) One checklist
-statements.push(`INSERT INTO checklist (id,name) VALUES (${checklistId}, '${esc(faker.company.catchPhrase())}');`);
+statements.push(
+	`INSERT INTO checklist (id,name,created_by) VALUES (${checklistId}, '${esc(
+		faker.company.catchPhrase()
+	)}', 'Owen Farthing');`
+);
 
 // 4) Fifty claims
 for (let i = 1; i <= numClaims; i++) {

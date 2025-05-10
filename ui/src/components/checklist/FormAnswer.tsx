@@ -279,13 +279,6 @@ export default function FormAnswer() {
 									error={!!errors.calls_instance_id}
 									{...field}
 									sx={styles.textFieldOverrides}
-									MenuProps={{
-										PaperProps: {
-											sx: {
-												maxHeight: 300,
-											},
-										},
-									}}
 								>
 									{pageInstanceOptions
 										.sort((a, b) => a.pageId - b.pageId)

@@ -73,6 +73,18 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiSelect: {
+			defaultProps: {
+				MenuProps: {
+					PaperProps: {
+						sx: {
+							maxHeight: 300,
+							maxWidth: 600,
+						},
+					},
+				},
+			},
+		},
 		MuiSkeleton: {
 			defaultProps: {
 				animation: 'wave',
