@@ -131,7 +131,6 @@ export default function PageEditor() {
 										padding="5px"
 										lineHeight={'21px'}
 										fontSize={19}
-										width={300}
 									>
 										{selectedPageInfo.title} (p{selectedPageInfo.pageId}.i
 										{selectedPageInfo.instanceId})
