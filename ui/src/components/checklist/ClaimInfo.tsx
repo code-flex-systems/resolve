@@ -1,9 +1,11 @@
-import { Fade, Paper, Popper, PopperProps, Skeleton, Typography } from '@mui/material';
+import { Fade, Link, Paper, Popper, PopperProps, Skeleton, Typography } from '@mui/material';
 import { useChecklistSlice } from '../../state/store';
 import dayjs from 'dayjs';
 import Separator from '../common/Separator';
 import theme, { OFFWHITE_COLOR } from '../../styles/theme';
 import { formatAmount } from '../../utils/utils';
+import { ContentPasteSearch } from '@mui/icons-material';
+import { useState } from 'react';
 
 function Row(props: {
 	label: string;
@@ -46,33 +48,51 @@ function Row(props: {
 	);
 }
 
-export default function ClaimInfo(props: { anchorEl: PopperProps['anchorEl'] }) {
-	const { anchorEl } = props;
+export default function ClaimInfo() {
+	const [claimAnchorEl, setClaimAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const checklist = useChecklistSlice((state) => state.checklist);
 	const claim = useChecklistSlice((state) => state.claim);
 	if (!claim) return <></>;
 	return (
-		<Popper open={!!anchorEl} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 100 }} transition>
-			{({ TransitionProps }) => (
-				<Fade {...TransitionProps} timeout={350}>
-					<span>
-						<Paper style={styles.container} className="flex-col-start">
-							<Row label="Claim Number" value={claim.claim_number} />
-							<Row label="Client" value={claim.client} />
-							<Row label="Client Adjuster" value={claim.client_adjuster} />
-							<Row label="Insured" value={claim.insured} />
-							<Row label="Claim Amount" amount value={claim.claim_amount} />
-							<Row label="Total Incurred" amount value={claim.total_incurred} />
-							<Row label="Date of Loss" date value={claim.date_of_loss?.toString() ?? ''} />
-							<Row label="Loss Location" value={claim.loss_location} />
-							<Row label="Last Update" value={claim.last_updated_by} />
-							<Row label="" date value={claim.last_update?.toString() ?? ''} />
-							<Row label="Expected Recovery" amount value={claim.expected_recovery} />
-							<Row label="Grade" value={''} />
-						</Paper>
-					</span>
-				</Fade>
-			)}
-		</Popper>
+		<div className="flex-row-left">
+			<ContentPasteSearch sx={{ color: 'secondary.main' }} />
+			<Link
+				marginLeft="5px"
+				color="secondary"
+				onMouseEnter={(e) => setClaimAnchorEl(e.currentTarget)}
+				onMouseLeave={() => setClaimAnchorEl(null)}
+			>
+				{claim.claim_number} ({checklist?.name ?? ''})
+			</Link>
+			<Popper
+				open={!!claimAnchorEl}
+				anchorEl={claimAnchorEl}
+				placement="bottom-start"
+				style={{ zIndex: 100 }}
+				transition
+			>
+				{({ TransitionProps }) => (
+					<Fade {...TransitionProps} timeout={350}>
+						<span>
+							<Paper style={styles.container} className="flex-col-start">
+								<Row label="Claim Number" value={claim.claim_number} />
+								<Row label="Client" value={claim.client} />
+								<Row label="Client Adjuster" value={claim.client_adjuster} />
+								<Row label="Insured" value={claim.insured} />
+								<Row label="Claim Amount" amount value={claim.claim_amount} />
+								<Row label="Total Incurred" amount value={claim.total_incurred} />
+								<Row label="Date of Loss" date value={claim.date_of_loss?.toString() ?? ''} />
+								<Row label="Loss Location" value={claim.loss_location} />
+								<Row label="Last Update" value={claim.last_updated_by} />
+								<Row label="" date value={claim.last_update?.toString() ?? ''} />
+								<Row label="Expected Recovery" amount value={claim.expected_recovery} />
+								<Row label="Grade" value={''} />
+							</Paper>
+						</span>
+					</Fade>
+				)}
+			</Popper>
+		</div>
 	);
 }
 

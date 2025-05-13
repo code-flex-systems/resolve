@@ -21,6 +21,16 @@ export interface AnswerStat {
 	answer_text: string;
 }
 
+export interface ChecklistSummaryRow {
+	answer_id: number;
+	page_id: number;
+	page_title: string;
+	question_id: number;
+	question_text: string;
+	response_text?: string;
+	answer_texts?: string;
+}
+
 export type ClaimSearchType = 'claim_number' | 'insured';
 
 export type Interval<T> = {

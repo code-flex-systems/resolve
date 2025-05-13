@@ -9,7 +9,14 @@ import {
 	ToggleButtonGroup,
 	Typography,
 } from '@mui/material';
-import { Add, ContentPasteSearch, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
+import {
+	Add,
+	ArrowForward,
+	ContentPasteSearch,
+	MovieCreationOutlined,
+	MovieEdit,
+	Visibility,
+} from '@mui/icons-material';
 import { OFFWHITE_COLOR } from '../../styles/theme';
 import useStore, { useChecklistSlice, useGlobalSlice } from '../../state/store';
 import { useAddPage, usePageInstanceTree } from '../../api/queries/page-queries';
@@ -23,8 +30,10 @@ import QuestionStatsDialog from './QuestionStatsDialog';
 import config from '../../config/config';
 import { useEffect, useState } from 'react';
 import ClaimInfo from './ClaimInfo';
+import { useNavigate } from 'react-router';
 
 export default function PageNavigation() {
+	const navigate = useNavigate();
 	const checklist = useChecklistSlice((state) => state.checklist)!;
 	const claim = useChecklistSlice((state) => state.claim);
 	const user = useGlobalSlice((state) => state.user);
@@ -35,34 +44,14 @@ export default function PageNavigation() {
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const visibleInstanceIds = useChecklistSlice((state) => state.visibleInstanceIds);
 	const tree = useChecklistSlice((state) => state.tree);
-	const [claimAnchorEl, setClaimAnchorEl] = useState<PopperProps['anchorEl']>(null);
 	let filteredTree =
 		mode === ChecklistMode.VIEW ? tree.filter((c) => visibleInstanceIds.includes(c.instanceId)) : tree;
 
 	const { mutateAsync: addPage, isPending: adding } = useAddPage(checklist.id);
-	const { isFetching, refetch } = usePageInstanceTree(true, checklist.id, claim?.id);
-
-	useEffect(() => {
-		if (mode === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
-	}, [mode, refetch]);
+	const { isFetching, refetch } = usePageInstanceTree(!tree.length, checklist.id, claim?.id);
 
 	const getTitle = () => {
-		return claim ? (
-			<div className="flex-row-left">
-				<ContentPasteSearch sx={{ color: 'secondary.main' }} />
-				<Link
-					marginLeft="5px"
-					color="secondary"
-					onMouseEnter={(e) => setClaimAnchorEl(e.currentTarget)}
-					onMouseLeave={() => setClaimAnchorEl(null)}
-				>
-					{claim.claim_number} ({checklist?.name ?? ''})
-				</Link>
-				<ClaimInfo anchorEl={claimAnchorEl} />
-			</div>
-		) : (
-			<Typography color="secondary">{checklist?.name ?? ''}</Typography>
-		);
+		return claim ? <ClaimInfo /> : <Typography color="secondary">{checklist?.name ?? ''}</Typography>;
 	};
 
 	const onAddPage = async () => {
@@ -85,20 +74,38 @@ export default function PageNavigation() {
 				<Toolbar
 					left={getTitle()}
 					right={
-						<Fade in={mode === ChecklistMode.EDIT}>
+						<Fade
+							in={mode === ChecklistMode.EDIT || (mode === ChecklistMode.VIEW && !!checklist && !!claim)}
+						>
 							<span>
-								<BasicButton
-									buttonProps={{
-										onClick: () => onAddPage().catch((e) => console.error(e)),
-										disabled: isFetching || adding,
-										variant: 'contained',
-										sx: styles.button,
-										color: 'secondary',
-										startIcon: <Add sx={{ color: 'white' }} />,
-									}}
-								>
-									New Page
-								</BasicButton>
+								{mode === ChecklistMode.EDIT ? (
+									<BasicButton
+										buttonProps={{
+											onClick: () => onAddPage().catch((e) => console.error(e)),
+											disabled: isFetching || adding,
+											variant: 'contained',
+											sx: styles.button,
+											color: 'secondary',
+											startIcon: <Add sx={{ color: 'white' }} />,
+										}}
+									>
+										New Page
+									</BasicButton>
+								) : (
+									<BasicButton
+										buttonProps={{
+											onClick: () => {
+												navigate(`/checklist/${checklist?.id}/claim/${claim?.id}/summary`);
+											},
+											variant: 'contained',
+											sx: styles.button,
+											color: 'secondary',
+											endIcon: <ArrowForward sx={{ color: 'white' }} />,
+										}}
+									>
+										Summary
+									</BasicButton>
+								)}
 							</span>
 						</Fade>
 					}
@@ -115,7 +122,10 @@ export default function PageNavigation() {
 									color="primary"
 									value={mode}
 									exclusive
-									onChange={(_, value) => actions.updateMode(value)}
+									onChange={(_, value) => {
+										actions.updateMode(value);
+										if (value === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
+									}}
 								>
 									<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
 										<Visibility

@@ -7,6 +7,7 @@ import './styles/global-styles.css';
 import Checklist from './components/pages/Checklist';
 import ChecklistPageBreakdown from './components/pages/ChecklistPageBreakdown';
 import Checklists from './components/pages/Checklists';
+import Summary from './components/pages/Summary';
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ export default function App() {
 						<Route path="/checklists/*" element={<Checklists />} />
 						<Route path="/checklist/*" element={<Checklist />} />
 						<Route path="/checklist/:checklistId/*" element={<Checklist />} />
+						<Route path="/checklist/:checklistId/claim/:claimId/summary/*" element={<Summary />} />
 						<Route path="/checklist/:checklistId/claim/:claimId/*" element={<Checklist />} />
 						<Route
 							path="/checklist/:checklistId/pages/:pageId/page-instances/:instanceId/*"

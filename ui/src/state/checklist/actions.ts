@@ -1,7 +1,10 @@
-import { ChecklistMode, PageInstanceStatus } from '../../config/enums';
+import { ChecklistMode, PageInstanceStatus, SummarySegment } from '../../config/enums';
 import {
 	AnswerResponse,
 	Checklist,
+	ChecklistSummary,
+	ChecklistSummaryCache,
+	ChecklistSummaryRow,
 	Claim,
 	InstanceListItem,
 	PageTemplate,
@@ -29,6 +32,40 @@ export function setChecklistData(newChecklist: Checklist) {
 	});
 }
 
+export function setChecklistSummaryTotals(newSummary: ChecklistSummary) {
+	setState((state) => {
+		state.checklistSummaryTotals = newSummary;
+	});
+}
+
+export function setChecklistSummaryData({
+	segment,
+	limit,
+	offset,
+	rows,
+	totalCount,
+}: {
+	segment: SummarySegment;
+	limit: number;
+	offset: number;
+	rows: ChecklistSummaryRow[];
+	totalCount: number;
+}) {
+	const { checklist, claim } = getState();
+	if (!checklist || !claim) return;
+	setState((state) => {
+		state.checklistSummaryData.set(
+			makeSegmentCacheKey({ checklistId: checklist.id, claimId: claim.id, segment, limit, offset }),
+			{
+				rows,
+				totalCount,
+				fetchedAt: new Date(),
+			}
+		);
+	});
+	pruneSegmentCache(5);
+}
+
 export function setClaimData(claim: Claim) {
 	setState((state) => {
 		state.claim = claim;
@@ -51,6 +88,12 @@ export function toggleStatsDialog() {
 export function updateAnswerResponses(answerId: number, newResponses: AnswerResponse[]) {
 	setState((state) => {
 		state.answerResponses.set(answerId, newResponses);
+	});
+}
+
+export function updateChecklistSummaryConstraints(newConstraints: { page: number; pageSize: number }) {
+	setState((state) => {
+		state.checklistSummaryContraints = newConstraints;
 	});
 }
 
@@ -127,6 +170,13 @@ export function updateSelectedPageTitle(instanceId: number, newTitle: string) {
 	});
 }
 
+export function updateSelectedSegment(newSegment: SummarySegment) {
+	setState((state) => {
+		state.selectedSummarySegment = newSegment;
+		state.checklistSummaryContraints.page = 0;
+	});
+}
+
 export function updateSelectedQuestion(questionId: number | null) {
 	setState((state) => {
 		state.selectedAnswer = null;
@@ -182,6 +232,37 @@ function getInstances(tree: TreeNode[], currentInstanceId: number, instances: In
 
 		if (node.children) {
 			getInstances(node.children, currentInstanceId, instances);
+		}
+	});
+}
+
+export function makeSegmentCacheKey({
+	claimId,
+	checklistId,
+	segment,
+	limit,
+	offset,
+}: {
+	claimId: number;
+	checklistId: number;
+	segment: SummarySegment;
+	limit: number;
+	offset: number;
+}) {
+	return `${claimId}-${checklistId}-${segment}-limit:${limit}-offset:${offset}`;
+}
+
+// private methods
+
+function pruneSegmentCache(maxEntries: number) {
+	setState((state) => {
+		if (state.checklistSummaryData.size <= maxEntries) return;
+		const sorted = [...state.checklistSummaryData.entries()].sort(
+			(a, b) => a[1].fetchedAt.getTime() - b[1].fetchedAt.getTime()
+		);
+		const numToEvict = state.checklistSummaryData.size - maxEntries;
+		for (let i = 0; i < numToEvict; i++) {
+			state.checklistSummaryData.delete(sorted[i][0]);
 		}
 	});
 }

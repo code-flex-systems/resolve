@@ -2,20 +2,9 @@ import { DEFAULT_ANSWER, DEFAULT_QUESTION, DEFAULT_TREE_NODE } from '../../confi
 import { ChecklistMode } from '../../config/enums';
 import { State } from '../store';
 import { SLICES } from '../storeConfig';
+import { makeSegmentCacheKey } from './actions';
 
 const getSlice = (state: State) => state[SLICES.CHECKLIST];
-
-// function pageStatus(state: State) {
-//     const { responses, pages, selectedPageInfo } = getSlice(state);
-//     const responsesForPage = responses.get(selectedPageInfo?.instanceId)
-// 	if (!responses) return 'unstarted';
-
-// 	const answeredCount = responses.filter((r) => r.response_text || r.answer_ids?.length).length;
-
-// 	if (answeredCount === 0) return 'unstarted';
-// 	if (answeredCount < expectedQuestions.length) return 'in-progress';
-// 	return 'complete';
-// }
 
 export function selectedAnswerData(state: State) {
 	const { selectedQuestion, selectedAnswer } = getSlice(state);
@@ -34,6 +23,22 @@ export function selectedPageData(state: State) {
 export function selectedPageInfo(state: State) {
 	const { selectedPageInfo } = getSlice(state);
 	return selectedPageInfo ?? DEFAULT_TREE_NODE;
+}
+
+export function selectedSegmentData(state: State) {
+	const { checklist, checklistSummaryContraints, checklistSummaryData, claim, selectedSummarySegment } =
+		getSlice(state);
+	const { page, pageSize } = checklistSummaryContraints;
+	if (!checklist || !claim || !selectedSummarySegment) return;
+	return checklistSummaryData.get(
+		makeSegmentCacheKey({
+			segment: selectedSummarySegment,
+			limit: pageSize,
+			offset: page * pageSize,
+			checklistId: checklist.id,
+			claimId: claim.id,
+		})
+	);
 }
 
 export function selectedQuestionData(state: State) {

@@ -1,8 +1,11 @@
-import { ChecklistMode } from '../config/enums';
+import { HighlightItemData } from '@mui/x-charts';
+import { ChecklistMode, SummarySegment } from '../config/enums';
 import {
 	AnswerResponse,
 	Checklist,
 	ChecklistClaim,
+	ChecklistSummary,
+	ChecklistSummaryCache,
 	Claim,
 	Interval,
 	PageInstance,
@@ -26,6 +29,12 @@ export interface BreakdownSlice {
 export interface ChecklistSlice {
 	answerResponses: Map<number, AnswerResponse[]>;
 	checklist: Checklist | null;
+	checklistSummaryTotals: ChecklistSummary | null;
+	checklistSummaryContraints: {
+		page: number;
+		pageSize: number;
+	};
+	checklistSummaryData: Map<string, ChecklistSummaryCache>;
 	claim: Claim | null;
 	expandAll: boolean;
 	maxPageInstancePosition: number;
@@ -36,6 +45,7 @@ export interface ChecklistSlice {
 	selectedAnswer: number | null;
 	selectedPageInstance: number | null;
 	selectedPageInfo: TreeNode | null;
+	selectedSummarySegment: SummarySegment;
 	selectedQuestion: number | null;
 	tree: TreeNode[];
 	visibleInstanceIds: number[];

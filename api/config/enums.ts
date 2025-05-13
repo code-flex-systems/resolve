@@ -4,3 +4,10 @@ export enum PageInstanceStatus {
 	COMPLETE = 'complete',
 	STALE = 'stale',
 }
+
+export enum SummarySegment {
+	ANSWERED = 'answered',
+	UNANSWERED = 'unanswered',
+	KNOWN = 'known',
+	UNKNOWN = 'unknown',
+}

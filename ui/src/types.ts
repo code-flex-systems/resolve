@@ -67,6 +67,29 @@ export interface ChecklistClaim {
 	last_opened: Date;
 }
 
+export interface ChecklistSummary {
+	total_answered: string;
+	total_questions: string;
+	total_known: string;
+	total_unknown: string;
+}
+
+export interface ChecklistSummaryCache {
+	rows: ChecklistSummaryRow[];
+	totalCount: number;
+	fetchedAt: Date;
+}
+
+export interface ChecklistSummaryRow {
+	answer_id: number;
+	page_id: number;
+	page_title: string;
+	question_id: number;
+	question_text: string;
+	response_text?: string;
+	answer_texts?: string;
+}
+
 export interface DialogAction {
 	label: string;
 	onClick: () => void;

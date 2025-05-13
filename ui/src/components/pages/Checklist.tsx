@@ -23,9 +23,9 @@ export default function Checklist() {
 	useClaim(+checklistId, +(claimId ?? '-1'), actions.setClaimData, !!claimId && !claim);
 	usePages(actions.updatePageTemplates, !pageTemplates.length);
 
-	useEffect(() => {
-		return () => resetStoreSlice(SLICES.CHECKLIST);
-	}, []);
+	// useEffect(() => {
+	// 	return () => resetStoreSlice(SLICES.CHECKLIST);
+	// }, []);
 
 	return (
 		<PageWrapper route="checklist">

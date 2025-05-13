@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import checklistController from '../../controllers/checklistController';
 import { getId } from '../route-utils';
+import { SummarySegment } from '../../config/enums';
 
 export default {
 	createChecklist,
@@ -8,6 +9,8 @@ export default {
 	getChecklist,
 	getChecklists,
 	getChecklistClaim,
+	getChecklistSummary,
+	getChecklistSummaryDetail,
 	getRecentChecklistClaims,
 	modifyChecklist,
 };
@@ -52,6 +55,34 @@ async function getChecklists(req: Request, res: Response) {
 async function getChecklistClaim(req: Request, res: Response) {
 	try {
 		let ret = await checklistController.getChecklistClaim(getId(req, 'checklist'), getId(req, 'claim'));
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getChecklistSummary(req: Request, res: Response) {
+	try {
+		let ret = await checklistController.getChecklistSummary(getId(req, 'checklist'), getId(req, 'claim'));
+		res.status(200).send(ret);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getChecklistSummaryDetail(req: Request, res: Response) {
+	try {
+		const segment = req.query.segment as SummarySegment;
+		const limit = req.query.limit;
+		const offset = req.query.offset;
+		if (!segment || !limit || !offset) throw new Error('Invalid query');
+		let ret = await checklistController.getChecklistSummaryDetail({
+			checklistId: getId(req, 'checklist'),
+			claimId: getId(req, 'claim'),
+			segment,
+			limit: +limit,
+			offset: +offset,
+		});
 		res.status(200).send(ret);
 	} catch (e) {
 		console.error(e);

@@ -16,6 +16,13 @@ export enum PageInstanceStatus {
 	STALE = 'stale',
 }
 
+export enum SummarySegment {
+	ANSWERED = 'answered',
+	UNANSWERED = 'unanswered',
+	KNOWN = 'known',
+	UNKNOWN = 'unknown',
+}
+
 export enum QuestionType {
 	DROPDOWN = 'dropdown',
 	FREEFORM = 'freeform',

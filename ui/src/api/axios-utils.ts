@@ -10,7 +10,7 @@ export function buildQuery(params?: Record<string, any>) {
 	if (!params) return '';
 	let query: any[] = [];
 	Object.keys(params).forEach((key) => {
-		if (params[key]) query.push(`${key}=${params[key]}`);
+		if (params[key] != null) query.push(`${key}=${params[key]}`);
 	});
 	return query.length ? `?${query.join('&')}` : '';
 }

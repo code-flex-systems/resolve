@@ -41,6 +41,8 @@ router.get('/answers/:answerId', answerRoutes.getAnswer);
 
 // checklists
 router.get('/checklists/recents', checklistRoutes.getRecentChecklistClaims);
+router.get('/checklists/:checklistId/claims/:claimId/summary', checklistRoutes.getChecklistSummary);
+router.get('/checklists/:checklistId/claims/:claimId/detail', checklistRoutes.getChecklistSummaryDetail);
 router.get('/checklists/:checklistId/claims/:claimId', checklistRoutes.getChecklistClaim);
 router.get('/checklists/:checklistId', checklistRoutes.getChecklist);
 router.get('/checklists', checklistRoutes.getChecklists);

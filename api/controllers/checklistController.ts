@@ -1,3 +1,4 @@
+import { SummarySegment } from '../config/enums';
 import checklistQueries from '../queries/checklistQueries';
 
 export default {
@@ -7,6 +8,8 @@ export default {
 	getChecklists,
 	getChecklistClaim,
 	getRecentChecklistClaims,
+	getChecklistSummary,
+	getChecklistSummaryDetail,
 	modifyChecklist,
 };
 
@@ -49,6 +52,33 @@ async function getChecklistClaim(checklistId: number, claimId: number) {
 	try {
 		let results = await checklistQueries.getChecklistClaim(checklistId, claimId);
 		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getChecklistSummary(checklistId: number, claimId: number) {
+	try {
+		let results = await checklistQueries.getChecklistSummary(checklistId, claimId);
+		return results;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+async function getChecklistSummaryDetail(params: {
+	checklistId: number;
+	claimId: number;
+	segment: SummarySegment;
+	limit?: number;
+	offset?: number;
+}) {
+	try {
+		const [data, count] = await Promise.all([
+			checklistQueries.getChecklistSummaryDetail({ ...params, mode: 'rows' }),
+			checklistQueries.getChecklistSummaryDetail({ ...params, mode: 'count' }),
+		]);
+		return { rows: data ?? [], count: count ?? 0 };
 	} catch (e) {
 		console.error(e);
 	}

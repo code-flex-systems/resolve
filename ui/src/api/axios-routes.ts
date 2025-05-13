@@ -1,3 +1,4 @@
+import { SummarySegment } from '../config/enums';
 import { ClaimSearchType, Interval, QuestionResponse } from '../types';
 import { buildQuery, performAsyncDelete, performAsyncGet, performAsyncPost, performAsyncPut } from './axios-utils';
 
@@ -66,6 +67,20 @@ export function getChecklists(searchTerm?: string) {
 
 export function getChecklistClaim(checklistId: number, claimId: number) {
 	return performAsyncGet(`${ROUTES.CHECKLISTS}/${checklistId}${ROUTES.CLAIMS}/${claimId}`);
+}
+
+export function getChecklistSummary(checklistId: number, claimId: number) {
+	return performAsyncGet(`${ROUTES.CHECKLISTS}/${checklistId}${ROUTES.CLAIMS}/${claimId}/summary`);
+}
+
+export function getChecklistSummaryDetail(
+	checklistId: number,
+	claimId: number,
+	params: { segment: SummarySegment; limit: number; offset: number }
+) {
+	return performAsyncGet(
+		`${ROUTES.CHECKLISTS}/${checklistId}${ROUTES.CLAIMS}/${claimId}/detail${buildQuery(params)}`
+	);
 }
 
 export function getRecentChecklistClaims() {
