@@ -102,7 +102,7 @@ export default function Page() {
 					};
 					return response;
 				});
-			await upsertResponses({ params: responses });
+			await upsertResponses({ responses });
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {

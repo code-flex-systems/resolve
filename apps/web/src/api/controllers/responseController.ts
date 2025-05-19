@@ -47,10 +47,10 @@ export async function getResponsesForClaimChecklist({
 	return results;
 }
 
-export async function upsertQuestionResponses({ params }: { params: object }) {
-	const sampleResponse = params.responses?.[0] as QuestionResponse;
+export async function upsertQuestionResponses({ responses }: { responses: any[] }) {
+	const sampleResponse = responses?.[0] as QuestionResponse;
 	if (!sampleResponse) throw new Error('Invalid responses');
-	const newStatus = await responseQueries.upsertQuestionResponses(params);
+	const newStatus = await responseQueries.upsertQuestionResponses(responses);
 	const visibleIds = await pageQueries.getVisiblePageInstances(sampleResponse.checklist_id, sampleResponse.claim_id);
 	return {
 		status: newStatus,

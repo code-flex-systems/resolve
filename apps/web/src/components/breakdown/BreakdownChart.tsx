@@ -32,7 +32,6 @@ export default function BreakdownChart() {
 						legend: {
 							direction: 'horizontal',
 							position: { vertical: 'top', horizontal: 'start' },
-							markType: 'line',
 						},
 					}}
 					onItemClick={(_, arc) => {

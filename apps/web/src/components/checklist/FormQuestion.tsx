@@ -26,6 +26,7 @@ import useStore, { useChecklistSlice } from '@/state/store';
 import * as selectors from '@/state/checklist/selectors';
 import { Question } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
+import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	let formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -34,7 +35,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
-	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
+	const selectedQuestionData = useSelectedQuestionData();
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
 

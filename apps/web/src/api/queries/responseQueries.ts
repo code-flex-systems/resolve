@@ -76,8 +76,7 @@ export async function getResponsesForClaimChecklist(checklistId: number, claimId
 	return responseMap;
 }
 
-export async function upsertQuestionResponses(params: { responses: QuestionResponse[] }) {
-	const { responses } = params;
+export async function upsertQuestionResponses(responses: QuestionResponse[]) {
 	const updatedPageStatus = getUpdatedPageStatus(
 		responses.length,
 		responses.filter((r) => !!r.response_text || r.selected_answers.length).length

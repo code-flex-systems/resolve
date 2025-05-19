@@ -25,10 +25,10 @@ export const getResponsesForClaimChecklistInput = z.object({
 });
 export type GetResponsesForClaimChecklistInput = z.infer<typeof getResponsesForClaimChecklistInput>;
 
-export const upsertQuestionResponsesParams = z.object({});
+export const upsertQuestionResponsesParams = z.any().array();
 export type UpsertQuestionResponsesParams = z.infer<typeof upsertQuestionResponsesParams>;
 
 export const upsertQuestionResponsesInput = z.object({
-	params: upsertQuestionResponsesParams,
+	responses: upsertQuestionResponsesParams,
 });
 export type UpsertQuestionResponsesInput = z.infer<typeof upsertQuestionResponsesInput>;

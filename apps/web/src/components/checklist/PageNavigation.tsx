@@ -104,7 +104,8 @@ export default function PageNavigation() {
 								) : (
 									<BasicButton
 										buttonProps={{
-											onClick: () => router.push('summary'),
+											onClick: () =>
+												router.push(`/checklist/${checklistId}/claim/${claimId}/summary`),
 											variant: 'contained',
 											sx: styles.button,
 											color: 'secondary',

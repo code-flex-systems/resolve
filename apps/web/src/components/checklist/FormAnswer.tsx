@@ -28,13 +28,15 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { getPageInstancesFromTree } from '@/lib/utils/utils';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
+import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
+import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 
 export default function FormAnswer() {
 	const { checklistId = -1, claimId } = useChecklistParams();
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
-	const selectedQuestionData = useStore(useShallow(selectors.selectedQuestionData));
-	const selectedAnswerData = useStore(useShallow(selectors.selectedAnswerData));
+	const selectedQuestionData = useSelectedQuestionData();
+	const selectedAnswerData = useSelectedAnswerData();
 
 	const { create, copy, remove, update } = useAnswerTrpc();
 	const { isPending: adding, mutateAsync: addAnswer } = create();

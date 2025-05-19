@@ -128,7 +128,6 @@ export default function SummaryChart() {
 					legend: {
 						direction: 'vertical',
 						position: { vertical: 'middle', horizontal: 'start' },
-						markType: 'line',
 					},
 				}}
 				onItemClick={(_, arc) => {
