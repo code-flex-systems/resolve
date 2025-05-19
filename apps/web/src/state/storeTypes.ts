@@ -1,0 +1,67 @@
+import { ChecklistMode, SummarySegment } from '../config/enums';
+import {
+	AnswerResponse,
+	Checklist,
+	ChecklistClaim,
+	ChecklistSummary,
+	ChecklistSummaryCache,
+	Claim,
+	Interval,
+	PageInstance,
+	PageTemplate,
+	Question,
+	QuestionResponse,
+	QuestionStat,
+	TreeNode,
+	User,
+} from '@/types/types';
+
+export interface BreakdownSlice {
+	answerBreakdowns: Map<string, AnswerResponse[]>;
+	breakdownInterval: Interval<string>;
+	pageInstance: PageInstance | null;
+	selectedAnswerId: number | null;
+	selectedQuestionId: number | null;
+	questionStats: Map<string, QuestionStat[]>;
+}
+
+export interface ChecklistSlice {
+	answerResponses: Map<number, AnswerResponse[]>;
+	checklist: Checklist | null;
+	checklistSummaryTotals: ChecklistSummary | null;
+	checklistSummaryContraints: {
+		page: number;
+		pageSize: number;
+	};
+	checklistSummaryData: Map<string, ChecklistSummaryCache>;
+	claim: Claim | null;
+	expandAll: boolean;
+	maxPageInstancePosition: number;
+	mode: ChecklistMode;
+	pages: Map<number, { version: number; questions: Question[] }>;
+	pageTemplates: PageTemplate[];
+	responses: Map<number, { version: number; responses: Record<number, QuestionResponse> }>;
+	selectedAnswer: number | null;
+	selectedPageInstance: number | null;
+	selectedPageInfo: TreeNode | null;
+	selectedSummarySegment: SummarySegment;
+	selectedQuestion: number | null;
+	tree: TreeNode[];
+	visibleInstanceIds: number[];
+	// dialogs
+	showStatsDialog: boolean;
+}
+
+export interface ChecklistsSlice {
+	recentChecklistClaims: ChecklistClaim[];
+	selectedChecklist: Checklist | null;
+	selectedClaim: Claim | null;
+	// dialogs
+	showChecklistClaimDialog: boolean;
+}
+
+export interface GlobalSlice {
+	navOpen: boolean;
+	selectedPage: string;
+	user: User;
+}

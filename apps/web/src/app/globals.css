@@ -1,0 +1,90 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+.bump:hover {
+	scale: 1.005;
+	transition: scale 200ms ease;
+}
+
+.bump-lg:hover {
+	scale: 1.1;
+	transition: scale 200ms ease;
+}
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.flex-col-center {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.flex-col-left {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+}
+
+.flex-col-right {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-end;
+}
+
+.flex-col-start {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.flex-col-end {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.flex-row-between {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.flex-row-center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.flex-row-left {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.flex-row-right {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.italics {
+	font-style: italic;
+}
+
+.striped {
+	background-color: #f7f7f7;
+}

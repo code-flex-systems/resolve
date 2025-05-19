@@ -1,0 +1,41 @@
+'use client';
+import { Collapse, Paper, Typography } from '@mui/material';
+import ProfileAvatar from './ProfileAvatar';
+import Toolbar from './Toolbar';
+import { OFFWHITE_COLOR } from '@/styles/theme';
+import { useGlobalSlice } from '@/state/store';
+import logo from '@/lib/resources/images/ChecklistLogo.png';
+import Image from 'next/image';
+
+export default function SiteHeader() {
+	const navOpen = useGlobalSlice((state) => state.navOpen);
+	return (
+		<Paper style={styles.paper} className="flex-row-left">
+			<Toolbar
+				left={
+					<Collapse in={!navOpen} orientation="horizontal">
+						<div className="flex-row-left">
+							<Image src={logo} alt="logo" height={35} />
+							<Typography fontSize={30} marginLeft="5px">
+								Manifest
+							</Typography>
+						</div>
+					</Collapse>
+				}
+				right={<ProfileAvatar />}
+				height={60}
+				padding="10px 20px 10px 10px"
+			/>
+		</Paper>
+	);
+}
+
+const styles = {
+	paper: {
+		width: '100%',
+		height: 60,
+		minHeight: 60,
+		backgroundColor: OFFWHITE_COLOR,
+		zIndex: 10,
+	},
+};

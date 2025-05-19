@@ -1,0 +1,177 @@
+'use client';
+import { Collapse, Fade, IconButton, Tooltip, Typography } from '@mui/material';
+import * as actions from '@/state/checklist/actions';
+import { useChecklistSlice } from '@/state/store';
+import { BarChart, KeyboardArrowRight } from '@mui/icons-material';
+import './styles.css';
+import { TreeNode } from '@/types/types';
+import QuestionNode from './QuestionNode';
+import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
+import { useEffect, useMemo, useState } from 'react';
+import BasicButton from '../common/BasicButton';
+import { IconAlertCircleFilled, IconCircle, IconCircleCheckFilled, IconPercentage50 } from '@tabler/icons-react';
+import theme from '@/styles/theme';
+import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
+import { useChecklistParams } from '@/hooks/useChecklistParams';
+import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+
+export default function TreeNode(props: TreeNode & { level: number }) {
+	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { level, instanceId, pageId, status, title, children = [] } = props;
+	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
+	const mode = useChecklistSlice((state) => state.mode);
+	const expandAll = useChecklistSlice((state) => state.expandAll);
+	const [expanded, setExpanded] = useState(false);
+	let selected = selectedPageInstance === instanceId;
+
+	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected });
+	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
+		{ checklistId, claimId },
+		{ enabled: checklistId !== -1 && claimId !== -1 }
+	);
+	let filteredChildren =
+		mode === ChecklistMode.VIEW ? children.filter((c) => visibleInstanceIds.includes(c.instanceId)) : children;
+
+	useEffect(() => setExpanded(expandAll), [expandAll]);
+
+	const statusIcon = useMemo(() => {
+		switch (status) {
+			case PageInstanceStatus.UNSTARTED:
+				return <IconCircle size={18} color={theme.palette.primary.main} style={styles.icon} />;
+			case PageInstanceStatus.IN_PROGRESS:
+				return (
+					<IconPercentage50
+						style={{ ...styles.icon, color: theme.palette.primary.main, transform: 'scaleX(-1)' }}
+						className="status-icon"
+						size={18}
+					/>
+				);
+			case PageInstanceStatus.COMPLETE:
+				return <IconCircleCheckFilled color={theme.palette.primary.main} size={18} style={styles.icon} />;
+			case PageInstanceStatus.STALE:
+				return (
+					<Tooltip title="This page has changed">
+						<IconAlertCircleFilled color={theme.palette.warning.main} size={18} style={styles.icon} />
+					</Tooltip>
+				);
+		}
+	}, [status]);
+
+	return (
+		<>
+			<div
+				style={{ ...styles.node, paddingLeft: level * 10 }}
+				onClick={() => {
+					actions.updateSelectedPage(instanceId);
+					actions.updateSelectedPageInfo(props);
+				}}
+				className={selected ? 'node node-selected flex-row-between' : 'node flex-row-between'}
+			>
+				<div className="flex-row-left">
+					{!!filteredChildren.length ? (
+						<IconButton
+							onClick={(e) => {
+								setExpanded((prev) => !prev);
+								e.stopPropagation();
+								e.preventDefault();
+							}}
+							disableRipple
+						>
+							<KeyboardArrowRight
+								sx={{
+									transform: expanded ? 'rotate(90deg)' : undefined,
+									transition: 'transform 100ms ease',
+								}}
+							/>
+						</IconButton>
+					) : (
+						<div style={{ width: 30, minWidth: 30 }} />
+					)}
+					<Typography maxWidth={350}>
+						{title}
+						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
+					</Typography>
+					<Fade in={isFetching && selected} unmountOnExit>
+						<span>
+							<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
+								Loading...
+							</Typography>
+						</span>
+					</Fade>
+				</div>
+				{mode === ChecklistMode.EDIT && (
+					<BasicButton
+						buttonProps={{
+							onClick: actions.toggleStatsDialog,
+						}}
+						tooltipProps={{
+							title: 'Open report',
+							placement: 'bottom-end',
+							arrow: true,
+						}}
+						icon={<BarChart className="node-report-icon" sx={styles.reportIcon} />}
+					/>
+				)}
+				<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
+					<span>{statusIcon}</span>
+				</Fade>
+			</div>
+
+			{questions && mode === ChecklistMode.EDIT && (
+				<Collapse in={selected && !isFetching} unmountOnExit>
+					<span>
+						{questions.map((q, i) => (
+							<QuestionNode
+								key={i}
+								pageId={pageId}
+								questionId={q.id}
+								questionText={q.text}
+								questionType={q.type as QuestionType}
+								questionAnswers={q.answers ?? []}
+								level={level + 1}
+								idx={i}
+							/>
+						))}
+						<QuestionNode
+							key={-1}
+							pageId={pageId}
+							questionId={-1}
+							questionText="New Question"
+							questionType={QuestionType.SINGLE}
+							questionAnswers={[]}
+							level={level + 1}
+							idx={-1}
+						/>
+					</span>
+				</Collapse>
+			)}
+
+			{!!filteredChildren.length && (
+				<Collapse in={expanded} unmountOnExit>
+					<span>
+						{filteredChildren.map((c) => (
+							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
+						))}
+					</span>
+				</Collapse>
+			)}
+		</>
+	);
+}
+
+const styles = {
+	icon: {
+		marginLeft: '5px',
+		marginRight: '10px',
+	},
+	node: {
+		width: '100%',
+		minHeight: 30,
+		margin: '2px 0px',
+		borderRadius: 5,
+	},
+	reportIcon: {
+		color: 'primary.main',
+		margin: '0px 5px',
+	},
+};
