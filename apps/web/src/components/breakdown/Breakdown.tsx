@@ -1,7 +1,5 @@
 'use client';
-import * as selectors from '@/state/breakdown/selectors';
-import useStore, { useBreakdownSlice } from '@/state/store';
-import { useShallow } from 'zustand/react/shallow';
+import { useBreakdownSlice } from '@/state/store';
 import { Paper, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -10,6 +8,7 @@ import { formatMDYAbv } from '@/lib/utils/utils';
 import Toolbar from '../common/Toolbar';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -43,14 +42,14 @@ export default function Breakdown(props: { instanceId: number }) {
 	const { instanceId } = props;
 	const breakdownInterval = useBreakdownSlice((state) => state.breakdownInterval);
 	const selectedQuestionId = useBreakdownSlice((state) => state.selectedQuestionId);
-	const selectedAnswer = useStore(useShallow(selectors.selectedAnswer));
+	const selectedAnswer = useSelectedBreakdownAnswerData();
 	const { data: pageInstance } = usePageTrpc().getInstance({ instanceId }, { enabled: instanceId !== -1 });
 	const { data: breakdown = [], isFetching: loadingBreakdown } = useResponseTrpc().listForAnswer(
 		{
 			answerId: selectedAnswer?.answer_id ?? -1,
 			interval: breakdownInterval,
 		},
-		{ enabled: !selectedAnswer?.answer_id }
+		{ enabled: !!selectedAnswer?.answer_id }
 	);
 
 	return (

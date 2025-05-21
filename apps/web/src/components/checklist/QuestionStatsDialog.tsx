@@ -16,10 +16,11 @@ import 'ldrs/react/LineWobble.css';
 import theme, { OFFWHITE_COLOR } from '@/styles/theme';
 import { IconChartDonutFilled } from '@tabler/icons-react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
+import { useChecklistParams } from '@/hooks/useChecklistParams';
 
 export default function QuestionStatsDialog() {
 	const router = useRouter();
-	const checklistId = useChecklistSlice((state) => state.checklist)?.id ?? -1;
+	const { checklistId = -1 } = useChecklistParams();
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({ pageId: selectedPageInfo.pageId });
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
