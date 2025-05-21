@@ -79,11 +79,8 @@ export default function ChecklistClaimDialog() {
 					? undefined
 					: {
 							label: data ? 'Keep working' : 'Get started',
-							onClick: () => {
-								checklistActions.setChecklistData(selectedChecklist!);
-								checklistActions.setClaimData(selectedClaim!);
-								router.push(`/checklist/${selectedChecklist?.id}/claim/${selectedClaim?.id}`);
-							},
+							onClick: () =>
+								router.push(`/checklist/${selectedChecklist?.id}/claim/${selectedClaim?.id}`),
 							icon: <ArrowCircleRightOutlined sx={{ color: 'white' }} />,
 					  }
 			}

@@ -10,10 +10,14 @@ import { ContactSupport, Description } from '@mui/icons-material';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
+import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
 export default function SummaryChart() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const maxPageInstancePosition = useChecklistSlice((state) => state.maxPageInstancePosition);
+	const { data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
+		{ checklistId, claimId },
+		{ enabled: checklistId !== -1 && claimId !== -1 }
+	);
 	const selectedSummarySegment = useChecklistSlice((state) => state.selectedSummarySegment);
 	const {
 		data: checklistSummaryTotals = { total_answered: 0, total_questions: 0, total_known: 0, total_unknown: 0 },
@@ -95,7 +99,7 @@ export default function SummaryChart() {
 					<>
 						<Description sx={{ color: 'secondary.main' }} />
 						<Typography fontSize={17} marginLeft="5px" fontStyle="italic">
-							Pages (<b>{maxPageInstancePosition.toLocaleString()}</b>)
+							Pages (<b>{data.maxPosition.toLocaleString()}</b>)
 						</Typography>
 					</>
 				}

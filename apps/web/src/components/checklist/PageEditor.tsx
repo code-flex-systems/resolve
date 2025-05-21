@@ -29,7 +29,7 @@ export default function PageEditor() {
 	const { mutateAsync: copyPage, isPending: copying } = usePageTrpc().createInstance();
 	const { mutateAsync: deletePage, isPending: deleting } = usePageTrpc().removeInstance();
 	const { mutateAsync: modifyPage, isPending: updating } = usePageTrpc().updateTemplate();
-	const { isFetching } = usePageTrpc().getInstanceTree(
+	const { isFetching, data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
 		{
 			checklistId,
 			claimId,
@@ -82,7 +82,9 @@ export default function PageEditor() {
 	const onModifyPage = async () => {
 		try {
 			let modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
-			if (modifiedPage) actions.updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title);
+			if (modifiedPage) {
+				actions.updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, data.tree);
+			}
 		} catch (e) {
 			console.error(e);
 		}

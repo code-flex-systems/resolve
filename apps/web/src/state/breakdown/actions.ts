@@ -1,21 +1,10 @@
-import { AnswerResponse, Interval, PageInstance, QuestionStat } from '@/types/types';
-import { generateIntervalKey } from '@/lib/utils/utils';
+import { Interval, PageInstance } from '@/types/types';
 import { SLICES } from '../storeConfig';
 import { BreakdownSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
 
 const getState = getStateBuilder<BreakdownSlice>(SLICES.BREAKDOWN);
 const setState = setStateBuilder<BreakdownSlice>(SLICES.BREAKDOWN);
-
-export function updateAnswerBreakdown(answerId: number, newData: AnswerResponse[] | null, from?: string, to?: string) {
-	setState((state) => {
-		if (newData) {
-			state.answerBreakdowns.set(generateIntervalKey(answerId, from, to), newData);
-		} else {
-			state.answerBreakdowns.delete(answerId.toString());
-		}
-	});
-}
 
 export function updateBreakdownInterval(key: keyof Interval<string>, value: string | undefined) {
 	setState((state) => {
@@ -55,11 +44,5 @@ export function updateSelectedQuestionId(newId: number | null) {
 	setState((state) => {
 		state.selectedQuestionId = newId;
 		state.selectedAnswerId = null;
-	});
-}
-
-export function updateQuestionStats(pageId: number, newStats: QuestionStat[], from?: string, to?: string) {
-	setState((state) => {
-		state.questionStats.set(generateIntervalKey(pageId, from, to), newStats);
 	});
 }

@@ -22,11 +22,12 @@ import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import * as actions from '@/state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
-import useStore, { useChecklistSlice } from '@/state/store';
+import useStore from '@/state/store';
 import * as selectors from '@/state/checklist/selectors';
 import { Question } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
+import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	let formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -37,7 +38,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 export default function FormQuestion() {
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
-	const pageTemplates = useChecklistSlice((state) => state.pageTemplates);
+	const { data: pageTemplates = [] } = usePageTrpc().listTemplates();
 
 	const { create, copy, list, remove, update } = useQuestionTrpc();
 	const { isPending: adding, mutateAsync: addQuestion } = create();
@@ -72,9 +73,7 @@ export default function FormQuestion() {
 							pageId: selectedPageInfo.pageId,
 							params: data,
 					  });
-			if (newQuestion.page_id !== selectedPageInfo.pageId) {
-				actions.updatePage(newQuestion.page_id, null);
-			} else {
+			if (newQuestion.page_id === selectedPageInfo.pageId) {
 				actions.updateSelectedQuestion(newQuestion.id);
 			}
 			setShowUpdateMsg(true);

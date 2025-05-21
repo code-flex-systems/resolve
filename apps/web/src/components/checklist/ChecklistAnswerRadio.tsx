@@ -4,6 +4,8 @@ import { QuestionType } from '@/config/enums';
 import { Question } from '@/types/types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import * as actions from '@/state/checklist/actions';
+import { useChecklistParams } from '@/hooks/useChecklistParams';
+import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
 export default function ChecklistAnswerRadio(props: {
 	field: ControllerRenderProps<FieldValues, string>;
@@ -11,6 +13,11 @@ export default function ChecklistAnswerRadio(props: {
 	disabled?: boolean;
 }) {
 	const { field, question, disabled } = props;
+	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
+		{ checklistId, claimId },
+		{ enabled: checklistId !== -1 && claimId !== -1 }
+	);
 	return (
 		<Stack direction="row" flexWrap="wrap" spacing={0.5} useFlexGap padding="0px 10px">
 			{(question.answers ?? []).map((a) => (
@@ -47,7 +54,7 @@ export default function ChecklistAnswerRadio(props: {
 									color="info"
 									onClick={() => {
 										actions.updateSelectedPage(a.calls_instance_id);
-										actions.updateSelectedPageInfoSearch(a.calls_instance_id!);
+										actions.updateSelectedPageInfoSearch(a.calls_instance_id!, data.tree);
 									}}
 								>
 									{a.text}

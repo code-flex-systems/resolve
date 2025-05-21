@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { SummarySegment } from '@/config/enums';
 
-export const checklistParams = z.object({});
+export const checklistParams = z.record(z.unknown());
 
 export const createChecklistInput = z.object({
 	claimId: z.number().int(),

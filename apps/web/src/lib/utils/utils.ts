@@ -20,13 +20,6 @@ export function formatMDYAbv(date?: string) {
 	return dayjs(date).format('MM/DD/YY');
 }
 
-export function generateIntervalKey(id: number, from?: string, to?: string) {
-	let key = `${id}`;
-	if (from) key += `-${from}`;
-	if (to) key += `-${to}`;
-	return key;
-}
-
 export function getExtension(filename: string) {
 	let parts = filename.split('.');
 	return `.${parts[parts.length - 1]}`;

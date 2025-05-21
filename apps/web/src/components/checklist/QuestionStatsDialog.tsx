@@ -37,7 +37,6 @@ export default function QuestionStatsDialog() {
 								instance_id: selectedPageInfo.instanceId,
 								title: selectedPageInfo.title,
 							});
-							breakdownActions.updateQuestionStats(selectedPageInfo.pageId, data);
 							router.push(
 								`/checklist/${checklistId}/pages/${selectedPageInfo.pageId}/page-instances/${selectedPageInfo.instanceId}`
 							);

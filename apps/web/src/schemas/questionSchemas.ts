@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const questionParams = z.object({});
+export const questionParams = z.record(z.unknown());
 
 export const createQuestionInput = z.object({
 	pageId: z.number().int(),

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const docParams = z.object({});
+export const docParams = z.record(z.unknown());
 export type DocParams = z.infer<typeof docParams>;
 
 export const createDocInput = z.object({

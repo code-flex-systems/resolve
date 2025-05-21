@@ -46,6 +46,6 @@ export const modifyAnswerInput = z.object({
 	pageId: z.number().int(),
 	answerId: z.number().int(),
 	// params: answerParams,
-	params: z.object({}),
+	params: z.record(z.unknown()),
 });
 export type ModifyAnswerInput = z.infer<typeof modifyAnswerInput>;

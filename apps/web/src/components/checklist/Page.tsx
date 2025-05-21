@@ -72,7 +72,7 @@ export default function Page() {
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
-	// useEffect(() => console.log(selectedPageInstance), [selectedPageInstance]);
+	useEffect(() => console.log(selectedPageInstance), [selectedPageInstance]);
 
 	useEffect(() => {
 		if (loading) return;

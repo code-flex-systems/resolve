@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const pageParams = z.object({});
+export const pageParams = z.record(z.unknown());
 
 export const pageInstanceParams = z.object({
 	parentId: z.number().int(),
