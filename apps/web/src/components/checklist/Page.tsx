@@ -3,7 +3,7 @@ import { Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
 import useStore, { useChecklistSlice } from '@/state/store';
 import * as selectors from '@/state/checklist/selectors';
-import { ChecklistMode, QuestionType } from '@/config/enums';
+import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
@@ -18,6 +18,8 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
+import { trpc } from '@/lib/trpc';
+import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	let defaults: Record<string, number[] | string> = {};
@@ -68,11 +70,21 @@ export default function Page() {
 		{ checklistId, claimId, instanceId: selectedPageInstance },
 		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
 	);
-	const { mutateAsync: upsertResponses } = useResponseTrpc().createUpdateMany();
+	const { mutate: evaluateResponses } = useEvaluateResponses();
+	const { mutateAsync: upsertResponses } = useResponseTrpc().createUpdateMany;
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
-	useEffect(() => console.log(selectedPageInstance), [selectedPageInstance]);
+	useEffect(() => {
+		if (
+			checklistId !== -1 &&
+			claimId !== -1 &&
+			selectedPageInstance !== -1 &&
+			selectedPageInfo.status === PageInstanceStatus.STALE
+		) {
+			evaluateResponses({ checklistId, claimId, instanceId: selectedPageInstance });
+		}
+	}, [checklistId, claimId, selectedPageInstance, selectedPageInfo.status]);
 
 	useEffect(() => {
 		if (loading) return;

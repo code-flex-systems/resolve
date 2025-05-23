@@ -14,7 +14,7 @@ import {
 } from '@/schemas/responseSchemas';
 
 export const responseRouter = router({
-	evaluateResponses: publicProcedure.input(evaluateResponsesInput).query(async ({ input }) => {
+	evaluateResponses: publicProcedure.input(evaluateResponsesInput).mutation(async ({ input }) => {
 		return evaluateResponses(input);
 	}),
 

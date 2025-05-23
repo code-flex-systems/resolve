@@ -8,6 +8,13 @@ type PageOutput = inferRouterOutputs<AppRouter>['page'];
 export function usePageTrpc() {
 	const utils = trpc.useUtils();
 
+	const onPageChange = () => {
+		utils.page.getPages.invalidate();
+		utils.page.getPageInstances.invalidate();
+		utils.page.getVisiblePageInstances.invalidate();
+		utils.page.getPageInstanceTree.invalidate();
+	};
+
 	return {
 		listTemplates: trpc.page.getPages.useQuery,
 
@@ -21,13 +28,21 @@ export function usePageTrpc() {
 
 		getInstanceTree: trpc.page.getPageInstanceTree.useQuery,
 
-		createTemplate: trpc.page.createPage.useMutation,
+		createTemplate: trpc.page.createPage.useMutation({
+			onSuccess: onPageChange,
+		}),
 
-		createInstance: trpc.page.createPageInstance.useMutation,
+		createInstance: trpc.page.createPageInstance.useMutation({
+			onSuccess: onPageChange,
+		}),
 
-		updateTemplate: trpc.page.updatePageTemplate.useMutation,
+		updateTemplate: trpc.page.updatePageTemplate.useMutation({
+			onSuccess: onPageChange,
+		}),
 
-		removeInstance: trpc.page.deletePageInstance.useMutation,
+		removeInstance: trpc.page.deletePageInstance.useMutation({
+			onSuccess: onPageChange,
+		}),
 	};
 }
 

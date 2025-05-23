@@ -41,10 +41,10 @@ export default function FormQuestion() {
 	const { data: pageTemplates = [] } = usePageTrpc().listTemplates();
 
 	const { create, copy, list, remove, update } = useQuestionTrpc();
-	const { isPending: adding, mutateAsync: addQuestion } = create();
-	const { isPending: updating, mutateAsync: updateQuestion } = update();
-	const { isPending: copying, mutateAsync: copyQuestion } = copy();
-	const { isPending: deleting, mutateAsync: deleteQuestion } = remove();
+	const { isPending: adding, mutateAsync: addQuestion } = create;
+	const { isPending: updating, mutateAsync: updateQuestion } = update;
+	const { isPending: copying, mutateAsync: copyQuestion } = copy;
+	const { isPending: deleting, mutateAsync: deleteQuestion } = remove;
 	const { isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
 
 	const {

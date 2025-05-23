@@ -1,3 +1,4 @@
+import { PageInstanceStatus } from '@/config/enums';
 import { InstanceListItem, TreeNode } from '@/types/types';
 import dayjs from 'dayjs';
 
@@ -39,6 +40,26 @@ export function isBetweenDates(fromDate: string, toDate: string) {
 		(today.isSame(from, 'date') || today.isAfter(from, 'date')) &&
 		(today.isSame(to, 'date') || today.isBefore(to, 'date'))
 	);
+}
+
+export function updatePropertyInTree<T extends keyof TreeNode>(
+	nodes: TreeNode[],
+	instanceId: number,
+	key: T,
+	value: TreeNode[T]
+): TreeNode[] {
+	return nodes.map((node) => {
+		if (node.instanceId === instanceId) {
+			return { ...node, [key]: value };
+		}
+		if (node.children?.length) {
+			return {
+				...node,
+				children: updatePropertyInTree(node.children, instanceId, key, value),
+			};
+		}
+		return node;
+	});
 }
 
 // private methods

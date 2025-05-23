@@ -39,10 +39,10 @@ export default function FormAnswer() {
 	const selectedAnswerData = useSelectedAnswerData();
 
 	const { create, copy, remove, update } = useAnswerTrpc();
-	const { isPending: adding, mutateAsync: addAnswer } = create();
-	const { isPending: updating, mutateAsync: updateAnswer } = update();
-	const { isPending: copying, mutateAsync: copyAnswer } = copy();
-	const { isPending: deleting, mutateAsync: deleteAnswer } = remove();
+	const { isPending: adding, mutateAsync: addAnswer } = create;
+	const { isPending: updating, mutateAsync: updateAnswer } = update;
+	const { isPending: copying, mutateAsync: copyAnswer } = copy;
+	const { isPending: deleting, mutateAsync: deleteAnswer } = remove;
 	const { isFetching: refetching } = useQuestionTrpc().list({
 		pageId: selectedPageInfo.pageId,
 	});

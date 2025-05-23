@@ -53,6 +53,7 @@ export async function upsertQuestionResponses({ responses }: { responses: any[] 
 	const newStatus = await responseQueries.upsertQuestionResponses(responses);
 	const visibleIds = await pageQueries.getVisiblePageInstances(sampleResponse.checklist_id, sampleResponse.claim_id);
 	return {
+		updatedInstanceId: sampleResponse.instance_id,
 		status: newStatus,
 		visibleIds,
 	};

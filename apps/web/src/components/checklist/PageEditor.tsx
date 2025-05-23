@@ -25,11 +25,12 @@ export default function PageEditor() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	const { data: questions } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
-	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate();
-	const { mutateAsync: copyPage, isPending: copying } = usePageTrpc().createInstance();
-	const { mutateAsync: deletePage, isPending: deleting } = usePageTrpc().removeInstance();
-	const { mutateAsync: modifyPage, isPending: updating } = usePageTrpc().updateTemplate();
-	const { isFetching, data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
+	const { createTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } = usePageTrpc();
+	const { mutateAsync: addPage, isPending: adding } = createTemplate;
+	const { mutateAsync: copyPage, isPending: copying } = createInstance;
+	const { mutateAsync: deletePage, isPending: deleting } = removeInstance;
+	const { mutateAsync: modifyPage, isPending: updating } = updateTemplate;
+	const { isFetching, data = { tree: [], maxPosition: 0 } } = getInstanceTree(
 		{
 			checklistId,
 			claimId,

@@ -3,6 +3,7 @@ import { TreeNode } from '@/types/types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
+import { PageInstanceStatus } from '@/config/enums';
 
 const getState = getStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
@@ -49,6 +50,14 @@ export function updateSelectedPage(instanceId: number | null) {
 export function updateSelectedPageInfo(pageInfo: TreeNode | null) {
 	setState((state) => {
 		state.selectedPageInfo = pageInfo;
+	});
+}
+
+export function updateSelectedPageInfoStatus(newStatus: PageInstanceStatus) {
+	setState((state) => {
+		if (state.selectedPageInfo) {
+			state.selectedPageInfo.status = newStatus;
+		}
 	});
 }
 

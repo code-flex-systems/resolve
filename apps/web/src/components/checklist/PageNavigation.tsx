@@ -45,14 +45,14 @@ export default function PageNavigation() {
 				return {
 					maxPosition: data.maxPosition,
 					tree:
-						mode === ChecklistMode.VIEW
+						mode === ChecklistMode.VIEW && !!visibleInstanceIds.length
 							? data.tree.filter((c) => visibleInstanceIds.includes(c.instanceId))
 							: data.tree,
 				};
 			},
 		}
 	);
-	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate();
+	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate;
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
 		{ checklistId, claimId: claimId! },
 		{ enabled: checklistId !== -1 && !!claimId }

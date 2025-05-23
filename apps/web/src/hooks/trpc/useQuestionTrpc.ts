@@ -1,12 +1,14 @@
 import { trpc } from '@/lib/trpc';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '@/server/trpc/appRouter';
+import { usePageInstanceTreeInvalidator } from '@/lib/utils/usePageInstanceTreeInvalidator';
 
 type QuestionInput = inferRouterInputs<AppRouter>['question'];
 type QuestionOutput = inferRouterOutputs<AppRouter>['question'];
 
 export function useQuestionTrpc() {
 	const utils = trpc.useUtils();
+	const invalidateTree = usePageInstanceTreeInvalidator();
 
 	return {
 		list: trpc.question.getQuestions.useQuery,
@@ -15,13 +17,33 @@ export function useQuestionTrpc() {
 
 		getStats: trpc.question.getQuestionStats.useQuery,
 
-		create: trpc.question.createQuestion.useMutation,
+		create: trpc.question.createQuestion.useMutation({
+			onSuccess: (_, variables) => {
+				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				invalidateTree();
+			},
+		}),
 
-		copy: trpc.question.copyQuestion.useMutation,
+		copy: trpc.question.copyQuestion.useMutation({
+			onSuccess: (_, variables) => {
+				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				invalidateTree();
+			},
+		}),
 
-		update: trpc.question.updateQuestion.useMutation,
+		update: trpc.question.updateQuestion.useMutation({
+			onSuccess: (_, variables) => {
+				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				invalidateTree();
+			},
+		}),
 
-		remove: trpc.question.deleteQuestion.useMutation,
+		remove: trpc.question.deleteQuestion.useMutation({
+			onSuccess: (_, variables) => {
+				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				invalidateTree();
+			},
+		}),
 	};
 }
 

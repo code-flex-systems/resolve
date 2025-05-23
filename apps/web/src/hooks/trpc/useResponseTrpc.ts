@@ -1,21 +1,44 @@
 import { trpc } from '@/lib/trpc';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '@/server/trpc/appRouter';
+import * as utils from '@/lib/utils/utils';
+import * as actions from '@/state/checklist/actions';
+import { useChecklistParams } from '../useChecklistParams';
 
 type ResponseInput = inferRouterInputs<AppRouter>['response'];
 type ResponseOutput = inferRouterOutputs<AppRouter>['response'];
 
 export function useResponseTrpc() {
-	const utils = trpc.useUtils();
+	const trpcUtils = trpc.useUtils();
+	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 
 	return {
 		list: trpc.response.getResponsesForChecklist.useQuery,
 
 		listForAnswer: trpc.response.getResponsesForAnswer.useQuery,
 
-		evaluate: trpc.response.evaluateResponses.useQuery,
+		evaluate: trpc.response.evaluateResponses.useMutation,
 
-		createUpdateMany: trpc.response.upsertQuestionResponses.useMutation,
+		createUpdateMany: trpc.response.upsertQuestionResponses.useMutation({
+			onSuccess({ updatedInstanceId, status, visibleIds }) {
+				trpcUtils.response.getResponsesForChecklist.invalidate({
+					checklistId,
+					claimId,
+					instanceId: updatedInstanceId,
+				});
+				if (status) {
+					trpcUtils.page.getPageInstanceTree.setData({ checklistId, claimId }, (old) => {
+						if (!old) return old;
+						const updatedTree = utils.updatePropertyInTree(old.tree, updatedInstanceId, 'status', status);
+						return { ...old, tree: updatedTree };
+					});
+					actions.updateSelectedPageInfoStatus(status);
+				}
+				if (visibleIds) {
+					trpcUtils.page.getVisiblePageInstances.setData({ checklistId, claimId }, visibleIds);
+				}
+			},
+		}),
 	};
 }
 
