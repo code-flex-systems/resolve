@@ -177,94 +177,100 @@ export default function FormQuestion() {
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<Form control={control} style={{ width: '100%' }}>
-				<div style={styles.row} className="flex-row-left">
-					<Controller
-						name="page_id"
-						control={control}
-						rules={{ required: true }}
-						render={({ field }) => (
-							<FormControl style={{ padding: '0px 5px 15px' }}>
-								<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
-								<Select error={!!errors.page_id} {...field} sx={styles.textFieldOverrides}>
-									{pageTemplates.map((o) => (
-										<MenuItem key={o.id} value={o.id}>
-											{o.title} (p{o.id})
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-						)}
-					/>
-				</div>
-				<div style={styles.row} className="flex-row-left">
-					<Controller
-						name="text"
-						control={control}
-						rules={{ required: true }}
-						render={({ field }) => (
-							<TextField
-								label="Question text"
-								placeholder="e.g. What is the cause of loss?"
-								variant="outlined"
-								{...field}
-								error={!!errors.text}
-								sx={styles.textFieldOverrides}
-								style={styles.item}
-							/>
-						)}
-					/>
+			<Fade key={selectedQuestionData.id} in={!!selectedQuestionData.id} timeout={500} unmountOnExit>
+				<Form control={control} style={{ width: '100%' }}>
+					<div style={styles.row} className="flex-row-left">
+						<Controller
+							name="page_id"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<FormControl style={{ padding: '0px 5px 15px' }}>
+									<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
+									<Select error={!!errors.page_id} {...field} sx={styles.textFieldOverrides}>
+										{pageTemplates.map((o) => (
+											<MenuItem key={o.id} value={o.id}>
+												{o.title} (p{o.id})
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							)}
+						/>
+					</div>
+					<div style={styles.row} className="flex-row-left">
+						<Controller
+							name="text"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<TextField
+									label="Question text"
+									placeholder="e.g. What is the cause of loss?"
+									variant="outlined"
+									{...field}
+									error={!!errors.text}
+									sx={styles.textFieldOverrides}
+									style={styles.item}
+								/>
+							)}
+						/>
 
-					<Controller
-						name="description_text"
-						control={control}
-						render={({ field }) => (
-							<TextField
-								label="Question description (optional)"
-								placeholder="e.g. Describe how the damage occurred"
-								variant="outlined"
-								{...field}
-								value={field.value ?? ''}
-								sx={{ ...styles.textFieldOverrides, width: 400 }}
-								style={styles.item}
-							/>
-						)}
-					/>
-				</div>
-				<div style={styles.row} className="flex-row-left">
-					<Controller
-						name="type"
-						control={control}
-						rules={{ required: true }}
-						render={({ field }) => (
-							<FormControl style={styles.item}>
-								<FormLabel sx={styles.formLabel} error={!!errors.type}>
-									Question type
-								</FormLabel>
-								<RadioGroup {...field} row>
-									<FormControlLabel
-										defaultChecked
-										control={<Radio />}
-										label="Single"
-										value={QuestionType.SINGLE}
-									/>
-									<FormControlLabel control={<Radio />} label="Multi" value={QuestionType.MULTI} />
-									<FormControlLabel
-										control={<Radio />}
-										label="Dropdown"
-										value={QuestionType.DROPDOWN}
-									/>
-									<FormControlLabel
-										control={<Radio />}
-										label="Free-form"
-										value={QuestionType.FREEFORM}
-									/>
-								</RadioGroup>
-							</FormControl>
-						)}
-					/>
-				</div>
-			</Form>
+						<Controller
+							name="description_text"
+							control={control}
+							render={({ field }) => (
+								<TextField
+									label="Question description (optional)"
+									placeholder="e.g. Describe how the damage occurred"
+									variant="outlined"
+									{...field}
+									value={field.value ?? ''}
+									sx={{ ...styles.textFieldOverrides, width: 400 }}
+									style={styles.item}
+								/>
+							)}
+						/>
+					</div>
+					<div style={styles.row} className="flex-row-left">
+						<Controller
+							name="type"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<FormControl style={styles.item}>
+									<FormLabel sx={styles.formLabel} error={!!errors.type}>
+										Question type
+									</FormLabel>
+									<RadioGroup {...field} row>
+										<FormControlLabel
+											defaultChecked
+											control={<Radio />}
+											label="Single"
+											value={QuestionType.SINGLE}
+										/>
+										<FormControlLabel
+											control={<Radio />}
+											label="Multi"
+											value={QuestionType.MULTI}
+										/>
+										<FormControlLabel
+											control={<Radio />}
+											label="Dropdown"
+											value={QuestionType.DROPDOWN}
+										/>
+										<FormControlLabel
+											control={<Radio />}
+											label="Free-form"
+											value={QuestionType.FREEFORM}
+										/>
+									</RadioGroup>
+								</FormControl>
+							)}
+						/>
+					</div>
+				</Form>
+			</Fade>
 
 			{showDeleteDialog && (
 				<ConfirmationDialog

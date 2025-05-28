@@ -184,16 +184,10 @@ export default function PageNavigation() {
 				/>
 				<Divider />
 				<div style={styles.nodeContainer}>
-					<Collapse
-						in={!!checklist && !isFetching && (!claimId || !!claim)}
-						unmountOnExit
-						style={styles.nodeContainerInner}
-					>
-						<span>
-							{navigation.tree.map((node) => (
-								<TreeNode key={node.instanceId} level={0} {...node} />
-							))}
-						</span>
+					<Collapse in={!!checklist && !isFetching && (!claimId || !!claim)} unmountOnExit timeout={1000}>
+						{navigation.tree.map((node) => (
+							<TreeNode key={node.instanceId} level={0} {...node} />
+						))}
 					</Collapse>
 				</div>
 			</Paper>
@@ -228,10 +222,6 @@ const styles = {
 		width: '100%',
 		height: 'calc(100% - 75px)',
 		overflow: 'auto',
-	},
-	nodeContainerInner: {
-		width: '100%',
-		height: '100%',
 	},
 	toggleButton: {
 		height: 25,

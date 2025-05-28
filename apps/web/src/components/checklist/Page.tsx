@@ -18,7 +18,6 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
-import { trpc } from '@/lib/trpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
@@ -65,7 +64,7 @@ export default function Page() {
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	const { data: questions } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
+	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
 	const { isFetching: loading, data: responses } = useResponseTrpc().list(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
 		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
@@ -124,7 +123,7 @@ export default function Page() {
 
 	return (
 		<div style={styles.container}>
-			{!questions && (
+			{(selectedPageInstance === -1 || loading) && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
 					{loading ? (
 						<>
@@ -140,11 +139,11 @@ export default function Page() {
 							/>
 						</>
 					) : (
-						<Typography fontStyle="italic">No questions selected</Typography>
+						<Typography fontStyle="italic">No page selected</Typography>
 					)}
 				</div>
 			)}
-			{!!questions && (
+			{selectedPageInstance !== -1 && !loading && (
 				<>
 					<Toolbar
 						left={
@@ -188,7 +187,7 @@ export default function Page() {
 					<div style={styles.divider}>
 						<Divider />
 					</div>
-					{!loading && (
+					<Fade key={selectedPageInstance} in={!loading} style={styles.form} timeout={500} unmountOnExit>
 						<Form control={control} style={styles.form}>
 							{questions.map((question, i) => (
 								<ChecklistQuestion
@@ -201,7 +200,7 @@ export default function Page() {
 								/>
 							))}
 						</Form>
-					)}
+					</Fade>
 				</>
 			)}
 		</div>

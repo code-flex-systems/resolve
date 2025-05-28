@@ -18,6 +18,7 @@ export default function PageEditor() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
+	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 
 	const [pageTitle, setPageTitle] = useState('');
@@ -114,7 +115,7 @@ export default function PageEditor() {
 
 	return (
 		<div style={styles.container}>
-			{!!questions && !selectedQuestion && !selectedAnswer && (
+			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
 				<>
 					<Toolbar
 						left={
@@ -163,7 +164,7 @@ export default function PageEditor() {
 					<Typography fontStyle="italic">Questions: {questions?.length ?? 0}</Typography>
 				</>
 			)}
-			{!!questions && !selectedQuestion && (
+			{!!selectedPageInstance && !selectedQuestion && (
 				<div className="flex-col-left">
 					<BasicButton
 						buttonProps={{
@@ -217,7 +218,7 @@ export default function PageEditor() {
 			)}
 			{!!selectedQuestion && !selectedAnswer && <FormQuestion />}
 			{!!selectedAnswer && <FormAnswer />}
-			{!questions && !selectedQuestion && (
+			{!selectedPageInstance && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
 					<Typography fontStyle="italic">No page selected</Typography>
 				</div>

@@ -166,6 +166,9 @@ export default function LoginPage() {
 						{error && <Typography color="error">{error}</Typography>}
 
 						<div className="flex-row-right" style={{ width: '100%' }}>
+							<Button href="/login" disabled={isSubmitting} sx={{ marginRight: '5px' }}>
+								Back
+							</Button>
 							<Button type="submit" disabled={isSubmitting}>
 								{isSubmitting ? 'Creating...' : 'Create'}
 							</Button>

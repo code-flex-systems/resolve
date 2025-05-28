@@ -210,138 +210,20 @@ export default function FormAnswer() {
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<Form control={control} style={{ width: '100%' }}>
-				<div style={styles.row} className="flex-row-left">
-					<Controller
-						name="text"
-						control={control}
-						rules={{ required: true }}
-						render={({ field }) => (
-							<TextField
-								label="Answer text"
-								placeholder="e.g. Water Damage"
-								variant="outlined"
-								error={!!errors.text}
-								{...field}
-								sx={styles.textFieldOverrides}
-								style={styles.item}
-							/>
-						)}
-					/>
-
-					<Controller
-						name="description_text"
-						control={control}
-						render={({ field }) => (
-							<TextField
-								label="Answer description (optional)"
-								placeholder="e.g. Damage as a result of leaks or condensation"
-								variant="outlined"
-								{...field}
-								value={field.value ?? ''}
-								sx={{ ...styles.textFieldOverrides, width: 400 }}
-								style={styles.item}
-							/>
-						)}
-					/>
-				</div>
-				<div style={{ ...styles.row, height: 55 }} className="flex-row-left">
-					<Controller
-						name="grade"
-						control={control}
-						render={({ field }) => (
-							<TextField
-								label="Grade (optional)"
-								placeholder="e.g. 1.1"
-								variant="outlined"
-								type="number"
-								{...field}
-								value={field.value ?? ''}
-								sx={{ ...styles.textFieldOverrides, width: 120 }}
-								style={styles.item}
-							/>
-						)}
-					/>
-
-					<Controller
-						name="position"
-						control={control}
-						rules={{ required: true }}
-						render={({ field }) => (
-							<FormControl style={{ padding: '0px 5px 15px' }}>
-								<FormLabel sx={styles.formLabel}>Order</FormLabel>
-								<Select
-									variant="outlined"
-									error={!!errors.position}
-									{...field}
-									sx={{ ...styles.textFieldOverrides, width: 50 }}
-								>
-									{getPositionOptions().map((o) => (
-										<MenuItem key={o} value={o}>
-											{o}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-						)}
-					/>
-
-					<Controller
-						name="calls_instance_id"
-						control={control}
-						render={({ field }) => (
-							<FormControl style={{ padding: '0px 5px 15px' }}>
-								<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
-								<Select
-									variant="outlined"
-									error={!!errors.calls_instance_id}
-									{...field}
-									sx={styles.textFieldOverrides}
-								>
-									{pageInstanceOptions
-										.sort((a, b) => a.pageId - b.pageId)
-										.map((o) => (
-											<MenuItem key={o.instanceId} value={o.instanceId}>
-												p{o.pageId}.i{o.instanceId}
-											</MenuItem>
-										))}
-								</Select>
-							</FormControl>
-						)}
-					/>
-				</div>
-				<div style={{ ...styles.row, height: 40 }} className="flex-row-left">
-					<Controller
-						name="has_additional_info"
-						control={control}
-						render={({ field }) => (
-							<FormControl style={styles.item}>
-								<div className="flex-row-left">
-									<Checkbox
-										{...field}
-										onChange={(e) => field.onChange(e.target.checked)}
-										checked={Boolean(field?.value)}
-										sx={{ width: 35, height: 35 }}
-									/>
-									<FormLabel sx={{ fontSize: 12 }}>Requires additional info...</FormLabel>
-								</div>
-							</FormControl>
-						)}
-					/>
-				</div>
-
-				<Collapse in={hasAdditionalInfo}>
+			<Fade key={selectedAnswerData.id} in={!!selectedAnswerData.id} timeout={500} unmountOnExit>
+				<Form control={control} style={{ width: '100%' }}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
-							name="additional_info_placeholder"
+							name="text"
 							control={control}
+							rules={{ required: true }}
 							render={({ field }) => (
 								<TextField
-									label="Free-form placeholder (optional)"
-									placeholder="e.g. Please list"
+									label="Answer text"
+									placeholder="e.g. Water Damage"
 									variant="outlined"
+									error={!!errors.text}
 									{...field}
-									value={field.value ?? ''}
 									sx={styles.textFieldOverrides}
 									style={styles.item}
 								/>
@@ -349,24 +231,144 @@ export default function FormAnswer() {
 						/>
 
 						<Controller
-							name="additional_info_num_lines"
+							name="description_text"
 							control={control}
 							render={({ field }) => (
 								<TextField
-									label="Free-form # of lines (optional)"
-									placeholder="e.g. 2"
+									label="Answer description (optional)"
+									placeholder="e.g. Damage as a result of leaks or condensation"
 									variant="outlined"
-									type="number"
 									{...field}
 									value={field.value ?? ''}
-									sx={{ ...styles.textFieldOverrides, width: 200 }}
+									sx={{ ...styles.textFieldOverrides, width: 400 }}
 									style={styles.item}
 								/>
 							)}
 						/>
 					</div>
-				</Collapse>
-			</Form>
+					<div style={{ ...styles.row, height: 55 }} className="flex-row-left">
+						<Controller
+							name="grade"
+							control={control}
+							render={({ field }) => (
+								<TextField
+									label="Grade (optional)"
+									placeholder="e.g. 1.1"
+									variant="outlined"
+									type="number"
+									{...field}
+									value={field.value ?? ''}
+									sx={{ ...styles.textFieldOverrides, width: 120 }}
+									style={styles.item}
+								/>
+							)}
+						/>
+
+						<Controller
+							name="position"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<FormControl style={{ padding: '0px 5px 15px' }}>
+									<FormLabel sx={styles.formLabel}>Order</FormLabel>
+									<Select
+										variant="outlined"
+										error={!!errors.position}
+										{...field}
+										sx={{ ...styles.textFieldOverrides, width: 50 }}
+									>
+										{getPositionOptions().map((o) => (
+											<MenuItem key={o} value={o}>
+												{o}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							)}
+						/>
+
+						<Controller
+							name="calls_instance_id"
+							control={control}
+							render={({ field }) => (
+								<FormControl style={{ padding: '0px 5px 15px' }}>
+									<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
+									<Select
+										variant="outlined"
+										error={!!errors.calls_instance_id}
+										{...field}
+										sx={styles.textFieldOverrides}
+									>
+										{pageInstanceOptions
+											.sort((a, b) => a.pageId - b.pageId)
+											.map((o) => (
+												<MenuItem key={o.instanceId} value={o.instanceId}>
+													p{o.pageId}.i{o.instanceId}
+												</MenuItem>
+											))}
+									</Select>
+								</FormControl>
+							)}
+						/>
+					</div>
+					<div style={{ ...styles.row, height: 40 }} className="flex-row-left">
+						<Controller
+							name="has_additional_info"
+							control={control}
+							render={({ field }) => (
+								<FormControl style={styles.item}>
+									<div className="flex-row-left">
+										<Checkbox
+											{...field}
+											onChange={(e) => field.onChange(e.target.checked)}
+											checked={Boolean(field?.value)}
+											sx={{ width: 35, height: 35 }}
+										/>
+										<FormLabel sx={{ fontSize: 12 }}>Requires additional info...</FormLabel>
+									</div>
+								</FormControl>
+							)}
+						/>
+					</div>
+
+					<Collapse in={hasAdditionalInfo}>
+						<div style={styles.row} className="flex-row-left">
+							<Controller
+								name="additional_info_placeholder"
+								control={control}
+								render={({ field }) => (
+									<TextField
+										label="Free-form placeholder (optional)"
+										placeholder="e.g. Please list"
+										variant="outlined"
+										{...field}
+										value={field.value ?? ''}
+										sx={styles.textFieldOverrides}
+										style={styles.item}
+									/>
+								)}
+							/>
+
+							<Controller
+								name="additional_info_num_lines"
+								control={control}
+								render={({ field }) => (
+									<TextField
+										label="Free-form # of lines (optional)"
+										placeholder="e.g. 2"
+										variant="outlined"
+										type="number"
+										{...field}
+										value={field.value ?? ''}
+										sx={{ ...styles.textFieldOverrides, width: 200 }}
+										style={styles.item}
+									/>
+								)}
+							/>
+						</div>
+					</Collapse>
+				</Form>
+			</Fade>
 		</>
 	);
 }

@@ -1,10 +1,11 @@
 'use client';
-import { Divider, Link, Paper, Typography } from '@mui/material';
+import { Collapse, Divider, Link, Paper, Typography } from '@mui/material';
 import { OFFWHITE_COLOR } from '@/styles/theme';
 import { ContentPasteSearch } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import { TransitionGroup } from 'react-transition-group';
 
 export default function Recents() {
 	const router = useRouter();
@@ -17,18 +18,21 @@ export default function Recents() {
 			</div>
 			{!isFetching && !recentChecklistClaims.length && <Typography fontStyle="italic">No recents</Typography>}
 			<div style={styles.links}>
-				{recentChecklistClaims.map((c, i) => (
-					<Link
-						key={i}
-						onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
-						style={styles.link}
-						color="primary"
-						className="flex-row-left"
-					>
-						<ContentPasteSearch sx={styles.icon} />
-						{c.claim_number} ({c.checklist_name})
-					</Link>
-				))}
+				<TransitionGroup>
+					{recentChecklistClaims.map((c, i) => (
+						<Collapse key={i}>
+							<Link
+								onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
+								style={styles.link}
+								color="primary"
+								className="flex-row-left"
+							>
+								<ContentPasteSearch sx={styles.icon} />
+								{c.claim_number} ({c.checklist_name})
+							</Link>
+						</Collapse>
+					))}
+				</TransitionGroup>
 			</div>
 		</Paper>
 	);
@@ -48,7 +52,6 @@ const styles = {
 		width: '100%',
 	},
 	icon: {
-		// color: 'primary.main',
 		marginRight: '5px',
 	},
 	link: {
@@ -65,7 +68,6 @@ const styles = {
 	},
 	menuItem: {
 		width: '100%',
-		// padding: '5px',
 	},
 	menuItemInner: {
 		width: '100%',

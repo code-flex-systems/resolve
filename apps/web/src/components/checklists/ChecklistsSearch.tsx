@@ -103,7 +103,7 @@ export default function ChecklistsSearch() {
 						open={Boolean(anchorEl)}
 						sx={{ zIndex: 100 }}
 						anchorEl={anchorEl}
-						placement="bottom-start"
+						placement="bottom"
 						disablePortal
 					>
 						<Paper style={styles.popper}>
@@ -154,7 +154,6 @@ const styles = {
 		overflowY: 'auto' as const,
 		width: '100%',
 		outline: '1px solid #E0E0E0',
-		transform: 'translate(-26px, 0px)',
 		borderBottomLeftRadius: 2,
 		borderBottomRightRadius: 2,
 	},
