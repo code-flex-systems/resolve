@@ -10,6 +10,52 @@ drop table if exists checklist_claim;
 drop table if exists claim;
 drop table if exists checklist;
 drop table if exists doc;
+drop table if exists verification_tokens;
+drop table if exists sessions;
+drop table if exists accounts;
+drop table if exists users;
+
+create table users(
+	id serial not null primary key,
+	email text not null,
+	email_verified timestamp with time zone,
+    phone varchar(16) not null,
+    phone_verified timestamp with time zone,
+	password_hash text not null,
+	first text not null,
+	last text not null,
+	created_at timestamp with time zone not null default now(),
+	updated_at timestamp with time zone not null default now()
+);
+
+create table accounts (
+  id                serial primary key,
+  user_id           integer not null references users(id) on delete cascade,
+  type              text not null,
+  provider          text not null,
+  provider_account_id text not null,
+  refresh_token     text,
+  access_token      text,
+  expires_at        integer,
+  token_type        text,
+  scope             text,
+  id_token          text,
+  session_state     text
+);
+
+create table sessions (
+  id           serial primary key,
+  session_token text not null unique,
+  user_id      integer not null references users(id) on delete cascade,
+  expires      timestamp with time zone not null
+);
+
+create table verification_tokens (
+  identifier text not null,
+  token      text not null,
+  expires    timestamp with time zone not null,
+  primary key (identifier, token)
+);
 
 create table checklist(
 	id serial not null primary key,

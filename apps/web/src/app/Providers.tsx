@@ -10,6 +10,7 @@ import { createTRPCClient } from '@trpc/client';
 import type { AppRouter } from '@/server/trpc/appRouter';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/styles/theme';
+import { SessionProvider } from 'next-auth/react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
 	// 1) Create one QueryClient, with your defaults
@@ -43,7 +44,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<trpc.Provider client={trpcClient} queryClient={queryClient}>
-				<ThemeProvider theme={theme}>{children}</ThemeProvider>
+				<SessionProvider>
+					<ThemeProvider theme={theme}>{children}</ThemeProvider>
+				</SessionProvider>
 			</trpc.Provider>
 		</QueryClientProvider>
 	);

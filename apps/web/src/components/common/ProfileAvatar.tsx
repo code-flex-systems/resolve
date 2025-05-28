@@ -5,9 +5,13 @@ import Email from '@mui/icons-material/Email';
 import Phone from '@mui/icons-material/Phone';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import BasicPopper from './BasicPopper';
+import { signOut, useSession } from 'next-auth/react';
+import { getInitials } from '@/lib/utils/utils';
+import parsePhoneNumberFromString from 'libphonenumber-js';
 
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const { data: session } = useSession();
 
 	return (
 		<>
@@ -19,33 +23,38 @@ export default function ProfileAvatar() {
 					e.stopPropagation();
 				}}
 			>
-				<Avatar sx={styles.avatar}>OF</Avatar>
+				<Avatar sx={styles.avatar}>{getInitials(session?.user?.name)}</Avatar>
 			</div>
-
-			<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
-				<Paper style={styles.paper}>
-					<Typography fontSize={17} fontWeight="bold">
-						Owen Farthing
-					</Typography>
-					<div style={styles.divider}>
-						<Divider />
-					</div>
-					<div style={{ ...styles.row, marginTop: 10 }}>
-						<Email sx={styles.icon} />
-						<Typography fontSize={15}>owenfarthing@gmail.com</Typography>
-					</div>
-					<div style={{ ...styles.row, marginTop: 5 }}>
-						<Phone sx={styles.icon} />
-						<Typography fontSize={15}>(1) 123-456-7890</Typography>
-					</div>
-					<div style={{ ...styles.divider, marginTop: 10 }}>
-						<Divider />
-					</div>
-					<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
-						<Link fontSize={15}>Sign Out</Link>
-					</div>
-				</Paper>
-			</BasicPopper>
+			{!!anchorEl && (
+				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
+					<Paper style={styles.paper}>
+						<Typography fontSize={17} fontWeight="bold">
+							{session?.user?.name ?? ''}
+						</Typography>
+						<div style={styles.divider}>
+							<Divider />
+						</div>
+						<div style={{ ...styles.row, marginTop: 10 }}>
+							<Email sx={styles.icon} />
+							<Typography fontSize={15}>{session?.user?.email ?? ''}</Typography>
+						</div>
+						<div style={{ ...styles.row, marginTop: 5 }}>
+							<Phone sx={styles.icon} />
+							<Typography fontSize={15}>
+								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
+							</Typography>
+						</div>
+						<div style={{ ...styles.divider, marginTop: 10 }}>
+							<Divider />
+						</div>
+						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
+							<Link onClick={() => signOut({ callbackUrl: '/login' })} fontSize={15}>
+								Sign Out
+							</Link>
+						</div>
+					</Paper>
+				</BasicPopper>
+			)}
 		</>
 	);
 }

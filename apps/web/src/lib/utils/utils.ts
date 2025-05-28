@@ -1,6 +1,12 @@
-import { PageInstanceStatus } from '@/config/enums';
 import { InstanceListItem, TreeNode } from '@/types/types';
 import dayjs from 'dayjs';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
+export function getInitials(name: string | null | undefined) {
+	if (!name) return '';
+	const parts = name.split(' ');
+	return `${parts[0][0]}${parts[1][0]}`;
+}
 
 export function formatAmount(value?: number | string, currency = false) {
 	if (value == null) return '';
@@ -19,6 +25,14 @@ export function formatMDY(date?: string) {
 export function formatMDYAbv(date?: string) {
 	if (!date) return '';
 	return dayjs(date).format('MM/DD/YY');
+}
+
+export function formatPhoneNumber(phoneRaw: string) {
+	const phone = parsePhoneNumberFromString(phoneRaw, 'US');
+	if (!phone || !phone.isValid()) {
+		throw new Error('Invalid phone number');
+	}
+	return phone.number;
 }
 
 export function getExtension(filename: string) {
@@ -60,6 +74,11 @@ export function updatePropertyInTree<T extends keyof TreeNode>(
 		}
 		return node;
 	});
+}
+
+export function validatePhoneNumber(phoneRaw: string) {
+	const phone = parsePhoneNumberFromString(phoneRaw, 'US');
+	return phone && phone.isValid() ? undefined : 'Invalid phone number';
 }
 
 // private methods

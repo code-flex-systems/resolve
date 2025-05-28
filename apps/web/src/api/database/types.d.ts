@@ -25,6 +25,21 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Accounts {
+  access_token: string | null;
+  expires_at: number | null;
+  id: Generated<number>;
+  id_token: string | null;
+  provider: string;
+  provider_account_id: string;
+  refresh_token: string | null;
+  scope: string | null;
+  session_state: string | null;
+  token_type: string | null;
+  type: string;
+  user_id: number;
+}
+
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
@@ -42,7 +57,7 @@ export interface Answer {
 
 export interface Checklist {
   created_at: Generated<string>;
-  created_by: Generated<string>;
+  created_by: string;
   id: Generated<number>;
   name: string;
   updated_at: Generated<string>;
@@ -55,6 +70,7 @@ export interface ChecklistClaim {
 }
 
 export interface Claim {
+  checklist_id: number;
   claim_amount: Numeric | null;
   claim_number: string | null;
   client: string | null;
@@ -147,7 +163,34 @@ export interface ResponseAuditLogs {
   user_id: number;
 }
 
+export interface Sessions {
+  expires: Timestamp;
+  id: Generated<number>;
+  session_token: string;
+  user_id: number;
+}
+
+export interface Users {
+  created_at: Generated<Timestamp>;
+  email: string;
+  email_verified: Timestamp | null;
+  first: string;
+  id: Generated<number>;
+  last: string;
+  password_hash: string;
+  phone: string;
+  phone_verified: Timestamp | null;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface VerificationTokens {
+  expires: Timestamp;
+  identifier: string;
+  token: string;
+}
+
 export interface DB {
+  accounts: Accounts;
   answer: Answer;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
@@ -160,4 +203,7 @@ export interface DB {
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;
   response_audit_logs: ResponseAuditLogs;
+  sessions: Sessions;
+  users: Users;
+  verification_tokens: VerificationTokens;
 }
