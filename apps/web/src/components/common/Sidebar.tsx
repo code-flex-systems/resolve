@@ -1,8 +1,8 @@
 'use client';
 import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Collapse, Divider, List, ListItemText, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
-import { Checklist } from '@mui/icons-material';
+import { ManageAccounts } from '@mui/icons-material';
 import Home from '@mui/icons-material/Home';
 import Menu from '@mui/icons-material/Menu';
 
@@ -14,6 +14,7 @@ import config from '@/config/config';
 
 export default function Sidebar() {
 	const router = useRouter();
+	const pathname = usePathname();
 	const selectedPage = useGlobalSlice((state) => state.selectedPage);
 	const navOpen = useGlobalSlice((state) => state.navOpen);
 
@@ -22,15 +23,15 @@ export default function Sidebar() {
 			group0: [
 				{
 					label: 'Home',
-					route: 'checklists',
+					route: '/home',
 					color: 'secondary.main',
-					icon: <Home sx={styles.icon('checklists' === selectedPage)} />,
+					icon: <Home sx={styles.icon(pathname.startsWith('/home'))} />,
 				},
 				{
-					label: 'Checklists',
-					route: 'checklist',
+					label: 'Admin',
+					route: '/admin',
 					color: 'secondary.main',
-					icon: <Checklist sx={styles.icon('checklist' === selectedPage)} />,
+					icon: <ManageAccounts sx={styles.icon(pathname.startsWith('/admin'))} />,
 				},
 			],
 		};
@@ -71,13 +72,12 @@ export default function Sidebar() {
 							>
 								<MenuItem
 									key={navItem.route}
-									selected={navItem.route === selectedPage}
+									selected={pathname.startsWith(navItem.route)}
 									onClick={() => {
-										router.push(`/${navItem.route}`);
-										actions.updateSelectedPage(navItem.route);
+										router.push(navItem.route);
 									}}
 									style={{
-										backgroundColor: navItem.route === selectedPage ? 'white' : 'inherit',
+										backgroundColor: pathname.startsWith(navItem.route) ? 'white' : 'inherit',
 									}}
 									sx={{ ...styles.menuItem }}
 								>
@@ -89,7 +89,7 @@ export default function Sidebar() {
 													{navItem.label.toUpperCase()}
 												</Typography>
 											}
-											sx={styles.text(navItem.route === selectedPage)}
+											sx={styles.text(pathname.startsWith(navItem.route))}
 										/>
 									</Collapse>
 								</MenuItem>

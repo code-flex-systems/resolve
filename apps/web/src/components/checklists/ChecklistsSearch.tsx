@@ -56,6 +56,8 @@ export default function ChecklistsSearch() {
 		if (value) {
 			setSearching(true);
 			debouncedSearch(value);
+		} else {
+			onClose();
 		}
 	};
 

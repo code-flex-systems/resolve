@@ -26,7 +26,7 @@ export default function Checklists() {
 	}, []);
 
 	return (
-		<PageWrapper route="checklists">
+		<PageWrapper route="home">
 			<div style={styles.container}>
 				<Recents />
 				<div style={styles.innerContainer} className="flex-col-center">
