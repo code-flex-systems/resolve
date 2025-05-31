@@ -55,7 +55,13 @@ export default function SummaryDetails() {
 	const checklistSummaryContraints = useChecklistSlice((state) => state.checklistSummaryContraints);
 	const { data: summaryDetails = { rows: [], count: undefined }, isFetching: isLoadingDetails } =
 		useChecklistTrpc().getSummaryDetail(
-			{ checklistId, claimId, segment: selectedSummarySegment },
+			{
+				checklistId,
+				claimId,
+				segment: selectedSummarySegment,
+				limit: checklistSummaryContraints.pageSize,
+				offset: checklistSummaryContraints.page * checklistSummaryContraints.pageSize,
+			},
 			{ enabled: checklistId !== -1 && claimId !== -1 }
 		);
 	const rowCountRef = useRef(summaryDetails.count ?? 0);

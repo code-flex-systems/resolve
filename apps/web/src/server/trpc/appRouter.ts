@@ -7,6 +7,7 @@ import { docRouter } from './routers/doc';
 import { pageRouter } from './routers/page';
 import { questionRouter } from './routers/question';
 import { responseRouter } from './routers/response';
+import { userRouter } from './routers/user';
 
 export const appRouter = router({
 	answer: answerRouter,
@@ -16,6 +17,7 @@ export const appRouter = router({
 	page: pageRouter,
 	question: questionRouter,
 	response: responseRouter,
+	user: userRouter,
 });
 
 export type AppRouter = typeof appRouter;

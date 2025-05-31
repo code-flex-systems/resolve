@@ -17,7 +17,7 @@ const theme = createTheme({
 			},
 			styleOverrides: {
 				root: {
-					borderRadius: 0,
+					// borderRadius: 0,
 				},
 			},
 		},
@@ -54,7 +54,7 @@ const theme = createTheme({
 			},
 			styleOverrides: {
 				root: {
-					borderRadius: 0,
+					// borderRadius: 0,
 				},
 			},
 		},
@@ -69,7 +69,7 @@ const theme = createTheme({
 		MuiPaper: {
 			styleOverrides: {
 				root: {
-					borderRadius: 0,
+					// borderRadius: 0,
 				},
 			},
 		},
@@ -92,7 +92,7 @@ const theme = createTheme({
 			},
 			styleOverrides: {
 				root: {
-					borderRadius: 0,
+					// borderRadius: 0,
 				},
 			},
 		},
@@ -161,14 +161,14 @@ const theme = createTheme({
 		MuiToggleButtonGroup: {
 			styleOverrides: {
 				root: {
-					borderRadius: 0,
+					// borderRadius: 0,
 				},
 			},
 		},
 		MuiToggleButton: {
 			styleOverrides: {
 				root: {
-					borderRadius: 0,
+					// borderRadius: 0,
 				},
 			},
 		},
@@ -187,6 +187,7 @@ const theme = createTheme({
 		},
 		secondary: {
 			main: '#144178',
+			dark: BASE_COLOR,
 		},
 		warning: {
 			main: ORANGE_COLOR,

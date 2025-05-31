@@ -1,5 +1,5 @@
 'use client';
-import { Dialog, DialogActions, DialogContent, Fade, IconButton, Typography } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, Fade, IconButton, Paper, Typography } from '@mui/material';
 import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '@/types/types';
@@ -52,7 +52,7 @@ export default function BasicDialog(
 					}}
 				>
 					{title && (
-						<div style={styles.titleCard}>
+						<Paper elevation={0} style={styles.titleCard}>
 							{typeof title === 'string' ? (
 								<Typography fontSize={17} lineHeight="21px">
 									{title}
@@ -60,7 +60,7 @@ export default function BasicDialog(
 							) : (
 								title
 							)}
-						</div>
+						</Paper>
 					)}
 				</div>
 				<div style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}>
@@ -133,5 +133,7 @@ const styles = {
 	titleCard: {
 		backgroundColor: '#e8e8f3',
 		padding: 5,
+		width: 'fit-content',
+		height: 'fit-content',
 	},
 };

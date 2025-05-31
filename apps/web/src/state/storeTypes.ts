@@ -1,6 +1,15 @@
 import { ChecklistMode, SummarySegment } from '../config/enums';
 import { Checklist, Claim, Interval, PageInstance, TreeNode, User } from '@/types/types';
 
+export interface AdminSlice {
+	selectedTab: number;
+	showNewUserDialog: boolean;
+	userConstraints: {
+		page: number;
+		pageSize: number;
+	};
+}
+
 export interface BreakdownSlice {
 	breakdownInterval: Interval<string>;
 	pageInstance: PageInstance | null;

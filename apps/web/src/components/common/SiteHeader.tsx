@@ -37,5 +37,6 @@ const styles = {
 		minHeight: 60,
 		backgroundColor: OFFWHITE_COLOR,
 		zIndex: 10,
+		borderRadius: 0,
 	},
 };

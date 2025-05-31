@@ -72,7 +72,6 @@ export default function GPTSidebar({
 					zIndex: 1200,
 				}}
 			>
-				{/* Hamburger toggle */}
 				<Box
 					sx={{
 						display: 'flex',
@@ -95,7 +94,12 @@ export default function GPTSidebar({
 							<ListItem
 								key={item.route}
 								disablePadding
-								sx={{ display: 'block', border: `5px solid ${theme.palette.secondary.main}` }}
+								sx={{
+									display: 'block',
+									// border: `5px solid ${theme.palette.secondary.main}`,
+									padding: '5px',
+									borderRadius: 20,
+								}}
 							>
 								<ListItemButton
 									component={Link}
@@ -107,6 +111,7 @@ export default function GPTSidebar({
 										color: selected ? hoverColor : color,
 										bgcolor: selected ? hoverBackgroundColor : 'inherit',
 										'&:hover': { bgcolor: hoverBackgroundColor, color: hoverColor },
+										borderRadius: 1,
 									}}
 								>
 									<ListItemIcon

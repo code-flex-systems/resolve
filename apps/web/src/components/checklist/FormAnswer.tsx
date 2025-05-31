@@ -391,13 +391,10 @@ const styles = {
 	},
 	textFieldOverrides: {
 		width: 300,
-		borderRadius: 0,
 		'& .MuiInputBase-root': {
-			borderRadius: 0,
 			padding: '3px 5px',
 		},
 		'& .MuiOutlinedInput-input': {
-			borderRadius: 0,
 			padding: '3px 5px',
 		},
 	},

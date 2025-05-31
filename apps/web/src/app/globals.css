@@ -81,10 +81,29 @@ body {
 	align-items: center;
 }
 
+.hovered-button:hover {
+	scale: 1.1;
+	transition: scale 100ms ease;
+}
+
+.hovered-row:hover {
+	scale: 1.005;
+	transition: scale 100ms ease;
+	cursor: pointer;
+}
+
 .italics {
 	font-style: italic;
 }
 
 .striped {
 	background-color: #f7f7f7;
+}
+
+.user-row {
+	background-color: rgba(33, 107, 196, 0.2);
+}
+
+.user-disabled-row {
+	background-color: #ebedf1;
 }

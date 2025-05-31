@@ -251,11 +251,9 @@ const styles = {
 		'& .MuiInputBase-root': {
 			fontSize: 19,
 			lineHeight: '21px',
-			borderRadius: 0,
 			padding: '2px',
 		},
 		'& .MuiOutlinedInput-input': {
-			borderRadius: 0,
 			padding: '2px 10px',
 		},
 	},

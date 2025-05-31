@@ -19,11 +19,13 @@ create table users(
 	id serial not null primary key,
 	email text not null,
 	email_verified timestamp with time zone,
-    phone varchar(16) not null,
-    phone_verified timestamp with time zone,
 	password_hash text not null,
 	first text not null,
 	last text not null,
+    phone varchar(16),
+    phone_verified timestamp with time zone,
+	role text,
+	disabled boolean not null default false,
 	created_at timestamp with time zone not null default now(),
 	updated_at timestamp with time zone not null default now()
 );

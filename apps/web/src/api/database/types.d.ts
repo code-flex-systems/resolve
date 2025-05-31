@@ -172,14 +172,16 @@ export interface Sessions {
 
 export interface Users {
   created_at: Generated<Timestamp>;
+  disabled: Generated<boolean>;
   email: string;
   email_verified: Timestamp | null;
   first: string;
   id: Generated<number>;
   last: string;
   password_hash: string;
-  phone: string;
+  phone: string | null;
   phone_verified: Timestamp | null;
+  role: string | null;
   updated_at: Generated<Timestamp>;
 }
 

@@ -1,19 +1,22 @@
 'use client';
-import { PropsWithChildren, useEffect } from 'react';
+import { PropsWithChildren, useEffect, useMemo } from 'react';
 import Sidebar from './Sidebar';
 import SiteHeader from './SiteHeader';
 import * as actions from '@/state/global/actions';
 import GPTSidebar, { NavItem } from './GPTSidebar';
 import { Home, ManageAccounts } from '@mui/icons-material';
 import theme from '@/styles/theme';
-
-const navItems: NavItem[] = [
-	{ label: 'Home', route: '/home', icon: <Home sx={{ fontSize: 23 }} /> },
-	{ label: 'Admin', route: '/admin', icon: <ManageAccounts sx={{ fontSize: 23 }} /> },
-];
+import useIsAdmin from '@/hooks/useIsAdmin';
 
 export default function PageWrapper(props: { route: string; isNavItem?: boolean } & PropsWithChildren) {
 	const { route, isNavItem = true } = props;
+	const isAdmin = useIsAdmin();
+
+	const navItems = useMemo(() => {
+		let items: NavItem[] = [{ label: 'Home', route: '/home', icon: <Home sx={{ fontSize: 23 }} /> }];
+		if (isAdmin) items.push({ label: 'Admin', route: '/admin', icon: <ManageAccounts sx={{ fontSize: 23 }} /> });
+		return items;
+	}, [isAdmin]);
 
 	useEffect(() => {
 		if (isNavItem) actions.updateSelectedPage(route);
@@ -23,8 +26,8 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 		<div style={styles.container}>
 			<GPTSidebar
 				items={navItems}
-				hoverColor={theme.palette.secondary.main}
-				backgroundColor={theme.palette.secondary.main}
+				hoverColor={theme.palette.primary.main}
+				backgroundColor={theme.palette.primary.main}
 			/>
 			<div style={styles.content}>
 				<SiteHeader />
