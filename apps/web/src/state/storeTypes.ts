@@ -2,6 +2,11 @@ import { ChecklistMode, SummarySegment } from '../config/enums';
 import { Checklist, Claim, Interval, PageInstance, TreeNode, User } from '@/types/types';
 
 export interface AdminSlice {
+	claimConstraints: {
+		page: number;
+		pageSize: number;
+	};
+	selectedFeedId: number | null | undefined;
 	selectedTab: number;
 	showNewUserDialog: boolean;
 	userConstraints: {

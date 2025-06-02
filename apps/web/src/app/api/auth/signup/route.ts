@@ -3,7 +3,6 @@ import { hash } from 'bcrypt';
 import { db } from '@/api/database/kysely';
 
 export async function POST(req: NextRequest) {
-	console.log(req);
 	const { email, password, first, last, phone } = await req.json();
 	if (!email || !password || !first || !last || !phone) {
 		return NextResponse.json({ error: 'Missing fields' }, { status: 400 });

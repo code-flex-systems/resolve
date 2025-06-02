@@ -13,9 +13,6 @@ export async function getUserCount(disabled?: boolean, limit?: number, offset?: 
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('disabled', '=', Boolean(disabled));
-	if (limit != null && offset != null) {
-		query = query.limit(limit).offset(offset);
-	}
 	const count = await query.executeTakeFirst();
 	return parseInt(count?.count?.toString() ?? '0');
 }

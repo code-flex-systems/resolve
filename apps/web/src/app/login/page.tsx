@@ -37,7 +37,6 @@ export default function LoginPage() {
 		} catch (e) {
 			setAuthError('Invalid username or password');
 		}
-		console.log(result);
 		if (result?.error) {
 			setAuthError('Invalid username or password');
 		} else {

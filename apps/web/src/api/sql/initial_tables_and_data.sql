@@ -1,3 +1,4 @@
+drop table if exists feeds;
 drop table if exists response_audit_logs;
 drop table if exists question_response_answer;
 drop table if exists question_response;
@@ -80,7 +81,8 @@ create table claim(
 	loss_location text,
 	last_updated_by text,
 	last_update date,
-	expected_recovery numeric
+	expected_recovery numeric,
+    feed_id integer references feeds(id)
 );
 
 create table checklist_claim(
@@ -190,3 +192,44 @@ CREATE TABLE response_audit_logs (
 
     timestamp TIMESTAMP DEFAULT NOW()
 );
+
+-- Table: public.feeds
+
+CREATE TABLE public.feeds (
+  id                  SERIAL PRIMARY KEY,
+  name                TEXT NOT NULL UNIQUE,
+  schedule            INTEGER NOT NULL CHECK (schedule BETWEEN 0 AND 23),
+  feed_type           TEXT NOT NULL CHECK (feed_type IN ('sftp', 'rest_api', 'database')),
+  connection_options  JSONB NOT NULL,
+  status              TEXT NOT NULL DEFAULT 'Inactive' 
+                        CHECK (status IN ('Online', 'Muted', 'Offline', 'Inactive')),
+  last_synced_at      TIMESTAMPTZ,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Optional: Automatically update `updated_at` on row modification
+CREATE OR REPLACE FUNCTION public.update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_feeds_updated_at
+BEFORE UPDATE ON public.feeds
+FOR EACH ROW
+EXECUTE PROCEDURE public.update_timestamp();
+
+-- Indexes for common queries
+
+-- Index on feed_type for filtering by type
+CREATE INDEX idx_feeds_feed_type ON public.feeds (feed_type);
+
+-- Partial index on status = 'Online' for quickly finding active feeds
+CREATE INDEX idx_feeds_active_status ON public.feeds (id)
+WHERE status = 'Online';
+
+-- GIN index on connection_options if you need to query inside the JSONB
+CREATE INDEX idx_feeds_conn_opts ON public.feeds USING GIN (connection_options);

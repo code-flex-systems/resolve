@@ -77,6 +77,7 @@ export interface Claim {
   client_adjuster: string | null;
   date_of_loss: Timestamp | null;
   expected_recovery: Numeric | null;
+  feed_id: number | null;
   id: Generated<number>;
   insured: string | null;
   last_update: Timestamp | null;
@@ -89,6 +90,18 @@ export interface Doc {
   alias: string;
   filename: string;
   id: Generated<number>;
+}
+
+export interface Feeds {
+  connection_options: Json;
+  created_at: Generated<Timestamp>;
+  feed_type: string;
+  id: Generated<number>;
+  last_synced_at: Timestamp | null;
+  name: string;
+  schedule: number;
+  status: Generated<string>;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface Page {
@@ -198,6 +211,7 @@ export interface DB {
   checklist_claim: ChecklistClaim;
   claim: Claim;
   doc: Doc;
+  feeds: Feeds;
   page: Page;
   page_instance: PageInstance;
   page_instance_status: PageInstanceStatus;

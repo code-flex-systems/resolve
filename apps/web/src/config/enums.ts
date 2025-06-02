@@ -14,6 +14,19 @@ export enum ClaimSearch {
 	INSURED = 'insured',
 }
 
+export enum FeedStatus {
+	OFFLINE = 'Offline',
+	ONLINE = 'Online',
+	MUTED = 'Muted',
+	INACTIVE = 'Inactive',
+}
+
+export enum FeedType {
+	DATABASE = 'database',
+	REST_API = 'rest_api',
+	SFTP = 'sftp',
+}
+
 export enum PageInstanceStatus {
 	UNSTARTED = 'unstarted',
 	IN_PROGRESS = 'in-progress',

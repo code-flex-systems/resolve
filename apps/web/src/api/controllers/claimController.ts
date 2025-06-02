@@ -6,7 +6,20 @@ export async function getClaim({ checklistId, claimId }: { checklistId: number; 
 	return results;
 }
 
-export async function getClaims({ searchTerm }: { searchTerm?: { value: string; type: ClaimSearch } }) {
-	let results = await claimQueries.getClaims(searchTerm);
-	return results;
+export async function getClaims({
+	feedId,
+	searchTerm,
+	limit,
+	offset,
+}: {
+	feedId?: number | null;
+	searchTerm?: { value: string; type: ClaimSearch };
+	limit?: number;
+	offset?: number;
+}) {
+	const [rows, count] = await Promise.all([
+		claimQueries.getClaims('data', feedId, searchTerm, limit, offset),
+		claimQueries.getClaims('count', feedId, searchTerm, limit, offset),
+	]);
+	return { rows, count };
 }

@@ -17,14 +17,22 @@ export function formatAmount(value?: number | string, currency = false) {
 	return currency ? '$' + formattedValue : formattedValue;
 }
 
+export function formatHour(hour: number) {
+	return dayjs().set('hour', hour).format('h A');
+}
+
 export function formatMDY(date?: string) {
 	if (!date) return '';
-	return dayjs(date).format('MMMM D, YYYY');
+	const parsedDate = dayjs(date);
+	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
+	return parsedDate.format('MMMM D, YYYY');
 }
 
 export function formatMDYAbv(date?: string) {
 	if (!date) return '';
-	return dayjs(date).format('MM/DD/YY');
+	const parsedDate = dayjs(date);
+	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
+	return parsedDate.format('MM/DD/YY');
 }
 
 export function formatPhoneNumber(phoneRaw: string) {
