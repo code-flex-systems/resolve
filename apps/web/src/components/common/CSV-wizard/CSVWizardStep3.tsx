@@ -1,14 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import {
-	Typography,
-	LinearProgress,
-	Box,
-	Stack,
-	Alert,
-	Accordion,
-	AccordionSummary,
-	AccordionDetails,
-} from '@mui/material';
+import { Typography, LinearProgress, Box, Alert, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
@@ -35,6 +26,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 		const [validRows, setValidRows] = useState<any[]>([]);
 		const [skippedRows, setSkippedRows] = useState<{ rowIndex: number; reason: string }[]>([]);
 		const [submitSuccess, setSubmitSuccess] = useState<boolean | null>(null);
+		const [skippedRowsExpanded, setSkippedRowsExpanded] = useState(false);
 
 		// Parse and validate rows on mount
 		useEffect(() => {
@@ -88,21 +80,12 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 		}));
 
 		return (
-			<Stack
-				spacing={3}
-				sx={{
-					height: 350,
-					overflow: 'auto',
-					display: 'flex',
-					flexDirection: 'column',
-					justifyContent: 'space-between',
-				}}
-			>
+			<>
 				{submitting && <LinearProgress />}
 				{submitSuccess === true && <Alert severity="success">Import successful!</Alert>}
 				{submitSuccess === false && <Alert severity="error">Import failed. Please try again.</Alert>}
 
-				<Box height={250}>
+				<Box height={250} minHeight={250}>
 					<DataGrid
 						columnHeaderHeight={35}
 						rowHeight={35}
@@ -118,20 +101,45 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 				</Box>
 
 				{skippedRows.length > 0 && (
-					<Accordion>
-						<AccordionSummary expandIcon={<ExpandMoreIcon />}>
+					<>
+						<div
+							style={styles.skippedContainer}
+							className="flex-row-left"
+							onClick={() => setSkippedRowsExpanded((prev) => !prev)}
+						>
+							<ExpandMoreIcon
+								sx={{
+									marginRight: '5px',
+									transform: skippedRowsExpanded ? undefined : 'rotate(-90deg)',
+									transition: 'transform 100ms ease',
+								}}
+							/>
 							<Typography fontSize={15}>{skippedRows.length} skipped row(s)</Typography>
-						</AccordionSummary>
-						<AccordionDetails>
+						</div>
+						<Collapse
+							in={skippedRowsExpanded}
+							style={{ width: '100%' }}
+							className="flex-col-start"
+							unmountOnExit
+						>
 							{skippedRows.map((row, idx) => (
 								<Typography key={idx} fontSize={14} padding="5px 0px">
 									<b>Row {row.rowIndex}:</b> Invalid entry for <b>{row.reason}</b>
 								</Typography>
 							))}
-						</AccordionDetails>
-					</Accordion>
+						</Collapse>
+					</>
 				)}
-			</Stack>
+			</>
 		);
 	}
 );
+
+const styles = {
+	skippedContainer: {
+		width: '100%',
+		height: 30,
+		cursor: 'pointer',
+		marginTop: 10,
+	},
+};

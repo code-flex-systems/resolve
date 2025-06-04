@@ -89,7 +89,7 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 				<Box sx={{ position: 'relative', height: 350 }}>
 					<Fade in={activeStep === 0} timeout={400} unmountOnExit>
 						<Box key="step1" sx={{ position: 'absolute', width: '100%' }}>
-							<CSVStep1 onParsed={handleFileParsed} />
+							<CSVStep1 fields={fields} onParsed={handleFileParsed} />
 						</Box>
 					</Fade>
 					<Fade in={activeStep === 1} timeout={400} unmountOnExit>
