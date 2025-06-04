@@ -8,7 +8,12 @@ import { AddBox, ContentPasteSearch, PersonSearch, Upload } from '@mui/icons-mat
 import IconHeaderCell from '../common/IconHeaderCell';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import { setFeedId, updateClaimConstraints } from '@/state/admin/actions';
+import {
+	setFeedId,
+	toggleImportClaimsDialog,
+	toggleNewClaimDialog,
+	updateClaimConstraints,
+} from '@/state/admin/actions';
 import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 
@@ -132,12 +137,12 @@ export default function Claims() {
 								variant="contained"
 								color="secondary"
 								startIcon={<Upload />}
-								onClick={() => {}}
+								onClick={toggleImportClaimsDialog}
 								sx={{ marginRight: '10px' }}
 							>
 								Import
 							</Button>
-							<Button variant="contained" startIcon={<AddBox />} onClick={() => {}}>
+							<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewClaimDialog}>
 								Claim
 							</Button>
 						</>

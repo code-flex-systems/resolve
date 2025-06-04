@@ -1,6 +1,7 @@
 import { sql } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { ClaimSearch, FeedStatus } from '@/config/enums';
+import { Claim } from '@/types/types';
 
 export async function getClaim(checklistId: number, claimId: number) {
 	await db
@@ -41,4 +42,25 @@ export async function getClaims(
 		const count = await query.executeTakeFirst();
 		return parseInt(count?.count?.toString() ?? '0');
 	}
+}
+
+export async function createClaim(params: Omit<Claim, 'id'>) {
+	const [feed] = await db
+		.insertInto('claim')
+		.values({
+			claim_number: params.claim_number,
+			client: params.client,
+			client_adjuster: params.client_adjuster,
+			insured: params.insured,
+			claim_amount: params.claim_amount,
+			total_incurred: params.total_incurred,
+			date_of_loss: params.date_of_loss,
+			loss_location: params.loss_location,
+			last_updated_by: params.last_updated_by,
+			last_update: params.last_update,
+			expected_recovery: params.expected_recovery,
+		})
+		.returningAll()
+		.execute();
+	return feed;
 }

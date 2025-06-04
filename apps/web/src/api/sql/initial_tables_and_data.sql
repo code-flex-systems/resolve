@@ -70,7 +70,6 @@ create table checklist(
 
 create table claim(
 	id serial not null primary key,
-    checklist_id integer not null references checklist(id) on delete cascade,
 	claim_number text,
 	client text,
 	client_adjuster text,

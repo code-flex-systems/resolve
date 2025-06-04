@@ -1,0 +1,217 @@
+import { Grid, InputAdornment, TextField, Typography } from '@mui/material';
+import BasicDialog from '../common/BasicDialog';
+import { useForm } from 'react-hook-form';
+import { ContentPasteSearch } from '@mui/icons-material';
+import { toggleNewClaimDialog } from '@/state/admin/actions';
+import { Claim } from '@/types/types';
+import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+
+export default function NewClaimDialog() {
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+		watch,
+	} = useForm<Omit<Claim, 'id'>>();
+	const { mutateAsync: createClaim, isPending } = useClaimTrpc().create;
+
+	const onSubmit = handleSubmit(async (data) => {
+		try {
+			await createClaim({
+				params: {
+					...data,
+					claim_amount: Number(data.claim_amount),
+					expected_recovery: Number(data.expected_recovery),
+					total_incurred: Number(data.total_incurred),
+					date_of_loss: new Date(data.date_of_loss?.toString() ?? ''),
+					last_update: new Date(data.last_update?.toString() ?? ''),
+				},
+			});
+			toggleNewClaimDialog();
+		} catch (e) {
+			console.error(e);
+		}
+	});
+
+	return (
+		<BasicDialog
+			title="New Claim"
+			primaryAction={{
+				label: 'Create claim',
+				onClick: onSubmit,
+				icon: <ContentPasteSearch />,
+				disabled: isSubmitting || isPending,
+			}}
+			onClose={toggleNewClaimDialog}
+			width={500}
+		>
+			<Typography fontStyle="italic">
+				Toggle <b>Only Manual Claims</b> to filter by claims created here.
+			</Typography>
+			<form style={styles.form} className="flex-col-start">
+				<Grid container spacing={2}>
+					<Grid style={styles.row}>
+						<TextField
+							id="claim_number"
+							label="Claim Number"
+							placeholder="e.g. OPV63SASBX"
+							error={!!errors.claim_number}
+							sx={{
+								width: 200,
+							}}
+							{...register('claim_number', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="claim_amount"
+							label="Claim Amount"
+							placeholder="e.g. 75496.66"
+							error={!!errors.claim_amount}
+							type="number"
+							slotProps={{
+								input: {
+									startAdornment: <InputAdornment position="start">$</InputAdornment>,
+								},
+							}}
+							sx={{
+								width: 200,
+							}}
+							{...register('claim_amount', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="client"
+							label="Client"
+							placeholder="e.g. Liberty Mutual"
+							error={!!errors.client}
+							sx={{
+								width: 200,
+							}}
+							{...register('client', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="client_adjuster"
+							label="Client Adjuster"
+							placeholder="e.g. Matthew Howell"
+							error={!!errors.client_adjuster}
+							sx={{
+								width: 200,
+							}}
+							{...register('client_adjuster', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="date_of_loss"
+							label="Date of Loss"
+							error={!!errors.date_of_loss}
+							type="date"
+							sx={{
+								width: 200,
+							}}
+							{...register('date_of_loss', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="expected_recovery"
+							label="Expected Recovery"
+							placeholder="e.g. 21521.43"
+							slotProps={{
+								input: {
+									startAdornment: <InputAdornment position="start">$</InputAdornment>,
+								},
+							}}
+							error={!!errors.expected_recovery}
+							type="number"
+							sx={{
+								width: 200,
+							}}
+							{...register('expected_recovery', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="insured"
+							label="Insured"
+							placeholder="e.g. Rachel Anderson"
+							error={!!errors.insured}
+							sx={{
+								width: 200,
+							}}
+							{...register('insured', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="last_update"
+							label="Last Update"
+							error={!!errors.last_update}
+							type="date"
+							sx={{
+								width: 200,
+							}}
+							{...register('last_update', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="last_updated_by"
+							label="Updater"
+							placeholder="e.g. Bridget Lubowitz-Nader"
+							error={!!errors.last_updated_by}
+							sx={{
+								width: 200,
+							}}
+							{...register('last_updated_by', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="loss_location"
+							label="Loss Location"
+							placeholder="e.g. New York City, NY"
+							error={!!errors.loss_location}
+							sx={{
+								width: 200,
+							}}
+							{...register('loss_location', { required: true })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="total_incurred"
+							label="Total Incurred"
+							placeholder="e.g. 94017.73"
+							slotProps={{
+								input: {
+									startAdornment: <InputAdornment position="start">$</InputAdornment>,
+								},
+							}}
+							error={!!errors.total_incurred}
+							type="number"
+							sx={{
+								width: 200,
+							}}
+							{...register('total_incurred', { required: true })}
+						/>
+					</Grid>
+				</Grid>
+			</form>
+		</BasicDialog>
+	);
+}
+
+const styles = {
+	form: {
+		maxHeight: 500,
+		overflow: 'auto',
+	},
+	row: {
+		padding: '10px 0px',
+	},
+};

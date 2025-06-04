@@ -17,6 +17,18 @@ export function setTab(newTab: number) {
 	});
 }
 
+export function toggleImportClaimsDialog() {
+	setState((state) => {
+		state.showImportClaimsDialog = !state.showImportClaimsDialog;
+	});
+}
+
+export function toggleNewClaimDialog() {
+	setState((state) => {
+		state.showNewClaimDialog = !state.showNewClaimDialog;
+	});
+}
+
 export function toggleNewUserDialog() {
 	setState((state) => {
 		state.showNewUserDialog = !state.showNewUserDialog;

@@ -8,6 +8,8 @@ export interface AdminSlice {
 	};
 	selectedFeedId: number | null | undefined;
 	selectedTab: number;
+	showImportClaimsDialog: boolean;
+	showNewClaimDialog: boolean;
 	showNewUserDialog: boolean;
 	userConstraints: {
 		page: number;

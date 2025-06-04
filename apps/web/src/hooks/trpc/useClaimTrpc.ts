@@ -12,7 +12,13 @@ export function useClaimTrpc() {
 		list: trpc.claim.getClaims.useQuery,
 
 		get: trpc.claim.getClaim.useQuery,
+
+		create: trpc.claim.createClaim.useMutation({
+			onSuccess() {
+				utils.claim.getClaims.invalidate();
+			},
+		}),
 	};
 }
 
-export type Claim = ClaimOutput['getClaims'][number];
+export type Claim = ClaimOutput['getClaim'];

@@ -1,5 +1,6 @@
 import * as claimQueries from '@/api/queries/claimQueries';
 import { ClaimSearch } from '@/config/enums';
+import { Claim } from '@/types/types';
 
 export async function getClaim({ checklistId, claimId }: { checklistId: number; claimId: number }) {
 	let results = await claimQueries.getClaim(checklistId, claimId);
@@ -22,4 +23,8 @@ export async function getClaims({
 		claimQueries.getClaims('count', feedId, searchTerm, limit, offset),
 	]);
 	return { rows, count };
+}
+
+export async function createClaim({ params }: { params: Omit<Claim, 'id'> }) {
+	return await claimQueries.createClaim(params);
 }

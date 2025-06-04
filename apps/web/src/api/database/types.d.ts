@@ -70,7 +70,6 @@ export interface ChecklistClaim {
 }
 
 export interface Claim {
-  checklist_id: number;
   claim_amount: Numeric | null;
   claim_number: string | null;
   client: string | null;
