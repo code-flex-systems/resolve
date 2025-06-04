@@ -23,6 +23,12 @@ export function toggleImportClaimsDialog() {
 	});
 }
 
+export function toggleImportUsersDialog() {
+	setState((state) => {
+		state.showImportUsersDialog = !state.showImportUsersDialog;
+	});
+}
+
 export function toggleNewClaimDialog() {
 	setState((state) => {
 		state.showNewClaimDialog = !state.showNewClaimDialog;

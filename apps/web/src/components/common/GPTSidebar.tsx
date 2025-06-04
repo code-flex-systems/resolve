@@ -89,14 +89,13 @@ export default function GPTSidebar({
 
 				<List disablePadding>
 					{items.map((item) => {
-						const selected = pathname === item.route;
+						const selected = pathname.startsWith(item.route);
 						return (
 							<ListItem
 								key={item.route}
 								disablePadding
 								sx={{
 									display: 'block',
-									// border: `5px solid ${theme.palette.secondary.main}`,
 									padding: '5px',
 									borderRadius: 20,
 								}}

@@ -43,7 +43,7 @@ export default function NewClaimDialog() {
 				disabled: isSubmitting || isPending,
 			}}
 			onClose={toggleNewClaimDialog}
-			width={500}
+			width={700}
 		>
 			<Typography fontStyle="italic">
 				Toggle <b>Only Manual Claims</b> to filter by claims created here.
@@ -54,7 +54,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="claim_number"
 							label="Claim Number"
-							placeholder="e.g. OPV63SASBX"
+							placeholder="OPV63SASBX"
 							error={!!errors.claim_number}
 							sx={{
 								width: 200,
@@ -66,7 +66,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="claim_amount"
 							label="Claim Amount"
-							placeholder="e.g. 75496.66"
+							placeholder="75496.66"
 							error={!!errors.claim_amount}
 							type="number"
 							slotProps={{
@@ -84,7 +84,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="client"
 							label="Client"
-							placeholder="e.g. Liberty Mutual"
+							placeholder="Liberty Mutual"
 							error={!!errors.client}
 							sx={{
 								width: 200,
@@ -96,7 +96,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="client_adjuster"
 							label="Client Adjuster"
-							placeholder="e.g. Matthew Howell"
+							placeholder="Matthew Howell"
 							error={!!errors.client_adjuster}
 							sx={{
 								width: 200,
@@ -120,7 +120,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="expected_recovery"
 							label="Expected Recovery"
-							placeholder="e.g. 21521.43"
+							placeholder="21521.43"
 							slotProps={{
 								input: {
 									startAdornment: <InputAdornment position="start">$</InputAdornment>,
@@ -138,7 +138,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="insured"
 							label="Insured"
-							placeholder="e.g. Rachel Anderson"
+							placeholder="Rachel Anderson"
 							error={!!errors.insured}
 							sx={{
 								width: 200,
@@ -162,7 +162,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="last_updated_by"
 							label="Updater"
-							placeholder="e.g. Bridget Lubowitz-Nader"
+							placeholder="Bridget Lubowitz-Nader"
 							error={!!errors.last_updated_by}
 							sx={{
 								width: 200,
@@ -174,7 +174,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="loss_location"
 							label="Loss Location"
-							placeholder="e.g. New York City, NY"
+							placeholder="New York City, NY"
 							error={!!errors.loss_location}
 							sx={{
 								width: 200,
@@ -186,7 +186,7 @@ export default function NewClaimDialog() {
 						<TextField
 							id="total_incurred"
 							label="Total Incurred"
-							placeholder="e.g. 94017.73"
+							placeholder="94017.73"
 							slotProps={{
 								input: {
 									startAdornment: <InputAdornment position="start">$</InputAdornment>,

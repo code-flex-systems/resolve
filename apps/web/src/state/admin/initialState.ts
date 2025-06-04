@@ -8,6 +8,7 @@ const adminSlice: AdminSlice = Object.freeze({
 	selectedFeedId: undefined,
 	selectedTab: 1,
 	showImportClaimsDialog: false,
+	showImportUsersDialog: false,
 	showNewClaimDialog: false,
 	showNewUserDialog: false,
 	userConstraints: {

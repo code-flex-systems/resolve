@@ -95,7 +95,6 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 						disableRowSelectionOnClick
 						disableColumnMenu
 						disableColumnSorting
-						disableColumnResize
 						hideFooter
 					/>
 				</Box>

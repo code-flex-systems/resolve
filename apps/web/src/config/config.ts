@@ -13,6 +13,11 @@ const config = {
 		{ key: 'last_update', label: 'Last Update' },
 		{ key: 'expected_recovery', label: 'Expected Recovery' },
 	],
+	USER_FIELDS: [
+		{ key: 'first', label: 'First' },
+		{ key: 'last', label: 'Last' },
+		{ key: 'email', label: 'Email' },
+	],
 	DEFAULT_PASSWORD: 'WelcomeToManifest',
 	ROLES: {
 		ADMIN: 'Admin',

@@ -1,7 +1,14 @@
 'use client';
 
-import Admin from '@/components/pages/Admin';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function AdminPage() {
-	return <Admin />;
+export default function AdminRedirect() {
+	const router = useRouter();
+
+	useEffect(() => {
+		router.replace('/admin/users');
+	}, [router]);
+
+	return null;
 }

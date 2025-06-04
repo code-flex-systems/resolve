@@ -1,6 +1,7 @@
 'use client';
-import Checklists from '@/components/pages/Checklists';
 
-export default function ChecklistPage() {
-	return <Checklists />;
+import { redirect } from 'next/navigation';
+
+export default function HomeIndexPage() {
+	redirect('/home');
 }

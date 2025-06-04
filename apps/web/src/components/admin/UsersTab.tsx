@@ -1,10 +1,10 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { Button, Paper, Switch, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { AccessTimeFilled, AccountCircle, AddBox, Email, Phone, Shield } from '@mui/icons-material';
+import { AccessTimeFilled, AccountCircle, AddBox, Email, Phone, Shield, Upload } from '@mui/icons-material';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import { toggleNewUserDialog, updateUserConstraints } from '@/state/admin/actions';
+import { toggleImportUsersDialog, toggleNewUserDialog, updateUserConstraints } from '@/state/admin/actions';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { formatMDY } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
@@ -15,6 +15,9 @@ import { useMemo, useRef, useState } from 'react';
 import ActionsCell from './ActionsCell';
 import { useAdminSlice } from '@/state/store';
 import { BASE_COLOR } from '@/styles/theme';
+import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
+import config from '@/config/config';
+import { createUserInput } from '@/schemas/userSchemas';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -75,6 +78,7 @@ const COLUMNS: GridColDef[] = [
 export default function UsersTab() {
 	const [showDisabled, setShowDisabled] = useState(false);
 	const { data: session } = useSession();
+	const showImportUsersDialog = useAdminSlice((state) => state.showImportUsersDialog);
 	const userConstraints = useAdminSlice((state) => state.userConstraints);
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().list({
 		disabled: showDisabled,
@@ -108,9 +112,20 @@ export default function UsersTab() {
 						</>
 					}
 					right={
-						<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewUserDialog}>
-							User
-						</Button>
+						<>
+							<Button
+								variant="contained"
+								color="secondary"
+								startIcon={<Upload />}
+								onClick={toggleImportUsersDialog}
+								sx={{ marginRight: '10px' }}
+							>
+								Import
+							</Button>
+							<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewUserDialog}>
+								User
+							</Button>
+						</>
 					}
 					height={50}
 					padding={'0px 10px'}
@@ -148,6 +163,23 @@ export default function UsersTab() {
 						sx={styles.tableOverrides}
 					/>
 				</div>
+
+				{showImportUsersDialog && (
+					<CSVImportWizard
+						fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
+						validateRow={(row: any) =>
+							createUserInput.safeParse({
+								...row,
+								password_hash: row.password,
+							})
+						}
+						onSubmit={() => {
+							return new Promise(() => {});
+						}}
+						submitting={false}
+						onClose={toggleImportUsersDialog}
+					/>
+				)}
 			</Paper>
 		</div>
 	);

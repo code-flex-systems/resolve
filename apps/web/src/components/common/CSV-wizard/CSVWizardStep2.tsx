@@ -56,17 +56,18 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 		}));
 
 		return (
-			<Stack
-				spacing={3}
-				padding="5px"
-				style={{
-					height: 350,
-					overflow: 'auto',
-					display: 'flex',
-					flexDirection: 'column',
-					justifyContent: 'space-between',
-				}}
-			>
+			// <div
+			// 	spacing={1}
+			// 	padding="5px"
+			// 	style={{
+			// 		height: 350,
+			// 		overflow: 'auto',
+			// 		display: 'flex',
+			// 		flexDirection: 'column',
+			// 		justifyContent: 'space-between',
+			// 	}}
+			// >
+			<>
 				{fields.map((field) => (
 					<Controller
 						key={field.key}
@@ -76,7 +77,7 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 							required: field.required ? 'This field is required' : false,
 						}}
 						render={({ field: controllerField }) => (
-							<FormControl fullWidth error={!!errors[field.key]}>
+							<FormControl fullWidth error={!!errors[field.key]} sx={{ marginBottom: '15px' }}>
 								<InputLabel shrink>{field.label}</InputLabel>
 								<Select
 									label={field.label}
@@ -111,7 +112,8 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 						)}
 					/>
 				))}
-			</Stack>
+			</>
+			// {/* </Stack> */}
 		);
 	}
 );

@@ -8,9 +8,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		<html lang="en" suppressHydrationWarning>
 			<head />
 			<body>
-				<AppRouterCacheProvider options={{ enableCssLayer: true }}>
-					<Providers>{children}</Providers>
-				</AppRouterCacheProvider>
+				{/* <AppRouterCacheProvider options={{ enableCssLayer: true }}> */}
+				<Providers>{children}</Providers>
+				{/* </AppRouterCacheProvider> */}
 			</body>
 		</html>
 	);
