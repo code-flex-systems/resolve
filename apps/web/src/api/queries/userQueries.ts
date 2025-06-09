@@ -21,15 +21,17 @@ export async function getUser(id: number) {
 	return await db.selectFrom('users').selectAll().where('id', '=', id).executeTakeFirst();
 }
 
-export async function createUser(params: {
-	first: string;
-	last: string;
-	email: string;
-	password_hash: string;
-	phone?: string;
-	role?: string;
-}) {
-	const [user] = await db.insertInto('users').values(params).returningAll().execute();
+export async function createUsers(
+	users: {
+		first: string;
+		last: string;
+		email: string;
+		password_hash: string;
+		phone?: string;
+		role?: string;
+	}[]
+) {
+	const [user] = await db.insertInto('users').values(users).returningAll().execute();
 	return user;
 }
 

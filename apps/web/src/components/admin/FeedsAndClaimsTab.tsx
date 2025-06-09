@@ -6,10 +6,13 @@ import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
 import { toggleImportClaimsDialog } from '@/state/admin/actions';
 import config from '@/config/config';
 import { createClaimInput } from '@/schemas/claimSchemas';
+import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 
 export default function FeedsAndClaimsTab() {
 	const showImportClaimsDialog = useAdminSlice((state) => state.showImportClaimsDialog);
 	const showNewClaimDialog = useAdminSlice((state) => state.showNewClaimDialog);
+	const { mutateAsync: createClaims, isPending } = useClaimTrpc().createMany;
+
 	return (
 		<div style={styles.container} className="flex-row-between">
 			<Feeds />
@@ -17,22 +20,9 @@ export default function FeedsAndClaimsTab() {
 			{showImportClaimsDialog && (
 				<CSVImportWizard
 					fields={config.CLAIM_FIELDS.map((f) => ({ ...f, required: true }))}
-					validateRow={(row: any) =>
-						createClaimInput.safeParse({
-							params: {
-								...row,
-								claim_amount: Number(row.claim_amount),
-								expected_recovery: Number(row.expected_recovery),
-								total_incurred: Number(row.total_incurred),
-								date_of_loss: new Date(row.date_of_loss?.toString() ?? ''),
-								last_update: new Date(row.last_update?.toString() ?? ''),
-							},
-						})
-					}
-					onSubmit={() => {
-						return new Promise(() => {});
-					}}
-					submitting={false}
+					validateRow={(row: any) => createClaimInput.safeParse({ claims: [row] })}
+					onSubmit={(claims) => createClaims({ claims })}
+					submitting={isPending}
 					onClose={toggleImportClaimsDialog}
 				/>
 			)}

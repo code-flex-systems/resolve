@@ -7,7 +7,7 @@ export function useUserTrpc() {
 		list: trpc.user.getUsers.useQuery,
 		get: trpc.user.getUser.useQuery,
 
-		create: trpc.user.createUser.useMutation({
+		create: trpc.user.createUsers.useMutation({
 			onSuccess() {
 				utils.user.getUsers.invalidate();
 			},

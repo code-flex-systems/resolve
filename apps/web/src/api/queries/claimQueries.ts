@@ -44,22 +44,24 @@ export async function getClaims(
 	}
 }
 
-export async function createClaim(params: Omit<Claim, 'id'>) {
+export async function createClaims(claims: Omit<Claim, 'id'>[]) {
 	const [feed] = await db
 		.insertInto('claim')
-		.values({
-			claim_number: params.claim_number,
-			client: params.client,
-			client_adjuster: params.client_adjuster,
-			insured: params.insured,
-			claim_amount: params.claim_amount,
-			total_incurred: params.total_incurred,
-			date_of_loss: params.date_of_loss,
-			loss_location: params.loss_location,
-			last_updated_by: params.last_updated_by,
-			last_update: params.last_update,
-			expected_recovery: params.expected_recovery,
-		})
+		.values(
+			claims.map((c) => ({
+				claim_number: c.claim_number,
+				client: c.client,
+				client_adjuster: c.client_adjuster,
+				insured: c.insured,
+				claim_amount: c.claim_amount,
+				total_incurred: c.total_incurred,
+				date_of_loss: c.date_of_loss,
+				loss_location: c.loss_location,
+				last_updated_by: c.last_updated_by,
+				last_update: c.last_update,
+				expected_recovery: c.expected_recovery,
+			}))
+		)
 		.returningAll()
 		.execute();
 	return feed;

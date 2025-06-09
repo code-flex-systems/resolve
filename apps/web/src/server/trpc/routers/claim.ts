@@ -1,7 +1,7 @@
 // apps/web/src/server/trpc/routers/claim.ts
 import { router, publicProcedure } from '../trpc';
 
-import { createClaim, getClaim, getClaims } from '@/api/controllers/claimController';
+import { createClaims, getClaim, getClaims } from '@/api/controllers/claimController';
 import { createClaimInput, getClaimInput, getClaimsInput } from '@/schemas/claimSchemas';
 
 export const claimRouter = router({
@@ -13,7 +13,7 @@ export const claimRouter = router({
 		return getClaims(input);
 	}),
 
-	createClaim: publicProcedure.input(createClaimInput).mutation(async ({ input }) => {
-		return createClaim(input);
+	createClaims: publicProcedure.input(createClaimInput).mutation(async ({ input }) => {
+		return createClaims(input);
 	}),
 });

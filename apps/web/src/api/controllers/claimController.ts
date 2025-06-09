@@ -25,6 +25,6 @@ export async function getClaims({
 	return { rows, count };
 }
 
-export async function createClaim({ params }: { params: Omit<Claim, 'id'> }) {
-	return await claimQueries.createClaim(params);
+export async function createClaims({ claims }: { claims: Omit<Claim, 'id'>[] }) {
+	return await claimQueries.createClaims(claims);
 }

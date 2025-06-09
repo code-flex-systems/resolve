@@ -1,9 +1,9 @@
-import { IconButton, TextField, Typography } from '@mui/material';
+import { TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
 import { Send } from '@mui/icons-material';
-import config from '@/config/config';
 import { toggleNewUserDialog } from '@/state/admin/actions';
+import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 
 type NewUserFormInputs = {
 	first: string;
@@ -13,6 +13,7 @@ type NewUserFormInputs = {
 };
 
 export default function NewUserDialog() {
+	const { mutate: createUsers, isPending } = useUserTrpc().create;
 	const {
 		register,
 		handleSubmit,
@@ -20,13 +21,13 @@ export default function NewUserDialog() {
 		watch,
 	} = useForm<NewUserFormInputs>({
 		defaultValues: {
-			password: config.DEFAULT_PASSWORD,
+			password: process.env.DEFAULT_WEB_PW,
 		},
 	});
 	const email = watch('email');
 	const password = watch('password');
 
-	const onSubmit = handleSubmit(() => {});
+	const onSubmit = handleSubmit((data) => createUsers({ users: [data] }));
 
 	return (
 		<BasicDialog
@@ -35,7 +36,7 @@ export default function NewUserDialog() {
 				label: 'Initiate account',
 				onClick: onSubmit,
 				icon: <Send />,
-				disabled: !email || !password,
+				disabled: !email || !password || isSubmitting || isPending,
 			}}
 			onClose={toggleNewUserDialog}
 			width={475}

@@ -1,15 +1,15 @@
 import { t } from '../init';
 import * as userController from '@/api/controllers/userController';
-import { getUsersInput, getUserInput, createUserInput, updateUserInput, deleteUserInput } from '@/schemas/userSchemas';
+import { getUsersInput, getUserInput, createUsersInput, updateUserInput, deleteUserInput } from '@/schemas/userSchemas';
 
 export const userRouter = t.router({
-	getUsers: t.procedure.input(getUsersInput).query(({ input }) => userController.getUsersController(input)),
+	getUsers: t.procedure.input(getUsersInput).query(({ input }) => userController.getUsers(input)),
 
-	getUser: t.procedure.input(getUserInput).query(({ input }) => userController.getUserController(input)),
+	getUser: t.procedure.input(getUserInput).query(({ input }) => userController.getUser(input)),
 
-	createUser: t.procedure.input(createUserInput).mutation(({ input }) => userController.createUserController(input)),
+	createUsers: t.procedure.input(createUsersInput).mutation(({ input }) => userController.createUsers(input)),
 
-	updateUser: t.procedure.input(updateUserInput).mutation(({ input }) => userController.updateUserController(input)),
+	updateUser: t.procedure.input(updateUserInput).mutation(({ input }) => userController.updateUser(input)),
 
-	deleteUser: t.procedure.input(deleteUserInput).mutation(({ input }) => userController.deleteUserController(input)),
+	deleteUser: t.procedure.input(deleteUserInput).mutation(({ input }) => userController.deleteUser(input)),
 });

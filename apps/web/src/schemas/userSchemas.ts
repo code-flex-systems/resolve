@@ -7,13 +7,17 @@ export const getUsersInput = z.object({
 });
 export const getUserInput = z.object({ id: z.number().int() });
 
-export const createUserInput = z.object({
-	first: z.string(),
-	last: z.string(),
-	email: z.string().email(),
-	password_hash: z.string(),
-	phone: z.string().optional(),
-	role: z.string().optional(),
+export const createUsersInput = z.object({
+	users: z.array(
+		z.object({
+			first: z.string(),
+			last: z.string(),
+			email: z.string().email(),
+			password: z.string(),
+			phone: z.string().optional(),
+			role: z.string().optional(),
+		})
+	),
 });
 
 export const updateUserInput = z.object({

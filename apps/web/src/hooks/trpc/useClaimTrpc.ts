@@ -13,7 +13,7 @@ export function useClaimTrpc() {
 
 		get: trpc.claim.getClaim.useQuery,
 
-		create: trpc.claim.createClaim.useMutation({
+		createMany: trpc.claim.createClaims.useMutation({
 			onSuccess() {
 				utils.claim.getClaims.invalidate();
 			},

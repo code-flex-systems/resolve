@@ -18,7 +18,6 @@ const config = {
 		{ key: 'last', label: 'Last' },
 		{ key: 'email', label: 'Email' },
 	],
-	DEFAULT_PASSWORD: 'WelcomeToManifest',
 	ROLES: {
 		ADMIN: 'Admin',
 		CONTRIBUTOR: 'Contributor',

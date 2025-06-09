@@ -17,7 +17,7 @@ import { useAdminSlice } from '@/state/store';
 import { BASE_COLOR } from '@/styles/theme';
 import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
 import config from '@/config/config';
-import { createUserInput } from '@/schemas/userSchemas';
+import { createUsersInput } from '@/schemas/userSchemas';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -85,6 +85,7 @@ export default function UsersTab() {
 		limit: userConstraints.pageSize,
 		offset: userConstraints.page * userConstraints.pageSize,
 	});
+	const { mutateAsync: createUsers, isPending: creating } = useUserTrpc().create;
 	const rowCountRef = useRef(data.count ?? 0);
 
 	const rowCount = useMemo(() => {
@@ -168,15 +169,15 @@ export default function UsersTab() {
 					<CSVImportWizard
 						fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
 						validateRow={(row: any) =>
-							createUserInput.safeParse({
+							createUsersInput.safeParse({
 								...row,
-								password_hash: row.password,
+								password: process.env.DEFAULT_WEB_PW,
 							})
 						}
-						onSubmit={() => {
-							return new Promise(() => {});
-						}}
-						submitting={false}
+						onSubmit={(rows) =>
+							createUsers({ users: rows.map((u) => ({ ...u, password: process.env.DEFAULT_WEB_PW })) })
+						}
+						submitting={creating}
 						onClose={toggleImportUsersDialog}
 					/>
 				)}

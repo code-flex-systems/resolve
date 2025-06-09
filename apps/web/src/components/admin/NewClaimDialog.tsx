@@ -11,21 +11,22 @@ export default function NewClaimDialog() {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting },
-		watch,
 	} = useForm<Omit<Claim, 'id'>>();
-	const { mutateAsync: createClaim, isPending } = useClaimTrpc().create;
+	const { mutateAsync: createClaims, isPending } = useClaimTrpc().createMany;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			await createClaim({
-				params: {
-					...data,
-					claim_amount: Number(data.claim_amount),
-					expected_recovery: Number(data.expected_recovery),
-					total_incurred: Number(data.total_incurred),
-					date_of_loss: new Date(data.date_of_loss?.toString() ?? ''),
-					last_update: new Date(data.last_update?.toString() ?? ''),
-				},
+			await createClaims({
+				claims: [
+					{
+						...data,
+						claim_amount: Number(data.claim_amount),
+						expected_recovery: Number(data.expected_recovery),
+						total_incurred: Number(data.total_incurred),
+						date_of_loss: new Date(data.date_of_loss?.toString() ?? ''),
+						last_update: new Date(data.last_update?.toString() ?? ''),
+					},
+				],
 			});
 			toggleNewClaimDialog();
 		} catch (e) {

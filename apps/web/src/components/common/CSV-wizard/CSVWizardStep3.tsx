@@ -12,7 +12,7 @@ type Props = {
 	mapping: Record<string, string | null>;
 	fields: Field[];
 	validateRow?: (row: any) => { success: boolean; error?: string };
-	onSubmit: (validRows: any[]) => Promise<void>;
+	onSubmit: (validRows: any[]) => Promise<any>;
 	submitting: boolean;
 	setValidRowCount: (count: number) => void;
 };

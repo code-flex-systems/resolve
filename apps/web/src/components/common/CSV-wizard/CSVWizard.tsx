@@ -17,7 +17,7 @@ type Props = {
 	onClose: () => void;
 	fields: Field[];
 	validateRow?: (row: any) => { success: boolean; error?: any };
-	onSubmit: (validRows: any[]) => Promise<void>;
+	onSubmit: (validRows: any[]) => Promise<any>;
 	submitting: boolean;
 };
 
