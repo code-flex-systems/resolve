@@ -10,7 +10,7 @@ export default function VerifiedCell({
 	verified: boolean;
 	disabled: boolean;
 }) {
-	return (
+	return value ? (
 		<div style={{ width: '100%' }} className="flex-row-left">
 			{!disabled && (
 				<Tooltip title={verified ? 'Verified' : 'Unverified'} enterDelay={500}>
@@ -23,6 +23,8 @@ export default function VerifiedCell({
 			)}
 			<Link marginLeft="5px">{value}</Link>
 		</div>
+	) : (
+		<></>
 	);
 }
 

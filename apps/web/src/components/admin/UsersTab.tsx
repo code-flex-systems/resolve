@@ -42,7 +42,7 @@ const COLUMNS: GridColDef[] = [
 		field: 'phone',
 		renderCell: (params) => (
 			<VerifiedCell
-				value={parsePhoneNumberFromString(params.value)?.formatNational() ?? ''}
+				value={parsePhoneNumberFromString(params.value ?? '')?.formatNational() ?? ''}
 				verified={params.row.phone_verified}
 				disabled={params.row.disabled}
 			/>
@@ -170,8 +170,12 @@ export default function UsersTab() {
 						fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
 						validateRow={(row: any) =>
 							createUsersInput.safeParse({
-								...row,
-								password: process.env.DEFAULT_WEB_PW,
+								users: [
+									{
+										...row,
+										password: process.env.DEFAULT_WEB_PW,
+									},
+								],
 							})
 						}
 						onSubmit={(rows) =>
