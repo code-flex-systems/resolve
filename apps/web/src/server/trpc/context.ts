@@ -1,9 +1,8 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // your NextAuth config
-import { NextApiRequest, NextApiResponse } from 'next';
+import { authOptions } from '@/lib/auth';
 
 export async function createContext(opts: { req: Request }) {
-	const session = await getServerSession(authOptions); // ✅ Works in App Router
+	const session = await getServerSession(authOptions);
 	return { session };
 }
 
