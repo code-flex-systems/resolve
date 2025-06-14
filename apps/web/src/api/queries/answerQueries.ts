@@ -2,51 +2,62 @@ import { sql, Transaction } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
+import { ProtectedContext } from '@/server/trpc/trpc';
+import { applyClientScope } from '../database/clientScoped';
 
-export async function createAnswer(pageId: number, questionId: number, params: object, trx?: Transaction<DB>) {
+export async function createAnswer(
+	ctx: ProtectedContext,
+	pageId: number,
+	questionId: number,
+	params: object,
+	trx?: Transaction<DB>
+) {
 	let newAnswer: any;
 	if (trx) {
-		newAnswer = await createAnswerPrivate(questionId, params, trx);
+		newAnswer = await createAnswerPrivate(ctx, questionId, params, trx);
 	} else {
 		await db.transaction().execute(async (newTrx) => {
-			newAnswer = await createAnswerPrivate(questionId, params, newTrx);
+			newAnswer = await createAnswerPrivate(ctx, questionId, params, newTrx);
 			// Only bump the version if this action isn't part of another update
-			await bumpPageVersion(pageId, newTrx);
+			await bumpPageVersion(ctx, pageId, newTrx);
 		});
 	}
 	return newAnswer;
 }
 
-export async function deleteAnswer(pageId: number, answerId: number) {
+export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
 	await db.transaction().execute(async (trx) => {
 		await trx.deleteFrom('answer').where('id', '=', answerId).execute();
-		await bumpPageVersion(pageId, trx);
+		await bumpPageVersion(ctx, pageId, trx);
 	});
 }
 
-export async function getAnswer(answerId: number) {
-	return await db.selectFrom('answer').selectAll().where('id', '=', answerId).executeTakeFirstOrThrow();
+export async function getAnswer(ctx: ProtectedContext, answerId: number) {
+	return await applyClientScope(
+		db.selectFrom('answer').selectAll().where('id', '=', answerId),
+		ctx.session.user.client_id
+	).executeTakeFirstOrThrow();
 }
 
-export async function getAnswers(questionId: number) {
-	return await db
-		.selectFrom('answer')
-		.selectAll()
-		.where('question_id', '=', questionId)
-		.orderBy('position')
-		.execute();
+export async function getAnswers(ctx: ProtectedContext, questionId: number) {
+	return await applyClientScope(
+		db.selectFrom('answer').selectAll().where('question_id', '=', questionId).orderBy('position'),
+		ctx.session.user.client_id
+	).execute();
 }
 
-export async function getAnswerCount(questionId: number) {
-	let answerCountRecord = await db
-		.selectFrom('answer as a')
-		.select(({ fn }) => fn.countAll().as('count'))
-		.where('a.question_id', '=', questionId)
-		.executeTakeFirstOrThrow();
+export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
+	let answerCountRecord = await applyClientScope(
+		db
+			.selectFrom('answer')
+			.select(({ fn }) => fn.countAll().as('count'))
+			.where('question_id', '=', questionId),
+		ctx.session.user.client_id
+	).executeTakeFirstOrThrow();
 	return parseInt(answerCountRecord.count?.toString() ?? '0');
 }
 
-export async function modifyAnswer(pageId: number, answerId: number, params: object) {
+export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: object) {
 	let updates: UpdateObjectExpression<DB, 'answer'> = {};
 	if (params.position) updates.position = params.position;
 	if (params.grade != null) updates.grade = params.grade || null;
@@ -67,14 +78,14 @@ export async function modifyAnswer(pageId: number, answerId: number, params: obj
 			.where('id', '=', answerId)
 			.returningAll()
 			.executeTakeFirstOrThrow();
-		await bumpPageVersion(pageId, trx);
+		await bumpPageVersion(ctx, pageId, trx);
 	});
 	return newAnswer;
 }
 
 // private methods
 
-async function bumpPageVersion(pageId: number, trx: Transaction<DB>) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
 	await trx
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
@@ -82,8 +93,8 @@ async function bumpPageVersion(pageId: number, trx: Transaction<DB>) {
 		.execute();
 }
 
-async function createAnswerPrivate(questionId: number, params: object, trx: Transaction<DB>) {
-	let answerCount = (await getAnswerCount(questionId)) ?? 0;
+async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, params: object, trx: Transaction<DB>) {
+	let answerCount = (await getAnswerCount(ctx, questionId)) ?? 0;
 	let newAnswer = await trx
 		.insertInto('answer')
 		.values({
@@ -96,6 +107,7 @@ async function createAnswerPrivate(questionId: number, params: object, trx: Tran
 			additional_info_placeholder: params.additional_info_placeholder,
 			calls_instance_id: params.calls_instance_id,
 			has_additional_info: params.has_additional_info,
+			client_id: ctx.session.user.client_id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();

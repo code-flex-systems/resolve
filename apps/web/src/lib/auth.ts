@@ -18,7 +18,6 @@ export const authOptions: NextAuthOptions = {
 			},
 			async authorize(credentials) {
 				if (!credentials) return null;
-				// Replace with your user lookup & password verification logic
 				const user = await db
 					.selectFrom('users')
 					.selectAll()
@@ -29,8 +28,9 @@ export const authOptions: NextAuthOptions = {
 						id: user.id.toString(),
 						email: user.email,
 						name: `${user.first} ${user.last}`,
-						phone: user.phone,
-						role: user.role,
+						phone: user.phone ?? null,
+						role: user.role ?? null,
+						client_id: user.client_id ?? null,
 					};
 				}
 				return null;
@@ -52,19 +52,21 @@ export const authOptions: NextAuthOptions = {
 				token.id = user.id;
 				token.name = user.name;
 				token.email = user.email;
-				token.phone = (user as any).phone;
-				token.role = (user as any).role;
+				token.phone = user.phone;
+				token.role = user.role;
+				token.client_id = user.client_id;
 			}
 			return token;
 		},
 		async session({ session, token }) {
 			session.user = {
-				id: token.id as string,
-				name: token.name as string,
-				email: token.email as string,
-				phone: token.phone as string | null,
-				role: token.role as string | null,
-			} as any;
+				id: token.id,
+				name: token.name,
+				email: token.email,
+				phone: token.phone,
+				role: token.role,
+				client_id: token.client_id,
+			};
 			return session;
 		},
 	},

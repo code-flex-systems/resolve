@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 
 import {
 	createPage,
@@ -12,6 +12,8 @@ import {
 	getVisiblePageInstances,
 	modifyPage,
 } from '@/api/controllers/pageController';
+import config from '@/config/config';
+import { requireRole } from '@/lib/auth/requireRole';
 import {
 	createPageInput,
 	createPageInstanceInput,
@@ -25,43 +27,47 @@ import {
 } from '@/schemas/pageSchemas';
 
 export const pageRouter = router({
-	getPages: publicProcedure.query(async () => {
-		return getPages();
+	getPages: protectedProcedure.query(async ({ ctx }) => {
+		return getPages(ctx);
 	}),
 
-	getPage: publicProcedure.input(getPageInput).query(async ({ input }) => {
-		return getPage(input);
+	getPage: protectedProcedure.input(getPageInput).query(async ({ input, ctx }) => {
+		return getPage(ctx, input);
 	}),
 
-	getPageInstance: publicProcedure.input(getPageInstanceInput).query(async ({ input }) => {
-		return getPageInstance(input);
+	getPageInstance: protectedProcedure.input(getPageInstanceInput).query(async ({ input, ctx }) => {
+		return getPageInstance(ctx, input);
 	}),
 
-	getPageInstances: publicProcedure.input(getPageInstancesInput).query(async ({ input }) => {
-		return getPageInstances(input);
+	getPageInstances: protectedProcedure.input(getPageInstancesInput).query(async ({ input, ctx }) => {
+		return getPageInstances(ctx, input);
 	}),
 
-	getPageInstanceTree: publicProcedure.input(getPageInstanceTreeInput).query(async ({ input }) => {
-		return getPageInstanceTree(input);
+	getPageInstanceTree: protectedProcedure.input(getPageInstanceTreeInput).query(async ({ input, ctx }) => {
+		return getPageInstanceTree(ctx, input);
 	}),
 
-	getVisiblePageInstances: publicProcedure.input(getVisiblePageInstancesInput).query(async ({ input }) => {
-		return getVisiblePageInstances(input);
+	getVisiblePageInstances: protectedProcedure.input(getVisiblePageInstancesInput).query(async ({ input, ctx }) => {
+		return getVisiblePageInstances(ctx, input);
 	}),
 
-	createPage: publicProcedure.input(createPageInput).mutation(async ({ input }) => {
-		return createPage(input);
+	createPage: protectedProcedure.input(createPageInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return createPage(ctx, input);
 	}),
 
-	createPageInstance: publicProcedure.input(createPageInstanceInput).mutation(async ({ input }) => {
-		return createPageInstance(input);
+	createPageInstance: protectedProcedure.input(createPageInstanceInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return createPageInstance(ctx, input);
 	}),
 
-	updatePageTemplate: publicProcedure.input(modifyPageInput).mutation(async ({ input }) => {
-		return modifyPage(input);
+	updatePageTemplate: protectedProcedure.input(modifyPageInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return modifyPage(ctx, input);
 	}),
 
-	deletePageInstance: publicProcedure.input(deletePageInstanceInput).mutation(async ({ input }) => {
-		return deletePageInstance(input);
+	deletePageInstance: protectedProcedure.input(deletePageInstanceInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return deletePageInstance(ctx, input);
 	}),
 });

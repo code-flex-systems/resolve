@@ -22,6 +22,10 @@ body {
 	font-weight: 500;
 }
 
+.cell-primary {
+	color: #216bc4;
+}
+
 .cursor-pointer {
 	cursor: pointer;
 }

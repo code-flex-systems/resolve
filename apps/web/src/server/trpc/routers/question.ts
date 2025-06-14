@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 
 import {
@@ -19,33 +19,40 @@ import {
 	getQuestionStatsInput,
 	modifyQuestionInput,
 } from '@/schemas/questionSchemas';
+import { requireRole } from '@/lib/auth/requireRole';
+import config from '@/config/config';
 
 export const questionRouter = router({
-	getQuestion: publicProcedure.input(getQuestionInput).query(async ({ input }) => {
-		return getQuestion(input);
+	getQuestion: protectedProcedure.input(getQuestionInput).query(async ({ input, ctx }) => {
+		return getQuestion(ctx, input);
 	}),
 
-	getQuestions: publicProcedure.input(getQuestionsInput).query(async ({ input }) => {
-		return getQuestions(input);
+	getQuestions: protectedProcedure.input(getQuestionsInput).query(async ({ input, ctx }) => {
+		return getQuestions(ctx, input);
 	}),
 
-	getQuestionStats: publicProcedure.input(getQuestionStatsInput).query(async ({ input }) => {
-		return getQuestionStats(input);
+	getQuestionStats: protectedProcedure.input(getQuestionStatsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getQuestionStats(ctx, input);
 	}),
 
-	createQuestion: publicProcedure.input(createQuestionInput).mutation(async ({ input }) => {
-		return createQuestion(input);
+	createQuestion: protectedProcedure.input(createQuestionInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return createQuestion(ctx, input);
 	}),
 
-	updateQuestion: publicProcedure.input(modifyQuestionInput).mutation(async ({ input }) => {
-		return modifyQuestion(input);
+	updateQuestion: protectedProcedure.input(modifyQuestionInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return modifyQuestion(ctx, input);
 	}),
 
-	copyQuestion: publicProcedure.input(copyQuestionInput).mutation(async ({ input }) => {
-		return copyQuestion(input);
+	copyQuestion: protectedProcedure.input(copyQuestionInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return copyQuestion(ctx, input);
 	}),
 
-	deleteQuestion: publicProcedure.input(deleteQuestionInput).mutation(async ({ input }) => {
-		return deleteQuestion(input);
+	deleteQuestion: protectedProcedure.input(deleteQuestionInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return deleteQuestion(ctx, input);
 	}),
 });

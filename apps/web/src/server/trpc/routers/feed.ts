@@ -1,16 +1,32 @@
-import { z } from 'zod';
-import { t } from '../init';
 import * as feedController from '@/api/controllers/feedController';
-import { createFeedInput, updateFeedInput, deleteFeedInput } from '@/schemas/feedSchemas';
+import { createFeedInput, updateFeedInput, deleteFeedInput, getFeedOptions } from '@/schemas/feedSchemas';
+import { requireRole } from '@/lib/auth/requireRole';
+import config from '@/config/config';
+import { protectedProcedure, router } from '../trpc';
 
-export const feedRouter = t.router({
-	getFeeds: t.procedure.query(() => feedController.getFeeds()),
+export const feedRouter = router({
+	getFeeds: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return feedController.getFeeds(ctx);
+	}),
 
-	getFeed: t.procedure.input(z.object({ id: z.number().int() })).query(({ input }) => feedController.getFeed(input)),
+	getFeed: protectedProcedure.input(getFeedOptions).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return feedController.getFeed(ctx, input);
+	}),
 
-	createFeed: t.procedure.input(createFeedInput).mutation(({ input }) => feedController.createFeed(input)),
+	createFeed: protectedProcedure.input(createFeedInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return feedController.createFeed(ctx, input);
+	}),
 
-	updateFeed: t.procedure.input(updateFeedInput).mutation(({ input }) => feedController.updateFeed(input)),
+	updateFeed: protectedProcedure.input(updateFeedInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return feedController.updateFeed(ctx, input);
+	}),
 
-	deleteFeed: t.procedure.input(deleteFeedInput).mutation(({ input }) => feedController.deleteFeed(input)),
+	deleteFeed: protectedProcedure.input(deleteFeedInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return feedController.deleteFeed(ctx, input);
+	}),
 });

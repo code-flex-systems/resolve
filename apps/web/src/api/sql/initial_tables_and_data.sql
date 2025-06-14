@@ -15,9 +15,16 @@ drop table if exists verification_tokens;
 drop table if exists sessions;
 drop table if exists accounts;
 drop table if exists users;
+drop table if exists clients;
+
+create table client(
+	id text primary key not null,
+	name text not null
+);
 
 create table users(
 	id serial not null primary key,
+    client_id text references client(id),
 	email text not null,
 	email_verified timestamp with time zone,
 	password_hash text not null,
@@ -62,10 +69,12 @@ create table verification_tokens (
 
 create table checklist(
 	id serial not null primary key,
+    client_id text not null references client(id),
 	name text not null,
     created_by text not null,
     created_at text not null default now(),
-    updated_at text not null default now()
+    updated_at text not null default now(),
+    published boolean not null default false
 );
 
 create table claim(
@@ -81,6 +90,7 @@ create table claim(
 	last_updated_by text,
 	last_update date,
 	expected_recovery numeric,
+    client_id text not null references client(id),
     feed_id integer references feeds(id)
 );
 
@@ -88,11 +98,13 @@ create table checklist_claim(
     claim_id integer not null references claim(id),
 	checklist_id integer not null references checklist(id),
     last_opened timestamp without time zone not null default now(),
+    client_id text not null references client(id),
     unique(checklist_id, claim_id)
 );
 
 create table page(
 	id serial not null primary key,
+    client_id text not null references client(id),
 	title text not null,
 	hidden boolean not null default false,
     version integer not null default 0
@@ -100,6 +112,7 @@ create table page(
 
 create table page_instance(
 	id serial not null primary key,
+    client_id text not null references client(id),
 	page_id integer not null references page(id) on delete cascade,
 	checklist_id integer not null references checklist(id) on delete cascade,
 	parent_instance_id integer references page_instance(id) on delete cascade,
@@ -113,6 +126,7 @@ CREATE TABLE page_instance_status (
   status TEXT NOT NULL CHECK (status IN ('unstarted', 'in-progress', 'complete')),
   template_version INTEGER NOT NULL,
   updated_at TIMESTAMP DEFAULT NOW(),
+  client_id text not null references client(id),
   UNIQUE (claim_id, page_instance_id)
 );
 CREATE INDEX idx_status_lookup ON page_instance_status (claim_id, page_instance_id);
@@ -120,12 +134,14 @@ CREATE INDEX idx_status_template_version ON page_instance_status (template_versi
 
 create table doc(
 	id serial not null primary key,
+    client_id text not null references client(id),
 	filename text not null,
 	alias text not null
 );
 
 create table question(
 	id serial not null primary key,
+    client_id text not null references client(id),
     page_id integer not null references page(id) on delete cascade,
 	text text not null,
     position integer not null,
@@ -138,6 +154,7 @@ create table question(
 
 create table answer(
 	id serial not null primary key,
+    client_id text not null references client(id),
 	question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
     text text not null,
     position INTEGER NOT NULL,
@@ -160,6 +177,7 @@ CREATE TABLE question_response (
     response_text TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
+    client_id text not null references client(id),
     UNIQUE(checklist_id, instance_id, claim_id, question_id)
 );
 
@@ -172,6 +190,7 @@ CREATE TABLE question_response_answer (
 
 CREATE TABLE response_audit_logs (
     id SERIAL PRIMARY KEY,
+    client_id text not null references client(id),
     response_id INTEGER REFERENCES question_response(id) ON DELETE SET NULL,
     user_id INTEGER NOT NULL, -- assuming a users table will be added
     checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
@@ -196,6 +215,7 @@ CREATE TABLE response_audit_logs (
 
 CREATE TABLE public.feeds (
   id                  SERIAL PRIMARY KEY,
+  client_id text not null references client(id),
   name                TEXT NOT NULL UNIQUE,
   schedule            INTEGER NOT NULL CHECK (schedule BETWEEN 0 AND 23),
   feed_type           TEXT NOT NULL CHECK (feed_type IN ('sftp', 'rest_api', 'database')),

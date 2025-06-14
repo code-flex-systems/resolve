@@ -10,6 +10,7 @@ export interface AdminSlice {
 	selectedTab: number;
 	showImportClaimsDialog: boolean;
 	showImportUsersDialog: boolean;
+	showNewChecklistDialog: boolean;
 	showNewClaimDialog: boolean;
 	showNewUserDialog: boolean;
 	userConstraints: {

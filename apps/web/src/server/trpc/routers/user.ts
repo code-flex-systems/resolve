@@ -1,15 +1,31 @@
-import { t } from '../init';
 import * as userController from '@/api/controllers/userController';
 import { getUsersInput, getUserInput, createUsersInput, updateUserInput, deleteUserInput } from '@/schemas/userSchemas';
+import { protectedProcedure, router } from '../trpc';
+import config from '@/config/config';
+import { requireRole } from '@/lib/auth/requireRole';
 
-export const userRouter = t.router({
-	getUsers: t.procedure.input(getUsersInput).query(({ input }) => userController.getUsers(input)),
+export const userRouter = router({
+	getUsers: protectedProcedure.input(getUsersInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return userController.getUsers(ctx, input);
+	}),
 
-	getUser: t.procedure.input(getUserInput).query(({ input }) => userController.getUser(input)),
+	getUser: protectedProcedure.input(getUserInput).query(async ({ input, ctx }) => {
+		userController.getUser(ctx, input);
+	}),
 
-	createUsers: t.procedure.input(createUsersInput).mutation(({ input }) => userController.createUsers(input)),
+	createUsers: protectedProcedure.input(createUsersInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return userController.createUsers(ctx, input);
+	}),
 
-	updateUser: t.procedure.input(updateUserInput).mutation(({ input }) => userController.updateUser(input)),
+	updateUser: protectedProcedure.input(updateUserInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		userController.updateUser(ctx, input);
+	}),
 
-	deleteUser: t.procedure.input(deleteUserInput).mutation(({ input }) => userController.deleteUser(input)),
+	deleteUser: protectedProcedure.input(deleteUserInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		userController.deleteUser(ctx, input);
+	}),
 });

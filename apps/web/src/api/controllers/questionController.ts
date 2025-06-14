@@ -1,32 +1,42 @@
 import * as questionQueries from '@/api/queries/questionQueries';
+import { ProtectedContext } from '@/server/trpc/trpc';
 import { AnswerStat, Interval, QuestionStat } from '@/types/types';
 
-export async function createQuestion({ pageId, params }: { pageId: number; params: object }) {
-	let results = await questionQueries.createQuestion(pageId, params);
+export async function createQuestion(ctx: ProtectedContext, { pageId, params }: { pageId: number; params: object }) {
+	let results = await questionQueries.createQuestion(ctx, pageId, params);
 	return results;
 }
 
-export async function copyQuestion({ pageId, questionId }: { pageId: number; questionId: number }) {
-	let results = await questionQueries.copyQuestion(pageId, questionId);
+export async function copyQuestion(
+	ctx: ProtectedContext,
+	{ pageId, questionId }: { pageId: number; questionId: number }
+) {
+	let results = await questionQueries.copyQuestion(ctx, pageId, questionId);
 	return results;
 }
 
-export async function deleteQuestion({ pageId, questionId }: { pageId: number; questionId: number }) {
-	await questionQueries.deleteQuestion(pageId, questionId);
+export async function deleteQuestion(
+	ctx: ProtectedContext,
+	{ pageId, questionId }: { pageId: number; questionId: number }
+) {
+	await questionQueries.deleteQuestion(ctx, pageId, questionId);
 }
 
-export async function getQuestion({ id }: { id: number }) {
-	let results = await questionQueries.getQuestion(id);
+export async function getQuestion(ctx: ProtectedContext, { id }: { id: number }) {
+	let results = await questionQueries.getQuestion(ctx, id);
 	return results;
 }
 
-export async function getQuestions({ pageId }: { pageId: number }) {
-	let results = await questionQueries.getQuestions(pageId);
+export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: number }) {
+	let results = await questionQueries.getQuestions(ctx, pageId);
 	return results;
 }
 
-export async function getQuestionStats({ pageId, interval }: { pageId: number; interval?: Interval<string> }) {
-	let results = await questionQueries.getQuestionStats(pageId, interval);
+export async function getQuestionStats(
+	ctx: ProtectedContext,
+	{ pageId, interval }: { pageId: number; interval?: Interval<string> }
+) {
+	let results = await questionQueries.getQuestionStats(ctx, pageId, interval);
 	let formattedResults: QuestionStat[] = [];
 	let seenQuestionIds = new Set<number>();
 	(results ?? []).forEach((row) => {
@@ -50,15 +60,18 @@ export async function getQuestionStats({ pageId, interval }: { pageId: number; i
 	return formattedResults;
 }
 
-export async function modifyQuestion({
-	pageId,
-	questionId,
-	params,
-}: {
-	pageId: number;
-	questionId: number;
-	params: object;
-}) {
-	let results = await questionQueries.modifyQuestion(pageId, questionId, params);
+export async function modifyQuestion(
+	ctx: ProtectedContext,
+	{
+		pageId,
+		questionId,
+		params,
+	}: {
+		pageId: number;
+		questionId: number;
+		params: object;
+	}
+) {
+	let results = await questionQueries.modifyQuestion(ctx, pageId, questionId, params);
 	return results;
 }

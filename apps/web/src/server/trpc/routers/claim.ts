@@ -1,19 +1,22 @@
 // apps/web/src/server/trpc/routers/claim.ts
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 
 import { createClaims, getClaim, getClaims } from '@/api/controllers/claimController';
+import config from '@/config/config';
+import { requireRole } from '@/lib/auth/requireRole';
 import { createClaimInput, getClaimInput, getClaimsInput } from '@/schemas/claimSchemas';
 
 export const claimRouter = router({
-	getClaim: publicProcedure.input(getClaimInput).query(async ({ input }) => {
-		return getClaim(input);
+	getClaim: protectedProcedure.input(getClaimInput).query(async ({ input, ctx }) => {
+		return getClaim(ctx, input);
 	}),
 
-	getClaims: publicProcedure.input(getClaimsInput).query(async ({ input }) => {
-		return getClaims(input);
+	getClaims: protectedProcedure.input(getClaimsInput).query(async ({ input, ctx }) => {
+		return getClaims(ctx, input);
 	}),
 
-	createClaims: publicProcedure.input(createClaimInput).mutation(async ({ input }) => {
-		return createClaims(input);
+	createClaims: protectedProcedure.input(createClaimInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return createClaims(ctx, input);
 	}),
 });

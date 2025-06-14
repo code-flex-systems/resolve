@@ -9,6 +9,7 @@ const adminSlice: AdminSlice = Object.freeze({
 	selectedTab: 1,
 	showImportClaimsDialog: false,
 	showImportUsersDialog: false,
+	showNewChecklistDialog: false,
 	showNewClaimDialog: false,
 	showNewUserDialog: false,
 	userConstraints: {

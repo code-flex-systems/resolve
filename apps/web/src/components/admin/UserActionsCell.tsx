@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 
-export default function ActionsCell(params: GridRenderCellParams) {
+export default function UserActionsCell(params: GridRenderCellParams) {
 	const { row } = params;
 	const { mutate, isPending } = useUserTrpc().update;
 	const { data: session } = useSession();

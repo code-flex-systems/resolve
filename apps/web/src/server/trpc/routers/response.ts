@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 
 import {
 	evaluateResponses,
@@ -14,19 +14,21 @@ import {
 } from '@/schemas/responseSchemas';
 
 export const responseRouter = router({
-	evaluateResponses: publicProcedure.input(evaluateResponsesInput).mutation(async ({ input }) => {
-		return evaluateResponses(input);
+	evaluateResponses: protectedProcedure.input(evaluateResponsesInput).mutation(async ({ input, ctx }) => {
+		return evaluateResponses(ctx, input);
 	}),
 
-	getResponsesForAnswer: publicProcedure.input(getResponsesForAnswerInput).query(async ({ input }) => {
-		return getResponsesForAnswer(input);
+	getResponsesForAnswer: protectedProcedure.input(getResponsesForAnswerInput).query(async ({ input, ctx }) => {
+		return getResponsesForAnswer(ctx, input);
 	}),
 
-	getResponsesForChecklist: publicProcedure.input(getResponsesForClaimChecklistInput).query(async ({ input }) => {
-		return getResponsesForClaimChecklist(input);
-	}),
+	getResponsesForChecklist: protectedProcedure
+		.input(getResponsesForClaimChecklistInput)
+		.query(async ({ input, ctx }) => {
+			return getResponsesForClaimChecklist(ctx, input);
+		}),
 
-	upsertQuestionResponses: publicProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input }) => {
-		return upsertQuestionResponses(input);
+	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {
+		return upsertQuestionResponses(ctx, input);
 	}),
 });

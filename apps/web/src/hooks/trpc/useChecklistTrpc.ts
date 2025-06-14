@@ -21,9 +21,18 @@ export function useChecklistTrpc() {
 
 		getSummaryDetail: trpc.checklist.getChecklistSummaryDetail.useQuery,
 
-		create: trpc.checklist.createChecklist.useMutation,
+		create: trpc.checklist.createChecklist.useMutation({
+			onSuccess() {
+				utils.checklist.getChecklists.invalidate();
+			},
+		}),
 
-		update: trpc.checklist.updateChecklist.useMutation,
+		update: trpc.checklist.updateChecklist.useMutation({
+			onSuccess({ id }) {
+				utils.checklist.getChecklist.invalidate({ id });
+				utils.checklist.getChecklists.invalidate();
+			},
+		}),
 
 		remove: trpc.checklist.deleteChecklist.useMutation,
 	};

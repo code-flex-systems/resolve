@@ -3,72 +3,104 @@ import { db } from '@/api/database/kysely';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
+import { ProtectedContext } from '@/server/trpc/trpc';
+import { applyClientScope } from '../database/clientScoped';
 
-export async function getResponseCount(checklistId: number, claimId: number, instanceId: number) {
-	const countRow = await db
-		.selectFrom('question_response')
-		.select(({ fn }) => fn.countAll().as('count'))
-		.where((eb) =>
-			eb.and([
-				eb('checklist_id', '=', checklistId),
-				eb('claim_id', '=', claimId),
-				eb('instance_id', '=', instanceId),
-			])
-		)
-		.executeTakeFirstOrThrow();
+export async function getResponseCount(
+	ctx: ProtectedContext,
+	checklistId: number,
+	claimId: number,
+	instanceId: number
+) {
+	const countRow = await applyClientScope(
+		db
+			.selectFrom('question_response')
+			.select(({ fn }) => fn.countAll().as('count'))
+			.where((eb) =>
+				eb.and([
+					eb('checklist_id', '=', checklistId),
+					eb('claim_id', '=', claimId),
+					eb('instance_id', '=', instanceId),
+				])
+			),
+		ctx.session.user.client_id
+	).executeTakeFirstOrThrow();
 	return parseInt(countRow.count?.toString() ?? '0');
 }
 
-export async function getResponsesForAnswer(answerId: number, interval?: Interval<string>) {
-	let results = await db
-		.selectFrom('question_response as qr')
-		.innerJoin('question_response_answer as qra', 'qr.id', 'qra.response_id')
-		.innerJoin('claim as c', 'qr.claim_id', 'c.id')
-		.select(['qr.id', 'qr.created_at', 'qra.additional_info', 'c.claim_number', 'c.client'])
-		.where((eb) => {
-			let andClause = [eb('qra.answer_id', '=', answerId)];
-			if (interval) {
-				if (interval.from) andClause.push(eb('qr.created_at', '>=', new Date(interval.from)));
-				if (interval.to) andClause.push(eb('qr.created_at', '<=', new Date(interval.to)));
-			} else {
-				andClause.push(eb('qr.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()));
-			}
-			return eb.and(andClause);
-		})
-		.orderBy('qr.created_at desc')
-		.execute();
+export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: number, interval?: Interval<string>) {
+	let results = await applyClientScope(
+		db
+			.selectFrom('question_response')
+			.innerJoin('question_response_answer', 'question_response.id', 'question_response_answer.response_id')
+			.innerJoin('claim', 'question_response.claim_id', 'claim.id')
+			.select([
+				'question_response.id',
+				'question_response.created_at',
+				'question_response_answer.additional_info',
+				'claim.claim_number',
+				'claim.client',
+			])
+			.where((eb) => {
+				let andClause = [eb('question_response_answer.answer_id', '=', answerId)];
+				if (interval) {
+					if (interval.from)
+						andClause.push(eb('question_response.created_at', '>=', new Date(interval.from)));
+					if (interval.to) andClause.push(eb('question_response.created_at', '<=', new Date(interval.to)));
+				} else {
+					andClause.push(
+						eb('question_response.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>())
+					);
+				}
+				return eb.and(andClause);
+			})
+			.orderBy('question_response.created_at desc'),
+		ctx.session.user.client_id,
+		'question_response'
+	).execute();
 	return results;
 }
 
-export async function getResponsesForClaimChecklist(checklistId: number, claimId: number, instanceId?: number) {
-	let responses: QuestionResponse[] = await db
-		.selectFrom('question_response as r')
-		.innerJoin('page_instance as p', 'p.id', 'r.instance_id')
-		.select([
-			'r.id',
-			'r.checklist_id',
-			'r.instance_id',
-			'r.claim_id',
-			'r.question_id',
-			'r.response_text',
-			'r.created_at',
-			'r.updated_at',
-			sql`jsonb_agg(jsonb_build_object(
-                    'answer_id', ra.answer_id,
-                    'additional_info', ra.additional_info
-                )) filter (where ra.id is not null)`
-				.$castTo<QuestionResponseAnswer[]>()
-				.as('selected_answers'),
-		])
-		.leftJoin('question_response_answer as ra', 'ra.response_id', 'r.id')
-		.where((eb) => {
-			let andClause = [eb('r.checklist_id', '=', checklistId), eb('r.claim_id', '=', claimId)];
-			if (instanceId) andClause.push(eb('r.instance_id', '=', instanceId));
-			return eb.and(andClause);
-		})
-		.groupBy('r.id')
-		.orderBy('r.instance_id')
-		.execute();
+export async function getResponsesForClaimChecklist(
+	ctx: ProtectedContext,
+	checklistId: number,
+	claimId: number,
+	instanceId?: number
+) {
+	let responses: QuestionResponse[] = await applyClientScope(
+		db
+			.selectFrom('question_response')
+			.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
+			.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+			.select((eb) => [
+				'question_response.id',
+				'question_response.checklist_id',
+				'question_response.instance_id',
+				'question_response.claim_id',
+				'question_response.question_id',
+				'question_response.response_text',
+				'question_response.created_at',
+				'question_response.updated_at',
+				sql`jsonb_agg(jsonb_build_object(
+                    'answer_id', ${eb.ref('question_response_answer.answer_id')},
+                    'additional_info', ${eb.ref('question_response_answer.additional_info')}
+                )) filter (where ${eb.ref('question_response_answer.id')} is not null)`
+					.$castTo<QuestionResponseAnswer[]>()
+					.as('selected_answers'),
+			])
+			.where((eb) => {
+				let andClause = [
+					eb('question_response.checklist_id', '=', checklistId),
+					eb('question_response.claim_id', '=', claimId),
+				];
+				if (instanceId) andClause.push(eb('question_response.instance_id', '=', instanceId));
+				return eb.and(andClause);
+			})
+			.groupBy('question_response.id')
+			.orderBy('question_response.instance_id'),
+		ctx.session.user.client_id,
+		'question_response'
+	).execute();
 	const responseMap: Record<number, QuestionResponse> = {};
 	responses.forEach((r) => {
 		responseMap[r.question_id] = r;
@@ -76,7 +108,7 @@ export async function getResponsesForClaimChecklist(checklistId: number, claimId
 	return responseMap;
 }
 
-export async function upsertQuestionResponses(responses: QuestionResponse[]) {
+export async function upsertQuestionResponses(ctx: ProtectedContext, responses: QuestionResponse[]) {
 	const updatedPageStatus = getUpdatedPageStatus(
 		responses.length,
 		responses.filter((r) => !!r.response_text || r.selected_answers.length).length
@@ -106,6 +138,7 @@ export async function upsertQuestionResponses(responses: QuestionResponse[]) {
 					claim_id: response.claim_id,
 					question_id: response.question_id,
 					response_text: response.response_text ?? null,
+					client_id: ctx.session.user.client_id,
 				})
 				.onConflict((oc) =>
 					oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
@@ -126,6 +159,7 @@ export async function upsertQuestionResponses(responses: QuestionResponse[]) {
 							response_id: saved.id,
 							answer_id: a.answer_id,
 							additional_info: a.additional_info ?? null,
+							client_id: ctx.session.user.client_id,
 						}))
 					)
 					.execute();
@@ -134,13 +168,16 @@ export async function upsertQuestionResponses(responses: QuestionResponse[]) {
 
 		// Update page instance status
 		const sampleResponse = responses[0];
-		let template = await trx
-			.selectFrom('page as p')
-			.innerJoin('page_instance as i', 'p.id', 'i.page_id')
-			.select('version')
-			.where('i.id', '=', sampleResponse.instance_id)
-			.executeTakeFirstOrThrow();
-		await pageQueries.modifyPageInstanceStatus({
+		let template = await applyClientScope(
+			trx
+				.selectFrom('page')
+				.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
+				.select('version')
+				.where('page_instance.id', '=', sampleResponse.instance_id),
+			ctx.session.user.client_id,
+			'page'
+		).executeTakeFirstOrThrow();
+		await pageQueries.modifyPageInstanceStatus(ctx, {
 			claimId: sampleResponse.claim_id,
 			instanceIds: [sampleResponse.instance_id],
 			newStatus: updatedPageStatus,

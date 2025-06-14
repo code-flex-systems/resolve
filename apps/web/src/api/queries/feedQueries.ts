@@ -1,5 +1,7 @@
 import { db } from '@/api/database/kysely';
 import { FeedStatus, FeedType } from '@/config/enums';
+import { ProtectedContext } from '@/server/trpc/trpc';
+import { applyClientScope } from '../database/clientScoped';
 
 export interface Feed {
 	id: number;
@@ -24,20 +26,21 @@ export interface NewFeedParams {
 
 export interface UpdateFeedParams extends Partial<NewFeedParams> {}
 
-export async function getFeeds(): Promise<Feed[]> {
-	return await db
-		.selectFrom('feeds')
-		.selectAll()
-		.where('status', '<>', FeedStatus.INACTIVE)
-		.orderBy('name')
-		.execute();
+export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
+	return await applyClientScope(
+		db.selectFrom('feeds').selectAll().where('status', '<>', FeedStatus.INACTIVE).orderBy('name'),
+		ctx.session.user.client_id
+	).execute();
 }
 
-export async function getFeed(id: number): Promise<Feed | undefined> {
-	return await db.selectFrom('feeds').selectAll().where('id', '=', id).executeTakeFirst();
+export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed | undefined> {
+	return await applyClientScope(
+		db.selectFrom('feeds').selectAll().where('id', '=', id),
+		ctx.session.user.client_id
+	).executeTakeFirst();
 }
 
-export async function createFeed(params: NewFeedParams): Promise<Feed> {
+export async function createFeed(ctx: ProtectedContext, params: NewFeedParams): Promise<Feed> {
 	const [feed] = await db
 		.insertInto('feeds')
 		.values({
@@ -47,13 +50,14 @@ export async function createFeed(params: NewFeedParams): Promise<Feed> {
 			connection_options: params.connection_options,
 			status: params.status ?? 'inactive',
 			last_synced_at: params.last_synced_at ?? null,
+			client_id: ctx.session.user.client_id,
 		})
 		.returningAll()
 		.execute();
 	return feed;
 }
 
-export async function updateFeed(id: number, params: UpdateFeedParams): Promise<Feed> {
+export async function updateFeed(ctx: ProtectedContext, id: number, params: UpdateFeedParams): Promise<Feed> {
 	const [feed] = await db
 		.updateTable('feeds')
 		.set({
@@ -70,6 +74,6 @@ export async function updateFeed(id: number, params: UpdateFeedParams): Promise<
 	return feed;
 }
 
-export async function deleteFeed(id: number): Promise<void> {
+export async function deleteFeed(ctx: ProtectedContext, id: number): Promise<void> {
 	await db.deleteFrom('feeds').where('id', '=', id).execute();
 }

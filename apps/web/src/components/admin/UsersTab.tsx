@@ -12,7 +12,7 @@ import VerifiedCell from './VerifiedCell';
 import RoleCell from './RoleCell';
 import { useSession } from 'next-auth/react';
 import { useMemo, useRef, useState } from 'react';
-import ActionsCell from './ActionsCell';
+import UserActionsCell from './UserActionsCell';
 import { useAdminSlice } from '@/state/store';
 import { BASE_COLOR } from '@/styles/theme';
 import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
@@ -69,7 +69,7 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <ActionsCell {...params} />,
+		renderCell: (params) => <UserActionsCell {...params} />,
 		width: 120,
 		resizable: false,
 	},

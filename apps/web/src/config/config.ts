@@ -21,6 +21,7 @@ const config = {
 	ROLES: {
 		ADMIN: 'Admin',
 		CONTRIBUTOR: 'Contributor',
+		SUPER_ADMIN: 'Super Admin',
 	},
 } as const;
 

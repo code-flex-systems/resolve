@@ -29,6 +29,12 @@ export function toggleImportUsersDialog() {
 	});
 }
 
+export function toggleNewChecklistDialog() {
+	setState((state) => {
+		state.showNewChecklistDialog = !state.showNewChecklistDialog;
+	});
+}
+
 export function toggleNewClaimDialog() {
 	setState((state) => {
 		state.showNewClaimDialog = !state.showNewClaimDialog;

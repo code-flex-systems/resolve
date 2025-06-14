@@ -1,9 +1,11 @@
-// apps/web/src/server/trpc/handler.ts
 import { appRouter } from './appRouter';
-import { createNextApiHandler } from '@trpc/server/adapters/next';
+import { createContext } from './context';
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 
-// For now, no auth context – add later if needed
-export const handler = createNextApiHandler({
-	router: appRouter,
-	createContext: () => ({}),
-});
+export const handler = (req: Request) =>
+	fetchRequestHandler({
+		endpoint: '/api/trpc',
+		req,
+		router: appRouter,
+		createContext,
+	});

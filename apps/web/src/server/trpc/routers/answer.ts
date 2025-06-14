@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 import {
 	createAnswer,
 	deleteAnswer,
@@ -7,6 +7,8 @@ import {
 	copyAnswer,
 	modifyAnswer,
 } from '@/api/controllers/answerController';
+import config from '@/config/config';
+import { requireRole } from '@/lib/auth/requireRole';
 import {
 	copyAnswerInput,
 	createAnswerInput,
@@ -17,27 +19,31 @@ import {
 } from '@/schemas/answerSchemas';
 
 export const answerRouter = router({
-	getAnswer: publicProcedure.input(getAnswerInput).query(async ({ input }) => {
-		return getAnswer(input);
+	getAnswer: protectedProcedure.input(getAnswerInput).query(async ({ input, ctx }) => {
+		return getAnswer(ctx, input);
 	}),
 
-	getAnswersForQuestion: publicProcedure.input(getAnswersInput).query(async ({ input }) => {
-		return getAnswers(input);
+	getAnswersForQuestion: protectedProcedure.input(getAnswersInput).query(async ({ input, ctx }) => {
+		return getAnswers(ctx, input);
 	}),
 
-	createAnswer: publicProcedure.input(createAnswerInput).mutation(async ({ input }) => {
-		return createAnswer(input);
+	createAnswer: protectedProcedure.input(createAnswerInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return createAnswer(ctx, input);
 	}),
 
-	updateAnswer: publicProcedure.input(modifyAnswerInput).mutation(async ({ input }) => {
-		return modifyAnswer(input);
+	updateAnswer: protectedProcedure.input(modifyAnswerInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return modifyAnswer(ctx, input);
 	}),
 
-	copyAnswer: publicProcedure.input(copyAnswerInput).mutation(async ({ input }) => {
-		return copyAnswer(input);
+	copyAnswer: protectedProcedure.input(copyAnswerInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return copyAnswer(ctx, input);
 	}),
 
-	deleteAnswer: publicProcedure.input(deleteAnswerInput).mutation(async ({ input }) => {
-		return deleteAnswer(input);
+	deleteAnswer: protectedProcedure.input(deleteAnswerInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return deleteAnswer(ctx, input);
 	}),
 });

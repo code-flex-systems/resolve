@@ -53,6 +53,7 @@ export default function Feeds() {
 							key={f.id}
 							selected={selectedFeedId === f.id}
 							onClick={() => setFeedId(selectedFeedId === f.id ? undefined : f.id)}
+							disableRipple
 							sx={{
 								...styles.menuItem,
 								...(selectedFeedId === f.id

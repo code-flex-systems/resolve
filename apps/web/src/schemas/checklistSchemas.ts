@@ -4,8 +4,8 @@ import { SummarySegment } from '@/config/enums';
 export const checklistParams = z.record(z.unknown());
 
 export const createChecklistInput = z.object({
-	claimId: z.number().int(),
-	params: checklistParams,
+	name: z.string(),
+	existingChecklistId: z.number().optional(),
 });
 export type CreateChecklistInput = z.infer<typeof createChecklistInput>;
 

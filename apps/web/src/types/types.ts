@@ -161,6 +161,8 @@ export interface QuestionStat {
 	answers: AnswerStat[];
 }
 
+export type Role = (typeof config.ROLES)[keyof typeof config.ROLES];
+
 export interface TreeNode {
 	instanceId: number;
 	parentInstanceId: number | null;

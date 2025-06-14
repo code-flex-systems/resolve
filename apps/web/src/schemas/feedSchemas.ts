@@ -61,6 +61,8 @@ export const dbOptions = z.object({
 	query: z.string().min(1),
 });
 
+export const getFeedOptions = z.object({ id: z.number().int() });
+
 /**
  * Discriminated union for creating a feed
  * based on feed_type → forces correct connection_options shape

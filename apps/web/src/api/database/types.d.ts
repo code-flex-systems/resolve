@@ -44,6 +44,7 @@ export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
   calls_instance_id: number | null;
+  client_id: string;
   description_image_url: string | null;
   description_text: string | null;
   grade: Numeric | null;
@@ -56,16 +57,19 @@ export interface Answer {
 }
 
 export interface Checklist {
+  client_id: string;
   created_at: Generated<string>;
   created_by: string;
   id: Generated<number>;
   name: string;
+  published: Generated<boolean>;
   updated_at: Generated<string>;
 }
 
 export interface ChecklistClaim {
   checklist_id: number;
   claim_id: number;
+  client_id: string;
   last_opened: Generated<Timestamp>;
 }
 
@@ -74,6 +78,7 @@ export interface Claim {
   claim_number: string | null;
   client: string | null;
   client_adjuster: string | null;
+  client_id: string;
   date_of_loss: Timestamp | null;
   expected_recovery: Numeric | null;
   feed_id: number | null;
@@ -85,13 +90,20 @@ export interface Claim {
   total_incurred: Numeric | null;
 }
 
+export interface Client {
+  id: string;
+  name: string;
+}
+
 export interface Doc {
   alias: string;
+  client_id: string;
   filename: string;
   id: Generated<number>;
 }
 
 export interface Feeds {
+  client_id: string;
   connection_options: Json;
   created_at: Generated<Timestamp>;
   feed_type: string;
@@ -104,6 +116,7 @@ export interface Feeds {
 }
 
 export interface Page {
+  client_id: string;
   hidden: Generated<boolean>;
   id: Generated<number>;
   title: string;
@@ -112,6 +125,7 @@ export interface Page {
 
 export interface PageInstance {
   checklist_id: number;
+  client_id: string;
   id: Generated<number>;
   page_id: number;
   parent_instance_id: number | null;
@@ -120,6 +134,7 @@ export interface PageInstance {
 
 export interface PageInstanceStatus {
   claim_id: number;
+  client_id: string;
   id: Generated<number>;
   page_instance_id: number;
   status: string;
@@ -128,6 +143,7 @@ export interface PageInstanceStatus {
 }
 
 export interface Question {
+  client_id: string;
   description_image_url: string | null;
   description_text: string | null;
   hidden: Generated<boolean | null>;
@@ -142,6 +158,7 @@ export interface Question {
 export interface QuestionResponse {
   checklist_id: number;
   claim_id: number;
+  client_id: string;
   created_at: Generated<Timestamp | null>;
   id: Generated<number>;
   instance_id: number;
@@ -153,6 +170,7 @@ export interface QuestionResponse {
 export interface QuestionResponseAnswer {
   additional_info: string | null;
   answer_id: number;
+  client_id: string;
   id: Generated<number>;
   response_id: number;
 }
@@ -161,6 +179,7 @@ export interface ResponseAuditLogs {
   action: string;
   checklist_id: number;
   claim_id: number;
+  client_id: string;
   id: Generated<number>;
   instance_id: number;
   new_additional_info: Json | null;
@@ -183,6 +202,7 @@ export interface Sessions {
 }
 
 export interface Users {
+  client_id: string | null;
   created_at: Generated<Timestamp>;
   disabled: Generated<boolean>;
   email: string;
@@ -209,6 +229,7 @@ export interface DB {
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
   claim: Claim;
+  client: Client;
   doc: Doc;
   feeds: Feeds;
   page: Page;

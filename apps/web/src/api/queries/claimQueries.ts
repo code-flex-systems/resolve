@@ -2,28 +2,45 @@ import { sql } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { ClaimSearch, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
+import { ProtectedContext } from '@/server/trpc/trpc';
+import { applyClientScope } from '../database/clientScoped';
 
-export async function getClaim(checklistId: number, claimId: number) {
+export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	await db
 		.insertInto('checklist_claim')
-		.values({ checklist_id: checklistId, claim_id: claimId })
+		.values({ checklist_id: checklistId, claim_id: claimId, client_id: ctx.session.user.client_id })
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.execute();
 	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
 }
 
 export async function getClaims(
-	type: 'data' | 'count',
-	feedId?: number | null,
-	searchTerm?: { value: string; type: ClaimSearch },
-	limit?: number,
-	offset?: number
+	ctx: ProtectedContext,
+	{
+		type,
+		feedId,
+		searchTerm,
+		limit,
+		offset,
+	}: {
+		type: 'data' | 'count';
+		feedId?: number | null;
+		searchTerm?: { value: string; type: ClaimSearch };
+		limit?: number;
+		offset?: number;
+	}
 ) {
-	let query = db.selectFrom('claim as c').leftJoin('feeds as f', 'c.feed_id', 'f.id');
+	let query = applyClientScope(
+		db.selectFrom('claim').leftJoin('feeds', 'claim.feed_id', 'feeds.id'),
+		ctx.session.user.client_id,
+		'claim'
+	);
 	query =
 		feedId !== undefined
 			? query.where('feed_id', feedId === null ? 'is' : '=', feedId)
-			: query.where((eb) => eb.or([eb('f.status', 'is', null), eb('f.status', '<>', FeedStatus.INACTIVE)]));
+			: query.where((eb) =>
+					eb.or([eb('feeds.status', 'is', null), eb('feeds.status', '<>', FeedStatus.INACTIVE)])
+			  );
 
 	if (searchTerm) {
 		query = query.where((eb) =>
@@ -35,7 +52,7 @@ export async function getClaims(
 		if (limit != null && offset != null) {
 			query = query.limit(limit).offset(offset);
 		}
-		query = query.selectAll('c').select(['f.name as feed_name']);
+		query = query.selectAll('claim').select(['feeds.name as feed_name']);
 		return await query.execute();
 	} else {
 		query = query.select(({ fn }) => fn.countAll().as('count'));
@@ -44,7 +61,7 @@ export async function getClaims(
 	}
 }
 
-export async function createClaims(claims: Omit<Claim, 'id'>[]) {
+export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
 	const [feed] = await db
 		.insertInto('claim')
 		.values(
@@ -60,6 +77,7 @@ export async function createClaims(claims: Omit<Claim, 'id'>[]) {
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
 				expected_recovery: c.expected_recovery,
+				client_id: ctx.session.user.client_id,
 			}))
 		)
 		.returningAll()
