@@ -1,6 +1,4 @@
-// apps/web/src/server/trpc/routers/checklist.ts
 import { router, protectedProcedure } from '../trpc';
-import z from 'zod';
 
 import {
 	getChecklists,

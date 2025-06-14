@@ -1,4 +1,3 @@
-// apps/web/src/lib/TrpcProvider.tsx
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

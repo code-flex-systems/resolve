@@ -1,4 +1,3 @@
-// apps/web/src/server/trpc/routers/claim.ts
 import { router, protectedProcedure } from '../trpc';
 
 import { createClaims, getClaim, getClaims } from '@/api/controllers/claimController';

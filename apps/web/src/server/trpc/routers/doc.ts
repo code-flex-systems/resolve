@@ -1,4 +1,3 @@
-// apps/web/src/server/trpc/routers/doc.ts
 import { router, protectedProcedure } from '../trpc';
 
 import { createDoc, deleteDoc, getDoc, getDocs } from '@/api/controllers/docController';
