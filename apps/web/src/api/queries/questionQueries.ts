@@ -2,7 +2,7 @@ import { sql, Transaction } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
-import { Answer, Interval, Question, QuestionStat } from '@/types/types';
+import { Answer, Interval } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 
@@ -14,12 +14,8 @@ import { applyClientScope } from '../database/clientScoped';
  * @param params - question fields
  * @returns newly created question
  */
-export async function createQuestion(
-        ctx: ProtectedContext,
-        pageId: number,
-        params: object
-) {
-        let newQuestion: Question;
+export async function createQuestion(ctx: ProtectedContext, pageId: number, params: object) {
+	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
 		newQuestion = await trx
 			.insertInto('question')
@@ -46,11 +42,7 @@ export async function createQuestion(
  * @param questionId - question to copy
  * @returns new question
  */
-export async function copyQuestion(
-        ctx: ProtectedContext,
-        pageId: number,
-        questionId: number
-) {
+export async function copyQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
 	let maxPosition = await applyClientScope(
 		db
 			.selectFrom('question')
@@ -59,7 +51,7 @@ export async function copyQuestion(
 		ctx.session.user.client_id
 	).executeTakeFirstOrThrow();
 
-        let newQuestion: Question;
+	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
 		newQuestion = await trx
 			.insertInto('question')
@@ -132,11 +124,7 @@ export async function copyQuestion(
  * @param pageId - page containing the question
  * @param questionId - identifier of the question to delete
  */
-export async function deleteQuestion(
-        ctx: ProtectedContext,
-        pageId: number,
-        questionId: number
-) {
+export async function deleteQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
 	await db.transaction().execute(async (trx) => {
 		await trx.deleteFrom('question').where('id', '=', questionId).execute();
 		await bumpPageVersion(ctx, pageId, trx);
@@ -150,10 +138,7 @@ export async function deleteQuestion(
  * @param questionId - identifier of the question
  * @returns the question row
  */
-export async function getQuestion(
-        ctx: ProtectedContext,
-        questionId: number
-) {
+export async function getQuestion(ctx: ProtectedContext, questionId: number) {
 	return await applyClientScope(
 		db.selectFrom('question').selectAll().where('id', '=', questionId),
 		ctx.session.user.client_id
@@ -167,10 +152,7 @@ export async function getQuestion(
  * @param pageId - page identifier
  * @returns number of questions
  */
-export async function getQuestionCount(
-        ctx: ProtectedContext,
-        pageId: number
-) {
+export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
 	const countRow = await applyClientScope(
 		db
 			.selectFrom('question')
@@ -188,12 +170,9 @@ export async function getQuestionCount(
  * @param pageId - page identifier
  * @returns array of questions with answers
  */
-export async function getQuestions(
-        ctx: ProtectedContext,
-        pageId: number
-) {
-        // Pull questions with their aggregated answers for the given page
-        let results = await applyClientScope(
+export async function getQuestions(ctx: ProtectedContext, pageId: number) {
+	// Pull questions with their aggregated answers for the given page
+	let results = await applyClientScope(
 		db
 			.selectFrom('question')
 			.leftJoin('answer', 'answer.question_id', 'question.id')
@@ -234,13 +213,9 @@ export async function getQuestions(
  * @param interval - optional date interval for responses
  * @returns array of stats objects
  */
-export async function getQuestionStats(
-        ctx: ProtectedContext,
-        pageId: number,
-        interval?: Interval<string>
-) {
-        // Collect answer counts for each question over the specified interval
-        let results = await applyClientScope(
+export async function getQuestionStats(ctx: ProtectedContext, pageId: number, interval?: Interval<string>) {
+	// Collect answer counts for each question over the specified interval
+	let results = await applyClientScope(
 		db
 			.selectFrom('question')
 			.innerJoin('answer', 'question.id', 'answer.question_id')
@@ -293,18 +268,14 @@ export async function getQuestionStats(
  * @param params - fields to update
  * @returns updated question
  */
-export async function modifyQuestion(
-        ctx: ProtectedContext,
-        pageId: number,
-        questionId: number,
-        params: object
-) {
+export async function modifyQuestion(ctx: ProtectedContext, pageId: number, questionId: number, params: object) {
 	let updates: UpdateObjectExpression<DB, 'question'> = {};
 	if (params.text) updates.text = params.text;
 	if (params.type) updates.type = params.type;
 	if (params.description_text != null) updates.description_text = params.description_text;
 	if (params.page_id) updates.page_id = params.page_id;
-        let newQuestion: Question;
+
+	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
 		newQuestion = await trx
 			.updateTable('question')
@@ -329,11 +300,7 @@ export async function modifyQuestion(
  * @param pageId - page to bump
  * @param trx - transaction to run the update in
  */
-async function bumpPageVersion(
-        ctx: ProtectedContext,
-        pageId: number,
-        trx: Transaction<DB>
-) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
 	await trx
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))

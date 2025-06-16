@@ -17,13 +17,13 @@ import { applyClientScope } from '../database/clientScoped';
  * @returns the newly created answer
  */
 export async function createAnswer(
-        ctx: ProtectedContext,
-        pageId: number,
-        questionId: number,
-        params: object,
-        trx?: Transaction<DB>
+	ctx: ProtectedContext,
+	pageId: number,
+	questionId: number,
+	params: object,
+	trx?: Transaction<DB>
 ) {
-        let newAnswer: Answer;
+	let newAnswer: Answer;
 	if (trx) {
 		newAnswer = await createAnswerPrivate(ctx, questionId, params, trx);
 	} else {
@@ -43,11 +43,7 @@ export async function createAnswer(
  * @param pageId - id of the page containing the answer
  * @param answerId - identifier of the answer to delete
  */
-export async function deleteAnswer(
-        ctx: ProtectedContext,
-        pageId: number,
-        answerId: number
-) {
+export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
 	await db.transaction().execute(async (trx) => {
 		await trx.deleteFrom('answer').where('id', '=', answerId).execute();
 		await bumpPageVersion(ctx, pageId, trx);
@@ -61,10 +57,7 @@ export async function deleteAnswer(
  * @param answerId - identifier of the desired answer
  * @returns the matching answer
  */
-export async function getAnswer(
-        ctx: ProtectedContext,
-        answerId: number
-) {
+export async function getAnswer(ctx: ProtectedContext, answerId: number) {
 	return await applyClientScope(
 		db.selectFrom('answer').selectAll().where('id', '=', answerId),
 		ctx.session.user.client_id
@@ -78,10 +71,7 @@ export async function getAnswer(
  * @param questionId - question to look up answers for
  * @returns ordered list of answers
  */
-export async function getAnswers(
-        ctx: ProtectedContext,
-        questionId: number
-) {
+export async function getAnswers(ctx: ProtectedContext, questionId: number) {
 	return await applyClientScope(
 		db.selectFrom('answer').selectAll().where('question_id', '=', questionId).orderBy('position'),
 		ctx.session.user.client_id
@@ -95,10 +85,7 @@ export async function getAnswers(
  * @param questionId - question identifier
  * @returns number of answers
  */
-export async function getAnswerCount(
-        ctx: ProtectedContext,
-        questionId: number
-) {
+export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
 	let answerCountRecord = await applyClientScope(
 		db
 			.selectFrom('answer')
@@ -118,12 +105,7 @@ export async function getAnswerCount(
  * @param params - fields to modify
  * @returns the updated answer
  */
-export async function modifyAnswer(
-        ctx: ProtectedContext,
-        pageId: number,
-        answerId: number,
-        params: object
-) {
+export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: object) {
 	let updates: UpdateObjectExpression<DB, 'answer'> = {};
 	if (params.position) updates.position = params.position;
 	if (params.grade != null) updates.grade = params.grade || null;
@@ -134,7 +116,8 @@ export async function modifyAnswer(
 		updates.additional_info_placeholder = params.additional_info_placeholder;
 	if (params.calls_instance_id) updates.calls_instance_id = params.calls_instance_id;
 	if (params.has_additional_info != null) updates.has_additional_info = params.has_additional_info;
-        let newAnswer: Answer;
+
+	let newAnswer: any;
 	await db.transaction().execute(async (trx) => {
 		newAnswer = await trx
 			.updateTable('answer')
@@ -158,11 +141,7 @@ export async function modifyAnswer(
  * @param pageId - page to bump
  * @param trx - transaction for the update
  */
-async function bumpPageVersion(
-        ctx: ProtectedContext,
-        pageId: number,
-        trx: Transaction<DB>
-) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
 	await trx
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
@@ -179,14 +158,9 @@ async function bumpPageVersion(
  * @param trx - active transaction
  * @returns the newly created answer
  */
-async function createAnswerPrivate(
-        ctx: ProtectedContext,
-        questionId: number,
-        params: object,
-        trx: Transaction<DB>
-) {
-        let answerCount = (await getAnswerCount(ctx, questionId)) ?? 0;
-        let newAnswer = await trx
+async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, params: object, trx: Transaction<DB>) {
+	let answerCount = (await getAnswerCount(ctx, questionId)) ?? 0;
+	let newAnswer = await trx
 		.insertInto('answer')
 		.values({
 			question_id: questionId,

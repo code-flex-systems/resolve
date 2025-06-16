@@ -9,8 +9,8 @@ export type SendEmailOptions = {
  * Sends an email using the current provider (e.g., Resend, Postmark, SES)
  */
 export async function sendEmail({ to, subject, html, from }: SendEmailOptions): Promise<void> {
-	const provider = process.env.EMAIL_PROVIDER || 'resend';
-	const sender = from || process.env.EMAIL_FROM || 'no-reply@yourdomain.com';
+	const provider = process.env.EMAIL_PROVIDER ?? 'resend';
+	const sender = from ?? process.env.EMAIL_FROM ?? 'no-reply@yourdomain.com';
 
 	switch (provider) {
 		case 'resend': {
