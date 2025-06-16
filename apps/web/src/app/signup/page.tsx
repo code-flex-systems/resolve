@@ -118,7 +118,6 @@ export default function LoginPage() {
 								id="phone"
 								label="Phone number"
 								type="tel"
-								// placeholder="example@gmail.com"
 								error={!!errors.phone}
 								helperText={errors.phone?.message}
 								sx={{

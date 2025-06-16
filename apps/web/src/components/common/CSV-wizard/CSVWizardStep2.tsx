@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
-import { Stack, MenuItem, FormControl, InputLabel, Select } from '@mui/material';
+import { MenuItem, FormControl, InputLabel, Select } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 
 type MappingField = {
@@ -56,17 +56,6 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 		}));
 
 		return (
-			// <div
-			// 	spacing={1}
-			// 	padding="5px"
-			// 	style={{
-			// 		height: 350,
-			// 		overflow: 'auto',
-			// 		display: 'flex',
-			// 		flexDirection: 'column',
-			// 		justifyContent: 'space-between',
-			// 	}}
-			// >
 			<>
 				{fields.map((field) => (
 					<Controller
@@ -113,7 +102,6 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 					/>
 				))}
 			</>
-			// {/* </Stack> */}
 		);
 	}
 );

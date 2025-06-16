@@ -2,6 +2,8 @@ import { InstanceListItem, TreeNode } from '@/types/types';
 import dayjs from 'dayjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
+// public methods
+
 export function getInitials(name: string | null | undefined) {
 	if (!name) return '';
 	const parts = name.split(' ');

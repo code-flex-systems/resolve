@@ -5,7 +5,6 @@ import { KyselyAdapter } from '@auth/kysely-adapter';
 import { db } from '@/api/database/kysely';
 import { compareSync } from 'bcrypt';
 
-// NextAuth configuration options
 export const authOptions: NextAuthOptions = {
 	adapter: KyselyAdapter(db),
 	providers: [
@@ -73,5 +72,4 @@ export const authOptions: NextAuthOptions = {
 	secret: process.env.AUTH_SECRET,
 };
 
-// Export NextAuth handler
 export default NextAuth(authOptions);

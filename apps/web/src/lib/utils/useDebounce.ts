@@ -5,11 +5,11 @@ function useDebounce(func: Function, delay: number) {
 
 	const debouncedFunction = (...args: any[]) => {
 		if (timer.current) {
-			clearTimeout(timer.current); // Clear the previous timeout
+			clearTimeout(timer.current);
 		}
 
 		timer.current = setTimeout(() => {
-			func(...args); // Call the provided function after the delay
+			func(...args);
 		}, delay);
 	};
 

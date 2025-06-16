@@ -10,7 +10,7 @@ import {
 	createChecklist,
 	deleteChecklist,
 	modifyChecklist,
-} from '@/api/controllers/checklistController'; // Adjust path if needed
+} from '@/api/controllers/checklistController';
 import {
 	createChecklistInput,
 	deleteChecklistInput,

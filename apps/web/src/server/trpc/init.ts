@@ -1,4 +1,3 @@
-// src/server/trpc/init.ts
 import { initTRPC } from '@trpc/server';
 import { Context } from 'node:vm';
 import superjson from 'superjson';

@@ -20,6 +20,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 		throw new TRPCError({ code: 'UNAUTHORIZED' });
 	}
 
+	// Force non-null typing for session
 	const protectedCtx: ProtectedContext = {
 		...ctx,
 		session: { user: session.user, expires: session.expires },
