@@ -40,6 +40,17 @@ export interface Accounts {
   user_id: number;
 }
 
+export interface AdminActionLogs {
+  action: string;
+  client_id: number;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  entity_id: number;
+  entity_name: string;
+  id: Generated<number>;
+  value: Json | null;
+}
+
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
@@ -225,6 +236,7 @@ export interface VerificationTokens {
 
 export interface DB {
   accounts: Accounts;
+  admin_action_logs: AdminActionLogs;
   answer: Answer;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;

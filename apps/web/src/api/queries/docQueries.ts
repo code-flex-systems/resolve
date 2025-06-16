@@ -1,5 +1,4 @@
 import { db } from '@/api/database/kysely';
-import { Doc } from '@/api/database/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 
@@ -10,10 +9,7 @@ import { applyClientScope } from '../database/clientScoped';
  * @param params - document fields
  * @returns created document
  */
-export async function createDoc(
-        ctx: ProtectedContext,
-        params: object
-) {
+export async function createDoc(ctx: ProtectedContext, params: object) {
 	return await db
 		.insertInto('doc')
 		.values({
@@ -30,10 +26,7 @@ export async function createDoc(
  * @param ctx - request context
  * @param docId - document identifier
  */
-export async function deleteDoc(
-        ctx: ProtectedContext,
-        docId: number
-) {
+export async function deleteDoc(ctx: ProtectedContext, docId: number) {
 	await db.deleteFrom('doc').where('id', '=', docId).execute();
 }
 
@@ -44,10 +37,7 @@ export async function deleteDoc(
  * @param docId - document identifier
  * @returns the found document
  */
-export async function getDoc(
-        ctx: ProtectedContext,
-        docId: number
-) {
+export async function getDoc(ctx: ProtectedContext, docId: number) {
 	return await applyClientScope(
 		db.selectFrom('doc').selectAll().where('id', '=', docId),
 		ctx.session.user.client_id
@@ -61,8 +51,5 @@ export async function getDoc(
  * @returns array of documents
  */
 export async function getDocs(ctx: ProtectedContext) {
-        return await applyClientScope(
-                db.selectFrom('doc').selectAll().orderBy('id'),
-                ctx.session.user.client_id
-        ).execute();
+	return await applyClientScope(db.selectFrom('doc').selectAll().orderBy('id'), ctx.session.user.client_id).execute();
 }

@@ -2,8 +2,7 @@ import { sql } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { Checklist, ChecklistClaim, ChecklistSummary, ChecklistSummaryRow } from '@/types/types';
-import type { ChecklistClaim as DBChecklistClaim } from '@/api/database/types';
+import { Checklist } from '@/types/types';
 import { applyClientScope } from '../database/clientScoped';
 
 /**
@@ -16,12 +15,12 @@ import { applyClientScope } from '../database/clientScoped';
  * @returns the created checklist record
  */
 export async function createChecklist(
-        ctx: ProtectedContext,
-        name: string,
-        username: string,
-        existingChecklistId?: number
+	ctx: ProtectedContext,
+	name: string,
+	username: string,
+	existingChecklistId?: number
 ) {
-        let newChecklist: Checklist;
+	let newChecklist: Checklist;
 	await db.transaction().execute(async (trx) => {
 		newChecklist = await trx
 			.insertInto('checklist')
@@ -60,10 +59,7 @@ export async function createChecklist(
  * @param ctx - request context
  * @param checklistId - identifier of the checklist
  */
-export async function deleteChecklist(
-        ctx: ProtectedContext,
-        checklistId: number
-) {
+export async function deleteChecklist(ctx: ProtectedContext, checklistId: number) {
 	await db.deleteFrom('checklist').where('id', '=', checklistId).execute();
 }
 
@@ -74,10 +70,7 @@ export async function deleteChecklist(
  * @param checklistId - checklist identifier
  * @returns the checklist record
  */
-export async function getChecklist(
-        ctx: ProtectedContext,
-        checklistId: number
-) {
+export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
 	return await applyClientScope(
 		db.selectFrom('checklist').selectAll().where('id', '=', checklistId),
 		ctx.session.user.client_id
@@ -91,10 +84,7 @@ export async function getChecklist(
  * @param searchTerm - optional name prefix filter
  * @returns array of checklists with page counts
  */
-export async function getChecklists(
-        ctx: ProtectedContext,
-        searchTerm?: string
-) {
+export async function getChecklists(ctx: ProtectedContext, searchTerm?: string) {
 	let query = db
 		.selectFrom('checklist')
 		.innerJoin('page_instance', 'checklist.id', 'page_instance.checklist_id')
@@ -116,11 +106,7 @@ export async function getChecklists(
  * @param claimId - claim identifier
  * @returns the checklist_claim row
  */
-export async function getChecklistClaim(
-        ctx: ProtectedContext,
-        checklistId: number,
-        claimId: number
-) {
+export async function getChecklistClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	return await applyClientScope(
 		db
 			.selectFrom('checklist_claim')
@@ -138,12 +124,8 @@ export async function getChecklistClaim(
  * @param claimId - claim identifier
  * @returns totals for answered, known and unknown answers
  */
-export async function getChecklistSummary(
-        ctx: ProtectedContext,
-        checklistId: number,
-        claimId: number
-) {
-// Aggregate counts for a claim across all questions on the checklist
+export async function getChecklistSummary(ctx: ProtectedContext, checklistId: number, claimId: number) {
+	// Aggregate counts for a claim across all questions on the checklist
 	return await applyClientScope(
 		db
 			.selectFrom('page_instance')
@@ -209,25 +191,25 @@ export async function getChecklistSummary(
  * @param offset - pagination offset
  */
 export async function getChecklistSummaryDetail(
-        ctx: ProtectedContext,
-        {
-                checklistId,
-                claimId,
+	ctx: ProtectedContext,
+	{
+		checklistId,
+		claimId,
 		segment,
 		mode,
 		limit,
 		offset,
-        }: {
-                checklistId: number;
-                claimId: number;
-                segment: SummarySegment;
-                mode: 'rows' | 'count';
-                limit?: number;
-                offset?: number;
-        }
+	}: {
+		checklistId: number;
+		claimId: number;
+		segment: SummarySegment;
+		mode: 'rows' | 'count';
+		limit?: number;
+		offset?: number;
+	}
 ) {
-        // Build the base query for pulling questions, answers and responses
-        let query = applyClientScope(
+	// Build the base query for pulling questions, answers and responses
+	let query = applyClientScope(
 		db
 			.selectFrom('page_instance')
 			.innerJoin('page', 'page.id', 'page_instance.page_id')
@@ -244,8 +226,8 @@ export async function getChecklistSummaryDetail(
 		'page_instance'
 	);
 
-        // Join answers only when we care about answered or known/unknown stats
-        if (segment !== SummarySegment.UNANSWERED) {
+	// Join answers only when we care about answered or known/unknown stats
+	if (segment !== SummarySegment.UNANSWERED) {
 		query = query
 			.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
 			.leftJoin('answer', 'answer.id', 'question_response_answer.answer_id');
@@ -325,9 +307,7 @@ export async function getChecklistSummaryDetail(
  * @param ctx - request context
  * @returns list of recent checklist/claim pairs
  */
-export async function getRecentChecklistClaims(
-        ctx: ProtectedContext
-) {
+export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 	return await applyClientScope(
 		db
 			.selectFrom('checklist')
@@ -350,11 +330,7 @@ export async function getRecentChecklistClaims(
  * @param params - fields to change
  * @returns the updated checklist
  */
-export async function modifyChecklist(
-        ctx: ProtectedContext,
-        checklistId: number,
-        params: object
-) {
+export async function modifyChecklist(ctx: ProtectedContext, checklistId: number, params: object) {
 	return await db
 		.updateTable('checklist')
 		.set({

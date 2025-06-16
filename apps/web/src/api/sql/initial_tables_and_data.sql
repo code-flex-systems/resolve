@@ -1,3 +1,4 @@
+drop table if exists admin_action_logs;
 drop table if exists feeds;
 drop table if exists response_audit_logs;
 drop table if exists question_response_answer;
@@ -252,3 +253,16 @@ WHERE status = 'Online';
 
 -- GIN index on connection_options if you need to query inside the JSONB
 CREATE INDEX idx_feeds_conn_opts ON public.feeds USING GIN (connection_options);
+
+-- admin action logs table
+
+create table admin_action_logs(
+	id serial not null primary key,
+	client_id integer not null,
+	entity_id integer not null,
+	entity_name text not null,
+	action text not null check (action in ('DELETE', 'GET', 'PATCH', 'POST')),
+	value jsonb,
+	created_by text not null,
+	created_at timestamp with time zone not null default now()
+);

@@ -1,5 +1,4 @@
 import { db } from '@/api/database/kysely';
-import { Users } from '@/api/database/types';
 import config from '@/config/config';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
@@ -12,12 +11,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
  * @param offset - starting offset
  * @returns array of users
  */
-export async function getUsers(
-        ctx: ProtectedContext,
-        disabled?: boolean,
-        limit?: number,
-        offset?: number
-) {
+export async function getUsers(ctx: ProtectedContext, disabled?: boolean, limit?: number, offset?: number) {
 	let query = db
 		.selectFrom('users')
 		.selectAll()
@@ -38,10 +32,7 @@ export async function getUsers(
  * @param disabled - filter by disabled status
  * @returns number of users
  */
-export async function getUserCount(
-        ctx: ProtectedContext,
-        disabled?: boolean
-) {
+export async function getUserCount(ctx: ProtectedContext, disabled?: boolean) {
 	let query = db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
@@ -59,10 +50,7 @@ export async function getUserCount(
  * @param id - user identifier
  * @returns the user or undefined
  */
-export async function getUser(
-        ctx: ProtectedContext,
-        id: number
-) {
+export async function getUser(ctx: ProtectedContext, id: number) {
 	return await db
 		.selectFrom('users')
 		.selectAll()
@@ -78,9 +66,9 @@ export async function getUser(
  * @returns the first created user
  */
 export async function createUsers(
-        ctx: ProtectedContext,
-        users: {
-                first: string;
+	ctx: ProtectedContext,
+	users: {
+		first: string;
 		last: string;
 		email: string;
 		password_hash: string;
@@ -104,10 +92,10 @@ export async function createUsers(
  * @returns updated user
  */
 export async function updateUser(
-        ctx: ProtectedContext,
-        id: number,
-        params: Partial<{
-                name: string;
+	ctx: ProtectedContext,
+	id: number,
+	params: Partial<{
+		name: string;
 		email: string;
 		password_hash: string;
 		phone?: string;
@@ -125,9 +113,6 @@ export async function updateUser(
  * @param ctx - request context
  * @param id - user identifier to delete
  */
-export async function deleteUser(
-        ctx: ProtectedContext,
-        id: number
-) {
+export async function deleteUser(ctx: ProtectedContext, id: number) {
 	await db.deleteFrom('users').where('id', '=', id).execute();
 }

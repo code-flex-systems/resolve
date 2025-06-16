@@ -1,3 +1,10 @@
+export enum AdminActionLogType {
+	DELETE = 'delete',
+	GET = 'get',
+	PATCH = 'patch',
+	POST = 'post',
+}
+
 export enum AnswerType {
 	FREEFORM = 'freeform',
 	STANDARD = 'standard',
