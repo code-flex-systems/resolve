@@ -2,13 +2,26 @@ import { sql, Transaction } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
+import { PageInstance, PageTemplate } from '@/types/types';
 import { PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 
-export async function createPage(ctx: ProtectedContext, checklistId: number, params: object) {
-	let newPage: any;
-	let newInstance: any;
+/**
+ * Insert a new page template and instance as a single transaction.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist to attach the instance to
+ * @param params - title and positioning info
+ * @returns ids for the new page and instance
+ */
+export async function createPage(
+        ctx: ProtectedContext,
+        checklistId: number,
+        params: object
+) {
+        let newPage: PageTemplate;
+        let newInstance: PageInstance;
 	await db.transaction().execute(async (trx) => {
 		newPage = await trx
 			.insertInto('page')
@@ -33,17 +46,24 @@ export async function createPage(ctx: ProtectedContext, checklistId: number, par
 	};
 }
 
+/**
+ * Create a page instance optionally using an external transaction.
+ *
+ * @param ctx - request context
+ * @param params - identifiers and positioning for the instance
+ * @returns created page instance
+ */
 export async function createPageInstance(
-	ctx: ProtectedContext,
-	params: {
-		checklistId: number;
-		pageId: number;
+        ctx: ProtectedContext,
+        params: {
+                checklistId: number;
+                pageId: number;
 		parentId: number;
 		position: number;
 		trx?: Transaction<DB>;
-	}
+        }
 ) {
-	let newInstance: any;
+        let newInstance: PageInstance;
 	if (params.trx) {
 		newInstance = await createPageInstancePrivate(ctx, { ...params, trx: params.trx });
 	} else {
@@ -54,7 +74,16 @@ export async function createPageInstance(
 	return newInstance;
 }
 
-export async function deletePageInstance(ctx: ProtectedContext, instanceId: number) {
+/**
+ * Delete a page instance and reorder remaining instances.
+ *
+ * @param ctx - request context
+ * @param instanceId - instance identifier to remove
+ */
+export async function deletePageInstance(
+        ctx: ProtectedContext,
+        instanceId: number
+) {
 	await db.transaction().execute(async (trx) => {
 		await trx
 			.updateTable('answer')
@@ -74,21 +103,47 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
 	});
 }
 
-export async function getPage(ctx: ProtectedContext, pageId: number) {
+/**
+ * Fetch a page template by id.
+ *
+ * @param ctx - request context
+ * @param pageId - page identifier
+ * @returns the page template
+ */
+export async function getPage(
+        ctx: ProtectedContext,
+        pageId: number
+) {
 	return await applyClientScope(
 		db.selectFrom('page').selectAll().where('id', '=', pageId),
 		ctx.session.user.client_id
 	).executeTakeFirstOrThrow();
 }
 
+/**
+ * Fetch all visible page templates for the current client.
+ *
+ * @param ctx - request context
+ * @returns list of page templates
+ */
 export async function getPages(ctx: ProtectedContext) {
-	return await applyClientScope(
-		db.selectFrom('page').selectAll().where('hidden', 'is', false),
-		ctx.session.user.client_id
-	).execute();
+        return await applyClientScope(
+                db.selectFrom('page').selectAll().where('hidden', 'is', false),
+                ctx.session.user.client_id
+        ).execute();
 }
 
-export async function getPageInstance(ctx: ProtectedContext, instanceId: number) {
+/**
+ * Load a page template joined with a specific instance.
+ *
+ * @param ctx - request context
+ * @param instanceId - page instance identifier
+ * @returns the template with instance info
+ */
+export async function getPageInstance(
+        ctx: ProtectedContext,
+        instanceId: number
+) {
 	return await applyClientScope(
 		db
 			.selectFrom('page')
@@ -101,8 +156,20 @@ export async function getPageInstance(ctx: ProtectedContext, instanceId: number)
 	).executeTakeFirstOrThrow();
 }
 
-export async function getPageInstances(ctx: ProtectedContext, checklistId: number, parentId?: number) {
-	return await applyClientScope(
+/**
+ * Retrieve child page instances for a checklist.
+ *
+ * @param ctx - request context
+ * @param checklistId - parent checklist id
+ * @param parentId - optional parent instance filter
+ * @returns list of page instances
+ */
+export async function getPageInstances(
+        ctx: ProtectedContext,
+        checklistId: number,
+        parentId?: number
+) {
+        return await applyClientScope(
 		db
 			.selectFrom('page')
 			.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
@@ -130,12 +197,22 @@ export async function getPageInstances(ctx: ProtectedContext, checklistId: numbe
 	).execute();
 }
 
+/**
+ * List page instances for a claim including their current status.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier
+ * @param claimId - claim identifier
+ * @param parentId - optional parent instance filter
+ * @returns array of instances with status data
+ */
 export async function getPageInstancesForClaim(
-	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	parentId?: number
+        ctx: ProtectedContext,
+        checklistId: number,
+        claimId: number,
+        parentId?: number
 ) {
+        // Determine the latest status for each page instance on a claim
 	return await applyClientScope(
 		db
 			.selectFrom('page')
@@ -180,8 +257,21 @@ export async function getPageInstancesForClaim(
 	).execute();
 }
 
-export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	let results = await db
+/**
+ * Resolve visible page instance ids for a claim using a recursive CTE.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier
+ * @param claimId - claim identifier
+ * @returns list of visible instance ids
+ */
+export async function getVisiblePageInstances(
+        ctx: ProtectedContext,
+        checklistId: number,
+        claimId: number
+) {
+        // Use a recursive CTE to resolve all visible page instance ids
+        let results = await db
 		.withRecursive('visible_pages', (eb) =>
 			applyClientScope(
 				eb
@@ -215,7 +305,19 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
 	return results.map((row) => row.id);
 }
 
-export async function modifyPage(ctx: ProtectedContext, pageId: number, params: object) {
+/**
+ * Update page template properties such as title or hidden flag.
+ *
+ * @param ctx - request context
+ * @param pageId - page identifier
+ * @param params - fields to modify
+ * @returns the updated template
+ */
+export async function modifyPage(
+        ctx: ProtectedContext,
+        pageId: number,
+        params: object
+) {
 	let updates: UpdateObjectExpression<DB, 'page'> = {};
 	if (params.title) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
@@ -230,15 +332,21 @@ export async function modifyPage(ctx: ProtectedContext, pageId: number, params: 
 		.executeTakeFirstOrThrow();
 }
 
+/**
+ * Set the status for one or more page instances on a claim.
+ *
+ * @param ctx - request context
+ * @param params - claim id, instance ids, status and version info
+ */
 export async function modifyPageInstanceStatus(
-	ctx: ProtectedContext,
-	params: {
-		claimId: number;
-		instanceIds: number[];
+        ctx: ProtectedContext,
+        params: {
+                claimId: number;
+                instanceIds: number[];
 		newStatus: PageInstanceStatus;
 		templateVersion: number;
 		trx?: Transaction<DB>;
-	}
+        }
 ) {
 	for (const id of params.instanceIds) {
 		await (params.trx ?? db)
@@ -264,21 +372,28 @@ export async function modifyPageInstanceStatus(
 
 // private methods
 
+/**
+ * Internal helper to insert a page instance and shift positions.
+ *
+ * @param ctx - request context
+ * @param param0 - identifiers and transaction
+ * @returns the created instance
+ */
 async function createPageInstancePrivate(
-	ctx: ProtectedContext,
-	{
-		checklistId,
-		pageId,
+        ctx: ProtectedContext,
+        {
+                checklistId,
+                pageId,
 		parentId,
 		position,
 		trx,
-	}: {
-		checklistId: number;
-		pageId: number;
-		parentId: number;
-		position: number;
-		trx: Transaction<DB>;
-	}
+        }: {
+                checklistId: number;
+                pageId: number;
+                parentId: number;
+                position: number;
+                trx: Transaction<DB>;
+        }
 ) {
 	// Update positions for all page instances below the one we're inserting
 	await trx

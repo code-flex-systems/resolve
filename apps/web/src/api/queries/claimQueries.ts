@@ -5,7 +5,19 @@ import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 
-export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
+/**
+ * Retrieve a claim and update its last opened timestamp for a checklist.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist referencing the claim
+ * @param claimId - claim identifier
+ * @returns claim record
+ */
+export async function getClaim(
+        ctx: ProtectedContext,
+        checklistId: number,
+        claimId: number
+) {
 	await db
 		.insertInto('checklist_claim')
 		.values({ checklist_id: checklistId, claim_id: claimId, client_id: ctx.session.user.client_id })
@@ -14,21 +26,28 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
 }
 
+/**
+ * Query claims or a count of claims with optional feed and search filters.
+ *
+ * @param ctx - request context
+ * @param param1 - filter options including type and pagination
+ * @returns claim rows or a count depending on type
+ */
 export async function getClaims(
-	ctx: ProtectedContext,
-	{
-		type,
-		feedId,
+        ctx: ProtectedContext,
+        {
+                type,
+                feedId,
 		searchTerm,
 		limit,
 		offset,
-	}: {
-		type: 'data' | 'count';
-		feedId?: number | null;
-		searchTerm?: { value: string; type: ClaimSearch };
-		limit?: number;
-		offset?: number;
-	}
+        }: {
+                type: 'data' | 'count';
+                feedId?: number | null;
+                searchTerm?: { value: string; type: ClaimSearch };
+                limit?: number;
+                offset?: number;
+        }
 ) {
 	let query = applyClientScope(
 		db.selectFrom('claim').leftJoin('feeds', 'claim.feed_id', 'feeds.id'),
@@ -61,7 +80,17 @@ export async function getClaims(
 	}
 }
 
-export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
+/**
+ * Bulk insert claim records.
+ *
+ * @param ctx - request context
+ * @param claims - claim objects without ids
+ * @returns the first created claim as a convenience
+ */
+export async function createClaims(
+        ctx: ProtectedContext,
+        claims: Omit<Claim, 'id'>[]
+) {
 	const [feed] = await db
 		.insertInto('claim')
 		.values(

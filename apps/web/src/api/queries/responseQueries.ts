@@ -2,15 +2,30 @@ import { sql } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
-import { Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
+import { PageInstanceStatus } from '@/config/enums';
+import {
+        Interval,
+        QuestionResponse,
+        QuestionResponseAnswer,
+        AnswerResponse,
+} from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 
+/**
+ * Count question responses for a specific claim checklist instance.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier
+ * @param claimId - claim identifier
+ * @param instanceId - page instance id
+ * @returns number of responses
+ */
 export async function getResponseCount(
-	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	instanceId: number
+        ctx: ProtectedContext,
+        checklistId: number,
+        claimId: number,
+        instanceId: number
 ) {
 	const countRow = await applyClientScope(
 		db
@@ -28,7 +43,19 @@ export async function getResponseCount(
 	return parseInt(countRow.count?.toString() ?? '0');
 }
 
-export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: number, interval?: Interval<string>) {
+/**
+ * Retrieve responses selecting a specific answer within an optional interval.
+ *
+ * @param ctx - request context
+ * @param answerId - answer identifier
+ * @param interval - optional date range
+ * @returns list of answer responses
+ */
+export async function getResponsesForAnswer(
+        ctx: ProtectedContext,
+        answerId: number,
+        interval?: Interval<string>
+) {
 	let results = await applyClientScope(
 		db
 			.selectFrom('question_response')
@@ -61,13 +88,23 @@ export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: num
 	return results;
 }
 
+/**
+ * Gather all responses for a claim on a checklist keyed by question id.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier
+ * @param claimId - claim identifier
+ * @param instanceId - optional instance filter
+ * @returns map of question id to response
+ */
 export async function getResponsesForClaimChecklist(
-	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	instanceId?: number
+        ctx: ProtectedContext,
+        checklistId: number,
+        claimId: number,
+        instanceId?: number
 ) {
-	let responses: QuestionResponse[] = await applyClientScope(
+        // Fetch all responses for the given claim and checklist
+        let responses: QuestionResponse[] = await applyClientScope(
 		db
 			.selectFrom('question_response')
 			.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
@@ -108,13 +145,24 @@ export async function getResponsesForClaimChecklist(
 	return responseMap;
 }
 
-export async function upsertQuestionResponses(ctx: ProtectedContext, responses: QuestionResponse[]) {
+/**
+ * Insert or update multiple question responses and their selected answers.
+ *
+ * @param ctx - request context
+ * @param responses - array of responses to upsert
+ * @returns updated status for the associated page instance
+ */
+export async function upsertQuestionResponses(
+        ctx: ProtectedContext,
+        responses: QuestionResponse[]
+) {
 	const updatedPageStatus = getUpdatedPageStatus(
 		responses.length,
 		responses.filter((r) => !!r.response_text || r.selected_answers.length).length
 	);
 
-	await db.transaction().execute(async (trx) => {
+        // Insert or update each response and associated answers within a single transaction
+        await db.transaction().execute(async (trx) => {
 		for (const response of responses) {
 			const shouldClear =
 				!response.response_text && (!response.selected_answers || response.selected_answers.length === 0);
