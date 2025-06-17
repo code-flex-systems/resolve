@@ -25,7 +25,7 @@ export interface NewFeedParams {
 	last_synced_at?: Date;
 }
 
-export interface UpdateFeedParams extends Partial<NewFeedParams> {}
+export type UpdateFeedParams = Partial<NewFeedParams>;
 
 /**
  * Retrieve all active feeds for the current client.

@@ -1,6 +1,6 @@
 'use client';
 import { useShallow } from 'zustand/react/shallow';
-import useStore, { useChecklistSlice } from '@/state/store';
+import useStore from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import * as breakdownActions from '@/state/breakdown/actions';
 import * as selectors from '@/state/checklist/selectors';

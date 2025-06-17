@@ -45,8 +45,8 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 					if (result.success) {
 						_validRows.push(mappedRow);
 					} else {
-						let issue = result.error?.issues?.[0]?.path?.slice(-1)?.[0];
-						let issueField = fields.find((f) => f.key === issue)?.label ?? 'Unknown issue';
+						const issue = result.error?.issues?.[0]?.path?.slice(-1)?.[0];
+						const issueField = fields.find((f) => f.key === issue)?.label ?? 'Unknown issue';
 						_skipped.push({ rowIndex: index + 1, reason: issueField });
 					}
 				} else {

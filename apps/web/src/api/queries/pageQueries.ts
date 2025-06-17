@@ -171,7 +171,7 @@ export async function getPageInstances(ctx: ProtectedContext, checklistId: numbe
 				eb.val(PageInstanceStatus.UNSTARTED).as('status'),
 			])
 			.where((eb) => {
-				let andClause = [eb('page_instance.checklist_id', '=', checklistId)];
+				const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
 				if (parentId === -1) {
 					andClause.push(eb('page_instance.parent_instance_id', 'is', null));
 				} else if (parentId) {
@@ -231,7 +231,7 @@ export async function getPageInstancesForClaim(
 					.as('status'),
 			])
 			.where((eb) => {
-				let andClause = [eb('page_instance.checklist_id', '=', checklistId)];
+				const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
 				if (parentId === -1) {
 					andClause.push(eb('page_instance.parent_instance_id', 'is', null));
 				} else if (parentId) {
@@ -255,7 +255,7 @@ export async function getPageInstancesForClaim(
  */
 export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	// Use a recursive CTE to resolve all visible page instance ids
-	let results = await db
+	const results = await db
 		.withRecursive('visible_pages', (eb) =>
 			applyClientScope(
 				eb
@@ -298,7 +298,7 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
  * @returns the updated template
  */
 export async function modifyPage(ctx: ProtectedContext, pageId: number, params: object) {
-	let updates: UpdateObjectExpression<DB, 'page'> = {};
+	const updates: UpdateObjectExpression<DB, 'page'> = {};
 	if (params.title) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
 	if (!Object.keys(updates).length) throw new Error('No updates');
@@ -387,7 +387,7 @@ async function createPageInstancePrivate(
 		}))
 		.where('position', '>=', position)
 		.execute();
-	let newInstance = await trx
+	const newInstance = await trx
 		.insertInto('page_instance')
 		.values({
 			checklist_id: checklistId,

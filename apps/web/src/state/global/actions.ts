@@ -1,8 +1,7 @@
 import { SLICES } from '../storeConfig';
 import { GlobalSlice } from '../storeTypes';
-import { getStateBuilder, setStateBuilder } from '../storeUtilities';
+import { setStateBuilder } from '../storeUtilities';
 
-const getState = getStateBuilder<GlobalSlice>(SLICES.GLOBAL);
 const setState = setStateBuilder<GlobalSlice>(SLICES.GLOBAL);
 
 export function toggleNavOpen() {

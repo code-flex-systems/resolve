@@ -20,11 +20,11 @@ export interface SlideshowProps {
 export default function Slideshow(props: SlideshowProps) {
 	const { slides, width = 500, height = 500, showNavigation } = props;
 	const [page, setPage] = useState(0);
-	let leftDisabled = page === 0 || !slides[page - 1].revisitable;
-	let rightDisabled = page === slides.length - 1;
+	const leftDisabled = page === 0 || !slides[page - 1].revisitable;
+	const rightDisabled = page === slides.length - 1;
 
 	const getPages = () => {
-		let pages: JSX.Element[] = [];
+		const pages: JSX.Element[] = [];
 		for (let i = 0; i < slides.length; i++) {
 			pages.push(
 				<PageDot

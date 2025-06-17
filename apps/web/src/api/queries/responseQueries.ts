@@ -46,7 +46,7 @@ export async function getResponseCount(
  * @returns list of answer responses
  */
 export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: number, interval?: Interval<string>) {
-	let results = await applyClientScope(
+	const results = await applyClientScope(
 		db
 			.selectFrom('question_response')
 			.innerJoin('question_response_answer', 'question_response.id', 'question_response_answer.response_id')
@@ -59,7 +59,7 @@ export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: num
 				'claim.client',
 			])
 			.where((eb) => {
-				let andClause = [eb('question_response_answer.answer_id', '=', answerId)];
+				const andClause = [eb('question_response_answer.answer_id', '=', answerId)];
 				if (interval) {
 					if (interval.from)
 						andClause.push(eb('question_response.created_at', '>=', new Date(interval.from)));
@@ -94,7 +94,7 @@ export async function getResponsesForClaimChecklist(
 	instanceId?: number
 ) {
 	// Fetch all responses for the given claim and checklist
-	let responses: QuestionResponse[] = await applyClientScope(
+	const responses: QuestionResponse[] = await applyClientScope(
 		db
 			.selectFrom('question_response')
 			.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
@@ -116,7 +116,7 @@ export async function getResponsesForClaimChecklist(
 					.as('selected_answers'),
 			])
 			.where((eb) => {
-				let andClause = [
+				const andClause = [
 					eb('question_response.checklist_id', '=', checklistId),
 					eb('question_response.claim_id', '=', claimId),
 				];
@@ -205,7 +205,7 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 
 		// Update page instance status
 		const sampleResponse = responses[0];
-		let template = await applyClientScope(
+		const template = await applyClientScope(
 			trx
 				.selectFrom('page')
 				.innerJoin('page_instance', 'page.id', 'page_instance.page_id')

@@ -1,9 +1,8 @@
 import { Checklist, Claim } from '@/types/types';
 import { SLICES } from '../storeConfig';
 import { ChecklistsSlice } from '../storeTypes';
-import { getStateBuilder, setStateBuilder } from '../storeUtilities';
+import { setStateBuilder } from '../storeUtilities';
 
-const getState = getStateBuilder<ChecklistsSlice>(SLICES.CHECKLISTS);
 const setState = setStateBuilder<ChecklistsSlice>(SLICES.CHECKLISTS);
 
 export function toggleChecklistClaimDialog() {

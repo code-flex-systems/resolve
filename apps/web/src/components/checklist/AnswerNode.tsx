@@ -17,8 +17,8 @@ export default function AnswerNode(props: {
 	const mode = useChecklistSlice((state) => state.mode);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
 	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
-	let selected = selectedAnswer === answerId && selectedQuestion === questionId;
-	let isPlaceholder = answerId === -1;
+	const selected = selectedAnswer === answerId && selectedQuestion === questionId;
+	const isPlaceholder = answerId === -1;
 	return (
 		<div
 			style={{ ...styles.node, paddingLeft: level * 25 }}

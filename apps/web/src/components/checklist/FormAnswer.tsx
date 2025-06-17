@@ -66,10 +66,10 @@ export default function FormAnswer() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const hasAdditionalInfo = watch('has_additional_info');
 	const pageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
-	let isPlaceholder = selectedAnswerData.id === -1;
-	let isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
-	let inTransition = adding || copying || updating || deleting || refetching;
-	let scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
+	const isPlaceholder = selectedAnswerData.id === -1;
+	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
+	const inTransition = adding || copying || updating || deleting || refetching;
+	const scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
 
 	useEffect(() => {
 		reset({ ...selectedAnswerData });
@@ -77,7 +77,7 @@ export default function FormAnswer() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			let newAnswer =
+			const newAnswer =
 				selectedAnswerData.id === -1
 					? await addAnswer({
 							questionId: selectedQuestion,
@@ -99,7 +99,7 @@ export default function FormAnswer() {
 
 	const onCopy = async () => {
 		try {
-			let newAnswer = await copyAnswer({
+			const newAnswer = await copyAnswer({
 				questionId: selectedQuestion,
 				answerId: selectedAnswerData.id,
 				pageId: selectedPageInfo.pageId,
@@ -120,7 +120,7 @@ export default function FormAnswer() {
 	};
 
 	const getPositionOptions = () => {
-		let options: number[] = [];
+		const options: number[] = [];
 		let limit = selectedQuestionData.answers?.length ?? 0;
 		if (isPlaceholder) limit += 1;
 		for (let i = 1; i <= limit; i++) {

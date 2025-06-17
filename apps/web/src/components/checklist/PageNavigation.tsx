@@ -64,7 +64,7 @@ export default function PageNavigation() {
 
 	const onAddPage = async () => {
 		try {
-			let newInstance = await addPage({
+			const newInstance = await addPage({
 				checklistId,
 				params: {
 					parentId: -1,

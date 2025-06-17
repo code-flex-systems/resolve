@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import { Providers } from './Providers';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import './globals.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {

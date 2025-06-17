@@ -1,6 +1,5 @@
 'use client';
 import { PropsWithChildren, useEffect, useMemo } from 'react';
-import Sidebar from './Sidebar';
 import SiteHeader from './SiteHeader';
 import * as actions from '@/state/global/actions';
 import GPTSidebar, { NavItem } from './GPTSidebar';
@@ -13,7 +12,7 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 	const isAdmin = useIsAdmin();
 
 	const navItems = useMemo(() => {
-		let items: NavItem[] = [{ label: 'Home', route: '/home', icon: <Home sx={{ fontSize: 23 }} /> }];
+		const items: NavItem[] = [{ label: 'Home', route: '/home', icon: <Home sx={{ fontSize: 23 }} /> }];
 		if (isAdmin) items.push({ label: 'Admin', route: '/admin', icon: <ManageAccounts sx={{ fontSize: 23 }} /> });
 		return items;
 	}, [isAdmin]);

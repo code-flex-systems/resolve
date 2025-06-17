@@ -21,7 +21,7 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
-	let defaults: Record<string, number[] | string> = {};
+	const defaults: Record<string, number[] | string> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
 		switch (q.type) {
@@ -29,8 +29,8 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 			case QuestionType.MULTI:
 			case QuestionType.SINGLE:
 				if (responses?.[q.id]) {
-					let answers = responses[q.id].selected_answers ?? [];
-					let answerOther = q.answers.find((a) => a.has_additional_info);
+					const answers = responses[q.id].selected_answers ?? [];
+					const answerOther = q.answers.find((a) => a.has_additional_info);
 					defaults[q.id.toString()] = answers.map((a) => a.answer_id);
 					if (answerOther) {
 						defaults[`${q.id}-${answerOther.id}-${QuestionType.FREEFORM}`] =
@@ -94,11 +94,11 @@ export default function Page() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			let responses: QuestionResponse[] = Object.keys(data)
+			const responses: QuestionResponse[] = Object.keys(data)
 				.filter((field) => !field.endsWith(QuestionType.FREEFORM))
 				.map((field) => {
-					let questionId = parseInt(field);
-					let response: QuestionResponse = {
+					const questionId = parseInt(field);
+					const response: QuestionResponse = {
 						checklist_id: checklist?.id ?? -1,
 						instance_id: selectedPageInstance,
 						claim_id: claim!.id,

@@ -9,7 +9,6 @@ import theme from '@/styles/theme';
 import logo from '@/lib/resources/images/ChecklistLogo.png';
 import Image from 'next/image';
 import { formatPhoneNumber, validatePhoneNumber } from '@/lib/utils/utils';
-import { MuiTelInput } from 'mui-tel-input';
 
 type SignupFormInputs = {
 	email: string;

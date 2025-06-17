@@ -13,7 +13,7 @@ export async function createPage(
 	ctx: ProtectedContext,
 	{ checklistId, params }: { checklistId: number; params: object }
 ) {
-	let results = await pageQueries.createPage(ctx, checklistId, params);
+	const results = await pageQueries.createPage(ctx, checklistId, params);
 	return results;
 }
 
@@ -35,7 +35,7 @@ export async function createPageInstance(
 		params: object;
 	}
 ) {
-	let results = await pageQueries.createPageInstance(ctx, {
+	const results = await pageQueries.createPageInstance(ctx, {
 		checklistId,
 		pageId,
 		parentId: params.parentId,
@@ -61,7 +61,7 @@ export async function deletePageInstance(ctx: ProtectedContext, { instanceId }: 
  * @param input - page id
  */
 export async function getPage(ctx: ProtectedContext, { pageId }: { pageId: number }) {
-	let results = await pageQueries.getPage(ctx, pageId);
+	const results = await pageQueries.getPage(ctx, pageId);
 	return results;
 }
 
@@ -71,7 +71,7 @@ export async function getPage(ctx: ProtectedContext, { pageId }: { pageId: numbe
  * @param ctx - request context
  */
 export async function getPages(ctx: ProtectedContext) {
-	let results = await pageQueries.getPages(ctx);
+	const results = await pageQueries.getPages(ctx);
 	return results;
 }
 
@@ -82,7 +82,7 @@ export async function getPages(ctx: ProtectedContext) {
  * @param input - instance id
  */
 export async function getPageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: number }) {
-	let results = await pageQueries.getPageInstance(ctx, instanceId);
+	const results = await pageQueries.getPageInstance(ctx, instanceId);
 	return results;
 }
 
@@ -96,7 +96,7 @@ export async function getPageInstances(
 	ctx: ProtectedContext,
 	{ checklistId, parentId }: { checklistId: number; parentId: number }
 ) {
-	let results = await pageQueries.getPageInstances(ctx, checklistId, parentId);
+	const results = await pageQueries.getPageInstances(ctx, checklistId, parentId);
 	return results;
 }
 
@@ -112,11 +112,11 @@ export async function getPageInstanceTree(
 	{ checklistId, claimId }: { checklistId: number; claimId?: number }
 ) {
         // Fetch all page instances for the checklist or claim
-	let results =
+	const results =
 		(claimId
 			? await pageQueries.getPageInstancesForClaim(ctx, checklistId, claimId)
 			: await pageQueries.getPageInstances(ctx, checklistId)) ?? [];
-	let tree: TreeNode[] = results
+	const tree: TreeNode[] = results
 		.filter((row) => !row.parent_instance_id)
 		.map((row) => ({
 			instanceId: row.instance_id,
@@ -128,7 +128,7 @@ export async function getPageInstanceTree(
 			template_version: row.template_version,
 		}));
         // Recursively attach child nodes to build the tree
-	for (let node of tree) {
+	for (const node of tree) {
 		addChildrenToTree(node, results);
 	}
 	return { tree, maxPosition: results.length };
@@ -144,7 +144,7 @@ export async function getVisiblePageInstances(
 	ctx: ProtectedContext,
 	{ checklistId, claimId }: { checklistId: number; claimId: number }
 ) {
-	let results = await pageQueries.getVisiblePageInstances(ctx, checklistId, claimId);
+	const results = await pageQueries.getVisiblePageInstances(ctx, checklistId, claimId);
 	return results;
 }
 
@@ -155,7 +155,7 @@ export async function getVisiblePageInstances(
  * @param input - page id and update fields
  */
 export async function modifyPage(ctx: ProtectedContext, { id, params }: { id: number; params: object }) {
-	let results = await pageQueries.modifyPage(ctx, id, params);
+	const results = await pageQueries.modifyPage(ctx, id, params);
 	return results;
 }
 
@@ -168,7 +168,7 @@ export async function modifyPage(ctx: ProtectedContext, { id, params }: { id: nu
  * @param results - flat list of instances
  */
 function addChildrenToTree(node: TreeNode, results: Awaited<ReturnType<typeof pageQueries.getPageInstances>> = []) {
-	let children: TreeNode[] = results
+	const children: TreeNode[] = results
 		.filter((row) => row.parent_instance_id === +node.instanceId)
 		.map((row) => ({
 			instanceId: row.instance_id,
@@ -181,7 +181,7 @@ function addChildrenToTree(node: TreeNode, results: Awaited<ReturnType<typeof pa
 		}));
 	node.children = children.length ? children : undefined;
 	if (node.children) {
-		for (let c of node.children) {
+		for (const c of node.children) {
 			addChildrenToTree(c, results);
 		}
 	}

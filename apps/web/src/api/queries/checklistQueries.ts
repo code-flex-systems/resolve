@@ -2,7 +2,6 @@ import { sql } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { Checklist } from '@/types/types';
 import { applyClientScope } from '../database/clientScoped';
 
 /**

@@ -14,17 +14,17 @@ export function useFeedTrpc() {
 			},
 		}),
 
-		update: trpc.feed.updateFeed.useMutation({
-			onSuccess(_, { id, params }) {
-				utils.feed.getFeeds.invalidate();
-				utils.feed.getFeed.invalidate({ id });
-			},
-		}),
+               update: trpc.feed.updateFeed.useMutation({
+                       onSuccess({ id }) {
+                               utils.feed.getFeeds.invalidate();
+                               utils.feed.getFeed.invalidate({ id });
+                       },
+               }),
 
-		remove: trpc.feed.deleteFeed.useMutation({
-			onSuccess(_, { id }) {
-				utils.feed.getFeeds.invalidate();
-			},
-		}),
+               remove: trpc.feed.deleteFeed.useMutation({
+                       onSuccess() {
+                               utils.feed.getFeeds.invalidate();
+                       },
+               }),
 	};
 }

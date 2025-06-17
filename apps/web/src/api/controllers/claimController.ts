@@ -13,7 +13,7 @@ export async function getClaim(
 	ctx: ProtectedContext,
 	{ checklistId, claimId }: { checklistId: number; claimId: number }
 ) {
-	let results = await claimQueries.getClaim(ctx, checklistId, claimId);
+	const results = await claimQueries.getClaim(ctx, checklistId, claimId);
 	return results;
 }
 
