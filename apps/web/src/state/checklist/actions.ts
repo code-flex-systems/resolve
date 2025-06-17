@@ -2,10 +2,9 @@ import { ChecklistMode, SummarySegment } from '@/config/enums';
 import { TreeNode } from '@/types/types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
-import { getStateBuilder, setStateBuilder } from '../storeUtilities';
+import { setStateBuilder } from '../storeUtilities';
 import { PageInstanceStatus } from '@/config/enums';
 
-const getState = getStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 
 export function toggleExpandAll() {
@@ -62,7 +61,7 @@ export function updateSelectedPageInfoStatus(newStatus: PageInstanceStatus) {
 }
 
 export function updateSelectedPageInfoSearch(instanceId: number, tree: TreeNode[]) {
-	let info = findTreeNode(instanceId, tree);
+	const info = findTreeNode(instanceId, tree);
 	if (info) {
 		setState((state) => {
 			state.selectedPageInfo = { ...info };
@@ -72,7 +71,7 @@ export function updateSelectedPageInfoSearch(instanceId: number, tree: TreeNode[
 
 export function updateSelectedPageTitle(instanceId: number, newTitle: string, tree: TreeNode[]) {
 	setState((state) => {
-		let node = findTreeNode(instanceId, tree);
+		const node = findTreeNode(instanceId, tree);
 		if (node) node.title = newTitle;
 		if (state.selectedPageInfo) state.selectedPageInfo.title = newTitle;
 	});
@@ -95,8 +94,8 @@ export function updateSelectedQuestion(questionId: number | null) {
 // private methods
 
 function findTreeNode(instanceId: number, tree: TreeNode[]) {
-	for (let p of tree) {
-		let treeNode = findTreeNodePrivate(instanceId, p);
+	for (const p of tree) {
+		const treeNode = findTreeNodePrivate(instanceId, p);
 		if (treeNode) return treeNode;
 	}
 	return;
@@ -105,7 +104,7 @@ function findTreeNode(instanceId: number, tree: TreeNode[]) {
 function findTreeNodePrivate(instanceId: number, treeNode: TreeNode) {
 	if (treeNode.instanceId === instanceId) return treeNode;
 	if (!treeNode.children) return;
-	for (let c of treeNode.children) {
+	for (const c of treeNode.children) {
 		return findTreeNodePrivate(instanceId, c);
 	}
 }

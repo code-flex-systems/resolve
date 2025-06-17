@@ -30,7 +30,7 @@ import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
-	let formattedQuestion = JSON.parse(JSON.stringify(question));
+	const formattedQuestion = JSON.parse(JSON.stringify(question));
 	delete formattedQuestion.answers;
 	return formattedQuestion;
 }
@@ -60,12 +60,12 @@ export default function FormQuestion() {
 
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
-	let isPlaceholder = selectedQuestionData.id === -1;
-	let inTransition = adding || copying || updating || deleting || refetchingQuestions;
+	const isPlaceholder = selectedQuestionData.id === -1;
+	const inTransition = adding || copying || updating || deleting || refetchingQuestions;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			let newQuestion =
+			const newQuestion =
 				selectedQuestionData.id === -1
 					? await addQuestion({ pageId: selectedPageInfo.pageId, params: data })
 					: await updateQuestion({
@@ -85,7 +85,7 @@ export default function FormQuestion() {
 
 	const onCopy = async () => {
 		try {
-			let newQuestion = await copyQuestion({
+			const newQuestion = await copyQuestion({
 				questionId: selectedQuestionData.id,
 				pageId: selectedPageInfo.pageId,
 			});

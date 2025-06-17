@@ -16,7 +16,7 @@ export default function QuestionStatItem(props: {
 }) {
 	const { bgColor, expandedIdx, idx, item, onAnswerClick, pageId, selectedAnswerId, setExpandedIdx } = props;
 	const { question_id, question_text, answers } = item;
-	let expanded = expandedIdx === idx;
+	const expanded = expandedIdx === idx;
 
 	return (
 		<Accordion

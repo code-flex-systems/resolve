@@ -15,7 +15,7 @@ interface Step {
 }
 
 const getDefaultValues = (steps: Step[]) => {
-	let defaultValues: Record<string, string> = {};
+	const defaultValues: Record<string, string> = {};
 	steps
 		.filter((s) => s.type === 'select')
 		.forEach((s) => {
@@ -44,9 +44,9 @@ export default function StepperDialog(props: {
 
 	const { key, label, options, placeholder, required = true, type } = steps[currentStep];
 	const currentValue = watch(key);
-	let isLastStep = currentStep === steps.length - 1;
-	let forwardDisabled = !currentValue;
-	let backDisabled = currentStep === 0;
+	const isLastStep = currentStep === steps.length - 1;
+	const forwardDisabled = !currentValue;
+	const backDisabled = currentStep === 0;
 
 	const flash = (direction: number) => {
 		setFaded(true);
@@ -124,8 +124,3 @@ export default function StepperDialog(props: {
 	);
 }
 
-const styles = {
-	row: {
-		marginTop: 10,
-	},
-};

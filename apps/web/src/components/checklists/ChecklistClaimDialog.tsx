@@ -2,7 +2,6 @@
 import { useChecklistsSlice } from '@/state/store';
 import BasicDialog from '../common/BasicDialog';
 import * as actions from '@/state/checklists/actions';
-import * as checklistActions from '@/state/checklist/actions';
 import { Fade, Typography } from '@mui/material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';

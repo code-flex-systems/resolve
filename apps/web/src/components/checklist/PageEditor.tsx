@@ -38,11 +38,11 @@ export default function PageEditor() {
 		},
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	let inTransition = adding || copying || deleting || isFetching;
+	const inTransition = adding || copying || deleting || isFetching;
 
 	const onAddPage = async (passedParentId: number | null) => {
 		try {
-			let newInstance = await addPage({
+			const newInstance = await addPage({
 				checklistId,
 				params: {
 					title: 'New Page',
@@ -58,7 +58,7 @@ export default function PageEditor() {
 
 	const onCopyPage = async () => {
 		try {
-			let newInstance = await copyPage({
+			const newInstance = await copyPage({
 				checklistId,
 				pageId: selectedPageInfo.pageId,
 				params: {
@@ -83,7 +83,7 @@ export default function PageEditor() {
 
 	const onModifyPage = async () => {
 		try {
-			let modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
+			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
 			if (modifiedPage) {
 				actions.updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, data.tree);
 			}

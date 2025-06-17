@@ -21,7 +21,7 @@ export async function createAnswer(
 		params: object;
 	}
 ) {
-	let results = await answerQueries.createAnswer(ctx, pageId, questionId, params);
+	const results = await answerQueries.createAnswer(ctx, pageId, questionId, params);
 	return results;
 }
 
@@ -44,9 +44,9 @@ export async function copyAnswer(
 	}
 ) {
 	try {
-		let existingAnswer = await answerQueries.getAnswer(ctx, answerId);
+		const existingAnswer = await answerQueries.getAnswer(ctx, answerId);
 		if (!existingAnswer) throw new Error('Answer does not exist');
-		let results = await answerQueries.createAnswer(ctx, pageId, questionId, existingAnswer);
+		const results = await answerQueries.createAnswer(ctx, pageId, questionId, existingAnswer);
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -75,7 +75,7 @@ export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: 
  */
 export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
 	try {
-		let results = await answerQueries.getAnswer(ctx, id);
+		const results = await answerQueries.getAnswer(ctx, id);
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -90,7 +90,7 @@ export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
  */
 export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: number }) {
 	try {
-		let results = await answerQueries.getAnswers(ctx, questionId);
+		const results = await answerQueries.getAnswers(ctx, questionId);
 		return results;
 	} catch (e) {
 		console.error(e);
@@ -109,7 +109,7 @@ export async function modifyAnswer(
 	{ pageId, answerId, params }: { pageId: number; answerId: number; params: object }
 ) {
 	try {
-		let results = await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
+		const results = await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
 		return results;
 	} catch (e) {
 		console.error(e);

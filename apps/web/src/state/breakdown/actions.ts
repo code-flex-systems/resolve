@@ -1,9 +1,8 @@
 import { Interval, PageInstance } from '@/types/types';
 import { SLICES } from '../storeConfig';
 import { BreakdownSlice } from '../storeTypes';
-import { getStateBuilder, setStateBuilder } from '../storeUtilities';
+import { setStateBuilder } from '../storeUtilities';
 
-const getState = getStateBuilder<BreakdownSlice>(SLICES.BREAKDOWN);
 const setState = setStateBuilder<BreakdownSlice>(SLICES.BREAKDOWN);
 
 export function updateBreakdownInterval(key: keyof Interval<string>, value: string | undefined) {

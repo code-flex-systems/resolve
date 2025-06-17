@@ -15,7 +15,6 @@ import {
 	Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import theme from '@/styles/theme';
 
 export interface NavItem {
 	label: string;

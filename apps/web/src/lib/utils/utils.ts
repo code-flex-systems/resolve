@@ -12,8 +12,8 @@ export function getInitials(name: string | null | undefined) {
 
 export function formatAmount(value?: number | string, currency = false) {
 	if (value == null) return '';
-	let roundedValue = Math.round(parseFloat(value.toString()) * 100) / 100;
-	let formattedValue = roundedValue.toLocaleString('en-US', {
+	const roundedValue = Math.round(parseFloat(value.toString()) * 100) / 100;
+	const formattedValue = roundedValue.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
 	});
 	return currency ? '$' + formattedValue : formattedValue;
@@ -46,20 +46,20 @@ export function formatPhoneNumber(phoneRaw: string) {
 }
 
 export function getExtension(filename: string) {
-	let parts = filename.split('.');
+	const parts = filename.split('.');
 	return `.${parts[parts.length - 1]}`;
 }
 
 export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: number) {
-	let instances: InstanceListItem[] = [];
+	const instances: InstanceListItem[] = [];
 	getInstances(tree, currentInstanceId, instances);
 	return instances;
 }
 
 export function isBetweenDates(fromDate: string, toDate: string) {
-	let today = dayjs();
-	let from = dayjs(fromDate);
-	let to = dayjs(toDate);
+	const today = dayjs();
+	const from = dayjs(fromDate);
+	const to = dayjs(toDate);
 	return (
 		(today.isSame(from, 'date') || today.isAfter(from, 'date')) &&
 		(today.isSame(to, 'date') || today.isBefore(to, 'date'))

@@ -1,8 +1,7 @@
 import { SLICES } from '../storeConfig';
 import { AdminSlice } from '../storeTypes';
-import { getStateBuilder, setStateBuilder } from '../storeUtilities';
+import { setStateBuilder } from '../storeUtilities';
 
-const getState = getStateBuilder<AdminSlice>(SLICES.ADMIN);
 const setState = setStateBuilder<AdminSlice>(SLICES.ADMIN);
 
 export function setFeedId(newId: number | null | undefined) {

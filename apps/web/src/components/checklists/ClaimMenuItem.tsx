@@ -8,13 +8,12 @@ import BasicButton from '../common/BasicButton';
 import { OFFWHITE_COLOR } from '@/styles/theme';
 
 export default function ClaimMenuItem(props: {
-	claim: Claim | null;
-	clearable?: boolean;
-	onClose?: () => void;
-	selected?: boolean;
-	showDiv?: boolean;
+       claim: Claim | null;
+       clearable?: boolean;
+       onClose?: () => void;
+       selected?: boolean;
 }) {
-	const { claim, clearable, onClose, selected, showDiv } = props;
+       const { claim, clearable, onClose, selected } = props;
 	return [
 		<Paper
 			key="item"
@@ -82,9 +81,8 @@ export default function ClaimMenuItem(props: {
 					)}
 				</div>
 			</MenuItem>
-		</Paper>,
-		// ...(showDiv ? [<Divider />] : []),
-	];
+               </Paper>,
+       ];
 }
 
 const styles = {

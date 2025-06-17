@@ -22,14 +22,14 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const mode = useChecklistSlice((state) => state.mode);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const [expanded, setExpanded] = useState(false);
-	let selected = selectedPageInstance === instanceId;
+	const selected = selectedPageInstance === instanceId;
 
 	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected });
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	let filteredChildren =
+	const filteredChildren =
 		mode === ChecklistMode.VIEW ? children.filter((c) => visibleInstanceIds.includes(c.instanceId)) : children;
 
 	useEffect(() => setExpanded(expandAll), [expandAll]);

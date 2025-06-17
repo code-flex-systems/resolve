@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import BasicDialog from './BasicDialog';
-import { Collapse, Link, Paper, Typography } from '@mui/material';
+import { Collapse, Paper, Typography } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import { BACKDROP_COLOR, HOVERED_COLOR } from '@/styles/theme';
 import { TransitionGroup } from 'react-transition-group';
@@ -10,18 +10,18 @@ import AttachFile from '@mui/icons-material/AttachFile';
 import Clear from '@mui/icons-material/Clear';
 
 export default function UploadDialog(props: {
-	onClose: () => void;
-	onConfirmCallback?: (files: File[]) => void;
-	multi?: boolean;
+       onClose: () => void;
+       onConfirmCallback?: (files: File[]) => void;
+       multi?: boolean;
 }) {
-	const { onClose, onConfirmCallback, multi = true } = props;
+       const { onClose, onConfirmCallback } = props;
 	const [files, setFiles] = useState<File[]>([]);
 	const [dropzoneHovered, setDropzoneHovered] = useState(false);
 	const onDrop = (acceptedFiles: File[]) => setFiles(acceptedFiles);
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
 	const deleteFile = (index: number) => {
-		let newFiles: File[] = [...files];
+		const newFiles: File[] = [...files];
 		newFiles.splice(index, 1);
 		setFiles(newFiles);
 	};
@@ -50,11 +50,10 @@ export default function UploadDialog(props: {
 				>
 					<input {...getInputProps()} />
 					<div style={{ ...styles.row, justifyContent: 'center' }}>
-						<AttachFile />
-						<link></link>
-						<Typography fontSize={15} fontStyle="italic" marginLeft="5px">
-							Drop files here
-						</Typography>
+                                               <AttachFile />
+                                               <Typography fontSize={15} fontStyle="italic" marginLeft="5px">
+                                                       Drop files here
+                                               </Typography>
 					</div>
 				</div>
 			</Paper>

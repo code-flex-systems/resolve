@@ -6,12 +6,10 @@ type DocInput = inferRouterInputs<AppRouter>['doc'];
 type DocOutput = inferRouterOutputs<AppRouter>['doc'];
 
 export function useDocTrpc() {
-	const utils = trpc.useUtils();
+       return {
+               list: trpc.doc.getDocs.useQuery,
 
-	return {
-		list: trpc.doc.getDocs.useQuery,
-
-		get: trpc.doc.getDoc.useQuery,
+               get: trpc.doc.getDoc.useQuery,
 
 		create: trpc.doc.createDoc.useMutation,
 

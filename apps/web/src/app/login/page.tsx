@@ -34,9 +34,9 @@ export default function LoginPage() {
 				password: data.password,
 				callbackUrl: '/',
 			});
-		} catch (e) {
-			setAuthError('Invalid username or password');
-		}
+               } catch {
+                       setAuthError('Invalid username or password');
+               }
 		if (result?.error) {
 			setAuthError('Invalid username or password');
 		} else {

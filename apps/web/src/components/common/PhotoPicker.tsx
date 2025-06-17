@@ -16,9 +16,9 @@ export default function PhotoPicker(props: {
 	const [hovered, setHovered] = useState(false);
 
 	const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		let file = e.target.files?.[0];
+		const file = e.target.files?.[0];
 		if (file) {
-			let imgUrl = URL.createObjectURL(file);
+			const imgUrl = URL.createObjectURL(file);
 			updateImage(imgUrl);
 		}
 	};

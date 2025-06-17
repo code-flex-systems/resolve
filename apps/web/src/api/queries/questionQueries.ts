@@ -44,7 +44,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
  * @returns new question
  */
 export async function copyQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
-	let maxPosition = await applyClientScope(
+	const maxPosition = await applyClientScope(
 		db
 			.selectFrom('question')
 			.select(({ fn }) => fn.max('position').as('max_position'))
@@ -179,7 +179,7 @@ export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
  */
 export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 	// Pull questions with their aggregated answers for the given page
-	let results = await applyClientScope(
+	const results = await applyClientScope(
 		db
 			.selectFrom('question')
 			.leftJoin('answer', 'answer.question_id', 'question.id')
@@ -222,7 +222,7 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
  */
 export async function getQuestionStats(ctx: ProtectedContext, pageId: number, interval?: Interval<string>) {
 	// Collect answer counts for each question over the specified interval
-	let results = await applyClientScope(
+	const results = await applyClientScope(
 		db
 			.selectFrom('question')
 			.innerJoin('answer', 'question.id', 'answer.question_id')
@@ -239,7 +239,7 @@ export async function getQuestionStats(ctx: ProtectedContext, pageId: number, in
 					.as('answer_count'),
 			])
 			.where((eb) => {
-				let andClause = [eb('question.page_id', '=', pageId)];
+				const andClause = [eb('question.page_id', '=', pageId)];
 				if (interval) {
 					if (interval.from)
 						andClause.push(eb('question_response.created_at', '>=', new Date(interval.from)));
@@ -276,7 +276,7 @@ export async function getQuestionStats(ctx: ProtectedContext, pageId: number, in
  * @returns updated question
  */
 export async function modifyQuestion(ctx: ProtectedContext, pageId: number, questionId: number, params: object) {
-	let updates: UpdateObjectExpression<DB, 'question'> = {};
+	const updates: UpdateObjectExpression<DB, 'question'> = {};
 	if (params.text) updates.text = params.text;
 	if (params.type) updates.type = params.type;
 	if (params.description_text != null) updates.description_text = params.description_text;

@@ -2,7 +2,6 @@ import { sql, Transaction } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
-import { Answer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 
@@ -86,7 +85,7 @@ export async function getAnswers(ctx: ProtectedContext, questionId: number) {
  * @returns number of answers
  */
 export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
-	let answerCountRecord = await applyClientScope(
+	const answerCountRecord = await applyClientScope(
 		db
 			.selectFrom('answer')
 			.select(({ fn }) => fn.countAll().as('count'))
@@ -106,7 +105,7 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @returns the updated answer
  */
 export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: object) {
-	let updates: UpdateObjectExpression<DB, 'answer'> = {};
+	const updates: UpdateObjectExpression<DB, 'answer'> = {};
 	if (params.position) updates.position = params.position;
 	if (params.grade != null) updates.grade = params.grade || null;
 	if (params.text) updates.text = params.text;
@@ -161,8 +160,8 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Trans
  * @returns the newly created answer
  */
 async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, params: object, trx: Transaction<DB>) {
-	let answerCount = (await getAnswerCount(ctx, questionId)) ?? 0;
-	let newAnswer = await trx
+	const answerCount = (await getAnswerCount(ctx, questionId)) ?? 0;
+	const newAnswer = await trx
 		.insertInto('answer')
 		.values({
 			question_id: questionId,

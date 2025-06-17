@@ -29,7 +29,7 @@ export default function BasicDialog(
 		height = 'fit-content',
 		maxHeight,
 	} = props;
-	let iconActionsPercentage = 10 * (iconActions.length + 1);
+	const iconActionsPercentage = 10 * (iconActions.length + 1);
 	return (
 		<Dialog
 			open={true}

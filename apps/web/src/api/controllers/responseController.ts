@@ -50,7 +50,7 @@ export async function getResponsesForAnswer(
 	ctx: ProtectedContext,
 	{ answerId, interval }: { answerId: number; interval?: Interval<string> }
 ) {
-	let results = await responseQueries.getResponsesForAnswer(ctx, answerId, interval);
+	const results = await responseQueries.getResponsesForAnswer(ctx, answerId, interval);
 	return results;
 }
 
@@ -72,7 +72,7 @@ export async function getResponsesForClaimChecklist(
 		instanceId?: number;
 	}
 ) {
-	let results = await responseQueries.getResponsesForClaimChecklist(ctx, checklistId, claimId, instanceId);
+	const results = await responseQueries.getResponsesForClaimChecklist(ctx, checklistId, claimId, instanceId);
 	return results;
 }
 

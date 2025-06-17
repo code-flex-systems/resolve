@@ -7,23 +7,21 @@ import './styles.css';
 import { Answer } from '@/types/types';
 import AnswerNode from './AnswerNode';
 import { useEffect, useState } from 'react';
-import { QuestionType } from '@/config/enums';
 
 export default function QuestionNode(props: {
-	pageId: number;
-	questionId: number;
-	questionText: string;
-	questionType: QuestionType;
-	questionAnswers: Answer[];
-	level: number;
-	idx: number;
+       pageId: number;
+       questionId: number;
+       questionText: string;
+       questionAnswers: Answer[];
+       level: number;
+       idx: number;
 }) {
-	const { pageId, questionId, questionText, questionType, questionAnswers, level, idx } = props;
+       const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
-	let selected = selectedQuestion === questionId;
-	let isPlaceholder = questionId === -1;
+	const selected = selectedQuestion === questionId;
+	const isPlaceholder = questionId === -1;
 
 	useEffect(() => setExpanded(expandAll), [expandAll]);
 

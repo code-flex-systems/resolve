@@ -34,7 +34,7 @@ export async function getUsers(ctx: ProtectedContext, disabled?: boolean, limit?
  * @returns number of users
  */
 export async function getUserCount(ctx: ProtectedContext, disabled?: boolean) {
-	let query = db
+	const query = db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where((eb) =>
