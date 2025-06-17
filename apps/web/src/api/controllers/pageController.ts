@@ -2,6 +2,13 @@ import * as pageQueries from '@/api/queries/pageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TreeNode } from '@/types/types';
 
+/**
+ * Create a page template and attach an instance.
+ *
+ * @param ctx - request context
+ * @param input - checklist id and page parameters
+ * @returns ids for new page and instance
+ */
 export async function createPage(
 	ctx: ProtectedContext,
 	{ checklistId, params }: { checklistId: number; params: object }
@@ -10,6 +17,12 @@ export async function createPage(
 	return results;
 }
 
+/**
+ * Insert a page instance under a parent.
+ *
+ * @param ctx - request context
+ * @param input - ids and positioning info
+ */
 export async function createPageInstance(
 	ctx: ProtectedContext,
 	{
@@ -31,25 +44,54 @@ export async function createPageInstance(
 	return results;
 }
 
+/**
+ * Remove a page instance.
+ *
+ * @param ctx - request context
+ * @param input - instance id
+ */
 export async function deletePageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: number }) {
 	await pageQueries.deletePageInstance(ctx, instanceId);
 }
 
+/**
+ * Fetch a page template.
+ *
+ * @param ctx - request context
+ * @param input - page id
+ */
 export async function getPage(ctx: ProtectedContext, { pageId }: { pageId: number }) {
 	let results = await pageQueries.getPage(ctx, pageId);
 	return results;
 }
 
+/**
+ * List all visible page templates.
+ *
+ * @param ctx - request context
+ */
 export async function getPages(ctx: ProtectedContext) {
 	let results = await pageQueries.getPages(ctx);
 	return results;
 }
 
+/**
+ * Load a page template with a specific instance.
+ *
+ * @param ctx - request context
+ * @param input - instance id
+ */
 export async function getPageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: number }) {
 	let results = await pageQueries.getPageInstance(ctx, instanceId);
 	return results;
 }
 
+/**
+ * Retrieve child page instances.
+ *
+ * @param ctx - request context
+ * @param input - checklist and parent ids
+ */
 export async function getPageInstances(
 	ctx: ProtectedContext,
 	{ checklistId, parentId }: { checklistId: number; parentId: number }
@@ -58,10 +100,18 @@ export async function getPageInstances(
 	return results;
 }
 
+/**
+ * Build a tree of page instances optionally scoped to a claim.
+ *
+ * @param ctx - request context
+ * @param input - checklist id and optional claim id
+ * @returns a hierarchical tree with max position
+ */
 export async function getPageInstanceTree(
 	ctx: ProtectedContext,
 	{ checklistId, claimId }: { checklistId: number; claimId?: number }
 ) {
+        // Fetch all page instances for the checklist or claim
 	let results =
 		(claimId
 			? await pageQueries.getPageInstancesForClaim(ctx, checklistId, claimId)
@@ -77,12 +127,19 @@ export async function getPageInstanceTree(
 			status: row.status,
 			template_version: row.template_version,
 		}));
+        // Recursively attach child nodes to build the tree
 	for (let node of tree) {
 		addChildrenToTree(node, results);
 	}
 	return { tree, maxPosition: results.length };
 }
 
+/**
+ * Determine visible instance ids for a claim.
+ *
+ * @param ctx - request context
+ * @param input - checklist and claim ids
+ */
 export async function getVisiblePageInstances(
 	ctx: ProtectedContext,
 	{ checklistId, claimId }: { checklistId: number; claimId: number }
@@ -91,6 +148,12 @@ export async function getVisiblePageInstances(
 	return results;
 }
 
+/**
+ * Update a page template.
+ *
+ * @param ctx - request context
+ * @param input - page id and update fields
+ */
 export async function modifyPage(ctx: ProtectedContext, { id, params }: { id: number; params: object }) {
 	let results = await pageQueries.modifyPage(ctx, id, params);
 	return results;
@@ -98,6 +161,12 @@ export async function modifyPage(ctx: ProtectedContext, { id, params }: { id: nu
 
 // private methods
 
+/**
+ * Recursively add children to a tree node.
+ *
+ * @param node - parent tree node
+ * @param results - flat list of instances
+ */
 function addChildrenToTree(node: TreeNode, results: Awaited<ReturnType<typeof pageQueries.getPageInstances>> = []) {
 	let children: TreeNode[] = results
 		.filter((row) => row.parent_instance_id === +node.instanceId)

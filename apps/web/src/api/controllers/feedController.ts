@@ -2,14 +2,31 @@ import * as feedQueries from '@/api/queries/feedQueries';
 import { FeedStatus, FeedType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
+/**
+ * Retrieve all feeds for the current client.
+ *
+ * @param ctx - request context
+ */
 export async function getFeeds(ctx: ProtectedContext) {
 	return await feedQueries.getFeeds(ctx);
 }
 
+/**
+ * Fetch a single feed by id.
+ *
+ * @param ctx - request context
+ * @param input - feed id
+ */
 export async function getFeed(ctx: ProtectedContext, { id }: { id: number }) {
 	return await feedQueries.getFeed(ctx, id);
 }
 
+/**
+ * Insert a new feed.
+ *
+ * @param ctx - request context
+ * @param input - feed parameters
+ */
 export async function createFeed(
 	ctx: ProtectedContext,
 	{
@@ -38,6 +55,12 @@ export async function createFeed(
 	});
 }
 
+/**
+ * Modify an existing feed.
+ *
+ * @param ctx - request context
+ * @param input - feed id and update fields
+ */
 export async function updateFeed(
 	ctx: ProtectedContext,
 	{
@@ -58,6 +81,12 @@ export async function updateFeed(
 	return await feedQueries.updateFeed(ctx, id, params);
 }
 
+/**
+ * Remove a feed.
+ *
+ * @param ctx - request context
+ * @param input - feed id
+ */
 export async function deleteFeed(ctx: ProtectedContext, { id }: { id: number }) {
 	await feedQueries.deleteFeed(ctx, id);
 }

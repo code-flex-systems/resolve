@@ -2,11 +2,23 @@ import * as questionQueries from '@/api/queries/questionQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { AnswerStat, Interval, QuestionStat } from '@/types/types';
 
+/**
+ * Insert a question onto a page.
+ *
+ * @param ctx - request context
+ * @param input - page id and question fields
+ */
 export async function createQuestion(ctx: ProtectedContext, { pageId, params }: { pageId: number; params: object }) {
 	let results = await questionQueries.createQuestion(ctx, pageId, params);
 	return results;
 }
 
+/**
+ * Duplicate a question and its answers.
+ *
+ * @param ctx - request context
+ * @param input - page id and question id
+ */
 export async function copyQuestion(
 	ctx: ProtectedContext,
 	{ pageId, questionId }: { pageId: number; questionId: number }
@@ -15,6 +27,12 @@ export async function copyQuestion(
 	return results;
 }
 
+/**
+ * Remove a question from a page.
+ *
+ * @param ctx - request context
+ * @param input - page id and question id
+ */
 export async function deleteQuestion(
 	ctx: ProtectedContext,
 	{ pageId, questionId }: { pageId: number; questionId: number }
@@ -22,16 +40,34 @@ export async function deleteQuestion(
 	await questionQueries.deleteQuestion(ctx, pageId, questionId);
 }
 
+/**
+ * Fetch a question by id.
+ *
+ * @param ctx - request context
+ * @param input - question id
+ */
 export async function getQuestion(ctx: ProtectedContext, { id }: { id: number }) {
 	let results = await questionQueries.getQuestion(ctx, id);
 	return results;
 }
 
+/**
+ * Retrieve questions for a page.
+ *
+ * @param ctx - request context
+ * @param input - page id
+ */
 export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: number }) {
 	let results = await questionQueries.getQuestions(ctx, pageId);
 	return results;
 }
 
+/**
+ * Summarize answer statistics for each question.
+ *
+ * @param ctx - request context
+ * @param input - page id and optional interval
+ */
 export async function getQuestionStats(
 	ctx: ProtectedContext,
 	{ pageId, interval }: { pageId: number; interval?: Interval<string> }
@@ -39,6 +75,7 @@ export async function getQuestionStats(
 	let results = await questionQueries.getQuestionStats(ctx, pageId, interval);
 	let formattedResults: QuestionStat[] = [];
 	let seenQuestionIds = new Set<number>();
+        // Aggregate answers under their respective questions
 	(results ?? []).forEach((row) => {
 		let answerStat: AnswerStat = {
 			answer_id: row.answer_id,
@@ -60,6 +97,12 @@ export async function getQuestionStats(
 	return formattedResults;
 }
 
+/**
+ * Update a question or move it to another page.
+ *
+ * @param ctx - request context
+ * @param input - page id, question id and update fields
+ */
 export async function modifyQuestion(
 	ctx: ProtectedContext,
 	{
