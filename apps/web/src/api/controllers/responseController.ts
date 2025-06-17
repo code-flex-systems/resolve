@@ -5,6 +5,12 @@ import { getUpdatedPageStatus } from '@/api/utils/utils';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Interval, QuestionResponse } from '@/types/types';
 
+/**
+ * Recalculate page instance status based on responses.
+ *
+ * @param ctx - request context
+ * @param input - checklist, claim and instance ids
+ */
 export async function evaluateResponses(
 	ctx: ProtectedContext,
 	{
@@ -24,6 +30,7 @@ export async function evaluateResponses(
 		responseQueries.getResponseCount(ctx, checklistId, claimId, instanceId),
 	]);
 	const updatedPageStatus = getUpdatedPageStatus(questionCount, responseCount);
+        // Persist the new status for the page instance
 	await pageQueries.modifyPageInstanceStatus(ctx, {
 		claimId,
 		instanceIds: [instanceId],
@@ -33,6 +40,12 @@ export async function evaluateResponses(
 	return updatedPageStatus;
 }
 
+/**
+ * Get responses selecting a specific answer.
+ *
+ * @param ctx - request context
+ * @param input - answer id and optional interval
+ */
 export async function getResponsesForAnswer(
 	ctx: ProtectedContext,
 	{ answerId, interval }: { answerId: number; interval?: Interval<string> }
@@ -41,6 +54,12 @@ export async function getResponsesForAnswer(
 	return results;
 }
 
+/**
+ * Fetch responses for a claim on a checklist.
+ *
+ * @param ctx - request context
+ * @param input - checklist, claim and optional instance id
+ */
 export async function getResponsesForClaimChecklist(
 	ctx: ProtectedContext,
 	{
@@ -57,6 +76,13 @@ export async function getResponsesForClaimChecklist(
 	return results;
 }
 
+/**
+ * Insert or update multiple responses at once.
+ *
+ * @param ctx - request context
+ * @param input - array of question responses
+ * @returns updated instance visibility and status
+ */
 export async function upsertQuestionResponses(ctx: ProtectedContext, { responses }: { responses: any[] }) {
 	const sampleResponse = responses?.[0] as QuestionResponse;
 	if (!sampleResponse) throw new Error('Invalid responses');

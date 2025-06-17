@@ -1,6 +1,14 @@
 import * as answerQueries from '@/api/queries/answerQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
+/**
+ * Create an answer for a question.
+ *
+ * @param ctx - request context
+ * @param input - page id, question id and answer fields
+ * @returns the newly created answer
+ */
+
 export async function createAnswer(
 	ctx: ProtectedContext,
 	{
@@ -17,6 +25,12 @@ export async function createAnswer(
 	return results;
 }
 
+/**
+ * Copy an existing answer to a target question.
+ *
+ * @param ctx - request context
+ * @param input - page id, question id and answer id
+ */
 export async function copyAnswer(
 	ctx: ProtectedContext,
 	{
@@ -39,6 +53,12 @@ export async function copyAnswer(
 	}
 }
 
+/**
+ * Delete an answer.
+ *
+ * @param ctx - request context
+ * @param input - page and answer identifiers
+ */
 export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: number; answerId: number }) {
 	try {
 		await answerQueries.deleteAnswer(ctx, pageId, answerId);
@@ -47,6 +67,12 @@ export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: 
 	}
 }
 
+/**
+ * Retrieve a single answer.
+ *
+ * @param ctx - request context
+ * @param input - answer id
+ */
 export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
 	try {
 		let results = await answerQueries.getAnswer(ctx, id);
@@ -54,8 +80,12 @@ export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
 	} catch (e) {
 		console.error(e);
 	}
-}
-
+/**
+ * List answers for a question.
+ *
+ * @param ctx - request context
+ * @param input - question id
+ */
 export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: number }) {
 	try {
 		let results = await answerQueries.getAnswers(ctx, questionId);
@@ -65,6 +95,13 @@ export async function getAnswers(ctx: ProtectedContext, { questionId }: { questi
 	}
 }
 
+/**
+ * Update an answer through the queries layer.
+ *
+ * @param ctx - request context
+ * @param input - page id, answer id and fields
+ * @returns the updated answer
+ */
 export async function modifyAnswer(
 	ctx: ProtectedContext,
 	{ pageId, answerId, params }: { pageId: number; answerId: number; params: object }

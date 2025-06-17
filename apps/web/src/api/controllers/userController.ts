@@ -2,6 +2,18 @@ import * as userQueries from '@/api/queries/userQueries';
 import { hashAllPasswords } from '../utils/hasherUtils';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
+/**
+ * List users with optional pagination.
+ *
+ * @param ctx - request context
+ * @param input - filters and paging controls
+ */
+/**
+ * Retrieve a single user.
+ *
+ * @param ctx - request context
+ * @param input - user id
+ */
 export async function getUsers(
 	ctx: ProtectedContext,
 	{ disabled, limit, offset }: { disabled?: boolean; limit?: number; offset?: number }
@@ -13,10 +25,22 @@ export async function getUsers(
 	return { rows, count };
 }
 
+/**
+ * Retrieve a single user.
+ *
+ * @param ctx - request context
+ * @param input - user id
+ */
 export async function getUser(ctx: ProtectedContext, { id }: { id: number }) {
 	return await userQueries.getUser(ctx, id);
 }
 
+/**
+ * Bulk create users with hashed passwords.
+ *
+ * @param ctx - request context
+ * @param input - array of user objects
+ */
 export async function createUsers(
 	ctx: ProtectedContext,
 	{
@@ -35,6 +59,12 @@ export async function createUsers(
 	return await userQueries.createUsers(ctx, hashedUsers);
 }
 
+/**
+ * Update a user account.
+ *
+ * @param ctx - request context
+ * @param input - user id and fields to modify
+ */
 export async function updateUser(
 	ctx: ProtectedContext,
 	{
@@ -55,6 +85,12 @@ export async function updateUser(
 	return await userQueries.updateUser(ctx, id, params);
 }
 
+/**
+ * Remove a user account.
+ *
+ * @param ctx - request context
+ * @param input - user id
+ */
 export async function deleteUser(ctx: ProtectedContext, { id }: { id: number }) {
 	await userQueries.deleteUser(ctx, id);
 }
