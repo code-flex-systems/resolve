@@ -80,6 +80,8 @@ export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
 	} catch (e) {
 		console.error(e);
 	}
+}
+
 /**
  * List answers for a question.
  *
@@ -95,7 +97,7 @@ export async function getAnswers(ctx: ProtectedContext, { questionId }: { questi
 	}
 }
 
-/**
+/*
  * Update an answer through the queries layer.
  *
  * @param ctx - request context

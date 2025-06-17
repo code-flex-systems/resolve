@@ -8,12 +8,6 @@ import { ProtectedContext } from '@/server/trpc/trpc';
  * @param ctx - request context
  * @param input - filters and paging controls
  */
-/**
- * Retrieve a single user.
- *
- * @param ctx - request context
- * @param input - user id
- */
 export async function getUsers(
 	ctx: ProtectedContext,
 	{ disabled, limit, offset }: { disabled?: boolean; limit?: number; offset?: number }
