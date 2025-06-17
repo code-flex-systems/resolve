@@ -15,6 +15,7 @@ export async function createDoc(ctx: ProtectedContext, params: object) {
 		.values({
 			...params,
 			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();

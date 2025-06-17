@@ -174,10 +174,12 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 					question_id: response.question_id,
 					response_text: response.response_text ?? null,
 					client_id: ctx.session.user.client_id,
+					created_by: ctx.session.user.id,
 				})
 				.onConflict((oc) =>
 					oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
 						response_text: response.response_text ?? null,
+						updated_by: ctx.session.user.id,
 						updated_at: new Date(),
 					})
 				)

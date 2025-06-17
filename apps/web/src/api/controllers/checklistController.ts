@@ -13,7 +13,7 @@ export async function createChecklist(
 	ctx: ProtectedContext,
 	{ name, existingChecklistId }: { name: string; existingChecklistId?: number }
 ) {
-	let results = await checklistQueries.createChecklist(ctx, name, 'System', existingChecklistId);
+	let results = await checklistQueries.createChecklist(ctx, name, existingChecklistId);
 	return results;
 }
 

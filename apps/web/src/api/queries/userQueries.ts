@@ -1,6 +1,7 @@
 import { db } from '@/api/database/kysely';
 import config from '@/config/config';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { sql } from 'kysely';
 
 /**
  * Retrieve users for the current client with optional pagination.
@@ -50,7 +51,7 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean) {
  * @param id - user identifier
  * @returns the user or undefined
  */
-export async function getUser(ctx: ProtectedContext, id: number) {
+export async function getUser(ctx: ProtectedContext, id: string) {
 	return await db
 		.selectFrom('users')
 		.selectAll()
@@ -77,7 +78,14 @@ export async function createUsers(
 ) {
 	const [user] = await db
 		.insertInto('users')
-		.values(users.map((u) => ({ ...u, role: config.ROLES.CONTRIBUTOR, client_id: ctx.session.user.client_id })))
+		.values(
+			users.map((u) => ({
+				...u,
+				role: config.ROLES.CONTRIBUTOR,
+				client_id: ctx.session.user.client_id,
+				created_by: ctx.session.user.id,
+			}))
+		)
 		.returningAll()
 		.execute();
 	return user;
@@ -93,7 +101,7 @@ export async function createUsers(
  */
 export async function updateUser(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: Partial<{
 		name: string;
 		email: string;
@@ -103,7 +111,12 @@ export async function updateUser(
 		disabled?: boolean;
 	}>
 ) {
-	const [user] = await db.updateTable('users').set(params).where('id', '=', id).returningAll().execute();
+	const [user] = await db
+		.updateTable('users')
+		.set({ ...params, updated_by: ctx.session.user.id, updated_at: sql`now()` })
+		.where('id', '=', id)
+		.returningAll()
+		.execute();
 	return user;
 }
 
@@ -113,6 +126,6 @@ export async function updateUser(
  * @param ctx - request context
  * @param id - user identifier to delete
  */
-export async function deleteUser(ctx: ProtectedContext, id: number) {
+export async function deleteUser(ctx: ProtectedContext, id: string) {
 	await db.deleteFrom('users').where('id', '=', id).execute();
 }

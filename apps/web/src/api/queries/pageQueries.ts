@@ -15,19 +15,16 @@ import { applyClientScope } from '../database/clientScoped';
  * @param params - title and positioning info
  * @returns ids for the new page and instance
  */
-export async function createPage(
-        ctx: ProtectedContext,
-        checklistId: number,
-        params: object
-) {
-        let newPage: PageTemplate;
-        let newInstance: PageInstance;
+export async function createPage(ctx: ProtectedContext, checklistId: number, params: object) {
+	let newPage: PageTemplate;
+	let newInstance: PageInstance;
 	await db.transaction().execute(async (trx) => {
 		newPage = await trx
 			.insertInto('page')
 			.values({
 				title: params.title,
 				client_id: ctx.session.user.client_id,
+				created_by: ctx.session.user.id,
 			})
 			.returningAll()
 			.executeTakeFirstOrThrow();
@@ -54,16 +51,16 @@ export async function createPage(
  * @returns created page instance
  */
 export async function createPageInstance(
-        ctx: ProtectedContext,
-        params: {
-                checklistId: number;
-                pageId: number;
+	ctx: ProtectedContext,
+	params: {
+		checklistId: number;
+		pageId: number;
 		parentId: number;
 		position: number;
 		trx?: Transaction<DB>;
-        }
+	}
 ) {
-        let newInstance: PageInstance;
+	let newInstance: PageInstance;
 	if (params.trx) {
 		newInstance = await createPageInstancePrivate(ctx, { ...params, trx: params.trx });
 	} else {
@@ -80,14 +77,11 @@ export async function createPageInstance(
  * @param ctx - request context
  * @param instanceId - instance identifier to remove
  */
-export async function deletePageInstance(
-        ctx: ProtectedContext,
-        instanceId: number
-) {
+export async function deletePageInstance(ctx: ProtectedContext, instanceId: number) {
 	await db.transaction().execute(async (trx) => {
 		await trx
 			.updateTable('answer')
-			.set({ calls_instance_id: null })
+			.set({ calls_instance_id: null, updated_by: ctx.session.user.id, updated_at: sql`now()` })
 			.where('calls_instance_id', '=', instanceId)
 			.execute();
 		const deletedRow = await trx
@@ -97,7 +91,11 @@ export async function deletePageInstance(
 			.executeTakeFirstOrThrow();
 		await trx
 			.updateTable('page_instance')
-			.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+			.set((eb) => ({
+				position: sql`${eb.ref('position')} - 1`,
+				updated_by: ctx.session.user.id,
+				updated_at: sql`now()`,
+			}))
 			.where('position', '>', deletedRow.position)
 			.execute();
 	});
@@ -110,10 +108,7 @@ export async function deletePageInstance(
  * @param pageId - page identifier
  * @returns the page template
  */
-export async function getPage(
-        ctx: ProtectedContext,
-        pageId: number
-) {
+export async function getPage(ctx: ProtectedContext, pageId: number) {
 	return await applyClientScope(
 		db.selectFrom('page').selectAll().where('id', '=', pageId),
 		ctx.session.user.client_id
@@ -127,10 +122,10 @@ export async function getPage(
  * @returns list of page templates
  */
 export async function getPages(ctx: ProtectedContext) {
-        return await applyClientScope(
-                db.selectFrom('page').selectAll().where('hidden', 'is', false),
-                ctx.session.user.client_id
-        ).execute();
+	return await applyClientScope(
+		db.selectFrom('page').selectAll().where('hidden', 'is', false),
+		ctx.session.user.client_id
+	).execute();
 }
 
 /**
@@ -140,10 +135,7 @@ export async function getPages(ctx: ProtectedContext) {
  * @param instanceId - page instance identifier
  * @returns the template with instance info
  */
-export async function getPageInstance(
-        ctx: ProtectedContext,
-        instanceId: number
-) {
+export async function getPageInstance(ctx: ProtectedContext, instanceId: number) {
 	return await applyClientScope(
 		db
 			.selectFrom('page')
@@ -164,12 +156,8 @@ export async function getPageInstance(
  * @param parentId - optional parent instance filter
  * @returns list of page instances
  */
-export async function getPageInstances(
-        ctx: ProtectedContext,
-        checklistId: number,
-        parentId?: number
-) {
-        return await applyClientScope(
+export async function getPageInstances(ctx: ProtectedContext, checklistId: number, parentId?: number) {
+	return await applyClientScope(
 		db
 			.selectFrom('page')
 			.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
@@ -207,12 +195,12 @@ export async function getPageInstances(
  * @returns array of instances with status data
  */
 export async function getPageInstancesForClaim(
-        ctx: ProtectedContext,
-        checklistId: number,
-        claimId: number,
-        parentId?: number
+	ctx: ProtectedContext,
+	checklistId: number,
+	claimId: number,
+	parentId?: number
 ) {
-        // Determine the latest status for each page instance on a claim
+	// Determine the latest status for each page instance on a claim
 	return await applyClientScope(
 		db
 			.selectFrom('page')
@@ -265,13 +253,9 @@ export async function getPageInstancesForClaim(
  * @param claimId - claim identifier
  * @returns list of visible instance ids
  */
-export async function getVisiblePageInstances(
-        ctx: ProtectedContext,
-        checklistId: number,
-        claimId: number
-) {
-        // Use a recursive CTE to resolve all visible page instance ids
-        let results = await db
+export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
+	// Use a recursive CTE to resolve all visible page instance ids
+	let results = await db
 		.withRecursive('visible_pages', (eb) =>
 			applyClientScope(
 				eb
@@ -313,11 +297,7 @@ export async function getVisiblePageInstances(
  * @param params - fields to modify
  * @returns the updated template
  */
-export async function modifyPage(
-        ctx: ProtectedContext,
-        pageId: number,
-        params: object
-) {
+export async function modifyPage(ctx: ProtectedContext, pageId: number, params: object) {
 	let updates: UpdateObjectExpression<DB, 'page'> = {};
 	if (params.title) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
@@ -326,6 +306,8 @@ export async function modifyPage(
 		.updateTable('page')
 		.set({
 			...updates,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
 		})
 		.where('id', '=', pageId)
 		.returningAll()
@@ -339,14 +321,14 @@ export async function modifyPage(
  * @param params - claim id, instance ids, status and version info
  */
 export async function modifyPageInstanceStatus(
-        ctx: ProtectedContext,
-        params: {
-                claimId: number;
-                instanceIds: number[];
+	ctx: ProtectedContext,
+	params: {
+		claimId: number;
+		instanceIds: number[];
 		newStatus: PageInstanceStatus;
 		templateVersion: number;
 		trx?: Transaction<DB>;
-        }
+	}
 ) {
 	for (const id of params.instanceIds) {
 		await (params.trx ?? db)
@@ -380,25 +362,29 @@ export async function modifyPageInstanceStatus(
  * @returns the created instance
  */
 async function createPageInstancePrivate(
-        ctx: ProtectedContext,
-        {
-                checklistId,
-                pageId,
+	ctx: ProtectedContext,
+	{
+		checklistId,
+		pageId,
 		parentId,
 		position,
 		trx,
-        }: {
-                checklistId: number;
-                pageId: number;
-                parentId: number;
-                position: number;
-                trx: Transaction<DB>;
-        }
+	}: {
+		checklistId: number;
+		pageId: number;
+		parentId: number;
+		position: number;
+		trx: Transaction<DB>;
+	}
 ) {
 	// Update positions for all page instances below the one we're inserting
 	await trx
 		.updateTable('page_instance')
-		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+		.set((eb) => ({
+			position: sql`${eb.ref('position')} + 1`,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		}))
 		.where('position', '>=', position)
 		.execute();
 	let newInstance = await trx
@@ -409,6 +395,7 @@ async function createPageInstancePrivate(
 			parent_instance_id: parentId === -1 ? null : parentId,
 			position,
 			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();

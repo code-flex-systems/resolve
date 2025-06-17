@@ -23,7 +23,7 @@ export async function createAnswer(
 	params: object,
 	trx?: Transaction<DB>
 ) {
-	let newAnswer: Answer;
+	let newAnswer: any;
 	if (trx) {
 		newAnswer = await createAnswerPrivate(ctx, questionId, params, trx);
 	} else {
@@ -123,6 +123,8 @@ export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answer
 			.updateTable('answer')
 			.set({
 				...updates,
+				updated_by: ctx.session.user.id,
+				updated_at: sql`now()`,
 			})
 			.where('id', '=', answerId)
 			.returningAll()
@@ -173,6 +175,7 @@ async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, pa
 			calls_instance_id: params.calls_instance_id,
 			has_additional_info: params.has_additional_info,
 			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();

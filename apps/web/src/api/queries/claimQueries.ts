@@ -13,14 +13,15 @@ import { applyClientScope } from '../database/clientScoped';
  * @param claimId - claim identifier
  * @returns claim record
  */
-export async function getClaim(
-        ctx: ProtectedContext,
-        checklistId: number,
-        claimId: number
-) {
+export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	await db
 		.insertInto('checklist_claim')
-		.values({ checklist_id: checklistId, claim_id: claimId, client_id: ctx.session.user.client_id })
+		.values({
+			checklist_id: checklistId,
+			claim_id: claimId,
+			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
+		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.execute();
 	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
@@ -34,20 +35,20 @@ export async function getClaim(
  * @returns claim rows or a count depending on type
  */
 export async function getClaims(
-        ctx: ProtectedContext,
-        {
-                type,
-                feedId,
+	ctx: ProtectedContext,
+	{
+		type,
+		feedId,
 		searchTerm,
 		limit,
 		offset,
-        }: {
-                type: 'data' | 'count';
-                feedId?: number | null;
-                searchTerm?: { value: string; type: ClaimSearch };
-                limit?: number;
-                offset?: number;
-        }
+	}: {
+		type: 'data' | 'count';
+		feedId?: number | null;
+		searchTerm?: { value: string; type: ClaimSearch };
+		limit?: number;
+		offset?: number;
+	}
 ) {
 	let query = applyClientScope(
 		db.selectFrom('claim').leftJoin('feeds', 'claim.feed_id', 'feeds.id'),
@@ -59,7 +60,7 @@ export async function getClaims(
 			? query.where('feed_id', feedId === null ? 'is' : '=', feedId)
 			: query.where((eb) =>
 					eb.or([eb('feeds.status', 'is', null), eb('feeds.status', '<>', FeedStatus.INACTIVE)])
-			  );
+				);
 
 	if (searchTerm) {
 		query = query.where((eb) =>
@@ -87,10 +88,7 @@ export async function getClaims(
  * @param claims - claim objects without ids
  * @returns the first created claim as a convenience
  */
-export async function createClaims(
-        ctx: ProtectedContext,
-        claims: Omit<Claim, 'id'>[]
-) {
+export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
 	const [feed] = await db
 		.insertInto('claim')
 		.values(
@@ -107,6 +105,7 @@ export async function createClaims(
 				last_update: c.last_update,
 				expected_recovery: c.expected_recovery,
 				client_id: ctx.session.user.client_id,
+				created_by: ctx.session.user.id,
 			}))
 		)
 		.returningAll()

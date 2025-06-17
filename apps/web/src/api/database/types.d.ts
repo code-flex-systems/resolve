@@ -37,17 +37,17 @@ export interface Accounts {
   session_state: string | null;
   token_type: string | null;
   type: string;
-  user_id: number;
+  user_id: string;
 }
 
 export interface AdminActionLogs {
   action: string;
-  client_id: number;
+  client_id: string;
   created_at: Generated<Timestamp>;
-  created_by: string;
   entity_id: number;
   entity_name: string;
   id: Generated<number>;
+  user_id: string;
   value: Json | null;
 }
 
@@ -56,6 +56,8 @@ export interface Answer {
   additional_info_placeholder: string | null;
   calls_instance_id: number | null;
   client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   description_image_url: string | null;
   description_text: string | null;
   grade: Numeric | null;
@@ -65,22 +67,37 @@ export interface Answer {
   position: number;
   question_id: number;
   text: string;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
+}
+
+export interface AuthEvents {
+  created_at: Generated<Timestamp>;
+  event_details: Json | null;
+  event_type: string;
+  id: Generated<string>;
+  ip_address: string | null;
+  user_agent: string | null;
+  user_id: string | null;
 }
 
 export interface Checklist {
   client_id: string;
-  created_at: Generated<string>;
+  created_at: Generated<Timestamp>;
   created_by: string;
   id: Generated<number>;
   name: string;
   published: Generated<boolean>;
-  updated_at: Generated<string>;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface ChecklistClaim {
   checklist_id: number;
   claim_id: number;
   client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   last_opened: Generated<Timestamp>;
 }
 
@@ -90,6 +107,8 @@ export interface Claim {
   client: string | null;
   client_adjuster: string | null;
   client_id: string;
+  created_at: Timestamp | null;
+  created_by: string | null;
   date_of_loss: Timestamp | null;
   expected_recovery: Numeric | null;
   feed_id: number | null;
@@ -102,13 +121,15 @@ export interface Claim {
 }
 
 export interface Client {
-  id: string;
+  id: Generated<string>;
   name: string;
 }
 
 export interface Doc {
   alias: string;
   client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   filename: string;
   id: Generated<number>;
 }
@@ -117,6 +138,7 @@ export interface Feeds {
   client_id: string;
   connection_options: Json;
   created_at: Generated<Timestamp>;
+  created_by: string;
   feed_type: string;
   id: Generated<number>;
   last_synced_at: Timestamp | null;
@@ -124,19 +146,26 @@ export interface Feeds {
   schedule: number;
   status: Generated<string>;
   updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface Page {
   client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   hidden: Generated<boolean>;
   id: Generated<number>;
   title: string;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
   version: Generated<number>;
 }
 
 export interface PageInstance {
   checklist_id: number;
   client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   id: Generated<number>;
   page_id: number;
   parent_instance_id: number | null;
@@ -155,6 +184,8 @@ export interface PageInstanceStatus {
 
 export interface Question {
   client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   description_image_url: string | null;
   description_text: string | null;
   hidden: Generated<boolean | null>;
@@ -164,24 +195,27 @@ export interface Question {
   position: number;
   text: string;
   type: string;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface QuestionResponse {
   checklist_id: number;
   claim_id: number;
   client_id: string;
-  created_at: Generated<Timestamp | null>;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   id: Generated<number>;
   instance_id: number;
   question_id: number;
   response_text: string | null;
-  updated_at: Generated<Timestamp | null>;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface QuestionResponseAnswer {
   additional_info: string | null;
   answer_id: number;
-  client_id: string;
   id: Generated<number>;
   response_id: number;
 }
@@ -202,30 +236,35 @@ export interface ResponseAuditLogs {
   question_id: number;
   response_id: number | null;
   timestamp: Generated<Timestamp | null>;
-  user_id: number;
+  user_id: string;
 }
 
 export interface Sessions {
   expires: Timestamp;
   id: Generated<number>;
   session_token: string;
-  user_id: number;
+  user_id: string;
 }
 
 export interface Users {
   client_id: string | null;
   created_at: Generated<Timestamp>;
+  created_by: string;
   disabled: Generated<boolean>;
   email: string;
   email_verified: Timestamp | null;
   first: string;
-  id: Generated<number>;
+  id: Generated<string>;
   last: string;
+  mfa_enabled: Generated<boolean>;
+  mfa_secret: string | null;
+  must_change_password: Generated<boolean>;
   password_hash: string;
   phone: string | null;
   phone_verified: Timestamp | null;
   role: string | null;
   updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface VerificationTokens {
@@ -238,6 +277,7 @@ export interface DB {
   accounts: Accounts;
   admin_action_logs: AdminActionLogs;
   answer: Answer;
+  auth_events: AuthEvents;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
   claim: Claim;

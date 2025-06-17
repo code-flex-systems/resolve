@@ -26,6 +26,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
 				description_text: params.description_text,
 				position: params.position,
 				client_id: ctx.session.user.client_id,
+				created_by: ctx.session.user.id,
 			})
 			.returningAll()
 			.executeTakeFirstOrThrow();
@@ -55,7 +56,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 	await db.transaction().execute(async (trx) => {
 		newQuestion = await trx
 			.insertInto('question')
-			.columns(['page_id', 'description_text', 'text', 'type', 'client_id', 'position'])
+			.columns(['page_id', 'description_text', 'text', 'type', 'client_id', 'position', 'created_by'])
 			.expression((eb) =>
 				applyClientScope(
 					eb
@@ -66,7 +67,11 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 							'text',
 							'type',
 							'client_id',
-							eb.val(+maxPosition.max_position.toString() + 1).as('position'),
+							eb
+								.val(+maxPosition.max_position.toString() + 1)
+								.$castTo<number>()
+								.as('position'),
+							eb.val(ctx.session.user.id).as('created_by'),
 						])
 						.where('id', '=', questionId),
 					ctx.session.user.client_id
@@ -88,6 +93,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 				'question_id',
 				'calls_instance_id',
 				'client_id',
+				'created_by',
 			])
 			.expression((eb) =>
 				applyClientScope(
@@ -102,9 +108,10 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 							'description_text',
 							'description_image_url',
 							'has_additional_info',
-							eb.val(newQuestion.id).as('question_id'),
+							eb.val(newQuestion.id).$castTo<number>().as('question_id'),
 							'calls_instance_id',
 							'client_id',
+							eb.val(ctx.session.user.id).as('created_by'),
 						])
 						.where('id', 'in', eb.selectFrom('answer').select('id').where('question_id', '=', questionId)),
 					ctx.session.user.client_id
@@ -281,6 +288,8 @@ export async function modifyQuestion(ctx: ProtectedContext, pageId: number, ques
 			.updateTable('question')
 			.set({
 				...updates,
+				updated_by: ctx.session.user.id,
+				updated_at: sql`now()`,
 			})
 			.where('id', '=', questionId)
 			.returningAll()
@@ -303,7 +312,11 @@ export async function modifyQuestion(ctx: ProtectedContext, pageId: number, ques
 async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
 	await trx
 		.updateTable('page')
-		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
+		.set((eb) => ({
+			version: sql`${eb.ref('version')} + 1`,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		}))
 		.where('id', '=', pageId)
 		.execute();
 }

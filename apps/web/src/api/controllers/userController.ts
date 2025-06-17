@@ -31,7 +31,7 @@ export async function getUsers(
  * @param ctx - request context
  * @param input - user id
  */
-export async function getUser(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getUser(ctx: ProtectedContext, { id }: { id: string }) {
 	return await userQueries.getUser(ctx, id);
 }
 
@@ -71,7 +71,7 @@ export async function updateUser(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: Partial<{
 			name: string;
 			email: string;
@@ -91,6 +91,6 @@ export async function updateUser(
  * @param ctx - request context
  * @param input - user id
  */
-export async function deleteUser(ctx: ProtectedContext, { id }: { id: number }) {
+export async function deleteUser(ctx: ProtectedContext, { id }: { id: string }) {
 	await userQueries.deleteUser(ctx, id);
 }

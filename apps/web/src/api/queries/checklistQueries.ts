@@ -14,19 +14,14 @@ import { applyClientScope } from '../database/clientScoped';
  * @param existingChecklistId - if provided, page instances are copied from this checklist
  * @returns the created checklist record
  */
-export async function createChecklist(
-	ctx: ProtectedContext,
-	name: string,
-	username: string,
-	existingChecklistId?: number
-) {
-	let newChecklist: Checklist;
+export async function createChecklist(ctx: ProtectedContext, name: string, existingChecklistId?: number) {
+	let newChecklist: any;
 	await db.transaction().execute(async (trx) => {
 		newChecklist = await trx
 			.insertInto('checklist')
 			.values({
 				name,
-				created_by: username,
+				created_by: ctx.session.user.id,
 				client_id: ctx.session.user.client_id,
 			})
 			.returningAll()
@@ -34,7 +29,7 @@ export async function createChecklist(
 		if (existingChecklistId) {
 			await trx
 				.insertInto('page_instance')
-				.columns(['page_id', 'parent_instance_id', 'checklist_id', 'position', 'client_id'])
+				.columns(['page_id', 'parent_instance_id', 'checklist_id', 'position', 'client_id', 'created_by'])
 				.expression((eb) =>
 					eb
 						.selectFrom('page_instance')
@@ -44,6 +39,7 @@ export async function createChecklist(
 							eb.val(newChecklist.id).as('checklist_id'),
 							'position',
 							'client_id',
+							eb.val(ctx.session.user.id).as('created_by'),
 						])
 						.where('checklist_id', '=', existingChecklistId)
 				)
@@ -335,6 +331,8 @@ export async function modifyChecklist(ctx: ProtectedContext, checklistId: number
 		.updateTable('checklist')
 		.set({
 			...params,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
 		})
 		.where('id', '=', checklistId)
 		.returningAll()

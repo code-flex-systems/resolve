@@ -5,7 +5,7 @@ export const getUsersInput = z.object({
 	limit: z.number().optional(),
 	offset: z.number().optional(),
 });
-export const getUserInput = z.object({ id: z.number().int() });
+export const getUserInput = z.object({ id: z.string() });
 
 export const createUsersInput = z.object({
 	users: z.array(
@@ -21,7 +21,7 @@ export const createUsersInput = z.object({
 });
 
 export const updateUserInput = z.object({
-	id: z.number().int(),
+	id: z.string(),
 	params: z.object({
 		name: z.string().optional(),
 		email: z.string().email().optional(),
@@ -32,4 +32,4 @@ export const updateUserInput = z.object({
 	}),
 });
 
-export const deleteUserInput = z.object({ id: z.number().int() });
+export const deleteUserInput = z.object({ id: z.string() });
