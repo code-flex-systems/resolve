@@ -249,7 +249,7 @@ export interface Sessions {
 export interface Users {
   client_id: string | null;
   created_at: Generated<Timestamp>;
-  created_by: string;
+  created_by: string | null;
   disabled: Generated<boolean>;
   email: string;
   email_verified: Timestamp | null;

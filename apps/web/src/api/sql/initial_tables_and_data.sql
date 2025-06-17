@@ -36,7 +36,7 @@ create table users(
     phone_verified timestamp with time zone,
 	role text,
 	disabled boolean not null default false,
-	created_by uuid not null references users(id),
+	created_by uuid references users(id),
     created_at timestamp not null default now(),
     updated_by uuid references users(id),
     updated_at timestamp not null default now(),

@@ -92,7 +92,7 @@ export default function LoginPage() {
 							/>
 						</div>
 
-						{authError && <p className="text-sm text-red-600 mb-4">{authError}</p>}
+						{authError && <Typography color="error">{authError}</Typography>}
 
 						<div className="flex-row-left" style={{ padding: '10px 0px' }}>
 							<Typography>
