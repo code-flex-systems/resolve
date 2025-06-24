@@ -268,6 +268,7 @@ export interface Users {
   mfa_enabled: Generated<boolean>;
   mfa_secret: string | null;
   must_change_password: Generated<boolean>;
+  onboarding_email_sent: Generated<boolean>;
   password_hash: string;
   phone: string | null;
   phone_verified: Timestamp | null;

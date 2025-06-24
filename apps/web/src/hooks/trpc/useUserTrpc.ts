@@ -13,17 +13,17 @@ export function useUserTrpc() {
 			},
 		}),
 
-               update: trpc.user.updateUser.useMutation({
-                       onSuccess(input) {
-                               utils.user.getUsers.invalidate();
-                               utils.user.getUser.invalidate({ id: input.id });
-                       },
-               }),
+		update: trpc.user.updateUser.useMutation({
+			onSuccess(_, { id }) {
+				utils.user.getUsers.invalidate();
+				utils.user.getUser.invalidate({ id });
+			},
+		}),
 
-               remove: trpc.user.deleteUser.useMutation({
-                       onSuccess() {
-                               utils.user.getUsers.invalidate();
-                       },
-               }),
+		remove: trpc.user.deleteUser.useMutation({
+			onSuccess() {
+				utils.user.getUsers.invalidate();
+			},
+		}),
 	};
 }

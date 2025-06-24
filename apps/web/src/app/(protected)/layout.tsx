@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
-const FORCE_PATH = '/force-password-reset';
+const FORCE_PATH = '/force-reset-password';
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
 	const { data: session, status } = useSession();
@@ -12,6 +12,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 	const pathname = usePathname();
 
 	useEffect(() => {
+		console.log(session);
 		if (status === 'authenticated' && session.user?.must_change_password && pathname !== FORCE_PATH) {
 			router.replace(FORCE_PATH);
 		}

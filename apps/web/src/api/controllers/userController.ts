@@ -6,6 +6,7 @@ import { safeLog } from '@/lib/logs/safeLog';
 import { logAuthEvent } from '@/lib/logs/logAuthEvents';
 import { AuthEventType } from '@/config/enums';
 import { generateStrongPassword } from '@/lib/auth/generateStrongPassword';
+import { sendEmail } from '@/lib/email/sendEmail';
 
 /**
  * List users with optional pagination.
@@ -62,6 +63,17 @@ export async function createUsers(
 	}[] = users.map((u) => ({ ...u, password: generateStrongPassword() }));
 	const hashedUsers = await hashAllPasswords(usersWithPasswords);
 	const createdUsers = await userQueries.createUsers(ctx, hashedUsers);
+
+	await Promise.all(
+		usersWithPasswords.map(async (user) => {
+			sendEmail({
+				to: user.email,
+				subject: 'Welcome to Manifest!',
+				html: `<p>Your password is <b>${user.password}</b>.</p>`,
+			});
+		})
+	);
+
 	createdUsers.forEach((u) => {
 		enqueueLog(() =>
 			safeLog(
@@ -96,6 +108,10 @@ export async function updateUser(
 			phone_number?: string;
 			role?: string;
 			disabled?: boolean;
+			email_verified?: Date;
+			phone_verified?: Date;
+			onboarding_email_sent?: boolean;
+			must_change_password?: boolean;
 		}>;
 	}
 ) {

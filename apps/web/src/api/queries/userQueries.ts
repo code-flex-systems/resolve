@@ -104,10 +104,14 @@ export async function updateUser(
 	params: Partial<{
 		name: string;
 		email: string;
-		password_hash: string;
-		phone?: string;
+		password: string;
+		phone_number?: string;
 		role?: string;
 		disabled?: boolean;
+		email_verified?: Date;
+		phone_verified?: Date;
+		onboarding_email_sent?: boolean;
+		must_change_password?: boolean;
 	}>
 ) {
 	const [user] = await db

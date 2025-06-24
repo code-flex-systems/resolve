@@ -65,3 +65,5 @@ export enum QuestionType {
 	MULTI = 'multi',
 	SINGLE = 'single',
 }
+
+export enum UserStatus {}

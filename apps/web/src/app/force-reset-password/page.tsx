@@ -18,7 +18,11 @@ export default function ForceResetPasswordPage() {
 	const onSubmit = async (data: NewPasswordFormInputs) => {
 		await updateUser({
 			id: session.user.id,
-			params: { password: data.password, must_change_password: false },
+			params: {
+				password: data.password,
+				email_verified: new Date().toString(),
+				must_change_password: false,
+			},
 		});
 		signOut({ callbackUrl: '/login' });
 	};

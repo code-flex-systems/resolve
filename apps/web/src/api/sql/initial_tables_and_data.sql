@@ -42,7 +42,9 @@ create table users(
     updated_at timestamp not null default now(),
     must_change_password boolean not null default true,
     mfa_secret text,
-    mfa_enabled boolean not null default false
+    mfa_enabled boolean not null default false,
+    onboarding_email_sent boolean not null default false,
+    unique(email)
 );
 
 create table accounts (

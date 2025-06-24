@@ -13,6 +13,7 @@ import { AuthEventType } from '@/config/enums';
 import { enqueueLog } from '@/lib/logs/logQueue';
 import { safeLog } from '@/lib/logs/safeLog';
 import { hashPasswordIfPresent } from '../utils/hasherUtils';
+import { sql } from 'kysely';
 
 const RESET_EXPIRATION_MINUTES = 15;
 
@@ -58,7 +59,7 @@ export async function completePasswordReset({ token, password }: { token: string
 	await db.transaction().execute(async (trx) => {
 		await trx
 			.updateTable('users')
-			.set({ password_hash: hashedInput.password_hash, must_change_password: false })
+			.set({ password_hash: hashedInput.password_hash, email_verified: sql`now()`, must_change_password: false })
 			.where('id', '=', record.user_id)
 			.execute();
 		await markPasswordResetTokenUsed(token, trx);

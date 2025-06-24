@@ -20,7 +20,10 @@ export const userRouter = router({
 	}),
 
 	updateUser: protectedProcedure.input(updateUserInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		// A user may update their own metadata or password
+		if (input.id !== ctx.session.user.id) {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		}
 		userController.updateUser(ctx, input);
 	}),
 

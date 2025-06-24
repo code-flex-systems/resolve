@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
 						phone: user.phone ?? null,
 						role: user.role ?? null,
 						client_id: user.client_id ?? null,
-						much_change_password: user.must_change_password || undefined,
+						must_change_password: user.must_change_password,
 					};
 				} else {
 					// Login failure
@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
 				token.phone = user.phone;
 				token.role = user.role;
 				token.client_id = user.client_id;
-				if (token.must_change_password) token.must_change_password = user.must_change_password;
+				token.must_change_password = user.must_change_password;
 			}
 			return token;
 		},
