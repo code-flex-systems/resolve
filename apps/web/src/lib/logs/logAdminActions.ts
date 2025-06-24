@@ -1,6 +1,6 @@
 import { AdminActionLogType } from '@/config/enums';
 import { Transaction } from 'kysely';
-import { DB } from '../database/types';
+import { DB } from '../../api/database/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
 export interface AdminActionLog {

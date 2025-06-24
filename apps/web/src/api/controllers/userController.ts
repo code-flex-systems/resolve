@@ -1,6 +1,11 @@
 import * as userQueries from '@/api/queries/userQueries';
-import { hashAllPasswords } from '../utils/hasherUtils';
+import { hashAllPasswords, hashPasswordIfPresent } from '../utils/hasherUtils';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { enqueueLog } from '@/lib/logs/logQueue';
+import { safeLog } from '@/lib/logs/safeLog';
+import { logAuthEvent } from '@/lib/logs/logAuthEvents';
+import { AuthEventType } from '@/config/enums';
+import { generateStrongPassword } from '@/lib/auth/generateStrongPassword';
 
 /**
  * List users with optional pagination.
@@ -44,13 +49,31 @@ export async function createUsers(
 			first: string;
 			last: string;
 			email: string;
-			password: string;
 			phone?: string;
 		}[];
 	}
 ) {
-	const hashedUsers = await hashAllPasswords(users);
-	return await userQueries.createUsers(ctx, hashedUsers);
+	const usersWithPasswords: {
+		first: string;
+		last: string;
+		email: string;
+		password: string;
+		phone?: string;
+	}[] = users.map((u) => ({ ...u, password: generateStrongPassword() }));
+	const hashedUsers = await hashAllPasswords(usersWithPasswords);
+	const createdUsers = await userQueries.createUsers(ctx, hashedUsers);
+	createdUsers.forEach((u) => {
+		enqueueLog(() =>
+			safeLog(
+				() =>
+					logAuthEvent(ctx.session.user.id, AuthEventType.AccountCreated, {
+						details: { createdId: u.id, createdEmail: u.email },
+					}),
+				'authLog'
+			)
+		);
+	});
+	return createdUsers;
 }
 
 /**
@@ -69,14 +92,17 @@ export async function updateUser(
 		params: Partial<{
 			name: string;
 			email: string;
-			password_hash: string;
+			password: string;
 			phone_number?: string;
 			role?: string;
 			disabled?: boolean;
 		}>;
 	}
 ) {
-	return await userQueries.updateUser(ctx, id, params);
+	const hashedParams = params.password
+		? await hashPasswordIfPresent({ ...params, password: params.password })
+		: params;
+	return await userQueries.updateUser(ctx, id, hashedParams);
 }
 
 /**

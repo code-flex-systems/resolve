@@ -182,6 +182,15 @@ export interface PageInstanceStatus {
   updated_at: Generated<Timestamp | null>;
 }
 
+export interface PasswordResetTokens {
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  token: string;
+  used: Generated<boolean>;
+  user_id: string;
+}
+
 export interface Question {
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -287,6 +296,7 @@ export interface DB {
   page: Page;
   page_instance: PageInstance;
   page_instance_status: PageInstanceStatus;
+  password_reset_tokens: PasswordResetTokens;
   question: Question;
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;

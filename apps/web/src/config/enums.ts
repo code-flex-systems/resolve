@@ -10,6 +10,17 @@ export enum AnswerType {
 	STANDARD = 'standard',
 }
 
+export enum AuthEventType {
+	LoginSuccess = 'login_success',
+	LoginFailure = 'login_failure',
+	PasswordResetRequested = 'password_reset_requested',
+	PasswordChanged = 'password_changed',
+	MfaSetupStarted = 'mfa_setup_started',
+	MfaVerified = 'mfa_verified',
+	MissingCredentials = 'missing_credentials',
+	AccountCreated = 'account_created',
+}
+
 export enum ChecklistMode {
 	VIEW,
 	TEST,

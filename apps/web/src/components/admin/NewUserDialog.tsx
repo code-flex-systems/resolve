@@ -9,7 +9,6 @@ type NewUserFormInputs = {
 	first: string;
 	last: string;
 	email: string;
-	password: string;
 };
 
 export default function NewUserDialog() {
@@ -19,13 +18,8 @@ export default function NewUserDialog() {
 		handleSubmit,
 		formState: { errors, isSubmitting },
 		watch,
-	} = useForm<NewUserFormInputs>({
-		defaultValues: {
-			password: process.env.DEFAULT_WEB_PW,
-		},
-	});
+	} = useForm<NewUserFormInputs>();
 	const email = watch('email');
-	const password = watch('password');
 
 	const onSubmit = handleSubmit((data) => createUsers({ users: [data] }));
 
@@ -36,7 +30,7 @@ export default function NewUserDialog() {
 				label: 'Initiate account',
 				onClick: onSubmit,
 				icon: <Send />,
-				disabled: !email || !password || isSubmitting || isPending,
+				disabled: !email || isSubmitting || isPending,
 			}}
 			onClose={toggleNewUserDialog}
 			width={475}
@@ -46,7 +40,8 @@ export default function NewUserDialog() {
 				to allow the user one-time access.
 			</Typography>
 			<Typography padding="10px 0px" fontStyle="italic" fontSize={13}>
-				Upon logging in with their email and the default password, they will be required to pick a new password.
+				Upon logging in with their email and the default password, they will be required to choose a new
+				password.
 			</Typography>
 			<form>
 				<div className="flex-row-left" style={styles.row}>
@@ -85,21 +80,6 @@ export default function NewUserDialog() {
 							width: 300,
 						}}
 						{...register('email', { required: 'Email is required' })}
-					/>
-				</div>
-				<div className="flex-row-left" style={styles.row}>
-					<TextField
-						id="password"
-						label="Default password"
-						error={!!errors.password}
-						helperText={errors.password?.message}
-						sx={{
-							width: 300,
-						}}
-						{...register('password', {
-							required: 'Password is required',
-							minLength: { value: 8, message: 'Minimum length is 8 characters' },
-						})}
 					/>
 				</div>
 			</form>

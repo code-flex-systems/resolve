@@ -9,6 +9,7 @@ declare module 'next-auth' {
 			phone: string | null;
 			role: string | null;
 			client_id: string | null;
+			must_change_password?: boolean;
 		};
 	}
 
@@ -19,6 +20,7 @@ declare module 'next-auth' {
 		phone: string | null;
 		role: string | null;
 		client_id: string | null;
+		must_change_password?: boolean;
 	}
 }
 
@@ -27,6 +29,7 @@ declare module 'next-auth/adapters' {
 		phone: string | null;
 		role: string | null;
 		client_id: string | null;
+		must_change_password?: boolean;
 	}
 }
 
@@ -38,5 +41,6 @@ declare module 'next-auth/jwt' {
 		phone: string | null;
 		role: string | null;
 		client_id: string | null;
+		must_change_password?: boolean;
 	}
 }

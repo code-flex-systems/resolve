@@ -1,5 +1,6 @@
 import * as answerQueries from '@/api/queries/answerQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { TRPCError } from '@trpc/server';
 
 /**
  * Create an answer for a question.
@@ -45,7 +46,7 @@ export async function copyAnswer(
 ) {
 	try {
 		const existingAnswer = await answerQueries.getAnswer(ctx, answerId);
-		if (!existingAnswer) throw new Error('Answer does not exist');
+		if (!existingAnswer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Answer does not exist' });
 		const results = await answerQueries.createAnswer(ctx, pageId, questionId, existingAnswer);
 		return results;
 	} catch (e) {

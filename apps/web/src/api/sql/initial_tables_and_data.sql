@@ -298,3 +298,15 @@ create index idx_auth_events_user_created on auth_events(user_id, created_at des
 
 -- Optional index for querying by event type
 create index idx_auth_events_event_type on auth_events(event_type);
+
+-- password tokens
+
+create table password_reset_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  token text not null,
+  expires_at timestamp not null,
+  used boolean not null default false,
+  created_at timestamp not null default now()
+);
+create unique index on password_reset_tokens(token);

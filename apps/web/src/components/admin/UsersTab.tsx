@@ -170,17 +170,10 @@ export default function UsersTab() {
 						fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
 						validateRow={(row: any) =>
 							createUsersInput.safeParse({
-								users: [
-									{
-										...row,
-										password: process.env.DEFAULT_WEB_PW,
-									},
-								],
+								users: [row],
 							})
 						}
-						onSubmit={(rows) =>
-							createUsers({ users: rows.map((u) => ({ ...u, password: process.env.DEFAULT_WEB_PW })) })
-						}
+						onSubmit={(rows) => createUsers({ users: rows })}
 						submitting={creating}
 						onClose={toggleImportUsersDialog}
 					/>

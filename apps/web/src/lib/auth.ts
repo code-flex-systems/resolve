@@ -4,6 +4,9 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { KyselyAdapter } from '@auth/kysely-adapter';
 import { db } from '@/api/database/kysely';
 import { compareSync } from 'bcrypt';
+import { logAuthMiddleware } from '@/middleware/logAuthMiddleware';
+import { AuthEventType } from '@/config/enums';
+import { getIP, getUserAgent } from './utils/headerUtils';
 
 export const authOptions: NextAuthOptions = {
 	adapter: KyselyAdapter(db),
@@ -15,14 +18,28 @@ export const authOptions: NextAuthOptions = {
 				username: { label: 'Username', type: 'text' },
 				password: { label: 'Password', type: 'password' },
 			},
-			async authorize(credentials) {
-				if (!credentials) return null;
+			async authorize(credentials, req) {
+				// Check for credentials
+				if (!credentials) {
+					logAuthMiddleware(null, AuthEventType.MissingCredentials, {
+						ip: getIP(req),
+						userAgent: getUserAgent(req),
+					});
+					return null;
+				}
+
+				// Find user
 				const user = await db
 					.selectFrom('users')
 					.selectAll()
 					.where('email', '=', credentials.username)
 					.executeTakeFirst();
 				if (user && compareSync(credentials.password, user.password_hash)) {
+					// Login success
+					logAuthMiddleware(user.id, AuthEventType.LoginSuccess, {
+						ip: getIP(req),
+						userAgent: getUserAgent(req),
+					});
 					return {
 						id: user.id.toString(),
 						email: user.email,
@@ -30,9 +47,20 @@ export const authOptions: NextAuthOptions = {
 						phone: user.phone ?? null,
 						role: user.role ?? null,
 						client_id: user.client_id ?? null,
+						much_change_password: user.must_change_password || undefined,
 					};
+				} else {
+					// Login failure
+					logAuthMiddleware(null, AuthEventType.LoginFailure, {
+						ip: getIP(req),
+						userAgent: getUserAgent(req),
+						identityKey: user?.id ?? 'None',
+						details: {
+							emailAttempted: credentials.username,
+						},
+					});
+					return null;
 				}
-				return null;
 			},
 		}),
 		// Add other providers here (e.g., GitHub, Google)
@@ -54,6 +82,7 @@ export const authOptions: NextAuthOptions = {
 				token.phone = user.phone;
 				token.role = user.role;
 				token.client_id = user.client_id;
+				if (token.must_change_password) token.must_change_password = user.must_change_password;
 			}
 			return token;
 		},
@@ -65,6 +94,7 @@ export const authOptions: NextAuthOptions = {
 				phone: token.phone,
 				role: token.role,
 				client_id: token.client_id,
+				must_change_password: token.must_change_password,
 			};
 			return session;
 		},

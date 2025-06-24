@@ -21,6 +21,6 @@ export const config = {
 		 *  - static files (_next/static, _next/image)
 		 *  - favicon.ico
 		 */
-		'/((?!api/auth|_next/static|_next/image|favicon.ico|login|signup).*)',
+		'/((?!api/auth|api/trpc|_next/static|_next/image|favicon.ico|login|reset-password-email|reset-password|force-reset-password).*)',
 	],
 };

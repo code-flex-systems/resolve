@@ -6,6 +6,7 @@ import { PageInstance, PageTemplate } from '@/types/types';
 import { PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
+import { TRPCError } from '@trpc/server';
 
 /**
  * Insert a new page template and instance as a single transaction.
@@ -301,7 +302,7 @@ export async function modifyPage(ctx: ProtectedContext, pageId: number, params: 
 	const updates: UpdateObjectExpression<DB, 'page'> = {};
 	if (params.title) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
-	if (!Object.keys(updates).length) throw new Error('No updates');
+	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
 	return await db
 		.updateTable('page')
 		.set({

@@ -11,7 +11,7 @@ export const trpcClient = trpc.createClient({
 	transformer: undefined,
 	links: [
 		httpBatchLink({
-			url: '/api/trpc',
+			url: '/api/trpc/',
 		}),
 	],
 });

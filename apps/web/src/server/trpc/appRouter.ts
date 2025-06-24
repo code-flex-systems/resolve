@@ -9,6 +9,7 @@ import { questionRouter } from './routers/question';
 import { responseRouter } from './routers/response';
 import { userRouter } from './routers/user';
 import { feedRouter } from './routers/feed';
+import { passwordResetRouter } from './routers/passwordReset';
 
 export const appRouter = router({
 	answer: answerRouter,
@@ -17,6 +18,7 @@ export const appRouter = router({
 	doc: docRouter,
 	feed: feedRouter,
 	page: pageRouter,
+	passwordReset: passwordResetRouter,
 	question: questionRouter,
 	response: responseRouter,
 	user: userRouter,

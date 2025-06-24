@@ -76,7 +76,7 @@ export async function createUsers(
 		phone?: string;
 	}[]
 ) {
-	const [user] = await db
+	return await db
 		.insertInto('users')
 		.values(
 			users.map((u) => ({
@@ -88,7 +88,6 @@ export async function createUsers(
 		)
 		.returningAll()
 		.execute();
-	return user;
 }
 
 /**

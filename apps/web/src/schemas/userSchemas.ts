@@ -13,7 +13,6 @@ export const createUsersInput = z.object({
 			first: z.string(),
 			last: z.string(),
 			email: z.string().email(),
-			password: z.string(),
 			phone: z.string().optional(),
 			role: z.string().optional(),
 		})
@@ -25,10 +24,11 @@ export const updateUserInput = z.object({
 	params: z.object({
 		name: z.string().optional(),
 		email: z.string().email().optional(),
-		password_hash: z.string().optional(),
+		password: z.string().optional(),
 		phone_number: z.string().optional(),
 		role: z.string().optional(),
 		disabled: z.boolean().optional(),
+		must_change_password: z.boolean().optional(),
 	}),
 });
 

@@ -4,6 +4,7 @@ import * as responseQueries from '@/api/queries/responseQueries';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Interval, QuestionResponse } from '@/types/types';
+import { TRPCError } from '@trpc/server';
 
 /**
  * Recalculate page instance status based on responses.
@@ -24,13 +25,13 @@ export async function evaluateResponses(
 	}
 ) {
 	const pageInstance = await pageQueries.getPageInstance(ctx, instanceId);
-	if (!pageInstance) throw new Error('Invalid instance');
+	if (!pageInstance) throw new TRPCError({ code: 'NOT_FOUND', message: 'Instance not found' });
 	const [questionCount = 0, responseCount = 0] = await Promise.all([
 		questionQueries.getQuestionCount(ctx, pageInstance.id),
 		responseQueries.getResponseCount(ctx, checklistId, claimId, instanceId),
 	]);
 	const updatedPageStatus = getUpdatedPageStatus(questionCount, responseCount);
-        // Persist the new status for the page instance
+	// Persist the new status for the page instance
 	await pageQueries.modifyPageInstanceStatus(ctx, {
 		claimId,
 		instanceIds: [instanceId],
@@ -85,7 +86,7 @@ export async function getResponsesForClaimChecklist(
  */
 export async function upsertQuestionResponses(ctx: ProtectedContext, { responses }: { responses: any[] }) {
 	const sampleResponse = responses?.[0] as QuestionResponse;
-	if (!sampleResponse) throw new Error('Invalid responses');
+	if (!sampleResponse) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid responses' });
 	const newStatus = await responseQueries.upsertQuestionResponses(ctx, responses);
 	const visibleIds = await pageQueries.getVisiblePageInstances(
 		ctx,

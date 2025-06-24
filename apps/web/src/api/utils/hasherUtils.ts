@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import bcrypt from 'bcrypt';
 
 const SALT_ROUNDS = 12;
@@ -6,7 +7,7 @@ export async function hashPasswordIfPresent<T extends { password: string }>(
 	user: T
 ): Promise<Omit<T, 'password'> & { password_hash: string }> {
 	const { password, ...rest } = user;
-	if (!password) throw new Error('Password required');
+	if (!password) throw new TRPCError({ code: 'PARSE_ERROR', message: 'Password required' });
 
 	const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 	return { ...rest, password_hash };
