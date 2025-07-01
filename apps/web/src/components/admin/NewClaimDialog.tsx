@@ -1,7 +1,7 @@
-import { Grid, InputAdornment, TextField, Typography } from '@mui/material';
+import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import { ContentPasteSearch } from '@mui/icons-material';
+import { ContentPasteSearch, Info } from '@mui/icons-material';
 import { toggleNewClaimDialog } from '@/state/admin/actions';
 import { Claim } from '@/types/types';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -46,9 +46,13 @@ export default function NewClaimDialog() {
 			onClose={toggleNewClaimDialog}
 			width={700}
 		>
-			<Typography fontStyle="italic">
-				Toggle <b>Only Manual Claims</b> to filter by claims created here.
-			</Typography>
+			<Box display="flex" alignItems="center" justifyContent="flex-start" paddingBottom="10px">
+				<Info sx={{ color: 'primary.main' }} />
+				<Typography marginLeft="5px">
+					Toggle <b>Only Manual Claims</b> to filter by claims created here.
+				</Typography>
+			</Box>
+
 			<form style={styles.form} className="flex-col-start">
 				<Grid container spacing={2}>
 					<Grid style={styles.row}>

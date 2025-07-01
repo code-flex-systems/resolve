@@ -108,6 +108,20 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				created_by: ctx.session.user.id,
 			}))
 		)
+		.onConflict((oc) =>
+			oc.column('claim_number').doUpdateSet((eb) => ({
+				client: eb.ref('excluded.client'),
+				client_adjuster: eb.ref('excluded.client_adjuster'),
+				insured: eb.ref('excluded.insured'),
+				claim_amount: eb.ref('excluded.claim_amount'),
+				total_incurred: eb.ref('excluded.total_incurred'),
+				date_of_loss: eb.ref('excluded.date_of_loss'),
+				loss_location: eb.ref('excluded.loss_location'),
+				last_updated_by: eb.ref('excluded.last_updated_by'),
+				last_update: eb.ref('excluded.last_update'),
+				expected_recovery: eb.ref('excluded.expected_recovery'),
+			}))
+		)
 		.returningAll()
 		.execute();
 	return feed;

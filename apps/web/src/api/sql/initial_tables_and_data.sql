@@ -130,7 +130,8 @@ create table claim(
     client_id uuid not null references client(id),
     feed_id integer references feeds(id),
     created_by uuid references users(id),
-    created_at timestamp
+    created_at timestamp,
+    unique(claim_number)
 );
 
 create table checklist_claim(
