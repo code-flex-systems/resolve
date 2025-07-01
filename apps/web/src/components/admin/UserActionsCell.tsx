@@ -40,7 +40,7 @@ export default function UserActionsCell(params: GridRenderCellParams) {
 					</Typography>
 				</BasicDialog>
 			)}
-			{row.role === config.ROLES.ADMIN || session?.user?.email === row.email ? (
+			{session?.user?.email === row.email ? (
 				<></>
 			) : (
 				<div style={{ width: '100%', height: '100%' }} className="flex-row-center">

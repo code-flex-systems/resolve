@@ -57,3 +57,9 @@ export function updateUserConstraints(newConstraints: { page: number; pageSize: 
 		state.userConstraints = newConstraints;
 	});
 }
+
+export function updateUserSearchTerm(newTerm: string) {
+	setState((state) => {
+		state.userSearchTerm = newTerm;
+	});
+}

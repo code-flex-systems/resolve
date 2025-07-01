@@ -16,6 +16,7 @@ const adminSlice: AdminSlice = Object.freeze({
 		pageSize: 10,
 		page: 0,
 	},
+	userSearchTerm: '',
 });
 
 export default adminSlice;

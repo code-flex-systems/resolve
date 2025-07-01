@@ -5,6 +5,7 @@ export const getUsersInput = z.object({
 	disabled: z.boolean().optional(),
 	limit: z.number().optional(),
 	offset: z.number().optional(),
+	searchTerm: z.string().optional(),
 });
 export const getUserInput = z.object({ id: z.string() });
 

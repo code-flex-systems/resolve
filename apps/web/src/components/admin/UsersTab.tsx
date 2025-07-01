@@ -1,7 +1,7 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, Paper, Switch, Typography } from '@mui/material';
+import { Button, IconButton, InputAdornment, Paper, Switch, TextField, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { AccessTimeFilled, AccountCircle, AddBox, Email, Phone, Shield, Upload } from '@mui/icons-material';
+import { AccessTimeFilled, AccountCircle, AddBox, Email, Phone, Search, Shield, Upload } from '@mui/icons-material';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { toggleImportUsersDialog, toggleNewUserDialog, updateUserConstraints } from '@/state/admin/actions';
@@ -11,13 +11,16 @@ import parsePhoneNumberFromString from 'libphonenumber-js';
 import VerifiedCell from './VerifiedCell';
 import RoleCell from './RoleCell';
 import { useSession } from 'next-auth/react';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import { useAdminSlice } from '@/state/store';
-import { BASE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR } from '@/styles/theme';
 import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
 import config from '@/config/config';
 import { createUsersInput } from '@/schemas/userSchemas';
+import useDebounce from '@/lib/utils/useDebounce';
+import { trpc } from '@/lib/trpc';
+import * as actions from '@/state/admin/actions';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -76,17 +79,27 @@ const COLUMNS: GridColDef[] = [
 ];
 
 export default function UsersTab() {
-	const [showDisabled, setShowDisabled] = useState(false);
+	const trpcUtils = trpc.useUtils();
 	const { data: session } = useSession();
 	const showImportUsersDialog = useAdminSlice((state) => state.showImportUsersDialog);
 	const userConstraints = useAdminSlice((state) => state.userConstraints);
-	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().list({
+	const userSearchTerm = useAdminSlice((state) => state.userSearchTerm);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [showDisabled, setShowDisabled] = useState(false);
+
+	const {
+		data = { rows: [], count: undefined },
+		isFetching,
+		refetch,
+	} = useUserTrpc().list({
 		disabled: showDisabled,
 		limit: userConstraints.pageSize,
 		offset: userConstraints.page * userConstraints.pageSize,
+		searchTerm: userSearchTerm,
 	});
 	const { mutateAsync: createUsers, isPending: creating } = useUserTrpc().create;
 	const rowCountRef = useRef(data.count ?? 0);
+	const searchDisabled = !searchTerm || isFetching;
 
 	const rowCount = useMemo(() => {
 		if (data.count !== undefined) {
@@ -95,12 +108,41 @@ export default function UsersTab() {
 		return rowCountRef.current;
 	}, [data.count]);
 
+	const debouncedSearch = useCallback(
+		useDebounce((search: string) => actions.updateUserSearchTerm(search), 500),
+		[]
+	);
+
 	return (
 		<div style={styles.container}>
 			<Paper sx={styles.paper} className="flex-col-start">
 				<Toolbar
 					left={
 						<>
+							<TextField
+								placeholder="Search for a user"
+								fullWidth
+								value={searchTerm}
+								onChange={(e) => {
+									setSearchTerm(e.target.value);
+									debouncedSearch(e.target.value);
+								}}
+								sx={styles.textField}
+								slotProps={{
+									input: {
+										startAdornment: (
+											<InputAdornment position="start">
+												<Search
+													sx={{
+														fontSize: 17,
+													}}
+												/>
+											</InputAdornment>
+										),
+									},
+								}}
+								autoComplete="off"
+							/>
 							<Switch
 								size="small"
 								checked={showDisabled}
@@ -202,5 +244,12 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+	},
+	textField: {
+		marginRight: '20px',
+		width: 250,
+		'& .MuiInput-input': {
+			fontSize: 17,
+		},
 	},
 };

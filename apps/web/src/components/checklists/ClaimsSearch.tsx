@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
 	TextField,
 	IconButton,
@@ -35,8 +35,9 @@ export default function ClaimsSearch() {
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<Claim[]>([]);
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const spanRef = useRef<HTMLElement | null>(null);
 
-	const onFocus: TextFieldProps['onFocus'] = (e) => setAnchorEl(e.currentTarget);
+	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);
 	const onClose = () => setAnchorEl(null);
 
 	const debouncedSearch = useCallback(
@@ -44,7 +45,7 @@ export default function ClaimsSearch() {
 			trpcUtils.claim.getClaims
 				.fetch({ searchTerm: { type, value: query } })
 				.then((results) => {
-					if (results) setResults(results);
+					if (Array.isArray(results)) setResults(results);
 				})
 				.catch((e) => console.error(e))
 				.finally(() => setSearching(false));
@@ -59,6 +60,8 @@ export default function ClaimsSearch() {
 		if (value) {
 			setSearching(true);
 			debouncedSearch(value);
+		} else {
+			onClose();
 		}
 	};
 
@@ -69,7 +72,7 @@ export default function ClaimsSearch() {
 	return (
 		<div style={styles.container} className="flex-col-center">
 			<ClickAwayListener onClickAway={onClose}>
-				<span>
+				<span ref={spanRef}>
 					<TextField
 						placeholder={`Start typing a ${type === 'claim_number' ? 'claim number' : 'name'}...`}
 						fullWidth
@@ -125,7 +128,6 @@ export default function ClaimsSearch() {
 										<Collapse key={i}>
 											<ClaimMenuItem
 												claim={c}
-												showDiv={i < results.length}
 												onClose={() => {
 													onClose();
 													setQuery('');
@@ -181,6 +183,7 @@ const styles = {
 		outline: '1px solid #E0E0E0',
 		borderBottomLeftRadius: 2,
 		borderBottomRightRadius: 2,
+		marginTop: 2,
 	},
 	switch: {
 		width: '100%',

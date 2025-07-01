@@ -10,15 +10,35 @@ import { sql } from 'kysely';
  * @param disabled - filter by disabled state
  * @param limit - result limit
  * @param offset - starting offset
+ * @param searchTerm - optional search term
  * @returns array of users
  */
-export async function getUsers(ctx: ProtectedContext, disabled?: boolean, limit?: number, offset?: number) {
+export async function getUsers(
+	ctx: ProtectedContext,
+	disabled?: boolean,
+	limit?: number,
+	offset?: number,
+	searchTerm?: string
+) {
 	let query = db
 		.selectFrom('users')
 		.selectAll()
-		.where((eb) =>
-			eb.and([eb('disabled', '=', Boolean(disabled)), eb('client_id', '=', ctx.session.user.client_id)])
-		)
+		.where((eb) => {
+			const andClause = [
+				eb('disabled', '=', Boolean(disabled)),
+				eb('client_id', '=', ctx.session.user.client_id),
+			];
+			if (searchTerm) {
+				andClause.push(
+					eb(
+						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
+						'like',
+						`%${searchTerm.toLowerCase()}%`
+					)
+				);
+			}
+			return eb.and(andClause);
+		})
 		.orderBy(['last', 'first']);
 	if (limit != null && offset != null) {
 		query = query.limit(limit).offset(offset);
@@ -31,15 +51,28 @@ export async function getUsers(ctx: ProtectedContext, disabled?: boolean, limit?
  *
  * @param ctx - request context
  * @param disabled - filter by disabled status
+ * @param searchTerm - optional search term
  * @returns number of users
  */
-export async function getUserCount(ctx: ProtectedContext, disabled?: boolean) {
+export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, searchTerm?: string) {
 	const query = db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
-		.where((eb) =>
-			eb.and([eb('disabled', '=', Boolean(disabled)), eb('client_id', '=', ctx.session.user.client_id)])
-		);
+		.where((eb) => {
+			const andClause = [
+				eb('disabled', '=', Boolean(disabled)),
+				eb('client_id', '=', ctx.session.user.client_id),
+			];
+			if (searchTerm) {
+				andClause.push(
+					eb.or([
+						eb(sql`lower(${eb.ref('first')})`, 'like', `${searchTerm.toLowerCase()}%`),
+						eb(sql`lower(${eb.ref('last')})`, 'like', `${searchTerm.toLowerCase()}%`),
+					])
+				);
+			}
+			return eb.and(andClause);
+		});
 	const count = await query.executeTakeFirst();
 	return parseInt(count?.count?.toString() ?? '0');
 }

@@ -40,7 +40,7 @@ export default function Feeds() {
 				<Toolbar
 					left={<Typography paddingBottom="5px">Feeds</Typography>}
 					right={
-						<Button onClick={onTest} disabled={testing} sx={{ height: 25 }}>
+						<Button onClick={onTest} disabled={testing || !feeds.length} sx={{ height: 25 }}>
 							Test
 						</Button>
 					}
@@ -48,6 +48,13 @@ export default function Feeds() {
 				/>
 				<Divider />
 				<List disablePadding sx={{ paddingTop: '5px' }}>
+					{!feeds.length && (
+						<div style={styles.menuItem}>
+							<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontStyle="italic">
+								No feeds found
+							</Typography>
+						</div>
+					)}
 					{feeds.map((f) => [
 						<MenuItem
 							key={f.id}
@@ -131,8 +138,8 @@ export default function Feeds() {
 											f.status === FeedStatus.OFFLINE
 												? 'Feed is offline'
 												: f.status === FeedStatus.MUTED
-												? 'Unmute'
-												: 'Mute'
+													? 'Unmute'
+													: 'Mute'
 										}
 										enterDelay={500}
 										arrow
@@ -198,7 +205,6 @@ export default function Feeds() {
 const styles = {
 	container: {
 		width: 'fit-content',
-		minWidth: 325,
 		height: '100%',
 		paddingTop: 20,
 	},
@@ -222,6 +228,7 @@ const styles = {
 		marginTop: '5px',
 	},
 	paper: {
+		minWidth: 325,
 		height: '100%',
 		padding: '15px',
 		border: 1,

@@ -17,6 +17,7 @@ export interface AdminSlice {
 		page: number;
 		pageSize: number;
 	};
+	userSearchTerm: string;
 }
 
 export interface BreakdownSlice {

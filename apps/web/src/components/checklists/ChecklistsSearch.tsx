@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
 	TextField,
 	IconButton,
@@ -32,8 +32,9 @@ export default function ChecklistsSearch() {
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<Checklist[]>([]);
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const spanRef = useRef<HTMLElement | null>(null);
 
-	const onFocus: TextFieldProps['onFocus'] = (e) => setAnchorEl(e.currentTarget);
+	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);
 	const onClose = () => setAnchorEl(null);
 
 	const debouncedSearch = useCallback(
@@ -41,7 +42,7 @@ export default function ChecklistsSearch() {
 			trpcUtils.checklist.getChecklists
 				.fetch({ searchTerm: query })
 				.then((results) => {
-					if (results) setResults(results);
+					if (Array.isArray(results)) setResults(results);
 				})
 				.catch((e) => console.error(e))
 				.finally(() => setSearching(false));
@@ -68,7 +69,7 @@ export default function ChecklistsSearch() {
 	return (
 		<div style={styles.container} className="flex-row-left">
 			<ClickAwayListener onClickAway={onClose}>
-				<span>
+				<span ref={spanRef}>
 					<TextField
 						placeholder="Start typing a checklist name..."
 						fullWidth
@@ -158,6 +159,7 @@ const styles = {
 		outline: '1px solid #E0E0E0',
 		borderBottomLeftRadius: 2,
 		borderBottomRightRadius: 2,
+		marginTop: 2,
 	},
 	textField: {
 		width: 300,

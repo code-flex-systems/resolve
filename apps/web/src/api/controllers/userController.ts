@@ -16,11 +16,16 @@ import { sendEmail } from '@/lib/email/sendEmail';
  */
 export async function getUsers(
 	ctx: ProtectedContext,
-	{ disabled, limit, offset }: { disabled?: boolean; limit?: number; offset?: number }
+	{
+		disabled,
+		limit,
+		offset,
+		searchTerm,
+	}: { disabled?: boolean; limit?: number; offset?: number; searchTerm?: string }
 ) {
 	const [rows, count] = await Promise.all([
-		userQueries.getUsers(ctx, disabled, limit, offset),
-		userQueries.getUserCount(ctx, disabled),
+		userQueries.getUsers(ctx, disabled, limit, offset, searchTerm),
+		userQueries.getUserCount(ctx, disabled, searchTerm),
 	]);
 	return { rows, count };
 }
