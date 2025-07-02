@@ -45,7 +45,7 @@ export default function ClaimsSearch() {
 			trpcUtils.claim.getClaims
 				.fetch({ searchTerm: { type, value: query } })
 				.then((results) => {
-					if (Array.isArray(results)) setResults(results);
+					if (Array.isArray(results.rows)) setResults(results.rows);
 				})
 				.catch((e) => console.error(e))
 				.finally(() => setSearching(false));

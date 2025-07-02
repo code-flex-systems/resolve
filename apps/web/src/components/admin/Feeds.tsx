@@ -25,7 +25,7 @@ const getStatusColor = (status: FeedStatus) => {
 export default function Feeds() {
 	const [testing, setTesting] = useState(false);
 	const selectedFeedId = useAdminSlice((state) => state.selectedFeedId);
-	const { data: feeds = [] } = useFeedTrpc().list();
+	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
 
 	// Fake tester
@@ -48,7 +48,7 @@ export default function Feeds() {
 				/>
 				<Divider />
 				<List disablePadding sx={{ paddingTop: '5px' }}>
-					{!feeds.length && (
+					{!feeds.length && !isFetching && (
 						<div style={styles.menuItem}>
 							<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontStyle="italic">
 								No feeds found

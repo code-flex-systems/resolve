@@ -108,7 +108,7 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 			.selectAll()
 			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)])),
 		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
+	).executeTakeFirst();
 }
 
 /**
