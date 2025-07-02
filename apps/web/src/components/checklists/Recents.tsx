@@ -11,30 +11,32 @@ export default function Recents() {
 	const router = useRouter();
 	const { isFetching, data: recentChecklistClaims = [] } = useChecklistTrpc().listRecents();
 	return (
-		<Paper style={styles.container}>
-			<Toolbar left={<Typography fontStyle="italic">Recents</Typography>} height={40} padding={0} />
-			<div style={styles.horizontalDiv}>
-				<Divider orientation="horizontal" />
-			</div>
-			{!isFetching && !recentChecklistClaims.length && <Typography fontStyle="italic">No recents</Typography>}
-			<div style={styles.links}>
-				<TransitionGroup>
-					{recentChecklistClaims.map((c, i) => (
-						<Collapse key={i}>
-							<Link
-								onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
-								style={styles.link}
-								color="primary"
-								className="flex-row-left"
-							>
-								<ContentPasteSearch sx={styles.icon} />
-								{c.claim_number} ({c.checklist_name})
-							</Link>
-						</Collapse>
-					))}
-				</TransitionGroup>
-			</div>
-		</Paper>
+		<Collapse in={!!recentChecklistClaims.length} orientation="horizontal">
+			<Paper style={styles.container}>
+				<Toolbar left={<Typography fontStyle="italic">Recents</Typography>} height={40} padding={0} />
+				<div style={styles.horizontalDiv}>
+					<Divider orientation="horizontal" />
+				</div>
+				{!isFetching && !recentChecklistClaims.length && <Typography fontStyle="italic">No recents</Typography>}
+				<div style={styles.links}>
+					<TransitionGroup>
+						{recentChecklistClaims.map((c, i) => (
+							<Collapse key={i}>
+								<Link
+									onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
+									style={styles.link}
+									color="primary"
+									className="flex-row-left"
+								>
+									<ContentPasteSearch sx={styles.icon} />
+									{c.claim_number} ({c.checklist_name})
+								</Link>
+							</Collapse>
+						))}
+					</TransitionGroup>
+				</div>
+			</Paper>
+		</Collapse>
 	);
 }
 

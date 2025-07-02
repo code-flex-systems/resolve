@@ -4,9 +4,9 @@ import * as actions from '@/state/checklist/actions';
 import { useChecklistSlice } from '@/state/store';
 import { BarChart, KeyboardArrowRight } from '@mui/icons-material';
 import './styles.css';
-import { TreeNode } from '@/types/types';
+import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
-import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
+import { ChecklistMode, PageInstanceStatus } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import BasicButton from '../common/BasicButton';
 import { IconAlertCircleFilled, IconCircle, IconCircleCheckFilled, IconPercentage50 } from '@tabler/icons-react';
@@ -126,7 +126,6 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 								pageId={pageId}
 								questionId={q.id}
 								questionText={q.text}
-								questionType={q.type as QuestionType}
 								questionAnswers={q.answers ?? []}
 								level={level + 1}
 								idx={i}
@@ -137,7 +136,6 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							pageId={pageId}
 							questionId={-1}
 							questionText="New Question"
-							questionType={QuestionType.SINGLE}
 							questionAnswers={[]}
 							level={level + 1}
 							idx={-1}
@@ -161,6 +159,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 const styles = {
 	icon: {
+		marginTop: '4px',
 		marginLeft: '5px',
 		marginRight: '10px',
 	},

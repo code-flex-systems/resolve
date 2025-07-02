@@ -196,7 +196,6 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 							response_id: saved.id,
 							answer_id: a.answer_id,
 							additional_info: a.additional_info ?? null,
-							client_id: ctx.session.user.client_id,
 						}))
 					)
 					.execute();

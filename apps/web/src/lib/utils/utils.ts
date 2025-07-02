@@ -53,6 +53,7 @@ export function getExtension(filename: string) {
 export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: number) {
 	const instances: InstanceListItem[] = [];
 	getInstances(tree, currentInstanceId, instances);
+	console.log(tree);
 	return instances;
 }
 
