@@ -21,6 +21,8 @@ export const getClaimsInput = z.object({
 });
 export type GetClaimsInput = z.infer<typeof getClaimsInput>;
 
+export const getClaimCountInput = z.object({ clientId: z.string().optional() });
+
 export const createClaimInput = z.object({
 	claims: z.array(
 		z.object({

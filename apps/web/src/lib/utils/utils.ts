@@ -4,6 +4,10 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 // public methods
 
+export function capitalize(word: string) {
+	return `${word[0].toUpperCase()}${word.slice(1)}`;
+}
+
 export function getInitials(name: string | null | undefined) {
 	if (!name) return '';
 	const parts = name.split(' ');
@@ -21,6 +25,39 @@ export function formatAmount(value?: number | string, currency = false) {
 
 export function formatHour(hour: number) {
 	return dayjs().set('hour', hour).format('h A');
+}
+
+export function formatMetric(
+	value?: string | number,
+	options: { floating?: boolean; cap?: number; showNegative?: boolean } = {}
+) {
+	const parsedValue =
+		!value || (typeof value === 'string' && isNaN(parseFloat(value)))
+			? 0
+			: options.floating
+				? parseFloat(value.toString())
+				: parseInt(value.toString());
+	const isCapped = options.cap && Math.abs(parsedValue) > options.cap;
+	let absValue = isCapped ? options.cap! : Math.abs(parsedValue);
+
+	let abv = '';
+	if (absValue > 999999) {
+		absValue = absValue / 1000000;
+		abv = 'm';
+	} else if (absValue > 999) {
+		absValue = absValue / 1000;
+		abv = 'k';
+	}
+
+	const postfix = isCapped ? '+' : '';
+	const formattedValue = options.floating
+		? formatAmount(absValue)
+		: absValue.toLocaleString('en-US', { maximumFractionDigits: 1 });
+	const combinedValue = `${formattedValue}${abv}${postfix}`;
+	return {
+		value: options.showNegative && parsedValue < 0 ? `(${combinedValue})` : combinedValue,
+		isNegative: parsedValue < 0,
+	};
 }
 
 export function formatMDY(date?: string) {
@@ -53,7 +90,6 @@ export function getExtension(filename: string) {
 export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: number) {
 	const instances: InstanceListItem[] = [];
 	getInstances(tree, currentInstanceId, instances);
-	console.log(tree);
 	return instances;
 }
 

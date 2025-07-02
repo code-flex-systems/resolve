@@ -12,7 +12,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 	const pathname = usePathname();
 
 	useEffect(() => {
-		console.log(session);
 		if (status === 'authenticated' && session.user?.must_change_password && pathname !== FORCE_PATH) {
 			router.replace(FORCE_PATH);
 		}

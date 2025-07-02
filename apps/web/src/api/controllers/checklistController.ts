@@ -50,6 +50,17 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
 }
 
 /**
+ * Count published/unpublished checklists with optional client ID.
+ *
+ * @param ctx - request context
+ * @param input - client ID
+ */
+export async function getChecklistCount(ctx: ProtectedContext, { clientId }: { clientId: string }) {
+	const results = await checklistQueries.getChecklistCount(ctx, clientId);
+	return results;
+}
+
+/**
  * Retrieve the mapping row for a checklist claim.
  *
  * @param ctx - request context

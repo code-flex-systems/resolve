@@ -94,6 +94,34 @@ export async function getChecklists(ctx: ProtectedContext, searchTerm?: string) 
 }
 
 /**
+ * Count published/unpublished checklists with client ID.
+ *
+ * @param ctx - request context
+ * @param clientId - client ID
+ * @returns published/unpublished count
+ */
+export async function getChecklistCount(ctx: ProtectedContext, clientId: string) {
+	const results = await applyClientScope(
+		db
+			.selectFrom('checklist')
+			.select(({ fn }) => ['published', fn.count('id').as('count')])
+			.groupBy('published'),
+		clientId
+	).execute();
+	let total = 0;
+	const formattedResults = results.map((r) => {
+		const count = parseInt(r.count.toString());
+		total += count;
+		return { ...r, count };
+	});
+	return {
+		total,
+		published: formattedResults.find((r) => r.published)?.count ?? 0,
+		unpublished: formattedResults.find((r) => !r.published)?.count ?? 0,
+	};
+}
+
+/**
  * Fetch the mapping row for a checklist and claim.
  *
  * @param ctx - request context

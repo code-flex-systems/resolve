@@ -78,6 +78,33 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, se
 }
 
 /**
+ * Count active/inactive users with client ID.
+ *
+ * @param ctx - request context
+ * @param clientId - client ID
+ * @returns active/inactive count
+ */
+export async function getUserCountMetrics(ctx: ProtectedContext, clientId: string) {
+	const results = await db
+		.selectFrom('users')
+		.select(({ fn }) => ['disabled', fn.count('id').as('count')])
+		.where('client_id', '=', clientId)
+		.groupBy('disabled')
+		.execute();
+	let total = 0;
+	const formattedResults = results.map((r) => {
+		const count = parseInt(r.count.toString());
+		total += count;
+		return { ...r, count };
+	});
+	return {
+		total,
+		active: formattedResults.find((r) => !r.disabled)?.count ?? 0,
+		inactive: formattedResults.find((r) => r.disabled)?.count ?? 0,
+	};
+}
+
+/**
  * Retrieve a single user by id.
  *
  * @param ctx - request context

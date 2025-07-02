@@ -13,6 +13,8 @@ export function useChecklistTrpc() {
 
 		listRecents: trpc.checklist.getRecentChecklistClaims.useQuery,
 
+		count: trpc.checklist.getChecklistCount.useQuery,
+
 		get: trpc.checklist.getChecklist.useQuery,
 
 		getForClaim: trpc.checklist.getChecklistClaim.useQuery,

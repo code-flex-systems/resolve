@@ -2,11 +2,15 @@
 
 import { PropsWithChildren } from 'react';
 import PageWrapper from '@/components/common/PageWrapper';
+import AdminTabs from '@/components/pages/AdminTabs';
 
 export default function AdminLayout(props: PropsWithChildren) {
 	return (
 		<PageWrapper route="checklist">
-			<div style={styles.container}>{props.children}</div>
+			<div style={styles.container}>
+				<AdminTabs />
+				{props.children}
+			</div>
 		</PageWrapper>
 	);
 }

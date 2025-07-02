@@ -77,8 +77,32 @@ export async function getClaims(
 	} else {
 		query = query.select(({ fn }) => fn.countAll().as('count'));
 		const count = await query.executeTakeFirst();
-		return parseInt(count?.count?.toString() ?? '0');
+		return !!count && 'count' in count ? parseInt(count.count?.toString() ?? '0') : 0;
 	}
+}
+
+export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
+	const results = await applyClientScope(
+		db
+			.selectFrom('claim')
+			.select(({ eb, fn }) => [
+				eb.case().when('feed_id', 'is', null).then(true).else(false).end().as('manual'),
+				fn.count('id').as('count'),
+			])
+			.groupBy('manual'),
+		clientId
+	).execute();
+	let total = 0;
+	const formattedResults = results.map((r) => {
+		const count = parseInt(r.count.toString());
+		total += count;
+		return { ...r, count };
+	});
+	return {
+		total,
+		fed: formattedResults.find((r) => !r.manual)?.count ?? 0,
+		manual: formattedResults.find((r) => r.manual)?.count ?? 0,
+	};
 }
 
 /**

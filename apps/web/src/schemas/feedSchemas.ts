@@ -63,6 +63,8 @@ export const dbOptions = z.object({
 
 export const getFeedOptions = z.object({ id: z.number().int() });
 
+export const getFeedCountInput = z.object({ clientId: z.string().optional() });
+
 /**
  * Discriminated union for creating a feed
  * based on feed_type → forces correct connection_options shape

@@ -5,6 +5,7 @@ export function useUserTrpc() {
 
 	return {
 		list: trpc.user.getUsers.useQuery,
+		count: trpc.user.getUserCount.useQuery,
 		get: trpc.user.getUser.useQuery,
 
 		create: trpc.user.createUsers.useMutation({

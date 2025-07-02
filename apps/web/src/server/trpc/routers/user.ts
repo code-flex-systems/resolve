@@ -1,5 +1,12 @@
 import * as userController from '@/api/controllers/userController';
-import { getUsersInput, getUserInput, createUsersInput, updateUserInput, deleteUserInput } from '@/schemas/userSchemas';
+import {
+	getUsersInput,
+	getUserInput,
+	createUsersInput,
+	updateUserInput,
+	deleteUserInput,
+	getUserCountInput,
+} from '@/schemas/userSchemas';
 import { protectedProcedure, router } from '../trpc';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -8,6 +15,16 @@ export const userRouter = router({
 	getUsers: protectedProcedure.input(getUsersInput).query(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getUsers(ctx, input);
+	}),
+
+	getUserCount: protectedProcedure.input(getUserCountInput).query(async ({ input, ctx }) => {
+		if (input.clientId) {
+			// Client aliasing requires Super Admin role
+			requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		} else {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		}
+		return await userController.getUserCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
 	}),
 
 	getUser: protectedProcedure.input(getUserInput).query(async ({ input, ctx }) => {

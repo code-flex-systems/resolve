@@ -9,6 +9,10 @@ export const getUsersInput = z.object({
 });
 export const getUserInput = z.object({ id: z.string() });
 
+export const getUserCountInput = z.object({
+	clientId: z.string().optional(),
+});
+
 export const createUsersInput = z.object({
 	users: z.array(
 		z.object({

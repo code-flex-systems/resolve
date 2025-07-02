@@ -11,6 +11,10 @@ export async function getFeeds(ctx: ProtectedContext) {
 	return await feedQueries.getFeeds(ctx);
 }
 
+export async function getFeedCount(ctx: ProtectedContext, { clientId }: { clientId: string }) {
+	return await feedQueries.getFeedCount(ctx, clientId);
+}
+
 /**
  * Fetch a single feed by id.
  *

@@ -33,8 +33,8 @@ export enum ClaimSearch {
 }
 
 export enum FeedStatus {
-	OFFLINE = 'Offline',
 	ONLINE = 'Online',
+	OFFLINE = 'Offline',
 	MUTED = 'Muted',
 	INACTIVE = 'Inactive',
 }

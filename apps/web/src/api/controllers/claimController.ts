@@ -18,8 +18,8 @@ export async function getClaim(
 }
 
 /**
-* Retrieve claims with optional feed or search filters.
-*
+ * Retrieve claims with optional feed or search filters.
+ *
  * @param ctx - request context
  * @param params - filtering and pagination options
  */
@@ -37,6 +37,16 @@ export async function getClaims(
 		claimQueries.getClaims(ctx, { ...params, type: 'count' }),
 	]);
 	return { rows, count };
+}
+
+/**
+ * Count claims.
+ *
+ * @param ctx - request context
+ */
+export async function getClaimCount(ctx: ProtectedContext, { clientId }: { clientId: string }) {
+	const results = await claimQueries.getClaimCount(ctx, clientId);
+	return results;
 }
 
 /**

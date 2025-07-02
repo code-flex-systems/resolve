@@ -40,6 +40,26 @@ export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
 	).execute();
 }
 
+export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
+	const results = await applyClientScope(
+		db
+			.selectFrom('feeds')
+			.select(({ fn }) => ['status', fn.count('id').as('count')])
+			.groupBy('status'),
+		clientId
+	).execute();
+	const formattedResults: Partial<Record<FeedStatus, number>> & { total: number } = {
+		total: 0,
+	};
+	Object.values(FeedStatus).forEach((s) => {
+		const resultCount = results.find((r) => r.status === s)?.count ?? 0;
+		const count = parseInt(resultCount.toString());
+		formattedResults.total += count;
+		formattedResults[s] = count;
+	});
+	return formattedResults;
+}
+
 /**
  * Fetch a single feed by id.
  *

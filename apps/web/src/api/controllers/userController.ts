@@ -31,6 +31,16 @@ export async function getUsers(
 }
 
 /**
+ * Count active/inactive users with client ID.
+ *
+ * @param ctx - request context
+ * @param input - client ID
+ */
+export async function getUserCount(ctx: ProtectedContext, { clientId }: { clientId: string }) {
+	return await userQueries.getUserCountMetrics(ctx, clientId);
+}
+
+/**
  * Retrieve a single user.
  *
  * @param ctx - request context

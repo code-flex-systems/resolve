@@ -6,7 +6,7 @@ import { Box, Tab, Tabs } from '@mui/material';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 
-const tabs = ['users', 'checklists', 'feeds-and-claims', 'settings'];
+const tabs = ['dashboard', 'users', 'checklists', 'feeds-and-claims', 'settings'];
 
 export default function AdminTabs() {
 	const showNewUserDialog = useAdminSlice((state) => state.showNewUserDialog);
@@ -22,10 +22,11 @@ export default function AdminTabs() {
 		<>
 			<Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
 				<Tabs value={currentTab} onChange={setTab}>
-					<Tab label="Users" id="users" value={0} disableRipple />
-					<Tab label="Checklists" id="checklists" value={1} disableRipple />
-					<Tab label="Feeds & Claims" id="feeds-claims" value={2} disableRipple />
-					<Tab label="Settings" id="settings" value={3} disableRipple />
+					<Tab label="Dashboard" id="dashboard" value={0} disableRipple />
+					<Tab label="Users" id="users" value={1} disableRipple />
+					<Tab label="Checklists" id="checklists" value={2} disableRipple />
+					<Tab label="Feeds & Claims" id="feeds-claims" value={3} disableRipple />
+					<Tab label="Settings" id="settings" value={4} disableRipple />
 				</Tabs>
 			</Box>
 			{showNewUserDialog && <NewUserDialog />}

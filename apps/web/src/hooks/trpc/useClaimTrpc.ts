@@ -10,6 +10,8 @@ export function useClaimTrpc() {
 	return {
 		list: trpc.claim.getClaims.useQuery,
 
+		count: trpc.claim.getClaimCount.useQuery,
+
 		get: trpc.claim.getClaim.useQuery,
 
 		createMany: trpc.claim.createClaims.useMutation({

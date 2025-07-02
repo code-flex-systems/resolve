@@ -24,6 +24,11 @@ export const getChecklistsInput = z.object({
 });
 export type GetChecklistsInput = z.infer<typeof getChecklistsInput>;
 
+export const getChecklistCountInput = z.object({
+	clientId: z.string().optional(),
+});
+export type GetChecklistCountInput = z.infer<typeof getChecklistCountInput>;
+
 export const getChecklistClaimInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),

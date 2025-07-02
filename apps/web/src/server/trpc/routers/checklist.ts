@@ -10,11 +10,13 @@ import {
 	createChecklist,
 	deleteChecklist,
 	modifyChecklist,
+	getChecklistCount,
 } from '@/api/controllers/checklistController';
 import {
 	createChecklistInput,
 	deleteChecklistInput,
 	getChecklistClaimInput,
+	getChecklistCountInput,
 	getChecklistInput,
 	getChecklistsInput,
 	getChecklistSummaryDetailInput,
@@ -27,6 +29,12 @@ import config from '@/config/config';
 export const checklistRouter = router({
 	getChecklists: protectedProcedure.input(getChecklistsInput).query(async ({ input, ctx }) => {
 		return await getChecklists(ctx, input);
+	}),
+
+	getChecklistCount: protectedProcedure.input(getChecklistCountInput).query(async ({ input, ctx }) => {
+		// Client aliasing requires Super Admin role
+		if (input.clientId) requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		return await getChecklistCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
 	}),
 
 	getChecklist: protectedProcedure.input(getChecklistInput).query(async ({ input, ctx }) => {
