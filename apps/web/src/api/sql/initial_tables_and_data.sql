@@ -164,7 +164,9 @@ create table page_instance(
 	parent_instance_id integer references page_instance(id) on delete cascade,
     position integer not null,
     created_by uuid not null references users(id),
-    created_at timestamp not null default now()
+    created_at timestamp not null default now(),
+    updated_by uuid references users(id),
+    updated_at timestamp not null default now()
 );
 
 CREATE TABLE page_instance_status (

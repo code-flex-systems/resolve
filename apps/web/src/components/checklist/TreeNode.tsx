@@ -1,5 +1,5 @@
 'use client';
-import { Collapse, Fade, IconButton, Tooltip, Typography } from '@mui/material';
+import { Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import * as actions from '@/state/checklist/actions';
 import { useChecklistSlice } from '@/state/store';
 import { BarChart, KeyboardArrowRight } from '@mui/icons-material';
@@ -60,7 +60,11 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	return (
 		<>
 			<div
-				style={{ ...styles.node, paddingLeft: level * 10 }}
+				style={{
+					...styles.node,
+					...(selected ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : {}),
+					paddingLeft: level * 10,
+				}}
 				onClick={() => {
 					actions.updateSelectedPage(instanceId);
 					actions.updateSelectedPageInfo(props);
@@ -117,9 +121,19 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 				</Fade>
 			</div>
 
+			{!!filteredChildren.length && (
+				<Collapse in={expanded} unmountOnExit>
+					<span>
+						{filteredChildren.map((c) => (
+							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
+						))}
+					</span>
+				</Collapse>
+			)}
+
 			{questions && mode === ChecklistMode.EDIT && (
 				<Collapse in={selected && !isFetching} unmountOnExit>
-					<span>
+					<Stack bgcolor="rgba(33, 106, 196, 0.1)" paddingBottom="5px" style={styles.questionsContainer}>
 						{questions.map((q, i) => (
 							<QuestionNode
 								key={i}
@@ -140,17 +154,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							level={level + 1}
 							idx={-1}
 						/>
-					</span>
-				</Collapse>
-			)}
-
-			{!!filteredChildren.length && (
-				<Collapse in={expanded} unmountOnExit>
-					<span>
-						{filteredChildren.map((c) => (
-							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
-						))}
-					</span>
+					</Stack>
 				</Collapse>
 			)}
 		</>
@@ -166,8 +170,12 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		margin: '2px 0px',
+		padding: '2px 0px',
 		borderRadius: 5,
+	},
+	questionsContainer: {
+		borderBottomLeftRadius: 5,
+		borderBottomRightRadius: 5,
 	},
 	reportIcon: {
 		color: 'primary.main',

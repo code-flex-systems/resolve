@@ -170,6 +170,8 @@ export interface PageInstance {
   page_id: number;
   parent_instance_id: number | null;
   position: number;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface PageInstanceStatus {
