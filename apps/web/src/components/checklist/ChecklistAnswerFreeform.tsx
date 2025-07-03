@@ -14,12 +14,13 @@ export default function ChecklistAnswerFreeform(props: {
 		<TextField
 			variant="outlined"
 			placeholder={answer.additional_info_placeholder ?? ''}
-			multiline={!!answer.additional_info_num_lines}
-			rows={answer.additional_info_num_lines ?? 0}
+			multiline
+			// multiline={!!answer.additional_info_num_lines}
+			rows={answer.additional_info_num_lines ?? 2}
 			{...field}
 			disabled={disabled}
 			sx={{
-				width: 400,
+				width: 500,
 				marginTop: '5px',
 				padding: '0px 10px',
 				'& .MuiInputBase-root': {

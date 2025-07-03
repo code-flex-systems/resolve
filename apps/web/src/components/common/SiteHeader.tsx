@@ -15,7 +15,7 @@ export default function SiteHeader() {
 				left={
 					<Collapse in={!navOpen} orientation="horizontal">
 						<div className="flex-row-left">
-							<Image src={logo} alt="logo" height={35} />
+							{/* <Image src={logo} alt="logo" height={35} /> */}
 							<Typography fontSize={30} marginLeft="5px">
 								Manifest
 							</Typography>

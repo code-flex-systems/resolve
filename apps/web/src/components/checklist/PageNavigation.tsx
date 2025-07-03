@@ -222,6 +222,7 @@ const styles = {
 		width: '100%',
 		height: 'calc(100% - 75px)',
 		overflow: 'auto',
+		paddingTop: 5,
 	},
 	toggleButton: {
 		height: 25,

@@ -9,14 +9,14 @@ import AnswerNode from './AnswerNode';
 import { useEffect, useState } from 'react';
 
 export default function QuestionNode(props: {
-       pageId: number;
-       questionId: number;
-       questionText: string;
-       questionAnswers: Answer[];
-       level: number;
-       idx: number;
+	pageId: number;
+	questionId: number;
+	questionText: string;
+	questionAnswers: Answer[];
+	level: number;
+	idx: number;
 }) {
-       const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
+	const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
@@ -59,7 +59,7 @@ export default function QuestionNode(props: {
 						</Typography>
 					)}
 					<Typography
-						color={selected || isPlaceholder ? 'primary' : ''}
+						color={selected ? 'primary' : isPlaceholder ? 'secondary' : ''}
 						fontWeight={isPlaceholder ? 'bold' : ''}
 						lineHeight="19px"
 						sx={{ cursor: 'pointer' }}
@@ -103,6 +103,6 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '2px 0px',
+		padding: '5px 0px',
 	},
 };

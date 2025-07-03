@@ -9,7 +9,13 @@ import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import BasicButton from '../common/BasicButton';
-import { IconAlertCircleFilled, IconCircle, IconCircleCheckFilled, IconPercentage50 } from '@tabler/icons-react';
+import {
+	IconAlertCircleFilled,
+	IconCircle,
+	IconCircleCheckFilled,
+	IconCircleCheck,
+	IconPercentage50,
+} from '@tabler/icons-react';
 import theme from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -35,34 +41,49 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	useEffect(() => setExpanded(expandAll), [expandAll]);
 
 	const statusIcon = useMemo(() => {
+		const iconColor = selected ? 'white' : theme.palette.primary.main;
 		switch (status) {
 			case PageInstanceStatus.UNSTARTED:
-				return <IconCircle size={18} color={theme.palette.primary.main} style={styles.icon} />;
+				return <IconCircle size={18} color={iconColor} style={styles.icon} />;
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
 					<IconPercentage50
-						style={{ ...styles.icon, color: theme.palette.primary.main, transform: 'scaleX(-1)' }}
+						style={{
+							...styles.icon,
+							color: iconColor,
+							transform: 'scaleX(-1)',
+						}}
 						className="status-icon"
 						size={18}
 					/>
 				);
 			case PageInstanceStatus.COMPLETE:
-				return <IconCircleCheckFilled color={theme.palette.primary.main} size={18} style={styles.icon} />;
+				return selected ? (
+					<IconCircleCheck color="white" size={18} style={styles.icon} />
+				) : (
+					<IconCircleCheckFilled color={theme.palette.primary.main} size={18} style={styles.icon} />
+				);
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip title="This page has changed">
-						<IconAlertCircleFilled color={theme.palette.warning.main} size={18} style={styles.icon} />
+						<IconAlertCircleFilled
+							color={selected ? 'white' : theme.palette.warning.main}
+							size={18}
+							style={styles.icon}
+						/>
 					</Tooltip>
 				);
 		}
-	}, [status]);
+	}, [status, selected]);
 
 	return (
 		<>
 			<div
 				style={{
 					...styles.node,
-					...(selected ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : {}),
+					...(selected && mode === ChecklistMode.EDIT
+						? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
+						: {}),
 					paddingLeft: level * 10,
 				}}
 				onClick={() => {
@@ -83,6 +104,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						>
 							<KeyboardArrowRight
 								sx={{
+									color: selected ? 'white' : '',
 									transform: expanded ? 'rotate(90deg)' : undefined,
 									transition: 'transform 100ms ease',
 								}}
@@ -91,13 +113,18 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					) : (
 						<div style={{ width: 30, minWidth: 30 }} />
 					)}
-					<Typography maxWidth={350}>
+					<Typography maxWidth={350} color={selected ? 'white' : ''}>
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
 					</Typography>
 					<Fade in={isFetching && selected} unmountOnExit>
 						<span>
-							<Typography marginLeft="15px" fontSize={13} fontStyle="italic">
+							<Typography
+								marginLeft="15px"
+								color={selected ? 'white' : ''}
+								fontSize={13}
+								fontStyle="italic"
+							>
 								Loading...
 							</Typography>
 						</span>
@@ -120,16 +147,6 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					<span>{statusIcon}</span>
 				</Fade>
 			</div>
-
-			{!!filteredChildren.length && (
-				<Collapse in={expanded} unmountOnExit>
-					<span>
-						{filteredChildren.map((c) => (
-							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
-						))}
-					</span>
-				</Collapse>
-			)}
 
 			{questions && mode === ChecklistMode.EDIT && (
 				<Collapse in={selected && !isFetching} unmountOnExit>
@@ -157,6 +174,16 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					</Stack>
 				</Collapse>
 			)}
+
+			{!!filteredChildren.length && (
+				<Collapse in={expanded} unmountOnExit>
+					<span>
+						{filteredChildren.map((c) => (
+							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />
+						))}
+					</span>
+				</Collapse>
+			)}
 		</>
 	);
 }
@@ -171,7 +198,10 @@ const styles = {
 		width: '100%',
 		minHeight: 30,
 		padding: '2px 0px',
-		borderRadius: 5,
+		borderTopLeftRadius: 5,
+		borderTopRightRadius: 5,
+		borderBottomLeftRadius: 5,
+		borderBottomRightRadius: 5,
 	},
 	questionsContainer: {
 		borderBottomLeftRadius: 5,

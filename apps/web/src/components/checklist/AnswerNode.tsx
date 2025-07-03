@@ -44,6 +44,6 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '2px 0px',
+		padding: '5px 0px',
 	},
 };

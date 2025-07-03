@@ -25,14 +25,12 @@ export default function ChecklistAnswerDropdown(props: {
 			sx={{
 				width: 300,
 				marginTop: '5px',
-				padding: '0px 10px',
-				borderRadius: 0,
+				marginLeft: '10px',
+				padding: '2px 10px',
 				'& .MuiInputBase-root': {
-					borderRadius: 0,
 					padding: '2px 5px',
 				},
 				'& .MuiOutlinedInput-input': {
-					borderRadius: 0,
 					padding: '2px 5px',
 				},
 			}}

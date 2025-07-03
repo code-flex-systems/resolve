@@ -186,7 +186,7 @@ const theme = createTheme({
 			main: '#216BC4',
 		},
 		secondary: {
-			main: '#144178',
+			main: '#1A549A',
 			dark: BASE_COLOR,
 		},
 		warning: {

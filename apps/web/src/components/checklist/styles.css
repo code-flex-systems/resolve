@@ -49,8 +49,16 @@
 }
 
 .node-selected {
-	background-color: rgba(33, 106, 196, 0.1);
+	background-color: rgba(33, 106, 196, 1);
 	cursor: pointer;
+}
+
+.node-text-selected-color {
+	color: 'white';
+}
+
+.node:hover .node-text-selected-color {
+	color: '#3f4a56';
 }
 
 .node-a:hover {
