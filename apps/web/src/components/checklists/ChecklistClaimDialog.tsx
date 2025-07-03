@@ -9,7 +9,23 @@ import theme from '@/styles/theme';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import { ArrowCircleRightOutlined, Checklist, ContentPasteSearch } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import { ChecklistClaim, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import { ClaimStatus } from '@/config/enums';
+
+function getStatusMsg(data: ChecklistClaim) {
+	if (data) {
+		switch (data.status as ClaimStatus) {
+			case ClaimStatus.SUBMITTED:
+				return 'A checklist has been submitted for the selected claim.';
+			case ClaimStatus.IN_PROGRESS:
+				return 'A checklist is in progress for the selected claim.';
+			case ClaimStatus.UNWORKED:
+				return 'A checklist has been started for the selected claim.';
+		}
+	} else {
+		return 'No checklist has been started for the selected claim.';
+	}
+}
 
 export default function ChecklistClaimDialog() {
 	const router = useRouter();
@@ -29,16 +45,12 @@ export default function ChecklistClaimDialog() {
 	const [searching, setSearching] = useState(false);
 
 	const flash = useCallback(
-		(data?: any) => {
+		(data: ChecklistClaim) => {
 			setTimeout(() => {
 				setShowMsg(false);
 				setTimeout(() => {
 					setShowMsg(true);
-					setMsg(
-						data
-							? 'A checklist has been started for the selected claim.'
-							: 'No checklist has been started for the selected claim.'
-					);
+					setMsg(getStatusMsg(data));
 				}, 300);
 			}, 500);
 		},
@@ -77,11 +89,15 @@ export default function ChecklistClaimDialog() {
 				searching
 					? undefined
 					: {
-							label: data ? 'Keep working' : 'Get started',
+							label: data
+								? data.status === ClaimStatus.SUBMITTED
+									? 'Review'
+									: 'Keep working'
+								: 'Get started',
 							onClick: () =>
 								router.push(`/checklist/${selectedChecklist?.id}/claim/${selectedClaim?.id}`),
 							icon: <ArrowCircleRightOutlined sx={{ color: 'white' }} />,
-					  }
+						}
 			}
 			onClose={actions.toggleChecklistClaimDialog}
 		>

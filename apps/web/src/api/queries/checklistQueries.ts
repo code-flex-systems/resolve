@@ -1,8 +1,9 @@
-import { sql } from 'kysely';
+import { sql, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
-import { SummarySegment } from '@/config/enums';
+import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
+import { DB } from '../database/types';
 
 /**
  * Create a new checklist and optionally copy page instances from an existing checklist.
@@ -56,6 +57,34 @@ export async function createChecklist(ctx: ProtectedContext, name: string, exist
  */
 export async function deleteChecklist(ctx: ProtectedContext, checklistId: number) {
 	await db.deleteFrom('checklist').where('id', '=', checklistId).execute();
+}
+
+export async function modifyChecklistClaim(
+	ctx: ProtectedContext,
+	checklistId: number,
+	claimId: number,
+	status: ClaimStatus,
+	trx?: Transaction<DB>
+) {
+	await (trx ?? db)
+		.updateTable('checklist_claim')
+		.set({
+			status,
+			...(status === ClaimStatus.IN_PROGRESS
+				? {
+						updated_by: ctx.session.user.id,
+						updated_at: new Date(),
+					}
+				: {}),
+			...(status === ClaimStatus.SUBMITTED
+				? {
+						submitted_by: ctx.session.user.id,
+						submitted_at: new Date(),
+					}
+				: {}),
+		})
+		.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)]))
+		.execute();
 }
 
 /**
@@ -137,6 +166,89 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)])),
 		ctx.session.user.client_id
 	).executeTakeFirst();
+}
+
+export async function getChecklistClaimProgress(ctx: ProtectedContext, checklistId: number, claimId: number) {
+	const unlockedPages = db.withRecursive('unlocked_pages', (db) => {
+		const initial = applyClientScope(
+			db
+				.selectFrom('page_instance')
+				.select(['id'])
+				.where('checklist_id', '=', checklistId)
+				.where('parent_instance_id', 'is', null),
+			ctx.session.user.client_id,
+			'page_instance'
+		);
+
+		const recursive = db
+			.selectFrom('unlocked_pages')
+			.innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
+			.innerJoin('page', 'page.id', 'page_instance.page_id')
+			.innerJoin('question', 'question.page_id', 'page.id')
+			.innerJoin('answer', 'answer.question_id', 'question.id')
+			.innerJoin('question_response', (join) =>
+				join
+					.onRef('question_response.question_id', '=', 'question.id')
+					.on('question_response.claim_id', '=', claimId)
+					.on('question_response.checklist_id', '=', checklistId)
+			)
+			.innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+			.whereRef('question_response_answer.answer_id', '=', 'answer.id')
+			.where('answer.calls_instance_id', 'is not', null)
+			.select(['answer.calls_instance_id as id']);
+
+		return initial.unionAll(recursive);
+	});
+
+	const result = await unlockedPages
+		.selectFrom('unlocked_pages')
+		.innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
+		.innerJoin('page', 'page.id', 'page_instance.page_id')
+		.innerJoin('question', 'question.page_id', 'page.id')
+		.leftJoin('question_response', (join) =>
+			join
+				.onRef('question_response.question_id', '=', 'question.id')
+				.on('question_response.claim_id', '=', claimId)
+				.on('question_response.checklist_id', '=', checklistId)
+		)
+		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+		.select((eb) => [
+			eb.fn.count('question.id').distinct().as('total_question_count'),
+			eb.fn
+				.count('question_response.id')
+				.distinct()
+				.filterWhere((f) =>
+					f.or([
+						f('question_response.response_text', 'is not', null),
+						f('question_response_answer.id', 'is not', null),
+					])
+				)
+				.as('answered_count'),
+		])
+		.executeTakeFirst();
+
+	const answerCount = parseInt(result?.answered_count?.toString() ?? '0');
+	const totalQuestionCount = parseInt(result?.total_question_count?.toString() ?? '0');
+	return { answerCount, totalQuestionCount };
+}
+
+export async function getChecklistClaimStats(ctx: ProtectedContext) {
+	return await applyClientScope(
+		db
+			.selectFrom('checklist_claim')
+			.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
+			.innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
+			.select(({ fn }) => [
+				'checklist_claim.checklist_id',
+				'checklist.name',
+				'checklist_claim.status',
+				fn.countAll().as('count'),
+			])
+			.groupBy(['checklist_claim.checklist_id', 'checklist.name', 'claim.id', 'checklist_claim.status'])
+			.orderBy(['checklist_claim.checklist_id', 'checklist.name', 'checklist_claim.status']),
+		ctx.session.user.client_id,
+		'checklist_claim'
+	).execute();
 }
 
 /**

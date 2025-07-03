@@ -1,5 +1,5 @@
 import * as checklistQueries from '@/api/queries/checklistQueries';
-import { SummarySegment } from '@/config/enums';
+import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
 /**
@@ -15,6 +15,13 @@ export async function createChecklist(
 ) {
 	const results = await checklistQueries.createChecklist(ctx, name, existingChecklistId);
 	return results;
+}
+
+export async function modifyChecklistClaim(
+	ctx: ProtectedContext,
+	{ checklistId, claimId, status }: { checklistId: number; claimId: number; status: ClaimStatus }
+) {
+	await checklistQueries.modifyChecklistClaim(ctx, checklistId, claimId, status);
 }
 
 /**
@@ -72,6 +79,34 @@ export async function getChecklistClaim(
 ) {
 	const results = await checklistQueries.getChecklistClaim(ctx, checklistId, claimId);
 	return results;
+}
+
+export async function getChecklistClaimProgress(
+	ctx: ProtectedContext,
+	{ checklistId, claimId }: { checklistId: number; claimId: number }
+) {
+	const results = await checklistQueries.getChecklistClaimProgress(ctx, checklistId, claimId);
+	return results;
+}
+
+export async function getChecklistClaimStats(ctx: ProtectedContext) {
+	const results = await checklistQueries.getChecklistClaimStats(ctx);
+	const resultsByChecklist: Record<string, Record<ClaimStatus, number>> = {};
+	results.forEach((row) => {
+		const checklistKey = `${row.checklist_id}:${row.name}`;
+		const claimStatus = row.status as ClaimStatus;
+		if (resultsByChecklist[checklistKey]) {
+			resultsByChecklist[checklistKey][claimStatus] += 1;
+		} else {
+			resultsByChecklist[checklistKey] = {
+				[ClaimStatus.SUBMITTED]: 0,
+				[ClaimStatus.IN_PROGRESS]: 0,
+				[ClaimStatus.UNWORKED]: 0,
+			};
+			resultsByChecklist[checklistKey][claimStatus] += 1;
+		}
+	});
+	return resultsByChecklist;
 }
 
 /**

@@ -1,3 +1,4 @@
+import config from '@/config/config';
 import { router, protectedProcedure } from '../trpc';
 
 import {
@@ -6,6 +7,8 @@ import {
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
 } from '@/api/controllers/responseController';
+import { ClaimStatus } from '@/config/enums';
+import { requireRole } from '@/lib/auth/requireRole';
 import {
 	evaluateResponsesInput,
 	getResponsesForAnswerInput,
@@ -29,6 +32,10 @@ export const responseRouter = router({
 		}),
 
 	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {
+		// Only administrators can edit a submitted checklist on a claim
+		if (input.claimStatus === ClaimStatus.SUBMITTED) {
+			requireRole(ctx, [config.ROLES.SUPER_ADMIN, config.ROLES.ADMIN]);
+		}
 		return upsertQuestionResponses(ctx, input);
 	}),
 });

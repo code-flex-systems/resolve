@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SummarySegment } from '@/config/enums';
+import { ClaimStatus, SummarySegment } from '@/config/enums';
 
 export const checklistParams = z.record(z.unknown());
 
@@ -35,6 +35,11 @@ export const getChecklistClaimInput = z.object({
 });
 export type GetChecklistClaimInput = z.infer<typeof getChecklistClaimInput>;
 
+export const getChecklistClaimProgressInput = z.object({
+	checklistId: z.number().int(),
+	claimId: z.number().int(),
+});
+
 export const getChecklistSummaryInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),
@@ -55,3 +60,9 @@ export const modifyChecklistInput = z.object({
 	params: checklistParams,
 });
 export type ModifyChecklistInput = z.infer<typeof modifyChecklistInput>;
+
+export const modifyChecklistClaimInput = z.object({
+	checklistId: z.number().int(),
+	claimId: z.number().int(),
+	status: z.nativeEnum(ClaimStatus),
+});

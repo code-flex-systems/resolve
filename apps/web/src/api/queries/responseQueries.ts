@@ -1,10 +1,11 @@
-import { sql } from 'kysely';
+import { sql, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
+import { DB } from '../database/types';
 
 /**
  * Count question responses for a specific claim checklist instance.
@@ -142,84 +143,86 @@ export async function getResponsesForClaimChecklist(
  * @param responses - array of responses to upsert
  * @returns updated status for the associated page instance
  */
-export async function upsertQuestionResponses(ctx: ProtectedContext, responses: QuestionResponse[]) {
+export async function upsertQuestionResponses(
+	ctx: ProtectedContext,
+	responses: QuestionResponse[],
+	trx: Transaction<DB>
+) {
 	const updatedPageStatus = getUpdatedPageStatus(
 		responses.length,
 		responses.filter((r) => !!r.response_text || r.selected_answers.length).length
 	);
 
 	// Insert or update each response and associated answers within a single transaction
-	await db.transaction().execute(async (trx) => {
-		for (const response of responses) {
-			const shouldClear =
-				!response.response_text && (!response.selected_answers || response.selected_answers.length === 0);
+	for (const response of responses) {
+		const shouldClear =
+			!response.response_text && (!response.selected_answers || response.selected_answers.length === 0);
 
-			if (shouldClear) {
-				await trx
-					.deleteFrom('question_response')
-					.where('checklist_id', '=', response.checklist_id)
-					.where('instance_id', '=', response.instance_id)
-					.where('claim_id', '=', response.claim_id)
-					.where('question_id', '=', response.question_id)
-					.execute();
-				continue;
-			}
-
-			const [saved] = await trx
-				.insertInto('question_response')
-				.values({
-					checklist_id: response.checklist_id,
-					instance_id: response.instance_id,
-					claim_id: response.claim_id,
-					question_id: response.question_id,
-					response_text: response.response_text ?? null,
-					client_id: ctx.session.user.client_id,
-					created_by: ctx.session.user.id,
-				})
-				.onConflict((oc) =>
-					oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
-						response_text: response.response_text ?? null,
-						updated_by: ctx.session.user.id,
-						updated_at: new Date(),
-					})
-				)
-				.returningAll()
+		if (shouldClear) {
+			await trx
+				.deleteFrom('question_response')
+				.where('checklist_id', '=', response.checklist_id)
+				.where('instance_id', '=', response.instance_id)
+				.where('claim_id', '=', response.claim_id)
+				.where('question_id', '=', response.question_id)
 				.execute();
-
-			await trx.deleteFrom('question_response_answer').where('response_id', '=', saved.id).execute();
-
-			if (response.selected_answers?.length) {
-				await trx
-					.insertInto('question_response_answer')
-					.values(
-						response.selected_answers.map((a) => ({
-							response_id: saved.id,
-							answer_id: a.answer_id,
-							additional_info: a.additional_info ?? null,
-						}))
-					)
-					.execute();
-			}
+			continue;
 		}
 
-		// Update page instance status
-		const sampleResponse = responses[0];
-		const template = await applyClientScope(
-			trx
-				.selectFrom('page')
-				.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
-				.select('version')
-				.where('page_instance.id', '=', sampleResponse.instance_id),
-			ctx.session.user.client_id,
-			'page'
-		).executeTakeFirstOrThrow();
-		await pageQueries.modifyPageInstanceStatus(ctx, {
-			claimId: sampleResponse.claim_id,
-			instanceIds: [sampleResponse.instance_id],
-			newStatus: updatedPageStatus,
-			templateVersion: template.version,
-			trx,
-		});
+		const [saved] = await trx
+			.insertInto('question_response')
+			.values({
+				checklist_id: response.checklist_id,
+				instance_id: response.instance_id,
+				claim_id: response.claim_id,
+				question_id: response.question_id,
+				response_text: response.response_text ?? null,
+				client_id: ctx.session.user.client_id,
+				created_by: ctx.session.user.id,
+			})
+			.onConflict((oc) =>
+				oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
+					response_text: response.response_text ?? null,
+					updated_by: ctx.session.user.id,
+					updated_at: new Date(),
+				})
+			)
+			.returningAll()
+			.execute();
+
+		await trx.deleteFrom('question_response_answer').where('response_id', '=', saved.id).execute();
+
+		if (response.selected_answers?.length) {
+			await trx
+				.insertInto('question_response_answer')
+				.values(
+					response.selected_answers.map((a) => ({
+						response_id: saved.id,
+						answer_id: a.answer_id,
+						additional_info: a.additional_info ?? null,
+					}))
+				)
+				.execute();
+		}
+	}
+
+	// Update page instance status
+	const sampleResponse = responses[0];
+	const template = await applyClientScope(
+		trx
+			.selectFrom('page')
+			.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
+			.select('version')
+			.where('page_instance.id', '=', sampleResponse.instance_id),
+		ctx.session.user.client_id,
+		'page'
+	).executeTakeFirstOrThrow();
+	await pageQueries.modifyPageInstanceStatus(ctx, {
+		claimId: sampleResponse.claim_id,
+		instanceIds: [sampleResponse.instance_id],
+		newStatus: updatedPageStatus,
+		templateVersion: template.version,
+		trx,
 	});
 
 	return updatedPageStatus;

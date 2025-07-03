@@ -1,5 +1,5 @@
 import { capitalize, formatMetric } from '@/lib/utils/utils';
-import { BACKDROP_COLOR, BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
 import { Box, Collapse, Divider, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { ArrowCircleRight } from '@mui/icons-material';
 import { JSX } from 'react';
@@ -54,7 +54,7 @@ export default function SimpleMetric({
 				}}
 			>
 				{isLoading ? (
-					<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="pulse" sx={styles.skeleton} />
+					<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
 				) : (
 					<Box
 						width={METRIC_WIDTH}
@@ -151,7 +151,7 @@ const styles = {
 		transition: 'scale 300ms ease',
 	},
 	expandedPaper: {
-		bgcolor: BACKDROP_COLOR,
+		bgcolor: OFFWHITE_COLOR,
 		borderRadius: 3,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,

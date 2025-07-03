@@ -32,6 +32,12 @@ export enum ClaimSearch {
 	INSURED = 'insured',
 }
 
+export enum ClaimStatus {
+	SUBMITTED = 'Submitted',
+	IN_PROGRESS = 'In Progress',
+	UNWORKED = 'Unworked',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',

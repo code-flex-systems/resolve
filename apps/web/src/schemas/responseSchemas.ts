@@ -1,3 +1,4 @@
+import { ClaimStatus } from '@/config/enums';
 import { z } from 'zod';
 
 export const evaluateResponsesInput = z.object({
@@ -30,5 +31,6 @@ export type UpsertQuestionResponsesParams = z.infer<typeof upsertQuestionRespons
 
 export const upsertQuestionResponsesInput = z.object({
 	responses: upsertQuestionResponsesParams,
+	claimStatus: z.nativeEnum(ClaimStatus)?.optional(),
 });
 export type UpsertQuestionResponsesInput = z.infer<typeof upsertQuestionResponsesInput>;

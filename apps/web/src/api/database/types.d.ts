@@ -99,6 +99,11 @@ export interface ChecklistClaim {
   created_at: Generated<Timestamp>;
   created_by: string;
   last_opened: Generated<Timestamp>;
+  status: string;
+  submitted_at: Timestamp | null;
+  submitted_by: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface Claim {

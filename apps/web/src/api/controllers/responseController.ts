@@ -1,10 +1,13 @@
+import * as checklistQueries from '@/api/queries/checklistQueries';
 import * as pageQueries from '@/api/queries/pageQueries';
 import * as questionQueries from '@/api/queries/questionQueries';
 import * as responseQueries from '@/api/queries/responseQueries';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
+import { ClaimStatus, PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Interval, QuestionResponse } from '@/types/types';
 import { TRPCError } from '@trpc/server';
+import { db } from '../database/kysely';
 
 /**
  * Recalculate page instance status based on responses.
@@ -84,18 +87,43 @@ export async function getResponsesForClaimChecklist(
  * @param input - array of question responses
  * @returns updated instance visibility and status
  */
-export async function upsertQuestionResponses(ctx: ProtectedContext, { responses }: { responses: any[] }) {
+export async function upsertQuestionResponses(
+	ctx: ProtectedContext,
+	{ responses, claimStatus }: { responses: any[]; claimStatus?: ClaimStatus }
+) {
 	const sampleResponse = responses?.[0] as QuestionResponse;
 	if (!sampleResponse) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid responses' });
-	const newStatus = await responseQueries.upsertQuestionResponses(ctx, responses);
-	const visibleIds = await pageQueries.getVisiblePageInstances(
-		ctx,
-		sampleResponse.checklist_id,
-		sampleResponse.claim_id
-	);
+
+	let newStatus: PageInstanceStatus = PageInstanceStatus.UNSTARTED;
+	let newClaimStatus: ClaimStatus = ClaimStatus.UNWORKED;
+	let visibleIds: number[] = [];
+	await db.transaction().execute(async (trx) => {
+		newStatus = await responseQueries.upsertQuestionResponses(ctx, responses, trx);
+		visibleIds = await pageQueries.getVisiblePageInstances(
+			ctx,
+			sampleResponse.checklist_id,
+			sampleResponse.claim_id
+		);
+		// Update checklist + claim status if any questions have been answered
+		if (
+			(!claimStatus || claimStatus === ClaimStatus.UNWORKED) &&
+			[PageInstanceStatus.IN_PROGRESS, PageInstanceStatus.COMPLETE].includes(newStatus)
+		) {
+			newClaimStatus = ClaimStatus.IN_PROGRESS;
+			await checklistQueries.modifyChecklistClaim(
+				ctx,
+				sampleResponse.checklist_id,
+				sampleResponse.claim_id,
+				ClaimStatus.IN_PROGRESS,
+				trx
+			);
+		}
+	});
+
 	return {
 		updatedInstanceId: sampleResponse.instance_id,
 		status: newStatus,
+		claimStatus: newClaimStatus,
 		visibleIds,
 	};
 }

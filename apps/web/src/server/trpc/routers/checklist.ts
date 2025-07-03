@@ -11,16 +11,21 @@ import {
 	deleteChecklist,
 	modifyChecklist,
 	getChecklistCount,
+	getChecklistClaimStats,
+	modifyChecklistClaim,
+	getChecklistClaimProgress,
 } from '@/api/controllers/checklistController';
 import {
 	createChecklistInput,
 	deleteChecklistInput,
 	getChecklistClaimInput,
+	getChecklistClaimProgressInput,
 	getChecklistCountInput,
 	getChecklistInput,
 	getChecklistsInput,
 	getChecklistSummaryDetailInput,
 	getChecklistSummaryInput,
+	modifyChecklistClaimInput,
 	modifyChecklistInput,
 } from '@/schemas/checklistSchemas';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -43,6 +48,16 @@ export const checklistRouter = router({
 
 	getChecklistClaim: protectedProcedure.input(getChecklistClaimInput).query(async ({ input, ctx }) => {
 		return await getChecklistClaim(ctx, input);
+	}),
+
+	getChecklistClaimProgress: protectedProcedure
+		.input(getChecklistClaimProgressInput)
+		.query(async ({ input, ctx }) => {
+			return await getChecklistClaimProgress(ctx, input);
+		}),
+
+	getChecklistClaimStats: protectedProcedure.query(async ({ ctx }) => {
+		return await getChecklistClaimStats(ctx);
 	}),
 
 	getRecentChecklistClaims: protectedProcedure.query(async ({ ctx }) => {
@@ -72,5 +87,9 @@ export const checklistRouter = router({
 	updateChecklist: protectedProcedure.input(modifyChecklistInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return modifyChecklist(ctx, input);
+	}),
+
+	updateChecklistClaim: protectedProcedure.input(modifyChecklistClaimInput).mutation(async ({ input, ctx }) => {
+		return modifyChecklistClaim(ctx, input);
 	}),
 });

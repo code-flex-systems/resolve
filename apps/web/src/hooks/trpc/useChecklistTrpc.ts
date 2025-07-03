@@ -23,6 +23,10 @@ export function useChecklistTrpc() {
 
 		getSummaryDetail: trpc.checklist.getChecklistSummaryDetail.useQuery,
 
+		progress: trpc.checklist.getChecklistClaimProgress.useQuery,
+
+		stats: trpc.checklist.getChecklistClaimStats.useQuery,
+
 		create: trpc.checklist.createChecklist.useMutation({
 			onSuccess() {
 				utils.checklist.getChecklists.invalidate();
@@ -36,6 +40,12 @@ export function useChecklistTrpc() {
 			},
 		}),
 
+		updateForClaim: trpc.checklist.updateChecklistClaim.useMutation({
+			onSuccess(_, { checklistId, claimId }) {
+				utils.checklist.getChecklistClaim.invalidate({ checklistId, claimId });
+			},
+		}),
+
 		remove: trpc.checklist.deleteChecklist.useMutation,
 	};
 }
@@ -43,3 +53,4 @@ export function useChecklistTrpc() {
 export type CreateChecklistInput = ChecklistInput['createChecklist'];
 export type UpdateChecklistInput = ChecklistInput['updateChecklist'];
 export type Checklist = ChecklistOutput['getChecklists'][number];
+export type ChecklistClaim = ChecklistOutput['getChecklistClaim'];

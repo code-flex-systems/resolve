@@ -3,7 +3,7 @@ import { Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
 import useStore, { useChecklistSlice } from '@/state/store';
 import * as selectors from '@/state/checklist/selectors';
-import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
+import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { Button, Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
@@ -113,7 +113,7 @@ export default function Page() {
 					};
 					return response;
 				});
-			await upsertResponses({ responses });
+			await upsertResponses({ responses, claimStatus: claim?.status as ClaimStatus | undefined });
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {

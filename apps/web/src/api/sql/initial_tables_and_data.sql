@@ -141,6 +141,11 @@ create table checklist_claim(
     client_id uuid not null references client(id),
     created_by uuid not null references users(id),
     created_at timestamp not null default now(),
+    status text not null,
+    updated_by uuid references users(id),
+    updated_at timestamp,
+    submitted_by uuid references users(id),
+    submitted_at timestamp,
     unique(checklist_id, claim_id)
 );
 

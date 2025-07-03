@@ -20,7 +20,7 @@ export function useResponseTrpc() {
 		evaluate: trpc.response.evaluateResponses.useMutation,
 
 		createUpdateMany: trpc.response.upsertQuestionResponses.useMutation({
-			onSuccess({ updatedInstanceId, status, visibleIds }) {
+			onSuccess({ updatedInstanceId, status, claimStatus, visibleIds }) {
 				trpcUtils.response.getResponsesForChecklist.invalidate({
 					checklistId,
 					claimId,
@@ -33,6 +33,12 @@ export function useResponseTrpc() {
 						return { ...old, tree: updatedTree };
 					});
 					actions.updateSelectedPageInfoStatus(status);
+				}
+				if (claimStatus) {
+					trpcUtils.claim.getClaim.setData({ checklistId, claimId }, (old) => {
+						if (!old) return old;
+						return { ...old, status: claimStatus };
+					});
 				}
 				if (visibleIds) {
 					trpcUtils.page.getVisiblePageInstances.setData({ checklistId, claimId }, visibleIds);

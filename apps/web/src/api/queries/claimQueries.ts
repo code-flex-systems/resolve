@@ -1,6 +1,6 @@
 import { sql } from 'kysely';
 import { db } from '@/api/database/kysely';
-import { ClaimSearch, FeedStatus } from '@/config/enums';
+import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
@@ -14,17 +14,20 @@ import { applyClientScope } from '../database/clientScoped';
  * @returns claim record
  */
 export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	await db
+	const checklistClaim = await db
 		.insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
 			claim_id: claimId,
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
+			status: ClaimStatus.UNWORKED,
 		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
-		.execute();
-	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
+		.returningAll()
+		.executeTakeFirstOrThrow();
+	const claim = await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
+	return { ...claim, ...checklistClaim };
 }
 
 /**
@@ -81,6 +84,13 @@ export async function getClaims(
 	}
 }
 
+/**
+ * Query a count of claims.
+ *
+ * @param ctx - request context
+ * @param clientId - required client ID
+ * @returns a count
+ */
 export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
 	const results = await applyClientScope(
 		db
