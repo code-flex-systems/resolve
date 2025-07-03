@@ -121,7 +121,7 @@ export default function PageNavigation() {
 					leftWidth="70%"
 					rightWidth="30%"
 					padding={0}
-					height={35}
+					height={40}
 				/>
 				<Toolbar
 					left={
@@ -179,8 +179,8 @@ export default function PageNavigation() {
 							{expandAll ? 'Collase' : 'Expand'} All
 						</BasicButton>
 					}
-					padding={0}
-					height={35}
+					padding={'0px 0px 5px'}
+					height={40}
 				/>
 				<Divider />
 				<div style={styles.nodeContainer}>
@@ -222,7 +222,7 @@ const styles = {
 		width: '100%',
 		height: 'calc(100% - 75px)',
 		overflow: 'auto',
-		paddingTop: 5,
+		paddingTop: 10,
 	},
 	toggleButton: {
 		height: 25,

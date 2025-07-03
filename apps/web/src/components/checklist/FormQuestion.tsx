@@ -15,7 +15,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { ContactSupport, TaskAlt } from '@mui/icons-material';
+import { TaskAlt } from '@mui/icons-material';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useState } from 'react';
@@ -52,11 +52,13 @@ export default function FormQuestion() {
 		handleSubmit,
 		reset,
 		formState: { errors },
+		watch,
 	} = useForm<Omit<Question, 'answers'>>({
 		defaultValues: {
 			...getDefaults(selectedQuestionData),
 		},
 	});
+	const questionText = watch('text');
 
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
@@ -72,7 +74,7 @@ export default function FormQuestion() {
 							questionId: selectedQuestionData.id,
 							pageId: selectedPageInfo.pageId,
 							params: data,
-					  });
+						});
 			if (newQuestion.page_id === selectedPageInfo.pageId) {
 				actions.updateSelectedQuestion(newQuestion.id);
 			}
@@ -116,9 +118,8 @@ export default function FormQuestion() {
 			<Toolbar
 				left={
 					<>
-						<ContactSupport sx={styles.toolbar} />
 						<Typography fontSize={20}>
-							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
+							{questionText} (p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id})
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
@@ -173,12 +174,14 @@ export default function FormQuestion() {
 					</>
 				}
 				rightWidth="40%"
+				height={60}
+				padding={'10px 0px'}
 			/>
 			<div style={styles.divider}>
 				<Divider />
 			</div>
 			<Fade key={selectedQuestionData.id} in={!!selectedQuestionData.id} timeout={500} unmountOnExit>
-				<Form control={control} style={{ width: '100%' }}>
+				<Form control={control} style={styles.form}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
 							name="page_id"
@@ -296,6 +299,10 @@ const styles = {
 		width: '100%',
 		height: 1,
 		marginBottom: 5,
+	},
+	form: {
+		width: '100%',
+		paddingTop: 10,
 	},
 	formLabel: {
 		paddingLeft: '10px',

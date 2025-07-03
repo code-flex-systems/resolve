@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import { QuestionType } from '@/config/enums';
 import { useEffect, useState } from 'react';
-import { InsertComment, TaskAlt } from '@mui/icons-material';
+import { TaskAlt } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import * as actions from '@/state/checklist/actions';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
@@ -64,6 +64,7 @@ export default function FormAnswer() {
 	});
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
+	const answerText = watch('text');
 	const hasAdditionalInfo = watch('has_additional_info');
 	const pageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
 	const isPlaceholder = selectedAnswerData.id === -1;
@@ -83,12 +84,12 @@ export default function FormAnswer() {
 							questionId: selectedQuestion,
 							pageId: selectedPageInfo.pageId,
 							params: data,
-					  })
+						})
 					: await updateAnswer({
 							pageId: selectedPageInfo.pageId,
 							answerId: selectedAnswerData.id,
 							params: data,
-					  });
+						});
 			if (newAnswer) actions.updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
@@ -134,10 +135,9 @@ export default function FormAnswer() {
 			<Toolbar
 				left={
 					<>
-						<InsertComment sx={styles.toolbar} />
 						<Typography lineHeight={'21px'} fontSize={19}>
-							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
-							{isPlaceholder ? '?' : selectedAnswerData.id}
+							{answerText} (p{selectedPageInfo.pageId}.q{selectedQuestion}.a
+							{isPlaceholder ? '?' : selectedAnswerData.id})
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
@@ -206,12 +206,14 @@ export default function FormAnswer() {
 					</>
 				}
 				rightWidth="40%"
+				height={60}
+				padding={'10px 0px'}
 			/>
 			<div style={styles.divider}>
 				<Divider />
 			</div>
 			<Fade key={selectedAnswerData.id} in={!!selectedAnswerData.id} timeout={500} unmountOnExit>
-				<Form control={control} style={{ width: '100%' }}>
+				<Form control={control} style={styles.form}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
 							name="text"
@@ -379,6 +381,10 @@ const styles = {
 		height: 1,
 		marginBottom: 5,
 	},
+	form: {
+		width: '100%',
+		paddingTop: 10,
+	},
 	formLabel: {
 		paddingLeft: '10px',
 		fontSize: 12,
@@ -387,7 +393,7 @@ const styles = {
 		margin: 5,
 	},
 	row: {
-		padding: 5,
+		padding: '15px 5px',
 	},
 	textFieldOverrides: {
 		width: 300,

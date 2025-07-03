@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
-import { Button, Link, TextField, Typography } from '@mui/material';
+import { Button, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 
 type LoginFormInputs = {
@@ -15,12 +16,15 @@ type LoginFormInputs = {
 export default function LoginPage() {
 	const router = useRouter();
 	const [authError, setAuthError] = useState<string | null>(null);
+	const [showPassword, setShowPassword] = useState(false);
 
 	const {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting },
+		watch,
 	} = useForm<LoginFormInputs>();
+	const password = watch('password');
 
 	const onSubmit = async (data: LoginFormInputs) => {
 		setAuthError(null);
@@ -32,9 +36,9 @@ export default function LoginPage() {
 				password: data.password,
 				callbackUrl: '/',
 			});
-               } catch {
-                       setAuthError('Invalid username or password');
-               }
+		} catch {
+			setAuthError('Invalid username or password');
+		}
 		if (result?.error) {
 			setAuthError('Invalid username or password');
 		} else {
@@ -49,12 +53,10 @@ export default function LoginPage() {
 					<TextField
 						id="username"
 						label="Username"
-						placeholder="example@gmail.com"
 						error={!!errors.username?.message}
 						helperText={errors.username?.message}
-						sx={{
-							width: 300,
-						}}
+						sx={styles.textField}
+						variant="outlined"
 						{...register('username', { required: 'Username is required' })}
 					/>
 				</div>
@@ -62,17 +64,35 @@ export default function LoginPage() {
 				<div className="flex-row-left" style={{ padding: '10px 0px' }}>
 					<TextField
 						id="password"
-						type="password"
+						type={showPassword ? 'text' : 'password'}
 						label="Password"
 						error={!!errors.password}
 						helperText={errors.password?.message}
-						sx={{
-							width: 300,
-						}}
+						sx={styles.textField}
+						variant="outlined"
 						{...register('password', {
 							required: 'Password is required',
 							minLength: { value: 8, message: 'Minimum length is 8 characters' },
 						})}
+						slotProps={{
+							input: {
+								endAdornment: password && (
+									<InputAdornment position="end" sx={{ margin: 0 }}>
+										<IconButton
+											size="small"
+											disableRipple
+											onClick={() => setShowPassword((prev) => !prev)}
+										>
+											{showPassword ? (
+												<VisibilityOff sx={{ fontSize: 17 }} />
+											) : (
+												<Visibility sx={{ fontSize: 17 }} />
+											)}
+										</IconButton>
+									</InputAdornment>
+								),
+							},
+						}}
 					/>
 				</div>
 
@@ -91,3 +111,15 @@ export default function LoginPage() {
 		</AuthPageWrapper>
 	);
 }
+
+const styles = {
+	textField: {
+		width: 300,
+		'& .MuiOutlinedInput-root': {
+			paddingRight: '5px',
+		},
+		'& .MuiOutlinedInput-input': {
+			padding: '5px 10px',
+		},
+	},
+};

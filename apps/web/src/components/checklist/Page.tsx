@@ -9,7 +9,7 @@ import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import { Description, TaskAlt } from '@mui/icons-material';
+import { TaskAlt } from '@mui/icons-material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme from '@/styles/theme';
@@ -108,7 +108,7 @@ export default function Page() {
 							? data[field].map((id) => ({
 									answer_id: id,
 									additional_info: data[`${questionId}-${id}-${QuestionType.FREEFORM}`],
-							  }))
+								}))
 							: [],
 					};
 					return response;
@@ -148,7 +148,6 @@ export default function Page() {
 					<Toolbar
 						left={
 							<>
-								<Description sx={{ color: 'secondary.main', fontSize: 25, marginRight: '5px' }} />
 								<Typography lineHeight={'21px'} fontSize={19}>
 									{selectedPageInfo.title}
 								</Typography>
@@ -216,7 +215,7 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		padding: '0px 20px 20px',
+		padding: '20px',
 	},
 	divider: {
 		width: '100%',

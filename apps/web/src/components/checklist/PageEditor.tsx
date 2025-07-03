@@ -6,7 +6,7 @@ import { Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
-import { ContentCopy, Delete, Description, East, SubdirectoryArrowRight, TaskAlt } from '@mui/icons-material';
+import { ContentCopy, Delete, East, SubdirectoryArrowRight, TaskAlt } from '@mui/icons-material';
 import BasicButton from '../common/BasicButton';
 import * as actions from '@/state/checklist/actions';
 import { useState } from 'react';
@@ -120,7 +120,6 @@ export default function PageEditor() {
 					<Toolbar
 						left={
 							<>
-								<Description sx={{ color: 'secondary.main', fontSize: 25, marginRight: '5px' }} />
 								{editingPageTitle ? (
 									<TextField
 										autoFocus
@@ -137,7 +136,6 @@ export default function PageEditor() {
 									<Typography
 										onClick={startEditing}
 										className="text-hover"
-										padding="5px"
 										lineHeight={'21px'}
 										fontSize={19}
 									>

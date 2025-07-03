@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, TextField, Typography } from '@mui/material';
+import { Button, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import AuthPageWrapper from './AuthPageWrapper';
 
 export type NewPasswordFormInputs = {
@@ -15,6 +16,7 @@ export default function NewPassword(props: {
 	isResetting: boolean;
 }) {
 	const [authError, setAuthError] = useState<string | null>(null);
+	const [showPassword, setShowPassword] = useState(false);
 	const {
 		register,
 		handleSubmit,
@@ -22,6 +24,7 @@ export default function NewPassword(props: {
 		watch,
 	} = useForm<NewPasswordFormInputs>();
 	const password = watch('password');
+	const passwordConfirmed = watch('confirm_password');
 
 	const onSubmit = handleSubmit(async (data: NewPasswordFormInputs) => {
 		try {
@@ -38,29 +41,57 @@ export default function NewPassword(props: {
 				<div className="flex-row-left" style={{ padding: '10px 0px' }}>
 					<TextField
 						id="password"
-						type="password"
+						type={showPassword ? 'text' : 'password'}
 						label="Password"
 						error={!!errors.password}
 						helperText={errors.password?.message}
-						sx={{
-							width: 300,
-						}}
+						sx={styles.textField}
+						variant="outlined"
 						{...register('password', {
 							required: 'Password is required',
 							minLength: { value: 8, message: 'Minimum length is 8 characters' },
 						})}
+						slotProps={{
+							input: {
+								endAdornment: password && (
+									<InputAdornment position="end" sx={{ margin: 0 }}>
+										<IconButton size="small" onClick={() => setShowPassword((prev) => !prev)}>
+											{showPassword ? (
+												<VisibilityOff sx={{ fontSize: 17 }} />
+											) : (
+												<Visibility sx={{ fontSize: 17 }} />
+											)}
+										</IconButton>
+									</InputAdornment>
+								),
+							},
+						}}
 					/>
 				</div>
 
 				<div className="flex-row-left" style={{ padding: '10px 0px' }}>
 					<TextField
 						id="confirm_password"
-						type="password"
+						type={showPassword ? 'text' : 'password'}
 						label="Confirm Password"
 						error={!!errors.password}
 						helperText={errors.password?.message}
-						sx={{
-							width: 300,
+						sx={styles.textField}
+						variant="outlined"
+						slotProps={{
+							input: {
+								endAdornment: passwordConfirmed && (
+									<InputAdornment position="end" sx={{ margin: 0 }}>
+										<IconButton size="small" onClick={() => setShowPassword((prev) => !prev)}>
+											{showPassword ? (
+												<VisibilityOff sx={{ fontSize: 17 }} />
+											) : (
+												<Visibility sx={{ fontSize: 17 }} />
+											)}
+										</IconButton>
+									</InputAdornment>
+								),
+							},
 						}}
 						{...register('confirm_password', {
 							required: 'Please retype your password',
@@ -80,3 +111,15 @@ export default function NewPassword(props: {
 		</AuthPageWrapper>
 	);
 }
+
+const styles = {
+	textField: {
+		width: 300,
+		'& .MuiOutlinedInput-root': {
+			paddingRight: '5px',
+		},
+		'& .MuiOutlinedInput-input': {
+			padding: '5px 10px',
+		},
+	},
+};
