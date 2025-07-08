@@ -1,5 +1,5 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, IconButton, InputAdornment, Paper, Switch, TextField, Typography } from '@mui/material';
+import { Button, InputAdornment, Paper, Switch, TextField, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { AccessTimeFilled, AccountCircle, AddBox, Email, Phone, Search, Shield, Upload } from '@mui/icons-material';
 import { CustomPagination } from '../common/CustomPagination';
@@ -14,12 +14,11 @@ import { useSession } from 'next-auth/react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import { useAdminSlice } from '@/state/store';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import { BASE_COLOR } from '@/styles/theme';
 import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
 import config from '@/config/config';
 import { createUsersInput } from '@/schemas/userSchemas';
 import useDebounce from '@/lib/utils/useDebounce';
-import { trpc } from '@/lib/trpc';
 import * as actions from '@/state/admin/actions';
 
 const COLUMNS: GridColDef[] = [
@@ -79,7 +78,6 @@ const COLUMNS: GridColDef[] = [
 ];
 
 export default function UsersTab() {
-	const trpcUtils = trpc.useUtils();
 	const { data: session } = useSession();
 	const showImportUsersDialog = useAdminSlice((state) => state.showImportUsersDialog);
 	const userConstraints = useAdminSlice((state) => state.userConstraints);
@@ -87,11 +85,7 @@ export default function UsersTab() {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [showDisabled, setShowDisabled] = useState(false);
 
-	const {
-		data = { rows: [], count: undefined },
-		isFetching,
-		refetch,
-	} = useUserTrpc().list({
+	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().list({
 		disabled: showDisabled,
 		limit: userConstraints.pageSize,
 		offset: userConstraints.page * userConstraints.pageSize,
@@ -99,7 +93,6 @@ export default function UsersTab() {
 	});
 	const { mutateAsync: createUsers, isPending: creating } = useUserTrpc().create;
 	const rowCountRef = useRef(data.count ?? 0);
-	const searchDisabled = !searchTerm || isFetching;
 
 	const rowCount = useMemo(() => {
 		if (data.count !== undefined) {

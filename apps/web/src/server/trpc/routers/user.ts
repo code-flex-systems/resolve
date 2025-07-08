@@ -6,6 +6,8 @@ import {
 	updateUserInput,
 	deleteUserInput,
 	getUserCountInput,
+	getUserActivityInput,
+	getUserActivityDetailInput,
 } from '@/schemas/userSchemas';
 import { protectedProcedure, router } from '../trpc';
 import config from '@/config/config';
@@ -15,6 +17,16 @@ export const userRouter = router({
 	getUsers: protectedProcedure.input(getUsersInput).query(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getUsers(ctx, input);
+	}),
+
+	getUserActivity: protectedProcedure.input(getUserActivityInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return userController.getUserActivity(ctx, input);
+	}),
+
+	getUserActivityDetail: protectedProcedure.input(getUserActivityDetailInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return userController.getUserActivityDetail(ctx, input);
 	}),
 
 	getUserCount: protectedProcedure.input(getUserCountInput).query(async ({ input, ctx }) => {

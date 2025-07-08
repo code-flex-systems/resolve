@@ -53,13 +53,7 @@ export default function ClaimsMetric() {
 				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
 					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
 						<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px">
-							<Tooltip
-								arrow
-								title="A claim is considered complete if all necessary questions have been answered for the related checklist."
-							>
-								<Info sx={{ color: BASE_COLOR, fontSize: 20, paddingTop: '3px' }} />
-							</Tooltip>
-							<Typography marginLeft="5px" fontSize={17} paddingTop="3px">
+							<Typography fontSize={17} paddingTop="3px">
 								Viewing claims for
 							</Typography>
 							<Select
@@ -90,6 +84,12 @@ export default function ClaimsMetric() {
 									</MenuItem>
 								))}
 							</Select>
+							<Tooltip
+								arrow
+								title="A claim is considered complete if all necessary questions have been answered for the related checklist."
+							>
+								<Info sx={{ color: BASE_COLOR, fontSize: 20, marginLeft: '5px', paddingTop: '3px' }} />
+							</Tooltip>
 						</Box>
 						<div style={styles.divider}>
 							<Divider />
@@ -156,7 +156,7 @@ const styles = {
 	divider: {
 		width: '100%',
 		height: 1,
-		marginTop: 15,
+		marginTop: 5,
 	},
 	paper: {
 		borderRadius: 3,

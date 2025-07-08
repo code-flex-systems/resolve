@@ -7,6 +7,9 @@ import { logAuthEvent } from '@/lib/logs/logAuthEvents';
 import { AuthEventType } from '@/config/enums';
 import { generateStrongPassword } from '@/lib/auth/generateStrongPassword';
 import { sendEmail } from '@/lib/email/sendEmail';
+import { readFileSync } from 'fs';
+import path from 'path';
+import config from '@/config/config';
 
 /**
  * List users with optional pagination.
@@ -28,6 +31,14 @@ export async function getUsers(
 		userQueries.getUserCount(ctx, disabled, searchTerm),
 	]);
 	return { rows, count };
+}
+
+export async function getUserActivity(ctx: ProtectedContext, { daysBack }: { daysBack?: number }) {
+	return await userQueries.getUserActivity(ctx, daysBack);
+}
+
+export async function getUserActivityDetail(ctx: ProtectedContext, { date }: { date: string }) {
+	return await userQueries.getUserActivityDetail(ctx, date);
 }
 
 /**
@@ -84,7 +95,11 @@ export async function createUsers(
 			sendEmail({
 				to: user.email,
 				subject: 'Welcome to Manifest!',
-				html: `<p>Your password is <b>${user.password}</b>.</p>`,
+				html: getOnboardingTemplate()
+					.replace('{{AppName}}', config.APP_NAME)
+					.replace('{{userEmail}}', user.email)
+					.replace('{{defaultPassword}}', user.password)
+					.replace('{{loginLink}}', `${process.env.BASE_URL}/login`),
 			});
 		})
 	);
@@ -133,7 +148,14 @@ export async function updateUser(
 	const hashedParams = params.password
 		? await hashPasswordIfPresent({ ...params, password: params.password })
 		: params;
-	return await userQueries.updateUser(ctx, id, hashedParams);
+	const updatedUser = await userQueries.updateUser(ctx, id, hashedParams);
+	if (params.disabled != null) {
+		await sendEmail({
+			to: updatedUser.email,
+			subject: params.disabled ? 'Account Deactivation' : 'Account Reactivation',
+			html: getAccountActivationTemplate(params.disabled ? 'deactivation' : 'reactivation', updatedUser.email),
+		});
+	}
 }
 
 /**
@@ -144,4 +166,20 @@ export async function updateUser(
  */
 export async function deleteUser(ctx: ProtectedContext, { id }: { id: string }) {
 	await userQueries.deleteUser(ctx, id);
+}
+
+// private methods
+
+export function getOnboardingTemplate(): string {
+	const filePath = path.join(process.cwd(), 'src/api/email-templates', 'onboarding-template.html');
+	return readFileSync(filePath, 'utf-8');
+}
+
+export function getAccountActivationTemplate(type: 'deactivation' | 'reactivation', email: string): string {
+	const filePath = path.join(process.cwd(), 'src/api/email-templates', `account-${type}-template.html`);
+	const template = readFileSync(filePath, 'utf-8');
+	return template
+		.replace('{{AppName}}', config.APP_NAME)
+		.replace('{{userEmail}}', email)
+		.replace('{{loginLink}}', `${process.env.BASE_URL}/login`);
 }

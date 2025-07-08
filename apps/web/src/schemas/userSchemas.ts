@@ -9,6 +9,14 @@ export const getUsersInput = z.object({
 });
 export const getUserInput = z.object({ id: z.string() });
 
+export const getUserActivityInput = z.object({
+	daysBack: z.number().optional(),
+});
+
+export const getUserActivityDetailInput = z.object({
+	date: z.string(),
+});
+
 export const getUserCountInput = z.object({
 	clientId: z.string().optional(),
 });

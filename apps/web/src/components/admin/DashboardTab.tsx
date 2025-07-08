@@ -3,7 +3,7 @@
 import { Box, Stack } from '@mui/material';
 import { Checklist, ContentPasteSearch, People, NetworkCheck } from '@mui/icons-material';
 import SimpleMetric from '../metrics/SimpleMetric';
-import theme, { OFFWHITE_COLOR } from '@/styles/theme';
+import theme from '@/styles/theme';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { useState } from 'react';
 import ClaimsMetric from '../metrics/ClaimsMetric';
+import UserActivityMetric from '../metrics/UserActivityMetric';
 
 export default function DashboardTab() {
 	const router = useRouter();
@@ -25,21 +26,21 @@ export default function DashboardTab() {
 	};
 
 	return (
-		<Stack
+		<Box
 			width="100%"
 			flex={1}
 			display="flex"
 			justifyContent="flex-start"
 			alignContent="flex-start"
-			padding="10px"
+			padding="10px 0px"
 		>
-			<Box width="100%" display="flex" justifyContent="flex-start" alignContent="flex-start">
+			<Stack display="flex" justifyContent="flex-start" alignContent="flex-start">
 				<SimpleMetric
 					title="users"
 					onClick={() => router.push('/admin/users')}
 					onSelect={() => onSelect('users')}
 					icon={<People sx={styles.simpleMetricIcon} />}
-					color="rgba(33, 106, 196, 0.5)"
+					color="#95B4E2"
 					values={userCounts}
 					isLoading={isFetchingUsers}
 					selected={selected === 'users'}
@@ -69,16 +70,17 @@ export default function DashboardTab() {
 					onClick={() => router.push('/admin/feeds-and-claims')}
 					onSelect={() => onSelect('feeds')}
 					icon={<NetworkCheck sx={styles.simpleMetricIcon} />}
-					color="rgba(33, 106, 196, 0.75)"
+					color="#5E8FD3"
 					values={feedCounts}
 					isLoading={isFetchingFeeds}
 					selected={selected === 'feeds'}
 				/>
-			</Box>
-			<Box width="100%" display="flex" justifyContent="flex-start" alignContent="flex-start">
+			</Stack>
+			<Box display="flex" height="fit-content" justifyContent="flex-start" alignContent="flex-start">
 				<ClaimsMetric />
+				<UserActivityMetric />
 			</Box>
-		</Stack>
+		</Box>
 	);
 }
 

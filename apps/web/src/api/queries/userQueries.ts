@@ -1,7 +1,7 @@
 import { db } from '@/api/database/kysely';
 import config from '@/config/config';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { sql } from 'kysely';
+import { CompiledQuery, sql } from 'kysely';
 
 /**
  * Retrieve users for the current client with optional pagination.
@@ -44,6 +44,40 @@ export async function getUsers(
 		query = query.limit(limit).offset(offset);
 	}
 	return await query.execute();
+}
+
+export async function getUserActivity(ctx: ProtectedContext, daysBack = 30) {
+	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
+        select
+            gs.day::date as activity_date,
+            count(distinct r.user_id) as active_users
+        from generate_series(
+            CURRENT_DATE - interval '${sql.raw(daysBack.toString())} days',
+            CURRENT_DATE,
+            interval '1 day'
+        ) as gs(day)
+        left join response_audit_logs r on date(r.timestamp) = gs.day
+        where client_id = ${ctx.session.user.client_id}
+        group by gs.day
+        order by gs.day
+    `.compile(db);
+	return (await db.executeQuery(query))?.rows ?? [];
+}
+
+export async function getUserActivityDetail(ctx: ProtectedContext, date: string) {
+	return await db
+		.selectFrom('response_audit_logs')
+		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
+		.selectAll('response_audit_logs')
+		.select(['users.first', 'users.last', 'users.email', 'users.role'])
+		.where((eb) =>
+			eb.and([
+				eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
+				eb(sql`date(${eb.ref('response_audit_logs.timestamp')})`, '=', date),
+			])
+		)
+		.orderBy('response_audit_logs.timestamp')
+		.execute();
 }
 
 /**

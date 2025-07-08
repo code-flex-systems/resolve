@@ -12,7 +12,7 @@ type NewUserFormInputs = {
 };
 
 export default function NewUserDialog() {
-	const { mutate: createUsers, isPending } = useUserTrpc().create;
+	const { mutateAsync: createUsers, isPending } = useUserTrpc().create;
 	const {
 		register,
 		handleSubmit,
@@ -21,7 +21,14 @@ export default function NewUserDialog() {
 	} = useForm<NewUserFormInputs>();
 	const email = watch('email');
 
-	const onSubmit = handleSubmit((data) => createUsers({ users: [data] }));
+	const onSubmit = handleSubmit(async (data) => {
+		try {
+			await createUsers({ users: [data] });
+			toggleNewUserDialog();
+		} catch (e) {
+			console.error(e);
+		}
+	});
 
 	return (
 		<BasicDialog

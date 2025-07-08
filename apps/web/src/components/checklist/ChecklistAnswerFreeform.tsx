@@ -13,7 +13,7 @@ export default function ChecklistAnswerFreeform(props: {
 	return (
 		<TextField
 			variant="outlined"
-			placeholder={answer.additional_info_placeholder ?? ''}
+			placeholder={answer.additional_info_placeholder ?? 'Type your response here'}
 			multiline
 			// multiline={!!answer.additional_info_num_lines}
 			rows={answer.additional_info_num_lines ?? 2}

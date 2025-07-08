@@ -1,168 +1,147 @@
 'use client';
-import { useMemo } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { Collapse, Divider, List, ListItemText, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
-import { ManageAccounts } from '@mui/icons-material';
-import Home from '@mui/icons-material/Home';
-import Menu from '@mui/icons-material/Menu';
 
-import { useGlobalSlice } from '@/state/store';
-import * as actions from '@/state/global/actions';
-import { NavListItem } from '@/types/types';
-import Toolbar from './Toolbar';
-import config from '@/config/config';
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+	Box,
+	IconButton,
+	List,
+	ListItem,
+	ListItemButton,
+	ListItemIcon,
+	ListItemText,
+	ClickAwayListener,
+	Divider,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 
-export default function Sidebar() {
-	const router = useRouter();
-	const pathname = usePathname();
-	const selectedPage = useGlobalSlice((state) => state.selectedPage);
-	const navOpen = useGlobalSlice((state) => state.navOpen);
-
-	const navGroups: Record<string, NavListItem[]> = useMemo(() => {
-		return {
-			group0: [
-				{
-					label: 'Home',
-					route: '/home',
-					color: 'secondary.main',
-					icon: <Home sx={styles.icon(pathname.startsWith('/home'))} />,
-				},
-				{
-					label: 'Admin',
-					route: '/admin',
-					color: 'secondary.main',
-					icon: <ManageAccounts sx={styles.icon(pathname.startsWith('/admin'))} />,
-				},
-			],
-		};
-	}, [selectedPage]);
-
-	return (
-		<Paper sx={styles.paper}>
-			<div style={styles.drawer}>
-				<Toolbar
-					left={
-						<Collapse in={navOpen} orientation="horizontal">
-							<Typography fontSize={25} color="white">
-								{config.APP_NAME}
-							</Typography>
-						</Collapse>
-					}
-					right={
-						<Menu
-							onClick={() => actions.toggleNavOpen()}
-							sx={{ ...styles.icon(false), cursor: 'pointer' }}
-						/>
-					}
-					height={60}
-					padding={'0px 15px 0px 10px'}
-				/>
-				<div style={styles.divider}>
-					<Divider sx={{ backgroundColor: 'white' }} />
-				</div>
-				{Object.keys(navGroups).map((groupKey, i) => [
-					<List key={groupKey} sx={{ padding: 0 }}>
-						{navGroups[groupKey].map((navItem) => (
-							<Tooltip
-								key={`${navItem.route}-tooltip`}
-								title={navItem.label}
-								placement="right"
-								enterDelay={800}
-								arrow
-							>
-								<MenuItem
-									key={navItem.route}
-									selected={pathname.startsWith(navItem.route)}
-									onClick={() => {
-										router.push(navItem.route);
-									}}
-									style={{
-										backgroundColor: pathname.startsWith(navItem.route) ? 'white' : 'inherit',
-									}}
-									sx={{ ...styles.menuItem }}
-								>
-									{navItem.icon}
-									<Collapse in={navOpen} orientation="horizontal">
-										<ListItemText
-											secondary={
-												<Typography fontSize={14} color="white">
-													{navItem.label.toUpperCase()}
-												</Typography>
-											}
-											sx={styles.text(pathname.startsWith(navItem.route))}
-										/>
-									</Collapse>
-								</MenuItem>
-							</Tooltip>
-						))}
-					</List>,
-					i < Object.keys(navGroups).length - 1 ? (
-						<div key={`${groupKey}-divider-${i}`} style={styles.divider}>
-							<Divider sx={{ backgroundColor: 'white' }} />
-						</div>
-					) : (
-						<span key={`${groupKey}-divider-${i}`} />
-					),
-				])}
-			</div>
-		</Paper>
-	);
+export interface NavItem {
+	label: string;
+	route: string;
+	icon: React.ReactNode;
 }
 
-const styles = {
-	collapseContainer: {
-		width: '100%',
-		display: 'flex',
-		justifyContent: 'flex-start',
-		alignItems: 'center',
-	},
-	divider: {
-		width: '100%',
-		height: 1,
-	},
-	drawer: {
-		width: '100%',
-		height: '100vh',
-		overflow: 'auto',
-		display: 'flex',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		flexDirection: 'column' as const,
-	},
-	icon: (selected: boolean) => ({
-		fontSize: 25,
-		color: selected ? 'secondary.main' : 'white',
-	}),
-	menuItem: {
-		width: '100%',
-		height: 50,
-		minHeight: 50,
-	},
-	menuItemMain: {
-		width: '100%',
-		height: 60,
-		minHeight: 60,
-		backgroundColor: 'secondary.main',
-	},
-	mainMenuItemContainer: {
-		width: 57,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		cursor: 'pointer',
-	},
-	paper: {
-		width: 'fit-content',
-		borderRight: '1px solid #e0e0e0',
-		backgroundColor: 'secondary.main',
-	},
-	text: (selected: boolean) => ({
-		width: 200,
-		marginLeft: '15px',
-		'& .MuiTypography-root': {
-			fontSize: 14,
-			textWrap: 'nowrap',
-			color: selected ? 'secondary.main' : 'white',
-		},
-	}),
-};
+export interface SidebarProps {
+	items: NavItem[];
+	/** Width when collapsed */
+	collapsedWidth?: number;
+	/** Width when expanded */
+	expandedWidth?: number;
+	/** Background color of the sidebar */
+	backgroundColor?: string;
+	/** Text/icon color */
+	color?: string;
+	/** Background on hover/selected */
+	hoverBackgroundColor?: string;
+	/** Color on hover/selected */
+	hoverColor?: string;
+}
+
+export default function Sidebar({
+	items,
+	collapsedWidth = 60,
+	expandedWidth = 240,
+	backgroundColor = '#333',
+	color = '#fff',
+	hoverBackgroundColor = '#fff',
+	hoverColor = '#333',
+}: SidebarProps) {
+	const [open, setOpen] = useState(false);
+	const pathname = usePathname();
+
+	const toggleOpen = () => setOpen((o) => !o);
+	const handleClickAway = () => {
+		if (open) setOpen(false);
+	};
+
+	return (
+		<ClickAwayListener onClickAway={handleClickAway}>
+			<Box
+				sx={{
+					position: 'fixed',
+					top: 0,
+					left: 0,
+					bottom: 0,
+					width: open ? expandedWidth : collapsedWidth,
+					bgcolor: backgroundColor,
+					color,
+					transition: 'width 0.3s',
+					overflowX: 'hidden',
+					zIndex: 1200,
+				}}
+			>
+				<Box
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: open ? 'flex-end' : 'center',
+						height: 60,
+						px: 1,
+					}}
+				>
+					<IconButton onClick={toggleOpen} sx={{ color, '& .MuiSvgIcon-root': { fontSize: 23 } }}>
+						<MenuIcon />
+					</IconButton>
+				</Box>
+				<Divider sx={{ borderColor: color }} />
+
+				<List disablePadding>
+					{items.map((item) => {
+						const selected = pathname.startsWith(item.route);
+						return (
+							<ListItem
+								key={item.route}
+								disablePadding
+								sx={{
+									display: 'block',
+									padding: '5px',
+									borderRadius: 20,
+								}}
+							>
+								<ListItemButton
+									component={Link}
+									href={item.route}
+									sx={{
+										minHeight: 48,
+										justifyContent: open ? 'initial' : 'center',
+										px: 2.5,
+										color: selected ? hoverColor : color,
+										bgcolor: selected ? hoverBackgroundColor : 'inherit',
+										'&:hover': { bgcolor: hoverBackgroundColor, color: hoverColor },
+										borderRadius: 1,
+									}}
+								>
+									<ListItemIcon
+										sx={{
+											minWidth: 0,
+											mr: open ? 3 : 'auto',
+											justifyContent: 'center',
+											color: 'inherit',
+											'& .MuiSvgIcon-root': { fontSize: 23 },
+										}}
+									>
+										{item.icon}
+									</ListItemIcon>
+									{open && (
+										<ListItemText
+											primary={item.label}
+											slotProps={{
+												primary: {
+													typography: {
+														color: 'inherit',
+													},
+													noWrap: true,
+												},
+											}}
+										/>
+									)}
+								</ListItemButton>
+							</ListItem>
+						);
+					})}
+				</List>
+			</Box>
+		</ClickAwayListener>
+	);
+}

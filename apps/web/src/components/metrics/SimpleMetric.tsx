@@ -64,6 +64,11 @@ export default function SimpleMetric({
 						alignItems="flex-start"
 						padding="10px 20px"
 					>
+						<Box position="relative" top={-20} right={-140}>
+							<Paper sx={{ position: 'absolute', borderRadius: 25 }}>
+								<div style={{ ...styles.circle, backgroundColor: color }}>{icon}</div>
+							</Paper>
+						</Box>
 						<Box
 							width="100%"
 							flex={1}
@@ -93,7 +98,6 @@ export default function SimpleMetric({
 								</Typography>
 							</Stack>
 						</Box>
-						<div style={{ ...styles.circle, backgroundColor: color }}>{icon}</div>
 					</Box>
 				)}
 			</Paper>
@@ -113,9 +117,9 @@ export default function SimpleMetric({
 											alignItems="center"
 											padding="0px 5px 5px"
 										>
-											<Typography fontWeight="bold">{capitalize(k)}</Typography>
+											<Typography fontStyle="italic">{capitalize(k)}</Typography>
 											<Typography
-												color={!showNegative && formattedMetric.isNegative ? 'error' : ''}
+												color={!showNegative && formattedMetric.isNegative ? 'error' : color}
 											>
 												{formattedKeyMetric.value}
 											</Typography>

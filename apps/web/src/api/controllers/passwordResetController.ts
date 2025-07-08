@@ -14,6 +14,8 @@ import { enqueueLog } from '@/lib/logs/logQueue';
 import { safeLog } from '@/lib/logs/safeLog';
 import { hashPasswordIfPresent } from '../utils/hasherUtils';
 import { sql } from 'kysely';
+import path from 'path';
+import { readFileSync } from 'fs';
 
 const RESET_EXPIRATION_MINUTES = 15;
 
@@ -33,7 +35,9 @@ export async function requestPasswordReset({ email }: { email: string }) {
 	await sendEmail({
 		to: user.email,
 		subject: 'Reset your password',
-		html: `<p>Click <a href="${process.env.BASE_URL}/reset-password?token=${token}">here</a> to reset your password. This link expires in ${RESET_EXPIRATION_MINUTES} minutes.</p>`,
+		html: getPasswordResetTemplate()
+			.replace('{{resetLink}}', `${process.env.BASE_URL}/reset-password?token=${token}`)
+			.replace('{{linkExpiration}}', RESET_EXPIRATION_MINUTES.toString()),
 	});
 
 	enqueueLog(() =>
@@ -68,4 +72,11 @@ export async function completePasswordReset({ token, password }: { token: string
 	enqueueLog(() => safeLog(() => logAuthEvent(record.user_id, AuthEventType.PasswordChanged), 'logAuth'));
 
 	return { success: true };
+}
+
+// private methods
+
+export function getPasswordResetTemplate(): string {
+	const filePath = path.join(process.cwd(), 'src/api/email-templates', 'password-reset-template.html');
+	return readFileSync(filePath, 'utf-8');
 }

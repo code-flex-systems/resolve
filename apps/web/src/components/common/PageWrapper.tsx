@@ -2,7 +2,7 @@
 import { PropsWithChildren, useEffect, useMemo } from 'react';
 import SiteHeader from './SiteHeader';
 import * as actions from '@/state/global/actions';
-import GPTSidebar, { NavItem } from './GPTSidebar';
+import Sidebar, { NavItem } from './Sidebar';
 import { Home, ManageAccounts, Security } from '@mui/icons-material';
 import theme from '@/styles/theme';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -18,7 +18,7 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 		if (isAdmin || isSuperAdmin)
 			items.push({ label: 'Admin', route: '/admin', icon: <ManageAccounts sx={{ fontSize: 23 }} /> });
 		if (isSuperAdmin) {
-			items.push({ label: 'Super-Admin', route: '/super-admin', icon: <Security sx={{ fontSize: 23 }} /> });
+			items.push({ label: 'Super Admin', route: '/super-admin', icon: <Security sx={{ fontSize: 23 }} /> });
 		}
 		return items;
 	}, [isAdmin, isSuperAdmin]);
@@ -29,7 +29,7 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 
 	return (
 		<div style={styles.container}>
-			<GPTSidebar
+			<Sidebar
 				items={navItems}
 				hoverColor={theme.palette.primary.main}
 				backgroundColor={theme.palette.primary.main}
@@ -54,7 +54,7 @@ const styles = {
 		flex: 1,
 		minWidth: 0,
 		marginLeft: 60,
-		height: '100vh',
+		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',

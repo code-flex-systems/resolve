@@ -60,6 +60,13 @@ export function formatMetric(
 	};
 }
 
+export function formatMD(date?: string) {
+	if (!date) return '';
+	const parsedDate = dayjs(date);
+	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
+	return parsedDate.format('MMM D');
+}
+
 export function formatMDY(date?: string) {
 	if (!date) return '';
 	const parsedDate = dayjs(date);

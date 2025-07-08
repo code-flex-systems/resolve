@@ -1,40 +1,46 @@
-import { faker } from '@faker-js/faker';
-import { clientId, adminUserId } from './createClientAndUser.js';
+const userId = '375c7652-69db-4b16-9c35-d6ae06f7354c';
+const clientId = '444be49a-110d-40c3-b09b-e81b1c59a274';
+const statuses = ['insert', 'update', 'delete'];
 
-/**
- * Generate fake response audit logs for each question_response.
- * @param {string[]} responseIds
- */
-export function createResponseAuditLogs(responseIds) {
+export function createResponseAuditLogs() {
 	const statements = [];
-	let i = 1;
-	for (const responseId of responseIds) {
-		const numLogs = faker.number.int({ min: 1, max: 3 });
-
-		for (let i = 0; i < numLogs; i++) {
-			const reason = faker.helpers.arrayElement([
-				'Initial response entered',
-				'Updated after claim review',
-				'Corrected data entry error',
-			]);
-
-			const snapshot = {
-				text: faker.lorem.sentence(),
-				updated_by: adminUserId,
-				simulated_values: faker.helpers.arrayElements(['Option A', 'Option B', 'Option C'], 2),
-			};
-
-			statements.push(
-				`INSERT INTO response_audit_logs (
-           id, client_id, response_id, change_reason, snapshot_json,
-           created_by, created_at
-         ) VALUES (
-           ${i}, '${clientId}', '${responseId}', '${reason}', '${JSON.stringify(snapshot).replace(/'/g, "''")}',
-           '${adminUserId}', NOW()
-         );`
-			);
-		}
-		i++;
+	for (let i = 0; i < 1000; i++) {
+		statements.push(`
+            insert into response_audit_logs(
+                client_id,
+                response_id,
+                user_id,
+                checklist_id,
+                instance_id,
+                claim_id,
+                question_id,
+                action,
+                old_response_text,
+                new_response_text,
+                old_answer_ids,
+                new_answer_ids,
+                old_additional_info,
+                new_additional_info,
+                timestamp
+            )
+            values(
+                '${clientId}',
+                ${Math.round(Math.random() * 1900) + 500},
+                '${userId}',
+                1,
+                ${Math.round(Math.random() * 13) + 1},
+                ${Math.round(Math.random() * 49) + 1},
+                ${Math.round(Math.random() * 48) + 1},
+                '${statuses[Math.round(Math.random() * 2)]}',
+                '',
+                '',
+                '{}',
+                '{}',
+                '{}',
+                '{}',
+                now()
+            );
+            `);
 	}
 
 	return statements;
