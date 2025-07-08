@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 
 import ClaimsSearch from '@/components/checklists/ClaimsSearch';
 import Recents from '@/components/checklists/Recents';
-import PageWrapper from '@/components/common/PageWrapper';
 import ClaimMenuItem from '@/components/checklists/ClaimMenuItem';
 import ChecklistsSearch from '@/components/checklists/ChecklistsSearch';
 import ChecklistMenuItem from '@/components/checklists/ChecklistMenuItem';
@@ -15,8 +14,9 @@ import ChecklistClaimDialog from '@/components/checklists/ChecklistClaimDialog';
 import { SLICES } from '@/state/storeConfig';
 import { resetStoreSlice, useChecklistsSlice } from '@/state/store';
 import * as actions from '@/state/checklists/actions';
+import config from '@/config/config';
 
-export default function Checklists() {
+export default function Home() {
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
 	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
 	const showChecklistClaimDialog = useChecklistsSlice((state) => state.showChecklistClaimDialog);
@@ -26,12 +26,12 @@ export default function Checklists() {
 	}, []);
 
 	return (
-		<PageWrapper route="home">
+		<>
 			<div style={styles.container}>
 				<Recents />
 				<div style={styles.innerContainer} className="flex-col-center">
 					<Typography fontSize={25} fontStyle="italic" color="primary" height={80}>
-						Welcome to Checklists!
+						Welcome to {config.APP_NAME}!
 					</Typography>
 					<Typography>Find a claim to work.</Typography>
 					<ClaimsSearch />
@@ -72,9 +72,8 @@ export default function Checklists() {
 					</BasicButton>
 				</div>
 			</div>
-
 			{showChecklistClaimDialog && <ChecklistClaimDialog />}
-		</PageWrapper>
+		</>
 	);
 }
 

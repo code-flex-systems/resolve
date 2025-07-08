@@ -1,5 +1,4 @@
 'use client';
-import PageWrapper from '@/components/common/PageWrapper';
 import PageNavigation from '@/components/checklist/PageNavigation';
 import Page from '@/components/checklist/Page';
 import PageEditor from '@/components/checklist/PageEditor';
@@ -11,6 +10,7 @@ import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useEffect } from 'react';
 import { SLICES } from '@/state/storeConfig';
+import { Box } from '@mui/material';
 
 export default function Checklist() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -27,26 +27,12 @@ export default function Checklist() {
 		return () => resetStoreSlice(SLICES.CHECKLIST);
 	}, []);
 
-	return (
-		<PageWrapper route="checklist">
-			{!checklist || (!!claimId && !claim) ? (
-				<></>
-			) : (
-				<div style={styles.container}>
-					<PageNavigation />
-					{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
-				</div>
-			)}
-		</PageWrapper>
+	return !checklist || (!!claimId && !claim) ? (
+		<></>
+	) : (
+		<Box width="100%" flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
+			<PageNavigation />
+			{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
+		</Box>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100%',
-		height: '100%',
-		display: 'flex',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-	},
-};

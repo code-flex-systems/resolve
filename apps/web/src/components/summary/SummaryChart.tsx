@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import theme, { BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
 import { Divider, Paper, Typography } from '@mui/material';
 import Toolbar from '../common/Toolbar';
-import { ContactSupport, Description } from '@mui/icons-material';
+import { Help, Description } from '@mui/icons-material';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -109,7 +109,7 @@ export default function SummaryChart() {
 			<Toolbar
 				left={
 					<>
-						<ContactSupport sx={{ color: 'secondary.main' }} />
+						<Help sx={{ color: 'secondary.main' }} />
 						<Typography fontSize={17} marginLeft="5px" fontStyle="italic">
 							Questions (<b>{checklistSummaryTotals.total_questions.toLocaleString()}</b>)
 						</Typography>

@@ -122,6 +122,7 @@ const styles = {
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
 		overflow: 'hidden',
+		borderRadius: 0,
 	},
 	dateFilter: {
 		margin: '0px 5px',

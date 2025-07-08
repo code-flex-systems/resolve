@@ -2,8 +2,6 @@
 import { Paper } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useChecklistSlice } from '@/state/store';
-import { ContactSupport, Description, InsertComment, Sms } from '@mui/icons-material';
-import IconHeaderCell from '../common/IconHeaderCell';
 import { useMemo, useRef } from 'react';
 import { SummarySegment } from '@/config/enums';
 import * as actions from '@/state/checklist/actions';
@@ -16,35 +14,35 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Page',
 		field: 'page_title',
 		cellClassName: 'cell-bold',
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Description sx={{ color: 'secondary.main' }} />} />
-		),
+		// renderHeader: (params) => (
+		// 	<IconHeaderCell {...params} icon={<Description sx={{ color: 'secondary.main' }} />} />
+		// ),
 		width: 200,
 	},
 	{
 		headerName: 'Question',
 		field: 'question_text',
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<ContactSupport sx={{ color: 'secondary.main' }} />} />
-		),
+		// renderHeader: (params) => (
+		// 	<IconHeaderCell {...params} icon={<Help sx={{ color: 'secondary.main' }} />} />
+		// ),
 		width: 200,
 	},
 	{
 		headerName: 'Answer',
 		field: 'answer_texts',
 		cellClassName: 'italics',
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<InsertComment sx={{ color: 'secondary.main' }} />} />
-		),
+		// renderHeader: (params) => (
+		// 	<IconHeaderCell {...params} icon={<InsertComment sx={{ color: 'secondary.main' }} />} />
+		// ),
 		width: 200,
 	},
 	{
 		headerName: 'Additional Info',
 		field: 'response_text',
 		cellClassName: 'italics',
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Sms sx={{ color: 'secondary.main', transform: 'scaleX(-1)' }} />} />
-		),
+		// renderHeader: (params) => (
+		// 	<IconHeaderCell {...params} icon={<Sms sx={{ color: 'secondary.main', transform: 'scaleX(-1)' }} />} />
+		// ),
 		flex: 1,
 	},
 ];

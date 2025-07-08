@@ -103,6 +103,7 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
+		marginLeft: 5,
 	},
 	table: {
 		width: '100%',

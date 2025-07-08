@@ -1,7 +1,7 @@
 'use client';
 import { Accordion, AccordionDetails, AccordionSummary, Link, Typography } from '@mui/material';
 import { QuestionStat } from '@/types/types';
-import { ArrowDropDown, ContactSupport } from '@mui/icons-material';
+import { ArrowDropDown, Help } from '@mui/icons-material';
 import theme from '@/styles/theme';
 
 export default function QuestionStatItem(props: {
@@ -29,7 +29,7 @@ export default function QuestionStatItem(props: {
 			}}
 		>
 			<AccordionSummary sx={styles.accordionSummary} expandIcon={<ArrowDropDown />}>
-				<ContactSupport sx={styles.icon} />
+				<Help sx={styles.icon} />
 				<Typography fontStyle="italic">
 					{question_text} (p{pageId}.q{question_id})
 				</Typography>

@@ -214,6 +214,7 @@ const styles = {
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
 		overflow: 'hidden',
+		borderRadius: 0,
 	},
 	icon: {
 		marginRight: '5px',

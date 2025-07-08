@@ -1,6 +1,6 @@
 'use client';
-import Checklists from '@/components/pages/Checklists';
+import Home from '@/components/pages/Home';
 
 export default function ChecklistPage() {
-	return <Checklists />;
+	return <Home />;
 }
