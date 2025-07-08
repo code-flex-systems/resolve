@@ -59,7 +59,7 @@ export default function ClaimsMetric() {
 							<Select
 								variant="filled"
 								displayEmpty
-								value={selectedChecklist}
+								value={selectedChecklist ?? ''}
 								onChange={(e) => setSelectedChecklist(e.target.value)}
 								renderValue={(value) => {
 									return checklistOptions.find((o) => o.value === value)?.label ?? 'Select';

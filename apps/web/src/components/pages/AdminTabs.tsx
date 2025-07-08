@@ -1,10 +1,11 @@
 'use client';
 
-import { useAdminSlice } from '@/state/store';
+import { resetStoreSlice, useAdminSlice } from '@/state/store';
 import NewUserDialog from '../admin/NewUserDialog';
 import { Box, Tab, Tabs } from '@mui/material';
 import { usePathname, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { SLICES } from '@/state/storeConfig';
 
 const tabs = ['dashboard', 'users', 'checklists', 'feeds-and-claims', 'settings'];
 
@@ -12,11 +13,18 @@ export default function AdminTabs() {
 	const showNewUserDialog = useAdminSlice((state) => state.showNewUserDialog);
 	const router = useRouter();
 	const pathname = usePathname();
-	const currentTab = useMemo(() => tabs.findIndex((tab) => pathname.endsWith(tab)), [pathname]);
+	const currentTab = useMemo(() => {
+		const tabIndex = tabs.findIndex((tab) => pathname.endsWith(tab));
+		return tabIndex === -1 ? 0 : tabIndex;
+	}, [pathname]);
 
 	const setTab = (_: any, newValue: number) => {
 		router.push(`/admin/${tabs[newValue]}`);
 	};
+
+	useEffect(() => {
+		return () => resetStoreSlice(SLICES.ADMIN);
+	}, []);
 
 	return (
 		<>

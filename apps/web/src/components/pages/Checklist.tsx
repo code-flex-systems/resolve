@@ -3,12 +3,14 @@ import PageWrapper from '@/components/common/PageWrapper';
 import PageNavigation from '@/components/checklist/PageNavigation';
 import Page from '@/components/checklist/Page';
 import PageEditor from '@/components/checklist/PageEditor';
-import { useChecklistSlice } from '@/state/store';
+import { resetStoreSlice, useChecklistSlice } from '@/state/store';
 import { ChecklistMode } from '@/config/enums';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import { useEffect } from 'react';
+import { SLICES } from '@/state/storeConfig';
 
 export default function Checklist() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -21,9 +23,9 @@ export default function Checklist() {
 	);
 	usePageTrpc().listTemplates();
 
-	// useEffect(() => {
-	// 	return () => resetStoreSlice(SLICES.CHECKLIST);
-	// }, []);
+	useEffect(() => {
+		return () => resetStoreSlice(SLICES.CHECKLIST);
+	}, []);
 
 	return (
 		<PageWrapper route="checklist">
