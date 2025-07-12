@@ -14,7 +14,9 @@ import ChecklistClaimDialog from '@/components/checklists/ChecklistClaimDialog';
 import { SLICES } from '@/state/storeConfig';
 import { resetStoreSlice, useChecklistsSlice } from '@/state/store';
 import * as actions from '@/state/checklists/actions';
+import InsuranceGraphic1 from '@/lib/resources/images/insurance-graphic-1.png';
 import config from '@/config/config';
+import Image from 'next/image';
 
 export default function Home() {
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
@@ -30,7 +32,8 @@ export default function Home() {
 			<div style={styles.container}>
 				<Recents />
 				<div style={styles.innerContainer} className="flex-col-center">
-					<Typography fontSize={25} fontStyle="italic" color="primary" height={80}>
+					<Image src={InsuranceGraphic1} alt="insurance-people" height={250} />
+					<Typography fontSize={25} color="primary" height={80}>
 						Welcome to {config.APP_NAME}!
 					</Typography>
 					<Typography>Find a claim to work.</Typography>
@@ -39,7 +42,7 @@ export default function Home() {
 						<Collapse in={Boolean(selectedClaim)} className="flex-col-center">
 							<ClaimMenuItem claim={selectedClaim} clearable />
 						</Collapse>
-						<div style={{ height: 80 }} className="flex-row-center">
+						<div style={{ height: 40 }} className="flex-row-center">
 							<Separator />
 							<Separator />
 							<Separator />

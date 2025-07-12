@@ -15,6 +15,7 @@ import {
 	Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import theme from '@/styles/theme';
 
 export interface NavItem {
 	label: string;
@@ -42,10 +43,8 @@ export default function Sidebar({
 	items,
 	collapsedWidth = 60,
 	expandedWidth = 240,
-	backgroundColor = '#333',
 	color = '#fff',
 	hoverBackgroundColor = '#fff',
-	hoverColor = '#333',
 }: SidebarProps) {
 	const [open, setOpen] = useState(false);
 	const pathname = usePathname();
@@ -64,7 +63,7 @@ export default function Sidebar({
 					left: 0,
 					bottom: 0,
 					width: open ? expandedWidth : collapsedWidth,
-					bgcolor: backgroundColor,
+					background: 'linear-gradient(180deg, rgb(33, 106, 196), rgba(33, 106, 196, 0.9))',
 					color,
 					transition: 'width 0.3s',
 					overflowX: 'hidden',
@@ -106,9 +105,9 @@ export default function Sidebar({
 										minHeight: 48,
 										justifyContent: open ? 'initial' : 'center',
 										px: 2.5,
-										color: selected ? hoverColor : color,
+										color: selected ? theme.palette.primary.main : color,
 										bgcolor: selected ? hoverBackgroundColor : 'inherit',
-										'&:hover': { bgcolor: hoverBackgroundColor, color: hoverColor },
+										'&:hover': { bgcolor: hoverBackgroundColor, color: theme.palette.primary.main },
 										borderRadius: 1,
 									}}
 								>

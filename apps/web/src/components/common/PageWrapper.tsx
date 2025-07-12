@@ -29,11 +29,7 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 
 	return (
 		<div style={styles.container}>
-			<Sidebar
-				items={navItems}
-				hoverColor={theme.palette.primary.main}
-				backgroundColor={theme.palette.primary.main}
-			/>
+			<Sidebar items={navItems} />
 			<div style={styles.content}>
 				<SiteHeader />
 				{props.children}

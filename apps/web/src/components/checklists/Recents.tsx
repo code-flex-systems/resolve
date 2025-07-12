@@ -1,11 +1,12 @@
 'use client';
-import { Collapse, Divider, Link, Paper, Typography } from '@mui/material';
+import { Box, Collapse, Divider, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { OFFWHITE_COLOR } from '@/styles/theme';
 import { ContentPasteSearch } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { TransitionGroup } from 'react-transition-group';
+import { formatMDYAbv } from '@/lib/utils/utils';
 
 export default function Recents() {
 	const router = useRouter();
@@ -21,16 +22,45 @@ export default function Recents() {
 				<div style={styles.links}>
 					<TransitionGroup>
 						{recentChecklistClaims.map((c, i) => (
-							<Collapse key={i}>
-								<Link
+							<Collapse key={i} sx={{ width: 330 }}>
+								<MenuItem
 									onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
-									style={styles.link}
-									color="primary"
-									className="flex-row-left"
+									sx={styles.menuItem}
 								>
-									<ContentPasteSearch sx={styles.icon} />
-									{c.claim_number} ({c.checklist_name})
-								</Link>
+									<Stack
+										width="100%"
+										display="flex"
+										justifyContent="flex-start"
+										alignItems="flex-start"
+									>
+										<Box
+											padding="5px 10px"
+											display="flex"
+											justifyContent="flex-start"
+											alignItems="center"
+										>
+											<ContentPasteSearch sx={styles.icon} />
+											<Stack
+												width="100%"
+												display="flex"
+												justifyContent="flex-start"
+												alignItems="flex-start"
+												paddingLeft="5px"
+											>
+												<Box display="flex" justifyContent="flex-start" alignItems="flex-start">
+													<Typography color="primary">{c.claim_number}</Typography>
+													<Typography paddingLeft="5px">({c.checklist_name})</Typography>
+												</Box>
+												<Typography fontSize={13}>
+													Last opened: {formatMDYAbv(c.last_opened)}
+												</Typography>
+											</Stack>
+										</Box>
+										<div style={styles.horizontalDiv}>
+											<Divider />
+										</div>
+									</Stack>
+								</MenuItem>
 							</Collapse>
 						))}
 					</TransitionGroup>
@@ -50,6 +80,7 @@ const styles = {
 		overflow: 'hidden',
 	},
 	horizontalDiv: {
+		padding: 0,
 		height: 1,
 		width: '100%',
 	},
@@ -69,16 +100,9 @@ const styles = {
 		overflow: 'auto',
 	},
 	menuItem: {
+		flex: 1,
 		width: '100%',
-	},
-	menuItemInner: {
-		width: '100%',
-		padding: 5,
-		borderRadius: 5,
-	},
-	verticalDiv: {
-		height: 25,
-		width: 1,
-		padding: '0px 10px',
+		padding: 0,
+		bgcolor: 'white',
 	},
 };
