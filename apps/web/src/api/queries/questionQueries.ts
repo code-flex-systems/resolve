@@ -17,6 +17,12 @@ import { applyClientScope } from '../database/clientScoped';
 export async function createQuestion(ctx: ProtectedContext, pageId: number, params: object) {
 	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
+		await trx
+			.updateTable('question')
+			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+			.where('page_id', '=', pageId)
+			.where('position', '>=', params.position)
+			.execute();
 		newQuestion = await trx
 			.insertInto('question')
 			.values({
@@ -133,7 +139,16 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
  */
 export async function deleteQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
 	await db.transaction().execute(async (trx) => {
-		await trx.deleteFrom('question').where('id', '=', questionId).execute();
+		const { position } = await trx
+			.deleteFrom('question')
+			.where('id', '=', questionId)
+			.returning('position')
+			.executeTakeFirstOrThrow();
+		await trx
+			.updateTable('question')
+			.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+			.where((eb) => eb.and([eb('page_id', '=', pageId), eb('position', '>', position)]))
+			.execute();
 		await bumpPageVersion(ctx, pageId, trx);
 	});
 }
@@ -204,8 +219,8 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 					.as('answers'),
 			])
 			.where('question.page_id', '=', pageId)
-			.groupBy(['question.id'])
-			.orderBy('id'),
+			.groupBy('question.id')
+			.orderBy('question.position'),
 		ctx.session.user.client_id,
 		'question'
 	).execute();
@@ -276,14 +291,42 @@ export async function getQuestionStats(ctx: ProtectedContext, pageId: number, in
  * @returns updated question
  */
 export async function modifyQuestion(ctx: ProtectedContext, pageId: number, questionId: number, params: object) {
+	const existingQuestion = await applyClientScope(
+		db.selectFrom('question').select('position').where('id', '=', questionId),
+		ctx.session.user.client_id
+	).executeTakeFirstOrThrow();
 	const updates: UpdateObjectExpression<DB, 'question'> = {};
+
 	if (params.text) updates.text = params.text;
 	if (params.type) updates.type = params.type;
 	if (params.description_text != null) updates.description_text = params.description_text;
 	if (params.page_id) updates.page_id = params.page_id;
+	if (params.position && params.position !== existingQuestion.position) updates.position = params.position;
 
 	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
+		if (updates.position) {
+			if (updates.position < existingQuestion.position) {
+				// Shift down: move questions [newPosition, currentPosition - 1] up by 1
+				await trx
+					.updateTable('question')
+					.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+					.where('page_id', '=', pageId)
+					.where('position', '>=', updates.position)
+					.where('position', '<', existingQuestion.position)
+					.execute();
+			} else {
+				// Shift up: move questions [currentPosition + 1, newPosition] down by 1
+				await trx
+					.updateTable('question')
+					.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+					.where('page_id', '=', pageId)
+					.where('position', '>', existingQuestion.position)
+					.where('position', '<=', updates.position)
+					.execute();
+			}
+		}
+
 		newQuestion = await trx
 			.updateTable('question')
 			.set({

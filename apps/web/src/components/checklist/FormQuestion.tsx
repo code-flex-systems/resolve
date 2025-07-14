@@ -18,7 +18,7 @@ import {
 import { TaskAlt } from '@mui/icons-material';
 
 import { QuestionType } from '@/config/enums';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import * as actions from '@/state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
@@ -45,7 +45,7 @@ export default function FormQuestion() {
 	const { isPending: updating, mutateAsync: updateQuestion } = update;
 	const { isPending: copying, mutateAsync: copyQuestion } = copy;
 	const { isPending: deleting, mutateAsync: deleteQuestion } = remove;
-	const { isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
+	const { data: questions, isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
 
 	const {
 		control,
@@ -112,6 +112,16 @@ export default function FormQuestion() {
 	useEffect(() => {
 		reset({ ...getDefaults(selectedQuestionData) });
 	}, [selectedQuestionData, selectedPageInfo.pageId]);
+
+	const positionOptions = useMemo(() => {
+		const options: number[] = [];
+		let limit = questions?.length ?? 0;
+		if (isPlaceholder) limit += 1;
+		for (let i = 1; i <= limit; i++) {
+			options.push(i);
+		}
+		return options;
+	}, [questions, isPlaceholder]);
 
 	return (
 		<>
@@ -268,6 +278,30 @@ export default function FormQuestion() {
 											value={QuestionType.FREEFORM}
 										/>
 									</RadioGroup>
+								</FormControl>
+							)}
+						/>
+					</div>
+					<div style={styles.row} className="flex-row-left">
+						<Controller
+							name="position"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<FormControl style={{ padding: '0px 5px 15px' }}>
+									<FormLabel sx={styles.formLabel}>Order</FormLabel>
+									<Select
+										variant="outlined"
+										error={!!errors.position}
+										{...field}
+										sx={{ ...styles.textFieldOverrides, width: 50 }}
+									>
+										{positionOptions.map((o) => (
+											<MenuItem key={o} value={o}>
+												{o}
+											</MenuItem>
+										))}
+									</Select>
 								</FormControl>
 							)}
 						/>

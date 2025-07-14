@@ -44,7 +44,16 @@ export async function createAnswer(
  */
 export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
 	await db.transaction().execute(async (trx) => {
-		await trx.deleteFrom('answer').where('id', '=', answerId).execute();
+		const { position, question_id } = await trx
+			.deleteFrom('answer')
+			.where('id', '=', answerId)
+			.returning(['position', 'question_id'])
+			.executeTakeFirstOrThrow();
+		await trx
+			.updateTable('answer')
+			.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+			.where((eb) => eb.and([eb('question_id', '=', question_id), eb('position', '>', position)]))
+			.execute();
 		await bumpPageVersion(ctx, pageId, trx);
 	});
 }
@@ -105,19 +114,46 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @returns the updated answer
  */
 export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: object) {
+	const existingAnswer = await applyClientScope(
+		db.selectFrom('answer').select(['position', 'question_id']).where('id', '=', answerId),
+		ctx.session.user.client_id
+	).executeTakeFirstOrThrow();
 	const updates: UpdateObjectExpression<DB, 'answer'> = {};
-	if (params.position) updates.position = params.position;
+
+	if (params.position && params.position !== existingAnswer.position) updates.position = params.position;
 	if (params.grade != null) updates.grade = params.grade || null;
 	if (params.text) updates.text = params.text;
 	if (params.description_text != null) updates.description_text = params.description_text;
 	if (params.additional_info_num_lines) updates.additional_info_num_lines = params.additional_info_num_lines;
 	if (params.additional_info_placeholder != null)
 		updates.additional_info_placeholder = params.additional_info_placeholder;
-	if (params.calls_instance_id) updates.calls_instance_id = params.calls_instance_id;
+	if (params.calls_instance_id !== undefined) updates.calls_instance_id = params.calls_instance_id;
 	if (params.has_additional_info != null) updates.has_additional_info = params.has_additional_info;
 
-	let newAnswer: any;
+	let newAnswer: Awaited<ReturnType<typeof getAnswer>>;
 	await db.transaction().execute(async (trx) => {
+		if (updates.position) {
+			if (updates.position < existingAnswer.position) {
+				// Shift down: move answers [newPosition, currentPosition - 1] up by 1
+				await trx
+					.updateTable('answer')
+					.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+					.where('question_id', '=', existingAnswer.question_id)
+					.where('position', '>=', updates.position)
+					.where('position', '<', existingAnswer.position)
+					.execute();
+			} else {
+				// Shift up: move answers [currentPosition + 1, newPosition] down by 1
+				await trx
+					.updateTable('answer')
+					.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+					.where('question_id', '=', existingAnswer.question_id)
+					.where('position', '>', existingAnswer.position)
+					.where('position', '<=', updates.position)
+					.execute();
+			}
+		}
+
 		newAnswer = await trx
 			.updateTable('answer')
 			.set({
@@ -130,7 +166,7 @@ export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answer
 			.executeTakeFirstOrThrow();
 		await bumpPageVersion(ctx, pageId, trx);
 	});
-	return newAnswer;
+	return newAnswer!;
 }
 
 // private methods
@@ -160,12 +196,17 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Trans
  * @returns the newly created answer
  */
 async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, params: object, trx: Transaction<DB>) {
-	const answerCount = (await getAnswerCount(ctx, questionId)) ?? 0;
+	await trx
+		.updateTable('answer')
+		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+		.where('question_id', '=', questionId)
+		.where('position', '>=', params.position)
+		.execute();
 	const newAnswer = await trx
 		.insertInto('answer')
 		.values({
 			question_id: questionId,
-			position: answerCount + 1,
+			position: params.position,
 			grade: params.grade,
 			text: params.text,
 			description_text: params.description_text,

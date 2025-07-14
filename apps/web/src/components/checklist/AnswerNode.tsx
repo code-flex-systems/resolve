@@ -4,7 +4,7 @@ import * as actions from '@/state/checklist/actions';
 import { useChecklistSlice } from '@/state/store';
 import { ChecklistMode } from '@/config/enums';
 import './styles.css';
-import { ORANGE_COLOR } from '@/styles/theme';
+import theme from '@/styles/theme';
 
 export default function AnswerNode(props: {
 	pageId: number;
@@ -27,7 +27,7 @@ export default function AnswerNode(props: {
 		>
 			<div className="flex-row-left">
 				<Typography
-					color={selected ? ORANGE_COLOR : isPlaceholder ? 'primary' : ''}
+					color={selected ? theme.palette.warning.main : isPlaceholder ? 'primary' : ''}
 					fontWeight={isPlaceholder ? 'bold' : ''}
 					className={mode === ChecklistMode.EDIT ? 'node-a' : undefined}
 					lineHeight="19px"

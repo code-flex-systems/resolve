@@ -19,7 +19,7 @@ import {
 	Typography,
 } from '@mui/material';
 import { QuestionType } from '@/config/enums';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TaskAlt } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import * as actions from '@/state/checklist/actions';
@@ -78,17 +78,21 @@ export default function FormAnswer() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
+			const parsedData: Answer = {
+				...data,
+				calls_instance_id: !data.calls_instance_id ? null : data.calls_instance_id,
+			};
 			const newAnswer =
 				selectedAnswerData.id === -1
 					? await addAnswer({
 							questionId: selectedQuestion,
 							pageId: selectedPageInfo.pageId,
-							params: data,
+							params: parsedData,
 						})
 					: await updateAnswer({
 							pageId: selectedPageInfo.pageId,
 							answerId: selectedAnswerData.id,
-							params: data,
+							params: parsedData,
 						});
 			if (newAnswer) actions.updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
@@ -120,7 +124,7 @@ export default function FormAnswer() {
 		}
 	};
 
-	const getPositionOptions = () => {
+	const positionOptions = useMemo(() => {
 		const options: number[] = [];
 		let limit = selectedQuestionData.answers?.length ?? 0;
 		if (isPlaceholder) limit += 1;
@@ -128,7 +132,7 @@ export default function FormAnswer() {
 			options.push(i);
 		}
 		return options;
-	};
+	}, [selectedQuestionData, isPlaceholder]);
 
 	return (
 		<>
@@ -279,7 +283,7 @@ export default function FormAnswer() {
 										{...field}
 										sx={{ ...styles.textFieldOverrides, width: 50 }}
 									>
-										{getPositionOptions().map((o) => (
+										{positionOptions.map((o) => (
 											<MenuItem key={o} value={o}>
 												{o}
 											</MenuItem>
@@ -296,11 +300,21 @@ export default function FormAnswer() {
 								<FormControl style={{ padding: '0px 5px 15px' }}>
 									<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
 									<Select
+										displayEmpty
 										variant="outlined"
 										error={!!errors.calls_instance_id}
 										{...field}
+										value={field.value ?? ''}
+										renderValue={(value) => {
+											if (value === 0) return 'None';
+											const option = pageInstanceOptions.find((o) => o.instanceId === value);
+											return option ? `p${option.pageId}.i${option.instanceId}` : 'Choose a page';
+										}}
 										sx={styles.textFieldOverrides}
 									>
+										<MenuItem key="none" value="">
+											None
+										</MenuItem>
 										{pageInstanceOptions
 											.sort((a, b) => a.pageId - b.pageId)
 											.map((o) => (

@@ -30,8 +30,16 @@ export function useAnswerTrpc() {
 		}),
 
 		update: trpc.answer.updateAnswer.useMutation({
-			onSuccess: (_, variables) => {
+			onSuccess: (data, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				if (data) {
+					utils.answer.getAnswersForQuestion.setData({ questionId: data.question_id }, (old) => {
+						if (!old) return old;
+						const oldAnswerIndex = old.findIndex((a) => a.id === data.id);
+						if (oldAnswerIndex !== -1) old.splice(oldAnswerIndex, 1, data);
+						return old;
+					});
+				}
 				invalidateTree();
 			},
 		}),

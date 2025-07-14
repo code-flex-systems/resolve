@@ -5,7 +5,6 @@ export const BASE_COLOR_LIGHT = '#91979e';
 export const BACKDROP_COLOR = '#ebedf1';
 export const HOVERED_COLOR = '#cdced8';
 export const OFFWHITE_COLOR = '#f7f7f7';
-export const ORANGE_COLOR = '#FA7601';
 export const OUTLINE_COLOR = '#e0e0e0';
 
 // Create a default theme
@@ -190,7 +189,7 @@ const theme = createTheme({
 			dark: BASE_COLOR,
 		},
 		warning: {
-			main: ORANGE_COLOR,
+			main: '#FCB237',
 			contrastText: 'white',
 		},
 	},
