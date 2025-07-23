@@ -1,13 +1,15 @@
 import { ClaimStatus } from '@/config/enums';
 import theme, { BASE_COLOR } from '@/styles/theme';
-import { Box, Divider, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import { Info } from '@mui/icons-material';
+import { Box, Divider, IconButton, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
+import { CheckCircle, Info, Troubleshoot } from '@mui/icons-material';
 import { PieChart } from '@mui/x-charts';
 import { useEffect, useMemo, useState } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import ExpandableTitle from '../common/ExpandableTitle';
+import { useRouter } from 'next/navigation';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 300;
+const METRIC_HEIGHT = 350;
 
 function getProgressPercentage(completed: number, total: number) {
 	if (completed === 0 || total === 0) return '0%';
@@ -28,6 +30,7 @@ function getStatusColor(status: ClaimStatus) {
 export default function ClaimsMetric() {
 	const [selectedChecklist, setSelectedChecklist] = useState<string | null>(null);
 	const { data = {}, isFetching } = useChecklistTrpc().stats();
+	const router = useRouter();
 
 	const checklistOptions = useMemo(() => {
 		return Object.keys(data).map((key) => {
@@ -52,12 +55,49 @@ export default function ClaimsMetric() {
 			) : (
 				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
 					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
-						<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px">
-							<Typography fontSize={17} paddingTop="3px">
+						<Box
+							width="100%"
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
+							padding="0px 5px"
+						>
+							<ExpandableTitle
+								title="Claim Submission"
+								icon={<CheckCircle sx={{ color: 'white' }} />}
+								color={theme.palette.warning.main}
+								bgcolor="rgba(226, 232, 242, 0.5)"
+								padding="5px 0px 10px"
+							/>
+							<Tooltip
+								arrow
+								title="A claim is considered complete if all necessary questions have been answered for the related checklist."
+							>
+								<Info sx={{ color: BASE_COLOR, fontSize: 20, marginLeft: '5px' }} />
+							</Tooltip>
+							<Tooltip title="Open Inspector">
+								<span>
+									<IconButton
+										sx={{ marginLeft: '5px' }}
+										onClick={() => router.push('/metrics/user-activity')}
+									>
+										<Troubleshoot
+											sx={{
+												transform: 'scaleX(-1)',
+												fontSize: 25,
+												color: theme.palette.primary.main,
+											}}
+										/>
+									</IconButton>
+								</span>
+							</Tooltip>
+						</Box>
+						<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px 5px">
+							<Typography fontSize={15} paddingTop="3px">
 								Viewing claims for
 							</Typography>
 							<Select
-								variant="filled"
+								variant="standard"
 								displayEmpty
 								value={selectedChecklist ?? ''}
 								onChange={(e) => setSelectedChecklist(e.target.value)}
@@ -65,10 +105,11 @@ export default function ClaimsMetric() {
 									return checklistOptions.find((o) => o.value === value)?.label ?? 'Select';
 								}}
 								sx={{
-									width: 175,
 									marginTop: '5px',
-									marginLeft: '10px',
-									padding: '2px 10px',
+									marginLeft: '2px',
+									padding: '0px 5px',
+									fontSize: 15,
+									color: BASE_COLOR,
 									'& .MuiInputBase-root': {
 										padding: '2px 5px',
 									},
@@ -84,12 +125,6 @@ export default function ClaimsMetric() {
 									</MenuItem>
 								))}
 							</Select>
-							<Tooltip
-								arrow
-								title="A claim is considered complete if all necessary questions have been answered for the related checklist."
-							>
-								<Info sx={{ color: BASE_COLOR, fontSize: 20, marginLeft: '5px', paddingTop: '3px' }} />
-							</Tooltip>
 						</Box>
 						<div style={styles.divider}>
 							<Divider />
@@ -115,10 +150,10 @@ export default function ClaimsMetric() {
 											cornerRadius: 5,
 											startAngle: -110,
 											endAngle: 110,
-											cy: 125,
+											cy: 150,
 										},
 									]}
-									height={175}
+									height={225}
 								/>
 								<Box position="relative">
 									<Stack
@@ -161,6 +196,8 @@ const styles = {
 	paper: {
 		borderRadius: 3,
 		margin: '10px',
+		border: 1,
+		borderColor: 'divider',
 	},
 	skeleton: {
 		borderRadius: 3,

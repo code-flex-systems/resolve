@@ -107,12 +107,12 @@ export default function PageNavigation() {
 											onClick: () =>
 												router.push(`/checklist/${checklistId}/claim/${claimId}/summary`),
 											variant: 'contained',
-											sx: styles.button,
+											sx: { ...styles.button, minWidth: 140 },
 											color: 'secondary',
 											endIcon: <ArrowForward sx={{ color: 'white' }} />,
 										}}
 									>
-										Summary
+										Q/A Summary
 									</BasicButton>
 								)}
 							</span>

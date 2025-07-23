@@ -4,13 +4,14 @@ import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import { useMemo } from 'react';
 import theme, { BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
-import { Divider, Paper, Typography } from '@mui/material';
-import Toolbar from '../common/Toolbar';
-import { Help, Description } from '@mui/icons-material';
+import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
+import { AdsClick, Help, Description } from '@mui/icons-material';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import ExpandableTitle from '../common/ExpandableTitle';
+import { capitalize } from '@/lib/utils/utils';
 
 export default function SummaryChart() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -55,6 +56,7 @@ export default function SummaryChart() {
 				highlightScope: { fade: 'global', highlight: 'item' },
 				innerRadius: 140,
 				outerRadius: 200,
+				cornerRadius: 5,
 				faded: { additionalRadius: -3, color: BASE_COLOR_LIGHT },
 				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
 			},
@@ -77,6 +79,7 @@ export default function SummaryChart() {
 				highlightScope: { fade: 'global', highlight: 'item' },
 				innerRadius: 0,
 				outerRadius: 120,
+				cornerRadius: 5,
 				faded: { additionalRadius: -3, color: BASE_COLOR_LIGHT },
 				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
 			},
@@ -86,45 +89,54 @@ export default function SummaryChart() {
 
 	return (
 		<Paper sx={styles.paper}>
-			<div style={styles.row} className="flex-row-left">
-				<Typography fontWeight="bold" fontSize={20}>
-					Summary
-				</Typography>
-			</div>
+			<Box
+				width="100%"
+				display="flex"
+				justifyContent="flex-start"
+				alignItems="center"
+				padding="10px"
+				position="relative"
+			>
+				<Paper
+					elevation={2}
+					sx={{
+						width: 'fit-content',
+						background: 'linear-gradient(135deg, rgb(33, 106, 196), rgb(26, 84, 154))',
+						position: 'absolute',
+						padding: '5px 10px',
+						top: -10,
+						zIndex: 10,
+						borderRadius: 2,
+					}}
+					className="flex-row-center"
+				>
+					<Typography fontSize={17} color="white">
+						Q/A Summary
+					</Typography>
+				</Paper>
+			</Box>
+			<Stack padding="20px 20px 0px">
+				<ExpandableTitle
+					icon={<Description sx={{ color: 'white' }} />}
+					title={`Pages (${data.maxPosition.toLocaleString()})`}
+					padding="0px 0px 10px"
+				/>
+				<ExpandableTitle
+					icon={<Help sx={{ color: 'white' }} />}
+					title={`Questions (${checklistSummaryTotals.total_questions.toLocaleString()})`}
+					padding="0px 0px 10px"
+				/>
+				<ExpandableTitle
+					key={selectedSummarySegment}
+					icon={<AdsClick sx={{ color: 'white' }} />}
+					title={`Selected - ${capitalize(selectedSummarySegment)}`}
+					color={theme.palette.secondary.main}
+					padding="0px 0px 10px"
+				/>
+			</Stack>
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<Toolbar
-				left={
-					<>
-						<Description sx={{ color: 'secondary.main' }} />
-						<Typography fontSize={17} marginLeft="5px" fontStyle="italic">
-							Pages (<b>{data.maxPosition.toLocaleString()}</b>)
-						</Typography>
-					</>
-				}
-				padding="2px 20px"
-				height={30}
-			/>
-			<Toolbar
-				left={
-					<>
-						<Help sx={{ color: 'secondary.main' }} />
-						<Typography fontSize={17} marginLeft="5px" fontStyle="italic">
-							Questions (<b>{checklistSummaryTotals.total_questions.toLocaleString()}</b>)
-						</Typography>
-					</>
-				}
-				height={30}
-				padding="2px 20px"
-			/>
-			<div style={styles.divider}>
-				<Divider />
-			</div>
-			<Typography paddingLeft="10px" paddingTop="10px" fontStyle="italic">
-				<b>Selected:</b> {selectedSummarySegment[0].toUpperCase()}
-				{selectedSummarySegment.slice(1)}
-			</Typography>
 			<PieChart
 				loading={loadingSummary}
 				series={chartData}

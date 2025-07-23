@@ -159,9 +159,13 @@ const styles = {
 		borderRadius: 3,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,
+		border: 1,
+		borderColor: 'divider',
 	},
 	paper: {
 		borderRadius: 3,
+		border: 1,
+		borderColor: 'divider',
 	},
 	skeleton: {
 		borderRadius: 3,

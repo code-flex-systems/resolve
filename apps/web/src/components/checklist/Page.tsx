@@ -9,7 +9,7 @@ import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import { TaskAlt } from '@mui/icons-material';
+import { Description, TaskAlt } from '@mui/icons-material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme from '@/styles/theme';
@@ -19,6 +19,7 @@ import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
+import ExpandableTitle from '../common/ExpandableTitle';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	const defaults: Record<string, number[] | string> = {};
@@ -148,9 +149,13 @@ export default function Page() {
 					<Toolbar
 						left={
 							<>
-								<Typography lineHeight={'21px'} fontSize={19}>
+								{/* <Typography lineHeight={'21px'} fontSize={19}>
 									{selectedPageInfo.title}
-								</Typography>
+								</Typography> */}
+								<ExpandableTitle
+									title={selectedPageInfo.title}
+									icon={<Description sx={{ color: 'white' }} />}
+								/>
 								<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
 									<div style={{ marginLeft: 10 }} className="flex-row-left">
 										<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />

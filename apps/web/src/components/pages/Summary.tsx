@@ -47,7 +47,7 @@ const styles = {
 	containerInner: {
 		width: '100%',
 		height: 'calc(100vh - 120px)',
-		padding: '10px 0px',
+		padding: '20px 0px 10px',
 	},
 	divider: {
 		width: '100%',
