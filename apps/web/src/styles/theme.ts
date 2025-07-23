@@ -190,7 +190,7 @@ const theme = createTheme({
 		},
 		warning: {
 			main: '#FCB237',
-			contrastText: 'white',
+			contrastText: '#fff',
 		},
 	},
 	typography: {

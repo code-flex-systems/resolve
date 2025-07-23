@@ -10,8 +10,10 @@ import { responseRouter } from './routers/response';
 import { userRouter } from './routers/user';
 import { feedRouter } from './routers/feed';
 import { passwordResetRouter } from './routers/passwordReset';
+import { actionRouter } from './routers/action';
 
 export const appRouter = router({
+	action: actionRouter,
 	answer: answerRouter,
 	checklist: checklistRouter,
 	claim: claimRouter,

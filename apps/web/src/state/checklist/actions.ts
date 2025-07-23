@@ -13,6 +13,12 @@ export function toggleExpandAll() {
 	});
 }
 
+export function toggleActionDialog() {
+	setState((state) => {
+		state.showActionDialog = !state.showActionDialog;
+	});
+}
+
 export function toggleStatsDialog() {
 	setState((state) => {
 		state.showStatsDialog = !state.showStatsDialog;

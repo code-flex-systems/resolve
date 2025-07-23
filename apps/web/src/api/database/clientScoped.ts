@@ -4,6 +4,8 @@ import type { DB } from './types';
 // This type represents the union of all tables that contain client-partitioned data
 export type ClientScopedTable = Extract<
 	keyof DB,
+	| 'action'
+	| 'action_log'
 	| 'answer'
 	| 'checklist'
 	| 'checklist_claim'

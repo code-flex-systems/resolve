@@ -198,6 +198,7 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 		db
 			.selectFrom('question')
 			.leftJoin('answer', 'answer.question_id', 'question.id')
+			.leftJoin('action', 'action.answer_id', 'answer.id')
 			.selectAll('question')
 			.select((eb) => [
 				sql`array_agg(
@@ -212,7 +213,8 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
                         'additional_info_num_lines', ${eb.ref('answer.additional_info_num_lines')},
                         'additional_info_placeholder', ${eb.ref('answer.additional_info_placeholder')},
                         'has_additional_info', ${eb.ref('answer.has_additional_info')},
-                        'calls_instance_id', ${eb.ref('answer.calls_instance_id')}
+                        'calls_instance_id', ${eb.ref('answer.calls_instance_id')},
+                        'has_action', ${eb.case().when('action.id', 'is', null).then(false).else(true).end()}
                     )
                 ) filter (where ${eb.ref('answer.id')} is not null)`
 					.$castTo<Answer[]>()

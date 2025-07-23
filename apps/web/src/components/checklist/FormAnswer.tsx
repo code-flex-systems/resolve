@@ -18,9 +18,9 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import { QuestionType } from '@/config/enums';
+import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import { TaskAlt } from '@mui/icons-material';
+import { Share, TaskAlt } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import * as actions from '@/state/checklist/actions';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
@@ -30,6 +30,28 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
+import UserActionsDialog from './UserActionsDialog';
+import { GetActionOutput, useActionTrpc } from '@/hooks/trpc/useActionTrpc';
+
+function formatActionText(action: any | undefined) {
+	if (!action) return <></>;
+	switch (action.type as ActionType) {
+		case ActionType.EMAIL:
+			return (
+				<Typography fontSize={15} marginLeft="5px">
+					This answer currently sends an email to ({action.definition?.recipients?.length}) recipients.
+				</Typography>
+			);
+		case ActionType.EVENT:
+			return <></>;
+		case ActionType.LETTER:
+			return <></>;
+		case ActionType.TASK:
+			return <></>;
+		default:
+			return <></>;
+	}
+}
 
 export default function FormAnswer() {
 	const { checklistId = -1, claimId } = useChecklistParams();
@@ -37,7 +59,12 @@ export default function FormAnswer() {
 	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedAnswerData = useSelectedAnswerData();
+	const showActionDialog = useChecklistSlice((state) => state.showActionDialog);
 
+	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
+		{ answerId: selectedAnswerData.id },
+		{ enabled: selectedAnswerData.id !== -1 && !!selectedAnswerData?.has_action }
+	);
 	const { create, copy, remove, update } = useAnswerTrpc();
 	const { isPending: adding, mutateAsync: addAnswer } = create;
 	const { isPending: updating, mutateAsync: updateAnswer } = update;
@@ -216,7 +243,12 @@ export default function FormAnswer() {
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<Fade key={selectedAnswerData.id} in={!!selectedAnswerData.id} timeout={500} unmountOnExit>
+			<Fade
+				key={selectedAnswerData.id}
+				in={!!selectedAnswerData.id && !fetchingAction}
+				timeout={500}
+				unmountOnExit
+			>
 				<Form control={control} style={styles.form}>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
@@ -327,6 +359,22 @@ export default function FormAnswer() {
 							)}
 						/>
 					</div>
+
+					<div style={{ ...styles.row, height: 55 }} className="flex-row-left">
+						<Button
+							disabled={inTransition || isFreeform}
+							variant="outlined"
+							color="primary"
+							startIcon={<Share />}
+							onClick={actions.toggleActionDialog}
+							sx={{ height: 30 }}
+							style={styles.item}
+						>
+							User actions
+						</Button>
+						{formatActionText(answerAction)}
+					</div>
+
 					<div style={{ ...styles.row, height: 40 }} className="flex-row-left">
 						<Controller
 							name="has_additional_info"
@@ -338,9 +386,11 @@ export default function FormAnswer() {
 											{...field}
 											onChange={(e) => field.onChange(e.target.checked)}
 											checked={Boolean(field?.value)}
-											sx={{ width: 35, height: 35 }}
+											sx={{ width: 15, height: 15 }}
 										/>
-										<FormLabel sx={{ fontSize: 12 }}>Requires additional info...</FormLabel>
+										<FormLabel sx={{ fontSize: 12, paddingLeft: '5px' }}>
+											Requires additional info...
+										</FormLabel>
 									</div>
 								</FormControl>
 							)}
@@ -385,6 +435,7 @@ export default function FormAnswer() {
 					</Collapse>
 				</Form>
 			</Fade>
+			{showActionDialog && <UserActionsDialog />}
 		</>
 	);
 }

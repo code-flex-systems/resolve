@@ -40,6 +40,27 @@ export interface Accounts {
   user_id: string;
 }
 
+export interface Action {
+  answer_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  definition: Json;
+  id: Generated<number>;
+  type: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface ActionLog {
+  action_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  id: Generated<number>;
+  status: string;
+}
+
 export interface AdminActionLogs {
   action: string;
   client_id: string;
@@ -292,6 +313,8 @@ export interface VerificationTokens {
 
 export interface DB {
   accounts: Accounts;
+  action: Action;
+  action_log: ActionLog;
   admin_action_logs: AdminActionLogs;
   answer: Answer;
   auth_events: AuthEvents;

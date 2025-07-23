@@ -210,6 +210,28 @@ export default function FormQuestion() {
 								</FormControl>
 							)}
 						/>
+						<Controller
+							name="position"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<FormControl style={{ padding: '0px 5px 15px' }}>
+									<FormLabel sx={styles.formLabel}>Order</FormLabel>
+									<Select
+										variant="outlined"
+										error={!!errors.position}
+										{...field}
+										sx={{ ...styles.textFieldOverrides, width: 50 }}
+									>
+										{positionOptions.map((o) => (
+											<MenuItem key={o} value={o}>
+												{o}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							)}
+						/>
 					</div>
 					<div style={styles.row} className="flex-row-left">
 						<Controller
@@ -278,30 +300,6 @@ export default function FormQuestion() {
 											value={QuestionType.FREEFORM}
 										/>
 									</RadioGroup>
-								</FormControl>
-							)}
-						/>
-					</div>
-					<div style={styles.row} className="flex-row-left">
-						<Controller
-							name="position"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<FormControl style={{ padding: '0px 5px 15px' }}>
-									<FormLabel sx={styles.formLabel}>Order</FormLabel>
-									<Select
-										variant="outlined"
-										error={!!errors.position}
-										{...field}
-										sx={{ ...styles.textFieldOverrides, width: 50 }}
-									>
-										{positionOptions.map((o) => (
-											<MenuItem key={o} value={o}>
-												{o}
-											</MenuItem>
-										))}
-									</Select>
 								</FormControl>
 							)}
 						/>

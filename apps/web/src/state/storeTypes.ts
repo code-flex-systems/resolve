@@ -40,6 +40,7 @@ export interface ChecklistSlice {
 	selectedSummarySegment: SummarySegment;
 	selectedQuestion: number | null;
 	// dialogs
+	showActionDialog: boolean;
 	showStatsDialog: boolean;
 }
 

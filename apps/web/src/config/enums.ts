@@ -1,3 +1,15 @@
+export enum ActionLogStatus {
+	FAILURE = 'failure',
+	SUCCESS = 'Success',
+}
+
+export enum ActionType {
+	EMAIL = 'email',
+	EVENT = 'event',
+	LETTER = 'letter',
+	TASK = 'task',
+}
+
 export enum AdminActionLogType {
 	DELETE = 'delete',
 	GET = 'get',

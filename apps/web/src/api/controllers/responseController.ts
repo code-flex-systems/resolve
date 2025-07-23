@@ -8,6 +8,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import { Interval, QuestionResponse } from '@/types/types';
 import { TRPCError } from '@trpc/server';
 import { db } from '../database/kysely';
+import { executeActions } from './actionController';
 
 /**
  * Recalculate page instance status based on responses.
@@ -91,8 +92,9 @@ export async function upsertQuestionResponses(
 	ctx: ProtectedContext,
 	{ responses, claimStatus }: { responses: any[]; claimStatus?: ClaimStatus }
 ) {
-	const sampleResponse = responses?.[0] as QuestionResponse;
-	if (!sampleResponse) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid responses' });
+	if (!responses?.[0]) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid responses' });
+	const parsedResponses = responses as QuestionResponse[];
+	const sampleResponse = parsedResponses[0];
 
 	let newStatus: PageInstanceStatus = PageInstanceStatus.UNSTARTED;
 	let newClaimStatus: ClaimStatus = ClaimStatus.UNWORKED;
@@ -119,6 +121,13 @@ export async function upsertQuestionResponses(
 			);
 		}
 	});
+
+	// Kick off related actions asynchronously
+	let answerIds: number[] = [];
+	parsedResponses.forEach((r) => {
+		answerIds = answerIds.concat(r.selected_answers.map((sa) => sa.answer_id));
+	});
+	executeActions(ctx, { answerIds }).catch(console.error);
 
 	return {
 		updatedInstanceId: sampleResponse.instance_id,

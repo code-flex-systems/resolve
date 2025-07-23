@@ -11,13 +11,18 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import config from '@/config/config';
 
+export async function getUsers(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
+	const results = await userQueries.getUsers(ctx, searchTerm);
+	return results;
+}
+
 /**
  * List users with optional pagination.
  *
  * @param ctx - request context
  * @param input - filters and paging controls
  */
-export async function getUsers(
+export async function getUsersPaginated(
 	ctx: ProtectedContext,
 	{
 		disabled,
@@ -27,7 +32,7 @@ export async function getUsers(
 	}: { disabled?: boolean; limit?: number; offset?: number; searchTerm?: string }
 ) {
 	const [rows, count] = await Promise.all([
-		userQueries.getUsers(ctx, disabled, limit, offset, searchTerm),
+		userQueries.getUsersPaginated(ctx, disabled, limit, offset, searchTerm),
 		userQueries.getUserCount(ctx, disabled, searchTerm),
 	]);
 	return { rows, count };

@@ -51,16 +51,14 @@ export default function BasicDialog(
 						justifyContent: 'flex-start',
 					}}
 				>
-					{title && (
+					{typeof title === 'string' ? (
 						<Paper elevation={0} style={styles.titleCard}>
-							{typeof title === 'string' ? (
-								<Typography fontSize={17} lineHeight="21px">
-									{title}
-								</Typography>
-							) : (
-								title
-							)}
+							<Typography fontSize={17} lineHeight="21px">
+								{title}
+							</Typography>
 						</Paper>
+					) : (
+						<>{title ?? <></>}</>
 					)}
 				</div>
 				<div style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}>

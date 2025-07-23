@@ -2,6 +2,9 @@ import { parseDate } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
 
 export const getUsersInput = z.object({
+	searchTerm: z.string().optional(),
+});
+export const getUsersPaginatedInput = z.object({
 	disabled: z.boolean().optional(),
 	limit: z.number().optional(),
 	offset: z.number().optional(),

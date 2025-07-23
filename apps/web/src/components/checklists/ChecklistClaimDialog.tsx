@@ -2,7 +2,7 @@
 import { useChecklistsSlice } from '@/state/store';
 import BasicDialog from '../common/BasicDialog';
 import * as actions from '@/state/checklists/actions';
-import { Fade, Typography } from '@mui/material';
+import { Chip, Fade, Typography } from '@mui/material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme from '@/styles/theme';
@@ -73,14 +73,8 @@ export default function ChecklistClaimDialog() {
 		<BasicDialog
 			title={
 				<div className="flex-row-left">
-					<ContentPasteSearch sx={styles.icon} />
-					<Typography fontSize={17} fontWeight="bold" lineHeight="21px">
-						{selectedClaim?.claim_number ?? ''}
-					</Typography>
-					<Checklist sx={{ ...styles.icon, marginLeft: '10px' }} />
-					<Typography fontSize={17} fontWeight="bold" lineHeight="21px">
-						{selectedChecklist?.name ?? ''}
-					</Typography>
+					<Chip icon={<ContentPasteSearch />} label={selectedClaim?.claim_number ?? ''} />
+					<Chip icon={<Checklist />} label={selectedChecklist?.name ?? ''} sx={{ marginLeft: '5px' }} />
 				</div>
 			}
 			width={500}

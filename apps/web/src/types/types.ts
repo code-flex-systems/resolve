@@ -3,6 +3,18 @@ import { JSX } from 'react';
 import config from '@/config/config';
 import { PageInstanceStatus } from '@/config/enums';
 
+export interface ActionDefinition {
+	dept?: string;
+	desk_type?: string;
+	desk?: string;
+	message?: string;
+	recipients?: string[];
+	schedule?: Date;
+	task_type?: string;
+	template_id?: string;
+	title?: string;
+}
+
 export interface Answer {
 	id: number;
 	question_id: number;
@@ -16,6 +28,7 @@ export interface Answer {
 	additional_info_num_lines: number | null;
 	hidden: boolean;
 	calls_instance_id: number | null;
+	has_action: boolean;
 }
 
 export interface AnswerResponse {

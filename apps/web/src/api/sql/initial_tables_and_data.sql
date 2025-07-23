@@ -1,3 +1,5 @@
+drop table if exists action_log;
+drop table if exists action;
 drop table if exists auth_events;
 drop table if exists admin_action_logs;
 drop table if exists response_audit_logs;
@@ -320,3 +322,26 @@ create table password_reset_tokens (
   created_at timestamp not null default now()
 );
 create unique index on password_reset_tokens(token);
+
+-- actions
+create table action(
+	id serial not null primary key,
+	client_id uuid not null references client(id),
+	answer_id integer not null references answer(id) on delete cascade,
+	type text not null,
+	definition jsonb not null,
+	created_by uuid not null references users(id),
+	created_at timestamp not null default now(),
+	updated_by uuid references users(id),
+	updated_at timestamp,
+	unique(answer_id)
+);
+
+create table action_log(
+	id serial not null primary key,
+	client_id uuid not null references client(id),
+	action_id integer not null references action(id),
+    status text not null,
+	created_by uuid not null references users(id),
+	created_at timestamp not null default now()
+);

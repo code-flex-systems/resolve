@@ -14,6 +14,7 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	selectedSummarySegment: SummarySegment.ANSWERED,
 	selectedQuestion: null,
 	// dialogs
+	showActionDialog: false,
 	showStatsDialog: false,
 });
 

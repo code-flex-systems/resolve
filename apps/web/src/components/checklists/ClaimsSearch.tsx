@@ -154,7 +154,7 @@ export default function ClaimsSearch() {
 					}}
 				/>
 				<Typography fontSize={13} fontWeight={type === 'insured' ? 'bold' : undefined} marginLeft="10px">
-					Search by insured
+					Search by Insured
 				</Typography>
 			</div>
 		</div>

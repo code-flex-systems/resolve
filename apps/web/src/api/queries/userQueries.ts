@@ -13,7 +13,7 @@ import { CompiledQuery, sql } from 'kysely';
  * @param searchTerm - optional search term
  * @returns array of users
  */
-export async function getUsers(
+export async function getUsersPaginated(
 	ctx: ProtectedContext,
 	disabled?: boolean,
 	limit?: number,
@@ -43,6 +43,27 @@ export async function getUsers(
 	if (limit != null && offset != null) {
 		query = query.limit(limit).offset(offset);
 	}
+	return await query.execute();
+}
+
+export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
+	let query = db
+		.selectFrom('users')
+		.select(['first', 'last', 'email'])
+		.where((eb) => {
+			const andClause = [eb('disabled', '=', false), eb('client_id', '=', ctx.session.user.client_id)];
+			if (searchTerm) {
+				andClause.push(
+					eb(
+						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
+						'like',
+						`${searchTerm.toLowerCase()}%`
+					)
+				);
+			}
+			return eb.and(andClause);
+		})
+		.orderBy(['last', 'first']);
 	return await query.execute();
 }
 

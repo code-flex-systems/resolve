@@ -85,7 +85,7 @@ export default function UsersTab() {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [showDisabled, setShowDisabled] = useState(false);
 
-	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().list({
+	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
 		limit: userConstraints.pageSize,
 		offset: userConstraints.page * userConstraints.pageSize,

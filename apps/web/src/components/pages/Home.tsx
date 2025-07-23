@@ -1,11 +1,10 @@
 'use client';
-import { Collapse, Typography } from '@mui/material';
-import { ArrowCircleRightOutlined } from '@mui/icons-material';
+import { Chip, Collapse, Typography } from '@mui/material';
+import { ArrowCircleRightOutlined, Checklist, ContentPasteSearch } from '@mui/icons-material';
 import { useEffect } from 'react';
 
 import ClaimsSearch from '@/components/checklists/ClaimsSearch';
 import Recents from '@/components/checklists/Recents';
-import ClaimMenuItem from '@/components/checklists/ClaimMenuItem';
 import ChecklistsSearch from '@/components/checklists/ChecklistsSearch';
 import ChecklistMenuItem from '@/components/checklists/ChecklistMenuItem';
 import Separator from '@/components/common/Separator';
@@ -40,7 +39,11 @@ export default function Home() {
 					<ClaimsSearch />
 					<div className="flex-col-center">
 						<Collapse in={Boolean(selectedClaim)} className="flex-col-center">
-							<ClaimMenuItem claim={selectedClaim} clearable />
+							<Chip
+								label={selectedClaim?.claim_number ?? ''}
+								icon={<ContentPasteSearch />}
+								onDelete={() => actions.updateSelectedClaim(null)}
+							/>
 						</Collapse>
 						<div style={{ height: 40 }} className="flex-row-center">
 							<Separator />
@@ -51,7 +54,11 @@ export default function Home() {
 						<ChecklistsSearch />
 					</div>
 					<Collapse in={Boolean(selectedChecklist)} style={{ marginTop: 5 }} className="flex-col-center">
-						<ChecklistMenuItem checklist={selectedChecklist} clearable />
+						<Chip
+							label={selectedChecklist?.name ?? ''}
+							icon={<Checklist />}
+							onDelete={() => actions.updateSelectedChecklist(null)}
+						/>
 					</Collapse>
 					<BasicButton
 						buttonProps={{
