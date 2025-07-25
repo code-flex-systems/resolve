@@ -1,4 +1,6 @@
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+'use client';
+
+import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { useAdminSlice } from '@/state/store';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import ClaimAmountCell from './ClaimAmountCell';
@@ -16,46 +18,56 @@ import {
 } from '@/state/admin/actions';
 import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 const COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Claim',
 		field: 'claim_number',
 		cellClassName: 'cell-bold',
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<ContentPasteSearch />} />,
+		renderHeader: (params) => (
+			<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+		),
 		width: 150,
 	},
 	{
 		headerName: 'Client',
 		field: 'client',
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<PersonSearch />} />,
+		renderHeader: (params) => (
+			<IconHeaderCell {...params} icon={<PersonSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+		),
 		width: 150,
 	},
 	{
 		headerName: 'Client Adjuster',
 		field: 'client_adjuster',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Insured',
 		field: 'insured',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Claim Amount',
 		field: 'claim_amount',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		renderCell: (params) => <ClaimAmountCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Total Incurred',
 		field: 'total_incurred',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		renderCell: (params) => <ClaimAmountCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Date of Loss',
 		field: 'date_of_loss',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		valueFormatter: (value: any) => formatMDYAbv(value),
 		align: 'right',
 		width: 150,
@@ -63,16 +75,19 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Loss Location',
 		field: 'loss_location',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Last Updated By',
 		field: 'last_updated_by',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Last Update',
 		field: 'last_update',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		valueFormatter: (value: any) => formatMDYAbv(value),
 		align: 'right',
 		width: 150,
@@ -80,6 +95,7 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Expected Recovery',
 		field: 'expected_recovery',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		renderCell: (params) => <ClaimAmountCell {...params} />,
 		width: 150,
 	},
@@ -151,7 +167,7 @@ export default function Claims() {
 					padding={'0px 10px'}
 				/>
 				<div style={styles.table}>
-					<DataGrid
+					<DataGridPro
 						columns={COLUMNS}
 						columnHeaderHeight={45}
 						loading={isFetching}

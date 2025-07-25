@@ -1,3 +1,5 @@
+'use client';
+
 import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';

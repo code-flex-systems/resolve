@@ -1,3 +1,5 @@
+'use client';
+
 import { FeedStatus } from '@/config/enums';
 import theme, { OFFWHITE_COLOR } from '@/styles/theme';
 import { Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';

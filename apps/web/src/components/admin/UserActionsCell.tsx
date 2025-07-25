@@ -1,8 +1,9 @@
-import config from '@/config/config';
+'use client';
+
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { BASE_COLOR } from '@/styles/theme';
 import { Button, Typography } from '@mui/material';
-import { GridRenderCellParams } from '@mui/x-data-grid';
+import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';

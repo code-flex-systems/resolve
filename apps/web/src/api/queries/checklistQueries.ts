@@ -112,9 +112,19 @@ export async function getChecklists(ctx: ProtectedContext, searchTerm?: string) 
 	let query = db
 		.selectFrom('checklist')
 		.innerJoin('page_instance', 'checklist.id', 'page_instance.checklist_id')
+		.leftJoin('users', 'checklist.created_by', 'users.id')
 		.selectAll('checklist')
+		.select((eb) => [
+			eb
+				.case()
+				.when('users.id', 'is', null)
+				.then(null)
+				.else(sql`concat(${eb.ref('users.last')}, ', ', ${eb.ref('users.first')})`)
+				.end()
+				.as('creator'),
+		])
 		.select(({ fn }) => fn.countAll().as('page_count'))
-		.groupBy('checklist.id')
+		.groupBy(['checklist.id', 'users.id'])
 		.orderBy('checklist.id');
 	if (searchTerm) {
 		query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));

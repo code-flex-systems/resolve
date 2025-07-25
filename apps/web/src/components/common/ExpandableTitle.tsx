@@ -1,3 +1,5 @@
+'use client';
+
 import theme from '@/styles/theme';
 import { Box, Collapse, Typography } from '@mui/material';
 import { JSX, useEffect, useState } from 'react';
@@ -5,15 +7,17 @@ import { JSX, useEffect, useState } from 'react';
 export default function ExpandableTitle({
 	title,
 	icon,
-	color,
-	bgcolor,
+	color = theme.palette.primary.main,
+	bgcolor = '#E8ECF5',
 	padding,
+	size = 30,
 }: {
 	title: string;
 	icon: JSX.Element;
 	color?: string;
 	bgcolor?: string;
 	padding?: string;
+	size?: number;
 }) {
 	const [showTitle, setShowTitle] = useState(false);
 	useEffect(() => {
@@ -30,9 +34,9 @@ export default function ExpandableTitle({
 			position="relative"
 		>
 			<Box
-				bgcolor={color ?? theme.palette.primary.main}
-				width={30}
-				height={30}
+				bgcolor={color}
+				width={size}
+				height={size}
 				display="flex"
 				justifyContent="center"
 				alignItems="center"
@@ -50,8 +54,8 @@ export default function ExpandableTitle({
 					alignItems="center"
 					borderRadius={30}
 					paddingRight="15px"
-					sx={{ backgroundColor: bgcolor ?? '#d7d7d7' }}
-					paddingLeft="30px"
+					sx={{ backgroundColor: bgcolor }}
+					paddingLeft={`${size}px`}
 					overflow="hidden"
 				>
 					<Typography fontSize={17} marginLeft="5px" noWrap>

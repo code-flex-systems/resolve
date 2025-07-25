@@ -271,8 +271,8 @@ CREATE TABLE response_audit_logs (
     old_response_text TEXT,
     new_response_text TEXT,
 
-    old_answer_ids JSONB,
-    new_answer_ids JSONB,
+    old_answers JSONB,
+    new_answers JSONB,
 
     old_additional_info JSONB,
     new_additional_info JSONB,

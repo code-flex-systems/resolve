@@ -60,7 +60,7 @@ const theme = createTheme({
 		MuiLink: {
 			styleOverrides: {
 				root: {
-					fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+					fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
 					cursor: 'pointer',
 				},
 			},
@@ -194,6 +194,16 @@ const theme = createTheme({
 		},
 	},
 	typography: {
+		fontFamily: [
+			'Inter',
+			'-apple-system',
+			'BlinkMacSystemFont',
+			'"Segoe UI"',
+			'Roboto',
+			'"Helvetica Neue"',
+			'Arial',
+			'sans-serif',
+		].join(','),
 		fontWeightRegular: 300,
 		fontWeightBold: 550,
 		body1: {

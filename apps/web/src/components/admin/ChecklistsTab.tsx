@@ -1,49 +1,52 @@
+'use client';
+
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { formatMDYAbv } from '@/lib/utils/utils';
+import { formatMDY, formatMDYAbv } from '@/lib/utils/utils';
 import { Button, Paper } from '@mui/material';
 import { AccountCircle, AddBox, ContentPasteSearch, Description } from '@mui/icons-material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import ChecklistActionsCell from './ChecklistActionsCell';
 import { toggleNewChecklistDialog } from '@/state/admin/actions';
 import { useAdminSlice } from '@/state/store';
 import NewChecklistDialog from './NewChecklistDialog';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
+import StackedHeaderCell from '../common/StackedHeaderCell';
 
 const COLUMNS: GridColDef[] = [
 	{
 		field: 'name',
-		headerName: 'Checklist',
-		renderHeader: (params) => <IconHeaderCell icon={<ContentPasteSearch />} {...params} />,
+		headerName: 'Checklists',
+		renderHeader: (params) => (
+			<ExpandableHeaderCell {...params} icon={<ContentPasteSearch sx={{ fontSize: 17, color: 'white' }} />} />
+		),
+		renderCell: (params) => <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />,
 		cellClassName: 'cell-primary cell-bold',
 		width: 200,
+		sortable: false,
 	},
 	{
 		field: 'page_count',
-		headerName: '# of Pages',
-		renderHeader: (params) => <IconHeaderCell icon={<Description />} {...params} />,
-		valueFormatter: (value: any) => value?.toLocaleString(),
+		headerName: '',
+		valueFormatter: (value: any) => `${value?.toLocaleString() ?? ''} pages`,
 		width: 120,
+		sortable: false,
 	},
 	{
-		field: 'created_by',
-		headerName: 'Creator',
-		renderHeader: (params) => <IconHeaderCell icon={<AccountCircle />} {...params} />,
-		width: 200,
-	},
-	{
-		field: 'created_at',
-		headerName: 'Date Created',
-		valueFormatter: formatMDYAbv,
-		width: 120,
-		align: 'right',
-	},
-	{
-		field: 'updated_at',
-		headerName: 'Last Updated',
-		valueFormatter: formatMDYAbv,
-		width: 120,
-		align: 'right',
+		field: 'dates',
+		headerName: '',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		renderCell: (params) => (
+			<StackedHeaderCell
+				primary={params.row.updated_at ? `Last updated ${formatMDY(params.row.updated_at)}` : ''}
+				secondary={`Created ${formatMDY(params.row.created_at)}`}
+			/>
+		),
+		width: 250,
+		align: 'left',
+		sortable: false,
 	},
 	{
 		field: 'actions',
@@ -75,7 +78,7 @@ export default function ChecklistsTab() {
 					padding={'0px 10px'}
 				/>
 				<div style={styles.table}>
-					<DataGrid
+					<DataGridPro
 						columns={COLUMNS}
 						columnHeaderHeight={45}
 						loading={isFetching}
@@ -89,12 +92,12 @@ export default function ChecklistsTab() {
 						rowHeight={60}
 						hideFooterSelectedRowCount
 						pageSizeOptions={[]}
-						getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
 						disableColumnSelector
 						disableRowSelectionOnClick
 						disableColumnMenu
 						sx={styles.tableOverrides}
 						hideFooter
+						showColumnVerticalBorder={false}
 					/>
 				</div>
 			</Paper>
@@ -123,5 +126,11 @@ const styles = {
 	tableOverrides: {
 		border: 'none',
 		fontSize: 15,
+		'& .MuiDataGrid-columnSeparator': {
+			display: 'none',
+		},
+		'& .MuiDataGrid-columnHeader:hover .MuiDataGrid-iconSeparator': {
+			opacity: 0,
+		},
 	},
 };

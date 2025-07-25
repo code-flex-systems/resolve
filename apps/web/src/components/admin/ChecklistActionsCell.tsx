@@ -1,6 +1,8 @@
+'use client';
+
 import { IconButton, Tooltip, Typography } from '@mui/material';
 import { Archive, OpenInNew, Unarchive } from '@mui/icons-material';
-import { GridRenderCellParams } from '@mui/x-data-grid';
+import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useRouter } from 'next/navigation';
 import theme from '@/styles/theme';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';

@@ -1,15 +1,24 @@
 'use client';
 
-import { Box, Paper, Stack, Typography } from '@mui/material';
-import { People } from '@mui/icons-material';
+import { Box, Paper, Stack } from '@mui/material';
+import { GraphicEq } from '@mui/icons-material';
 import PageWrapper from '../common/PageWrapper';
-import { BarChart, LineChart } from '@mui/x-charts';
-import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import theme, { BASE_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
+import { BarChart } from '@mui/x-charts-pro';
+import { GetUserOutput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
+import theme, { OFFWHITE_COLOR } from '@/styles/theme';
 import { formatMD } from '@/lib/utils/utils';
+import BasicDateRangePicker from '../common/BasicDateRangePicker';
+import { useState } from 'react';
+import { DateRange } from '@mui/x-date-pickers-pro';
+import dayjs, { Dayjs } from 'dayjs';
+import ExpandableTitle from '../common/ExpandableTitle';
+import UserFilter from '../common/UserFilter';
 
 export default function UserActivityView() {
 	const { data = [], isFetching } = useUserTrpc().activity({});
+	const today = dayjs();
+	const [range, setRange] = useState<DateRange<Dayjs>>([today.startOf('month'), today.endOf('month')]);
+	const [users, setUsers] = useState<GetUserOutput[]>([]);
 	const xLabels = data.map((r) => r.activity_date);
 	const yValues = data.map((r) => parseInt(r.active_users ?? '0'));
 
@@ -24,12 +33,19 @@ export default function UserActivityView() {
 				padding="20px"
 			>
 				<Paper sx={styles.paper}>
-					<Box width="100%" height={40} display="flex" justifyContent="space-between" alignItems="center">
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="0px 5px">
-							<People sx={{ color: BASE_COLOR, fontSize: 25 }} />
-							<Typography marginLeft="5px" fontSize={20}>
-								User Activity
-							</Typography>
+					<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
+						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="5px">
+							<ExpandableTitle
+								title="User Activity"
+								icon={<GraphicEq sx={{ color: 'white' }} />}
+								color={theme.palette.warning.main}
+							/>
+						</Box>
+					</Box>
+					<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
+						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="0px 5px 5px">
+							<BasicDateRangePicker defaultLabel="This Month" defaultValue={range} onConfirm={setRange} />
+							<UserFilter users={users} setUsers={setUsers} width="100%" />
 						</Box>
 					</Box>
 					<Stack flex={1} height="100%">
@@ -77,7 +93,6 @@ export default function UserActivityView() {
 								maxHeight: 260,
 							}}
 							colors={[theme.palette.primary.main]}
-							borderRadius={20}
 							hideLegend
 							loading={isFetching}
 						/>
@@ -93,7 +108,7 @@ const styles = {
 	paper: {
 		padding: '20px',
 		flex: 1,
-		maxHeight: 340,
+		maxHeight: 400,
 		borderBottomLeftRadius: 0,
 		borderBottomRightRadius: 0,
 		zIndex: 10,

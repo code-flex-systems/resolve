@@ -1,7 +1,7 @@
 'use client';
 import { useBreakdownSlice } from '@/state/store';
 import { Paper, Typography } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { AccountCircle, ContentPasteSearch } from '@mui/icons-material';
 import { formatMDYAbv } from '@/lib/utils/utils';
@@ -68,7 +68,7 @@ export default function Breakdown(props: { instanceId: number }) {
 				padding={'5px 15px'}
 			/>
 			<Paper elevation={0} style={styles.table}>
-				<DataGrid
+				<DataGridPro
 					columns={COLUMNS}
 					columnHeaderHeight={45}
 					loading={loadingBreakdown}

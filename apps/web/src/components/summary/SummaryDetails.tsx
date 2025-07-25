@@ -1,6 +1,6 @@
 'use client';
 import { Paper } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { useChecklistSlice } from '@/state/store';
 import { useMemo, useRef } from 'react';
 import { SummarySegment } from '@/config/enums';
@@ -8,41 +8,34 @@ import * as actions from '@/state/checklist/actions';
 import { CustomPagination } from '../common/CustomPagination';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
+import IconHeaderCell from '../common/IconHeaderCell';
 
 const COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Page',
 		field: 'page_title',
 		cellClassName: 'cell-bold',
-		// renderHeader: (params) => (
-		// 	<IconHeaderCell {...params} icon={<Description sx={{ color: 'secondary.main' }} />} />
-		// ),
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 200,
 	},
 	{
 		headerName: 'Question',
 		field: 'question_text',
-		// renderHeader: (params) => (
-		// 	<IconHeaderCell {...params} icon={<Help sx={{ color: 'secondary.main' }} />} />
-		// ),
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 200,
 	},
 	{
 		headerName: 'Answer',
 		field: 'answer_texts',
 		cellClassName: 'italics',
-		// renderHeader: (params) => (
-		// 	<IconHeaderCell {...params} icon={<InsertComment sx={{ color: 'secondary.main' }} />} />
-		// ),
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 200,
 	},
 	{
 		headerName: 'Additional Info',
 		field: 'response_text',
 		cellClassName: 'italics',
-		// renderHeader: (params) => (
-		// 	<IconHeaderCell {...params} icon={<Sms sx={{ color: 'secondary.main', transform: 'scaleX(-1)' }} />} />
-		// ),
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		flex: 1,
 	},
 ];
@@ -79,7 +72,7 @@ export default function SummaryDetails() {
 
 	return (
 		<Paper style={styles.table}>
-			<DataGrid
+			<DataGridPro
 				columns={columns}
 				columnHeaderHeight={45}
 				loading={isLoadingDetails}

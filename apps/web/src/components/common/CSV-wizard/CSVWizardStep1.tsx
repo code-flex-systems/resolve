@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
 import { Typography, Stack, Paper } from '@mui/material';
 import { useDropzone } from 'react-dropzone';

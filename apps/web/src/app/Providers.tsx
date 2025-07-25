@@ -11,6 +11,8 @@ import type { AppRouter } from '@/server/trpc/appRouter';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/styles/theme';
 import { SessionProvider } from 'next-auth/react';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 export function Providers({ children }: { children: React.ReactNode }) {
 	// 1) Create one QueryClient, with your defaults
@@ -45,7 +47,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 		<QueryClientProvider client={queryClient}>
 			<trpc.Provider client={trpcClient} queryClient={queryClient}>
 				<SessionProvider>
-					<ThemeProvider theme={theme}>{children}</ThemeProvider>
+					<LocalizationProvider dateAdapter={AdapterDayjs}>
+						<ThemeProvider theme={theme}>{children}</ThemeProvider>
+					</LocalizationProvider>
 				</SessionProvider>
 			</trpc.Provider>
 		</QueryClientProvider>

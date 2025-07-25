@@ -1,8 +1,10 @@
+'use client';
+
 import { ClaimStatus } from '@/config/enums';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import { Box, Divider, IconButton, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import { CheckCircle, Info, Troubleshoot } from '@mui/icons-material';
-import { PieChart } from '@mui/x-charts';
+import { PieChart } from '@mui/x-charts-pro';
 import { useEffect, useMemo, useState } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
@@ -66,7 +68,6 @@ export default function ClaimsMetric() {
 								title="Claim Submission"
 								icon={<CheckCircle sx={{ color: 'white' }} />}
 								color={theme.palette.warning.main}
-								bgcolor="rgba(226, 232, 242, 0.5)"
 								padding="5px 0px 10px"
 							/>
 							<Tooltip

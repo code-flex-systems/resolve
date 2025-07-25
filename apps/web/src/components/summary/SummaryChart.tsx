@@ -1,5 +1,5 @@
 'use client';
-import { PieChart, PieChartProps } from '@mui/x-charts';
+import { PieChart, PieChartProps } from '@mui/x-charts-pro';
 import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import { useMemo } from 'react';

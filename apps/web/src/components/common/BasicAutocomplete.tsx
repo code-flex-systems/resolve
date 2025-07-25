@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useCallback, useState } from 'react';
-import Autocomplete from '@mui/material/Autocomplete';
+import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import TextField, { TextFieldProps } from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -15,7 +17,9 @@ export default function BasicAutocomplete<T>({
 	renderOptionLabel,
 	renderSelection,
 	variant = 'standard',
+	freeSolo = true,
 	width = 300,
+	fontSize = 15,
 }: {
 	currentSelected: T[];
 	entity?: string;
@@ -27,7 +31,9 @@ export default function BasicAutocomplete<T>({
 	renderOptionLabel: (option: string | T) => string;
 	renderSelection: (selection: string | T) => string;
 	variant?: TextFieldProps['variant'];
+	freeSolo?: boolean;
 	width?: number;
+	fontSize?: number;
 }) {
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<T[]>([]);
@@ -47,7 +53,7 @@ export default function BasicAutocomplete<T>({
 	return (
 		<Autocomplete
 			multiple
-			freeSolo
+			freeSolo={freeSolo}
 			options={results}
 			getOptionLabel={renderOptionLabel}
 			loading={searching}
@@ -70,7 +76,7 @@ export default function BasicAutocomplete<T>({
 					{...params}
 					variant={variant}
 					label={label}
-					placeholder={placeholder}
+					placeholder={currentSelected.length ? undefined : placeholder}
 					sx={styles.textFieldOverrides}
 				/>
 			)}
@@ -79,12 +85,19 @@ export default function BasicAutocomplete<T>({
 					{renderOption(option)}
 				</li>
 			)}
-			sx={{ width }}
+			sx={styles.autocompleteOverrides(width, fontSize)}
 		/>
 	);
 }
 
 const styles = {
+	autocompleteOverrides: (width: string | number, fontSize: number) => ({
+		width,
+		'& .MuiOutlinedInput-root': {
+			fontSize,
+			padding: 0,
+		},
+	}),
 	textFieldOverrides: {
 		'& .MuiInputBase-root': {
 			padding: '3px 5px',

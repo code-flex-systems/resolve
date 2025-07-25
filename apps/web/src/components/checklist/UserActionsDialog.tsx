@@ -1,3 +1,5 @@
+'use client';
+
 import { Box, Fade, FormControl, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import { AssignmentTurnedIn, Email, Event, MarkunreadMailbox } from '@mui/icons-material';
 import BasicDialog from '../common/BasicDialog';

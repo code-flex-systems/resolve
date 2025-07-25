@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useState } from 'react';
 import { DialogContent, DialogActions, Stepper, Step, StepLabel, Button, Box, Fade } from '@mui/material';
 import { CSVStep1 } from './CSVWizardStep1';

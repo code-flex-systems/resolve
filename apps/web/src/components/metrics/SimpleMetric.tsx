@@ -1,3 +1,5 @@
+'use client';
+
 import { capitalize, formatMetric } from '@/lib/utils/utils';
 import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
 import { Box, Collapse, Divider, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';

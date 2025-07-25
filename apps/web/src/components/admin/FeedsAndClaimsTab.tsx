@@ -1,3 +1,5 @@
+'use client';
+
 import { useAdminSlice } from '@/state/store';
 import Claims from './Claims';
 import Feeds from './Feeds';

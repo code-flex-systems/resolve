@@ -5,7 +5,7 @@ import {
 	gridPaginationModelSelector,
 	useGridApiContext,
 	useGridSelector,
-} from '@mui/x-data-grid';
+} from '@mui/x-data-grid-pro';
 
 export function CustomPagination() {
 	const apiRef = useGridApiContext();

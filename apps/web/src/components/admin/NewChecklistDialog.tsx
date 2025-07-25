@@ -1,3 +1,5 @@
+'use client';
+
 import { FormControl, FormLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';

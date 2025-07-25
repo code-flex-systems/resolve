@@ -1,3 +1,5 @@
+'use client';
+
 import theme from '@/styles/theme';
 
 export default function Separator(props: { color?: string }) {

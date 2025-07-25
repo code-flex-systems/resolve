@@ -1,7 +1,7 @@
 'use client';
 import { Typography } from '@mui/material';
 import { formatAmount } from '@/lib/utils/utils';
-import { GridRenderCellParams } from '@mui/x-data-grid';
+import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 
 export default function ClaimAmountCell(props: GridRenderCellParams) {
 	return (

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { MenuItem, FormControl, InputLabel, Select } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';

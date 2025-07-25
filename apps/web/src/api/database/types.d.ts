@@ -265,10 +265,10 @@ export interface ResponseAuditLogs {
   id: Generated<number>;
   instance_id: number;
   new_additional_info: Json | null;
-  new_answer_ids: Json | null;
+  new_answers: Json | null;
   new_response_text: string | null;
   old_additional_info: Json | null;
-  old_answer_ids: Json | null;
+  old_answers: Json | null;
   old_response_text: string | null;
   question_id: number;
   response_id: number | null;

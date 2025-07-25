@@ -1,3 +1,5 @@
+'use client';
+
 import theme from '@/styles/theme';
 import { Typography } from '@mui/material';
 import { LineWobble } from 'ldrs/react';

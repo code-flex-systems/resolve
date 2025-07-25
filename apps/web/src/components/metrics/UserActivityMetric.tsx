@@ -1,11 +1,12 @@
+'use client';
+
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import theme, { BASE_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
-import { Box, Divider, IconButton, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
+import theme from '@/styles/theme';
+import { Box, Divider, IconButton, Paper, Skeleton, Stack, Tooltip } from '@mui/material';
 import { GraphicEq, Troubleshoot } from '@mui/icons-material';
-import { LineChart } from '@mui/x-charts/LineChart';
 import { useRouter } from 'next/navigation';
-import { BarChart } from '@mui/x-charts';
+import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '../common/ExpandableTitle';
 
 const METRIC_WIDTH = 500;
@@ -41,7 +42,6 @@ export default function UserActivityMetric() {
 								title="User Activity"
 								icon={<GraphicEq sx={{ color: 'white' }} />}
 								color={theme.palette.warning.main}
-								bgcolor="rgba(226, 232, 242, 0.5)"
 								padding="5px 0px 10px"
 							/>
 							<Tooltip title="Open Inspector">

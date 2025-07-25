@@ -1,7 +1,9 @@
+'use client';
+
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Typography, LinearProgress, Box, Alert, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 
 type ParsedRow = Record<string, string>;
 
@@ -86,7 +88,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 				{submitSuccess === false && <Alert severity="error">Import failed. Please try again.</Alert>}
 
 				<Box height={250} minHeight={250}>
-					<DataGrid
+					<DataGridPro
 						columnHeaderHeight={35}
 						rowHeight={35}
 						rows={validRows.map((r, i) => ({ id: i, ...r }))}
