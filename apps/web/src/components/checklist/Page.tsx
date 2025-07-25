@@ -58,7 +58,14 @@ export default function Page() {
 	const mode = useChecklistSlice((state) => state.mode);
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
 
-	const { control, resetField, reset, watch, handleSubmit } = useForm();
+	const {
+		control,
+		setValue,
+		reset,
+		watch,
+		handleSubmit,
+		formState: { isDirty, dirtyFields, isSubmitting },
+	} = useForm({ mode: 'onChange' });
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 	const { data: claim } = useClaimTrpc().get(
@@ -66,7 +73,11 @@ export default function Page() {
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
 	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
-	const { isFetching: loading, data: responses } = useResponseTrpc().list(
+	const {
+		isLoading: loading,
+		isFetching: fetching,
+		data: responses,
+	} = useResponseTrpc().list(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
 		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
 	);
@@ -96,7 +107,7 @@ export default function Page() {
 	const onSubmit = handleSubmit(async (data) => {
 		try {
 			const responses: QuestionResponse[] = Object.keys(data)
-				.filter((field) => !field.endsWith(QuestionType.FREEFORM))
+				.filter((field) => Object.keys(dirtyFields).includes(field) && !field.endsWith(QuestionType.FREEFORM))
 				.map((field) => {
 					const questionId = parseInt(field);
 					const response: QuestionResponse = {
@@ -149,9 +160,6 @@ export default function Page() {
 					<Toolbar
 						left={
 							<>
-								{/* <Typography lineHeight={'21px'} fontSize={19}>
-									{selectedPageInfo.title}
-								</Typography> */}
 								<ExpandableTitle
 									title={selectedPageInfo.title}
 									icon={<Description sx={{ color: 'white' }} />}
@@ -173,12 +181,20 @@ export default function Page() {
 									<Button
 										variant="outlined"
 										color="secondary"
-										onClick={() => reset({ ...generateDefaultValues(questions) })}
+										onClick={() =>
+											reset({ ...generateDefaultValues(questions) }, { keepDefaultValues: true })
+										}
 										sx={{ height: 25, marginRight: '10px' }}
 									>
 										Reset
 									</Button>
-									<Button variant="contained" color="primary" onClick={onSubmit} sx={{ height: 25 }}>
+									<Button
+										variant="contained"
+										color="primary"
+										disabled={!isDirty || fetching || isSubmitting}
+										onClick={onSubmit}
+										sx={{ height: 25 }}
+									>
 										Save
 									</Button>
 								</div>
@@ -197,9 +213,10 @@ export default function Page() {
 								<ChecklistQuestion
 									key={question.id}
 									control={control}
-									resetField={resetField}
+									setValue={setValue}
 									watch={watch}
 									question={question}
+									disabled={isSubmitting}
 									idx={i}
 								/>
 							))}

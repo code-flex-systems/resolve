@@ -51,19 +51,20 @@ export default function FormQuestion() {
 		control,
 		handleSubmit,
 		reset,
-		formState: { errors },
+		formState: { errors, isDirty, isSubmitting },
 		watch,
 	} = useForm<Omit<Question, 'answers'>>({
 		defaultValues: {
 			...getDefaults(selectedQuestionData),
 		},
+		mode: 'onChange',
 	});
 	const questionText = watch('text');
 
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const isPlaceholder = selectedQuestionData.id === -1;
-	const inTransition = adding || copying || updating || deleting || refetchingQuestions;
+	const inTransition = isSubmitting || adding || copying || updating || deleting || refetchingQuestions;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -175,7 +176,7 @@ export default function FormQuestion() {
 						<Button
 							onClick={onSubmit}
 							color="primary"
-							disabled={inTransition}
+							disabled={inTransition || (!isPlaceholder && !isDirty)}
 							variant="contained"
 							sx={{ height: 25 }}
 						>

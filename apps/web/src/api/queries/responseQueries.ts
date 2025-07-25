@@ -1,6 +1,6 @@
 import { sql, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
-import { getUpdatedPageStatus } from '@/api/utils/utils';
+import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -153,22 +153,89 @@ export async function upsertQuestionResponses(
 		responses.filter((r) => !!r.response_text || r.selected_answers.length).length
 	);
 
-	// Insert or update each response and associated answers within a single transaction
 	for (const response of responses) {
-		const shouldClear =
-			!response.response_text && (!response.selected_answers || response.selected_answers.length === 0);
-
-		if (shouldClear) {
-			await trx
-				.deleteFrom('question_response')
+		// Fetch existing response if any
+		const oldRow = await applyClientScope(
+			trx
+				.selectFrom('question_response')
+				.select(['id', 'response_text', 'created_by', 'updated_by'])
 				.where('checklist_id', '=', response.checklist_id)
 				.where('instance_id', '=', response.instance_id)
 				.where('claim_id', '=', response.claim_id)
-				.where('question_id', '=', response.question_id)
-				.execute();
+				.where('question_id', '=', response.question_id),
+			ctx.session.user.client_id,
+			'question_response'
+		).executeTakeFirst();
+
+		// Gather snapshots for logging
+		const oldAnswers = oldRow
+			? await applyClientScope(
+					trx
+						.selectFrom('question_response_answer')
+						.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
+						.select([
+							'answer.id as answer_id',
+							'answer.text as label',
+							'question_response_answer.additional_info',
+						])
+						.where('question_response_answer.response_id', '=', oldRow.id),
+					ctx.session.user.client_id,
+					'answer'
+				).execute()
+			: [];
+
+		// 3) build the “new” shape for comparison
+		const newText = response.response_text ?? null;
+		const oldText = oldRow?.response_text ?? null;
+
+		// 4) if nothing changed, skip the rest
+		if (
+			oldText === newText &&
+			isEqual(
+				oldAnswers.map((r) => ({
+					answer_id: r.answer_id,
+					additional_info: r.additional_info ?? null,
+				})),
+				(response.selected_answers ?? []).map((r) => ({
+					answer_id: r.answer_id,
+					additional_info: r.additional_info ?? null,
+				}))
+			)
+		) {
 			continue;
 		}
 
+		const oldAnswerSnapshots: AuditAnswerSnapshot[] = oldAnswers.map((a) => ({
+			label: a.label,
+			additional_info: a.additional_info,
+		}));
+
+		const shouldClear =
+			!response.response_text && (!response.selected_answers || response.selected_answers.length === 0);
+
+		if (shouldClear && oldRow) {
+			// Log the delete action (no new data)
+			await insertResponseAuditLog(trx, {
+				responseId: oldRow.id,
+				clientId: ctx.session.user.client_id,
+				userId: oldRow.updated_by ?? oldRow.created_by,
+				checklistId: response.checklist_id,
+				instanceId: response.instance_id,
+				claimId: response.claim_id,
+				questionId: response.question_id,
+				action: 'delete',
+				oldResponseText: oldRow.response_text,
+				newResponseText: null,
+				oldAnswers: oldAnswerSnapshots,
+				newAnswers: [],
+			});
+
+			// Remove the response and its answers
+			await trx.deleteFrom('question_response').where('id', '=', oldRow.id).execute();
+			continue;
+		}
+
+		// Perform insert or update
 		const [saved] = await trx
 			.insertInto('question_response')
 			.values({
@@ -190,9 +257,11 @@ export async function upsertQuestionResponses(
 			.returningAll()
 			.execute();
 
+		// Delete existing answers
 		await trx.deleteFrom('question_response_answer').where('response_id', '=', saved.id).execute();
 
-		if (response.selected_answers?.length) {
+		// Insert new answers if provided
+		if (response?.selected_answers?.length) {
 			await trx
 				.insertInto('question_response_answer')
 				.values(
@@ -204,26 +273,114 @@ export async function upsertQuestionResponses(
 				)
 				.execute();
 		}
+
+		const newAnswerSnapshots: AuditAnswerSnapshot[] = await applyClientScope(
+			trx
+				.selectFrom('question_response_answer')
+				.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
+				.select(['answer.text as label', 'question_response_answer.additional_info'])
+				.where('question_response_answer.response_id', '=', saved.id),
+			ctx.session.user.client_id,
+			'answer'
+		).execute();
+
+		// Log the change
+		await insertResponseAuditLog(trx, {
+			responseId: saved.id,
+			clientId: ctx.session.user.client_id,
+			userId: saved.updated_by ?? saved.created_by,
+			checklistId: saved.checklist_id,
+			instanceId: saved.instance_id,
+			claimId: saved.claim_id,
+			questionId: saved.question_id,
+			action: oldRow ? 'update' : 'insert',
+			oldResponseText: oldRow?.response_text ?? null,
+			newResponseText: saved.response_text,
+			oldAnswers: oldAnswerSnapshots,
+			newAnswers: newAnswerSnapshots,
+		});
 	}
 
 	// Update page instance status
-	const sampleResponse = responses[0];
+	const sample = responses[0];
 	const template = await applyClientScope(
 		trx
 			.selectFrom('page')
 			.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
 			.select('version')
-			.where('page_instance.id', '=', sampleResponse.instance_id),
+			.where('page_instance.id', '=', sample.instance_id),
 		ctx.session.user.client_id,
 		'page'
 	).executeTakeFirstOrThrow();
+
 	await pageQueries.modifyPageInstanceStatus(ctx, {
-		claimId: sampleResponse.claim_id,
-		instanceIds: [sampleResponse.instance_id],
+		claimId: sample.claim_id,
+		instanceIds: [sample.instance_id],
 		newStatus: updatedPageStatus,
 		templateVersion: template.version,
 		trx,
 	});
 
 	return updatedPageStatus;
+}
+
+// private functions
+
+export interface AuditAnswerSnapshot {
+	label: string;
+	additional_info: string | null;
+}
+
+export interface ResponseAuditInput {
+	clientId: string;
+	userId: string;
+	checklistId: number;
+	instanceId: number;
+	claimId: number;
+	responseId: number;
+	questionId: number;
+	action: 'insert' | 'update' | 'delete';
+	oldResponseText: string | null;
+	newResponseText: string | null;
+	oldAnswers: AuditAnswerSnapshot[];
+	newAnswers: AuditAnswerSnapshot[];
+}
+
+/**
+ * Inserts an audit log into response_audit_logs, snapshotting question text,
+ * page label, response texts, and answer labels/info.
+ */
+export async function insertResponseAuditLog(trx: Transaction<DB>, audit: ResponseAuditInput) {
+	// 1) Fetch question text & page label
+	const qPage = await trx
+		.selectFrom('question')
+		.innerJoin('page', 'page.id', 'question.page_id')
+		.select(['question.text as question_text', 'page.title as page_label'])
+		.where('question.id', '=', audit.questionId)
+		.executeTakeFirstOrThrow();
+
+	// 2) Prepare JSONB blobs
+	const oldAnswersJson = JSON.stringify(audit.oldAnswers);
+	const newAnswersJson = JSON.stringify(audit.newAnswers);
+
+	// 3) Insert into audit table
+	await trx
+		.insertInto('response_audit_logs')
+		.values({
+			client_id: audit.clientId,
+			user_id: audit.userId,
+			checklist_id: audit.checklistId,
+			instance_id: audit.instanceId,
+			claim_id: audit.claimId,
+			response_id: audit.responseId,
+			question_id: audit.questionId,
+			question_text: qPage.question_text,
+			page_label: qPage.page_label,
+			action: audit.action,
+			old_response_text: audit.oldResponseText,
+			new_response_text: audit.newResponseText,
+			old_answers: oldAnswersJson,
+			new_answers: newAnswersJson,
+		})
+		.execute();
 }

@@ -82,12 +82,13 @@ export default function FormAnswer() {
 		control,
 		handleSubmit,
 		reset,
-		formState: { errors },
+		formState: { errors, isDirty, isSubmitting },
 		watch,
 	} = useForm<Answer>({
 		defaultValues: {
 			...selectedAnswerData,
 		},
+		mode: 'onChange',
 	});
 
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
@@ -96,7 +97,7 @@ export default function FormAnswer() {
 	const pageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
 	const isPlaceholder = selectedAnswerData.id === -1;
 	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
-	const inTransition = adding || copying || updating || deleting || refetching;
+	const inTransition = isSubmitting || adding || copying || updating || deleting || refetching;
 	const scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
 
 	useEffect(() => {
@@ -228,7 +229,7 @@ export default function FormAnswer() {
 						<Button
 							onClick={onSubmit}
 							color="primary"
-							disabled={inTransition}
+							disabled={inTransition || (!isPlaceholder && !isDirty)}
 							variant="contained"
 							sx={{ height: 25 }}
 						>

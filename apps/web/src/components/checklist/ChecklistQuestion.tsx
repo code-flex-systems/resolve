@@ -1,6 +1,6 @@
 'use client';
 import { Question } from '@/types/types';
-import { Control, Controller, FieldValues, UseFormResetField, UseFormWatch } from 'react-hook-form';
+import { Control, Controller, FieldValues, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import ChecklistFormLabel from './ChecklistFormLabel';
 import ChecklistAnswerRadio from './ChecklistAnswerRadio';
 import { QuestionType } from '@/config/enums';
@@ -9,26 +9,20 @@ import ChecklistAnswerDropdown from './ChecklistAnswerDropdown';
 
 export function ChecklistQuestion(props: {
 	control: Control<FieldValues, any, FieldValues>;
-	resetField: UseFormResetField<FieldValues>;
+	setValue: UseFormSetValue<FieldValues>;
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
 	idx: number;
 	disabled?: boolean;
 }) {
-	const { control, question, resetField, watch, idx, disabled } = props;
+	const { control, question, setValue, watch, idx, disabled } = props;
 	const fieldName = question.id.toString();
 	const fieldValue = watch(fieldName);
 	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
 	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
 	return (
 		<div style={styles.container} className="flex-col-left">
-			<ChecklistFormLabel
-				id={fieldName}
-				value={fieldValue}
-				idx={idx}
-				question={question}
-				resetField={resetField}
-			/>
+			<ChecklistFormLabel id={fieldName} value={fieldValue} idx={idx} question={question} setValue={setValue} />
 			<Controller
 				name={fieldName}
 				control={control}

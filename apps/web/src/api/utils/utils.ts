@@ -7,6 +7,48 @@ export function getUpdatedPageStatus(questionCount: number, responseCount: numbe
 	return PageInstanceStatus.UNSTARTED;
 }
 
+/**
+ * Deep-equals two values (primitives, arrays, or plain objects).
+ */
+export function isEqual(a: any, b: any): boolean {
+	if (a === b) return true;
+
+	// both must be non-null objects to continue
+	if (a && b && typeof a === 'object' && typeof b === 'object') {
+		// Arrays
+		if (Array.isArray(a) && Array.isArray(b)) {
+			if (a.length !== b.length) return false;
+			for (let i = 0; i < a.length; i++) {
+				if (!isEqual(a[i], b[i])) return false;
+			}
+			return true;
+		}
+
+		// Mismatched array vs object
+		if (Array.isArray(a) !== Array.isArray(b)) {
+			return false;
+		}
+
+		// Plain objects
+		const keysA = Object.keys(a);
+		const keysB = Object.keys(b);
+		if (keysA.length !== keysB.length) return false;
+
+		for (const key of keysA) {
+			if (!Object.prototype.hasOwnProperty.call(b, key)) {
+				return false;
+			}
+			if (!isEqual(a[key], b[key])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// all other cases (functions, differing types, one is null/undefined)
+	return false;
+}
+
 export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(fn: T): T {
 	return (async (...args: Parameters<T>) => {
 		try {

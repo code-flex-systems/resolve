@@ -2,7 +2,7 @@
 import { Replay } from '@mui/icons-material';
 import { FormLabel, IconButton, Tooltip, Typography } from '@mui/material';
 import QuestionInfo from './QuestionInfo';
-import { FieldValues, UseFormResetField } from 'react-hook-form';
+import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
 import { QuestionType } from '@/config/enums';
 
@@ -11,16 +11,16 @@ export default function ChecklistFormLabel(props: {
 	value?: string | string[];
 	idx: number;
 	question: Question;
-	resetField: UseFormResetField<FieldValues>;
+	setValue: UseFormSetValue<FieldValues>;
 }) {
-	const { id, value, idx, question, resetField } = props;
+	const { id, value, idx, question, setValue } = props;
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
 			<Tooltip title="Reset question" enterDelay={500}>
 				<span>
 					<IconButton
 						onClick={() =>
-							resetField(id, { defaultValue: question.type === QuestionType.FREEFORM ? '' : [] })
+							setValue(id, question.type === QuestionType.FREEFORM ? '' : [], { shouldDirty: true })
 						}
 						disabled={!value?.length}
 						sx={{ marginRight: '10px' }}

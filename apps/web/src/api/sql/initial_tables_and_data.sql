@@ -258,27 +258,33 @@ CREATE TABLE question_response_answer (
 );
 
 CREATE TABLE response_audit_logs (
-    id SERIAL PRIMARY KEY,
-    client_id uuid not null references client(id),
-    response_id INTEGER REFERENCES question_response(id) ON DELETE SET NULL,
-    user_id uuid not null references users(id),
-    checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
-    instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
-    claim_id INTEGER NOT NULL REFERENCES claim(id) ON DELETE CASCADE,
-    question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+  id                SERIAL PRIMARY KEY,
+  client_id         UUID    NOT NULL REFERENCES client(id),
+  response_id       INTEGER REFERENCES question_response(id) ON DELETE SET NULL,
+  user_id           UUID    REFERENCES users(id) ON DELETE SET NULL,
+  checklist_id      INTEGER REFERENCES checklist(id) ON DELETE SET NULL,
+  instance_id       INTEGER REFERENCES page_instance(id) ON DELETE SET NULL,
+  claim_id          INTEGER REFERENCES claim(id) ON DELETE SET NULL,
+  question_id       INTEGER REFERENCES question(id) ON DELETE SET NULL,
 
-    action TEXT NOT NULL CHECK (action IN ('insert', 'update', 'delete')),
-    old_response_text TEXT,
-    new_response_text TEXT,
+  -- snapshot of the question & page at the moment of change
+  question_text     TEXT    NOT NULL,
+  page_label        TEXT    NOT NULL,
 
-    old_answers JSONB,
-    new_answers JSONB,
+  action            TEXT    NOT NULL 
+                         CHECK (action IN ('insert','update','delete')),
 
-    old_additional_info JSONB,
-    new_additional_info JSONB,
+  -- old vs new free‐text responses
+  old_response_text TEXT,
+  new_response_text TEXT,
 
-    timestamp TIMESTAMP DEFAULT NOW()
+  -- arrays of { label, additional_info } snapshots
+  old_answers       JSONB   NOT NULL DEFAULT '[]', 
+  new_answers       JSONB   NOT NULL DEFAULT '[]',
+
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 
 -- admin action logs table
 

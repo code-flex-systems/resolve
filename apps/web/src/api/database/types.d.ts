@@ -259,21 +259,21 @@ export interface QuestionResponseAnswer {
 
 export interface ResponseAuditLogs {
   action: string;
-  checklist_id: number;
-  claim_id: number;
+  checklist_id: number | null;
+  claim_id: number | null;
   client_id: string;
+  created_at: Generated<Timestamp>;
   id: Generated<number>;
-  instance_id: number;
-  new_additional_info: Json | null;
-  new_answers: Json | null;
+  instance_id: number | null;
+  new_answers: Generated<Json>;
   new_response_text: string | null;
-  old_additional_info: Json | null;
-  old_answers: Json | null;
+  old_answers: Generated<Json>;
   old_response_text: string | null;
-  question_id: number;
+  page_label: string;
+  question_id: number | null;
+  question_text: string;
   response_id: number | null;
-  timestamp: Generated<Timestamp | null>;
-  user_id: string;
+  user_id: string | null;
 }
 
 export interface Sessions {

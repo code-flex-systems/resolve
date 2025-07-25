@@ -26,7 +26,7 @@ export default function ExpandableTitle({
 	});
 	return (
 		<Box
-			width="100%"
+			width="fit-content"
 			display="flex"
 			justifyContent="flex-start"
 			alignItems="center"
