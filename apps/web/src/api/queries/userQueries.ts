@@ -77,7 +77,7 @@ export async function getUserActivity(ctx: ProtectedContext, daysBack = 30) {
             CURRENT_DATE,
             interval '1 day'
         ) as gs(day)
-        left join response_audit_logs r on date(r.timestamp) = gs.day
+        left join response_audit_logs r on date(r.created_at) = gs.day
         where client_id = ${ctx.session.user.client_id}
         group by gs.day
         order by gs.day
@@ -94,10 +94,10 @@ export async function getUserActivityDetail(ctx: ProtectedContext, date: string)
 		.where((eb) =>
 			eb.and([
 				eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
-				eb(sql`date(${eb.ref('response_audit_logs.timestamp')})`, '=', date),
+				eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
 			])
 		)
-		.orderBy('response_audit_logs.timestamp')
+		.orderBy('response_audit_logs.created_at')
 		.execute();
 }
 

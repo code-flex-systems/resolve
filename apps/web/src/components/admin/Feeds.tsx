@@ -7,11 +7,13 @@ import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
 import Toolbar from '../common/Toolbar';
 import { useState } from 'react';
-import { NetworkCheck, Notifications, NotificationsOff, Power, PowerOff } from '@mui/icons-material';
+import { NetworkCheck, Notifications, NotificationsOff, Power, PowerOff, RssFeed } from '@mui/icons-material';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useAdminSlice } from '@/state/store';
 import { setFeedId } from '@/state/admin/actions';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
+import ExpandableTitle from '../common/ExpandableTitle';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
@@ -40,12 +42,18 @@ export default function Feeds() {
 		<div style={styles.container} className="flex-row-left">
 			<Paper sx={styles.paper}>
 				<Toolbar
-					left={<Typography paddingBottom="5px">Feeds</Typography>}
+					left={<ExpandableTitle icon={<RssFeed sx={{ color: 'white' }} />} title="Feeds" />}
 					right={
-						<Button onClick={onTest} disabled={testing || !feeds.length} sx={{ height: 25 }}>
-							Test
-						</Button>
+						<BasicButtonStyled
+							buttonProps={{
+								onClick: onTest,
+								disabled: testing || !feeds.length,
+							}}
+							icon={<NetworkCheck />}
+							tooltipProps={{ title: 'Test connection' }}
+						/>
 					}
+					height={50}
 					padding={0}
 				/>
 				<Divider />

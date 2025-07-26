@@ -196,7 +196,6 @@ export default function UsersTab() {
 						pageSizeOptions={[]}
 						getRowClassName={(params) => {
 							if (params.row.email === session?.user?.email) return 'user-row';
-							// return params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '';
 							return '';
 						}}
 						pagination

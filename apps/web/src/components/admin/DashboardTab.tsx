@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Stack } from '@mui/material';
-import { Checklist, ContentPasteSearch, People, NetworkCheck } from '@mui/icons-material';
+import { Checklist, ContentPasteSearch, People, RssFeed } from '@mui/icons-material';
 import SimpleMetric from '../metrics/SimpleMetric';
 import theme from '@/styles/theme';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
@@ -69,7 +69,7 @@ export default function DashboardTab() {
 					title="feeds"
 					onClick={() => router.push('/admin/feeds-and-claims')}
 					onSelect={() => onSelect('feeds')}
-					icon={<NetworkCheck sx={styles.simpleMetricIcon} />}
+					icon={<RssFeed sx={styles.simpleMetricIcon} />}
 					color="#5E8FD3"
 					values={feedCounts}
 					isLoading={isFetchingFeeds}

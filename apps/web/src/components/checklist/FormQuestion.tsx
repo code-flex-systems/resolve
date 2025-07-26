@@ -15,7 +15,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { TaskAlt } from '@mui/icons-material';
+import { ContentCopy, Delete, Save, TaskAlt } from '@mui/icons-material';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
@@ -28,6 +28,7 @@ import { Question } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -147,41 +148,45 @@ export default function FormQuestion() {
 					<>
 						{!isPlaceholder && (
 							<>
-								<Button
-									disabled={inTransition}
-									variant="contained"
-									color="warning"
-									onClick={() => {
-										if (selectedQuestionData.answers?.length) {
-											setShowDeleteDialog(true);
-										} else {
-											onDelete();
-										}
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: () => {
+											if (selectedQuestionData.answers?.length) {
+												setShowDeleteDialog(true);
+											} else {
+												onDelete();
+											}
+										},
+										disabled: inTransition,
+										sx: { height: 25, marginRight: '10px' },
+										startIcon: <Delete />,
 									}}
-									sx={{ height: 25, marginRight: '10px' }}
 								>
 									Delete
-								</Button>
-								<Button
-									disabled={inTransition}
-									variant="contained"
-									color="secondary"
-									onClick={onCopy}
-									sx={{ height: 25, marginRight: '10px' }}
+								</BasicButtonStyled>
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: onCopy,
+										disabled: inTransition,
+										sx: { height: 25, marginRight: '10px' },
+										startIcon: <ContentCopy />,
+									}}
 								>
 									Copy
-								</Button>
+								</BasicButtonStyled>
 							</>
 						)}
-						<Button
-							onClick={onSubmit}
-							color="primary"
-							disabled={inTransition || (!isPlaceholder && !isDirty)}
-							variant="contained"
-							sx={{ height: 25 }}
+						<BasicButtonStyled
+							buttonProps={{
+								onClick: onSubmit,
+								disabled: inTransition || (!isPlaceholder && !isDirty),
+								color: 'primary',
+								sx: { height: 25 },
+								startIcon: <Save />,
+							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
-						</Button>
+						</BasicButtonStyled>
 					</>
 				}
 				rightWidth="40%"

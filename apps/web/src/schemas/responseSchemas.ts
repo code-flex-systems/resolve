@@ -26,6 +26,16 @@ export const getResponsesForClaimChecklistInput = z.object({
 });
 export type GetResponsesForClaimChecklistInput = z.infer<typeof getResponsesForClaimChecklistInput>;
 
+export const getResponseAuditLogsInput = z.object({
+	filters: z.object({
+		checklistId: z.number().int(),
+		emails: z.array(z.string()).optional(),
+		range: z.tuple([z.date().nullable(), z.date().nullable()]).optional(),
+	}),
+	limit: z.number().int(),
+	offset: z.number().int(),
+});
+
 export const upsertQuestionResponsesParams = z.any().array();
 export type UpsertQuestionResponsesParams = z.infer<typeof upsertQuestionResponsesParams>;
 

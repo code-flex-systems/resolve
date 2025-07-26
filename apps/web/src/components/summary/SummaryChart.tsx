@@ -101,12 +101,12 @@ export default function SummaryChart() {
 					elevation={2}
 					sx={{
 						width: 'fit-content',
-						background: 'linear-gradient(135deg, rgb(33, 106, 196), rgb(26, 84, 154))',
+						background: theme.palette.primary.main,
 						position: 'absolute',
 						padding: '5px 10px',
 						top: -10,
 						zIndex: 10,
-						borderRadius: 2,
+						borderRadius: 5,
 					}}
 					className="flex-row-center"
 				>

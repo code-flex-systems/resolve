@@ -5,7 +5,7 @@ import * as responseQueries from '@/api/queries/responseQueries';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
 import { ClaimStatus, PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { Interval, QuestionResponse } from '@/types/types';
+import { DateRange, Interval, QuestionResponse } from '@/types/types';
 import { TRPCError } from '@trpc/server';
 import { db } from '../database/kysely';
 import { executeActions } from './actionController';
@@ -78,6 +78,22 @@ export async function getResponsesForClaimChecklist(
 	}
 ) {
 	const results = await responseQueries.getResponsesForClaimChecklist(ctx, checklistId, claimId, instanceId);
+	return results;
+}
+
+export async function getResponseAuditLogs(
+	ctx: ProtectedContext,
+	{
+		filters,
+		limit,
+		offset,
+	}: {
+		filters: { checklistId: number; emails?: string[]; range?: DateRange };
+		limit: number;
+		offset: number;
+	}
+) {
+	const results = await responseQueries.getResponseAuditLogs(ctx, filters, limit, offset);
 	return results;
 }
 

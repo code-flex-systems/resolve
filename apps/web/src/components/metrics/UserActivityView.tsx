@@ -13,12 +13,13 @@ import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
 import ExpandableTitle from '../common/ExpandableTitle';
 import UserFilter from '../common/UserFilter';
+import UserActivityTable from './UserActivityTable';
 
 export default function UserActivityView() {
-	const { data = [], isFetching } = useUserTrpc().activity({});
 	const today = dayjs();
 	const [range, setRange] = useState<DateRange<Dayjs>>([today.startOf('month'), today.endOf('month')]);
 	const [users, setUsers] = useState<GetUserOutput[]>([]);
+	const { data = [], isFetching } = useUserTrpc().activity({});
 	const xLabels = data.map((r) => r.activity_date);
 	const yValues = data.map((r) => parseInt(r.active_users ?? '0'));
 
@@ -98,7 +99,9 @@ export default function UserActivityView() {
 						/>
 					</Stack>
 				</Paper>
-				<Paper elevation={0} sx={styles.tablePaper}></Paper>
+				<Paper elevation={0} sx={styles.tablePaper}>
+					<UserActivityTable users={users} range={range} />
+				</Paper>
 			</Stack>
 		</PageWrapper>
 	);
@@ -114,7 +117,8 @@ const styles = {
 		zIndex: 10,
 	},
 	tablePaper: {
-		flex: 1,
+		width: '50%',
+		height: 'calc(100vh - 475px)',
 		bgcolor: OFFWHITE_COLOR,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,

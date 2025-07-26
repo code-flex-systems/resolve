@@ -101,6 +101,8 @@ export interface ChecklistSummaryRow {
 	answer_texts?: string;
 }
 
+export type DateRange = [Date | null, Date | null];
+
 export interface DialogAction {
 	label: string;
 	onClick: () => void;

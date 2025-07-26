@@ -9,7 +9,7 @@ import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import { Description, TaskAlt } from '@mui/icons-material';
+import { Description, Replay, Save, TaskAlt } from '@mui/icons-material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme from '@/styles/theme';
@@ -20,6 +20,7 @@ import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 import ExpandableTitle from '../common/ExpandableTitle';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	const defaults: Record<string, number[] | string> = {};
@@ -107,7 +108,7 @@ export default function Page() {
 	const onSubmit = handleSubmit(async (data) => {
 		try {
 			const responses: QuestionResponse[] = Object.keys(data)
-				.filter((field) => Object.keys(dirtyFields).includes(field) && !field.endsWith(QuestionType.FREEFORM))
+				.filter((field) => !field.endsWith(QuestionType.FREEFORM))
 				.map((field) => {
 					const questionId = parseInt(field);
 					const response: QuestionResponse = {
@@ -178,25 +179,30 @@ export default function Page() {
 						right={
 							<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
 								<div className="flex-row-right">
-									<Button
-										variant="outlined"
-										color="secondary"
-										onClick={() =>
-											reset({ ...generateDefaultValues(questions) }, { keepDefaultValues: true })
-										}
-										sx={{ height: 25, marginRight: '10px' }}
+									<BasicButtonStyled
+										buttonProps={{
+											onClick: () =>
+												reset(
+													{ ...generateDefaultValues(questions) },
+													{ keepDefaultValues: true }
+												),
+											startIcon: <Replay />,
+											sx: { height: 25, marginRight: '10px' },
+										}}
 									>
 										Reset
-									</Button>
-									<Button
-										variant="contained"
-										color="primary"
-										disabled={!isDirty || fetching || isSubmitting}
-										onClick={onSubmit}
-										sx={{ height: 25 }}
+									</BasicButtonStyled>
+									<BasicButtonStyled
+										buttonProps={{
+											color: 'primary',
+											disabled: !isDirty || fetching || isSubmitting,
+											onClick: onSubmit,
+											startIcon: <Save />,
+											sx: { height: 25 },
+										}}
 									>
 										Save
-									</Button>
+									</BasicButtonStyled>
 								</div>
 							</Fade>
 						}

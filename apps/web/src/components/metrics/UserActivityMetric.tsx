@@ -61,7 +61,13 @@ export default function UserActivityMetric() {
 						<div style={styles.divider}>
 							<Divider />
 						</div>
-						<Box height={100}>
+						<Box
+							display="flex"
+							justifyContent="center"
+							alignItems="flex-end"
+							height={120}
+							bgcolor="rgba(226, 232, 242, 0.5)"
+						>
 							<BarChart
 								xAxis={[
 									{
@@ -79,7 +85,6 @@ export default function UserActivityMetric() {
 								height={100}
 								margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
 								sx={{
-									bgcolor: 'rgba(226, 232, 242, 0.5)',
 									borderRadius: 1,
 								}}
 								colors={[theme.palette.primary.main]}

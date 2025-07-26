@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import { Share, TaskAlt } from '@mui/icons-material';
+import { ContentCopy, Delete, Save, Share, TaskAlt } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
 import * as actions from '@/state/checklist/actions';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
@@ -32,6 +32,7 @@ import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
 import { GetActionOutput, useActionTrpc } from '@/hooks/trpc/useActionTrpc';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -186,55 +187,49 @@ export default function FormAnswer() {
 					<>
 						{!isPlaceholder && (
 							<>
-								<Tooltip
-									title={
-										isFreeform
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: onDelete,
+										disabled: inTransition || isFreeform,
+										sx: { height: 25, marginRight: '10px' },
+										startIcon: <Delete />,
+									}}
+									tooltipProps={{
+										title: isFreeform
 											? `Question ${scopedQuestionId} is free-form. Please change the question type to remove this answer.`
-											: ''
-									}
+											: '',
+									}}
 								>
-									<span>
-										<Button
-											disabled={inTransition || isFreeform}
-											variant="contained"
-											color="warning"
-											onClick={onDelete}
-											sx={{ height: 25, marginRight: '10px' }}
-										>
-											Delete
-										</Button>
-									</span>
-								</Tooltip>
-								<Tooltip
-									title={
-										isFreeform
+									Delete
+								</BasicButtonStyled>
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: onCopy,
+										disabled: inTransition || isFreeform,
+										sx: { height: 25, marginRight: '10px' },
+										startIcon: <ContentCopy />,
+									}}
+									tooltipProps={{
+										title: isFreeform
 											? `Question ${scopedQuestionId} is free-form. Please change the question type to copy this answer.`
-											: ''
-									}
+											: '',
+									}}
 								>
-									<span>
-										<Button
-											disabled={inTransition || isFreeform}
-											variant="contained"
-											color="secondary"
-											onClick={onCopy}
-											sx={{ height: 25, marginRight: '10px' }}
-										>
-											Copy
-										</Button>
-									</span>
-								</Tooltip>
+									Copy
+								</BasicButtonStyled>
 							</>
 						)}
-						<Button
-							onClick={onSubmit}
-							color="primary"
-							disabled={inTransition || (!isPlaceholder && !isDirty)}
-							variant="contained"
-							sx={{ height: 25 }}
+						<BasicButtonStyled
+							buttonProps={{
+								onClick: onSubmit,
+								disabled: inTransition || (!isPlaceholder && !isDirty),
+								color: 'primary',
+								sx: { height: 25 },
+								startIcon: <Save />,
+							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
-						</Button>
+						</BasicButtonStyled>
 					</>
 				}
 				rightWidth="40%"

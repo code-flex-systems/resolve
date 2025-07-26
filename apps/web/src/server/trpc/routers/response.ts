@@ -3,6 +3,7 @@ import { router, protectedProcedure } from '../trpc';
 
 import {
 	evaluateResponses,
+	getResponseAuditLogs,
 	getResponsesForAnswer,
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
@@ -11,6 +12,7 @@ import { ClaimStatus } from '@/config/enums';
 import { requireRole } from '@/lib/auth/requireRole';
 import {
 	evaluateResponsesInput,
+	getResponseAuditLogsInput,
 	getResponsesForAnswerInput,
 	getResponsesForClaimChecklistInput,
 	upsertQuestionResponsesInput,
@@ -30,6 +32,10 @@ export const responseRouter = router({
 		.query(async ({ input, ctx }) => {
 			return getResponsesForClaimChecklist(ctx, input);
 		}),
+
+	getResponseAuditLogs: protectedProcedure.input(getResponseAuditLogsInput).query(async ({ input, ctx }) => {
+		return getResponseAuditLogs(ctx, input);
+	}),
 
 	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {
 		// Only administrators can edit a submitted checklist on a claim

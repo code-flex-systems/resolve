@@ -1,4 +1,6 @@
 import { createTheme } from '@mui/material/styles';
+import '@fontsource/inter';
+import { buttonClasses } from '@mui/material';
 
 export const BASE_COLOR = '#3f4a56';
 export const BASE_COLOR_LIGHT = '#91979e';
@@ -16,7 +18,16 @@ const theme = createTheme({
 			},
 			styleOverrides: {
 				root: {
-					// borderRadius: 0,
+					textTransform: 'none',
+					borderRadius: 10,
+					boxShadow: 'none',
+					fontFamily: 'Inter',
+					[buttonClasses.startIcon]: {
+						fontSize: '0.5rem',
+					},
+					[buttonClasses.endIcon]: {
+						fontSize: '0.5rem',
+					},
 				},
 			},
 		},
@@ -52,9 +63,7 @@ const theme = createTheme({
 				size: 'small',
 			},
 			styleOverrides: {
-				root: {
-					// borderRadius: 0,
-				},
+				root: {},
 			},
 		},
 		MuiLink: {
@@ -181,6 +190,19 @@ const theme = createTheme({
 	},
 	palette: {
 		mode: 'light',
+		action: {
+			active: BASE_COLOR,
+			//   hover: string;
+			//   hoverOpacity: number;
+			//   selected: string;
+			//   selectedOpacity: number;
+			disabled: BASE_COLOR_LIGHT,
+			//   disabledOpacity: number;
+			//   disabledBackground: string;
+			//   focus: string;
+			//   focusOpacity: number;
+			//   activatedOpacity: number;
+		},
 		primary: {
 			main: '#216BC4',
 		},

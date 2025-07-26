@@ -19,6 +19,7 @@ import {
 import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import ExpandableTitle from '../common/ExpandableTitle';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -141,6 +142,7 @@ export default function Claims() {
 								size="small"
 								checked={selectedFeedId === null}
 								onChange={(_, checked) => setFeedId(checked ? null : undefined)}
+								sx={{ marginLeft: '10px' }}
 							/>
 							<Typography fontSize={14} fontStyle="italic">
 								Only Manual Claims

@@ -1,14 +1,16 @@
 'use client';
-import { Fade, Link, Paper, Popper, PopperProps, Skeleton, Typography } from '@mui/material';
+import { Box, Fade, Link, Paper, Popper, PopperProps, Skeleton, Stack, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import Separator from '../common/Separator';
-import theme from '@/styles/theme';
-import { formatAmount } from '@/lib/utils/utils';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { formatAmount, formatMDY } from '@/lib/utils/utils';
 import { ContentPasteSearch } from '@mui/icons-material';
 import { useState } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
+import StackedHeaderCell from '../common/StackedHeaderCell';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 function Row(props: {
 	label: string;
@@ -51,6 +53,26 @@ function Row(props: {
 	);
 }
 
+export function StackedRow({ primary, secondary }: { primary: any; secondary: any }) {
+	return (
+		<Stack
+			display="flex"
+			width="100%"
+			height="100%"
+			justifyContent="center"
+			alignItems="flex-start"
+			padding="5px 0px"
+		>
+			<Typography fontSize={15} lineHeight="17px" paddingBottom="2px">
+				{primary}
+			</Typography>
+			<Typography fontSize={13} lineHeight="15px" color={BASE_COLOR_LIGHT}>
+				{secondary}
+			</Typography>
+		</Stack>
+	);
+}
+
 export default function ClaimInfo() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const [claimAnchorEl, setClaimAnchorEl] = useState<PopperProps['anchorEl']>(null);
@@ -62,15 +84,16 @@ export default function ClaimInfo() {
 	if (!claim) return <></>;
 	return (
 		<div className="flex-row-left">
-			<ContentPasteSearch sx={{ color: 'secondary.main' }} />
-			<Link
-				marginLeft="5px"
-				color="secondary"
-				onMouseEnter={(e) => setClaimAnchorEl(e.currentTarget)}
-				onMouseLeave={() => setClaimAnchorEl(null)}
+			<BasicButtonStyled
+				buttonProps={{
+					onMouseEnter: (e) => setClaimAnchorEl(e.currentTarget),
+					onMouseLeave: () => setClaimAnchorEl(null),
+					startIcon: <ContentPasteSearch />,
+					color: 'primary',
+				}}
 			>
-				{claim.claim_number} ({checklist?.name ?? ''})
-			</Link>
+				{claim.claim_number}
+			</BasicButtonStyled>
 			<Popper
 				open={!!claimAnchorEl}
 				anchorEl={claimAnchorEl}
@@ -82,18 +105,49 @@ export default function ClaimInfo() {
 					<Fade {...TransitionProps} timeout={350}>
 						<span>
 							<Paper style={styles.container} className="flex-col-start">
-								<Row label="Claim Number" value={claim.claim_number} />
-								<Row label="Client" value={claim.client} />
-								<Row label="Client Adjuster" value={claim.client_adjuster} />
-								<Row label="Insured" value={claim.insured} />
-								<Row label="Claim Amount" amount value={claim.claim_amount} />
-								<Row label="Total Incurred" amount value={claim.total_incurred} />
-								<Row label="Date of Loss" date value={claim.date_of_loss?.toString() ?? ''} />
-								<Row label="Loss Location" value={claim.loss_location} />
-								<Row label="Last Update" value={claim.last_updated_by} />
-								<Row label="" date value={claim.last_update?.toString() ?? ''} />
-								<Row label="Expected Recovery" amount value={claim.expected_recovery} />
-								<Row label="Grade" value={''} />
+								<Box width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+									<Stack
+										width="50%"
+										display="flex"
+										justifyContent="flex-start"
+										alignItems="flex-start"
+									>
+										<StackedRow primary="Claim Number" secondary={claim.claim_number} />
+										<StackedRow primary="Client" secondary={claim.client} />
+										<StackedRow primary="Client Adjuster" secondary={claim.client_adjuster} />
+										<StackedRow primary="Insured" secondary={claim.insured} />
+										<StackedRow
+											primary="Claim Amount"
+											secondary={formatAmount(claim.claim_amount!, true)}
+										/>
+										<StackedRow
+											primary="Total Incurred"
+											secondary={formatAmount(claim.total_incurred!, true)}
+										/>
+									</Stack>
+									<Stack
+										width="50%"
+										display="flex"
+										justifyContent="flex-start"
+										alignItems="flex-start"
+									>
+										<StackedRow primary="Status" secondary={'###'} />
+										<StackedRow
+											primary="Date of Loss"
+											secondary={formatMDY(claim.date_of_loss?.toString() ?? '')}
+										/>
+										<StackedRow primary="Loss Location" secondary={claim.loss_location} />
+										<StackedRow
+											primary="Last Update By"
+											secondary={`${claim.last_updated_by} on ${formatMDY(claim.last_update?.toString() ?? '')}`}
+										/>
+										<StackedRow
+											primary="Expected Recovery"
+											secondary={formatAmount(claim.expected_recovery!, true)}
+										/>
+										<StackedRow primary="Grade" secondary={'###'} />
+									</Stack>
+								</Box>
 							</Paper>
 						</span>
 					</Fade>
@@ -112,7 +166,8 @@ const styles = {
 		borderTopRightRadius: 5,
 		borderBottomLeftRadius: 5,
 		borderBottomRightRadius: 5,
-		border: `1px solid ${theme.palette.secondary.main}`,
+		border: `1px solid ${theme.palette.primary.main}`,
+		marginTop: 5,
 	},
 	row: {
 		width: '100%',

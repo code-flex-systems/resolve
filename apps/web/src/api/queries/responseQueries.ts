@@ -2,7 +2,7 @@ import { sql, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
-import { Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
+import { DateRange, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 import { DB } from '../database/types';
@@ -134,6 +134,45 @@ export async function getResponsesForClaimChecklist(
 		responseMap[r.question_id] = r;
 	});
 	return responseMap;
+}
+
+export async function getResponseAuditLogs(
+	ctx: ProtectedContext,
+	filters: { checklistId: number; emails?: string[]; range?: DateRange },
+	limit: number,
+	offset: number
+) {
+	const baseQuery = applyClientScope(
+		db
+			.selectFrom('response_audit_logs')
+			.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
+			.where((eb) => {
+				let whereClause = [eb('response_audit_logs.checklist_id', '=', filters.checklistId)];
+				if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
+				if (filters.range && filters.range.some((d) => !!d)) {
+					if (filters.range[0]) {
+						whereClause.push(eb('response_audit_logs.created_at', '>=', filters.range[0]));
+					}
+					if (filters.range[1]) {
+						whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
+					}
+				}
+				return eb.and(whereClause);
+			}),
+		ctx.session.user.client_id,
+		'response_audit_logs'
+	);
+	const dataQuery = baseQuery
+		.selectAll('response_audit_logs')
+		.select(['users.first', 'users.last', 'users.email'])
+		.limit(limit)
+		.offset(offset);
+	const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));
+	const [data, count] = await Promise.all([dataQuery.execute(), countQuery.executeTakeFirst()]);
+	return {
+		rows: data,
+		count: parseInt(count?.count?.toString() ?? '0'),
+	};
 }
 
 /**

@@ -1,0 +1,10 @@
+.expandable-button-title {
+	transition: width 300ms ease;
+	width: 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.expandable-button:hover .expandable-button-title {
+	width: fit-content;
+}
