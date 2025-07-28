@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
 	Box,
-	IconButton,
 	List,
 	ListItem,
 	ListItemButton,
@@ -13,9 +12,12 @@ import {
 	ListItemText,
 	ClickAwayListener,
 	Divider,
+	Typography,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import theme from '@/styles/theme';
+import Image from 'next/image';
+import logo from '@/lib/resources/images/logo.png';
+import config from '@/config/config';
 
 export interface NavItem {
 	label: string;
@@ -71,17 +73,23 @@ export default function Sidebar({
 				}}
 			>
 				<Box
+					onClick={toggleOpen}
 					sx={{
 						display: 'flex',
 						alignItems: 'center',
-						justifyContent: open ? 'flex-end' : 'center',
+						justifyContent: 'flex-start',
 						height: 60,
-						px: 1,
+						cursor: 'pointer',
+						width: expandedWidth,
+						overflow: 'hidden',
 					}}
 				>
-					<IconButton onClick={toggleOpen} sx={{ color, '& .MuiSvgIcon-root': { fontSize: 23 } }}>
-						<MenuIcon />
-					</IconButton>
+					<Box width={collapsedWidth} display="flex" justifyContent="center" alignItems="center">
+						<Image src={logo} alt="logo" height={35} />
+					</Box>
+					<Typography color="white" fontSize={30} paddingTop="5px" marginRight="5px">
+						{config.APP_NAME}
+					</Typography>
 				</Box>
 				<Divider sx={{ borderColor: color }} />
 

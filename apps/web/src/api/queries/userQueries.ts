@@ -71,14 +71,14 @@ export async function getUserActivity(ctx: ProtectedContext, daysBack = 30) {
 	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
         select
             gs.day::date as activity_date,
-            count(distinct r.user_id) as active_users
+            coalesce(count(distinct r.user_id), 0) as active_users
         from generate_series(
             CURRENT_DATE - interval '${sql.raw(daysBack.toString())} days',
             CURRENT_DATE,
             interval '1 day'
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
-        where client_id = ${ctx.session.user.client_id}
+            and client_id = ${ctx.session.user.client_id}
         group by gs.day
         order by gs.day
     `.compile(db);

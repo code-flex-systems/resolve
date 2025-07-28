@@ -1,4 +1,5 @@
 import { ClaimStatus } from '@/config/enums';
+import { parseDate } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
 
 export const evaluateResponsesInput = z.object({
@@ -30,7 +31,7 @@ export const getResponseAuditLogsInput = z.object({
 	filters: z.object({
 		checklistId: z.number().int(),
 		emails: z.array(z.string()).optional(),
-		range: z.tuple([z.date().nullable(), z.date().nullable()]).optional(),
+		range: z.tuple([parseDate().nullable(), parseDate().nullable()]).optional(),
 	}),
 	limit: z.number().int(),
 	offset: z.number().int(),

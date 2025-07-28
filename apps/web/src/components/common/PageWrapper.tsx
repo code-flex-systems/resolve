@@ -31,7 +31,7 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 		<div style={styles.container}>
 			<Sidebar items={navItems} />
 			<div style={styles.content}>
-				<SiteHeader />
+				{/* <SiteHeader /> */}
 				{props.children}
 			</div>
 		</div>

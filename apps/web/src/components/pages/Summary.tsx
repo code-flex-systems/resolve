@@ -1,20 +1,16 @@
 'use client';
 import { Box, Divider, IconButton, Stack } from '@mui/material';
-import { ArrowBack, Checklist } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import Toolbar from '@/components/common/Toolbar';
 import SummaryChart from '@/components//summary/SummaryChart';
 import ClaimInfo from '@/components/checklist/ClaimInfo';
 import SummaryDetails from '@/components/summary/SummaryDetails';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import { useChecklistSlice } from '@/state/store';
-import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { useChecklistParams } from '@/hooks/useChecklistParams';
+import ChecklistInfo from '../checklist/ChecklistInfo';
 
 export default function Summary() {
 	const router = useRouter();
-	const { checklistId } = useChecklistParams();
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 
 	return (
 		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start" padding="10px">
@@ -29,9 +25,7 @@ export default function Summary() {
 							/>
 						</Box>
 						<ClaimInfo />
-						<BasicButtonStyled buttonProps={{ startIcon: <Checklist />, sx: { marginLeft: '5px' } }}>
-							{checklist?.name ?? ''}
-						</BasicButtonStyled>
+						<ChecklistInfo />
 					</>
 				}
 				padding={0}
@@ -59,7 +53,7 @@ const styles = {
 	},
 	containerInner: {
 		width: '100%',
-		height: 'calc(100vh - 120px)',
+		height: 'calc(100vh - 60px)',
 		padding: '20px 0px 10px',
 	},
 	divider: {

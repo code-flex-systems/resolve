@@ -1,13 +1,12 @@
 'use client';
-import { Collapse, Divider, Fade, Paper, SvgIcon, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { Add, Checklist, ContentPasteSearch, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
+import { Collapse, Divider, Fade, Paper, SvgIcon, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Add, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import theme, { BASE_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
 import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
-import BasicButton from '../common/BasicButton';
 import { ChecklistMode } from '@/config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
 import ClaimInfo from './ClaimInfo';
@@ -17,8 +16,8 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
-import BasicIconButton from '../common/BasicIconButton';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import ChecklistInfo from './ChecklistInfo';
 
 export default function PageNavigation() {
 	const router = useRouter();
@@ -84,10 +83,8 @@ export default function PageNavigation() {
 				<Toolbar
 					left={
 						<>
-							{!!claim && <ClaimInfo />}
-							<BasicButtonStyled buttonProps={{ startIcon: <Checklist />, sx: { marginLeft: '5px' } }}>
-								{checklist?.name ?? ''}
-							</BasicButtonStyled>
+							<ClaimInfo />
+							<ChecklistInfo />
 						</>
 					}
 					right={
@@ -244,7 +241,7 @@ const styles = {
 		width: 'fit-content',
 		minWidth: 500,
 		maxWidth: 500,
-		height: 'calc(100vh - 60px)',
+		height: '100vh',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
 		overflow: 'hidden',

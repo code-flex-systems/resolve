@@ -98,7 +98,7 @@ export default function Breakdown(props: { instanceId: number }) {
 const styles = {
 	container: {
 		width: '100%',
-		height: 'calc(100vh - 60px)',
+		height: '100vh',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',

@@ -6,10 +6,16 @@ import { Typography } from '@mui/material';
 export interface AnimatedCounterProps {
 	value: number;
 	duration?: number;
+	fontSize?: number;
 	formatter?: (val: number) => string;
 }
 
-export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 1000, formatter }) => {
+export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
+	value,
+	duration = 1000,
+	fontSize = 25,
+	formatter,
+}) => {
 	const [count, setCount] = React.useState(0);
 	const requestRef = useRef<number>(null);
 	const startTimeRef = useRef<number>(null);
@@ -42,5 +48,9 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duratio
 
 	const display = formatter ? formatter(count) : count;
 
-	return <Typography fontSize={25}>{display}</Typography>;
+	return (
+		<Typography fontSize={fontSize} lineHeight={`${fontSize}px`}>
+			{display}
+		</Typography>
+	);
 };

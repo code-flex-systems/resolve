@@ -123,11 +123,23 @@ const COLUMNS: GridColDef[] = [
 	},
 ];
 
-export default function UserActivityTable({}: { users: GetUserOutput[]; range: DateRange<Dayjs> }) {
-	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
+export default function UserActivityTable({
+	users,
+	range,
+	pageSize = 25,
+	showPagination = true,
+}: {
+	users: GetUserOutput[];
+	range: DateRange<Dayjs>;
+	pageSize?: number;
+	showPagination?: boolean;
+}) {
+	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize });
 	const { data: logs = { rows: [], count: undefined }, isFetching: isFetchingLogs } = useResponseTrpc().listLogs({
 		filters: {
 			checklistId: 1,
+			emails: users.map((u) => u.email),
+			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null],
 		},
 		limit: constraints.pageSize,
 		offset: constraints.page * constraints.pageSize,
@@ -161,7 +173,8 @@ export default function UserActivityTable({}: { users: GetUserOutput[]; range: D
 			hideFooterSelectedRowCount
 			pageSizeOptions={[]}
 			getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
-			pagination
+			hideFooter={!showPagination}
+			pagination={showPagination}
 			paginationMode="server"
 			paginationModel={constraints}
 			onPaginationModelChange={setConstraints}

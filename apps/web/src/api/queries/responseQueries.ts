@@ -165,6 +165,7 @@ export async function getResponseAuditLogs(
 	const dataQuery = baseQuery
 		.selectAll('response_audit_logs')
 		.select(['users.first', 'users.last', 'users.email'])
+		.orderBy('created_at desc')
 		.limit(limit)
 		.offset(offset);
 	const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));

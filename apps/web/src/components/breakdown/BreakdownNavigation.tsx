@@ -118,7 +118,7 @@ const styles = {
 	container: {
 		width: 'fit-content',
 		minWidth: 500,
-		height: 'calc(100vh - 60px)',
+		height: '100vh',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
 		overflow: 'hidden',

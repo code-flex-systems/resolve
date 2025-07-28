@@ -3,16 +3,20 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
 import theme from '@/styles/theme';
-import { Box, Divider, IconButton, Paper, Skeleton, Stack, Tooltip } from '@mui/material';
-import { GraphicEq, Troubleshoot } from '@mui/icons-material';
+import { Box, Divider, Paper, Skeleton, Stack } from '@mui/material';
+import { GraphicEq, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '../common/ExpandableTitle';
+import BasicButtonStyled from '../common/BasicButtonStyled';
+import UserActivityTable from './UserActivityTable';
+import dayjs from 'dayjs';
 
-const METRIC_WIDTH = 500;
-const METRIC_HEIGHT = 350;
+const METRIC_WIDTH = 650;
+const METRIC_HEIGHT = 500;
 
 export default function UserActivityMetric() {
+	const today = dayjs();
 	const router = useRouter();
 	const { data = [], isFetching } = useUserTrpc().activity({});
 	const xLabels = data.map((r) => r.activity_date);
@@ -42,21 +46,35 @@ export default function UserActivityMetric() {
 								title="User Activity"
 								icon={<GraphicEq sx={{ color: 'white' }} />}
 								color={theme.palette.warning.main}
+								bgcolor="#EBEBEB"
 								padding="5px 0px 10px"
 							/>
-							<Tooltip title="Open Inspector">
-								<span>
-									<IconButton onClick={() => router.push('/metrics/user-activity')}>
+							<Box display="flex" justifyContent="flex-end" alignItems="center">
+								<Box marginRight="5px">
+									<BasicButtonStyled
+										buttonProps={{}}
+										icon={<InfoOutlined />}
+										tooltipProps={{
+											title: 'Engagement is measured by the number of users generating activity logs for a given day.',
+										}}
+									/>
+								</Box>
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: () => router.push('/metrics/user-activity'),
+										sx: { marginLeft: '5px' },
+									}}
+									icon={
 										<Troubleshoot
 											sx={{
 												transform: 'scaleX(-1)',
-												fontSize: 25,
 												color: theme.palette.primary.main,
 											}}
 										/>
-									</IconButton>
-								</span>
-							</Tooltip>
+									}
+									tooltipProps={{ title: 'Open in Inspector' }}
+								/>
+							</Box>
 						</Box>
 						<div style={styles.divider}>
 							<Divider />
@@ -81,7 +99,7 @@ export default function UserActivityMetric() {
 								]}
 								yAxis={[{ position: 'none' }]}
 								series={[{ data: yValues, label: 'Active users' }]}
-								width={475}
+								width={625}
 								height={100}
 								margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
 								sx={{
@@ -92,21 +110,15 @@ export default function UserActivityMetric() {
 								hideLegend
 							/>
 						</Box>
-						<Paper
-							sx={{
-								position: 'absolute',
-								zIndex: 100,
-								display: 'flex',
-								justifyContent: 'center',
-								alignItems: 'center',
-								flexDirection: 'column',
-								width: 475,
-								height: 185,
-								bottom: 0,
-								borderTopLeftRadius: 0,
-								borderTopRightRadius: 0,
-							}}
-						></Paper>
+						<Paper elevation={0} sx={styles.paperInner}>
+							<Box width="100%" height="100%" padding="10px">
+								<UserActivityTable
+									users={[]}
+									range={[today.startOf('week'), today.endOf('week')]}
+									showPagination={false}
+								/>
+							</Box>
+						</Paper>
 					</Stack>
 				</Box>
 			)}
@@ -123,8 +135,23 @@ const styles = {
 	paper: {
 		borderRadius: 3,
 		margin: '10px',
+	},
+	paperInner: {
+		position: 'absolute',
+		zIndex: 100,
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		flexDirection: 'column',
+		width: 625,
+		height: 335,
+		bottom: 0,
+		borderTopLeftRadius: 0,
+		borderTopRightRadius: 0,
 		border: 1,
 		borderColor: 'divider',
+		borderTop: 'none',
+		borderRadius: 3,
 	},
 	skeleton: {
 		borderRadius: 3,

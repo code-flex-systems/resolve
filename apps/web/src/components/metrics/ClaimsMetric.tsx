@@ -2,20 +2,22 @@
 
 import { ClaimStatus } from '@/config/enums';
 import theme, { BASE_COLOR } from '@/styles/theme';
-import { Box, Divider, IconButton, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import { CheckCircle, Info, Troubleshoot } from '@mui/icons-material';
+import { Box, Divider, MenuItem, Paper, Select, Skeleton, Stack, Typography } from '@mui/material';
+import { CheckCircle, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { PieChart } from '@mui/x-charts-pro';
 import { useEffect, useMemo, useState } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { useRouter } from 'next/navigation';
+import { AnimatedCounter } from '../common/AnimatedCounter';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 350;
 
 function getProgressPercentage(completed: number, total: number) {
-	if (completed === 0 || total === 0) return '0%';
-	return `${Math.floor((completed / total) * 100)}%`;
+	if (completed === 0 || total === 0) return 0;
+	return Math.floor((completed / total) * 100);
 }
 
 function getStatusColor(status: ClaimStatus) {
@@ -68,35 +70,36 @@ export default function ClaimsMetric() {
 								title="Claim Submission"
 								icon={<CheckCircle sx={{ color: 'white' }} />}
 								color={theme.palette.warning.main}
+								bgcolor="#EBEBEB"
 								padding="5px 0px 10px"
 							/>
-							<Tooltip
-								arrow
-								title="A claim is considered complete if all necessary questions have been answered for the related checklist."
-							>
-								<Info sx={{ color: BASE_COLOR, fontSize: 20, marginLeft: '5px' }} />
-							</Tooltip>
-							<Tooltip title="Open Inspector">
-								<span>
-									<IconButton
-										sx={{ marginLeft: '5px' }}
-										onClick={() => router.push('/metrics/user-activity')}
-									>
+							<Box display="flex" justifyContent="flex-end" alignItems="center">
+								<Box marginRight="5px">
+									<BasicButtonStyled
+										buttonProps={{}}
+										icon={<InfoOutlined />}
+										tooltipProps={{
+											title: 'A claim is considered complete if all necessary questions have been answered for the related checklist.',
+										}}
+									/>
+								</Box>
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: () => router.push('/metrics/user-activity'),
+									}}
+									icon={
 										<Troubleshoot
 											sx={{
 												transform: 'scaleX(-1)',
-												fontSize: 25,
 												color: theme.palette.primary.main,
 											}}
 										/>
-									</IconButton>
-								</span>
-							</Tooltip>
+									}
+									tooltipProps={{ title: 'Open in Inspector' }}
+								/>
+							</Box>
 						</Box>
 						<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px 5px">
-							<Typography fontSize={15} paddingTop="3px">
-								Viewing claims for
-							</Typography>
 							<Select
 								variant="standard"
 								displayEmpty
@@ -166,14 +169,17 @@ export default function ClaimsMetric() {
 										left={-90}
 										top={-120}
 									>
-										<Typography fontWeight="bold" fontSize={40} lineHeight="40px">
-											{getProgressPercentage(
+										<AnimatedCounter
+											value={getProgressPercentage(
 												data[selectedChecklistOption.key][ClaimStatus.SUBMITTED],
 												data[selectedChecklistOption.key][ClaimStatus.SUBMITTED] +
 													data[selectedChecklistOption.key][ClaimStatus.IN_PROGRESS] +
 													data[selectedChecklistOption.key][ClaimStatus.UNWORKED]
 											)}
-										</Typography>
+											formatter={(v) => `${v}%`}
+											fontSize={40}
+											duration={500}
+										/>
 										<Typography paddingTop="5px" fontSize={17} lineHeight="17px" fontWeight="bold">
 											Submitted
 										</Typography>
@@ -197,8 +203,7 @@ const styles = {
 	paper: {
 		borderRadius: 3,
 		margin: '10px',
-		border: 1,
-		borderColor: 'divider',
+		height: 'fit-content',
 	},
 	skeleton: {
 		borderRadius: 3,

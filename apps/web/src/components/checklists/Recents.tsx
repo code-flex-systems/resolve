@@ -14,7 +14,7 @@ export default function Recents() {
 	return (
 		<Collapse in={!!recentChecklistClaims.length} orientation="horizontal">
 			<Paper style={styles.container}>
-				<Toolbar left={<Typography fontStyle="italic">Recents</Typography>} height={40} padding={0} />
+				<Toolbar left={<Typography>Recents</Typography>} height={40} padding={0} />
 				<div style={styles.horizontalDiv}>
 					<Divider orientation="horizontal" />
 				</div>
@@ -74,7 +74,7 @@ const styles = {
 	container: {
 		width: 350,
 		minWidth: 350,
-		height: 'calc(100vh - 60px)',
+		height: '100vh',
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
 		overflow: 'hidden',

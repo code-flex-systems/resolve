@@ -45,7 +45,7 @@ export default function SimpleMetric({
 	return (
 		<Stack margin="10px" className="metric" style={styles.container}>
 			<Paper
-				elevation={2}
+				elevation={1}
 				onClick={hasDetail ? onSelect : onClick}
 				sx={{
 					...styles.paper,
@@ -120,11 +120,24 @@ export default function SimpleMetric({
 											padding="0px 5px 5px"
 										>
 											<Typography fontStyle="italic">{capitalize(k)}</Typography>
-											<Typography
-												color={!showNegative && formattedMetric.isNegative ? 'error' : color}
+											<Box
+												display="flex"
+												justifyContent="center"
+												alignItems="center"
+												style={styles.dot}
+												bgcolor="#EBEBEB"
 											>
-												{formattedKeyMetric.value}
-											</Typography>
+												<Typography
+													fontSize={12}
+													color={
+														!showNegative && formattedMetric.isNegative
+															? 'error'
+															: BASE_COLOR
+													}
+												>
+													{formattedKeyMetric.value}
+												</Typography>
+											</Box>
 										</Box>
 									);
 								})}
@@ -156,18 +169,20 @@ const styles = {
 	container: {
 		transition: 'scale 300ms ease',
 	},
+	dot: {
+		minWidth: 40,
+		height: 21,
+		borderRadius: 5,
+		cursor: 'pointer',
+	},
 	expandedPaper: {
 		bgcolor: OFFWHITE_COLOR,
 		borderRadius: 3,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,
-		border: 1,
-		borderColor: 'divider',
 	},
 	paper: {
 		borderRadius: 3,
-		border: 1,
-		borderColor: 'divider',
 	},
 	skeleton: {
 		borderRadius: 3,

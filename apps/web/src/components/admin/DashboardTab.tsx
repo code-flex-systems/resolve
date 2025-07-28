@@ -33,6 +33,7 @@ export default function DashboardTab() {
 			justifyContent="flex-start"
 			alignContent="flex-start"
 			padding="10px 0px"
+			bgcolor="#F7F8FA"
 		>
 			<Stack display="flex" justifyContent="flex-start" alignContent="flex-start">
 				<SimpleMetric
@@ -77,8 +78,8 @@ export default function DashboardTab() {
 				/>
 			</Stack>
 			<Box display="flex" height="fit-content" justifyContent="flex-start" alignContent="flex-start">
-				<ClaimsMetric />
 				<UserActivityMetric />
+				<ClaimsMetric />
 			</Box>
 		</Box>
 	);
