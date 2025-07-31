@@ -4,6 +4,12 @@ import { setStateBuilder } from '../storeUtilities';
 
 const setState = setStateBuilder<AdminSlice>(SLICES.ADMIN);
 
+export function setChecklistId(newId: number | null) {
+	setState((state) => {
+		state.selectedChecklistId = newId;
+	});
+}
+
 export function setFeedId(newId: number | null | undefined) {
 	setState((state) => {
 		state.selectedFeedId = newId;

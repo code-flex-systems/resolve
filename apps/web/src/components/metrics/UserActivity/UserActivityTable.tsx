@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DataGridPro, GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
-import { CustomPagination } from '../common/CustomPagination';
+import { CustomPagination } from '@/components/common/CustomPagination';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 
@@ -44,7 +44,7 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 							{row.old_response_text ? (
 								<Chip label={row.old_response_text} sx={styles.chip} />
 							) : (
-								row.new_answers.map((a: any, i: number) => (
+								row.old_answers.map((a: any, i: number) => (
 									<Chip key={i} label={a.label} sx={styles.chip} />
 								))
 							)}
@@ -73,7 +73,7 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 							{row.old_response_text ? (
 								<Chip label={row.old_response_text} sx={styles.chip} />
 							) : (
-								row.new_answers.map((a: any, i: number) => (
+								row.old_answers.map((a: any, i: number) => (
 									<Chip key={i} label={a.label} sx={styles.chip} />
 								))
 							)}
@@ -124,26 +124,33 @@ const COLUMNS: GridColDef[] = [
 ];
 
 export default function UserActivityTable({
+	checklistId,
 	users,
 	range,
 	pageSize = 25,
 	showPagination = true,
 }: {
+	checklistId: number;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
 	pageSize?: number;
 	showPagination?: boolean;
 }) {
 	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize });
-	const { data: logs = { rows: [], count: undefined }, isFetching: isFetchingLogs } = useResponseTrpc().listLogs({
-		filters: {
-			checklistId: 1,
-			emails: users.map((u) => u.email),
-			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null],
+	const { data: logs = { rows: [], count: undefined }, isFetching: isFetchingLogs } = useResponseTrpc().listLogs(
+		{
+			filters: {
+				checklistId,
+				emails: users.map((u) => u.email),
+				range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null],
+			},
+			limit: constraints.pageSize,
+			offset: constraints.page * constraints.pageSize,
 		},
-		limit: constraints.pageSize,
-		offset: constraints.page * constraints.pageSize,
-	});
+		{
+			enabled: checklistId !== -1,
+		}
+	);
 	const rowCountRef = useRef(logs.count ?? 0);
 
 	const rowCount = useMemo(() => {
@@ -200,5 +207,13 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		// remove the grey hover background
+		'& .MuiDataGrid-row:hover': {
+			backgroundColor: 'transparent !important',
+		},
+		// (optional) remove the hover “pointer” cursor too
+		'& .MuiDataGrid-row': {
+			cursor: 'default',
+		},
 	},
 };

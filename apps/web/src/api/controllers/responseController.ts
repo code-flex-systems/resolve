@@ -114,14 +114,8 @@ export async function upsertQuestionResponses(
 
 	let newStatus: PageInstanceStatus = PageInstanceStatus.UNSTARTED;
 	let newClaimStatus: ClaimStatus = ClaimStatus.UNWORKED;
-	let visibleIds: number[] = [];
 	await db.transaction().execute(async (trx) => {
 		newStatus = await responseQueries.upsertQuestionResponses(ctx, responses, trx);
-		visibleIds = await pageQueries.getVisiblePageInstances(
-			ctx,
-			sampleResponse.checklist_id,
-			sampleResponse.claim_id
-		);
 		// Update checklist + claim status if any questions have been answered
 		if (
 			(!claimStatus || claimStatus === ClaimStatus.UNWORKED) &&
@@ -137,6 +131,11 @@ export async function upsertQuestionResponses(
 			);
 		}
 	});
+	const visibleIds: number[] = await pageQueries.getVisiblePageInstances(
+		ctx,
+		sampleResponse.checklist_id,
+		sampleResponse.claim_id
+	);
 
 	// Kick off related actions asynchronously
 	let answerIds: number[] = [];

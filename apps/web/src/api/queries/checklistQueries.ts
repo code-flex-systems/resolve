@@ -179,8 +179,8 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 }
 
 export async function getChecklistClaimProgress(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	const unlockedPages = db.withRecursive('unlocked_pages', (db) => {
-		const initial = applyClientScope(
+	const unlockedPages = db.withRecursive('unlocked_pages', (db) =>
+		applyClientScope(
 			db
 				.selectFrom('page_instance')
 				.select(['id'])
@@ -188,27 +188,25 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				.where('parent_instance_id', 'is', null),
 			ctx.session.user.client_id,
 			'page_instance'
-		);
-
-		const recursive = db
-			.selectFrom('unlocked_pages')
-			.innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
-			.innerJoin('page', 'page.id', 'page_instance.page_id')
-			.innerJoin('question', 'question.page_id', 'page.id')
-			.innerJoin('answer', 'answer.question_id', 'question.id')
-			.innerJoin('question_response', (join) =>
-				join
-					.onRef('question_response.question_id', '=', 'question.id')
-					.on('question_response.claim_id', '=', claimId)
-					.on('question_response.checklist_id', '=', checklistId)
-			)
-			.innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
-			.whereRef('question_response_answer.answer_id', '=', 'answer.id')
-			.where('answer.calls_instance_id', 'is not', null)
-			.select(['answer.calls_instance_id as id']);
-
-		return initial.unionAll(recursive);
-	});
+		).unionAll(
+			db
+				.selectFrom('unlocked_pages')
+				.innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
+				.innerJoin('page', 'page.id', 'page_instance.page_id')
+				.innerJoin('question', 'question.page_id', 'page.id')
+				.innerJoin('answer', 'answer.question_id', 'question.id')
+				.innerJoin('question_response', (join) =>
+					join
+						.onRef('question_response.question_id', '=', 'question.id')
+						.on('question_response.claim_id', '=', claimId)
+						.on('question_response.checklist_id', '=', checklistId)
+				)
+				.innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+				.whereRef('question_response_answer.answer_id', '=', 'answer.id')
+				.where('answer.calls_instance_id', 'is not', null)
+				.select((eb) => eb.ref('answer.calls_instance_id').$castTo<number>().as('id'))
+		)
+	);
 
 	const result = await unlockedPages
 		.selectFrom('unlocked_pages')

@@ -5,6 +5,7 @@ const adminSlice: AdminSlice = Object.freeze({
 		pageSize: 20,
 		page: 0,
 	},
+	selectedChecklistId: null,
 	selectedFeedId: undefined,
 	selectedTab: 1,
 	showImportClaimsDialog: false,

@@ -36,6 +36,6 @@ export default function FeedsAndClaimsTab() {
 const styles = {
 	container: {
 		width: '100%',
-		height: 'calc(100vh - 135px)',
+		height: 'calc(100vh - 75px)',
 	},
 };

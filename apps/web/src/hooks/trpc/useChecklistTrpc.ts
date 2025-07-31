@@ -52,5 +52,5 @@ export function useChecklistTrpc() {
 
 export type CreateChecklistInput = ChecklistInput['createChecklist'];
 export type UpdateChecklistInput = ChecklistInput['updateChecklist'];
-export type Checklist = ChecklistOutput['getChecklists'][number];
+export type GetChecklistOutput = ChecklistOutput['getChecklists'][number];
 export type ChecklistClaim = ChecklistOutput['getChecklistClaim'];

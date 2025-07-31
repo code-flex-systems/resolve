@@ -1,16 +1,19 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import theme, { BASE_COLOR } from '@/styles/theme';
-import { Box, Divider, MenuItem, Paper, Select, Skeleton, Stack, Typography } from '@mui/material';
+import theme from '@/styles/theme';
+import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { CheckCircle, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { PieChart } from '@mui/x-charts-pro';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { useRouter } from 'next/navigation';
 import { AnimatedCounter } from '../common/AnimatedCounter';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import ChecklistSelect from '../common/ChecklistSelect';
+import { useAdminSlice } from '@/state/store';
+import { setChecklistId } from '@/state/admin/actions';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 350;
@@ -32,25 +35,15 @@ function getStatusColor(status: ClaimStatus) {
 }
 
 export default function ClaimsMetric() {
-	const [selectedChecklist, setSelectedChecklist] = useState<string | null>(null);
+	const selectedChecklistId = useAdminSlice((state) => state.selectedChecklistId);
+	const { data: checklists = [] } = useChecklistTrpc().list({});
 	const { data = {}, isFetching } = useChecklistTrpc().stats();
 	const router = useRouter();
 
-	const checklistOptions = useMemo(() => {
-		return Object.keys(data).map((key) => {
-			const parts = key.split(':');
-			return { value: parts[0], label: parts[1] };
-		});
-	}, [data]);
-
 	const selectedChecklistOption = useMemo(() => {
-		const option = checklistOptions.find((o) => o.value === selectedChecklist);
-		return option ? { ...option, key: `${option.value}:${option.label}` } : null;
-	}, [checklistOptions, selectedChecklist]);
-
-	useEffect(() => {
-		setSelectedChecklist(checklistOptions[0]?.value ?? null);
-	}, [checklistOptions]);
+		const option = checklists.find((o) => o.id === selectedChecklistId);
+		return option ? { ...option, key: `${option.id}:${option.name}` } : null;
+	}, [checklists, selectedChecklistId]);
 
 	return (
 		<Paper sx={styles.paper}>
@@ -100,35 +93,7 @@ export default function ClaimsMetric() {
 							</Box>
 						</Box>
 						<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px 5px">
-							<Select
-								variant="standard"
-								displayEmpty
-								value={selectedChecklist ?? ''}
-								onChange={(e) => setSelectedChecklist(e.target.value)}
-								renderValue={(value) => {
-									return checklistOptions.find((o) => o.value === value)?.label ?? 'Select';
-								}}
-								sx={{
-									marginTop: '5px',
-									marginLeft: '2px',
-									padding: '0px 5px',
-									fontSize: 15,
-									color: BASE_COLOR,
-									'& .MuiInputBase-root': {
-										padding: '2px 5px',
-									},
-									'& .MuiFilledInput-input': {
-										padding: '2px 5px',
-									},
-								}}
-								disabled={!checklistOptions.length}
-							>
-								{checklistOptions.map((o) => (
-									<MenuItem key={o.value} value={o.value}>
-										<Typography>{o.label}</Typography>
-									</MenuItem>
-								))}
-							</Select>
+							<ChecklistSelect selected={selectedChecklistId} setSelected={setChecklistId} />
 						</Box>
 						<div style={styles.divider}>
 							<Divider />

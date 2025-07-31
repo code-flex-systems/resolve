@@ -25,9 +25,12 @@ enableMapSet();
 
 export default useStore;
 
-export const resetStoreSlice = (slice: Slice) => {
+export const resetStoreSlice = <T extends Slice>(slice: T, partialState?: Partial<State[T]>) => {
 	useStore.setState((state) => {
-		state[slice] = initialState[slice];
+		state[slice] = {
+			...initialState[slice],
+			...(partialState ?? {}),
+		};
 	});
 };
 

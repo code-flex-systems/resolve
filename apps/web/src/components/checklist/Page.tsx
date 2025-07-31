@@ -73,7 +73,10 @@ export default function Page() {
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
+	const { data: questions = [] } = useQuestionTrpc().list(
+		{ pageId: selectedPageInfo.pageId },
+		{ enabled: selectedPageInfo.pageId !== -1 }
+	);
 	const {
 		isLoading: loading,
 		isFetching: fetching,
@@ -99,7 +102,7 @@ export default function Page() {
 	}, [checklistId, claimId, selectedPageInstance, selectedPageInfo.status]);
 
 	useEffect(() => {
-		if (loading) return;
+		if (loading || selectedPageInstance === -1) return;
 		reset({
 			...generateDefaultValues(questions, mode === ChecklistMode.VIEW ? responses : undefined),
 		});
@@ -167,10 +170,8 @@ export default function Page() {
 								/>
 								<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
 									<div style={{ marginLeft: 10 }} className="flex-row-left">
-										<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
-										<Typography color="warning" fontStyle="italic">
-											Saved!
-										</Typography>
+										<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
+										<Typography color={theme.palette.success.light}>Saved!</Typography>
 									</div>
 								</Fade>
 							</>

@@ -2,7 +2,6 @@
 import { Controller, Form, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
 import {
-	Button,
 	Divider,
 	Fade,
 	FormControl,
@@ -29,6 +28,7 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import theme from '@/styles/theme';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -135,10 +135,8 @@ export default function FormQuestion() {
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
-								<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
-								<Typography color="warning" fontStyle="italic">
-									Saved!
-								</Typography>
+								<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
+								<Typography color={theme.palette.success.light}>Saved!</Typography>
 							</div>
 						</Fade>
 					</>

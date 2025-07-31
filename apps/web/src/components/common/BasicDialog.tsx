@@ -16,6 +16,7 @@ export default function BasicDialog(
 		width?: number | string;
 		height?: number | string;
 		maxHeight?: number | string;
+		showCloseButton?: boolean;
 	} & PropsWithChildren
 ) {
 	const {
@@ -28,6 +29,7 @@ export default function BasicDialog(
 		width = 'fit-content',
 		height = 'fit-content',
 		maxHeight,
+		showCloseButton = true,
 	} = props;
 	const iconActionsPercentage = 10 * (iconActions.length + 1);
 	return (
@@ -63,9 +65,11 @@ export default function BasicDialog(
 				</div>
 				<div style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}>
 					{...iconActions}
-					<IconButton onClick={onClose} disabled={closeDisabled}>
-						<Cancel sx={{ fontSize: 21 }} />
-					</IconButton>
+					{showCloseButton && (
+						<IconButton onClick={onClose} disabled={closeDisabled}>
+							<Cancel sx={{ fontSize: 21 }} />
+						</IconButton>
+					)}
 				</div>
 			</div>
 

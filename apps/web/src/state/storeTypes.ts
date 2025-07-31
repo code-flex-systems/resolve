@@ -6,6 +6,7 @@ export interface AdminSlice {
 		page: number;
 		pageSize: number;
 	};
+	selectedChecklistId: number | null;
 	selectedFeedId: number | null | undefined;
 	selectedTab: number;
 	showImportClaimsDialog: boolean;
@@ -41,6 +42,7 @@ export interface ChecklistSlice {
 	selectedQuestion: number | null;
 	// dialogs
 	showActionDialog: boolean;
+	showChecklistProgressDialog: boolean;
 	showStatsDialog: boolean;
 }
 

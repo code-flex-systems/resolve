@@ -15,7 +15,6 @@ import {
 	MenuItem,
 	Select,
 	TextField,
-	Tooltip,
 	Typography,
 } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
@@ -31,8 +30,9 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
-import { GetActionOutput, useActionTrpc } from '@/hooks/trpc/useActionTrpc';
+import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import theme from '@/styles/theme';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -174,10 +174,8 @@ export default function FormAnswer() {
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
-								<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
-								<Typography color="warning" fontStyle="italic">
-									Saved!
-								</Typography>
+								<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
+								<Typography color={theme.palette.success.light}>Saved!</Typography>
 							</div>
 						</Fade>
 					</>

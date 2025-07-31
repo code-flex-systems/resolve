@@ -98,7 +98,7 @@ export default function SummaryChart() {
 				position="relative"
 			>
 				<Paper
-					elevation={2}
+					elevation={1}
 					sx={{
 						width: 'fit-content',
 						background: theme.palette.primary.main,

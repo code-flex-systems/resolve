@@ -38,8 +38,11 @@ export async function getUsersPaginated(
 	return { rows, count };
 }
 
-export async function getUserActivity(ctx: ProtectedContext, { daysBack }: { daysBack?: number }) {
-	return await userQueries.getUserActivity(ctx, daysBack);
+export async function getUserActivity(
+	ctx: ProtectedContext,
+	{ checklistId, daysBack }: { checklistId: number; daysBack?: number }
+) {
+	return await userQueries.getUserActivity(ctx, checklistId, daysBack);
 }
 
 export async function getUserActivityDetail(ctx: ProtectedContext, { date }: { date: string }) {

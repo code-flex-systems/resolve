@@ -60,7 +60,7 @@ export default function UserFilter({
 					<Chip
 						label={`${u.last}, ${u.first}`}
 						icon={<Person />}
-						color="primary"
+						color="success"
 						onDelete={() => {
 							const newUsers = users.filter((s) => s.email !== u.email);
 							setUsers(newUsers);

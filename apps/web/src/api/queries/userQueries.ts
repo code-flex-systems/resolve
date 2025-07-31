@@ -67,7 +67,7 @@ export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 	return await query.execute();
 }
 
-export async function getUserActivity(ctx: ProtectedContext, daysBack = 30) {
+export async function getUserActivity(ctx: ProtectedContext, checklistId: number, daysBack = 30) {
 	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
         select
             gs.day::date as activity_date,
@@ -79,6 +79,7 @@ export async function getUserActivity(ctx: ProtectedContext, daysBack = 30) {
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
             and client_id = ${ctx.session.user.client_id}
+        where r.checklist_id = ${checklistId}
         group by gs.day
         order by gs.day
     `.compile(db);

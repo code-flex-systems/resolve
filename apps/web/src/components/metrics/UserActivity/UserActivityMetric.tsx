@@ -7,18 +7,25 @@ import { Box, Divider, Paper, Skeleton, Stack } from '@mui/material';
 import { GraphicEq, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { BarChart } from '@mui/x-charts-pro';
-import ExpandableTitle from '../common/ExpandableTitle';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import ExpandableTitle from '@/components/common/ExpandableTitle';
+import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import UserActivityTable from './UserActivityTable';
 import dayjs from 'dayjs';
+import ChecklistSelect from '@/components/common/ChecklistSelect';
+import { useAdminSlice } from '@/state/store';
+import { setChecklistId } from '@/state/admin/actions';
 
 const METRIC_WIDTH = 650;
 const METRIC_HEIGHT = 500;
 
 export default function UserActivityMetric() {
+	const selectedChecklistId = useAdminSlice((state) => state.selectedChecklistId) ?? -1;
 	const today = dayjs();
 	const router = useRouter();
-	const { data = [], isFetching } = useUserTrpc().activity({});
+	const { data = [], isFetching } = useUserTrpc().activity(
+		{ checklistId: selectedChecklistId },
+		{ enabled: selectedChecklistId !== -1 }
+	);
 	const xLabels = data.map((r) => r.activity_date);
 	const yValues = data.map((r) => parseInt(r.active_users ?? '0'));
 
@@ -50,6 +57,10 @@ export default function UserActivityMetric() {
 								padding="5px 0px 10px"
 							/>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
+								<Box margin="0px 10px 5px 5px">
+									<ChecklistSelect selected={selectedChecklistId} setSelected={setChecklistId} />
+								</Box>
+
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
@@ -113,6 +124,7 @@ export default function UserActivityMetric() {
 						<Paper elevation={0} sx={styles.paperInner}>
 							<Box width="100%" height="100%" padding="10px">
 								<UserActivityTable
+									checklistId={selectedChecklistId}
 									users={[]}
 									range={[today.startOf('week'), today.endOf('week')]}
 									showPagination={false}

@@ -1,5 +1,5 @@
 'use client';
-import { Collapse, Divider, Fade, Paper, SvgIcon, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Box, Collapse, Divider, Fade, Paper, SvgIcon, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { Add, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import theme, { BASE_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
@@ -18,6 +18,7 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistInfo from './ChecklistInfo';
+import CheckGradient from '../common/CheckGradient';
 
 export default function PageNavigation() {
 	const router = useRouter();
@@ -140,7 +141,7 @@ export default function PageNavigation() {
 							{isAdmin || isSuperAdmin ? (
 								<ToggleButtonGroup
 									color="primary"
-									sx={{ bgcolor: 'white' }}
+									sx={{ bgcolor: 'white', borderRadius: 2 }}
 									value={mode}
 									exclusive
 									onChange={(_, value) => {
@@ -157,7 +158,10 @@ export default function PageNavigation() {
 										/>
 										View
 									</ToggleButton>
-									<ToggleButton value={ChecklistMode.TEST} sx={styles.toggleButton}>
+									<ToggleButton
+										value={ChecklistMode.TEST}
+										sx={{ ...styles.toggleButton, padding: '0px 12.5px' }}
+									>
 										<MovieCreationOutlined
 											sx={{
 												...styles.icon,
@@ -182,33 +186,44 @@ export default function PageNavigation() {
 						</>
 					}
 					right={
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: actions.toggleExpandAll,
-							}}
-							icon={
-								<SvgIcon>
-									{expandAll ? (
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-											<title>collapse-all</title>
-											<path
-												fill={BASE_COLOR}
-												d="M14,4H4V14H2V4A2,2 0 0,1 4,2H14V4M18,6H8A2,2 0 0,0 6,8V18H8V8H18V6M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H12V17H20V15Z"
-											/>
-										</svg>
-									) : (
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-											<title>expand-all</title>
-											<path
-												fill={BASE_COLOR}
-												d="M18,8H8V18H6V8A2,2 0 0,1 8,6H18V8M14,2H4A2,2 0 0,0 2,4V14H4V4H14V2M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H17V12H15V15H12V17H15V20H17V17H20V15Z"
-											/>
-										</svg>
-									)}
-								</SvgIcon>
-							}
-							tooltipProps={{ title: expandAll ? 'Collapse all' : 'Expand all' }}
-						/>
+						<>
+							<Box marginRight="5px">
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: actions.toggleChecklistProgressDialog,
+									}}
+									icon={<CheckGradient />}
+									tooltipProps={{ title: 'Checklist progress' }}
+								/>
+							</Box>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: actions.toggleExpandAll,
+								}}
+								icon={
+									<SvgIcon>
+										{expandAll ? (
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+												<title>collapse-all</title>
+												<path
+													fill={BASE_COLOR}
+													d="M14,4H4V14H2V4A2,2 0 0,1 4,2H14V4M18,6H8A2,2 0 0,0 6,8V18H8V8H18V6M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H12V17H20V15Z"
+												/>
+											</svg>
+										) : (
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+												<title>expand-all</title>
+												<path
+													fill={BASE_COLOR}
+													d="M18,8H8V18H6V8A2,2 0 0,1 8,6H18V8M14,2H4A2,2 0 0,0 2,4V14H4V4H14V2M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H17V12H15V15H12V17H15V20H17V17H20V15Z"
+												/>
+											</svg>
+										)}
+									</SvgIcon>
+								}
+								tooltipProps={{ title: expandAll ? 'Collapse all' : 'Expand all' }}
+							/>
+						</>
 					}
 					padding={'0px 0px 5px'}
 					height={40}
@@ -259,6 +274,7 @@ const styles = {
 		backgroundColor: 'white',
 	},
 	toggleButton: {
-		height: 25,
+		height: 29,
+		borderRadius: 2,
 	},
 };

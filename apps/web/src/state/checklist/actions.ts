@@ -19,6 +19,12 @@ export function toggleActionDialog() {
 	});
 }
 
+export function toggleChecklistProgressDialog() {
+	setState((state) => {
+		state.showChecklistProgressDialog = !state.showChecklistProgressDialog;
+	});
+}
+
 export function toggleStatsDialog() {
 	setState((state) => {
 		state.showStatsDialog = !state.showStatsDialog;

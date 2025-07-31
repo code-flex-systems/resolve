@@ -18,6 +18,7 @@ import theme from '@/styles/theme';
 import Image from 'next/image';
 import logo from '@/lib/resources/images/logo.png';
 import config from '@/config/config';
+import ProfileAvatar from './ProfileAvatar';
 
 export interface NavItem {
 	label: string;
@@ -148,6 +149,9 @@ export default function Sidebar({
 						);
 					})}
 				</List>
+				<Box marginTop="590px" marginLeft="15px">
+					<ProfileAvatar />
+				</Box>
 			</Box>
 		</ClickAwayListener>
 	);

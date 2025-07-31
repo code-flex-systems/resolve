@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { useState } from 'react';
 import ClaimsMetric from '../metrics/ClaimsMetric';
-import UserActivityMetric from '../metrics/UserActivityMetric';
+import UserActivityMetric from '../metrics/UserActivity/UserActivityMetric';
 
 export default function DashboardTab() {
 	const router = useRouter();

@@ -56,7 +56,9 @@ const shortcutFutureItems: { label: string; getValue: () => DateRange<Dayjs> }[]
 const EMPTY_LABEL = 'Select a range';
 
 function formatDateLabel(range: DateRange<Dayjs>) {
-	return range.map((r) => (r === null ? '-' : r.format('MM/DD/YY'))).join(' to ');
+	return range[0]?.isSame(range[1], 'date')
+		? (range[0]?.format('MM/DD/YY') ?? '-')
+		: range.map((r) => (r === null ? '-' : r.format('MM/DD/YY'))).join(' to ');
 }
 
 export default function BasicDateRangePicker({
@@ -87,6 +89,11 @@ export default function BasicDateRangePicker({
 	useEffect(() => {
 		if (range.every((r) => r === null)) setLabel(EMPTY_LABEL);
 	}, [range]);
+
+	// useEffect(() => {
+	// 	setLabelConfirmed(formatDateLabel(defaultValue));
+	// 	setRange(defaultValue);
+	// }, [defaultValue]);
 
 	const onClose = (newAnchor: PopperProps['anchorEl'] = null) => {
 		setLabel(defaultLabel);

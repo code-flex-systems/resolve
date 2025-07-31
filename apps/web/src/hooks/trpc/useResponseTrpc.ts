@@ -28,6 +28,11 @@ export function useResponseTrpc() {
 					claimId,
 					instanceId: updatedInstanceId,
 				});
+				trpcUtils.checklist.getChecklistClaimProgress.invalidate({
+					checklistId,
+					claimId,
+				});
+
 				if (status) {
 					trpcUtils.page.getPageInstanceTree.setData({ checklistId, claimId }, (old) => {
 						if (!old) return old;

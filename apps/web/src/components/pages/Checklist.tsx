@@ -11,13 +11,17 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useEffect } from 'react';
 import { SLICES } from '@/state/storeConfig';
 import { Box } from '@mui/material';
+import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
+import { toggleChecklistProgressDialog } from '@/state/checklist/actions';
 
 export default function Checklist() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const mode = useChecklistSlice((state) => state.mode);
+	const showChecklistProgressDialog = useChecklistSlice((state) => state.showChecklistProgressDialog);
+	console.log(showChecklistProgressDialog);
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
-	const { data: claim } = useClaimTrpc().get(
+	const { data: claim, isLoading: isLoadingClaim } = useClaimTrpc().get(
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
@@ -27,12 +31,17 @@ export default function Checklist() {
 		return () => resetStoreSlice(SLICES.CHECKLIST);
 	}, []);
 
+	useEffect(() => {
+		if (isLoadingClaim) toggleChecklistProgressDialog();
+	}, [isLoadingClaim]);
+
 	return !checklist || (!!claimId && !claim) ? (
 		<></>
 	) : (
 		<Box width="100%" flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
 			<PageNavigation />
 			{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
+			{showChecklistProgressDialog && claimId && <ChecklistProgressDialog />}
 		</Box>
 	);
 }
