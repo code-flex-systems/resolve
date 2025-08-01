@@ -245,7 +245,7 @@ export default function FormQuestion() {
 							render={({ field }) => (
 								<TextField
 									label="Question text"
-									placeholder="e.g. What is the cause of loss?"
+									placeholder="What is the cause of loss?"
 									variant="outlined"
 									{...field}
 									error={!!errors.text}
@@ -261,7 +261,7 @@ export default function FormQuestion() {
 							render={({ field }) => (
 								<TextField
 									label="Question description (optional)"
-									placeholder="e.g. Describe how the damage occurred"
+									placeholder="Describe how the damage occurred"
 									variant="outlined"
 									{...field}
 									value={field.value ?? ''}

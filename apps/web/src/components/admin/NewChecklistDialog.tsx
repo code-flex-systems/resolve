@@ -60,7 +60,7 @@ export default function NewChecklistDialog() {
 					<TextField
 						id="name"
 						label="Name"
-						placeholder="e.g. Master Checklist"
+						placeholder="Master Checklist"
 						error={!!errors.name}
 						helperText={errors.name?.message}
 						sx={{ width: 300 }}

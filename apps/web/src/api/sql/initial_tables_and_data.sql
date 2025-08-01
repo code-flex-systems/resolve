@@ -148,6 +148,7 @@ create table checklist_claim(
     updated_at timestamp,
     submitted_by uuid references users(id),
     submitted_at timestamp,
+    assignee uuid references users(id),
     unique(checklist_id, claim_id)
 );
 

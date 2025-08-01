@@ -45,6 +45,7 @@ export enum ClaimSearch {
 }
 
 export enum ClaimStatus {
+	BLOCKED = 'Blocked',
 	SUBMITTED = 'Submitted',
 	IN_PROGRESS = 'In Progress',
 	UNWORKED = 'Unworked',

@@ -31,6 +31,8 @@ function getStatusColor(status: ClaimStatus) {
 			return theme.palette.warning.light;
 		case ClaimStatus.UNWORKED:
 			return theme.palette.error.light;
+		case ClaimStatus.BLOCKED:
+			return '#FC8C60';
 	}
 }
 

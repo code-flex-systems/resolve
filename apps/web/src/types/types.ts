@@ -161,7 +161,7 @@ export interface QuestionResponse {
 	instance_id: number;
 	claim_id: number;
 	question_id: number;
-	response_text?: string;
+	response_text?: string | null;
 	selected_answers: QuestionResponseAnswer[];
 }
 

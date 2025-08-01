@@ -1,3 +1,4 @@
+import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { InstanceListItem, TreeNode } from '@/types/types';
 import dayjs from 'dayjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
@@ -79,6 +80,11 @@ export function formatMDYAbv(date?: string) {
 	const parsedDate = dayjs(date);
 	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
 	return parsedDate.format('MM/DD/YY');
+}
+
+export function formatUser<T extends GetUserOutput | undefined>(user: T, me?: string) {
+	if (!user) return '';
+	return user.email === me ? 'You' : `${user.last}, ${user.first}`;
 }
 
 export function formatPhoneNumber(phoneRaw: string) {

@@ -114,6 +114,7 @@ export interface Checklist {
 }
 
 export interface ChecklistClaim {
+  assignee: Generated<string>;
   checklist_id: number;
   claim_id: number;
   client_id: string;

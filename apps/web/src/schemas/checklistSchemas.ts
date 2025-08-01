@@ -64,5 +64,6 @@ export type ModifyChecklistInput = z.infer<typeof modifyChecklistInput>;
 export const modifyChecklistClaimInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),
-	status: z.nativeEnum(ClaimStatus),
+	status: z.nativeEnum(ClaimStatus).optional(),
+	assignee: z.string().email().optional(),
 });

@@ -1,21 +1,29 @@
 'use client';
 import { Box, Fade, Paper, Popper, PopperProps, Stack } from '@mui/material';
 import theme from '@/styles/theme';
-import { formatAmount, formatMDY } from '@/lib/utils/utils';
+import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import { ContentPasteSearch } from '@mui/icons-material';
 import { useState } from 'react';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { StackedRow } from '../common/StackedRow';
+import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import { useSession } from 'next-auth/react';
 
 export default function ClaimInfo() {
+	const { data: session } = useSession();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const [claimAnchorEl, setClaimAnchorEl] = useState<PopperProps['anchorEl']>(null);
 	const { data: claim } = useClaimTrpc().get(
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
+	const { data: checklistClaim } = useChecklistTrpc().getForClaim(
+		{ checklistId, claimId },
+		{ enabled: checklistId !== -1 && claimId !== -1 }
+	);
+
 	if (!claim) return <></>;
 	return (
 		<div className="flex-row-left">
@@ -47,7 +55,10 @@ export default function ClaimInfo() {
 										justifyContent="flex-start"
 										alignItems="flex-start"
 									>
-										<StackedRow primary="Claim Number" secondary={claim.claim_number} />
+										<StackedRow
+											primary="Current Assignee"
+											secondary={formatUser(checklistClaim, session?.user?.email)}
+										/>
 										<StackedRow primary="Client" secondary={claim.client} />
 										<StackedRow primary="Client Adjuster" secondary={claim.client_adjuster} />
 										<StackedRow primary="Insured" secondary={claim.insured} />
@@ -66,7 +77,7 @@ export default function ClaimInfo() {
 										justifyContent="flex-start"
 										alignItems="flex-start"
 									>
-										<StackedRow primary="Status" secondary={'###'} />
+										<StackedRow primary="Status" secondary={checklistClaim?.status ?? ''} />
 										<StackedRow
 											primary="Date of Loss"
 											secondary={formatMDY(claim.date_of_loss?.toString() ?? '')}

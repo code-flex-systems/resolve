@@ -1,3 +1,4 @@
+import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { ChecklistMode, SummarySegment } from '../config/enums';
 import { Checklist, Claim, Interval, PageInstance, TreeNode, User } from '@/types/types';
 
@@ -36,12 +37,14 @@ export interface ChecklistSlice {
 	expandAll: boolean;
 	mode: ChecklistMode;
 	selectedAnswer: number | null;
+	selectedAssignee: GetUserOutput | null;
 	selectedPageInstance: number | null;
 	selectedPageInfo: TreeNode | null;
 	selectedSummarySegment: SummarySegment;
 	selectedQuestion: number | null;
 	// dialogs
 	showActionDialog: boolean;
+	showChecklistHandoffDialog: boolean;
 	showChecklistProgressDialog: boolean;
 	showStatsDialog: boolean;
 }

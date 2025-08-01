@@ -43,6 +43,7 @@ export function useChecklistTrpc() {
 		updateForClaim: trpc.checklist.updateChecklistClaim.useMutation({
 			onSuccess(_, { checklistId, claimId }) {
 				utils.checklist.getChecklistClaim.invalidate({ checklistId, claimId });
+				utils.checklist.getChecklistClaimStats.invalidate();
 			},
 		}),
 

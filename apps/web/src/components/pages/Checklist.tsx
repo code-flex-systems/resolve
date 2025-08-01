@@ -13,12 +13,13 @@ import { SLICES } from '@/state/storeConfig';
 import { Box } from '@mui/material';
 import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
 import { toggleChecklistProgressDialog } from '@/state/checklist/actions';
+import ChecklistHandoffDialog from '../checklist/ChecklistHandoffDialog';
 
 export default function Checklist() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const mode = useChecklistSlice((state) => state.mode);
+	const showChecklistHandoffDialog = useChecklistSlice((state) => state.showChecklistHandoffDialog);
 	const showChecklistProgressDialog = useChecklistSlice((state) => state.showChecklistProgressDialog);
-	console.log(showChecklistProgressDialog);
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 	const { data: claim, isLoading: isLoadingClaim } = useClaimTrpc().get(
@@ -38,9 +39,10 @@ export default function Checklist() {
 	return !checklist || (!!claimId && !claim) ? (
 		<></>
 	) : (
-		<Box width="100%" flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
+		<Box width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 			<PageNavigation />
 			{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
+			{showChecklistHandoffDialog && <ChecklistHandoffDialog />}
 			{showChecklistProgressDialog && claimId && <ChecklistProgressDialog />}
 		</Box>
 	);

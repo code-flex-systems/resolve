@@ -7,7 +7,7 @@ import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
-import { ChecklistMode } from '@/config/enums';
+import { ChecklistMode, ClaimStatus } from '@/config/enums';
 import QuestionStatsDialog from './QuestionStatsDialog';
 import ClaimInfo from './ClaimInfo';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -18,7 +18,7 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistInfo from './ChecklistInfo';
-import CheckGradient from '../common/CheckGradient';
+import ClaimStatusIcon from './ClaimStatusIcon';
 
 export default function PageNavigation() {
 	const router = useRouter();
@@ -31,6 +31,16 @@ export default function PageNavigation() {
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 	const { data: claim } = useClaimTrpc().get(
+		{ checklistId, claimId: claimId! },
+		{ enabled: checklistId !== -1 && !!claimId }
+	);
+	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
+		{ checklistId, claimId: claimId! },
+		{ enabled: checklistId !== -1 && !!claimId }
+	);
+
+	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate;
+	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
 		{ checklistId, claimId: claimId! },
 		{ enabled: checklistId !== -1 && !!claimId }
 	);
@@ -55,11 +65,6 @@ export default function PageNavigation() {
 				};
 			},
 		}
-	);
-	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate;
-	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
-		{ checklistId, claimId: claimId! },
-		{ enabled: checklistId !== -1 && !!claimId }
 	);
 
 	const onAddPage = async () => {
@@ -187,18 +192,25 @@ export default function PageNavigation() {
 					}
 					right={
 						<>
-							<Box marginRight="5px">
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: actions.toggleChecklistProgressDialog,
-									}}
-									icon={<CheckGradient />}
-									tooltipProps={{ title: 'Checklist progress' }}
-								/>
-							</Box>
+							<Collapse in={!isFetchingChecklistClaim} orientation="horizontal">
+								<Box marginRight="5px">
+									<BasicButtonStyled
+										buttonProps={{
+											onClick: actions.toggleChecklistProgressDialog,
+										}}
+										icon={
+											<ClaimStatusIcon
+												status={(checklistClaim?.status ?? ClaimStatus.UNWORKED) as ClaimStatus}
+											/>
+										}
+										tooltipProps={{ title: 'Evaluate' }}
+									/>
+								</Box>
+							</Collapse>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: actions.toggleExpandAll,
+									disabled: visibleInstanceIds.length < 2,
 								}}
 								icon={
 									<SvgIcon>

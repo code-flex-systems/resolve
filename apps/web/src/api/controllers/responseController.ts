@@ -127,6 +127,7 @@ export async function upsertQuestionResponses(
 				sampleResponse.checklist_id,
 				sampleResponse.claim_id,
 				ClaimStatus.IN_PROGRESS,
+				undefined,
 				trx
 			);
 		}

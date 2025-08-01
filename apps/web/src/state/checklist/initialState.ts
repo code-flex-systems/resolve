@@ -9,12 +9,14 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	expandAll: false,
 	mode: ChecklistMode.VIEW,
 	selectedAnswer: null,
+	selectedAssignee: null,
 	selectedPageInstance: null,
 	selectedPageInfo: null,
 	selectedSummarySegment: SummarySegment.ANSWERED,
 	selectedQuestion: null,
 	// dialogs
 	showActionDialog: false,
+	showChecklistHandoffDialog: false,
 	showChecklistProgressDialog: false,
 	showStatsDialog: false,
 });

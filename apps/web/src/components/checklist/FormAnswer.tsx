@@ -252,7 +252,7 @@ export default function FormAnswer() {
 							render={({ field }) => (
 								<TextField
 									label="Answer text"
-									placeholder="e.g. Water Damage"
+									placeholder="Water Damage"
 									variant="outlined"
 									error={!!errors.text}
 									{...field}
@@ -268,7 +268,7 @@ export default function FormAnswer() {
 							render={({ field }) => (
 								<TextField
 									label="Answer description (optional)"
-									placeholder="e.g. Damage as a result of leaks or condensation"
+									placeholder="Damage as a result of leaks or condensation"
 									variant="outlined"
 									{...field}
 									value={field.value ?? ''}
@@ -285,7 +285,7 @@ export default function FormAnswer() {
 							render={({ field }) => (
 								<TextField
 									label="Grade (optional)"
-									placeholder="e.g. 1.1"
+									placeholder="1.1"
 									variant="outlined"
 									type="number"
 									{...field}
@@ -399,7 +399,7 @@ export default function FormAnswer() {
 								render={({ field }) => (
 									<TextField
 										label="Free-form placeholder (optional)"
-										placeholder="e.g. Please list"
+										placeholder="Please list"
 										variant="outlined"
 										{...field}
 										value={field.value ?? ''}
@@ -415,7 +415,7 @@ export default function FormAnswer() {
 								render={({ field }) => (
 									<TextField
 										label="Free-form # of lines (optional)"
-										placeholder="e.g. 2"
+										placeholder="2"
 										variant="outlined"
 										type="number"
 										{...field}

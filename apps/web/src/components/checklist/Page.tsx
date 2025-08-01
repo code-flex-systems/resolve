@@ -119,7 +119,7 @@ export default function Page() {
 						instance_id: selectedPageInstance,
 						claim_id: claim!.id,
 						question_id: questionId,
-						response_text: typeof data[field] === 'string' ? data[field] : undefined,
+						response_text: typeof data[field] === 'string' && !!data[field] ? data[field] : null,
 						selected_answers: Array.isArray(data[field])
 							? data[field].map((id) => ({
 									answer_id: id,
@@ -239,7 +239,7 @@ const styles = {
 	container: {
 		flex: 1,
 		minWidth: 0,
-		height: 'calc(100% - 50px)',
+		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',

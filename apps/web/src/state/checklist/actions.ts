@@ -4,6 +4,7 @@ import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
 import { setStateBuilder } from '../storeUtilities';
 import { PageInstanceStatus } from '@/config/enums';
+import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 
@@ -16,6 +17,12 @@ export function toggleExpandAll() {
 export function toggleActionDialog() {
 	setState((state) => {
 		state.showActionDialog = !state.showActionDialog;
+	});
+}
+
+export function toggleChecklistHandoffDialog() {
+	setState((state) => {
+		state.showChecklistHandoffDialog = !state.showChecklistHandoffDialog;
 	});
 }
 
@@ -47,6 +54,12 @@ export function updateSelectedAnswer(questionId: number, answerId: number | null
 	setState((state) => {
 		state.selectedQuestion = questionId;
 		state.selectedAnswer = answerId;
+	});
+}
+
+export function updateSelectedAssignee(newUser: GetUserOutput | null) {
+	setState((state) => {
+		state.selectedAssignee = newUser;
 	});
 }
 

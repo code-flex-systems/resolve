@@ -19,9 +19,14 @@ export async function createChecklist(
 
 export async function modifyChecklistClaim(
 	ctx: ProtectedContext,
-	{ checklistId, claimId, status }: { checklistId: number; claimId: number; status: ClaimStatus }
+	{
+		checklistId,
+		claimId,
+		status,
+		assignee,
+	}: { checklistId: number; claimId: number; status?: ClaimStatus; assignee?: string }
 ) {
-	await checklistQueries.modifyChecklistClaim(ctx, checklistId, claimId, status);
+	await checklistQueries.modifyChecklistClaim(ctx, checklistId, claimId, status, assignee);
 }
 
 /**
@@ -101,6 +106,7 @@ export async function getChecklistClaimStats(ctx: ProtectedContext) {
 			resultsByChecklist[checklistKey] = {
 				[ClaimStatus.SUBMITTED]: 0,
 				[ClaimStatus.IN_PROGRESS]: 0,
+				[ClaimStatus.BLOCKED]: 0,
 				[ClaimStatus.UNWORKED]: 0,
 			};
 			resultsByChecklist[checklistKey][claimStatus] += 1;

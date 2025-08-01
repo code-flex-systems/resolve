@@ -125,7 +125,7 @@ export default function PageEditor() {
 										autoFocus
 										value={pageTitle}
 										onChange={(e) => setPageTitle(e.target.value)}
-										placeholder="e.g. New Page"
+										placeholder="New Page"
 										onBlur={stopEditing}
 										error={!pageTitle}
 										variant="outlined"

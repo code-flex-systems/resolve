@@ -4,6 +4,7 @@ import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 import { DB } from '../database/types';
+import { TRPCError } from '@trpc/server';
 
 /**
  * Create a new checklist and optionally copy page instances from an existing checklist.
@@ -63,14 +64,26 @@ export async function modifyChecklistClaim(
 	ctx: ProtectedContext,
 	checklistId: number,
 	claimId: number,
-	status: ClaimStatus,
+	status?: ClaimStatus,
+	assignee?: string,
 	trx?: Transaction<DB>
 ) {
+	let assigneeId: string | undefined;
+	if (assignee) {
+		assigneeId = (
+			await (trx ?? db)
+				.selectFrom('users')
+				.select('id')
+				.where((eb) => eb.and([eb('email', '=', assignee), eb('client_id', '=', ctx.session.user.client_id)]))
+				.executeTakeFirstOrThrow(() => new TRPCError({ code: 'BAD_REQUEST', message: 'Could not find user' }))
+		).id;
+	}
 	await (trx ?? db)
 		.updateTable('checklist_claim')
 		.set({
 			status,
-			...(status === ClaimStatus.IN_PROGRESS
+			assignee: assigneeId,
+			...(status !== ClaimStatus.SUBMITTED
 				? {
 						updated_by: ctx.session.user.id,
 						updated_at: new Date(),
@@ -172,9 +185,12 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 	return await applyClientScope(
 		db
 			.selectFrom('checklist_claim')
-			.selectAll()
+			.innerJoin('users', 'checklist_claim.assignee', 'users.id')
+			.selectAll('checklist_claim')
+			.select(['users.first', 'users.last', 'users.email'])
 			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)])),
-		ctx.session.user.client_id
+		ctx.session.user.client_id,
+		'checklist_claim'
 	).executeTakeFirst();
 }
 
@@ -183,7 +199,7 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 		applyClientScope(
 			db
 				.selectFrom('page_instance')
-				.select(['id'])
+				.select('id')
 				.where('checklist_id', '=', checklistId)
 				.where('parent_instance_id', 'is', null),
 			ctx.session.user.client_id,
@@ -204,7 +220,7 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				.innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
 				.whereRef('question_response_answer.answer_id', '=', 'answer.id')
 				.where('answer.calls_instance_id', 'is not', null)
-				.select((eb) => eb.ref('answer.calls_instance_id').$castTo<number>().as('id'))
+				.select((eb) => eb.ref('answer.calls_instance_id').$notNull().as('id'))
 		)
 	);
 

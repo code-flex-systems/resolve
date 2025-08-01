@@ -17,6 +17,7 @@ export default function BasicDialog(
 		height?: number | string;
 		maxHeight?: number | string;
 		showCloseButton?: boolean;
+		showOverflow?: boolean;
 	} & PropsWithChildren
 ) {
 	const {
@@ -30,6 +31,7 @@ export default function BasicDialog(
 		height = 'fit-content',
 		maxHeight,
 		showCloseButton = true,
+		showOverflow = false,
 	} = props;
 	const iconActionsPercentage = 10 * (iconActions.length + 1);
 	return (
@@ -37,6 +39,7 @@ export default function BasicDialog(
 			open={true}
 			onClose={closeDisabled ? undefined : onClose}
 			sx={{
+				overflow: showOverflow ? 'visible' : undefined,
 				'& .MuiPaper-root': {
 					maxWidth: '100%',
 					width: width,
@@ -45,40 +48,46 @@ export default function BasicDialog(
 				},
 			}}
 		>
-			<div style={styles.title}>
-				<div
-					style={{
-						...styles.titleSide,
-						width: `${100 - iconActionsPercentage}%`,
-						justifyContent: 'flex-start',
-					}}
-				>
-					{typeof title === 'string' ? (
-						<Paper elevation={0} style={styles.titleCard}>
-							<Typography fontSize={17} lineHeight="21px">
-								{title}
-							</Typography>
-						</Paper>
-					) : (
-						<>{title ?? <></>}</>
-					)}
+			{(!!title || !!iconActions.length || showCloseButton) && (
+				<div style={styles.title}>
+					<div
+						style={{
+							...styles.titleSide,
+							width: `${100 - iconActionsPercentage}%`,
+							justifyContent: 'flex-start',
+						}}
+					>
+						{typeof title === 'string' ? (
+							<Paper elevation={0} style={styles.titleCard}>
+								<Typography fontSize={17} lineHeight="21px">
+									{title}
+								</Typography>
+							</Paper>
+						) : (
+							<>{title ?? <></>}</>
+						)}
+					</div>
+					<div
+						style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}
+					>
+						{...iconActions}
+						{showCloseButton && (
+							<IconButton onClick={onClose} disabled={closeDisabled}>
+								<Cancel sx={{ fontSize: 21 }} />
+							</IconButton>
+						)}
+					</div>
 				</div>
-				<div style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}>
-					{...iconActions}
-					{showCloseButton && (
-						<IconButton onClick={onClose} disabled={closeDisabled}>
-							<Cancel sx={{ fontSize: 21 }} />
-						</IconButton>
-					)}
-				</div>
-			</div>
+			)}
 
-			<DialogContent style={{ overflow: 'auto', height: 'calc(100% - 90px)' }}>{props.children}</DialogContent>
+			<DialogContent style={{ overflow: showOverflow ? 'visible' : 'auto', height: 'calc(100% - 90px)' }}>
+				{props.children}
+			</DialogContent>
 
 			{(primaryAction || secondaryActions.length > 0) && (
 				<DialogActions>
-					{secondaryActions.reverse().map((action, i) => (
-						<Fade key={i} in={action.hidden === undefined ? true : !action.hidden}>
+					{secondaryActions.reverse().map((action) => (
+						<Fade key={action.label} in={action.hidden === undefined ? true : !action.hidden}>
 							<span>
 								<BasicButton
 									buttonProps={{

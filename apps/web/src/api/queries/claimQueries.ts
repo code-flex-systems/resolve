@@ -22,6 +22,7 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
 			status: ClaimStatus.UNWORKED,
+			assignee: ctx.session.user.id,
 		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.returningAll()
