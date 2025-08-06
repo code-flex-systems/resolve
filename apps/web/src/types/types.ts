@@ -101,6 +101,22 @@ export interface ChecklistSummaryRow {
 	answer_texts?: string;
 }
 
+export interface Comment {
+	checklistId: number;
+	claimId: number;
+	instanceId?: number;
+	questionId?: number;
+	body: string;
+}
+
+export interface CommentFilters {
+	userId?: string;
+	checklistId?: number;
+	claimId?: number;
+	instanceId?: number;
+	questionId?: number;
+}
+
 export type DateRange = [Date | null, Date | null];
 
 export interface DialogAction {

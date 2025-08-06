@@ -25,7 +25,7 @@ import 'ldrs/react/Orbit.css';
 import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 
-export default function ChecklistsSearch() {
+export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boolean }) {
 	const trpcUtils = trpc.useUtils();
 	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
 	const [query, setQuery] = useState<string>('');
@@ -79,11 +79,11 @@ export default function ChecklistsSearch() {
 						sx={styles.textField}
 						slotProps={{
 							input: {
-								startAdornment: (
+								startAdornment: showIcon ? (
 									<InputAdornment position="start">
 										<SearchIcon />
 									</InputAdornment>
-								),
+								) : undefined,
 								endAdornment: query && (
 									<InputAdornment position="end">
 										<InputAdornment position="end">

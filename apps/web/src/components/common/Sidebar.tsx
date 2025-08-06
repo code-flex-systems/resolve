@@ -18,7 +18,6 @@ import theme from '@/styles/theme';
 import Image from 'next/image';
 import logo from '@/lib/resources/images/logo.png';
 import config from '@/config/config';
-import ProfileAvatar from './ProfileAvatar';
 
 export interface NavItem {
 	label: string;
@@ -116,7 +115,10 @@ export default function Sidebar({
 										px: 2.5,
 										color: selected ? theme.palette.primary.main : color,
 										bgcolor: selected ? hoverBackgroundColor : 'inherit',
-										'&:hover': { bgcolor: hoverBackgroundColor, color: theme.palette.primary.main },
+										'&:hover': {
+											bgcolor: hoverBackgroundColor,
+											color: theme.palette.primary.main,
+										},
 										borderRadius: 1,
 									}}
 								>
@@ -149,9 +151,6 @@ export default function Sidebar({
 						);
 					})}
 				</List>
-				<Box marginTop="590px" marginLeft="15px">
-					<ProfileAvatar />
-				</Box>
 			</Box>
 		</ClickAwayListener>
 	);

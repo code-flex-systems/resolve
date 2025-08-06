@@ -19,6 +19,7 @@ export type ClientScopedTable = Extract<
 	| 'question_response'
 	| 'question_response_answer'
 	| 'response_audit_logs'
+	| 'comment'
 >;
 
 // Used to wrap all Kysely select queries that reference tables listed in the above union type

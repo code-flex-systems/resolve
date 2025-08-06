@@ -152,6 +152,19 @@ export interface Client {
   name: string;
 }
 
+export interface Comment {
+  body: string;
+  checklist_id: number;
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  id: Generated<number>;
+  instance_id: number | null;
+  question_id: number | null;
+  updated_at: Timestamp | null;
+}
+
 export interface Doc {
   alias: string;
   client_id: string;
@@ -323,6 +336,7 @@ export interface DB {
   checklist_claim: ChecklistClaim;
   claim: Claim;
   client: Client;
+  comment: Comment;
   doc: Doc;
   feeds: Feeds;
   page: Page;

@@ -20,6 +20,7 @@ import {
 	deleteChecklistInput,
 	getChecklistClaimInput,
 	getChecklistClaimProgressInput,
+	getChecklistClaimStatsInput,
 	getChecklistCountInput,
 	getChecklistInput,
 	getChecklistsInput,
@@ -56,8 +57,8 @@ export const checklistRouter = router({
 			return await getChecklistClaimProgress(ctx, input);
 		}),
 
-	getChecklistClaimStats: protectedProcedure.query(async ({ ctx }) => {
-		return await getChecklistClaimStats(ctx);
+	getChecklistClaimStats: protectedProcedure.input(getChecklistClaimStatsInput).query(async ({ ctx, input }) => {
+		return await getChecklistClaimStats(ctx, input);
 	}),
 
 	getRecentChecklistClaims: protectedProcedure.query(async ({ ctx }) => {

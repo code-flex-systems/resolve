@@ -2,14 +2,12 @@
 import { Box, Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import * as actions from '@/state/checklist/actions';
 import { useChecklistSlice } from '@/state/store';
-import { Adjust, BarChart, CheckCircle, Error, KeyboardArrowRight, PanoramaFishEye } from '@mui/icons-material';
+import { Adjust, CheckCircle, Error, KeyboardArrowRight, PanoramaFishEye } from '@mui/icons-material';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import BasicButton from '../common/BasicButton';
-import { IconAlertCircleFilled, IconCircle, IconCircleCheckFilled, IconPercentage50 } from '@tabler/icons-react';
 import theme from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -118,19 +116,6 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						</span>
 					</Fade>
 				</div>
-				{mode === ChecklistMode.EDIT && (
-					<BasicButton
-						buttonProps={{
-							onClick: actions.toggleStatsDialog,
-						}}
-						tooltipProps={{
-							title: 'Open report',
-							placement: 'bottom-end',
-							arrow: true,
-						}}
-						icon={<BarChart className="node-report-icon" sx={styles.reportIcon} />}
-					/>
-				)}
 				<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
 					<span>{statusIcon}</span>
 				</Fade>

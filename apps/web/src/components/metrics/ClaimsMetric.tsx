@@ -1,19 +1,19 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { CheckCircle, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { PieChart } from '@mui/x-charts-pro';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AnimatedCounter } from '../common/AnimatedCounter';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistSelect from '../common/ChecklistSelect';
-import { useAdminSlice } from '@/state/store';
-import { setChecklistId } from '@/state/admin/actions';
+import useIsAdmin from '@/hooks/useIsAdmin';
+import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 350;
@@ -36,23 +36,44 @@ function getStatusColor(status: ClaimStatus) {
 	}
 }
 
-export default function ClaimsMetric() {
-	const selectedChecklistId = useAdminSlice((state) => state.selectedChecklistId);
-	const { data: checklists = [] } = useChecklistTrpc().list({});
-	const { data = {}, isFetching } = useChecklistTrpc().stats();
+const defaultData: Record<ClaimStatus, number> = {
+	[ClaimStatus.SUBMITTED]: 0,
+	[ClaimStatus.IN_PROGRESS]: 0,
+	[ClaimStatus.BLOCKED]: 0,
+	[ClaimStatus.UNWORKED]: 0,
+};
+
+export default function ClaimsMetric({
+	checklistId,
+	users,
+	setChecklistId,
+}: {
+	checklistId?: number | null;
+	users?: string[];
+	setChecklistId?: (newId: number | null) => void;
+}) {
+	const pathname = usePathname();
+	const isAdmin = useIsAdmin();
+	const isSuperAdmin = useIsSuperAdmin();
+	const { data: checklists = [] } = useChecklistTrpc().list({}, { enabled: !!checklistId });
+	const { data = defaultData, isFetching } = useChecklistTrpc().stats({
+		checklistId: checklistId ?? undefined,
+		users,
+	});
 	const router = useRouter();
+	const metricHeight = !!checklistId ? METRIC_HEIGHT : METRIC_HEIGHT - 40;
 
 	const selectedChecklistOption = useMemo(() => {
-		const option = checklists.find((o) => o.id === selectedChecklistId);
+		const option = checklists.find((o) => o.id === checklistId);
 		return option ? { ...option, key: `${option.id}:${option.name}` } : null;
-	}, [checklists, selectedChecklistId]);
+	}, [checklists, checklistId]);
 
 	return (
 		<Paper sx={styles.paper}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
+				<Skeleton width={METRIC_WIDTH} height={metricHeight} animation="wave" sx={styles.skeleton} />
 			) : (
-				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
+				<Box display="flex" width={METRIC_WIDTH} height={metricHeight} borderRadius={3} padding="10px">
 					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
 						<Box
 							width="100%"
@@ -64,7 +85,7 @@ export default function ClaimsMetric() {
 							<ExpandableTitle
 								title="Claim Submission"
 								icon={<CheckCircle sx={{ color: 'white' }} />}
-								color={theme.palette.warning.main}
+								color={BASE_COLOR_LIGHT}
 								bgcolor="#EBEBEB"
 								padding="5px 0px 10px"
 							/>
@@ -78,39 +99,43 @@ export default function ClaimsMetric() {
 										}}
 									/>
 								</Box>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => router.push('/metrics/user-activity'),
-									}}
-									icon={
-										<Troubleshoot
-											sx={{
-												transform: 'scaleX(-1)',
-												color: theme.palette.primary.main,
-											}}
-										/>
-									}
-									tooltipProps={{ title: 'Open in Inspector' }}
-								/>
+								{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
+									<BasicButtonStyled
+										buttonProps={{
+											onClick: () => router.push('/metrics/user-activity'),
+										}}
+										icon={
+											<Troubleshoot
+												sx={{
+													transform: 'scaleX(-1)',
+													color: theme.palette.primary.main,
+												}}
+											/>
+										}
+										tooltipProps={{ title: 'Open in Inspector' }}
+									/>
+								)}
 							</Box>
 						</Box>
-						<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px 5px">
-							<ChecklistSelect selected={selectedChecklistId} setSelected={setChecklistId} />
-						</Box>
+						{!!checklistId && setChecklistId && (
+							<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px 5px">
+								<ChecklistSelect selected={checklistId} setSelected={setChecklistId} />
+							</Box>
+						)}
 						<div style={styles.divider}>
 							<Divider />
 						</div>
-						{selectedChecklistOption && (
+						{(!checklistId || selectedChecklistOption) && (
 							<Stack flex={1} display="flex" justifyContent="center" alignItems="center">
 								<PieChart
 									series={[
 										{
-											data: Object.keys(data[selectedChecklistOption.key]).map((status) => {
+											data: Object.keys(data).map((status) => {
 												const parsedStatus = status as ClaimStatus;
 												return {
 													id: parsedStatus,
 													label: parsedStatus,
-													value: data[selectedChecklistOption.key][parsedStatus],
+													value: data[parsedStatus],
 													color: getStatusColor(parsedStatus),
 												};
 											}),
@@ -138,10 +163,10 @@ export default function ClaimsMetric() {
 									>
 										<AnimatedCounter
 											value={getProgressPercentage(
-												data[selectedChecklistOption.key][ClaimStatus.SUBMITTED],
-												data[selectedChecklistOption.key][ClaimStatus.SUBMITTED] +
-													data[selectedChecklistOption.key][ClaimStatus.IN_PROGRESS] +
-													data[selectedChecklistOption.key][ClaimStatus.UNWORKED]
+												data[ClaimStatus.SUBMITTED],
+												data[ClaimStatus.SUBMITTED] +
+													data[ClaimStatus.IN_PROGRESS] +
+													data[ClaimStatus.UNWORKED]
 											)}
 											formatter={(v) => `${v}%`}
 											fontSize={40}

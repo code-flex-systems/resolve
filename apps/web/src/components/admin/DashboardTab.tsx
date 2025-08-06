@@ -12,10 +12,13 @@ import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { useState } from 'react';
 import ClaimsMetric from '../metrics/ClaimsMetric';
 import UserActivityMetric from '../metrics/UserActivity/UserActivityMetric';
+import { useAdminSlice } from '@/state/store';
+import { setChecklistId } from '@/state/admin/actions';
 
 export default function DashboardTab() {
 	const router = useRouter();
 	const [selected, setSelected] = useState<string | null>(null);
+	const selectedChecklistId = useAdminSlice((state) => state.selectedChecklistId);
 	const { data: userCounts, isFetching: isFetchingUsers } = useUserTrpc().count({});
 	const { data: checklistCounts, isFetching: isFetchingChecklists } = useChecklistTrpc().count({});
 	const { data: claimCounts, isFetching: isFetchingClaims } = useClaimTrpc().count({});
@@ -79,7 +82,7 @@ export default function DashboardTab() {
 			</Stack>
 			<Box display="flex" height="fit-content" justifyContent="flex-start" alignContent="flex-start">
 				<UserActivityMetric />
-				<ClaimsMetric />
+				<ClaimsMetric checklistId={selectedChecklistId} setChecklistId={setChecklistId} />
 			</Box>
 		</Box>
 	);

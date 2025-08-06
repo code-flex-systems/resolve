@@ -1,89 +1,51 @@
 'use client';
-import { Chip, Collapse, Typography } from '@mui/material';
-import { ArrowCircleRightOutlined, Checklist, ContentPasteSearch } from '@mui/icons-material';
-import { useEffect } from 'react';
 
-import ClaimsSearch from '@/components/checklists/ClaimsSearch';
-import Recents from '@/components/checklists/Recents';
-import ChecklistsSearch from '@/components/checklists/ChecklistsSearch';
-import ChecklistMenuItem from '@/components/checklists/ChecklistMenuItem';
-import Separator from '@/components/common/Separator';
-import BasicButton from '@/components/common/BasicButton';
-import ChecklistClaimDialog from '@/components/checklists/ChecklistClaimDialog';
+import { Box, Stack, Typography } from '@mui/material';
+import { useEffect } from 'react';
+import Recents from '@/components/home/Recents';
 import { SLICES } from '@/state/storeConfig';
-import { resetStoreSlice, useChecklistsSlice } from '@/state/store';
-import * as actions from '@/state/checklists/actions';
-import InsuranceGraphic1 from '@/lib/resources/images/insurance-graphic-1.png';
-import config from '@/config/config';
-import Image from 'next/image';
+import { resetStoreSlice } from '@/state/store';
+import ProfileAvatar from '../common/ProfileAvatar';
+import RecentComments from '../home/RecentComments';
+import HomeSearch from '../home/HomeSearch';
+import FQStepper from '../home/FQStepper';
+import ClaimsMetric from '../metrics/ClaimsMetric';
+import { useSession } from 'next-auth/react';
 
 export default function Home() {
-	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
-	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
-	const showChecklistClaimDialog = useChecklistsSlice((state) => state.showChecklistClaimDialog);
-
+	const { data: session } = useSession();
 	useEffect(() => {
 		return () => resetStoreSlice(SLICES.CHECKLISTS);
 	}, []);
 
 	return (
-		<>
-			<div style={styles.container}>
-				<Recents />
-				<div style={styles.innerContainer} className="flex-col-center">
-					<Image src={InsuranceGraphic1} alt="insurance-people" height={250} />
-					<Typography fontSize={25} color="primary" height={80}>
-						Welcome to {config.APP_NAME}!
+		<div style={styles.container}>
+			<Stack width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+				<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" marginBottom="20px">
+					<Typography fontSize={20} fontWeight="bold">
+						Welcome back!
 					</Typography>
-					<Typography>Find a claim to work.</Typography>
-					<ClaimsSearch />
-					<div className="flex-col-center">
-						<Collapse in={Boolean(selectedClaim)} className="flex-col-center">
-							<Chip
-								label={selectedClaim?.claim_number ?? ''}
-								icon={<ContentPasteSearch />}
-								onDelete={() => actions.updateSelectedClaim(null)}
-							/>
-						</Collapse>
-						<div style={{ height: 40 }} className="flex-row-center">
-							<Separator />
-							<Separator />
-							<Separator />
-						</div>
-						<Typography>Find a checklist to fill out.</Typography>
-						<ChecklistsSearch />
-					</div>
-					<Collapse in={Boolean(selectedChecklist)} style={{ marginTop: 5 }} className="flex-col-center">
-						<Chip
-							label={selectedChecklist?.name ?? ''}
-							icon={<Checklist />}
-							onDelete={() => actions.updateSelectedChecklist(null)}
-						/>
-					</Collapse>
-					<BasicButton
-						buttonProps={{
-							onClick: actions.toggleChecklistClaimDialog,
-							variant: 'contained',
-							color: 'primary',
-							startIcon: (
-								<ArrowCircleRightOutlined
-									sx={{ color: !selectedClaim || !selectedChecklist ? '#A6A6A6' : 'white' }}
-								/>
-							),
-							sx: {
-								marginTop: '20px',
-								fontSize: 20,
-							},
-							className: 'bump-lg',
-							disabled: !selectedClaim || !selectedChecklist,
-						}}
-					>
-						Go
-					</BasicButton>
-				</div>
-			</div>
-			{showChecklistClaimDialog && <ChecklistClaimDialog />}
-		</>
+					<ProfileAvatar />
+				</Box>
+
+				<Box width="100%" flex={1} display="flex" justifyContent="space-between" alignItems="center">
+					<Stack height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+						<Box display="flex" justifyContent="flex-start" alignItems="flex-start">
+							<FQStepper />
+							<Recents />
+						</Box>
+						<RecentComments />
+					</Stack>
+					<Box display="flex" justifyContent="center" alignItems="flex-start">
+						<HomeSearch />
+					</Box>
+
+					<Box height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+						{!!session?.user && <ClaimsMetric users={[session.user.email]} />}
+					</Box>
+				</Box>
+			</Stack>
+		</div>
 	);
 }
 
@@ -94,9 +56,7 @@ const styles = {
 		display: 'flex',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-	},
-	innerContainer: {
-		width: '100%',
-		height: 'calc(100% - 100px)',
+		backgroundColor: '#F7F8FA',
+		padding: 20,
 	},
 };

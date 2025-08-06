@@ -94,25 +94,22 @@ export async function getChecklistClaimProgress(
 	return results;
 }
 
-export async function getChecklistClaimStats(ctx: ProtectedContext) {
-	const results = await checklistQueries.getChecklistClaimStats(ctx);
-	const resultsByChecklist: Record<string, Record<ClaimStatus, number>> = {};
+export async function getChecklistClaimStats(
+	ctx: ProtectedContext,
+	{ checklistId, users }: { checklistId?: number; users?: string[] }
+) {
+	const results = await checklistQueries.getChecklistClaimStats(ctx, checklistId, users);
+	const formattedResults: Record<ClaimStatus, number> = {
+		[ClaimStatus.SUBMITTED]: 0,
+		[ClaimStatus.IN_PROGRESS]: 0,
+		[ClaimStatus.BLOCKED]: 0,
+		[ClaimStatus.UNWORKED]: 0,
+	};
 	results.forEach((row) => {
-		const checklistKey = `${row.checklist_id}:${row.name}`;
 		const claimStatus = row.status as ClaimStatus;
-		if (resultsByChecklist[checklistKey]) {
-			resultsByChecklist[checklistKey][claimStatus] += 1;
-		} else {
-			resultsByChecklist[checklistKey] = {
-				[ClaimStatus.SUBMITTED]: 0,
-				[ClaimStatus.IN_PROGRESS]: 0,
-				[ClaimStatus.BLOCKED]: 0,
-				[ClaimStatus.UNWORKED]: 0,
-			};
-			resultsByChecklist[checklistKey][claimStatus] += 1;
-		}
+		formattedResults[claimStatus] += 1;
 	});
-	return resultsByChecklist;
+	return formattedResults;
 }
 
 /**

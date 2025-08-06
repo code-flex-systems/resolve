@@ -37,17 +37,6 @@
 	cursor: pointer;
 }
 
-.node:hover .node-report-icon {
-	visibility: visible;
-	opacity: 1;
-	transition: opacity 300ms ease;
-}
-
-.node-report-icon {
-	visibility: hidden;
-	opacity: 0;
-}
-
 .node-selected {
 	background-color: rgba(33, 106, 196, 1);
 	transition: background-color 100ms ease;

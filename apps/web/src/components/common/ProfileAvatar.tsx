@@ -1,13 +1,15 @@
 'use client';
 import { useState } from 'react';
-import { Avatar, Divider, Link, Paper, PopperProps, Typography } from '@mui/material';
+import { Avatar, Divider, Paper, PopperProps, Typography } from '@mui/material';
 import Email from '@mui/icons-material/Email';
 import Phone from '@mui/icons-material/Phone';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from './BasicPopper';
 import { signOut, useSession } from 'next-auth/react';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
+import BasicButtonStyled from './BasicButtonStyled';
+import { Logout } from '@mui/icons-material';
 
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
@@ -27,30 +29,33 @@ export default function ProfileAvatar() {
 			</div>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
-					<Paper style={styles.paper}>
+					<Paper sx={styles.paper}>
 						<Typography fontSize={17} fontWeight="bold">
 							{session?.user?.name ?? ''}
 						</Typography>
 						<div style={styles.divider}>
 							<Divider />
 						</div>
-						<div style={{ ...styles.row, marginTop: 10 }}>
+						<div style={{ ...styles.row, marginTop: 5 }}>
 							<Email sx={styles.icon} />
-							<Typography fontSize={15}>{session?.user?.email ?? ''}</Typography>
+							<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
+								{session?.user?.email ?? ''}
+							</Typography>
 						</div>
 						<div style={{ ...styles.row, marginTop: 5 }}>
 							<Phone sx={styles.icon} />
-							<Typography fontSize={15}>
+							<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
 							</Typography>
 						</div>
-						<div style={{ ...styles.divider, marginTop: 10 }}>
-							<Divider />
-						</div>
 						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
-							<Link onClick={() => signOut({ callbackUrl: '/login' })} fontSize={15}>
-								Sign Out
-							</Link>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => signOut({ callbackUrl: '/login' }),
+								}}
+								tooltipProps={{ title: 'Sign out' }}
+								icon={<Logout />}
+							/>
 						</div>
 					</Paper>
 				</BasicPopper>
@@ -64,7 +69,7 @@ const styles = {
 		width: 35,
 		height: 35,
 		fontSize: 15,
-		bgcolor: BASE_COLOR,
+		bgcolor: theme.palette.primary.main,
 		cursor: 'pointer',
 	},
 	divider: {
@@ -74,6 +79,7 @@ const styles = {
 	icon: {
 		fontSize: 15,
 		marginRight: '10px',
+		color: BASE_COLOR_LIGHT,
 	},
 	paper: {
 		width: 250,
@@ -83,8 +89,9 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		outline: `1px solid ${theme.palette.primary.light}`,
-		padding: 10,
-		marginTop: 5,
+		padding: '10px',
+		marginTop: '5px',
+		borderRadius: 4,
 	},
 	row: {
 		width: '100%',

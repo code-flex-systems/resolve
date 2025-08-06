@@ -11,12 +11,14 @@ import { userRouter } from './routers/user';
 import { feedRouter } from './routers/feed';
 import { passwordResetRouter } from './routers/passwordReset';
 import { actionRouter } from './routers/action';
+import { commentRouter } from './routers/comment';
 
 export const appRouter = router({
 	action: actionRouter,
 	answer: answerRouter,
 	checklist: checklistRouter,
 	claim: claimRouter,
+	comment: commentRouter,
 	doc: docRouter,
 	feed: feedRouter,
 	page: pageRouter,

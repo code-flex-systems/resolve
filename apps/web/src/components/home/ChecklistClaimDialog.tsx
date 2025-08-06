@@ -21,6 +21,8 @@ function getStatusMsg(data: ChecklistClaim) {
 				return 'A checklist is in progress for the selected claim.';
 			case ClaimStatus.UNWORKED:
 				return 'A checklist has been started for the selected claim.';
+			case ClaimStatus.BLOCKED:
+				return 'A checklist is blocked on this claim.';
 		}
 	} else {
 		return 'No checklist has been started for the selected claim.';

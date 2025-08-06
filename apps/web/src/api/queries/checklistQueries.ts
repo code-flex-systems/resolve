@@ -1,4 +1,4 @@
-import { sql, Transaction } from 'kysely';
+import { ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -256,18 +256,25 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 	return { answerCount, totalQuestionCount };
 }
 
-export async function getChecklistClaimStats(ctx: ProtectedContext) {
+export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?: number, users?: string[]) {
 	return await applyClientScope(
 		db
 			.selectFrom('checklist_claim')
 			.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 			.innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
+			.leftJoin('users', 'checklist_claim.assignee', 'users.id')
 			.select(({ fn }) => [
 				'checklist_claim.checklist_id',
 				'checklist.name',
 				'checklist_claim.status',
 				fn.countAll().as('count'),
 			])
+			.where((eb) => {
+				let andClause: ExpressionWrapper<DB, 'checklist_claim' | 'checklist' | 'claim', SqlBool>[] = [];
+				if (checklistId) andClause.push(eb('checklist.id', '=', checklistId));
+				if (users) andClause.push(eb('users.email', 'in', users));
+				return eb.and(andClause);
+			})
 			.groupBy(['checklist_claim.checklist_id', 'checklist.name', 'claim.id', 'checklist_claim.status'])
 			.orderBy(['checklist_claim.checklist_id', 'checklist.name', 'checklist_claim.status']),
 		ctx.session.user.client_id,
@@ -475,7 +482,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 			.selectAll('checklist_claim')
 			.select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client'])
 			.orderBy('checklist_claim.last_opened desc')
-			.limit(15),
+			.limit(5),
 		ctx.session.user.client_id,
 		'checklist'
 	).execute();

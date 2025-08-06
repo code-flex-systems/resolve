@@ -2,7 +2,7 @@
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { Box, Divider, Paper, Skeleton, Stack } from '@mui/material';
 import { GraphicEq, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -52,7 +52,7 @@ export default function UserActivityMetric() {
 							<ExpandableTitle
 								title="User Activity"
 								icon={<GraphicEq sx={{ color: 'white' }} />}
-								color={theme.palette.warning.main}
+								color={BASE_COLOR_LIGHT}
 								bgcolor="#EBEBEB"
 								padding="5px 0px 10px"
 							/>

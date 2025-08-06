@@ -27,7 +27,7 @@ import 'ldrs/react/Orbit.css';
 import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 
-export default function ClaimsSearch() {
+export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }) {
 	const trpcUtils = trpc.useUtils();
 	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
 	const [query, setQuery] = useState<string>('');
@@ -82,11 +82,11 @@ export default function ClaimsSearch() {
 						sx={styles.textField}
 						slotProps={{
 							input: {
-								startAdornment: (
+								startAdornment: showIcon ? (
 									<InputAdornment position="start">
 										<SearchIcon />
 									</InputAdornment>
-								),
+								) : undefined,
 								endAdornment: query && (
 									<InputAdornment position="end">
 										{searching ? (

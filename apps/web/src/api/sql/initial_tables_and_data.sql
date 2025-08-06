@@ -1,3 +1,4 @@
+drop table comment;
 drop table if exists action_log;
 drop table if exists action;
 drop table if exists auth_events;
@@ -351,4 +352,19 @@ create table action_log(
     status text not null,
 	created_by uuid not null references users(id),
 	created_at timestamp not null default now()
+);
+
+-- comments
+
+create table comment(
+	id serial not null primary key,
+	client_id uuid not null references client(id),
+	body text not null,
+	checklist_id integer not null references checklist(id),
+	claim_id integer not null references claim(id),
+	instance_id integer references page_instance(id),
+	question_id integer references question(id),
+	created_by uuid not null references users(id),
+	created_at timestamp not null default now(),
+	updated_at timestamp
 );

@@ -46,6 +46,11 @@ export const getChecklistSummaryInput = z.object({
 });
 export type GetChecklistSummaryInput = z.infer<typeof getChecklistSummaryInput>;
 
+export const getChecklistClaimStatsInput = z.object({
+	checklistId: z.number().optional(),
+	users: z.array(z.string().email()).optional(),
+});
+
 export const getChecklistSummaryDetailInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),
