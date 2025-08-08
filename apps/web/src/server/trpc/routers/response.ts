@@ -38,10 +38,6 @@ export const responseRouter = router({
 	}),
 
 	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {
-		// Only administrators can edit a submitted checklist on a claim
-		if (input.claimStatus === ClaimStatus.SUBMITTED) {
-			requireRole(ctx, [config.ROLES.SUPER_ADMIN, config.ROLES.ADMIN]);
-		}
 		return upsertQuestionResponses(ctx, input);
 	}),
 });

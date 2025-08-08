@@ -1,16 +1,13 @@
 'use client';
-import { PropsWithChildren, useEffect, useMemo } from 'react';
-import * as actions from '@/state/global/actions';
+import { PropsWithChildren, useMemo } from 'react';
 import Sidebar, { NavItem } from './Sidebar';
 import { ContentPasteSearch, Home, ManageAccounts, Security } from '@mui/icons-material';
-import theme from '@/styles/theme';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 
-export default function PageWrapper(props: { route: string; isNavItem?: boolean } & PropsWithChildren) {
-	const { route, isNavItem = true } = props;
+export default function PageWrapper(props: PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -36,17 +33,10 @@ export default function PageWrapper(props: { route: string; isNavItem?: boolean 
 		return items;
 	}, [isAdmin, isSuperAdmin, claim]);
 
-	useEffect(() => {
-		if (isNavItem) actions.updateSelectedPage(route);
-	}, [isNavItem]);
-
 	return (
 		<div style={styles.container}>
 			<Sidebar items={navItems} />
-			<div style={styles.content}>
-				{/* <SiteHeader /> */}
-				{props.children}
-			</div>
+			<div style={styles.content}>{props.children}</div>
 		</div>
 	);
 }

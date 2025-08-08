@@ -9,19 +9,38 @@ import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { CustomPagination } from '@/components/common/CustomPagination';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
+import { formatUser } from '@/lib/utils/utils';
+import { useSession } from 'next-auth/react';
 
-function DescriptionCell({ row }: GridRenderCellParams) {
+function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boolean }) {
+	const { data: session } = useSession();
 	const getLogText = () => {
 		switch (row.action) {
 			case 'insert':
 				return (
 					<>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>Responded to the question</Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								Responded to the question
+							</Typography>
 							<Chip label={row.question_text} sx={styles.chip} />
 						</Box>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>with answer(s)</Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								with answer(s)
+							</Typography>
 							{row.new_response_text ? (
 								<Chip label={row.new_response_text} sx={styles.chip} />
 							) : (
@@ -35,12 +54,28 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 			case 'update':
 				return (
 					<>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>Changed their response to the question</Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								Changed their response to the question
+							</Typography>
 							<Chip label={row.question_text} sx={styles.chip} />
 						</Box>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>from answer(s)</Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								from answer(s)
+							</Typography>
 							{row.old_response_text ? (
 								<Chip label={row.old_response_text} sx={styles.chip} />
 							) : (
@@ -49,8 +84,16 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 								))
 							)}
 						</Box>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>to answer(s)</Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								to answer(s)
+							</Typography>
 							{row.new_response_text ? (
 								<Chip label={row.new_response_text} sx={styles.chip} />
 							) : (
@@ -64,12 +107,28 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 			case 'delete':
 				return (
 					<>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>Cleared their response to the question</Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								Cleared their response to the question
+							</Typography>
 							<Chip label={row.question_text} sx={styles.chip} />
 						</Box>
-						<Box display="flex" justifyContent="flex-start" alignItems="center" padding="2px 0px">
-							<Typography fontSize={14}>Answers were </Typography>
+						<Box
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="2px 0px"
+							flexWrap="wrap"
+						>
+							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+								Answers were{' '}
+							</Typography>
 							{row.old_response_text ? (
 								<Chip label={row.old_response_text} sx={styles.chip} />
 							) : (
@@ -89,6 +148,7 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 		<Stack
 			display="flex"
 			width="100%"
+			minWidth="fit-content"
 			height="100%"
 			justifyContent="center"
 			alignItems="flex-start"
@@ -97,43 +157,42 @@ function DescriptionCell({ row }: GridRenderCellParams) {
 			<Stack display="flex" justifyContent="flex-start" alignItems="flex-start">
 				{getLogText()}
 			</Stack>
-			<Box display="flex" justifyContent="flex-start" alignItems="center" paddingTop="5px">
-				<Typography fontSize={14} lineHeight="15px" color={BASE_COLOR_LIGHT}>
-					{row.last ?? ''}, {row.first ?? ''}
-				</Typography>
-				<div style={styles.divider} />
-				<Typography fontSize={14} lineHeight="15px" color="primary">
-					{row.page_label}
-				</Typography>
-				<div style={styles.divider} />
-				<Typography fontSize={14} lineHeight="15px" color={BASE_COLOR_LIGHT}>
-					{dayjs(row.created_at).format('MMMM D, YYYY hh:mm A')}
-				</Typography>
+			<Box display="flex" justifyContent="flex-start" alignItems="center" paddingTop="5px" flexWrap="wrap">
+				<Box display="flex" justifyContent="flex-start" alignItems="center">
+					<Typography fontSize={14} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
+						{formatUser(row, session?.user?.email)}
+					</Typography>
+					<div style={styles.divider} />
+					<Typography fontSize={14} lineHeight="17px" color="primary" noWrap>
+						{row.page_label}
+					</Typography>
+				</Box>
+				<Box display="flex" justifyContent="flex-start" alignItems="center">
+					<div style={styles.divider} />
+					<Typography fontSize={14} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
+						{compact
+							? dayjs(row.created_at).format('MM/DD/YY hh:mm A')
+							: dayjs(row.created_at).format('MMMM D, YYYY hh:mm A')}
+					</Typography>
+				</Box>
 			</Box>
 		</Stack>
 	);
 }
-
-const COLUMNS: GridColDef[] = [
-	{
-		field: 'desc',
-		headerName: '',
-		renderCell: (params) => <DescriptionCell {...params} />,
-		flex: 1,
-	},
-];
 
 export default function UserActivityTable({
 	checklistId,
 	users,
 	range,
 	pageSize = 25,
+	compact = false,
 	showPagination = true,
 }: {
 	checklistId: number;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
 	pageSize?: number;
+	compact?: boolean;
 	showPagination?: boolean;
 }) {
 	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize });
@@ -160,9 +219,21 @@ export default function UserActivityTable({
 		return rowCountRef.current;
 	}, [logs.count]);
 
+	const columns = useMemo(() => {
+		const gridColumns: GridColDef[] = [
+			{
+				field: 'desc',
+				headerName: '',
+				renderCell: (params) => <DescriptionCell compact={compact} {...params} />,
+				flex: 1,
+			},
+		];
+		return gridColumns;
+	}, [compact]);
+
 	return (
 		<DataGridPro
-			columns={COLUMNS}
+			columns={columns}
 			columnHeaderHeight={0}
 			loading={isFetchingLogs}
 			slots={{
@@ -196,12 +267,13 @@ export default function UserActivityTable({
 const styles = {
 	chip: {
 		height: 20,
-		margin: '0px 5px',
+		marginTop: '2px',
+		marginLeft: '2px',
 	},
 	divider: {
-		width: 7,
-		height: 7,
-		borderRadius: 10,
+		width: 5,
+		height: 5,
+		borderRadius: 5,
 		backgroundColor: BASE_COLOR_LIGHT,
 		margin: '0px 10px',
 	},

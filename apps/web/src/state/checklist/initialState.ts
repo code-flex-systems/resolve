@@ -6,7 +6,8 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 		page: 0,
 		pageSize: 50,
 	},
-	expandAll: false,
+	commentOffset: 0,
+	expandAll: true,
 	mode: ChecklistMode.VIEW,
 	selectedAnswer: null,
 	selectedAssignee: null,
@@ -19,6 +20,11 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	showChecklistHandoffDialog: false,
 	showChecklistProgressDialog: false,
 	showStatsDialog: false,
+	questionCommentDialog: null,
+	updateSubmittedDialogAction: null,
+	// ui
+	showChangeLog: false,
+	showComments: false,
 });
 
 export default checklistSlice;

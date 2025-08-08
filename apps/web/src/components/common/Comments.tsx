@@ -4,11 +4,11 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { Box, Collapse, Divider, IconButton, MenuItem, Stack, Typography } from '@mui/material';
 import { ArrowRightAlt } from '@mui/icons-material';
 import { TransitionGroup } from 'react-transition-group';
-import { useRouter } from 'next/navigation';
 import { formatMD, formatUser } from '@/lib/utils/utils';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CommentFilters } from '@/types/types';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 function countLinesByCanvas(
 	text: string,
@@ -27,28 +27,50 @@ function countLinesByCanvas(
 export default function Comments({
 	filters,
 	limit,
+	offset,
+	page,
+	pageSize,
 	width,
+	viewingInChecklist = false,
 }: {
 	filters: CommentFilters;
 	limit?: number;
+	offset?: number;
+	page?: number;
+	pageSize?: number;
 	width: number;
+	viewingInChecklist?: boolean;
 }) {
+	const { data: session } = useSession();
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-	const router = useRouter();
-	const { data: comments = [] } = useCommentTrpc().list({ filters, limit });
+	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list(
+		{ filters, limit, offset },
+		{
+			enabled:
+				(!filters.checklistId || filters.checklistId !== -1) && (!filters.claimId || filters.claimId !== -1),
+		}
+	);
 
-	return !comments.length ? (
-		<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+	const pagedData = useMemo(() => {
+		if (page == null || pageSize == null) return comments.rows;
+		return comments.rows.slice(page, page + pageSize);
+	}, [comments.rows, page, pageSize]);
+
+	return !comments.rows.length ? (
+		<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px">
 			No comments
 		</Typography>
 	) : (
 		<TransitionGroup>
-			{comments.map((c, i) => (
+			{pagedData.map((c, i) => (
 				<Collapse key={i} sx={{ width }}>
 					<MenuItem
 						disableRipple
 						onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-						sx={{ ...styles.menuItem, marginBottom: i === comments.length - 1 ? '40px' : undefined }}
+						sx={{
+							...styles.menuItem,
+							marginBottom: offset == null && i === pagedData.length - 1 ? '40px' : undefined,
+						}}
 					>
 						<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 							<Box padding="5px 10px" display="flex" justifyContent="flex-start" alignItems="center">
@@ -64,7 +86,6 @@ export default function Comments({
 										height={expandedIndex === i ? countLinesByCanvas(c.body, width - 20) : 24}
 										overflow="hidden"
 										sx={{ textWrap: 'wrap', transition: 'height 300ms ease' }}
-										marginBottom="5px"
 									>
 										<Typography
 											fontSize={14}
@@ -98,7 +119,7 @@ export default function Comments({
 												minWidth="fit-content"
 												noWrap
 											>
-												{formatUser(c)}
+												{formatUser(c, session?.user?.email)}
 											</Typography>
 											<div style={styles.divider} />
 											<Typography
@@ -125,21 +146,25 @@ export default function Comments({
 												</>
 											)}
 										</Box>
-										<Box>
-											<IconButton
-												onClick={(e) => {
-													e.stopPropagation();
-													e.preventDefault();
-												}}
-												disableRipple
-											>
-												<ArrowRightAlt sx={{ fontSize: 19 }} />
-											</IconButton>
+										<Box height={19}>
+											{!viewingInChecklist ||
+												(!!c.instance_id && !!c.question_id && (
+													<IconButton
+														onClick={(e) => {
+															e.stopPropagation();
+															e.preventDefault();
+														}}
+														disableRipple
+														sx={{ width: 19, height: 19 }}
+													>
+														<ArrowRightAlt sx={{ fontSize: 19 }} />
+													</IconButton>
+												))}
 										</Box>
 									</Box>
 								</Stack>
 							</Box>
-							{i !== comments.length - 1 && (
+							{i !== pagedData.length - 1 && (
 								<div style={styles.horizontalDiv}>
 									<Divider />
 								</div>

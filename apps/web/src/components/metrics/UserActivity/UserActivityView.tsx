@@ -22,7 +22,7 @@ export default function UserActivityView() {
 	const [users, setUsers] = useState<GetUserOutput[]>([]);
 
 	return (
-		<PageWrapper route="user-activity">
+		<PageWrapper>
 			<Stack
 				flex={1}
 				width="100%"

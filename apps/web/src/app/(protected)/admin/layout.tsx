@@ -6,7 +6,7 @@ import AdminTabs from '@/components/pages/AdminTabs';
 
 export default function AdminLayout(props: PropsWithChildren) {
 	return (
-		<PageWrapper route="checklist">
+		<PageWrapper>
 			<div style={styles.container}>
 				<AdminTabs />
 				{props.children}

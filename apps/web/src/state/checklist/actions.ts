@@ -2,10 +2,11 @@ import { ChecklistMode, SummarySegment } from '@/config/enums';
 import { TreeNode } from '@/types/types';
 import { SLICES } from '../storeConfig';
 import { ChecklistSlice } from '../storeTypes';
-import { setStateBuilder } from '../storeUtilities';
+import { getStateBuilder, setStateBuilder } from '../storeUtilities';
 import { PageInstanceStatus } from '@/config/enums';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 
+const getState = getStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 
 export function toggleExpandAll() {
@@ -20,6 +21,25 @@ export function toggleActionDialog() {
 	});
 }
 
+export function toggleChangeLog() {
+	if (getState().showComments) {
+		setState((state) => {
+			state.showComments = false;
+		});
+		setTimeout(
+			() =>
+				setState((state) => {
+					state.showChangeLog = !state.showChangeLog;
+				}),
+			300
+		);
+	} else {
+		setState((state) => {
+			state.showChangeLog = !state.showChangeLog;
+		});
+	}
+}
+
 export function toggleChecklistHandoffDialog() {
 	setState((state) => {
 		state.showChecklistHandoffDialog = !state.showChecklistHandoffDialog;
@@ -32,15 +52,58 @@ export function toggleChecklistProgressDialog() {
 	});
 }
 
+export function toggleComments() {
+	if (getState().showChangeLog) {
+		setState((state) => {
+			state.showChangeLog = false;
+		});
+		setTimeout(
+			() =>
+				setState((state) => {
+					state.showComments = !state.showComments;
+				}),
+			300
+		);
+	} else {
+		setState((state) => {
+			state.showComments = !state.showComments;
+		});
+	}
+}
+
 export function toggleStatsDialog() {
 	setState((state) => {
 		state.showStatsDialog = !state.showStatsDialog;
 	});
 }
 
+export function toggleQuestionCommentDialog(instanceId?: number, questionId?: number) {
+	setState((state) => {
+		state.questionCommentDialog =
+			instanceId != null && questionId != null
+				? {
+						instanceId,
+						questionId,
+					}
+				: null;
+	});
+}
+
+export function toggleUpdateSubmittedDialog(action?: (e?: React.BaseSyntheticEvent) => Promise<void>) {
+	setState((state) => {
+		state.updateSubmittedDialogAction = action ?? null;
+	});
+}
+
 export function updateChecklistSummaryConstraints(newConstraints: { page: number; pageSize: number }) {
 	setState((state) => {
 		state.checklistSummaryContraints = newConstraints;
+	});
+}
+
+export function updateCommentOffset(direction: number) {
+	setState((state) => {
+		state.commentOffset = state.commentOffset + 30 * direction;
 	});
 }
 

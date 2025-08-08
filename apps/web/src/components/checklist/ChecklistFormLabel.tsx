@@ -1,10 +1,13 @@
 'use client';
-import { Replay } from '@mui/icons-material';
+import { Replay, SmsOutlined } from '@mui/icons-material';
 import { FormLabel, IconButton, Tooltip, Typography } from '@mui/material';
 import QuestionInfo from './QuestionInfo';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
 import { QuestionType } from '@/config/enums';
+import { toggleQuestionCommentDialog } from '@/state/checklist/actions';
+import useStore from '@/state/store';
+import * as selectors from '../../state/checklist/selectors';
 
 export default function ChecklistFormLabel(props: {
 	id: string;
@@ -14,6 +17,7 @@ export default function ChecklistFormLabel(props: {
 	setValue: UseFormSetValue<FieldValues>;
 }) {
 	const { id, value, idx, question, setValue } = props;
+	const selectedPageInfo = useStore(selectors.selectedPageInfo);
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
 			<Tooltip title="Reset question" enterDelay={500}>
@@ -23,9 +27,19 @@ export default function ChecklistFormLabel(props: {
 							setValue(id, question.type === QuestionType.FREEFORM ? '' : [], { shouldDirty: true })
 						}
 						disabled={!value?.length}
-						sx={{ marginRight: '10px' }}
+						sx={{ marginRight: '5px' }}
 					>
 						<Replay sx={{ fontSize: 17 }} />
+					</IconButton>
+				</span>
+			</Tooltip>
+			<Tooltip title="Add a comment" enterDelay={500}>
+				<span>
+					<IconButton
+						onClick={() => toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id)}
+						sx={{ marginRight: '10px' }}
+					>
+						<SmsOutlined sx={{ fontSize: 17 }} />
 					</IconButton>
 				</span>
 			</Tooltip>

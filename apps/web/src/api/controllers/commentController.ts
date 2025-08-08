@@ -18,9 +18,9 @@ export async function getComment(ctx: ProtectedContext, { id }: { id: number }) 
 
 export async function getComments(
 	ctx: ProtectedContext,
-	{ filters, limit }: { filters: CommentFilters; limit?: number }
+	{ filters, limit, offset }: { filters: CommentFilters; limit?: number; offset?: number }
 ) {
-	const result = await commentQueries.getComments(ctx, filters, limit);
+	const result = await commentQueries.getComments(ctx, filters, limit, offset);
 	return result;
 }
 

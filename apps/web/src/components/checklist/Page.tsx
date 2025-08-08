@@ -21,6 +21,9 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 import ExpandableTitle from '../common/ExpandableTitle';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import NewCommentDialog from './NewCommentDialog';
+import { toggleUpdateSubmittedDialog } from '@/state/checklist/actions';
+import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	const defaults: Record<string, number[] | string> = {};
@@ -58,6 +61,8 @@ export default function Page() {
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
 	const mode = useChecklistSlice((state) => state.mode);
 	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+	const questionCommentDialog = useChecklistSlice((state) => state.questionCommentDialog);
+	const updateSubmittedDialogAction = useChecklistSlice((state) => state.updateSubmittedDialogAction);
 
 	const {
 		control,
@@ -138,100 +143,110 @@ export default function Page() {
 	});
 
 	return (
-		<div style={styles.container}>
-			{(selectedPageInstance === -1 || loading) && (
-				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					{loading ? (
-						<>
-							<Typography fontStyle="italic" color="primary">
-								Loading...
-							</Typography>
-							<LineWobble
-								size="200"
-								stroke="5"
-								bgOpacity="0.1"
-								speed="2"
-								color={theme.palette.primary.main}
-							/>
-						</>
-					) : (
-						<Typography fontStyle="italic">No page selected</Typography>
-					)}
-				</div>
-			)}
-			{selectedPageInstance !== -1 && !loading && (
-				<>
-					<Toolbar
-						left={
+		<>
+			<div style={styles.container}>
+				{(selectedPageInstance === -1 || loading) && (
+					<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
+						{loading ? (
 							<>
-								<ExpandableTitle
-									title={selectedPageInfo.title}
-									icon={<Description sx={{ color: 'white' }} />}
+								<Typography fontStyle="italic" color="primary">
+									Loading...
+								</Typography>
+								<LineWobble
+									size="200"
+									stroke="5"
+									bgOpacity="0.1"
+									speed="2"
+									color={theme.palette.primary.main}
 								/>
-								<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
-									<div style={{ marginLeft: 10 }} className="flex-row-left">
-										<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
-										<Typography color={theme.palette.success.light}>Saved!</Typography>
+							</>
+						) : (
+							<Typography fontStyle="italic">No page selected</Typography>
+						)}
+					</div>
+				)}
+				{selectedPageInstance !== -1 && !loading && (
+					<>
+						<Toolbar
+							left={
+								<>
+									<ExpandableTitle
+										title={selectedPageInfo.title}
+										icon={<Description sx={{ color: 'white' }} />}
+									/>
+									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
+										<div style={{ marginLeft: 10 }} className="flex-row-left">
+											<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
+											<Typography color={theme.palette.success.light}>Saved!</Typography>
+										</div>
+									</Fade>
+								</>
+							}
+							leftWidth="70%"
+							right={
+								<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
+									<div className="flex-row-right">
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () =>
+													reset(
+														{ ...generateDefaultValues(questions) },
+														{ keepDefaultValues: true }
+													),
+												startIcon: <Replay />,
+												sx: { height: 25, marginRight: '10px' },
+											}}
+										>
+											Reset
+										</BasicButtonStyled>
+										<BasicButtonStyled
+											buttonProps={{
+												color: 'primary',
+												disabled: !isDirty || fetching || isSubmitting,
+												onClick: () => {
+													if (claim?.status === ClaimStatus.SUBMITTED) {
+														toggleUpdateSubmittedDialog(onSubmit);
+														return;
+													}
+													onSubmit();
+												},
+												startIcon: <Save />,
+												sx: { height: 25 },
+											}}
+										>
+											Save
+										</BasicButtonStyled>
 									</div>
 								</Fade>
-							</>
-						}
-						leftWidth="70%"
-						right={
-							<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
-								<div className="flex-row-right">
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: () =>
-												reset(
-													{ ...generateDefaultValues(questions) },
-													{ keepDefaultValues: true }
-												),
-											startIcon: <Replay />,
-											sx: { height: 25, marginRight: '10px' },
-										}}
-									>
-										Reset
-									</BasicButtonStyled>
-									<BasicButtonStyled
-										buttonProps={{
-											color: 'primary',
-											disabled: !isDirty || fetching || isSubmitting,
-											onClick: onSubmit,
-											startIcon: <Save />,
-											sx: { height: 25 },
-										}}
-									>
-										Save
-									</BasicButtonStyled>
-								</div>
-							</Fade>
-						}
-						rightWidth="30%"
-						height={60}
-						padding={'10px 0px'}
-					/>
-					<div style={styles.divider}>
-						<Divider />
-					</div>
-					<Fade key={selectedPageInstance} in={!loading} style={styles.form} timeout={500} unmountOnExit>
-						<Form control={control} style={styles.form}>
-							{questions.map((question, i) => (
-								<ChecklistQuestion
-									key={question.id}
-									control={control}
-									setValue={setValue}
-									watch={watch}
-									question={question}
-									disabled={isSubmitting}
-									idx={i}
-								/>
-							))}
-						</Form>
-					</Fade>
-				</>
-			)}
-		</div>
+							}
+							rightWidth="30%"
+							height={60}
+							padding={'10px 0px'}
+						/>
+						<div style={styles.divider}>
+							<Divider />
+						</div>
+						<Fade key={selectedPageInstance} in={!loading} style={styles.form} timeout={500} unmountOnExit>
+							<Form control={control} style={styles.form}>
+								{questions.map((question, i) => (
+									<ChecklistQuestion
+										key={question.id}
+										control={control}
+										setValue={setValue}
+										watch={watch}
+										question={question}
+										disabled={isSubmitting}
+										idx={i}
+									/>
+								))}
+							</Form>
+						</Fade>
+					</>
+				)}
+			</div>
+			{!!questionCommentDialog && <NewCommentDialog />}
+			{!!updateSubmittedDialogAction && <UpdateSubmittedDialog />}
+		</>
 	);
 }
 

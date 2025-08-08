@@ -34,6 +34,7 @@ export interface ChecklistSlice {
 		page: number;
 		pageSize: number;
 	};
+	commentOffset: number;
 	expandAll: boolean;
 	mode: ChecklistMode;
 	selectedAnswer: number | null;
@@ -47,6 +48,14 @@ export interface ChecklistSlice {
 	showChecklistHandoffDialog: boolean;
 	showChecklistProgressDialog: boolean;
 	showStatsDialog: boolean;
+	questionCommentDialog: {
+		instanceId: number;
+		questionId: number;
+	} | null;
+	updateSubmittedDialogAction: ((e?: React.BaseSyntheticEvent) => Promise<void>) | null;
+	// ui
+	showChangeLog: boolean;
+	showComments: boolean;
 }
 
 export interface ChecklistsSlice {

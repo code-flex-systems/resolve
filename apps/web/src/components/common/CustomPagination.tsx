@@ -24,6 +24,7 @@ export function CustomPagination() {
 				page={paginationModel.page + 1}
 				onChange={handleChange}
 				shape="rounded"
+				size="small"
 			/>
 		</div>
 	);

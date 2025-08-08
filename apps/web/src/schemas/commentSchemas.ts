@@ -27,6 +27,7 @@ export const getCommentInput = z.object({
 export const getCommentsInput = z.object({
 	filters: commentFilters,
 	limit: z.number().optional(),
+	offset: z.number().optional(),
 });
 
 export const getCommentCountInput = z.object({

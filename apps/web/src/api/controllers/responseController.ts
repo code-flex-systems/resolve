@@ -116,11 +116,10 @@ export async function upsertQuestionResponses(
 	let newClaimStatus: ClaimStatus = ClaimStatus.UNWORKED;
 	await db.transaction().execute(async (trx) => {
 		newStatus = await responseQueries.upsertQuestionResponses(ctx, responses, trx);
-		// Update checklist + claim status if any questions have been answered
-		if (
-			(!claimStatus || claimStatus === ClaimStatus.UNWORKED) &&
-			[PageInstanceStatus.IN_PROGRESS, PageInstanceStatus.COMPLETE].includes(newStatus)
-		) {
+		// Update checklist + claim status when
+		// a) this is the first work being done on the checklist, or
+		// b) this work is being done post-submission
+		if (!claimStatus || [ClaimStatus.UNWORKED, ClaimStatus.SUBMITTED].includes(claimStatus)) {
 			newClaimStatus = ClaimStatus.IN_PROGRESS;
 			await checklistQueries.modifyChecklistClaim(
 				ctx,

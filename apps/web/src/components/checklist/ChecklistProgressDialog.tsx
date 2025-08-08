@@ -62,7 +62,7 @@ export default function ChecklistProgressDialog() {
 		if (confirmingStatus) {
 			return [
 				{
-					label: 'Nevermind',
+					label: 'Never mind',
 					disabled: isPending,
 					onClick: () => setConfirmingStatus(null),
 				},

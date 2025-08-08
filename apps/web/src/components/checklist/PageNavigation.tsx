@@ -1,6 +1,17 @@
 'use client';
-import { Box, Collapse, Divider, Fade, Paper, SvgIcon, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { Add, MovieCreationOutlined, MovieEdit, Visibility } from '@mui/icons-material';
+import {
+	Badge,
+	badgeClasses,
+	Box,
+	Collapse,
+	Divider,
+	Fade,
+	Paper,
+	SvgIcon,
+	ToggleButton,
+	ToggleButtonGroup,
+} from '@mui/material';
+import { AccessTime, Add, MovieCreationOutlined, MovieEdit, SmsOutlined, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import theme, { BASE_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
 import { useChecklistSlice } from '@/state/store';
@@ -19,6 +30,11 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistInfo from './ChecklistInfo';
 import ClaimStatusIcon from './ClaimStatusIcon';
+import ChecklistComments from './ChecklistComments';
+import ChecklistChangeLog from './ChecklistChangeLog';
+import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
+
+const COMMENT_LIMIT = 30;
 
 export default function PageNavigation() {
 	const router = useRouter();
@@ -28,6 +44,9 @@ export default function PageNavigation() {
 	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
 	const mode = useChecklistSlice((state) => state.mode);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
+	const showChangeLog = useChecklistSlice((state) => state.showChangeLog);
+	const showComments = useChecklistSlice((state) => state.showComments);
+	const commentOffset = useChecklistSlice((state) => state.commentOffset);
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 	const { data: claim } = useClaimTrpc().get(
@@ -66,6 +85,10 @@ export default function PageNavigation() {
 			},
 		}
 	);
+	const { data: commentData } = useCommentTrpc().list(
+		{ filters: {}, limit: COMMENT_LIMIT, offset: commentOffset },
+		{ enabled: checklistId !== -1 && claimId !== -1 }
+	);
 
 	const onAddPage = async () => {
 		try {
@@ -85,7 +108,59 @@ export default function PageNavigation() {
 
 	return (
 		<>
-			<Paper elevation={2} style={styles.container}>
+			<Paper elevation={2} sx={{ borderRadius: 0 }} style={styles.container}>
+				{(isAdmin || isSuperAdmin) && (
+					<>
+						<Toolbar
+							left={
+								<ToggleButtonGroup
+									color="success"
+									sx={{ bgcolor: 'white', borderRadius: 2 }}
+									value={mode}
+									exclusive
+									onChange={(_, value) => {
+										actions.updateMode(value);
+										if (value === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
+									}}
+								>
+									<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
+										<Visibility
+											sx={{
+												...styles.icon,
+												color: mode === ChecklistMode.VIEW ? 'success.main' : '#787878',
+											}}
+										/>
+										View
+									</ToggleButton>
+									<ToggleButton
+										value={ChecklistMode.TEST}
+										sx={{ ...styles.toggleButton, padding: '0px 12.5px' }}
+									>
+										<MovieCreationOutlined
+											sx={{
+												...styles.icon,
+												color: mode === ChecklistMode.TEST ? 'success.main' : '#787878',
+											}}
+										/>
+										Test
+									</ToggleButton>
+									<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
+										<MovieEdit
+											sx={{
+												...styles.icon,
+												color: mode === ChecklistMode.EDIT ? 'success.main' : '#787878',
+											}}
+										/>
+										Edit
+									</ToggleButton>
+								</ToggleButtonGroup>
+							}
+							padding={0}
+							height={40}
+						/>
+						<Divider flexItem sx={{ margin: '2.5px 0px 2.5px' }} />
+					</>
+				)}
 				<Toolbar
 					left={
 						<>
@@ -143,98 +218,98 @@ export default function PageNavigation() {
 				<Toolbar
 					left={
 						<>
-							{isAdmin || isSuperAdmin ? (
-								<ToggleButtonGroup
-									color="primary"
-									sx={{ bgcolor: 'white', borderRadius: 2 }}
-									value={mode}
-									exclusive
-									onChange={(_, value) => {
-										actions.updateMode(value);
-										if (value === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
+							<Box marginRight="5px">
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: actions.toggleExpandAll,
+										disabled: visibleInstanceIds.length < 2,
 									}}
-								>
-									<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
-										<Visibility
-											sx={{
-												...styles.icon,
-												color: mode === ChecklistMode.VIEW ? 'primary.main' : '#787878',
+									icon={
+										<SvgIcon>
+											{expandAll ? (
+												<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+													<title>collapse-all</title>
+													<path
+														fill={BASE_COLOR}
+														d="M14,4H4V14H2V4A2,2 0 0,1 4,2H14V4M18,6H8A2,2 0 0,0 6,8V18H8V8H18V6M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H12V17H20V15Z"
+													/>
+												</svg>
+											) : (
+												<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+													<title>expand-all</title>
+													<path
+														fill={BASE_COLOR}
+														d="M18,8H8V18H6V8A2,2 0 0,1 8,6H18V8M14,2H4A2,2 0 0,0 2,4V14H4V4H14V2M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H17V12H15V15H12V17H15V20H17V17H20V15Z"
+													/>
+												</svg>
+											)}
+										</SvgIcon>
+									}
+									tooltipProps={{ title: expandAll ? 'Collapse all' : 'Expand all' }}
+								/>
+							</Box>
+							<Fade in={mode === ChecklistMode.VIEW}>
+								<Box display="flex" justifyContent="flex-start" alignItems="center">
+									<Box marginRight="5px">
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: actions.toggleChangeLog,
 											}}
+											icon={
+												<AccessTime
+													sx={{
+														color: showChangeLog ? theme.palette.primary.main : undefined,
+													}}
+												/>
+											}
+											tooltipProps={{ title: `${showChangeLog ? 'Hide' : 'Show'} change log` }}
 										/>
-										View
-									</ToggleButton>
-									<ToggleButton
-										value={ChecklistMode.TEST}
-										sx={{ ...styles.toggleButton, padding: '0px 12.5px' }}
+									</Box>
+									<Badge
+										badgeContent={commentData?.count ?? 0}
+										color="primary"
+										showZero={false}
+										sx={styles.badge}
 									>
-										<MovieCreationOutlined
-											sx={{
-												...styles.icon,
-												color: mode === ChecklistMode.TEST ? 'primary.main' : '#787878',
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: actions.toggleComments,
 											}}
+											icon={
+												<SmsOutlined
+													sx={{
+														color: showComments ? theme.palette.primary.main : undefined,
+													}}
+												/>
+											}
+											tooltipProps={{ title: `${showComments ? 'Hide' : 'Show'} comments` }}
 										/>
-										Test
-									</ToggleButton>
-									<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
-										<MovieEdit
-											sx={{
-												...styles.icon,
-												color: mode === ChecklistMode.EDIT ? 'primary.main' : '#787878',
-											}}
-										/>
-										Edit
-									</ToggleButton>
-								</ToggleButtonGroup>
-							) : (
-								<></>
-							)}
+									</Badge>
+								</Box>
+							</Fade>
 						</>
 					}
 					right={
 						<>
-							<Collapse in={!isFetchingChecklistClaim} orientation="horizontal">
-								<Box marginRight="5px">
+							<Fade in={!isFetchingChecklistClaim && mode === ChecklistMode.VIEW}>
+								<span>
 									<BasicButtonStyled
 										buttonProps={{
 											onClick: actions.toggleChecklistProgressDialog,
+											startIcon: (
+												<ClaimStatusIcon
+													status={
+														(checklistClaim?.status ?? ClaimStatus.UNWORKED) as ClaimStatus
+													}
+												/>
+											),
 										}}
-										icon={
-											<ClaimStatusIcon
-												status={(checklistClaim?.status ?? ClaimStatus.UNWORKED) as ClaimStatus}
-											/>
-										}
 										tooltipProps={{ title: 'Evaluate' }}
-									/>
-								</Box>
-							</Collapse>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: actions.toggleExpandAll,
-									disabled: visibleInstanceIds.length < 2,
-								}}
-								icon={
-									<SvgIcon>
-										{expandAll ? (
-											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-												<title>collapse-all</title>
-												<path
-													fill={BASE_COLOR}
-													d="M14,4H4V14H2V4A2,2 0 0,1 4,2H14V4M18,6H8A2,2 0 0,0 6,8V18H8V8H18V6M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H12V17H20V15Z"
-												/>
-											</svg>
-										) : (
-											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-												<title>expand-all</title>
-												<path
-													fill={BASE_COLOR}
-													d="M18,8H8V18H6V8A2,2 0 0,1 8,6H18V8M14,2H4A2,2 0 0,0 2,4V14H4V4H14V2M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H17V12H15V15H12V17H15V20H17V17H20V15Z"
-												/>
-											</svg>
-										)}
-									</SvgIcon>
-								}
-								tooltipProps={{ title: expandAll ? 'Collapse all' : 'Expand all' }}
-							/>
+									>
+										Evaluate
+									</BasicButtonStyled>
+								</span>
+							</Fade>
 						</>
 					}
 					padding={'0px 0px 5px'}
@@ -248,6 +323,12 @@ export default function PageNavigation() {
 						))}
 					</Collapse>
 				</div>
+				<Collapse in={showComments} unmountOnExit>
+					<ChecklistComments />
+				</Collapse>
+				<Collapse in={showChangeLog} unmountOnExit>
+					<ChecklistChangeLog />
+				</Collapse>
 			</Paper>
 			{showStatsDialog && <QuestionStatsDialog />}
 		</>
@@ -255,6 +336,13 @@ export default function PageNavigation() {
 }
 
 const styles = {
+	badge: {
+		[`& .${badgeClasses.badge}`]: {
+			top: 5,
+			right: -2,
+			fontSize: 10,
+		},
+	},
 	button: {
 		height: 25,
 		marginLeft: '15px',
@@ -272,18 +360,20 @@ const styles = {
 		backgroundColor: OFFWHITE_COLOR,
 		padding: 10,
 		overflow: 'hidden',
-		borderRadius: 0,
+		display: 'flex',
+		flex: 1,
+		flexDirection: 'column' as const,
 	},
 	icon: {
 		marginRight: '5px',
 	},
 	nodeContainer: {
 		width: '100%',
-		height: 'calc(100% - 95px)',
 		overflow: 'auto',
 		margin: '10px 0px',
 		padding: '10px',
 		backgroundColor: 'white',
+		flex: 1,
 	},
 	toggleButton: {
 		height: 29,

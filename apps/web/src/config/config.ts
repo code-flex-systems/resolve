@@ -13,6 +13,7 @@ const config = {
 		{ key: 'last_update', label: 'Last Update' },
 		{ key: 'expected_recovery', label: 'Expected Recovery' },
 	],
+	MAX_COMMENT_SIZE: 500,
 	USER_FIELDS: [
 		{ key: 'first', label: 'First' },
 		{ key: 'last', label: 'Last' },
