@@ -31,6 +31,8 @@ import {
 } from '@/schemas/checklistSchemas';
 import { requireRole } from '@/lib/auth/requireRole';
 import config from '@/config/config';
+import { checkRole } from '@/lib/auth/checkRole';
+import { requireAssigned } from '@/lib/auth/requireAssigned';
 
 export const checklistRouter = router({
 	getChecklists: protectedProcedure.input(getChecklistsInput).query(async ({ input, ctx }) => {
@@ -58,6 +60,9 @@ export const checklistRouter = router({
 		}),
 
 	getChecklistClaimStats: protectedProcedure.input(getChecklistClaimStatsInput).query(async ({ ctx, input }) => {
+		if (!!input.checklistId || input.users?.length !== 1 || input.users[0] !== ctx.session.user.email) {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		}
 		return await getChecklistClaimStats(ctx, input);
 	}),
 
@@ -91,6 +96,9 @@ export const checklistRouter = router({
 	}),
 
 	updateChecklistClaim: protectedProcedure.input(modifyChecklistClaimInput).mutation(async ({ input, ctx }) => {
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireAssigned(ctx, input.checklistId, input.claimId);
+		}
 		return modifyChecklistClaim(ctx, input);
 	}),
 });

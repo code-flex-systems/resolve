@@ -22,7 +22,7 @@ export default function HomeSearch() {
 	return (
 		<>
 			<Paper elevation={1} sx={styles.container}>
-				<Box left="calc(50% - 130px)" top={-120} position="absolute" zIndex={-1}>
+				<Box left="calc(50% - 130px)" top={100} position="absolute" zIndex={-1}>
 					<Image alt="insurance" src={InsuranceGraphic1} width={260} height={230} />
 				</Box>
 				<Box height={90} />
@@ -84,9 +84,10 @@ export default function HomeSearch() {
 
 const styles = {
 	container: {
-		width: 350,
-		minWidth: 350,
-		height: 375,
+		width: '100%',
+		minWidth: '100%',
+		height: '100%',
+		flex: 1,
 		padding: '10px 20px',
 		borderRadius: 4,
 		margin: '5px',

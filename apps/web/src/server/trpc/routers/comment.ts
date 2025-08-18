@@ -7,6 +7,9 @@ import {
 	getComments,
 	modifyComment,
 } from '@/api/controllers/commentController';
+import config from '@/config/config';
+import { checkRole } from '@/lib/auth/checkRole';
+import { requireOwnership } from '@/lib/auth/requireOwnership';
 import {
 	createCommentInput,
 	deleteCommentInput,
@@ -18,6 +21,9 @@ import {
 
 export const commentRouter = router({
 	createComment: protectedProcedure.input(createCommentInput).mutation(async ({ input, ctx }) => {
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, input.checklistId, input.claimId);
+		}
 		return createComment(ctx, input);
 	}),
 

@@ -29,18 +29,36 @@ export default function Home() {
 				</Box>
 
 				<Box width="100%" flex={1} display="flex" justifyContent="space-between" alignItems="center">
-					<Stack height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+					<Stack
+						height="100%"
+						display="flex"
+						justifyContent="flex-start"
+						alignItems="flex-start"
+						marginRight="20px"
+					>
 						<Box display="flex" justifyContent="flex-start" alignItems="flex-start">
 							<FQStepper />
 							<Recents />
 						</Box>
 						<RecentComments />
 					</Stack>
-					<Box display="flex" justifyContent="center" alignItems="flex-start">
+					<Box
+						width="100%"
+						height="calc(100% - 30px)"
+						display="flex"
+						justifyContent="center"
+						alignItems="flex-start"
+					>
 						<HomeSearch />
 					</Box>
 
-					<Box height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+					<Box
+						height="100%"
+						display="flex"
+						justifyContent="flex-start"
+						alignItems="flex-start"
+						marginLeft="20px"
+					>
 						{!!session?.user && <ClaimsMetric users={[session.user.email]} />}
 					</Box>
 				</Box>

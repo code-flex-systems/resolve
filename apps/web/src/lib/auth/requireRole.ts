@@ -10,7 +10,7 @@ export function requireRole(ctx: Context, requiredRole: Role | Role[]) {
 		throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User is not authenticated.' });
 	}
 
-	if (!requiredRoles.includes(userRole)) {
+	if (!requiredRoles.includes(userRole as Role)) {
 		throw new TRPCError({ code: 'FORBIDDEN', message: `User must have one of: ${requiredRoles.join(', ')}` });
 	}
 

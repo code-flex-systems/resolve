@@ -10,5 +10,5 @@ export function checkRole(ctx: Context, checkedRole: Role | Role[]) {
 		throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User is not authenticated.' });
 	}
 
-	return checkedRoles.includes(userRole);
+	return checkedRoles.includes(userRole as Role);
 }

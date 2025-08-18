@@ -1,6 +1,4 @@
-import config from '@/config/config';
 import { router, protectedProcedure } from '../trpc';
-
 import {
 	evaluateResponses,
 	getResponseAuditLogs,
@@ -8,7 +6,9 @@ import {
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
 } from '@/api/controllers/responseController';
-import { ClaimStatus } from '@/config/enums';
+import config from '@/config/config';
+import { checkRole } from '@/lib/auth/checkRole';
+import { requireAssigned } from '@/lib/auth/requireAssigned';
 import { requireRole } from '@/lib/auth/requireRole';
 import {
 	evaluateResponsesInput,
@@ -17,6 +17,7 @@ import {
 	getResponsesForClaimChecklistInput,
 	upsertQuestionResponsesInput,
 } from '@/schemas/responseSchemas';
+import { TRPCError } from '@trpc/server';
 
 export const responseRouter = router({
 	evaluateResponses: protectedProcedure.input(evaluateResponsesInput).mutation(async ({ input, ctx }) => {
@@ -34,10 +35,19 @@ export const responseRouter = router({
 		}),
 
 	getResponseAuditLogs: protectedProcedure.input(getResponseAuditLogsInput).query(async ({ input, ctx }) => {
+		if (!input.filters.claimId) {
+			// Viewing all logs for a checklist requires privileged access
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		}
 		return getResponseAuditLogs(ctx, input);
 	}),
 
 	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {
+		const sampleResponse = input.responses?.[0];
+		if (!sampleResponse) throw new TRPCError({ code: 'BAD_REQUEST', message: 'At least one response is required' });
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireAssigned(ctx, sampleResponse.checklist_id, sampleResponse.claim_id);
+		}
 		return upsertQuestionResponses(ctx, input);
 	}),
 });

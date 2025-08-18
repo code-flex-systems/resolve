@@ -13,9 +13,11 @@ import { ClaimStatus } from '@/config/enums';
 import ClaimStatusIcon from './ClaimStatusIcon';
 import { useMemo, useState } from 'react';
 import { DialogAction } from '@/types/types';
+import useIsAssigned from '@/hooks/useIsAssigned';
 
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
+	const isAssigned = useIsAssigned();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
 		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: checklistId !== -1 && claimId !== -1 });
@@ -29,6 +31,7 @@ export default function ChecklistProgressDialog() {
 		progress.totalQuestionCount > 0 ? Math.floor((progress.answerCount / progress.totalQuestionCount) * 100) : 0;
 
 	const primaryAction: DialogAction | undefined = useMemo(() => {
+		if (!isAssigned) return;
 		if (confirmingStatus) {
 			return {
 				label: "I'm sure",
@@ -56,9 +59,19 @@ export default function ChecklistProgressDialog() {
 			};
 		}
 		return undefined;
-	}, [confirmingStatus, isPending, isFetchingChecklistClaim, progress, checklistClaim, checklistId, claimId]);
+	}, [
+		confirmingStatus,
+		isPending,
+		isFetchingChecklistClaim,
+		progress,
+		checklistClaim,
+		checklistId,
+		claimId,
+		isAssigned,
+	]);
 
 	const secondaryActions: DialogAction[] | undefined = useMemo(() => {
+		if (!isAssigned) return;
 		if (confirmingStatus) {
 			return [
 				{
@@ -93,7 +106,7 @@ export default function ChecklistProgressDialog() {
 			];
 		}
 		return undefined;
-	}, [confirmingStatus, isPending, checklistClaim, checklistId, claimId]);
+	}, [confirmingStatus, isPending, checklistClaim, checklistId, claimId, isAssigned]);
 
 	const getStatusConfirmationMsg = () => {
 		if (!confirmingStatus) return '';
@@ -164,13 +177,24 @@ export default function ChecklistProgressDialog() {
 												buttonProps={{}}
 												icon={<InfoOutlined />}
 												tooltipProps={{
-													title: 'Answering additional questions or changing your existing responses may alter this metric.',
+													title: isAssigned
+														? 'Answering additional questions or changing your existing responses will alter this metric.'
+														: 'If additional questions are answered or existing responses are changed, this metric will update.',
 													placement: 'bottom-start',
 													arrow: true,
 												}}
 											/>
 											<Typography marginLeft="10px">
-												You've answered <b>{progressPercentage}%</b> of this checklist.
+												{isAssigned ? (
+													<>
+														You've answered <b>{progressPercentage}%</b> of this checklist.
+													</>
+												) : (
+													<>
+														<b>{progressPercentage}%</b> of this checklist has been
+														answered.
+													</>
+												)}
 											</Typography>
 										</Box>
 										<LinearProgress

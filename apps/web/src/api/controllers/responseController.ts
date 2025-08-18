@@ -88,7 +88,7 @@ export async function getResponseAuditLogs(
 		limit,
 		offset,
 	}: {
-		filters: { checklistId: number; emails?: string[]; range?: DateRange };
+		filters: { checklistId: number; claimId?: number; emails?: string[]; range?: DateRange };
 		limit: number;
 		offset: number;
 	}

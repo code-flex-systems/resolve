@@ -14,35 +14,43 @@ export default function ChecklistFormLabel(props: {
 	value?: string | string[];
 	idx: number;
 	question: Question;
+	disabled: boolean;
 	setValue: UseFormSetValue<FieldValues>;
 }) {
-	const { id, value, idx, question, setValue } = props;
+	const { id, value, idx, question, disabled, setValue } = props;
 	const selectedPageInfo = useStore(selectors.selectedPageInfo);
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
-			<Tooltip title="Reset question" enterDelay={500}>
-				<span>
-					<IconButton
-						onClick={() =>
-							setValue(id, question.type === QuestionType.FREEFORM ? '' : [], { shouldDirty: true })
-						}
-						disabled={!value?.length}
-						sx={{ marginRight: '5px' }}
-					>
-						<Replay sx={{ fontSize: 17 }} />
-					</IconButton>
-				</span>
-			</Tooltip>
-			<Tooltip title="Add a comment" enterDelay={500}>
-				<span>
-					<IconButton
-						onClick={() => toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id)}
-						sx={{ marginRight: '10px' }}
-					>
-						<SmsOutlined sx={{ fontSize: 17 }} />
-					</IconButton>
-				</span>
-			</Tooltip>
+			{!disabled && (
+				<>
+					<Tooltip title="Reset question" enterDelay={500}>
+						<span>
+							<IconButton
+								onClick={() =>
+									setValue(id, question.type === QuestionType.FREEFORM ? '' : [], {
+										shouldDirty: true,
+									})
+								}
+								disabled={!value?.length}
+								sx={{ marginRight: '5px' }}
+							>
+								<Replay sx={{ fontSize: 17 }} />
+							</IconButton>
+						</span>
+					</Tooltip>
+					<Tooltip title="Add a comment" enterDelay={500}>
+						<span>
+							<IconButton
+								onClick={() => toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id)}
+								sx={{ marginRight: '10px' }}
+							>
+								<SmsOutlined sx={{ fontSize: 17 }} />
+							</IconButton>
+						</span>
+					</Tooltip>
+				</>
+			)}
+
 			<Typography fontWeight="bold">
 				{idx + 1}. {question.text}
 			</Typography>

@@ -16,7 +16,6 @@ import { requireRole } from '@/lib/auth/requireRole';
 
 export const userRouter = router({
 	getUsers: protectedProcedure.input(getUsersInput).query(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getUsers(ctx, input);
 	}),
 

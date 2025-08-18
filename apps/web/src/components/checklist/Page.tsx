@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import useStore, { useChecklistSlice } from '@/state/store';
 import * as selectors from '@/state/checklist/selectors';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
-import { Button, Divider, Fade, Typography } from '@mui/material';
+import { Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -15,7 +15,6 @@ import 'ldrs/react/LineWobble.css';
 import theme from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
@@ -24,6 +23,7 @@ import BasicButtonStyled from '../common/BasicButtonStyled';
 import NewCommentDialog from './NewCommentDialog';
 import { toggleUpdateSubmittedDialog } from '@/state/checklist/actions';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
+import useIsAssigned from '@/hooks/useIsAssigned';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	const defaults: Record<string, number[] | string> = {};
@@ -57,6 +57,7 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 }
 
 export default function Page() {
+	const isAssigned = useIsAssigned();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
 	const mode = useChecklistSlice((state) => state.mode);
@@ -70,11 +71,11 @@ export default function Page() {
 		reset,
 		watch,
 		handleSubmit,
-		formState: { isDirty, dirtyFields, isSubmitting },
+		formState: { isDirty, isSubmitting },
 	} = useForm({ mode: 'onChange' });
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
-	const { data: claim } = useClaimTrpc().get(
+	const { data: checklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
@@ -114,6 +115,7 @@ export default function Page() {
 	}, [questions, responses, selectedPageInstance, mode, loading]);
 
 	const onSubmit = handleSubmit(async (data) => {
+		if (!isAssigned) return;
 		try {
 			const responses: QuestionResponse[] = Object.keys(data)
 				.filter((field) => !field.endsWith(QuestionType.FREEFORM))
@@ -122,7 +124,7 @@ export default function Page() {
 					const response: QuestionResponse = {
 						checklist_id: checklist?.id ?? -1,
 						instance_id: selectedPageInstance,
-						claim_id: claim!.id,
+						claim_id: claimId,
 						question_id: questionId,
 						response_text: typeof data[field] === 'string' && !!data[field] ? data[field] : null,
 						selected_answers: Array.isArray(data[field])
@@ -134,7 +136,7 @@ export default function Page() {
 					};
 					return response;
 				});
-			await upsertResponses({ responses, claimStatus: claim?.status as ClaimStatus | undefined });
+			await upsertResponses({ responses, claimStatus: checklistClaim?.status as ClaimStatus | undefined });
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
@@ -184,7 +186,7 @@ export default function Page() {
 							}
 							leftWidth="70%"
 							right={
-								<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
+								<Fade in={mode === ChecklistMode.VIEW && isAssigned} unmountOnExit>
 									<div className="flex-row-right">
 										<BasicButtonStyled
 											buttonProps={{
@@ -204,7 +206,7 @@ export default function Page() {
 												color: 'primary',
 												disabled: !isDirty || fetching || isSubmitting,
 												onClick: () => {
-													if (claim?.status === ClaimStatus.SUBMITTED) {
+													if (checklistClaim?.status === ClaimStatus.SUBMITTED) {
 														toggleUpdateSubmittedDialog(onSubmit);
 														return;
 													}
@@ -235,7 +237,7 @@ export default function Page() {
 										setValue={setValue}
 										watch={watch}
 										question={question}
-										disabled={isSubmitting}
+										disabled={isSubmitting || !isAssigned}
 										idx={i}
 									/>
 								))}

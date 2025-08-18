@@ -182,6 +182,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 
 export default function UserActivityTable({
 	checklistId,
+	claimId,
 	users,
 	range,
 	pageSize = 25,
@@ -189,6 +190,7 @@ export default function UserActivityTable({
 	showPagination = true,
 }: {
 	checklistId: number;
+	claimId?: number;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
 	pageSize?: number;
@@ -200,6 +202,7 @@ export default function UserActivityTable({
 		{
 			filters: {
 				checklistId,
+				claimId,
 				emails: users.map((u) => u.email),
 				range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null],
 			},
@@ -207,7 +210,7 @@ export default function UserActivityTable({
 			offset: constraints.page * constraints.pageSize,
 		},
 		{
-			enabled: checklistId !== -1,
+			enabled: checklistId !== -1 && (!claimId || claimId !== -1),
 		}
 	);
 	const rowCountRef = useRef(logs.count ?? 0);

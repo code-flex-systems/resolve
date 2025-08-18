@@ -30,6 +30,7 @@ export type GetResponsesForClaimChecklistInput = z.infer<typeof getResponsesForC
 export const getResponseAuditLogsInput = z.object({
 	filters: z.object({
 		checklistId: z.number().int(),
+		claimId: z.number().int().optional(),
 		emails: z.array(z.string()).optional(),
 		range: z.tuple([parseDate().nullable(), parseDate().nullable()]).optional(),
 	}),

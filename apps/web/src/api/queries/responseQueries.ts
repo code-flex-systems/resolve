@@ -138,7 +138,7 @@ export async function getResponsesForClaimChecklist(
 
 export async function getResponseAuditLogs(
 	ctx: ProtectedContext,
-	filters: { checklistId: number; emails?: string[]; range?: DateRange },
+	filters: { checklistId: number; claimId?: number; emails?: string[]; range?: DateRange },
 	limit: number,
 	offset: number
 ) {
@@ -148,6 +148,7 @@ export async function getResponseAuditLogs(
 			.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
 			.where((eb) => {
 				let whereClause = [eb('response_audit_logs.checklist_id', '=', filters.checklistId)];
+				if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
 				if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
 				if (filters.range && filters.range.some((d) => !!d)) {
 					if (filters.range[0]) {

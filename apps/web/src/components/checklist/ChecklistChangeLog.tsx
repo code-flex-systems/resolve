@@ -3,10 +3,9 @@ import { Box, Collapse, Divider, Stack, Typography } from '@mui/material';
 import UserActivityTable from '../metrics/UserActivity/UserActivityTable';
 import { useSession } from 'next-auth/react';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import dayjs from 'dayjs';
 
 export default function ChecklistChangeLog() {
-	const { checklistId = -1 } = useChecklistParams();
+	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	return (
 		<Stack
 			width="100%"
@@ -29,6 +28,7 @@ export default function ChecklistChangeLog() {
 			<Box width={460} height={360}>
 				<UserActivityTable
 					checklistId={checklistId}
+					claimId={claimId}
 					users={[]}
 					range={[null, null]}
 					showPagination={true}

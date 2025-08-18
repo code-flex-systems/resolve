@@ -13,7 +13,7 @@ export function ChecklistQuestion(props: {
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
 	idx: number;
-	disabled?: boolean;
+	disabled: boolean;
 }) {
 	const { control, question, setValue, watch, idx, disabled } = props;
 	const fieldName = question.id.toString();
@@ -22,7 +22,14 @@ export function ChecklistQuestion(props: {
 	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
 	return (
 		<div style={styles.container} className="flex-col-left">
-			<ChecklistFormLabel id={fieldName} value={fieldValue} idx={idx} question={question} setValue={setValue} />
+			<ChecklistFormLabel
+				id={fieldName}
+				value={fieldValue}
+				idx={idx}
+				question={question}
+				setValue={setValue}
+				disabled={disabled}
+			/>
 			<Controller
 				name={fieldName}
 				control={control}

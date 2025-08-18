@@ -21,6 +21,7 @@ import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import config from '@/config/config';
+import useIsAssigned from '@/hooks/useIsAssigned';
 
 const limit = 30;
 const pageSize = 3;
@@ -31,6 +32,7 @@ export default function ChecklistComments() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const [page, setPage] = useState(0);
 	const commentOffset = useChecklistSlice((state) => state.commentOffset);
+	const isAssigned = useIsAssigned(true);
 
 	const { data = { rows: [], count: 0 }, isFetching } = useCommentTrpc().list(
 		{ filters: {}, limit, offset: commentOffset },
@@ -80,13 +82,15 @@ export default function ChecklistComments() {
 					<Typography fontSize={15}>Comments</Typography>
 				</Badge>
 
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setShowNewComment(true),
-					}}
-					icon={<SmsOutlined sx={{ transform: 'scaleX(-1)' }} />}
-					tooltipProps={{ title: 'New comment' }}
-				/>
+				{isAssigned && (
+					<BasicButtonStyled
+						buttonProps={{
+							onClick: () => setShowNewComment(true),
+						}}
+						icon={<SmsOutlined sx={{ transform: 'scaleX(-1)' }} />}
+						tooltipProps={{ title: 'New comment' }}
+					/>
+				)}
 			</Box>
 
 			<Divider flexItem sx={{ margin: '0px 10px' }} />

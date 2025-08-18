@@ -14,7 +14,7 @@ import { applyClientScope } from '../database/clientScoped';
  * @returns claim record
  */
 export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	const checklistClaim = await db
+	await db
 		.insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
@@ -25,10 +25,8 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 			assignee: ctx.session.user.id,
 		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
-		.returningAll()
-		.executeTakeFirstOrThrow();
-	const claim = await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
-	return { ...claim, ...checklistClaim };
+		.execute();
+	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
 }
 
 /**

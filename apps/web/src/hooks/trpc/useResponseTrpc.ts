@@ -36,6 +36,7 @@ export function useResponseTrpc() {
 					checklistId,
 					claimId,
 				});
+				trpcUtils.response.getResponseAuditLogs.invalidate({ filters: { checklistId, claimId } });
 
 				if (status) {
 					trpcUtils.page.getPageInstanceTree.setData({ checklistId, claimId }, (old) => {
