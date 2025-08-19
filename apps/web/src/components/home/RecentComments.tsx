@@ -1,20 +1,16 @@
 'use client';
-import { Box, Paper, Skeleton, Stack } from '@mui/material';
+import { Box, Paper, Stack } from '@mui/material';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import Comments from '../common/Comments';
 import { useSession } from 'next-auth/react';
-import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import './styles.css';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { MoreHoriz } from '@mui/icons-material';
 
 export default function RecentComments() {
 	const { data: session } = useSession();
-	const userId = session?.user?.id;
-	const { isFetching } = useCommentTrpc().list({ filters: { userId } });
-	return isFetching ? (
-		<Skeleton sx={styles.container} />
-	) : (
+	const userId = session?.user.id;
+	return (
 		<Paper sx={styles.container}>
 			<Box width="100%" height={40} display="flex" justifyContent="flex-start" alignItems="center">
 				<ExpandableTitle
