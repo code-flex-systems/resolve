@@ -243,7 +243,7 @@ export default function Page() {
 										watch={watch}
 										question={question}
 										comment={comments?.[question.id]}
-										disabled={isSubmitting || !isAssigned}
+										disabled={isSubmitting}
 										idx={i}
 									/>
 								))}

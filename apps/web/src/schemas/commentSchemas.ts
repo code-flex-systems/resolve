@@ -13,7 +13,7 @@ export const createCommentInput = z.object({
 	claimId: z.number(),
 	instanceId: z.number().optional(),
 	questionId: z.number().optional(),
-	body: z.string(),
+	body: z.string().max(500),
 });
 
 export const deleteCommentInput = z.object({

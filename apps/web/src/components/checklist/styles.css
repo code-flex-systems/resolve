@@ -3,6 +3,17 @@
 	transition: scale 100ms ease;
 }
 
+.comment:hover .go-icon {
+	visibility: visible;
+	opacity: 1;
+}
+
+.go-icon {
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 200ms ease;
+}
+
 .link:hover .badge {
 	scale: 1.1;
 }

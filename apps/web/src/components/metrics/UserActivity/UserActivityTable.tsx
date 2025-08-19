@@ -26,7 +26,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								Responded to the question
 							</Typography>
 							<Chip label={row.question_text} sx={styles.chip} />
@@ -38,7 +38,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								with answer(s)
 							</Typography>
 							{row.new_response_text ? (
@@ -61,7 +61,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								Changed their response to the question
 							</Typography>
 							<Chip label={row.question_text} sx={styles.chip} />
@@ -73,7 +73,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								from answer(s)
 							</Typography>
 							{row.old_response_text ? (
@@ -91,7 +91,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								to answer(s)
 							</Typography>
 							{row.new_response_text ? (
@@ -114,7 +114,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								Cleared their response to the question
 							</Typography>
 							<Chip label={row.question_text} sx={styles.chip} />
@@ -126,7 +126,7 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 							padding="2px 0px"
 							flexWrap="wrap"
 						>
-							<Typography fontStyle="italic" fontSize={14} marginRight="5px">
+							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
 								Answers were{' '}
 							</Typography>
 							{row.old_response_text ? (
@@ -159,17 +159,17 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 			</Stack>
 			<Box display="flex" justifyContent="flex-start" alignItems="center" paddingTop="5px" flexWrap="wrap">
 				<Box display="flex" justifyContent="flex-start" alignItems="center">
-					<Typography fontSize={14} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
+					<Typography fontSize={12} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
 						{formatUser(row, session?.user?.email)}
 					</Typography>
 					<div style={styles.divider} />
-					<Typography fontSize={14} lineHeight="17px" color="primary" noWrap>
+					<Typography fontSize={12} lineHeight="17px" color="primary" noWrap>
 						{row.page_label}
 					</Typography>
 				</Box>
 				<Box display="flex" justifyContent="flex-start" alignItems="center">
 					<div style={styles.divider} />
-					<Typography fontSize={14} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
+					<Typography fontSize={12} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
 						{compact
 							? dayjs(row.created_at).format('MM/DD/YY hh:mm A')
 							: dayjs(row.created_at).format('MMMM D, YYYY hh:mm A')}
@@ -272,12 +272,13 @@ const styles = {
 		height: 20,
 		marginTop: '2px',
 		marginLeft: '2px',
+		fontStyle: 'italic',
 	},
 	divider: {
 		width: 5,
 		height: 5,
 		borderRadius: 5,
-		backgroundColor: BASE_COLOR_LIGHT,
+		backgroundColor: '#d9d9d9',
 		margin: '0px 10px',
 	},
 	tableOverrides: {

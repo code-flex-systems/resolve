@@ -27,7 +27,11 @@ export default function RecentComments() {
 				alignItems="flex-start"
 				overflow="auto"
 			>
-				<Comments filters={{ userId }} width={470} />
+				<Comments
+					filters={{ userId }}
+					width={470}
+					onNavigate={(instanceId: number, questionId: number) => {}}
+				/>
 			</Stack>
 			<div
 				style={{

@@ -51,11 +51,7 @@ export default function CommentDialog() {
 
 	return (
 		<BasicDialog
-			title={
-				existingComment
-					? `${formatUser(existingComment)} said...`
-					: `Add a comment to this question (q${questionId})`
-			}
+			title={existingComment ? `${formatUser(existingComment)} said...` : 'Add a comment...'}
 			onClose={() => toggleQuestionCommentDialog()}
 			closeDisabled={inTransition}
 			width={400}

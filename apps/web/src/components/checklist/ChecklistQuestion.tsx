@@ -8,6 +8,7 @@ import ChecklistAnswerFreeform from './ChecklistAnswerFreeform';
 import ChecklistAnswerDropdown from './ChecklistAnswerDropdown';
 import { useChecklistSlice } from '@/state/store';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
+import useIsAssigned from '@/hooks/useIsAssigned';
 
 export function ChecklistQuestion(props: {
 	control: Control<FieldValues, any, FieldValues>;
@@ -18,12 +19,14 @@ export function ChecklistQuestion(props: {
 	comment?: GetCommentOutput;
 	disabled: boolean;
 }) {
-	const { control, question, setValue, watch, idx, comment, disabled } = props;
+	const { control, question, setValue, watch, idx, comment } = props;
 	const fieldName = question.id.toString();
 	const fieldValue = watch(fieldName);
 	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
 	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
 	const highlightedQuestion = useChecklistSlice((state) => state.highlightedQuestion);
+	const isAssigned = useIsAssigned();
+	const disabled = props.disabled || !isAssigned;
 
 	return (
 		<div
@@ -40,7 +43,7 @@ export function ChecklistQuestion(props: {
 				question={question}
 				setValue={setValue}
 				comment={comment}
-				disabled={disabled}
+				disabled={props.disabled}
 			/>
 			<Controller
 				name={fieldName}

@@ -18,6 +18,10 @@ export default function ChecklistAnswerRadio(props: {
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
+	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
+		{ checklistId, claimId },
+		{ enabled: checklistId !== -1 && claimId !== -1 }
+	);
 	return (
 		<Stack direction="row" flexWrap="wrap" spacing={0.5} useFlexGap padding="0px 10px">
 			{(question.answers ?? []).map((a) => (
@@ -49,7 +53,9 @@ export default function ChecklistAnswerRadio(props: {
 							)
 						}
 						label={
-							a.calls_instance_id && field.value?.includes(a.id) ? (
+							a.calls_instance_id &&
+							visibleInstanceIds.includes(a.calls_instance_id) &&
+							field.value?.includes(a.id) ? (
 								<Link color="info" onClick={() => actions.goToPage(a.calls_instance_id!, data.tree)}>
 									{a.text}
 								</Link>

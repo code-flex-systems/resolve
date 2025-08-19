@@ -80,7 +80,7 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 					);
 				}
 				if (filters.checklistId) andClause.push(eb('comment.checklist_id', '=', filters.checklistId));
-				if (filters.claimId) andClause.push(eb('comment.checklist_id', '=', filters.claimId));
+				if (filters.claimId) andClause.push(eb('comment.claim_id', '=', filters.claimId));
 				if (filters.instanceId) andClause.push(eb('comment.instance_id', '=', filters.instanceId));
 				if (filters.questionId) andClause.push(eb('comment.question_id', '=', filters.questionId));
 				return eb.and(andClause);
@@ -93,8 +93,9 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 	let dataQuery = baseQuery
 		.leftJoin('page_instance', 'comment.instance_id', 'page_instance.id')
 		.leftJoin('page', 'page_instance.page_id', 'page.id')
+		.leftJoin('question', 'comment.question_id', 'question.id')
 		.selectAll('comment')
-		.select(['users.first', 'users.last', 'users.email', 'page.title as page_title'])
+		.select(['users.first', 'users.last', 'users.email', 'page.title as page_title', 'question.position'])
 		.orderBy(['comment.updated_at desc', 'comment.created_at desc']);
 	if (limit) dataQuery = dataQuery.limit(limit);
 	if (offset) dataQuery = dataQuery.offset(offset);

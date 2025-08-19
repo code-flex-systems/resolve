@@ -86,8 +86,8 @@ export default function PageNavigation() {
 		}
 	);
 	const { data: commentData } = useCommentTrpc().list(
-		{ filters: {}, limit: COMMENT_LIMIT, offset: commentOffset },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ filters: { checklistId, claimId }, limit: COMMENT_LIMIT, offset: commentOffset },
+		{ enabled: checklistId !== -1 && !!claimId }
 	);
 
 	const onAddPage = async () => {

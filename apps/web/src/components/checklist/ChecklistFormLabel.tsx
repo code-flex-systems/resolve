@@ -10,6 +10,7 @@ import useStore, { useChecklistSlice } from '@/state/store';
 import * as selectors from '../../state/checklist/selectors';
 import theme from '@/styles/theme';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
+import useIsAssigned from '@/hooks/useIsAssigned';
 
 export default function ChecklistFormLabel(props: {
 	id: string;
@@ -23,41 +24,37 @@ export default function ChecklistFormLabel(props: {
 	const { id, value, idx, question, comment, disabled, setValue } = props;
 	const selectedPageInfo = useStore(selectors.selectedPageInfo);
 	const highlightedQuestion = useChecklistSlice((state) => state.highlightedQuestion);
+	const isAssigned = useIsAssigned();
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
-			{!disabled && (
-				<>
-					<Tooltip title="Reset question" enterDelay={500}>
-						<span>
-							<IconButton
-								onClick={() =>
-									setValue(id, question.type === QuestionType.FREEFORM ? '' : [], {
-										shouldDirty: true,
-									})
-								}
-								disabled={!value?.length}
-								sx={{ marginRight: '5px' }}
-							>
-								<Replay sx={{ fontSize: 17 }} />
-							</IconButton>
-						</span>
-					</Tooltip>
-					<Tooltip title="Add a comment" enterDelay={500}>
-						<span>
-							<IconButton
-								onClick={() =>
-									toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id, comment)
-								}
-								sx={{ marginRight: '10px' }}
-							>
-								<SmsOutlined
-									sx={{ fontSize: 17, color: comment ? theme.palette.primary.main : undefined }}
-								/>
-							</IconButton>
-						</span>
-					</Tooltip>
-				</>
+			{isAssigned && (
+				<Tooltip title="Reset question" enterDelay={500}>
+					<span>
+						<IconButton
+							onClick={() =>
+								setValue(id, question.type === QuestionType.FREEFORM ? '' : [], {
+									shouldDirty: true,
+								})
+							}
+							disabled={!value?.length || disabled}
+							sx={{ marginRight: '5px' }}
+						>
+							<Replay sx={{ fontSize: 17 }} />
+						</IconButton>
+					</span>
+				</Tooltip>
 			)}
+			<Tooltip title="Add a comment" enterDelay={500}>
+				<span>
+					<IconButton
+						onClick={() => toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id, comment)}
+						disabled={disabled}
+						sx={{ marginRight: '10px' }}
+					>
+						<SmsOutlined sx={{ fontSize: 17, color: comment ? theme.palette.primary.main : undefined }} />
+					</IconButton>
+				</span>
+			</Tooltip>
 
 			<Typography color={highlightedQuestion === question.id ? 'primary' : undefined} fontWeight="bold">
 				{idx + 1}. {question.text}

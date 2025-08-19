@@ -36,7 +36,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	const isAssigned = useIsAssigned(true);
 
 	const { data = { rows: [], count: 0 }, isFetching } = useCommentTrpc().list(
-		{ filters: {}, limit, offset: commentOffset },
+		{ filters: { checklistId, claimId }, limit, offset: commentOffset },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
 	const { mutateAsync: createComment, isPending } = useCommentTrpc().create;
@@ -161,7 +161,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				) : (
 					<Comments
 						width={460}
-						filters={{}}
+						filters={{ checklistId, claimId }}
 						limit={limit}
 						offset={commentOffset}
 						page={page}
