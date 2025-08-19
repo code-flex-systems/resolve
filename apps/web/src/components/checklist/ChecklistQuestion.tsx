@@ -6,6 +6,8 @@ import ChecklistAnswerRadio from './ChecklistAnswerRadio';
 import { QuestionType } from '@/config/enums';
 import ChecklistAnswerFreeform from './ChecklistAnswerFreeform';
 import ChecklistAnswerDropdown from './ChecklistAnswerDropdown';
+import { useChecklistSlice } from '@/state/store';
+import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 
 export function ChecklistQuestion(props: {
 	control: Control<FieldValues, any, FieldValues>;
@@ -13,21 +15,31 @@ export function ChecklistQuestion(props: {
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
 	idx: number;
+	comment?: GetCommentOutput;
 	disabled: boolean;
 }) {
-	const { control, question, setValue, watch, idx, disabled } = props;
+	const { control, question, setValue, watch, idx, comment, disabled } = props;
 	const fieldName = question.id.toString();
 	const fieldValue = watch(fieldName);
 	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
 	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
+	const highlightedQuestion = useChecklistSlice((state) => state.highlightedQuestion);
+
 	return (
-		<div style={styles.container} className="flex-col-left">
+		<div
+			style={{
+				...styles.container,
+				backgroundColor: highlightedQuestion === question.id ? 'rgba(33, 106, 196, 0.1)' : undefined,
+			}}
+			className="flex-col-left"
+		>
 			<ChecklistFormLabel
 				id={fieldName}
 				value={fieldValue}
 				idx={idx}
 				question={question}
 				setValue={setValue}
+				comment={comment}
 				disabled={disabled}
 			/>
 			<Controller
@@ -90,5 +102,6 @@ const styles = {
 	container: {
 		width: '100%',
 		padding: '10px 0px',
+		transition: 'background-color 300ms ease',
 	},
 };

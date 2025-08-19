@@ -34,7 +34,8 @@ export const getCommentCountInput = z.object({
 	filters: commentFilters,
 });
 
-export const updateCommentInput = z.object({
-	id: z.number(),
-	body: z.string(),
+export const getCommentsForPageInput = z.object({
+	checklistId: z.number(),
+	claimId: z.number(),
+	instanceId: z.number(),
 });

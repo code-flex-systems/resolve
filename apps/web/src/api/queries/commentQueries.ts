@@ -6,7 +6,7 @@ import { Comment, CommentFilters } from '@/types/types';
 import { DB } from '../database/types';
 
 export async function createComment(ctx: ProtectedContext, comment: Comment) {
-	await db
+	return await db
 		.insertInto('comment')
 		.values({
 			checklist_id: comment.checklistId,
@@ -17,11 +17,12 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
 		})
-		.execute();
+		.returningAll()
+		.executeTakeFirstOrThrow();
 }
 
 export async function deleteComment(ctx: ProtectedContext, id: number) {
-	await db.deleteFrom('comment').where('id', '=', id).execute();
+	return await db.deleteFrom('comment').where('id', '=', id).returningAll().executeTakeFirstOrThrow();
 }
 
 export async function getComment(ctx: ProtectedContext, id: number) {
@@ -34,7 +35,7 @@ export async function getComment(ctx: ProtectedContext, id: number) {
 			.where('id', '=', id),
 		ctx.session.user.client_id,
 		'comment'
-	).execute();
+	).executeTakeFirstOrThrow();
 }
 
 export async function getCommentCount(ctx: ProtectedContext, filters: CommentFilters) {
@@ -44,7 +45,9 @@ export async function getCommentCount(ctx: ProtectedContext, filters: CommentFil
 			.innerJoin('users', 'comment.created_by', 'users.id')
 			.select(({ fn }) => fn.countAll().as('count'))
 			.where((eb) => {
-				let andClause = [eb('checklist_id', '=', filters.checklistId), eb('claim_id', '=', filters.claimId)];
+				let andClause: ExpressionWrapper<DB, 'comment' | 'users', SqlBool>[] = [];
+				if (filters.checklistId) andClause.push(eb('checklist_id', '=', filters.checklistId));
+				if (filters.claimId) andClause.push(eb('claim_id', '=', filters.claimId));
 				if (filters.instanceId) andClause.push(eb('instance_id', '=', filters.instanceId));
 				if (filters.questionId) andClause.push(eb('question_id', '=', filters.questionId));
 				return eb.and(andClause);
@@ -109,6 +112,27 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 		rows: data,
 		count: parseInt(count?.count?.toString() ?? '0'),
 	};
+}
+
+export async function getCommentsForPage(
+	ctx: ProtectedContext,
+	checklistId: number,
+	claimId: number,
+	instanceId: number
+) {
+	return await applyClientScope(
+		db
+			.selectFrom('comment')
+			.innerJoin('users', 'comment.created_by', 'users.id')
+			.selectAll('comment')
+			.select(['users.first', 'users.last', 'users.email'])
+			.where('comment.checklist_id', '=', checklistId)
+			.where('comment.claim_id', '=', claimId)
+			.where('comment.instance_id', '=', instanceId)
+			.where('comment.question_id', 'is not', null),
+		ctx.session.user.client_id,
+		'comment'
+	).execute();
 }
 
 export async function modifyComment(ctx: ProtectedContext, id: number, body: string) {

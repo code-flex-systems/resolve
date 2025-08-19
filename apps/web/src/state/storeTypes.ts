@@ -1,6 +1,7 @@
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { ChecklistMode, SummarySegment } from '../config/enums';
 import { Checklist, Claim, Interval, PageInstance, TreeNode, User } from '@/types/types';
+import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 
 export interface AdminSlice {
 	claimConstraints: {
@@ -36,6 +37,8 @@ export interface ChecklistSlice {
 	};
 	commentOffset: number;
 	expandAll: boolean;
+	expandedBranch: Set<number>;
+	highlightedQuestion: number | null;
 	mode: ChecklistMode;
 	selectedAnswer: number | null;
 	selectedAssignee: GetUserOutput | null;
@@ -49,9 +52,11 @@ export interface ChecklistSlice {
 	showChecklistProgressDialog: boolean;
 	showStatsDialog: boolean;
 	questionCommentDialog: {
-		instanceId: number;
-		questionId: number;
-	} | null;
+		instanceId?: number;
+		questionId?: number;
+		existingComment?: GetCommentOutput;
+		show: boolean;
+	};
 	updateSubmittedDialogAction: ((e?: React.BaseSyntheticEvent) => Promise<void>) | null;
 	// ui
 	showChangeLog: boolean;

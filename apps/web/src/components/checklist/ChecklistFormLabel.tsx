@@ -6,19 +6,23 @@ import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
 import { QuestionType } from '@/config/enums';
 import { toggleQuestionCommentDialog } from '@/state/checklist/actions';
-import useStore from '@/state/store';
+import useStore, { useChecklistSlice } from '@/state/store';
 import * as selectors from '../../state/checklist/selectors';
+import theme from '@/styles/theme';
+import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 
 export default function ChecklistFormLabel(props: {
 	id: string;
 	value?: string | string[];
 	idx: number;
 	question: Question;
+	comment?: GetCommentOutput;
 	disabled: boolean;
 	setValue: UseFormSetValue<FieldValues>;
 }) {
-	const { id, value, idx, question, disabled, setValue } = props;
+	const { id, value, idx, question, comment, disabled, setValue } = props;
 	const selectedPageInfo = useStore(selectors.selectedPageInfo);
+	const highlightedQuestion = useChecklistSlice((state) => state.highlightedQuestion);
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
 			{!disabled && (
@@ -41,17 +45,21 @@ export default function ChecklistFormLabel(props: {
 					<Tooltip title="Add a comment" enterDelay={500}>
 						<span>
 							<IconButton
-								onClick={() => toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id)}
+								onClick={() =>
+									toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id, comment)
+								}
 								sx={{ marginRight: '10px' }}
 							>
-								<SmsOutlined sx={{ fontSize: 17 }} />
+								<SmsOutlined
+									sx={{ fontSize: 17, color: comment ? theme.palette.primary.main : undefined }}
+								/>
 							</IconButton>
 						</span>
 					</Tooltip>
 				</>
 			)}
 
-			<Typography fontWeight="bold">
+			<Typography color={highlightedQuestion === question.id ? 'primary' : undefined} fontWeight="bold">
 				{idx + 1}. {question.text}
 			</Typography>
 			{!!question.description_text && (

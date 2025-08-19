@@ -19,8 +19,10 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
 	const mode = useChecklistSlice((state) => state.mode);
 	const expandAll = useChecklistSlice((state) => state.expandAll);
+	const expandedBranch = useChecklistSlice((state) => state.expandedBranch);
 	const [expanded, setExpanded] = useState(false);
 	const selected = selectedPageInstance === instanceId;
+	const childIds = children.map((c) => c.instanceId);
 
 	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected });
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
@@ -30,7 +32,20 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const filteredChildren =
 		mode === ChecklistMode.VIEW ? children.filter((c) => visibleInstanceIds.includes(c.instanceId)) : children;
 
-	useEffect(() => setExpanded(expandAll), [expandAll]);
+	useEffect(() => {
+		for (const id of childIds) {
+			if (expandedBranch.has(id)) {
+				actions.updateExpandedBranch(instanceId);
+				setExpanded(true);
+				continue;
+			}
+		}
+	}, [instanceId, childIds, expandedBranch]);
+
+	useEffect(() => {
+		actions.clearExpandedBranch();
+		setExpanded(expandAll);
+	}, [expandAll]);
 
 	const statusIcon = useMemo(() => {
 		const iconColor = selected ? 'white' : theme.palette.primary.main;
@@ -78,6 +93,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						<IconButton
 							onClick={(e) => {
 								setExpanded((prev) => !prev);
+								actions.clearExpandedBranch();
 								e.stopPropagation();
 								e.preventDefault();
 							}}
@@ -149,7 +165,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			)}
 
 			{!!filteredChildren.length && (
-				<Collapse in={expanded} unmountOnExit>
+				<Collapse in={expanded} timeout={expandedBranch.has(instanceId) ? 0 : 100}>
 					<span>
 						{filteredChildren.map((c) => (
 							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />

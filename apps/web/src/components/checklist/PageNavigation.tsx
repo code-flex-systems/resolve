@@ -317,14 +317,16 @@ export default function PageNavigation() {
 				/>
 				<Divider />
 				<div style={styles.nodeContainer}>
-					<Collapse in={!!checklist && !isFetching && (!claimId || !!claim)} unmountOnExit timeout={1000}>
-						{navigation.tree.map((node) => (
-							<TreeNode key={node.instanceId} level={0} {...node} />
-						))}
-					</Collapse>
+					<Fade in={!!checklist && !isFetching && (!claimId || !!claim)} unmountOnExit timeout={500}>
+						<span>
+							{navigation.tree.map((node) => (
+								<TreeNode key={node.instanceId} level={0} {...node} />
+							))}
+						</span>
+					</Fade>
 				</div>
 				<Collapse in={showComments} unmountOnExit>
-					<ChecklistComments />
+					<ChecklistComments tree={navigation.tree} />
 				</Collapse>
 				<Collapse in={showChangeLog} unmountOnExit>
 					<ChecklistChangeLog />

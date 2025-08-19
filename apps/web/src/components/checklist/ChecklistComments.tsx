@@ -14,7 +14,7 @@ import {
 import { AddCircle, KeyboardArrowLeft, KeyboardArrowRight, SmsOutlined } from '@mui/icons-material';
 import { useChecklistSlice } from '@/state/store';
 import Comments from '../common/Comments';
-import { updateCommentOffset } from '@/state/checklist/actions';
+import { goToPage, toggleHighlightedQuestion, updateCommentOffset } from '@/state/checklist/actions';
 import { useState } from 'react';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
@@ -22,11 +22,12 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import config from '@/config/config';
 import useIsAssigned from '@/hooks/useIsAssigned';
+import { TreeNode } from '@/types/types';
 
 const limit = 30;
 const pageSize = 3;
 
-export default function ChecklistComments() {
+export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	const [newComment, setNewComment] = useState('');
 	const [showNewComment, setShowNewComment] = useState(false);
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -166,6 +167,10 @@ export default function ChecklistComments() {
 						page={page}
 						pageSize={pageSize}
 						viewingInChecklist
+						onNavigate={(instanceId: number, questionId: number) => {
+							goToPage(instanceId, tree);
+							toggleHighlightedQuestion(questionId);
+						}}
 					/>
 				)}
 			</Stack>

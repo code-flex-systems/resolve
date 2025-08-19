@@ -8,6 +8,8 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	},
 	commentOffset: 0,
 	expandAll: true,
+	expandedBranch: new Set<number>(),
+	highlightedQuestion: null,
 	mode: ChecklistMode.VIEW,
 	selectedAnswer: null,
 	selectedAssignee: null,
@@ -20,7 +22,9 @@ const checklistSlice: ChecklistSlice = Object.freeze({
 	showChecklistHandoffDialog: false,
 	showChecklistProgressDialog: false,
 	showStatsDialog: false,
-	questionCommentDialog: null,
+	questionCommentDialog: {
+		show: false,
+	},
 	updateSubmittedDialogAction: null,
 	// ui
 	showChangeLog: false,

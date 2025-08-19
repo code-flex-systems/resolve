@@ -50,13 +50,7 @@ export default function ChecklistAnswerRadio(props: {
 						}
 						label={
 							a.calls_instance_id && field.value?.includes(a.id) ? (
-								<Link
-									color="info"
-									onClick={() => {
-										actions.updateSelectedPage(a.calls_instance_id);
-										actions.updateSelectedPageInfoSearch(a.calls_instance_id!, data.tree);
-									}}
-								>
+								<Link color="info" onClick={() => actions.goToPage(a.calls_instance_id!, data.tree)}>
 									{a.text}
 								</Link>
 							) : (

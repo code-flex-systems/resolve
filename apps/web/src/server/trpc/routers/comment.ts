@@ -5,7 +5,7 @@ import {
 	getComment,
 	getCommentCount,
 	getComments,
-	modifyComment,
+	getCommentsForPage,
 } from '@/api/controllers/commentController';
 import config from '@/config/config';
 import { checkRole } from '@/lib/auth/checkRole';
@@ -15,8 +15,8 @@ import {
 	deleteCommentInput,
 	getCommentCountInput,
 	getCommentInput,
+	getCommentsForPageInput,
 	getCommentsInput,
-	updateCommentInput,
 } from '@/schemas/commentSchemas';
 
 export const commentRouter = router({
@@ -43,7 +43,7 @@ export const commentRouter = router({
 		return getCommentCount(ctx, input);
 	}),
 
-	updateComment: protectedProcedure.input(updateCommentInput).mutation(async ({ input, ctx }) => {
-		return modifyComment(ctx, input);
+	getCommentsForPage: protectedProcedure.input(getCommentsForPageInput).query(async ({ input, ctx }) => {
+		return getCommentsForPage(ctx, input);
 	}),
 });

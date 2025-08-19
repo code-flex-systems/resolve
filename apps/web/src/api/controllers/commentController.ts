@@ -8,7 +8,8 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 }
 
 export async function deleteComment(ctx: ProtectedContext, { id }: { id: number }) {
-	await commentQueries.deleteComment(ctx, id);
+	const result = await commentQueries.deleteComment(ctx, id);
+	return result;
 }
 
 export async function getComment(ctx: ProtectedContext, { id }: { id: number }) {
@@ -27,6 +28,18 @@ export async function getComments(
 export async function getCommentCount(ctx: ProtectedContext, { filters }: { filters: CommentFilters }) {
 	const result = await commentQueries.getCommentCount(ctx, filters);
 	return result;
+}
+
+export async function getCommentsForPage(
+	ctx: ProtectedContext,
+	{ checklistId, claimId, instanceId }: { checklistId: number; claimId: number; instanceId: number }
+) {
+	const result = await commentQueries.getCommentsForPage(ctx, checklistId, claimId, instanceId);
+	const commentsMap: Record<number, (typeof result)[0]> = {};
+	result.forEach((c) => {
+		commentsMap[c.question_id!] = c;
+	});
+	return commentsMap;
 }
 
 export async function modifyComment(ctx: ProtectedContext, { id, body }: { id: number; body: string }) {

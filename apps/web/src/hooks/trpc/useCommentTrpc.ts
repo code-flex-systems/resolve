@@ -1,4 +1,8 @@
 import { trpc } from '@/lib/trpc';
+import { AppRouter } from '@/server/trpc/appRouter';
+import { inferRouterOutputs } from '@trpc/server';
+
+type CommentOutput = inferRouterOutputs<AppRouter>['comment'];
 
 export function useCommentTrpc() {
 	const utils = trpc.useUtils();
@@ -6,26 +10,50 @@ export function useCommentTrpc() {
 	return {
 		list: trpc.comment.getComments.useQuery,
 
+		listForPage: trpc.comment.getCommentsForPage.useQuery,
+
 		count: trpc.comment.getCommentCount.useQuery,
 
 		get: trpc.comment.getComment.useQuery,
 
 		create: trpc.comment.createComment.useMutation({
-			onSuccess() {
+			onSuccess(data) {
 				utils.comment.getComments.invalidate();
-			},
-		}),
-
-		update: trpc.comment.updateComment.useMutation({
-			onSuccess() {
-				utils.comment.getComments.invalidate();
+				if (data.instance_id != null && data.question_id != null) {
+					utils.comment.getCommentsForPage.setData(
+						{ checklistId: data.checklist_id, claimId: data.claim_id, instanceId: data.instance_id },
+						(prev) => {
+							if (!prev) {
+								return { [data.question_id!]: { ...data } };
+							} else {
+								return { ...prev, [data.question_id!]: { ...data } };
+							}
+						}
+					);
+				}
 			},
 		}),
 
 		remove: trpc.comment.deleteComment.useMutation({
-			onSuccess() {
+			onSuccess(data) {
 				utils.comment.getComments.invalidate();
+				if (data.instance_id && data.question_id) {
+					utils.comment.getCommentsForPage.setData(
+						{ checklistId: data.checklist_id, claimId: data.claim_id, instanceId: data.instance_id },
+						(prev) => {
+							if (!prev) {
+								return prev;
+							} else {
+								let newState = { ...prev };
+								delete newState[data.question_id!];
+								return newState;
+							}
+						}
+					);
+				}
 			},
 		}),
 	};
 }
+
+export type GetCommentOutput = CommentOutput['getComment'];

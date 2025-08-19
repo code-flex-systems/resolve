@@ -20,10 +20,11 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 import ExpandableTitle from '../common/ExpandableTitle';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import NewCommentDialog from './NewCommentDialog';
+import CommentDialog from './CommentDialog';
 import { toggleUpdateSubmittedDialog } from '@/state/checklist/actions';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 import useIsAssigned from '@/hooks/useIsAssigned';
+import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	const defaults: Record<string, number[] | string> = {};
@@ -88,6 +89,10 @@ export default function Page() {
 		isFetching: fetching,
 		data: responses,
 	} = useResponseTrpc().list(
+		{ checklistId, claimId, instanceId: selectedPageInstance },
+		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
+	);
+	const { data: comments } = useCommentTrpc().listForPage(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
 		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
 	);
@@ -237,6 +242,7 @@ export default function Page() {
 										setValue={setValue}
 										watch={watch}
 										question={question}
+										comment={comments?.[question.id]}
 										disabled={isSubmitting || !isAssigned}
 										idx={i}
 									/>
@@ -246,7 +252,7 @@ export default function Page() {
 					</>
 				)}
 			</div>
-			{!!questionCommentDialog && <NewCommentDialog />}
+			{questionCommentDialog.show && <CommentDialog />}
 			{!!updateSubmittedDialogAction && <UpdateSubmittedDialog />}
 		</>
 	);

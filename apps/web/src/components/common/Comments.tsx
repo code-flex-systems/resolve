@@ -9,6 +9,8 @@ import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CommentFilters } from '@/types/types';
 import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { toggleComments } from '@/state/checklist/actions';
 
 function countLinesByCanvas(
 	text: string,
@@ -32,6 +34,7 @@ export default function Comments({
 	pageSize,
 	width,
 	viewingInChecklist = false,
+	onNavigate,
 }: {
 	filters: CommentFilters;
 	limit?: number;
@@ -40,7 +43,9 @@ export default function Comments({
 	pageSize?: number;
 	width: number;
 	viewingInChecklist?: boolean;
+	onNavigate: (instanceId: number, questionId: number) => void;
 }) {
+	const router = useRouter();
 	const { data: session } = useSession();
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list(
@@ -147,19 +152,29 @@ export default function Comments({
 											)}
 										</Box>
 										<Box height={19}>
-											{!viewingInChecklist ||
-												(!!c.instance_id && !!c.question_id && (
-													<IconButton
-														onClick={(e) => {
-															e.stopPropagation();
-															e.preventDefault();
-														}}
-														disableRipple
-														sx={{ width: 19, height: 19 }}
-													>
-														<ArrowRightAlt sx={{ fontSize: 19 }} />
-													</IconButton>
-												))}
+											{!viewingInChecklist || (!!c.instance_id && !!c.question_id) ? (
+												<IconButton
+													onClick={(e) => {
+														e.stopPropagation();
+														e.preventDefault();
+														if (!viewingInChecklist) {
+															router.push(
+																`/checklist/${c.checklist_id}/claim/${c.claim_id}`
+															);
+															toggleComments();
+														}
+														if (c.instance_id && c.question_id) {
+															onNavigate(c.instance_id, c.question_id);
+														}
+													}}
+													disableRipple
+													sx={{ width: 19, height: 19 }}
+												>
+													<ArrowRightAlt sx={{ fontSize: 19 }} />
+												</IconButton>
+											) : (
+												<></>
+											)}
 										</Box>
 									</Box>
 								</Stack>

@@ -5,9 +5,28 @@ import { ChecklistSlice } from '../storeTypes';
 import { getStateBuilder, setStateBuilder } from '../storeUtilities';
 import { PageInstanceStatus } from '@/config/enums';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
+import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 
 const getState = getStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
 const setState = setStateBuilder<ChecklistSlice>(SLICES.CHECKLIST);
+
+export function clearExistingComment() {
+	setState((state) => {
+		state.questionCommentDialog.existingComment = undefined;
+	});
+}
+
+export function clearExpandedBranch() {
+	setState((state) => {
+		state.expandedBranch.clear();
+	});
+}
+
+export function goToPage(instanceId: number, tree: TreeNode[]) {
+	updateExpandedBranch(instanceId, true);
+	updateSelectedPage(instanceId);
+	updateSelectedPageInfoSearch(instanceId, tree);
+}
 
 export function toggleExpandAll() {
 	setState((state) => {
@@ -71,21 +90,27 @@ export function toggleComments() {
 	}
 }
 
+export function toggleHighlightedQuestion(highlightedId: number) {
+	setState((state) => {
+		state.highlightedQuestion = highlightedId;
+	});
+}
+
 export function toggleStatsDialog() {
 	setState((state) => {
 		state.showStatsDialog = !state.showStatsDialog;
 	});
 }
 
-export function toggleQuestionCommentDialog(instanceId?: number, questionId?: number) {
+export function toggleQuestionCommentDialog(
+	instanceId?: number,
+	questionId?: number,
+	existingComment?: GetCommentOutput
+) {
 	setState((state) => {
-		state.questionCommentDialog =
-			instanceId != null && questionId != null
-				? {
-						instanceId,
-						questionId,
-					}
-				: null;
+		state.questionCommentDialog = state.questionCommentDialog.show
+			? { show: false }
+			: { show: true, instanceId, questionId, existingComment };
 	});
 }
 
@@ -104,6 +129,16 @@ export function updateChecklistSummaryConstraints(newConstraints: { page: number
 export function updateCommentOffset(direction: number) {
 	setState((state) => {
 		state.commentOffset = state.commentOffset + 30 * direction;
+	});
+}
+
+export function updateExpandedBranch(id: number, reset = false) {
+	setState((state) => {
+		if (reset) {
+			state.expandedBranch = new Set([id]);
+		} else {
+			state.expandedBranch.add(id);
+		}
 	});
 }
 
@@ -131,6 +166,7 @@ export function updateSelectedPage(instanceId: number | null) {
 		state.selectedAnswer = null;
 		state.selectedPageInstance = instanceId;
 		state.selectedQuestion = null;
+		state.highlightedQuestion = null;
 	});
 }
 
