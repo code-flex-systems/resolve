@@ -1,6 +1,6 @@
 'use client';
 import { Box, Paper, Stack } from '@mui/material';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import Comments from '../common/Comments';
 import { useSession } from 'next-auth/react';
 import './styles.css';
@@ -16,7 +16,8 @@ export default function RecentComments() {
 				<ExpandableTitle
 					title="Recent Comments"
 					icon={<MoreHoriz sx={{ color: 'white' }} />}
-					color={BASE_COLOR_LIGHT}
+					color={BASE_COLOR}
+					bgcolor="#EBEBEB"
 				/>
 			</Box>
 			<Stack

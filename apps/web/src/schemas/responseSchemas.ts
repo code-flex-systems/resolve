@@ -29,13 +29,24 @@ export type GetResponsesForClaimChecklistInput = z.infer<typeof getResponsesForC
 
 export const getResponseAuditLogsInput = z.object({
 	filters: z.object({
-		checklistId: z.number().int(),
+		checklistId: z.number().int().optional(),
 		claimId: z.number().int().optional(),
 		emails: z.array(z.string()).optional(),
 		range: z.tuple([parseDate().nullable(), parseDate().nullable()]).optional(),
+		searchTerm: z.string().optional(),
 	}),
 	limit: z.number().int(),
 	offset: z.number().int(),
+});
+
+export const getResponseAuditLogStatsInput = z.object({
+	filters: z.object({
+		range: z.tuple([parseDate(), parseDate()]),
+		checklistId: z.number().int().optional(),
+		claimId: z.number().int().optional(),
+		users: z.array(z.string()).optional(),
+		searchTerm: z.string().optional(),
+	}),
 });
 
 export const upsertQuestionResponsesParams = z.any().array();

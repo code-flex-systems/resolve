@@ -1,6 +1,6 @@
 'use client';
 import { Box, Collapse, Divider, MenuItem, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { ContentPasteSearch } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -20,7 +20,8 @@ export default function Recents() {
 				<ExpandableTitle
 					title="Recent Claims"
 					icon={<ContentPasteSearch sx={{ color: 'white' }} />}
-					color={BASE_COLOR_LIGHT}
+					color={BASE_COLOR}
+					bgcolor="#EBEBEB"
 				/>
 			</Box>
 			{!recentChecklistClaims.length && (
@@ -107,7 +108,7 @@ const styles = {
 		width: 5,
 		height: 5,
 		borderRadius: 10,
-		backgroundColor: BASE_COLOR_LIGHT,
+		backgroundColor: '#d9d9d9',
 		margin: '0px 10px',
 	},
 	horizontalDiv: {

@@ -1,8 +1,8 @@
-import { sql, Transaction } from 'kysely';
+import { CompiledQuery, ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
-import { DateRange, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
+import { DateRange, DateRangeStrict, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
 import { DB } from '../database/types';
@@ -138,7 +138,7 @@ export async function getResponsesForClaimChecklist(
 
 export async function getResponseAuditLogs(
 	ctx: ProtectedContext,
-	filters: { checklistId: number; claimId?: number; emails?: string[]; range?: DateRange },
+	filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string },
 	limit: number,
 	offset: number
 ) {
@@ -147,7 +147,9 @@ export async function getResponseAuditLogs(
 			.selectFrom('response_audit_logs')
 			.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
 			.where((eb) => {
-				let whereClause = [eb('response_audit_logs.checklist_id', '=', filters.checklistId)];
+				let whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
+				if (filters.checklistId)
+					whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
 				if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
 				if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
 				if (filters.range && filters.range.some((d) => !!d)) {
@@ -158,6 +160,7 @@ export async function getResponseAuditLogs(
 						whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
 					}
 				}
+				if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
 				return eb.and(whereClause);
 			}),
 		ctx.session.user.client_id,
@@ -175,6 +178,30 @@ export async function getResponseAuditLogs(
 		rows: data,
 		count: parseInt(count?.count?.toString() ?? '0'),
 	};
+}
+
+export async function getResponseAuditLogStats(
+	ctx: ProtectedContext,
+	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
+) {
+	const query: CompiledQuery<{ activity_date: string; event_count: number }> = sql`
+        select
+            gs.day::date as activity_date,
+            count(r.id)::int as event_count
+        from generate_series(
+            ${filters.range[0]},
+            ${filters.range[1]},
+            interval '1 day'
+        ) as gs(day)
+        left join response_audit_logs r on date(r.created_at) = gs.day
+            and client_id = ${ctx.session.user.client_id}
+            ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
+            ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
+            ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
+            ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
+        group by gs.day
+    `.compile(db);
+	return (await db.executeQuery(query))?.rows ?? [];
 }
 
 /**

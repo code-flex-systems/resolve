@@ -111,10 +111,10 @@ export default function Claims() {
 		limit: claimConstraints.pageSize,
 		offset: claimConstraints.page * claimConstraints.pageSize,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
+	const rowCountRef = useRef(typeof data.count === 'number' ? data.count : 0);
 
 	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
+		if (typeof data.count === 'number') {
 			rowCountRef.current = data.count;
 		}
 		return rowCountRef.current;
@@ -185,7 +185,7 @@ export default function Claims() {
 						initialState={{
 							pagination: { paginationModel: { pageSize: 20 } },
 						}}
-						rows={data.rows}
+						rows={Array.isArray(data.rows) ? data.rows : []}
 						rowCount={rowCount}
 						rowHeight={40}
 						hideFooterSelectedRowCount

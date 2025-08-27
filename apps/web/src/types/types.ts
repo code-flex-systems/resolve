@@ -119,6 +119,8 @@ export interface CommentFilters {
 
 export type DateRange = [Date | null, Date | null];
 
+export type DateRangeStrict = [Date, Date];
+
 export interface DialogAction {
 	label: string;
 	onClick: () => void;

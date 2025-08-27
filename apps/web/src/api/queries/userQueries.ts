@@ -1,6 +1,7 @@
 import { db } from '@/api/database/kysely';
 import config from '@/config/config';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { DateRangeStrict } from '@/types/types';
 import { CompiledQuery, sql } from 'kysely';
 
 /**
@@ -49,7 +50,7 @@ export async function getUsersPaginated(
 export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 	let query = db
 		.selectFrom('users')
-		.select(['first', 'last', 'email'])
+		.select(['id', 'first', 'last', 'email'])
 		.where((eb) => {
 			const andClause = [eb('disabled', '=', false), eb('client_id', '=', ctx.session.user.client_id)];
 			if (searchTerm) {
@@ -67,19 +68,25 @@ export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 	return await query.execute();
 }
 
-export async function getUserActivity(ctx: ProtectedContext, checklistId: number, daysBack = 30) {
+export async function getUserActivity(
+	ctx: ProtectedContext,
+	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
+) {
 	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
         select
             gs.day::date as activity_date,
             coalesce(count(distinct r.user_id), 0) as active_users
         from generate_series(
-            CURRENT_DATE - interval '${sql.raw(daysBack.toString())} days',
-            CURRENT_DATE,
+            ${filters.range[0]},
+            ${filters.range[1]},
             interval '1 day'
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
             and client_id = ${ctx.session.user.client_id}
-        where r.checklist_id = ${checklistId}
+            ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
+            ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
+            ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
+            ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
         group by gs.day
         order by gs.day
     `.compile(db);

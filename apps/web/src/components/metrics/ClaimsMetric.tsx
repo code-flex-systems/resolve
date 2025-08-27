@@ -1,7 +1,7 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR } from '@/styles/theme';
 import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { CheckCircle, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { PieChart } from '@mui/x-charts-pro';
@@ -11,12 +11,11 @@ import ExpandableTitle from '../common/ExpandableTitle';
 import { usePathname, useRouter } from 'next/navigation';
 import { AnimatedCounter } from '../common/AnimatedCounter';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import ChecklistSelect from '../common/ChecklistSelect';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 350;
+const METRIC_HEIGHT = 290;
 
 function getProgressPercentage(completed: number, total: number) {
 	if (completed === 0 || total === 0) return 0;
@@ -43,15 +42,7 @@ const defaultData: Record<ClaimStatus, number> = {
 	[ClaimStatus.UNWORKED]: 0,
 };
 
-export default function ClaimsMetric({
-	checklistId,
-	users,
-	setChecklistId,
-}: {
-	checklistId?: number | null;
-	users?: string[];
-	setChecklistId?: (newId: number | null) => void;
-}) {
+export default function ClaimsMetric({ checklistId, users }: { checklistId?: number | null; users?: string[] }) {
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
@@ -61,7 +52,6 @@ export default function ClaimsMetric({
 		users,
 	});
 	const router = useRouter();
-	const metricHeight = !!checklistId ? METRIC_HEIGHT : METRIC_HEIGHT - 40;
 
 	const selectedChecklistOption = useMemo(() => {
 		const option = checklists.find((o) => o.id === checklistId);
@@ -69,11 +59,11 @@ export default function ClaimsMetric({
 	}, [checklists, checklistId]);
 
 	return (
-		<Paper sx={styles.paper}>
+		<Paper elevation={0} sx={styles.paper}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={metricHeight} animation="wave" sx={styles.skeleton} />
+				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
 			) : (
-				<Box display="flex" width={METRIC_WIDTH} height={metricHeight} borderRadius={3} padding="10px">
+				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
 					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
 						<Box
 							width="100%"
@@ -85,7 +75,7 @@ export default function ClaimsMetric({
 							<ExpandableTitle
 								title="Claim Submission"
 								icon={<CheckCircle sx={{ color: 'white' }} />}
-								color={BASE_COLOR_LIGHT}
+								color={BASE_COLOR}
 								bgcolor="#EBEBEB"
 								padding="5px 0px 10px"
 							/>
@@ -117,11 +107,6 @@ export default function ClaimsMetric({
 								)}
 							</Box>
 						</Box>
-						{!!checklistId && setChecklistId && (
-							<Box display="flex" justifyContent="center" alignItems="center" padding="0px 5px 5px">
-								<ChecklistSelect selected={checklistId} setSelected={setChecklistId} />
-							</Box>
-						)}
 						<div style={styles.divider}>
 							<Divider />
 						</div>
@@ -159,7 +144,7 @@ export default function ClaimsMetric({
 										position="absolute"
 										width={80}
 										left={-90}
-										top={-120}
+										top={-110}
 									>
 										<AnimatedCounter
 											value={getProgressPercentage(

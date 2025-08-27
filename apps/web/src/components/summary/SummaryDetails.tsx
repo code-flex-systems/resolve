@@ -71,7 +71,7 @@ export default function SummaryDetails() {
 	}, [summaryDetails.count]);
 
 	return (
-		<Paper style={styles.table}>
+		<Paper elevation={0} sx={styles.table}>
 			<DataGridPro
 				columns={columns}
 				columnHeaderHeight={45}
@@ -112,7 +112,9 @@ const styles = {
 		flex: 1,
 		height: '100%',
 		overflow: 'auto',
-		marginLeft: 10,
+		marginLeft: '20px',
+		borderRadius: 6,
+		padding: '20px 20px 10px',
 	},
 	tableOverrides: {
 		border: 'none',

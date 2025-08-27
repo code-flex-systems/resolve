@@ -88,25 +88,15 @@ export default function SummaryChart() {
 	}, [checklistSummaryTotals]);
 
 	return (
-		<Paper sx={styles.paper}>
-			<Box
-				width="100%"
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="center"
-				padding="10px"
-				position="relative"
-			>
+		<Paper elevation={0} sx={styles.paper}>
+			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
 				<Paper
-					elevation={1}
+					elevation={0}
 					sx={{
 						width: 'fit-content',
 						background: theme.palette.primary.main,
-						position: 'absolute',
 						padding: '5px 10px',
-						top: -10,
-						zIndex: 10,
-						borderRadius: 5,
+						borderRadius: 3,
 					}}
 					className="flex-row-center"
 				>
@@ -171,7 +161,8 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		height: '100%',
-		backgroundColor: OFFWHITE_COLOR,
+		borderRadius: 6,
+		padding: '20px',
 	},
 	row: {
 		width: '100%',

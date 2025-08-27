@@ -13,7 +13,6 @@ import { useState } from 'react';
 import ClaimsMetric from '../metrics/ClaimsMetric';
 import UserActivityMetric from '../metrics/UserActivity/UserActivityMetric';
 import { useAdminSlice } from '@/state/store';
-import { setChecklistId } from '@/state/admin/actions';
 
 export default function DashboardTab() {
 	const router = useRouter();
@@ -80,9 +79,19 @@ export default function DashboardTab() {
 					selected={selected === 'feeds'}
 				/>
 			</Stack>
-			<Box display="flex" height="fit-content" justifyContent="flex-start" alignContent="flex-start">
+			<Box
+				bgcolor="#F0F3F8"
+				display="flex"
+				height="fit-content"
+				justifyContent="flex-start"
+				alignContent="flex-start"
+				borderRadius={6}
+				padding="10px"
+				marginLeft="10px"
+				marginTop="10px"
+			>
 				<UserActivityMetric />
-				<ClaimsMetric checklistId={selectedChecklistId} setChecklistId={setChecklistId} />
+				<ClaimsMetric checklistId={selectedChecklistId} />
 			</Box>
 		</Box>
 	);

@@ -14,28 +14,28 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 		getValue: () => {
 			const today = dayjs();
 			const prevWeek = today.subtract(7, 'day');
-			return [prevWeek.startOf('week'), prevWeek.endOf('week')];
+			return [prevWeek.startOf('week').startOf('day'), prevWeek.endOf('week').endOf('day')];
 		},
 	},
 	{
 		label: 'This Week',
 		getValue: () => {
 			const today = dayjs();
-			return [today.startOf('week'), today.endOf('week')];
+			return [today.startOf('week').startOf('day'), today.endOf('week').endOf('day')];
 		},
 	},
 	{
 		label: 'Last 7 Days',
 		getValue: () => {
 			const today = dayjs();
-			return [today.subtract(7, 'day'), today];
+			return [today.subtract(7, 'day').startOf('day'), today.endOf('day')];
 		},
 	},
 	{
 		label: 'This Month',
 		getValue: () => {
 			const today = dayjs();
-			return [today.startOf('month'), today.endOf('month')];
+			return [today.startOf('month').startOf('day'), today.endOf('month').endOf('day')];
 		},
 	},
 
@@ -65,12 +65,16 @@ export default function BasicDateRangePicker({
 	defaultLabel,
 	defaultValue,
 	onConfirm,
+	clearable = false,
 	disableFuture = true,
+	height = 30,
 }: {
 	defaultLabel: string;
 	defaultValue: DateRange<Dayjs>;
 	onConfirm: (value: DateRange<Dayjs>) => void;
+	clearable?: boolean;
 	disableFuture?: boolean;
+	height?: number;
 }) {
 	const [label, setLabel] = useState(defaultLabel);
 	const [labelConfirmed, setLabelConfirmed] = useState(defaultLabel);
@@ -90,11 +94,6 @@ export default function BasicDateRangePicker({
 		if (range.every((r) => r === null)) setLabel(EMPTY_LABEL);
 	}, [range]);
 
-	// useEffect(() => {
-	// 	setLabelConfirmed(formatDateLabel(defaultValue));
-	// 	setRange(defaultValue);
-	// }, [defaultValue]);
-
 	const onClose = (newAnchor: PopperProps['anchorEl'] = null) => {
 		setLabel(defaultLabel);
 		setRange(defaultValue);
@@ -105,7 +104,6 @@ export default function BasicDateRangePicker({
 		<>
 			<Chip
 				label={labelConfirmed}
-				color={isEmpty ? undefined : 'primary'}
 				icon={<WatchLater />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
@@ -113,7 +111,7 @@ export default function BasicDateRangePicker({
 					e.stopPropagation();
 				}}
 				onDelete={
-					isEmpty
+					isEmpty || !clearable
 						? undefined
 						: () => {
 								setRange([null, null]);
@@ -123,11 +121,12 @@ export default function BasicDateRangePicker({
 				}
 				sx={{
 					...styles.chip,
+					height,
 					'& .MuiChip-icon': {
-						color: isEmpty ? BASE_COLOR : undefined,
+						color: isEmpty ? undefined : theme.palette.primary.main,
 					},
 					'& .MuiChip-label': {
-						color: isEmpty ? BASE_COLOR : undefined,
+						color: isEmpty ? undefined : theme.palette.primary.main,
 						fontStyle: isEmpty ? 'italic' : undefined,
 					},
 				}}
@@ -148,12 +147,19 @@ export default function BasicDateRangePicker({
 										<Chip
 											key={i}
 											label={s.label}
-											color={s.label === label ? 'primary' : undefined}
 											onClick={() => {
 												if (s.label !== 'Reset') setLabel(s.label);
 												setRange(s.getValue());
 											}}
-											sx={{ margin: '5px 0px' }}
+											sx={{
+												margin: '5px 0px',
+												'& .MuiChip-icon': {
+													color: s.label === label ? theme.palette.primary.main : BASE_COLOR,
+												},
+												'& .MuiChip-label': {
+													color: s.label === label ? theme.palette.primary.main : BASE_COLOR,
+												},
+											}}
 										/>
 									))}
 								</Stack>
@@ -191,6 +197,7 @@ export default function BasicDateRangePicker({
 										}}
 										variant="contained"
 										sx={{ height: 30 }}
+										disabled={!clearable && range.some((r) => !r)}
 									>
 										Apply
 									</Button>
@@ -206,7 +213,7 @@ export default function BasicDateRangePicker({
 
 const styles = {
 	chip: {
-		margin: '5px',
+		margin: '5px 0px',
 	},
 	paper: {
 		outline: 1,

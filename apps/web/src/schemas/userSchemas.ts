@@ -13,8 +13,13 @@ export const getUsersPaginatedInput = z.object({
 export const getUserInput = z.object({ id: z.string() });
 
 export const getUserActivityInput = z.object({
-	checklistId: z.number(),
-	daysBack: z.number().optional(),
+	filters: z.object({
+		range: z.tuple([parseDate(), parseDate()]),
+		checklistId: z.number().int().optional(),
+		claimId: z.number().int().optional(),
+		users: z.array(z.string()).optional(),
+		searchTerm: z.string().optional(),
+	}),
 });
 
 export const getUserActivityDetailInput = z.object({

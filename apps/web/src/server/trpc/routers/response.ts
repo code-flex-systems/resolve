@@ -2,6 +2,7 @@ import { router, protectedProcedure } from '../trpc';
 import {
 	evaluateResponses,
 	getResponseAuditLogs,
+	getResponseAuditLogStats,
 	getResponsesForAnswer,
 	getResponsesForClaimChecklist,
 	upsertQuestionResponses,
@@ -13,6 +14,7 @@ import { requireRole } from '@/lib/auth/requireRole';
 import {
 	evaluateResponsesInput,
 	getResponseAuditLogsInput,
+	getResponseAuditLogStatsInput,
 	getResponsesForAnswerInput,
 	getResponsesForClaimChecklistInput,
 	upsertQuestionResponsesInput,
@@ -40,6 +42,11 @@ export const responseRouter = router({
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
 		return getResponseAuditLogs(ctx, input);
+	}),
+
+	getResponseAuditLogStats: protectedProcedure.input(getResponseAuditLogStatsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getResponseAuditLogStats(ctx, input);
 	}),
 
 	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {

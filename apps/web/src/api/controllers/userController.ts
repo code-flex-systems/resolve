@@ -10,6 +10,7 @@ import { sendEmail } from '@/lib/email/sendEmail';
 import { readFileSync } from 'fs';
 import path from 'path';
 import config from '@/config/config';
+import { DateRangeStrict } from '@/types/types';
 
 export async function getUsers(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
 	const results = await userQueries.getUsers(ctx, searchTerm);
@@ -40,9 +41,19 @@ export async function getUsersPaginated(
 
 export async function getUserActivity(
 	ctx: ProtectedContext,
-	{ checklistId, daysBack }: { checklistId: number; daysBack?: number }
+	{
+		filters,
+	}: {
+		filters: {
+			range: DateRangeStrict;
+			checklistId?: number;
+			claimId?: number;
+			users?: string[];
+			searchTerm?: string;
+		};
+	}
 ) {
-	return await userQueries.getUserActivity(ctx, checklistId, daysBack);
+	return await userQueries.getUserActivity(ctx, filters);
 }
 
 export async function getUserActivityDetail(ctx: ProtectedContext, { date }: { date: string }) {

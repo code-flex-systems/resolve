@@ -5,7 +5,7 @@ import * as responseQueries from '@/api/queries/responseQueries';
 import { getUpdatedPageStatus } from '@/api/utils/utils';
 import { ClaimStatus, PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { DateRange, Interval, QuestionResponse } from '@/types/types';
+import { DateRange, DateRangeStrict, Interval, QuestionResponse } from '@/types/types';
 import { TRPCError } from '@trpc/server';
 import { db } from '../database/kysely';
 import { executeActions } from './actionController';
@@ -88,13 +88,44 @@ export async function getResponseAuditLogs(
 		limit,
 		offset,
 	}: {
-		filters: { checklistId: number; claimId?: number; emails?: string[]; range?: DateRange };
+		filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string };
 		limit: number;
 		offset: number;
 	}
 ) {
 	const results = await responseQueries.getResponseAuditLogs(ctx, filters, limit, offset);
 	return results;
+}
+
+export async function getResponseAuditLogStats(
+	ctx: ProtectedContext,
+	{
+		filters,
+	}: {
+		filters: {
+			range: DateRangeStrict;
+			checklistId?: number;
+			claimId?: number;
+			users?: string[];
+			searchTerm?: string;
+		};
+	}
+): Promise<{
+	avg: number;
+	total: number;
+	maxRow: Awaited<ReturnType<typeof responseQueries.getResponseAuditLogStats>>[number] | null;
+}> {
+	const results = await responseQueries.getResponseAuditLogStats(ctx, filters);
+	if (!results) return { avg: 0, total: 0, maxRow: null };
+	const total = results.reduce((prev, curr) => prev + curr.event_count, 0);
+	const maxRow = results.reduce(
+		(prev, curr) => {
+			return curr.event_count > prev.event_count ? curr : prev;
+		},
+		{ event_count: 0, activity_date: '' }
+	);
+	const avg = results.length ? Math.ceil(total / results.length) : 0;
+	return { avg, total, maxRow };
 }
 
 /**

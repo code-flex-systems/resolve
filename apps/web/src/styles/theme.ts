@@ -31,6 +31,21 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiChip: {
+			styleOverrides: {
+				root: {
+					borderRadius: 8,
+					backgroundColor: 'white',
+					border: '1px solid #d9d9d9',
+					'& .MuiChip-icon': {
+						color: BASE_COLOR,
+					},
+					'& .MuiChip-label': {
+						color: BASE_COLOR,
+					},
+				},
+			},
+		},
 		MuiDataGrid: {
 			styleOverrides: {
 				root: {

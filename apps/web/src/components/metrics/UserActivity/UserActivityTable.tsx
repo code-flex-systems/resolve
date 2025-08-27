@@ -2,7 +2,7 @@
 
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DataGridPro, GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
@@ -185,14 +185,16 @@ export default function UserActivityTable({
 	claimId,
 	users,
 	range,
+	searchTerm,
 	pageSize = 25,
 	compact = false,
 	showPagination = true,
 }: {
-	checklistId: number;
+	checklistId?: number;
 	claimId?: number;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
+	searchTerm?: string;
 	pageSize?: number;
 	compact?: boolean;
 	showPagination?: boolean;
@@ -205,12 +207,13 @@ export default function UserActivityTable({
 				claimId,
 				emails: users.map((u) => u.email),
 				range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null],
+				searchTerm,
 			},
 			limit: constraints.pageSize,
 			offset: constraints.page * constraints.pageSize,
 		},
 		{
-			enabled: checklistId !== -1 && (!claimId || claimId !== -1),
+			enabled: checklistId !== -1 && claimId !== -1,
 		}
 	);
 	const rowCountRef = useRef(logs.count ?? 0);
@@ -241,12 +244,6 @@ export default function UserActivityTable({
 			loading={isFetchingLogs}
 			slots={{
 				pagination: CustomPagination,
-			}}
-			slotProps={{
-				loadingOverlay: {
-					noRowsVariant: 'linear-progress',
-					variant: 'linear-progress',
-				},
 			}}
 			rows={logs.rows}
 			getRowHeight={() => 'auto'}

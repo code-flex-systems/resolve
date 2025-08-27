@@ -2,7 +2,7 @@
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR } from '@/styles/theme';
 import { Box, Divider, Paper, Skeleton, Stack } from '@mui/material';
 import { GraphicEq, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -10,27 +10,31 @@ import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import UserActivityTable from './UserActivityTable';
-import dayjs from 'dayjs';
-import ChecklistSelect from '@/components/common/ChecklistSelect';
-import { useAdminSlice } from '@/state/store';
-import { setChecklistId } from '@/state/admin/actions';
+import dayjs, { Dayjs } from 'dayjs';
+import { DateRange } from '@mui/x-date-pickers-pro';
 
 const METRIC_WIDTH = 650;
 const METRIC_HEIGHT = 500;
 
+const today = dayjs().endOf('day');
+const prev30 = today.subtract(30, 'day').startOf('day');
+
 export default function UserActivityMetric() {
-	const selectedChecklistId = useAdminSlice((state) => state.selectedChecklistId) ?? -1;
-	const today = dayjs();
+	const range: DateRange<Dayjs> = [prev30, today];
 	const router = useRouter();
-	const { data = [], isFetching } = useUserTrpc().activity(
-		{ checklistId: selectedChecklistId },
-		{ enabled: selectedChecklistId !== -1 }
-	);
+	const { data = [], isFetching } = useUserTrpc().activity({
+		filters: {
+			range: [
+				range[0]?.toString() ?? today.format('MM/DD/YYY'),
+				range[1]?.toString() ?? today.format('MM/DD/YYY'),
+			],
+		},
+	});
 	const xLabels = data.map((r) => r.activity_date);
 	const yValues = data.map((r) => parseInt(r.active_users ?? '0'));
 
 	return (
-		<Paper sx={styles.paper}>
+		<Paper elevation={0} sx={styles.paper}>
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
 			) : (
@@ -52,15 +56,11 @@ export default function UserActivityMetric() {
 							<ExpandableTitle
 								title="User Activity"
 								icon={<GraphicEq sx={{ color: 'white' }} />}
-								color={BASE_COLOR_LIGHT}
+								color={BASE_COLOR}
 								bgcolor="#EBEBEB"
 								padding="5px 0px 10px"
 							/>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
-								<Box margin="0px 10px 5px 5px">
-									<ChecklistSelect selected={selectedChecklistId} setSelected={setChecklistId} />
-								</Box>
-
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
@@ -90,13 +90,7 @@ export default function UserActivityMetric() {
 						<div style={styles.divider}>
 							<Divider />
 						</div>
-						<Box
-							display="flex"
-							justifyContent="center"
-							alignItems="flex-end"
-							height={120}
-							bgcolor="rgba(226, 232, 242, 0.5)"
-						>
+						<Box display="flex" justifyContent="center" alignItems="flex-end" height={120}>
 							<BarChart
 								xAxis={[
 									{
@@ -114,21 +108,16 @@ export default function UserActivityMetric() {
 								height={100}
 								margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
 								sx={{
-									borderRadius: 1,
+									borderRadius: 3,
 								}}
-								colors={[theme.palette.primary.main]}
+								colors={[BASE_COLOR]}
 								borderRadius={10}
 								hideLegend
 							/>
 						</Box>
 						<Paper elevation={0} sx={styles.paperInner}>
 							<Box width="100%" height="100%" padding="10px">
-								<UserActivityTable
-									checklistId={selectedChecklistId}
-									users={[]}
-									range={[today.startOf('week'), today.endOf('week')]}
-									showPagination={false}
-								/>
+								<UserActivityTable users={[]} range={range} pageSize={25} showPagination={false} />
 							</Box>
 						</Paper>
 					</Stack>

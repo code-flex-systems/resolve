@@ -1,11 +1,9 @@
 'use client';
 import { useBreakdownSlice } from '@/state/store';
-import { Paper, Typography } from '@mui/material';
+import { Paper } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { AccountCircle, ContentPasteSearch } from '@mui/icons-material';
 import { formatMDYAbv } from '@/lib/utils/utils';
-import Toolbar from '../common/Toolbar';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
@@ -15,25 +13,27 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Claim',
 		field: 'claim_number',
 		cellClassName: 'cell-bold',
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<ContentPasteSearch />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 150,
 	},
 	{
 		headerName: 'Client',
 		field: 'client',
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<AccountCircle />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		width: 200,
 	},
 	{
 		headerName: 'Response Date',
 		field: 'created_at',
 		valueFormatter: (value: any) => formatMDYAbv(value),
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		align: 'right',
-		width: 130,
+		width: 150,
 	},
 	{
 		headerName: 'Additional Info',
 		field: 'additional_info',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
 		flex: 1,
 	},
 ];
@@ -54,19 +54,6 @@ export default function Breakdown(props: { instanceId: number }) {
 
 	return (
 		<div style={styles.container}>
-			<Toolbar
-				left={
-					<Typography fontSize={17} fontStyle="italic">
-						{selectedAnswer
-							? `${selectedAnswer.answer_text} (p${pageInstance?.id}.q${selectedQuestionId}.a${selectedAnswer.answer_id})`
-							: 'Select an answer to see all related responses'}
-					</Typography>
-				}
-				leftWidth="80%"
-				rightWidth="20%"
-				height={40}
-				padding={'5px 15px'}
-			/>
 			<Paper elevation={0} style={styles.table}>
 				<DataGridPro
 					columns={COLUMNS}
@@ -98,7 +85,7 @@ export default function Breakdown(props: { instanceId: number }) {
 const styles = {
 	container: {
 		width: '100%',
-		height: '100vh',
+		height: 'calc(100vh - 70px)',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',

@@ -359,7 +359,7 @@ const styles = {
 		minWidth: 500,
 		maxWidth: 500,
 		height: '100vh',
-		backgroundColor: OFFWHITE_COLOR,
+		backgroundColor: '#F7F8FA',
 		padding: 10,
 		overflow: 'hidden',
 		display: 'flex',

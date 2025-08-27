@@ -41,6 +41,7 @@ export default function BasicButtonStyled(
 						...buttonProps.sx,
 						color: buttonProps.color ?? BASE_COLOR,
 					}}
+					style={{ minWidth: 'fit-content', textWrap: 'nowrap' }}
 				>
 					{props.children}
 				</Button>

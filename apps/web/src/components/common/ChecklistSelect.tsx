@@ -1,32 +1,52 @@
-import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { Chip, ChipProps, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { GetChecklistOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { Checklist } from '@mui/icons-material';
+import theme from '@/styles/theme';
 
 export default function ChecklistSelect({
-	selected,
-	setSelected,
-	color = 'primary',
+	checklist,
+	setChecklist,
+	clearable = true,
+	height,
 }: {
-	selected: number | null;
-	setSelected: (newSelected: number | null) => void;
-	color?: ChipProps['color'];
+	checklist: GetChecklistOutput | null;
+	setChecklist: (newChecklist: GetChecklistOutput | null) => void;
+	clearable?: boolean;
+	height?: number;
 }) {
 	const { data: options = [], isFetching } = useChecklistTrpc().list({});
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 
 	useEffect(() => {
-		setSelected(options[0]?.id ?? null);
-	}, [options]);
+		if (!clearable && options.length > 0) {
+			setChecklist(options[0]);
+		}
+	}, [options, clearable]);
 
 	return (
 		<>
 			<Chip
+				label={options.find((o) => o.id === checklist?.id)?.name ?? 'Select checklist'}
 				icon={<Checklist />}
-				label={options.find((o) => o.id === selected)?.name ?? 'Select'}
-				color={selected ? color : undefined}
-				onClick={(e) => setAnchorEl(e.currentTarget)}
+				onClick={(e) => {
+					setAnchorEl(e.currentTarget);
+					e.preventDefault();
+					e.stopPropagation();
+				}}
+				onDelete={checklist && clearable ? () => setChecklist(null) : undefined}
+				sx={{
+					...styles.chip,
+					height,
+					'& .MuiChip-icon': {
+						color: checklist ? theme.palette.primary.main : undefined,
+					},
+					'& .MuiChip-label': {
+						color: checklist ? theme.palette.primary.main : undefined,
+						fontStyle: checklist ? undefined : 'italic',
+					},
+				}}
 			/>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
@@ -34,14 +54,14 @@ export default function ChecklistSelect({
 						{options.map((o) => (
 							<MenuItem
 								key={o.id}
-								selected={o.id === selected}
+								selected={o.id === checklist?.id}
 								value={o.id}
 								onClick={() => {
-									setSelected(o.id);
+									setChecklist(o);
 									setAnchorEl(null);
 								}}
 							>
-								<Typography fontSize={15}>{o.name}</Typography>
+								<Typography fontSize={13}>{o.name}</Typography>
 							</MenuItem>
 						))}
 					</Paper>
@@ -52,6 +72,9 @@ export default function ChecklistSelect({
 }
 
 const styles = {
+	chip: {
+		margin: '5px 0px',
+	},
 	paper: {
 		outline: 1,
 		outlineColor: 'divider',

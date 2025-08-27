@@ -1,39 +1,38 @@
 'use client';
 
 import { trpc } from '@/lib/trpc';
-import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useCallback, useState } from 'react';
 import { Autocomplete, Box, Chip, Paper, PopperProps, TextField } from '@mui/material';
 import BasicPopper from './BasicPopper';
 import theme from '@/styles/theme';
-import { People } from '@mui/icons-material';
+import { ContentPasteSearch } from '@mui/icons-material';
 import useDebounce from '@/lib/utils/useDebounce';
 import { StackedRow } from './StackedRow';
+import { ClaimSearch } from '@/config/enums';
+import { Claim } from '@/hooks/trpc/useClaimTrpc';
 
-export default function UserFilter({
-	users,
-	setUsers,
-	width = 500,
-	padding,
+export default function ClaimFilter({
+	claim,
+	setClaim,
 	height = 30,
 }: {
-	users: GetUserOutput[];
-	setUsers: (newRecipients: GetUserOutput[]) => void;
+	claim: Claim | null;
+	setClaim: (newClaim: Claim | null) => void;
 	width?: number | string;
 	padding?: string;
 	height?: number;
 }) {
 	const trpcUtils = trpc.useUtils();
-	const [results, setResults] = useState<GetUserOutput[]>([]);
+	const [results, setResults] = useState<Claim[]>([]);
 	const [searching, setSearching] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 
 	const debouncedSearch = useCallback(
 		useDebounce(async (query: string) => {
-			trpcUtils.user.getUsers
-				.fetch({ searchTerm: query })
+			trpcUtils.claim.getClaims
+				.fetch({ searchTerm: { value: query, type: ClaimSearch.CLAIM_NUMBER } })
 				.then((results) => {
-					if (Array.isArray(results)) setResults(results);
+					if (Array.isArray(results.rows)) setResults(results.rows);
 				})
 				.catch((e) => console.error(e))
 				.finally(() => setSearching(false));
@@ -43,68 +42,35 @@ export default function UserFilter({
 
 	return (
 		<>
-			<Box
-				width={width}
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="center"
-				padding={padding}
-				flexWrap="wrap"
-				overflow="auto"
-			>
-				<Chip
-					label={
-						users.length
-							? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}`
-							: 'Select users'
-					}
-					icon={<People />}
-					onClick={(e) => {
-						setAnchorEl(e.currentTarget);
-						e.preventDefault();
-						e.stopPropagation();
-					}}
-					onDelete={users.length ? () => setUsers([]) : undefined}
-					sx={{
-						height,
-						'& .MuiChip-icon': {
-							color: users.length ? theme.palette.primary.main : undefined,
-						},
-						'& .MuiChip-label': {
-							color: users.length ? theme.palette.primary.main : undefined,
-							fontStyle: users.length ? undefined : 'italic',
-						},
-					}}
-				/>
-				{users.map((u) => (
-					<Chip
-						key={u.id}
-						label={`${u.last}, ${u.first}`}
-						onDelete={() => {
-							const newUsers = users.filter((s) => s.email !== u.email);
-							setUsers(newUsers);
-						}}
-						sx={{
-							...styles.chip,
-							marginLeft: '5px',
-							height,
-							'& .MuiChip-label': {
-								color: theme.palette.primary.main,
-							},
-						}}
-					/>
-				))}
-			</Box>
-
+			<Chip
+				label={claim ? claim.claim_number : 'Select claim'}
+				icon={<ContentPasteSearch />}
+				onClick={(e) => {
+					setAnchorEl(e.currentTarget);
+					e.preventDefault();
+					e.stopPropagation();
+				}}
+				onDelete={claim ? () => setClaim(null) : undefined}
+				sx={{
+					...styles.chip,
+					height,
+					'& .MuiChip-icon': {
+						color: claim ? theme.palette.primary.main : undefined,
+					},
+					'& .MuiChip-label': {
+						color: claim ? theme.palette.primary.main : undefined,
+						fontStyle: claim ? undefined : 'italic',
+					},
+				}}
+			/>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start">
 					<Paper sx={styles.paper}>
 						<Box display="flex" justifyContent="center" alignItems="center" padding="5px">
 							<Autocomplete
-								multiple
-								value={users}
+								value={claim}
 								options={results}
-								getOptionLabel={(option) => option.last}
+								getOptionLabel={(option) => option.claim_number ?? ''}
 								loading={searching}
 								filterOptions={(x) => x}
 								onInputChange={(_, value) => {
@@ -113,12 +79,12 @@ export default function UserFilter({
 										debouncedSearch(value);
 									}
 								}}
-								onChange={(_, newValue) => setUsers(newValue)}
+								onChange={(_, newValue) => setClaim(newValue)}
 								renderInput={(params) => (
 									<TextField
 										{...params}
 										variant="outlined"
-										placeholder="Search by name"
+										placeholder="Search by claim number"
 										type="text"
 										style={styles.textField}
 										sx={styles.textFieldOverrides}
@@ -127,10 +93,7 @@ export default function UserFilter({
 								renderTags={() => <></>}
 								renderOption={(props, option) => (
 									<li {...props} key={option.id}>
-										<StackedRow
-											primary={`${option.last}, ${option.first}`}
-											secondary={option.email}
-										/>
+										<StackedRow primary={option.claim_number} secondary={option.insured} />
 									</li>
 								)}
 								sx={{
