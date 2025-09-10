@@ -128,7 +128,7 @@ export default function Comments({
 														<Typography
 															fontSize={12}
 															lineHeight="15px"
-															color={theme.palette.primary.light}
+															color={theme.palette.secondary.main}
 															textOverflow="ellipsis"
 															noWrap
 														>

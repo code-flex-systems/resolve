@@ -9,6 +9,8 @@ export function useActionTrpc() {
 	return {
 		create: trpc.action.upsertAction.useMutation(),
 		get: trpc.action.getAction.useQuery,
+		stats: trpc.action.getActionStats.useQuery,
+		statsDetail: trpc.action.getActionStatsDetail.useQuery,
 	};
 }
 

@@ -3,35 +3,32 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
 import theme, { BASE_COLOR } from '@/styles/theme';
-import { Box, Divider, Paper, Skeleton, Stack } from '@mui/material';
+import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { GraphicEq, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
-import UserActivityTable from './UserActivityTable';
-import dayjs, { Dayjs } from 'dayjs';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import dayjs from 'dayjs';
+import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
+import MetricValue from '@/components/common/MetricValue';
+import UserActivitySummary from './UserActivitySummary';
 
-const METRIC_WIDTH = 650;
-const METRIC_HEIGHT = 500;
-
-const today = dayjs().endOf('day');
-const prev30 = today.subtract(30, 'day').startOf('day');
+const METRIC_WIDTH = 400;
+const METRIC_HEIGHT = 350;
 
 export default function UserActivityMetric() {
-	const range: DateRange<Dayjs> = [prev30, today];
+	const today = dayjs().endOf('day');
+	const prev30 = today.subtract(30, 'day').startOf('day');
+	const range: [string, string] = [prev30.toString(), today.toString()];
 	const router = useRouter();
-	const { data = [], isFetching } = useUserTrpc().activity({
-		filters: {
-			range: [
-				range[0]?.toString() ?? today.format('MM/DD/YYY'),
-				range[1]?.toString() ?? today.format('MM/DD/YYY'),
-			],
-		},
-	});
+	const { data = [], isFetching } = useUserTrpc().activity({ filters: { range } });
+	const { data: stats = { avg: 0, total: 0, maxRow: null }, isFetching: isFetchingStats } =
+		useResponseTrpc().listLogStats({ filters: { range } }, { enabled: range.every((r) => !!r) });
+	const formattedData = data.map((r) => ({ ...r, active_users: parseInt(r.active_users ?? '0') }));
 	const xLabels = data.map((r) => r.activity_date);
-	const yValues = data.map((r) => parseInt(r.active_users ?? '0'));
+	const yValues = formattedData.map((r) => r.active_users);
+	const maxUserRow = formattedData.find((u) => u.activity_date === stats.maxRow?.activity_date);
 
 	return (
 		<Paper elevation={0} sx={styles.paper}>
@@ -55,9 +52,9 @@ export default function UserActivityMetric() {
 						>
 							<ExpandableTitle
 								title="User Activity"
-								icon={<GraphicEq sx={{ color: 'white' }} />}
-								color={BASE_COLOR}
-								bgcolor="#EBEBEB"
+								icon={<GraphicEq sx={{ color: BASE_COLOR }} />}
+								color={'white'}
+								bgcolor="#F0F3F7"
 								padding="5px 0px 10px"
 							/>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
@@ -90,35 +87,59 @@ export default function UserActivityMetric() {
 						<div style={styles.divider}>
 							<Divider />
 						</div>
-						<Box display="flex" justifyContent="center" alignItems="flex-end" height={120}>
-							<BarChart
-								xAxis={[
-									{
-										scaleType: 'band',
-										data: xLabels,
-										position: 'none',
-										valueFormatter: (v) => formatMDY(v),
-										tickMinStep: 1,
-										categoryGapRatio: 0.7,
-									},
-								]}
-								yAxis={[{ position: 'none' }]}
-								series={[{ data: yValues, label: 'Active users' }]}
-								width={625}
-								height={100}
-								margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
-								sx={{
-									borderRadius: 3,
-								}}
-								colors={[BASE_COLOR]}
-								borderRadius={10}
-								hideLegend
-							/>
+						<Box
+							width="calc(100% - 30xp)"
+							display="flex"
+							justifyContent="center"
+							alignItems={yValues.length ? 'flex-end' : 'center'}
+							height={100}
+						>
+							{yValues.length ? (
+								<BarChart
+									xAxis={[
+										{
+											scaleType: 'band',
+											data: xLabels,
+											position: 'none',
+											valueFormatter: (v) => formatMDY(v),
+											tickMinStep: 1,
+											categoryGapRatio: 0.7,
+										},
+									]}
+									yAxis={[{ position: 'none', tickMinStep: 1 }]}
+									series={[{ data: yValues, label: 'Active users' }]}
+									width={375}
+									height={80}
+									margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
+									sx={{
+										borderRadius: 3,
+									}}
+									colors={[theme.palette.primary.main]}
+									borderRadius={10}
+									hideLegend
+								/>
+							) : (
+								<Typography fontSize={13}>No activity</Typography>
+							)}
 						</Box>
 						<Paper elevation={0} sx={styles.paperInner}>
-							<Box width="100%" height="100%" padding="10px">
-								<UserActivityTable users={[]} range={range} pageSize={25} showPagination={false} />
-							</Box>
+							<Stack
+								width="100%"
+								height="100%"
+								display="flex"
+								justifyContent="flex-start"
+								alignItems="flex-start"
+							>
+								<Typography color="warning" fontSize={15} padding="10px 20px 0px">
+									Past 30 days...
+								</Typography>
+								<UserActivitySummary
+									totalEvents={stats.total}
+									avgEvents={stats.avg}
+									maxEventsRow={stats.maxRow}
+									maxUserRow={maxUserRow}
+								/>
+							</Stack>
 						</Paper>
 					</Stack>
 				</Box>
@@ -131,7 +152,7 @@ const styles = {
 	divider: {
 		width: '100%',
 		height: 1,
-		marginBottom: 5,
+		marginTop: 5,
 	},
 	paper: {
 		borderRadius: 3,
@@ -144,15 +165,13 @@ const styles = {
 		justifyContent: 'center',
 		alignItems: 'center',
 		flexDirection: 'column',
-		width: 625,
-		height: 335,
+		width: 375,
+		height: 190,
 		bottom: 0,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,
-		border: 1,
-		borderColor: 'divider',
-		borderTop: 'none',
 		borderRadius: 3,
+		borderTop: `1px solid ${theme.palette.primary.main}`,
 	},
 	skeleton: {
 		borderRadius: 3,

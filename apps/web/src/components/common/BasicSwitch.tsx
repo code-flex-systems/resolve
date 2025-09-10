@@ -21,7 +21,7 @@ const BasicSwitch = styled(Switch)(({ theme }) => ({
 			color: '#fff',
 			'& + .MuiSwitch-track': {
 				opacity: 1,
-				backgroundColor: theme.palette.warning.main,
+				backgroundColor: theme.palette.secondary.main,
 				...theme.applyStyles('dark', {
 					backgroundColor: '#177ddc',
 				}),

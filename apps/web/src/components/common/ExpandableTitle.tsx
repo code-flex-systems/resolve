@@ -8,7 +8,7 @@ export default function ExpandableTitle({
 	title,
 	icon,
 	color = theme.palette.primary.main,
-	bgcolor = '#E8ECF5',
+	bgcolor = '#F0F3F7',
 	padding,
 	size = 30,
 }: {

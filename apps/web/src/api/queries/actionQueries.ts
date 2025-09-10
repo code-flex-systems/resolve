@@ -1,7 +1,7 @@
 import { ActionLogStatus, ActionType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { ActionDefinition } from '@/types/types';
-import { sql, Transaction } from 'kysely';
+import { ActionDefinition, DateRange } from '@/types/types';
+import { ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
 import { DB } from '../database/types';
 import { db } from '../database/kysely';
 import { applyClientScope } from '../database/clientScoped';
@@ -52,7 +52,30 @@ export async function getAction(ctx: ProtectedContext, answerId: number) {
 	).executeTakeFirstOrThrow();
 }
 
-export async function getActionStats(ctx: ProtectedContext, checklistId: number) {
+export async function getActionStats(ctx: ProtectedContext) {
+	const results = await applyClientScope(
+		db
+			.selectFrom('action_log')
+			.innerJoin('action', 'action_log.action_id', 'action.id')
+			.selectAll('action')
+			.select(({ fn }) => fn.countAll().as('count'))
+			.groupBy('action.id')
+			.orderBy('count desc')
+			.limit(10),
+		ctx.session.user.client_id,
+		'action'
+	).execute();
+	return results.map((row) => ({
+		...row,
+		definition: JSON.parse(JSON.stringify(row.definition ?? '{}')),
+		count: parseInt(row.count?.toString() ?? '0'),
+	}));
+}
+
+export async function getActionStatsDetail(
+	ctx: ProtectedContext,
+	filters: { checklistId?: number; claimId?: number; users?: string[]; range?: DateRange; searchTerm?: string }
+) {
 	const results = await applyClientScope(
 		db
 			.selectFrom('action_log')
@@ -76,10 +99,23 @@ export async function getActionStats(ctx: ProtectedContext, checklistId: number)
 					.as('page'),
 				fn.countAll().as('count'),
 			])
-			.where('page_instance.checklist_id', '=', checklistId)
+			.where((eb) => {
+				let whereClause: ExpressionWrapper<DB, any, SqlBool>[] = [];
+				if (filters.checklistId) whereClause.push(eb('page_instance.checklist_id', '=', filters.checklistId));
+				if (filters.claimId) whereClause.push(eb('question_response.claim_id', '=', filters.claimId));
+				if (filters.users?.length) whereClause.push(eb('action_log.created_by', 'in', filters.users));
+				if (filters.range && filters.range.some((d) => !!d)) {
+					if (filters.range[0]) {
+						whereClause.push(eb('action_log.created_at', '>=', filters.range[0]));
+					}
+					if (filters.range[1]) {
+						whereClause.push(eb('action_log.created_at', '<=', filters.range[1]));
+					}
+				}
+				return eb.and(whereClause);
+			})
 			.groupBy('action.id')
-			.orderBy('count desc')
-			.limit(10),
+			.orderBy('count desc'),
 		ctx.session.user.client_id,
 		'action'
 	).execute();

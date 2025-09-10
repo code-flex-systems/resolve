@@ -18,7 +18,7 @@ import BasicButtonStyled from '../common/BasicButtonStyled';
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
 		case FeedStatus.OFFLINE:
-			return theme.palette.error.light;
+			return theme.palette.error.main;
 		case FeedStatus.ONLINE:
 			return theme.palette.success.light;
 		case FeedStatus.MUTED:

@@ -7,7 +7,7 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 
-export default function PageWrapper(props: PropsWithChildren) {
+export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -34,9 +34,9 @@ export default function PageWrapper(props: PropsWithChildren) {
 	}, [isAdmin, isSuperAdmin, claim]);
 
 	return (
-		<div style={styles.container}>
+		<div style={{ ...styles.container, backgroundColor: bgcolor }}>
 			<Sidebar items={navItems} />
-			<div style={styles.content}>{props.children}</div>
+			<div style={styles.content}>{children}</div>
 		</div>
 	);
 }

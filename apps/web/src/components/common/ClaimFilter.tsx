@@ -43,7 +43,7 @@ export default function ClaimFilter({
 	return (
 		<>
 			<Chip
-				label={claim ? claim.claim_number : 'Select claim'}
+				label={claim ? claim.claim_number : 'Filter by claim'}
 				icon={<ContentPasteSearch />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
@@ -59,7 +59,6 @@ export default function ClaimFilter({
 					},
 					'& .MuiChip-label': {
 						color: claim ? theme.palette.primary.main : undefined,
-						fontStyle: claim ? undefined : 'italic',
 					},
 				}}
 			/>

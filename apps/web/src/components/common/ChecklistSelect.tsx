@@ -28,7 +28,7 @@ export default function ChecklistSelect({
 	return (
 		<>
 			<Chip
-				label={options.find((o) => o.id === checklist?.id)?.name ?? 'Select checklist'}
+				label={options.find((o) => o.id === checklist?.id)?.name ?? 'Filter by checklist'}
 				icon={<Checklist />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
@@ -44,7 +44,6 @@ export default function ChecklistSelect({
 					},
 					'& .MuiChip-label': {
 						color: checklist ? theme.palette.primary.main : undefined,
-						fontStyle: checklist ? undefined : 'italic',
 					},
 				}}
 			/>

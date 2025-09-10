@@ -51,12 +51,16 @@ export default function ChecklistFormLabel(props: {
 						disabled={disabled}
 						sx={{ marginRight: '10px' }}
 					>
-						<SmsOutlined sx={{ fontSize: 17, color: comment ? theme.palette.primary.main : undefined }} />
+						<SmsOutlined sx={{ fontSize: 17, color: comment ? theme.palette.secondary.main : undefined }} />
 					</IconButton>
 				</span>
 			</Tooltip>
 
-			<Typography color={highlightedQuestion === question.id ? 'primary' : undefined} fontWeight="bold">
+			<Typography
+				fontSize={14}
+				color={highlightedQuestion === question.id ? 'secondary' : undefined}
+				fontWeight="bold"
+			>
 				{idx + 1}. {question.text}
 			</Typography>
 			{!!question.description_text && (

@@ -117,7 +117,7 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 							)}
 							{!searching && results.length === 0 && (
 								<MenuItem key="no-results" disabled style={styles.menuItem}>
-									<Typography fontStyle="italic">No claims found</Typography>
+									<Typography fontStyle="italic">No checklists found</Typography>
 								</MenuItem>
 							)}
 							<TransitionGroup>

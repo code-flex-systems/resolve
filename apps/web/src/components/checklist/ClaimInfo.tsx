@@ -1,6 +1,6 @@
 'use client';
 import { Box, Fade, Paper, Popper, PopperProps, Stack } from '@mui/material';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR } from '@/styles/theme';
 import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import { ContentPasteSearch } from '@mui/icons-material';
 import { useState } from 'react';
@@ -31,8 +31,7 @@ export default function ClaimInfo() {
 				buttonProps={{
 					onMouseEnter: (e) => setClaimAnchorEl(e.currentTarget),
 					onMouseLeave: () => setClaimAnchorEl(null),
-					startIcon: <ContentPasteSearch />,
-					color: 'primary',
+					startIcon: <ContentPasteSearch sx={{ color: theme.palette.primary.main }} />,
 				}}
 			>
 				{claim.claim_number}
@@ -112,7 +111,7 @@ const styles = {
 		borderTopRightRadius: 5,
 		borderBottomLeftRadius: 5,
 		borderBottomRightRadius: 5,
-		border: `1px solid ${theme.palette.primary.main}`,
+		border: `1px solid ${theme.palette.divider}`,
 		marginTop: 5,
 	},
 };

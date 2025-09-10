@@ -32,7 +32,7 @@ export function ChecklistQuestion(props: {
 		<div
 			style={{
 				...styles.container,
-				backgroundColor: highlightedQuestion === question.id ? 'rgba(33, 106, 196, 0.1)' : undefined,
+				backgroundColor: highlightedQuestion === question.id ? 'rgba(50, 174, 153, 0.1)' : undefined,
 			}}
 			className="flex-col-left"
 		>

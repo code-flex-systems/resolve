@@ -1,21 +1,21 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR, ORANGE } from '@/styles/theme';
 import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { CheckCircle, InfoOutlined, Troubleshoot } from '@mui/icons-material';
 import { PieChart } from '@mui/x-charts-pro';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import ExpandableTitle from '../common/ExpandableTitle';
+import ExpandableTitle from '../../common/ExpandableTitle';
 import { usePathname, useRouter } from 'next/navigation';
-import { AnimatedCounter } from '../common/AnimatedCounter';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import { AnimatedCounter } from '../../common/AnimatedCounter';
+import BasicButtonStyled from '../../common/BasicButtonStyled';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 290;
+const METRIC_HEIGHT = 350;
 
 function getProgressPercentage(completed: number, total: number) {
 	if (completed === 0 || total === 0) return 0;
@@ -25,13 +25,13 @@ function getProgressPercentage(completed: number, total: number) {
 function getStatusColor(status: ClaimStatus) {
 	switch (status) {
 		case ClaimStatus.SUBMITTED:
-			return theme.palette.success.light;
+			return theme.palette.success.main;
 		case ClaimStatus.IN_PROGRESS:
-			return theme.palette.warning.light;
+			return theme.palette.warning.main;
 		case ClaimStatus.UNWORKED:
-			return theme.palette.error.light;
+			return theme.palette.error.main;
 		case ClaimStatus.BLOCKED:
-			return '#FC8C60';
+			return ORANGE;
 	}
 }
 
@@ -74,9 +74,9 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 						>
 							<ExpandableTitle
 								title="Claim Submission"
-								icon={<CheckCircle sx={{ color: 'white' }} />}
-								color={BASE_COLOR}
-								bgcolor="#EBEBEB"
+								icon={<CheckCircle sx={{ color: BASE_COLOR }} />}
+								color={'white'}
+								bgcolor="#F0F3F7"
 								padding="5px 0px 10px"
 							/>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
@@ -92,7 +92,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 								{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
 									<BasicButtonStyled
 										buttonProps={{
-											onClick: () => router.push('/metrics/user-activity'),
+											onClick: () => router.push('/metrics/claims'),
 										}}
 										icon={
 											<Troubleshoot
@@ -126,7 +126,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 											}),
 											valueFormatter: (v) => `${v.value} claim(s)`,
 											innerRadius: 75,
-											outerRadius: 125,
+											outerRadius: 100,
 											paddingAngle: 2,
 											cornerRadius: 5,
 											startAngle: -110,
@@ -144,7 +144,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 										position="absolute"
 										width={80}
 										left={-90}
-										top={-110}
+										top={-130}
 									>
 										<AnimatedCounter
 											value={getProgressPercentage(

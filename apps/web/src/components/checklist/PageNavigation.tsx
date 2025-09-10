@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { AccessTime, Add, MovieCreationOutlined, MovieEdit, SmsOutlined, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import theme, { BASE_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR } from '@/styles/theme';
 import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import Toolbar from '../common/Toolbar';
@@ -114,7 +114,7 @@ export default function PageNavigation() {
 						<Toolbar
 							left={
 								<ToggleButtonGroup
-									color="success"
+									color="secondary"
 									sx={{ bgcolor: 'white', borderRadius: 2 }}
 									value={mode}
 									exclusive
@@ -127,7 +127,7 @@ export default function PageNavigation() {
 										<Visibility
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.VIEW ? 'success.main' : '#787878',
+												color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
 											}}
 										/>
 										View
@@ -139,7 +139,7 @@ export default function PageNavigation() {
 										<MovieCreationOutlined
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.TEST ? 'success.main' : '#787878',
+												color: mode === ChecklistMode.TEST ? 'secondary.main' : '#787878',
 											}}
 										/>
 										Test
@@ -148,7 +148,7 @@ export default function PageNavigation() {
 										<MovieEdit
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.EDIT ? 'success.main' : '#787878',
+												color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
 											}}
 										/>
 										Edit
@@ -188,11 +188,10 @@ export default function PageNavigation() {
 										buttonProps={{
 											onClick: () =>
 												router.push(`/checklist/${checklistId}/claim/${claimId}/summary`),
-											color: 'primary',
 											startIcon: (
 												<SvgIcon>
 													<svg
-														fill={theme.palette.primary.main}
+														fill={theme.palette.secondary.main}
 														xmlns="http://www.w3.org/2000/svg"
 														viewBox="0 0 24 24"
 													>
@@ -267,7 +266,7 @@ export default function PageNavigation() {
 									</Box>
 									<Badge
 										badgeContent={commentData?.count ?? 0}
-										color="primary"
+										color="secondary"
 										showZero={false}
 										sx={styles.badge}
 									>
@@ -278,7 +277,7 @@ export default function PageNavigation() {
 											icon={
 												<SmsOutlined
 													sx={{
-														color: showComments ? theme.palette.primary.main : undefined,
+														color: showComments ? theme.palette.secondary.main : undefined,
 													}}
 												/>
 											}

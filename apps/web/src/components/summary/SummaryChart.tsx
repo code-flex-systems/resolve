@@ -3,7 +3,7 @@ import { PieChart, PieChartProps } from '@mui/x-charts-pro';
 import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import { useMemo } from 'react';
-import theme, { BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
 import { AdsClick, Help, Description } from '@mui/icons-material';
 import { SummarySegment } from '@/config/enums';
@@ -50,7 +50,7 @@ export default function SummaryChart() {
 						id: SummarySegment.UNANSWERED,
 						label: 'Unanswered',
 						value: totalUnanswered,
-						color: theme.palette.secondary.main,
+						color: theme.palette.warning.main,
 					},
 				],
 				highlightScope: { fade: 'global', highlight: 'item' },
@@ -67,13 +67,13 @@ export default function SummaryChart() {
 						id: SummarySegment.KNOWN,
 						label: 'Known',
 						value: total_known,
-						color: theme.palette.primary.light,
+						color: theme.palette.secondary.main,
 					},
 					{
 						id: SummarySegment.UNKNOWN,
 						label: 'Unknown',
 						value: total_unknown,
-						color: theme.palette.secondary.light,
+						color: PURPLE,
 					},
 				],
 				highlightScope: { fade: 'global', highlight: 'item' },
@@ -90,7 +90,7 @@ export default function SummaryChart() {
 	return (
 		<Paper elevation={0} sx={styles.paper}>
 			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-				<Paper
+				{/* <Paper
 					elevation={0}
 					sx={{
 						width: 'fit-content',
@@ -99,28 +99,28 @@ export default function SummaryChart() {
 						borderRadius: 3,
 					}}
 					className="flex-row-center"
-				>
-					<Typography fontSize={17} color="white">
-						Q/A Summary
-					</Typography>
-				</Paper>
+				> */}
+				<Typography fontSize={17}>Q/A Summary</Typography>
+				{/* </Paper> */}
 			</Box>
 			<Stack padding="20px 20px 0px">
 				<ExpandableTitle
-					icon={<Description sx={{ color: 'white' }} />}
+					icon={<Description sx={{ color: BASE_COLOR }} />}
+					color="white"
 					title={`Pages (${data.maxPosition.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
 				<ExpandableTitle
-					icon={<Help sx={{ color: 'white' }} />}
+					icon={<Help sx={{ color: BASE_COLOR }} />}
+					color="white"
 					title={`Questions (${checklistSummaryTotals.total_questions.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
 				<ExpandableTitle
 					key={selectedSummarySegment}
-					icon={<AdsClick sx={{ color: 'white' }} />}
+					icon={<AdsClick sx={{ color: BASE_COLOR }} />}
+					color="white"
 					title={`Selected - ${capitalize(selectedSummarySegment)}`}
-					color={theme.palette.secondary.main}
 					padding="0px 0px 10px"
 				/>
 			</Stack>

@@ -1,7 +1,7 @@
 'use client';
 
 import { capitalize, formatMetric } from '@/lib/utils/utils';
-import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
 import { Box, Collapse, Divider, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { ArrowCircleRight } from '@mui/icons-material';
 import { JSX } from 'react';
@@ -45,7 +45,7 @@ export default function SimpleMetric({
 	return (
 		<Stack margin="10px" className="metric" style={styles.container}>
 			<Paper
-				elevation={1}
+				elevation={0}
 				onClick={hasDetail ? onSelect : onClick}
 				sx={{
 					...styles.paper,
@@ -67,7 +67,7 @@ export default function SimpleMetric({
 						padding="10px 20px"
 					>
 						<Box position="relative" top={-20} right={-140}>
-							<Paper sx={{ position: 'absolute', borderRadius: 25 }}>
+							<Paper elevation={0} sx={{ position: 'absolute', borderRadius: 25 }}>
 								<div style={{ ...styles.circle, backgroundColor: color }}>{icon}</div>
 							</Paper>
 						</Box>
@@ -105,7 +105,7 @@ export default function SimpleMetric({
 			</Paper>
 			{hasDetail && (
 				<Collapse in={selected} unmountOnExit>
-					<Paper elevation={1} sx={styles.expandedPaper}>
+					<Paper elevation={0} sx={styles.expandedPaper}>
 						<Stack width={METRIC_WIDTH} padding="5px 10px">
 							{Object.keys(values ?? {})
 								.filter((k) => k !== 'total')
@@ -119,7 +119,7 @@ export default function SimpleMetric({
 											alignItems="center"
 											padding="0px 5px 5px"
 										>
-											<Typography fontStyle="italic">{capitalize(k)}</Typography>
+											<Typography fontSize={14}>{capitalize(k)}</Typography>
 											<Box
 												display="flex"
 												justifyContent="center"
@@ -176,13 +176,14 @@ const styles = {
 		cursor: 'pointer',
 	},
 	expandedPaper: {
-		bgcolor: OFFWHITE_COLOR,
+		bgcolor: '#F0F3F7',
 		borderRadius: 3,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,
 	},
 	paper: {
 		borderRadius: 3,
+		width: 'fit-content',
 	},
 	skeleton: {
 		borderRadius: 3,

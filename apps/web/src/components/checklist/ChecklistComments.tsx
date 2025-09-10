@@ -79,7 +79,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				alignItems="center"
 				padding="5px 10px"
 			>
-				<Badge badgeContent={data?.count ?? 0} color="primary" showZero={false} sx={styles.badge}>
+				<Badge badgeContent={data?.count ?? 0} color="secondary" showZero={false} sx={styles.badge}>
 					<Typography fontSize={15}>Comments</Typography>
 				</Badge>
 

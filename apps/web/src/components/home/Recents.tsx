@@ -15,13 +15,12 @@ export default function Recents() {
 	return isFetching ? (
 		<Skeleton sx={styles.container} />
 	) : (
-		<Paper sx={styles.container}>
+		<Paper elevation={0} sx={styles.container}>
 			<Box width="100%" height={40} display="flex" justifyContent="flex-start" alignItems="center">
 				<ExpandableTitle
 					title="Recent Claims"
-					icon={<ContentPasteSearch sx={{ color: 'white' }} />}
-					color={BASE_COLOR}
-					bgcolor="#EBEBEB"
+					icon={<ContentPasteSearch sx={{ color: BASE_COLOR }} />}
+					color="white"
 				/>
 			</Box>
 			{!recentChecklistClaims.length && (
@@ -98,7 +97,7 @@ const styles = {
 	container: {
 		width: 350,
 		minWidth: 350,
-		height: 375,
+		height: 350,
 		padding: '10px 20px',
 		overflow: 'hidden',
 		borderRadius: 4,

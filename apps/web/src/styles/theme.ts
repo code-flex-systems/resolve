@@ -2,12 +2,14 @@ import { createTheme } from '@mui/material/styles';
 import '@fontsource/inter';
 import { buttonClasses } from '@mui/material';
 
-export const BASE_COLOR = '#3f4a56';
-export const BASE_COLOR_LIGHT = '#91979e';
+export const BASE_COLOR = '#353D49';
+export const BASE_COLOR_LIGHT = '#CED4D8';
 export const BACKDROP_COLOR = '#ebedf1';
 export const HOVERED_COLOR = '#cdced8';
 export const OFFWHITE_COLOR = '#f7f7f7';
 export const OUTLINE_COLOR = '#e0e0e0';
+export const ORANGE = '#F27013';
+export const PURPLE = '#CA8EFF';
 
 // Create a default theme
 const theme = createTheme({
@@ -213,22 +215,33 @@ const theme = createTheme({
 			//   selectedOpacity: number;
 			disabled: BASE_COLOR_LIGHT,
 			//   disabledOpacity: number;
-			//   disabledBackground: string;
+			disabledBackground: '#F0F3F7',
 			//   focus: string;
 			//   focusOpacity: number;
 			//   activatedOpacity: number;
 		},
 		primary: {
-			main: '#216BC4',
-		},
-		secondary: {
-			main: '#1A549A',
-			dark: BASE_COLOR,
-		},
-		warning: {
-			main: '#FCB237',
+			main: '#21B5FF',
 			contrastText: '#fff',
 		},
+		secondary: {
+			main: '#32AE99',
+			dark: BASE_COLOR,
+			contrastText: '#fff',
+		},
+		success: {
+			main: '#1BB934',
+			contrastText: '#fff',
+		},
+		error: {
+			main: '#ED1C24',
+			contrastText: '#fff',
+		},
+		warning: {
+			main: '#F5BF48',
+			contrastText: '#fff',
+		},
+		divider: BASE_COLOR_LIGHT,
 	},
 	typography: {
 		fontFamily: [

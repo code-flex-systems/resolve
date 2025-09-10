@@ -12,7 +12,7 @@ import { ChecklistQuestion } from './ChecklistQuestion';
 import { Description, Replay, Save, TaskAlt } from '@mui/icons-material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR } from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
@@ -179,7 +179,8 @@ export default function Page() {
 								<>
 									<ExpandableTitle
 										title={selectedPageInfo.title}
-										icon={<Description sx={{ color: 'white' }} />}
+										icon={<Description sx={{ color: BASE_COLOR }} />}
+										color="white"
 									/>
 									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
 										<div style={{ marginLeft: 10 }} className="flex-row-left">

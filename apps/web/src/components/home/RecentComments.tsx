@@ -5,20 +5,15 @@ import Comments from '../common/Comments';
 import { useSession } from 'next-auth/react';
 import './styles.css';
 import ExpandableTitle from '../common/ExpandableTitle';
-import { MoreHoriz } from '@mui/icons-material';
+import { Sms } from '@mui/icons-material';
 
 export default function RecentComments() {
 	const { data: session } = useSession();
 	const userId = session?.user.id;
 	return (
-		<Paper sx={styles.container}>
+		<Paper elevation={0} sx={styles.container}>
 			<Box width="100%" height={40} display="flex" justifyContent="flex-start" alignItems="center">
-				<ExpandableTitle
-					title="Recent Comments"
-					icon={<MoreHoriz sx={{ color: 'white' }} />}
-					color={BASE_COLOR}
-					bgcolor="#EBEBEB"
-				/>
+				<ExpandableTitle title="Recent Comments" icon={<Sms sx={{ color: BASE_COLOR }} />} color="white" />
 			</Box>
 			<Stack
 				width="100%"
@@ -52,7 +47,7 @@ const styles = {
 	container: {
 		width: 520,
 		minWidth: 520,
-		height: 350,
+		height: 375,
 		minHeight: 0,
 		padding: '10px 20px',
 		overflow: 'hidden',

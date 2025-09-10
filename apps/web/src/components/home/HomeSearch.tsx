@@ -21,8 +21,8 @@ export default function HomeSearch() {
 
 	return (
 		<>
-			<Paper elevation={1} sx={styles.container}>
-				<Box left="calc(50% - 130px)" top={100} position="absolute" zIndex={-1}>
+			<Paper elevation={0} sx={styles.container}>
+				<Box left="calc(50% - 130px)" top={80} position="absolute" zIndex={-1}>
 					<Image alt="insurance" src={InsuranceGraphic1} width={260} height={230} />
 				</Box>
 				<Box height={90} />

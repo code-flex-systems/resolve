@@ -27,6 +27,7 @@ export default function ChecklistAnswerFreeform(props: {
 					padding: '2px 5px',
 				},
 				'& .MuiOutlinedInput-input': {
+					fontSize: 14,
 					padding: '2px 5px',
 				},
 			}}

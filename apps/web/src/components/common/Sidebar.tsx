@@ -13,8 +13,9 @@ import {
 	ClickAwayListener,
 	Divider,
 	Typography,
+	Paper,
 } from '@mui/material';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import Image from 'next/image';
 import logo from '@/lib/resources/images/logo.png';
 import config from '@/config/config';
@@ -45,7 +46,7 @@ export default function Sidebar({
 	items,
 	collapsedWidth = 60,
 	expandedWidth = 240,
-	color = '#fff',
+	color = BASE_COLOR_LIGHT,
 	hoverBackgroundColor = '#fff',
 }: SidebarProps) {
 	const [open, setOpen] = useState(false);
@@ -58,18 +59,19 @@ export default function Sidebar({
 
 	return (
 		<ClickAwayListener onClickAway={handleClickAway}>
-			<Box
+			<Paper
 				sx={{
 					position: 'fixed',
 					top: 0,
 					left: 0,
 					bottom: 0,
 					width: open ? expandedWidth : collapsedWidth,
-					background: 'linear-gradient(180deg, rgb(33, 106, 196), rgba(33, 106, 196, 0.9))',
+					backgroundColor: 'white',
 					color,
 					transition: 'width 0.3s',
 					overflowX: 'hidden',
 					zIndex: 1200,
+					borderRadius: 0,
 				}}
 			>
 				<Box
@@ -78,20 +80,29 @@ export default function Sidebar({
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'flex-start',
-						height: 60,
+						height: 50,
 						cursor: 'pointer',
-						width: expandedWidth,
 						overflow: 'hidden',
 					}}
+					borderRadius={1}
+					bgcolor={theme.palette.primary.main}
+					margin="5px"
 				>
-					<Box width={collapsedWidth} display="flex" justifyContent="center" alignItems="center">
+					<Box
+						width={collapsedWidth}
+						minWidth={collapsedWidth}
+						display="flex"
+						justifyContent="flex-start"
+						alignItems="center"
+						paddingLeft="10px"
+					>
 						<Image src={logo} alt="logo" height={35} />
 					</Box>
 					<Typography color="white" fontSize={30} paddingTop="5px" marginRight="5px">
 						{config.APP_NAME}
 					</Typography>
 				</Box>
-				<Divider sx={{ borderColor: color }} />
+				{/* <Divider sx={{ borderColor: color }} /> */}
 
 				<List disablePadding>
 					{items.map((item) => {
@@ -103,14 +114,15 @@ export default function Sidebar({
 								sx={{
 									display: 'block',
 									padding: '5px',
-									borderRadius: 20,
+									// borderRadius: 20,
+									borderRight: selected ? `3px solid ${theme.palette.primary.main}` : undefined,
 								}}
 							>
 								<ListItemButton
 									component={Link}
 									href={item.route}
 									sx={{
-										minHeight: 48,
+										minHeight: 30,
 										justifyContent: open ? 'initial' : 'center',
 										px: 2.5,
 										color: selected ? theme.palette.primary.main : color,
@@ -127,7 +139,7 @@ export default function Sidebar({
 											minWidth: 0,
 											mr: open ? 3 : 'auto',
 											justifyContent: 'center',
-											color: 'inherit',
+											color: selected ? BASE_COLOR : BASE_COLOR_LIGHT,
 											'& .MuiSvgIcon-root': { fontSize: 23 },
 										}}
 									>
@@ -151,7 +163,7 @@ export default function Sidebar({
 						);
 					})}
 				</List>
-			</Box>
+			</Paper>
 		</ClickAwayListener>
 	);
 }

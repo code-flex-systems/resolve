@@ -8,12 +8,12 @@ import CheckGradient from '../common/CheckGradient';
 export default function ClaimStatusIcon({ status, fontSize = 20 }: { status: ClaimStatus; fontSize?: number }) {
 	switch (status) {
 		case ClaimStatus.BLOCKED:
-			return <StopCircle sx={{ fontSize, color: theme.palette.error.light }} />;
+			return <StopCircle sx={{ fontSize, color: theme.palette.error.main }} />;
 		case ClaimStatus.SUBMITTED:
 			return <CheckCircle sx={{ fontSize, color: theme.palette.success.light }} />;
 		case ClaimStatus.IN_PROGRESS:
 			return <CheckGradient sx={{ fontSize }} />;
 		case ClaimStatus.UNWORKED:
-			return <PanoramaFishEye sx={{ fontSize, color: theme.palette.error.light }} />;
+			return <PanoramaFishEye sx={{ fontSize, color: theme.palette.error.main }} />;
 	}
 }

@@ -1,3 +1,4 @@
+import theme from '@/styles/theme';
 import { SvgIcon, SvgIconProps } from '@mui/material';
 
 export default function CheckGradient(props: SvgIconProps) {
@@ -33,10 +34,10 @@ export default function CheckGradient(props: SvgIconProps) {
 			</defs>
 
 			{/* Left half in red */}
-			<path clipPath="url(#halfLeft)" fill="#EE534F" d={pathD} />
+			<path clipPath="url(#halfLeft)" fill={theme.palette.error.main} d={pathD} />
 
 			{/* Right half in green */}
-			<path clipPath="url(#halfRight)" fill="#4CAF4F" d={pathD} />
+			<path clipPath="url(#halfRight)" fill={theme.palette.success.main} d={pathD} />
 		</SvgIcon>
 	);
 }

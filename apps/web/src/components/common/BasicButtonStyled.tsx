@@ -1,5 +1,5 @@
 'use client';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { Button, ButtonProps, Tooltip, TooltipProps } from '@mui/material';
 import { JSX, PropsWithChildren } from 'react';
 import BasicIconButton from './BasicIconButton';
@@ -53,7 +53,7 @@ export default function BasicButtonStyled(
 const styles = {
 	button: {
 		bgcolor: 'white',
-		outline: `1px solid #D9D9D9`,
+		outline: `1px solid ${BASE_COLOR_LIGHT}`,
 		border: 'none',
 		borderRadius: 2,
 		boxShadow: 'none',

@@ -70,7 +70,7 @@ const styles = {
 		borderTopRightRadius: 5,
 		borderBottomLeftRadius: 5,
 		borderBottomRightRadius: 5,
-		border: `1px solid ${theme.palette.primary.main}`,
+		border: `1px solid ${theme.palette.divider}`,
 		marginTop: 5,
 	},
 	row: {

@@ -59,7 +59,7 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 			justifyContent="center"
 			alignItems="center"
 			sx={{
-				backgroundImage: index <= active ? 'linear-gradient(rgb(76, 175, 79), rgba(76, 175, 79, 0.9))' : '',
+				backgroundImage: index <= active ? 'linear-gradient(rgb(27, 185, 52), rgba(27, 185, 52, 0.9))' : '',
 			}}
 			bgcolor={index <= active ? '' : BASE_COLOR_LIGHT}
 			borderRadius={20}
@@ -82,7 +82,7 @@ export default function FQStepper() {
 		<Stack
 			width={140}
 			minWidth={140}
-			height={375}
+			height={350}
 			display="flex"
 			justifyContent="flex-start"
 			alignItems="center"
@@ -114,7 +114,7 @@ export default function FQStepper() {
 						<StepLabel icon={<IconContainer active={active} index={i} />}>
 							<Typography
 								fontSize={17}
-								color={i <= active ? theme.palette.success.light : BASE_COLOR_LIGHT}
+								color={i <= active ? theme.palette.success.main : BASE_COLOR_LIGHT}
 							>
 								{label}
 							</Typography>

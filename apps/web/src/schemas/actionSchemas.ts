@@ -56,3 +56,12 @@ export type ActionInput = z.infer<typeof actionParams>;
 export const createActionInput = z.intersection(z.object({ answerId: z.number().int() }), actionParams);
 
 export const getActionInput = z.object({ answerId: z.number().int() });
+
+export const getActionStatsDetailInput = z.object({
+	filters: z.object({
+		range: z.tuple([parseDate(), parseDate()]),
+		checklistId: z.number().int().optional(),
+		claimId: z.number().int().optional(),
+		users: z.array(z.string()).optional(),
+	}),
+});

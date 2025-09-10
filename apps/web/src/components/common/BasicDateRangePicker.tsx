@@ -123,10 +123,10 @@ export default function BasicDateRangePicker({
 					...styles.chip,
 					height,
 					'& .MuiChip-icon': {
-						color: isEmpty ? undefined : theme.palette.primary.main,
+						color: isEmpty ? undefined : theme.palette.secondary.main,
 					},
 					'& .MuiChip-label': {
-						color: isEmpty ? undefined : theme.palette.primary.main,
+						color: isEmpty ? undefined : theme.palette.secondary.main,
 						fontStyle: isEmpty ? 'italic' : undefined,
 					},
 				}}
@@ -154,10 +154,12 @@ export default function BasicDateRangePicker({
 											sx={{
 												margin: '5px 0px',
 												'& .MuiChip-icon': {
-													color: s.label === label ? theme.palette.primary.main : BASE_COLOR,
+													color:
+														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
 												},
 												'& .MuiChip-label': {
-													color: s.label === label ? theme.palette.primary.main : BASE_COLOR,
+													color:
+														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
 												},
 											}}
 										/>
@@ -196,6 +198,7 @@ export default function BasicDateRangePicker({
 											setAnchorEl(null);
 										}}
 										variant="contained"
+										color="secondary"
 										sx={{ height: 30 }}
 										disabled={!clearable && range.some((r) => !r)}
 									>
@@ -217,7 +220,7 @@ const styles = {
 	},
 	paper: {
 		outline: 1,
-		outlineColor: theme.palette.primary.main,
+		outlineColor: theme.palette.divider,
 		marginTop: '5px',
 	},
 };

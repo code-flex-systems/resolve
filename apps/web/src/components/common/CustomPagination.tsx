@@ -23,7 +23,7 @@ export function CustomPagination() {
 				count={pageCount}
 				page={paginationModel.page + 1}
 				onChange={handleChange}
-				shape="rounded"
+				variant="outlined"
 				size="small"
 			/>
 		</div>

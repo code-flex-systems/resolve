@@ -9,11 +9,12 @@ import ProfileAvatar from '../common/ProfileAvatar';
 import RecentComments from '../home/RecentComments';
 import HomeSearch from '../home/HomeSearch';
 import FQStepper from '../home/FQStepper';
-import ClaimsMetric from '../metrics/ClaimsMetric';
+import ClaimsMetric from '../metrics/Claims/ClaimsMetric';
 import { useSession } from 'next-auth/react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
+import Calendar from '../home/Calendar';
 
 export default function Home() {
 	const { data: session } = useSession();
@@ -83,16 +84,27 @@ export default function Home() {
 									<HomeSearch />
 								</Box>
 
-								<Box
-									height="100%"
-									display="flex"
-									justifyContent="flex-start"
-									alignItems="flex-start"
-									marginLeft="20px"
-									marginTop="15px"
-								>
-									{!!session?.user && <ClaimsMetric users={[session.user.email]} />}
-								</Box>
+								<Stack height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+									<Box
+										height="100%"
+										display="flex"
+										justifyContent="flex-start"
+										alignItems="flex-start"
+										marginLeft="20px"
+										marginTop="5px"
+									>
+										{!!session?.user && <ClaimsMetric users={[session.user.email]} />}
+									</Box>
+									<Box
+										height="100%"
+										display="flex"
+										justifyContent="flex-start"
+										alignItems="flex-start"
+										marginLeft="20px"
+									>
+										<Calendar />
+									</Box>
+								</Stack>
 							</>
 						)}
 					</Box>

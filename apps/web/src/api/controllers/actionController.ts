@@ -2,7 +2,7 @@ import { ActionLogStatus, ActionType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import * as actionQueries from '../queries/actionQueries';
 import { sendEmail } from '@/lib/email/sendEmail';
-import { ActionDefinition } from '@/types/types';
+import { ActionDefinition, DateRange } from '@/types/types';
 import { TRPCError } from '@trpc/server';
 
 export async function executeActions(ctx: ProtectedContext, { answerIds }: { answerIds: number[] }) {
@@ -52,6 +52,21 @@ export async function executeActions(ctx: ProtectedContext, { answerIds }: { ans
 export async function getAction(ctx: ProtectedContext, { answerId }: { answerId: number }) {
 	const result = await actionQueries.getAction(ctx, answerId);
 	return result;
+}
+
+export async function getActionStats(ctx: ProtectedContext) {
+	const results = await actionQueries.getActionStats(ctx);
+	return results;
+}
+
+export async function getActionStatsDetail(
+	ctx: ProtectedContext,
+	{
+		filters,
+	}: { filters: { checklistId?: number; claimId?: number; users?: string[]; range?: DateRange; searchTerm?: string } }
+) {
+	const results = await actionQueries.getActionStatsDetail(ctx, filters);
+	return results;
 }
 
 export async function upsertAction(

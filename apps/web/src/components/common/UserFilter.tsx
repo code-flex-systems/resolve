@@ -56,7 +56,7 @@ export default function UserFilter({
 					label={
 						users.length
 							? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}`
-							: 'Select users'
+							: 'Filter by users'
 					}
 					icon={<People />}
 					onClick={(e) => {
@@ -72,7 +72,6 @@ export default function UserFilter({
 						},
 						'& .MuiChip-label': {
 							color: users.length ? theme.palette.primary.main : undefined,
-							fontStyle: users.length ? undefined : 'italic',
 						},
 					}}
 				/>
