@@ -1,3 +1,4 @@
+import { ClaimStatus } from '@/config/enums';
 import { SLICES } from '../storeConfig';
 import { AdminSlice } from '../storeTypes';
 import { setStateBuilder } from '../storeUtilities';
@@ -16,9 +17,21 @@ export function setFeedId(newId: number | null | undefined) {
 	});
 }
 
+export function setShowInactiveUsers(value: boolean) {
+	setState((state) => {
+		state.showInactiveUsers = value;
+	});
+}
+
 export function setTab(newTab: number) {
 	setState((state) => {
 		state.selectedTab = newTab;
+	});
+}
+
+export function toggleClaimAssignmentDialog() {
+	setState((state) => {
+		state.showClaimAssignmentDialog = !state.showClaimAssignmentDialog;
 	});
 }
 

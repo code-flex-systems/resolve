@@ -125,7 +125,7 @@ export default function SimpleMetric({
 												justifyContent="center"
 												alignItems="center"
 												style={styles.dot}
-												bgcolor="#EBEBEB"
+												bgcolor="white"
 											>
 												<Typography
 													fontSize={12}

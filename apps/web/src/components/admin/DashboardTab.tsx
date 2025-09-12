@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Paper, Stack, Typography } from '@mui/material';
+import { Box, Collapse, Fade, Paper, Stack, Typography } from '@mui/material';
 import {
 	Checklist,
 	ContentPasteSearch,
@@ -11,7 +11,7 @@ import {
 	Timelapse,
 } from '@mui/icons-material';
 import SimpleMetric from '../metrics/SimpleMetric';
-import theme, { BASE_COLOR_LIGHT, PURPLE } from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT, PURPLE } from '@/styles/theme';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -23,6 +23,19 @@ import UserActivityMetric from '../metrics/UserActivity/UserActivityMetric';
 import { useAdminSlice } from '@/state/store';
 import ActionsMetric from '../metrics/ActionsMetric';
 import StackedMetric from '../checklist/StackedMetric';
+import BasicButtonStyled from '../common/BasicButtonStyled';
+import { setFeedId, setShowInactiveUsers, toggleClaimAssignmentDialog } from '@/state/admin/actions';
+import { formatMD, getDaysToEndOfFiscalQuarter } from '@/lib/utils/utils';
+import MetricAction from '../common/MetricAction';
+import { ClaimStatus } from '@/config/enums';
+import { setClaimStatus } from '@/state/metrics/actions';
+
+const defaultClaimStats = {
+	[ClaimStatus.SUBMITTED]: 0,
+	[ClaimStatus.BLOCKED]: 0,
+	[ClaimStatus.IN_PROGRESS]: 0,
+	[ClaimStatus.UNWORKED]: 0,
+};
 
 export default function DashboardTab() {
 	const router = useRouter();
@@ -31,53 +44,32 @@ export default function DashboardTab() {
 	const { data: userCounts, isFetching: isFetchingUsers } = useUserTrpc().count({});
 	const { data: checklistCounts, isFetching: isFetchingChecklists } = useChecklistTrpc().count({});
 	const { data: claimCounts, isFetching: isFetchingClaims } = useClaimTrpc().count({});
-	const { data: feedCounts, isFetching: isFetchingFeeds } = useFeedTrpc().count({});
+	const { data: feedCounts, isFetching: isFetchingFeedCounts } = useFeedTrpc().count({});
+	const { data: lastSyncedFeed, isFetching: isFetchingLastSynced } = useFeedTrpc().getLastSynced();
+	const { data: claimStats = defaultClaimStats, isFetching: isFetchingClaimStats } = useChecklistTrpc().stats({});
+	const { data: rolloverCount = { count: 0 }, isFetching: isFetchingRolloverCount } = useClaimTrpc().countRollover();
+	const { data: inactiveUserCount = { count: 0 }, isFetching: isFetchingInactiveUserCount } =
+		useUserTrpc().countInactive();
+	const unprocessedClaimCount =
+		claimStats[ClaimStatus.BLOCKED] + claimStats[ClaimStatus.IN_PROGRESS] + claimStats[ClaimStatus.UNWORKED];
 
 	const onSelect = (key: string) => {
 		setSelected(selected === key ? null : key);
 	};
 
 	return (
-		<Box
-			width="100%"
-			flex={1}
-			display="flex"
-			justifyContent="flex-start"
-			alignContent="flex-start"
-			padding="10px 0px"
-			bgcolor="#F7F8FA"
-		>
-			<Stack display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
-				<Paper elevation={0} sx={styles.paper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
-						Quick Stats
-					</Typography>
-					<Box width={550} display="flex" justifyContent="space-between" alignContent="center" padding="40px">
-						<StackedMetric
-							icon={<Timelapse sx={{ fontSize: 25 }} />}
-							value={'20d'}
-							subtext="to end of quarter"
-							fontSize={25}
-							fontSizeSubtext={15}
-						/>
-						<StackedMetric
-							icon={<HorizontalSplit sx={{ fontSize: 25 }} />}
-							value={'50'}
-							subtext="unprocessed claims"
-							fontSize={25}
-							fontSizeSubtext={15}
-						/>
-						<StackedMetric
-							icon={<Replay sx={{ fontSize: 25, transform: 'scaleX(-1)' }} />}
-							value={'3'}
-							subtext="rollover claims"
-							fontSize={25}
-							fontSizeSubtext={15}
-						/>
-					</Box>
-				</Paper>
-				<Box display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
-					<Stack display="flex" justifyContent="flex-start" alignContent="flex-start">
+		<Fade in={true} timeout={1000}>
+			<Box
+				width="100%"
+				flex={1}
+				display="flex"
+				justifyContent="flex-start"
+				alignContent="flex-start"
+				padding="10px 0px"
+				bgcolor="#F7F8FA"
+			>
+				<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
+					<Stack display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
 						<SimpleMetric
 							title="checklists"
 							onClick={() => router.push('/admin/checklists')}
@@ -115,28 +107,130 @@ export default function DashboardTab() {
 							icon={<RssFeed sx={styles.simpleMetricIcon} />}
 							color={PURPLE}
 							values={feedCounts}
-							isLoading={isFetchingFeeds}
+							isLoading={isFetchingFeedCounts}
 							selected={selected === 'feeds'}
 						/>
 					</Stack>
-					<Box
-						bgcolor="#F0F3F8"
+					<Stack
 						display="flex"
-						height="fit-content"
 						justifyContent="flex-start"
 						alignContent="flex-start"
-						borderRadius={6}
-						padding="10px"
-						marginLeft="10px"
-						marginTop="10px"
+						paddingTop="20px"
+						paddingBottom="10px"
 					>
-						<UserActivityMetric />
-						<ClaimsMetric checklistId={selectedChecklistId} />
-						<ActionsMetric />
-					</Box>
+						<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
+							<Paper elevation={0} sx={styles.paper}>
+								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
+									Quick Stats
+								</Typography>
+								<Box
+									width="fit-content"
+									display="flex"
+									justifyContent="space-around"
+									alignContent="center"
+									padding="20px"
+								>
+									<StackedMetric
+										icon={<Timelapse sx={{ fontSize: 25 }} />}
+										value={`${getDaysToEndOfFiscalQuarter()}d`}
+										subtext="to end of quarter"
+										fontSize={25}
+										fontSizeSubtext={15}
+									/>
+									<Box padding="0px 20px">
+										<StackedMetric
+											icon={<HorizontalSplit sx={{ fontSize: 25 }} />}
+											value={unprocessedClaimCount.toLocaleString()}
+											subtext="unprocessed claims"
+											fontSize={25}
+											fontSizeSubtext={15}
+										/>
+									</Box>
+									<StackedMetric
+										icon={<Replay sx={{ fontSize: 25, transform: 'scaleX(-1)' }} />}
+										value={rolloverCount.count.toLocaleString()}
+										subtext="rollover claims"
+										fontSize={25}
+										fontSizeSubtext={15}
+									/>
+								</Box>
+							</Paper>
+							<Paper elevation={0} sx={styles.paper}>
+								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
+									Quick Actions
+								</Typography>
+								<Box
+									width="fit-content"
+									display="flex"
+									justifyContent="space-around"
+									alignContent="center"
+									padding="10px 20px 20px"
+								>
+									<Collapse in={isFetchingLastSynced || !!lastSyncedFeed} orientation="horizontal">
+										<MetricAction
+											action={() => {
+												setFeedId(lastSyncedFeed?.id);
+												toggleClaimAssignmentDialog();
+												router.push('/admin/feeds-and-claims');
+											}}
+											actionText={`Assign claims in ${lastSyncedFeed?.name ?? ''}`}
+											actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0')} in queue`}
+											color="primary.main"
+											loading={isFetchingLastSynced}
+										/>
+									</Collapse>
+									<Collapse
+										in={isFetchingClaimStats || claimStats.Submitted > 0}
+										orientation="horizontal"
+									>
+										<MetricAction
+											action={() => {
+												setClaimStatus(ClaimStatus.SUBMITTED);
+												router.push('/metrics/claims');
+											}}
+											actionText="Review submitted claims"
+											actionValue={`${claimStats.Submitted} in queue`}
+											color="secondary.main"
+											loading={isFetchingClaimStats}
+										/>
+									</Collapse>
+									<Collapse
+										in={isFetchingInactiveUserCount || inactiveUserCount.count > 0}
+										orientation="horizontal"
+									>
+										<MetricAction
+											action={() => {
+												setShowInactiveUsers(true);
+												router.push('/admin/users');
+											}}
+											actionText="Review inactive accounts"
+											actionValue={`${inactiveUserCount.count} users`}
+											color="warning.main"
+											loading={isFetchingInactiveUserCount}
+										/>
+									</Collapse>
+								</Box>
+							</Paper>
+						</Box>
+						<Box
+							bgcolor="#F0F3F8"
+							display="flex"
+							height="fit-content"
+							justifyContent="flex-start"
+							alignContent="flex-start"
+							borderRadius={6}
+							padding="10px"
+							marginLeft="10px"
+							marginTop="10px"
+						>
+							<UserActivityMetric />
+							<ClaimsMetric checklistId={selectedChecklistId} />
+							<ActionsMetric />
+						</Box>
+					</Stack>
 				</Box>
-			</Stack>
-		</Box>
+			</Box>
+		</Fade>
 	);
 }
 
@@ -144,7 +238,7 @@ const styles = {
 	paper: {
 		width: 'fit-content',
 		borderRadius: 3,
-		marginBottom: '10px',
+		margin: '0px 10px 10px',
 	},
 	simpleMetricIcon: {
 		color: 'white',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, InputAdornment, Paper, Switch, TextField, Typography } from '@mui/material';
+import { Button, Fade, InputAdornment, Paper, Switch, TextField, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { AccessTimeFilled, AccountCircle, AddBox, Phone, Search, Shield, Upload } from '@mui/icons-material';
 import { CustomPagination } from '../common/CustomPagination';
@@ -13,7 +13,7 @@ import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
 import { useSession } from 'next-auth/react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import { useAdminSlice } from '@/state/store';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -94,6 +94,7 @@ const COLUMNS: GridColDef[] = [
 export default function UsersTab() {
 	const { data: session } = useSession();
 	const showImportUsersDialog = useAdminSlice((state) => state.showImportUsersDialog);
+	const showInactiveUsers = useAdminSlice((state) => state.showInactiveUsers);
 	const userConstraints = useAdminSlice((state) => state.userConstraints);
 	const userSearchTerm = useAdminSlice((state) => state.userSearchTerm);
 	const [searchTerm, setSearchTerm] = useState('');
@@ -101,6 +102,7 @@ export default function UsersTab() {
 
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
+		inactive: showInactiveUsers,
 		limit: userConstraints.pageSize,
 		offset: userConstraints.page * userConstraints.pageSize,
 		searchTerm: userSearchTerm,
@@ -121,109 +123,121 @@ export default function UsersTab() {
 	);
 
 	return (
-		<div style={styles.container}>
-			<Paper sx={styles.paper} className="flex-col-start">
-				<Toolbar
-					left={
-						<>
-							<Paper elevation={0} sx={styles.searchPaper}>
-								<Search
-									sx={{
-										fontSize: 17,
-										marginRight: '5px',
-									}}
+		<Fade in={true} timeout={1000}>
+			<div style={styles.container}>
+				<Paper sx={styles.paper} className="flex-col-start">
+					<Toolbar
+						left={
+							<>
+								<Paper elevation={0} sx={styles.searchPaper}>
+									<Search
+										sx={{
+											fontSize: 17,
+											marginRight: '5px',
+										}}
+									/>
+									<input
+										placeholder="Search"
+										type="text"
+										style={styles.textField}
+										value={searchTerm}
+										onChange={(e) => {
+											setSearchTerm(e.target.value);
+											debouncedSearch(e.target.value);
+										}}
+									/>
+								</Paper>
+								<Switch
+									size="small"
+									checked={showDisabled}
+									onChange={(_, checked) => setShowDisabled(checked)}
+									color="warning"
+									sx={{ marginLeft: '10px' }}
 								/>
-								<input
-									placeholder="Search"
-									type="text"
-									style={styles.textField}
-									value={searchTerm}
-									onChange={(e) => {
-										setSearchTerm(e.target.value);
-										debouncedSearch(e.target.value);
-									}}
+								<Typography fontSize={14} fontStyle="italic">
+									Offboarded Accounts
+								</Typography>
+								<Switch
+									size="small"
+									checked={showInactiveUsers}
+									onChange={(_, checked) => actions.setShowInactiveUsers(checked)}
+									color="warning"
+									sx={{ marginLeft: '10px' }}
 								/>
-							</Paper>
-							<Switch
-								size="small"
-								checked={showDisabled}
-								onChange={(_, checked) => setShowDisabled(checked)}
-								color="warning"
-								sx={{ marginLeft: '10px' }}
-							/>
-							<Typography fontSize={14} fontStyle="italic">
-								Offboarded Accounts
-							</Typography>
-						</>
-					}
-					right={
-						<>
-							<Button
-								variant="contained"
-								color="secondary"
-								startIcon={<Upload />}
-								onClick={toggleImportUsersDialog}
-								sx={{ marginRight: '10px' }}
-							>
-								Import
-							</Button>
-							<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewUserDialog}>
-								User
-							</Button>
-						</>
-					}
-					height={50}
-					padding={'0px 10px'}
-				/>
-				<div style={styles.table}>
-					<DataGridPro
-						columns={COLUMNS}
-						columnHeaderHeight={45}
-						loading={isFetching}
-						slots={{
-							pagination: CustomPagination,
-						}}
-						slotProps={{
-							loadingOverlay: {
-								noRowsVariant: 'linear-progress',
-								variant: 'linear-progress',
-							},
-						}}
-						rows={data.rows}
-						rowCount={rowCount}
-						rowHeight={60}
-						hideFooterSelectedRowCount
-						pageSizeOptions={[]}
-						getRowClassName={(params) => {
-							if (params.row.email === session?.user?.email) return 'user-row';
-							return '';
-						}}
-						pagination
-						paginationMode="server"
-						paginationModel={userConstraints}
-						onPaginationModelChange={updateUserConstraints}
-						disableColumnSelector
-						disableRowSelectionOnClick
-						disableColumnMenu
-						sx={styles.tableOverrides}
-					/>
-				</div>
-
-				{showImportUsersDialog && (
-					<CSVImportWizard
-						fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
-						validateRow={(row: any) =>
-							createUsersInput.safeParse({
-								users: [row],
-							})
+								<Typography fontSize={14} fontStyle="italic">
+									Inactive Accounts
+								</Typography>
+							</>
 						}
-						onSubmit={(rows) => createUsers({ users: rows })}
-						submitting={creating}
-						onClose={toggleImportUsersDialog}
+						right={
+							<>
+								<Button
+									variant="contained"
+									color="secondary"
+									startIcon={<Upload />}
+									onClick={toggleImportUsersDialog}
+									sx={{ marginRight: '10px' }}
+								>
+									Import
+								</Button>
+								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewUserDialog}>
+									User
+								</Button>
+							</>
+						}
+						height={50}
+						padding={'0px 10px'}
 					/>
-				)}
-			</Paper>
-		</div>
+					<div style={styles.table}>
+						<DataGridPro
+							columns={COLUMNS}
+							columnHeaderHeight={45}
+							loading={isFetching}
+							slots={{
+								pagination: CustomPagination,
+							}}
+							slotProps={{
+								loadingOverlay: {
+									noRowsVariant: 'linear-progress',
+									variant: 'linear-progress',
+								},
+							}}
+							rows={data.rows}
+							rowCount={rowCount}
+							rowHeight={60}
+							hideFooterSelectedRowCount
+							pageSizeOptions={[]}
+							getRowClassName={(params) => {
+								if (params.row.email === session?.user?.email) return 'user-row';
+								return '';
+							}}
+							pagination
+							paginationMode="server"
+							paginationModel={userConstraints}
+							onPaginationModelChange={updateUserConstraints}
+							disableColumnSelector
+							disableRowSelectionOnClick
+							disableColumnMenu
+							sx={styles.tableOverrides}
+						/>
+					</div>
+
+					{showImportUsersDialog && (
+						<CSVImportWizard
+							fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
+							validateRow={(row: any) =>
+								createUsersInput.safeParse({
+									users: [row],
+								})
+							}
+							onSubmit={(rows) => createUsers({ users: rows })}
+							submitting={creating}
+							onClose={toggleImportUsersDialog}
+						/>
+					)}
+				</Paper>
+			</div>
+		</Fade>
 	);
 }
 

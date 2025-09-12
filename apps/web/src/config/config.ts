@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 const config = {
 	APP_NAME: 'Manifest',
 	CLAIM_FIELDS: [
@@ -13,6 +15,7 @@ const config = {
 		{ key: 'last_update', label: 'Last Update' },
 		{ key: 'expected_recovery', label: 'Expected Recovery' },
 	],
+	FISCAL_YEAR_START_DATE: dayjs().startOf('year'),
 	MAX_COMMENT_SIZE: 500,
 	USER_FIELDS: [
 		{ key: 'first', label: 'First' },

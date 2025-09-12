@@ -17,6 +17,7 @@ import { CompiledQuery, sql } from 'kysely';
 export async function getUsersPaginated(
 	ctx: ProtectedContext,
 	disabled?: boolean,
+	inactive?: boolean,
 	limit?: number,
 	offset?: number,
 	searchTerm?: string
@@ -36,6 +37,14 @@ export async function getUsersPaginated(
 						'like',
 						`%${searchTerm.toLowerCase()}%`
 					)
+				);
+			}
+			if (inactive === true) {
+				andClause.push(
+					eb.or([
+						eb('last_login', 'is', null),
+						eb('last_login', '<', sql`now() - interval '30 days'`.$castTo<Date>()),
+					])
 				);
 			}
 			return eb.and(andClause);
@@ -66,6 +75,22 @@ export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 		})
 		.orderBy(['last', 'first']);
 	return await query.execute();
+}
+
+export async function getInactiveUserCount(ctx: ProtectedContext) {
+	const count = await db
+		.selectFrom('users')
+		.select(({ fn }) => fn.countAll().as('count'))
+		.where('disabled', '=', false)
+		.where((eb) =>
+			eb.or([
+				eb('last_login', 'is', null),
+				eb('last_login', '<', sql`now() - interval '30 days'`.$castTo<Date>()),
+			])
+		)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirstOrThrow();
+	return { count: parseInt(count.count.toString()) };
 }
 
 export async function getUserActivity(

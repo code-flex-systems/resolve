@@ -2,11 +2,22 @@ import { z } from 'zod';
 import { ClaimSearch } from '@/config/enums';
 import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 
+export const assignClaimInput = z.object({
+	checklistId: z.number().int(),
+	claimId: z.number().int(),
+	assignee: z.string(),
+});
+
 export const getClaimInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),
 });
 export type GetClaimInput = z.infer<typeof getClaimInput>;
+
+export const getNextClaimToAssignInput = z.object({
+	feedId: z.number().int(),
+	offset: z.number().int().optional(),
+});
 
 export const getClaimsInput = z.object({
 	feedId: z.number().nullable().optional(),

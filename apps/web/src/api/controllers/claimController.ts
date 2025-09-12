@@ -3,6 +3,14 @@ import { ClaimSearch } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Claim } from '@/types/types';
 
+export async function assignClaim(
+	ctx: ProtectedContext,
+	{ checklistId, claimId, assignee }: { checklistId: number; claimId: number; assignee: string }
+) {
+	const results = await claimQueries.assignClaim(ctx, checklistId, claimId, assignee);
+	return results;
+}
+
 /**
  * Retrieve a claim and mark it as recently opened.
  *
@@ -14,6 +22,14 @@ export async function getClaim(
 	{ checklistId, claimId }: { checklistId: number; claimId: number }
 ) {
 	const results = await claimQueries.getClaim(ctx, checklistId, claimId);
+	return results;
+}
+
+export async function getNextClaimToAssign(
+	ctx: ProtectedContext,
+	{ feedId, offset }: { feedId: number; offset?: number }
+) {
+	const results = await claimQueries.getNextClaimToAssign(ctx, feedId, offset);
 	return results;
 }
 
@@ -46,6 +62,11 @@ export async function getClaims(
  */
 export async function getClaimCount(ctx: ProtectedContext, { clientId }: { clientId: string }) {
 	const results = await claimQueries.getClaimCount(ctx, clientId);
+	return results;
+}
+
+export async function getRolloverClaimCount(ctx: ProtectedContext) {
+	const results = await claimQueries.getRolloverClaimCount(ctx);
 	return results;
 }
 

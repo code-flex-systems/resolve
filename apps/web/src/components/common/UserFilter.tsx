@@ -16,12 +16,16 @@ export default function UserFilter({
 	width = 500,
 	padding,
 	height = 30,
+	text = 'Filter by users',
+	multi = true,
 }: {
 	users: GetUserOutput[];
 	setUsers: (newRecipients: GetUserOutput[]) => void;
 	width?: number | string;
 	padding?: string;
 	height?: number;
+	text?: string;
+	multi?: boolean;
 }) {
 	const trpcUtils = trpc.useUtils();
 	const [results, setResults] = useState<GetUserOutput[]>([]);
@@ -53,11 +57,7 @@ export default function UserFilter({
 				overflow="auto"
 			>
 				<Chip
-					label={
-						users.length
-							? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}`
-							: 'Filter by users'
-					}
+					label={users.length ? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}` : text}
 					icon={<People />}
 					onClick={(e) => {
 						setAnchorEl(e.currentTarget);
@@ -112,7 +112,9 @@ export default function UserFilter({
 										debouncedSearch(value);
 									}
 								}}
-								onChange={(_, newValue) => setUsers(newValue)}
+								onChange={(_, newValue) =>
+									setUsers(multi ? newValue : newValue.length ? [newValue[newValue.length - 1]] : [])
+								}
 								renderInput={(params) => (
 									<TextField
 										{...params}

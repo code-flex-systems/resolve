@@ -9,6 +9,7 @@ import { toggleImportClaimsDialog } from '@/state/admin/actions';
 import config from '@/config/config';
 import { createClaimInput } from '@/schemas/claimSchemas';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import { Fade } from '@mui/material';
 
 export default function FeedsAndClaimsTab() {
 	const showImportClaimsDialog = useAdminSlice((state) => state.showImportClaimsDialog);
@@ -16,20 +17,22 @@ export default function FeedsAndClaimsTab() {
 	const { mutateAsync: createClaims, isPending } = useClaimTrpc().createMany;
 
 	return (
-		<div style={styles.container} className="flex-row-between">
-			<Feeds />
-			<Claims />
-			{showImportClaimsDialog && (
-				<CSVImportWizard
-					fields={config.CLAIM_FIELDS.map((f) => ({ ...f, required: true }))}
-					validateRow={(row: any) => createClaimInput.safeParse({ claims: [row] })}
-					onSubmit={(claims) => createClaims({ claims })}
-					submitting={isPending}
-					onClose={toggleImportClaimsDialog}
-				/>
-			)}
-			{showNewClaimDialog && <NewClaimDialog />}
-		</div>
+		<Fade in={true} timeout={1000}>
+			<div style={styles.container} className="flex-row-between">
+				<Feeds />
+				<Claims />
+				{showImportClaimsDialog && (
+					<CSVImportWizard
+						fields={config.CLAIM_FIELDS.map((f) => ({ ...f, required: true }))}
+						validateRow={(row: any) => createClaimInput.safeParse({ claims: [row] })}
+						onSubmit={(claims) => createClaims({ claims })}
+						submitting={isPending}
+						onClose={toggleImportClaimsDialog}
+					/>
+				)}
+				{showNewClaimDialog && <NewClaimDialog />}
+			</div>
+		</Fade>
 	);
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { FeedStatus } from '@/config/enums';
-import theme, { OFFWHITE_COLOR } from '@/styles/theme';
+import theme, { BACKDROP_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
 import { Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
@@ -10,10 +10,11 @@ import { useState } from 'react';
 import { NetworkCheck, Notifications, NotificationsOff, Power, PowerOff, RssFeed } from '@mui/icons-material';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useAdminSlice } from '@/state/store';
-import { setFeedId } from '@/state/admin/actions';
+import { setFeedId, toggleClaimAssignmentDialog } from '@/state/admin/actions';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import ClaimAssignmentDialog from './ClaimAssignmentDialog';
 
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
@@ -29,6 +30,7 @@ const getStatusColor = (status: FeedStatus) => {
 export default function Feeds() {
 	const [testing, setTesting] = useState(false);
 	const selectedFeedId = useAdminSlice((state) => state.selectedFeedId);
+	const showClaimAssignmentDialog = useAdminSlice((state) => state.showClaimAssignmentDialog);
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
 
@@ -128,6 +130,16 @@ export default function Feeds() {
 										{formatMDYAbv(f.last_synced_at?.toString())}
 									</Typography>
 								</div>
+								<div style={{ width: '100%', paddingBottom: 10 }} className="flex-row-between">
+									<Button
+										onClick={() => toggleClaimAssignmentDialog()}
+										variant="contained"
+										color="primary"
+										sx={{ width: '100%' }}
+									>
+										Assign claims
+									</Button>
+								</div>
 								<div style={{ width: '100%' }} className="flex-row-left">
 									<Tooltip
 										title={f.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
@@ -208,6 +220,7 @@ export default function Feeds() {
 					])}
 				</List>
 			</Paper>
+			{showClaimAssignmentDialog && <ClaimAssignmentDialog />}
 		</div>
 	);
 }
@@ -231,7 +244,7 @@ const styles = {
 		alignItems: 'center',
 		height: 'fit-content',
 		padding: '10px 15px',
-		backgroundColor: OFFWHITE_COLOR,
+		backgroundColor: '#F9FAFC',
 	},
 	menuItem: {
 		width: 300,

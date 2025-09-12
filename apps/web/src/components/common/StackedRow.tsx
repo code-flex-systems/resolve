@@ -1,7 +1,7 @@
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { Stack, Typography } from '@mui/material';
 
-export function StackedRow({ primary, secondary }: { primary: any; secondary: any }) {
+export function StackedRow({ primary, secondary, fontSize = 15 }: { primary: any; secondary: any; fontSize?: number }) {
 	return (
 		<Stack
 			display="flex"
@@ -11,10 +11,10 @@ export function StackedRow({ primary, secondary }: { primary: any; secondary: an
 			alignItems="flex-start"
 			padding="5px 0px"
 		>
-			<Typography fontSize={15} lineHeight="17px" paddingBottom="2px">
+			<Typography fontSize={fontSize} lineHeight="17px" paddingBottom="2px">
 				{primary}
 			</Typography>
-			<Typography fontSize={13} lineHeight="15px" color={BASE_COLOR_LIGHT}>
+			<Typography fontSize={fontSize - 2} lineHeight="15px" color={BASE_COLOR_LIGHT}>
 				{secondary}
 			</Typography>
 		</Stack>

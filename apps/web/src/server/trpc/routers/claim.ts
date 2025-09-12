@@ -1,13 +1,36 @@
 import { router, protectedProcedure } from '../trpc';
 
-import { createClaims, getClaim, getClaimCount, getClaims } from '@/api/controllers/claimController';
+import {
+	assignClaim,
+	createClaims,
+	getClaim,
+	getClaimCount,
+	getClaims,
+	getNextClaimToAssign,
+	getRolloverClaimCount,
+} from '@/api/controllers/claimController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
-import { createClaimInput, getClaimCountInput, getClaimInput, getClaimsInput } from '@/schemas/claimSchemas';
+import {
+	assignClaimInput,
+	createClaimInput,
+	getClaimCountInput,
+	getClaimInput,
+	getClaimsInput,
+	getNextClaimToAssignInput,
+} from '@/schemas/claimSchemas';
 
 export const claimRouter = router({
+	assignClaim: protectedProcedure.input(assignClaimInput).mutation(async ({ input, ctx }) => {
+		return assignClaim(ctx, input);
+	}),
+
 	getClaim: protectedProcedure.input(getClaimInput).query(async ({ input, ctx }) => {
 		return getClaim(ctx, input);
+	}),
+
+	getNextClaimToAssign: protectedProcedure.input(getNextClaimToAssignInput).query(async ({ input, ctx }) => {
+		return getNextClaimToAssign(ctx, input);
 	}),
 
 	getClaims: protectedProcedure.input(getClaimsInput).query(async ({ input, ctx }) => {
@@ -18,6 +41,10 @@ export const claimRouter = router({
 		// Client aliasing requires Super Admin role
 		if (input.clientId) requireRole(ctx, config.ROLES.SUPER_ADMIN);
 		return await getClaimCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
+	}),
+
+	getRolloverClaimCount: protectedProcedure.query(async ({ ctx }) => {
+		return getRolloverClaimCount(ctx);
 	}),
 
 	createClaims: protectedProcedure.input(createClaimInput).mutation(async ({ input, ctx }) => {

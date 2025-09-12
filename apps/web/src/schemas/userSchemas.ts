@@ -6,6 +6,7 @@ export const getUsersInput = z.object({
 });
 export const getUsersPaginatedInput = z.object({
 	disabled: z.boolean().optional(),
+	inactive: z.boolean().optional(),
 	limit: z.number().optional(),
 	offset: z.number().optional(),
 	searchTerm: z.string().optional(),

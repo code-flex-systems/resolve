@@ -17,6 +17,11 @@ export async function getUsers(ctx: ProtectedContext, { searchTerm }: { searchTe
 	return results;
 }
 
+export async function getInactiveUserCount(ctx: ProtectedContext) {
+	const results = await userQueries.getInactiveUserCount(ctx);
+	return results;
+}
+
 /**
  * List users with optional pagination.
  *
@@ -27,13 +32,14 @@ export async function getUsersPaginated(
 	ctx: ProtectedContext,
 	{
 		disabled,
+		inactive,
 		limit,
 		offset,
 		searchTerm,
-	}: { disabled?: boolean; limit?: number; offset?: number; searchTerm?: string }
+	}: { disabled?: boolean; inactive?: boolean; limit?: number; offset?: number; searchTerm?: string }
 ) {
 	const [rows, count] = await Promise.all([
-		userQueries.getUsersPaginated(ctx, disabled, limit, offset, searchTerm),
+		userQueries.getUsersPaginated(ctx, disabled, inactive, limit, offset, searchTerm),
 		userQueries.getUserCount(ctx, disabled, searchTerm),
 	]);
 	return { rows, count };

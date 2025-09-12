@@ -10,6 +10,8 @@ export function useFeedTrpc() {
 
 		get: trpc.feed.getFeed.useQuery,
 
+		getLastSynced: trpc.feed.getLastSyncedFeed.useQuery,
+
 		create: trpc.feed.createFeed.useMutation({
 			onSuccess() {
 				utils.feed.getFeeds.invalidate();

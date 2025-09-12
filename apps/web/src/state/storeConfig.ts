@@ -4,4 +4,5 @@ export const SLICES = {
 	CHECKLIST: 'checklistSlice',
 	CHECKLISTS: 'checklistsSlice',
 	GLOBAL: 'globalSlice',
+	METRICS: 'metricsSlice',
 } as const;

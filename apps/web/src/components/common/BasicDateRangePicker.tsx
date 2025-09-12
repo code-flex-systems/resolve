@@ -7,8 +7,25 @@ import { DateRange, DateRangeCalendar } from '@mui/x-date-pickers-pro';
 import { WatchLater } from '@mui/icons-material';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
+import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 
 const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
+	{
+		label: 'Last Quarter',
+		getValue: () => {
+			const currentQuarterStart = getCurrentFiscalQuarterStart();
+			const previousQuarterStart = currentQuarterStart.subtract(3, 'months');
+			return [previousQuarterStart.startOf('day'), currentQuarterStart.subtract(1, 'days').endOf('day')];
+		},
+	},
+	{
+		label: 'This Quarter',
+		getValue: () => {
+			const today = dayjs();
+			const currentQuarterStart = getCurrentFiscalQuarterStart();
+			return [currentQuarterStart.startOf('day'), today.endOf('day')];
+		},
+	},
 	{
 		label: 'Last Week',
 		getValue: () => {

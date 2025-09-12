@@ -19,6 +19,10 @@ export const userRouter = router({
 		return userController.getUsers(ctx, input);
 	}),
 
+	getInactiveUserCount: protectedProcedure.query(async ({ ctx }) => {
+		return userController.getInactiveUserCount(ctx);
+	}),
+
 	getUsersPaginated: protectedProcedure.input(getUsersPaginatedInput).query(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getUsersPaginated(ctx, input);

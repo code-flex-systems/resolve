@@ -1,6 +1,7 @@
 import * as checklistQueries from '@/api/queries/checklistQueries';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { DateRangeStrict } from '@/types/types';
 
 /**
  * Create a checklist optionally copying another.
@@ -148,6 +149,22 @@ export async function getChecklistSummaryDetail(
 		checklistQueries.getChecklistSummaryDetail(ctx, { ...input, mode: 'count' }),
 	]);
 	return { rows: data, count: count };
+}
+
+export async function getChecklistClaims(
+	ctx: ProtectedContext,
+	{
+		filters,
+		limit,
+		offset,
+	}: {
+		filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus };
+		limit: number;
+		offset: number;
+	}
+) {
+	const results = await checklistQueries.getChecklistClaims(ctx, filters, limit, offset);
+	return results;
 }
 
 /**

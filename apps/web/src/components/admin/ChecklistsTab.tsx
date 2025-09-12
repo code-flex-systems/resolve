@@ -1,9 +1,9 @@
 'use client';
 
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { formatMDY, formatMDYAbv } from '@/lib/utils/utils';
-import { Button, Paper } from '@mui/material';
-import { AccountCircle, AddBox, ContentPasteSearch, Description } from '@mui/icons-material';
+import { formatMDY } from '@/lib/utils/utils';
+import { Button, Fade, Paper } from '@mui/material';
+import { AddBox, ContentPasteSearch } from '@mui/icons-material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -64,45 +64,47 @@ export default function ChecklistsTab() {
 	const { data: checklists = [], isFetching } = useChecklistTrpc().list({});
 	const showNewChecklistDialog = useAdminSlice((state) => state.showNewChecklistDialog);
 	return (
-		<div style={styles.container}>
-			<Paper sx={styles.paper} className="flex-col-start">
-				<Toolbar
-					right={
-						<>
-							<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewChecklistDialog}>
-								Checklist
-							</Button>
-						</>
-					}
-					height={50}
-					padding={'0px 10px'}
-				/>
-				<div style={styles.table}>
-					<DataGridPro
-						columns={COLUMNS}
-						columnHeaderHeight={45}
-						loading={isFetching}
-						slotProps={{
-							loadingOverlay: {
-								noRowsVariant: 'linear-progress',
-								variant: 'linear-progress',
-							},
-						}}
-						rows={checklists}
-						rowHeight={60}
-						hideFooterSelectedRowCount
-						pageSizeOptions={[]}
-						disableColumnSelector
-						disableRowSelectionOnClick
-						disableColumnMenu
-						sx={styles.tableOverrides}
-						hideFooter
-						showColumnVerticalBorder={false}
+		<Fade in={true} timeout={1000}>
+			<div style={styles.container}>
+				<Paper sx={styles.paper} className="flex-col-start">
+					<Toolbar
+						right={
+							<>
+								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewChecklistDialog}>
+									Checklist
+								</Button>
+							</>
+						}
+						height={50}
+						padding={'0px 10px'}
 					/>
-				</div>
-			</Paper>
-			{showNewChecklistDialog && <NewChecklistDialog />}
-		</div>
+					<div style={styles.table}>
+						<DataGridPro
+							columns={COLUMNS}
+							columnHeaderHeight={45}
+							loading={isFetching}
+							slotProps={{
+								loadingOverlay: {
+									noRowsVariant: 'linear-progress',
+									variant: 'linear-progress',
+								},
+							}}
+							rows={checklists}
+							rowHeight={60}
+							hideFooterSelectedRowCount
+							pageSizeOptions={[]}
+							disableColumnSelector
+							disableRowSelectionOnClick
+							disableColumnMenu
+							sx={styles.tableOverrides}
+							hideFooter
+							showColumnVerticalBorder={false}
+						/>
+					</div>
+				</Paper>
+				{showNewChecklistDialog && <NewChecklistDialog />}
+			</div>
+		</Fade>
 	);
 }
 

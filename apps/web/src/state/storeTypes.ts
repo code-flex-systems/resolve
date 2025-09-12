@@ -1,5 +1,5 @@
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { ChecklistMode, SummarySegment } from '../config/enums';
+import { ChecklistMode, ClaimStatus, SummarySegment } from '../config/enums';
 import { Checklist, Claim, Interval, PageInstance, TreeNode, User } from '@/types/types';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 
@@ -11,8 +11,10 @@ export interface AdminSlice {
 	selectedChecklistId: number | null;
 	selectedFeedId: number | null | undefined;
 	selectedTab: number;
+	showClaimAssignmentDialog: boolean;
 	showImportClaimsDialog: boolean;
 	showImportUsersDialog: boolean;
+	showInactiveUsers: boolean;
 	showNewChecklistDialog: boolean;
 	showNewClaimDialog: boolean;
 	showNewUserDialog: boolean;
@@ -74,4 +76,8 @@ export interface GlobalSlice {
 	navOpen: boolean;
 	selectedPage: string;
 	user: User;
+}
+
+export interface MetricsSlice {
+	selectedClaimStatus: ClaimStatus | null;
 }

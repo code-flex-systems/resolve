@@ -31,6 +31,11 @@ export const feedRouter = router({
 		return feedController.getFeed(ctx, input);
 	}),
 
+	getLastSyncedFeed: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return feedController.getLastSyncedFeed(ctx);
+	}),
+
 	createFeed: protectedProcedure.input(createFeedInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return feedController.createFeed(ctx, input);

@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { SLICES } from './storeConfig';
-import { AdminSlice, BreakdownSlice, ChecklistSlice, ChecklistsSlice, GlobalSlice } from './storeTypes';
+import { AdminSlice, BreakdownSlice, ChecklistSlice, ChecklistsSlice, GlobalSlice, MetricsSlice } from './storeTypes';
 import globalSlice from './global/initialState';
 import { enableMapSet } from 'immer';
 import checklistSlice from './checklist/initialState';
 import checklistsSlice from './checklists/initialState';
 import breakdownSlice from './breakdown/initialState';
 import adminSlice from './admin/initialState';
+import metricsSlice from './metrics/initialState';
 
 export const initialState = {
 	[SLICES.ADMIN]: adminSlice,
@@ -15,6 +16,7 @@ export const initialState = {
 	[SLICES.CHECKLIST]: checklistSlice,
 	[SLICES.CHECKLISTS]: checklistsSlice,
 	[SLICES.GLOBAL]: globalSlice,
+	[SLICES.METRICS]: metricsSlice,
 } as const;
 export type State = typeof initialState;
 export type Slice = (typeof SLICES)[keyof typeof SLICES];
@@ -52,4 +54,8 @@ export const useChecklistsSlice = <T>(callback: (state: ChecklistsSlice) => T): 
 
 export const useGlobalSlice = <T>(callback: (state: GlobalSlice) => T): T => {
 	return useStore((state) => callback(state[SLICES.GLOBAL]));
+};
+
+export const useMetricsSlice = <T>(callback: (state: MetricsSlice) => T): T => {
+	return useStore((state) => callback(state[SLICES.METRICS]));
 };

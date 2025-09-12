@@ -114,7 +114,7 @@ export interface Checklist {
 }
 
 export interface ChecklistClaim {
-  assignee: Generated<string>;
+  assignee: string | null;
   checklist_id: number;
   claim_id: number;
   client_id: string;
@@ -307,6 +307,7 @@ export interface Users {
   first: string;
   id: Generated<string>;
   last: string;
+  last_login: Timestamp | null;
   mfa_enabled: Generated<boolean>;
   mfa_secret: string | null;
   must_change_password: Generated<boolean>;

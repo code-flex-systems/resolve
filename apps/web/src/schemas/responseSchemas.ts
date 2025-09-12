@@ -31,7 +31,7 @@ export const getResponseAuditLogsInput = z.object({
 	filters: z.object({
 		checklistId: z.number().int().optional(),
 		claimId: z.number().int().optional(),
-		emails: z.array(z.string()).optional(),
+		emails: z.array(z.string().email()).optional(),
 		range: z.tuple([parseDate().nullable(), parseDate().nullable()]).optional(),
 		searchTerm: z.string().optional(),
 	}),

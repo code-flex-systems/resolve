@@ -12,6 +12,7 @@ export function useUserTrpc() {
 		list: trpc.user.getUsers.useQuery,
 		paginated: trpc.user.getUsersPaginated.useQuery,
 		count: trpc.user.getUserCount.useQuery,
+		countInactive: trpc.user.getInactiveUserCount.useQuery,
 		get: trpc.user.getUser.useQuery,
 		activity: trpc.user.getUserActivity.useQuery,
 		activityDetail: trpc.user.getUserActivityDetail.useQuery,

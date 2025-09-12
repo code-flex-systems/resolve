@@ -25,6 +25,10 @@ export async function getFeed(ctx: ProtectedContext, { id }: { id: number }) {
 	return await feedQueries.getFeed(ctx, id);
 }
 
+export async function getLastSyncedFeed(ctx: ProtectedContext) {
+	return await feedQueries.getLastSyncedFeed(ctx);
+}
+
 /**
  * Insert a new feed.
  *

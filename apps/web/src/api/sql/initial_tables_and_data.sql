@@ -19,6 +19,7 @@ drop table if exists verification_tokens;
 drop table if exists sessions;
 drop table if exists accounts;
 drop table if exists feeds;
+drop table if exists password_reset_tokens;
 drop table if exists users;
 drop table if exists client;
 
@@ -47,6 +48,7 @@ create table users(
     mfa_secret text,
     mfa_enabled boolean not null default false,
     onboarding_email_sent boolean not null default false,
+    last_login timestamp,
     unique(email)
 );
 

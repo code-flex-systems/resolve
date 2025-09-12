@@ -19,7 +19,7 @@ export default function UserActivitySummary({
 				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
 					<MetricValue value={totalEvents.toLocaleString()} fontSize={14} />
 					<Typography paddingLeft="5px" fontSize={14}>
-						event(s)
+						event(s) total
 					</Typography>
 				</Box>
 			</li>

@@ -26,9 +26,18 @@ import { StackedRow } from '../common/StackedRow';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { updateSelectedAssignee } from '@/state/checklist/actions';
 
-export default function UserSearch() {
+export default function UserSearch({
+	selectedUser,
+	setSelectedUser,
+	disabled = false,
+	fontSize = 15,
+}: {
+	selectedUser: GetUserOutput | null;
+	setSelectedUser: (newUser: GetUserOutput | null) => void;
+	disabled?: boolean;
+	fontSize?: number;
+}) {
 	const trpcUtils = trpc.useUtils();
-	const selectedAssignee = useChecklistSlice((state) => state.selectedAssignee);
 	const [query, setQuery] = useState<string>('');
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<GetUserOutput[]>([]);
@@ -77,12 +86,18 @@ export default function UserSearch() {
 						value={query}
 						onChange={handleInputChange}
 						onFocus={onFocus}
-						sx={styles.textField}
+						sx={{
+							...styles.textField,
+							'& .MuiOutlinedInput-input': {
+								padding: '5px',
+								fontSize,
+							},
+						}}
 						slotProps={{
 							input: {
 								startAdornment: (
 									<InputAdornment position="start">
-										<SearchIcon />
+										<SearchIcon sx={{ fontSize: fontSize + 2 }} />
 									</InputAdornment>
 								),
 								endAdornment: query && (
@@ -91,7 +106,7 @@ export default function UserSearch() {
 											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
 										) : (
 											<IconButton size="small" onClick={handleClearInput}>
-												<ClearIcon sx={{ fontSize: 17 }} />
+												<ClearIcon sx={{ fontSize: fontSize + 2 }} />
 											</IconButton>
 										)}
 									</InputAdornment>
@@ -100,24 +115,23 @@ export default function UserSearch() {
 						}}
 						autoComplete="off"
 						variant="outlined"
+						disabled={disabled}
 					/>
 
-					<Popper
-						open={Boolean(anchorEl)}
-						sx={{ zIndex: 100000 }}
-						anchorEl={anchorEl}
-						placement="bottom"
-						disablePortal
-					>
+					<Popper open={Boolean(anchorEl)} sx={{ zIndex: 100000 }} anchorEl={anchorEl} placement="bottom">
 						<Paper style={styles.popper}>
 							{searching && (
 								<MenuItem key="searching" disabled style={styles.menuItem}>
-									<Typography fontStyle="italic">Searching...</Typography>
+									<Typography fontSize={fontSize} fontStyle="italic">
+										Searching...
+									</Typography>
 								</MenuItem>
 							)}
 							{!searching && results.length === 0 && (
 								<MenuItem key="no-results" disabled style={styles.menuItem}>
-									<Typography fontStyle="italic">No users found</Typography>
+									<Typography fontSize={fontSize} fontStyle="italic">
+										No users found
+									</Typography>
 								</MenuItem>
 							)}
 							<TransitionGroup>
@@ -127,12 +141,16 @@ export default function UserSearch() {
 										<Collapse key={i}>
 											<MenuItem
 												onClick={() => {
-													updateSelectedAssignee(u);
+													setSelectedUser(u);
 													onClose();
 												}}
-												selected={selectedAssignee?.email === u.email}
+												selected={selectedUser?.email === u.email}
 											>
-												<StackedRow primary={`${u.last}, ${u.first}`} secondary={u.email} />
+												<StackedRow
+													primary={`${u.last}, ${u.first}`}
+													secondary={u.email}
+													fontSize={fontSize}
+												/>
 											</MenuItem>
 										</Collapse>
 									))}
@@ -170,14 +188,8 @@ const styles = {
 	},
 	textField: {
 		width: 300,
-		'& .MuiInput-input': {
-			fontSize: 15,
-		},
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 4,
-		},
-		'& .MuiOutlinedInput-input': {
-			padding: '5px',
 		},
 	},
 };

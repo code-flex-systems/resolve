@@ -4,6 +4,21 @@ import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { applyClientScope } from '../database/clientScoped';
+import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+
+export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
+	return await db
+		.insertInto('checklist_claim')
+		.values({
+			checklist_id: checklistId,
+			claim_id: claimId,
+			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
+			status: ClaimStatus.UNWORKED,
+			assignee,
+		})
+		.executeTakeFirstOrThrow();
+}
 
 /**
  * Retrieve a claim and update its last opened timestamp for a checklist.
@@ -27,6 +42,46 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.execute();
 	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
+}
+
+export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: number, offset = 0) {
+	const row = await db
+		.with('base', (qb) =>
+			applyClientScope(
+				qb
+					.selectFrom('claim')
+					.selectAll('claim')
+					.where('claim.feed_id', '=', feedId)
+					.where((eb) =>
+						eb.not(
+							eb.exists(
+								eb
+									.selectFrom('checklist_claim')
+									.select(sql.raw('1').as('row'))
+									.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+							)
+						)
+					),
+				ctx.session.user.client_id,
+				'claim'
+			)
+		)
+		.with('totals', (qb) => qb.selectFrom('base').select(sql<number>`count(*)`.as('total_unassigned')))
+		.with('next_row', (qb) =>
+			qb.selectFrom('base').selectAll().orderBy('created_at asc').orderBy('id asc').offset(offset).limit(1)
+		)
+		.selectFrom('totals')
+		// ON TRUE; Kysely trick: 1 = 1
+		.leftJoin('next_row', (join) => join.on(sql.raw('1'), '=', sql.raw('1')))
+		.select(['totals.total_unassigned'])
+		.selectAll('next_row')
+		.executeTakeFirst();
+
+	const { total_unassigned = 0, ...maybeClaim } = (row ?? {}) as any;
+	// If next_row didn't exist, all its cols are null => claim = null
+	const claim = row && maybeClaim.id != null ? (maybeClaim as Awaited<ReturnType<typeof getClaim>>) : null;
+
+	return { claim, total: parseInt(total_unassigned.toString()) };
 }
 
 /**
@@ -112,6 +167,28 @@ export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
 		fed: formattedResults.find((r) => !r.manual)?.count ?? 0,
 		manual: formattedResults.find((r) => r.manual)?.count ?? 0,
 	};
+}
+
+export async function getRolloverClaimCount(ctx: ProtectedContext) {
+	const currentFQStartDate = getCurrentFiscalQuarterStart().toDate();
+	const count = await applyClientScope(
+		db
+			.selectFrom('claim')
+			.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+			.select(({ fn }) => fn.countAll().as('count'))
+			.where((eb) =>
+				eb.or([
+					eb.and([
+						eb('checklist_claim.claim_id', 'is', null),
+						eb('claim.created_at', '<', currentFQStartDate),
+					]),
+					eb('checklist_claim.created_at', '<', currentFQStartDate),
+				])
+			),
+		ctx.session.user.client_id,
+		'claim'
+	).executeTakeFirstOrThrow();
+	return { count: parseInt(count.count.toString()) };
 }
 
 /**

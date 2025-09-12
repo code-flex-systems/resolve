@@ -11,6 +11,8 @@ export function useChecklistTrpc() {
 	return {
 		list: trpc.checklist.getChecklists.useQuery,
 
+		listForClaims: trpc.checklist.getChecklistClaims.useQuery,
+
 		listRecents: trpc.checklist.getRecentChecklistClaims.useQuery,
 
 		count: trpc.checklist.getChecklistCount.useQuery,
@@ -55,3 +57,4 @@ export type CreateChecklistInput = ChecklistInput['createChecklist'];
 export type UpdateChecklistInput = ChecklistInput['updateChecklist'];
 export type GetChecklistOutput = ChecklistOutput['getChecklists'][number];
 export type ChecklistClaim = ChecklistOutput['getChecklistClaim'];
+export type ChecklistClaimsOutput = ChecklistOutput['getChecklistClaims']['rows'];

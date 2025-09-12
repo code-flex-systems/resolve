@@ -25,6 +25,7 @@ export default function BasicButtonStyled(
 		buttonProps: ButtonProps;
 		icon?: JSX.Element;
 		tooltipProps?: BasicTooltipProps;
+		wrapText?: boolean;
 	} & PropsWithChildren
 ) {
 	const { buttonProps, icon, tooltipProps } = props;
@@ -41,7 +42,10 @@ export default function BasicButtonStyled(
 						...buttonProps.sx,
 						color: buttonProps.color ?? BASE_COLOR,
 					}}
-					style={{ minWidth: 'fit-content', textWrap: 'nowrap' }}
+					style={{
+						minWidth: props.wrapText ? undefined : 'fit-content',
+						textWrap: props.wrapText === true ? undefined : 'nowrap',
+					}}
 				>
 					{props.children}
 				</Button>

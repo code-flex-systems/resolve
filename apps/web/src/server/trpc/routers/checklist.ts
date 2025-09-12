@@ -14,12 +14,14 @@ import {
 	getChecklistClaimStats,
 	modifyChecklistClaim,
 	getChecklistClaimProgress,
+	getChecklistClaims,
 } from '@/api/controllers/checklistController';
 import {
 	createChecklistInput,
 	deleteChecklistInput,
 	getChecklistClaimInput,
 	getChecklistClaimProgressInput,
+	getChecklistClaimsInput,
 	getChecklistClaimStatsInput,
 	getChecklistCountInput,
 	getChecklistInput,
@@ -64,6 +66,11 @@ export const checklistRouter = router({
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
 		return await getChecklistClaimStats(ctx, input);
+	}),
+
+	getChecklistClaims: protectedProcedure.input(getChecklistClaimsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return await getChecklistClaims(ctx, input);
 	}),
 
 	getRecentChecklistClaims: protectedProcedure.query(async ({ ctx }) => {

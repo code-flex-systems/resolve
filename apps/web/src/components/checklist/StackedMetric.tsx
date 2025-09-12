@@ -24,7 +24,11 @@ export default function StackedMetric({
 						{value}
 					</Typography>
 					<Box maxWidth={100}>
-						<Typography fontSize={fontSizeSubtext} color={BASE_COLOR_LIGHT}>
+						<Typography
+							fontSize={fontSizeSubtext}
+							lineHeight={`${fontSizeSubtext + 2}px`}
+							color={BASE_COLOR_LIGHT}
+						>
 							{subtext}
 						</Typography>
 					</Box>

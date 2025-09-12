@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
+import { parseDate } from '@/lib/parsers/zodParsers';
 
 export const checklistParams = z.record(z.unknown());
 
@@ -49,6 +50,17 @@ export type GetChecklistSummaryInput = z.infer<typeof getChecklistSummaryInput>;
 export const getChecklistClaimStatsInput = z.object({
 	checklistId: z.number().optional(),
 	users: z.array(z.string().email()).optional(),
+});
+
+export const getChecklistClaimsInput = z.object({
+	filters: z.object({
+		checklistId: z.number().int().optional(),
+		users: z.array(z.string()).optional(),
+		range: z.tuple([parseDate(), parseDate()]),
+		claimStatus: z.nativeEnum(ClaimStatus).optional(),
+	}),
+	limit: z.number().int(),
+	offset: z.number().int(),
 });
 
 export const getChecklistSummaryDetailInput = z.object({

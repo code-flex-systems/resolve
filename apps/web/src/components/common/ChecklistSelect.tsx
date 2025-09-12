@@ -10,11 +10,15 @@ export default function ChecklistSelect({
 	setChecklist,
 	clearable = true,
 	height,
+	text = 'Filter by checklist',
+	disabled = false,
 }: {
 	checklist: GetChecklistOutput | null;
 	setChecklist: (newChecklist: GetChecklistOutput | null) => void;
 	clearable?: boolean;
 	height?: number;
+	text?: string;
+	disabled?: boolean;
 }) {
 	const { data: options = [], isFetching } = useChecklistTrpc().list({});
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
@@ -28,7 +32,7 @@ export default function ChecklistSelect({
 	return (
 		<>
 			<Chip
-				label={options.find((o) => o.id === checklist?.id)?.name ?? 'Filter by checklist'}
+				label={options.find((o) => o.id === checklist?.id)?.name ?? text}
 				icon={<Checklist />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
@@ -46,6 +50,7 @@ export default function ChecklistSelect({
 						color: checklist ? theme.palette.primary.main : undefined,
 					},
 				}}
+				disabled={disabled}
 			/>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">

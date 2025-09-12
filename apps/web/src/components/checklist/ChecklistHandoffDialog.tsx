@@ -72,7 +72,7 @@ export default function ChecklistHandoffDialog() {
 
 					<Stack width="100%" display="flex" justifyContent="center" alignItems="center">
 						<Box bgcolor="white" margin="10px" borderRadius={4}>
-							<UserSearch />
+							<UserSearch selectedUser={selectedAssignee} setSelectedUser={updateSelectedAssignee} />
 						</Box>
 
 						<Collapse in={!!selectedAssignee}>

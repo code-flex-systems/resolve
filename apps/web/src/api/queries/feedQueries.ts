@@ -74,6 +74,46 @@ export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed |
 	).executeTakeFirst();
 }
 
+export async function getLastSyncedFeed(ctx: ProtectedContext) {
+	return await db
+		.selectFrom((eb) =>
+			applyClientScope(
+				eb
+					.selectFrom('feeds')
+					.innerJoin('claim', 'feeds.id', 'claim.feed_id')
+					.selectAll('feeds')
+					.select(({ eb, fn }) =>
+						fn
+							.sum(
+								eb
+									.case()
+									.when(
+										eb.exists(
+											eb
+												.selectFrom('checklist_claim')
+												.select(sql.raw('1').as('row'))
+												.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+										)
+									)
+									.then(0)
+									.else(1)
+									.end()
+							)
+							.as('count_unassigned')
+					)
+					.where('feeds.status', '=', FeedStatus.ONLINE)
+					.groupBy('feeds.id'),
+				ctx.session.user.client_id,
+				'feeds'
+			).as('a')
+		)
+		.selectAll('a')
+		.where('a.count_unassigned', '>', 0)
+		.orderBy('a.last_synced_at desc')
+		.limit(1)
+		.executeTakeFirst();
+}
+
 /**
  * Insert a feed row.
  *

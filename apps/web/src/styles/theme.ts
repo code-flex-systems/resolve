@@ -51,14 +51,18 @@ const theme = createTheme({
 		MuiDataGrid: {
 			styleOverrides: {
 				root: {
+					'& .MuiDataGrid-row': {
+						transition: 'background-color 300ms ease',
+					},
 					'& .MuiDataGrid-row:hover': {
-						backgroundColor: 'rgba(90,126,209,0.2)',
+						backgroundColor: 'rgba(34, 180, 255, 0.05)',
 					},
 					'& .MuiDataGrid-row.Mui-selected': {
-						backgroundColor: 'rgba(90,126,209,0.4)',
+						transition: 'background-color 300ms ease',
+						backgroundColor: 'rgba(34, 180, 255, 0.1)',
 					},
 					'& .MuiDataGrid-row.Mui-selected:hover': {
-						backgroundColor: 'rgba(90,126,209,0.5)',
+						backgroundColor: 'rgba(34, 180, 255, 0.2)',
 					},
 					'& .MuiDataGrid-cell:focus': {
 						outline: 'none',

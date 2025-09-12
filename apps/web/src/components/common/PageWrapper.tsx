@@ -6,6 +6,7 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import { Fade } from '@mui/material';
 
 export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
@@ -36,7 +37,9 @@ export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor
 	return (
 		<div style={{ ...styles.container, backgroundColor: bgcolor }}>
 			<Sidebar items={navItems} />
-			<div style={styles.content}>{children}</div>
+			<Fade in={true} timeout={1000}>
+				<div style={styles.content}>{children}</div>
+			</Fade>
 		</div>
 	);
 }

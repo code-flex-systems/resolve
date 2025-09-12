@@ -12,6 +12,7 @@ import {
 import { useState } from 'react';
 import { CalendarToday, Check, Event } from '@mui/icons-material';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
 
 const steps: { value: number; label: string }[] = [
 	{ value: 1, label: 'Q1' },
@@ -76,7 +77,7 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 }
 
 export default function FQStepper() {
-	const [active, setActive] = useState<number>(1);
+	const [active, setActive] = useState<number>(getCurrentFiscalQuarter());
 
 	return (
 		<Stack

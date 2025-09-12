@@ -1,12 +1,11 @@
 'use client';
 
-import { Box, Fade, LinearProgress, linearProgressClasses, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import { Handshake, InfoOutlined, PlayCircle, StopCircle, Warning } from '@mui/icons-material';
+import { Handshake, PlayCircle, StopCircle, Warning } from '@mui/icons-material';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import theme, { BASE_COLOR } from '@/styles/theme';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import { BASE_COLOR } from '@/styles/theme';
 import { toggleChecklistHandoffDialog, toggleChecklistProgressDialog } from '@/state/checklist/actions';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { ClaimStatus } from '@/config/enums';
@@ -14,6 +13,7 @@ import ClaimStatusIcon from './ClaimStatusIcon';
 import { useMemo, useState } from 'react';
 import { DialogAction } from '@/types/types';
 import useIsAssigned from '@/hooks/useIsAssigned';
+import ChecklistProgress from './ChecklistProgress';
 
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
@@ -26,9 +26,6 @@ export default function ChecklistProgressDialog() {
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
-
-	const progressPercentage =
-		progress.totalQuestionCount > 0 ? Math.floor((progress.answerCount / progress.totalQuestionCount) * 100) : 0;
 
 	const primaryAction: DialogAction | undefined = useMemo(() => {
 		if (!isAssigned) return;
@@ -147,98 +144,42 @@ export default function ChecklistProgressDialog() {
 			width={500}
 			height={250}
 		>
-			{isFetchingProgress ? (
-				<Skeleton width="100%" height={120} sx={{ borderRadius: 4 }} />
-			) : (
-				<Stack display="flex" justifyContent="center" alignContent="center" height={120}>
-					<Paper elevation={0} sx={styles.paper}>
-						<Fade
-							key={confirmingStatus ?? 'none'}
-							in={true}
-							unmountOnExit
-							style={{ width: '100%', height: '100%' }}
-						>
-							<Stack
-								width="100%"
-								display="flex"
-								justifyContent="center"
-								alignContent="center"
-								height="100%"
-							>
-								{!confirmingStatus && (
-									<>
-										<Box
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="center"
-											paddingBottom="15px"
-										>
-											<BasicButtonStyled
-												buttonProps={{}}
-												icon={<InfoOutlined />}
-												tooltipProps={{
-													title: isAssigned
-														? 'Answering additional questions or changing your existing responses will alter this metric.'
-														: 'If additional questions are answered or existing responses are changed, this metric will update.',
-													placement: 'bottom-start',
-													arrow: true,
-												}}
-											/>
-											<Typography marginLeft="10px">
-												{isAssigned ? (
-													<>
-														You've answered <b>{progressPercentage}%</b> of this checklist.
-													</>
-												) : (
-													<>
-														<b>{progressPercentage}%</b> of this checklist has been
-														answered.
-													</>
-												)}
-											</Typography>
-										</Box>
-										<LinearProgress
-											value={progressPercentage}
-											variant="determinate"
-											sx={{
-												height: 8,
-												borderRadius: 2,
-												bgcolor: `rgba(76, 175, 79, 0.4)`,
+			<Stack display="flex" justifyContent="center" alignContent="center" height={120}>
+				<Paper elevation={0} sx={styles.paper}>
+					<Fade
+						key={confirmingStatus ?? 'none'}
+						in={true}
+						unmountOnExit
+						style={{ width: '100%', height: '100%' }}
+					>
+						<Stack width="100%" display="flex" justifyContent="center" alignContent="center" height="100%">
+							{!confirmingStatus && (
+								<ChecklistProgress checklistId={checklistId} claimId={claimId} width={400} />
+							)}
 
-												[`& .${linearProgressClasses.bar1}`]: {
-													backgroundColor: theme.palette.success.light,
-													transition: 'transform 500ms ease',
-													borderRadius: 2,
-												},
-											}}
-										/>
-									</>
-								)}
-
-								{!!confirmingStatus && (
-									<Box display="flex" justifyContent="flex-start" alignItems="center">
-										<Warning sx={{ color: BASE_COLOR }} />
-										<Stack
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="flex-start"
-											marginLeft="10px"
-										>
-											{getStatusConfirmationMsg()
-												.split('|')
-												.map((part, i) => (
-													<Typography key={i} fontSize={15}>
-														{part}
-													</Typography>
-												))}
-										</Stack>
-									</Box>
-								)}
-							</Stack>
-						</Fade>
-					</Paper>
-				</Stack>
-			)}
+							{!!confirmingStatus && (
+								<Box display="flex" justifyContent="flex-start" alignItems="center">
+									<Warning sx={{ color: BASE_COLOR }} />
+									<Stack
+										display="flex"
+										justifyContent="flex-start"
+										alignItems="flex-start"
+										marginLeft="10px"
+									>
+										{getStatusConfirmationMsg()
+											.split('|')
+											.map((part, i) => (
+												<Typography key={i} fontSize={15}>
+													{part}
+												</Typography>
+											))}
+									</Stack>
+								</Box>
+							)}
+						</Stack>
+					</Fade>
+				</Paper>
+			</Stack>
 		</BasicDialog>
 	);
 }
