@@ -174,7 +174,7 @@ export default function DashboardTab() {
 												router.push('/admin/feeds-and-claims');
 											}}
 											actionText={`Assign claims in ${lastSyncedFeed?.name ?? ''}`}
-											actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0')} in queue`}
+											actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0').toLocaleString()} in queue`}
 											color="primary.main"
 											loading={isFetchingLastSynced}
 										/>
@@ -189,7 +189,7 @@ export default function DashboardTab() {
 												router.push('/metrics/claims');
 											}}
 											actionText="Review submitted claims"
-											actionValue={`${claimStats.Submitted} in queue`}
+											actionValue={`${claimStats.Submitted.toLocaleString()} in queue`}
 											color="secondary.main"
 											loading={isFetchingClaimStats}
 										/>
@@ -204,7 +204,7 @@ export default function DashboardTab() {
 												router.push('/admin/users');
 											}}
 											actionText="Review inactive accounts"
-											actionValue={`${inactiveUserCount.count} users`}
+											actionValue={`${inactiveUserCount.count.toLocaleString()} users`}
 											color="warning.main"
 											loading={isFetchingInactiveUserCount}
 										/>

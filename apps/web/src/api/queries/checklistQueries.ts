@@ -7,6 +7,8 @@ import { DB } from '../database/types';
 import { TRPCError } from '@trpc/server';
 import { DateRangeStrict } from '@/types/types';
 
+const MAX_TREE_DEPTH = 30;
+
 /**
  * Create a new checklist and optionally copy page instances from an existing checklist.
  *
@@ -139,7 +141,7 @@ export async function getChecklists(ctx: ProtectedContext, searchTerm?: string) 
 		])
 		.select(({ fn }) => fn.countAll().as('page_count'))
 		.groupBy(['checklist.id', 'users.id'])
-		.orderBy('checklist.id');
+		.orderBy('checklist.name');
 	if (searchTerm) {
 		query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));
 	}
@@ -200,7 +202,11 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 		applyClientScope(
 			db
 				.selectFrom('page_instance')
-				.select('id')
+				.select((eb) => [
+					'id',
+					sql.raw('1').as('depth'),
+					sql<number[]>`ARRAY[${eb.ref('page_instance.id')}]`.as('path'),
+				])
 				.where('checklist_id', '=', checklistId)
 				.where('parent_instance_id', 'is', null),
 			ctx.session.user.client_id,
@@ -221,7 +227,17 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				.innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
 				.whereRef('question_response_answer.answer_id', '=', 'answer.id')
 				.where('answer.calls_instance_id', 'is not', null)
-				.select((eb) => eb.ref('answer.calls_instance_id').$notNull().as('id'))
+				// Check for cycles
+				.where((eb) =>
+					sql`NOT (${eb.ref('answer.calls_instance_id')} = ANY(unlocked_pages.path))`.$castTo<boolean>()
+				)
+				// Enforce a max depth as a safety fallback for infinite recursion
+				.where(sql`unlocked_pages.depth < ${MAX_TREE_DEPTH}`.$castTo<boolean>())
+				.select((eb) => [
+					eb.ref('answer.calls_instance_id').$notNull().as('id'),
+					sql<number>`unlocked_pages.depth + 1`.as('depth'),
+					sql<number[]>`array_append(unlocked_pages.path, ${eb.ref('answer.calls_instance_id')})`.as('path'),
+				])
 		)
 	);
 
@@ -273,7 +289,7 @@ export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?
 			.where((eb) => {
 				let andClause: ExpressionWrapper<DB, 'checklist_claim' | 'checklist' | 'claim', SqlBool>[] = [];
 				if (checklistId) andClause.push(eb('checklist.id', '=', checklistId));
-				if (users) andClause.push(eb('users.email', 'in', users));
+				if (users) andClause.push(eb('users.id', 'in', users));
 				return eb.and(andClause);
 			})
 			.groupBy(['checklist_claim.checklist_id', 'checklist.name', 'claim.id', 'checklist_claim.status'])
@@ -539,6 +555,12 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 			.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
 			.selectAll('checklist_claim')
 			.select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client'])
+			.where((eb) =>
+				eb.or([
+					eb('checklist_claim.created_by', '=', ctx.session.user.id),
+					eb('checklist_claim.assignee', '=', ctx.session.user.id),
+				])
+			)
 			.orderBy('checklist_claim.last_opened desc')
 			.limit(5),
 		ctx.session.user.client_id,

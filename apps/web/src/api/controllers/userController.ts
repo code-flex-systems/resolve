@@ -40,7 +40,7 @@ export async function getUsersPaginated(
 ) {
 	const [rows, count] = await Promise.all([
 		userQueries.getUsersPaginated(ctx, disabled, inactive, limit, offset, searchTerm),
-		userQueries.getUserCount(ctx, disabled, searchTerm),
+		userQueries.getUserCount(ctx, disabled, inactive, searchTerm),
 	]);
 	return { rows, count };
 }

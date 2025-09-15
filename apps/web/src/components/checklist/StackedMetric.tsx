@@ -23,7 +23,7 @@ export default function StackedMetric({
 					<Typography fontSize={fontSize} lineHeight="22px">
 						{value}
 					</Typography>
-					<Box maxWidth={100}>
+					<Box maxWidth={100} paddingTop="2px">
 						<Typography
 							fontSize={fontSizeSubtext}
 							lineHeight={`${fontSizeSubtext + 2}px`}

@@ -51,7 +51,7 @@ export default function UserActivitySummary({
 								alignItems="center"
 								paddingTop="5px"
 							>
-								<MetricValue value={maxUserRow.active_users} fontSize={14} />
+								<MetricValue value={maxUserRow.active_users.toLocaleString()} fontSize={14} />
 								<Typography fontSize={14} padding="0px 5px" noWrap>
 									active user(s)
 								</Typography>
@@ -65,7 +65,7 @@ export default function UserActivitySummary({
 								alignItems="center"
 								paddingTop="5px"
 							>
-								<MetricValue value={maxEventsRow.event_count} fontSize={14} />
+								<MetricValue value={maxEventsRow.event_count.toLocaleString()} fontSize={14} />
 								<Typography fontSize={15} paddingLeft="5px" noWrap>
 									event(s)
 								</Typography>
