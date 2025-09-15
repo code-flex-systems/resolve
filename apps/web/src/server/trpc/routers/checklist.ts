@@ -62,7 +62,7 @@ export const checklistRouter = router({
 		}),
 
 	getChecklistClaimStats: protectedProcedure.input(getChecklistClaimStatsInput).query(async ({ ctx, input }) => {
-		if (!!input.checklistId || input.users?.length !== 1 || input.users[0] !== ctx.session.user.email) {
+		if (!!input.checklistId || input.users?.length !== 1 || input.users[0] !== ctx.session.user.id) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
 		return await getChecklistClaimStats(ctx, input);

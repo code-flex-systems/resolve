@@ -73,7 +73,7 @@ export default function ClaimAssignmentDialog() {
 					color: BASE_COLOR,
 				},
 				{
-					label: `Skip${count == null ? '' : ` (${count ? count - progress - 1 : 0} more)`}`,
+					label: `Skip${count == null ? '' : ` (${count ? (count - progress - 1).toLocaleString() : 0} more)`}`,
 					onClick: () => onNext(1, true),
 					disabled: isFetchingNextClaim || (count ?? 0) - progress <= 1,
 					color: 'secondary',

@@ -49,7 +49,7 @@ export type GetChecklistSummaryInput = z.infer<typeof getChecklistSummaryInput>;
 
 export const getChecklistClaimStatsInput = z.object({
 	checklistId: z.number().optional(),
-	users: z.array(z.string().email()).optional(),
+	users: z.array(z.string()).optional(),
 });
 
 export const getChecklistClaimsInput = z.object({
@@ -82,5 +82,5 @@ export const modifyChecklistClaimInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),
 	status: z.nativeEnum(ClaimStatus).optional(),
-	assignee: z.string().email().optional(),
+	assignee: z.string().optional(),
 });

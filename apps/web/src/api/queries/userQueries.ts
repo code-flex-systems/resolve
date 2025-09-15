@@ -142,7 +142,7 @@ export async function getUserActivityDetail(ctx: ProtectedContext, date: string)
  * @param searchTerm - optional search term
  * @returns number of users
  */
-export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, searchTerm?: string) {
+export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, inactive?: boolean, searchTerm?: string) {
 	const query = db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
@@ -156,6 +156,14 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, se
 					eb.or([
 						eb(sql`lower(${eb.ref('first')})`, 'like', `${searchTerm.toLowerCase()}%`),
 						eb(sql`lower(${eb.ref('last')})`, 'like', `${searchTerm.toLowerCase()}%`),
+					])
+				);
+			}
+			if (inactive === true) {
+				andClause.push(
+					eb.or([
+						eb('last_login', 'is', null),
+						eb('last_login', '<', sql`now() - interval '30 days'`.$castTo<Date>()),
 					])
 				);
 			}

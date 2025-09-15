@@ -93,7 +93,7 @@ export default function Home() {
 										marginLeft="20px"
 										marginTop="5px"
 									>
-										{!!session?.user && <ClaimsMetric users={[session.user.email]} />}
+										{!!session?.user && <ClaimsMetric users={[session.user.id]} />}
 									</Box>
 									<Box
 										height="100%"
