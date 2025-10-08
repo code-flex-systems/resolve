@@ -1,6 +1,5 @@
 import { db } from '@/api/database/kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { applyClientScope } from '../database/clientScoped';
 
 /**
  * Insert a document into the database.
@@ -39,10 +38,12 @@ export async function deleteDoc(ctx: ProtectedContext, docId: number) {
  * @returns the found document
  */
 export async function getDoc(ctx: ProtectedContext, docId: number) {
-	return await applyClientScope(
-		db.selectFrom('doc').selectAll().where('id', '=', docId),
-		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
+        return await db
+                .selectFrom('doc')
+                .selectAll()
+                .where('doc.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', docId)
+                .executeTakeFirstOrThrow();
 }
 
 /**
@@ -52,5 +53,10 @@ export async function getDoc(ctx: ProtectedContext, docId: number) {
  * @returns array of documents
  */
 export async function getDocs(ctx: ProtectedContext) {
-	return await applyClientScope(db.selectFrom('doc').selectAll().orderBy('id'), ctx.session.user.client_id).execute();
+        return await db
+                .selectFrom('doc')
+                .selectAll()
+                .where('doc.client_id', '=', ctx.session.user.client_id)
+                .orderBy('id')
+                .execute();
 }

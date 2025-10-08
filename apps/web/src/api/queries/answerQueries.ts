@@ -3,7 +3,6 @@ import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { applyClientScope } from '../database/clientScoped';
 
 /**
  * Insert a new answer for a question.
@@ -66,10 +65,12 @@ export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answer
  * @returns the matching answer
  */
 export async function getAnswer(ctx: ProtectedContext, answerId: number) {
-	return await applyClientScope(
-		db.selectFrom('answer').selectAll().where('id', '=', answerId),
-		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
+        return await db
+                .selectFrom('answer')
+                .selectAll()
+                .where('answer.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', answerId)
+                .executeTakeFirstOrThrow();
 }
 
 /**
@@ -80,10 +81,13 @@ export async function getAnswer(ctx: ProtectedContext, answerId: number) {
  * @returns ordered list of answers
  */
 export async function getAnswers(ctx: ProtectedContext, questionId: number) {
-	return await applyClientScope(
-		db.selectFrom('answer').selectAll().where('question_id', '=', questionId).orderBy('position'),
-		ctx.session.user.client_id
-	).execute();
+        return await db
+                .selectFrom('answer')
+                .selectAll()
+                .where('answer.client_id', '=', ctx.session.user.client_id)
+                .where('question_id', '=', questionId)
+                .orderBy('position')
+                .execute();
 }
 
 /**
@@ -94,14 +98,13 @@ export async function getAnswers(ctx: ProtectedContext, questionId: number) {
  * @returns number of answers
  */
 export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
-	const answerCountRecord = await applyClientScope(
-		db
-			.selectFrom('answer')
-			.select(({ fn }) => fn.countAll().as('count'))
-			.where('question_id', '=', questionId),
-		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
-	return parseInt(answerCountRecord.count?.toString() ?? '0');
+        const answerCountRecord = await db
+                .selectFrom('answer')
+                .select(({ fn }) => fn.countAll().as('count'))
+                .where('answer.client_id', '=', ctx.session.user.client_id)
+                .where('question_id', '=', questionId)
+                .executeTakeFirstOrThrow();
+        return parseInt(answerCountRecord.count?.toString() ?? '0');
 }
 
 /**
@@ -114,10 +117,12 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @returns the updated answer
  */
 export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: object) {
-	const existingAnswer = await applyClientScope(
-		db.selectFrom('answer').select(['position', 'question_id']).where('id', '=', answerId),
-		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
+        const existingAnswer = await db
+                .selectFrom('answer')
+                .select(['position', 'question_id'])
+                .where('answer.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', answerId)
+                .executeTakeFirstOrThrow();
 	const updates: UpdateObjectExpression<DB, 'answer'> = {};
 
 	if (params.position && params.position !== existingAnswer.position) updates.position = params.position;

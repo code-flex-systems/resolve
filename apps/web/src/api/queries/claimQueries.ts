@@ -3,7 +3,6 @@ import { db } from '@/api/database/kysely';
 import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { applyClientScope } from '../database/clientScoped';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 
 export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
@@ -41,31 +40,33 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.execute();
-	return await db.selectFrom('claim').selectAll().where('id', '=', claimId).executeTakeFirstOrThrow();
+        return await db
+                .selectFrom('claim')
+                .selectAll()
+                .where('claim.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', claimId)
+                .executeTakeFirstOrThrow();
 }
 
 export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: number, offset = 0) {
-	const row = await db
-		.with('base', (qb) =>
-			applyClientScope(
-				qb
-					.selectFrom('claim')
-					.selectAll('claim')
-					.where('claim.feed_id', '=', feedId)
-					.where((eb) =>
-						eb.not(
-							eb.exists(
-								eb
-									.selectFrom('checklist_claim')
-									.select(sql.raw('1').as('row'))
-									.whereRef('checklist_claim.claim_id', '=', 'claim.id')
-							)
-						)
-					),
-				ctx.session.user.client_id,
-				'claim'
-			)
-		)
+        const row = await db
+                .with('base', (qb) =>
+                        qb
+                                .selectFrom('claim')
+                                .selectAll('claim')
+                                .where('claim.client_id', '=', ctx.session.user.client_id)
+                                .where('claim.feed_id', '=', feedId)
+                .where((eb) =>
+                                        eb.not(
+                                                eb.exists(
+                                                        eb
+                                                                .selectFrom('checklist_claim')
+                                                                .select(sql.raw('1').as('row'))
+                                                                .whereRef('checklist_claim.claim_id', '=', 'claim.id')
+                                                )
+                                        )
+                                )
+                )
 		.with('totals', (qb) => qb.selectFrom('base').select(sql<number>`count(*)`.as('total_unassigned')))
 		.with('next_row', (qb) =>
 			qb.selectFrom('base').selectAll().orderBy('created_at asc').orderBy('id asc').offset(offset).limit(1)
@@ -107,11 +108,10 @@ export async function getClaims(
 		offset?: number;
 	}
 ) {
-	let query = applyClientScope(
-		db.selectFrom('claim').leftJoin('feeds', 'claim.feed_id', 'feeds.id'),
-		ctx.session.user.client_id,
-		'claim'
-	);
+        let query = db
+                .selectFrom('claim')
+                .leftJoin('feeds', 'claim.feed_id', 'feeds.id')
+                .where('claim.client_id', '=', ctx.session.user.client_id);
 	query =
 		feedId !== undefined
 			? query.where('feed_id', feedId === null ? 'is' : '=', feedId)
@@ -146,16 +146,15 @@ export async function getClaims(
  * @returns a count
  */
 export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
-	const results = await applyClientScope(
-		db
-			.selectFrom('claim')
-			.select(({ eb, fn }) => [
-				eb.case().when('feed_id', 'is', null).then(true).else(false).end().as('manual'),
-				fn.count('id').as('count'),
-			])
-			.groupBy('manual'),
-		clientId
-	).execute();
+        const results = await db
+                .selectFrom('claim')
+                .select(({ eb, fn }) => [
+                        eb.case().when('feed_id', 'is', null).then(true).else(false).end().as('manual'),
+                        fn.count('id').as('count'),
+                ])
+                .where('claim.client_id', '=', clientId)
+                .groupBy('manual')
+                .execute();
 	let total = 0;
 	const formattedResults = results.map((r) => {
 		const count = parseInt(r.count.toString());
@@ -171,23 +170,21 @@ export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
 
 export async function getRolloverClaimCount(ctx: ProtectedContext) {
 	const currentFQStartDate = getCurrentFiscalQuarterStart().toDate();
-	const count = await applyClientScope(
-		db
-			.selectFrom('claim')
-			.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
-			.select(({ fn }) => fn.countAll().as('count'))
-			.where((eb) =>
-				eb.or([
-					eb.and([
-						eb('checklist_claim.claim_id', 'is', null),
-						eb('claim.created_at', '<', currentFQStartDate),
-					]),
-					eb('checklist_claim.created_at', '<', currentFQStartDate),
-				])
-			),
-		ctx.session.user.client_id,
-		'claim'
-	).executeTakeFirstOrThrow();
+        const count = await db
+                .selectFrom('claim')
+                .leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+                .select(({ fn }) => fn.countAll().as('count'))
+                .where('claim.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.or([
+                                eb.and([
+                                        eb('checklist_claim.claim_id', 'is', null),
+                                        eb('claim.created_at', '<', currentFQStartDate),
+                                ]),
+                                eb('checklist_claim.created_at', '<', currentFQStartDate),
+                        ])
+                )
+                .executeTakeFirstOrThrow();
 	return { count: parseInt(count.count.toString()) };
 }
 
