@@ -29,7 +29,7 @@ export default function Comments({
 	pageSize?: number;
 	width: number;
 	viewingInChecklist?: boolean;
-	onNavigate: (instanceId: number, questionId: number) => void;
+	onNavigate: (args: { checklistId?: number; claimId?: number; instanceId?: number; questionId?: number }) => void;
 }) {
 	const router = useRouter();
 	const { data: session } = useSession();
@@ -61,13 +61,13 @@ export default function Comments({
 							disableRipple
 							onClick={() => {
 								if (!canNavigate) return;
-								if (!viewingInChecklist) {
-									router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`);
-									toggleComments();
-								}
-								if (c.instance_id && c.question_id) {
-									onNavigate(c.instance_id, c.question_id);
-								}
+								if (!viewingInChecklist) toggleComments();
+								onNavigate({
+									checklistId: c.checklist_id,
+									claimId: c.claim_id,
+									instanceId: c.instance_id ?? undefined,
+									questionId: c.question_id ?? undefined,
+								});
 							}}
 							sx={{
 								...styles.menuItem,

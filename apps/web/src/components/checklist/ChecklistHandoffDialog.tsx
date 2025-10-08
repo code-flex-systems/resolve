@@ -38,7 +38,7 @@ export default function ChecklistHandoffDialog() {
 						console.error(e);
 					}
 					toggleChecklistHandoffDialog();
-					toggleChecklistProgressDialog();
+					toggleChecklistProgressDialog(false);
 					updateSelectedAssignee(null);
 				},
 			}}

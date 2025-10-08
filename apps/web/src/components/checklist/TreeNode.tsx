@@ -47,6 +47,10 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 		setExpanded(expandAll);
 	}, [expandAll]);
 
+	useEffect(() => {
+		if (selectedPageInstance === instanceId) actions.updateSelectedPageInfo(props);
+	}, [selectedPageInstance, props]);
+
 	const statusIcon = useMemo(() => {
 		const iconColor = selected ? 'white' : theme.palette.primary.main;
 		const iconClassname = selected ? 'node-selected-inner' : '';
@@ -79,10 +83,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						color: theme.palette.primary.main,
 					},
 				}}
-				onClick={() => {
-					actions.updateSelectedPage(instanceId);
-					actions.updateSelectedPageInfo(props);
-				}}
+				onClick={() => actions.updateSelectedPage(instanceId)}
 				display="flex"
 				justifyContent="space-between"
 				alignItems="center"

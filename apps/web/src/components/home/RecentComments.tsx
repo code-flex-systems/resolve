@@ -6,8 +6,11 @@ import { useSession } from 'next-auth/react';
 import './styles.css';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { Sms } from '@mui/icons-material';
+import { buildChecklistUrl } from '@/lib/utils/buildChecklistUrl';
+import { useRouter } from 'next/navigation';
 
 export default function RecentComments() {
+	const router = useRouter();
 	const { data: session } = useSession();
 	const userId = session?.user.id;
 	return (
@@ -26,7 +29,12 @@ export default function RecentComments() {
 				<Comments
 					filters={{ userId }}
 					width={470}
-					onNavigate={(instanceId: number, questionId: number) => {}}
+					onNavigate={({ checklistId, claimId, instanceId, questionId }) => {
+						if (!checklistId || !claimId) return;
+						router.push(
+							buildChecklistUrl({ checklistId, claimId, instanceId, questionId, focus: 'comments' })
+						);
+					}}
 				/>
 			</Stack>
 			<div

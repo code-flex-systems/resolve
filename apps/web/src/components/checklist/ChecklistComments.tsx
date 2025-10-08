@@ -43,7 +43,6 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 
 	const updatePage = (direction: number) => {
 		const newPageOffset = page + pageSize * direction;
-		console.log(newPageOffset);
 		if (newPageOffset < 0) {
 			updateCommentOffset(direction);
 			setPage(limit - pageSize);
@@ -167,9 +166,9 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 						page={page}
 						pageSize={pageSize}
 						viewingInChecklist
-						onNavigate={(instanceId: number, questionId: number) => {
-							goToPage(instanceId, tree);
-							toggleHighlightedQuestion(questionId);
+						onNavigate={({ instanceId, questionId }) => {
+							if (instanceId) goToPage(instanceId, tree);
+							if (questionId) toggleHighlightedQuestion(questionId);
 						}}
 					/>
 				)}

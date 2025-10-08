@@ -12,7 +12,6 @@ import { useEffect } from 'react';
 import { SLICES } from '@/state/storeConfig';
 import { Box } from '@mui/material';
 import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
-import { toggleChecklistProgressDialog } from '@/state/checklist/actions';
 import ChecklistHandoffDialog from '../checklist/ChecklistHandoffDialog';
 
 export default function Checklist() {
@@ -22,7 +21,7 @@ export default function Checklist() {
 	const showChecklistProgressDialog = useChecklistSlice((state) => state.showChecklistProgressDialog);
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
-	const { data: claim, isLoading: isLoadingClaim } = useClaimTrpc().get(
+	const { data: claim } = useClaimTrpc().get(
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
@@ -31,10 +30,6 @@ export default function Checklist() {
 	useEffect(() => {
 		return () => resetStoreSlice(SLICES.CHECKLIST);
 	}, []);
-
-	useEffect(() => {
-		if (isLoadingClaim) toggleChecklistProgressDialog();
-	}, [isLoadingClaim]);
 
 	return !checklist || (!!claimId && !claim) ? (
 		<></>

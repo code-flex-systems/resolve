@@ -37,7 +37,7 @@ export default function ChecklistProgressDialog() {
 				onClick: async () => {
 					try {
 						await updateChecklistClaim({ status: confirmingStatus, checklistId, claimId });
-						toggleChecklistProgressDialog();
+						toggleChecklistProgressDialog(false);
 					} catch (e) {
 						console.error(e);
 					}
@@ -140,7 +140,7 @@ export default function ChecklistProgressDialog() {
 			}
 			primaryAction={primaryAction}
 			secondaryActions={secondaryActions}
-			onClose={toggleChecklistProgressDialog}
+			onClose={() => toggleChecklistProgressDialog(false)}
 			width={500}
 			height={250}
 		>

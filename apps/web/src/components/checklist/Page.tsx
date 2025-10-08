@@ -80,7 +80,7 @@ export default function Page() {
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	const { data: questions = [] } = useQuestionTrpc().list(
+	const { data: questions } = useQuestionTrpc().list(
 		{ pageId: selectedPageInfo.pageId },
 		{ enabled: selectedPageInfo.pageId !== -1 }
 	);
@@ -236,7 +236,7 @@ export default function Page() {
 						</div>
 						<Fade key={selectedPageInstance} in={!loading} style={styles.form} timeout={500} unmountOnExit>
 							<Form control={control} style={styles.form}>
-								{questions.map((question, i) => (
+								{(questions ?? []).map((question, i) => (
 									<ChecklistQuestion
 										key={question.id}
 										control={control}

@@ -23,7 +23,7 @@ export default function ExpandableTitle({
 	useEffect(() => {
 		setShowTitle(true);
 		return () => setShowTitle(false);
-	});
+	}, []);
 	return (
 		<Box
 			width="fit-content"

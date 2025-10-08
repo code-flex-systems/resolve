@@ -65,9 +65,9 @@ export function toggleChecklistHandoffDialog() {
 	});
 }
 
-export function toggleChecklistProgressDialog() {
+export function toggleChecklistProgressDialog(v: boolean) {
 	setState((state) => {
-		state.showChecklistProgressDialog = !state.showChecklistProgressDialog;
+		state.showChecklistProgressDialog = v;
 	});
 }
 

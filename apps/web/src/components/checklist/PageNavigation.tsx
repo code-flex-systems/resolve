@@ -33,6 +33,7 @@ import ClaimStatusIcon from './ClaimStatusIcon';
 import ChecklistComments from './ChecklistComments';
 import ChecklistChangeLog from './ChecklistChangeLog';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
+import { useChecklistDeepLink } from '@/hooks/useChecklistDeepLink';
 
 const COMMENT_LIMIT = 30;
 
@@ -48,8 +49,11 @@ export default function PageNavigation() {
 	const showComments = useChecklistSlice((state) => state.showComments);
 	const commentOffset = useChecklistSlice((state) => state.commentOffset);
 
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
-	const { data: claim } = useClaimTrpc().get(
+	const { data: checklist, isSuccess: isChSuccess } = useChecklistTrpc().get(
+		{ id: checklistId! },
+		{ enabled: checklistId !== -1 }
+	);
+	const { data: claim, isSuccess: isClSuccess } = useClaimTrpc().get(
 		{ checklistId, claimId: claimId! },
 		{ enabled: checklistId !== -1 && !!claimId }
 	);
@@ -67,6 +71,7 @@ export default function PageNavigation() {
 		data: navigation = { tree: [], maxPosition: 0 },
 		isFetching,
 		refetch,
+		isSuccess: isNavSuccess,
 	} = usePageTrpc().getInstanceTree(
 		{
 			checklistId,
@@ -89,6 +94,8 @@ export default function PageNavigation() {
 		{ filters: { checklistId, claimId }, limit: COMMENT_LIMIT, offset: commentOffset },
 		{ enabled: checklistId !== -1 && !!claimId }
 	);
+
+	useChecklistDeepLink(isChSuccess && isClSuccess && isNavSuccess);
 
 	const onAddPage = async () => {
 		try {
@@ -294,7 +301,7 @@ export default function PageNavigation() {
 								<span>
 									<BasicButtonStyled
 										buttonProps={{
-											onClick: actions.toggleChecklistProgressDialog,
+											onClick: () => actions.toggleChecklistProgressDialog(true),
 											startIcon: (
 												<ClaimStatusIcon
 													status={
