@@ -4,7 +4,6 @@ import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { DateRange, DateRangeStrict, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { applyClientScope } from '../database/clientScoped';
 import { DB } from '../database/types';
 
 /**
@@ -22,19 +21,18 @@ export async function getResponseCount(
 	claimId: number,
 	instanceId: number
 ) {
-	const countRow = await applyClientScope(
-		db
-			.selectFrom('question_response')
-			.select(({ fn }) => fn.countAll().as('count'))
-			.where((eb) =>
-				eb.and([
-					eb('checklist_id', '=', checklistId),
-					eb('claim_id', '=', claimId),
-					eb('instance_id', '=', instanceId),
-				])
-			),
-		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
+        const countRow = await db
+                .selectFrom('question_response')
+                .select(({ fn }) => fn.countAll().as('count'))
+                .where('question_response.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.and([
+                                eb('checklist_id', '=', checklistId),
+                                eb('claim_id', '=', claimId),
+                                eb('instance_id', '=', instanceId),
+                        ])
+                )
+                .executeTakeFirstOrThrow();
 	return parseInt(countRow.count?.toString() ?? '0');
 }
 
@@ -47,35 +45,33 @@ export async function getResponseCount(
  * @returns list of answer responses
  */
 export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: number, interval?: Interval<string>) {
-	const results = await applyClientScope(
-		db
-			.selectFrom('question_response')
-			.innerJoin('question_response_answer', 'question_response.id', 'question_response_answer.response_id')
-			.innerJoin('claim', 'question_response.claim_id', 'claim.id')
-			.select([
-				'question_response.id',
-				'question_response.created_at',
-				'question_response_answer.additional_info',
-				'claim.claim_number',
-				'claim.client',
-			])
-			.where((eb) => {
-				const andClause = [eb('question_response_answer.answer_id', '=', answerId)];
-				if (interval) {
-					if (interval.from)
-						andClause.push(eb('question_response.created_at', '>=', new Date(interval.from)));
-					if (interval.to) andClause.push(eb('question_response.created_at', '<=', new Date(interval.to)));
-				} else {
-					andClause.push(
-						eb('question_response.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>())
-					);
-				}
-				return eb.and(andClause);
-			})
-			.orderBy('question_response.created_at desc'),
-		ctx.session.user.client_id,
-		'question_response'
-	).execute();
+        const results = await db
+                .selectFrom('question_response')
+                .innerJoin('question_response_answer', 'question_response.id', 'question_response_answer.response_id')
+                .innerJoin('claim', 'question_response.claim_id', 'claim.id')
+                .select([
+                        'question_response.id',
+                        'question_response.created_at',
+                        'question_response_answer.additional_info',
+                        'claim.claim_number',
+                        'claim.client',
+                ])
+                .where('question_response.client_id', '=', ctx.session.user.client_id)
+                .where((eb) => {
+                        const andClause = [eb('question_response_answer.answer_id', '=', answerId)];
+                        if (interval) {
+                                if (interval.from)
+                                        andClause.push(eb('question_response.created_at', '>=', new Date(interval.from)));
+                                if (interval.to) andClause.push(eb('question_response.created_at', '<=', new Date(interval.to)));
+                        } else {
+                                andClause.push(
+                                        eb('question_response.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>())
+                                );
+                        }
+                        return eb.and(andClause);
+                })
+                .orderBy('question_response.created_at desc')
+                .execute();
 	return results;
 }
 
@@ -95,40 +91,38 @@ export async function getResponsesForClaimChecklist(
 	instanceId?: number
 ) {
 	// Fetch all responses for the given claim and checklist
-	const responses: QuestionResponse[] = await applyClientScope(
-		db
-			.selectFrom('question_response')
-			.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
-			.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
-			.select((eb) => [
-				'question_response.id',
-				'question_response.checklist_id',
-				'question_response.instance_id',
-				'question_response.claim_id',
-				'question_response.question_id',
-				'question_response.response_text',
-				'question_response.created_at',
-				'question_response.updated_at',
-				sql`jsonb_agg(jsonb_build_object(
+        const responses: QuestionResponse[] = await db
+                .selectFrom('question_response')
+                .innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
+                .leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+                .select((eb) => [
+                        'question_response.id',
+                        'question_response.checklist_id',
+                        'question_response.instance_id',
+                        'question_response.claim_id',
+                        'question_response.question_id',
+                        'question_response.response_text',
+                        'question_response.created_at',
+                        'question_response.updated_at',
+                        sql`jsonb_agg(jsonb_build_object(
                     'answer_id', ${eb.ref('question_response_answer.answer_id')},
                     'additional_info', ${eb.ref('question_response_answer.additional_info')}
                 )) filter (where ${eb.ref('question_response_answer.id')} is not null)`
-					.$castTo<QuestionResponseAnswer[]>()
-					.as('selected_answers'),
-			])
-			.where((eb) => {
-				const andClause = [
-					eb('question_response.checklist_id', '=', checklistId),
-					eb('question_response.claim_id', '=', claimId),
-				];
-				if (instanceId) andClause.push(eb('question_response.instance_id', '=', instanceId));
-				return eb.and(andClause);
-			})
-			.groupBy('question_response.id')
-			.orderBy('question_response.instance_id'),
-		ctx.session.user.client_id,
-		'question_response'
-	).execute();
+                                .$castTo<QuestionResponseAnswer[]>()
+                                .as('selected_answers'),
+                ])
+                .where('question_response.client_id', '=', ctx.session.user.client_id)
+                .where((eb) => {
+                        const andClause = [
+                                eb('question_response.checklist_id', '=', checklistId),
+                                eb('question_response.claim_id', '=', claimId),
+                        ];
+                        if (instanceId) andClause.push(eb('question_response.instance_id', '=', instanceId));
+                        return eb.and(andClause);
+                })
+                .groupBy('question_response.id')
+                .orderBy('question_response.instance_id')
+                .execute();
 	const responseMap: Record<number, QuestionResponse> = {};
 	responses.forEach((r) => {
 		responseMap[r.question_id] = r;
@@ -142,30 +136,27 @@ export async function getResponseAuditLogs(
 	limit: number,
 	offset: number
 ) {
-	const baseQuery = applyClientScope(
-		db
-			.selectFrom('response_audit_logs')
-			.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
-			.where((eb) => {
-				let whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
-				if (filters.checklistId)
-					whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
-				if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
-				if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
-				if (filters.range && filters.range.some((d) => !!d)) {
-					if (filters.range[0]) {
-						whereClause.push(eb('response_audit_logs.created_at', '>=', filters.range[0]));
-					}
-					if (filters.range[1]) {
-						whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
-					}
-				}
-				if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
-				return eb.and(whereClause);
-			}),
-		ctx.session.user.client_id,
-		'response_audit_logs'
-	);
+        const baseQuery = db
+                .selectFrom('response_audit_logs')
+                .leftJoin('users', 'response_audit_logs.user_id', 'users.id')
+                .where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
+                .where((eb) => {
+                        const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
+                        if (filters.checklistId)
+                                whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
+                        if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
+                        if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
+                        if (filters.range && filters.range.some((d) => !!d)) {
+                                if (filters.range[0]) {
+                                        whereClause.push(eb('response_audit_logs.created_at', '>=', filters.range[0]));
+                                }
+                                if (filters.range[1]) {
+                                        whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
+                                }
+                        }
+                        if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
+                        return eb.and(whereClause);
+                });
 	const dataQuery = baseQuery
 		.selectAll('response_audit_logs')
 		.select(['users.first', 'users.last', 'users.email'])
@@ -223,34 +214,29 @@ export async function upsertQuestionResponses(
 
 	for (const response of responses) {
 		// Fetch existing response if any
-		const oldRow = await applyClientScope(
-			trx
-				.selectFrom('question_response')
-				.select(['id', 'response_text', 'created_by', 'updated_by'])
-				.where('checklist_id', '=', response.checklist_id)
-				.where('instance_id', '=', response.instance_id)
-				.where('claim_id', '=', response.claim_id)
-				.where('question_id', '=', response.question_id),
-			ctx.session.user.client_id,
-			'question_response'
-		).executeTakeFirst();
+                const oldRow = await trx
+                        .selectFrom('question_response')
+                        .select(['id', 'response_text', 'created_by', 'updated_by'])
+                        .where('question_response.client_id', '=', ctx.session.user.client_id)
+                        .where('checklist_id', '=', response.checklist_id)
+                        .where('instance_id', '=', response.instance_id)
+                        .where('claim_id', '=', response.claim_id)
+                        .where('question_id', '=', response.question_id)
+                        .executeTakeFirst();
 
 		// Gather snapshots for logging
 		const oldAnswers = oldRow
-			? await applyClientScope(
-					trx
-						.selectFrom('question_response_answer')
-						.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
-						.select([
-							'answer.id as answer_id',
-							'answer.text as label',
-							'question_response_answer.additional_info',
-						])
-						.where('question_response_answer.response_id', '=', oldRow.id),
-					ctx.session.user.client_id,
-					'answer'
-				).execute()
-			: [];
+                        ? await trx
+                                .selectFrom('question_response_answer')
+                                .innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
+                                .select([
+                                        'answer.id as answer_id',
+                                        'answer.text as label',
+                                        'question_response_answer.additional_info',
+                                ])
+                                .where('question_response_answer.response_id', '=', oldRow.id)
+                                .execute()
+                        : [];
 
 		// 3) build the “new” shape for comparison
 		const newText = response.response_text ?? null;
@@ -342,15 +328,12 @@ export async function upsertQuestionResponses(
 				.execute();
 		}
 
-		const newAnswerSnapshots: AuditAnswerSnapshot[] = await applyClientScope(
-			trx
-				.selectFrom('question_response_answer')
-				.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
-				.select(['answer.text as label', 'question_response_answer.additional_info'])
-				.where('question_response_answer.response_id', '=', saved.id),
-			ctx.session.user.client_id,
-			'answer'
-		).execute();
+                const newAnswerSnapshots: AuditAnswerSnapshot[] = await trx
+                        .selectFrom('question_response_answer')
+                        .innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
+                        .select(['answer.text as label', 'question_response_answer.additional_info'])
+                        .where('question_response_answer.response_id', '=', saved.id)
+                        .execute();
 
 		// Log the change
 		await insertResponseAuditLog(trx, {
@@ -371,15 +354,13 @@ export async function upsertQuestionResponses(
 
 	// Update page instance status
 	const sample = responses[0];
-	const template = await applyClientScope(
-		trx
-			.selectFrom('page')
-			.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
-			.select('version')
-			.where('page_instance.id', '=', sample.instance_id),
-		ctx.session.user.client_id,
-		'page'
-	).executeTakeFirstOrThrow();
+        const template = await trx
+                .selectFrom('page')
+                .innerJoin('page_instance', 'page.id', 'page_instance.page_id')
+                .select('version')
+                .where('page.client_id', '=', ctx.session.user.client_id)
+                .where('page_instance.id', '=', sample.instance_id)
+                .executeTakeFirstOrThrow();
 
 	await pageQueries.modifyPageInstanceStatus(ctx, {
 		claimId: sample.claim_id,

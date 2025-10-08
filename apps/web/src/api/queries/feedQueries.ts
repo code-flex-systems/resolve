@@ -1,7 +1,6 @@
 import { db } from '@/api/database/kysely';
 import { FeedStatus, FeedType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { applyClientScope } from '../database/clientScoped';
 import { sql } from 'kysely';
 
 export interface Feed {
@@ -34,20 +33,22 @@ export type UpdateFeedParams = Partial<NewFeedParams>;
  * @returns list of feeds
  */
 export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
-	return await applyClientScope(
-		db.selectFrom('feeds').selectAll().where('status', '<>', FeedStatus.INACTIVE).orderBy('name'),
-		ctx.session.user.client_id
-	).execute();
+        return await db
+                .selectFrom('feeds')
+                .selectAll()
+                .where('feeds.client_id', '=', ctx.session.user.client_id)
+                .where('status', '<>', FeedStatus.INACTIVE)
+                .orderBy('name')
+                .execute();
 }
 
 export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
-	const results = await applyClientScope(
-		db
-			.selectFrom('feeds')
-			.select(({ fn }) => ['status', fn.count('id').as('count')])
-			.groupBy('status'),
-		clientId
-	).execute();
+        const results = await db
+                .selectFrom('feeds')
+                .select(({ fn }) => ['status', fn.count('id').as('count')])
+                .where('feeds.client_id', '=', clientId)
+                .groupBy('status')
+                .execute();
 	const formattedResults: Partial<Record<FeedStatus, number>> & { total: number } = {
 		total: 0,
 	};
@@ -68,47 +69,47 @@ export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
  * @returns the feed if found
  */
 export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed | undefined> {
-	return await applyClientScope(
-		db.selectFrom('feeds').selectAll().where('id', '=', id),
-		ctx.session.user.client_id
-	).executeTakeFirst();
+        return await db
+                .selectFrom('feeds')
+                .selectAll()
+                .where('feeds.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', id)
+                .executeTakeFirst();
 }
 
 export async function getLastSyncedFeed(ctx: ProtectedContext) {
-	return await db
-		.selectFrom((eb) =>
-			applyClientScope(
-				eb
-					.selectFrom('feeds')
-					.innerJoin('claim', 'feeds.id', 'claim.feed_id')
-					.selectAll('feeds')
-					.select(({ eb, fn }) =>
-						fn
-							.sum(
-								eb
-									.case()
-									.when(
-										eb.exists(
-											eb
-												.selectFrom('checklist_claim')
-												.select(sql.raw('1').as('row'))
-												.whereRef('checklist_claim.claim_id', '=', 'claim.id')
-										)
-									)
-									.then(0)
-									.else(1)
-									.end()
-							)
-							.as('count_unassigned')
-					)
-					.where('feeds.status', '=', FeedStatus.ONLINE)
-					.groupBy('feeds.id'),
-				ctx.session.user.client_id,
-				'feeds'
-			).as('a')
-		)
-		.selectAll('a')
-		.where('a.count_unassigned', '>', 0)
+        return await db
+                .selectFrom((eb) =>
+                        eb
+                                .selectFrom('feeds')
+                                .innerJoin('claim', 'feeds.id', 'claim.feed_id')
+                                .selectAll('feeds')
+                                .select(({ eb, fn }) =>
+                                        fn
+                                                .sum(
+                                                        eb
+                                                                .case()
+                                                                .when(
+                                                                        eb.exists(
+                                                                                eb
+                                                                                        .selectFrom('checklist_claim')
+                                                                                        .select(sql.raw('1').as('row'))
+                                                                                        .whereRef('checklist_claim.claim_id', '=', 'claim.id')
+                                                                        )
+                                                                )
+                                                                .then(0)
+                                                                .else(1)
+                                                                .end()
+                                                )
+                                                .as('count_unassigned')
+                                )
+                                .where('feeds.client_id', '=', ctx.session.user.client_id)
+                                .where('feeds.status', '=', FeedStatus.ONLINE)
+                                .groupBy('feeds.id')
+                                .as('a')
+                )
+                .selectAll('a')
+                .where('a.count_unassigned', '>', 0)
 		.orderBy('a.last_synced_at desc')
 		.limit(1)
 		.executeTakeFirst();

@@ -2,7 +2,6 @@ import { ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
 import { db } from '@/api/database/kysely';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { applyClientScope } from '../database/clientScoped';
 import { DB } from '../database/types';
 import { TRPCError } from '@trpc/server';
 import { DateRangeStrict } from '@/types/types';
@@ -111,10 +110,12 @@ export async function modifyChecklistClaim(
  * @returns the checklist record
  */
 export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
-	return await applyClientScope(
-		db.selectFrom('checklist').selectAll().where('id', '=', checklistId),
-		ctx.session.user.client_id
-	).executeTakeFirstOrThrow();
+        return await db
+                .selectFrom('checklist')
+                .selectAll()
+                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', checklistId)
+                .executeTakeFirstOrThrow();
 }
 
 /**
@@ -125,27 +126,28 @@ export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
  * @returns array of checklists with page counts
  */
 export async function getChecklists(ctx: ProtectedContext, searchTerm?: string) {
-	let query = db
-		.selectFrom('checklist')
-		.innerJoin('page_instance', 'checklist.id', 'page_instance.checklist_id')
-		.leftJoin('users', 'checklist.created_by', 'users.id')
-		.selectAll('checklist')
-		.select((eb) => [
-			eb
-				.case()
+        let query = db
+                .selectFrom('checklist')
+                .innerJoin('page_instance', 'checklist.id', 'page_instance.checklist_id')
+                .leftJoin('users', 'checklist.created_by', 'users.id')
+                .selectAll('checklist')
+                .select((eb) => [
+                        eb
+                                .case()
 				.when('users.id', 'is', null)
 				.then(null)
 				.else(sql`concat(${eb.ref('users.last')}, ', ', ${eb.ref('users.first')})`)
 				.end()
 				.as('creator'),
 		])
-		.select(({ fn }) => fn.countAll().as('page_count'))
-		.groupBy(['checklist.id', 'users.id'])
-		.orderBy('checklist.name');
-	if (searchTerm) {
-		query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));
-	}
-	return await applyClientScope(query, ctx.session.user.client_id, 'checklist').execute();
+                .select(({ fn }) => fn.countAll().as('page_count'))
+                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .groupBy(['checklist.id', 'users.id'])
+                .orderBy('checklist.name');
+        if (searchTerm) {
+                query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));
+        }
+        return await query.execute();
 }
 
 /**
@@ -156,13 +158,12 @@ export async function getChecklists(ctx: ProtectedContext, searchTerm?: string) 
  * @returns published/unpublished count
  */
 export async function getChecklistCount(ctx: ProtectedContext, clientId: string) {
-	const results = await applyClientScope(
-		db
-			.selectFrom('checklist')
-			.select(({ fn }) => ['published', fn.count('id').as('count')])
-			.groupBy('published'),
-		clientId
-	).execute();
+        const results = await db
+                .selectFrom('checklist')
+                .select(({ fn }) => ['published', fn.count('id').as('count')])
+                .where('checklist.client_id', '=', clientId)
+                .groupBy('published')
+                .execute();
 	let total = 0;
 	const formattedResults = results.map((r) => {
 		const count = parseInt(r.count.toString());
@@ -185,73 +186,69 @@ export async function getChecklistCount(ctx: ProtectedContext, clientId: string)
  * @returns the checklist_claim row
  */
 export async function getChecklistClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	return await applyClientScope(
-		db
-			.selectFrom('checklist_claim')
-			.innerJoin('users', 'checklist_claim.assignee', 'users.id')
-			.selectAll('checklist_claim')
-			.select(['users.first', 'users.last', 'users.email'])
-			.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)])),
-		ctx.session.user.client_id,
-		'checklist_claim'
-	).executeTakeFirst();
+        return await db
+                .selectFrom('checklist_claim')
+                .innerJoin('users', 'checklist_claim.assignee', 'users.id')
+                .selectAll('checklist_claim')
+                .select(['users.first', 'users.last', 'users.email'])
+                .where('checklist_claim.client_id', '=', ctx.session.user.client_id)
+                .where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)]))
+                .executeTakeFirst();
 }
 
 export async function getChecklistClaimProgress(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	const unlockedPages = db.withRecursive('unlocked_pages', (db) =>
-		applyClientScope(
-			db
-				.selectFrom('page_instance')
-				.select((eb) => [
-					'id',
-					sql.raw('1').as('depth'),
-					sql<number[]>`ARRAY[${eb.ref('page_instance.id')}]`.as('path'),
-				])
-				.where('checklist_id', '=', checklistId)
-				.where('parent_instance_id', 'is', null),
-			ctx.session.user.client_id,
-			'page_instance'
-		).unionAll(
-			db
-				.selectFrom('unlocked_pages')
-				.innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
-				.innerJoin('page', 'page.id', 'page_instance.page_id')
-				.innerJoin('question', 'question.page_id', 'page.id')
-				.innerJoin('answer', 'answer.question_id', 'question.id')
-				.innerJoin('question_response', (join) =>
-					join
-						.onRef('question_response.question_id', '=', 'question.id')
-						.on('question_response.claim_id', '=', claimId)
-						.on('question_response.checklist_id', '=', checklistId)
-				)
-				.innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
-				.whereRef('question_response_answer.answer_id', '=', 'answer.id')
-				.where('answer.calls_instance_id', 'is not', null)
-				// Check for cycles
-				.where((eb) =>
-					sql`NOT (${eb.ref('answer.calls_instance_id')} = ANY(unlocked_pages.path))`.$castTo<boolean>()
-				)
-				// Enforce a max depth as a safety fallback for infinite recursion
-				.where(sql`unlocked_pages.depth < ${MAX_TREE_DEPTH}`.$castTo<boolean>())
-				.select((eb) => [
-					eb.ref('answer.calls_instance_id').$notNull().as('id'),
-					sql<number>`unlocked_pages.depth + 1`.as('depth'),
-					sql<number[]>`array_append(unlocked_pages.path, ${eb.ref('answer.calls_instance_id')})`.as('path'),
-				])
-		)
-	);
+        const unlockedPages = db.withRecursive('unlocked_pages', (db) =>
+                db
+                        .selectFrom('page_instance')
+                        .select((eb) => [
+                                'id',
+                                sql.raw('1').as('depth'),
+                                sql<number[]>`ARRAY[${eb.ref('page_instance.id')}]`.as('path'),
+                        ])
+                        .where('page_instance.client_id', '=', ctx.session.user.client_id)
+                        .where('checklist_id', '=', checklistId)
+                        .where('parent_instance_id', 'is', null)
+                        .unionAll(
+                                db
+                                        .selectFrom('unlocked_pages')
+                                        .innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
+                                        .innerJoin('page', 'page.id', 'page_instance.page_id')
+                                        .innerJoin('question', 'question.page_id', 'page.id')
+                                        .innerJoin('answer', 'answer.question_id', 'question.id')
+                                        .innerJoin('question_response', (join) =>
+                                                join
+                                                        .onRef('question_response.question_id', '=', 'question.id')
+                                                        .on('question_response.claim_id', '=', claimId)
+                                                        .on('question_response.checklist_id', '=', checklistId)
+                                        )
+                                        .innerJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+                                        .whereRef('question_response_answer.answer_id', '=', 'answer.id')
+                                        .where('answer.calls_instance_id', 'is not', null)
+                                        // Check for cycles
+                                        .where((eb) =>
+                                                sql`NOT (${eb.ref('answer.calls_instance_id')} = ANY(unlocked_pages.path))`.$castTo<boolean>()
+                                        )
+                                        // Enforce a max depth as a safety fallback for infinite recursion
+                                        .where(sql`unlocked_pages.depth < ${MAX_TREE_DEPTH}`.$castTo<boolean>())
+                                        .select((eb) => [
+                                                eb.ref('answer.calls_instance_id').$notNull().as('id'),
+                                                sql<number>`unlocked_pages.depth + 1`.as('depth'),
+                                                sql<number[]>`array_append(unlocked_pages.path, ${eb.ref('answer.calls_instance_id')})`.as('path'),
+                                        ])
+                        )
+        );
 
-	const result = await unlockedPages
-		.selectFrom('unlocked_pages')
-		.innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
-		.innerJoin('page', 'page.id', 'page_instance.page_id')
-		.innerJoin('question', 'question.page_id', 'page.id')
-		.leftJoin('question_response', (join) =>
-			join
-				.onRef('question_response.question_id', '=', 'question.id')
-				.on('question_response.claim_id', '=', claimId)
-				.on('question_response.checklist_id', '=', checklistId)
-		)
+        const result = await unlockedPages
+                .selectFrom('unlocked_pages')
+                .innerJoin('page_instance', 'page_instance.id', 'unlocked_pages.id')
+                .innerJoin('page', 'page.id', 'page_instance.page_id')
+                .innerJoin('question', 'question.page_id', 'page.id')
+                .leftJoin('question_response', (join) =>
+                        join
+                                .onRef('question_response.question_id', '=', 'question.id')
+                                .on('question_response.claim_id', '=', claimId)
+                                .on('question_response.checklist_id', '=', checklistId)
+                )
 		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
 		.select((eb) => [
 			eb.fn.count('question.id').distinct().as('total_question_count'),
@@ -274,29 +271,27 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 }
 
 export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?: number, users?: string[]) {
-	return await applyClientScope(
-		db
-			.selectFrom('checklist_claim')
-			.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
-			.innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
-			.leftJoin('users', 'checklist_claim.assignee', 'users.id')
-			.select(({ fn }) => [
-				'checklist_claim.checklist_id',
-				'checklist.name',
-				'checklist_claim.status',
-				fn.countAll().as('count'),
-			])
-			.where((eb) => {
-				let andClause: ExpressionWrapper<DB, 'checklist_claim' | 'checklist' | 'claim', SqlBool>[] = [];
-				if (checklistId) andClause.push(eb('checklist.id', '=', checklistId));
-				if (users) andClause.push(eb('users.id', 'in', users));
-				return eb.and(andClause);
-			})
-			.groupBy(['checklist_claim.checklist_id', 'checklist.name', 'claim.id', 'checklist_claim.status'])
-			.orderBy(['checklist_claim.checklist_id', 'checklist.name', 'checklist_claim.status']),
-		ctx.session.user.client_id,
-		'checklist_claim'
-	).execute();
+        return await db
+                .selectFrom('checklist_claim')
+                .innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
+                .innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
+                .leftJoin('users', 'checklist_claim.assignee', 'users.id')
+                .select(({ fn }) => [
+                        'checklist_claim.checklist_id',
+                        'checklist.name',
+                        'checklist_claim.status',
+                        fn.countAll().as('count'),
+                ])
+                .where('checklist_claim.client_id', '=', ctx.session.user.client_id)
+                .where((eb) => {
+                        let andClause: ExpressionWrapper<DB, 'checklist_claim' | 'checklist' | 'claim', SqlBool>[] = [];
+                        if (checklistId) andClause.push(eb('checklist.id', '=', checklistId));
+                        if (users) andClause.push(eb('users.id', 'in', users));
+                        return eb.and(andClause);
+                })
+                .groupBy(['checklist_claim.checklist_id', 'checklist.name', 'claim.id', 'checklist_claim.status'])
+                .orderBy(['checklist_claim.checklist_id', 'checklist.name', 'checklist_claim.status'])
+                .execute();
 }
 
 /**
@@ -308,23 +303,22 @@ export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?
  * @returns totals for answered, known and unknown answers
  */
 export async function getChecklistSummary(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	// Aggregate counts for a claim across all questions on the checklist
-	return await applyClientScope(
-		db
-			.selectFrom('page_instance')
-			.innerJoin('question', 'question.page_id', 'page_instance.page_id')
-			.leftJoin('question_response', (join) =>
-				join
-					.onRef('question_response.question_id', '=', 'question.id')
-					.onRef('question_response.instance_id', '=', 'page_instance.id')
-					.onRef('question_response.checklist_id', '=', 'page_instance.checklist_id')
-					.on('question_response.claim_id', '=', sql.lit(claimId))
-			)
-			.select([
-				// All questions
-				sql<number>`count(distinct question.id)`.as('total_questions'),
-				// All answered questions
-				sql<number>`count(distinct question_response.id)
+        // Aggregate counts for a claim across all questions on the checklist
+        return await db
+                .selectFrom('page_instance')
+                .innerJoin('question', 'question.page_id', 'page_instance.page_id')
+                .leftJoin('question_response', (join) =>
+                        join
+                                .onRef('question_response.question_id', '=', 'question.id')
+                                .onRef('question_response.instance_id', '=', 'page_instance.id')
+                                .onRef('question_response.checklist_id', '=', 'page_instance.checklist_id')
+                                .on('question_response.claim_id', '=', sql.lit(claimId))
+                )
+                .select([
+                        // All questions
+                        sql<number>`count(distinct question.id)`.as('total_questions'),
+                        // All answered questions
+                        sql<number>`count(distinct question_response.id)
                 filter (
                 where question_response.response_text is not null
                     or exists (
@@ -356,10 +350,10 @@ export async function getChecklistSummary(ctx: ProtectedContext, checklistId: nu
                     )
                 )`.as('total_unknown'),
 			])
-			.where('page_instance.checklist_id', '=', checklistId),
-		ctx.session.user.client_id,
-		'page_instance'
-	).executeTakeFirstOrThrow();
+                ])
+                .where('page_instance.client_id', '=', ctx.session.user.client_id)
+                .where('page_instance.checklist_id', '=', checklistId)
+                .executeTakeFirstOrThrow();
 }
 
 /**
@@ -392,28 +386,25 @@ export async function getChecklistSummaryDetail(
 	}
 ) {
 	// Build the base query for pulling questions, answers and responses
-	let query = applyClientScope(
-		db
-			.selectFrom('page_instance')
-			.innerJoin('page', 'page.id', 'page_instance.page_id')
-			.innerJoin('question', 'question.page_id', 'page.id')
-			.leftJoin('question_response', (join) =>
-				join
-					.onRef('question_response.question_id', '=', 'question.id')
-					.onRef('question_response.instance_id', '=', 'page_instance.id')
-					.onRef('question_response.checklist_id', '=', 'page_instance.checklist_id')
-					.on('question_response.claim_id', '=', sql.lit(claimId))
-			)
-			.where('page_instance.checklist_id', '=', checklistId),
-		ctx.session.user.client_id,
-		'page_instance'
-	);
+        let query = db
+                .selectFrom('page_instance')
+                .innerJoin('page', 'page.id', 'page_instance.page_id')
+                .innerJoin('question', 'question.page_id', 'page.id')
+                .leftJoin('question_response', (join) =>
+                        join
+                                .onRef('question_response.question_id', '=', 'question.id')
+                                .onRef('question_response.instance_id', '=', 'page_instance.id')
+                                .onRef('question_response.checklist_id', '=', 'page_instance.checklist_id')
+                                .on('question_response.claim_id', '=', sql.lit(claimId))
+                )
+                .where('page_instance.client_id', '=', ctx.session.user.client_id)
+                .where('page_instance.checklist_id', '=', checklistId);
 
 	// Join answers only when we care about answered or known/unknown stats
-	if (segment !== SummarySegment.UNANSWERED) {
-		query = query
-			.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
-			.leftJoin('answer', 'answer.id', 'question_response_answer.answer_id');
+        if (segment !== SummarySegment.UNANSWERED) {
+                query = query
+                        .leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+                        .leftJoin('answer', 'answer.id', 'question_response_answer.answer_id');
 	}
 
 	switch (segment) {
@@ -485,38 +476,35 @@ export async function getChecklistSummaryDetail(
 }
 
 export async function getChecklistClaims(
-	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus },
-	limit: number,
-	offset: number
+        ctx: ProtectedContext,
+        filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus },
+        limit: number,
+        offset: number
 ) {
-	const baseQuery = applyClientScope(
-		db
-			.selectFrom('checklist')
-			.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
-			.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
-			.leftJoin('users as u1', 'u1.id', 'checklist_claim.created_by')
-			.leftJoin('users as u2', 'u2.id', 'checklist_claim.assignee')
-			.where((eb) => {
-				let whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
-				if (filters.checklistId) whereClause.push(eb('checklist.id', '=', filters.checklistId));
-				if (filters.users?.length) whereClause.push(eb('u2.id', 'in', filters.users));
-				if (filters.range && filters.range.some((d) => !!d)) {
-					if (filters.range[0]) {
-						whereClause.push(eb('checklist_claim.created_at', '>=', filters.range[0]));
-					}
-					if (filters.range[1]) {
-						whereClause.push(eb('checklist_claim.created_at', '<=', filters.range[1]));
-					}
-				}
-				if (filters.claimStatus) {
-					whereClause.push(eb('checklist_claim.status', '=', filters.claimStatus));
-				}
-				return eb.and(whereClause);
-			}),
-		ctx.session.user.client_id,
-		'checklist'
-	);
+        const baseQuery = db
+                .selectFrom('checklist')
+                .innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
+                .innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
+                .leftJoin('users as u1', 'u1.id', 'checklist_claim.created_by')
+                .leftJoin('users as u2', 'u2.id', 'checklist_claim.assignee')
+                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) => {
+                        const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
+                        if (filters.checklistId) whereClause.push(eb('checklist.id', '=', filters.checklistId));
+                        if (filters.users?.length) whereClause.push(eb('u2.id', 'in', filters.users));
+                        if (filters.range && filters.range.some((d) => !!d)) {
+                                if (filters.range[0]) {
+                                        whereClause.push(eb('checklist_claim.created_at', '>=', filters.range[0]));
+                                }
+                                if (filters.range[1]) {
+                                        whereClause.push(eb('checklist_claim.created_at', '<=', filters.range[1]));
+                                }
+                        }
+                        if (filters.claimStatus) {
+                                whereClause.push(eb('checklist_claim.status', '=', filters.claimStatus));
+                        }
+                        return eb.and(whereClause);
+                });
 
 	const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));
 	const dataQuery = baseQuery
@@ -548,24 +536,22 @@ export async function getChecklistClaims(
  * @returns list of recent checklist/claim pairs
  */
 export async function getRecentChecklistClaims(ctx: ProtectedContext) {
-	return await applyClientScope(
-		db
-			.selectFrom('checklist')
-			.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
-			.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
-			.selectAll('checklist_claim')
-			.select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client'])
-			.where((eb) =>
-				eb.or([
-					eb('checklist_claim.created_by', '=', ctx.session.user.id),
-					eb('checklist_claim.assignee', '=', ctx.session.user.id),
-				])
-			)
-			.orderBy('checklist_claim.last_opened desc')
-			.limit(5),
-		ctx.session.user.client_id,
-		'checklist'
-	).execute();
+        return await db
+                .selectFrom('checklist')
+                .innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
+                .innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
+                .selectAll('checklist_claim')
+                .select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client'])
+                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.or([
+                                eb('checklist_claim.created_by', '=', ctx.session.user.id),
+                                eb('checklist_claim.assignee', '=', ctx.session.user.id),
+                        ])
+                )
+                .orderBy('checklist_claim.last_opened desc')
+                .limit(5)
+                .execute();
 }
 
 /**
