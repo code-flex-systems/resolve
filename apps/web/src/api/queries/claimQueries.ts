@@ -126,10 +126,13 @@ export async function getClaims(
 	}
 
 	if (type === 'data') {
-		if (limit != null && offset != null) {
-			query = query.limit(limit).offset(offset);
+		if (limit != null) {
+			query = query.limit(limit);
 		}
-		query = query.selectAll('claim').select(['feeds.name as feed_name']);
+		if (offset != null) {
+			query = query.offset(offset);
+		}
+		query = query.selectAll('claim').select(['feeds.name as feed_name']).orderBy('claim.claim_number');
 		return await query.execute();
 	} else {
 		query = query.select(({ fn }) => fn.countAll().as('count'));

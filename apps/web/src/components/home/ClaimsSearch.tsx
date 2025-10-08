@@ -43,7 +43,7 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 	const debouncedSearch = useCallback(
 		useDebounce(async (query: string) => {
 			trpcUtils.claim.getClaims
-				.fetch({ searchTerm: { type, value: query } })
+				.fetch({ searchTerm: { type, value: query }, limit: 50 })
 				.then((results) => {
 					if (Array.isArray(results.rows)) setResults(results.rows);
 				})
@@ -61,12 +61,13 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 			setSearching(true);
 			debouncedSearch(value);
 		} else {
-			onClose();
+			setResults([]);
 		}
 	};
 
 	const handleClearInput = () => {
 		setQuery('');
+		setResults([]);
 	};
 
 	return (
@@ -131,6 +132,7 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 												onClose={() => {
 													onClose();
 													setQuery('');
+													setResults([]);
 												}}
 												selected={selectedClaim?.id === c.id}
 											/>

@@ -58,12 +58,13 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 			setSearching(true);
 			debouncedSearch(value);
 		} else {
-			onClose();
+			setResults([]);
 		}
 	};
 
 	const handleClearInput = () => {
 		setQuery('');
+		setResults([]);
 	};
 
 	return (
@@ -130,6 +131,7 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 												onClose={() => {
 													onClose();
 													setQuery('');
+													setResults([]);
 												}}
 												selected={selectedChecklist?.id === c.id}
 											/>
