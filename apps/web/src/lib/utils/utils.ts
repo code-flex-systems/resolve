@@ -41,7 +41,14 @@ export function getDaysToEndOfFiscalQuarter() {
 
 export function formatAmount(value?: number | string, currency = false) {
 	if (value == null) return '';
-	const roundedValue = Math.round(parseFloat(value.toString()) * 100) / 100;
+	const parsedValue = parseFloat(value.toString());
+
+	// Return 0.00 for invalid inputs instead of NaN
+	if (isNaN(parsedValue)) {
+		return currency ? '$0.00' : '0.00';
+	}
+
+	const roundedValue = Math.round(parsedValue * 100) / 100;
 	const formattedValue = roundedValue.toLocaleString('en-US', {
 		minimumFractionDigits: 2,
 	});

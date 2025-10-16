@@ -9,17 +9,25 @@ export function getUpdatedPageStatus(questionCount: number, responseCount: numbe
 
 /**
  * Deep-equals two values (primitives, arrays, or plain objects).
+ * Handles circular references and NaN equality.
  */
-export function isEqual(a: any, b: any): boolean {
+export function isEqual(a: any, b: any, visited = new WeakSet()): boolean {
+	// Handle NaN explicitly (NaN should equal NaN for deep equality)
+	if (Number.isNaN(a) && Number.isNaN(b)) return true;
+
 	if (a === b) return true;
 
 	// both must be non-null objects to continue
 	if (a && b && typeof a === 'object' && typeof b === 'object') {
+		// Check for circular reference
+		if (visited.has(a)) return true; // Assume equal if already visiting
+		visited.add(a);
+
 		// Arrays
 		if (Array.isArray(a) && Array.isArray(b)) {
 			if (a.length !== b.length) return false;
 			for (let i = 0; i < a.length; i++) {
-				if (!isEqual(a[i], b[i])) return false;
+				if (!isEqual(a[i], b[i], visited)) return false;
 			}
 			return true;
 		}
@@ -38,7 +46,7 @@ export function isEqual(a: any, b: any): boolean {
 			if (!Object.prototype.hasOwnProperty.call(b, key)) {
 				return false;
 			}
-			if (!isEqual(a[key], b[key])) {
+			if (!isEqual(a[key], b[key], visited)) {
 				return false;
 			}
 		}
