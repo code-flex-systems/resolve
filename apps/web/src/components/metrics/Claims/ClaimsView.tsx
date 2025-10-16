@@ -22,8 +22,7 @@ import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import { ClaimStatus } from '@/config/enums';
 import { formatDateForSentence, formatMDY, getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
-import { useMetricsSlice } from '@/state/store';
-import { setClaimStatus } from '@/state/metrics/actions';
+import { useMetricsStore } from '@/stores/useMetricsStore';
 
 const Highlight = ({
 	children,
@@ -47,7 +46,8 @@ export default function ClaimsView() {
 	const [users, setUsers] = useState<GetUserOutput[]>([]);
 	const [checklist, setChecklist] = useState<GetChecklistOutput | null>(null);
 	const [claim, setClaim] = useState<ChecklistClaimsOutput[number] | null>(null);
-	const selectedClaimStatus = useMetricsSlice((state) => state.selectedClaimStatus);
+	const selectedClaimStatus = useMetricsStore((state) => state.selectedClaimStatus);
+	const setClaimStatus = useMetricsStore((state) => state.setClaimStatus);
 	const isClaimSubmitted = claim?.status === ClaimStatus.SUBMITTED;
 	const isClaimBlocked = claim?.status === ClaimStatus.BLOCKED;
 

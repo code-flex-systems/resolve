@@ -1,8 +1,6 @@
 'use client';
 import { Form, useForm } from 'react-hook-form';
-import { useShallow } from 'zustand/react/shallow';
-import useStore, { useChecklistSlice } from '@/state/store';
-import * as selectors from '@/state/checklist/selectors';
+import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
@@ -21,7 +19,6 @@ import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 import ExpandableTitle from '../common/ExpandableTitle';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import CommentDialog from './CommentDialog';
-import { toggleUpdateSubmittedDialog } from '@/state/checklist/actions';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
@@ -60,11 +57,12 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 export default function Page() {
 	const isAssigned = useIsAssigned();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance) ?? -1;
-	const mode = useChecklistSlice((state) => state.mode);
-	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
-	const questionCommentDialog = useChecklistSlice((state) => state.questionCommentDialog);
-	const updateSubmittedDialogAction = useChecklistSlice((state) => state.updateSubmittedDialogAction);
+	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance) ?? -1;
+	const mode = useChecklistStore((state) => state.mode);
+	const selectedPageInfo = getSelectedPageInfoOrDefault();
+	const questionCommentDialog = useChecklistStore((state) => state.questionCommentDialog);
+	const updateSubmittedDialogAction = useChecklistStore((state) => state.updateSubmittedDialogAction);
+	const toggleUpdateSubmittedDialog = useChecklistStore((state) => state.toggleUpdateSubmittedDialog);
 
 	const {
 		control,

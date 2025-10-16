@@ -5,16 +5,17 @@ import config from '@/config/config';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { AddCircle, Delete } from '@mui/icons-material';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
-import { clearExistingComment, toggleQuestionCommentDialog } from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import { useChecklistSlice } from '@/state/store';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
 import { useSession } from 'next-auth/react';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 export default function CommentDialog() {
 	const { data: session } = useSession();
-	const { instanceId, questionId, existingComment } = useChecklistSlice((state) => state.questionCommentDialog);
+	const { instanceId, questionId, existingComment } = useChecklistStore((state) => state.questionCommentDialog);
+	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
+	const clearExistingComment = useChecklistStore((state) => state.clearExistingComment);
 	const [comment, setComment] = useState(existingComment?.body ?? '');
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const { mutateAsync: createComment, isPending } = useCommentTrpc().create;

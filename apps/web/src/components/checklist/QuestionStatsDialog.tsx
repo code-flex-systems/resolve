@@ -1,9 +1,6 @@
 'use client';
-import { useShallow } from 'zustand/react/shallow';
-import useStore from '@/state/store';
-import * as actions from '@/state/checklist/actions';
-import * as breakdownActions from '@/state/breakdown/actions';
-import * as selectors from '@/state/checklist/selectors';
+import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
+import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
@@ -21,7 +18,9 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 export default function QuestionStatsDialog() {
 	const router = useRouter();
 	const { checklistId = -1 } = useChecklistParams();
-	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+	const selectedPageInfo = getSelectedPageInfoOrDefault();
+	const toggleStatsDialog = useChecklistStore((state) => state.toggleStatsDialog);
+	const updatePageInstance = useBreakdownStore((state) => state.updatePageInstance);
 	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({ pageId: selectedPageInfo.pageId });
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 	return (
@@ -32,7 +31,7 @@ export default function QuestionStatsDialog() {
 					buttonProps={{
 						onClick: () => {
 							// Update breakdown state with pre-loaded data
-							breakdownActions.updatePageInstance({
+							updatePageInstance({
 								id: selectedPageInfo.pageId,
 								parent_id: selectedPageInfo.parentInstanceId,
 								instance_id: selectedPageInfo.instanceId,
@@ -49,7 +48,7 @@ export default function QuestionStatsDialog() {
 					icon={<IconChartDonutFilled size={21} />}
 				/>,
 			]}
-			onClose={actions.toggleStatsDialog}
+			onClose={toggleStatsDialog}
 			width={600}
 			maxHeight={600}
 		>

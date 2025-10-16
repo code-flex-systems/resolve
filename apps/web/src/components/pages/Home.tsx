@@ -3,8 +3,7 @@
 import { Box, Fade, Stack, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import Recents from '@/components/home/Recents';
-import { SLICES } from '@/state/storeConfig';
-import { resetStoreSlice } from '@/state/store';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import ProfileAvatar from '../common/ProfileAvatar';
 import RecentComments from '../home/RecentComments';
 import HomeSearch from '../home/HomeSearch';
@@ -18,6 +17,7 @@ import Calendar from '../home/Calendar';
 
 export default function Home() {
 	const { data: session } = useSession();
+	const resetChecklistsStore = useChecklistsStore((state) => state.reset);
 	const users = session ? [session.user.email] : [];
 	const { isFetching: isFetchingRecentComments } = useCommentTrpc().list(
 		{ filters: { userId: session?.user.id } },
@@ -33,7 +33,7 @@ export default function Home() {
 	const isLoading = isFetchingRecentComments || isFetchingRecentChecklists || isFetchingChecklistStats;
 
 	useEffect(() => {
-		return () => resetStoreSlice(SLICES.CHECKLISTS);
+		return () => resetChecklistsStore();
 	}, []);
 
 	return (

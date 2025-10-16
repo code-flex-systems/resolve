@@ -1,12 +1,12 @@
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import BasicDialog from '../common/BasicDialog';
-import { toggleUpdateSubmittedDialog } from '@/state/checklist/actions';
 import { Box, Paper, Typography } from '@mui/material';
 import { Warning } from '@mui/icons-material';
 import { BASE_COLOR } from '@/styles/theme';
 
 export default function UpdateSubmittedDialog() {
-	const updateSubmittedDialogAction = useChecklistSlice((state) => state.updateSubmittedDialogAction);
+	const updateSubmittedDialogAction = useChecklistStore((state) => state.updateSubmittedDialogAction);
+	const toggleUpdateSubmittedDialog = useChecklistStore((state) => state.toggleUpdateSubmittedDialog);
 	if (!updateSubmittedDialogAction) return <></>;
 	return (
 		<BasicDialog

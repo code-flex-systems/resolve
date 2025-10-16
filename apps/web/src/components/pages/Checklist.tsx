@@ -2,23 +2,22 @@
 import PageNavigation from '@/components/checklist/PageNavigation';
 import Page from '@/components/checklist/Page';
 import PageEditor from '@/components/checklist/PageEditor';
-import { resetStoreSlice, useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ChecklistMode } from '@/config/enums';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useEffect } from 'react';
-import { SLICES } from '@/state/storeConfig';
 import { Box } from '@mui/material';
 import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
 import ChecklistHandoffDialog from '../checklist/ChecklistHandoffDialog';
 
 export default function Checklist() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const mode = useChecklistSlice((state) => state.mode);
-	const showChecklistHandoffDialog = useChecklistSlice((state) => state.showChecklistHandoffDialog);
-	const showChecklistProgressDialog = useChecklistSlice((state) => state.showChecklistProgressDialog);
+	const mode = useChecklistStore((state) => state.mode);
+	const showChecklistHandoffDialog = useChecklistStore((state) => state.showChecklistHandoffDialog);
+	const showChecklistProgressDialog = useChecklistStore((state) => state.showChecklistProgressDialog);
 
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 	const { data: claim } = useClaimTrpc().get(
@@ -28,7 +27,7 @@ export default function Checklist() {
 	usePageTrpc().listTemplates();
 
 	useEffect(() => {
-		return () => resetStoreSlice(SLICES.CHECKLIST);
+		return () => useChecklistStore.getState().reset();
 	}, []);
 
 	return !checklist || (!!claimId && !claim) ? (

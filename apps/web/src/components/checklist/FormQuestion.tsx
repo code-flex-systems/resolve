@@ -1,6 +1,5 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
-import { useShallow } from 'zustand/react/shallow';
 import {
 	Divider,
 	Fade,
@@ -19,10 +18,8 @@ import { ContentCopy, Delete, Save, TaskAlt } from '@mui/icons-material';
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
-import * as actions from '@/state/checklist/actions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
-import useStore from '@/state/store';
-import * as selectors from '@/state/checklist/selectors';
+import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { Question } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
@@ -38,7 +35,8 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 
 export default function FormQuestion() {
 	const selectedQuestionData = useSelectedQuestionData();
-	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+	const selectedPageInfo = getSelectedPageInfoOrDefault();
+	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
 	const { data: pageTemplates = [] } = usePageTrpc().listTemplates();
 
 	const { create, copy, list, remove, update } = useQuestionTrpc();
@@ -78,7 +76,7 @@ export default function FormQuestion() {
 							params: data,
 						});
 			if (newQuestion.page_id === selectedPageInfo.pageId) {
-				actions.updateSelectedQuestion(newQuestion.id);
+				updateSelectedQuestion(newQuestion.id);
 			}
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
@@ -93,7 +91,7 @@ export default function FormQuestion() {
 				questionId: selectedQuestionData.id,
 				pageId: selectedPageInfo.pageId,
 			});
-			actions.updateSelectedQuestion(newQuestion.id);
+			updateSelectedQuestion(newQuestion.id);
 		} catch (e) {
 			console.error(e);
 		}
@@ -105,7 +103,7 @@ export default function FormQuestion() {
 				questionId: selectedQuestionData.id,
 				pageId: selectedPageInfo.pageId,
 			});
-			actions.updateSelectedQuestion(null);
+			updateSelectedQuestion(null);
 		} catch (e) {
 			console.error(e);
 		}

@@ -4,7 +4,7 @@ import { TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
 import { Send } from '@mui/icons-material';
-import { toggleNewUserDialog } from '@/state/admin/actions';
+import { useAdminStore } from '@/stores/useAdminStore';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 
 type NewUserFormInputs = {
@@ -14,6 +14,7 @@ type NewUserFormInputs = {
 };
 
 export default function NewUserDialog() {
+	const toggleNewUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
 	const { mutateAsync: createUsers, isPending } = useUserTrpc().create;
 	const {
 		register,

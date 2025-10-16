@@ -1,6 +1,5 @@
-import { useAdminSlice } from '@/state/store';
+import { useAdminStore } from '@/stores/useAdminStore';
 import BasicDialog from '../common/BasicDialog';
-import { toggleClaimAssignmentDialog } from '@/state/admin/actions';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { Box, Chip, Collapse, Fade, Paper, Stack, Typography } from '@mui/material';
 import { ContentPasteSearch } from '@mui/icons-material';
@@ -20,7 +19,8 @@ export default function ClaimAssignmentDialog() {
 	const [count, setCount] = useState<number | null>(null);
 	const [user, setUser] = useState<GetUserOutput | null>(null);
 	const [checklist, setChecklist] = useState<GetChecklistOutput | null>(null);
-	const selectedFeedId = useAdminSlice((state) => state.selectedFeedId);
+	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
+	const toggleClaimAssignmentDialog = useAdminStore((state) => state.toggleClaimAssignmentDialog);
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const {
 		data: nextClaimData = { claim: null, total: 0 },

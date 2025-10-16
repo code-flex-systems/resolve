@@ -4,8 +4,7 @@ import BreakdownNavigation from '@/components/breakdown/BreakdownNavigation';
 import Breakdown from '@/components/breakdown/Breakdown';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useEffect, useState } from 'react';
-import { resetStoreSlice } from '@/state/store';
-import { SLICES } from '@/state/storeConfig';
+import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import { Box, Divider, Stack } from '@mui/material';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
@@ -28,8 +27,10 @@ export default function ChecklistPageBreakdown() {
 	const [checklist, setChecklist] = useState<GetChecklistOutput | null>(null);
 	const [claim, setClaim] = useState<Claim | null>(null);
 
+	const resetBreakdownStore = useBreakdownStore((state) => state.reset);
+
 	useEffect(() => {
-		return () => resetStoreSlice(SLICES.BREAKDOWN);
+		return () => resetBreakdownStore();
 	}, []);
 
 	return !checklistId || !pageId || !instanceId ? (

@@ -6,7 +6,7 @@ import ChecklistAnswerRadio from './ChecklistAnswerRadio';
 import { QuestionType } from '@/config/enums';
 import ChecklistAnswerFreeform from './ChecklistAnswerFreeform';
 import ChecklistAnswerDropdown from './ChecklistAnswerDropdown';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 import useIsAssigned from '@/hooks/useIsAssigned';
 
@@ -24,7 +24,7 @@ export function ChecklistQuestion(props: {
 	const fieldValue = watch(fieldName);
 	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
 	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
-	const highlightedQuestion = useChecklistSlice((state) => state.highlightedQuestion);
+	const highlightedQuestion = useChecklistStore((state) => state.highlightedQuestion);
 	const isAssigned = useIsAssigned();
 	const disabled = props.disabled || !isAssigned;
 

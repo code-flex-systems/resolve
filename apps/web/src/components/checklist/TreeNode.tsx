@@ -1,7 +1,6 @@
 'use client';
 import { Box, Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import * as actions from '@/state/checklist/actions';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { Adjust, CheckCircle, Error, KeyboardArrowRight, PanoramaFishEye } from '@mui/icons-material';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
@@ -16,10 +15,14 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 export default function TreeNode(props: TreeNode & { level: number }) {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const { level, instanceId, pageId, status, title, children = [] } = props;
-	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
-	const mode = useChecklistSlice((state) => state.mode);
-	const expandAll = useChecklistSlice((state) => state.expandAll);
-	const expandedBranch = useChecklistSlice((state) => state.expandedBranch);
+	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
+	const mode = useChecklistStore((state) => state.mode);
+	const expandAll = useChecklistStore((state) => state.expandAll);
+	const expandedBranch = useChecklistStore((state) => state.expandedBranch);
+	const updateExpandedBranch = useChecklistStore((state) => state.updateExpandedBranch);
+	const clearExpandedBranch = useChecklistStore((state) => state.clearExpandedBranch);
+	const updateSelectedPageInfo = useChecklistStore((state) => state.updateSelectedPageInfo);
+	const updateSelectedPage = useChecklistStore((state) => state.updateSelectedPage);
 	const [expanded, setExpanded] = useState(false);
 	const selected = selectedPageInstance === instanceId;
 	const childIds = children.map((c) => c.instanceId);
@@ -35,7 +38,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	useEffect(() => {
 		for (const id of childIds) {
 			if (expandedBranch.has(id)) {
-				actions.updateExpandedBranch(instanceId);
+				updateExpandedBranch(instanceId);
 				setExpanded(true);
 				continue;
 			}
@@ -43,12 +46,12 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	}, [instanceId, childIds, expandedBranch]);
 
 	useEffect(() => {
-		actions.clearExpandedBranch();
+		clearExpandedBranch();
 		setExpanded(expandAll);
 	}, [expandAll]);
 
 	useEffect(() => {
-		if (selectedPageInstance === instanceId) actions.updateSelectedPageInfo(props);
+		if (selectedPageInstance === instanceId) updateSelectedPageInfo(props);
 	}, [selectedPageInstance, props]);
 
 	const statusIcon = useMemo(() => {
@@ -83,7 +86,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						color: theme.palette.primary.main,
 					},
 				}}
-				onClick={() => actions.updateSelectedPage(instanceId)}
+				onClick={() => updateSelectedPage(instanceId)}
 				display="flex"
 				justifyContent="space-between"
 				alignItems="center"
@@ -94,7 +97,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						<IconButton
 							onClick={(e) => {
 								setExpanded((prev) => !prev);
-								actions.clearExpandedBranch();
+								clearExpandedBranch();
 								e.stopPropagation();
 								e.preventDefault();
 							}}

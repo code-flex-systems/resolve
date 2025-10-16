@@ -5,9 +5,7 @@ import QuestionInfo from './QuestionInfo';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
 import { QuestionType } from '@/config/enums';
-import { toggleQuestionCommentDialog } from '@/state/checklist/actions';
-import useStore, { useChecklistSlice } from '@/state/store';
-import * as selectors from '../../state/checklist/selectors';
+import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import theme from '@/styles/theme';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 import useIsAssigned from '@/hooks/useIsAssigned';
@@ -22,8 +20,9 @@ export default function ChecklistFormLabel(props: {
 	setValue: UseFormSetValue<FieldValues>;
 }) {
 	const { id, value, idx, question, comment, disabled, setValue } = props;
-	const selectedPageInfo = useStore(selectors.selectedPageInfo);
-	const highlightedQuestion = useChecklistSlice((state) => state.highlightedQuestion);
+	const selectedPageInfo = getSelectedPageInfoOrDefault();
+	const highlightedQuestion = useChecklistStore((state) => state.highlightedQuestion);
+	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
 	const isAssigned = useIsAssigned();
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">

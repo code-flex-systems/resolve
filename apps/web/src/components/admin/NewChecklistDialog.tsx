@@ -4,7 +4,7 @@ import { FormControl, FormLabel, MenuItem, Select, TextField, Typography } from 
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
 import { ContentPasteSearch } from '@mui/icons-material';
-import { toggleNewChecklistDialog } from '@/state/admin/actions';
+import { useAdminStore } from '@/stores/useAdminStore';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +15,7 @@ type NewChecklistFormInputs = {
 
 export default function NewChecklistDialog() {
 	const router = useRouter();
+	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
 	const { data: checklists = [], isPending: loadingChecklists } = useChecklistTrpc().list({});
 	const { mutateAsync: createChecklist, isPending } = useChecklistTrpc().create;
 	const {

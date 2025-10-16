@@ -1,10 +1,10 @@
 'use client';
 import { Paper } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useMemo, useRef } from 'react';
 import { SummarySegment } from '@/config/enums';
-import * as actions from '@/state/checklist/actions';
+
 import { CustomPagination } from '../common/CustomPagination';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -42,8 +42,9 @@ const COLUMNS: GridColDef[] = [
 
 export default function SummaryDetails() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const selectedSummarySegment = useChecklistSlice((state) => state.selectedSummarySegment);
-	const checklistSummaryContraints = useChecklistSlice((state) => state.checklistSummaryContraints);
+	const selectedSummarySegment = useChecklistStore((state) => state.selectedSummarySegment);
+	const checklistSummaryContraints = useChecklistStore((state) => state.checklistSummaryContraints);
+	const updateChecklistSummaryConstraints = useChecklistStore((state) => state.updateChecklistSummaryConstraints);
 	const { data: summaryDetails = { rows: [], count: undefined }, isFetching: isLoadingDetails } =
 		useChecklistTrpc().getSummaryDetail(
 			{
@@ -97,7 +98,7 @@ export default function SummaryDetails() {
 				pagination
 				paginationMode="server"
 				paginationModel={checklistSummaryContraints}
-				onPaginationModelChange={actions.updateChecklistSummaryConstraints}
+				onPaginationModelChange={updateChecklistSummaryConstraints}
 				disableColumnSelector
 				disableRowSelectionOnClick
 				disableColumnMenu

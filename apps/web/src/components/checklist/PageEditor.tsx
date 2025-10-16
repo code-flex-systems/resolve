@@ -1,14 +1,11 @@
 'use client';
-import { useShallow } from 'zustand/react/shallow';
-import useStore, { useChecklistSlice } from '@/state/store';
-import * as selectors from '@/state/checklist/selectors';
+import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
 import { ContentCopy, Delete, East, SubdirectoryArrowRight, TaskAlt } from '@mui/icons-material';
 import BasicButton from '../common/BasicButton';
-import * as actions from '@/state/checklist/actions';
 import { useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -16,10 +13,12 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
 export default function PageEditor() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
-	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
-	const selectedPageInstance = useChecklistSlice((state) => state.selectedPageInstance);
-	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
+	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
+	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
+	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
+	const selectedPageInfo = getSelectedPageInfoOrDefault();
+	const updateSelectedPage = useChecklistStore((state) => state.updateSelectedPage);
+	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
 	const [editingPageTitle, setEditingPageTitle] = useState(false);
@@ -50,7 +49,7 @@ export default function PageEditor() {
 					position: selectedPageInfo.position + 1,
 				},
 			});
-			if (newInstance) actions.updateSelectedPage(newInstance.instance_id);
+			if (newInstance) updateSelectedPage(newInstance.instance_id);
 		} catch (e) {
 			console.error(e);
 		}
@@ -66,7 +65,7 @@ export default function PageEditor() {
 					position: selectedPageInfo.position + 1,
 				},
 			});
-			if (newInstance) actions.updateSelectedPage(newInstance.id);
+			if (newInstance) updateSelectedPage(newInstance.id);
 		} catch (e) {
 			console.error(e);
 		}
@@ -75,7 +74,7 @@ export default function PageEditor() {
 	const onDeletePage = async () => {
 		try {
 			await deletePage({ instanceId: selectedPageInfo.instanceId });
-			actions.updateSelectedPage(null);
+			updateSelectedPage(null);
 		} catch (e) {
 			console.error(e);
 		}
@@ -85,7 +84,7 @@ export default function PageEditor() {
 		try {
 			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
 			if (modifiedPage) {
-				actions.updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, data.tree);
+				updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, data.tree);
 			}
 		} catch (e) {
 			console.error(e);

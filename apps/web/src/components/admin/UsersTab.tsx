@@ -6,7 +6,6 @@ import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { AccessTimeFilled, AccountCircle, AddBox, Phone, Search, Shield, Upload } from '@mui/icons-material';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import { toggleImportUsersDialog, toggleNewUserDialog, updateUserConstraints } from '@/state/admin/actions';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { formatMDY } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
@@ -15,14 +14,13 @@ import RoleCell from './RoleCell';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
-import { useAdminSlice } from '@/state/store';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
 import config from '@/config/config';
 import { createUsersInput } from '@/schemas/userSchemas';
 import useDebounce from '@/lib/utils/useDebounce';
-import * as actions from '@/state/admin/actions';
 import StackedHeaderCell from '../common/StackedHeaderCell';
+import { useAdminStore } from '@/stores/useAdminStore';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -93,10 +91,15 @@ const COLUMNS: GridColDef[] = [
 
 export default function UsersTab() {
 	const { data: session } = useSession();
-	const showImportUsersDialog = useAdminSlice((state) => state.showImportUsersDialog);
-	const showInactiveUsers = useAdminSlice((state) => state.showInactiveUsers);
-	const userConstraints = useAdminSlice((state) => state.userConstraints);
-	const userSearchTerm = useAdminSlice((state) => state.userSearchTerm);
+	const showImportUsersDialog = useAdminStore((state) => state.showImportUsersDialog);
+	const showInactiveUsers = useAdminStore((state) => state.showInactiveUsers);
+	const userConstraints = useAdminStore((state) => state.userConstraints);
+	const userSearchTerm = useAdminStore((state) => state.userSearchTerm);
+	const setShowInactiveUsers = useAdminStore((state) => state.setShowInactiveUsers);
+	const toggleImportUsersDialog = useAdminStore((state) => state.toggleImportUsersDialog);
+	const toggleNewUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
+	const updateUserConstraints = useAdminStore((state) => state.updateUserConstraints);
+	const updateUserSearchTerm = useAdminStore((state) => state.updateUserSearchTerm);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [showDisabled, setShowDisabled] = useState(false);
 
@@ -118,7 +121,7 @@ export default function UsersTab() {
 	}, [data.count]);
 
 	const debouncedSearch = useCallback(
-		useDebounce((search: string) => actions.updateUserSearchTerm(search), 500),
+		useDebounce((search: string) => updateUserSearchTerm(search), 500),
 		[]
 	);
 
@@ -160,7 +163,7 @@ export default function UsersTab() {
 								<Switch
 									size="small"
 									checked={showInactiveUsers}
-									onChange={(_, checked) => actions.setShowInactiveUsers(checked)}
+									onChange={(_, checked) => setShowInactiveUsers(checked)}
 									color="warning"
 									sx={{ marginLeft: '10px' }}
 								/>

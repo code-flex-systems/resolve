@@ -3,7 +3,7 @@ import { AccessTimeFilled, AccountCircle, CheckCircle, ContentPasteSearch } from
 import { Divider, MenuItem, Paper, Typography } from '@mui/material';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { Claim } from '@/types/types';
-import * as actions from '@/state/checklists/actions';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 
 export default function ClaimMenuItem(props: { claim: Claim | null; onClose?: () => void; selected?: boolean }) {
 	const { claim, onClose, selected } = props;
@@ -12,7 +12,7 @@ export default function ClaimMenuItem(props: { claim: Claim | null; onClose?: ()
 			<MenuItem
 				style={styles.menuItem}
 				onClick={() => {
-					actions.updateSelectedClaim(claim);
+					useChecklistsStore.getState().updateSelectedClaim(claim);
 					if (typeof onClose === 'function') onClose();
 				}}
 				className="flex-row-between"

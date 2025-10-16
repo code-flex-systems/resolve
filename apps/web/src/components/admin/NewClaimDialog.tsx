@@ -4,11 +4,12 @@ import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
 import { ContentPasteSearch, Info } from '@mui/icons-material';
-import { toggleNewClaimDialog } from '@/state/admin/actions';
+import { useAdminStore } from '@/stores/useAdminStore';
 import { Claim } from '@/types/types';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 
 export default function NewClaimDialog() {
+	const toggleNewClaimDialog = useAdminStore((state) => state.toggleNewClaimDialog);
 	const {
 		register,
 		handleSubmit,

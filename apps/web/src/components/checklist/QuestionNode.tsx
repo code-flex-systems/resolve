@@ -1,7 +1,6 @@
 'use client';
 import { Collapse, IconButton, Typography } from '@mui/material';
-import * as actions from '@/state/checklist/actions';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { Add } from '@mui/icons-material';
 import './styles.css';
 import { Answer } from '@/types/types';
@@ -18,8 +17,9 @@ export default function QuestionNode(props: {
 }) {
 	const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
-	const expandAll = useChecklistSlice((state) => state.expandAll);
-	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
+	const expandAll = useChecklistStore((state) => state.expandAll);
+	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
+	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
 	const selected = selectedQuestion === questionId;
 	const isPlaceholder = questionId === -1;
 
@@ -29,7 +29,7 @@ export default function QuestionNode(props: {
 		<>
 			<div
 				style={{ ...styles.node, paddingLeft: level * 15 }}
-				onClick={() => actions.updateSelectedQuestion(questionId)}
+				onClick={() => updateSelectedQuestion(questionId)}
 				className="flex-row-between"
 			>
 				<div className="flex-row-left">

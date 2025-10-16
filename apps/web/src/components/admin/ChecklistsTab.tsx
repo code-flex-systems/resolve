@@ -8,8 +8,7 @@ import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import ChecklistActionsCell from './ChecklistActionsCell';
-import { toggleNewChecklistDialog } from '@/state/admin/actions';
-import { useAdminSlice } from '@/state/store';
+import { useAdminStore } from '@/stores/useAdminStore';
 import NewChecklistDialog from './NewChecklistDialog';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
@@ -62,7 +61,8 @@ const COLUMNS: GridColDef[] = [
 
 export default function ChecklistsTab() {
 	const { data: checklists = [], isFetching } = useChecklistTrpc().list({});
-	const showNewChecklistDialog = useAdminSlice((state) => state.showNewChecklistDialog);
+	const showNewChecklistDialog = useAdminStore((state) => state.showNewChecklistDialog);
+	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
 	return (
 		<Fade in={true} timeout={1000}>
 			<div style={styles.container}>

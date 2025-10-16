@@ -1,5 +1,5 @@
 'use client';
-import { useBreakdownSlice } from '@/state/store';
+import { useBreakdownStore } from '@/stores/useBreakdownStore';;
 import { Paper } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -40,8 +40,8 @@ const COLUMNS: GridColDef[] = [
 
 export default function Breakdown(props: { instanceId: number }) {
 	const { instanceId } = props;
-	const breakdownInterval = useBreakdownSlice((state) => state.breakdownInterval);
-	const selectedQuestionId = useBreakdownSlice((state) => state.selectedQuestionId);
+	const breakdownInterval = useBreakdownStore((state) => state.breakdownInterval);
+	const selectedQuestionId = useBreakdownStore((state) => state.selectedQuestionId);
 	const selectedAnswer = useSelectedBreakdownAnswerData();
 	const { data: pageInstance } = usePageTrpc().getInstance({ instanceId }, { enabled: instanceId !== -1 });
 	const { data: breakdown = [], isFetching: loadingBreakdown } = useResponseTrpc().listForAnswer(

@@ -12,9 +12,8 @@ import {
 	Typography,
 } from '@mui/material';
 import { AddCircle, KeyboardArrowLeft, KeyboardArrowRight, SmsOutlined } from '@mui/icons-material';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import Comments from '../common/Comments';
-import { goToPage, toggleHighlightedQuestion, updateCommentOffset } from '@/state/checklist/actions';
 import { useState } from 'react';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
@@ -32,7 +31,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	const [showNewComment, setShowNewComment] = useState(false);
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const [page, setPage] = useState(0);
-	const commentOffset = useChecklistSlice((state) => state.commentOffset);
+	const commentOffset = useChecklistStore((state) => state.commentOffset);
 	const isAssigned = useIsAssigned(true);
 
 	const { data = { rows: [], count: 0 }, isFetching } = useCommentTrpc().list(

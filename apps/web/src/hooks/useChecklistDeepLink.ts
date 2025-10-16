@@ -2,13 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import {
-	toggleChecklistProgressDialog,
-	toggleComments,
-	toggleHighlightedQuestion,
-	updateSelectedPage,
-	updateSelectedQuestion,
-} from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 
 const cloneSearch = (sp: URLSearchParams) => new URLSearchParams(sp.toString());
 const toNum = (v: string | null) => (v && /^\d+$/.test(v) ? Number(v) : undefined);
@@ -34,7 +28,7 @@ export function useChecklistDeepLink(initReady: boolean) {
 	useEffect(() => {
 		if (!initReady) return; // wait until data (pages/questions) is loaded
 		if (appliedRef.current) return;
-		toggleChecklistProgressDialog(true);
+		useChecklistStore.getState().toggleChecklistProgressDialog(true);
 
 		const { questionId, instanceId, focus } = target;
 
@@ -43,16 +37,16 @@ export function useChecklistDeepLink(initReady: boolean) {
 		if (!hasActionable) return;
 
 		// Apply in the right order so UI can expand tree cleanly
-		if (instanceId !== undefined) updateSelectedPage(instanceId);
+		if (instanceId !== undefined) useChecklistStore.getState().updateSelectedPage(instanceId);
 		if (instanceId !== undefined && questionId !== undefined) {
-			updateSelectedQuestion(questionId);
-			toggleHighlightedQuestion(questionId);
+			useChecklistStore.getState().updateSelectedQuestion(questionId);
+			useChecklistStore.getState().toggleHighlightedQuestion(questionId);
 		}
 		// Focus various features
 		if (focus !== undefined) {
 			switch (focus) {
 				case 'comments':
-					toggleComments();
+					useChecklistStore.getState().toggleComments();
 					break;
 				default:
 					break;

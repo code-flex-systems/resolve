@@ -1,19 +1,19 @@
 'use client';
 
-import { useAdminSlice } from '@/state/store';
+import { useAdminStore } from '@/stores/useAdminStore';
 import Claims from './Claims';
 import Feeds from './Feeds';
 import NewClaimDialog from './NewClaimDialog';
 import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
-import { toggleImportClaimsDialog } from '@/state/admin/actions';
 import config from '@/config/config';
 import { createClaimInput } from '@/schemas/claimSchemas';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { Fade } from '@mui/material';
 
 export default function FeedsAndClaimsTab() {
-	const showImportClaimsDialog = useAdminSlice((state) => state.showImportClaimsDialog);
-	const showNewClaimDialog = useAdminSlice((state) => state.showNewClaimDialog);
+	const showImportClaimsDialog = useAdminStore((state) => state.showImportClaimsDialog);
+	const showNewClaimDialog = useAdminStore((state) => state.showNewClaimDialog);
+	const toggleImportClaimsDialog = useAdminStore((state) => state.toggleImportClaimsDialog);
 	const { mutateAsync: createClaims, isPending } = useClaimTrpc().createMany;
 
 	return (

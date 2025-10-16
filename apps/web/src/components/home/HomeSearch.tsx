@@ -7,17 +7,19 @@ import ChecklistsSearch from '@/components/home/ChecklistsSearch';
 import Separator from '@/components/common/Separator';
 import BasicButton from '@/components/common/BasicButton';
 import ChecklistClaimDialog from '@/components/home/ChecklistClaimDialog';
-import { useChecklistsSlice } from '@/state/store';
-import * as actions from '@/state/checklists/actions';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import InsuranceGraphic1 from '@/lib/resources/images/insurance-graphic-1.png';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
 export default function HomeSearch() {
 	const { data: session } = useSession();
-	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
-	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
-	const showChecklistClaimDialog = useChecklistsSlice((state) => state.showChecklistClaimDialog);
+	const selectedChecklist = useChecklistsStore((state) => state.selectedChecklist);
+	const selectedClaim = useChecklistsStore((state) => state.selectedClaim);
+	const showChecklistClaimDialog = useChecklistsStore((state) => state.showChecklistClaimDialog);
+	const updateSelectedClaim = useChecklistsStore((state) => state.updateSelectedClaim);
+	const updateSelectedChecklist = useChecklistsStore((state) => state.updateSelectedChecklist);
+	const toggleChecklistClaimDialog = useChecklistsStore((state) => state.toggleChecklistClaimDialog);
 
 	return (
 		<>
@@ -38,7 +40,7 @@ export default function HomeSearch() {
 						<Chip
 							label={selectedClaim?.claim_number ?? ''}
 							icon={<ContentPasteSearch />}
-							onDelete={() => actions.updateSelectedClaim(null)}
+							onDelete={() => updateSelectedClaim(null)}
 						/>
 					</Collapse>
 					<div style={{ height: 40 }} className="flex-row-center">
@@ -51,12 +53,12 @@ export default function HomeSearch() {
 						<Chip
 							label={selectedChecklist?.name ?? ''}
 							icon={<Checklist />}
-							onDelete={() => actions.updateSelectedChecklist(null)}
+							onDelete={() => updateSelectedChecklist(null)}
 						/>
 					</Collapse>
 					<BasicButton
 						buttonProps={{
-							onClick: actions.toggleChecklistClaimDialog,
+							onClick: toggleChecklistClaimDialog,
 							variant: 'contained',
 							color: 'primary',
 							startIcon: (

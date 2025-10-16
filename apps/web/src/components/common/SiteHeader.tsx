@@ -3,10 +3,10 @@ import { Collapse, Paper, Typography } from '@mui/material';
 import ProfileAvatar from './ProfileAvatar';
 import Toolbar from './Toolbar';
 import { OFFWHITE_COLOR } from '@/styles/theme';
-import { useGlobalSlice } from '@/state/store';
+import { useGlobalStore } from '@/stores/useGlobalStore';
 
 export default function SiteHeader() {
-	const navOpen = useGlobalSlice((state) => state.navOpen);
+	const navOpen = useGlobalStore((state) => state.navOpen);
 	return (
 		<Paper style={styles.paper} className="flex-row-left">
 			<Toolbar

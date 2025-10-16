@@ -1,7 +1,7 @@
 'use client';
 import { PieChart, PieChartProps } from '@mui/x-charts-pro';
-import { useChecklistSlice } from '@/state/store';
-import * as actions from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
+
 import { useMemo } from 'react';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
 import { Box, Collapse, Divider, Paper, Stack, Typography } from '@mui/material';
@@ -19,7 +19,8 @@ export default function SummaryChart() {
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	const selectedSummarySegment = useChecklistSlice((state) => state.selectedSummarySegment);
+	const selectedSummarySegment = useChecklistStore((state) => state.selectedSummarySegment);
+	const updateSelectedSegment = useChecklistStore((state) => state.updateSelectedSegment);
 	const {
 		data: checklistSummaryTotals = {
 			total_answered: 0,
@@ -139,7 +140,7 @@ export default function SummaryChart() {
 					},
 				}}
 				onItemClick={(_, arc) => {
-					actions.updateSelectedSegment(
+					updateSelectedSegment(
 						chartData.find((c) => c.id === arc.seriesId)?.data?.[arc.dataIndex]?.id as SummarySegment
 					);
 				}}

@@ -1,7 +1,7 @@
 'use client';
 
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import { useAdminSlice } from '@/state/store';
+import { useAdminStore } from '@/stores/useAdminStore';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import ClaimAmountCell from './ClaimAmountCell';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -10,12 +10,6 @@ import { AddBox, ContentPasteSearch, PersonSearch, Upload } from '@mui/icons-mat
 import IconHeaderCell from '../common/IconHeaderCell';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import {
-	setFeedId,
-	toggleImportClaimsDialog,
-	toggleNewClaimDialog,
-	updateClaimConstraints,
-} from '@/state/admin/actions';
 import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -103,8 +97,12 @@ const COLUMNS: GridColDef[] = [
 ];
 
 export default function Claims() {
-	const claimConstraints = useAdminSlice((state) => state.claimConstraints);
-	const selectedFeedId = useAdminSlice((state) => state.selectedFeedId);
+	const claimConstraints = useAdminStore((state) => state.claimConstraints);
+	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
+	const setFeedId = useAdminStore((state) => state.setFeedId);
+	const toggleImportClaimsDialog = useAdminStore((state) => state.toggleImportClaimsDialog);
+	const toggleNewClaimDialog = useAdminStore((state) => state.toggleNewClaimDialog);
+	const updateClaimConstraints = useAdminStore((state) => state.updateClaimConstraints);
 	const { data: feeds = [] } = useFeedTrpc().list();
 	const { data = { rows: [], count: undefined }, isFetching } = useClaimTrpc().list({
 		feedId: selectedFeedId,

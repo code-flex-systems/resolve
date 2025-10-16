@@ -6,7 +6,7 @@ import { Handshake, PlayCircle, StopCircle, Warning } from '@mui/icons-material'
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { BASE_COLOR } from '@/styles/theme';
-import { toggleChecklistHandoffDialog, toggleChecklistProgressDialog } from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { ClaimStatus } from '@/config/enums';
 import ClaimStatusIcon from './ClaimStatusIcon';
@@ -18,6 +18,8 @@ import ChecklistProgress from './ChecklistProgress';
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
 	const isAssigned = useIsAssigned();
+	const toggleChecklistHandoffDialog = useChecklistStore((state) => state.toggleChecklistHandoffDialog);
+	const toggleChecklistProgressDialog = useChecklistStore((state) => state.toggleChecklistProgressDialog);
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
 		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: checklistId !== -1 && claimId !== -1 });

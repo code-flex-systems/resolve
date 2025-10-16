@@ -9,8 +9,7 @@ import Toolbar from '../common/Toolbar';
 import { useState } from 'react';
 import { NetworkCheck, Notifications, NotificationsOff, Power, PowerOff, RssFeed } from '@mui/icons-material';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
-import { useAdminSlice } from '@/state/store';
-import { setFeedId, toggleClaimAssignmentDialog } from '@/state/admin/actions';
+import { useAdminStore } from '@/stores/useAdminStore';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
 import BasicButtonStyled from '../common/BasicButtonStyled';
@@ -29,8 +28,10 @@ const getStatusColor = (status: FeedStatus) => {
 
 export default function Feeds() {
 	const [testing, setTesting] = useState(false);
-	const selectedFeedId = useAdminSlice((state) => state.selectedFeedId);
-	const showClaimAssignmentDialog = useAdminSlice((state) => state.showClaimAssignmentDialog);
+	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
+	const showClaimAssignmentDialog = useAdminStore((state) => state.showClaimAssignmentDialog);
+	const setFeedId = useAdminStore((state) => state.setFeedId);
+	const toggleClaimAssignmentDialog = useAdminStore((state) => state.toggleClaimAssignmentDialog);
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
 

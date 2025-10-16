@@ -1,13 +1,8 @@
 'use client;';
 
-import {
-	toggleChecklistHandoffDialog,
-	toggleChecklistProgressDialog,
-	updateSelectedAssignee,
-} from '@/state/checklist/actions';
 import BasicDialog from '../common/BasicDialog';
 import UserSearch from './UserSearch';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { Box, Chip, Collapse, Paper, Stack, Typography } from '@mui/material';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -16,13 +11,13 @@ import theme, { BASE_COLOR } from '@/styles/theme';
 
 export default function ChecklistHandoffDialog() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const selectedAssignee = useChecklistSlice((state) => state.selectedAssignee);
+	const selectedAssignee = useChecklistStore((state) => state.selectedAssignee);
 	const formattedAssignee = `${selectedAssignee?.last ?? ''}, ${selectedAssignee?.first ?? ''}`;
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
 
 	const onClose = () => {
-		toggleChecklistHandoffDialog();
-		updateSelectedAssignee(null);
+		useChecklistStore.getState().toggleChecklistHandoffDialog();
+		useChecklistStore.getState().updateSelectedAssignee(null);
 	};
 
 	return (
@@ -37,9 +32,9 @@ export default function ChecklistHandoffDialog() {
 					} catch (e) {
 						console.error(e);
 					}
-					toggleChecklistHandoffDialog();
-					toggleChecklistProgressDialog(false);
-					updateSelectedAssignee(null);
+					useChecklistStore.getState().toggleChecklistHandoffDialog();
+					useChecklistStore.getState().toggleChecklistProgressDialog(false);
+					useChecklistStore.getState().updateSelectedAssignee(null);
 				},
 			}}
 			secondaryActions={[
@@ -72,13 +67,13 @@ export default function ChecklistHandoffDialog() {
 
 					<Stack width="100%" display="flex" justifyContent="center" alignItems="center">
 						<Box bgcolor="white" margin="10px" borderRadius={4}>
-							<UserSearch selectedUser={selectedAssignee} setSelectedUser={updateSelectedAssignee} />
+							<UserSearch selectedUser={selectedAssignee} setSelectedUser={(user) => useChecklistStore.getState().updateSelectedAssignee(user)} />
 						</Box>
 
 						<Collapse in={!!selectedAssignee}>
 							<Chip
 								label={`${formattedAssignee} <${selectedAssignee?.email}>`}
-								onDelete={() => updateSelectedAssignee(null)}
+								onDelete={() => useChecklistStore.getState().updateSelectedAssignee(null)}
 								color="primary"
 							/>
 						</Collapse>

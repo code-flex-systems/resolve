@@ -10,7 +10,7 @@ import { CommentFilters } from '@/types/types';
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { toggleComments } from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 
 export default function Comments({
 	filters,
@@ -33,6 +33,7 @@ export default function Comments({
 }) {
 	const router = useRouter();
 	const { data: session } = useSession();
+	const toggleComments = useChecklistStore((state) => state.toggleComments);
 
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list(
 		{ filters, limit, offset },

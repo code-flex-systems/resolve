@@ -19,7 +19,8 @@ import ClaimStatusCell from './ClaimStatusCell';
 import { Claim } from '@/hooks/trpc/useClaimTrpc';
 import ClaimClientCell from './ClaimClientCell';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { useAdminSlice, useMetricsSlice } from '@/state/store';
+import { useAdminStore } from '@/stores/useAdminStore';
+import { useMetricsStore } from '@/stores/useMetricsStore';
 import StackedHeaderCell from '@/components/common/StackedHeaderCell';
 
 const PINNED_COLUMNS: GridPinnedColumnFields = {
@@ -103,7 +104,7 @@ export default function ChecklistClaims({
 }) {
 	const [constraints, setContraints] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
 	const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
-	const selectedClaimStatus = useMetricsSlice((state) => state.selectedClaimStatus);
+	const selectedClaimStatus = useMetricsStore((state) => state.selectedClaimStatus);
 	const today = dayjs().format('MM/DD/YYYY');
 	const { data = { rows: [], count: undefined }, isFetching } = useChecklistTrpc().listForClaims({
 		filters: {

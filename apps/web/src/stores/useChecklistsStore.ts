@@ -1,0 +1,52 @@
+import { Checklist, Claim } from '@/types/types';
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
+interface ChecklistsState {
+	selectedChecklist: Checklist | null;
+	selectedClaim: Claim | null;
+	// dialogs
+	showChecklistClaimDialog: boolean;
+}
+
+interface ChecklistsActions {
+	toggleChecklistClaimDialog: () => void;
+	updateSelectedChecklist: (newChecklist: Checklist | null) => void;
+	updateSelectedClaim: (newClaim: Claim | null) => void;
+	reset: (partialState?: Partial<ChecklistsState>) => void;
+}
+
+type ChecklistsStore = ChecklistsState & ChecklistsActions;
+
+const initialState: ChecklistsState = {
+	selectedChecklist: null,
+	selectedClaim: null,
+	// dialogs
+	showChecklistClaimDialog: false,
+};
+
+export const useChecklistsStore = create<ChecklistsStore>()(
+	immer((set) => ({
+		...initialState,
+
+		toggleChecklistClaimDialog: () =>
+			set((state) => {
+				state.showChecklistClaimDialog = !state.showChecklistClaimDialog;
+			}),
+
+		updateSelectedChecklist: (newChecklist) =>
+			set((state) => {
+				state.selectedChecklist = newChecklist;
+			}),
+
+		updateSelectedClaim: (newClaim) =>
+			set((state) => {
+				state.selectedClaim = newClaim;
+			}),
+
+		reset: (partialState) =>
+			set((state) => {
+				Object.assign(state, { ...initialState, ...partialState });
+			}),
+	}))
+);

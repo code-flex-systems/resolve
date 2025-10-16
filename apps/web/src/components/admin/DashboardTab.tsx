@@ -20,15 +20,14 @@ import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { useState } from 'react';
 import ClaimsMetric from '../metrics/Claims/ClaimsMetric';
 import UserActivityMetric from '../metrics/UserActivity/UserActivityMetric';
-import { useAdminSlice } from '@/state/store';
+import { useAdminStore } from '@/stores/useAdminStore';
+import { useMetricsStore } from '@/stores/useMetricsStore';
 import ActionsMetric from '../metrics/ActionsMetric';
 import StackedMetric from '../checklist/StackedMetric';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import { setFeedId, setShowInactiveUsers, toggleClaimAssignmentDialog } from '@/state/admin/actions';
 import { formatMD, getDaysToEndOfFiscalQuarter } from '@/lib/utils/utils';
 import MetricAction from '../common/MetricAction';
 import { ClaimStatus } from '@/config/enums';
-import { setClaimStatus } from '@/state/metrics/actions';
 
 const defaultClaimStats = {
 	[ClaimStatus.SUBMITTED]: 0,
@@ -40,7 +39,11 @@ const defaultClaimStats = {
 export default function DashboardTab() {
 	const router = useRouter();
 	const [selected, setSelected] = useState<string | null>(null);
-	const selectedChecklistId = useAdminSlice((state) => state.selectedChecklistId);
+	const selectedChecklistId = useAdminStore((state) => state.selectedChecklistId);
+	const setFeedId = useAdminStore((state) => state.setFeedId);
+	const setShowInactiveUsers = useAdminStore((state) => state.setShowInactiveUsers);
+	const toggleClaimAssignmentDialog = useAdminStore((state) => state.toggleClaimAssignmentDialog);
+	const setClaimStatus = useMetricsStore((state) => state.setClaimStatus);
 	const { data: userCounts, isFetching: isFetchingUsers } = useUserTrpc().count({});
 	const { data: checklistCounts, isFetching: isFetchingChecklists } = useChecklistTrpc().count({});
 	const { data: claimCounts, isFetching: isFetchingClaims } = useClaimTrpc().count({});

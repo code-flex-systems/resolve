@@ -3,7 +3,7 @@ import { AccessTimeFilled, CheckCircle, Checklist } from '@mui/icons-material';
 import { Divider, MenuItem, Paper, Typography } from '@mui/material';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { Checklist as ChecklistType } from '@/types/types';
-import * as actions from '@/state/checklists/actions';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 
 export default function ChecklistMenuItem(props: {
 	checklist: ChecklistType | null;
@@ -16,7 +16,7 @@ export default function ChecklistMenuItem(props: {
 			<MenuItem
 				style={styles.menuItem}
 				onClick={() => {
-					actions.updateSelectedChecklist(checklist);
+					useChecklistsStore.getState().updateSelectedChecklist(checklist);
 					if (typeof onClose === 'function') onClose();
 				}}
 				className="flex-row-between"

@@ -2,7 +2,7 @@ import { trpc } from '@/lib/trpc';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '@/server/trpc/appRouter';
 import * as utils from '@/lib/utils/utils';
-import * as actions from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '../useChecklistParams';
 
 type ResponseInput = inferRouterInputs<AppRouter>['response'];
@@ -46,7 +46,7 @@ export function useResponseTrpc() {
 						const updatedTree = utils.updatePropertyInTree(old.tree, updatedInstanceId, 'status', status);
 						return { ...old, tree: updatedTree };
 					});
-					actions.updateSelectedPageInfoStatus(status);
+					useChecklistStore.getState().updateSelectedPageInfoStatus(status);
 				}
 				if (claimStatus) {
 					trpcUtils.claim.getClaim.setData({ checklistId, claimId }, (old) => {

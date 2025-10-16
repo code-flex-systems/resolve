@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useQuestionTrpc } from './trpc/useQuestionTrpc';
 import { DEFAULT_ANSWER } from '@/config/defaults';
 import { Answer } from '@/types/types';
 
 export function useSelectedAnswerData(): Answer {
-	const selectedQuestionId = useChecklistSlice((state) => state.selectedQuestion);
-	const selectedAnswerId = useChecklistSlice((state) => state.selectedAnswer);
-	const pageId = useChecklistSlice((state) => state.selectedPageInfo?.pageId);
+	const selectedQuestionId = useChecklistStore((state) => state.selectedQuestion);
+	const selectedAnswerId = useChecklistStore((state) => state.selectedAnswer);
+	const pageId = useChecklistStore((state) => state.selectedPageInfo?.pageId);
 	const { data: questions = [] } = useQuestionTrpc().list({ pageId: pageId ?? -1 }, { enabled: Boolean(pageId) });
 
 	return useMemo(() => {

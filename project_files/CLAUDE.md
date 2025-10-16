@@ -164,4 +164,109 @@ Required environment variables (in `apps/web/.env`):
 
 ## Testing & Quality
 
-Linting and type checking are available but no test runner is configured in the current setup.
+**Testing Standards:**
+- See `project_files/TESTING_PROGRESS.md` for current test coverage and standards
+- Unit tests for queries, utilities, state management
+- Integration tests for tRPC routers and component interactions
+- Run tests with: `npm test` (when configured)
+
+**Code Quality:**
+- Fix issues introduced by Claude's own changes immediately
+- Ask for confirmation before fixing existing code issues
+- Minimal reporting for routine fixes (errors and summary only)
+- Suggest only significant improvements, not simple nice-to-haves
+- Use brief bullets for documentation (maintainer has context)
+
+## Working with Claude Code
+
+### Token Optimization for Large Migrations
+
+When performing large refactors or migrations (affecting 20+ files), optimize token usage while maintaining quality:
+
+**1. Use Agents Aggressively**
+- Delegate bulk file updates to the general-purpose agent
+- Agents have separate token budgets that don't count against the main conversation
+- Provide clear patterns and let the agent handle repetition
+
+**2. Batch Operations Over Iteration**
+- Write migration scripts (Node.js/bash) for repetitive changes instead of editing files one-by-one
+- Use `find`, `sed`, `grep` in combination for bulk text replacements
+- Only verify a few files manually, then apply to all
+
+**3. Minimize Output Verbosity**
+- Report only errors and final summary, not every successful operation
+- Avoid listing all affected files unless specifically requested
+- Skip intermediate verification messages when patterns are proven
+
+**4. Strategic Tool Usage**
+- Use `grep` with line limits instead of reading full files
+- Make parallel tool calls when possible (multiple edits in one message)
+- Trust the process after verifying pattern works 2-3 times
+
+**5. Efficient File Operations**
+- Read only what's needed (use `limit`/`offset` parameters)
+- Batch related edits together
+- Use `Bash` with regex for simple find-replace operations
+
+**Goal:** Complete large migrations efficiently without compromising correctness or thoroughness. Verbose output is fine for complex logic, but repetitive operations should be streamlined.
+
+### Migration Protocol
+
+**Before Starting:**
+- Review existing architecture and patterns
+- Document current state in `project_files/MIGRATION_LOG.md`
+- Identify all affected files (use agents for large searches)
+- Test migration pattern on 2-3 files before bulk operations
+
+**During Migration:**
+- Use agents for bulk file updates (separate token budget)
+- Verify TypeScript compilation after changes
+- Check for edge cases (non-React contexts, event handlers, etc.)
+- Fix errors immediately as they arise
+
+**After Completion:**
+- Run full type check and linting
+- Document changes chronologically in MIGRATION_LOG.md
+- Include: date, motivation, files changed, issues encountered, verification steps
+- Update TESTING_PROGRESS.md if test files affected
+
+### State Management (Zustand)
+
+**Current Architecture (as of 2025-10-16):**
+- Individual stores per domain (not centralized)
+- All stores in `apps/web/src/stores/`
+- Immer middleware for immutable updates
+- Built-in reset functions per store
+- MapSet enabled globally for Set/Map support
+
+**Store Pattern:**
+```typescript
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
+interface MyState { /* ... */ }
+interface MyActions { /* ... */ }
+type MyStore = MyState & MyActions;
+
+const initialState: MyState = { /* ... */ };
+
+export const useMyStore = create<MyStore>()(
+  immer((set, get) => ({
+    ...initialState,
+    myAction: (arg) => set((state) => { state.field = arg; }),
+    reset: (partialState) => set((state) => {
+      Object.assign(state, { ...initialState, ...partialState });
+    }),
+  }))
+);
+```
+
+**Component Usage:**
+```typescript
+// Destructure state and actions
+const field = useMyStore((state) => state.field);
+const myAction = useMyStore((state) => state.myAction);
+
+// Non-React context (event handlers, callbacks)
+useMyStore.getState().myAction(value);
+```

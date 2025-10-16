@@ -12,8 +12,7 @@ import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { trpc } from '@/lib/trpc';
 import BasicAutocomplete from '../common/BasicAutocomplete';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
-import { useChecklistSlice } from '@/state/store';
-import { toggleActionDialog } from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ActionInput } from '@/schemas/actionSchemas';
 
 const actionTypeOptions: { icon: JSX.Element; value: ActionType }[] = [
@@ -57,7 +56,8 @@ function getDefaultAction(action: any | undefined) {
 
 export default function UserActionsDialog() {
 	const trpcUtils = trpc.useUtils();
-	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer)!;
+	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer)!;
+	const toggleActionDialog = useChecklistStore((state) => state.toggleActionDialog);
 	const { data: existingAction } = useActionTrpc().get({ answerId: selectedAnswer });
 	const { mutateAsync: upsertAction, isPending: isCreating } = useActionTrpc().create;
 	const {

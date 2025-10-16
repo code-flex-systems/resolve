@@ -21,7 +21,7 @@ import { Claim } from '@/types/types';
 import { ClaimSearch } from '@/config/enums';
 import BasicSwitch from '../common/BasicSwitch';
 import ClaimMenuItem from './ClaimMenuItem';
-import { useChecklistsSlice } from '@/state/store';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';;
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
 import theme from '@/styles/theme';
@@ -29,7 +29,7 @@ import { trpc } from '@/lib/trpc';
 
 export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }) {
 	const trpcUtils = trpc.useUtils();
-	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
+	const selectedClaim = useChecklistsStore((state) => state.selectedClaim);
 	const [query, setQuery] = useState<string>('');
 	const [type, setType] = useState<ClaimSearch>(ClaimSearch.CLAIM_NUMBER);
 	const [searching, setSearching] = useState(false);

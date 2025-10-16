@@ -18,7 +18,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { TransitionGroup } from 'react-transition-group';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Checklist } from '@/types/types';
-import { useChecklistsSlice } from '@/state/store';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';;
 import ChecklistMenuItem from './ChecklistMenuItem';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
@@ -27,7 +27,7 @@ import { trpc } from '@/lib/trpc';
 
 export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boolean }) {
 	const trpcUtils = trpc.useUtils();
-	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
+	const selectedChecklist = useChecklistsStore((state) => state.selectedChecklist);
 	const [query, setQuery] = useState<string>('');
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<Checklist[]>([]);

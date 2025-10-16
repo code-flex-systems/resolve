@@ -3,7 +3,7 @@ import { Checkbox, FormControlLabel, Link, Radio, Stack, Tooltip, Typography } f
 import { QuestionType } from '@/config/enums';
 import { Question } from '@/types/types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
-import * as actions from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
@@ -14,6 +14,7 @@ export default function ChecklistAnswerRadio(props: {
 }) {
 	const { field, question, disabled } = props;
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const goToPage = useChecklistStore((state) => state.goToPage);
 	const { data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 && claimId !== -1 }
@@ -59,7 +60,7 @@ export default function ChecklistAnswerRadio(props: {
 								<Link
 									fontSize={14}
 									color="info"
-									onClick={() => actions.goToPage(a.calls_instance_id!, data.tree)}
+									onClick={() => goToPage(a.calls_instance_id!, data.tree)}
 								>
 									{a.text}
 								</Link>

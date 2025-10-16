@@ -14,8 +14,7 @@ import {
 import { AccessTime, Add, MovieCreationOutlined, MovieEdit, SmsOutlined, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import theme, { BASE_COLOR } from '@/styles/theme';
-import { useChecklistSlice } from '@/state/store';
-import * as actions from '@/state/checklist/actions';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
 import { ChecklistMode, ClaimStatus } from '@/config/enums';
@@ -42,12 +41,12 @@ export default function PageNavigation() {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId = -1, claimId } = useChecklistParams();
-	const showStatsDialog = useChecklistSlice((state) => state.showStatsDialog);
-	const mode = useChecklistSlice((state) => state.mode);
-	const expandAll = useChecklistSlice((state) => state.expandAll);
-	const showChangeLog = useChecklistSlice((state) => state.showChangeLog);
-	const showComments = useChecklistSlice((state) => state.showComments);
-	const commentOffset = useChecklistSlice((state) => state.commentOffset);
+	const showStatsDialog = useChecklistStore((state) => state.showStatsDialog);
+	const mode = useChecklistStore((state) => state.mode);
+	const expandAll = useChecklistStore((state) => state.expandAll);
+	const showChangeLog = useChecklistStore((state) => state.showChangeLog);
+	const showComments = useChecklistStore((state) => state.showComments);
+	const commentOffset = useChecklistStore((state) => state.commentOffset);
 
 	const { data: checklist, isSuccess: isChSuccess } = useChecklistTrpc().get(
 		{ id: checklistId! },
@@ -107,7 +106,7 @@ export default function PageNavigation() {
 					position: navigation.maxPosition + 1,
 				},
 			});
-			if (newInstance) actions.updateSelectedPage(newInstance.instance_id);
+			if (newInstance) useChecklistStore.getState().updateSelectedPage(newInstance.instance_id);
 		} catch (e) {
 			console.error(e);
 		}
@@ -126,7 +125,7 @@ export default function PageNavigation() {
 									value={mode}
 									exclusive
 									onChange={(_, value) => {
-										actions.updateMode(value);
+										useChecklistStore.getState().updateMode(value);
 										if (value === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
 									}}
 								>
@@ -227,7 +226,7 @@ export default function PageNavigation() {
 							<Box marginRight="5px">
 								<BasicButtonStyled
 									buttonProps={{
-										onClick: actions.toggleExpandAll,
+										onClick: () => useChecklistStore.getState().toggleExpandAll(),
 										disabled: visibleInstanceIds.length < 2,
 									}}
 									icon={
@@ -259,7 +258,7 @@ export default function PageNavigation() {
 									<Box marginRight="5px">
 										<BasicButtonStyled
 											buttonProps={{
-												onClick: actions.toggleChangeLog,
+												onClick: () => useChecklistStore.getState().toggleChangeLog(),
 											}}
 											icon={
 												<AccessTime
@@ -279,7 +278,7 @@ export default function PageNavigation() {
 									>
 										<BasicButtonStyled
 											buttonProps={{
-												onClick: actions.toggleComments,
+												onClick: () => useChecklistStore.getState().toggleComments(),
 											}}
 											icon={
 												<SmsOutlined
@@ -301,7 +300,7 @@ export default function PageNavigation() {
 								<span>
 									<BasicButtonStyled
 										buttonProps={{
-											onClick: () => actions.toggleChecklistProgressDialog(true),
+											onClick: () => useChecklistStore.getState().toggleChecklistProgressDialog(true),
 											startIcon: (
 												<ClaimStatusIcon
 													status={

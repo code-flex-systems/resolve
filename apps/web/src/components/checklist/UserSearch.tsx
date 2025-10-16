@@ -17,14 +17,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import { TransitionGroup } from 'react-transition-group';
 import useDebounce from '@/lib/utils/useDebounce';
-import { useChecklistSlice } from '@/state/store';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
 import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { StackedRow } from '../common/StackedRow';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { updateSelectedAssignee } from '@/state/checklist/actions';
 
 export default function UserSearch({
 	selectedUser,

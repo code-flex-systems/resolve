@@ -1,7 +1,6 @@
 'use client';
-import { useChecklistsSlice } from '@/state/store';
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import BasicDialog from '../common/BasicDialog';
-import * as actions from '@/state/checklists/actions';
 import { Chip, Fade, Typography } from '@mui/material';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
@@ -31,8 +30,9 @@ function getStatusMsg(data: ChecklistClaim) {
 
 export default function ChecklistClaimDialog() {
 	const router = useRouter();
-	const selectedChecklist = useChecklistsSlice((state) => state.selectedChecklist);
-	const selectedClaim = useChecklistsSlice((state) => state.selectedClaim);
+	const selectedChecklist = useChecklistsStore((state) => state.selectedChecklist);
+	const selectedClaim = useChecklistsStore((state) => state.selectedClaim);
+	const toggleChecklistClaimDialog = useChecklistsStore((state) => state.toggleChecklistClaimDialog);
 	const { isFetching, data } = useChecklistTrpc().getForClaim(
 		{
 			checklistId: selectedChecklist?.id ?? -1,
@@ -95,7 +95,7 @@ export default function ChecklistClaimDialog() {
 							icon: <ArrowCircleRightOutlined sx={{ color: 'white' }} />,
 						}
 			}
-			onClose={actions.toggleChecklistClaimDialog}
+			onClose={toggleChecklistClaimDialog}
 		>
 			<Fade in={showMsg}>
 				<div className="flex-row-center">

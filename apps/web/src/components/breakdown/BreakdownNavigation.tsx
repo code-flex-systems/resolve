@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import { Box, Fade, Paper, Typography } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
-import { useBreakdownSlice } from '@/state/store';
-import * as actions from '@/state/breakdown/actions';
+import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import { Description } from '@mui/icons-material';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -12,8 +11,10 @@ import ExpandableTitle from '../common/ExpandableTitle';
 
 export default function BreakdownNavigation(props: { pageId: number; instanceId: number }) {
 	const { pageId, instanceId } = props;
-	const breakdownInterval = useBreakdownSlice((state) => state.breakdownInterval);
-	const selectedAnswerId = useBreakdownSlice((state) => state.selectedAnswerId);
+	const breakdownInterval = useBreakdownStore((state) => state.breakdownInterval);
+	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId);
+	const updateSelectedAnswerId = useBreakdownStore((state) => state.updateSelectedAnswerId);
+	const updateSelectedQuestionId = useBreakdownStore((state) => state.updateSelectedQuestionId);
 	const { data: questionStats = [], isFetching: loadingStats } = useQuestionTrpc().getStats(
 		{ pageId, interval: breakdownInterval },
 		{ enabled: pageId !== -1 }
@@ -63,12 +64,12 @@ export default function BreakdownNavigation(props: { pageId: number; instanceId:
 								expandedIdx={expandedIdx}
 								idx={i}
 								item={stat}
-								onAnswerClick={(id: number) => actions.updateSelectedAnswerId(id)}
+								onAnswerClick={(id: number) => updateSelectedAnswerId(id)}
 								pageId={+pageId}
 								selectedAnswerId={selectedAnswerId ?? undefined}
 								setExpandedIdx={(newIdx) => {
 									setExpandedIdx(newIdx);
-									actions.updateSelectedQuestionId(stat.question_id);
+									updateSelectedQuestionId(stat.question_id);
 								}}
 							/>
 						))}

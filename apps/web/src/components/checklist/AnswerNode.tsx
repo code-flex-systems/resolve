@@ -1,7 +1,6 @@
 'use client';
 import { Typography } from '@mui/material';
-import * as actions from '@/state/checklist/actions';
-import { useChecklistSlice } from '@/state/store';
+import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ChecklistMode } from '@/config/enums';
 import './styles.css';
 import theme from '@/styles/theme';
@@ -14,15 +13,16 @@ export default function AnswerNode(props: {
 	level: number;
 }) {
 	const { pageId, questionId, answerId, answerText, level } = props;
-	const mode = useChecklistSlice((state) => state.mode);
-	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion);
-	const selectedAnswer = useChecklistSlice((state) => state.selectedAnswer);
+	const mode = useChecklistStore((state) => state.mode);
+	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
+	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
+	const updateSelectedAnswer = useChecklistStore((state) => state.updateSelectedAnswer);
 	const selected = selectedAnswer === answerId && selectedQuestion === questionId;
 	const isPlaceholder = answerId === -1;
 	return (
 		<div
 			style={{ ...styles.node, paddingLeft: level * 25 }}
-			onClick={mode === ChecklistMode.EDIT ? () => actions.updateSelectedAnswer(questionId, answerId) : undefined}
+			onClick={mode === ChecklistMode.EDIT ? () => updateSelectedAnswer(questionId, answerId) : undefined}
 			className="flex-row-between"
 		>
 			<div className="flex-row-left">

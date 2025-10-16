@@ -1,8 +1,6 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
-import useStore, { useChecklistSlice } from '@/state/store';
-import { useShallow } from 'zustand/react/shallow';
-import * as selectors from '@/state/checklist/selectors';
+import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { Answer } from '@/types/types';
 import {
 	Button,
@@ -21,7 +19,6 @@ import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import { ContentCopy, Delete, Save, Share, TaskAlt } from '@mui/icons-material';
 import Toolbar from '../common/Toolbar';
-import * as actions from '@/state/checklist/actions';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { getPageInstancesFromTree } from '@/lib/utils/utils';
@@ -56,11 +53,13 @@ function formatActionText(action: any | undefined) {
 
 export default function FormAnswer() {
 	const { checklistId = -1, claimId } = useChecklistParams();
-	const selectedPageInfo = useStore(useShallow(selectors.selectedPageInfo));
-	const selectedQuestion = useChecklistSlice((state) => state.selectedQuestion) ?? -1;
+	const selectedPageInfo = getSelectedPageInfoOrDefault();
+	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion) ?? -1;
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedAnswerData = useSelectedAnswerData();
-	const showActionDialog = useChecklistSlice((state) => state.showActionDialog);
+	const showActionDialog = useChecklistStore((state) => state.showActionDialog);
+	const updateSelectedAnswer = useChecklistStore((state) => state.updateSelectedAnswer);
+	const toggleActionDialog = useChecklistStore((state) => state.toggleActionDialog);
 
 	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
 		{ answerId: selectedAnswerData.id },
@@ -123,7 +122,7 @@ export default function FormAnswer() {
 							answerId: selectedAnswerData.id,
 							params: parsedData,
 						});
-			if (newAnswer) actions.updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
+			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
@@ -138,7 +137,7 @@ export default function FormAnswer() {
 				answerId: selectedAnswerData.id,
 				pageId: selectedPageInfo.pageId,
 			});
-			if (newAnswer) actions.updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
+			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 		} catch (e) {
 			console.error(e);
 		}
@@ -147,7 +146,7 @@ export default function FormAnswer() {
 	const onDelete = async () => {
 		try {
 			await deleteAnswer({ answerId: selectedAnswerData.id, pageId: selectedPageInfo.pageId });
-			actions.updateSelectedAnswer(selectedQuestion, null); // TODO
+			updateSelectedAnswer(selectedQuestion, null); // TODO
 		} catch (e) {
 			console.error(e);
 		}
@@ -360,7 +359,7 @@ export default function FormAnswer() {
 							variant="outlined"
 							color="primary"
 							startIcon={<Share />}
-							onClick={actions.toggleActionDialog}
+							onClick={toggleActionDialog}
 							sx={{ height: 30 }}
 							style={styles.item}
 						>
