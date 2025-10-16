@@ -74,8 +74,9 @@ export enum PageInstanceStatus {
 export enum SummarySegment {
 	ANSWERED = 'answered',
 	UNANSWERED = 'unanswered',
-	KNOWN = 'known',
-	UNKNOWN = 'unknown',
+	ACTION_REQUIRED = 'action required',
+	NO_ACTION_REQUIRED = 'no action required',
+	UNKNOWN = 'unknown', // Specific segment for answer.text containing "unknown"
 }
 
 export enum QuestionType {

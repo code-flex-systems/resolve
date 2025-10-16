@@ -6,7 +6,10 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "next lint",
+		"test": "vitest",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest --coverage"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
@@ -20,6 +23,7 @@
 		"@types/pg": "8.15.1",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"@vitest/ui": "3.2.4",
 		"eslint": "^9",
 		"eslint-config-next": "15.3.2",
 		"kysely": "^0.27.2",
@@ -27,7 +31,8 @@
 		"pdf-parse": "^1.1.1",
 		"tailwindcss": "^4",
 		"tsx": "^4.19.3",
-		"typescript": "^5"
+		"typescript": "^5",
+		"vitest": "3.2.4"
 	},
 	"dependencies": {
 		"@auth/kysely-adapter": "1.9.1",

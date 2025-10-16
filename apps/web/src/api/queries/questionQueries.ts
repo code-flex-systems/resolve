@@ -200,7 +200,10 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
         const results = await db
                 .selectFrom('question')
                 .leftJoin('answer', 'answer.question_id', 'question.id')
-                .leftJoin('action', 'action.answer_id', 'answer.id')
+                .leftJoin('action', (join) =>
+                        join.onRef('action.answer_id', '=', 'answer.id')
+                                .on('action.client_id', '=', ctx.session.user.client_id)
+                )
                 .selectAll('question')
                 .select((eb) => [
 				sql`array_agg(

@@ -286,5 +286,8 @@ export async function updateUser(
  * @param id - user identifier to delete
  */
 export async function deleteUser(ctx: ProtectedContext, id: string) {
-	await db.deleteFrom('users').where('id', '=', id).execute();
+	await db.deleteFrom('users')
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.execute();
 }

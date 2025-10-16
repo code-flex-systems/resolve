@@ -4,8 +4,8 @@ import { useChecklistSlice } from '@/state/store';
 import * as actions from '@/state/checklist/actions';
 import { useMemo } from 'react';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
-import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
-import { AdsClick, Help, Description } from '@mui/icons-material';
+import { Box, Collapse, Divider, Paper, Stack, Typography } from '@mui/material';
+import { AdsClick, Help, HelpOutline, Description } from '@mui/icons-material';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -21,7 +21,12 @@ export default function SummaryChart() {
 	);
 	const selectedSummarySegment = useChecklistSlice((state) => state.selectedSummarySegment);
 	const {
-		data: checklistSummaryTotals = { total_answered: 0, total_questions: 0, total_known: 0, total_unknown: 0 },
+		data: checklistSummaryTotals = {
+			total_answered: 0,
+			total_questions: 0,
+			total_action_required: 0,
+			total_unknown: 0,
+		},
 		isFetching: loadingSummary,
 	} = useChecklistTrpc().getSummary(
 		{
@@ -34,7 +39,7 @@ export default function SummaryChart() {
 	const chartData = useMemo(() => {
 		if (!checklistSummaryTotals) return [];
 
-		const { total_answered, total_questions, total_known, total_unknown } = checklistSummaryTotals;
+		const { total_answered, total_questions, total_action_required, total_unknown } = checklistSummaryTotals;
 		const totalUnanswered = total_questions - total_answered;
 		const series: PieChartProps['series'] = [
 			{
@@ -61,18 +66,18 @@ export default function SummaryChart() {
 				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
 			},
 			{
-				id: 'known-unknown',
+				id: 'action-required-not-required',
 				data: [
 					{
-						id: SummarySegment.KNOWN,
-						label: 'Known',
-						value: total_known,
+						id: SummarySegment.ACTION_REQUIRED,
+						label: 'Action required',
+						value: total_action_required,
 						color: theme.palette.secondary.main,
 					},
 					{
-						id: SummarySegment.UNKNOWN,
-						label: 'Unknown',
-						value: total_unknown,
+						id: SummarySegment.NO_ACTION_REQUIRED,
+						label: 'No action required',
+						value: total_answered - total_action_required,
 						color: PURPLE,
 					},
 				],
@@ -90,18 +95,7 @@ export default function SummaryChart() {
 	return (
 		<Paper elevation={0} sx={styles.paper}>
 			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-				{/* <Paper
-					elevation={0}
-					sx={{
-						width: 'fit-content',
-						background: theme.palette.primary.main,
-						padding: '5px 10px',
-						borderRadius: 3,
-					}}
-					className="flex-row-center"
-				> */}
 				<Typography fontSize={17}>Q/A Summary</Typography>
-				{/* </Paper> */}
 			</Box>
 			<Stack padding="20px 20px 0px">
 				<ExpandableTitle
@@ -116,6 +110,14 @@ export default function SummaryChart() {
 					title={`Questions (${checklistSummaryTotals.total_questions.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
+				<Collapse in={selectedSummarySegment === SummarySegment.ACTION_REQUIRED}>
+					<ExpandableTitle
+						icon={<HelpOutline sx={{ color: BASE_COLOR }} />}
+						color="white"
+						title={`Unknowns (${checklistSummaryTotals.total_unknown})`}
+						padding="0px 0px 10px"
+					/>
+				</Collapse>
 				<ExpandableTitle
 					key={selectedSummarySegment}
 					icon={<AdsClick sx={{ color: BASE_COLOR }} />}

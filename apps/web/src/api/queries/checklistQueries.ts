@@ -271,8 +271,8 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 		])
 		.executeTakeFirst();
 
-	const answerCount = parseInt(result?.answered_count?.toString() ?? '0');
-	const totalQuestionCount = parseInt(result?.total_question_count?.toString() ?? '0');
+	const answerCount = parseInt(result?.answered_count?.toString() ?? '0') || 0;
+	const totalQuestionCount = parseInt(result?.total_question_count?.toString() ?? '0') || 0;
 	return { answerCount, totalQuestionCount };
 }
 
@@ -332,27 +332,29 @@ export async function getChecklistSummary(ctx: ProtectedContext, checklistId: nu
                         where question_response_answer.response_id = question_response.id
                     )
                 )`.as('total_answered'),
-			// All answers that do not include unknown
+			// All answers requiring action
 			sql<number>`count(distinct question_response.id)
                 filter (
                     where exists (
-                    select 1 from question_response_answer qra
-                    join answer a on a.id = qra.answer_id
-                    where qra.response_id = question_response.id
-                        and lower(a.text) not like '%unknown%'
-                        and lower(coalesce(question_response.response_text, '')) not like '%unknown%'
+                        select 1 from question_response_answer qra
+                        join answer a on a.id = qra.answer_id
+                        left join action ac on ac.answer_id = a.id and ac.client_id = ${ctx.session.user.client_id}
+                        where qra.response_id = question_response.id
+                            and (
+                                ac.answer_id is not null
+                                or lower(a.text) like '%unknown%'
+                                or (a.has_additional_info = true and (qra.additional_info is null or qra.additional_info = ''))
+                            )
                     )
-                )`.as('total_known'),
-			// All answers that include unknown
-			// We cannot simply calculate this with answered - known
-			// because a multiple-choice question can have both known and unknown answers
+                )`.as('total_action_required'),
+			// Specific count: answers with unknown text
 			sql<number>`count(distinct question_response.id)
                 filter (
                     where exists (
-                    select 1 from question_response_answer qra
-                    join answer a on a.id = qra.answer_id
-                    where qra.response_id = question_response.id
-                        and (lower(a.text) like '%unknown%' or lower(question_response.response_text) like '%unknown%')
+                        select 1 from question_response_answer qra
+                        join answer a on a.id = qra.answer_id
+                        where qra.response_id = question_response.id
+                            and lower(a.text) like '%unknown%'
                     )
                 )`.as('total_unknown'),
 		])
@@ -409,7 +411,10 @@ export async function getChecklistSummaryDetail(
 	if (segment !== SummarySegment.UNANSWERED) {
 		query = query
 			.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
-			.leftJoin('answer', 'answer.id', 'question_response_answer.answer_id');
+			.leftJoin('answer', 'answer.id', 'question_response_answer.answer_id')
+			.leftJoin('action', (join) =>
+				join.onRef('action.answer_id', '=', 'answer.id').on('action.client_id', '=', ctx.session.user.client_id)
+			) as typeof query;
 	}
 
 	switch (segment) {
@@ -417,29 +422,49 @@ export async function getChecklistSummaryDetail(
 			query = query.where((qb) =>
 				qb.or([
 					qb('question_response.response_text', 'is not', null),
-					qb('question_response_answer.id', 'is not', null),
+					sql<boolean>`question_response_answer.id is not null`,
 				])
 			);
 			break;
 		case SummarySegment.UNANSWERED:
 			query = query.where('question_response.id', 'is', null);
 			break;
-		case SummarySegment.KNOWN:
+		case SummarySegment.ACTION_REQUIRED:
 			query = query.where((qb) =>
 				qb.and([
+					// Must be answered
 					qb.or([
 						qb('question_response.response_text', 'is not', null),
-						qb('question_response_answer.id', 'is not', null),
+						sql<boolean>`question_response_answer.id is not null`,
 					]),
-					sql<boolean>`lower(coalesce(question_response.response_text, '')) not like '%unknown%'`,
-					sql<boolean>`lower(answer.text) not like '%unknown%'`,
+					// Must meet at least one action-required criterion
+					sql<boolean>`(
+						action.answer_id is not null
+						or lower(answer.text) like '%unknown%'
+						or (answer.has_additional_info = true and (question_response_answer.additional_info is null or question_response_answer.additional_info = ''))
+					)`,
+				])
+			);
+			break;
+		case SummarySegment.NO_ACTION_REQUIRED:
+			query = query.where((qb) =>
+				qb.and([
+					// Must be answered
+					qb.or([
+						qb('question_response.response_text', 'is not', null),
+						sql<boolean>`question_response_answer.id is not null`,
+					]),
+					// Must NOT meet any action-required criterion
+					sql<boolean>`(
+						action.answer_id is null
+						and (answer.text is null or lower(answer.text) not like '%unknown%')
+						and (answer.has_additional_info = false or answer.has_additional_info is null or (question_response_answer.additional_info is not null and question_response_answer.additional_info != ''))
+					)`,
 				])
 			);
 			break;
 		case SummarySegment.UNKNOWN:
-			query = query.where(
-				sql<boolean>`lower(question_response.response_text) like '%unknown%' or lower(answer.text) like '%unknown%'`
-			);
+			query = query.where(sql<boolean>`lower(answer.text) like '%unknown%'`);
 			break;
 		default:
 			break;
@@ -451,32 +476,49 @@ export async function getChecklistSummaryDetail(
 			.executeTakeFirstOrThrow();
 		return Number(result?.count ?? 0);
 	} else {
-		const baseSelect = [
-			'page_instance.id as page_id',
-			'page.title as page_title',
-			'question.id as question_id',
-			'question.text as question_text',
-		];
-		const fullSelect = [
-			...baseSelect,
-			'question_response.response_text as response_text',
-			sql<string>`string_agg(distinct answer.text, ', ')`.as('answer_texts'),
-		];
-		const rows = await query
-			.select(segment === SummarySegment.UNANSWERED ? baseSelect : fullSelect)
-			.groupBy([
-				'page_instance.id',
-				'page.title',
-				'question.id',
-				'question.text',
-				'question_response.response_text',
-			])
-			.orderBy('page_instance.id')
-			.limit(limit ?? 50)
-			.offset(offset ?? 0)
-			.execute();
-
-		return rows;
+		if (segment === SummarySegment.UNANSWERED) {
+			const rows = await query
+				.select([
+					sql`page_instance.id`.as('page_id'),
+					sql`page.title`.as('page_title'),
+					sql`question.id`.as('question_id'),
+					sql`question.text`.as('question_text'),
+				])
+				.groupBy([
+					'page_instance.id',
+					'page.title',
+					'question.id',
+					'question.text',
+					'question_response.response_text',
+				])
+				.orderBy('page_instance.id')
+				.limit(limit ?? 50)
+				.offset(offset ?? 0)
+				.execute();
+			return rows;
+		} else {
+			const rows = await query
+				.select([
+					sql`page_instance.id`.as('page_id'),
+					sql`page.title`.as('page_title'),
+					sql`question.id`.as('question_id'),
+					sql`question.text`.as('question_text'),
+					sql`question_response.response_text`.as('response_text'),
+					sql<string>`string_agg(distinct answer.text, ', ')`.as('answer_texts'),
+				])
+				.groupBy([
+					'page_instance.id',
+					'page.title',
+					'question.id',
+					'question.text',
+					'question_response.response_text',
+				])
+				.orderBy('page_instance.id')
+				.limit(limit ?? 50)
+				.offset(offset ?? 0)
+				.execute();
+			return rows;
+		}
 	}
 }
 
