@@ -34,14 +34,10 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          dockerfilePath: Dockerfile
-          registryUrl:
-          registryUsername: ${{ secrets.MANIFESTCONTAINERAPP_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.MANIFESTCONTAINERAPP_REGISTRY_PASSWORD }}
+          appSourcePath: ${{ github.workspace }}/apps/web
           containerAppName: manifest-container-app
           resourceGroup: DefaultResourceGroup-WUS2
-          imageToBuild: default/manifest-container-app:${{ github.sha }}
+          runtimeStack: node:20-lts
           targetPort: 8080
           ingress: external
 
