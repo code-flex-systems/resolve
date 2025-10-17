@@ -53,6 +53,7 @@ jobs:
                       PORT=8080 \
                       NODE_ENV=production \
                       AUTH_SECRET="${{ secrets.AUTH_SECRET }}" \
+                      NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
                       BASE_URL="${{ secrets.BASE_URL }}" \
                       DB_HOST="${{ secrets.DB_HOST }}" \
                       DB_PORT="${{ secrets.DB_PORT }}" \
@@ -98,3 +99,11 @@ jobs:
                   fi
 
                   echo "Deployment complete!"
+
+                  # Show recent container logs
+                  echo "=== Recent Container Logs ==="
+                  az containerapp logs show \
+                    --name manifest-container-app \
+                    --resource-group Manifest \
+                    --tail 50 \
+                    --follow false || echo "Could not fetch logs (container may still be starting)"
