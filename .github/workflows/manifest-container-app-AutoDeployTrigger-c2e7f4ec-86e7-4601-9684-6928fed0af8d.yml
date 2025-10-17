@@ -36,6 +36,7 @@ jobs:
 
       - name: Build and deploy Container App
         run: |
+          # Build and push with explicit update
           az containerapp up \
             --name manifest-container-app \
             --resource-group DefaultResourceGroup-WUS2 \
@@ -43,5 +44,12 @@ jobs:
             --ingress external \
             --target-port 8080 \
             --env-vars PORT=8080
+
+          # Force activation of the latest revision
+          echo "Ensuring latest revision is active..."
+          az containerapp revision set-mode \
+            --name manifest-container-app \
+            --resource-group DefaultResourceGroup-WUS2 \
+            --mode single
 
 
