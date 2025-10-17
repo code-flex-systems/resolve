@@ -19,6 +19,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Set PORT during build
+ENV PORT=8080
+
 # Build the Next.js app
 RUN npm run build
 
@@ -27,26 +30,23 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=8080
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-
-# Set correct permissions
-RUN chown -R nextjs:nodejs /app
+# Copy the built application
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package*.json ./apps/web/
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 
 USER nextjs
 
 # Expose port 8080
 EXPOSE 8080
 
-ENV PORT=8080
-ENV HOSTNAME="0.0.0.0"
-
-# Start the application
-CMD ["node", "apps/web/server.js"]
+# Start the application using next start which respects PORT env var
+CMD ["npm", "--workspace", "apps/web", "run", "start"]
