@@ -31,14 +31,17 @@ jobs:
           tenant-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
-        uses: azure/container-apps-deploy-action@v2
-        with:
-          appSourcePath: ${{ github.workspace }}/apps/web
-          containerAppName: manifest-container-app
-          resourceGroup: DefaultResourceGroup-WUS2
-          runtimeStack: node:20-lts
-          targetPort: 8080
-          ingress: external
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and deploy Container App
+        run: |
+          az containerapp up \
+            --name manifest-container-app \
+            --resource-group DefaultResourceGroup-WUS2 \
+            --source . \
+            --ingress external \
+            --target-port 8080 \
+            --env-vars PORT=8080
 
 
