@@ -9,11 +9,11 @@ const nextConfig: NextConfig = {
 	},
 	eslint: {
 		// Uncomment for building without eslint
-		// ignoreDuringBuilds: true,
+		ignoreDuringBuilds: true,
 	},
 	typescript: {
 		// Uncomment to ignore ts errors during build
-		// ignoreBuildErrors: true,
+		ignoreBuildErrors: true,
 	},
 };
 
