@@ -23,7 +23,6 @@ EXPOSE 8080
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8080
 
-# Start the application
-CMD ["npm", "--workspace", "apps/web", "run", "start"]
+# Start the application with PORT explicitly set
+CMD PORT=8080 npm --workspace apps/web run start
