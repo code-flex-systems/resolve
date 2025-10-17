@@ -1,4 +1,4 @@
-drop table comment;
+drop table if exists comment;
 drop table if exists action_log;
 drop table if exists action;
 drop table if exists auth_events;

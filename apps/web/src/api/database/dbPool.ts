@@ -7,7 +7,9 @@ const DB_POOL_CONFIG: PoolConfig = {
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_DATABASE,
 	host: process.env.DB_HOST,
-	port: process.env.DB_PORT,
+	port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
+	ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+	connectionTimeoutMillis: 10000,
 };
 
 const pool = new pg.Pool(DB_POOL_CONFIG);
