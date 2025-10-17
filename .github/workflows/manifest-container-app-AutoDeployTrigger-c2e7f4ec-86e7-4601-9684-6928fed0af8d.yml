@@ -36,7 +36,14 @@ jobs:
 
       - name: Build and deploy Container App
         run: |
-          # Build and push with explicit update
+          # Check current status
+          echo "Current container app status:"
+          az containerapp show \
+            --name manifest-container-app \
+            --resource-group DefaultResourceGroup-WUS2 \
+            --query "properties.provisioningState" -o tsv
+
+          # Build and deploy
           az containerapp up \
             --name manifest-container-app \
             --resource-group DefaultResourceGroup-WUS2 \
@@ -45,11 +52,27 @@ jobs:
             --target-port 8080 \
             --env-vars PORT=8080
 
-          # Force activation of the latest revision
-          echo "Ensuring latest revision is active..."
-          az containerapp revision set-mode \
+          # List all revisions
+          echo "All revisions:"
+          az containerapp revision list \
             --name manifest-container-app \
             --resource-group DefaultResourceGroup-WUS2 \
-            --mode single
+            --query "[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight}" -o table
+
+          # Get the latest revision name
+          LATEST_REVISION=$(az containerapp revision list \
+            --name manifest-container-app \
+            --resource-group DefaultResourceGroup-WUS2 \
+            --query "max_by([], &properties.createdTime).name" -o tsv)
+
+          echo "Latest revision: $LATEST_REVISION"
+
+          # Activate it explicitly
+          if [ ! -z "$LATEST_REVISION" ]; then
+            echo "Activating revision: $LATEST_REVISION"
+            az containerapp revision activate \
+              --revision $LATEST_REVISION \
+              --resource-group DefaultResourceGroup-WUS2
+          fi
 
 
