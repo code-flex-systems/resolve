@@ -30,21 +30,23 @@ export default function ProfileAvatar() {
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
 					<Paper sx={styles.paper}>
-						<Typography fontSize={17} fontWeight="bold">
-							{session?.user?.name ?? ''}
-						</Typography>
+						<div style={{ ...styles.row, overflow: 'hidden', marginTop: 5 }}>
+							<Typography fontSize={17} fontWeight="bold" textOverflow="ellipsis" noWrap>
+								{session?.user?.name ?? ''}
+							</Typography>
+						</div>
 						<div style={styles.divider}>
 							<Divider />
 						</div>
-						<div style={{ ...styles.row, marginTop: 5 }}>
+						<div style={{ ...styles.row, overflow: 'hidden', marginTop: 5 }}>
 							<Email sx={styles.icon} />
-							<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
+							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
 								{session?.user?.email ?? ''}
 							</Typography>
 						</div>
-						<div style={{ ...styles.row, marginTop: 5 }}>
+						<div style={{ ...styles.row, overflow: 'hidden', marginTop: 5 }}>
 							<Phone sx={styles.icon} />
-							<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
+							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
 							</Typography>
 						</div>
@@ -82,7 +84,7 @@ const styles = {
 		color: BASE_COLOR_LIGHT,
 	},
 	paper: {
-		width: 250,
+		width: 350,
 		height: 'fit-content',
 		display: 'flex',
 		flexDirection: 'column' as const,
