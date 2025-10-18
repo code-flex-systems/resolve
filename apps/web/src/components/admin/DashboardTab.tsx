@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Collapse, Fade, Paper, Stack, Typography } from '@mui/material';
+import { Box, Collapse, Fade, Grid, Paper, Stack, Typography } from '@mui/material';
 import {
 	Checklist,
 	ContentPasteSearch,
@@ -70,6 +70,7 @@ export default function DashboardTab() {
 				alignContent="flex-start"
 				padding="10px 0px"
 				bgcolor="#F7F8FA"
+				overflow="auto"
 			>
 				<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
 					<Stack display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
@@ -114,14 +115,8 @@ export default function DashboardTab() {
 							selected={selected === 'feeds'}
 						/>
 					</Stack>
-					<Stack
-						display="flex"
-						justifyContent="flex-start"
-						alignContent="flex-start"
-						paddingTop="20px"
-						paddingBottom="10px"
-					>
-						<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
+					<Grid container marginTop="20px" alignContent="flex-start">
+						<Grid>
 							<Paper elevation={0} sx={styles.paper}>
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
 									Quick Stats
@@ -158,6 +153,8 @@ export default function DashboardTab() {
 									/>
 								</Box>
 							</Paper>
+						</Grid>
+						<Grid>
 							<Paper elevation={0} sx={styles.paper}>
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
 									Quick Actions
@@ -214,23 +211,17 @@ export default function DashboardTab() {
 									</Collapse>
 								</Box>
 							</Paper>
-						</Box>
-						<Box
-							bgcolor="#F0F3F8"
-							display="flex"
-							height="fit-content"
-							justifyContent="flex-start"
-							alignContent="flex-start"
-							borderRadius={6}
-							padding="10px"
-							marginLeft="10px"
-							marginTop="10px"
-						>
+						</Grid>
+						<Grid>
 							<UserActivityMetric />
+						</Grid>
+						<Grid>
 							<ClaimsMetric checklistId={selectedChecklistId} />
+						</Grid>
+						<Grid>
 							<ActionsMetric />
-						</Box>
-					</Stack>
+						</Grid>
+					</Grid>
 				</Box>
 			</Box>
 		</Fade>
@@ -240,6 +231,7 @@ export default function DashboardTab() {
 const styles = {
 	paper: {
 		width: 'fit-content',
+		height: 145,
 		borderRadius: 3,
 		margin: '0px 10px 10px',
 	},

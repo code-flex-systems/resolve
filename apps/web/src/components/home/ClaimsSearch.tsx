@@ -21,7 +21,7 @@ import { Claim } from '@/types/types';
 import { ClaimSearch } from '@/config/enums';
 import BasicSwitch from '../common/BasicSwitch';
 import ClaimMenuItem from './ClaimMenuItem';
-import { useChecklistsStore } from '@/stores/useChecklistsStore';;
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
 import theme from '@/styles/theme';
@@ -94,13 +94,14 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
 										) : (
 											<IconButton size="small" onClick={handleClearInput}>
-												<ClearIcon sx={{ fontSize: 17 }} />
+												<ClearIcon sx={{ fontSize: 15 }} />
 											</IconButton>
 										)}
 									</InputAdornment>
 								),
 							},
 						}}
+						variant="outlined"
 						autoComplete="off"
 					/>
 
@@ -176,7 +177,7 @@ const styles = {
 		marginRight: '5px',
 	},
 	menuItem: {
-		width: 300,
+		width: 250,
 	},
 	popper: {
 		maxHeight: 300,
@@ -192,9 +193,9 @@ const styles = {
 		padding: '10px 0px 0px',
 	},
 	textField: {
-		width: 300,
+		width: 250,
 		'& .MuiInput-input': {
-			fontSize: 17,
+			fontSize: 15,
 		},
 	},
 };

@@ -13,7 +13,7 @@ const styles = {
 	container: {
 		width: 400,
 		minWidth: 400,
-		height: 375,
+		height: 350,
 		padding: '10px 20px',
 		overflow: 'hidden',
 		borderRadius: 4,

@@ -156,7 +156,9 @@ const styles = {
 	},
 	paper: {
 		borderRadius: 3,
-		margin: '10px',
+		margin: '15px',
+		width: METRIC_WIDTH,
+		height: METRIC_HEIGHT,
 	},
 	paperInner: {
 		position: 'absolute',

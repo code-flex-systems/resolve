@@ -18,7 +18,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { TransitionGroup } from 'react-transition-group';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Checklist } from '@/types/types';
-import { useChecklistsStore } from '@/stores/useChecklistsStore';;
+import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import ChecklistMenuItem from './ChecklistMenuItem';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
@@ -92,7 +92,7 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 												<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
 											) : (
 												<IconButton size="small" onClick={handleClearInput}>
-													<ClearIcon sx={{ fontSize: 17 }} />
+													<ClearIcon sx={{ fontSize: 15 }} />
 												</IconButton>
 											)}
 										</InputAdornment>
@@ -100,6 +100,7 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 								),
 							},
 						}}
+						variant="outlined"
 						autoComplete="off"
 					/>
 
@@ -152,7 +153,7 @@ const styles = {
 		padding: 5,
 	},
 	menuItem: {
-		width: 300,
+		width: 250,
 	},
 	popper: {
 		maxHeight: 300,
@@ -164,9 +165,9 @@ const styles = {
 		marginTop: 2,
 	},
 	textField: {
-		width: 300,
+		width: 250,
 		'& .MuiInput-input': {
-			fontSize: 17,
+			fontSize: 15,
 		},
 	},
 };

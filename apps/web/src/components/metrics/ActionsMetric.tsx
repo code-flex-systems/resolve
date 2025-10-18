@@ -182,8 +182,9 @@ const styles = {
 	},
 	paper: {
 		borderRadius: 3,
-		margin: '10px',
-		height: 'fit-content',
+		margin: '15px',
+		width: METRIC_WIDTH,
+		height: METRIC_HEIGHT,
 	},
 	skeleton: {
 		borderRadius: 3,

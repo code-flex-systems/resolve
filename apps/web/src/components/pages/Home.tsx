@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Fade, Stack, Typography } from '@mui/material';
+import { Box, Fade, Grid, Stack, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import Recents from '@/components/home/Recents';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
@@ -49,63 +49,43 @@ export default function Home() {
 				<Fade key={isLoading ? 'loading' : 'data'} in={true} timeout={500}>
 					<Box
 						width="100%"
-						flex={1}
+						height="100vh"
 						display="flex"
 						justifyContent={isLoading || !recents.length ? 'center' : 'space-between'}
-						alignItems="center"
+						alignItems="flex-start"
+						overflow="auto"
 					>
 						{isLoading && <WobbleLoadingIndicator hideMsg />}
 						{!isLoading && (
-							<>
-								<Stack
-									height="100%"
-									display="flex"
-									justifyContent="flex-start"
-									alignItems="flex-start"
-									marginRight="20px"
-								>
-									<Box display="flex" justifyContent="flex-start" alignItems="flex-start">
-										<FQStepper />
-										<Recents />
-									</Box>
-									<RecentComments />
-								</Stack>
-
-								<Box
-									width="100%"
-									maxWidth={700}
-									// height="calc(100% - 30px)"
-									height="100%"
-									display="flex"
-									justifyContent="center"
-									alignItems="flex-start"
-									padding="10px 0px 20px"
-								>
+							<Grid container>
+								{/* <Grid container direction="column"> */}
+								<Grid>
 									<HomeSearch />
-								</Box>
+								</Grid>
+								<Grid>
+									<Recents />
+								</Grid>
+								<Grid>
+									<Calendar />
+								</Grid>
+								<Grid>
+									<RecentComments />
+								</Grid>
 
-								<Stack height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-									<Box
-										height="100%"
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										marginLeft="20px"
-										marginTop="5px"
-									>
-										{!!session?.user && <ClaimsMetric users={[session.user.id]} />}
-									</Box>
-									<Box
-										height="100%"
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										marginLeft="20px"
-									>
-										<Calendar />
-									</Box>
-								</Stack>
-							</>
+								{/* </Grid> */}
+								{/* <Grid container flexWrap="wrap"> */}
+
+								<Grid>
+									<FQStepper />
+								</Grid>
+								{!!session?.user && (
+									<Grid>
+										<ClaimsMetric users={[session.user.id]} />
+									</Grid>
+								)}
+
+								{/* </Grid> */}
+							</Grid>
 						)}
 					</Box>
 				</Fade>

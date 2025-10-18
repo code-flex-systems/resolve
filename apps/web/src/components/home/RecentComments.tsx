@@ -55,7 +55,7 @@ const styles = {
 	container: {
 		width: 520,
 		minWidth: 520,
-		height: 375,
+		height: 350,
 		minHeight: 0,
 		padding: '10px 20px',
 		overflow: 'hidden',

@@ -29,9 +29,9 @@ export default function Recents() {
 				</Typography>
 			)}
 			<div style={styles.links}>
-				<TransitionGroup>
+				<TransitionGroup style={{ width: '100%' }}>
 					{recentChecklistClaims.map((c, i) => (
-						<Collapse key={i} sx={{ width: 300 }}>
+						<Collapse key={i} sx={{ width: '100%' }}>
 							<MenuItem
 								onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
 								sx={styles.menuItem}
@@ -95,8 +95,8 @@ export default function Recents() {
 
 const styles = {
 	container: {
-		width: 350,
-		minWidth: 350,
+		width: 400,
+		minWidth: 400,
 		height: 350,
 		padding: '10px 20px',
 		overflow: 'hidden',
