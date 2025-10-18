@@ -49,7 +49,7 @@ export default function Comments({
 	}, [comments.rows, page, pageSize]);
 
 	return !comments.rows.length ? (
-		<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px">
+		<Typography fontSize={15} color={BASE_COLOR_LIGHT} paddingTop="10px">
 			No comments
 		</Typography>
 	) : (

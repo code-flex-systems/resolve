@@ -23,12 +23,18 @@ export default function Recents() {
 					color="white"
 				/>
 			</Box>
-			{!recentChecklistClaims.length && (
-				<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
-					No recents
-				</Typography>
-			)}
-			<div style={styles.links}>
+			<div
+				style={{
+					...styles.links,
+					justifyContent: recentChecklistClaims.length ? 'flex-start' : 'center',
+					alignItems: recentChecklistClaims.length ? 'flex-start' : 'center',
+				}}
+			>
+				{!recentChecklistClaims.length && (
+					<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
+						No recents
+					</Typography>
+				)}
 				<TransitionGroup style={{ width: '100%' }}>
 					{recentChecklistClaims.map((c, i) => (
 						<Collapse key={i} sx={{ width: '100%' }}>
@@ -126,8 +132,6 @@ const styles = {
 		height: 'calc(100% - 40px)',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
 		overflow: 'auto',
 	},
 	menuItem: {

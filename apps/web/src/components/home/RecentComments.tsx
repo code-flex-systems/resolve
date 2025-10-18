@@ -8,11 +8,15 @@ import ExpandableTitle from '../common/ExpandableTitle';
 import { Sms } from '@mui/icons-material';
 import { buildChecklistUrl } from '@/lib/utils/buildChecklistUrl';
 import { useRouter } from 'next/navigation';
+import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 
 export default function RecentComments() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const userId = session?.user.id;
+
+	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({ filters: { userId } });
+
 	return (
 		<Paper elevation={0} sx={styles.container}>
 			<Box width="100%" height={40} display="flex" justifyContent="flex-start" alignItems="center">
@@ -22,8 +26,8 @@ export default function RecentComments() {
 				width="100%"
 				height="calc(100% - 60px)"
 				display="flex"
-				justifyContent="flex-start"
-				alignItems="flex-start"
+				justifyContent={comments.count > 0 ? 'flex-start' : 'center'}
+				alignItems={comments.count > 0 ? 'flex-start' : 'center'}
 				overflow="auto"
 			>
 				<Comments
