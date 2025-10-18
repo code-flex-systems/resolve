@@ -161,7 +161,7 @@ export default function DashboardTab() {
 								</Box>
 							</Paper>
 						</Grid>
-						<Grid>
+						<Grid width="100%">
 							<Paper elevation={0} sx={styles.paper}>
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
 									Quick Actions
@@ -243,9 +243,10 @@ export default function DashboardTab() {
 const styles = {
 	paper: {
 		width: 'fit-content',
+		minWidth: 300,
 		height: 145,
 		borderRadius: 3,
-		margin: '0px 10px 10px',
+		margin: '15px',
 	},
 	simpleMetricIcon: {
 		color: 'white',
