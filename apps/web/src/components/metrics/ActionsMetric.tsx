@@ -113,9 +113,10 @@ export default function ActionsMetric() {
 						</div>
 						<Stack
 							width="100%"
+							height="100%"
 							display="flex"
 							justifyContent={stats.length ? 'flex-start' : 'center'}
-							alignItems="flex-start"
+							alignItems={stats.length ? 'flex-start' : 'center'}
 						>
 							{stats.length ? (
 								<>
@@ -164,7 +165,9 @@ export default function ActionsMetric() {
 									})}
 								</>
 							) : (
-								<Typography fontSize={13}>No actions</Typography>
+								<Typography fontSize={15} color="#d9d9d9">
+									No actions
+								</Typography>
 							)}
 						</Stack>
 					</Stack>

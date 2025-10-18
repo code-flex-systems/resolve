@@ -55,6 +55,13 @@ export default function DashboardTab() {
 		useUserTrpc().countInactive();
 	const unprocessedClaimCount =
 		claimStats[ClaimStatus.BLOCKED] + claimStats[ClaimStatus.IN_PROGRESS] + claimStats[ClaimStatus.UNWORKED];
+	const showQuickActions =
+		!isFetchingClaimStats &&
+		!isFetchingRolloverCount &&
+		!isFetchingInactiveUserCount &&
+		!!lastSyncedFeed &&
+		claimStats.Submitted > 0 &&
+		inactiveUserCount.count > 0;
 
 	const onSelect = (key: string) => {
 		setSelected(selected === key ? null : key);
@@ -154,64 +161,65 @@ export default function DashboardTab() {
 								</Box>
 							</Paper>
 						</Grid>
-						<Grid>
-							<Paper elevation={0} sx={styles.paper}>
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
-									Quick Actions
-								</Typography>
-								<Box
-									width="fit-content"
-									display="flex"
-									justifyContent="space-around"
-									alignContent="center"
-									padding="10px 20px 20px"
-								>
-									<Collapse in={isFetchingLastSynced || !!lastSyncedFeed} orientation="horizontal">
-										<MetricAction
-											action={() => {
-												setFeedId(lastSyncedFeed?.id);
-												toggleClaimAssignmentDialog();
-												router.push('/admin/feeds-and-claims');
-											}}
-											actionText={`Assign claims in ${lastSyncedFeed?.name ?? ''}`}
-											actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0').toLocaleString()} in queue`}
-											color="primary.main"
-											loading={isFetchingLastSynced}
-										/>
-									</Collapse>
-									<Collapse
-										in={isFetchingClaimStats || claimStats.Submitted > 0}
-										orientation="horizontal"
+						<Collapse in={showQuickActions} orientation="horizontal" timeout={500}>
+							<Grid>
+								<Paper elevation={0} sx={styles.paper}>
+									<Typography
+										fontSize={13}
+										color={BASE_COLOR_LIGHT}
+										paddingTop="10px"
+										paddingLeft="10px"
 									>
-										<MetricAction
-											action={() => {
-												setClaimStatus(ClaimStatus.SUBMITTED);
-												router.push('/metrics/claims');
-											}}
-											actionText="Review submitted claims"
-											actionValue={`${claimStats.Submitted.toLocaleString()} in queue`}
-											color="secondary.main"
-											loading={isFetchingClaimStats}
-										/>
-									</Collapse>
-									<Collapse
-										in={isFetchingInactiveUserCount || inactiveUserCount.count > 0}
-										orientation="horizontal"
+										Quick Actions
+									</Typography>
+									<Box
+										width="fit-content"
+										display="flex"
+										justifyContent="space-around"
+										alignContent="center"
+										padding="10px 20px 20px"
 									>
-										<MetricAction
-											action={() => {
-												setShowInactiveUsers(true);
-												router.push('/admin/users');
-											}}
-											actionText="Review inactive accounts"
-											actionValue={`${inactiveUserCount.count.toLocaleString()} users`}
-											color="warning.main"
-											loading={isFetchingInactiveUserCount}
-										/>
-									</Collapse>
-								</Box>
-							</Paper>
-						</Grid>
+										<Collapse in={!!lastSyncedFeed} orientation="horizontal">
+											<MetricAction
+												action={() => {
+													setFeedId(lastSyncedFeed?.id);
+													toggleClaimAssignmentDialog();
+													router.push('/admin/feeds-and-claims');
+												}}
+												actionText={`Assign claims in ${lastSyncedFeed?.name ?? ''}`}
+												actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0').toLocaleString()} in queue`}
+												color="primary.main"
+												loading={isFetchingLastSynced}
+											/>
+										</Collapse>
+										<Collapse in={claimStats.Submitted > 0} orientation="horizontal">
+											<MetricAction
+												action={() => {
+													setClaimStatus(ClaimStatus.SUBMITTED);
+													router.push('/metrics/claims');
+												}}
+												actionText="Review submitted claims"
+												actionValue={`${claimStats.Submitted.toLocaleString()} in queue`}
+												color="secondary.main"
+												loading={isFetchingClaimStats}
+											/>
+										</Collapse>
+										<Collapse in={inactiveUserCount.count > 0} orientation="horizontal">
+											<MetricAction
+												action={() => {
+													setShowInactiveUsers(true);
+													router.push('/admin/users');
+												}}
+												actionText="Review inactive accounts"
+												actionValue={`${inactiveUserCount.count.toLocaleString()} users`}
+												color="warning.main"
+												loading={isFetchingInactiveUserCount}
+											/>
+										</Collapse>
+									</Box>
+								</Paper>
+							</Grid>
+						</Collapse>
 						<Grid>
 							<UserActivityMetric />
 						</Grid>
