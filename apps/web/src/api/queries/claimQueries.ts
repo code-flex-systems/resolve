@@ -4,11 +4,26 @@ import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+import { TRPCError } from '@trpc/server';
+
+async function assertChecklistPublished(ctx: ProtectedContext, checklistId: number) {
+        const checklist = await db
+                .selectFrom('checklist')
+                .select(['id'])
+                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where('checklist.id', '=', checklistId)
+                .where('checklist.published', '=', true)
+                .executeTakeFirst();
+        if (!checklist) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Checklist is not published.' });
+        }
+}
 
 export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
-	return await db
-		.insertInto('checklist_claim')
-		.values({
+        await assertChecklistPublished(ctx, checklistId);
+        return await db
+                .insertInto('checklist_claim')
+                .values({
 			checklist_id: checklistId,
 			claim_id: claimId,
 			client_id: ctx.session.user.client_id,
@@ -28,8 +43,9 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
  * @returns claim record
  */
 export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	await db
-		.insertInto('checklist_claim')
+        await assertChecklistPublished(ctx, checklistId);
+        await db
+                .insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
 			claim_id: claimId,
@@ -176,6 +192,11 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
         const count = await db
                 .selectFrom('claim')
                 .leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+                .leftJoin('checklist', (join) =>
+                        join
+                                .onRef('checklist_claim.checklist_id', '=', 'checklist.id')
+                                .on('checklist.client_id', '=', ctx.session.user.client_id)
+                )
                 .select(({ fn }) => fn.countAll().as('count'))
                 .where('claim.client_id', '=', ctx.session.user.client_id)
                 .where((eb) =>
@@ -184,7 +205,10 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
                                         eb('checklist_claim.claim_id', 'is', null),
                                         eb('claim.created_at', '<', currentFQStartDate),
                                 ]),
-                                eb('checklist_claim.created_at', '<', currentFQStartDate),
+                                eb.and([
+                                        eb('checklist_claim.created_at', '<', currentFQStartDate),
+                                        eb('checklist.published', '=', true),
+                                ]),
                         ])
                 )
                 .executeTakeFirstOrThrow();

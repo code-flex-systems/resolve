@@ -57,8 +57,11 @@ export async function getChecklist(ctx: ProtectedContext, { id }: { id: number }
  * @param ctx - request context
  * @param input - optional search term
  */
-export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
-	const results = await checklistQueries.getChecklists(ctx, searchTerm);
+export async function getChecklists(
+	ctx: ProtectedContext,
+	{ searchTerm, includeUnpublished }: { searchTerm?: string; includeUnpublished?: boolean }
+) {
+	const results = await checklistQueries.getChecklists(ctx, { searchTerm, includeUnpublished });
 	return results;
 }
 

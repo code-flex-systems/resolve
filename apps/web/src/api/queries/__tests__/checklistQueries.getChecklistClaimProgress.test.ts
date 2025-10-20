@@ -60,7 +60,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -85,7 +87,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -109,7 +113,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -130,7 +136,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -154,7 +162,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -178,7 +188,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -202,7 +214,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -226,7 +240,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -257,7 +273,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -282,7 +300,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -304,7 +324,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -326,7 +348,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -350,7 +374,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -379,9 +405,11 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: vi.fn().mockResolvedValue({
-							total_question_count: '5',
-							answered_count: '2',
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: vi.fn().mockResolvedValue({
+								total_question_count: '5',
+								answered_count: '2',
+							}),
 						}),
 					}),
 				}),
@@ -407,7 +435,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -431,7 +461,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -454,7 +486,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});
@@ -491,7 +525,9 @@ describe('getChecklistClaimProgress', () => {
 					innerJoin: vi.fn().mockReturnThis(),
 					leftJoin: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnValue({
-						executeTakeFirst: mockExecuteTakeFirst,
+						where: vi.fn().mockReturnValue({
+							executeTakeFirst: mockExecuteTakeFirst,
+						}),
 					}),
 				}),
 			});

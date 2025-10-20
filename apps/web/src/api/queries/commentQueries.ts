@@ -32,6 +32,14 @@ export async function getComment(ctx: ProtectedContext, id: number) {
                 .select(['first', 'last', 'email'])
                 .where('comment.client_id', '=', ctx.session.user.client_id)
                 .where('id', '=', id)
+                .whereExists((eb) =>
+                        eb
+                                .selectFrom('checklist')
+                                .select('id')
+                                .whereRef('checklist.id', '=', 'comment.checklist_id')
+                                .where('checklist.published', '=', true)
+                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                )
                 .executeTakeFirstOrThrow();
 }
 
@@ -49,6 +57,14 @@ export async function getCommentCount(ctx: ProtectedContext, filters: CommentFil
                         if (filters.questionId) andClause.push(eb('question_id', '=', filters.questionId));
                         return eb.and(andClause);
                 })
+                .whereExists((eb) =>
+                        eb
+                                .selectFrom('checklist')
+                                .select('id')
+                                .whereRef('checklist.id', '=', 'comment.checklist_id')
+                                .where('checklist.published', '=', true)
+                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                )
                 .executeTakeFirstOrThrow();
         return parseInt(result.count.toString());
 }
@@ -79,7 +95,15 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
                         if (filters.instanceId) andClause.push(eb('comment.instance_id', '=', filters.instanceId));
                         if (filters.questionId) andClause.push(eb('comment.question_id', '=', filters.questionId));
                         return eb.and(andClause);
-                });
+                })
+                .whereExists((eb) =>
+                        eb
+                                .selectFrom('checklist')
+                                .select('id')
+                                .whereRef('checklist.id', '=', 'comment.checklist_id')
+                                .where('checklist.published', '=', true)
+                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                );
 
 	// Data query
         let dataQuery = baseQuery
@@ -123,6 +147,14 @@ export async function getCommentsForPage(
                 .where('comment.claim_id', '=', claimId)
                 .where('comment.instance_id', '=', instanceId)
                 .where('comment.question_id', 'is not', null)
+                .whereExists((eb) =>
+                        eb
+                                .selectFrom('checklist')
+                                .select('id')
+                                .whereRef('checklist.id', '=', 'comment.checklist_id')
+                                .where('checklist.published', '=', true)
+                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                )
                 .execute();
 }
 
