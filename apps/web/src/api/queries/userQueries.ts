@@ -136,13 +136,15 @@ export async function getUserActivityDetail(ctx: ProtectedContext, date: string)
                                 eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
                         ])
                 )
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'response_audit_logs.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'response_audit_logs.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 )
                 .orderBy('response_audit_logs.created_at')
                 .execute();

@@ -181,13 +181,15 @@ export async function getPageInstances(ctx: ProtectedContext, checklistId: numbe
                         }
                         return eb.and(andClause);
                 })
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'page_instance.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'page_instance.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 )
                 .orderBy('page_instance.position')
                 .execute();
@@ -247,13 +249,15 @@ export async function getPageInstancesForClaim(
                         }
                         return eb.and(andClause);
                 })
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'page_instance.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'page_instance.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 )
                 .orderBy('page_instance.position')
                 .execute();

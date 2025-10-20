@@ -32,13 +32,15 @@ export async function getResponseCount(
                                 eb('instance_id', '=', instanceId),
                         ])
                 )
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'question_response.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'question_response.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 )
                 .executeTakeFirstOrThrow();
 	return parseInt(countRow.count?.toString() ?? '0');
@@ -81,13 +83,15 @@ export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: num
                         }
                         return eb.and(andClause);
                 })
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'question_response.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'question_response.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 )
                 .orderBy('question_response.created_at desc')
                 .execute();
@@ -139,13 +143,15 @@ export async function getResponsesForClaimChecklist(
                         if (instanceId) andClause.push(eb('question_response.instance_id', '=', instanceId));
                         return eb.and(andClause);
                 })
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'question_response.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'question_response.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 )
                 .groupBy('question_response.id')
                 .orderBy('question_response.instance_id')
@@ -184,13 +190,15 @@ export async function getResponseAuditLogs(
                         if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
                         return eb.and(whereClause);
                 })
-                .whereExists((eb) =>
-                        eb
-                                .selectFrom('checklist')
-                                .select('id')
-                                .whereRef('checklist.id', '=', 'response_audit_logs.checklist_id')
-                                .where('checklist.published', '=', true)
-                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                .where((eb) =>
+                        eb.exists(
+                                eb
+                                        .selectFrom('checklist')
+                                        .select('id')
+                                        .whereRef('checklist.id', '=', 'response_audit_logs.checklist_id')
+                                        .where('checklist.published', '=', true)
+                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
+                        )
                 );
 	const dataQuery = baseQuery
 		.selectAll('response_audit_logs')
