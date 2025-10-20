@@ -102,6 +102,14 @@ export async function getActionStatsDetail(
                         fn.countAll().as('count'),
                 ])
                 .where('action_log.client_id', '=', ctx.session.user.client_id)
+                .whereExists((eb) =>
+                        eb
+                                .selectFrom('checklist')
+                                .select('id')
+                                .whereRef('checklist.id', '=', 'page_instance.checklist_id')
+                                .where('checklist.published', '=', true)
+                                .where('checklist.client_id', '=', ctx.session.user.client_id)
+                )
                 .where((eb) => {
                         const whereClause: ExpressionWrapper<DB, any, SqlBool>[] = [];
                         if (filters.checklistId) whereClause.push(eb('page_instance.checklist_id', '=', filters.checklistId));

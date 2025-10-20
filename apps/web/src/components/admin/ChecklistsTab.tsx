@@ -60,7 +60,7 @@ const COLUMNS: GridColDef[] = [
 ];
 
 export default function ChecklistsTab() {
-	const { data: checklists = [], isFetching } = useChecklistTrpc().list({});
+        const { data: checklists = [], isFetching } = useChecklistTrpc().list({ includeUnpublished: true });
 	const showNewChecklistDialog = useAdminStore((state) => state.showNewChecklistDialog);
 	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
 	return (

@@ -21,7 +21,8 @@ export const getChecklistInput = z.object({
 export type GetChecklistInput = z.infer<typeof getChecklistInput>;
 
 export const getChecklistsInput = z.object({
-	searchTerm: z.string().optional(),
+        searchTerm: z.string().optional(),
+        includeUnpublished: z.boolean().optional(),
 });
 export type GetChecklistsInput = z.infer<typeof getChecklistsInput>;
 
