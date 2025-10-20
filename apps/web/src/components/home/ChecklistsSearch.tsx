@@ -108,7 +108,7 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 						open={Boolean(anchorEl)}
 						sx={{ zIndex: 100 }}
 						anchorEl={anchorEl}
-						placement="bottom"
+						placement="bottom-end"
 						disablePortal
 					>
 						<Paper style={styles.popper}>
@@ -117,10 +117,21 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 									<Typography fontStyle="italic">Searching...</Typography>
 								</MenuItem>
 							)}
-							{!searching && results.length === 0 && (
+							{!searching && results.length === 0 && !selectedChecklist && (
 								<MenuItem key="no-results" disabled style={styles.menuItem}>
 									<Typography fontStyle="italic">No checklists found</Typography>
 								</MenuItem>
+							)}
+							{!searching && results.length === 0 && !!selectedChecklist && (
+								<ChecklistMenuItem
+									checklist={selectedChecklist}
+									onClose={() => {
+										onClose();
+										setQuery('');
+										setResults([]);
+									}}
+									selected={true}
+								/>
 							)}
 							<TransitionGroup>
 								{!searching &&
@@ -153,7 +164,7 @@ const styles = {
 		padding: 5,
 	},
 	menuItem: {
-		width: 250,
+		width: 265,
 	},
 	popper: {
 		maxHeight: 300,
@@ -165,7 +176,7 @@ const styles = {
 		marginTop: 2,
 	},
 	textField: {
-		width: 250,
+		width: 265,
 		'& .MuiInput-input': {
 			fontSize: 15,
 		},
