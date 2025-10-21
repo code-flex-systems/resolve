@@ -128,7 +128,7 @@ export default function FormQuestion() {
 			<Toolbar
 				left={
 					<>
-						<Typography fontSize={20}>
+						<Typography lineHeight={'21px'} fontSize={19} minWidth={200}>
 							{questionText} (p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id})
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>

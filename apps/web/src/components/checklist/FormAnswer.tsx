@@ -167,7 +167,7 @@ export default function FormAnswer() {
 			<Toolbar
 				left={
 					<>
-						<Typography lineHeight={'21px'} fontSize={19}>
+						<Typography lineHeight={'21px'} fontSize={19} minWidth={200}>
 							{answerText} (p{selectedPageInfo.pageId}.q{selectedQuestion}.a
 							{isPlaceholder ? '?' : selectedAnswerData.id})
 						</Typography>
