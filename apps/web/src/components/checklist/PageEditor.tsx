@@ -101,11 +101,13 @@ export default function PageEditor() {
 	const stopEditing = async () => {
 		if (!updating) {
 			try {
-				if (pageTitle && pageTitle !== selectedPageInfo.title) await onModifyPage();
+				if (pageTitle && pageTitle !== selectedPageInfo.title) {
+					await onModifyPage();
+					setShowUpdateMsg(true);
+					setTimeout(() => setShowUpdateMsg(false), 1000);
+				}
 				setEditingPageTitle(false);
 				setPageTitle('');
-				setShowUpdateMsg(true);
-				setTimeout(() => setShowUpdateMsg(false), 1000);
 			} catch (e) {
 				console.error(e);
 			}
@@ -137,6 +139,7 @@ export default function PageEditor() {
 										className="text-hover"
 										lineHeight={'21px'}
 										fontSize={19}
+										minWidth={200}
 									>
 										{selectedPageInfo.title} (p{selectedPageInfo.pageId}.i
 										{selectedPageInfo.instanceId})
@@ -152,6 +155,8 @@ export default function PageEditor() {
 								</Fade>
 							</>
 						}
+						leftWidth="100%"
+						rightWidth="0%"
 						height={60}
 						padding={'10px 0px'}
 					/>
@@ -244,6 +249,7 @@ const styles = {
 		marginBottom: 5,
 	},
 	textFieldOverrides: {
+		minWidth: 200,
 		width: 300,
 		'& .MuiInputBase-root': {
 			fontSize: 19,

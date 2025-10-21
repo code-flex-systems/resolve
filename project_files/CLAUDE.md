@@ -177,6 +177,12 @@ Required environment variables (in `apps/web/.env`):
 - Suggest only significant improvements, not simple nice-to-haves
 - Use brief bullets for documentation (maintainer has context)
 
+**TypeScript Error Checking:**
+- ALWAYS check for TypeScript errors after making code changes
+- Run `npm run typecheck` or use the IDE diagnostics tool
+- Fix any TypeScript errors before considering the task complete
+- TypeScript errors indicate potential runtime issues and must be resolved
+
 ## Working with Claude Code
 
 ### Token Optimization for Large Migrations

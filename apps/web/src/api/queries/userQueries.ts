@@ -107,7 +107,7 @@ export async function getUserActivity(
             interval '1 day'
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
-            and client_id = ${ctx.session.user.client_id}
+            and r.client_id = ${ctx.session.user.client_id}
             ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
             ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
             ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
@@ -119,19 +119,19 @@ export async function getUserActivity(
 }
 
 export async function getUserActivityDetail(ctx: ProtectedContext, date: string) {
-	return await db
-		.selectFrom('response_audit_logs')
-		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
-		.selectAll('response_audit_logs')
-		.select(['users.first', 'users.last', 'users.email', 'users.role'])
-		.where((eb) =>
-			eb.and([
-				eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
-				eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
-			])
-		)
-		.orderBy('response_audit_logs.created_at')
-		.execute();
+        return await db
+                .selectFrom('response_audit_logs')
+                .leftJoin('users', 'response_audit_logs.user_id', 'users.id')
+                .selectAll('response_audit_logs')
+                .select(['users.first', 'users.last', 'users.email', 'users.role'])
+                .where((eb) =>
+                        eb.and([
+                                eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
+                                eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
+                        ])
+                )
+                .orderBy('response_audit_logs.created_at')
+                .execute();
 }
 
 /**

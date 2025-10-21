@@ -60,9 +60,12 @@ export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: num
                 .where((eb) => {
                         const andClause = [eb('question_response_answer.answer_id', '=', answerId)];
                         if (interval) {
-                                if (interval.from)
+                                if (interval.from) {
                                         andClause.push(eb('question_response.created_at', '>=', new Date(interval.from)));
-                                if (interval.to) andClause.push(eb('question_response.created_at', '<=', new Date(interval.to)));
+                                }
+                                if (interval.to) {
+                                        andClause.push(eb('question_response.created_at', '<=', new Date(interval.to)));
+                                }
                         } else {
                                 andClause.push(
                                         eb('question_response.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>())
@@ -185,7 +188,7 @@ export async function getResponseAuditLogStats(
             interval '1 day'
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
-            and client_id = ${ctx.session.user.client_id}
+            and r.client_id = ${ctx.session.user.client_id}
             ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
             ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
             ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}

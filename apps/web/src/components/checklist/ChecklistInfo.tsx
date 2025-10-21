@@ -25,7 +25,6 @@ export default function ChecklistInfo() {
 					onMouseEnter: (e) => setChecklistAnchorEl(e.currentTarget),
 					onMouseLeave: () => setChecklistAnchorEl(null),
 					startIcon: <Checklist />,
-					sx: { marginLeft: '5px' },
 				}}
 			>
 				{checklist.name}

@@ -32,6 +32,7 @@ export default function ClaimInfo() {
 					onMouseEnter: (e) => setClaimAnchorEl(e.currentTarget),
 					onMouseLeave: () => setClaimAnchorEl(null),
 					startIcon: <ContentPasteSearch sx={{ color: theme.palette.primary.main }} />,
+					sx: { marginRight: '5px' },
 				}}
 			>
 				{claim.claim_number}

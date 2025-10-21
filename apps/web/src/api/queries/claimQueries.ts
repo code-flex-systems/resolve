@@ -4,11 +4,39 @@ import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+import { TRPCError } from '@trpc/server';
+import config from '@/config/config';
+
+/**
+ * Verify that a checklist exists and is accessible.
+ * Admins can access all checklists, regular users can only access published checklists.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier to verify
+ * @throws TRPCError if checklist is not found or not accessible
+ */
+async function assertChecklistPublished(ctx: ProtectedContext, checklistId: number) {
+	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	const checklist = await db
+		.selectFrom('checklist')
+		.select(['id'])
+		.where('checklist.client_id', '=', ctx.session.user.client_id)
+		.where('checklist.id', '=', checklistId)
+		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
+		.executeTakeFirst();
+	if (!checklist) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: isAdmin ? 'Checklist not found.' : 'Checklist is not published.',
+		});
+	}
+}
 
 export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
-	return await db
-		.insertInto('checklist_claim')
-		.values({
+        await assertChecklistPublished(ctx, checklistId);
+        return await db
+                .insertInto('checklist_claim')
+                .values({
 			checklist_id: checklistId,
 			claim_id: claimId,
 			client_id: ctx.session.user.client_id,
@@ -28,8 +56,9 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
  * @returns claim record
  */
 export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	await db
-		.insertInto('checklist_claim')
+        await assertChecklistPublished(ctx, checklistId);
+        await db
+                .insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
 			claim_id: claimId,
@@ -176,6 +205,11 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
         const count = await db
                 .selectFrom('claim')
                 .leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+                .leftJoin('checklist', (join) =>
+                        join
+                                .onRef('checklist_claim.checklist_id', '=', 'checklist.id')
+                                .on('checklist.client_id', '=', ctx.session.user.client_id)
+                )
                 .select(({ fn }) => fn.countAll().as('count'))
                 .where('claim.client_id', '=', ctx.session.user.client_id)
                 .where((eb) =>

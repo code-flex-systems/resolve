@@ -22,6 +22,7 @@ import {
 
 export const claimRouter = router({
 	assignClaim: protectedProcedure.input(assignClaimInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return assignClaim(ctx, input);
 	}),
 
@@ -30,6 +31,7 @@ export const claimRouter = router({
 	}),
 
 	getNextClaimToAssign: protectedProcedure.input(getNextClaimToAssignInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return getNextClaimToAssign(ctx, input);
 	}),
 
@@ -39,11 +41,14 @@ export const claimRouter = router({
 
 	getClaimCount: protectedProcedure.input(getClaimCountInput).query(async ({ input, ctx }) => {
 		// Client aliasing requires Super Admin role
-		if (input.clientId) requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		if (input.clientId) {
+			requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		}
 		return await getClaimCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
 	}),
 
 	getRolloverClaimCount: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return getRolloverClaimCount(ctx);
 	}),
 

@@ -109,7 +109,7 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 						open={Boolean(anchorEl)}
 						sx={{ zIndex: 100 }}
 						anchorEl={anchorEl}
-						placement="bottom"
+						placement="bottom-start"
 						disablePortal
 					>
 						<Paper style={styles.popper}>
@@ -118,10 +118,21 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 									<Typography fontStyle="italic">Searching...</Typography>
 								</MenuItem>
 							)}
-							{!searching && results.length === 0 && (
+							{!searching && results.length === 0 && !selectedClaim && (
 								<MenuItem key="no-results" disabled style={styles.menuItem}>
 									<Typography fontStyle="italic">No claims found</Typography>
 								</MenuItem>
+							)}
+							{!searching && results.length === 0 && !!selectedClaim && (
+								<ClaimMenuItem
+									claim={selectedClaim}
+									onClose={() => {
+										onClose();
+										setQuery('');
+										setResults([]);
+									}}
+									selected={true}
+								/>
 							)}
 							<TransitionGroup>
 								{!searching &&
@@ -177,7 +188,7 @@ const styles = {
 		marginRight: '5px',
 	},
 	menuItem: {
-		width: 250,
+		width: 265,
 	},
 	popper: {
 		maxHeight: 300,
@@ -193,7 +204,7 @@ const styles = {
 		padding: '10px 0px 0px',
 	},
 	textField: {
-		width: 250,
+		width: 265,
 		'& .MuiInput-input': {
 			fontSize: 15,
 		},

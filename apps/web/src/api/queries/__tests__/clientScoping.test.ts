@@ -157,29 +157,33 @@ describe('Client-Scoping Security Tests', () => {
 				},
 			]);
 
-			const mockGroupBy = vi.fn().mockReturnValue({
-				orderBy: vi.fn().mockReturnValue({
-					execute: mockExecute,
-				}),
-			});
+                        const mockOrderBy = vi.fn().mockReturnValue({
+                                execute: mockExecute,
+                        });
 
-			const mockWhere = vi.fn().mockReturnValue({
-				where: vi.fn().mockReturnValue({
-					groupBy: mockGroupBy,
-				}),
-			});
+                        const mockGroupBy = vi.fn().mockReturnValue({
+                                orderBy: mockOrderBy,
+                        });
 
-			const mockSelect = vi.fn().mockReturnValue({
-				where: mockWhere,
-			});
+                        const mockSecondWhere = vi.fn().mockReturnValue({
+                                groupBy: mockGroupBy,
+                        });
 
-			const mockLeftJoin = vi.fn().mockReturnValue({
-				select: mockSelect,
-			});
+                        const mockFirstWhere = vi.fn().mockReturnValue({
+                                where: mockSecondWhere,
+                        });
 
-			const mockInnerJoin = vi.fn().mockReturnValue({
-				leftJoin: mockLeftJoin,
-			});
+                        const mockSelect = vi.fn().mockReturnValue({
+                                where: mockFirstWhere,
+                        });
+
+                        const mockLeftJoin = vi.fn().mockReturnValue({
+                                select: mockSelect,
+                        });
+
+                        const mockInnerJoin = vi.fn().mockReturnValue({
+                                leftJoin: mockLeftJoin,
+                        });
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				innerJoin: mockInnerJoin,
@@ -190,33 +194,32 @@ describe('Client-Scoping Security Tests', () => {
 			// Verify the query chain was built
 			expect(db.selectFrom).toHaveBeenCalledWith('question_response');
 			expect(mockInnerJoin).toHaveBeenCalled();
-			expect(mockWhere).toHaveBeenCalled();
+                        expect(mockFirstWhere).toHaveBeenCalled();
+                        expect(mockSecondWhere).toHaveBeenCalled();
 
-			// Verify first where call includes client_id
-			const firstWhereArgs = mockWhere.mock.calls[0];
-			expect(firstWhereArgs[0]).toBe('question_response.client_id');
-			expect(firstWhereArgs[1]).toBe('=');
-			expect(firstWhereArgs[2]).toBe('client-abc');
+                        // Verify first where call includes client_id
+                        const firstWhereArgs = mockFirstWhere.mock.calls[0];
+                        expect(firstWhereArgs[0]).toBe('question_response.client_id');
+                        expect(firstWhereArgs[1]).toBe('=');
+                        expect(firstWhereArgs[2]).toBe('client-abc');
 		});
 
 		it('should return empty map when no responses exist for client', async () => {
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: vi.fn().mockReturnValue({
-					leftJoin: vi.fn().mockReturnValue({
-						select: vi.fn().mockReturnValue({
-							where: vi.fn().mockReturnValue({
-								where: vi.fn().mockReturnValue({
-									groupBy: vi.fn().mockReturnValue({
-										orderBy: vi.fn().mockReturnValue({
-											execute: vi.fn().mockResolvedValue([]),
-										}),
-									}),
-								}),
-							}),
-						}),
-					}),
-				}),
-			} as any);
+                        const mockExecute = vi.fn().mockResolvedValue([]);
+                        const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
+                        const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
+                        const mockSecondWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
+                        const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
+
+                        vi.spyOn(db, 'selectFrom').mockReturnValue({
+                                innerJoin: vi.fn().mockReturnValue({
+                                        leftJoin: vi.fn().mockReturnValue({
+                                                select: vi.fn().mockReturnValue({
+                                                        where: mockFirstWhere,
+                                                }),
+                                        }),
+                                }),
+                        } as any);
 
 			const result = await getResponsesForClaimChecklist(mockContext, 999, 999);
 
@@ -228,17 +231,10 @@ describe('Client-Scoping Security Tests', () => {
 				.fn()
 				.mockResolvedValue([{ id: 1, question_id: 5, response_text: 'Answer', selected_answers: [] }]);
 
-			const mockSecondWhere = vi.fn().mockReturnValue({
-				groupBy: vi.fn().mockReturnValue({
-					orderBy: vi.fn().mockReturnValue({
-						execute: mockExecute,
-					}),
-				}),
-			});
-
-			const mockFirstWhere = vi.fn().mockReturnValue({
-				where: mockSecondWhere,
-			});
+                        const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
+                        const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
+                        const mockSecondWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
+                        const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				innerJoin: vi.fn().mockReturnValue({
@@ -253,11 +249,11 @@ describe('Client-Scoping Security Tests', () => {
 			await getResponsesForClaimChecklist(mockContext, 42, 100);
 
 			// Verify client_id filter was applied first
-			expect(mockFirstWhere).toHaveBeenCalledWith('question_response.client_id', '=', 'client-abc');
+                        expect(mockFirstWhere).toHaveBeenCalledWith('question_response.client_id', '=', 'client-abc');
 
-			// Verify second where (checklist/claim) was also called
-			expect(mockSecondWhere).toHaveBeenCalled();
-		});
+                        // Verify second where (checklist/claim) was also called
+                        expect(mockSecondWhere).toHaveBeenCalled();
+                });
 	});
 
 	describe('Pattern 3: Raw SQL with client_id (SECURITY CRITICAL)', () => {
@@ -372,6 +368,20 @@ describe('Client-Scoping Security Tests', () => {
 		 */
 
 		it('should include client_id in INSERT values for assignClaim()', async () => {
+			// Mock assertChecklistPublished query
+			const mockSelectFrom = vi.fn().mockReturnValue({
+				select: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								executeTakeFirst: vi.fn().mockResolvedValue({ id: 1 }),
+							}),
+						}),
+					}),
+				}),
+			});
+			vi.spyOn(db, 'selectFrom').mockImplementation(mockSelectFrom);
+
 			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
 				checklist_id: 1,
 				claim_id: 100,
@@ -423,6 +433,19 @@ describe('Client-Scoping Security Tests', () => {
 				},
 			};
 
+			// Mock assertChecklistPublished query
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				select: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								executeTakeFirst: vi.fn().mockResolvedValue({ id: 2 }),
+							}),
+						}),
+					}),
+				}),
+			} as any);
+
 			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
 				checklist_id: 2,
 				claim_id: 200,
@@ -447,6 +470,19 @@ describe('Client-Scoping Security Tests', () => {
 		});
 
 		it('should include all required fields in INSERT including client_id', async () => {
+			// Mock assertChecklistPublished query
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				select: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								executeTakeFirst: vi.fn().mockResolvedValue({ id: 5 }),
+							}),
+						}),
+					}),
+				}),
+			} as any);
+
 			const mockValues = vi.fn().mockReturnValue({
 				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({}),
 			});
@@ -597,6 +633,19 @@ describe('Client-Scoping Security Tests', () => {
 		it('should use session context client_id, not user-provided client_id', async () => {
 			// Simulate an attempt to bypass client scoping by passing a different client_id
 			// The functions should ONLY use ctx.session.user.client_id
+
+			// Mock assertChecklistPublished query
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				select: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								executeTakeFirst: vi.fn().mockResolvedValue({ id: 1 }),
+							}),
+						}),
+					}),
+				}),
+			} as any);
 
 			const mockValues = vi.fn().mockReturnValue({
 				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({}),
