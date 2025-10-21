@@ -5,6 +5,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import { DB } from '../database/types';
 import { TRPCError } from '@trpc/server';
 import { DateRangeStrict } from '@/types/types';
+import config from '@/config/config';
 
 const MAX_TREE_DEPTH = 30;
 
@@ -104,32 +105,33 @@ export async function modifyChecklistClaim(
 
 /**
  * Retrieve a single checklist by id.
+ * Admins can see all checklists, regular users can only see published checklists.
  *
  * @param ctx - request context
  * @param checklistId - checklist identifier
  * @returns the checklist record
  */
 export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
+	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	return await db
 		.selectFrom('checklist')
 		.selectAll()
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
+		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
 		.where('id', '=', checklistId)
 		.executeTakeFirstOrThrow();
 }
 
 /**
  * List checklists with an optional search term.
+ * Admins can see all checklists, regular users can only see published checklists.
  *
  * @param ctx - request context
  * @param searchTerm - optional name prefix filter
  * @returns array of checklists with page counts
  */
-export async function getChecklists(
-	ctx: ProtectedContext,
-	{ searchTerm, includeUnpublished = false }: { searchTerm?: string; includeUnpublished?: boolean } = {}
-) {
+export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string } = {}) {
+	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	let query = db
 		.selectFrom('checklist')
 		.innerJoin('page_instance', 'checklist.id', 'page_instance.checklist_id')
@@ -146,11 +148,7 @@ export async function getChecklists(
 		])
 		.select(({ fn }) => fn.countAll().as('page_count'))
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
-		.where((eb) =>
-			includeUnpublished
-				? eb.lit(true)
-				: eb('checklist.published', '=', true)
-		)
+		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
 		.groupBy(['checklist.id', 'users.id'])
 		.orderBy('checklist.name');
 	if (searchTerm) {
@@ -202,7 +200,6 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 		.selectAll('checklist_claim')
 		.select(['users.first', 'users.last', 'users.email'])
 		.where('checklist_claim.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
 		.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)]))
 		.executeTakeFirst();
 }
@@ -218,7 +215,6 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				sql<number[]>`ARRAY[${eb.ref('page_instance.id')}]`.as('path'),
 			])
 			.where('page_instance.client_id', '=', ctx.session.user.client_id)
-			.where('checklist.published', '=', true)
 			.where('checklist_id', '=', checklistId)
 			.where('parent_instance_id', 'is', null)
 			.unionAll(
@@ -242,7 +238,6 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 					)
 					.whereRef('question_response_answer.answer_id', '=', 'answer.id')
 					.where('answer.calls_instance_id', 'is not', null)
-					.where('checklist.published', '=', true)
 					// Check for cycles
 					.where((eb) =>
 						sql`NOT (${eb.ref('answer.calls_instance_id')} = ANY(unlocked_pages.path))`.$castTo<boolean>()
@@ -285,7 +280,6 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				)
 				.as('answered_count'),
 		])
-		.where('checklist.published', '=', true)
 		.executeTakeFirst();
 
 	const answerCount = parseInt(result?.answered_count?.toString() ?? '0') || 0;
@@ -306,7 +300,6 @@ export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?
 			fn.countAll().as('count'),
 		])
 		.where('checklist_claim.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
 		.where((eb) => {
 			const andClause: ExpressionWrapper<DB, 'checklist_claim' | 'checklist' | 'claim', SqlBool>[] = [];
 			if (checklistId) andClause.push(eb('checklist.id', '=', checklistId));
@@ -378,7 +371,6 @@ export async function getChecklistSummary(ctx: ProtectedContext, checklistId: nu
 		)`.as('total_unknown'),
 		])
 		.where('page_instance.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
 		.where('page_instance.checklist_id', '=', checklistId)
 		.executeTakeFirstOrThrow();
 }
@@ -426,7 +418,6 @@ export async function getChecklistSummaryDetail(
 				.on('question_response.claim_id', '=', sql.lit(claimId))
 		)
 		.where('page_instance.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
 		.where('page_instance.checklist_id', '=', checklistId);
 
 	// Join answers only when we care about answered or known/unknown stats
@@ -557,7 +548,6 @@ export async function getChecklistClaims(
 		.leftJoin('users as u1', 'u1.id', 'checklist_claim.created_by')
 		.leftJoin('users as u2', 'u2.id', 'checklist_claim.assignee')
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
 		.where((eb) => {
 			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
 			if (filters.checklistId) whereClause.push(eb('checklist.id', '=', filters.checklistId));
@@ -613,7 +603,6 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 		.selectAll('checklist_claim')
 		.select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client'])
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
-		.where('checklist.published', '=', true)
 		.where((eb) =>
 			eb.or([
 				eb('checklist_claim.created_by', '=', ctx.session.user.id),

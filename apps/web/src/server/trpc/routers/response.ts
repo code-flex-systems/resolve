@@ -37,8 +37,8 @@ export const responseRouter = router({
 		}),
 
 	getResponseAuditLogs: protectedProcedure.input(getResponseAuditLogsInput).query(async ({ input, ctx }) => {
+		// Viewing all logs for a checklist requires privileged access
 		if (!input.filters.claimId) {
-			// Viewing all logs for a checklist requires privileged access
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
 		return getResponseAuditLogs(ctx, input);

@@ -5,18 +5,31 @@ import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 import { TRPCError } from '@trpc/server';
+import config from '@/config/config';
 
+/**
+ * Verify that a checklist exists and is accessible.
+ * Admins can access all checklists, regular users can only access published checklists.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier to verify
+ * @throws TRPCError if checklist is not found or not accessible
+ */
 async function assertChecklistPublished(ctx: ProtectedContext, checklistId: number) {
-        const checklist = await db
-                .selectFrom('checklist')
-                .select(['id'])
-                .where('checklist.client_id', '=', ctx.session.user.client_id)
-                .where('checklist.id', '=', checklistId)
-                .where('checklist.published', '=', true)
-                .executeTakeFirst();
-        if (!checklist) {
-                throw new TRPCError({ code: 'NOT_FOUND', message: 'Checklist is not published.' });
-        }
+	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	const checklist = await db
+		.selectFrom('checklist')
+		.select(['id'])
+		.where('checklist.client_id', '=', ctx.session.user.client_id)
+		.where('checklist.id', '=', checklistId)
+		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
+		.executeTakeFirst();
+	if (!checklist) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: isAdmin ? 'Checklist not found.' : 'Checklist is not published.',
+		});
+	}
 }
 
 export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {

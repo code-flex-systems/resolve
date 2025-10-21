@@ -20,6 +20,7 @@ export const userRouter = router({
 	}),
 
 	getInactiveUserCount: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getInactiveUserCount(ctx);
 	}),
 

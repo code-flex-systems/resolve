@@ -43,7 +43,9 @@ export const checklistRouter = router({
 
 	getChecklistCount: protectedProcedure.input(getChecklistCountInput).query(async ({ input, ctx }) => {
 		// Client aliasing requires Super Admin role
-		if (input.clientId) requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		if (input.clientId) {
+			requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		}
 		return await getChecklistCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
 	}),
 
