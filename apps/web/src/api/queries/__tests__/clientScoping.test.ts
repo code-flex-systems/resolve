@@ -165,12 +165,8 @@ describe('Client-Scoping Security Tests', () => {
                                 orderBy: mockOrderBy,
                         });
 
-                        const mockThirdWhere = vi.fn().mockReturnValue({
-                                groupBy: mockGroupBy,
-                        });
-
                         const mockSecondWhere = vi.fn().mockReturnValue({
-                                where: mockThirdWhere,
+                                groupBy: mockGroupBy,
                         });
 
                         const mockFirstWhere = vi.fn().mockReturnValue({
@@ -199,7 +195,7 @@ describe('Client-Scoping Security Tests', () => {
 			expect(db.selectFrom).toHaveBeenCalledWith('question_response');
 			expect(mockInnerJoin).toHaveBeenCalled();
                         expect(mockFirstWhere).toHaveBeenCalled();
-                        expect(mockThirdWhere).toHaveBeenCalled();
+                        expect(mockSecondWhere).toHaveBeenCalled();
 
                         // Verify first where call includes client_id
                         const firstWhereArgs = mockFirstWhere.mock.calls[0];
@@ -212,8 +208,7 @@ describe('Client-Scoping Security Tests', () => {
                         const mockExecute = vi.fn().mockResolvedValue([]);
                         const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
                         const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
-                        const mockThirdWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
-                        const mockSecondWhere = vi.fn().mockReturnValue({ where: mockThirdWhere });
+                        const mockSecondWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
                         const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
 
                         vi.spyOn(db, 'selectFrom').mockReturnValue({
@@ -238,8 +233,7 @@ describe('Client-Scoping Security Tests', () => {
 
                         const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
                         const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
-                        const mockThirdWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
-                        const mockSecondWhere = vi.fn().mockReturnValue({ where: mockThirdWhere });
+                        const mockSecondWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
                         const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
@@ -257,9 +251,8 @@ describe('Client-Scoping Security Tests', () => {
 			// Verify client_id filter was applied first
                         expect(mockFirstWhere).toHaveBeenCalledWith('question_response.client_id', '=', 'client-abc');
 
-                        // Verify second where (checklist/claim) and third where (exists) were also called
+                        // Verify second where (checklist/claim) was also called
                         expect(mockSecondWhere).toHaveBeenCalled();
-                        expect(mockThirdWhere).toHaveBeenCalled();
                 });
 	});
 

@@ -205,10 +205,7 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
                                         eb('checklist_claim.claim_id', 'is', null),
                                         eb('claim.created_at', '<', currentFQStartDate),
                                 ]),
-                                eb.and([
-                                        eb('checklist_claim.created_at', '<', currentFQStartDate),
-                                        eb('checklist.published', '=', true),
-                                ]),
+                                eb('checklist_claim.created_at', '<', currentFQStartDate),
                         ])
                 )
                 .executeTakeFirstOrThrow();

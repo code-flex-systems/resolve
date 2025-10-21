@@ -93,11 +93,8 @@ export async function getLastSyncedFeed(ctx: ProtectedContext) {
                                                                         eb.exists(
                                                                                 eb
                                                                                         .selectFrom('checklist_claim')
-                                                                                        .innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
                                                                                         .select(sql.raw('1').as('row'))
                                                                                         .whereRef('checklist_claim.claim_id', '=', 'claim.id')
-                                                                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                                                                                        .where('checklist.published', '=', true)
                                                                         )
                                                                 )
                                                                 .then(0)

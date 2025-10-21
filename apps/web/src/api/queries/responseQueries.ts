@@ -32,16 +32,6 @@ export async function getResponseCount(
                                 eb('instance_id', '=', instanceId),
                         ])
                 )
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'question_response.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
-                )
                 .executeTakeFirstOrThrow();
 	return parseInt(countRow.count?.toString() ?? '0');
 }
@@ -83,16 +73,6 @@ export async function getResponsesForAnswer(ctx: ProtectedContext, answerId: num
                         }
                         return eb.and(andClause);
                 })
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'question_response.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
-                )
                 .orderBy('question_response.created_at desc')
                 .execute();
 	return results;
@@ -143,16 +123,6 @@ export async function getResponsesForClaimChecklist(
                         if (instanceId) andClause.push(eb('question_response.instance_id', '=', instanceId));
                         return eb.and(andClause);
                 })
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'question_response.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
-                )
                 .groupBy('question_response.id')
                 .orderBy('question_response.instance_id')
                 .execute();
@@ -189,17 +159,7 @@ export async function getResponseAuditLogs(
                         }
                         if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
                         return eb.and(whereClause);
-                })
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'response_audit_logs.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
-                );
+                });
 	const dataQuery = baseQuery
 		.selectAll('response_audit_logs')
 		.select(['users.first', 'users.last', 'users.email'])
@@ -229,12 +189,6 @@ export async function getResponseAuditLogStats(
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
             and r.client_id = ${ctx.session.user.client_id}
-            and exists (
-                select 1 from checklist c
-                where c.id = r.checklist_id
-                  and c.client_id = ${ctx.session.user.client_id}
-                  and c.published = true
-            )
             ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
             ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
             ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}

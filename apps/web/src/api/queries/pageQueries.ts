@@ -181,16 +181,6 @@ export async function getPageInstances(ctx: ProtectedContext, checklistId: numbe
                         }
                         return eb.and(andClause);
                 })
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'page_instance.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
-                )
                 .orderBy('page_instance.position')
                 .execute();
 }
@@ -249,16 +239,6 @@ export async function getPageInstancesForClaim(
                         }
                         return eb.and(andClause);
                 })
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'page_instance.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
-                )
                 .orderBy('page_instance.position')
                 .execute();
 }
@@ -277,7 +257,6 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
                 .withRecursive('visible_pages', (eb) =>
                         eb
                                 .selectFrom('page_instance')
-                                .innerJoin('checklist', 'page_instance.checklist_id', 'checklist.id')
                                 .select([
                                         'page_instance.id as id',
                                         'page_instance.checklist_id',
@@ -285,7 +264,6 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
                                 .where('page_instance.client_id', '=', ctx.session.user.client_id)
                                 .where('page_instance.checklist_id', '=', checklistId)
                                 .where('page_instance.parent_instance_id', 'is', null)
-                                .where('checklist.published', '=', true)
                                 .unionAll(
                                         eb
                                                 .selectFrom('answer')
@@ -295,7 +273,6 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
                                                         'question_response.id',
                                                         'question_response_answer.response_id'
                                                 )
-                                                .innerJoin('checklist', 'question_response.checklist_id', 'checklist.id')
                                                 .select([
                                                         'answer.calls_instance_id as id',
                                                         'question_response.checklist_id',
@@ -306,7 +283,6 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
                                                 .where('question_response.checklist_id', '=', checklistId)
                                                 .where('question_response.claim_id', '=', claimId)
                                                 .where('answer.calls_instance_id', 'is not', null)
-                                                .where('checklist.published', '=', true)
                                 )
                 )
                 .selectFrom('visible_pages')

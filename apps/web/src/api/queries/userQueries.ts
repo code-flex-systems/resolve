@@ -108,12 +108,6 @@ export async function getUserActivity(
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day
             and r.client_id = ${ctx.session.user.client_id}
-            and exists (
-                select 1 from checklist c
-                where c.id = r.checklist_id
-                  and c.client_id = ${ctx.session.user.client_id}
-                  and c.published = true
-            )
             ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
             ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
             ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
@@ -135,16 +129,6 @@ export async function getUserActivityDetail(ctx: ProtectedContext, date: string)
                                 eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
                                 eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
                         ])
-                )
-                .where((eb) =>
-                        eb.exists(
-                                eb
-                                        .selectFrom('checklist')
-                                        .select('id')
-                                        .whereRef('checklist.id', '=', 'response_audit_logs.checklist_id')
-                                        .where('checklist.published', '=', true)
-                                        .where('checklist.client_id', '=', ctx.session.user.client_id)
-                        )
                 )
                 .orderBy('response_audit_logs.created_at')
                 .execute();
