@@ -213,7 +213,7 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 			.selectFrom('page_instance')
 			.innerJoin('checklist', 'page_instance.checklist_id', 'checklist.id')
 			.select((eb) => [
-				'id',
+				'page_instance.id as id',
 				sql.raw('1').as('depth'),
 				sql<number[]>`ARRAY[${eb.ref('page_instance.id')}]`.as('path'),
 			])
