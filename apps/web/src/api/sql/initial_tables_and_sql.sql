@@ -29,9 +29,9 @@ create table client(
 );
 
 create table users(
-	id uuid not null primary key default gen_random_uuid(),
+        id uuid not null primary key default gen_random_uuid(),
     client_id uuid references client(id),
-	email text not null,
+        email text not null,
 	email_verified timestamp with time zone,
 	password_hash text not null,
 	first text not null,
@@ -51,6 +51,9 @@ create table users(
     last_login timestamp,
     unique(email)
 );
+
+create index idx_users_client_disabled_name on users (client_id, disabled, last, first);
+create index idx_users_client_last_login on users (client_id, last_login);
 
 create table accounts (
   id                serial primary key,
@@ -82,15 +85,18 @@ create table verification_tokens (
 );
 
 create table checklist(
-	id serial not null primary key,
+        id serial not null primary key,
     client_id uuid not null references client(id),
-	name text not null,
+        name text not null,
     created_by uuid not null references users(id),
     created_at timestamp not null default now(),
     updated_by uuid references users(id),
     updated_at timestamp not null default now(),
     published boolean not null default false
 );
+
+create index idx_checklist_client_published on checklist (client_id, published);
+create index idx_checklist_lower_name on checklist (lower(name));
 
 -- Table: public.feeds
 
@@ -118,11 +124,12 @@ CREATE INDEX idx_feeds_active_status ON public.feeds (id)
 WHERE status = 'Online';
 -- GIN index on connection_options if you need to query inside the JSONB
 CREATE INDEX idx_feeds_conn_opts ON public.feeds USING GIN (connection_options);
+CREATE INDEX idx_feeds_client_status ON public.feeds (client_id, status);
 
 create table claim(
-	id serial not null primary key,
-	claim_number text,
-	client text,
+        id serial not null primary key,
+        claim_number text,
+        client text,
 	client_adjuster text,
 	insured text,
 	claim_amount numeric,
@@ -139,9 +146,12 @@ create table claim(
     unique(claim_number)
 );
 
+create index idx_claim_client_feed on claim (client_id, feed_id);
+create index idx_claim_client_created_at on claim (client_id, created_at);
+
 create table checklist_claim(
     claim_id integer not null references claim(id),
-	checklist_id integer not null references checklist(id),
+        checklist_id integer not null references checklist(id),
     last_opened timestamp not null default now(),
     client_id uuid not null references client(id),
     created_by uuid not null references users(id),
@@ -155,10 +165,15 @@ create table checklist_claim(
     unique(checklist_id, claim_id)
 );
 
+create index idx_checklist_claim_claim_id on checklist_claim (claim_id);
+create index idx_checklist_claim_client_status on checklist_claim (client_id, status);
+create index idx_checklist_claim_client_assignee on checklist_claim (client_id, assignee);
+create index idx_checklist_claim_client_created_at on checklist_claim (client_id, created_at);
+
 create table page(
-	id serial not null primary key,
+        id serial not null primary key,
     client_id uuid not null references client(id),
-	title text not null,
+        title text not null,
 	hidden boolean not null default false,
     version integer not null default 0,
     created_by uuid not null references users(id),
@@ -167,10 +182,12 @@ create table page(
     updated_at timestamp not null default now()
 );
 
+create index idx_page_client_hidden on page (client_id, hidden);
+
 create table page_instance(
-	id serial not null primary key,
+        id serial not null primary key,
     client_id uuid not null references client(id),
-	page_id integer not null references page(id) on delete cascade,
+        page_id integer not null references page(id) on delete cascade,
 	checklist_id integer not null references checklist(id) on delete cascade,
 	parent_instance_id integer references page_instance(id) on delete cascade,
     position integer not null,
@@ -179,6 +196,8 @@ create table page_instance(
     updated_by uuid references users(id),
     updated_at timestamp not null default now()
 );
+
+create index idx_page_instance_client_checklist_parent on page_instance (client_id, checklist_id, parent_instance_id);
 
 CREATE TABLE page_instance_status (
     id SERIAL PRIMARY KEY,
@@ -194,16 +213,18 @@ CREATE INDEX idx_status_lookup ON page_instance_status (claim_id, page_instance_
 CREATE INDEX idx_status_template_version ON page_instance_status (template_version);
 
 create table doc(
-	id serial not null primary key,
+        id serial not null primary key,
     client_id uuid not null references client(id),
-	filename text not null,
+        filename text not null,
 	alias text not null,
     created_by uuid not null references users(id),
     created_at timestamp not null default now()
 );
 
+create index idx_doc_client on doc (client_id);
+
 create table question(
-	id serial not null primary key,
+        id serial not null primary key,
     client_id uuid not null references client(id),
     page_id integer not null references page(id) on delete cascade,
 	text text not null,
@@ -219,10 +240,12 @@ create table question(
     updated_at timestamp not null default now()
 );
 
+create index idx_question_client_page on question (client_id, page_id);
+
 create table answer(
-	id serial not null primary key,
+        id serial not null primary key,
     client_id uuid not null references client(id),
-	question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+        question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
     text text not null,
     position INTEGER NOT NULL,
     grade NUMERIC,
@@ -239,6 +262,9 @@ create table answer(
     updated_at timestamp not null default now()
 );
 
+create index idx_answer_client_question_position on answer (client_id, question_id, position);
+create index idx_answer_client_calls_instance on answer (client_id, calls_instance_id);
+
 CREATE TABLE question_response (
     id SERIAL PRIMARY KEY,
     checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
@@ -254,12 +280,17 @@ CREATE TABLE question_response (
     UNIQUE(checklist_id, instance_id, claim_id, question_id)
 );
 
+CREATE INDEX idx_question_response_client_scope ON question_response (client_id, checklist_id, claim_id, instance_id);
+
 CREATE TABLE question_response_answer (
     id SERIAL PRIMARY KEY,
     response_id INTEGER NOT NULL REFERENCES question_response(id) ON DELETE CASCADE,
     answer_id INTEGER NOT NULL REFERENCES answer(id),
     additional_info TEXT
 );
+
+CREATE INDEX idx_qra_response_id ON question_response_answer (response_id);
+CREATE INDEX idx_qra_answer_id ON question_response_answer (answer_id);
 
 CREATE TABLE response_audit_logs (
   id                SERIAL PRIMARY KEY,
@@ -288,6 +319,10 @@ CREATE TABLE response_audit_logs (
 
   created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_response_audit_logs_client_created_at ON response_audit_logs (client_id, created_at);
+CREATE INDEX idx_response_audit_logs_scope ON response_audit_logs (client_id, checklist_id, claim_id);
+CREATE INDEX idx_response_audit_logs_client_user ON response_audit_logs (client_id, user_id);
 
 
 -- admin action logs table
@@ -333,40 +368,51 @@ create table password_reset_tokens (
 );
 create unique index on password_reset_tokens(token);
 
+create index idx_password_reset_tokens_user_created_at on password_reset_tokens (user_id, created_at);
+
 -- actions
 create table action(
-	id serial not null primary key,
-	client_id uuid not null references client(id),
+        id serial not null primary key,
+        client_id uuid not null references client(id),
 	answer_id integer not null references answer(id) on delete cascade,
 	type text not null,
 	definition jsonb not null,
 	created_by uuid not null references users(id),
 	created_at timestamp not null default now(),
 	updated_by uuid references users(id),
-	updated_at timestamp,
-	unique(answer_id)
+        updated_at timestamp,
+        unique(answer_id)
 );
 
+create index idx_action_client_answer on action (client_id, answer_id);
+
 create table action_log(
-	id serial not null primary key,
-	client_id uuid not null references client(id),
-	action_id integer not null references action(id),
+        id serial not null primary key,
+        client_id uuid not null references client(id),
+        action_id integer not null references action(id),
     status text not null,
-	created_by uuid not null references users(id),
-	created_at timestamp not null default now()
+        created_by uuid not null references users(id),
+        created_at timestamp not null default now()
 );
+
+create index idx_action_log_client_action on action_log (client_id, action_id);
+create index idx_action_log_client_created_at on action_log (client_id, created_at);
 
 -- comments
 
 create table comment(
-	id serial not null primary key,
-	client_id uuid not null references client(id),
-	body text not null,
+        id serial not null primary key,
+        client_id uuid not null references client(id),
+        body text not null,
 	checklist_id integer not null references checklist(id),
 	claim_id integer not null references claim(id),
 	instance_id integer references page_instance(id),
-	question_id integer references question(id),
-	created_by uuid not null references users(id),
-	created_at timestamp not null default now(),
-	updated_at timestamp
+        question_id integer references question(id),
+        created_by uuid not null references users(id),
+        created_at timestamp not null default now(),
+        updated_at timestamp
 );
+
+create index idx_comment_scope on comment (client_id, checklist_id, claim_id, instance_id);
+create index idx_comment_client_question on comment (client_id, question_id);
+create index idx_comment_client_updated_at on comment (client_id, updated_at desc, created_at desc);
