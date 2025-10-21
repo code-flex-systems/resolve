@@ -19,7 +19,7 @@ export default function RecentComments() {
 
 	return (
 		<Paper elevation={0} sx={styles.container}>
-			<Box width="100%" height={40} display="flex" justifyContent="flex-start" alignItems="center">
+			<Box width="100%" height={40} minHeight={40} display="flex" justifyContent="flex-start" alignItems="center">
 				<ExpandableTitle title="Recent Comments" icon={<Sms sx={{ color: BASE_COLOR }} />} color="white" />
 			</Box>
 			<Stack
@@ -29,6 +29,7 @@ export default function RecentComments() {
 				justifyContent={comments.count > 0 ? 'flex-start' : 'center'}
 				alignItems={comments.count > 0 ? 'flex-start' : 'center'}
 				overflow="auto"
+				paddingTop="100px"
 			>
 				<Comments
 					filters={{ userId }}
@@ -84,15 +85,6 @@ const styles = {
 	},
 	link: {
 		padding: 10,
-	},
-	links: {
-		width: '100%',
-		height: 'calc(100% - 40px)',
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		overflow: 'auto',
 	},
 	menuItem: {
 		flex: 1,

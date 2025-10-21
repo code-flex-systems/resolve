@@ -32,12 +32,12 @@ const Connector = styled(StepConnector)(({ theme }) => ({
 	},
 	[`&.${stepConnectorClasses.active}`]: {
 		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: theme.palette.success.light,
+			borderColor: theme.palette.secondary.light,
 		},
 	},
 	[`&.${stepConnectorClasses.completed}`]: {
 		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: theme.palette.success.light,
+			borderColor: theme.palette.secondary.light,
 		},
 	},
 	[`& .${stepConnectorClasses.line}`]: {
@@ -60,7 +60,7 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 			justifyContent="center"
 			alignItems="center"
 			sx={{
-				backgroundImage: index <= active ? 'linear-gradient(rgb(27, 185, 52), rgba(27, 185, 52, 0.9))' : '',
+				backgroundImage: index <= active ? 'linear-gradient(rgb(50, 174, 153), rgba(50, 174, 153, 0.9))' : '',
 			}}
 			bgcolor={index <= active ? '' : BASE_COLOR_LIGHT}
 			borderRadius={20}
@@ -108,14 +108,14 @@ export default function FQStepper() {
 				sx={{ height: 'calc(100% - 80px)' }}
 				connector={<Connector />}
 				orientation="vertical"
-				activeStep={1}
+				activeStep={active}
 			>
 				{steps.map(({ value, label }, i) => (
 					<Step key={value}>
 						<StepLabel icon={<IconContainer active={active} index={i} />}>
 							<Typography
 								fontSize={15}
-								color={i <= active ? theme.palette.success.main : BASE_COLOR_LIGHT}
+								color={i <= active ? theme.palette.secondary.main : BASE_COLOR_LIGHT}
 							>
 								{label}
 							</Typography>

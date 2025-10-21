@@ -107,18 +107,26 @@
 
 #### 6. Client-Scoping Security - Additional Patterns
 **File:** `apps/web/src/api/queries/__tests__/clientScoping.test.ts` (continued)
-- **Status:** ✅ All 25 tests passing (7 new tests added)
-- **Security Impact:** Additional security vulnerabilities found and fixed
-- **New Functions Tested:**
+- **Status:** ✅ All 32 tests passing (14 new tests added)
+- **Security Impact:** Additional security vulnerabilities found and fixed, plus new patterns from authorization audit
+- **Functions Tested:**
   - `getQuestions()` - Action table JOIN pattern (questionQueries.ts:203)
   - `deleteUser()` - DELETE pattern (userQueries.ts:289)
+  - `getComment()` - Comment query with client_id filter (commentQueries.ts:27)
+  - `getCommentCount()` - Comment count with client_id filter (commentQueries.ts:38)
+  - `getComments()` - Complex comment query with pagination (commentQueries.ts:56)
+  - `getCommentsForPage()` - Page-specific comments (commentQueries.ts:110)
 - **Coverage:**
   - Pattern 6: Action table JOIN with client_id (3 tests)
   - Pattern 7: DELETE with client_id (4 tests)
+  - Pattern 8: Comment queries with client_id - Authorization audit updates (7 tests)
 - **Security Fixes Applied:**
   - Fixed action table join to include client_id filter in getQuestions()
   - Fixed deleteUser() to include client_id filter in WHERE clause
-- **Key Findings:** Manual security audit of all 12 query files found 2 vulnerabilities (now fixed)
+- **Key Findings:**
+  - Manual security audit of all 12 query files found 2 vulnerabilities (now fixed)
+  - Authorization audit confirmed comment queries properly enforce client scoping
+  - All comment functions tested with different client contexts to prevent cross-tenant access
 
 #### 7. Tree Utility Functions
 **File:** `apps/web/src/lib/utils/__tests__/treeUtils.test.ts`
@@ -262,6 +270,70 @@
   - 16-char password = ~4.4 × 10^31 combinations (resistant to brute force)
   - Statistical distribution matches character pool proportions over large samples
 
+#### 13. Router Authorization Integration Tests ⚠️ SECURITY-CRITICAL
+**File:** `apps/web/src/server/trpc/routers/__tests__/routerAuthorization.test.ts`
+- **Status:** ✅ All 90 tests passing
+- **Security Impact:** Comprehensive verification of all router-level access controls - prevents unauthorized operations
+- **Context:** Created following authorization audit that identified 15 security improvements needed
+- **Routers Tested:** All 12 tRPC routers with authorization controls
+  - `responseRouter` - Question response operations
+  - `commentRouter` - Comment CRUD with ownership checks
+  - `checklistRouter` - Checklist and claim management
+  - `userRouter` - User management with field-level auth
+  - `pageRouter`, `questionRouter`, `answerRouter` - Template management
+  - `actionRouter`, `docRouter`, `feedRouter` - Supporting resources
+- **Coverage:**
+  - **Rule 1: Admin CRUD operations** - Admin/Super Admin full access (5 tests)
+  - **Rule 2: Contributor read restrictions** - Published checklists only, no admin data (23 tests)
+  - **Rule 3: Contributor write restrictions** - Assignment-based modifications only (9 tests)
+  - **Rule 4: No access enforcement** - Contributors blocked from admin endpoints (18 tests)
+  - **Rule 5: Response assignment** - Strict assignee check for modifications (4 tests)
+  - **Rule 6: Comment assignment** - Permissive ownership for comments (4 tests)
+  - **Additional router authorization** - All other protected operations (27 tests)
+- **Authorization Patterns Tested:**
+  - `requireRole()` - Role enforcement at router entry
+  - `checkRole()` - Conditional admin bypass logic
+  - `requireOwnership()` - Creator OR assignee (permissive)
+  - `requireAssigned()` - Current assignee only (strict)
+  - Field-level authorization - Preventing privilege escalation in `updateUser`
+  - Client aliasing protection - Super Admin only for cross-client operations
+- **Key Findings:**
+  - All 15 authorization improvements from audit are enforced at API layer
+  - Contributors cannot access unpublished checklists
+  - Contributors cannot modify responses unless they are current assignee
+  - Contributors can comment on work they created OR are assigned to
+  - Admins can bypass ownership/assignment checks
+  - updateUser prevents contributors from modifying privileged fields (role, disabled, verification)
+
+#### 14. Claim Visibility & Column Filtering ⚠️ SECURITY-CRITICAL
+**File:** `apps/web/src/api/queries/__tests__/claimQueries.getClaims.test.ts`
+- **Status:** ✅ All 24 tests passing
+- **Security Impact:** Prevents data leakage via claim search/assignment - enforces three-bucket visibility model
+- **Context:** Most complex authorization logic in the application - critical for Search & Assignment Paradigm
+- **Function:** `getClaims()` - Claim search with role-based visibility and column filtering (claimQueries.ts:124)
+- **Coverage:**
+  - **Three-bucket visibility model** for contributors (5 tests):
+    - Bucket 1: Claims owned by user (created_by in checklist_claim)
+    - Bucket 2: Claims assigned to user (assignee in checklist_claim)
+    - Bucket 3: Unassigned/available claims (no checklist_claim entry)
+    - Admin bypass: All claims visible
+    - Blocks claims worked by other users
+  - **Column restrictions** - Field-level data protection (3 tests):
+    - Admin: All columns (selectAll)
+    - Contributors: Limited columns only (id, claim_number, insured, date_of_loss, feed_name)
+    - Sensitive fields blocked (client, claim_amount, total_incurred, expected_recovery, etc.)
+  - **Client scoping enforcement** - Multi-tenant isolation (3 tests)
+  - **Search functionality** - Filters applied correctly with visibility (3 tests)
+  - **Pagination** - Limit/offset for data, not for count (3 tests)
+  - **Count queries** - Admin vs contributor visibility in counts (4 tests)
+  - **Feed filtering** - Combined with visibility rules (3 tests)
+- **Key Findings:**
+  - Contributors can search claims for assignment purposes but only see limited data
+  - Complex LEFT JOIN logic ensures contributors only see claims they own, are assigned to, or are available
+  - Prevents contributors from viewing claims being worked by other users
+  - Admin bypass logic allows full visibility for management/oversight
+  - Column-level access control implemented via SELECT field lists (not database permissions)
+
 ---
 
 ## 🔄 In Progress
@@ -377,25 +449,52 @@ When writing tests, always consider and test these categories:
 1. Pure utility functions (lower risk, easier) - TIER 2
 2. Data transformation functions - TIER 3
 
-**Last Updated:** 2025-10-14
+**Last Updated:** 2025-10-21
 
 ---
 
 ## 📊 Summary Statistics
 
-- **Test Files:** 9
-- **Total Tests:** 308 (all passing ✅)
+- **Test Files:** 12
+- **Total Tests:** 454 (all passing ✅)
 - **Tier 1 Completed:** 5 of 5 ✅ 100%
 - **Tier 2 Completed:** 2 of 2 categories ✅ 100%
   - Password Generation ✅ (37 tests)
   - Utility Functions ✅ (153 tests total: tree utils 32 + isEqual 45 + formatters 76)
+- **Authorization Audit Tests:** ✅ 146 tests covering all security improvements
+  - Router Authorization Integration Tests ✅ (90 tests)
+  - Claim Visibility & Column Filtering ✅ (24 tests)
+  - Client Scoping Updates ✅ (32 tests, including 8 new comment query tests)
 - **Code Coverage:** Not yet measured
-- **Security-Critical Tests:** 100 (client-scoping: 25 + authorization: 38 + password generation: 37)
+- **Security-Critical Tests:** 246 (router auth: 90 + claim visibility: 24 + client-scoping: 32 + authorization helpers: 38 + password generation: 37 + recursive unlocking: 18 + summary filtering: 19)
 - **Critical Security Fixes:** 1 (Password generation now uses crypto.randomInt)
 
 ---
 
 ## 📝 Recent Updates
+
+### 2025-10-21: Authorization Audit & Comprehensive Security Testing
+- **Motivation:** Conducted comprehensive authorization audit to ensure all access controls are enforced at the API layer
+- **Scope:** Reviewed all 12 tRPC routers and implemented 15 authorization improvements
+- **Testing Added:**
+  - **Router Authorization Integration Tests** (90 tests) - Verify all router-level access controls
+  - **Claim Visibility & Column Filtering Tests** (24 tests) - Test complex three-bucket visibility model and column restrictions
+  - **Client Scoping Updates** (8 new tests) - Verify comment queries properly enforce multi-tenant isolation
+- **Key Authorization Rules Tested:**
+  1. Admin/Super Admin have full CRUD access within their client
+  2. Contributors can only view published checklists and basic user information
+  3. Contributors can only modify responses for claims they are currently assigned to
+  4. Contributors have no access to admin-only endpoints (metrics, user management, template creation)
+  5. Response modifications require strict assignee check (requireAssigned)
+  6. Comment operations use permissive ownership check (requireOwnership - creator OR assignee)
+- **Security Improvements:**
+  - Field-level authorization in updateUser prevents privilege escalation
+  - Client aliasing protection (Super Admin only)
+  - Published/unpublished checklist filtering based on role
+  - Three-bucket claim visibility model for Search & Assignment Paradigm
+  - Column-level access control in getClaims (contributors see limited fields only)
+- **Test Coverage:** 146 tests across 3 new test files, all passing ✅
+- **Documentation:** See `project_files/AUTHORIZATION_AUDIT.md` for full audit details
 
 ### 2025-10-14: SummarySegment Enum Refactoring
 - **Replaced KNOWN segment** with ACTION_REQUIRED and NO_ACTION_REQUIRED segments

@@ -601,7 +601,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 		.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
 		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
 		.selectAll('checklist_claim')
-		.select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client'])
+		.select(['checklist.name as checklist_name', 'claim.claim_number', 'claim.client', 'checklist_claim.status'])
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
 		.where((eb) =>
 			eb.or([
@@ -609,8 +609,9 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 				eb('checklist_claim.assignee', '=', ctx.session.user.id),
 			])
 		)
+		.orderBy('checklist_claim.submitted_at asc')
 		.orderBy('checklist_claim.last_opened desc')
-		.limit(5)
+		.limit(10)
 		.execute();
 }
 

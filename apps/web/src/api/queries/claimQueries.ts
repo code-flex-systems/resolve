@@ -137,10 +137,30 @@ export async function getClaims(
 		offset?: number;
 	}
 ) {
-        let query = db
-                .selectFrom('claim')
-                .leftJoin('feeds', 'claim.feed_id', 'feeds.id')
-                .where('claim.client_id', '=', ctx.session.user.client_id);
+	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+
+	let query = db
+		.selectFrom('claim')
+		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
+		.where('claim.client_id', '=', ctx.session.user.client_id);
+
+	// Claim visibility filtering for contributors:
+	// Contributors can only see claims that are:
+	// 1. Owned by them (created_by in checklist_claim)
+	// 2. Assigned to them (assignee in checklist_claim)
+	// 3. Not assigned/worked (no entry in checklist_claim)
+	if (!isAdmin) {
+		query = query
+			.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id')
+			.where((eb) =>
+				eb.or([
+					eb('cc.created_by', '=', ctx.session.user.id), // Owned by them
+					eb('cc.assignee', '=', ctx.session.user.id), // Assigned to them
+					eb('cc.claim_id', 'is', null), // Not in checklist_claim (available)
+				])
+			);
+	}
+
 	query =
 		feedId !== undefined
 			? query.where('feed_id', feedId === null ? 'is' : '=', feedId)
@@ -161,7 +181,20 @@ export async function getClaims(
 		if (offset != null) {
 			query = query.offset(offset);
 		}
-		query = query.selectAll('claim').select(['feeds.name as feed_name']).orderBy('claim.claim_number');
+		// Column restrictions: Contributors only see columns needed for search UI
+		if (isAdmin) {
+			query = query.selectAll('claim').select(['feeds.name as feed_name']).orderBy('claim.claim_number');
+		} else {
+			query = query
+				.select([
+					'claim.id',
+					'claim.claim_number',
+					'claim.insured',
+					'claim.date_of_loss',
+					'feeds.name as feed_name',
+				])
+				.orderBy('claim.claim_number');
+		}
 		return await query.execute();
 	} else {
 		query = query.select(({ fn }) => fn.countAll().as('count'));

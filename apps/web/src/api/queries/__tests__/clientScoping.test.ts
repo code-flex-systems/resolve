@@ -7,6 +7,7 @@ import { assignClaim } from '../claimQueries';
 import { getNextClaimToAssign } from '../claimQueries';
 import { getUserActivity } from '../userQueries';
 import { getQuestions } from '../questionQueries';
+import { getComment, getComments, getCommentCount, getCommentsForPage } from '../commentQueries';
 
 /**
  * Client-Scoping Security Tests
@@ -953,6 +954,341 @@ describe('Client-Scoping Security Tests', () => {
 
 			// Should use admin context's client_id
 			expect(mockWhere2).toHaveBeenCalledWith('client_id', '=', 'client-xyz');
+		});
+	});
+
+	describe('Pattern 8: Comment Queries with client_id (Authorization Audit Updates)', () => {
+		/**
+		 * Test: getComment(), getComments(), getCommentCount(), getCommentsForPage() from commentQueries.ts
+		 * Pattern: .where('comment.client_id', '=', ctx.session.user.client_id)
+		 *
+		 * These functions now properly enforce client scoping as part of the authorization audit.
+		 * Combined with router-level authorization (requireOwnership), this ensures multi-tenant security.
+		 */
+
+		it('should include client_id filter in getComment()', async () => {
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
+				id: 1,
+				body: 'Test comment',
+				checklist_id: 1,
+				claim_id: 100,
+				client_id: 'client-abc',
+				created_by: 'user-123',
+				first: 'Test',
+				last: 'User',
+				email: 'test@example.com',
+			});
+
+			const mockWhere2 = vi.fn().mockReturnValue({
+				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+			});
+
+			const mockWhere1 = vi.fn().mockReturnValue({
+				where: mockWhere2,
+			});
+
+			const mockSelect = vi.fn().mockReturnValue({
+				where: mockWhere1,
+			});
+
+			const mockSelectAll = vi.fn().mockReturnValue({
+				select: mockSelect,
+			});
+
+			const mockInnerJoin = vi.fn().mockReturnValue({
+				selectAll: mockSelectAll,
+			});
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: mockInnerJoin,
+			} as any);
+
+			await getComment(mockContext, 1);
+
+			// Verify selectFrom was called with correct table
+			expect(db.selectFrom).toHaveBeenCalledWith('comment');
+
+			// Verify inner join with users table
+			expect(mockInnerJoin).toHaveBeenCalledWith('users', 'comment.created_by', 'users.id');
+
+			// Verify first where clause filters by client_id
+			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
+
+			// Verify second where clause filters by comment id
+			expect(mockWhere2).toHaveBeenCalledWith('id', '=', 1);
+		});
+
+		it('should NOT return comments from other clients in getComment()', async () => {
+			// Simulate: User from client-abc tries to access comment from client-xyz
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockRejectedValue(
+				new Error('no result')
+			);
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: vi.fn().mockReturnValue({
+					selectAll: vi.fn().mockReturnValue({
+						select: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								where: vi.fn().mockReturnValue({
+									executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+								}),
+							}),
+						}),
+					}),
+				}),
+			} as any);
+
+			// Should throw because comment belongs to different client
+			await expect(getComment(mockContext, 999)).rejects.toThrow();
+		});
+
+		it('should include client_id filter in getCommentCount()', async () => {
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
+
+			const mockWhere2 = vi.fn().mockReturnValue({
+				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+			});
+
+			const mockWhere1 = vi.fn().mockReturnValue({
+				where: mockWhere2,
+			});
+
+			const mockSelect = vi.fn().mockReturnValue({
+				where: mockWhere1,
+			});
+
+			const mockInnerJoin = vi.fn().mockReturnValue({
+				select: mockSelect,
+			});
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: mockInnerJoin,
+			} as any);
+
+			const result = await getCommentCount(mockContext, { checklistId: 1, claimId: 100 });
+
+			// Verify client_id filter was applied
+			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
+
+			// Result should be parsed count
+			expect(result).toBe(5);
+		});
+
+		it('should include client_id filter in getComments()', async () => {
+			const mockExecute = vi.fn().mockResolvedValue([
+				{
+					id: 1,
+					body: 'Comment 1',
+					checklist_id: 1,
+					claim_id: 100,
+					client_id: 'client-abc',
+				},
+			]);
+
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '1' });
+
+			// The function creates baseQuery, then dataQuery = baseQuery.leftJoin().leftJoin().leftJoin()
+			// Build the data query chain for the three leftJoin calls on dataQuery
+			const dataQueryChain = {
+				leftJoin: vi.fn().mockReturnThis(), // First leftJoin (page_instance)
+				selectAll: vi.fn().mockReturnThis(),
+				select: vi.fn().mockReturnThis(),
+				orderBy: vi.fn().mockReturnThis(),
+				limit: vi.fn().mockReturnThis(),
+				offset: vi.fn().mockReturnThis(),
+				execute: mockExecute,
+			};
+
+			// Configure leftJoin to return itself for the first 2 calls, then return the full chain
+			dataQueryChain.leftJoin
+				.mockReturnValueOnce(dataQueryChain) // First leftJoin returns chain with leftJoin
+				.mockReturnValueOnce(dataQueryChain) // Second leftJoin returns chain with leftJoin
+				.mockReturnValue(dataQueryChain); // Third leftJoin returns full chain
+
+			// Build the count query chain (uses the same baseQuery but calls .select())
+			const countQueryChain = {
+				select: vi.fn().mockReturnValue({
+					executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+				}),
+			};
+
+			// mockWhere2 is the result after the where callback - it's baseQuery
+			// From baseQuery, we branch:
+			// 1. dataQuery = baseQuery.leftJoin() (3 times)
+			// 2. countQuery = baseQuery.select()
+			const mockWhere2 = vi.fn().mockReturnValue({
+				// Data query continuation - starts with leftJoin
+				leftJoin: dataQueryChain.leftJoin,
+				// Count query continuation - starts with select
+				select: countQueryChain.select,
+			});
+
+			const mockWhere1 = vi.fn().mockReturnValue({
+				where: mockWhere2,
+			});
+
+			const mockLeftJoinChecklistClaim = vi.fn().mockReturnValue({
+				where: mockWhere1,
+			});
+
+			const mockInnerJoin = vi.fn().mockReturnValue({
+				leftJoin: mockLeftJoinChecklistClaim,
+			});
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: mockInnerJoin,
+			} as any);
+
+			const result = await getComments(mockContext, { checklistId: 1, claimId: 100 }, 10, 0);
+
+			// Verify client_id filter was applied
+			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
+
+			// Result should contain rows and count
+			expect(result.rows).toHaveLength(1);
+			expect(result.count).toBe(1);
+		});
+
+		it('should include client_id filter in getCommentsForPage()', async () => {
+			const mockExecute = vi.fn().mockResolvedValue([
+				{
+					id: 1,
+					body: 'Page comment',
+					question_id: 5,
+					client_id: 'client-abc',
+				},
+			]);
+
+			const mockWhere5 = vi.fn().mockReturnValue({
+				execute: mockExecute,
+			});
+
+			const mockWhere4 = vi.fn().mockReturnValue({
+				where: mockWhere5,
+			});
+
+			const mockWhere3 = vi.fn().mockReturnValue({
+				where: mockWhere4,
+			});
+
+			const mockWhere2 = vi.fn().mockReturnValue({
+				where: mockWhere3,
+			});
+
+			const mockWhere1 = vi.fn().mockReturnValue({
+				where: mockWhere2,
+			});
+
+			const mockSelect = vi.fn().mockReturnValue({
+				where: mockWhere1,
+			});
+
+			const mockSelectAll = vi.fn().mockReturnValue({
+				select: mockSelect,
+			});
+
+			const mockInnerJoin = vi.fn().mockReturnValue({
+				selectAll: mockSelectAll,
+			});
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: mockInnerJoin,
+			} as any);
+
+			await getCommentsForPage(mockContext, 1, 100, 50);
+
+			// Verify client_id filter was applied first
+			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
+
+			// Verify subsequent filters for checklist, claim, instance
+			expect(mockWhere2).toHaveBeenCalledWith('comment.checklist_id', '=', 1);
+			expect(mockWhere3).toHaveBeenCalledWith('comment.claim_id', '=', 100);
+			expect(mockWhere4).toHaveBeenCalledWith('comment.instance_id', '=', 50);
+
+			// Verify question_id IS NOT NULL filter
+			expect(mockWhere5).toHaveBeenCalledWith('comment.question_id', 'is not', null);
+		});
+
+		it('should use different client_id for different contexts in comment queries', async () => {
+			const otherClientContext: ProtectedContext = {
+				session: {
+					user: {
+						id: 'user-999',
+						name: 'Other User',
+						email: 'other@company.com',
+						phone: null,
+						client_id: 'client-xyz',
+						role: 'admin',
+					},
+					expires: '2025-12-31',
+				},
+			};
+
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
+				id: 2,
+				body: 'Different client comment',
+				client_id: 'client-xyz',
+			});
+
+			const mockWhere2 = vi.fn().mockReturnValue({
+				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+			});
+
+			const mockWhere1 = vi.fn().mockReturnValue({
+				where: mockWhere2,
+			});
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: vi.fn().mockReturnValue({
+					selectAll: vi.fn().mockReturnValue({
+						select: vi.fn().mockReturnValue({
+							where: mockWhere1,
+						}),
+					}),
+				}),
+			} as any);
+
+			await getComment(otherClientContext, 2);
+
+			// Should use the other context's client_id
+			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-xyz');
+		});
+
+		it('should return empty results when no comments exist for client', async () => {
+			const mockExecute = vi.fn().mockResolvedValue([]);
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '0' });
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: vi.fn().mockReturnValue({
+					leftJoin: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								leftJoin: vi.fn().mockReturnValue({
+									leftJoin: vi.fn().mockReturnValue({
+										leftJoin: vi.fn().mockReturnValue({
+											selectAll: vi.fn().mockReturnValue({
+												select: vi.fn().mockReturnValue({
+													orderBy: vi.fn().mockReturnValue({
+														execute: mockExecute,
+													}),
+												}),
+											}),
+										}),
+									}),
+								}),
+								select: vi.fn().mockReturnValue({
+									executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+								}),
+							}),
+						}),
+					}),
+				}),
+			} as any);
+
+			const result = await getComments(mockContext, { checklistId: 999 });
+
+			expect(result.rows).toHaveLength(0);
+			expect(result.count).toBe(0);
 		});
 	});
 });

@@ -1,16 +1,32 @@
 'use client';
 import { Box, Collapse, Divider, MenuItem, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
-import { ContentPasteSearch } from '@mui/icons-material';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT, ORANGE } from '@/styles/theme';
+import { ArrowCircleRightOutlined, ContentPasteSearch } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { TransitionGroup } from 'react-transition-group';
 import { formatMD } from '@/lib/utils/utils';
 import ExpandableTitle from '../common/ExpandableTitle';
+import { ClaimStatus } from '@/config/enums';
+
+const getStatusColor = (status: ClaimStatus) => {
+	switch (status) {
+		case ClaimStatus.SUBMITTED:
+			theme.palette.success.light;
+		case ClaimStatus.IN_PROGRESS:
+			return theme.palette.warning.light;
+		case ClaimStatus.BLOCKED:
+			return ORANGE;
+		case ClaimStatus.UNWORKED:
+		default:
+			return theme.palette.error.light;
+	}
+};
 
 export default function Recents() {
 	const router = useRouter();
 	const { isFetching, data: recentChecklistClaims = [] } = useChecklistTrpc().listRecents();
+	const distinctStatuses = [...new Set(recentChecklistClaims.map((rc) => rc.status))];
 
 	return isFetching ? (
 		<Skeleton sx={styles.container} />
@@ -36,61 +52,88 @@ export default function Recents() {
 					</Typography>
 				)}
 				<TransitionGroup style={{ width: '100%' }}>
-					{recentChecklistClaims.map((c, i) => (
-						<Collapse key={i} sx={{ width: '100%' }}>
-							<MenuItem
-								onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
-								sx={styles.menuItem}
+					{distinctStatuses.map((ds) => (
+						<Collapse key={ds} sx={{ width: '100%' }}>
+							<Box
+								width="100%"
+								display="flex"
+								alignItems="center"
+								padding="2px 10px"
+								bgcolor={getStatusColor(ds as ClaimStatus)}
+								borderRadius={4}
+								margin="5px 0px"
 							>
-								<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-									<Box
-										padding="5px 10px"
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="center"
+								<Typography fontSize={12} color={'white'}>
+									{ds}
+								</Typography>
+							</Box>
+							{recentChecklistClaims
+								.filter((rc) => rc.status === ds)
+								.map((c, i) => (
+									<MenuItem
+										onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
+										sx={styles.menuItem}
 									>
 										<Stack
 											width="100%"
 											display="flex"
 											justifyContent="flex-start"
 											alignItems="flex-start"
-											padding="5px"
 										>
-											<Typography
-												fontSize={15}
-												color="primary"
-												lineHeight="17px"
-												paddingBottom="5px"
-											>
-												{c.claim_number}
-											</Typography>
 											<Box
 												width="100%"
+												padding="5px 10px"
 												display="flex"
-												justifyContent="flex-start"
+												justifyContent="space-between"
 												alignItems="center"
 											>
-												<Typography fontSize={13} lineHeight="15px" color={BASE_COLOR_LIGHT}>
-													{c.checklist_name}
-												</Typography>
-												<div style={styles.divider} />
-												<Typography fontSize={13} lineHeight="15px" color={BASE_COLOR_LIGHT}>
-													{formatMD(c.last_opened)}
-												</Typography>
-												<div style={styles.divider} />
-												<Typography fontSize={13} lineHeight="15px" color={BASE_COLOR_LIGHT}>
-													{c.status}
-												</Typography>
+												<Stack
+													width="100%"
+													display="flex"
+													justifyContent="flex-start"
+													alignItems="flex-start"
+													padding="5px"
+												>
+													<Typography
+														fontSize={15}
+														color="primary"
+														lineHeight="17px"
+														paddingBottom="5px"
+													>
+														{c.claim_number}
+													</Typography>
+													<Box
+														width="100%"
+														display="flex"
+														justifyContent="flex-start"
+														alignItems="center"
+														overflow="hidden"
+													>
+														<Typography
+															fontSize={13}
+															lineHeight="15px"
+															color={BASE_COLOR_LIGHT}
+															textOverflow="ellipsis"
+															noWrap
+														>
+															{c.checklist_name}
+														</Typography>
+														<div style={styles.divider} />
+														<Typography
+															fontSize={13}
+															lineHeight="15px"
+															color={BASE_COLOR_LIGHT}
+															noWrap
+														>
+															{formatMD(c.last_opened)}
+														</Typography>
+													</Box>
+												</Stack>
+												<ArrowCircleRightOutlined sx={{ color: BASE_COLOR_LIGHT }} />
 											</Box>
 										</Stack>
-									</Box>
-									{i !== recentChecklistClaims.length - 1 && (
-										<div style={styles.horizontalDiv}>
-											<Divider />
-										</div>
-									)}
-								</Stack>
-							</MenuItem>
+									</MenuItem>
+								))}
 						</Collapse>
 					))}
 				</TransitionGroup>
@@ -128,8 +171,9 @@ const styles = {
 		padding: 10,
 	},
 	links: {
+		marginTop: '5px',
 		width: '100%',
-		height: 'calc(100% - 40px)',
+		height: 'calc(100% - 50px)',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		overflow: 'auto',

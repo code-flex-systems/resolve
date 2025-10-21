@@ -139,16 +139,18 @@ export default function Comments({
 												)}
 											</Box>
 											<div className="go-icon">
-												{canNavigate && <ArrowRightAlt sx={{ fontSize: 19 }} />}
+												{canNavigate && (
+													<ArrowRightAlt sx={{ fontSize: 19, color: BASE_COLOR_LIGHT }} />
+												)}
 											</div>
 										</Box>
 									</Stack>
 								</Box>
-								{i !== pagedData.length - 1 && (
+								{/* {i !== pagedData.length - 1 && (
 									<div style={styles.horizontalDiv}>
 										<Divider />
 									</div>
-								)}
+								)} */}
 							</Stack>
 						</MenuItem>
 					</Collapse>

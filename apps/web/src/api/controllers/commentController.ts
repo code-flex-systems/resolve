@@ -41,8 +41,3 @@ export async function getCommentsForPage(
 	});
 	return commentsMap;
 }
-
-export async function modifyComment(ctx: ProtectedContext, { id, body }: { id: number; body: string }) {
-	const result = await commentQueries.modifyComment(ctx, id, body);
-	return result;
-}

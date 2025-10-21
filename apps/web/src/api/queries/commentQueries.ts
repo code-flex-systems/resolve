@@ -125,14 +125,3 @@ export async function getCommentsForPage(
                 .where('comment.question_id', 'is not', null)
                 .execute();
 }
-
-export async function modifyComment(ctx: ProtectedContext, id: number, body: string) {
-	return await db
-		.updateTable('comment')
-		.set({
-			body,
-			updated_at: sql`now()`,
-		})
-		.where('id', '=', id)
-		.executeTakeFirstOrThrow();
-}

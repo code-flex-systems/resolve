@@ -10,6 +10,7 @@ import {
 import config from '@/config/config';
 import { checkRole } from '@/lib/auth/checkRole';
 import { requireAssigned } from '@/lib/auth/requireAssigned';
+import { requireOwnership } from '@/lib/auth/requireOwnership';
 import { requireRole } from '@/lib/auth/requireRole';
 import {
 	evaluateResponsesInput,
@@ -23,16 +24,23 @@ import { TRPCError } from '@trpc/server';
 
 export const responseRouter = router({
 	evaluateResponses: protectedProcedure.input(evaluateResponsesInput).mutation(async ({ input, ctx }) => {
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, input.checklistId, input.claimId);
+		}
 		return evaluateResponses(ctx, input);
 	}),
 
 	getResponsesForAnswer: protectedProcedure.input(getResponsesForAnswerInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return getResponsesForAnswer(ctx, input);
 	}),
 
 	getResponsesForChecklist: protectedProcedure
 		.input(getResponsesForClaimChecklistInput)
 		.query(async ({ input, ctx }) => {
+			if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+				await requireOwnership(ctx, input.checklistId, input.claimId);
+			}
 			return getResponsesForClaimChecklist(ctx, input);
 		}),
 
@@ -40,6 +48,9 @@ export const responseRouter = router({
 		// Viewing all logs for a checklist requires privileged access
 		if (!input.filters.claimId) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		} else if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			// Contributors can only view audit logs for claims they own or are assigned to
+			await requireOwnership(ctx, input.filters.checklistId!, input.filters.claimId);
 		}
 		return getResponseAuditLogs(ctx, input);
 	}),
