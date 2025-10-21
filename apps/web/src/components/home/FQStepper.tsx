@@ -23,7 +23,7 @@ const steps: { value: number; label: string }[] = [
 
 const Connector = styled(StepConnector)(({ theme }) => ({
 	[`&.${stepConnectorClasses.root}`]: {
-		marginLeft: '13px',
+		marginLeft: '10px',
 	},
 	[`&.${stepConnectorClasses.alternativeLabel}`]: {
 		top: 10,
@@ -41,7 +41,7 @@ const Connector = styled(StepConnector)(({ theme }) => ({
 		},
 	},
 	[`& .${stepConnectorClasses.line}`]: {
-		borderWidth: 3,
+		borderWidth: 2,
 		height: '100%',
 		borderColor: '#eaeaf0',
 
@@ -54,8 +54,8 @@ const Connector = styled(StepConnector)(({ theme }) => ({
 function IconContainer({ active, index }: { active: number; index: number }) {
 	return (
 		<Box
-			width={30}
-			height={30}
+			width={20}
+			height={20}
 			display="flex"
 			justifyContent="center"
 			alignItems="center"
@@ -99,13 +99,13 @@ export default function FQStepper() {
 				margin="10px 0px"
 				padding="5px 20px"
 			>
-				<Typography lineHeight="21px" minWidth={100}>
+				<Typography lineHeight="19px" minWidth={100}>
 					Fiscal Year Progress
 				</Typography>
 			</Box>
 
 			<Stepper
-				sx={{ height: 'calc(100% - 70px)' }}
+				sx={{ height: 'calc(100% - 80px)' }}
 				connector={<Connector />}
 				orientation="vertical"
 				activeStep={1}
@@ -114,7 +114,7 @@ export default function FQStepper() {
 					<Step key={value}>
 						<StepLabel icon={<IconContainer active={active} index={i} />}>
 							<Typography
-								fontSize={17}
+								fontSize={15}
 								color={i <= active ? theme.palette.success.main : BASE_COLOR_LIGHT}
 							>
 								{label}
