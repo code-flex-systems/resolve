@@ -35,6 +35,7 @@ import { requireRole } from '@/lib/auth/requireRole';
 import config from '@/config/config';
 import { checkRole } from '@/lib/auth/checkRole';
 import { requireAssigned } from '@/lib/auth/requireAssigned';
+import { requireOwnership } from '@/lib/auth/requireOwnership';
 
 export const checklistRouter = router({
 	getChecklists: protectedProcedure.input(getChecklistsInput).query(async ({ input, ctx }) => {
@@ -42,9 +43,12 @@ export const checklistRouter = router({
 	}),
 
 	getChecklistCount: protectedProcedure.input(getChecklistCountInput).query(async ({ input, ctx }) => {
-		// Client aliasing requires Super Admin role
 		if (input.clientId) {
+			// Client aliasing requires Super Admin role
 			requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		} else {
+			// Viewing checklist counts is an admin-only operation
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
 		return await getChecklistCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
 	}),
@@ -80,12 +84,18 @@ export const checklistRouter = router({
 	}),
 
 	getChecklistSummary: protectedProcedure.input(getChecklistSummaryInput).query(async ({ input, ctx }) => {
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, input.checklistId, input.claimId);
+		}
 		return await getChecklistSummary(ctx, input);
 	}),
 
 	getChecklistSummaryDetail: protectedProcedure
 		.input(getChecklistSummaryDetailInput)
 		.query(async ({ input, ctx }) => {
+			if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+				await requireOwnership(ctx, input.checklistId, input.claimId);
+			}
 			return await getChecklistSummaryDetail(ctx, input);
 		}),
 

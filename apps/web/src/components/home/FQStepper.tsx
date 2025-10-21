@@ -23,7 +23,7 @@ const steps: { value: number; label: string }[] = [
 
 const Connector = styled(StepConnector)(({ theme }) => ({
 	[`&.${stepConnectorClasses.root}`]: {
-		marginLeft: '13px',
+		marginLeft: '10px',
 	},
 	[`&.${stepConnectorClasses.alternativeLabel}`]: {
 		top: 10,
@@ -32,16 +32,16 @@ const Connector = styled(StepConnector)(({ theme }) => ({
 	},
 	[`&.${stepConnectorClasses.active}`]: {
 		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: theme.palette.success.light,
+			borderColor: theme.palette.secondary.light,
 		},
 	},
 	[`&.${stepConnectorClasses.completed}`]: {
 		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: theme.palette.success.light,
+			borderColor: theme.palette.secondary.light,
 		},
 	},
 	[`& .${stepConnectorClasses.line}`]: {
-		borderWidth: 3,
+		borderWidth: 2,
 		height: '100%',
 		borderColor: '#eaeaf0',
 
@@ -54,13 +54,13 @@ const Connector = styled(StepConnector)(({ theme }) => ({
 function IconContainer({ active, index }: { active: number; index: number }) {
 	return (
 		<Box
-			width={30}
-			height={30}
+			width={20}
+			height={20}
 			display="flex"
 			justifyContent="center"
 			alignItems="center"
 			sx={{
-				backgroundImage: index <= active ? 'linear-gradient(rgb(27, 185, 52), rgba(27, 185, 52, 0.9))' : '',
+				backgroundImage: index <= active ? 'linear-gradient(rgb(50, 174, 153), rgba(50, 174, 153, 0.9))' : '',
 			}}
 			bgcolor={index <= active ? '' : BASE_COLOR_LIGHT}
 			borderRadius={20}
@@ -99,23 +99,23 @@ export default function FQStepper() {
 				margin="10px 0px"
 				padding="5px 20px"
 			>
-				<Typography lineHeight="21px" minWidth={100}>
+				<Typography lineHeight="19px" minWidth={100}>
 					Fiscal Year Progress
 				</Typography>
 			</Box>
 
 			<Stepper
-				sx={{ height: 'calc(100% - 70px)' }}
+				sx={{ height: 'calc(100% - 80px)' }}
 				connector={<Connector />}
 				orientation="vertical"
-				activeStep={1}
+				activeStep={active}
 			>
 				{steps.map(({ value, label }, i) => (
 					<Step key={value}>
 						<StepLabel icon={<IconContainer active={active} index={i} />}>
 							<Typography
-								fontSize={17}
-								color={i <= active ? theme.palette.success.main : BASE_COLOR_LIGHT}
+								fontSize={15}
+								color={i <= active ? theme.palette.secondary.main : BASE_COLOR_LIGHT}
 							>
 								{label}
 							</Typography>

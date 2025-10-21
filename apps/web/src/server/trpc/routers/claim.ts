@@ -40,9 +40,12 @@ export const claimRouter = router({
 	}),
 
 	getClaimCount: protectedProcedure.input(getClaimCountInput).query(async ({ input, ctx }) => {
-		// Client aliasing requires Super Admin role
 		if (input.clientId) {
+			// Client aliasing requires Super Admin role
 			requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		} else {
+			// Viewing claim counts is an admin-only operation
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
 		return await getClaimCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
 	}),

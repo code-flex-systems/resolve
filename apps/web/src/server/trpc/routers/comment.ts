@@ -28,14 +28,30 @@ export const commentRouter = router({
 	}),
 
 	deleteComment: protectedProcedure.input(deleteCommentInput).mutation(async ({ input, ctx }) => {
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			// Verify user is the creator of the comment
+			const comment = await getComment(ctx, input);
+			if (comment.created_by !== ctx.session.user.id) {
+				throw new Error('FORBIDDEN: You can only delete your own comments');
+			}
+		}
 		return deleteComment(ctx, input);
 	}),
 
 	getComment: protectedProcedure.input(getCommentInput).query(async ({ input, ctx }) => {
-		return getComment(ctx, input);
+		const comment = await getComment(ctx, input);
+		// Verify user has ownership/assignment to the claim this comment belongs to
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, comment.checklist_id, comment.claim_id);
+		}
+		return comment;
 	}),
 
 	getComments: protectedProcedure.input(getCommentsInput).query(async ({ input, ctx }) => {
+		// If querying comments for a specific claim, verify ownership/assignment
+		if (input.filters.claimId && input.filters.checklistId && !checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, input.filters.checklistId, input.filters.claimId);
+		}
 		return getComments(ctx, input);
 	}),
 
@@ -44,6 +60,9 @@ export const commentRouter = router({
 	}),
 
 	getCommentsForPage: protectedProcedure.input(getCommentsForPageInput).query(async ({ input, ctx }) => {
+		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, input.checklistId, input.claimId);
+		}
 		return getCommentsForPage(ctx, input);
 	}),
 });
