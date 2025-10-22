@@ -157,23 +157,16 @@ export async function updateUser(
 	}: {
 		id: string;
 		params: Partial<{
-			name: string;
+			first: string;
+			last: string;
 			email: string;
-			password: string;
-			phone_number?: string;
+			phone?: string;
 			role?: string;
 			disabled?: boolean;
-			email_verified?: Date;
-			phone_verified?: Date;
-			onboarding_email_sent?: boolean;
-			must_change_password?: boolean;
 		}>;
 	}
 ) {
-	const hashedParams = params.password
-		? await hashPasswordIfPresent({ ...params, password: params.password })
-		: params;
-	const updatedUser = await userQueries.updateUser(ctx, id, hashedParams);
+	const updatedUser = await userQueries.updateUser(ctx, id, params);
 	if (params.disabled != null) {
 		await sendEmail({
 			to: updatedUser.email,
@@ -181,6 +174,7 @@ export async function updateUser(
 			html: getAccountActivationTemplate(params.disabled ? 'deactivation' : 'reactivation', updatedUser.email),
 		});
 	}
+	return updatedUser;
 }
 
 /**

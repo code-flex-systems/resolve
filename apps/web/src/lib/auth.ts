@@ -74,7 +74,8 @@ export const authOptions: NextAuthOptions = {
 		// signOut, error, verifyRequest, newUser
 	},
 	callbacks: {
-		async jwt({ token, user }) {
+		async jwt({ token, user, session, trigger }) {
+			// 1) Initial sign-in: copy user fields into token
 			if (user) {
 				token.id = user.id;
 				token.name = user.name;
@@ -84,6 +85,14 @@ export const authOptions: NextAuthOptions = {
 				token.client_id = user.client_id;
 				token.must_change_password = user.must_change_password;
 			}
+
+			// 2) Client called `update({...})`: merge fields from session.user into token
+			if (trigger === 'update' && session?.user) {
+				token.name = session.user.name ?? token.name;
+				token.email = session.user.email ?? token.email;
+				token.phone = (session.user as any).phone ?? token.phone;
+			}
+
 			return token;
 		},
 		async session({ session, token }) {

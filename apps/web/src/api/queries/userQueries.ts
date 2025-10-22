@@ -59,7 +59,7 @@ export async function getUsersPaginated(
 export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 	let query = db
 		.selectFrom('users')
-		.select(['id', 'first', 'last', 'email'])
+		.select(['id', 'first', 'last', 'email', 'phone'])
 		.where((eb) => {
 			const andClause = [eb('disabled', '=', false), eb('client_id', '=', ctx.session.user.client_id)];
 			if (searchTerm) {
@@ -119,19 +119,19 @@ export async function getUserActivity(
 }
 
 export async function getUserActivityDetail(ctx: ProtectedContext, date: string) {
-        return await db
-                .selectFrom('response_audit_logs')
-                .leftJoin('users', 'response_audit_logs.user_id', 'users.id')
-                .selectAll('response_audit_logs')
-                .select(['users.first', 'users.last', 'users.email', 'users.role'])
-                .where((eb) =>
-                        eb.and([
-                                eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
-                                eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
-                        ])
-                )
-                .orderBy('response_audit_logs.created_at')
-                .execute();
+	return await db
+		.selectFrom('response_audit_logs')
+		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
+		.selectAll('response_audit_logs')
+		.select(['users.first', 'users.last', 'users.email', 'users.role'])
+		.where((eb) =>
+			eb.and([
+				eb('response_audit_logs.client_id', '=', ctx.session.user.client_id),
+				eb(sql`date(${eb.ref('response_audit_logs.created_at')})`, '=', date),
+			])
+		)
+		.orderBy('response_audit_logs.created_at')
+		.execute();
 }
 
 /**
@@ -258,23 +258,20 @@ export async function updateUser(
 	ctx: ProtectedContext,
 	id: string,
 	params: Partial<{
-		name: string;
+		first: string;
+		last: string;
 		email: string;
-		password: string;
-		phone_number?: string;
+		phone?: string;
 		role?: string;
 		disabled?: boolean;
-		email_verified?: Date;
-		phone_verified?: Date;
-		onboarding_email_sent?: boolean;
-		must_change_password?: boolean;
 	}>
 ) {
 	const [user] = await db
 		.updateTable('users')
 		.set({ ...params, updated_by: ctx.session.user.id, updated_at: sql`now()` })
 		.where('id', '=', id)
-		.returningAll()
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returning(['first', 'last', 'email', 'phone'])
 		.execute();
 	return user;
 }
@@ -286,8 +283,5 @@ export async function updateUser(
  * @param id - user identifier to delete
  */
 export async function deleteUser(ctx: ProtectedContext, id: string) {
-	await db.deleteFrom('users')
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+	await db.deleteFrom('users').where('id', '=', id).where('client_id', '=', ctx.session.user.client_id).execute();
 }

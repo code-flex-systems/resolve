@@ -130,6 +130,10 @@ export function formatPhoneNumber(phoneRaw: string) {
 	return phone.number;
 }
 
+export function parsePhoneNumber(phoneFormatted: string) {
+	return phoneFormatted.slice(2);
+}
+
 export function getExtension(filename: string) {
 	const parts = filename.split('.');
 	return `.${parts[parts.length - 1]}`;

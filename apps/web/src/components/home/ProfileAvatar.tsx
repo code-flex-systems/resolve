@@ -1,18 +1,22 @@
 'use client';
 import { useState } from 'react';
-import { Avatar, Divider, Paper, PopperProps, Typography } from '@mui/material';
+import { Avatar, Box, Divider, Paper, PopperProps, Typography } from '@mui/material';
 import Email from '@mui/icons-material/Email';
 import Phone from '@mui/icons-material/Phone';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
-import BasicPopper from './BasicPopper';
+import BasicPopper from '../common/BasicPopper';
 import { signOut, useSession } from 'next-auth/react';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
-import BasicButtonStyled from './BasicButtonStyled';
-import { Logout } from '@mui/icons-material';
+import BasicButtonStyled from '../common/BasicButtonStyled';
+import { Edit, Logout } from '@mui/icons-material';
+import UpdateUserDialog from './UpdateUserDialog';
+import RoleValue from '../admin/RoleValue';
+import { Role } from '@/types/types';
 
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const [dialogOpen, setDialogOpen] = useState(false);
 	const { data: session } = useSession();
 
 	return (
@@ -30,10 +34,18 @@ export default function ProfileAvatar() {
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
 					<Paper sx={styles.paper}>
-						<div style={{ ...styles.row, overflow: 'hidden', marginTop: 5 }}>
+						<div
+							style={{
+								...styles.row,
+								justifyContent: 'space-between',
+								overflow: 'hidden',
+								margin: '5px 0px 10px',
+							}}
+						>
 							<Typography fontSize={17} fontWeight="bold" textOverflow="ellipsis" noWrap>
 								{session?.user?.name ?? ''}
 							</Typography>
+							{!!session?.user && <RoleValue role={session.user.role as Role} />}
 						</div>
 						<div style={styles.divider}>
 							<Divider />
@@ -51,6 +63,18 @@ export default function ProfileAvatar() {
 							</Typography>
 						</div>
 						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
+							<Box marginRight="10px">
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: () => {
+											setDialogOpen(true);
+											setAnchorEl(null);
+										},
+									}}
+									tooltipProps={{ title: 'Update my info' }}
+									icon={<Edit />}
+								/>
+							</Box>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () => signOut({ callbackUrl: '/login' }),
@@ -62,6 +86,7 @@ export default function ProfileAvatar() {
 					</Paper>
 				</BasicPopper>
 			)}
+			{dialogOpen && <UpdateUserDialog onClose={() => setDialogOpen(false)} />}
 		</>
 	);
 }

@@ -79,27 +79,16 @@ export const userRouter = router({
 	}),
 
 	updateUser: protectedProcedure.input(updateUserInput).mutation(async ({ input, ctx }) => {
-		const isAdmin = checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		const isSelfUpdate = input.id === ctx.session.user.id;
-
-		// Must be admin to update other users
-		if (!isSelfUpdate) {
+		const adminOnlyFields: string[] = ['role', 'disabled'];
+		// Must be admin to update other users, or to update role / activate/deactivate account
+		if (!isSelfUpdate || Object.keys(input.params).some((k) => adminOnlyFields.includes(k))) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		}
-
-		// Contributors updating themselves cannot modify privileged fields
-		if (isSelfUpdate && !isAdmin) {
-			const privilegedFields: (keyof typeof input.params)[] = ['role', 'disabled', 'email_verified', 'phone_verified', 'must_change_password'];
-			const hasPrivilegedField = privilegedFields.some(field => input.params[field] !== undefined);
-
-			if (hasPrivilegedField) {
-				throw new TRPCError({
-					code: 'FORBIDDEN',
-					message: 'Contributors cannot modify role, disabled status, or verification fields',
-				});
+			// Must be super admin to remove a user's escalated privileges
+			if ('role' in input.params && input.params.role !== config.ROLES.ADMIN) {
+				requireRole(ctx, config.ROLES.SUPER_ADMIN);
 			}
 		}
-
 		return userController.updateUser(ctx, input);
 	}),
 

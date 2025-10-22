@@ -27,7 +27,7 @@ export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor
 			});
 		}
 		if (isAdmin || isSuperAdmin)
-			items.push({ label: 'Admin', route: '/admin', icon: <ManageAccounts sx={{ fontSize: 23 }} /> });
+			items.push({ label: 'Admin', route: '/admin', icon: <Security sx={{ fontSize: 23 }} /> });
 		if (isSuperAdmin) {
 			items.push({ label: 'Super Admin', route: '/super-admin', icon: <Security sx={{ fontSize: 23 }} /> });
 		}

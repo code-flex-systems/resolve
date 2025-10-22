@@ -74,7 +74,6 @@ export default function UserActionsDialog() {
 	>({ mode: 'onChange' });
 	const recipients = watch('recipients');
 	const actionType = watch('type');
-	console.log(recipients);
 
 	useEffect(() => {
 		reset(getDefaultAction(existingAction));

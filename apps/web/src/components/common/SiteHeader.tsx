@@ -1,6 +1,6 @@
 'use client';
 import { Collapse, Paper, Typography } from '@mui/material';
-import ProfileAvatar from './ProfileAvatar';
+import ProfileAvatar from '../home/ProfileAvatar';
 import Toolbar from './Toolbar';
 import { OFFWHITE_COLOR } from '@/styles/theme';
 import { useGlobalStore } from '@/stores/useGlobalStore';

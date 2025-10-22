@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Fade, Paper, Stack, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { Handshake, PlayCircle, StopCircle, Warning } from '@mui/icons-material';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
