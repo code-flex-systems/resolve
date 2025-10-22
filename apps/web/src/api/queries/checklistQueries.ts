@@ -134,6 +134,7 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	let query = db
 		.selectFrom('checklist')
+		.leftJoin('page_instance', 'page_instance.checklist_id', 'checklist.id')
 		.leftJoin('users', 'checklist.created_by', 'users.id')
 		.selectAll('checklist')
 		.select((eb) => [
@@ -145,7 +146,9 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
 				.end()
 				.as('creator'),
 		])
-		.select(({ fn }) => fn.countAll().as('page_count'))
+		.select(({ eb, fn }) =>
+			fn.sum(eb.case().when('page_instance.id', 'is', null).then(0).else(1).end()).as('page_count')
+		)
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
 		.groupBy(['checklist.id', 'users.id'])

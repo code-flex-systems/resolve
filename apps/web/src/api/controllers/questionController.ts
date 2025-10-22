@@ -1,6 +1,6 @@
 import * as questionQueries from '@/api/queries/questionQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { AnswerStat, Interval, QuestionStat } from '@/types/types';
+import { AnswerStat, DateRangeStrict, Interval, QuestionStat } from '@/types/types';
 
 /**
  * Insert a question onto a page.
@@ -70,12 +70,12 @@ export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: 
  */
 export async function getQuestionStats(
 	ctx: ProtectedContext,
-	{ pageId, interval }: { pageId: number; interval?: Interval<string> }
+	{ pageId, filters }: { pageId: number; filters: { range: DateRangeStrict; users?: string[] } }
 ) {
-	const results = await questionQueries.getQuestionStats(ctx, pageId, interval);
+	const results = await questionQueries.getQuestionStats(ctx, pageId, filters);
 	const formattedResults: QuestionStat[] = [];
 	const seenQuestionIds = new Set<number>();
-        // Aggregate answers under their respective questions
+	// Aggregate answers under their respective questions
 	(results ?? []).forEach((row) => {
 		const answerStat: AnswerStat = {
 			answer_id: row.answer_id,

@@ -40,6 +40,9 @@ export const pageRouter = router({
 	}),
 
 	getPageInstances: protectedProcedure.input(getPageInstancesInput).query(async ({ input, ctx }) => {
+		if (!input.parentId) {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		}
 		return getPageInstances(ctx, input);
 	}),
 

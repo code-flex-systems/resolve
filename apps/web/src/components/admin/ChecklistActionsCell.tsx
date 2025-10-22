@@ -1,15 +1,17 @@
 'use client';
 
-import { IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import Archive from '@mui/icons-material/Archive';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import Unarchive from '@mui/icons-material/Unarchive';
+import Leaderboard from '@mui/icons-material/Leaderboard';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useRouter } from 'next/navigation';
 import theme from '@/styles/theme';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
 export default function ChecklistActionsCell(params: GridRenderCellParams) {
 	const router = useRouter();
@@ -20,26 +22,44 @@ export default function ChecklistActionsCell(params: GridRenderCellParams) {
 	return (
 		<>
 			<div style={styles.container} className="flex-row-right">
-				<Tooltip title="Open checklist">
-					<IconButton
-						onClick={() => router.push(`/checklist/${params.id}`)}
-						sx={{ ...styles.button, bgcolor: theme.palette.primary.main }}
-					>
-						<OpenInNew sx={{ color: 'white' }} />
-					</IconButton>
-				</Tooltip>
-				<Tooltip title={`${published ? 'Unpublish' : 'Publish'}`}>
-					<IconButton
-						disabled={isPending}
-						onClick={() => setUpdating(true)}
-						sx={{
-							...styles.button,
-							bgcolor: published ? theme.palette.error.main : theme.palette.success.main,
+				<BasicButtonStyled
+					buttonProps={{
+						disabled: isPending,
+						onClick: () => setUpdating(true),
+					}}
+					tooltipProps={{
+						title: `${published ? 'Unpublish' : 'Publish'}`,
+					}}
+					icon={
+						published ? (
+							<Archive sx={{ ...styles.icon, color: theme.palette.error.main }} />
+						) : (
+							<Unarchive sx={{ ...styles.icon, color: theme.palette.success.main }} />
+						)
+					}
+				/>
+				<Box marginLeft="10px">
+					<BasicButtonStyled
+						buttonProps={{
+							onClick: () => router.push(`/checklist/${params.id}/breakdown`),
 						}}
-					>
-						{published ? <Archive sx={{ color: 'white' }} /> : <Unarchive sx={{ color: 'white' }} />}
-					</IconButton>
-				</Tooltip>
+						tooltipProps={{
+							title: 'Go to breakdown...',
+						}}
+						icon={<Leaderboard sx={{ ...styles.icon, transform: 'rotate(90deg)' }} />}
+					/>
+				</Box>
+				<Box marginLeft="10px">
+					<BasicButtonStyled
+						buttonProps={{
+							onClick: () => router.push(`/checklist/${params.id}`),
+						}}
+						tooltipProps={{
+							title: 'Open checklist...',
+						}}
+						icon={<OpenInNew sx={styles.icon} />}
+					/>
+				</Box>
 			</div>
 
 			{updating && (
@@ -77,17 +97,12 @@ export default function ChecklistActionsCell(params: GridRenderCellParams) {
 }
 
 const styles = {
-	button: {
-		// opacity: 0,
-		// transition: 'opacity 200ms',
-		// '.MuiDataGrid-row:hover &': {
-		// 	opacity: 1,
-		// },
-		marginLeft: '15px',
-	},
 	container: {
 		width: '100%',
 		height: '100%',
 		padding: '10px',
+	},
+	icon: {
+		fontSize: 17,
 	},
 };
