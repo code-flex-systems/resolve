@@ -9,6 +9,7 @@ export default function ChecklistSelect({
 	checklist,
 	setChecklist,
 	clearable = true,
+	showEmpty = false,
 	height,
 	text = 'Filter by checklist',
 	disabled = false,
@@ -16,6 +17,7 @@ export default function ChecklistSelect({
 	checklist: GetChecklistOutput | null;
 	setChecklist: (newChecklist: GetChecklistOutput | null) => void;
 	clearable?: boolean;
+	showEmpty?: boolean;
 	height?: number;
 	text?: string;
 	disabled?: boolean;
@@ -24,10 +26,10 @@ export default function ChecklistSelect({
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 
 	useEffect(() => {
-		if (!clearable && options.length > 0) {
+		if (!clearable && !showEmpty && options.length > 0) {
 			setChecklist(options[0]);
 		}
-	}, [options, clearable]);
+	}, [options, clearable, showEmpty]);
 
 	return (
 		<>

@@ -53,9 +53,19 @@ export async function evaluateResponses(
  */
 export async function getResponsesForAnswer(
 	ctx: ProtectedContext,
-	{ answerId, interval }: { answerId: number; interval?: Interval<string> }
+	{
+		answerId,
+		filters,
+		limit,
+		offset,
+	}: {
+		answerId: number;
+		filters: { range: DateRangeStrict; users?: string[] };
+		limit: number;
+		offset: number;
+	}
 ) {
-	const results = await responseQueries.getResponsesForAnswer(ctx, answerId, interval);
+	const results = await responseQueries.getResponsesForAnswer(ctx, answerId, filters, limit, offset);
 	return results;
 }
 

@@ -188,7 +188,12 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 									error={!!errors.role}
 									{...field}
 									value={field.value ?? ''}
-									disabled={isSubmitting || confirmingRoleChange}
+									disabled={
+										isSubmitting ||
+										confirmingRoleChange ||
+										(isAdmin &&
+											(!validRoleInUserData || userData.role !== config.ROLES.CONTRIBUTOR))
+									}
 									renderValue={(value) => (
 										<Box
 											width="100%"

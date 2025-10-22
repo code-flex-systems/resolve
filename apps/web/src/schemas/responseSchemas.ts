@@ -16,7 +16,12 @@ export const intervalSchema = z.object({
 
 export const getResponsesForAnswerInput = z.object({
 	answerId: z.number().int(),
-	interval: intervalSchema.optional(),
+	filters: z.object({
+		users: z.array(z.string()).optional(),
+		range: z.tuple([parseDate(), parseDate()]),
+	}),
+	limit: z.number().int(),
+	offset: z.number().int(),
 });
 export type GetResponsesForAnswerInput = z.infer<typeof getResponsesForAnswerInput>;
 

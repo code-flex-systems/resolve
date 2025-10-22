@@ -1,12 +1,14 @@
 'use client';
-import { useBreakdownStore } from '@/stores/useBreakdownStore';;
-import { Paper } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { useBreakdownStore } from '@/stores/useBreakdownStore';
+import { Box, Paper } from '@mui/material';
+import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { formatMDYAbv } from '@/lib/utils/utils';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
-import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
+import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
+import { DateRange } from '@mui/x-date-pickers-pro';
+import dayjs, { Dayjs } from 'dayjs';
+import { useEffect, useState } from 'react';
+import { CustomPagination } from '../common/CustomPagination';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -23,12 +25,18 @@ const COLUMNS: GridColDef[] = [
 		width: 200,
 	},
 	{
+		headerName: 'Responder',
+		field: 'responder',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		width: 200,
+	},
+	{
 		headerName: 'Response Date',
 		field: 'created_at',
-		valueFormatter: (value: any) => formatMDYAbv(value),
+		valueFormatter: (value: any) => dayjs(value).format('hh:mm A MMM D, YYYY'),
 		renderHeader: (params) => <IconHeaderCell {...params} />,
 		align: 'right',
-		width: 150,
+		width: 200,
 	},
 	{
 		headerName: 'Additional Info',
@@ -38,59 +46,82 @@ const COLUMNS: GridColDef[] = [
 	},
 ];
 
-export default function Breakdown(props: { instanceId: number }) {
-	const { instanceId } = props;
-	const breakdownInterval = useBreakdownStore((state) => state.breakdownInterval);
-	const selectedQuestionId = useBreakdownStore((state) => state.selectedQuestionId);
-	const selectedAnswer = useSelectedBreakdownAnswerData();
-	const { data: pageInstance } = usePageTrpc().getInstance({ instanceId }, { enabled: instanceId !== -1 });
+export default function Breakdown({
+	currentCount,
+	user,
+	range,
+}: {
+	currentCount: number;
+	user: GetUserOutput | null;
+	range: DateRange<Dayjs>;
+}) {
+	const [constraints, setContraints] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
+	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? -1;
+	const today = dayjs().format('MM/DD/YYYY');
 	const { data: breakdown = [], isFetching: loadingBreakdown } = useResponseTrpc().listForAnswer(
 		{
-			answerId: selectedAnswer?.answer_id ?? -1,
-			interval: breakdownInterval,
+			answerId: selectedAnswerId,
+			filters: {
+				range: [range[0]?.toString() ?? today, range[1]?.toString() ?? today] as [string, string],
+				users: user ? [user.id] : [],
+			},
+			limit: constraints.pageSize,
+			offset: constraints.page * constraints.pageSize,
 		},
-		{ enabled: !!selectedAnswer?.answer_id }
+		{ enabled: selectedAnswerId !== -1 }
 	);
 
+	useEffect(() => {
+		setContraints({ page: 0, pageSize: 25 });
+	}, [selectedAnswerId]);
+
 	return (
-		<div style={styles.container}>
-			<Paper elevation={0} style={styles.table}>
-				<DataGridPro
-					columns={COLUMNS}
-					columnHeaderHeight={45}
-					loading={loadingBreakdown}
-					slotProps={{
-						loadingOverlay: {
-							noRowsVariant: 'linear-progress',
-							variant: 'linear-progress',
-						},
-					}}
-					rows={breakdown}
-					rowHeight={40}
-					hideFooterSelectedRowCount
-					pageSizeOptions={[]}
-					getRowClassName={(params) =>
-						params.indexRelativeToCurrentPage % 2 === 0 ? 'striped hovered-row' : 'hovered-row'
-					}
-					disableColumnSelector
-					disableRowSelectionOnClick
-					disableColumnMenu
-					sx={styles.tableOverrides}
-				/>
+		<Box flex={1} height="100%" flexShrink={1} minWidth={0}>
+			<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.table}>
+					<DataGridPro
+						columns={COLUMNS}
+						columnHeaderHeight={45}
+						loading={loadingBreakdown}
+						slotProps={{
+							loadingOverlay: {
+								noRowsVariant: 'linear-progress',
+								variant: 'linear-progress',
+							},
+						}}
+						slots={{
+							pagination: CustomPagination,
+						}}
+						rows={breakdown}
+						rowCount={currentCount}
+						rowHeight={40}
+						hideFooterSelectedRowCount
+						getRowClassName={(params) =>
+							params.indexRelativeToCurrentPage % 2 === 0 ? 'striped hovered-row' : 'hovered-row'
+						}
+						pageSizeOptions={[]}
+						pagination
+						paginationMode="server"
+						paginationModel={constraints}
+						onPaginationModelChange={setContraints}
+						disableColumnSelector
+						disableRowSelectionOnClick
+						disableColumnMenu
+						sx={styles.tableOverrides}
+					/>
+				</div>
 			</Paper>
-		</div>
+		</Box>
 	);
 }
 
 const styles = {
-	container: {
+	paper: {
 		width: '100%',
-		height: 'calc(100vh - 70px)',
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		marginLeft: 5,
+		height: '100%',
+		border: 1,
+		borderColor: 'divider',
+		padding: '15px 15px 0px',
 	},
 	table: {
 		width: '100%',

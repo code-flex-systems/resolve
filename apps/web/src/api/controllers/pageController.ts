@@ -94,7 +94,7 @@ export async function getPageInstance(ctx: ProtectedContext, { instanceId }: { i
  */
 export async function getPageInstances(
 	ctx: ProtectedContext,
-	{ checklistId, parentId }: { checklistId: number; parentId: number }
+	{ checklistId, parentId }: { checklistId: number; parentId?: number }
 ) {
 	const results = await pageQueries.getPageInstances(ctx, checklistId, parentId);
 	return results;
@@ -111,7 +111,7 @@ export async function getPageInstanceTree(
 	ctx: ProtectedContext,
 	{ checklistId, claimId }: { checklistId: number; claimId?: number }
 ) {
-        // Fetch all page instances for the checklist or claim
+	// Fetch all page instances for the checklist or claim
 	const results =
 		(claimId
 			? await pageQueries.getPageInstancesForClaim(ctx, checklistId, claimId)
@@ -127,7 +127,7 @@ export async function getPageInstanceTree(
 			status: row.status,
 			template_version: row.template_version,
 		}));
-        // Recursively attach child nodes to build the tree
+	// Recursively attach child nodes to build the tree
 	for (const node of tree) {
 		addChildrenToTree(node, results);
 	}

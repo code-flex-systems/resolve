@@ -37,7 +37,7 @@ export type GetPageInstanceInput = z.infer<typeof getPageInstanceInput>;
 
 export const getPageInstancesInput = z.object({
 	checklistId: z.number().int(),
-	parentId: z.number().int(),
+	parentId: z.number().int().optional(),
 });
 export type GetPageInstancesInput = z.infer<typeof getPageInstancesInput>;
 

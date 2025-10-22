@@ -1,3 +1,4 @@
+import { parseDate } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
 
 export const questionParams = z.record(z.unknown());
@@ -37,7 +38,10 @@ export const intervalSchema = z.object({
 
 export const getQuestionStatsInput = z.object({
 	pageId: z.number().int(),
-	interval: intervalSchema.optional(),
+	filters: z.object({
+		users: z.array(z.string()).optional(),
+		range: z.tuple([parseDate(), parseDate()]),
+	}),
 });
 export type GetQuestionStatsInput = z.infer<typeof getQuestionStatsInput>;
 

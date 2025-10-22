@@ -66,6 +66,7 @@ export default function UserFilter({
 					}}
 					onDelete={users.length ? () => setUsers([]) : undefined}
 					sx={{
+						minWidth: 135,
 						height,
 						'& .MuiChip-icon': {
 							color: users.length ? theme.palette.primary.main : undefined,

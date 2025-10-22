@@ -425,7 +425,16 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.mocked(mockGetResponsesForAnswer.getResponsesForAnswer).mockResolvedValue([]);
 
 				const caller = createCaller(responseRouter, adminCtx);
-				await expect(caller.getResponsesForAnswer({ answerId: 1 })).resolves.toEqual([]);
+				await expect(
+					caller.getResponsesForAnswer({
+						answerId: 1,
+						filters: {
+							range: ['2025-01-01', '2025-12-31'],
+						},
+						limit: 50,
+						offset: 0,
+					})
+				).resolves.toEqual([]);
 			});
 
 			it('should reject contributor access', async () => {
@@ -1849,7 +1858,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockGetQuestionStats.getQuestionStats).mockResolvedValue([]);
 
 					const caller = createCaller(questionRouter, adminCtx);
-					await expect(caller.getQuestionStats({ pageId: 1 })).resolves.toEqual([]);
+					await expect(
+						caller.getQuestionStats({
+							pageId: 1,
+							filters: {
+								range: ['2025-01-01', '2025-12-31'],
+							},
+						})
+					).resolves.toEqual([]);
 				});
 
 				it('should reject contributor getting question stats', async () => {
@@ -1954,6 +1970,98 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							},
 						})
 					).rejects.toThrow(TRPCError);
+				});
+
+				describe('getPageInstances - Conditional Admin Restriction', () => {
+					it('should allow admin to get page instances without parentId', async () => {
+						const adminCtx: Context = {
+							session: createMockSession({ role: config.ROLES.ADMIN }),
+						};
+
+						const mockGetPageInstances = await import('@/api/controllers/pageController');
+						vi.mocked(mockGetPageInstances.getPageInstances).mockResolvedValue([]);
+
+						const caller = createCaller(pageRouter, adminCtx);
+						await expect(
+							caller.getPageInstances({
+								checklistId: 1,
+								claimId: 100,
+							})
+						).resolves.toEqual([]);
+					});
+
+					it('should allow super admin to get page instances without parentId', async () => {
+						const superAdminCtx: Context = {
+							session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+						};
+
+						const mockGetPageInstances = await import('@/api/controllers/pageController');
+						vi.mocked(mockGetPageInstances.getPageInstances).mockResolvedValue([]);
+
+						const caller = createCaller(pageRouter, superAdminCtx);
+						await expect(
+							caller.getPageInstances({
+								checklistId: 1,
+								claimId: 100,
+							})
+						).resolves.toEqual([]);
+					});
+
+					it('should reject contributor getting page instances without parentId', async () => {
+						const contributorCtx: Context = {
+							session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						};
+
+						const caller = createCaller(pageRouter, contributorCtx);
+						await expect(
+							caller.getPageInstances({
+								checklistId: 1,
+								claimId: 100,
+							})
+						).rejects.toThrow(TRPCError);
+						await expect(
+							caller.getPageInstances({
+								checklistId: 1,
+								claimId: 100,
+							})
+						).rejects.toThrow('User must have one of: Admin, Super Admin');
+					});
+
+					it('should allow contributor to get page instances WITH parentId', async () => {
+						const contributorCtx: Context = {
+							session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						};
+
+						const mockGetPageInstances = await import('@/api/controllers/pageController');
+						vi.mocked(mockGetPageInstances.getPageInstances).mockResolvedValue([]);
+
+						const caller = createCaller(pageRouter, contributorCtx);
+						await expect(
+							caller.getPageInstances({
+								checklistId: 1,
+								claimId: 100,
+								parentId: 5,
+							})
+						).resolves.toEqual([]);
+					});
+
+					it('should allow admin to get page instances WITH parentId', async () => {
+						const adminCtx: Context = {
+							session: createMockSession({ role: config.ROLES.ADMIN }),
+						};
+
+						const mockGetPageInstances = await import('@/api/controllers/pageController');
+						vi.mocked(mockGetPageInstances.getPageInstances).mockResolvedValue([]);
+
+						const caller = createCaller(pageRouter, adminCtx);
+						await expect(
+							caller.getPageInstances({
+								checklistId: 1,
+								claimId: 100,
+								parentId: 5,
+							})
+						).resolves.toEqual([]);
+					});
 				});
 			});
 
