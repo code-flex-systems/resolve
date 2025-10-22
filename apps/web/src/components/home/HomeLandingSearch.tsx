@@ -1,7 +1,9 @@
 'use client';
 
 import { Chip, Collapse, Stack, Typography } from '@mui/material';
-import { ArrowCircleRightOutlined, Checklist, ContentPasteSearch } from '@mui/icons-material';
+import ArrowCircleRightOutlined from '@mui/icons-material/ArrowCircleRightOutlined';
+import Checklist from '@mui/icons-material/Checklist';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import ClaimsSearch from '@/components/home/ClaimsSearch';
 import ChecklistsSearch from '@/components/home/ChecklistsSearch';
 import Separator from '@/components/common/Separator';

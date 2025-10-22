@@ -7,7 +7,10 @@ import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import { Description, Replay, Save, TaskAlt } from '@mui/icons-material';
+import Description from '@mui/icons-material/Description';
+import Replay from '@mui/icons-material/Replay';
+import Save from '@mui/icons-material/Save';
+import TaskAlt from '@mui/icons-material/TaskAlt';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
 import theme, { BASE_COLOR } from '@/styles/theme';
@@ -166,7 +169,9 @@ export default function Page() {
 								/>
 							</>
 						) : (
-							<Typography fontStyle="italic">No page selected</Typography>
+							<Typography color="#d9d9d9" fontSize={15}>
+								No page selected
+							</Typography>
 						)}
 					</div>
 				)}

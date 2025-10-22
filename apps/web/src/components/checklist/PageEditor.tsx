@@ -4,7 +4,11 @@ import { Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
-import { ContentCopy, Delete, East, SubdirectoryArrowRight, TaskAlt } from '@mui/icons-material';
+import ContentCopy from '@mui/icons-material/ContentCopy';
+import Delete from '@mui/icons-material/Delete';
+import East from '@mui/icons-material/East';
+import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
+import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
 import { useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
@@ -222,7 +226,9 @@ export default function PageEditor() {
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Typography fontStyle="italic">No page selected</Typography>
+					<Typography color="#d9d9d9" fontSize={15}>
+						No page selected
+					</Typography>
 				</div>
 			)}
 		</div>

@@ -1,7 +1,8 @@
 'use client';
 
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
-import { ArrowBack, Search } from '@mui/icons-material';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import Search from '@mui/icons-material/Search';
 import PageWrapper from '@/components/common/PageWrapper';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useCallback, useState } from 'react';

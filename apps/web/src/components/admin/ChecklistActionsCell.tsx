@@ -1,7 +1,9 @@
 'use client';
 
 import { IconButton, Tooltip, Typography } from '@mui/material';
-import { Archive, OpenInNew, Unarchive } from '@mui/icons-material';
+import Archive from '@mui/icons-material/Archive';
+import OpenInNew from '@mui/icons-material/OpenInNew';
+import Unarchive from '@mui/icons-material/Unarchive';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useRouter } from 'next/navigation';
 import theme from '@/styles/theme';

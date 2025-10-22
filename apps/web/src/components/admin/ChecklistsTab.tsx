@@ -3,7 +3,8 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
 import { Button, Fade, Paper } from '@mui/material';
-import { AddBox, ContentPasteSearch } from '@mui/icons-material';
+import AddBox from '@mui/icons-material/AddBox';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';

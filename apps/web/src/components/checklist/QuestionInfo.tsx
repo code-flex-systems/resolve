@@ -1,5 +1,5 @@
 'use client';
-import { Info } from '@mui/icons-material';
+import Info from '@mui/icons-material/Info';
 import './styles.css';
 import { Fade, Paper, Popper, Tooltip, Typography } from '@mui/material';
 import { useRef } from 'react';

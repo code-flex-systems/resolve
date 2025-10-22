@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, LinearProgress, linearProgressClasses, Skeleton, Typography } from '@mui/material';
-import { InfoOutlined } from '@mui/icons-material';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import theme from '@/styles/theme';
 import BasicButtonStyled from '../common/BasicButtonStyled';

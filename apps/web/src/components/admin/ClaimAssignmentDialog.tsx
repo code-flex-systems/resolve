@@ -2,7 +2,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import BasicDialog from '../common/BasicDialog';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { Box, Chip, Collapse, Fade, Paper, Stack, Typography } from '@mui/material';
-import { ContentPasteSearch } from '@mui/icons-material';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatAmount, formatMDY } from '@/lib/utils/utils';
 import StackedMetric from '../checklist/StackedMetric';
 import theme, { BASE_COLOR } from '@/styles/theme';

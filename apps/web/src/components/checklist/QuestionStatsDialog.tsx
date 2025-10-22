@@ -5,7 +5,7 @@ import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
 import { Collapse, Typography } from '@mui/material';
-import { Warning } from '@mui/icons-material';
+import Warning from '@mui/icons-material/Warning';
 import BasicButton from '../common/BasicButton';
 import { useRouter } from 'next/navigation';
 import { LineWobble } from 'ldrs/react';

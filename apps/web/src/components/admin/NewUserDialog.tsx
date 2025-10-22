@@ -3,7 +3,7 @@
 import { TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import { Send } from '@mui/icons-material';
+import Send from '@mui/icons-material/Send';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 

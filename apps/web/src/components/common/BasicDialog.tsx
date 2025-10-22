@@ -3,7 +3,8 @@ import { Dialog, DialogActions, DialogContent, Fade, IconButton, Paper, Typograp
 import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '@/types/types';
-import { Cancel, CheckCircle } from '@mui/icons-material';
+import Cancel from '@mui/icons-material/Cancel';
+import CheckCircle from '@mui/icons-material/CheckCircle';
 
 export default function BasicDialog(
 	props: {

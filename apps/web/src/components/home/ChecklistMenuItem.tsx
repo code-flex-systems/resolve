@@ -1,5 +1,8 @@
 'use client';
-import { AccessTimeFilled, CheckCircle, Checklist, Description } from '@mui/icons-material';
+import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import Checklist from '@mui/icons-material/Checklist';
+import Description from '@mui/icons-material/Description';
 import { Box, Divider, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { Checklist as ChecklistType } from '@/types/types';

@@ -3,7 +3,8 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { BASE_COLOR } from '@/styles/theme';
 import { Box, Button, Typography } from '@mui/material';
-import { Edit, Logout } from '@mui/icons-material';
+import Edit from '@mui/icons-material/Edit';
+import Logout from '@mui/icons-material/Logout';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';

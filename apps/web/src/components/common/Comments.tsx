@@ -2,7 +2,7 @@
 
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { Box, Collapse, Divider, MenuItem, Stack, Typography } from '@mui/material';
-import { ArrowRightAlt } from '@mui/icons-material';
+import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import { TransitionGroup } from 'react-transition-group';
 import { formatMD, formatUser } from '@/lib/utils/utils';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';

@@ -1,5 +1,5 @@
 import { Box, Paper, Stack, Typography } from '@mui/material';
-import { Search } from '@mui/icons-material';
+import Search from '@mui/icons-material/Search';
 import UserActivityTable from '../metrics/UserActivity/UserActivityTable';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useCallback, useState } from 'react';

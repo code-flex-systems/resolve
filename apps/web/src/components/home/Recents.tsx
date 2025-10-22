@@ -1,7 +1,8 @@
 'use client';
 import { Box, Collapse, Divider, MenuItem, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT, ORANGE } from '@/styles/theme';
-import { ArrowCircleRightOutlined, ContentPasteSearch } from '@mui/icons-material';
+import ArrowCircleRightOutlined from '@mui/icons-material/ArrowCircleRightOutlined';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { TransitionGroup } from 'react-transition-group';

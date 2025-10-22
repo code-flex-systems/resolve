@@ -1,5 +1,8 @@
 'use client';
-import { AccessTimeFilled, AccountCircle, CheckCircle, ContentPasteSearch } from '@mui/icons-material';
+import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { Box, Divider, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { Claim } from '@/types/types';

@@ -2,7 +2,7 @@
 import { Box, Fade, Paper, Popper, PopperProps, Stack } from '@mui/material';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
-import { ContentPasteSearch } from '@mui/icons-material';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useState } from 'react';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';

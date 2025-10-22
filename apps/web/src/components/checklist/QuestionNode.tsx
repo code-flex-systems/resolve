@@ -1,7 +1,7 @@
 'use client';
 import { Collapse, IconButton, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import { Add } from '@mui/icons-material';
+import Add from '@mui/icons-material/Add';
 import './styles.css';
 import { Answer } from '@/types/types';
 import AnswerNode from './AnswerNode';

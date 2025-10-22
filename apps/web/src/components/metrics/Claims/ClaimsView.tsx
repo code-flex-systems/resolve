@@ -1,7 +1,9 @@
 'use client';
 
 import { Box, Divider, Fade, Paper, Stack, Typography } from '@mui/material';
-import { ArrowBack, CheckCircle, Subject } from '@mui/icons-material';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import Subject from '@mui/icons-material/Subject';
 import PageWrapper from '@/components/common/PageWrapper';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useState } from 'react';

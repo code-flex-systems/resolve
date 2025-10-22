@@ -1,7 +1,7 @@
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import BasicDialog from '../common/BasicDialog';
 import { Box, Paper, Typography } from '@mui/material';
-import { Warning } from '@mui/icons-material';
+import Warning from '@mui/icons-material/Warning';
 import { BASE_COLOR } from '@/styles/theme';
 
 export default function UpdateSubmittedDialog() {
