@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react';
 import { Autocomplete, Box, Chip, Paper, PopperProps, TextField } from '@mui/material';
 import BasicPopper from './BasicPopper';
 import theme from '@/styles/theme';
-import { People } from '@mui/icons-material';
+import People from '@mui/icons-material/People';
 import useDebounce from '@/lib/utils/useDebounce';
 import { StackedRow } from './StackedRow';
 

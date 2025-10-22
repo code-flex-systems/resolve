@@ -1,13 +1,11 @@
 import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import {
-	AssignmentTurnedIn,
-	Email,
-	Event,
-	InfoOutlined,
-	MarkunreadMailbox,
-	Share,
-	Troubleshoot,
-} from '@mui/icons-material';
+import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
+import Email from '@mui/icons-material/Email';
+import Event from '@mui/icons-material/Event';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import MarkunreadMailbox from '@mui/icons-material/MarkunreadMailbox';
+import Share from '@mui/icons-material/Share';
+import Troubleshoot from '@mui/icons-material/Troubleshoot';
 import ExpandableTitle from '../common/ExpandableTitle';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicButtonStyled from '../common/BasicButtonStyled';

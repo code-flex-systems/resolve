@@ -2,7 +2,10 @@
 
 import { Box, Fade, Paper, Stack, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import { Handshake, PlayCircle, StopCircle, Warning } from '@mui/icons-material';
+import Handshake from '@mui/icons-material/Handshake';
+import PlayCircle from '@mui/icons-material/PlayCircle';
+import StopCircle from '@mui/icons-material/StopCircle';
+import Warning from '@mui/icons-material/Warning';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { BASE_COLOR } from '@/styles/theme';

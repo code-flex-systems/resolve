@@ -1,15 +1,13 @@
 'use client';
 
 import { Box, Collapse, Fade, Grid, Paper, Stack, Typography } from '@mui/material';
-import {
-	Checklist,
-	ContentPasteSearch,
-	HorizontalSplit,
-	People,
-	Replay,
-	RssFeed,
-	Timelapse,
-} from '@mui/icons-material';
+import Checklist from '@mui/icons-material/Checklist';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
+import HorizontalSplit from '@mui/icons-material/HorizontalSplit';
+import People from '@mui/icons-material/People';
+import Replay from '@mui/icons-material/Replay';
+import RssFeed from '@mui/icons-material/RssFeed';
+import Timelapse from '@mui/icons-material/Timelapse';
 import SimpleMetric from '../metrics/SimpleMetric';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT, PURPLE } from '@/styles/theme';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';

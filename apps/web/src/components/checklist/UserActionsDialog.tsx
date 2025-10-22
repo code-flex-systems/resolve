@@ -1,7 +1,10 @@
 'use client';
 
 import { Box, Fade, FormControl, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
-import { AssignmentTurnedIn, Email, Event, MarkunreadMailbox } from '@mui/icons-material';
+import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
+import Email from '@mui/icons-material/Email';
+import Event from '@mui/icons-material/Event';
+import MarkunreadMailbox from '@mui/icons-material/MarkunreadMailbox';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { ActionType } from '@/config/enums';

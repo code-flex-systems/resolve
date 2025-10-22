@@ -1,6 +1,8 @@
 'use client';
 
-import { CheckCircle, PanoramaFishEye, StopCircle } from '@mui/icons-material';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import PanoramaFishEye from '@mui/icons-material/PanoramaFishEye';
+import StopCircle from '@mui/icons-material/StopCircle';
 import { ClaimStatus } from '@/config/enums';
 import theme from '@/styles/theme';
 import CheckGradient from '../common/CheckGradient';

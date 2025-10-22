@@ -1,7 +1,10 @@
 'use client';
 import { PropsWithChildren, useMemo } from 'react';
 import Sidebar, { NavItem } from './Sidebar';
-import { ContentPasteSearch, Home, ManageAccounts, Security } from '@mui/icons-material';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
+import Home from '@mui/icons-material/Home';
+import ManageAccounts from '@mui/icons-material/ManageAccounts';
+import Security from '@mui/icons-material/Security';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';

@@ -11,7 +11,12 @@ import {
 	ToggleButton,
 	ToggleButtonGroup,
 } from '@mui/material';
-import { AccessTime, Add, MovieCreationOutlined, MovieEdit, SmsOutlined, Visibility } from '@mui/icons-material';
+import AccessTime from '@mui/icons-material/AccessTime';
+import Add from '@mui/icons-material/Add';
+import MovieCreationOutlined from '@mui/icons-material/MovieCreationOutlined';
+import MovieEdit from '@mui/icons-material/MovieEdit';
+import SmsOutlined from '@mui/icons-material/SmsOutlined';
+import Visibility from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/navigation';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';

@@ -3,7 +3,7 @@
 import { FormControl, FormLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import { ContentPasteSearch } from '@mui/icons-material';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useRouter } from 'next/navigation';

@@ -5,7 +5,7 @@ import Comments from '../common/Comments';
 import { useSession } from 'next-auth/react';
 import './styles.css';
 import ExpandableTitle from '../common/ExpandableTitle';
-import { Sms } from '@mui/icons-material';
+import Sms from '@mui/icons-material/Sms';
 import { buildChecklistUrl } from '@/lib/utils/buildChecklistUrl';
 import { useRouter } from 'next/navigation';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';

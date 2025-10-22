@@ -3,7 +3,9 @@
 import { ClaimStatus } from '@/config/enums';
 import theme, { BASE_COLOR, ORANGE } from '@/styles/theme';
 import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { CheckCircle, InfoOutlined, Troubleshoot } from '@mui/icons-material';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import Troubleshoot from '@mui/icons-material/Troubleshoot';
 import { PieChart } from '@mui/x-charts-pro';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';

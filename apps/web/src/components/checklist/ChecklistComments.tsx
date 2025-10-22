@@ -11,7 +11,10 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { AddCircle, KeyboardArrowLeft, KeyboardArrowRight, SmsOutlined } from '@mui/icons-material';
+import AddCircle from '@mui/icons-material/AddCircle';
+import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
+import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Comments from '../common/Comments';
 import { useState } from 'react';

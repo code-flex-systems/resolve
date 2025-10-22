@@ -10,7 +10,9 @@ import {
 	Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { CalendarToday, Check, Event } from '@mui/icons-material';
+import CalendarToday from '@mui/icons-material/CalendarToday';
+import Check from '@mui/icons-material/Check';
+import Event from '@mui/icons-material/Event';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
 

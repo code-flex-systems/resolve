@@ -1,7 +1,8 @@
 'use client';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Link, Typography } from '@mui/material';
 import { QuestionStat } from '@/types/types';
-import { ArrowDropDown, Help } from '@mui/icons-material';
+import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
+import Help from '@mui/icons-material/Help';
 import theme from '@/styles/theme';
 
 export default function QuestionStatItem(props: {
