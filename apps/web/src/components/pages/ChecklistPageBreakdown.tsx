@@ -1,5 +1,5 @@
 'use client';
-import { ArrowBack } from '@mui/icons-material';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 import BreakdownNavigation from '@/components/breakdown/BreakdownNavigation';
 import Breakdown from '@/components/breakdown/Breakdown';
 import { useChecklistParams } from '@/hooks/useChecklistParams';

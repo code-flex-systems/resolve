@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { Box, Button, Chip, Paper, PopperProps, Stack } from '@mui/material';
 import { DateRange, DateRangeCalendar } from '@mui/x-date-pickers-pro';
-import { WatchLater } from '@mui/icons-material';
+import WatchLater from '@mui/icons-material/WatchLater';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';

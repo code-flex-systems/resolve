@@ -1,6 +1,6 @@
 'use client';
 import { Box, Divider, IconButton, Stack } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import Toolbar from '@/components/common/Toolbar';
 import SummaryChart from '@/components//summary/SummaryChart';

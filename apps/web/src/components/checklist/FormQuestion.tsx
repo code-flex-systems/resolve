@@ -13,7 +13,10 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { ContentCopy, Delete, Save, TaskAlt } from '@mui/icons-material';
+import ContentCopy from '@mui/icons-material/ContentCopy';
+import Delete from '@mui/icons-material/Delete';
+import Save from '@mui/icons-material/Save';
+import TaskAlt from '@mui/icons-material/TaskAlt';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';

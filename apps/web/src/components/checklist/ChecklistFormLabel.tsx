@@ -1,5 +1,6 @@
 'use client';
-import { Replay, SmsOutlined } from '@mui/icons-material';
+import Replay from '@mui/icons-material/Replay';
+import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import { FormLabel, IconButton, Tooltip, Typography } from '@mui/material';
 import QuestionInfo from './QuestionInfo';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';

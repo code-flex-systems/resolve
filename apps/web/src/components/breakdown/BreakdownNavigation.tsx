@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Box, Fade, Paper, Typography } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import { Description } from '@mui/icons-material';
+import Description from '@mui/icons-material/Description';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';

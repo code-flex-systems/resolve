@@ -17,7 +17,11 @@ import {
 } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import { ContentCopy, Delete, Save, Share, TaskAlt } from '@mui/icons-material';
+import ContentCopy from '@mui/icons-material/ContentCopy';
+import Delete from '@mui/icons-material/Delete';
+import Save from '@mui/icons-material/Save';
+import Share from '@mui/icons-material/Share';
+import TaskAlt from '@mui/icons-material/TaskAlt';
 import Toolbar from '../common/Toolbar';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';

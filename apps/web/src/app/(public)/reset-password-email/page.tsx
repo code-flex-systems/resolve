@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Collapse, TextField, Typography } from '@mui/material';
-import { Send } from '@mui/icons-material';
+import Send from '@mui/icons-material/Send';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import { usePasswordResetTrpc } from '@/hooks/trpc/usePasswordResetTrpc';
 

@@ -2,7 +2,7 @@ import { GetChecklistOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistT
 import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Checklist } from '@mui/icons-material';
+import Checklist from '@mui/icons-material/Checklist';
 import theme from '@/styles/theme';
 
 export default function ChecklistSelect({

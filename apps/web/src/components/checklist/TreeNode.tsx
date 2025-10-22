@@ -1,7 +1,11 @@
 'use client';
 import { Box, Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import { Adjust, CheckCircle, Error, KeyboardArrowRight, PanoramaFishEye } from '@mui/icons-material';
+import Adjust from '@mui/icons-material/Adjust';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import Error from '@mui/icons-material/Error';
+import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
+import PanoramaFishEye from '@mui/icons-material/PanoramaFishEye';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';

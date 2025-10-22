@@ -6,7 +6,8 @@ import { useChecklistStore } from '@/stores/useChecklistStore';
 import { Box, Chip, Collapse, Paper, Stack, Typography } from '@mui/material';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import { Handshake, Warning } from '@mui/icons-material';
+import Handshake from '@mui/icons-material/Handshake';
+import Warning from '@mui/icons-material/Warning';
 import theme, { BASE_COLOR } from '@/styles/theme';
 
 export default function ChecklistHandoffDialog() {

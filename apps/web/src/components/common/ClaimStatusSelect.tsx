@@ -2,7 +2,7 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { Box, Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { CheckCircle } from '@mui/icons-material';
+import CheckCircle from '@mui/icons-material/CheckCircle';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { ClaimStatus } from '@/config/enums';
 import ClaimStatusIcon from '../checklist/ClaimStatusIcon';

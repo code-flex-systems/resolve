@@ -1,5 +1,5 @@
 import { Link, Skeleton, Stack } from '@mui/material';
-import { Logout } from '@mui/icons-material';
+import Logout from '@mui/icons-material/Logout';
 
 export default function MetricAction({
 	action,

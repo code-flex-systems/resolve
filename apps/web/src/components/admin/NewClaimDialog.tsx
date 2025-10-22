@@ -3,7 +3,8 @@
 import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import { ContentPasteSearch, Info } from '@mui/icons-material';
+import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
+import Info from '@mui/icons-material/Info';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { Claim } from '@/types/types';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';

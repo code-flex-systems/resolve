@@ -1,7 +1,7 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { Fade, Paper, Popper, PopperProps, Stack } from '@mui/material';
-import { Checklist } from '@mui/icons-material';
+import Checklist from '@mui/icons-material/Checklist';
 import { useState } from 'react';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { StackedRow } from '../common/StackedRow';
