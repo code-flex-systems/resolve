@@ -46,30 +46,39 @@ export default function UserActionsCell(params: GridRenderCellParams) {
 				</BasicDialog>
 			)}
 			{updating && <UpdateUserDialog user={row} onClose={() => setUpdating(false)} />}
-			{session?.user?.id === row.id ? (
-				<></>
-			) : (
-				<div style={{ width: '100%', height: '100%' }} className="flex-row-center">
-					<Box marginRight="10px">
+
+			<div style={styles.container}>
+				<BasicButtonStyled
+					buttonProps={{
+						onClick: () => setUpdating(true),
+						disabled: isPending,
+					}}
+					tooltipProps={{ title: 'Make changes' }}
+					icon={<Edit sx={{ fontSize: 15 }} />}
+				/>
+				{session?.user?.id !== row.id && (
+					<Box marginLeft="10px">
 						<BasicButtonStyled
 							buttonProps={{
-								onClick: () => setUpdating(true),
+								onClick: () => setOnOffboarding(true),
 								disabled: isPending,
 							}}
-							tooltipProps={{ title: 'Make changes' }}
-							icon={<Edit sx={{ fontSize: 15 }} />}
+							tooltipProps={{ title: row.disabled ? 'Onboard' : 'Offboard' }}
+							icon={<Logout sx={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />}
 						/>
 					</Box>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setOnOffboarding(true),
-							disabled: isPending,
-						}}
-						tooltipProps={{ title: 'Offboard' }}
-						icon={<Logout sx={{ fontSize: 15 }} />}
-					/>
-				</div>
-			)}
+				)}
+			</div>
 		</>
 	);
 }
+
+const styles = {
+	container: {
+		width: '100%',
+		height: '100%',
+		display: 'flex',
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+	},
+};
