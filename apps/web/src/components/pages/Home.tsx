@@ -4,7 +4,7 @@ import { Box, Fade, Grid, Stack, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import Recents from '@/components/home/Recents';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
-import ProfileAvatar from '../common/ProfileAvatar';
+import ProfileAvatar from '../home/ProfileAvatar';
 import RecentComments from '../home/RecentComments';
 import HomeSearch from '../home/HomeSearch';
 import FQStepper from '../home/FQStepper';

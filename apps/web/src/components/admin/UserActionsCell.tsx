@@ -2,20 +2,24 @@
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { BASE_COLOR } from '@/styles/theme';
-import { Button, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
+import { Edit, Logout } from '@mui/icons-material';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
+import BasicButtonStyled from '../common/BasicButtonStyled';
+import UpdateUserDialog from '../home/UpdateUserDialog';
 
 export default function UserActionsCell(params: GridRenderCellParams) {
 	const { row } = params;
 	const { mutate, isPending } = useUserTrpc().update;
 	const { data: session } = useSession();
+	const [onOffboarding, setOnOffboarding] = useState(false);
 	const [updating, setUpdating] = useState(false);
 	return (
 		<>
-			{updating && (
+			{onOffboarding && (
 				<BasicDialog
 					title={`${row.disabled ? 'Onboard' : 'Offboard'} ${row.first} ${row.last}`}
 					primaryAction={{
@@ -26,10 +30,10 @@ export default function UserActionsCell(params: GridRenderCellParams) {
 					secondaryActions={[
 						{
 							label: 'Cancel',
-							onClick: () => setUpdating(false),
+							onClick: () => setOnOffboarding(false),
 						},
 					]}
-					onClose={() => setUpdating(false)}
+					onClose={() => setOnOffboarding(false)}
 					width={500}
 				>
 					<Typography fontStyle="italic" fontWeight="bold">
@@ -41,18 +45,29 @@ export default function UserActionsCell(params: GridRenderCellParams) {
 					</Typography>
 				</BasicDialog>
 			)}
-			{session?.user?.email === row.email ? (
+			{updating && <UpdateUserDialog user={row} onClose={() => setUpdating(false)} />}
+			{session?.user?.id === row.id ? (
 				<></>
 			) : (
 				<div style={{ width: '100%', height: '100%' }} className="flex-row-center">
-					<Button
-						onClick={() => setUpdating(true)}
-						sx={{ bgcolor: BASE_COLOR, height: 25 }}
-						variant="contained"
-						disabled={isPending}
-					>
-						{row.disabled ? 'Onboard' : 'Offboard'}
-					</Button>
+					<Box marginRight="10px">
+						<BasicButtonStyled
+							buttonProps={{
+								onClick: () => setUpdating(true),
+								disabled: isPending,
+							}}
+							tooltipProps={{ title: 'Make changes' }}
+							icon={<Edit sx={{ fontSize: 15 }} />}
+						/>
+					</Box>
+					<BasicButtonStyled
+						buttonProps={{
+							onClick: () => setOnOffboarding(true),
+							disabled: isPending,
+						}}
+						tooltipProps={{ title: 'Offboard' }}
+						icon={<Logout sx={{ fontSize: 15 }} />}
+					/>
 				</div>
 			)}
 		</>

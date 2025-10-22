@@ -717,7 +717,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							role: config.ROLES.ADMIN,
 						},
 					})
-				).rejects.toThrow('Contributors cannot modify role, disabled status, or verification fields');
+				).rejects.toThrow('User must have one of: Admin, Super Admin');
 			});
 
 			it('should reject contributor updating their own disabled field', async () => {
@@ -733,55 +733,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							disabled: false,
 						},
 					})
-				).rejects.toThrow('Contributors cannot modify role, disabled status, or verification fields');
-			});
-
-			it('should reject contributor updating their own email_verified field', async () => {
-				const userCtx: Context = {
-					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				};
-
-				const caller = createCaller(userRouter, userCtx);
-				await expect(
-					caller.updateUser({
-						id: 'user-123',
-						params: {
-							email_verified: '2025-01-01',
-						},
-					})
-				).rejects.toThrow('Contributors cannot modify role, disabled status, or verification fields');
-			});
-
-			it('should reject contributor updating their own phone_verified field', async () => {
-				const userCtx: Context = {
-					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				};
-
-				const caller = createCaller(userRouter, userCtx);
-				await expect(
-					caller.updateUser({
-						id: 'user-123',
-						params: {
-							phone_verified: '2025-01-01',
-						},
-					})
-				).rejects.toThrow('Contributors cannot modify role, disabled status, or verification fields');
-			});
-
-			it('should reject contributor updating their own must_change_password field', async () => {
-				const userCtx: Context = {
-					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				};
-
-				const caller = createCaller(userRouter, userCtx);
-				await expect(
-					caller.updateUser({
-						id: 'user-123',
-						params: {
-							must_change_password: false,
-						},
-					})
-				).rejects.toThrow('Contributors cannot modify role, disabled status, or verification fields');
+				).rejects.toThrow('User must have one of: Admin, Super Admin');
 			});
 
 			it('should reject contributor updating multiple privileged fields', async () => {
@@ -796,10 +748,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						params: {
 							role: config.ROLES.ADMIN,
 							disabled: false,
-							email_verified: '2025-01-01',
 						},
 					})
-				).rejects.toThrow('Contributors cannot modify role, disabled status, or verification fields');
+				).rejects.toThrow('User must have one of: Admin, Super Admin');
 			});
 
 			it('should reject contributor updating other users', async () => {
@@ -813,6 +764,204 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						id: 'user-456',
 						params: {
 							first: 'Updated',
+						},
+					})
+				).rejects.toThrow(TRPCError);
+			});
+		});
+
+		describe('updateUser - Role Elevation Rules', () => {
+			it('should allow Admin to elevate Contributor to Admin', async () => {
+				const adminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.ADMIN }),
+				};
+
+				const mockUpdateUser = await import('@/api/controllers/userController');
+				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
+					first: 'John',
+					last: 'Doe',
+					email: 'john@example.com',
+					phone: null,
+				} as any);
+
+				const caller = createCaller(userRouter, adminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.ADMIN,
+						},
+					})
+				).resolves.toBeDefined();
+			});
+
+			it('should reject Admin trying to elevate Contributor to Super Admin', async () => {
+				const adminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.ADMIN }),
+				};
+
+				const caller = createCaller(userRouter, adminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.SUPER_ADMIN,
+						},
+					})
+				).rejects.toThrow(TRPCError);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.SUPER_ADMIN,
+						},
+					})
+				).rejects.toThrow('User must have one of: Super Admin');
+			});
+
+			it('should reject Admin trying to demote Admin to Contributor', async () => {
+				const adminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.ADMIN }),
+				};
+
+				const caller = createCaller(userRouter, adminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.CONTRIBUTOR,
+						},
+					})
+				).rejects.toThrow(TRPCError);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.CONTRIBUTOR,
+						},
+					})
+				).rejects.toThrow('User must have one of: Super Admin');
+			});
+
+			it('should allow Super Admin to elevate Contributor to Admin', async () => {
+				const superAdminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				};
+
+				const mockUpdateUser = await import('@/api/controllers/userController');
+				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
+					first: 'John',
+					last: 'Doe',
+					email: 'john@example.com',
+					phone: null,
+				} as any);
+
+				const caller = createCaller(userRouter, superAdminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.ADMIN,
+						},
+					})
+				).resolves.toBeDefined();
+			});
+
+			it('should allow Super Admin to elevate Contributor to Super Admin', async () => {
+				const superAdminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				};
+
+				const mockUpdateUser = await import('@/api/controllers/userController');
+				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
+					first: 'John',
+					last: 'Doe',
+					email: 'john@example.com',
+					phone: null,
+				} as any);
+
+				const caller = createCaller(userRouter, superAdminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.SUPER_ADMIN,
+						},
+					})
+				).resolves.toBeDefined();
+			});
+
+			it('should allow Super Admin to demote Admin to Contributor', async () => {
+				const superAdminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				};
+
+				const mockUpdateUser = await import('@/api/controllers/userController');
+				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
+					first: 'John',
+					last: 'Doe',
+					email: 'john@example.com',
+					phone: null,
+				} as any);
+
+				const caller = createCaller(userRouter, superAdminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.CONTRIBUTOR,
+						},
+					})
+				).resolves.toBeDefined();
+			});
+
+			it('should allow Super Admin to demote Super Admin to Contributor', async () => {
+				const superAdminCtx: Context = {
+					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				};
+
+				const mockUpdateUser = await import('@/api/controllers/userController');
+				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
+					first: 'John',
+					last: 'Doe',
+					email: 'john@example.com',
+					phone: null,
+				} as any);
+
+				const caller = createCaller(userRouter, superAdminCtx);
+				await expect(
+					caller.updateUser({
+						id: 'user-456',
+						params: {
+							role: config.ROLES.CONTRIBUTOR,
+						},
+					})
+				).resolves.toBeDefined();
+			});
+
+			it('should reject Contributor trying to change any role', async () => {
+				const contributorCtx: Context = {
+					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				};
+
+				const caller = createCaller(userRouter, contributorCtx);
+
+				// Try to elevate themselves to Admin
+				await expect(
+					caller.updateUser({
+						id: 'user-123',
+						params: {
+							role: config.ROLES.ADMIN,
+						},
+					})
+				).rejects.toThrow(TRPCError);
+
+				// Try to elevate themselves to Super Admin
+				await expect(
+					caller.updateUser({
+						id: 'user-123',
+						params: {
+							role: config.ROLES.SUPER_ADMIN,
 						},
 					})
 				).rejects.toThrow(TRPCError);

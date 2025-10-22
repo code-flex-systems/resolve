@@ -39,3 +39,4 @@ export function useUserTrpc() {
 }
 
 export type GetUserOutput = UserOutput['getUsers'][number];
+export type UpdateUserInput = UserInput['updateUser'];

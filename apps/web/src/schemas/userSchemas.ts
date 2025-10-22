@@ -1,3 +1,4 @@
+import config from '@/config/config';
 import { parseDate } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
 
@@ -46,15 +47,12 @@ export const createUsersInput = z.object({
 export const updateUserInput = z.object({
 	id: z.string(),
 	params: z.object({
-		name: z.string().optional(),
+		first: z.string().optional(),
+		last: z.string().optional(),
 		email: z.string().email().optional(),
-		password: z.string().optional(),
-		phone_number: z.string().optional(),
-		role: z.string().optional(),
+		phone: z.string().optional(),
+		role: z.nativeEnum(config.ROLES).optional(),
 		disabled: z.boolean().optional(),
-		email_verified: parseDate().optional(),
-		phone_verified: parseDate().optional(),
-		must_change_password: z.boolean().optional(),
 	}),
 });
 

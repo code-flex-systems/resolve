@@ -71,6 +71,7 @@ export default function Recents() {
 								.filter((rc) => rc.status === ds)
 								.map((c, i) => (
 									<MenuItem
+										key={i}
 										onClick={() => router.push(`/checklist/${c.checklist_id}/claim/${c.claim_id}`)}
 										sx={styles.menuItem}
 									>

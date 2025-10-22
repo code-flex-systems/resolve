@@ -130,7 +130,6 @@ export default function ChecklistClaims({
 		const newClaim = newModel.length
 			? (data.rows.find((c) => `${c.checklist_id}:${c.claim_id}` === newModel[0]) ?? null)
 			: null;
-		console.log(newClaim);
 		setClaim(newClaim);
 	};
 

@@ -3,11 +3,12 @@ import { Dialog, DialogActions, DialogContent, Fade, IconButton, Paper, Typograp
 import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '@/types/types';
-import { Cancel } from '@mui/icons-material';
+import { Cancel, CheckCircle } from '@mui/icons-material';
 
 export default function BasicDialog(
 	props: {
 		title?: string | JSX.Element;
+		titleHeight?: string | number;
 		onClose: () => void;
 		closeDisabled?: boolean;
 		primaryAction?: DialogAction;
@@ -22,6 +23,7 @@ export default function BasicDialog(
 ) {
 	const {
 		title,
+		titleHeight = 50,
 		onClose,
 		closeDisabled,
 		primaryAction,
@@ -49,7 +51,7 @@ export default function BasicDialog(
 			}}
 		>
 			{(!!title || !!iconActions.length || showCloseButton) && (
-				<div style={styles.title}>
+				<div style={{ ...styles.title, height: titleHeight }}>
 					<div
 						style={{
 							...styles.titleSide,
@@ -113,7 +115,7 @@ export default function BasicDialog(
 										variant: 'contained',
 										disabled: primaryAction.disabled,
 										color: primaryAction.color,
-										startIcon: primaryAction.icon,
+										startIcon: primaryAction.icon ?? <CheckCircle />,
 									}}
 								>
 									{primaryAction.label}
@@ -130,7 +132,6 @@ export default function BasicDialog(
 const styles = {
 	title: {
 		width: '100%',
-		height: 50,
 		minHeight: 50,
 		display: 'flex',
 		justifyContent: 'space-between',
