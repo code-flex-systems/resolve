@@ -169,7 +169,9 @@ export default function Page() {
 								/>
 							</>
 						) : (
-							<Typography fontStyle="italic">No page selected</Typography>
+							<Typography color="#d9d9d9" fontSize={15}>
+								No page selected
+							</Typography>
 						)}
 					</div>
 				)}

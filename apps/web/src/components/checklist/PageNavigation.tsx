@@ -7,9 +7,11 @@ import {
 	Divider,
 	Fade,
 	Paper,
+	Stack,
 	SvgIcon,
 	ToggleButton,
 	ToggleButtonGroup,
+	Typography,
 } from '@mui/material';
 import AccessTime from '@mui/icons-material/AccessTime';
 import Add from '@mui/icons-material/Add';
@@ -359,9 +361,21 @@ export default function PageNavigation() {
 				<div style={styles.nodeContainer}>
 					<Fade in={!!checklist && !isFetching && (!claimId || !!claim)} unmountOnExit timeout={500}>
 						<span>
-							{navigation.tree.map((node) => (
-								<TreeNode key={node.instanceId} level={0} {...node} />
-							))}
+							{navigation.tree.length ? (
+								navigation.tree.map((node) => <TreeNode key={node.instanceId} level={0} {...node} />)
+							) : (
+								<Stack
+									display="flex"
+									width="100%"
+									height="100%"
+									justifyContent="center"
+									alignItems="center"
+								>
+									<Typography color="#d9d9d9" fontSize={15}>
+										No pages found
+									</Typography>
+								</Stack>
+							)}
 						</span>
 					</Fade>
 				</div>

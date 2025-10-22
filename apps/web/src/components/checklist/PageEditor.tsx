@@ -226,7 +226,9 @@ export default function PageEditor() {
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Typography fontStyle="italic">No page selected</Typography>
+					<Typography color="#d9d9d9" fontSize={15}>
+						No page selected
+					</Typography>
 				</div>
 			)}
 		</div>

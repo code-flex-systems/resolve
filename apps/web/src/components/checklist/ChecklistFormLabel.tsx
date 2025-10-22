@@ -5,7 +5,7 @@ import { FormLabel, IconButton, Tooltip, Typography } from '@mui/material';
 import QuestionInfo from './QuestionInfo';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
-import { QuestionType } from '@/config/enums';
+import { ChecklistMode, QuestionType } from '@/config/enums';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import theme from '@/styles/theme';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
@@ -21,6 +21,7 @@ export default function ChecklistFormLabel(props: {
 	setValue: UseFormSetValue<FieldValues>;
 }) {
 	const { id, value, idx, question, comment, disabled, setValue } = props;
+	const mode = useChecklistStore((state) => state.mode);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const highlightedQuestion = useChecklistStore((state) => state.highlightedQuestion);
 	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
@@ -44,17 +45,23 @@ export default function ChecklistFormLabel(props: {
 					</span>
 				</Tooltip>
 			)}
-			<Tooltip title="Add a comment" enterDelay={500}>
-				<span>
-					<IconButton
-						onClick={() => toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id, comment)}
-						disabled={disabled}
-						sx={{ marginRight: '10px' }}
-					>
-						<SmsOutlined sx={{ fontSize: 17, color: comment ? theme.palette.secondary.main : undefined }} />
-					</IconButton>
-				</span>
-			</Tooltip>
+			{mode === ChecklistMode.VIEW && (
+				<Tooltip title="Add a comment" enterDelay={500}>
+					<span>
+						<IconButton
+							onClick={() =>
+								toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id, comment)
+							}
+							disabled={disabled}
+							sx={{ marginRight: '10px' }}
+						>
+							<SmsOutlined
+								sx={{ fontSize: 17, color: comment ? theme.palette.secondary.main : undefined }}
+							/>
+						</IconButton>
+					</span>
+				</Tooltip>
+			)}
 
 			<Typography
 				fontSize={14}

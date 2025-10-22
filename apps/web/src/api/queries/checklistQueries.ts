@@ -134,7 +134,6 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	let query = db
 		.selectFrom('checklist')
-		.innerJoin('page_instance', 'checklist.id', 'page_instance.checklist_id')
 		.leftJoin('users', 'checklist.created_by', 'users.id')
 		.selectAll('checklist')
 		.select((eb) => [
