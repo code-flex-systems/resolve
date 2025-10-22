@@ -237,7 +237,20 @@ export default function ClaimsView() {
 														},
 													}}
 												>
-													Open claim in checklist...
+													Open in checklist...
+												</BasicButtonStyled>
+											</Box>
+											<Box paddingTop="10px">
+												<BasicButtonStyled
+													buttonProps={{
+														onClick: () => {
+															router.push(
+																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}/summary`
+															);
+														},
+													}}
+												>
+													Go to checklist summary...
 												</BasicButtonStyled>
 											</Box>
 											<Box paddingTop="10px">
