@@ -1,15 +1,17 @@
+import { parseNumber } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
 
 export const answerParams = z.object({
 	text: z.string(),
 	position: z.number().int(),
-	descriptionText: z.string().optional(),
-	descriptionImageUrl: z.string().optional(),
-	hasAdditionalInfo: z.boolean().optional(),
-	additionalInfoPlaceholder: z.string().optional(),
-	additionalInfoNumLines: z.number().int().optional(),
-	callsInstanceId: z.number().int().optional(),
-	hidden: z.boolean().optional(),
+	grade: parseNumber().nullable().optional(),
+	description_text: z.string().nullable().optional(),
+	description_image_url: z.string().nullable().optional(),
+	has_additional_info: z.boolean().nullable().optional(),
+	additional_info_placeholder: z.string().nullable().optional(),
+	additional_info_num_lines: parseNumber().nullable().optional(),
+	calls_instance_id: z.number().int().nullable().optional(),
+	hidden: z.boolean().nullable().optional(),
 });
 
 export const createAnswerInput = z.object({

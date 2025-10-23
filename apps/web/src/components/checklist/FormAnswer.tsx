@@ -1,7 +1,6 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
-import { Answer } from '@/types/types';
 import {
 	Button,
 	Checkbox,
@@ -10,6 +9,8 @@ import {
 	Fade,
 	FormControl,
 	FormLabel,
+	IconButton,
+	InputAdornment,
 	MenuItem,
 	Select,
 	TextField,
@@ -17,13 +18,14 @@ import {
 } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
+import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import Save from '@mui/icons-material/Save';
 import Share from '@mui/icons-material/Share';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import Toolbar from '../common/Toolbar';
-import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
+import { Answer, useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { getPageInstancesFromTree } from '@/lib/utils/utils';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -33,7 +35,7 @@ import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -64,6 +66,7 @@ export default function FormAnswer() {
 	const showActionDialog = useChecklistStore((state) => state.showActionDialog);
 	const updateSelectedAnswer = useChecklistStore((state) => state.updateSelectedAnswer);
 	const toggleActionDialog = useChecklistStore((state) => state.toggleActionDialog);
+	const [copiedField, setCopiedField] = useState<string | null>(null);
 
 	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
 		{ answerId: selectedAnswerData.id },
@@ -110,7 +113,7 @@ export default function FormAnswer() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			const parsedData: Answer = {
+			const parsedData = {
 				...data,
 				calls_instance_id: !data.calls_instance_id ? null : data.calls_instance_id,
 			};
@@ -154,6 +157,12 @@ export default function FormAnswer() {
 		} catch (e) {
 			console.error(e);
 		}
+	};
+
+	const onCopyText = (field: string, text: string) => {
+		navigator.clipboard.writeText(text);
+		setCopiedField(field);
+		setTimeout(() => setCopiedField(null), 2000);
 	};
 
 	const positionOptions = useMemo(() => {
@@ -259,6 +268,24 @@ export default function FormAnswer() {
 									variant="outlined"
 									error={!!errors.text}
 									{...field}
+									slotProps={{
+										input: {
+											endAdornment: (
+												<InputAdornment position="end">
+													<IconButton
+														disableRipple
+														onClick={() => onCopyText(field.name, field.value)}
+													>
+														{copiedField === field.name ? (
+															<Check sx={{ color: theme.palette.success.light }} />
+														) : (
+															<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+														)}
+													</IconButton>
+												</InputAdornment>
+											),
+										},
+									}}
 									sx={styles.textFieldOverrides}
 									style={styles.item}
 								/>
@@ -274,6 +301,24 @@ export default function FormAnswer() {
 									placeholder="Damage as a result of leaks or condensation"
 									variant="outlined"
 									{...field}
+									slotProps={{
+										input: {
+											endAdornment: (
+												<InputAdornment position="end">
+													<IconButton
+														disableRipple
+														onClick={() => onCopyText(field.name, field.value ?? '')}
+													>
+														{copiedField === field.name ? (
+															<Check sx={{ color: theme.palette.success.light }} />
+														) : (
+															<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+														)}
+													</IconButton>
+												</InputAdornment>
+											),
+										},
+									}}
 									value={field.value ?? ''}
 									sx={{ ...styles.textFieldOverrides, width: 400 }}
 									style={styles.item}
@@ -310,7 +355,7 @@ export default function FormAnswer() {
 										variant="outlined"
 										error={!!errors.position}
 										{...field}
-										sx={{ ...styles.textFieldOverrides, width: 50 }}
+										sx={{ ...styles.textFieldOverrides, width: 80 }}
 									>
 										{positionOptions.map((o) => (
 											<MenuItem key={o} value={o}>
@@ -383,6 +428,7 @@ export default function FormAnswer() {
 											{...field}
 											onChange={(e) => field.onChange(e.target.checked)}
 											checked={Boolean(field?.value)}
+											value={Boolean(field?.value)}
 											sx={{ width: 15, height: 15 }}
 										/>
 										<FormLabel sx={{ fontSize: 12, paddingLeft: '5px' }}>
@@ -394,7 +440,7 @@ export default function FormAnswer() {
 						/>
 					</div>
 
-					<Collapse in={hasAdditionalInfo}>
+					<Collapse in={!!hasAdditionalInfo}>
 						<div style={styles.row} className="flex-row-left">
 							<Controller
 								name="additional_info_placeholder"
@@ -405,6 +451,24 @@ export default function FormAnswer() {
 										placeholder="Please list"
 										variant="outlined"
 										{...field}
+										slotProps={{
+											input: {
+												endAdornment: (
+													<InputAdornment position="end">
+														<IconButton
+															disableRipple
+															onClick={() => onCopyText(field.name, field.value ?? '')}
+														>
+															{copiedField === field.name ? (
+																<Check sx={{ color: theme.palette.success.light }} />
+															) : (
+																<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+															)}
+														</IconButton>
+													</InputAdornment>
+												),
+											},
+										}}
 										value={field.value ?? ''}
 										sx={styles.textFieldOverrides}
 										style={styles.item}
@@ -460,10 +524,12 @@ const styles = {
 	textFieldOverrides: {
 		width: 300,
 		'& .MuiInputBase-root': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 	},
 	toolbar: {

@@ -15,22 +15,6 @@ export interface ActionDefinition {
 	title?: string;
 }
 
-export interface Answer {
-	id: number;
-	question_id: number;
-	text: string;
-	position: number;
-	grade: number | null;
-	description_text: string | null;
-	description_image_url: string | null;
-	has_additional_info: boolean;
-	additional_info_placeholder: string | null;
-	additional_info_num_lines: number | null;
-	hidden: boolean;
-	calls_instance_id: number | null;
-	has_action: boolean;
-}
-
 export interface AnswerResponse {
 	created_at: Date | null;
 	additional_info: string | null;

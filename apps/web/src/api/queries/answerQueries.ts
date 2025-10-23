@@ -65,12 +65,12 @@ export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answer
  * @returns the matching answer
  */
 export async function getAnswer(ctx: ProtectedContext, answerId: number) {
-        return await db
-                .selectFrom('answer')
-                .selectAll()
-                .where('answer.client_id', '=', ctx.session.user.client_id)
-                .where('id', '=', answerId)
-                .executeTakeFirstOrThrow();
+	return await db
+		.selectFrom('answer')
+		.selectAll()
+		.where('answer.client_id', '=', ctx.session.user.client_id)
+		.where('id', '=', answerId)
+		.executeTakeFirstOrThrow();
 }
 
 /**
@@ -81,13 +81,13 @@ export async function getAnswer(ctx: ProtectedContext, answerId: number) {
  * @returns ordered list of answers
  */
 export async function getAnswers(ctx: ProtectedContext, questionId: number) {
-        return await db
-                .selectFrom('answer')
-                .selectAll()
-                .where('answer.client_id', '=', ctx.session.user.client_id)
-                .where('question_id', '=', questionId)
-                .orderBy('position')
-                .execute();
+	return await db
+		.selectFrom('answer')
+		.selectAll()
+		.where('answer.client_id', '=', ctx.session.user.client_id)
+		.where('question_id', '=', questionId)
+		.orderBy('position')
+		.execute();
 }
 
 /**
@@ -98,13 +98,13 @@ export async function getAnswers(ctx: ProtectedContext, questionId: number) {
  * @returns number of answers
  */
 export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
-        const answerCountRecord = await db
-                .selectFrom('answer')
-                .select(({ fn }) => fn.countAll().as('count'))
-                .where('answer.client_id', '=', ctx.session.user.client_id)
-                .where('question_id', '=', questionId)
-                .executeTakeFirstOrThrow();
-        return parseInt(answerCountRecord.count?.toString() ?? '0');
+	const answerCountRecord = await db
+		.selectFrom('answer')
+		.select(({ fn }) => fn.countAll().as('count'))
+		.where('answer.client_id', '=', ctx.session.user.client_id)
+		.where('question_id', '=', questionId)
+		.executeTakeFirstOrThrow();
+	return parseInt(answerCountRecord.count?.toString() ?? '0');
 }
 
 /**
@@ -117,12 +117,12 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @returns the updated answer
  */
 export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: object) {
-        const existingAnswer = await db
-                .selectFrom('answer')
-                .select(['position', 'question_id'])
-                .where('answer.client_id', '=', ctx.session.user.client_id)
-                .where('id', '=', answerId)
-                .executeTakeFirstOrThrow();
+	const existingAnswer = await db
+		.selectFrom('answer')
+		.select(['position', 'question_id'])
+		.where('answer.client_id', '=', ctx.session.user.client_id)
+		.where('id', '=', answerId)
+		.executeTakeFirstOrThrow();
 	const updates: UpdateObjectExpression<DB, 'answer'> = {};
 
 	if (params.position && params.position !== existingAnswer.position) updates.position = params.position;

@@ -6,6 +6,8 @@ import {
 	FormControl,
 	FormControlLabel,
 	FormLabel,
+	IconButton,
+	InputAdornment,
 	MenuItem,
 	Radio,
 	RadioGroup,
@@ -13,6 +15,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import Save from '@mui/icons-material/Save';
@@ -28,7 +31,7 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -37,6 +40,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
+	const [copiedField, setCopiedField] = useState<string | null>(null);
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
@@ -110,6 +114,12 @@ export default function FormQuestion() {
 		} catch (e) {
 			console.error(e);
 		}
+	};
+
+	const onCopyText = (field: string, text: string) => {
+		navigator.clipboard.writeText(text);
+		setCopiedField(field);
+		setTimeout(() => setCopiedField(null), 2000);
 	};
 
 	useEffect(() => {
@@ -226,7 +236,7 @@ export default function FormQuestion() {
 										variant="outlined"
 										error={!!errors.position}
 										{...field}
-										sx={{ ...styles.textFieldOverrides, width: 50 }}
+										sx={{ ...styles.textFieldOverrides, width: 80 }}
 									>
 										{positionOptions.map((o) => (
 											<MenuItem key={o} value={o}>
@@ -249,6 +259,24 @@ export default function FormQuestion() {
 									placeholder="What is the cause of loss?"
 									variant="outlined"
 									{...field}
+									slotProps={{
+										input: {
+											endAdornment: (
+												<InputAdornment position="end">
+													<IconButton
+														disableRipple
+														onClick={() => onCopyText(field.name, field.value)}
+													>
+														{copiedField === field.name ? (
+															<Check sx={{ color: theme.palette.success.light }} />
+														) : (
+															<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+														)}
+													</IconButton>
+												</InputAdornment>
+											),
+										},
+									}}
 									error={!!errors.text}
 									sx={styles.textFieldOverrides}
 									style={styles.item}
@@ -265,6 +293,24 @@ export default function FormQuestion() {
 									placeholder="Describe how the damage occurred"
 									variant="outlined"
 									{...field}
+									slotProps={{
+										input: {
+											endAdornment: (
+												<InputAdornment position="end">
+													<IconButton
+														disableRipple
+														onClick={() => onCopyText(field.name, field.value ?? '')}
+													>
+														{copiedField === field.name ? (
+															<Check sx={{ color: theme.palette.success.light }} />
+														) : (
+															<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+														)}
+													</IconButton>
+												</InputAdornment>
+											),
+										},
+									}}
 									value={field.value ?? ''}
 									sx={{ ...styles.textFieldOverrides, width: 400 }}
 									style={styles.item}
@@ -354,10 +400,12 @@ const styles = {
 	textFieldOverrides: {
 		width: 300,
 		'& .MuiInputBase-root': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 	},
 	toolbar: {
