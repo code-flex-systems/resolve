@@ -17,6 +17,7 @@ export const intervalSchema = z.object({
 export const getResponsesForAnswerInput = z.object({
 	answerId: z.number().int(),
 	filters: z.object({
+		claimId: z.number().int().optional(),
 		users: z.array(z.string()).optional(),
 		range: z.tuple([parseDate(), parseDate()]),
 	}),

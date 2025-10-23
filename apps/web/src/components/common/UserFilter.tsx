@@ -132,6 +132,7 @@ export default function UserFilter({
 										<StackedRow
 											primary={`${option.last}, ${option.first}`}
 											secondary={option.email}
+											fontSize={14}
 										/>
 									</li>
 								)}

@@ -60,7 +60,7 @@ export async function getResponsesForAnswer(
 		offset,
 	}: {
 		answerId: number;
-		filters: { range: DateRangeStrict; users?: string[] };
+		filters: { claimId?: number; range: DateRangeStrict; users?: string[] };
 		limit: number;
 		offset: number;
 	}

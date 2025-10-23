@@ -2,7 +2,7 @@
 import { Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
-import { Divider, Fade, Typography } from '@mui/material';
+import { Box, Divider, Fade, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -13,7 +13,7 @@ import Save from '@mui/icons-material/Save';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import { LineWobble } from 'ldrs/react';
 import 'ldrs/react/LineWobble.css';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
@@ -169,9 +169,12 @@ export default function Page() {
 								/>
 							</>
 						) : (
-							<Typography color="#d9d9d9" fontSize={15}>
-								No page selected
-							</Typography>
+							<Box width={200} display="flex" justifyContent="center" alignItems="center">
+								<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
+								<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
+									No page selected
+								</Typography>
+							</Box>
 						)}
 					</div>
 				)}

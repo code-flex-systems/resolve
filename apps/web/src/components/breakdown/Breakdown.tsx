@@ -2,13 +2,32 @@
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import { Box, Paper } from '@mui/material';
 import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
+import FormatQuote from '@mui/icons-material/FormatQuote';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
-import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { CustomPagination } from '../common/CustomPagination';
+import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
+
+function NoRows() {
+	return (
+		<CustomNoRowsOverlay
+			text="Select an answer to see responses"
+			icon={<FormatQuote sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
+function NoResults() {
+	return (
+		<CustomNoRowsOverlay
+			text="No responses found"
+			icon={<FormatQuote sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -46,24 +65,24 @@ const COLUMNS: GridColDef[] = [
 	},
 ];
 
-export default function Breakdown({
-	currentCount,
-	user,
-	range,
-}: {
-	currentCount: number;
-	user: GetUserOutput | null;
-	range: DateRange<Dayjs>;
-}) {
+export default function Breakdown() {
 	const [constraints, setContraints] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
 	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? -1;
+	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
+	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
+	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
+	const answerData = useSelectedBreakdownAnswerData();
 	const today = dayjs().format('MM/DD/YYYY');
 	const { data: breakdown = [], isFetching: loadingBreakdown } = useResponseTrpc().listForAnswer(
 		{
 			answerId: selectedAnswerId,
 			filters: {
-				range: [range[0]?.toString() ?? today, range[1]?.toString() ?? today] as [string, string],
-				users: user ? [user.id] : [],
+				claimId: breakdownClaim?.id,
+				range: [breakdownRange[0]?.toString() ?? today, breakdownRange[1]?.toString() ?? today] as [
+					string,
+					string,
+				],
+				users: breakdownUsers.map((u) => u.id),
 			},
 			limit: constraints.pageSize,
 			offset: constraints.page * constraints.pageSize,
@@ -91,9 +110,11 @@ export default function Breakdown({
 						}}
 						slots={{
 							pagination: CustomPagination,
+							noRowsOverlay: NoRows,
+							noResultsOverlay: NoResults,
 						}}
 						rows={breakdown}
-						rowCount={currentCount}
+						rowCount={answerData?.answer_count ?? 0}
 						rowHeight={40}
 						hideFooterSelectedRowCount
 						getRowClassName={(params) =>

@@ -4,6 +4,7 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
 import { Button, Fade, Paper } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
+import Checklist from '@mui/icons-material/Checklist';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
@@ -11,9 +12,10 @@ import IconHeaderCell from '../common/IconHeaderCell';
 import ChecklistActionsCell from './ChecklistActionsCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import NewChecklistDialog from './NewChecklistDialog';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
 import StackedHeaderCell from '../common/StackedHeaderCell';
+import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -60,6 +62,15 @@ const COLUMNS: GridColDef[] = [
 	},
 ];
 
+function NoRows() {
+	return (
+		<CustomNoRowsOverlay
+			text="No checklists found"
+			icon={<Checklist sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
+
 export default function ChecklistsTab() {
 	const { data: checklists = [], isFetching } = useChecklistTrpc().list({});
 	const showNewChecklistDialog = useAdminStore((state) => state.showNewChecklistDialog);
@@ -84,6 +95,10 @@ export default function ChecklistsTab() {
 							columns={COLUMNS}
 							columnHeaderHeight={45}
 							loading={isFetching}
+							slots={{
+								noRowsOverlay: NoRows,
+								noResultsOverlay: NoRows,
+							}}
 							slotProps={{
 								loadingOverlay: {
 									noRowsVariant: 'linear-progress',

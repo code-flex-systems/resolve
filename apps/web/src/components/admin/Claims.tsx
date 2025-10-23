@@ -16,7 +16,7 @@ import Toolbar from '../common/Toolbar';
 import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import ExpandableTitle from '../common/ExpandableTitle';
+import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -99,6 +99,15 @@ const COLUMNS: GridColDef[] = [
 	},
 ];
 
+function NoRows() {
+	return (
+		<CustomNoRowsOverlay
+			text="No claims found"
+			icon={<ContentPasteSearch sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
+
 export default function Claims() {
 	const claimConstraints = useAdminStore((state) => state.claimConstraints);
 	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
@@ -176,6 +185,8 @@ export default function Claims() {
 						loading={isFetching}
 						slots={{
 							pagination: CustomPagination,
+							noRowsOverlay: NoRows,
+							noResultsOverlay: NoRows,
 						}}
 						slotProps={{
 							loadingOverlay: {

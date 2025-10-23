@@ -92,7 +92,11 @@ export default function ClaimFilter({
 								renderTags={() => <></>}
 								renderOption={(props, option) => (
 									<li {...props} key={option.id}>
-										<StackedRow primary={option.claim_number} secondary={option.insured} />
+										<StackedRow
+											primary={option.claim_number}
+											secondary={option.insured}
+											fontSize={14}
+										/>
 									</li>
 								)}
 								sx={{

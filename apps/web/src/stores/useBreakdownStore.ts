@@ -1,16 +1,24 @@
-import { Interval, PageInstance } from '@/types/types';
+import { Claim } from '@/hooks/trpc/useClaimTrpc';
+import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
+import { PageInstance } from '@/types/types';
+import { DateRange } from '@mui/x-date-pickers-pro';
+import dayjs, { Dayjs } from 'dayjs';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 interface BreakdownState {
-	breakdownInterval: Interval<string>;
+	breakdownClaim: Claim | null;
+	breakdownRange: DateRange<Dayjs>;
+	breakdownUsers: GetUserOutput[];
 	pageInstance: PageInstance | null;
 	selectedAnswerId: number | null;
 	selectedQuestionId: number | null;
 }
 
 interface BreakdownActions {
-	updateBreakdownInterval: (key: keyof Interval<string>, value: string | undefined) => void;
+	updateBreakdownClaim: (newClaim: Claim | null) => void;
+	updateBreakdownRange: (newRange: DateRange<Dayjs>) => void;
+	updateBreakdownUsers: (newUser: GetUserOutput[]) => void;
 	updatePageInstance: (newInstance: PageInstance) => void;
 	updateSelectedAnswerId: (newId: number | null) => void;
 	updateSelectedQuestionId: (newId: number | null) => void;
@@ -20,7 +28,9 @@ interface BreakdownActions {
 type BreakdownStore = BreakdownState & BreakdownActions;
 
 const initialState: BreakdownState = {
-	breakdownInterval: {},
+	breakdownClaim: null,
+	breakdownRange: [dayjs().startOf('month'), dayjs().endOf('month')],
+	breakdownUsers: [],
 	pageInstance: null,
 	selectedAnswerId: null,
 	selectedQuestionId: null,
@@ -30,25 +40,19 @@ export const useBreakdownStore = create<BreakdownStore>()(
 	immer((set) => ({
 		...initialState,
 
-		updateBreakdownInterval: (key, value) =>
+		updateBreakdownClaim: (newClaim: Claim | null) =>
 			set((state) => {
-				if (
-					key === 'from' &&
-					value &&
-					state.breakdownInterval.to &&
-					new Date(value) > new Date(state.breakdownInterval.to)
-				) {
-					state.breakdownInterval.to = undefined;
-				}
-				if (
-					key === 'to' &&
-					value &&
-					state.breakdownInterval.from &&
-					new Date(value) < new Date(state.breakdownInterval.from)
-				) {
-					state.breakdownInterval.from = undefined;
-				}
-				state.breakdownInterval[key] = value;
+				state.breakdownClaim = newClaim;
+			}),
+
+		updateBreakdownRange: (newRange: DateRange<Dayjs>) =>
+			set((state) => {
+				state.breakdownRange = newRange;
+			}),
+
+		updateBreakdownUsers: (newUsers: GetUserOutput[]) =>
+			set((state) => {
+				state.breakdownUsers = newUsers;
 			}),
 
 		updatePageInstance: (newInstance) =>
