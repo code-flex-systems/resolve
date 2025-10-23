@@ -230,7 +230,6 @@ const theme = createTheme({
 		},
 		secondary: {
 			main: '#32AE99',
-			dark: BASE_COLOR,
 			contrastText: '#fff',
 		},
 		success: {

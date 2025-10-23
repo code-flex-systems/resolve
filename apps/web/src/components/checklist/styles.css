@@ -54,6 +54,12 @@
 	cursor: pointer;
 }
 
+.node-selected:hover {
+	background-color: #167eb2;
+	transition: background-color 100ms ease;
+	cursor: pointer;
+}
+
 .node-selected-inner {
 	color: white;
 }
@@ -67,11 +73,15 @@
 }
 
 .node-a:hover {
-	color: #fcb237;
+	color: #f5bf48;
 }
 
 .node-q:hover {
-	color: #21b5ff;
+	color: #237a6b;
+}
+
+.node-p:hover {
+	color: #ca8eff;
 }
 
 .popper {
@@ -85,5 +95,9 @@
 
 .text-hover:hover {
 	outline: 1px solid #21b5ff;
-	transition: outline 100ms ease;
+	border-radius: 2px;
+}
+
+.text-hover {
+	padding: 5px 10px;
 }

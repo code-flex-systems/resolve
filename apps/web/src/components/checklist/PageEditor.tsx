@@ -11,7 +11,7 @@ import Description from '@mui/icons-material/Description';
 import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -24,6 +24,7 @@ export default function PageEditor() {
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedPage = useChecklistStore((state) => state.updateSelectedPage);
+	const updateSelectedPageInfoSearch = useChecklistStore((state) => state.updateSelectedPageInfoSearch);
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
@@ -36,7 +37,11 @@ export default function PageEditor() {
 	const { mutateAsync: copyPage, isPending: copying } = createInstance;
 	const { mutateAsync: deletePage, isPending: deleting } = removeInstance;
 	const { mutateAsync: modifyPage, isPending: updating } = updateTemplate;
-	const { isFetching, data = { tree: [], maxPosition: 0 } } = getInstanceTree(
+	const {
+		isFetching,
+		data = { tree: [], maxPosition: 0 },
+		refetch: refetchTree,
+	} = getInstanceTree(
 		{
 			checklistId,
 			claimId,
@@ -55,7 +60,13 @@ export default function PageEditor() {
 					position: selectedPageInfo.position + 1,
 				},
 			});
-			if (newInstance) updateSelectedPage(newInstance.instance_id);
+			if (newInstance) {
+				const { data: freshData } = await refetchTree();
+				updateSelectedPage(newInstance.instance_id);
+				if (freshData) {
+					updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
+				}
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -71,7 +82,13 @@ export default function PageEditor() {
 					position: selectedPageInfo.position + 1,
 				},
 			});
-			if (newInstance) updateSelectedPage(newInstance.id);
+			if (newInstance) {
+				const { data: freshData } = await refetchTree();
+				updateSelectedPage(newInstance.id);
+				if (freshData) {
+					updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
+				}
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -80,6 +97,7 @@ export default function PageEditor() {
 	const onDeletePage = async () => {
 		try {
 			await deletePage({ instanceId: selectedPageInfo.instanceId });
+			await refetchTree();
 			updateSelectedPage(null);
 		} catch (e) {
 			console.error(e);
@@ -90,7 +108,10 @@ export default function PageEditor() {
 		try {
 			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
 			if (modifiedPage) {
-				updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, data.tree);
+				const { data: freshData } = await refetchTree();
+				if (freshData) {
+					updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, freshData.tree);
+				}
 			}
 		} catch (e) {
 			console.error(e);
@@ -132,6 +153,9 @@ export default function PageEditor() {
 										autoFocus
 										value={pageTitle}
 										onChange={(e) => setPageTitle(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') stopEditing();
+										}}
 										placeholder="New Page"
 										onBlur={stopEditing}
 										error={!pageTitle}
@@ -246,13 +270,13 @@ const styles = {
 	},
 	container: {
 		flex: 1,
-		minWidth: 0,
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		padding: 20,
+		minWidth: 500,
 	},
 	divider: {
 		width: '100%',

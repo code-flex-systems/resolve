@@ -122,7 +122,8 @@ function findTreeNodePrivate(instanceId: number, treeNode: TreeNode): TreeNode |
 	if (treeNode.instanceId === instanceId) return treeNode;
 	if (!treeNode.children) return;
 	for (const c of treeNode.children) {
-		return findTreeNodePrivate(instanceId, c);
+		const found = findTreeNodePrivate(instanceId, c);
+		if (found) return found;
 	}
 }
 
