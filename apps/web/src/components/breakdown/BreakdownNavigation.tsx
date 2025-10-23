@@ -13,20 +13,14 @@ import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
 
-export default function BreakdownNavigation({
-	user,
-	range,
-	setSelectedCount,
-}: {
-	user: GetUserOutput | null;
-	range: DateRange<Dayjs>;
-	setSelectedCount: (newCount: number) => void;
-}) {
+export default function BreakdownNavigation() {
 	const searchParams = useSearchParams();
 	const pageId = +(searchParams.get('pageId') ?? '-1');
 	const instanceId = +(searchParams.get('instanceId') ?? '-1');
 
-	const breakdownInterval = useBreakdownStore((state) => state.breakdownInterval);
+	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
+	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
+	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
 	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId);
 	const updateSelectedAnswerId = useBreakdownStore((state) => state.updateSelectedAnswerId);
 	const updateSelectedQuestionId = useBreakdownStore((state) => state.updateSelectedQuestionId);
@@ -35,8 +29,12 @@ export default function BreakdownNavigation({
 		{
 			pageId,
 			filters: {
-				range: [range[0]?.toString() ?? today, range[1]?.toString() ?? today] as [string, string],
-				users: user ? [user.id] : [],
+				claimId: breakdownClaim?.id,
+				range: [breakdownRange[0]?.toString() ?? today, breakdownRange[1]?.toString() ?? today] as [
+					string,
+					string,
+				],
+				users: breakdownUsers.map((u) => u.id),
 			},
 		},
 		{ enabled: pageId !== -1 }
@@ -102,10 +100,7 @@ export default function BreakdownNavigation({
 										expandedIdx={expandedIdx}
 										idx={i}
 										item={stat}
-										onAnswerClick={(id: number, count: number) => {
-											updateSelectedAnswerId(id);
-											setSelectedCount(count);
-										}}
+										onAnswerClick={(id: number) => updateSelectedAnswerId(id)}
 										pageId={+pageId}
 										selectedAnswerId={selectedAnswerId ?? undefined}
 										setExpandedIdx={(newIdx) => {

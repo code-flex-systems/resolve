@@ -10,6 +10,7 @@ import Phone from '@mui/icons-material/Phone';
 import Search from '@mui/icons-material/Search';
 import Shield from '@mui/icons-material/Shield';
 import Upload from '@mui/icons-material/Upload';
+import Person from '@mui/icons-material/Person';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -27,6 +28,7 @@ import { createUsersInput } from '@/schemas/userSchemas';
 import useDebounce from '@/lib/utils/useDebounce';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
+import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -94,6 +96,12 @@ const COLUMNS: GridColDef[] = [
 		resizable: false,
 	},
 ];
+
+function NoRows() {
+	return (
+		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />} />
+	);
+}
 
 export default function UsersTab() {
 	const { data: session } = useSession();
@@ -204,6 +212,8 @@ export default function UsersTab() {
 							loading={isFetching}
 							slots={{
 								pagination: CustomPagination,
+								noRowsOverlay: NoRows,
+								noResultsOverlay: NoRows,
 							}}
 							slotProps={{
 								loadingOverlay: {

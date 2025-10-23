@@ -47,7 +47,7 @@ export async function getResponseCount(
 export async function getResponsesForAnswer(
 	ctx: ProtectedContext,
 	answerId: number,
-	filters: { range: DateRangeStrict; checklistId?: number; users?: string[] },
+	filters: { claimId?: number; range: DateRangeStrict; checklistId?: number; users?: string[] },
 	limit: number,
 	offset: number
 ) {
@@ -73,6 +73,7 @@ export async function getResponsesForAnswer(
 		.where('question_response.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const andClause = [eb('question_response_answer.answer_id', '=', answerId)];
+			if (filters.claimId) andClause.push(eb('question_response.claim_id', '=', filters.claimId));
 			if (filters.users?.length) andClause.push(eb('question_response.created_by', 'in', filters.users));
 			if (filters.range && filters.range.some((d) => !!d)) {
 				if (filters.range[0]) {

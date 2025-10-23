@@ -70,7 +70,7 @@ export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: 
  */
 export async function getQuestionStats(
 	ctx: ProtectedContext,
-	{ pageId, filters }: { pageId: number; filters: { range: DateRangeStrict; users?: string[] } }
+	{ pageId, filters }: { pageId: number; filters: { claimId?: number; range: DateRangeStrict; users?: string[] } }
 ) {
 	const results = await questionQueries.getQuestionStats(ctx, pageId, filters);
 	const formattedResults: QuestionStat[] = [];

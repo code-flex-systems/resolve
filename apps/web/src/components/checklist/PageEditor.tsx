@@ -1,12 +1,13 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
-import { Divider, Fade, TextField, Typography } from '@mui/material';
+import { Box, Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import Toolbar from '../common/Toolbar';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import East from '@mui/icons-material/East';
+import Description from '@mui/icons-material/Description';
 import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
@@ -14,6 +15,7 @@ import { useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 export default function PageEditor() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -226,9 +228,12 @@ export default function PageEditor() {
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
 				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Typography color="#d9d9d9" fontSize={15}>
-						No page selected
-					</Typography>
+					<Box width={200} display="flex" justifyContent="center" alignItems="center">
+						<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
+						<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
+							No page selected
+						</Typography>
+					</Box>
 				</div>
 			)}
 		</div>

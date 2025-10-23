@@ -10,7 +10,7 @@ export default function QuestionStatItem(props: {
 	expandedIdx: number | null;
 	idx: number;
 	item: QuestionStat;
-	onAnswerClick: (id: number, count: number) => void;
+	onAnswerClick: (id: number) => void;
 	pageId: number;
 	selectedAnswerId?: number;
 	setExpandedIdx: (newIdx: number | null) => void;
@@ -62,7 +62,7 @@ export default function QuestionStatItem(props: {
 									className="link"
 									marginLeft="10px"
 									color={selectedAnswerId === a.answer_id ? 'secondary' : 'primary'}
-									onClick={() => onAnswerClick(a.answer_id, a.answer_count)}
+									onClick={() => onAnswerClick(a.answer_id)}
 								>
 									{a.answer_text} (p{pageId}.q{question_id}.a{a.answer_id})
 								</Link>

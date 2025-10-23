@@ -243,42 +243,55 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 export async function getQuestionStats(
 	ctx: ProtectedContext,
 	pageId: number,
-	filters: { range: DateRangeStrict; users?: string[] }
+	filters: { claimId?: number; range: DateRangeStrict; users?: string[] }
 ) {
 	// Collect answer counts for each question over the specified interval
 	const results = await db
 		.selectFrom('question')
 		.innerJoin('answer', 'question.id', 'answer.question_id')
 		.leftJoin('question_response_answer', 'answer.id', 'question_response_answer.answer_id')
-		.leftJoin('question_response', 'question_response_answer.response_id', 'question_response.id')
-		.select(({ eb, fn }) => [
+		.leftJoin('question_response', (join) => {
+			// Start with the basic join condition
+			let joinBuilder = join.onRef('question_response_answer.response_id', '=', 'question_response.id');
+
+			// Apply claim filter to the join
+			if (filters.claimId) {
+				joinBuilder = joinBuilder.on('question_response.claim_id', '=', filters.claimId);
+			}
+
+			// Apply user filter to the join
+			if (filters.users?.length) {
+				joinBuilder = joinBuilder.on('question_response.created_by', 'in', filters.users);
+			}
+
+			// Apply date range filter to the join
+			if (filters.range && filters.range.some((d) => !!d)) {
+				if (filters.range[0]) {
+					joinBuilder = joinBuilder.on('question_response.created_at', '>=', filters.range[0]);
+				}
+				if (filters.range[1]) {
+					joinBuilder = joinBuilder.on('question_response.created_at', '<=', filters.range[1]);
+				}
+			} else {
+				// Default to last 30 days if no range provided
+				joinBuilder = joinBuilder.on(
+					'question_response.created_at',
+					'>=',
+					sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()
+				);
+			}
+
+			return joinBuilder;
+		})
+		.select(({ fn }) => [
 			'question.text as question_text',
 			'answer.question_id',
 			'answer.id as answer_id',
 			'answer.text as answer_text',
-			fn
-				.sum(eb.case().when('question_response.id', 'is', null).then(0).else(1).end())
-				.$castTo<string>()
-				.as('answer_count'),
+			fn.count('question_response.id').$castTo<string>().as('answer_count'),
 		])
 		.where('question.client_id', '=', ctx.session.user.client_id)
-		.where((eb) => {
-			const andClause = [eb('question.page_id', '=', pageId)];
-			if (filters.users?.length) andClause.push(eb('question_response.created_by', 'in', filters.users));
-			if (filters.range && filters.range.some((d) => !!d)) {
-				if (filters.range[0]) {
-					andClause.push(eb('question_response.created_at', '>=', filters.range[0]));
-				}
-				if (filters.range[1]) {
-					andClause.push(eb('question_response.created_at', '<=', filters.range[1]));
-				}
-			} else {
-				andClause.push(
-					eb('question_response.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>())
-				);
-			}
-			return eb.and(andClause);
-		})
+		.where('question.page_id', '=', pageId)
 		.groupBy([
 			'question.text',
 			'answer.question_id',

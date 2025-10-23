@@ -1,15 +1,12 @@
 'use client';
 import ArrowBack from '@mui/icons-material/ArrowBack';
+import FormatQuote from '@mui/icons-material/FormatQuote';
 import BreakdownNavigation from '@/components/breakdown/BreakdownNavigation';
 import Breakdown from '@/components/breakdown/Breakdown';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useEffect, useState } from 'react';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import { Box, Collapse, Divider, Stack } from '@mui/material';
-import { DateRange } from '@mui/x-date-pickers-pro';
-import dayjs, { Dayjs } from 'dayjs';
-import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { Claim } from '@/hooks/trpc/useClaimTrpc';
+import { Box, Chip, Collapse, Divider, Stack } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDateRangePicker from '../common/BasicDateRangePicker';
 import ClaimFilter from '../common/ClaimFilter';
@@ -22,26 +19,32 @@ import PageInstanceSelect from '../common/PageInstanceSelect';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ChecklistSelect from '../common/ChecklistSelect';
+import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
+import theme from '@/styles/theme';
 
 export default function ChecklistPageBreakdown() {
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
 	const instanceId = +(searchParams.get('instanceId') ?? -1);
+	const pageId = +(searchParams.get('pageId') ?? -1);
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId = -1 } = useChecklistParams();
-	const today = dayjs();
-	const [range, setRange] = useState<DateRange<Dayjs>>([today.startOf('month'), today.endOf('month')]);
-	const [users, setUsers] = useState<GetUserOutput[]>([]);
-	const [claim, setClaim] = useState<Claim | null>(null);
-	const [selectedCount, setSelectedCount] = useState(0);
+	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
+	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
+	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
+	const selectedQuestionId = useBreakdownStore((state) => state.selectedQuestionId);
+	const answerData = useSelectedBreakdownAnswerData();
 	const [showPageSelect, setShowPageSelect] = useState(false);
 
 	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId }, { enabled: checklistId !== -1 });
 	const { data: checklists = [] } = useChecklistTrpc().list({});
 	const selectedChecklist = checklists.find((c) => c.id === checklistId);
 
+	const updateBreakdownClaim = useBreakdownStore((state) => state.updateBreakdownClaim);
+	const updateBreakdownRange = useBreakdownStore((state) => state.updateBreakdownRange);
+	const updateBreakdownUsers = useBreakdownStore((state) => state.updateBreakdownUsers);
 	const resetBreakdownStore = useBreakdownStore((state) => state.reset);
 
 	useEffect(() => {
@@ -116,12 +119,39 @@ export default function ChecklistPageBreakdown() {
 					)}
 					{/* </Collapse> */}
 					<Box marginRight="5px">
-						<BasicDateRangePicker defaultLabel="This Month" defaultValue={range} onConfirm={setRange} />
+						<BasicDateRangePicker
+							defaultLabel="This Month"
+							defaultValue={breakdownRange}
+							onConfirm={updateBreakdownRange}
+						/>
 					</Box>
 					<Box marginRight="5px">
-						<ClaimFilter claim={claim} setClaim={setClaim} />
+						<ClaimFilter claim={breakdownClaim} setClaim={updateBreakdownClaim} />
 					</Box>
-					<UserFilter users={users} setUsers={setUsers} width="100%" />
+					<UserFilter
+						users={breakdownUsers}
+						setUsers={updateBreakdownUsers}
+						width="fit-content"
+						text="Filter by responder"
+					/>
+					<Collapse in={!!answerData} orientation="horizontal" unmountOnExit>
+						<Box marginLeft="5px">
+							<Chip
+								label={`${answerData?.answer_text ?? ''} (p${pageId}.q${selectedQuestionId}.a${answerData?.answer_id ?? ''})`}
+								icon={<FormatQuote />}
+								sx={{
+									height: 30,
+									margin: '5px 0px',
+									'& .MuiChip-icon': {
+										color: theme.palette.primary.main,
+									},
+									'& .MuiChip-label': {
+										color: theme.palette.primary.main,
+									},
+								}}
+							/>
+						</Box>
+					</Collapse>
 				</Box>
 				<Divider flexItem />
 				<Box
@@ -132,8 +162,8 @@ export default function ChecklistPageBreakdown() {
 					alignItems="flex-start"
 					padding="20px 10px"
 				>
-					<BreakdownNavigation user={users[0]} range={range} setSelectedCount={setSelectedCount} />
-					<Breakdown currentCount={selectedCount} user={users[0]} range={range} />
+					<BreakdownNavigation />
+					<Breakdown />
 				</Box>
 			</Stack>
 			{showPageSelect && <BreakdownPageSelect onClose={() => setShowPageSelect(false)} />}

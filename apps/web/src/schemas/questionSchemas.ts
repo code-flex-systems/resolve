@@ -39,6 +39,7 @@ export const intervalSchema = z.object({
 export const getQuestionStatsInput = z.object({
 	pageId: z.number().int(),
 	filters: z.object({
+		claimId: z.number().int().optional(),
 		users: z.array(z.string()).optional(),
 		range: z.tuple([parseDate(), parseDate()]),
 	}),
