@@ -127,6 +127,28 @@ function findTreeNodePrivate(instanceId: number, treeNode: TreeNode): TreeNode |
 	}
 }
 
+// Find all instances that share the same template (pageId) in the tree
+function findInstancesWithSameTemplate(pageId: number, tree: TreeNode[]): TreeNode[] {
+	const instances: TreeNode[] = [];
+
+	function searchTree(node: TreeNode) {
+		if (node.pageId === pageId) {
+			instances.push(node);
+		}
+		if (node.children) {
+			for (const child of node.children) {
+				searchTree(child);
+			}
+		}
+	}
+
+	for (const rootNode of tree) {
+		searchTree(rootNode);
+	}
+
+	return instances;
+}
+
 export const useChecklistStore = create<ChecklistStore>()(
 	immer((set, get) => ({
 		...initialState,
@@ -320,4 +342,9 @@ export const useChecklistStore = create<ChecklistStore>()(
 // Helper selector function
 export const getSelectedPageInfoOrDefault = () => {
 	return useChecklistStore.getState().selectedPageInfo ?? DEFAULT_TREE_NODE;
+};
+
+// Export utility function to find all instances with the same template
+export const findInstancesByTemplateId = (pageId: number, tree: TreeNode[]): TreeNode[] => {
+	return findInstancesWithSameTemplate(pageId, tree);
 };
