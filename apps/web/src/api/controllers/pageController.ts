@@ -18,6 +18,29 @@ export async function createPage(
 }
 
 /**
+ * Copy a page template and create a new instance.
+ *
+ * @param ctx - request context
+ * @param input - checklist id, source page id, and positioning info
+ * @returns ids for new page template and instance
+ */
+export async function copyPageTemplate(
+	ctx: ProtectedContext,
+	{
+		checklistId,
+		pageId,
+		params,
+	}: {
+		checklistId: number;
+		pageId: number;
+		params: { parentId: number; position: number };
+	}
+) {
+	const results = await pageQueries.copyPageTemplate(ctx, checklistId, pageId, params);
+	return results;
+}
+
+/**
  * Insert a page instance under a parent.
  *
  * @param ctx - request context

@@ -36,6 +36,12 @@ export function usePageTrpc() {
 			},
 		}),
 
+		copyTemplate: trpc.page.copyPageTemplate.useMutation({
+			onSuccess: () => {
+				onPageChange();
+			},
+		}),
+
 		createInstance: trpc.page.createPageInstance.useMutation({
 			onSuccess: () => {
 				onPageChange();
@@ -57,6 +63,7 @@ export function usePageTrpc() {
 }
 
 export type CreatePageTemplateInput = PageInput['createPage'];
+export type CopyPageTemplateInput = PageInput['copyPageTemplate'];
 export type CreatePageInstanceInput = PageInput['createPageInstance'];
 export type UpdatePageTemplateInput = PageInput['updatePageTemplate'];
 export type PageTemplate = PageOutput['getPages'][number];

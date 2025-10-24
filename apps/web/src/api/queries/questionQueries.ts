@@ -219,7 +219,7 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
                         'has_additional_info', ${eb.ref('answer.has_additional_info')},
                         'calls_instance_id', ${eb.ref('answer.calls_instance_id')},
                         'has_action', ${eb.case().when('action.id', 'is', null).then(false).else(true).end()}
-                    )
+                    ) ORDER BY ${eb.ref('answer.position')}
                 ) filter (where ${eb.ref('answer.id')} is not null)`
 				.$castTo<Answer[]>()
 				.as('answers'),
