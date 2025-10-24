@@ -3,6 +3,7 @@ import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChe
 import { Box, Divider, Fade, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
+import CopyPageDialog from './CopyPageDialog';
 import Toolbar from '../common/Toolbar';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
@@ -30,6 +31,8 @@ export default function PageEditor() {
 	const [pageTitle, setPageTitle] = useState('');
 	const [editingPageTitle, setEditingPageTitle] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
+	const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+	const [copyType, setCopyType] = useState<'template' | 'instance'>('template');
 
 	const { data: questions } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
 	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
@@ -74,43 +77,39 @@ export default function PageEditor() {
 		}
 	};
 
-	const onCopyPageTemplate = async () => {
+	const handleCopyWithParent = async (parentId: number | null, position: number) => {
 		try {
-			const newPage = await copyPageTemplate({
-				checklistId,
-				pageId: selectedPageInfo.pageId,
-				params: {
-					parentId: selectedPageInfo.parentInstanceId ?? -1,
-					position: selectedPageInfo.position + 1,
-				},
-			});
-			if (newPage) {
-				const { data: freshData } = await refetchTree();
-				updateSelectedPage(newPage.instance_id);
-				if (freshData) {
-					updateSelectedPageInfoSearch(newPage.instance_id, freshData.tree);
+			if (copyType === 'template') {
+				const newPage = await copyPageTemplate({
+					checklistId,
+					pageId: selectedPageInfo.pageId,
+					params: {
+						parentId: parentId ?? -1,
+						position,
+					},
+				});
+				if (newPage) {
+					const { data: freshData } = await refetchTree();
+					updateSelectedPage(newPage.instance_id);
+					if (freshData) {
+						updateSelectedPageInfoSearch(newPage.instance_id, freshData.tree);
+					}
 				}
-			}
-		} catch (e) {
-			console.error(e);
-		}
-	};
-
-	const onCopyPageInstance = async () => {
-		try {
-			const newInstance = await copyPageInstance({
-				checklistId,
-				pageId: selectedPageInfo.pageId,
-				params: {
-					parentId: selectedPageInfo.parentInstanceId ?? -1,
-					position: selectedPageInfo.position + 1,
-				},
-			});
-			if (newInstance) {
-				const { data: freshData } = await refetchTree();
-				updateSelectedPage(newInstance.id);
-				if (freshData) {
-					updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
+			} else {
+				const newInstance = await copyPageInstance({
+					checklistId,
+					pageId: selectedPageInfo.pageId,
+					params: {
+						parentId: parentId ?? -1,
+						position,
+					},
+				});
+				if (newInstance) {
+					const { data: freshData } = await refetchTree();
+					updateSelectedPage(newInstance.id);
+					if (freshData) {
+						updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
+					}
 				}
 			}
 		} catch (e) {
@@ -224,7 +223,10 @@ export default function PageEditor() {
 				<div className="flex-col-left">
 					<BasicButton
 						buttonProps={{
-							onClick: () => onCopyPageTemplate().catch((e) => console.error(e)),
+							onClick: () => {
+								setCopyType('template');
+								setCopyDialogOpen(true);
+							},
 							disabled: inTransition,
 							variant: 'contained',
 							color: 'primary',
@@ -232,11 +234,14 @@ export default function PageEditor() {
 							startIcon: <ContentCopy sx={{ color: 'white' }} />,
 						}}
 					>
-						Copy page template
+						Copy page template...
 					</BasicButton>
 					<BasicButton
 						buttonProps={{
-							onClick: () => onCopyPageInstance().catch((e) => console.error(e)),
+							onClick: () => {
+								setCopyType('instance');
+								setCopyDialogOpen(true);
+							},
 							disabled: inTransition,
 							variant: 'contained',
 							color: 'error',
@@ -244,7 +249,7 @@ export default function PageEditor() {
 							startIcon: <ContentCopy sx={{ color: 'white' }} />,
 						}}
 					>
-						Copy page instance
+						Copy page instance...
 					</BasicButton>
 					<BasicButton
 						buttonProps={{
@@ -295,6 +300,18 @@ export default function PageEditor() {
 						</Typography>
 					</Box>
 				</div>
+			)}
+			{copyDialogOpen && (
+				<CopyPageDialog
+					onClose={() => setCopyDialogOpen(false)}
+					onCopy={handleCopyWithParent}
+					title={copyType === 'template' ? 'Copy Page Template' : 'Copy Page Instance'}
+					tree={data.tree}
+					currentInstanceId={selectedPageInfo.instanceId}
+					currentParentId={selectedPageInfo.parentInstanceId ?? null}
+					currentPosition={selectedPageInfo.position}
+					isPending={inTransition}
+				/>
 			)}
 		</div>
 	);
