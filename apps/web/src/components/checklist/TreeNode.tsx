@@ -192,12 +192,7 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '10px 0px',
-		// borderTopLeftRadius: 5,
-		// borderTopRightRadius: 5,
-		// borderBottomLeftRadius: 5,
-		// borderBottomRightRadius: 5,
-		// borderBottom: '1px solid #d9d9d9',
+		padding: '5px 0px',
 	},
 	questionsContainer: {
 		borderBottomLeftRadius: 5,
