@@ -4,6 +4,7 @@ import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { Answer, DateRangeStrict, Interval } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { QuestionType } from '@/config/enums';
 
 /**
  * Insert a new question and bump the page version.
@@ -317,7 +318,7 @@ export async function getQuestionStats(
 export async function modifyQuestion(ctx: ProtectedContext, pageId: number, questionId: number, params: object) {
 	const existingQuestion = await db
 		.selectFrom('question')
-		.select('position')
+		.select(['position', 'type'])
 		.where('question.client_id', '=', ctx.session.user.client_id)
 		.where('id', '=', questionId)
 		.executeTakeFirstOrThrow();
@@ -329,8 +330,17 @@ export async function modifyQuestion(ctx: ProtectedContext, pageId: number, ques
 	if (params.page_id) updates.page_id = params.page_id;
 	if (params.position && params.position !== existingQuestion.position) updates.position = params.position;
 
+	// Check if converting to free-form
+	const convertingToFreeform =
+		params.type === QuestionType.FREEFORM && existingQuestion.type !== QuestionType.FREEFORM;
+
 	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
+		// Delete all existing answers when converting to free-form
+		if (convertingToFreeform) {
+			await trx.deleteFrom('answer').where('question_id', '=', questionId).execute();
+		}
+
 		if (updates.position) {
 			if (updates.position < existingQuestion.position) {
 				// Shift down: move questions [newPosition, currentPosition - 1] up by 1

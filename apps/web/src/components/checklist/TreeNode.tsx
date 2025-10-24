@@ -10,7 +10,7 @@ import PanoramaFishEye from '@mui/icons-material/PanoramaFishEye';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
-import { ChecklistMode, PageInstanceStatus } from '@/config/enums';
+import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import theme from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
@@ -148,6 +148,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 								pageId={pageId}
 								questionId={q.id}
 								questionText={q.text}
+								questionType={q.type as QuestionType}
 								questionAnswers={q.answers ?? []}
 								level={level + 1}
 								idx={i}
@@ -158,6 +159,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							pageId={pageId}
 							questionId={-1}
 							questionText="New Question"
+							questionType={undefined}
 							questionAnswers={[]}
 							level={level + 1}
 							idx={-1}

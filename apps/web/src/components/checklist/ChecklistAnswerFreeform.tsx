@@ -7,16 +7,19 @@ export default function ChecklistAnswerFreeform(props: {
 	field: ControllerRenderProps<FieldValues, string>;
 	answer?: Answer;
 	disabled?: boolean;
+	isFreeformQuestion?: boolean;
 }) {
-	const { field, answer, disabled } = props;
-	if (!answer) return <></>;
+	const { field, answer, disabled, isFreeformQuestion } = props;
+	// For free-form questions, always show the text area even without an answer
+	// For additional info fields, only show if answer exists
+	if (!isFreeformQuestion && !answer) return <></>;
+
 	return (
 		<TextField
 			variant="outlined"
-			placeholder={answer.additional_info_placeholder ?? 'Type your response here'}
+			placeholder={answer?.additional_info_placeholder ?? 'Type your response here'}
 			multiline
-			// multiline={!!answer.additional_info_num_lines}
-			rows={answer.additional_info_num_lines ?? 2}
+			rows={answer?.additional_info_num_lines ?? 2}
 			{...field}
 			disabled={disabled}
 			sx={{
