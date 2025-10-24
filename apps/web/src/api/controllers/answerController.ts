@@ -19,11 +19,10 @@ export async function createAnswer(
 	}: {
 		pageId: number;
 		questionId: number;
-		params: object;
+		params: any;
 	}
 ) {
-	const results = await answerQueries.createAnswer(ctx, pageId, questionId, params);
-	return results;
+	return await answerQueries.createAnswer(ctx, pageId, questionId, params);
 }
 
 /**
@@ -44,14 +43,9 @@ export async function copyAnswer(
 		answerId: number;
 	}
 ) {
-	try {
-		const existingAnswer = await answerQueries.getAnswer(ctx, answerId);
-		if (!existingAnswer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Answer does not exist' });
-		const results = await answerQueries.createAnswer(ctx, pageId, questionId, existingAnswer);
-		return results;
-	} catch (e) {
-		console.error(e);
-	}
+	const existingAnswer = await answerQueries.getAnswer(ctx, answerId);
+	if (!existingAnswer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Answer does not exist' });
+	return await answerQueries.createAnswer(ctx, pageId, questionId, existingAnswer);
 }
 
 /**
@@ -61,11 +55,7 @@ export async function copyAnswer(
  * @param input - page and answer identifiers
  */
 export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: number; answerId: number }) {
-	try {
-		await answerQueries.deleteAnswer(ctx, pageId, answerId);
-	} catch (e) {
-		console.error(e);
-	}
+	await answerQueries.deleteAnswer(ctx, pageId, answerId);
 }
 
 /**
@@ -75,12 +65,7 @@ export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: 
  * @param input - answer id
  */
 export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
-	try {
-		const results = await answerQueries.getAnswer(ctx, id);
-		return results;
-	} catch (e) {
-		console.error(e);
-	}
+	return await answerQueries.getAnswer(ctx, id);
 }
 
 /**
@@ -90,12 +75,7 @@ export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
  * @param input - question id
  */
 export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: number }) {
-	try {
-		const results = await answerQueries.getAnswers(ctx, questionId);
-		return results;
-	} catch (e) {
-		console.error(e);
-	}
+	return await answerQueries.getAnswers(ctx, questionId);
 }
 
 /*
@@ -107,12 +87,19 @@ export async function getAnswers(ctx: ProtectedContext, { questionId }: { questi
  */
 export async function modifyAnswer(
 	ctx: ProtectedContext,
-	{ pageId, answerId, params }: { pageId: number; answerId: number; params: object }
+	{ pageId, answerId, params }: { pageId: number; answerId: number; params: any }
 ) {
-	try {
-		const results = await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
-		return results;
-	} catch (e) {
-		console.error(e);
-	}
+	return await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
+}
+
+/**
+ * Get the answer call graph for a checklist.
+ * Used for cycle detection in the frontend.
+ *
+ * @param ctx - request context
+ * @param input - checklist id
+ * @returns Array of call graph edges
+ */
+export async function getAnswerCallGraph(ctx: ProtectedContext, { checklistId }: { checklistId: number }) {
+	return await answerQueries.getAnswerCallGraph(ctx, checklistId);
 }

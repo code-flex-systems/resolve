@@ -15,9 +15,13 @@ export function useAnswerTrpc() {
 
 		get: trpc.answer.getAnswer.useQuery,
 
+		getCallGraph: trpc.answer.getAnswerCallGraph.useQuery,
+
 		create: trpc.answer.createAnswer.useMutation({
 			onSuccess: (_, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				// Invalidate call graph when answer with calls_instance_id is created
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),
@@ -25,6 +29,8 @@ export function useAnswerTrpc() {
 		copy: trpc.answer.copyAnswer.useMutation({
 			onSuccess: (_, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				// Invalidate call graph when answer is copied (may have calls_instance_id)
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),
@@ -40,6 +46,8 @@ export function useAnswerTrpc() {
 						return old;
 					});
 				}
+				// Invalidate call graph when answer is updated (calls_instance_id may have changed)
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),
@@ -47,6 +55,8 @@ export function useAnswerTrpc() {
 		remove: trpc.answer.deleteAnswer.useMutation({
 			onSuccess: (_, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				// Invalidate call graph when answer is deleted (may have had calls_instance_id)
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),

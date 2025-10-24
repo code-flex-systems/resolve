@@ -27,6 +27,8 @@ export function useQuestionTrpc() {
 		copy: trpc.question.copyQuestion.useMutation({
 			onSuccess: (_, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				// Invalidate call graph when copying (answers with calls_instance_id are copied)
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),
@@ -34,6 +36,8 @@ export function useQuestionTrpc() {
 		update: trpc.question.updateQuestion.useMutation({
 			onSuccess: (_, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				// Invalidate call graph when updating (may convert to FREEFORM and delete answers)
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),
@@ -41,6 +45,8 @@ export function useQuestionTrpc() {
 		remove: trpc.question.deleteQuestion.useMutation({
 			onSuccess: (_, variables) => {
 				utils.question.getQuestions.invalidate({ pageId: variables.pageId });
+				// Invalidate call graph when deleting (CASCADE deletes answers)
+				utils.answer.getAnswerCallGraph.invalidate();
 				invalidateTree();
 			},
 		}),

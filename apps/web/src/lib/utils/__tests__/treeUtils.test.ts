@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getPageInstancesFromTree, updatePropertyInTree } from '../utils';
+import {
+	getPageInstancesFromTree,
+	updatePropertyInTree,
+	buildAnswerCallGraph,
+	wouldCreateCycle,
+} from '../utils';
 import { PageInstanceStatus } from '@/config/enums';
 import { TreeNode } from '@/types/types';
 
@@ -57,8 +62,8 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 1);
 		expect(result).toEqual([
-			{ instanceId: 2, pageId: 200 },
-			{ instanceId: 3, pageId: 300 },
+			{ instanceId: 2, pageId: 200, title: 'Second' },
+			{ instanceId: 3, pageId: 300, title: 'Third' },
 		]);
 	});
 
@@ -107,9 +112,9 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 1);
 		expect(result).toEqual([
-			{ instanceId: 2, pageId: 200 },
-			{ instanceId: 3, pageId: 300 },
-			{ instanceId: 4, pageId: 400 },
+			{ instanceId: 2, pageId: 200, title: 'Child 1' },
+			{ instanceId: 3, pageId: 300, title: 'Grandchild' },
+			{ instanceId: 4, pageId: 400, title: 'Child 2' },
 		]);
 	});
 
@@ -149,8 +154,8 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 2);
 		expect(result).toEqual([
-			{ instanceId: 1, pageId: 100 },
-			{ instanceId: 3, pageId: 300 },
+			{ instanceId: 1, pageId: 100, title: 'Root' },
+			{ instanceId: 3, pageId: 300, title: 'Grandchild' },
 		]);
 	});
 
@@ -208,11 +213,11 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 10); // Non-existent currentInstanceId
 		expect(result).toEqual([
-			{ instanceId: 1, pageId: 100 },
-			{ instanceId: 2, pageId: 200 },
-			{ instanceId: 3, pageId: 300 },
-			{ instanceId: 4, pageId: 400 },
-			{ instanceId: 5, pageId: 500 },
+			{ instanceId: 1, pageId: 100, title: 'Root 1' },
+			{ instanceId: 2, pageId: 200, title: 'Branch 1-1' },
+			{ instanceId: 3, pageId: 300, title: 'Branch 1-2' },
+			{ instanceId: 4, pageId: 400, title: 'Root 2' },
+			{ instanceId: 5, pageId: 500, title: 'Branch 2-1' },
 		]);
 	});
 
@@ -249,9 +254,9 @@ describe('getPageInstancesFromTree', () => {
 		const result = getPageInstancesFromTree(tree, 999);
 		// Should preserve array order, not sort by instanceId
 		expect(result).toEqual([
-			{ instanceId: 3, pageId: 300 },
-			{ instanceId: 1, pageId: 100 },
-			{ instanceId: 2, pageId: 200 },
+			{ instanceId: 3, pageId: 300, title: 'Third' },
+			{ instanceId: 1, pageId: 100, title: 'First' },
+			{ instanceId: 2, pageId: 200, title: 'Second' },
 		]);
 	});
 
@@ -269,7 +274,7 @@ describe('getPageInstancesFromTree', () => {
 			},
 		];
 		const result = getPageInstancesFromTree(tree, 999);
-		expect(result).toEqual([{ instanceId: 1, pageId: 100 }]);
+		expect(result).toEqual([{ instanceId: 1, pageId: 100, title: 'Root' }]);
 	});
 
 	it('should handle very deep nesting (5+ levels)', () => {
@@ -330,10 +335,10 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 3);
 		expect(result).toEqual([
-			{ instanceId: 1, pageId: 100 },
-			{ instanceId: 2, pageId: 200 },
-			{ instanceId: 4, pageId: 400 },
-			{ instanceId: 5, pageId: 500 },
+			{ instanceId: 1, pageId: 100, title: 'Level 1' },
+			{ instanceId: 2, pageId: 200, title: 'Level 2' },
+			{ instanceId: 4, pageId: 400, title: 'Level 4' },
+			{ instanceId: 5, pageId: 500, title: 'Level 5' },
 		]);
 	});
 });
@@ -895,5 +900,373 @@ describe('updatePropertyInTree', () => {
 		expect(result[1].status).toBe(PageInstanceStatus.COMPLETE);
 		expect(result[0].children).toBeDefined();
 		expect(result[1]).not.toHaveProperty('children');
+	});
+});
+
+describe('buildAnswerCallGraph', () => {
+	it('should return empty map for empty tree', () => {
+		const result = buildAnswerCallGraph([]);
+		expect(result.size).toBe(0);
+	});
+
+	it('should initialize graph with single node', () => {
+		const tree: TreeNode[] = [
+			{
+				instanceId: 1,
+				parentInstanceId: null,
+				pageId: 100,
+				position: 0,
+				title: 'Root',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+			},
+		];
+		const result = buildAnswerCallGraph(tree);
+		expect(result.size).toBe(1);
+		expect(result.has(1)).toBe(true);
+		expect(result.get(1)!.size).toBe(0); // No calls yet
+	});
+
+	it('should initialize graph with multiple root nodes', () => {
+		const tree: TreeNode[] = [
+			{
+				instanceId: 1,
+				parentInstanceId: null,
+				pageId: 100,
+				position: 0,
+				title: 'Root 1',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+			},
+			{
+				instanceId: 2,
+				parentInstanceId: null,
+				pageId: 200,
+				position: 1,
+				title: 'Root 2',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+			},
+		];
+		const result = buildAnswerCallGraph(tree);
+		expect(result.size).toBe(2);
+		expect(result.has(1)).toBe(true);
+		expect(result.has(2)).toBe(true);
+		expect(result.get(1)!.size).toBe(0);
+		expect(result.get(2)!.size).toBe(0);
+	});
+
+	it('should initialize graph with nested children', () => {
+		const tree: TreeNode[] = [
+			{
+				instanceId: 1,
+				parentInstanceId: null,
+				pageId: 100,
+				position: 0,
+				title: 'Root',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+				children: [
+					{
+						instanceId: 2,
+						parentInstanceId: 1,
+						pageId: 200,
+						position: 0,
+						title: 'Child',
+						status: PageInstanceStatus.COMPLETE,
+						template_version: 1,
+					},
+				],
+			},
+		];
+		const result = buildAnswerCallGraph(tree);
+		expect(result.size).toBe(2);
+		expect(result.has(1)).toBe(true);
+		expect(result.has(2)).toBe(true);
+	});
+
+	it('should initialize graph with deeply nested structure', () => {
+		const tree: TreeNode[] = [
+			{
+				instanceId: 1,
+				parentInstanceId: null,
+				pageId: 100,
+				position: 0,
+				title: 'Level 1',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+				children: [
+					{
+						instanceId: 2,
+						parentInstanceId: 1,
+						pageId: 200,
+						position: 0,
+						title: 'Level 2',
+						status: PageInstanceStatus.COMPLETE,
+						template_version: 1,
+						children: [
+							{
+								instanceId: 3,
+								parentInstanceId: 2,
+								pageId: 300,
+								position: 0,
+								title: 'Level 3',
+								status: PageInstanceStatus.COMPLETE,
+								template_version: 1,
+							},
+						],
+					},
+				],
+			},
+		];
+		const result = buildAnswerCallGraph(tree);
+		expect(result.size).toBe(3);
+		expect(result.has(1)).toBe(true);
+		expect(result.has(2)).toBe(true);
+		expect(result.has(3)).toBe(true);
+	});
+
+	it('should handle complex multi-branch tree', () => {
+		const tree: TreeNode[] = [
+			{
+				instanceId: 1,
+				parentInstanceId: null,
+				pageId: 100,
+				position: 0,
+				title: 'Root 1',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+				children: [
+					{
+						instanceId: 2,
+						parentInstanceId: 1,
+						pageId: 200,
+						position: 0,
+						title: 'Child 1-1',
+						status: PageInstanceStatus.COMPLETE,
+						template_version: 1,
+					},
+					{
+						instanceId: 3,
+						parentInstanceId: 1,
+						pageId: 300,
+						position: 1,
+						title: 'Child 1-2',
+						status: PageInstanceStatus.COMPLETE,
+						template_version: 1,
+					},
+				],
+			},
+			{
+				instanceId: 4,
+				parentInstanceId: null,
+				pageId: 400,
+				position: 1,
+				title: 'Root 2',
+				status: PageInstanceStatus.COMPLETE,
+				template_version: 1,
+			},
+		];
+		const result = buildAnswerCallGraph(tree);
+		expect(result.size).toBe(4);
+		expect(result.has(1)).toBe(true);
+		expect(result.has(2)).toBe(true);
+		expect(result.has(3)).toBe(true);
+		expect(result.has(4)).toBe(true);
+	});
+});
+
+describe('wouldCreateCycle', () => {
+	it('should return false when target has no calls', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set());
+
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should return true for direct cycle (A -> B, B -> A)', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([1])); // 2 calls 1
+
+		// If we add 1 -> 2, it creates a cycle
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should return true for indirect cycle (A -> B -> C -> A)', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([3])); // 2 calls 3
+		callGraph.set(3, new Set([1])); // 3 calls 1
+
+		// If we add 1 -> 2, it creates cycle: 1 -> 2 -> 3 -> 1
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should return false for non-cyclic linear chain', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([3])); // 2 -> 3
+		callGraph.set(3, new Set([4])); // 3 -> 4
+		callGraph.set(4, new Set()); // 4 -> nothing
+
+		// Adding 1 -> 2 creates 1 -> 2 -> 3 -> 4, no cycle
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should return false when instances are independent', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([3])); // 2 -> 3
+		callGraph.set(3, new Set());
+		callGraph.set(4, new Set([5])); // 4 -> 5 (separate chain)
+		callGraph.set(5, new Set());
+
+		// Adding 1 -> 4 doesn't create a cycle
+		const result = wouldCreateCycle(1, 4, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should handle complex cycle with multiple paths', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([3, 4])); // 2 calls both 3 and 4
+		callGraph.set(3, new Set([5])); // 3 -> 5
+		callGraph.set(4, new Set([5])); // 4 -> 5
+		callGraph.set(5, new Set([1])); // 5 -> 1
+
+		// If we add 1 -> 2, creates cycle through multiple paths
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should return true for self-loop', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set([1])); // 1 calls itself
+
+		const result = wouldCreateCycle(1, 1, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should detect cycle in long chain', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([3]));
+		callGraph.set(3, new Set([4]));
+		callGraph.set(4, new Set([5]));
+		callGraph.set(5, new Set([6]));
+		callGraph.set(6, new Set([1])); // 6 -> 1
+
+		// Adding 1 -> 2 creates: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 1
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should not detect false positive in diverging paths', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([4, 5])); // 2 branches to 4 and 5
+		callGraph.set(3, new Set([4, 5])); // 3 also branches to 4 and 5
+		callGraph.set(4, new Set());
+		callGraph.set(5, new Set());
+
+		// Adding 1 -> 2 doesn't create cycle even though paths merge
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should handle empty call graph gracefully', () => {
+		const callGraph = new Map<number, Set<number>>();
+
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should handle missing nodes in graph', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		// Node 2 not in graph
+
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should detect cycle through visited node optimization', () => {
+		// This tests that visited tracking prevents infinite loops
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([3]));
+		callGraph.set(3, new Set([2, 1])); // 3 -> 2 (back) and 3 -> 1 (forward)
+
+		// Should detect cycle via 3 -> 1 without getting stuck in 2 <-> 3
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should return false when target leads to dead end', () => {
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([99])); // 2 calls non-existent node
+		callGraph.set(3, new Set());
+
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should handle diamond pattern without false positive', () => {
+		//    1
+		//   / \
+		//  2   3
+		//   \ /
+		//    4
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([4]));
+		callGraph.set(3, new Set([4]));
+		callGraph.set(4, new Set());
+
+		// Adding 1 -> 2 creates diamond but no cycle
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(false);
+	});
+
+	it('should detect cycle in diamond with back edge', () => {
+		//    1
+		//   / \
+		//  2   3
+		//   \ /
+		//    4 -> 1
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([4]));
+		callGraph.set(3, new Set([4]));
+		callGraph.set(4, new Set([1])); // Back edge
+
+		const result = wouldCreateCycle(1, 2, callGraph);
+		expect(result).toBe(true);
+	});
+
+	it('should handle multiple independent cycles', () => {
+		// Cycle 1: 1 -> 2 -> 1
+		// Cycle 2: 4 -> 5 -> 4
+		// Node 3 independent
+		const callGraph = new Map<number, Set<number>>();
+		callGraph.set(1, new Set());
+		callGraph.set(2, new Set([1]));
+		callGraph.set(3, new Set());
+		callGraph.set(4, new Set([5]));
+		callGraph.set(5, new Set([4]));
+
+		// Check first cycle
+		expect(wouldCreateCycle(1, 2, callGraph)).toBe(true);
+
+		// Check connection between cycles (should be safe)
+		expect(wouldCreateCycle(3, 1, callGraph)).toBe(false);
+		expect(wouldCreateCycle(3, 4, callGraph)).toBe(false);
 	});
 });

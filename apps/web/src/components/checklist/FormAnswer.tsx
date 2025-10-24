@@ -28,7 +28,7 @@ import TaskAlt from '@mui/icons-material/TaskAlt';
 import Toolbar from '../common/Toolbar';
 import { Answer, useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
-import { getPageInstancesFromTree } from '@/lib/utils/utils';
+import { buildAnswerCallGraph, getPageInstancesFromTree, wouldCreateCycle } from '@/lib/utils/utils';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
@@ -74,7 +74,7 @@ export default function FormAnswer() {
 		{ answerId: selectedAnswerData.id },
 		{ enabled: selectedAnswerData.id !== -1 && !!selectedAnswerData?.has_action }
 	);
-	const { create, copy, remove, update } = useAnswerTrpc();
+	const { create, copy, remove, update, getCallGraph } = useAnswerTrpc();
 	const { isPending: adding, mutateAsync: addAnswer } = create;
 	const { isPending: updating, mutateAsync: updateAnswer } = update;
 	const { isPending: copying, mutateAsync: copyAnswer } = copy;
@@ -84,6 +84,10 @@ export default function FormAnswer() {
 	});
 	const { data: navigation = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
 		{ checklistId, claimId },
+		{ enabled: checklistId !== -1 }
+	);
+	const { data: callGraphData = [] } = getCallGraph(
+		{ checklistId },
 		{ enabled: checklistId !== -1 }
 	);
 
@@ -103,7 +107,33 @@ export default function FormAnswer() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const answerText = watch('text');
 	const hasAdditionalInfo = watch('has_additional_info');
-	const pageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
+	const allPageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
+
+	// Build the answer call graph and filter out instances that would create cycles
+	const answerCallGraph = useMemo(() => {
+		const graph = buildAnswerCallGraph(navigation.tree);
+		// Populate the graph with actual answer call data
+		for (const edge of callGraphData) {
+			const fromSet = graph.get(edge.from_instance_id);
+			if (fromSet) {
+				fromSet.add(edge.to_instance_id);
+			}
+		}
+		return graph;
+	}, [navigation.tree, callGraphData]);
+
+	// Filter out page instances that would create cycles
+	const pageInstanceOptions = useMemo(() => {
+		return allPageInstanceOptions.filter((option) => {
+			// Don't filter if this is the currently selected option (allow keeping existing selection)
+			if (selectedAnswerData.calls_instance_id === option.instanceId) {
+				return true;
+			}
+			// Check if selecting this option would create a cycle
+			return !wouldCreateCycle(selectedPageInfo.instanceId, option.instanceId, answerCallGraph);
+		});
+	}, [allPageInstanceOptions, selectedPageInfo.instanceId, answerCallGraph, selectedAnswerData.calls_instance_id]);
+
 	const isPlaceholder = selectedAnswerData.id === -1;
 	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	const inTransition = isSubmitting || adding || copying || updating || deleting || refetching;
