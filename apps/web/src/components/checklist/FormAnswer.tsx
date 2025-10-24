@@ -1,7 +1,6 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
-import { Answer } from '@/types/types';
 import {
 	Button,
 	Checkbox,
@@ -10,6 +9,9 @@ import {
 	Fade,
 	FormControl,
 	FormLabel,
+	Grid,
+	IconButton,
+	InputAdornment,
 	MenuItem,
 	Select,
 	TextField,
@@ -17,13 +19,14 @@ import {
 } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
+import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import Save from '@mui/icons-material/Save';
 import Share from '@mui/icons-material/Share';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import Toolbar from '../common/Toolbar';
-import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
+import { Answer, useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { getPageInstancesFromTree } from '@/lib/utils/utils';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -33,7 +36,8 @@ import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import FormatQuote from '@mui/icons-material/FormatQuote';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -64,6 +68,7 @@ export default function FormAnswer() {
 	const showActionDialog = useChecklistStore((state) => state.showActionDialog);
 	const updateSelectedAnswer = useChecklistStore((state) => state.updateSelectedAnswer);
 	const toggleActionDialog = useChecklistStore((state) => state.toggleActionDialog);
+	const [copiedField, setCopiedField] = useState<string | null>(null);
 
 	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
 		{ answerId: selectedAnswerData.id },
@@ -110,7 +115,7 @@ export default function FormAnswer() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			const parsedData: Answer = {
+			const parsedData = {
 				...data,
 				calls_instance_id: !data.calls_instance_id ? null : data.calls_instance_id,
 			};
@@ -156,6 +161,12 @@ export default function FormAnswer() {
 		}
 	};
 
+	const onCopyText = (field: string, text: string) => {
+		navigator.clipboard.writeText(text);
+		setCopiedField(field);
+		setTimeout(() => setCopiedField(null), 2000);
+	};
+
 	const positionOptions = useMemo(() => {
 		const options: number[] = [];
 		let limit = selectedQuestionData.answers?.length ?? 0;
@@ -171,8 +182,10 @@ export default function FormAnswer() {
 			<Toolbar
 				left={
 					<>
-						<Typography lineHeight={'21px'} fontSize={19} minWidth={200}>
-							{answerText} (p{selectedPageInfo.pageId}.q{selectedQuestion}.a
+						<FormatQuote sx={{ color: theme.palette.warning.main, marginRight: '10px' }} />
+						<Typography color="warning" lineHeight={'21px'} fontSize={17} minWidth={200}>
+							{answerText === '' && isPlaceholder ? 'New answer' : answerText} (p{selectedPageInfo.pageId}
+							.q{selectedQuestion}.a
 							{isPlaceholder ? '?' : selectedAnswerData.id})
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
@@ -247,189 +260,274 @@ export default function FormAnswer() {
 				unmountOnExit
 			>
 				<Form control={control} style={styles.form}>
-					<div style={styles.row} className="flex-row-left">
-						<Controller
-							name="text"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<TextField
-									label="Answer text"
-									placeholder="Water Damage"
-									variant="outlined"
-									error={!!errors.text}
-									{...field}
-									sx={styles.textFieldOverrides}
-									style={styles.item}
-								/>
-							)}
-						/>
-
-						<Controller
-							name="description_text"
-							control={control}
-							render={({ field }) => (
-								<TextField
-									label="Answer description (optional)"
-									placeholder="Damage as a result of leaks or condensation"
-									variant="outlined"
-									{...field}
-									value={field.value ?? ''}
-									sx={{ ...styles.textFieldOverrides, width: 400 }}
-									style={styles.item}
-								/>
-							)}
-						/>
-					</div>
-					<div style={{ ...styles.row, height: 55 }} className="flex-row-left">
-						<Controller
-							name="grade"
-							control={control}
-							render={({ field }) => (
-								<TextField
-									label="Grade (optional)"
-									placeholder="1.1"
-									variant="outlined"
-									type="number"
-									{...field}
-									value={field.value ?? ''}
-									sx={{ ...styles.textFieldOverrides, width: 120 }}
-									style={styles.item}
-								/>
-							)}
-						/>
-
-						<Controller
-							name="position"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<FormControl style={{ padding: '0px 5px 15px' }}>
-									<FormLabel sx={styles.formLabel}>Order</FormLabel>
-									<Select
-										variant="outlined"
-										error={!!errors.position}
-										{...field}
-										sx={{ ...styles.textFieldOverrides, width: 50 }}
-									>
-										{positionOptions.map((o) => (
-											<MenuItem key={o} value={o}>
-												{o}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
-							)}
-						/>
-
-						<Controller
-							name="calls_instance_id"
-							control={control}
-							render={({ field }) => (
-								<FormControl style={{ padding: '0px 5px 15px' }}>
-									<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
-									<Select
-										displayEmpty
-										variant="outlined"
-										error={!!errors.calls_instance_id}
-										{...field}
-										value={field.value ?? ''}
-										renderValue={(value) => {
-											if (value === 0) return 'None';
-											const option = pageInstanceOptions.find((o) => o.instanceId === value);
-											return option ? `p${option.pageId}.i${option.instanceId}` : 'Choose a page';
-										}}
-										sx={styles.textFieldOverrides}
-									>
-										<MenuItem key="none" value="">
-											None
-										</MenuItem>
-										{pageInstanceOptions
-											.sort((a, b) => a.pageId - b.pageId)
-											.map((o) => (
-												<MenuItem key={o.instanceId} value={o.instanceId}>
-													p{o.pageId}.i{o.instanceId}
-												</MenuItem>
-											))}
-									</Select>
-								</FormControl>
-							)}
-						/>
-					</div>
-
-					<div style={{ ...styles.row, height: 55 }} className="flex-row-left">
-						<Button
-							disabled={inTransition || isFreeform}
-							variant="outlined"
-							color="primary"
-							startIcon={<Share />}
-							onClick={toggleActionDialog}
-							sx={{ height: 30 }}
-							style={styles.item}
-						>
-							User actions
-						</Button>
-						{formatActionText(answerAction)}
-					</div>
-
-					<div style={{ ...styles.row, height: 40 }} className="flex-row-left">
-						<Controller
-							name="has_additional_info"
-							control={control}
-							render={({ field }) => (
-								<FormControl style={styles.item}>
-									<div className="flex-row-left">
-										<Checkbox
+					<Grid container>
+						<Grid container margin="5px" alignItems="center">
+							<Grid>
+								<Controller
+									name="text"
+									control={control}
+									rules={{ required: true }}
+									render={({ field }) => (
+										<TextField
+											label="Answer text"
+											placeholder="Water Damage"
+											variant="outlined"
+											error={!!errors.text}
 											{...field}
-											onChange={(e) => field.onChange(e.target.checked)}
-											checked={Boolean(field?.value)}
-											sx={{ width: 15, height: 15 }}
+											slotProps={{
+												input: {
+													endAdornment: (
+														<InputAdornment position="end">
+															<IconButton
+																disableRipple
+																onClick={() => onCopyText(field.name, field.value)}
+															>
+																{copiedField === field.name ? (
+																	<Check
+																		sx={{ color: theme.palette.success.light }}
+																	/>
+																) : (
+																	<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																)}
+															</IconButton>
+														</InputAdornment>
+													),
+												},
+											}}
+											sx={styles.textFieldOverrides}
+											style={styles.item}
 										/>
-										<FormLabel sx={{ fontSize: 12, paddingLeft: '5px' }}>
-											Requires additional info...
-										</FormLabel>
-									</div>
-								</FormControl>
-							)}
-						/>
-					</div>
+									)}
+								/>
+							</Grid>
 
-					<Collapse in={hasAdditionalInfo}>
-						<div style={styles.row} className="flex-row-left">
-							<Controller
-								name="additional_info_placeholder"
-								control={control}
-								render={({ field }) => (
-									<TextField
-										label="Free-form placeholder (optional)"
-										placeholder="Please list"
-										variant="outlined"
-										{...field}
-										value={field.value ?? ''}
-										sx={styles.textFieldOverrides}
-										style={styles.item}
-									/>
-								)}
-							/>
+							<Grid>
+								<Controller
+									name="description_text"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											label="Answer description (optional)"
+											placeholder="Damage as a result of leaks or condensation"
+											variant="outlined"
+											{...field}
+											slotProps={{
+												input: {
+													endAdornment: (
+														<InputAdornment position="end">
+															<IconButton
+																disableRipple
+																onClick={() =>
+																	onCopyText(field.name, field.value ?? '')
+																}
+															>
+																{copiedField === field.name ? (
+																	<Check
+																		sx={{ color: theme.palette.success.light }}
+																	/>
+																) : (
+																	<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																)}
+															</IconButton>
+														</InputAdornment>
+													),
+												},
+											}}
+											value={field.value ?? ''}
+											sx={{ ...styles.textFieldOverrides, width: 400 }}
+											style={styles.item}
+										/>
+									)}
+								/>
+							</Grid>
+						</Grid>
 
-							<Controller
-								name="additional_info_num_lines"
-								control={control}
-								render={({ field }) => (
-									<TextField
-										label="Free-form # of lines (optional)"
-										placeholder="2"
-										variant="outlined"
-										type="number"
-										{...field}
-										value={field.value ?? ''}
-										sx={{ ...styles.textFieldOverrides, width: 200 }}
-										style={styles.item}
+						<Grid container margin="5px" alignItems="center">
+							<Grid>
+								<Controller
+									name="grade"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											label="Grade (optional)"
+											placeholder="1.1"
+											variant="outlined"
+											type="number"
+											{...field}
+											value={field.value ?? ''}
+											sx={{ ...styles.textFieldOverrides, width: 120 }}
+											style={styles.item}
+										/>
+									)}
+								/>
+							</Grid>
+							<Grid>
+								<Controller
+									name="position"
+									control={control}
+									rules={{ required: true }}
+									render={({ field }) => (
+										<FormControl style={{ padding: '0px 5px 15px' }}>
+											<FormLabel sx={styles.formLabel}>Order</FormLabel>
+											<Select
+												variant="outlined"
+												error={!!errors.position}
+												{...field}
+												sx={{ ...styles.textFieldOverrides, width: 80 }}
+											>
+												{positionOptions.map((o) => (
+													<MenuItem key={o} value={o}>
+														{o}
+													</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									)}
+								/>
+							</Grid>
+
+							<Grid>
+								<Controller
+									name="calls_instance_id"
+									control={control}
+									render={({ field }) => (
+										<FormControl style={{ padding: '0px 5px 15px' }}>
+											<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
+											<Select
+												displayEmpty
+												variant="outlined"
+												error={!!errors.calls_instance_id}
+												{...field}
+												value={field.value ?? ''}
+												renderValue={(value) => {
+													if (value === 0) return 'None';
+													const option = pageInstanceOptions.find(
+														(o) => o.instanceId === value
+													);
+													return option
+														? `p${option.pageId}.i${option.instanceId}`
+														: 'Choose a page';
+												}}
+												sx={styles.textFieldOverrides}
+											>
+												<MenuItem key="none" value="">
+													None
+												</MenuItem>
+												{pageInstanceOptions
+													.sort((a, b) => a.pageId - b.pageId)
+													.map((o) => (
+														<MenuItem key={o.instanceId} value={o.instanceId}>
+															p{o.pageId}.i{o.instanceId}
+														</MenuItem>
+													))}
+											</Select>
+										</FormControl>
+									)}
+								/>
+							</Grid>
+						</Grid>
+
+						<Grid container margin="5px" alignItems="center">
+							<Grid>
+								<Button
+									disabled={inTransition || isFreeform}
+									variant="outlined"
+									color="primary"
+									startIcon={<Share />}
+									onClick={toggleActionDialog}
+									sx={{ height: 30 }}
+									style={styles.item}
+								>
+									User actions
+								</Button>
+								{formatActionText(answerAction)}
+							</Grid>
+							<Grid>
+								<Controller
+									name="has_additional_info"
+									control={control}
+									render={({ field }) => (
+										<FormControl style={styles.item}>
+											<div className="flex-row-left">
+												<Checkbox
+													{...field}
+													onChange={(e) => field.onChange(e.target.checked)}
+													checked={Boolean(field?.value)}
+													value={Boolean(field?.value)}
+													sx={{ width: 15, height: 15 }}
+												/>
+												<FormLabel sx={{ fontSize: 12, paddingLeft: '5px' }}>
+													Requires additional info...
+												</FormLabel>
+											</div>
+										</FormControl>
+									)}
+								/>
+							</Grid>
+						</Grid>
+
+						<Collapse in={!!hasAdditionalInfo}>
+							<Grid container margin="5px" alignItems="center">
+								<Grid>
+									<Controller
+										name="additional_info_placeholder"
+										control={control}
+										render={({ field }) => (
+											<TextField
+												label="Free-form placeholder (optional)"
+												placeholder="Please list"
+												variant="outlined"
+												{...field}
+												slotProps={{
+													input: {
+														endAdornment: (
+															<InputAdornment position="end">
+																<IconButton
+																	disableRipple
+																	onClick={() =>
+																		onCopyText(field.name, field.value ?? '')
+																	}
+																>
+																	{copiedField === field.name ? (
+																		<Check
+																			sx={{ color: theme.palette.success.light }}
+																		/>
+																	) : (
+																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																	)}
+																</IconButton>
+															</InputAdornment>
+														),
+													},
+												}}
+												value={field.value ?? ''}
+												sx={styles.textFieldOverrides}
+												style={styles.item}
+											/>
+										)}
 									/>
-								)}
-							/>
-						</div>
-					</Collapse>
+								</Grid>
+								<Grid>
+									<Controller
+										name="additional_info_num_lines"
+										control={control}
+										render={({ field }) => (
+											<TextField
+												label="Free-form # of lines (optional)"
+												placeholder="2"
+												variant="outlined"
+												type="number"
+												{...field}
+												value={field.value ?? ''}
+												sx={{ ...styles.textFieldOverrides, width: 200 }}
+												style={styles.item}
+											/>
+										)}
+									/>
+								</Grid>
+							</Grid>
+						</Collapse>
+					</Grid>
 				</Form>
 			</Fade>
 			{showActionDialog && <UserActionsDialog />}
@@ -460,10 +558,12 @@ const styles = {
 	textFieldOverrides: {
 		width: 300,
 		'& .MuiInputBase-root': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 	},
 	toolbar: {

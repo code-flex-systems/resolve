@@ -1,5 +1,9 @@
 import { createTheme } from '@mui/material/styles';
-import '@fontsource/inter';
+import '@fontsource/inter/300.css'; // Light (regular weight)
+import '@fontsource/inter/400.css'; // Normal
+import '@fontsource/inter/500.css'; // Medium
+import '@fontsource/inter/600.css'; // Semi-bold
+import '@fontsource/inter/700.css'; // Bold
 import { buttonClasses } from '@mui/material';
 
 export const BASE_COLOR = '#353D49';
@@ -230,7 +234,6 @@ const theme = createTheme({
 		},
 		secondary: {
 			main: '#32AE99',
-			dark: BASE_COLOR,
 			contrastText: '#fff',
 		},
 		success: {
@@ -259,7 +262,7 @@ const theme = createTheme({
 			'sans-serif',
 		].join(','),
 		fontWeightRegular: 300,
-		fontWeightBold: 550,
+		fontWeightBold: 500,
 		body1: {
 			color: BASE_COLOR,
 		},

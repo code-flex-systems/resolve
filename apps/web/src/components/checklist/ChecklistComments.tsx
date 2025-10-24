@@ -35,6 +35,9 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const [page, setPage] = useState(0);
 	const commentOffset = useChecklistStore((state) => state.commentOffset);
+	const updateCommentOffset = useChecklistStore((state) => state.updateCommentOffset);
+	const goToPage = useChecklistStore((state) => state.goToPage);
+	const toggleHighlightedQuestion = useChecklistStore((state) => state.toggleHighlightedQuestion);
 	const isAssigned = useIsAssigned(true);
 
 	const { data = { rows: [], count: 0 }, isFetching } = useCommentTrpc().list(

@@ -110,7 +110,7 @@ export default function PageNavigation() {
 	const {
 		data: navigation = { tree: [], maxPosition: 0 },
 		isFetching,
-		refetch,
+		refetch: refetchTree,
 		isSuccess: isNavSuccess,
 	} = usePageTrpc().getInstanceTree(
 		{
@@ -151,7 +151,13 @@ export default function PageNavigation() {
 					position: navigation.maxPosition + 1,
 				},
 			});
-			if (newInstance) useChecklistStore.getState().updateSelectedPage(newInstance.instance_id);
+			if (newInstance) {
+				const { data: freshData } = await refetchTree();
+				useChecklistStore.getState().updateSelectedPage(newInstance.instance_id);
+				if (freshData) {
+					useChecklistStore.getState().updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
+				}
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -171,7 +177,7 @@ export default function PageNavigation() {
 									exclusive
 									onChange={(_, value) => {
 										useChecklistStore.getState().updateMode(value);
-										if (value === ChecklistMode.VIEW) refetch().catch((e) => console.error(e));
+										if (value === ChecklistMode.VIEW) refetchTree().catch((e: any) => console.error(e));
 									}}
 								>
 									{!!claimId && (

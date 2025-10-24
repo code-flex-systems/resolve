@@ -6,6 +6,9 @@ import {
 	FormControl,
 	FormControlLabel,
 	FormLabel,
+	Grid,
+	IconButton,
+	InputAdornment,
 	MenuItem,
 	Radio,
 	RadioGroup,
@@ -13,10 +16,12 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import Save from '@mui/icons-material/Save';
 import TaskAlt from '@mui/icons-material/TaskAlt';
+import HelpOutline from '@mui/icons-material/HelpOutline';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
@@ -28,7 +33,7 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -37,6 +42,7 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 }
 
 export default function FormQuestion() {
+	const [copiedField, setCopiedField] = useState<string | null>(null);
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
@@ -112,6 +118,12 @@ export default function FormQuestion() {
 		}
 	};
 
+	const onCopyText = (field: string, text: string) => {
+		navigator.clipboard.writeText(text);
+		setCopiedField(field);
+		setTimeout(() => setCopiedField(null), 2000);
+	};
+
 	useEffect(() => {
 		reset({ ...getDefaults(selectedQuestionData) });
 	}, [selectedQuestionData, selectedPageInfo.pageId]);
@@ -131,8 +143,11 @@ export default function FormQuestion() {
 			<Toolbar
 				left={
 					<>
-						<Typography lineHeight={'21px'} fontSize={19} minWidth={200}>
-							{questionText} (p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id})
+						<HelpOutline sx={{ color: theme.palette.secondary.main, marginRight: '10px' }} />
+						<Typography color="secondary" lineHeight={'21px'} fontSize={17} minWidth={200}>
+							{questionText === '' && isPlaceholder ? 'New question' : questionText} (p
+							{selectedPageInfo.pageId}.q
+							{isPlaceholder ? '?' : selectedQuestionData.id})
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<div style={{ marginLeft: 10 }} className="flex-row-left">
@@ -197,118 +212,172 @@ export default function FormQuestion() {
 			</div>
 			<Fade key={selectedQuestionData.id} in={!!selectedQuestionData.id} timeout={500} unmountOnExit>
 				<Form control={control} style={styles.form}>
-					<div style={styles.row} className="flex-row-left">
-						<Controller
-							name="page_id"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<FormControl style={{ padding: '0px 5px 15px' }}>
-									<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
-									<Select error={!!errors.page_id} {...field} sx={styles.textFieldOverrides}>
-										{pageTemplates.map((o) => (
-											<MenuItem key={o.id} value={o.id}>
-												{o.title} (p{o.id})
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
-							)}
-						/>
-						<Controller
-							name="position"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<FormControl style={{ padding: '0px 5px 15px' }}>
-									<FormLabel sx={styles.formLabel}>Order</FormLabel>
-									<Select
-										variant="outlined"
-										error={!!errors.position}
-										{...field}
-										sx={{ ...styles.textFieldOverrides, width: 50 }}
-									>
-										{positionOptions.map((o) => (
-											<MenuItem key={o} value={o}>
-												{o}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
-							)}
-						/>
-					</div>
-					<div style={styles.row} className="flex-row-left">
-						<Controller
-							name="text"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<TextField
-									label="Question text"
-									placeholder="What is the cause of loss?"
-									variant="outlined"
-									{...field}
-									error={!!errors.text}
-									sx={styles.textFieldOverrides}
-									style={styles.item}
+					<Grid container>
+						<Grid container margin="5px" alignItems="center">
+							<Grid>
+								<Controller
+									name="page_id"
+									control={control}
+									rules={{ required: true }}
+									render={({ field }) => (
+										<FormControl style={{ padding: '0px 5px 15px' }}>
+											<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
+											<Select error={!!errors.page_id} {...field} sx={styles.textFieldOverrides}>
+												{pageTemplates.map((o) => (
+													<MenuItem key={o.id} value={o.id}>
+														{o.title} (p{o.id})
+													</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									)}
 								/>
-							)}
-						/>
+							</Grid>
+							<Grid>
+								<Controller
+									name="position"
+									control={control}
+									rules={{ required: true }}
+									render={({ field }) => (
+										<FormControl style={{ padding: '0px 5px 15px' }}>
+											<FormLabel sx={styles.formLabel}>Order</FormLabel>
+											<Select
+												variant="outlined"
+												error={!!errors.position}
+												{...field}
+												sx={{ ...styles.textFieldOverrides, width: 80 }}
+											>
+												{positionOptions.map((o) => (
+													<MenuItem key={o} value={o}>
+														{o}
+													</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									)}
+								/>
+							</Grid>
+						</Grid>
 
-						<Controller
-							name="description_text"
-							control={control}
-							render={({ field }) => (
-								<TextField
-									label="Question description (optional)"
-									placeholder="Describe how the damage occurred"
-									variant="outlined"
-									{...field}
-									value={field.value ?? ''}
-									sx={{ ...styles.textFieldOverrides, width: 400 }}
-									style={styles.item}
+						<Grid container margin="5px" alignItems="center">
+							<Grid>
+								<Controller
+									name="text"
+									control={control}
+									rules={{ required: true }}
+									render={({ field }) => (
+										<TextField
+											label="Question text"
+											placeholder="What is the cause of loss?"
+											variant="outlined"
+											{...field}
+											slotProps={{
+												input: {
+													endAdornment: (
+														<InputAdornment position="end">
+															<IconButton
+																disableRipple
+																onClick={() => onCopyText(field.name, field.value)}
+															>
+																{copiedField === field.name ? (
+																	<Check
+																		sx={{ color: theme.palette.success.light }}
+																	/>
+																) : (
+																	<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																)}
+															</IconButton>
+														</InputAdornment>
+													),
+												},
+											}}
+											error={!!errors.text}
+											sx={styles.textFieldOverrides}
+											style={styles.item}
+										/>
+									)}
 								/>
-							)}
-						/>
-					</div>
-					<div style={styles.row} className="flex-row-left">
-						<Controller
-							name="type"
-							control={control}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<FormControl style={styles.item}>
-									<FormLabel sx={styles.formLabel} error={!!errors.type}>
-										Question type
-									</FormLabel>
-									<RadioGroup {...field} row>
-										<FormControlLabel
-											defaultChecked
-											control={<Radio />}
-											label="Single"
-											value={QuestionType.SINGLE}
+							</Grid>
+
+							<Grid>
+								<Controller
+									name="description_text"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											label="Question description (optional)"
+											placeholder="Describe how the damage occurred"
+											variant="outlined"
+											{...field}
+											slotProps={{
+												input: {
+													endAdornment: (
+														<InputAdornment position="end">
+															<IconButton
+																disableRipple
+																onClick={() =>
+																	onCopyText(field.name, field.value ?? '')
+																}
+															>
+																{copiedField === field.name ? (
+																	<Check
+																		sx={{ color: theme.palette.success.light }}
+																	/>
+																) : (
+																	<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																)}
+															</IconButton>
+														</InputAdornment>
+													),
+												},
+											}}
+											value={field.value ?? ''}
+											sx={{ ...styles.textFieldOverrides, width: 400 }}
+											style={styles.item}
 										/>
-										<FormControlLabel
-											control={<Radio />}
-											label="Multi"
-											value={QuestionType.MULTI}
-										/>
-										<FormControlLabel
-											control={<Radio />}
-											label="Dropdown"
-											value={QuestionType.DROPDOWN}
-										/>
-										<FormControlLabel
-											control={<Radio />}
-											label="Free-form"
-											value={QuestionType.FREEFORM}
-										/>
-									</RadioGroup>
-								</FormControl>
-							)}
-						/>
-					</div>
+									)}
+								/>
+							</Grid>
+						</Grid>
+
+						<Grid>
+							<Controller
+								name="type"
+								control={control}
+								rules={{ required: true }}
+								render={({ field }) => (
+									<FormControl style={styles.item}>
+										<FormLabel sx={styles.formLabel} error={!!errors.type}>
+											Question type
+										</FormLabel>
+										<RadioGroup {...field} row>
+											<FormControlLabel
+												defaultChecked
+												control={<Radio />}
+												label="Single"
+												value={QuestionType.SINGLE}
+											/>
+											<FormControlLabel
+												control={<Radio />}
+												label="Multi"
+												value={QuestionType.MULTI}
+											/>
+											<FormControlLabel
+												control={<Radio />}
+												label="Dropdown"
+												value={QuestionType.DROPDOWN}
+											/>
+											<FormControlLabel
+												control={<Radio />}
+												label="Free-form"
+												value={QuestionType.FREEFORM}
+											/>
+										</RadioGroup>
+									</FormControl>
+								)}
+							/>
+						</Grid>
+					</Grid>
 				</Form>
 			</Fade>
 
@@ -354,10 +423,12 @@ const styles = {
 	textFieldOverrides: {
 		width: 300,
 		'& .MuiInputBase-root': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
+			paddingTop: '3px',
+			paddingBottom: '3px',
 		},
 	},
 	toolbar: {

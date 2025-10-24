@@ -114,7 +114,8 @@ export default function DashboardTab() {
 							onClick={() => router.push('/admin/feeds-and-claims')}
 							onSelect={() => onSelect('feeds')}
 							icon={<RssFeed sx={styles.simpleMetricIcon} />}
-							color={PURPLE}
+							// color={PURPLE}
+							color={'rgba(202, 142, 255, 0.7)'}
 							values={feedCounts}
 							isLoading={isFetchingFeedCounts}
 							selected={selected === 'feeds'}

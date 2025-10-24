@@ -1,15 +1,16 @@
 'use client';
-import { Box, Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, CircularProgress, Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Adjust from '@mui/icons-material/Adjust';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Error from '@mui/icons-material/Error';
+import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import PanoramaFishEye from '@mui/icons-material/PanoramaFishEye';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
-import { ChecklistMode, PageInstanceStatus } from '@/config/enums';
+import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import theme from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
@@ -85,9 +86,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					...(selected && mode === ChecklistMode.EDIT
 						? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
 						: {}),
-					paddingLeft: `${level * 10}px`,
+					paddingLeft: `${level * 20}px`,
 					'&:hover .node-selected-inner': {
-						color: theme.palette.primary.main,
+						// color: theme.palette.primary.main,
 					},
 				}}
 				onClick={() => updateSelectedPage(instanceId)}
@@ -126,22 +127,15 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
 					</Typography>
-					<Fade in={isFetching && selected} unmountOnExit>
-						<span>
-							<Typography
-								marginLeft="15px"
-								fontSize={13}
-								fontStyle="italic"
-								color={selected ? 'white' : ''}
-								className={selected ? 'node-selected-inner' : ''}
-							>
-								Loading...
-							</Typography>
-						</span>
-					</Fade>
 				</div>
-				<Fade in={mode === ChecklistMode.VIEW} unmountOnExit>
-					<span>{statusIcon}</span>
+				<Fade in={mode === ChecklistMode.VIEW || isFetching} unmountOnExit>
+					<span>
+						{isFetching ? (
+							<CircularProgress style={{ color: 'white', ...styles.icon, width: 19, height: 19 }} />
+						) : (
+							statusIcon
+						)}
+					</span>
 				</Fade>
 			</Box>
 
@@ -154,6 +148,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 								pageId={pageId}
 								questionId={q.id}
 								questionText={q.text}
+								questionType={q.type as QuestionType}
 								questionAnswers={q.answers ?? []}
 								level={level + 1}
 								idx={i}
@@ -164,6 +159,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							pageId={pageId}
 							questionId={-1}
 							questionText="New Question"
+							questionType={undefined}
 							questionAnswers={[]}
 							level={level + 1}
 							idx={-1}
@@ -190,15 +186,13 @@ const styles = {
 		marginTop: '4px',
 		marginLeft: '5px',
 		marginRight: '10px',
+		width: 19,
+		height: 19,
 	},
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '2px 0px',
-		borderTopLeftRadius: 5,
-		borderTopRightRadius: 5,
-		borderBottomLeftRadius: 5,
-		borderBottomRightRadius: 5,
+		padding: '5px 0px',
 	},
 	questionsContainer: {
 		borderBottomLeftRadius: 5,

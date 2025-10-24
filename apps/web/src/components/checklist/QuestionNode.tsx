@@ -1,21 +1,24 @@
 'use client';
 import { Collapse, IconButton, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import Add from '@mui/icons-material/Add';
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import './styles.css';
-import { Answer } from '@/types/types';
 import AnswerNode from './AnswerNode';
 import { useEffect, useState } from 'react';
+import { Answer } from '@/hooks/trpc/useAnswerTrpc';
+import HelpOutline from '@mui/icons-material/HelpOutline';
+import { QuestionType } from '@/config/enums';
 
 export default function QuestionNode(props: {
 	pageId: number;
 	questionId: number;
 	questionText: string;
+	questionType?: QuestionType;
 	questionAnswers: Answer[];
 	level: number;
 	idx: number;
 }) {
-	const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
+	const { pageId, questionId, questionText, questionType, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
 	const expandAll = useChecklistStore((state) => state.expandAll);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
@@ -28,46 +31,43 @@ export default function QuestionNode(props: {
 	return (
 		<>
 			<div
-				style={{ ...styles.node, paddingLeft: level * 15 }}
+				style={{ ...styles.node, paddingLeft: level * 15, paddingRight: '10px' }}
 				onClick={() => updateSelectedQuestion(questionId)}
 				className="flex-row-between"
 			>
 				<div className="flex-row-left">
-					{questionId === -1 ? (
-						<div style={{ width: 25 }} />
-					) : (
-						<IconButton
-							onClick={(e) => {
-								setExpanded((prev) => !prev);
-								e.stopPropagation();
-								e.preventDefault();
-							}}
-							disableRipple
-						>
-							<Add
-								sx={{
-									transform: expanded === true ? 'rotate(90deg)' : undefined,
-									transition: 'transform 100ms ease',
-									fontSize: 15,
-								}}
-							/>
-						</IconButton>
-					)}
-					{questionId !== -1 && (
-						<Typography fontWeight="bold" paddingRight="10px">
-							{idx + 1}.
-						</Typography>
-					)}
+					<HelpOutline sx={{ fontSize: 16, marginRight: '10px', color: selected ? 'secondary.main' : '' }} />
 					<Typography
-						color={selected ? 'primary' : isPlaceholder ? 'secondary' : ''}
+						color={selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : ''}
 						fontWeight={isPlaceholder ? 'bold' : ''}
 						lineHeight="19px"
 						sx={{ cursor: 'pointer' }}
-						className={'node-q'}
+						className={isPlaceholder ? 'node-p' : 'node-q'}
 					>
+						{questionId !== -1 ? `${idx + 1}. ` : ''}
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>
+				{questionId === -1 ? (
+					<div style={{ width: 25 }} />
+				) : (
+					<IconButton
+						onClick={(e) => {
+							setExpanded((prev) => !prev);
+							e.stopPropagation();
+							e.preventDefault();
+						}}
+						disableRipple
+					>
+						<RemoveCircleOutline
+							sx={{
+								transform: expanded === true ? 'rotate(90deg)' : undefined,
+								transition: 'transform 100ms ease',
+								fontSize: 17,
+							}}
+						/>
+					</IconButton>
+				)}
 			</div>
 			<Collapse in={expanded} unmountOnExit>
 				<span>
@@ -83,7 +83,7 @@ export default function QuestionNode(props: {
 								level={level + 1}
 							/>
 						))}
-					{questionId !== -1 && (
+					{questionId !== -1 && questionType !== QuestionType.FREEFORM && (
 						<AnswerNode
 							key={-1}
 							pageId={pageId}
@@ -103,6 +103,6 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '5px 0px',
+		padding: '10px 0px',
 	},
 };

@@ -8,11 +8,13 @@ type PageOutput = inferRouterOutputs<AppRouter>['page'];
 export function usePageTrpc() {
 	const utils = trpc.useUtils();
 
-	const onPageChange = () => {
+	const onPageChange = async () => {
+		// Invalidate other queries in background (don't await these)
 		utils.page.getPages.invalidate();
 		utils.page.getPageInstances.invalidate();
 		utils.page.getVisiblePageInstances.invalidate();
-		utils.page.getPageInstanceTree.invalidate();
+		// Note: We don't invalidate getPageInstanceTree here because components
+		// that need fresh tree data will explicitly refetch it
 	};
 
 	return {
@@ -29,24 +31,39 @@ export function usePageTrpc() {
 		getInstanceTree: trpc.page.getPageInstanceTree.useQuery,
 
 		createTemplate: trpc.page.createPage.useMutation({
-			onSuccess: onPageChange,
+			onSuccess: () => {
+				onPageChange();
+			},
+		}),
+
+		copyTemplate: trpc.page.copyPageTemplate.useMutation({
+			onSuccess: () => {
+				onPageChange();
+			},
 		}),
 
 		createInstance: trpc.page.createPageInstance.useMutation({
-			onSuccess: onPageChange,
+			onSuccess: () => {
+				onPageChange();
+			},
 		}),
 
 		updateTemplate: trpc.page.updatePageTemplate.useMutation({
-			onSuccess: onPageChange,
+			onSuccess: () => {
+				onPageChange();
+			},
 		}),
 
 		removeInstance: trpc.page.deletePageInstance.useMutation({
-			onSuccess: onPageChange,
+			onSuccess: () => {
+				onPageChange();
+			},
 		}),
 	};
 }
 
 export type CreatePageTemplateInput = PageInput['createPage'];
+export type CopyPageTemplateInput = PageInput['copyPageTemplate'];
 export type CreatePageInstanceInput = PageInput['createPageInstance'];
 export type UpdatePageTemplateInput = PageInput['updatePageTemplate'];
 export type PageTemplate = PageOutput['getPages'][number];

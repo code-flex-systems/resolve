@@ -11,7 +11,7 @@ import Description from '@mui/icons-material/Description';
 import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -24,6 +24,7 @@ export default function PageEditor() {
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedPage = useChecklistStore((state) => state.updateSelectedPage);
+	const updateSelectedPageInfoSearch = useChecklistStore((state) => state.updateSelectedPageInfoSearch);
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
@@ -31,19 +32,25 @@ export default function PageEditor() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 
 	const { data: questions } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
-	const { createTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } = usePageTrpc();
+	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
+		usePageTrpc();
 	const { mutateAsync: addPage, isPending: adding } = createTemplate;
-	const { mutateAsync: copyPage, isPending: copying } = createInstance;
+	const { mutateAsync: copyPageTemplate, isPending: copyingTemplate } = copyTemplate;
+	const { mutateAsync: copyPageInstance, isPending: copyingInstance } = createInstance;
 	const { mutateAsync: deletePage, isPending: deleting } = removeInstance;
 	const { mutateAsync: modifyPage, isPending: updating } = updateTemplate;
-	const { isFetching, data = { tree: [], maxPosition: 0 } } = getInstanceTree(
+	const {
+		isFetching,
+		data = { tree: [], maxPosition: 0 },
+		refetch: refetchTree,
+	} = getInstanceTree(
 		{
 			checklistId,
 			claimId,
 		},
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	const inTransition = adding || copying || deleting || isFetching;
+	const inTransition = adding || copyingTemplate || copyingInstance || deleting || isFetching;
 
 	const onAddPage = async (passedParentId: number | null) => {
 		try {
@@ -55,15 +62,21 @@ export default function PageEditor() {
 					position: selectedPageInfo.position + 1,
 				},
 			});
-			if (newInstance) updateSelectedPage(newInstance.instance_id);
+			if (newInstance) {
+				const { data: freshData } = await refetchTree();
+				updateSelectedPage(newInstance.instance_id);
+				if (freshData) {
+					updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
+				}
+			}
 		} catch (e) {
 			console.error(e);
 		}
 	};
 
-	const onCopyPage = async () => {
+	const onCopyPageTemplate = async () => {
 		try {
-			const newInstance = await copyPage({
+			const newPage = await copyPageTemplate({
 				checklistId,
 				pageId: selectedPageInfo.pageId,
 				params: {
@@ -71,7 +84,35 @@ export default function PageEditor() {
 					position: selectedPageInfo.position + 1,
 				},
 			});
-			if (newInstance) updateSelectedPage(newInstance.id);
+			if (newPage) {
+				const { data: freshData } = await refetchTree();
+				updateSelectedPage(newPage.instance_id);
+				if (freshData) {
+					updateSelectedPageInfoSearch(newPage.instance_id, freshData.tree);
+				}
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const onCopyPageInstance = async () => {
+		try {
+			const newInstance = await copyPageInstance({
+				checklistId,
+				pageId: selectedPageInfo.pageId,
+				params: {
+					parentId: selectedPageInfo.parentInstanceId ?? -1,
+					position: selectedPageInfo.position + 1,
+				},
+			});
+			if (newInstance) {
+				const { data: freshData } = await refetchTree();
+				updateSelectedPage(newInstance.id);
+				if (freshData) {
+					updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
+				}
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -80,6 +121,7 @@ export default function PageEditor() {
 	const onDeletePage = async () => {
 		try {
 			await deletePage({ instanceId: selectedPageInfo.instanceId });
+			await refetchTree();
 			updateSelectedPage(null);
 		} catch (e) {
 			console.error(e);
@@ -90,7 +132,10 @@ export default function PageEditor() {
 		try {
 			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
 			if (modifiedPage) {
-				updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, data.tree);
+				const { data: freshData } = await refetchTree();
+				if (freshData) {
+					updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, freshData.tree);
+				}
 			}
 		} catch (e) {
 			console.error(e);
@@ -132,6 +177,9 @@ export default function PageEditor() {
 										autoFocus
 										value={pageTitle}
 										onChange={(e) => setPageTitle(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') stopEditing();
+										}}
 										placeholder="New Page"
 										onBlur={stopEditing}
 										error={!pageTitle}
@@ -176,7 +224,7 @@ export default function PageEditor() {
 				<div className="flex-col-left">
 					<BasicButton
 						buttonProps={{
-							onClick: () => onCopyPage().catch((e) => console.error(e)),
+							onClick: () => onCopyPageTemplate().catch((e) => console.error(e)),
 							disabled: inTransition,
 							variant: 'contained',
 							color: 'primary',
@@ -184,7 +232,19 @@ export default function PageEditor() {
 							startIcon: <ContentCopy sx={{ color: 'white' }} />,
 						}}
 					>
-						New page copy
+						Copy page template
+					</BasicButton>
+					<BasicButton
+						buttonProps={{
+							onClick: () => onCopyPageInstance().catch((e) => console.error(e)),
+							disabled: inTransition,
+							variant: 'contained',
+							color: 'error',
+							sx: styles.button,
+							startIcon: <ContentCopy sx={{ color: 'white' }} />,
+						}}
+					>
+						Copy page instance
 					</BasicButton>
 					<BasicButton
 						buttonProps={{
@@ -246,13 +306,13 @@ const styles = {
 	},
 	container: {
 		flex: 1,
-		minWidth: 0,
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		padding: 20,
+		minWidth: 500,
 	},
 	divider: {
 		width: '100%',

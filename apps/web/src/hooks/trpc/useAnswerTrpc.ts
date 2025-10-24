@@ -55,4 +55,4 @@ export function useAnswerTrpc() {
 
 export type CreateAnswerInput = AnswerInput['createAnswer'];
 export type UpdateAnswerInput = AnswerInput['updateAnswer'];
-export type Answer = AnswerOutput['getAnswersForQuestion'][number];
+export type Answer = NonNullable<AnswerOutput['getAnswer']>;

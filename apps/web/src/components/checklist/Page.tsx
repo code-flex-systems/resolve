@@ -268,7 +268,7 @@ export default function Page() {
 const styles = {
 	container: {
 		flex: 1,
-		minWidth: 0,
+		minWidth: 500,
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,

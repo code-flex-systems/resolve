@@ -66,6 +66,7 @@ export function ChecklistQuestion(props: {
 									field={field}
 									answer={question.answers?.[0]}
 									disabled={disabled}
+									isFreeformQuestion={true}
 								/>
 							);
 						case QuestionType.MULTI:
