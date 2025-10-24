@@ -1,6 +1,7 @@
 import * as pageQueries from '@/api/queries/pageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TreeNode } from '@/types/types';
+import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas/pageSchemas';
 
 /**
  * Create a page template and attach an instance.
@@ -10,11 +11,11 @@ import { TreeNode } from '@/types/types';
  * @returns ids for new page and instance
  */
 export async function createPage(
-	ctx: ProtectedContext,
-	{ checklistId, params }: { checklistId: number; params: object }
+        ctx: ProtectedContext,
+        { checklistId, params }: { checklistId: number; params: PageParams }
 ) {
-	const results = await pageQueries.createPage(ctx, checklistId, params);
-	return results;
+        const results = await pageQueries.createPage(ctx, checklistId, params);
+        return results;
 }
 
 /**
@@ -24,19 +25,19 @@ export async function createPage(
  * @param input - ids and positioning info
  */
 export async function createPageInstance(
-	ctx: ProtectedContext,
-	{
-		checklistId,
-		pageId,
-		params,
-	}: {
-		checklistId: number;
-		pageId: number;
-		params: object;
-	}
+        ctx: ProtectedContext,
+        {
+                checklistId,
+                pageId,
+                params,
+        }: {
+                checklistId: number;
+                pageId: number;
+                params: PageInstanceParams;
+        }
 ) {
-	const results = await pageQueries.createPageInstance(ctx, {
-		checklistId,
+        const results = await pageQueries.createPageInstance(ctx, {
+                checklistId,
 		pageId,
 		parentId: params.parentId,
 		position: params.position,
@@ -154,9 +155,12 @@ export async function getVisiblePageInstances(
  * @param ctx - request context
  * @param input - page id and update fields
  */
-export async function modifyPage(ctx: ProtectedContext, { id, params }: { id: number; params: object }) {
-	const results = await pageQueries.modifyPage(ctx, id, params);
-	return results;
+export async function modifyPage(
+        ctx: ProtectedContext,
+        { id, params }: { id: number; params: PageUpdateParams }
+) {
+        const results = await pageQueries.modifyPage(ctx, id, params);
+        return results;
 }
 
 // private methods

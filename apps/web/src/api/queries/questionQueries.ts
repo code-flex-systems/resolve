@@ -2,8 +2,9 @@ import { sql, Transaction } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
-import { Answer, DateRangeStrict, Interval } from '@/types/types';
+import { Answer, DateRangeStrict } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSchemas';
 
 /**
  * Insert a new question and bump the page version.
@@ -13,26 +14,33 @@ import { ProtectedContext } from '@/server/trpc/trpc';
  * @param params - question fields
  * @returns newly created question
  */
-export async function createQuestion(ctx: ProtectedContext, pageId: number, params: object) {
-	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
-		await trx
-			.updateTable('question')
-			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+export async function createQuestion(
+        ctx: ProtectedContext,
+        pageId: number,
+        params: QuestionParams
+) {
+        let newQuestion: any;
+        await db.transaction().execute(async (trx) => {
+                await trx
+                        .updateTable('question')
+                        .set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
 			.where('page_id', '=', pageId)
 			.where('position', '>=', params.position)
 			.execute();
 		newQuestion = await trx
-			.insertInto('question')
-			.values({
-				page_id: pageId,
-				text: params.text,
-				type: params.type,
-				description_text: params.description_text,
-				position: params.position,
-				client_id: ctx.session.user.client_id,
-				created_by: ctx.session.user.id,
-			})
+                        .insertInto('question')
+                        .values({
+                                page_id: pageId,
+                                text: params.text,
+                                type: params.type,
+                                description_text: params.description_text,
+                                description_image_url: params.description_image_url,
+                                placeholder: params.placeholder,
+                                hidden: params.hidden ?? undefined,
+                                position: params.position,
+                                client_id: ctx.session.user.client_id,
+                                created_by: ctx.session.user.id,
+                        })
 			.returningAll()
 			.executeTakeFirstOrThrow();
 		await bumpPageVersion(ctx, pageId, trx);
@@ -57,76 +65,92 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 		.executeTakeFirstOrThrow();
 
 	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
-		newQuestion = await trx
-			.insertInto('question')
-			.columns(['page_id', 'description_text', 'text', 'type', 'client_id', 'position', 'created_by'])
-			.expression((eb) =>
-				eb
-					.selectFrom('question')
-					.select((eb) => [
-						'page_id',
-						'description_text',
-						'text',
-						'type',
-						'client_id',
-						eb
-							.val(+maxPosition.max_position.toString() + 1)
-							.$castTo<number>()
-							.as('position'),
-						eb.val(ctx.session.user.id).as('created_by'),
-					])
-					.where('question.client_id', '=', ctx.session.user.client_id)
-					.where('id', '=', questionId)
-			)
-			.returningAll()
-			.executeTakeFirstOrThrow(() => new Error('Question does not exist'));
-		await trx
-			.insertInto('answer')
-			.columns([
-				'additional_info_num_lines',
-				'additional_info_placeholder',
-				'position',
-				'grade',
-				'text',
-				'description_text',
-				'description_image_url',
-				'has_additional_info',
-				'question_id',
-				'calls_instance_id',
-				'client_id',
-				'created_by',
-			])
-			.expression((eb) =>
-				eb
-					.selectFrom('answer')
-					.select((eb) => [
-						'additional_info_num_lines',
-						'additional_info_placeholder',
-						'position',
-						'grade',
-						'text',
-						'description_text',
-						'description_image_url',
-						'has_additional_info',
-						eb.val(newQuestion.id).$castTo<number>().as('question_id'),
-						'calls_instance_id',
-						'client_id',
-						eb.val(ctx.session.user.id).as('created_by'),
-					])
-					.where('answer.client_id', '=', ctx.session.user.client_id)
-					.where(
-						'id',
-						'in',
-						eb
-							.selectFrom('answer')
-							.select('id')
-							.where('question_id', '=', questionId)
-							.where('answer.client_id', '=', ctx.session.user.client_id)
-					)
-			)
-			.returning('id')
-			.execute();
+        await db.transaction().execute(async (trx) => {
+                newQuestion = await trx
+                        .insertInto('question')
+                        .columns([
+                                'page_id',
+                                'description_text',
+                                'description_image_url',
+                                'text',
+                                'type',
+                                'placeholder',
+                                'hidden',
+                                'client_id',
+                                'position',
+                                'created_by',
+                        ])
+                        .expression((eb) =>
+                                eb
+                                        .selectFrom('question')
+                                        .select((eb) => [
+                                                'page_id',
+                                                'description_text',
+                                                'description_image_url',
+                                                'text',
+                                                'type',
+                                                'placeholder',
+                                                'hidden',
+                                                'client_id',
+                                                eb
+                                                        .val(+maxPosition.max_position.toString() + 1)
+                                                        .$castTo<number>()
+                                                        .as('position'),
+                                                eb.val(ctx.session.user.id).as('created_by'),
+                                        ])
+                                        .where('question.client_id', '=', ctx.session.user.client_id)
+                                        .where('id', '=', questionId)
+                        )
+                        .returningAll()
+                        .executeTakeFirstOrThrow(() => new Error('Question does not exist'));
+                await trx
+                        .insertInto('answer')
+                        .columns([
+                                'additional_info_num_lines',
+                                'additional_info_placeholder',
+                                'position',
+                                'grade',
+                                'text',
+                                'description_text',
+                                'description_image_url',
+                                'has_additional_info',
+                                'hidden',
+                                'question_id',
+                                'calls_instance_id',
+                                'client_id',
+                                'created_by',
+                        ])
+                        .expression((eb) =>
+                                eb
+                                        .selectFrom('answer')
+                                        .select((eb) => [
+                                                'additional_info_num_lines',
+                                                'additional_info_placeholder',
+                                                'position',
+                                                'grade',
+                                                'text',
+                                                'description_text',
+                                                'description_image_url',
+                                                'has_additional_info',
+                                                'hidden',
+                                                eb.val(newQuestion.id).$castTo<number>().as('question_id'),
+                                                'calls_instance_id',
+                                                'client_id',
+                                                eb.val(ctx.session.user.id).as('created_by'),
+                                        ])
+                                        .where('answer.client_id', '=', ctx.session.user.client_id)
+                                        .where(
+                                                'id',
+                                                'in',
+                                                eb
+                                                        .selectFrom('answer')
+                                                        .select('id')
+                                                        .where('question_id', '=', questionId)
+                                                        .where('answer.client_id', '=', ctx.session.user.client_id)
+                                        )
+                        )
+                        .returning('id')
+                        .execute();
 		await bumpPageVersion(ctx, pageId, trx);
 	});
 	return newQuestion;
@@ -314,19 +338,27 @@ export async function getQuestionStats(
  * @param params - fields to update
  * @returns updated question
  */
-export async function modifyQuestion(ctx: ProtectedContext, pageId: number, questionId: number, params: object) {
-	const existingQuestion = await db
-		.selectFrom('question')
-		.select('position')
-		.where('question.client_id', '=', ctx.session.user.client_id)
-		.where('id', '=', questionId)
+export async function modifyQuestion(
+        ctx: ProtectedContext,
+        pageId: number,
+        questionId: number,
+        params: QuestionUpdateParams
+) {
+        const existingQuestion = await db
+                .selectFrom('question')
+                .select('position')
+                .where('question.client_id', '=', ctx.session.user.client_id)
+                .where('id', '=', questionId)
 		.executeTakeFirstOrThrow();
 	const updates: UpdateObjectExpression<DB, 'question'> = {};
 
 	if (params.text) updates.text = params.text;
 	if (params.type) updates.type = params.type;
-	if (params.description_text != null) updates.description_text = params.description_text;
-	if (params.page_id) updates.page_id = params.page_id;
+        if (params.description_text != null) updates.description_text = params.description_text;
+        if (params.description_image_url !== undefined) updates.description_image_url = params.description_image_url;
+        if (params.placeholder !== undefined) updates.placeholder = params.placeholder;
+        if (params.hidden !== undefined) updates.hidden = params.hidden;
+        if (params.page_id) updates.page_id = params.page_id;
 	if (params.position && params.position !== existingQuestion.position) updates.position = params.position;
 
 	let newQuestion: any;

@@ -1,6 +1,7 @@
 import * as answerQueries from '@/api/queries/answerQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TRPCError } from '@trpc/server';
+import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
 
 /**
  * Create an answer for a question.
@@ -11,19 +12,19 @@ import { TRPCError } from '@trpc/server';
  */
 
 export async function createAnswer(
-	ctx: ProtectedContext,
-	{
-		pageId,
-		questionId,
-		params,
-	}: {
-		pageId: number;
-		questionId: number;
-		params: object;
-	}
+        ctx: ProtectedContext,
+        {
+                pageId,
+                questionId,
+                params,
+        }: {
+                pageId: number;
+                questionId: number;
+                params: AnswerParams;
+        }
 ) {
-	const results = await answerQueries.createAnswer(ctx, pageId, questionId, params);
-	return results;
+        const results = await answerQueries.createAnswer(ctx, pageId, questionId, params);
+        return results;
 }
 
 /**
@@ -106,12 +107,12 @@ export async function getAnswers(ctx: ProtectedContext, { questionId }: { questi
  * @returns the updated answer
  */
 export async function modifyAnswer(
-	ctx: ProtectedContext,
-	{ pageId, answerId, params }: { pageId: number; answerId: number; params: object }
+        ctx: ProtectedContext,
+        { pageId, answerId, params }: { pageId: number; answerId: number; params: AnswerUpdateParams }
 ) {
-	try {
-		const results = await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
-		return results;
+        try {
+                const results = await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
+                return results;
 	} catch (e) {
 		console.error(e);
 	}

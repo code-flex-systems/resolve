@@ -6,6 +6,7 @@ import { PageInstance, PageTemplate } from '@/types/types';
 import { PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TRPCError } from '@trpc/server';
+import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas/pageSchemas';
 
 /**
  * Insert a new page template and instance as a single transaction.
@@ -15,7 +16,7 @@ import { TRPCError } from '@trpc/server';
  * @param params - title and positioning info
  * @returns ids for the new page and instance
  */
-export async function createPage(ctx: ProtectedContext, checklistId: number, params: object) {
+export async function createPage(ctx: ProtectedContext, checklistId: number, params: PageParams) {
 	let newPage: PageTemplate;
 	let newInstance: PageInstance;
 	await db.transaction().execute(async (trx) => {
@@ -51,14 +52,12 @@ export async function createPage(ctx: ProtectedContext, checklistId: number, par
  * @returns created page instance
  */
 export async function createPageInstance(
-	ctx: ProtectedContext,
-	params: {
-		checklistId: number;
-		pageId: number;
-		parentId: number;
-		position: number;
-		trx?: Transaction<DB>;
-	}
+        ctx: ProtectedContext,
+        params: {
+                checklistId: number;
+                pageId: number;
+                trx?: Transaction<DB>;
+        } & PageInstanceParams
 ) {
 	let newInstance: PageInstance;
 	if (params.trx) {
@@ -300,10 +299,10 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
  * @param params - fields to modify
  * @returns the updated template
  */
-export async function modifyPage(ctx: ProtectedContext, pageId: number, params: object) {
-	const updates: UpdateObjectExpression<DB, 'page'> = {};
-	if (params.title) updates.title = params.title;
-	if (params.hidden != null) updates.hidden = params.hidden;
+export async function modifyPage(ctx: ProtectedContext, pageId: number, params: PageUpdateParams) {
+        const updates: UpdateObjectExpression<DB, 'page'> = {};
+        if (params.title !== undefined) updates.title = params.title;
+        if (params.hidden != null) updates.hidden = params.hidden;
 	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
 	return await db
 		.updateTable('page')
@@ -365,20 +364,14 @@ export async function modifyPageInstanceStatus(
  * @returns the created instance
  */
 async function createPageInstancePrivate(
-	ctx: ProtectedContext,
-	{
-		checklistId,
-		pageId,
-		parentId,
-		position,
-		trx,
-	}: {
-		checklistId: number;
-		pageId: number;
-		parentId: number;
-		position: number;
-		trx: Transaction<DB>;
-	}
+        ctx: ProtectedContext,
+        {
+                checklistId,
+                pageId,
+                parentId,
+                position,
+                trx,
+        }: { checklistId: number; pageId: number; trx: Transaction<DB> } & PageInstanceParams
 ) {
 	// Update positions for all page instances below the one we're inserting
 	await trx

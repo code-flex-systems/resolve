@@ -1,15 +1,31 @@
 import { z } from 'zod';
 
-export const pageParams = z.record(z.unknown());
+export const pageParams = z
+        .object({
+                title: z.string().min(1),
+                parentId: z.number().int(),
+                position: z.number().int(),
+        })
+        .strict();
+export type PageParams = z.infer<typeof pageParams>;
+
+export const pageUpdateParams = z
+        .object({
+                title: z.string().min(1).optional(),
+                hidden: z.boolean().optional(),
+        })
+        .strict();
+export type PageUpdateParams = z.infer<typeof pageUpdateParams>;
 
 export const pageInstanceParams = z.object({
-	parentId: z.number().int(),
-	position: z.number().int(),
+        parentId: z.number().int(),
+        position: z.number().int(),
 });
+export type PageInstanceParams = z.infer<typeof pageInstanceParams>;
 
 export const createPageInput = z.object({
-	checklistId: z.number().int(),
-	params: pageParams,
+        checklistId: z.number().int(),
+        params: pageParams,
 });
 export type CreatePageInput = z.infer<typeof createPageInput>;
 
@@ -54,7 +70,7 @@ export const getVisiblePageInstancesInput = z.object({
 export type GetVisiblePageInstancesInput = z.infer<typeof getVisiblePageInstancesInput>;
 
 export const modifyPageInput = z.object({
-	id: z.number().int(),
-	params: pageParams,
+        id: z.number().int(),
+        params: pageUpdateParams,
 });
 export type ModifyPageInput = z.infer<typeof modifyPageInput>;

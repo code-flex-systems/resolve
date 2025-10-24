@@ -2,6 +2,7 @@ import * as checklistQueries from '@/api/queries/checklistQueries';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRangeStrict } from '@/types/types';
+import type { ChecklistParams } from '@/schemas/checklistSchemas';
 
 /**
  * Create a checklist optionally copying another.
@@ -184,7 +185,10 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  * @param input - checklist id and update fields
  * @returns the updated checklist
  */
-export async function modifyChecklist(ctx: ProtectedContext, { id, params }: { id: number; params: object }) {
-	const results = await checklistQueries.modifyChecklist(ctx, id, params);
-	return results;
+export async function modifyChecklist(
+        ctx: ProtectedContext,
+        { id, params }: { id: number; params: ChecklistParams }
+) {
+        const results = await checklistQueries.modifyChecklist(ctx, id, params);
+        return results;
 }

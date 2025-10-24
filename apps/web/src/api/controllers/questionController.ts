@@ -1,6 +1,7 @@
 import * as questionQueries from '@/api/queries/questionQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { AnswerStat, DateRangeStrict, Interval, QuestionStat } from '@/types/types';
+import { AnswerStat, DateRangeStrict, QuestionStat } from '@/types/types';
+import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSchemas';
 
 /**
  * Insert a question onto a page.
@@ -8,9 +9,12 @@ import { AnswerStat, DateRangeStrict, Interval, QuestionStat } from '@/types/typ
  * @param ctx - request context
  * @param input - page id and question fields
  */
-export async function createQuestion(ctx: ProtectedContext, { pageId, params }: { pageId: number; params: object }) {
-	const results = await questionQueries.createQuestion(ctx, pageId, params);
-	return results;
+export async function createQuestion(
+        ctx: ProtectedContext,
+        { pageId, params }: { pageId: number; params: QuestionParams }
+) {
+        const results = await questionQueries.createQuestion(ctx, pageId, params);
+        return results;
 }
 
 /**
@@ -104,17 +108,17 @@ export async function getQuestionStats(
  * @param input - page id, question id and update fields
  */
 export async function modifyQuestion(
-	ctx: ProtectedContext,
-	{
-		pageId,
-		questionId,
-		params,
-	}: {
-		pageId: number;
-		questionId: number;
-		params: object;
-	}
+        ctx: ProtectedContext,
+        {
+                pageId,
+                questionId,
+                params,
+        }: {
+                pageId: number;
+                questionId: number;
+                params: QuestionUpdateParams;
+        }
 ) {
-	const results = await questionQueries.modifyQuestion(ctx, pageId, questionId, params);
-	return results;
+        const results = await questionQueries.modifyQuestion(ctx, pageId, questionId, params);
+        return results;
 }
