@@ -185,7 +185,7 @@ export function validatePhoneNumber(phoneRaw: string) {
 function getInstances(tree: TreeNode[], currentInstanceId: number, instances: InstanceListItem[]) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
-			instances.push({ instanceId: node.instanceId, pageId: node.pageId });
+			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId });
 		}
 
 		if (node.children) {

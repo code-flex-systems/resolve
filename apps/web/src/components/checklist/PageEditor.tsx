@@ -376,7 +376,7 @@ const styles = {
 	divider: {
 		width: '100%',
 		height: 1,
-		marginBottom: 10,
+		marginBottom: 15,
 	},
 	textFieldOverrides: {
 		minWidth: 200,

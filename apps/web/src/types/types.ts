@@ -115,6 +115,7 @@ export interface DialogAction {
 }
 
 export interface InstanceListItem {
+	title: string;
 	instanceId: number;
 	pageId: number;
 }

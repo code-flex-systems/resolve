@@ -22,7 +22,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
-import Save from '@mui/icons-material/Save';
+import CheckCircle from '@mui/icons-material/CheckCircle';
 import Share from '@mui/icons-material/Share';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import Toolbar from '../common/Toolbar';
@@ -91,7 +91,7 @@ export default function FormAnswer() {
 		control,
 		handleSubmit,
 		reset,
-		formState: { errors, isDirty, isSubmitting },
+		formState: { errors, isDirty, isValid, isSubmitting },
 		watch,
 	} = useForm<Answer>({
 		defaultValues: {
@@ -236,10 +236,10 @@ export default function FormAnswer() {
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: onSubmit,
-								disabled: inTransition || (!isPlaceholder && !isDirty),
+								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
 								color: 'primary',
 								sx: { height: 25 },
-								startIcon: <Save />,
+								startIcon: <CheckCircle />,
 							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -261,8 +261,8 @@ export default function FormAnswer() {
 			>
 				<Form control={control} style={styles.form}>
 					<Grid container>
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Controller
 									name="text"
 									control={control}
@@ -301,7 +301,7 @@ export default function FormAnswer() {
 								/>
 							</Grid>
 
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="description_text"
 									control={control}
@@ -342,8 +342,8 @@ export default function FormAnswer() {
 							</Grid>
 						</Grid>
 
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Controller
 									name="grade"
 									control={control}
@@ -361,7 +361,7 @@ export default function FormAnswer() {
 									)}
 								/>
 							</Grid>
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="position"
 									control={control}
@@ -386,7 +386,7 @@ export default function FormAnswer() {
 								/>
 							</Grid>
 
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="calls_instance_id"
 									control={control}
@@ -405,19 +405,21 @@ export default function FormAnswer() {
 														(o) => o.instanceId === value
 													);
 													return option
-														? `p${option.pageId}.i${option.instanceId}`
+														? `${option.title} (p${option.pageId}.i${option.instanceId})`
 														: 'Choose a page';
 												}}
 												sx={styles.textFieldOverrides}
 											>
 												<MenuItem key="none" value="">
-													None
+													<Typography fontSize={13}>None</Typography>
 												</MenuItem>
 												{pageInstanceOptions
 													.sort((a, b) => a.pageId - b.pageId)
 													.map((o) => (
 														<MenuItem key={o.instanceId} value={o.instanceId}>
-															p{o.pageId}.i{o.instanceId}
+															<Typography fontSize={13}>
+																{o.title} (p{o.pageId}.i{o.instanceId})
+															</Typography>
 														</MenuItem>
 													))}
 											</Select>
@@ -427,8 +429,8 @@ export default function FormAnswer() {
 							</Grid>
 						</Grid>
 
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Button
 									disabled={inTransition || isFreeform}
 									variant="outlined"
@@ -442,7 +444,7 @@ export default function FormAnswer() {
 								</Button>
 								{formatActionText(answerAction)}
 							</Grid>
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="has_additional_info"
 									control={control}
@@ -467,8 +469,8 @@ export default function FormAnswer() {
 						</Grid>
 
 						<Collapse in={!!hasAdditionalInfo}>
-							<Grid container margin="5px" alignItems="center">
-								<Grid>
+							<Grid container alignItems="center">
+								<Grid margin="5px">
 									<Controller
 										name="additional_info_placeholder"
 										control={control}
@@ -507,7 +509,7 @@ export default function FormAnswer() {
 										)}
 									/>
 								</Grid>
-								<Grid>
+								<Grid margin="5px">
 									<Controller
 										name="additional_info_num_lines"
 										control={control}
