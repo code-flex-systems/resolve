@@ -220,7 +220,7 @@ export default function FormQuestion() {
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
 											<Select
 												error={!!errors.page_id}
@@ -232,7 +232,7 @@ export default function FormQuestion() {
 														? `${option.title} (p${option.id})`
 														: 'Choose a template';
 												}}
-												sx={styles.textFieldOverrides}
+												sx={{ ...styles.textFieldOverrides, height: 35 }}
 											>
 												{pageTemplates.map((o) => (
 													<MenuItem key={o.id} value={o.id}>
@@ -252,13 +252,13 @@ export default function FormQuestion() {
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Order</FormLabel>
 											<Select
 												variant="outlined"
 												error={!!errors.position}
 												{...field}
-												sx={{ ...styles.textFieldOverrides, width: 80 }}
+												sx={{ ...styles.textFieldOverrides, width: 80, height: 35 }}
 											>
 												{positionOptions.map((o) => (
 													<MenuItem key={o} value={o}>
@@ -424,8 +424,13 @@ const styles = {
 		paddingTop: 10,
 	},
 	formLabel: {
-		paddingLeft: '10px',
+		zIndex: 100,
+		backgroundColor: 'white',
+		position: 'absolute',
+		marginLeft: '10px',
+		padding: '1px 5px',
 		fontSize: 12,
+		top: -10,
 	},
 	item: {
 		margin: 5,

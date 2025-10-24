@@ -48,7 +48,7 @@ export default function QuestionNode(props: {
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>
-				{questionId === -1 ? (
+				{questionId === -1 || questionType === QuestionType.FREEFORM ? (
 					<div style={{ width: 25 }} />
 				) : (
 					<IconButton

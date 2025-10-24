@@ -367,13 +367,13 @@ export default function FormAnswer() {
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Order</FormLabel>
 											<Select
 												variant="outlined"
 												error={!!errors.position}
 												{...field}
-												sx={{ ...styles.textFieldOverrides, width: 80 }}
+												sx={{ ...styles.textFieldOverrides, width: 80, height: 35 }}
 											>
 												{positionOptions.map((o) => (
 													<MenuItem key={o} value={o}>
@@ -391,7 +391,7 @@ export default function FormAnswer() {
 									name="calls_instance_id"
 									control={control}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
 											<Select
 												displayEmpty
@@ -408,7 +408,7 @@ export default function FormAnswer() {
 														? `${option.title} (p${option.pageId}.i${option.instanceId})`
 														: 'Choose a page';
 												}}
-												sx={styles.textFieldOverrides}
+												sx={{ ...styles.textFieldOverrides, height: 35 }}
 											>
 												<MenuItem key="none" value="">
 													<Typography fontSize={13}>None</Typography>
@@ -548,8 +548,13 @@ const styles = {
 		paddingTop: 10,
 	},
 	formLabel: {
-		paddingLeft: '10px',
+		zIndex: 100,
+		backgroundColor: 'white',
+		position: 'absolute',
+		marginLeft: '10px',
+		padding: '1px 5px',
 		fontSize: 12,
+		top: -10,
 	},
 	item: {
 		margin: 5,
