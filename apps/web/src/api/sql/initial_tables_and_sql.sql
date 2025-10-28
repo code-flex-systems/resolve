@@ -254,7 +254,7 @@ create table answer(
     has_additional_info BOOLEAN DEFAULT FALSE,
     additional_info_placeholder TEXT,
     additional_info_num_lines INTEGER CHECK (additional_info_num_lines > 0),
-    calls_instance_id INTEGER REFERENCES page_instance(id),
+    calls_instance_id INTEGER REFERENCES page_instance(id) ON DELETE SET NULL,
     hidden boolean default false,
     created_by uuid not null references users(id),
     created_at timestamp not null default now(),
@@ -270,7 +270,7 @@ CREATE TABLE question_response (
     checklist_id INTEGER NOT NULL REFERENCES checklist(id) ON DELETE CASCADE,
     instance_id INTEGER NOT NULL REFERENCES page_instance(id) ON DELETE CASCADE,
     claim_id INTEGER NOT NULL REFERENCES claim(id) ON DELETE CASCADE,
-    question_id INTEGER NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    question_id INTEGER REFERENCES question(id) ON DELETE SET NULL,
     response_text TEXT,
     created_by uuid not null references users(id),
     created_at timestamp not null DEFAULT NOW(),
@@ -285,7 +285,7 @@ CREATE INDEX idx_question_response_client_scope ON question_response (client_id,
 CREATE TABLE question_response_answer (
     id SERIAL PRIMARY KEY,
     response_id INTEGER NOT NULL REFERENCES question_response(id) ON DELETE CASCADE,
-    answer_id INTEGER NOT NULL REFERENCES answer(id),
+    answer_id INTEGER REFERENCES answer(id) ON DELETE SET NULL,
     additional_info TEXT
 );
 
@@ -406,8 +406,8 @@ create table comment(
         body text not null,
 	checklist_id integer not null references checklist(id),
 	claim_id integer not null references claim(id),
-	instance_id integer references page_instance(id),
-        question_id integer references question(id),
+	instance_id integer references page_instance(id) ON DELETE SET NULL,
+        question_id integer references question(id) ON DELETE SET NULL,
         created_by uuid not null references users(id),
         created_at timestamp not null default now(),
         updated_at timestamp

@@ -7,16 +7,18 @@ import AnswerNode from './AnswerNode';
 import { useEffect, useState } from 'react';
 import { Answer } from '@/hooks/trpc/useAnswerTrpc';
 import HelpOutline from '@mui/icons-material/HelpOutline';
+import { QuestionType } from '@/config/enums';
 
 export default function QuestionNode(props: {
 	pageId: number;
 	questionId: number;
 	questionText: string;
+	questionType?: QuestionType;
 	questionAnswers: Answer[];
 	level: number;
 	idx: number;
 }) {
-	const { pageId, questionId, questionText, questionAnswers, level, idx } = props;
+	const { pageId, questionId, questionText, questionType, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
 	const expandAll = useChecklistStore((state) => state.expandAll);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
@@ -46,7 +48,7 @@ export default function QuestionNode(props: {
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
 				</div>
-				{questionId === -1 ? (
+				{questionId === -1 || questionType === QuestionType.FREEFORM ? (
 					<div style={{ width: 25 }} />
 				) : (
 					<IconButton
@@ -81,7 +83,7 @@ export default function QuestionNode(props: {
 								level={level + 1}
 							/>
 						))}
-					{questionId !== -1 && (
+					{questionId !== -1 && questionType !== QuestionType.FREEFORM && (
 						<AnswerNode
 							key={-1}
 							pageId={pageId}

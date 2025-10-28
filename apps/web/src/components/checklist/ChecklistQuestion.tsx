@@ -66,6 +66,7 @@ export function ChecklistQuestion(props: {
 									field={field}
 									answer={question.answers?.[0]}
 									disabled={disabled}
+									isFreeformQuestion={true}
 								/>
 							);
 						case QuestionType.MULTI:
@@ -83,7 +84,7 @@ export function ChecklistQuestion(props: {
 					}
 				}}
 			/>
-			{question.type === QuestionType.SINGLE && !!additionalInfoAnswer && (
+			{question.type !== QuestionType.FREEFORM && !!additionalInfoAnswer && (
 				<Controller
 					name={fieldFreeformName}
 					control={control}

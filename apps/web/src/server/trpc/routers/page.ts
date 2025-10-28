@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 
 import {
+	copyPageTemplate,
 	createPage,
 	createPageInstance,
 	deletePageInstance,
@@ -15,6 +16,7 @@ import {
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
 import {
+	copyPageTemplateInput,
 	createPageInput,
 	createPageInstanceInput,
 	deletePageInstanceInput,
@@ -57,6 +59,11 @@ export const pageRouter = router({
 	createPage: protectedProcedure.input(createPageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return createPage(ctx, input);
+	}),
+
+	copyPageTemplate: protectedProcedure.input(copyPageTemplateInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return copyPageTemplate(ctx, input);
 	}),
 
 	createPageInstance: protectedProcedure.input(createPageInstanceInput).mutation(async ({ input, ctx }) => {

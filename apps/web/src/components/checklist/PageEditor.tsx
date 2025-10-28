@@ -1,8 +1,9 @@
 'use client';
-import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
-import { Box, Divider, Fade, TextField, Typography } from '@mui/material';
+import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
+import { Box, Divider, Fade, Link, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
+import CopyPageDialog from './CopyPageDialog';
 import Toolbar from '../common/Toolbar';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
@@ -11,11 +12,14 @@ import Description from '@mui/icons-material/Description';
 import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import ExpandableTitle from '../common/ExpandableTitle';
+import HelpOutline from '@mui/icons-material/HelpOutline';
+import FormatQuote from '@mui/icons-material/FormatQuote';
 
 export default function PageEditor() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -24,17 +28,23 @@ export default function PageEditor() {
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedPage = useChecklistStore((state) => state.updateSelectedPage);
+	const updateSelectedPageInfo = useChecklistStore((state) => state.updateSelectedPageInfo);
 	const updateSelectedPageInfoSearch = useChecklistStore((state) => state.updateSelectedPageInfoSearch);
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
+	const goToPage = useChecklistStore((state) => state.goToPage);
 
 	const [pageTitle, setPageTitle] = useState('');
 	const [editingPageTitle, setEditingPageTitle] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
+	const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+	const [copyType, setCopyType] = useState<'template' | 'instance'>('template');
 
-	const { data: questions } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
-	const { createTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } = usePageTrpc();
+	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
+	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
+		usePageTrpc();
 	const { mutateAsync: addPage, isPending: adding } = createTemplate;
-	const { mutateAsync: copyPage, isPending: copying } = createInstance;
+	const { mutateAsync: copyPageTemplate, isPending: copyingTemplate } = copyTemplate;
+	const { mutateAsync: copyPageInstance, isPending: copyingInstance } = createInstance;
 	const { mutateAsync: deletePage, isPending: deleting } = removeInstance;
 	const { mutateAsync: modifyPage, isPending: updating } = updateTemplate;
 	const {
@@ -48,7 +58,14 @@ export default function PageEditor() {
 		},
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
-	const inTransition = adding || copying || deleting || isFetching;
+
+	const answerCount = questions.reduce((prev, curr) => prev + (curr.answers?.length ?? 0), 0);
+	const inTransition = adding || copyingTemplate || copyingInstance || deleting || isFetching;
+	const otherInstances = useMemo(() => {
+		return findInstancesByTemplateId(selectedPageInfo.pageId, data.tree).filter(
+			(node) => node.instanceId !== selectedPageInfo.instanceId
+		);
+	}, [selectedPageInfo, data.tree]);
 
 	const onAddPage = async (passedParentId: number | null) => {
 		try {
@@ -72,21 +89,39 @@ export default function PageEditor() {
 		}
 	};
 
-	const onCopyPage = async () => {
+	const handleCopyWithParent = async (parentId: number | null, position: number) => {
 		try {
-			const newInstance = await copyPage({
-				checklistId,
-				pageId: selectedPageInfo.pageId,
-				params: {
-					parentId: selectedPageInfo.parentInstanceId ?? -1,
-					position: selectedPageInfo.position + 1,
-				},
-			});
-			if (newInstance) {
-				const { data: freshData } = await refetchTree();
-				updateSelectedPage(newInstance.id);
-				if (freshData) {
-					updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
+			if (copyType === 'template') {
+				const newPage = await copyPageTemplate({
+					checklistId,
+					pageId: selectedPageInfo.pageId,
+					params: {
+						parentId: parentId ?? -1,
+						position,
+					},
+				});
+				if (newPage) {
+					const { data: freshData } = await refetchTree();
+					updateSelectedPage(newPage.instance_id);
+					if (freshData) {
+						updateSelectedPageInfoSearch(newPage.instance_id, freshData.tree);
+					}
+				}
+			} else {
+				const newInstance = await copyPageInstance({
+					checklistId,
+					pageId: selectedPageInfo.pageId,
+					params: {
+						parentId: parentId ?? -1,
+						position,
+					},
+				});
+				if (newInstance) {
+					const { data: freshData } = await refetchTree();
+					updateSelectedPage(newInstance.id);
+					if (freshData) {
+						updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
+					}
 				}
 			}
 		} catch (e) {
@@ -99,6 +134,7 @@ export default function PageEditor() {
 			await deletePage({ instanceId: selectedPageInfo.instanceId });
 			await refetchTree();
 			updateSelectedPage(null);
+			updateSelectedPageInfo(null);
 		} catch (e) {
 			console.error(e);
 		}
@@ -193,14 +229,46 @@ export default function PageEditor() {
 					<div style={styles.divider}>
 						<Divider />
 					</div>
-					<Typography fontStyle="italic">Questions: {questions?.length ?? 0}</Typography>
+					<ExpandableTitle title={`Questions: ${questions.length}`} color="white" icon={<HelpOutline />} />
+					<Box margin="10px 0px">
+						<ExpandableTitle title={`Answers: ${answerCount}`} color="white" icon={<FormatQuote />} />
+					</Box>
+					{otherInstances.length > 0 && (
+						<>
+							{otherInstances.length === 1 ? (
+								<Typography fontSize={15} marginTop="5px">
+									Another page uses this template:
+								</Typography>
+							) : (
+								<Typography fontSize={15} marginTop="5px">
+									<b>{otherInstances.length}</b> other pages use this template:
+								</Typography>
+							)}
+							{otherInstances.map((node) => (
+								<Link
+									key={node.instanceId}
+									onClick={() => {
+										updateSelectedPage(node.instanceId);
+										updateSelectedPageInfo(node);
+									}}
+									fontSize={15}
+									sx={{ marginTop: '5px' }}
+								>
+									p{node.pageId}.i{node.instanceId}
+								</Link>
+							))}
+						</>
+					)}
 				</>
 			)}
 			{!!selectedPageInstance && !selectedQuestion && (
-				<div className="flex-col-left">
+				<div className="flex-col-left" style={{ marginTop: 10 }}>
 					<BasicButton
 						buttonProps={{
-							onClick: () => onCopyPage().catch((e) => console.error(e)),
+							onClick: () => {
+								setCopyType('template');
+								setCopyDialogOpen(true);
+							},
 							disabled: inTransition,
 							variant: 'contained',
 							color: 'primary',
@@ -208,7 +276,22 @@ export default function PageEditor() {
 							startIcon: <ContentCopy sx={{ color: 'white' }} />,
 						}}
 					>
-						New page copy
+						Copy page template...
+					</BasicButton>
+					<BasicButton
+						buttonProps={{
+							onClick: () => {
+								setCopyType('instance');
+								setCopyDialogOpen(true);
+							},
+							disabled: inTransition,
+							variant: 'contained',
+							color: 'error',
+							sx: styles.button,
+							startIcon: <ContentCopy sx={{ color: 'white' }} />,
+						}}
+					>
+						Copy page instance...
 					</BasicButton>
 					<BasicButton
 						buttonProps={{
@@ -260,6 +343,18 @@ export default function PageEditor() {
 					</Box>
 				</div>
 			)}
+			{copyDialogOpen && (
+				<CopyPageDialog
+					onClose={() => setCopyDialogOpen(false)}
+					onCopy={handleCopyWithParent}
+					title={copyType === 'template' ? 'Copy Page Template' : 'Copy Page Instance'}
+					tree={data.tree}
+					currentInstanceId={selectedPageInfo.instanceId}
+					currentParentId={selectedPageInfo.parentInstanceId ?? null}
+					currentPosition={selectedPageInfo.position}
+					isPending={inTransition}
+				/>
+			)}
 		</div>
 	);
 }
@@ -281,7 +376,7 @@ const styles = {
 	divider: {
 		width: '100%',
 		height: 1,
-		marginBottom: 5,
+		marginBottom: 15,
 	},
 	textFieldOverrides: {
 		minWidth: 200,

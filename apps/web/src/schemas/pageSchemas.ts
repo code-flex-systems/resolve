@@ -29,6 +29,13 @@ export const createPageInput = z.object({
 });
 export type CreatePageInput = z.infer<typeof createPageInput>;
 
+export const copyPageTemplateInput = z.object({
+	checklistId: z.number().int(),
+	pageId: z.number().int(),
+	params: pageInstanceParams,
+});
+export type CopyPageTemplateInput = z.infer<typeof copyPageTemplateInput>;
+
 export const createPageInstanceInput = z.object({
 	checklistId: z.number().int(),
 	pageId: z.number().int(),

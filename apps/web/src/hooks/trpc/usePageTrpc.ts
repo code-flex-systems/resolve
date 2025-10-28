@@ -8,13 +8,14 @@ type PageOutput = inferRouterOutputs<AppRouter>['page'];
 export function usePageTrpc() {
 	const utils = trpc.useUtils();
 
-	const onPageChange = async () => {
-		// Invalidate other queries in background (don't await these)
+	const onPageChange = () => {
+		// Fire and forget invalidations in background (don't block the mutation callback)
+		// Components that need fresh data will explicitly refetch (e.g., refetchTree())
 		utils.page.getPages.invalidate();
 		utils.page.getPageInstances.invalidate();
 		utils.page.getVisiblePageInstances.invalidate();
-		// Note: We don't invalidate getPageInstanceTree here because components
-		// that need fresh tree data will explicitly refetch it
+		utils.page.getPageInstanceTree.invalidate();
+		utils.answer.getAnswerCallGraph.invalidate();
 	};
 
 	return {
@@ -31,6 +32,12 @@ export function usePageTrpc() {
 		getInstanceTree: trpc.page.getPageInstanceTree.useQuery,
 
 		createTemplate: trpc.page.createPage.useMutation({
+			onSuccess: () => {
+				onPageChange();
+			},
+		}),
+
+		copyTemplate: trpc.page.copyPageTemplate.useMutation({
 			onSuccess: () => {
 				onPageChange();
 			},
@@ -57,6 +64,7 @@ export function usePageTrpc() {
 }
 
 export type CreatePageTemplateInput = PageInput['createPage'];
+export type CopyPageTemplateInput = PageInput['copyPageTemplate'];
 export type CreatePageInstanceInput = PageInput['createPageInstance'];
 export type UpdatePageTemplateInput = PageInput['updatePageTemplate'];
 export type PageTemplate = PageOutput['getPages'][number];

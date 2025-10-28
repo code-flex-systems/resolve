@@ -54,3 +54,8 @@ export const modifyAnswerInput = z.object({
         params: answerUpdateParams,
 });
 export type ModifyAnswerInput = z.infer<typeof modifyAnswerInput>;
+
+export const getAnswerCallGraphInput = z.object({
+	checklistId: z.number().int(),
+});
+export type GetAnswerCallGraphInput = z.infer<typeof getAnswerCallGraphInput>;

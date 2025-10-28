@@ -31,7 +31,7 @@ export default function ChecklistAnswerDropdown(props: {
 					padding: '2px 5px',
 				},
 				'& .MuiOutlinedInput-input': {
-					fontSize: 14,
+					fontSize: 13,
 					padding: '2px 5px',
 				},
 			}}
@@ -40,7 +40,7 @@ export default function ChecklistAnswerDropdown(props: {
 			{question.answers.map((a) => (
 				<MenuItem key={a.id} value={a.id}>
 					<Tooltip title={a.description_text ?? ''} placement="right" arrow>
-						<Typography fontSize={14}>{a.text}</Typography>
+						<Typography fontSize={13}>{a.text}</Typography>
 					</Tooltip>
 				</MenuItem>
 			))}

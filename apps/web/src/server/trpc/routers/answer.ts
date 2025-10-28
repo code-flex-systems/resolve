@@ -6,6 +6,7 @@ import {
 	getAnswers,
 	copyAnswer,
 	modifyAnswer,
+	getAnswerCallGraph,
 } from '@/api/controllers/answerController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -16,6 +17,7 @@ import {
 	getAnswerInput,
 	getAnswersInput,
 	modifyAnswerInput,
+	getAnswerCallGraphInput,
 } from '@/schemas/answerSchemas';
 
 export const answerRouter = router({
@@ -45,5 +47,9 @@ export const answerRouter = router({
 	deleteAnswer: protectedProcedure.input(deleteAnswerInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return deleteAnswer(ctx, input);
+	}),
+
+	getAnswerCallGraph: protectedProcedure.input(getAnswerCallGraphInput).query(async ({ input, ctx }) => {
+		return getAnswerCallGraph(ctx, input);
 	}),
 });

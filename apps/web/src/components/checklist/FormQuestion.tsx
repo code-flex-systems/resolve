@@ -19,7 +19,7 @@ import {
 import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
-import Save from '@mui/icons-material/Save';
+import CheckCircle from '@mui/icons-material/CheckCircle';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 
@@ -59,7 +59,7 @@ export default function FormQuestion() {
 		control,
 		handleSubmit,
 		reset,
-		formState: { errors, isDirty, isSubmitting },
+		formState: { errors, isDirty, isValid, isSubmitting },
 		watch,
 	} = useForm<Omit<Question, 'answers'>>({
 		defaultValues: {
@@ -193,10 +193,10 @@ export default function FormQuestion() {
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: onSubmit,
-								disabled: inTransition || (!isPlaceholder && !isDirty),
+								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
 								color: 'primary',
 								sx: { height: 25 },
-								startIcon: <Save />,
+								startIcon: <CheckCircle />,
 							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -213,19 +213,32 @@ export default function FormQuestion() {
 			<Fade key={selectedQuestionData.id} in={!!selectedQuestionData.id} timeout={500} unmountOnExit>
 				<Form control={control} style={styles.form}>
 					<Grid container>
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Controller
 									name="page_id"
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Assigned page</FormLabel>
-											<Select error={!!errors.page_id} {...field} sx={styles.textFieldOverrides}>
+											<Select
+												error={!!errors.page_id}
+												{...field}
+												renderValue={(value) => {
+													if (value === 0) return 'None';
+													const option = pageTemplates.find((o) => o.id === value);
+													return option
+														? `${option.title} (p${option.id})`
+														: 'Choose a template';
+												}}
+												sx={{ ...styles.textFieldOverrides, height: 35 }}
+											>
 												{pageTemplates.map((o) => (
 													<MenuItem key={o.id} value={o.id}>
-														{o.title} (p{o.id})
+														<Typography fontSize={13}>
+															{o.title} (p{o.id})
+														</Typography>
 													</MenuItem>
 												))}
 											</Select>
@@ -233,19 +246,19 @@ export default function FormQuestion() {
 									)}
 								/>
 							</Grid>
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="position"
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Order</FormLabel>
 											<Select
 												variant="outlined"
 												error={!!errors.position}
 												{...field}
-												sx={{ ...styles.textFieldOverrides, width: 80 }}
+												sx={{ ...styles.textFieldOverrides, width: 80, height: 35 }}
 											>
 												{positionOptions.map((o) => (
 													<MenuItem key={o} value={o}>
@@ -259,8 +272,8 @@ export default function FormQuestion() {
 							</Grid>
 						</Grid>
 
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Controller
 									name="text"
 									control={control}
@@ -299,7 +312,7 @@ export default function FormQuestion() {
 								/>
 							</Grid>
 
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="description_text"
 									control={control}
@@ -340,7 +353,7 @@ export default function FormQuestion() {
 							</Grid>
 						</Grid>
 
-						<Grid>
+						<Grid margin="5px">
 							<Controller
 								name="type"
 								control={control}
@@ -411,8 +424,13 @@ const styles = {
 		paddingTop: 10,
 	},
 	formLabel: {
-		paddingLeft: '10px',
+		zIndex: 100,
+		backgroundColor: 'white',
+		position: 'absolute',
+		marginLeft: '10px',
+		padding: '1px 5px',
 		fontSize: 12,
+		top: -10,
 	},
 	item: {
 		margin: 5,

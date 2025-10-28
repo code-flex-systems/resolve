@@ -62,6 +62,7 @@ const styles = {
 		borderRadius: 2,
 		boxShadow: 'none',
 		fontFamily: 'Inter',
+		fontWeight: 'normal',
 		'&:hover': {
 			backgroundColor: theme.palette.action.hover,
 		},

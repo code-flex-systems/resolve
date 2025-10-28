@@ -22,13 +22,13 @@ import { useEffect, useMemo, useState } from 'react';
 import Check from '@mui/icons-material/Check';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
-import Save from '@mui/icons-material/Save';
+import CheckCircle from '@mui/icons-material/CheckCircle';
 import Share from '@mui/icons-material/Share';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import Toolbar from '../common/Toolbar';
 import { Answer, useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
-import { getPageInstancesFromTree } from '@/lib/utils/utils';
+import { buildAnswerCallGraph, getPageInstancesFromTree, wouldCreateCycle } from '@/lib/utils/utils';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
@@ -74,7 +74,7 @@ export default function FormAnswer() {
 		{ answerId: selectedAnswerData.id },
 		{ enabled: selectedAnswerData.id !== -1 && !!selectedAnswerData?.has_action }
 	);
-	const { create, copy, remove, update } = useAnswerTrpc();
+	const { create, copy, remove, update, getCallGraph } = useAnswerTrpc();
 	const { isPending: adding, mutateAsync: addAnswer } = create;
 	const { isPending: updating, mutateAsync: updateAnswer } = update;
 	const { isPending: copying, mutateAsync: copyAnswer } = copy;
@@ -86,12 +86,16 @@ export default function FormAnswer() {
 		{ checklistId, claimId },
 		{ enabled: checklistId !== -1 }
 	);
+	const { data: callGraphData = [] } = getCallGraph(
+		{ checklistId },
+		{ enabled: checklistId !== -1 }
+	);
 
 	const {
 		control,
 		handleSubmit,
 		reset,
-		formState: { errors, isDirty, isSubmitting },
+		formState: { errors, isDirty, isValid, isSubmitting },
 		watch,
 	} = useForm<Answer>({
 		defaultValues: {
@@ -103,7 +107,33 @@ export default function FormAnswer() {
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const answerText = watch('text');
 	const hasAdditionalInfo = watch('has_additional_info');
-	const pageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
+	const allPageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
+
+	// Build the answer call graph and filter out instances that would create cycles
+	const answerCallGraph = useMemo(() => {
+		const graph = buildAnswerCallGraph(navigation.tree);
+		// Populate the graph with actual answer call data
+		for (const edge of callGraphData) {
+			const fromSet = graph.get(edge.from_instance_id);
+			if (fromSet) {
+				fromSet.add(edge.to_instance_id);
+			}
+		}
+		return graph;
+	}, [navigation.tree, callGraphData]);
+
+	// Filter out page instances that would create cycles
+	const pageInstanceOptions = useMemo(() => {
+		return allPageInstanceOptions.filter((option) => {
+			// Don't filter if this is the currently selected option (allow keeping existing selection)
+			if (selectedAnswerData.calls_instance_id === option.instanceId) {
+				return true;
+			}
+			// Check if selecting this option would create a cycle
+			return !wouldCreateCycle(selectedPageInfo.instanceId, option.instanceId, answerCallGraph);
+		});
+	}, [allPageInstanceOptions, selectedPageInfo.instanceId, answerCallGraph, selectedAnswerData.calls_instance_id]);
+
 	const isPlaceholder = selectedAnswerData.id === -1;
 	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	const inTransition = isSubmitting || adding || copying || updating || deleting || refetching;
@@ -236,10 +266,10 @@ export default function FormAnswer() {
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: onSubmit,
-								disabled: inTransition || (!isPlaceholder && !isDirty),
+								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
 								color: 'primary',
 								sx: { height: 25 },
-								startIcon: <Save />,
+								startIcon: <CheckCircle />,
 							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -261,8 +291,8 @@ export default function FormAnswer() {
 			>
 				<Form control={control} style={styles.form}>
 					<Grid container>
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Controller
 									name="text"
 									control={control}
@@ -301,7 +331,7 @@ export default function FormAnswer() {
 								/>
 							</Grid>
 
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="description_text"
 									control={control}
@@ -342,8 +372,8 @@ export default function FormAnswer() {
 							</Grid>
 						</Grid>
 
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Controller
 									name="grade"
 									control={control}
@@ -361,19 +391,19 @@ export default function FormAnswer() {
 									)}
 								/>
 							</Grid>
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="position"
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Order</FormLabel>
 											<Select
 												variant="outlined"
 												error={!!errors.position}
 												{...field}
-												sx={{ ...styles.textFieldOverrides, width: 80 }}
+												sx={{ ...styles.textFieldOverrides, width: 80, height: 35 }}
 											>
 												{positionOptions.map((o) => (
 													<MenuItem key={o} value={o}>
@@ -386,12 +416,12 @@ export default function FormAnswer() {
 								/>
 							</Grid>
 
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="calls_instance_id"
 									control={control}
 									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px 15px' }}>
+										<FormControl style={{ padding: '0px 5px' }}>
 											<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
 											<Select
 												displayEmpty
@@ -405,19 +435,21 @@ export default function FormAnswer() {
 														(o) => o.instanceId === value
 													);
 													return option
-														? `p${option.pageId}.i${option.instanceId}`
+														? `${option.title} (p${option.pageId}.i${option.instanceId})`
 														: 'Choose a page';
 												}}
-												sx={styles.textFieldOverrides}
+												sx={{ ...styles.textFieldOverrides, height: 35 }}
 											>
 												<MenuItem key="none" value="">
-													None
+													<Typography fontSize={13}>None</Typography>
 												</MenuItem>
 												{pageInstanceOptions
 													.sort((a, b) => a.pageId - b.pageId)
 													.map((o) => (
 														<MenuItem key={o.instanceId} value={o.instanceId}>
-															p{o.pageId}.i{o.instanceId}
+															<Typography fontSize={13}>
+																{o.title} (p{o.pageId}.i{o.instanceId})
+															</Typography>
 														</MenuItem>
 													))}
 											</Select>
@@ -427,8 +459,8 @@ export default function FormAnswer() {
 							</Grid>
 						</Grid>
 
-						<Grid container margin="5px" alignItems="center">
-							<Grid>
+						<Grid container alignItems="center">
+							<Grid margin="5px">
 								<Button
 									disabled={inTransition || isFreeform}
 									variant="outlined"
@@ -442,7 +474,7 @@ export default function FormAnswer() {
 								</Button>
 								{formatActionText(answerAction)}
 							</Grid>
-							<Grid>
+							<Grid margin="5px">
 								<Controller
 									name="has_additional_info"
 									control={control}
@@ -467,8 +499,8 @@ export default function FormAnswer() {
 						</Grid>
 
 						<Collapse in={!!hasAdditionalInfo}>
-							<Grid container margin="5px" alignItems="center">
-								<Grid>
+							<Grid container alignItems="center">
+								<Grid margin="5px">
 									<Controller
 										name="additional_info_placeholder"
 										control={control}
@@ -507,7 +539,7 @@ export default function FormAnswer() {
 										)}
 									/>
 								</Grid>
-								<Grid>
+								<Grid margin="5px">
 									<Controller
 										name="additional_info_num_lines"
 										control={control}
@@ -546,8 +578,13 @@ const styles = {
 		paddingTop: 10,
 	},
 	formLabel: {
-		paddingLeft: '10px',
+		zIndex: 100,
+		backgroundColor: 'white',
+		position: 'absolute',
+		marginLeft: '10px',
+		padding: '1px 5px',
 		fontSize: 12,
+		top: -10,
 	},
 	item: {
 		margin: 5,

@@ -58,14 +58,14 @@ export default function ChecklistAnswerRadio(props: {
 							visibleInstanceIds.includes(a.calls_instance_id) &&
 							field.value?.includes(a.id) ? (
 								<Link
-									fontSize={14}
+									fontSize={13}
 									color="info"
 									onClick={() => goToPage(a.calls_instance_id!, data.tree)}
 								>
 									{a.text}
 								</Link>
 							) : (
-								<Typography fontSize={14} noWrap>
+								<Typography fontSize={13} noWrap>
 									{a.text}
 								</Typography>
 							)

@@ -16,11 +16,10 @@ export function useSelectedQuestionData() {
 		const found = questions.find((q) => q.id === selectedQuestionId);
 		if (found) return found;
 
-		const maxPosition = questions.reduce((max, q) => Math.max(max, q.position), 0);
 		return {
 			...DEFAULT_QUESTION,
 			page_id: pageId,
-			position: maxPosition + 1,
+			position: questions.length + 1,
 		};
 	}, [questions, pageId, selectedQuestionId]);
 }

@@ -145,6 +145,78 @@ export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: nu
 	return instances;
 }
 
+/**
+ * Build a map of instance -> all instances it can call via answers.
+ * This is used for cycle detection in the answer call graph.
+ *
+ * @param tree - The full tree of page instances
+ * @returns Map of instanceId -> Set of instanceIds it can call
+ */
+export function buildAnswerCallGraph(tree: TreeNode[]): Map<number, Set<number>> {
+	// Note: This function builds a placeholder. The actual call graph
+	// needs to be populated with real answer data from the backend.
+	// This structure is here to show the intended data flow.
+	const graph = new Map<number, Set<number>>();
+
+	const initGraph = (nodes: TreeNode[]) => {
+		for (const node of nodes) {
+			if (!graph.has(node.instanceId)) {
+				graph.set(node.instanceId, new Set());
+			}
+			if (node.children) {
+				initGraph(node.children);
+			}
+		}
+	};
+	initGraph(tree);
+
+	return graph;
+}
+
+/**
+ * Check if selecting targetInstanceId as a "calls page" would create a cycle.
+ * A cycle exists if there's already a path from targetInstanceId back to currentInstanceId
+ * through the answer call graph.
+ *
+ * @param currentInstanceId - The instance we're currently on (where the answer exists)
+ * @param targetInstanceId - The instance we want to call (potential cycle risk)
+ * @param answerCallGraph - Map of instance -> Set of instances it calls via answers
+ * @returns true if selecting this would create a cycle, false if safe
+ */
+export function wouldCreateCycle(
+	currentInstanceId: number,
+	targetInstanceId: number,
+	answerCallGraph: Map<number, Set<number>>
+): boolean {
+	// If target doesn't call anything, no cycle possible
+	const targetCalls = answerCallGraph.get(targetInstanceId);
+	if (!targetCalls || targetCalls.size === 0) {
+		return false;
+	}
+
+	// Use DFS to check if there's a path from target back to current
+	const visited = new Set<number>();
+
+	const hasPathTo = (from: number, to: number): boolean => {
+		if (from === to) return true;
+		if (visited.has(from)) return false; // Already checked this node
+
+		visited.add(from);
+		const callees = answerCallGraph.get(from);
+		if (!callees) return false;
+
+		for (const callee of callees) {
+			if (hasPathTo(callee, to)) {
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	return hasPathTo(targetInstanceId, currentInstanceId);
+}
+
 export function isBetweenDates(fromDate: string, toDate: string) {
 	const today = dayjs();
 	const from = dayjs(fromDate);
@@ -185,7 +257,7 @@ export function validatePhoneNumber(phoneRaw: string) {
 function getInstances(tree: TreeNode[], currentInstanceId: number, instances: InstanceListItem[]) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
-			instances.push({ instanceId: node.instanceId, pageId: node.pageId });
+			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId });
 		}
 
 		if (node.children) {
