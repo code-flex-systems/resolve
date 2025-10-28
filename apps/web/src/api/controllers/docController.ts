@@ -1,5 +1,6 @@
 import * as docQueries from '@/api/queries/docQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import type { DocParams } from '@/schemas/docSchemas';
 
 /**
  * Insert a document.
@@ -8,9 +9,9 @@ import { ProtectedContext } from '@/server/trpc/trpc';
  * @param input - document fields
  * @returns created document
  */
-export async function createDoc(ctx: ProtectedContext, { params }: { params: object }) {
-	const results = await docQueries.createDoc(ctx, params);
-	return results;
+export async function createDoc(ctx: ProtectedContext, { params }: { params: DocParams }) {
+        const results = await docQueries.createDoc(ctx, params);
+        return results;
 }
 
 /**

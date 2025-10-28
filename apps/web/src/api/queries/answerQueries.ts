@@ -3,6 +3,7 @@ import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
 
 /**
  * Insert a new answer for a question.
@@ -18,7 +19,7 @@ export async function createAnswer(
 	ctx: ProtectedContext,
 	pageId: number,
 	questionId: number,
-	params: any,
+	params: AnswerParams,
 	trx?: Transaction<DB>
 ) {
 	// If this answer calls another instance, check for cycles across all instances
@@ -262,7 +263,12 @@ async function wouldCreateCycleBackend(
  * @param params - fields to modify
  * @returns the updated answer
  */
-export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answerId: number, params: any) {
+export async function modifyAnswer(
+	ctx: ProtectedContext,
+	pageId: number,
+	answerId: number,
+	params: AnswerUpdateParams
+) {
 	const existingAnswer = await db
 		.selectFrom('answer')
 		.select(['position', 'question_id', 'calls_instance_id'])
@@ -312,19 +318,23 @@ export async function modifyAnswer(ctx: ProtectedContext, pageId: number, answer
 
 	const updates: UpdateObjectExpression<DB, 'answer'> = {};
 
-	if (params.position && params.position !== existingAnswer.position) updates.position = params.position;
-	if (params.grade != null) updates.grade = params.grade || null;
-	if (params.text) updates.text = params.text;
-	if (params.description_text != null) updates.description_text = params.description_text;
-	if (params.additional_info_num_lines) updates.additional_info_num_lines = params.additional_info_num_lines;
-	if (params.additional_info_placeholder != null)
+	if (params.position !== undefined && params.position !== existingAnswer.position)
+		updates.position = params.position;
+	if (params.grade !== undefined) updates.grade = params.grade;
+	if (params.text !== undefined) updates.text = params.text;
+	if (params.description_text !== undefined) updates.description_text = params.description_text;
+	if (params.description_image_url !== undefined) updates.description_image_url = params.description_image_url;
+	if (params.additional_info_num_lines !== undefined)
+		updates.additional_info_num_lines = params.additional_info_num_lines;
+	if (params.additional_info_placeholder !== undefined)
 		updates.additional_info_placeholder = params.additional_info_placeholder;
 	if (params.calls_instance_id !== undefined) updates.calls_instance_id = params.calls_instance_id;
-	if (params.has_additional_info != null) updates.has_additional_info = params.has_additional_info;
+	if (params.has_additional_info !== undefined) updates.has_additional_info = params.has_additional_info;
+	if (params.hidden !== undefined) updates.hidden = params.hidden;
 
 	let newAnswer: Awaited<ReturnType<typeof getAnswer>>;
 	await db.transaction().execute(async (trx) => {
-		if (updates.position) {
+		if (updates.position !== undefined) {
 			if (updates.position < existingAnswer.position) {
 				// Shift down: move answers [newPosition, currentPosition - 1] up by 1
 				await trx
@@ -387,7 +397,12 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Trans
  * @param trx - active transaction
  * @returns the newly created answer
  */
-async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, params: any, trx: Transaction<DB>) {
+async function createAnswerPrivate(
+	ctx: ProtectedContext,
+	questionId: number,
+	params: AnswerParams,
+	trx: Transaction<DB>
+) {
 	await trx
 		.updateTable('answer')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
@@ -402,10 +417,12 @@ async function createAnswerPrivate(ctx: ProtectedContext, questionId: number, pa
 			grade: params.grade,
 			text: params.text,
 			description_text: params.description_text,
+			description_image_url: params.description_image_url,
 			additional_info_num_lines: params.additional_info_num_lines,
 			additional_info_placeholder: params.additional_info_placeholder,
 			calls_instance_id: params.calls_instance_id,
 			has_additional_info: params.has_additional_info,
+			hidden: params.hidden ?? undefined,
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
 		})

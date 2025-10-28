@@ -76,13 +76,26 @@ export default function FormQuestion() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
+			// Extract only the fields needed for QuestionParams/QuestionUpdateParams
+			// Note: type needs to be cast to QuestionType enum
+			const params = {
+				text: data.text,
+				type: data.type as QuestionType,
+				position: data.position,
+				description_text: data.description_text,
+				description_image_url: data.description_image_url,
+				placeholder: data.placeholder,
+				page_id: data.page_id,
+				hidden: data.hidden,
+				id: data.id,
+			};
 			const newQuestion =
 				selectedQuestionData.id === -1
-					? await addQuestion({ pageId: selectedPageInfo.pageId, params: data })
+					? await addQuestion({ pageId: selectedPageInfo.pageId, params })
 					: await updateQuestion({
 							questionId: selectedQuestionData.id,
 							pageId: selectedPageInfo.pageId,
-							params: data,
+							params,
 						});
 			if (newQuestion.page_id === selectedPageInfo.pageId) {
 				updateSelectedQuestion(newQuestion.id);

@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-export const docParams = z.record(z.unknown());
+export const docParams = z
+        .object({
+                alias: z.string().min(1),
+                filename: z.string().min(1),
+        })
+        .strict();
 export type DocParams = z.infer<typeof docParams>;
 
 export const createDocInput = z.object({

@@ -1,5 +1,6 @@
 import { db } from '@/api/database/kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import type { DocParams } from '@/schemas/docSchemas';
 
 /**
  * Insert a document into the database.
@@ -8,14 +9,15 @@ import { ProtectedContext } from '@/server/trpc/trpc';
  * @param params - document fields
  * @returns created document
  */
-export async function createDoc(ctx: ProtectedContext, params: object) {
-	return await db
-		.insertInto('doc')
-		.values({
-			...params,
-			client_id: ctx.session.user.client_id,
-			created_by: ctx.session.user.id,
-		})
+export async function createDoc(ctx: ProtectedContext, params: DocParams) {
+        return await db
+                .insertInto('doc')
+                .values({
+                        alias: params.alias,
+                        filename: params.filename,
+                        client_id: ctx.session.user.client_id,
+                        created_by: ctx.session.user.id,
+                })
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }

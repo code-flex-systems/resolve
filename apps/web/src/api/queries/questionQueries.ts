@@ -2,8 +2,9 @@ import { sql, Transaction } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
 import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
-import { Answer, DateRangeStrict, Interval } from '@/types/types';
+import { Answer, DateRangeStrict } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
+import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSchemas';
 import { QuestionType } from '@/config/enums';
 
 /**
@@ -14,7 +15,7 @@ import { QuestionType } from '@/config/enums';
  * @param params - question fields
  * @returns newly created question
  */
-export async function createQuestion(ctx: ProtectedContext, pageId: number, params: object) {
+export async function createQuestion(ctx: ProtectedContext, pageId: number, params: QuestionParams) {
 	let newQuestion: any;
 	await db.transaction().execute(async (trx) => {
 		await trx
@@ -30,6 +31,9 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
 				text: params.text,
 				type: params.type,
 				description_text: params.description_text,
+				description_image_url: params.description_image_url,
+				placeholder: params.placeholder,
+				hidden: params.hidden ?? undefined,
 				position: params.position,
 				client_id: ctx.session.user.client_id,
 				created_by: ctx.session.user.id,
@@ -61,15 +65,29 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 	await db.transaction().execute(async (trx) => {
 		newQuestion = await trx
 			.insertInto('question')
-			.columns(['page_id', 'description_text', 'text', 'type', 'client_id', 'position', 'created_by'])
+			.columns([
+				'page_id',
+				'description_text',
+				'description_image_url',
+				'text',
+				'type',
+				'placeholder',
+				'hidden',
+				'client_id',
+				'position',
+				'created_by',
+			])
 			.expression((eb) =>
 				eb
 					.selectFrom('question')
 					.select((eb) => [
 						'page_id',
 						'description_text',
+						'description_image_url',
 						'text',
 						'type',
+						'placeholder',
+						'hidden',
 						'client_id',
 						eb
 							.val(+maxPosition.max_position.toString() + 1)
@@ -93,6 +111,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 				'description_text',
 				'description_image_url',
 				'has_additional_info',
+				'hidden',
 				'question_id',
 				'calls_instance_id',
 				'client_id',
@@ -110,6 +129,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 						'description_text',
 						'description_image_url',
 						'has_additional_info',
+						'hidden',
 						eb.val(newQuestion.id).$castTo<number>().as('question_id'),
 						'calls_instance_id',
 						'client_id',
@@ -315,7 +335,12 @@ export async function getQuestionStats(
  * @param params - fields to update
  * @returns updated question
  */
-export async function modifyQuestion(ctx: ProtectedContext, pageId: number, questionId: number, params: object) {
+export async function modifyQuestion(
+	ctx: ProtectedContext,
+	pageId: number,
+	questionId: number,
+	params: QuestionUpdateParams
+) {
 	const existingQuestion = await db
 		.selectFrom('question')
 		.select(['position', 'type'])
@@ -327,6 +352,9 @@ export async function modifyQuestion(ctx: ProtectedContext, pageId: number, ques
 	if (params.text) updates.text = params.text;
 	if (params.type) updates.type = params.type;
 	if (params.description_text != null) updates.description_text = params.description_text;
+	if (params.description_image_url !== undefined) updates.description_image_url = params.description_image_url;
+	if (params.placeholder !== undefined) updates.placeholder = params.placeholder;
+	if (params.hidden !== undefined) updates.hidden = params.hidden;
 	if (params.page_id) updates.page_id = params.page_id;
 	if (params.position && params.position !== existingQuestion.position) updates.position = params.position;
 

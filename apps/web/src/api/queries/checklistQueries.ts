@@ -6,6 +6,7 @@ import { DB } from '../database/types';
 import { TRPCError } from '@trpc/server';
 import { DateRangeStrict } from '@/types/types';
 import config from '@/config/config';
+import type { ChecklistParams } from '@/schemas/checklistSchemas';
 
 const MAX_TREE_DEPTH = 30;
 
@@ -625,14 +626,22 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  * @param params - fields to change
  * @returns the updated checklist
  */
-export async function modifyChecklist(ctx: ProtectedContext, checklistId: number, params: object) {
-	return await db
-		.updateTable('checklist')
-		.set({
-			...params,
-			updated_by: ctx.session.user.id,
-			updated_at: sql`now()`,
-		})
+export async function modifyChecklist(
+        ctx: ProtectedContext,
+        checklistId: number,
+        params: ChecklistParams
+) {
+        const updates = Object.fromEntries(
+                Object.entries(params).filter(([, value]) => value !== undefined)
+        );
+
+        return await db
+                .updateTable('checklist')
+                .set({
+                        ...updates,
+                        updated_by: ctx.session.user.id,
+                        updated_at: sql`now()`,
+                })
 		.where('id', '=', checklistId)
 		.returningAll()
 		.executeTakeFirstOrThrow();

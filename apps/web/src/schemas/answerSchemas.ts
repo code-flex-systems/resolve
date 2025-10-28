@@ -2,17 +2,21 @@ import { parseNumber } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
 
 export const answerParams = z.object({
-	text: z.string(),
-	position: z.number().int(),
-	grade: parseNumber().nullable().optional(),
-	description_text: z.string().nullable().optional(),
-	description_image_url: z.string().nullable().optional(),
-	has_additional_info: z.boolean().nullable().optional(),
-	additional_info_placeholder: z.string().nullable().optional(),
-	additional_info_num_lines: parseNumber().nullable().optional(),
-	calls_instance_id: z.number().int().nullable().optional(),
-	hidden: z.boolean().nullable().optional(),
+        text: z.string(),
+        position: z.number().int(),
+        grade: parseNumber().nullable().optional(),
+        description_text: z.string().nullable().optional(),
+        description_image_url: z.string().nullable().optional(),
+        has_additional_info: z.boolean().nullable().optional(),
+        additional_info_placeholder: z.string().nullable().optional(),
+        additional_info_num_lines: parseNumber().nullable().optional(),
+        calls_instance_id: z.number().int().nullable().optional(),
+        hidden: z.boolean().nullable().optional(),
 });
+export type AnswerParams = z.infer<typeof answerParams>;
+
+export const answerUpdateParams = answerParams.partial();
+export type AnswerUpdateParams = z.infer<typeof answerUpdateParams>;
 
 export const createAnswerInput = z.object({
 	pageId: z.number().int(),
@@ -45,10 +49,9 @@ export const getAnswersInput = z.object({
 export type GetAnswersInput = z.infer<typeof getAnswersInput>;
 
 export const modifyAnswerInput = z.object({
-	pageId: z.number().int(),
-	answerId: z.number().int(),
-	// params: answerParams,
-	params: z.record(z.unknown()),
+        pageId: z.number().int(),
+        answerId: z.number().int(),
+        params: answerUpdateParams,
 });
 export type ModifyAnswerInput = z.infer<typeof modifyAnswerInput>;
 
