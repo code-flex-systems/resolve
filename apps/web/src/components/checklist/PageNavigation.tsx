@@ -41,6 +41,7 @@ import ChecklistChangeLog from './ChecklistChangeLog';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistDeepLink } from '@/hooks/useChecklistDeepLink';
 import { useEffect } from 'react';
+import Legend from './Legend';
 
 const COMMENT_LIMIT = 30;
 
@@ -177,7 +178,8 @@ export default function PageNavigation() {
 									exclusive
 									onChange={(_, value) => {
 										useChecklistStore.getState().updateMode(value);
-										if (value === ChecklistMode.VIEW) refetchTree().catch((e: any) => console.error(e));
+										if (value === ChecklistMode.VIEW)
+											refetchTree().catch((e: any) => console.error(e));
 									}}
 								>
 									{!!claimId && (
@@ -288,6 +290,9 @@ export default function PageNavigation() {
 								</Box>
 								<Fade in={mode === ChecklistMode.VIEW && !!claimId}>
 									<Box display="flex" justifyContent="flex-start" alignItems="center">
+										<Box marginRight="5px">
+											<Legend />
+										</Box>
 										<Box marginRight="5px">
 											<BasicButtonStyled
 												buttonProps={{
