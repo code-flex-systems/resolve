@@ -26,6 +26,7 @@ export default function ChecklistFormLabel(props: {
 	const highlightedQuestion = useChecklistStore((state) => state.highlightedQuestion);
 	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
 	const isAssigned = useIsAssigned();
+	const isEmpty = Array.isArray(value) ? !value.length : !value;
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
 			{isAssigned && (
@@ -65,7 +66,7 @@ export default function ChecklistFormLabel(props: {
 
 			<Typography
 				fontSize={14}
-				color={highlightedQuestion === question.id ? 'secondary' : undefined}
+				color={isEmpty ? 'error' : highlightedQuestion === question.id ? 'secondary' : undefined}
 				fontWeight="bold"
 			>
 				{idx + 1}. {question.text}

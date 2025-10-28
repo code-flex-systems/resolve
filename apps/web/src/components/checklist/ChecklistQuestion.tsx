@@ -84,7 +84,7 @@ export function ChecklistQuestion(props: {
 					}
 				}}
 			/>
-			{question.type === QuestionType.SINGLE && !!additionalInfoAnswer && (
+			{question.type !== QuestionType.FREEFORM && !!additionalInfoAnswer && (
 				<Controller
 					name={fieldFreeformName}
 					control={control}

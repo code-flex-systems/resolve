@@ -64,11 +64,23 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 		const iconClassname = selected ? 'node-selected-inner' : '';
 		switch (status) {
 			case PageInstanceStatus.UNSTARTED:
-				return <PanoramaFishEye sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />;
+				return (
+					<Tooltip title="Unstarted">
+						<PanoramaFishEye sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+					</Tooltip>
+				);
 			case PageInstanceStatus.IN_PROGRESS:
-				return <Adjust sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />;
+				return (
+					<Tooltip title="Started">
+						<Adjust sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+					</Tooltip>
+				);
 			case PageInstanceStatus.COMPLETE:
-				return <CheckCircle sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />;
+				return (
+					<Tooltip title="Complete">
+						<CheckCircle sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+					</Tooltip>
+				);
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip title="This page has changed">
