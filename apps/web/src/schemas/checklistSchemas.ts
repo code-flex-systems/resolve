@@ -2,7 +2,13 @@ import { z } from 'zod';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { parseDate } from '@/lib/parsers/zodParsers';
 
-export const checklistParams = z.record(z.unknown());
+export const checklistParams = z
+        .object({
+                name: z.string().min(1).optional(),
+                published: z.boolean().optional(),
+        })
+        .strict();
+export type ChecklistParams = z.infer<typeof checklistParams>;
 
 export const createChecklistInput = z.object({
 	name: z.string(),

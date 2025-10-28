@@ -1,7 +1,26 @@
 import { parseDate } from '@/lib/parsers/zodParsers';
 import { z } from 'zod';
+import { QuestionType } from '@/config/enums';
 
-export const questionParams = z.record(z.unknown());
+const questionBaseParams = z
+        .object({
+                text: z.string().min(1),
+                type: z.nativeEnum(QuestionType),
+                position: z.number().int().min(1),
+                description_text: z.string().nullable().optional(),
+                description_image_url: z.string().nullable().optional(),
+                placeholder: z.string().nullable().optional(),
+                page_id: z.number().int().optional(),
+                hidden: z.boolean().nullable().optional(),
+                id: z.number().int().optional(),
+        })
+        .strict();
+
+export const questionParams = questionBaseParams;
+export type QuestionParams = z.infer<typeof questionParams>;
+
+export const questionUpdateParams = questionBaseParams.partial();
+export type QuestionUpdateParams = z.infer<typeof questionUpdateParams>;
 
 export const createQuestionInput = z.object({
 	pageId: z.number().int(),
@@ -47,8 +66,8 @@ export const getQuestionStatsInput = z.object({
 export type GetQuestionStatsInput = z.infer<typeof getQuestionStatsInput>;
 
 export const modifyQuestionInput = z.object({
-	pageId: z.number().int(),
-	questionId: z.number().int(),
-	params: questionParams,
+        pageId: z.number().int(),
+        questionId: z.number().int(),
+        params: questionUpdateParams,
 });
 export type ModifyQuestionInput = z.infer<typeof modifyQuestionInput>;
