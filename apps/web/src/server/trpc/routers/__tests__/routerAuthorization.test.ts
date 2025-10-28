@@ -3,6 +3,7 @@ import { TRPCError } from '@trpc/server';
 import type { Context } from '@/server/trpc/context';
 import config from '@/config/config';
 import { db } from '@/api/database/kysely';
+import { QuestionType } from '@/config/enums';
 
 // Import all routers
 import { userRouter } from '../user';
@@ -1825,7 +1826,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							params: {
 								text: 'Test question',
 								position: 1,
-								type: 'TEXT',
+								type: QuestionType.FREEFORM,
 							},
 						})
 					).resolves.toBeDefined();
@@ -1902,6 +1903,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							checklistId: 1,
 							params: {
 								title: 'Test Page',
+								parentId: 0,
 								position: 1,
 							},
 						})

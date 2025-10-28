@@ -145,21 +145,31 @@ export default function FormAnswer() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			const parsedData = {
-				...data,
+			// Extract only the fields needed for AnswerParams/AnswerUpdateParams
+			// Note: Database returns numeric fields as numbers, but Zod parseNumber() expects strings
+			const params = {
+				text: data.text,
+				position: data.position,
+				grade: data.grade,
+				description_text: data.description_text,
+				description_image_url: data.description_image_url,
+				has_additional_info: data.has_additional_info,
+				additional_info_placeholder: data.additional_info_placeholder,
+				additional_info_num_lines: data.additional_info_num_lines ? String(data.additional_info_num_lines) : null,
 				calls_instance_id: !data.calls_instance_id ? null : data.calls_instance_id,
+				hidden: data.hidden,
 			};
 			const newAnswer =
 				selectedAnswerData.id === -1
 					? await addAnswer({
 							questionId: selectedQuestion,
 							pageId: selectedPageInfo.pageId,
-							params: parsedData,
+							params,
 						})
 					: await updateAnswer({
 							pageId: selectedPageInfo.pageId,
 							answerId: selectedAnswerData.id,
-							params: parsedData,
+							params,
 						});
 			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
