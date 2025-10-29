@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ClaimSearch } from '@/config/enums';
+import { ClaimSearch, RecoveryStatus } from '@/config/enums';
 import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 
 export const assignClaimInput = z.object({
@@ -50,4 +50,11 @@ export const createClaimInput = z.object({
 			expected_recovery: parseNumber().nullable(),
 		})
 	),
+});
+
+// Recovery tracking schemas
+export const updateClaimRecoveryInput = z.object({
+	claimId: z.number().int(),
+	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
+	// actual_recovery is calculated from recovery_event records, not set directly
 });

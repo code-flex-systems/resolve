@@ -121,14 +121,26 @@ export interface ChecklistClaim {
   created_at: Generated<Timestamp>;
   created_by: string;
   last_opened: Generated<Timestamp>;
+  /**
+   * JSONB snapshot of key decisions and answers when checklist is submitted
+   */
+  outcome_snapshot: Json | null;
   status: string;
   submitted_at: Timestamp | null;
   submitted_by: string | null;
+  /**
+   * Auto-calculated days from created_at to submitted_at
+   */
+  time_to_resolution_days: number | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface Claim {
+  /**
+   * Sum of all recovery_event amounts for this claim
+   */
+  actual_recovery: Numeric | null;
   claim_amount: Numeric | null;
   claim_number: string | null;
   client: string | null;
@@ -144,6 +156,10 @@ export interface Claim {
   last_update: Timestamp | null;
   last_updated_by: string | null;
   loss_location: string | null;
+  /**
+   * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
+   */
+  recovery_status: string | null;
   total_incurred: Numeric | null;
 }
 
@@ -163,6 +179,20 @@ export interface Comment {
   instance_id: number | null;
   question_id: number | null;
   updated_at: Timestamp | null;
+}
+
+export interface Deadline {
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  deadline_date: Timestamp;
+  deadline_type: string;
+  description: string | null;
+  id: Generated<number>;
+  status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface Doc {
@@ -258,7 +288,7 @@ export interface QuestionResponse {
   created_by: string;
   id: Generated<number>;
   instance_id: number;
-  question_id: number;
+  question_id: number | null;
   response_text: string | null;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -266,9 +296,23 @@ export interface QuestionResponse {
 
 export interface QuestionResponseAnswer {
   additional_info: string | null;
-  answer_id: number;
+  answer_id: number | null;
   id: Generated<number>;
   response_id: number;
+}
+
+export interface RecoveryEvent {
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  id: Generated<number>;
+  notes: string | null;
+  recovery_amount: Numeric;
+  recovery_date: Timestamp;
+  recovery_source: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface ResponseAuditLogs {
@@ -277,6 +321,18 @@ export interface ResponseAuditLogs {
   claim_id: number | null;
   client_id: string;
   created_at: Generated<Timestamp>;
+  /**
+   * Expert confidence level (0-1) for AI training metadata
+   */
+  decision_confidence: Numeric | null;
+  /**
+   * Expert reasoning for AI training (distinct from operational additional_info)
+   */
+  decision_rationale: string | null;
+  /**
+   * Marks high-quality responses suitable for AI training data
+   */
+  expert_flag: Generated<boolean>;
   id: Generated<number>;
   instance_id: number | null;
   new_answers: Generated<Json>;
@@ -338,6 +394,7 @@ export interface DB {
   claim: Claim;
   client: Client;
   comment: Comment;
+  deadline: Deadline;
   doc: Doc;
   feeds: Feeds;
   page: Page;
@@ -347,6 +404,7 @@ export interface DB {
   question: Question;
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;
+  recovery_event: RecoveryEvent;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
   users: Users;

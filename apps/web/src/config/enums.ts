@@ -51,6 +51,20 @@ export enum ClaimStatus {
 	UNWORKED = 'Unworked',
 }
 
+export enum DeadlineStatus {
+	PENDING = 'pending',
+	MET = 'met',
+	MISSED = 'missed',
+	EXTENDED = 'extended',
+}
+
+export enum RecoveryStatus {
+	PENDING = 'pending',
+	IN_PROGRESS = 'in_progress',
+	RECOVERED = 'recovered',
+	CLOSED_NO_RECOVERY = 'closed_no_recovery',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',

@@ -413,6 +413,10 @@ export interface ResponseAuditInput {
 	newResponseText: string | null;
 	oldAnswers: AuditAnswerSnapshot[];
 	newAnswers: AuditAnswerSnapshot[];
+	// AI training instrumentation (optional)
+	decision_confidence?: number | null;
+	decision_rationale?: string | null;
+	expert_flag?: boolean;
 }
 
 /**
@@ -450,6 +454,11 @@ export async function insertResponseAuditLog(trx: Transaction<DB>, audit: Respon
 			new_response_text: audit.newResponseText,
 			old_answers: oldAnswersJson,
 			new_answers: newAnswersJson,
+			// AI training instrumentation (optional)
+			decision_confidence:
+				audit.decision_confidence !== undefined ? (audit.decision_confidence?.toString() ?? null) : undefined,
+			decision_rationale: audit.decision_rationale !== undefined ? audit.decision_rationale : undefined,
+			expert_flag: audit.expert_flag !== undefined ? audit.expert_flag : undefined,
 		})
 		.execute();
 }

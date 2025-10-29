@@ -12,6 +12,7 @@ import { feedRouter } from './routers/feed';
 import { passwordResetRouter } from './routers/passwordReset';
 import { actionRouter } from './routers/action';
 import { commentRouter } from './routers/comment';
+import { recoveryRouter } from './routers/recovery';
 
 export const appRouter = router({
 	action: actionRouter,
@@ -24,6 +25,7 @@ export const appRouter = router({
 	page: pageRouter,
 	passwordReset: passwordResetRouter,
 	question: questionRouter,
+	recovery: recoveryRouter,
 	response: responseRouter,
 	user: userRouter,
 });
