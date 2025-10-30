@@ -17,7 +17,7 @@ import MetricValue from '@/components/common/MetricValue';
 import UserActivitySummary from './UserActivitySummary';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 350;
+const METRIC_HEIGHT = 300;
 
 export default function UserActivityMetric() {
 	const today = dayjs().endOf('day');
@@ -56,6 +56,11 @@ export default function UserActivityMetric() {
 								User Activity
 							</Typography>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
+								<Box marginRight="15px">
+									<Typography fontSize={13} color="#d9d9d9">
+										past 30 days
+									</Typography>
+								</Box>
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
@@ -122,17 +127,13 @@ export default function UserActivityMetric() {
 								width="100%"
 								height="100%"
 								display="flex"
-								justifyContent="flex-start"
-								alignItems="flex-start"
+								justifyContent="center"
+								alignItems="center"
 							>
-								<Typography color="warning" fontSize={15} padding="10px 20px 0px">
-									Past 30 days...
-								</Typography>
 								<UserActivitySummary
 									totalEvents={stats.total}
 									avgEvents={stats.avg}
 									maxEventsRow={stats.maxRow}
-									maxUserRow={maxUserRow}
 								/>
 							</Stack>
 						</Paper>
@@ -163,7 +164,7 @@ const styles = {
 		alignItems: 'center',
 		flexDirection: 'column',
 		width: 375,
-		height: 210,
+		height: 160,
 		bottom: 0,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,

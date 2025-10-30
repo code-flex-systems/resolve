@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 import MetricValue from '../common/MetricValue';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 350;
+const METRIC_HEIGHT = 300;
 
 export default function ActionsMetric() {
 	const router = useRouter();

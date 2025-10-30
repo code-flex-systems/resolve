@@ -17,7 +17,7 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 350;
+const METRIC_HEIGHT = 300;
 
 function getProgressPercentage(completed: number, total: number) {
 	if (completed === 0 || total === 0) return 0;
@@ -139,7 +139,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 										position="absolute"
 										width={80}
 										left={-90}
-										top={-130}
+										top={-120}
 									>
 										<AnimatedCounter
 											value={getProgressPercentage(

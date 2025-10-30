@@ -49,7 +49,7 @@ export default function UserActivityChart({
 	const maxY = maxUserRow ? Math.ceil(maxUserRow.active_users / 10) * 10 : 10;
 
 	return (
-		<Box width="100%" height={600}>
+		<Box width="100%" height={650}>
 			<Paper elevation={0} sx={styles.paper}>
 				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
 					<Typography variant="h6" fontSize={18} fontWeight={600}>
@@ -70,9 +70,9 @@ export default function UserActivityChart({
 									totalEvents={stats.total}
 									avgEvents={stats.avg}
 									maxEventsRow={stats.maxRow}
-									maxUserRow={maxUserRow}
+									isBreakdown={true}
 								/>
-								<Box width="100%" height={400} padding="20px">
+								<Box width="100%" height={380} padding="20px">
 									<BarChart
 										xAxis={[
 											{
