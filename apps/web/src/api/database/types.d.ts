@@ -65,7 +65,7 @@ export interface AdminActionLogs {
   action: string;
   client_id: string;
   created_at: Generated<Timestamp>;
-  entity_id: number;
+  entity_id: string;
   entity_name: string;
   id: Generated<number>;
   user_id: string;

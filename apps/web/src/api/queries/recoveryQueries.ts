@@ -165,31 +165,41 @@ export async function listRecoveryEventsWithFilters(
  * @param recoveryEventId - recovery event identifier
  * @param claimId - claim identifier for recalculation
  */
+/**
+ * Fetch a recovery event for logging before deletion.
+ */
+export async function getRecoveryEventForDeletion(ctx: ProtectedContext, recoveryEventId: number) {
+	return await ctx.db
+		.selectFrom('recovery_event')
+		.select(['id', 'claim_id', 'recovery_amount', 'recovery_date', 'recovery_source'])
+		.where('id', '=', recoveryEventId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+}
+
 export async function deleteRecoveryEvent(ctx: ProtectedContext, recoveryEventId: number, claimId: number) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await ctx.db.transaction().execute(async (trx) => {
-		// Delete recovery event
-		const deleted = await trx
-			.deleteFrom('recovery_event')
-			.where('recovery_event.id', '=', recoveryEventId)
-			.where('recovery_event.client_id', '=', clientId)
-			.where('recovery_event.claim_id', '=', claimId)
-			.returning(['id'])
-			.executeTakeFirst();
+	// Delete recovery event
+	const deleted = await ctx.db
+		.deleteFrom('recovery_event')
+		.where('recovery_event.id', '=', recoveryEventId)
+		.where('recovery_event.client_id', '=', clientId)
+		.where('recovery_event.claim_id', '=', claimId)
+		.returning(['id'])
+		.executeTakeFirst();
 
-		if (!deleted) {
-			throw new TRPCError({
-				code: 'NOT_FOUND',
-				message: 'Recovery event not found',
-			});
-		}
+	if (!deleted) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Recovery event not found',
+		});
+	}
 
-		// Recalculate claim's actual_recovery
-		await recalculateClaimRecovery(trx, claimId, clientId);
+	// Recalculate claim's actual_recovery
+	await recalculateClaimRecovery(ctx.db, claimId, clientId);
 
-		return deleted;
-	});
+	return deleted;
 }
 
 /**
@@ -390,6 +400,18 @@ export async function updateDeadlineStatus(ctx: ProtectedContext, deadlineId: nu
 	}
 
 	return updated;
+}
+
+/**
+ * Fetch a deadline for logging before deletion.
+ */
+export async function getDeadlineForDeletion(ctx: ProtectedContext, deadlineId: number) {
+	return await ctx.db
+		.selectFrom('deadline')
+		.select(['id', 'claim_id', 'deadline_date', 'deadline_type', 'status', 'description'])
+		.where('id', '=', deadlineId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**

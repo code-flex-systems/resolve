@@ -19,38 +19,53 @@ const MAX_TREE_DEPTH = 30;
  * @returns the created checklist record
  */
 export async function createChecklist(ctx: ProtectedContext, name: string, existingChecklistId?: number) {
-	let newChecklist: any;
-	await ctx.db.transaction().execute(async (trx) => {
-		newChecklist = await trx
-			.insertInto('checklist')
-			.values({
-				name,
-				created_by: ctx.session.user.id,
-				client_id: ctx.session.user.client_id,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		if (existingChecklistId) {
-			await trx
-				.insertInto('page_instance')
-				.columns(['page_id', 'parent_instance_id', 'checklist_id', 'position', 'client_id', 'created_by'])
-				.expression((eb) =>
-					eb
-						.selectFrom('page_instance')
-						.select([
-							'page_id',
-							'parent_instance_id',
-							eb.val(newChecklist.id).as('checklist_id'),
-							'position',
-							'client_id',
-							eb.val(ctx.session.user.id).as('created_by'),
-						])
-						.where('checklist_id', '=', existingChecklistId)
-				)
-				.execute();
-		}
-	});
+	const newChecklist = await ctx.db
+		.insertInto('checklist')
+		.values({
+			name,
+			created_by: ctx.session.user.id,
+			client_id: ctx.session.user.client_id,
+		})
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	if (existingChecklistId) {
+		await ctx.db
+			.insertInto('page_instance')
+			.columns(['page_id', 'parent_instance_id', 'checklist_id', 'position', 'client_id', 'created_by'])
+			.expression((eb) =>
+				eb
+					.selectFrom('page_instance')
+					.select([
+						'page_id',
+						'parent_instance_id',
+						eb.val(newChecklist.id).as('checklist_id'),
+						'position',
+						'client_id',
+						eb.val(ctx.session.user.id).as('created_by'),
+					])
+					.where('checklist_id', '=', existingChecklistId)
+			)
+			.execute();
+	}
+
 	return newChecklist;
+}
+
+/**
+ * Fetch a checklist for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier
+ * @returns the checklist details
+ */
+export async function getChecklistForDeletion(ctx: ProtectedContext, checklistId: number) {
+	return await ctx.db
+		.selectFrom('checklist')
+		.select(['id', 'name', 'published'])
+		.where('id', '=', checklistId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**

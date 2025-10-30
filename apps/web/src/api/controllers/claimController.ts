@@ -2,12 +2,27 @@ import * as claimQueries from '@/api/queries/claimQueries';
 import { ClaimSearch } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Claim } from '@/types/types';
+import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 export async function assignClaim(
 	ctx: ProtectedContext,
 	{ checklistId, claimId, assignee }: { checklistId: number; claimId: number; assignee: string }
 ) {
-	const results = await claimQueries.assignClaim(ctx, checklistId, claimId, assignee);
+	// Assign claim and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const assignment = await claimQueries.assignClaim({ ...ctx, db: trx }, checklistId, claimId, assignee);
+
+		// Log checklist_claim assignment (this creates the relationship)
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: `${checklistId}-${claimId}`,
+			entityName: EntityName.CHECKLIST_CLAIM,
+			action: AdminAction.UPDATE,
+			value: { checklistId, claimId, assignee },
+		});
+
+		return assignment;
+	});
+
 	return results;
 }
 
@@ -77,5 +92,23 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  * @param input - array of claim objects
  */
 export async function createClaims(ctx: ProtectedContext, { claims }: { claims: Omit<Claim, 'id'>[] }) {
-	return await claimQueries.createClaims(ctx, claims);
+	// Create claims and log admin actions within transaction
+	const created = await ctx.db.transaction().execute(async (trx) => {
+		const newClaims = await claimQueries.createClaims({ ...ctx, db: trx }, claims);
+
+		// Log admin actions for bulk claim creation
+		await logAdminActions(
+			{ ...ctx, db: trx },
+			newClaims.map((claim) => ({
+				entityId: claim.id,
+				entityName: EntityName.CLAIM,
+				action: AdminAction.CREATE,
+				value: { claim_number: claim.claim_number, insured: claim.insured, claim_amount: claim.claim_amount },
+			}))
+		);
+
+		return newClaims;
+	});
+
+	return created;
 }

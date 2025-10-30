@@ -2,6 +2,7 @@ import * as questionQueries from '@/api/queries/questionQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { AnswerStat, DateRangeStrict, QuestionStat } from '@/types/types';
 import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSchemas';
+import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 /**
  * Insert a question onto a page.
@@ -10,11 +11,25 @@ import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSch
  * @param input - page id and question fields
  */
 export async function createQuestion(
-        ctx: ProtectedContext,
-        { pageId, params }: { pageId: number; params: QuestionParams }
+	ctx: ProtectedContext,
+	{ pageId, params }: { pageId: number; params: QuestionParams }
 ) {
-        const results = await questionQueries.createQuestion(ctx, pageId, params);
-        return results;
+	// Create question and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await questionQueries.createQuestion({ ...ctx, db: trx }, pageId, params);
+
+		// Log question creation
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: created.id,
+			entityName: EntityName.QUESTION,
+			action: AdminAction.CREATE,
+			value: { text: created.text, type: created.type, pageId },
+		});
+
+		return created;
+	});
+
+	return results;
 }
 
 /**
@@ -27,7 +42,21 @@ export async function copyQuestion(
 	ctx: ProtectedContext,
 	{ pageId, questionId }: { pageId: number; questionId: number }
 ) {
-	const results = await questionQueries.copyQuestion(ctx, pageId, questionId);
+	// Copy question and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await questionQueries.copyQuestion({ ...ctx, db: trx }, pageId, questionId);
+
+		// Log question creation (copied from source)
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: created.id,
+			entityName: EntityName.QUESTION,
+			action: AdminAction.CREATE,
+			value: { text: created.text, type: created.type, pageId, sourceQuestionId: questionId, copied: true },
+		});
+
+		return created;
+	});
+
 	return results;
 }
 
@@ -41,7 +70,24 @@ export async function deleteQuestion(
 	ctx: ProtectedContext,
 	{ pageId, questionId }: { pageId: number; questionId: number }
 ) {
-	await questionQueries.deleteQuestion(ctx, pageId, questionId);
+	// Delete question and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch question data BEFORE deletion for logging
+		const question = await questionQueries.getQuestionForDeletion({ ...ctx, db: trx }, questionId);
+
+		// Delete the question
+		await questionQueries.deleteQuestion({ ...ctx, db: trx }, pageId, questionId);
+
+		// Log admin action for question deletion
+		if (question) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: questionId,
+				entityName: EntityName.QUESTION,
+				action: AdminAction.DELETE,
+				value: { text: question.text, type: question.type, pageId: question.page_id },
+			});
+		}
+	});
 }
 
 /**
@@ -108,17 +154,31 @@ export async function getQuestionStats(
  * @param input - page id, question id and update fields
  */
 export async function modifyQuestion(
-        ctx: ProtectedContext,
-        {
-                pageId,
-                questionId,
-                params,
-        }: {
-                pageId: number;
-                questionId: number;
-                params: QuestionUpdateParams;
-        }
+	ctx: ProtectedContext,
+	{
+		pageId,
+		questionId,
+		params,
+	}: {
+		pageId: number;
+		questionId: number;
+		params: QuestionUpdateParams;
+	}
 ) {
-        const results = await questionQueries.modifyQuestion(ctx, pageId, questionId, params);
-        return results;
+	// Update question and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const updated = await questionQueries.modifyQuestion({ ...ctx, db: trx }, pageId, questionId, params);
+
+		// Log admin action for question update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: questionId,
+			entityName: EntityName.QUESTION,
+			action: AdminAction.UPDATE,
+			value: params,
+		});
+
+		return updated;
+	});
+
+	return results;
 }

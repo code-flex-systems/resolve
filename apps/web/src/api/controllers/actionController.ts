@@ -4,6 +4,7 @@ import * as actionQueries from '../queries/actionQueries';
 import { sendEmail } from '@/lib/email/sendEmail';
 import { ActionDefinition, DateRange } from '@/types/types';
 import { TRPCError } from '@trpc/server';
+import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 export async function executeActions(ctx: ProtectedContext, { answerIds }: { answerIds: number[] }) {
 	const actions = await actionQueries.getActions(ctx, answerIds);
@@ -73,6 +74,20 @@ export async function upsertAction(
 	ctx: ProtectedContext,
 	{ answerId, type, definition }: { answerId: number; type: ActionType; definition: ActionDefinition }
 ) {
-	const result = await actionQueries.upsertAction(ctx, answerId, type, definition);
+	// Upsert action and log admin action within transaction
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const action = await actionQueries.upsertAction({ ...ctx, db: trx }, answerId, type, definition);
+
+		// Log admin action for action upsert (always treat as UPDATE since it uses onConflict)
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: action.id,
+			entityName: EntityName.ACTION,
+			action: AdminAction.UPDATE,
+			value: { answerId, type, definition },
+		});
+
+		return action;
+	});
+
 	return result;
 }

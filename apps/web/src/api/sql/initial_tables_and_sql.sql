@@ -331,12 +331,16 @@ create table admin_action_logs(
 	id serial not null primary key,
 	client_id uuid not null references client(id),
     user_id uuid not null references users(id),
-	entity_id integer not null,
+	entity_id text not null,
 	entity_name text not null,
-	action text not null check (action in ('DELETE', 'GET', 'PATCH', 'POST')),
+	action text not null check (action in ('CREATE', 'UPDATE', 'DELETE', 'BULK_UPDATE', 'BULK_DELETE')),
 	value jsonb,
 	created_at timestamp with time zone not null default now()
 );
+
+create index idx_admin_action_logs_client_entity on admin_action_logs (client_id, entity_name, entity_id);
+create index idx_admin_action_logs_client_user_created on admin_action_logs (client_id, user_id, created_at desc);
+create index idx_admin_action_logs_entity on admin_action_logs (entity_name, entity_id);
 
 -- auth events
 

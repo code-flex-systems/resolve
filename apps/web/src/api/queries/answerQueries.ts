@@ -59,13 +59,26 @@ export async function createAnswer(
 		}
 	}
 
-	let newAnswer: any;
-	await ctx.db.transaction().execute(async (newTrx) => {
-		newAnswer = await createAnswerPrivate(ctx, questionId, params, newTrx);
-		// Only bump the version if this action isn't part of another update
-		await bumpPageVersion(ctx, pageId, newTrx);
-	});
+	const newAnswer = await createAnswerPrivate(ctx, questionId, params);
+	// Only bump the version if this action isn't part of another update
+	await bumpPageVersion(ctx, pageId);
 	return newAnswer;
+}
+
+/**
+ * Fetch an answer for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param answerId - answer identifier
+ * @returns the answer details
+ */
+export async function getAnswerForDeletion(ctx: ProtectedContext, answerId: number) {
+	return await ctx.db
+		.selectFrom('answer')
+		.select(['id', 'question_id', 'text', 'grade'])
+		.where('id', '=', answerId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**
@@ -76,19 +89,19 @@ export async function createAnswer(
  * @param answerId - identifier of the answer to delete
  */
 export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
-	await ctx.db.transaction().execute(async (trx) => {
-		const { position, question_id } = await trx
-			.deleteFrom('answer')
-			.where('id', '=', answerId)
-			.returning(['position', 'question_id'])
-			.executeTakeFirstOrThrow();
-		await trx
-			.updateTable('answer')
-			.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-			.where((eb) => eb.and([eb('question_id', '=', question_id), eb('position', '>', position)]))
-			.execute();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
+	const { position, question_id } = await ctx.db
+		.deleteFrom('answer')
+		.where('id', '=', answerId)
+		.returning(['position', 'question_id'])
+		.executeTakeFirstOrThrow();
+
+	await ctx.db
+		.updateTable('answer')
+		.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+		.where((eb) => eb.and([eb('question_id', '=', question_id), eb('position', '>', position)]))
+		.execute();
+
+	await bumpPageVersion(ctx, pageId);
 }
 
 /**
@@ -325,56 +338,54 @@ export async function modifyAnswer(
 	if (params.has_additional_info !== undefined) updates.has_additional_info = params.has_additional_info;
 	if (params.hidden !== undefined) updates.hidden = params.hidden;
 
-	let newAnswer: Awaited<ReturnType<typeof getAnswer>>;
-	await ctx.db.transaction().execute(async (trx) => {
-		if (updates.position !== undefined) {
-			if (updates.position < existingAnswer.position) {
-				// Shift down: move answers [newPosition, currentPosition - 1] up by 1
-				await trx
-					.updateTable('answer')
-					.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
-					.where('question_id', '=', existingAnswer.question_id)
-					.where('position', '>=', updates.position)
-					.where('position', '<', existingAnswer.position)
-					.execute();
-			} else {
-				// Shift up: move answers [currentPosition + 1, newPosition] down by 1
-				await trx
-					.updateTable('answer')
-					.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-					.where('question_id', '=', existingAnswer.question_id)
-					.where('position', '>', existingAnswer.position)
-					.where('position', '<=', updates.position)
-					.execute();
-			}
+	if (updates.position !== undefined) {
+		if (updates.position < existingAnswer.position) {
+			// Shift down: move answers [newPosition, currentPosition - 1] up by 1
+			await ctx.db
+				.updateTable('answer')
+				.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+				.where('question_id', '=', existingAnswer.question_id)
+				.where('position', '>=', updates.position)
+				.where('position', '<', existingAnswer.position)
+				.execute();
+		} else {
+			// Shift up: move answers [currentPosition + 1, newPosition] down by 1
+			await ctx.db
+				.updateTable('answer')
+				.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+				.where('question_id', '=', existingAnswer.question_id)
+				.where('position', '>', existingAnswer.position)
+				.where('position', '<=', updates.position)
+				.execute();
 		}
+	}
 
-		newAnswer = await trx
-			.updateTable('answer')
-			.set({
-				...updates,
-				updated_by: ctx.session.user.id,
-				updated_at: sql`now()`,
-			})
-			.where('id', '=', answerId)
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
-	return newAnswer!;
+	const newAnswer = await ctx.db
+		.updateTable('answer')
+		.set({
+			...updates,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		})
+		.where('id', '=', answerId)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	await bumpPageVersion(ctx, pageId);
+
+	return newAnswer;
 }
 
 // private methods
 
 /**
- * Increment the version number of a page inside a transaction.
+ * Increment the version number of a page.
  *
  * @param ctx - request context
  * @param pageId - page to bump
- * @param trx - transaction for the update
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: any) {
-	await trx
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
+	await ctx.db
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
 		.where('id', '=', pageId)
@@ -382,27 +393,26 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: any) 
 }
 
 /**
- * Helper to insert an answer within an existing transaction.
+ * Helper to insert an answer.
  *
  * @param ctx - request context
  * @param questionId - question to append the answer to
  * @param params - answer fields
- * @param trx - active transaction
  * @returns the newly created answer
  */
 async function createAnswerPrivate(
 	ctx: ProtectedContext,
 	questionId: number,
-	params: AnswerParams,
-	trx: any
+	params: AnswerParams
 ) {
-	await trx
+	await ctx.db
 		.updateTable('answer')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
 		.where('question_id', '=', questionId)
 		.where('position', '>=', params.position)
 		.execute();
-	const newAnswer = await trx
+
+	const newAnswer = await ctx.db
 		.insertInto('answer')
 		.values({
 			question_id: questionId,
@@ -421,5 +431,6 @@ async function createAnswerPrivate(
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
 	return newAnswer;
 }

@@ -3,6 +3,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import type { RecoveryEventParams, DeadlineParams } from '@/schemas/recoverySchemas';
 import { DeadlineStatus } from '@/config/enums';
 import { DateRangeStrict } from '@/types/types';
+import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 // =====================================================================
 // RECOVERY EVENT CONTROLLERS
@@ -25,7 +26,22 @@ export async function createRecoveryEvent(
 		params: Omit<RecoveryEventParams, 'claim_id'>;
 	}
 ) {
-	return await recoveryQueries.createRecoveryEvent(ctx, claimId, params);
+	// Create recovery event and log admin action within transaction
+	const created = await ctx.db.transaction().execute(async (trx) => {
+		const event = await recoveryQueries.createRecoveryEvent({ ...ctx, db: trx }, claimId, params);
+
+		// Log recovery event creation
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: event.id,
+			entityName: EntityName.RECOVERY_EVENT,
+			action: AdminAction.CREATE,
+			value: { claimId, recovery_amount: event.recovery_amount, recovery_date: event.recovery_date, recovery_source: event.recovery_source },
+		});
+
+		return event;
+	});
+
+	return created;
 }
 
 /**
@@ -58,7 +74,24 @@ export async function deleteRecoveryEvent(
 		claimId: number;
 	}
 ) {
-	return await recoveryQueries.deleteRecoveryEvent(ctx, recoveryEventId, claimId);
+	// Delete recovery event and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch recovery event data BEFORE deletion for logging
+		const event = await recoveryQueries.getRecoveryEventForDeletion({ ...ctx, db: trx }, recoveryEventId);
+
+		// Delete the recovery event
+		await recoveryQueries.deleteRecoveryEvent({ ...ctx, db: trx }, recoveryEventId, claimId);
+
+		// Log admin action for recovery event deletion
+		if (event) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: recoveryEventId,
+				entityName: EntityName.RECOVERY_EVENT,
+				action: AdminAction.DELETE,
+				value: { claimId: event.claim_id, recovery_amount: event.recovery_amount, recovery_date: event.recovery_date, recovery_source: event.recovery_source },
+			});
+		}
+	});
 }
 
 /**
@@ -133,7 +166,22 @@ export async function createDeadline(
 		params: Omit<DeadlineParams, 'claim_id'>;
 	}
 ) {
-	return await recoveryQueries.createDeadline(ctx, claimId, params);
+	// Create deadline and log admin action within transaction
+	const created = await ctx.db.transaction().execute(async (trx) => {
+		const deadline = await recoveryQueries.createDeadline({ ...ctx, db: trx }, claimId, params);
+
+		// Log deadline creation
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: deadline.id,
+			entityName: EntityName.DEADLINE,
+			action: AdminAction.CREATE,
+			value: { claimId, deadline_date: deadline.deadline_date, deadline_type: deadline.deadline_type, status: deadline.status, description: deadline.description },
+		});
+
+		return deadline;
+	});
+
+	return created;
 }
 
 /**
@@ -167,7 +215,22 @@ export async function updateDeadlineStatus(
 		status: DeadlineStatus;
 	}
 ) {
-	return await recoveryQueries.updateDeadlineStatus(ctx, deadlineId, status);
+	// Update deadline status and log admin action within transaction
+	const updated = await ctx.db.transaction().execute(async (trx) => {
+		const deadline = await recoveryQueries.updateDeadlineStatus({ ...ctx, db: trx }, deadlineId, status);
+
+		// Log admin action for deadline status update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: deadlineId,
+			entityName: EntityName.DEADLINE,
+			action: AdminAction.UPDATE,
+			value: { status },
+		});
+
+		return deadline;
+	});
+
+	return updated;
 }
 
 /**
@@ -180,7 +243,24 @@ export async function deleteDeadline(
 	ctx: ProtectedContext,
 	{ deadlineId }: { deadlineId: number }
 ) {
-	return await recoveryQueries.deleteDeadline(ctx, deadlineId);
+	// Delete deadline and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch deadline data BEFORE deletion for logging
+		const deadline = await recoveryQueries.getDeadlineForDeletion({ ...ctx, db: trx }, deadlineId);
+
+		// Delete the deadline
+		await recoveryQueries.deleteDeadline({ ...ctx, db: trx }, deadlineId);
+
+		// Log admin action for deadline deletion
+		if (deadline) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: deadlineId,
+				entityName: EntityName.DEADLINE,
+				action: AdminAction.DELETE,
+				value: { claimId: deadline.claim_id, deadline_date: deadline.deadline_date, deadline_type: deadline.deadline_type, status: deadline.status, description: deadline.description },
+			});
+		}
+	});
 }
 
 // =====================================================================

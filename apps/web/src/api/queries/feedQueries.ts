@@ -167,6 +167,22 @@ export async function updateFeed(ctx: ProtectedContext, id: number, params: Upda
 }
 
 /**
+ * Fetch a feed for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param id - feed identifier
+ * @returns the feed details
+ */
+export async function getFeedForDeletion(ctx: ProtectedContext, id: number) {
+	return await ctx.db
+		.selectFrom('feeds')
+		.select(['id', 'name', 'feed_type', 'status'])
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+}
+
+/**
  * Remove a feed.
  *
  * @param ctx - request context

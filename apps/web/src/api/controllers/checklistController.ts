@@ -3,6 +3,7 @@ import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRangeStrict } from '@/types/types';
 import type { ChecklistParams } from '@/schemas/checklistSchemas';
+import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 /**
  * Create a checklist optionally copying another.
@@ -15,7 +16,21 @@ export async function createChecklist(
 	ctx: ProtectedContext,
 	{ name, existingChecklistId }: { name: string; existingChecklistId?: number }
 ) {
-	const results = await checklistQueries.createChecklist(ctx, name, existingChecklistId);
+	// Create checklist and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await checklistQueries.createChecklist({ ...ctx, db: trx }, name, existingChecklistId);
+
+		// Log checklist creation
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: created.id,
+			entityName: EntityName.CHECKLIST,
+			action: AdminAction.CREATE,
+			value: { name: created.name, sourceChecklistId: existingChecklistId },
+		});
+
+		return created;
+	});
+
 	return results;
 }
 
@@ -38,7 +53,24 @@ export async function modifyChecklistClaim(
  * @param input - checklist id
  */
 export async function deleteChecklist(ctx: ProtectedContext, { id }: { id: number }) {
-	await checklistQueries.deleteChecklist(ctx, id);
+	// Delete checklist and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch checklist data BEFORE deletion for logging
+		const checklist = await checklistQueries.getChecklistForDeletion({ ...ctx, db: trx }, id);
+
+		// Delete the checklist
+		await checklistQueries.deleteChecklist({ ...ctx, db: trx }, id);
+
+		// Log admin action for checklist deletion
+		if (checklist) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: id,
+				entityName: EntityName.CHECKLIST,
+				action: AdminAction.DELETE,
+				value: { name: checklist.name, published: checklist.published },
+			});
+		}
+	});
 }
 
 /**
@@ -200,9 +232,23 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  * @returns the updated checklist
  */
 export async function modifyChecklist(
-        ctx: ProtectedContext,
-        { id, params }: { id: number; params: ChecklistParams }
+	ctx: ProtectedContext,
+	{ id, params }: { id: number; params: ChecklistParams }
 ) {
-        const results = await checklistQueries.modifyChecklist(ctx, id, params);
-        return results;
+	// Update checklist and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const updated = await checklistQueries.modifyChecklist({ ...ctx, db: trx }, id, params);
+
+		// Log admin action for checklist update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: id,
+			entityName: EntityName.CHECKLIST,
+			action: AdminAction.UPDATE,
+			value: params,
+		});
+
+		return updated;
+	});
+
+	return results;
 }

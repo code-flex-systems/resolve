@@ -257,10 +257,10 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  *
  * @param ctx - request context
  * @param claims - claim objects without ids
- * @returns the first created claim as a convenience
+ * @returns all created/updated claims
  */
 export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
-	const [feed] = await ctx.db
+	const result = await ctx.db
 		.insertInto('claim')
 		.values(
 			claims.map((c) => ({
@@ -295,5 +295,5 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 		)
 		.returningAll()
 		.execute();
-	return feed;
+	return result;
 }
