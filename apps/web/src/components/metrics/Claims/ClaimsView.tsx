@@ -101,6 +101,7 @@ export default function ClaimsView() {
 					alignItems="flex-start"
 					bgcolor="#F7F8FA"
 					padding="20px"
+					overflow="auto"
 				>
 					<Stack width={400} height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 						<Paper elevation={0} sx={styles.paper}>
@@ -179,6 +180,9 @@ export default function ClaimsView() {
 											alignItems="flex-start"
 											paddingTop="20px"
 										>
+											<Typography fontSize={30} color="primary">
+												{claim.claim_number}
+											</Typography>
 											<Box display="flex" justifyContent="center" alignItems="center">
 												<CardContent
 													sx={{ p: 1, '&:last-child': { pb: 1 }, marginRight: '10px' }}

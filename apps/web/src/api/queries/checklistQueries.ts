@@ -594,6 +594,61 @@ export async function getChecklistClaims(
 }
 
 /**
+ * Export all checklist claims matching filters (no pagination).
+ * Used for CSV export functionality.
+ *
+ * @param ctx - request context
+ * @param filters - optional filters (same as getChecklistClaims)
+ * @returns all matching checklist claims
+ */
+export async function exportChecklistClaims(
+	ctx: ProtectedContext,
+	filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus }
+) {
+	const query = db
+		.selectFrom('checklist')
+		.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
+		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
+		.leftJoin('users as u1', 'u1.id', 'checklist_claim.created_by')
+		.leftJoin('users as u2', 'u2.id', 'checklist_claim.assignee')
+		.where('checklist.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
+			if (filters.checklistId) whereClause.push(eb('checklist.id', '=', filters.checklistId));
+			if (filters.users?.length) whereClause.push(eb('u2.id', 'in', filters.users));
+			if (filters.range && filters.range.some((d) => !!d)) {
+				if (filters.range[0]) {
+					whereClause.push(eb('checklist_claim.created_at', '>=', filters.range[0]));
+				}
+				if (filters.range[1]) {
+					whereClause.push(eb('checklist_claim.created_at', '<=', filters.range[1]));
+				}
+			}
+			if (filters.claimStatus) {
+				whereClause.push(eb('checklist_claim.status', '=', filters.claimStatus));
+			}
+			return eb.and(whereClause);
+		})
+		.selectAll('checklist_claim')
+		.select([
+			'checklist.name as checklist_name',
+			'claim.claim_number',
+			'claim.client',
+			'claim.expected_recovery',
+			'claim.actual_recovery',
+			'u1.last as created_by_last',
+			'u1.first as created_by_first',
+			'u1.email as created_by_email',
+			'u2.last as assignee_last',
+			'u2.first as assignee_first',
+			'u2.email as assignee_email',
+		])
+		.orderBy('checklist_claim.updated_at desc');
+
+	return await query.execute();
+}
+
+/**
  * Retrieve the most recently opened claims for any checklist.
  *
  * @param ctx - request context

@@ -139,6 +139,20 @@ export async function getResponseAuditLogStats(
 }
 
 /**
+ * Export all response audit logs matching filters (for CSV export).
+ *
+ * @param ctx - request context
+ * @param filters - filters for audit logs
+ * @returns all matching audit log entries
+ */
+export async function exportResponseAuditLogs(
+	ctx: ProtectedContext,
+	{ filters }: { filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string } }
+) {
+	return await responseQueries.exportResponseAuditLogs(ctx, filters);
+}
+
+/**
  * Insert or update multiple responses at once.
  *
  * @param ctx - request context

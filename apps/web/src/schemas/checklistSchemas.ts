@@ -69,6 +69,15 @@ export const getChecklistClaimsInput = z.object({
 	offset: z.number().int(),
 });
 
+export const exportChecklistClaimsInput = z.object({
+	filters: z.object({
+		checklistId: z.number().int().optional(),
+		users: z.array(z.string()).optional(),
+		range: z.tuple([parseDate(), parseDate()]),
+		claimStatus: z.nativeEnum(ClaimStatus).optional(),
+	}),
+});
+
 export const getChecklistSummaryDetailInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),

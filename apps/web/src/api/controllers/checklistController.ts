@@ -169,6 +169,20 @@ export async function getChecklistClaims(
 }
 
 /**
+ * Export all checklist claims matching filters (for CSV export).
+ *
+ * @param ctx - request context
+ * @param filters - filters for checklist claims
+ * @returns all matching checklist claims
+ */
+export async function exportChecklistClaims(
+	ctx: ProtectedContext,
+	{ filters }: { filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus } }
+) {
+	return await checklistQueries.exportChecklistClaims(ctx, filters);
+}
+
+/**
  * Fetch the most recently opened claims.
  *
  * @param ctx - request context

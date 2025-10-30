@@ -19,6 +19,8 @@ export function useResponseTrpc() {
 
 		listLogs: trpc.response.getResponseAuditLogs.useQuery,
 
+		exportLogs: trpc.response.exportResponseAuditLogs.useQuery,
+
 		listLogStats: trpc.response.getResponseAuditLogStats.useQuery,
 
 		evaluate: trpc.response.evaluateResponses.useMutation,

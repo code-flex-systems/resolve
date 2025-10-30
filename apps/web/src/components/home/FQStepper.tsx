@@ -101,7 +101,7 @@ export default function FQStepper() {
 				margin="10px 0px"
 				padding="5px 20px"
 			>
-				<Typography lineHeight="19px" minWidth={100}>
+				<Typography variant="subtitle1" fontSize={14} fontWeight={600} minWidth={100}>
 					Fiscal Year Progress
 				</Typography>
 			</Box>

@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import {
 	evaluateResponses,
+	exportResponseAuditLogs,
 	getResponseAuditLogs,
 	getResponseAuditLogStats,
 	getResponsesForAnswer,
@@ -14,6 +15,7 @@ import { requireOwnership } from '@/lib/auth/requireOwnership';
 import { requireRole } from '@/lib/auth/requireRole';
 import {
 	evaluateResponsesInput,
+	exportResponseAuditLogsInput,
 	getResponseAuditLogsInput,
 	getResponseAuditLogStatsInput,
 	getResponsesForAnswerInput,
@@ -53,6 +55,16 @@ export const responseRouter = router({
 			await requireOwnership(ctx, input.filters.checklistId!, input.filters.claimId);
 		}
 		return getResponseAuditLogs(ctx, input);
+	}),
+
+	exportResponseAuditLogs: protectedProcedure.input(exportResponseAuditLogsInput).query(async ({ input, ctx }) => {
+		// Same authorization logic as getResponseAuditLogs
+		if (!input.filters.claimId) {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		} else if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+			await requireOwnership(ctx, input.filters.checklistId!, input.filters.claimId);
+		}
+		return exportResponseAuditLogs(ctx, input);
 	}),
 
 	getResponseAuditLogStats: protectedProcedure.input(getResponseAuditLogStatsInput).query(async ({ input, ctx }) => {

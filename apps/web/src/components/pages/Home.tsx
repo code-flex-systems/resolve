@@ -51,8 +51,8 @@ export default function Home() {
 						width="100%"
 						height="100vh"
 						display="flex"
-						justifyContent={isLoading || !recents.length ? 'center' : 'space-between'}
-						alignItems="flex-start"
+						justifyContent={isLoading ? 'center' : 'space-between'}
+						alignItems={isLoading ? 'center' : 'flex-start'}
 						overflow="auto"
 					>
 						{isLoading && <WobbleLoadingIndicator hideMsg />}

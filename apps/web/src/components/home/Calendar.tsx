@@ -143,6 +143,11 @@ export default function Calendar() {
 							setCurrentMonth(newValue);
 						}
 					}}
+					sx={{
+						'& .MuiDayCalendar-monthContainer': {
+							overflow: 'unset',
+						},
+					}}
 					slots={{
 						day: CustomDay,
 					}}
@@ -218,7 +223,7 @@ const styles = {
 		minWidth: 400,
 		height: 350,
 		padding: '10px 20px',
-		overflow: 'hidden',
+		// overflow: 'hidden',
 		borderRadius: 4,
 		margin: '15px',
 	},

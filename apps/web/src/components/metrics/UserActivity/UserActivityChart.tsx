@@ -49,27 +49,18 @@ export default function UserActivityChart({
 	const maxY = maxUserRow ? Math.ceil(maxUserRow.active_users / 10) * 10 : 10;
 
 	return (
-		<Box width={800} height={600}>
+		<Box width="100%" height={600}>
 			<Paper elevation={0} sx={styles.paper}>
 				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-					{/* <Paper
-						elevation={0}
-						sx={{
-							width: 'fit-content',
-							background: theme.palette.primary.main,
-							padding: '5px 10px',
-							borderRadius: 3,
-						}}
-						className="flex-row-center"
-					> */}
-					<Typography fontSize={17}>User Activity</Typography>
-					{/* </Paper> */}
+					<Typography variant="h6" fontSize={18} fontWeight={600}>
+						User Activity
+					</Typography>
 				</Box>
 
 				<Fade key={JSON.stringify(filters)} in={true} unmountOnExit timeout={1000}>
-					<span>
+					<Box width="100%">
 						{isLoading && (
-							<Stack width={700} height={400} display="flex" justifyContent="center" alignItems="center">
+							<Stack width="100%" height={400} display="flex" justifyContent="center" alignItems="center">
 								<WobbleLoadingIndicator />
 							</Stack>
 						)}
@@ -81,7 +72,7 @@ export default function UserActivityChart({
 									maxEventsRow={stats.maxRow}
 									maxUserRow={maxUserRow}
 								/>
-								<Box width="100%" flex={1} padding="20px">
+								<Box width="100%" height={400} padding="20px">
 									<BarChart
 										xAxis={[
 											{
@@ -99,8 +90,8 @@ export default function UserActivityChart({
 										yAxis={[{ tickMinStep: 1, max: maxY }]}
 										series={[{ data: yValues, label: 'Active users' }]}
 										margin={{ left: 0, right: 30, top: 20, bottom: 10 }}
-										width={700}
-										height={350}
+										// width={700}
+										// height={350}
 										borderRadius={3}
 										colors={[theme.palette.primary.main]}
 										hideLegend
@@ -109,7 +100,7 @@ export default function UserActivityChart({
 								</Box>
 							</>
 						)}
-					</span>
+					</Box>
 				</Fade>
 			</Paper>
 		</Box>
@@ -128,6 +119,7 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		minWidth: 'fit-content',
+		width: '100%',
 		height: '100%',
 		borderRadius: 6,
 		padding: '20px',

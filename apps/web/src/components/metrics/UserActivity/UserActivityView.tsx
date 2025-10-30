@@ -66,7 +66,7 @@ export default function UserActivityView() {
 				<div style={styles.divider}>
 					<Divider />
 				</div>
-				<Box
+				<Stack
 					width="100%"
 					height="calc(100vh - 70px)"
 					display="flex"
@@ -74,6 +74,7 @@ export default function UserActivityView() {
 					alignItems="flex-start"
 					bgcolor="#F7F8FA"
 					padding="20px"
+					overflow="auto"
 				>
 					<UserActivityChart
 						checklistId={checklist?.id}
@@ -82,24 +83,19 @@ export default function UserActivityView() {
 						range={range}
 						searchTerm={debouncedSearchTerm}
 					/>
-					<Box
-						width="calc(100% - 800px)"
-						height="100%"
-						display="flex"
-						justifyContent="flex-start"
-						alignItems="center"
-						marginLeft="20px"
-					>
-						<Paper elevation={0} sx={styles.paper}>
-							<Box
-								width="100%"
-								height={40}
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-								padding="5px 10px"
-							>
-								<Typography fontSize={15}>Change Log</Typography>
+					<Paper elevation={0} sx={styles.paper}>
+						<Box
+							width="100%"
+							height={50}
+							display="flex"
+							justifyContent="flex-start"
+							alignItems="center"
+							padding="10px"
+						>
+							<Typography variant="h6" fontSize={18} fontWeight={600}>
+								Change Log
+							</Typography>
+							<Box display="flex" justifyContent="flex-end" alignItems="center" marginLeft="20px">
 								<Paper elevation={0} sx={styles.searchPaper}>
 									<Search
 										sx={{
@@ -119,18 +115,19 @@ export default function UserActivityView() {
 									/>
 								</Paper>
 							</Box>
-							<Box height="calc(100% - 40px)">
-								<UserActivityTable
-									checklistId={checklist?.id}
-									claimId={claim?.id}
-									users={users}
-									range={range}
-									searchTerm={debouncedSearchTerm}
-								/>
-							</Box>
-						</Paper>
-					</Box>
-				</Box>
+						</Box>
+						<Box height={500}>
+							<UserActivityTable
+								checklistId={checklist?.id}
+								claimId={claim?.id}
+								users={users}
+								range={range}
+								searchTerm={debouncedSearchTerm}
+							/>
+						</Box>
+					</Paper>
+					{/* </Box> */}
+				</Stack>
 			</Stack>
 		</PageWrapper>
 	);
@@ -169,6 +166,7 @@ const styles = {
 		zIndex: 10,
 		padding: '20px',
 		borderRadius: 6,
+		marginTop: '20px',
 	},
 	searchPaper: {
 		border: 1,

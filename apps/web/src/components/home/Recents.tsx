@@ -34,11 +34,9 @@ export default function Recents() {
 	) : (
 		<Paper elevation={0} sx={styles.container}>
 			<Box width="100%" height={40} display="flex" justifyContent="flex-start" alignItems="center">
-				<ExpandableTitle
-					title="Recent Claims"
-					icon={<ContentPasteSearch sx={{ color: BASE_COLOR }} />}
-					color="white"
-				/>
+				<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+					Recent Claims
+				</Typography>
 			</Box>
 			<div
 				style={{

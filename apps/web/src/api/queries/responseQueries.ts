@@ -216,6 +216,44 @@ export async function getResponseAuditLogStats(
 }
 
 /**
+ * Export all response audit logs matching filters (for CSV export).
+ *
+ * @param ctx - request context
+ * @param filters - filters for audit logs
+ * @returns all matching audit log entries
+ */
+export async function exportResponseAuditLogs(
+	ctx: ProtectedContext,
+	filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string }
+) {
+	const query = db
+		.selectFrom('response_audit_logs')
+		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
+		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
+			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
+			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
+			if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
+			if (filters.range && filters.range.some((d) => !!d)) {
+				if (filters.range[0]) {
+					whereClause.push(eb('response_audit_logs.created_at', '>=', filters.range[0]));
+				}
+				if (filters.range[1]) {
+					whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
+				}
+			}
+			if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
+			return eb.and(whereClause);
+		})
+		.selectAll('response_audit_logs')
+		.select(['users.first', 'users.last', 'users.email'])
+		.orderBy('created_at desc');
+
+	return await query.execute();
+}
+
+/**
  * Insert or update multiple question responses and their selected answers.
  *
  * @param ctx - request context
