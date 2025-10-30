@@ -1,5 +1,4 @@
-import { CompiledQuery, ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
-import { db } from '@/api/database/kysely';
+import { CompiledQuery, ExpressionWrapper, sql, SqlBool } from 'kysely';
 import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { DateRange, DateRangeStrict, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
@@ -21,7 +20,7 @@ export async function getResponseCount(
 	claimId: number,
 	instanceId: number
 ) {
-	const countRow = await db
+	const countRow = await ctx.db
 		.selectFrom('question_response')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('question_response.client_id', '=', ctx.session.user.client_id)
@@ -51,7 +50,7 @@ export async function getResponsesForAnswer(
 	limit: number,
 	offset: number
 ) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('question_response')
 		.innerJoin('question_response_answer', 'question_response.id', 'question_response_answer.response_id')
 		.innerJoin('claim', 'question_response.claim_id', 'claim.id')
@@ -112,7 +111,7 @@ export async function getResponsesForClaimChecklist(
 	instanceId?: number
 ) {
 	// Fetch all responses for the given claim and checklist
-	const responses: QuestionResponse[] = await db
+	const responses: QuestionResponse[] = await ctx.db
 		.selectFrom('question_response')
 		.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
 		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
@@ -157,7 +156,7 @@ export async function getResponseAuditLogs(
 	limit: number,
 	offset: number
 ) {
-	const baseQuery = db
+	const baseQuery = ctx.db
 		.selectFrom('response_audit_logs')
 		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
@@ -211,8 +210,8 @@ export async function getResponseAuditLogStats(
             ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
             ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
         group by gs.day
-    `.compile(db);
-	return (await db.executeQuery(query))?.rows ?? [];
+    `.compile(ctx.db);
+	return (await ctx.db.executeQuery(query))?.rows ?? [];
 }
 
 /**
@@ -226,7 +225,7 @@ export async function exportResponseAuditLogs(
 	ctx: ProtectedContext,
 	filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string }
 ) {
-	const query = db
+	const query = ctx.db
 		.selectFrom('response_audit_logs')
 		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
@@ -262,8 +261,7 @@ export async function exportResponseAuditLogs(
  */
 export async function upsertQuestionResponses(
 	ctx: ProtectedContext,
-	responses: QuestionResponse[],
-	trx: Transaction<DB>
+	responses: QuestionResponse[]
 ) {
 	const updatedPageStatus = getUpdatedPageStatus(
 		responses.length,
@@ -272,7 +270,7 @@ export async function upsertQuestionResponses(
 
 	for (const response of responses) {
 		// Fetch existing response if any
-		const oldRow = await trx
+		const oldRow = await ctx.db
 			.selectFrom('question_response')
 			.select(['id', 'response_text', 'created_by', 'updated_by'])
 			.where('question_response.client_id', '=', ctx.session.user.client_id)
@@ -284,7 +282,7 @@ export async function upsertQuestionResponses(
 
 		// Gather snapshots for logging
 		const oldAnswers = oldRow
-			? await trx
+			? await ctx.db
 					.selectFrom('question_response_answer')
 					.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
 					.select([
@@ -327,7 +325,7 @@ export async function upsertQuestionResponses(
 
 		if (shouldClear && oldRow) {
 			// Log the delete action (no new data)
-			await insertResponseAuditLog(trx, {
+			await insertResponseAuditLog(ctx.db, {
 				responseId: oldRow.id,
 				clientId: ctx.session.user.client_id,
 				userId: oldRow.updated_by ?? oldRow.created_by,
@@ -343,12 +341,12 @@ export async function upsertQuestionResponses(
 			});
 
 			// Remove the response and its answers
-			await trx.deleteFrom('question_response').where('id', '=', oldRow.id).execute();
+			await ctx.db.deleteFrom('question_response').where('id', '=', oldRow.id).execute();
 			continue;
 		}
 
 		// Perform insert or update
-		const [saved] = await trx
+		const [saved] = await ctx.db
 			.insertInto('question_response')
 			.values({
 				checklist_id: response.checklist_id,
@@ -370,11 +368,11 @@ export async function upsertQuestionResponses(
 			.execute();
 
 		// Delete existing answers
-		await trx.deleteFrom('question_response_answer').where('response_id', '=', saved.id).execute();
+		await ctx.db.deleteFrom('question_response_answer').where('response_id', '=', saved.id).execute();
 
 		// Insert new answers if provided
 		if (response?.selected_answers?.length) {
-			await trx
+			await ctx.db
 				.insertInto('question_response_answer')
 				.values(
 					response.selected_answers.map((a) => ({
@@ -386,7 +384,7 @@ export async function upsertQuestionResponses(
 				.execute();
 		}
 
-		const newAnswerSnapshots: AuditAnswerSnapshot[] = await trx
+		const newAnswerSnapshots: AuditAnswerSnapshot[] = await ctx.db
 			.selectFrom('question_response_answer')
 			.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
 			.select(['answer.text as label', 'question_response_answer.additional_info'])
@@ -394,7 +392,7 @@ export async function upsertQuestionResponses(
 			.execute();
 
 		// Log the change
-		await insertResponseAuditLog(trx, {
+		await insertResponseAuditLog(ctx.db, {
 			responseId: saved.id,
 			clientId: ctx.session.user.client_id,
 			userId: saved.updated_by ?? saved.created_by,
@@ -412,7 +410,7 @@ export async function upsertQuestionResponses(
 
 	// Update page instance status
 	const sample = responses[0];
-	const template = await trx
+	const template = await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
 		.select('version')
@@ -425,7 +423,6 @@ export async function upsertQuestionResponses(
 		instanceIds: [sample.instance_id],
 		newStatus: updatedPageStatus,
 		templateVersion: template.version,
-		trx,
 	});
 
 	return updatedPageStatus;
@@ -461,7 +458,7 @@ export interface ResponseAuditInput {
  * Inserts an audit log into response_audit_logs, snapshotting question text,
  * page label, response texts, and answer labels/info.
  */
-export async function insertResponseAuditLog(trx: Transaction<DB>, audit: ResponseAuditInput) {
+export async function insertResponseAuditLog(trx: any, audit: ResponseAuditInput) {
 	// 1) Fetch question text & page label
 	const qPage = await trx
 		.selectFrom('question')

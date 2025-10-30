@@ -1,4 +1,3 @@
-import { db } from '@/api/database/kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { DocParams } from '@/schemas/docSchemas';
 
@@ -10,7 +9,7 @@ import type { DocParams } from '@/schemas/docSchemas';
  * @returns created document
  */
 export async function createDoc(ctx: ProtectedContext, params: DocParams) {
-        return await db
+        return await ctx.db
                 .insertInto('doc')
                 .values({
                         alias: params.alias,
@@ -29,7 +28,7 @@ export async function createDoc(ctx: ProtectedContext, params: DocParams) {
  * @param docId - document identifier
  */
 export async function deleteDoc(ctx: ProtectedContext, docId: number) {
-	await db.deleteFrom('doc').where('id', '=', docId).execute();
+	await ctx.db.deleteFrom('doc').where('id', '=', docId).execute();
 }
 
 /**
@@ -40,7 +39,7 @@ export async function deleteDoc(ctx: ProtectedContext, docId: number) {
  * @returns the found document
  */
 export async function getDoc(ctx: ProtectedContext, docId: number) {
-        return await db
+        return await ctx.db
                 .selectFrom('doc')
                 .selectAll()
                 .where('doc.client_id', '=', ctx.session.user.client_id)
@@ -55,7 +54,7 @@ export async function getDoc(ctx: ProtectedContext, docId: number) {
  * @returns array of documents
  */
 export async function getDocs(ctx: ProtectedContext) {
-        return await db
+        return await ctx.db
                 .selectFrom('doc')
                 .selectAll()
                 .where('doc.client_id', '=', ctx.session.user.client_id)

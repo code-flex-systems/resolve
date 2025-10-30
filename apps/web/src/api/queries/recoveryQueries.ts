@@ -1,6 +1,4 @@
-import { sql, type CompiledQuery, Transaction } from 'kysely';
-import { db } from '@/api/database/kysely';
-import { DB } from '@/api/database/types';
+import { sql, type CompiledQuery } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { RecoveryEventParams, DeadlineParams } from '@/schemas/recoverySchemas';
 import { DeadlineStatus } from '@/config/enums';
@@ -26,7 +24,7 @@ export async function createRecoveryEvent(
 ) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await db.transaction().execute(async (trx) => {
+	return await ctx.db.transaction().execute(async (trx) => {
 		// Create recovery event
 		const recoveryEvent = await trx
 			.insertInto('recovery_event')
@@ -58,7 +56,7 @@ export async function createRecoveryEvent(
  * @returns list of recovery events
  */
 export async function getRecoveryEvents(ctx: ProtectedContext, claimId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('recovery_event')
 		.selectAll()
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
@@ -89,7 +87,7 @@ export async function listRecoveryEventsWithFilters(
 	limit?: number,
 	offset?: number
 ) {
-	let query = db
+	let query = ctx.db
 		.selectFrom('recovery_event')
 		.innerJoin('claim', 'recovery_event.claim_id', 'claim.id')
 		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
@@ -170,7 +168,7 @@ export async function listRecoveryEventsWithFilters(
 export async function deleteRecoveryEvent(ctx: ProtectedContext, recoveryEventId: number, claimId: number) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await db.transaction().execute(async (trx) => {
+	return await ctx.db.transaction().execute(async (trx) => {
 		// Delete recovery event
 		const deleted = await trx
 			.deleteFrom('recovery_event')
@@ -212,7 +210,7 @@ export async function exportRecoveryEvents(
 		userId?: string;
 	}
 ) {
-	let query = db
+	let query = ctx.db
 		.selectFrom('recovery_event')
 		.innerJoin('claim', 'recovery_event.claim_id', 'claim.id')
 		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
@@ -262,7 +260,7 @@ export async function exportRecoveryEvents(
  * Helper: Recalculate and update claim.actual_recovery from all recovery_event records.
  * Must be called within a transaction.
  */
-async function recalculateClaimRecovery(trx: Transaction<DB>, claimId: number, clientId: string) {
+async function recalculateClaimRecovery(trx: any, claimId: number, clientId: string) {
 	// Sum all recovery events for this claim
 	const result = await trx
 		.selectFrom('recovery_event')
@@ -297,7 +295,7 @@ async function recalculateClaimRecovery(trx: Transaction<DB>, claimId: number, c
  * @returns created deadline
  */
 export async function createDeadline(ctx: ProtectedContext, claimId: number, params: Omit<DeadlineParams, 'claim_id'>) {
-	return await db
+	return await ctx.db
 		.insertInto('deadline')
 		.values({
 			claim_id: claimId,
@@ -326,7 +324,7 @@ export async function getDeadlines(
 ) {
 	const isAdmin = ctx.session.user.role === 'Admin' || ctx.session.user.role === 'Super Admin';
 
-	let query = db
+	let query = ctx.db
 		.selectFrom('deadline')
 		.selectAll('deadline')
 		.where('deadline.client_id', '=', ctx.session.user.client_id);
@@ -372,7 +370,7 @@ export async function getDeadlines(
  * @returns updated deadline
  */
 export async function updateDeadlineStatus(ctx: ProtectedContext, deadlineId: number, status: DeadlineStatus) {
-	const updated = await db
+	const updated = await ctx.db
 		.updateTable('deadline')
 		.set({
 			status,
@@ -401,7 +399,7 @@ export async function updateDeadlineStatus(ctx: ProtectedContext, deadlineId: nu
  * @param deadlineId - deadline identifier
  */
 export async function deleteDeadline(ctx: ProtectedContext, deadlineId: number) {
-	const deleted = await db
+	const deleted = await ctx.db
 		.deleteFrom('deadline')
 		.where('deadline.id', '=', deadlineId)
 		.where('deadline.client_id', '=', ctx.session.user.client_id)
@@ -446,7 +444,7 @@ export async function getRecoveryMetricsSummary(
 	}
 ) {
 	// Build expected recovery query
-	let expectedQuery = db
+	let expectedQuery = ctx.db
 		.selectFrom('claim')
 		.select(({ fn }) => fn.sum('expected_recovery').as('total_expected'))
 		.where('claim.client_id', '=', ctx.session.user.client_id)
@@ -484,7 +482,7 @@ export async function getRecoveryMetricsSummary(
 	}
 
 	// Build actual recovery query - use different base depending on filters
-	let actualQueryBase = db.selectFrom('recovery_event');
+	let actualQueryBase = ctx.db.selectFrom('recovery_event');
 
 	// Add joins if needed for filters
 	if (filters?.recoveryStatus || filters?.checklistId || filters?.userId) {
@@ -648,7 +646,7 @@ export async function getRecoveryMetricsTimeSeries(
 		LEFT JOIN expected_by_month ebm ON ms.month_start = ebm.month_start
 		LEFT JOIN actual_by_month abm ON ms.month_start = abm.month_start
 		ORDER BY ms.month_start
-	`.compile(db);
+	`.compile(ctx.db);
 
-	return (await db.executeQuery(query))?.rows ?? [];
+	return (await ctx.db.executeQuery(query))?.rows ?? [];
 }

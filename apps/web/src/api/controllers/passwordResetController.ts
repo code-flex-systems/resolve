@@ -5,8 +5,8 @@ import {
 	markPasswordResetTokenUsed,
 	canRequestPasswordReset,
 } from '@/api/queries/passwordResetQueries';
-import { db } from '@/api/database/kysely';
 import { generateToken } from '@/lib/auth/generateToken';
+import { Context } from '@/server/trpc/context';
 import { sendEmail } from '@/lib/email/sendEmail';
 import { logAuthEvent } from '@/lib/logs/logAuthEvents';
 import { AuthEventType } from '@/config/enums';
@@ -19,18 +19,18 @@ import { readFileSync } from 'fs';
 
 const RESET_EXPIRATION_MINUTES = 15;
 
-export async function requestPasswordReset({ email }: { email: string }) {
-	const user = await db.selectFrom('users').selectAll().where('email', '=', email).executeTakeFirst();
+export async function requestPasswordReset(ctx: Context, { email }: { email: string }) {
+	const user = await ctx.db.selectFrom('users').selectAll().where('email', '=', email).executeTakeFirst();
 
 	if (!user) return; // Silently ignore to avoid leaking user existence
 
-	const canRequest = await canRequestPasswordReset(email);
+	const canRequest = await canRequestPasswordReset(ctx, email);
 	if (!canRequest) throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
 
 	const token = generateToken();
 	const expiresAt = new Date(Date.now() + RESET_EXPIRATION_MINUTES * 60 * 1000);
 
-	await createPasswordResetToken(user.id, token, expiresAt);
+	await createPasswordResetToken(ctx, user.id, token, expiresAt);
 
 	await sendEmail({
 		to: user.email,
@@ -45,28 +45,28 @@ export async function requestPasswordReset({ email }: { email: string }) {
 	);
 }
 
-export async function validateResetToken({ token }: { token: string }) {
-	const record = await getPasswordResetToken(token);
+export async function validateResetToken(ctx: Context, { token }: { token: string }) {
+	const record = await getPasswordResetToken(ctx, token);
 	if (!record || record.used || new Date(record.expires_at) < new Date()) {
 		throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid or expired token' });
 	}
 	return record;
 }
 
-export async function completePasswordReset({ token, password }: { token: string; password: string }) {
-	const record = await getPasswordResetToken(token);
+export async function completePasswordReset(ctx: Context, { token, password }: { token: string; password: string}) {
+	const record = await getPasswordResetToken(ctx, token);
 	if (!record || record.used || new Date(record.expires_at) < new Date()) {
 		throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid or expired token' });
 	}
 	const hashedInput = await hashPasswordIfPresent({ password });
 
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		await trx
 			.updateTable('users')
 			.set({ password_hash: hashedInput.password_hash, email_verified: sql`now()`, must_change_password: false })
 			.where('id', '=', record.user_id)
 			.execute();
-		await markPasswordResetTokenUsed(token, trx);
+		await markPasswordResetTokenUsed({ ...ctx, db: trx }, token);
 	});
 
 	enqueueLog(() => safeLog(() => logAuthEvent(record.user_id, AuthEventType.PasswordChanged), 'logAuth'));

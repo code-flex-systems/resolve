@@ -1,9 +1,8 @@
 import { ActionLogStatus, ActionType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { ActionDefinition, DateRange } from '@/types/types';
-import { ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
+import { ExpressionWrapper, sql, SqlBool } from 'kysely';
 import { DB } from '../database/types';
-import { db } from '../database/kysely';
 import { TRPCError } from '@trpc/server';
 
 export async function upsertAction(
@@ -12,7 +11,7 @@ export async function upsertAction(
 	type: ActionType,
 	definition: ActionDefinition
 ) {
-	return await db
+	return await ctx.db
 		.insertInto('action')
 		.values({
 			client_id: ctx.session.user.client_id,
@@ -33,12 +32,12 @@ export async function upsertAction(
 		.executeTakeFirstOrThrow();
 }
 
-export async function deleteAction(ctx: ProtectedContext, actionId: number, trx: Transaction<DB>) {
-	await trx.deleteFrom('action').where('id', '=', actionId).execute();
+export async function deleteAction(ctx: ProtectedContext, actionId: number) {
+	await ctx.db.deleteFrom('action').where('id', '=', actionId).execute();
 }
 
 export async function getActions(ctx: ProtectedContext, answerIds: number[]) {
-	return await db
+	return await ctx.db
 		.selectFrom('action')
 		.selectAll()
 		.where('action.client_id', '=', ctx.session.user.client_id)
@@ -47,7 +46,7 @@ export async function getActions(ctx: ProtectedContext, answerIds: number[]) {
 }
 
 export async function getAction(ctx: ProtectedContext, answerId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('action')
 		.selectAll()
 		.where('action.client_id', '=', ctx.session.user.client_id)
@@ -56,7 +55,7 @@ export async function getAction(ctx: ProtectedContext, answerId: number) {
 }
 
 export async function getActionStats(ctx: ProtectedContext) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('action_log')
 		.innerJoin('action', 'action_log.action_id', 'action.id')
 		.selectAll('action')
@@ -77,7 +76,7 @@ export async function getActionStatsDetail(
 	ctx: ProtectedContext,
 	filters: { checklistId?: number; claimId?: number; users?: string[]; range?: DateRange; searchTerm?: string }
 ) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('action_log')
 		.innerJoin('action', 'action_log.action_id', 'action.id')
 		.innerJoin('answer', 'action.answer_id', 'answer.id')
@@ -124,7 +123,7 @@ export async function getActionStatsDetail(
 }
 
 export async function logAction(ctx: ProtectedContext, actionId: number, status: ActionLogStatus) {
-	await db
+	await ctx.db
 		.insertInto('action_log')
 		.values({ client_id: ctx.session.user.client_id, action_id: actionId, status, created_by: ctx.session.user.id })
 		.execute();
@@ -136,11 +135,10 @@ export async function updateAction(
 	updates: {
 		type?: ActionType;
 		definition?: ActionDefinition;
-	},
-	trx: Transaction<DB>
+	}
 ) {
 	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
-	await trx
+	await ctx.db
 		.updateTable('action')
 		.set({
 			type: updates.type,

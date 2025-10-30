@@ -171,6 +171,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to delete any comment', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockDeleteComment = await import('@/api/controllers/commentController');
@@ -194,6 +195,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow user to delete their own comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -234,6 +236,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor deleting others comments', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -262,6 +265,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to evaluate any claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
@@ -274,6 +278,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow owner to evaluate their claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -296,6 +301,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow assignee to evaluate their claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -318,6 +324,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor evaluating unrelated claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -345,6 +352,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get claim count', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetClaimCount = await import('@/api/controllers/claimController');
@@ -357,6 +365,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow super admin to get claim count', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 				};
 
 				const mockGetClaimCount = await import('@/api/controllers/claimController');
@@ -369,6 +378,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor access', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(claimRouter, contributorCtx);
@@ -378,6 +388,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should require super admin for client aliasing', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const caller = createCaller(claimRouter, adminCtx);
@@ -389,6 +400,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get checklist count', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetChecklistCount = await import('@/api/controllers/checklistController');
@@ -409,6 +421,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor access', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(checklistRouter, contributorCtx);
@@ -420,6 +433,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get responses for answer', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetResponsesForAnswer = await import('@/api/controllers/responseController');
@@ -441,6 +455,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor access', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(responseRouter, contributorCtx);
@@ -469,6 +484,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should return full profile to admins', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
@@ -486,6 +502,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should return full profile when user views self', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-456', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
@@ -501,6 +518,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should return basic fields when contributor views other user', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
@@ -531,6 +549,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get any comment', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -557,6 +576,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership to get comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -593,6 +613,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -637,6 +658,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to update any user field', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -673,6 +695,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor to update their own non-privileged fields', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -709,6 +732,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating their own role field', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -733,6 +757,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating their own disabled field', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -749,6 +774,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating multiple privileged fields', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -766,6 +792,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating other users', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -784,6 +811,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Admin to elevate Contributor to Admin', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -808,6 +836,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject Admin trying to elevate Contributor to Super Admin', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, adminCtx);
@@ -832,6 +861,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject Admin trying to demote Admin to Contributor', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, adminCtx);
@@ -856,6 +886,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to elevate Contributor to Admin', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -880,6 +911,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to elevate Contributor to Super Admin', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -904,6 +936,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to demote Admin to Contributor', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -928,6 +961,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to demote Super Admin to Contributor', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -952,6 +986,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject Contributor trying to change any role', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(userRouter, contributorCtx);
@@ -988,6 +1023,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get any checklist summary', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetChecklistSummary = await import('@/api/controllers/checklistController');
@@ -1006,6 +1042,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1034,6 +1071,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1055,6 +1093,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get any checklist summary detail', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetChecklistSummaryDetail = await import('@/api/controllers/checklistController');
@@ -1077,6 +1116,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1109,6 +1149,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1137,6 +1178,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get responses for any checklist', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetResponsesForChecklist = await import('@/api/controllers/responseController');
@@ -1149,6 +1191,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1171,6 +1214,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1192,6 +1236,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get all audit logs', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetResponseAuditLogs = await import('@/api/controllers/responseController');
@@ -1213,6 +1258,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get audit logs for specific claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetResponseAuditLogs = await import('@/api/controllers/responseController');
@@ -1237,6 +1283,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor getting all audit logs', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				const caller = createCaller(responseRouter, userCtx);
@@ -1252,6 +1299,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership for specific claim logs', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1286,6 +1334,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership for specific claim logs', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1316,6 +1365,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get comments for any page', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetCommentsForPage = await import('@/api/controllers/commentController');
@@ -1334,6 +1384,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1362,6 +1413,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1389,6 +1441,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to query comments with any filters', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockGetComments = await import('@/api/controllers/commentController');
@@ -1411,6 +1464,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership for specific claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1443,6 +1497,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership for specific claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1477,6 +1532,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to upsert responses for any claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
@@ -1501,6 +1557,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow assignee to upsert responses', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireAssigned check
@@ -1534,6 +1591,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject creator who is not assignee', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireAssigned check (user is creator but not assignee)
@@ -1564,6 +1622,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject non-assigned contributor', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireAssigned check (user is neither creator nor assignee)
@@ -1602,6 +1661,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to create comment on any claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 				};
 
 				const mockCreateComment = await import('@/api/controllers/commentController');
@@ -1633,6 +1693,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow creator to create comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1674,6 +1735,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow assignee to create comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check
@@ -1715,6 +1777,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1751,6 +1814,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create answer', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockCreateAnswer = await import('@/api/controllers/answerController');
@@ -1784,6 +1848,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating answer', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(answerRouter, contributorCtx);
@@ -1804,6 +1869,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create question', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockCreateQuestion = await import('@/api/controllers/questionController');
@@ -1835,6 +1901,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating question', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(questionRouter, contributorCtx);
@@ -1853,6 +1920,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get question stats', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockGetQuestionStats = await import('@/api/controllers/questionController');
@@ -1872,6 +1940,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting question stats', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(questionRouter, contributorCtx);
@@ -1883,6 +1952,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create page', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockCreatePage = await import('@/api/controllers/pageController');
@@ -1913,6 +1983,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating page', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(pageRouter, contributorCtx);
@@ -1930,6 +2001,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create page instance', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockCreatePageInstance = await import('@/api/controllers/pageController');
@@ -1959,6 +2031,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating page instance', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(pageRouter, contributorCtx);
@@ -1978,6 +2051,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow admin to get page instances without parentId', async () => {
 						const adminCtx: Context = {
 							session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -1995,6 +2069,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow super admin to get page instances without parentId', async () => {
 						const superAdminCtx: Context = {
 							session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2012,6 +2087,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should reject contributor getting page instances without parentId', async () => {
 						const contributorCtx: Context = {
 							session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 						};
 
 						const caller = createCaller(pageRouter, contributorCtx);
@@ -2032,6 +2108,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow contributor to get page instances WITH parentId', async () => {
 						const contributorCtx: Context = {
 							session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2050,6 +2127,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow admin to get page instances WITH parentId', async () => {
 						const adminCtx: Context = {
 							session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2071,6 +2149,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get feeds', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockGetFeeds = await import('@/api/controllers/feedController');
@@ -2083,6 +2162,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting feeds', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(feedRouter, contributorCtx);
@@ -2094,6 +2174,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get action stats', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockGetActionStats = await import('@/api/controllers/actionController');
@@ -2106,6 +2187,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting action stats', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(actionRouter, contributorCtx);
@@ -2119,6 +2201,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to update any checklist claim', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockModifyChecklistClaim = await import('@/api/controllers/checklistController');
@@ -2144,6 +2227,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow assignee to update their checklist claim', async () => {
 					const userCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					// Mock requireAssigned check
@@ -2177,6 +2261,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject creator who is not assignee', async () => {
 					const userCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					// Mock requireAssigned check (user is creator but not assignee)
@@ -2202,6 +2287,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow contributor to view their own stats', async () => {
 					const userCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const mockGetChecklistClaimStats = await import('@/api/controllers/checklistController');
@@ -2218,6 +2304,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require admin to view other users stats', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(checklistRouter, contributorCtx);
@@ -2231,6 +2318,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require admin to query by checklist', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(checklistRouter, contributorCtx);
@@ -2245,6 +2333,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require admin to query multiple users', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(checklistRouter, contributorCtx);
@@ -2262,6 +2351,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get inactive user count', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockGetInactiveUserCount = await import('@/api/controllers/userController');
@@ -2274,6 +2364,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting inactive user count', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(userRouter, contributorCtx);
@@ -2283,6 +2374,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to delete user', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockDeleteUser = await import('@/api/controllers/userController');
@@ -2295,6 +2387,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor deleting user', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(userRouter, contributorCtx);
@@ -2306,6 +2399,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get user count for own client', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockGetUserCount = await import('@/api/controllers/userController');
@@ -2318,6 +2412,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require super admin for client aliasing', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const caller = createCaller(userRouter, adminCtx);
@@ -2328,6 +2423,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow super admin for client aliasing', async () => {
 					const superAdminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+				db,
 					};
 
 					const mockGetUserCount = await import('@/api/controllers/userController');
@@ -2344,6 +2440,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to assign claim', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockAssignClaim = await import('@/api/controllers/claimController');
@@ -2362,6 +2459,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor assigning claim', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(claimRouter, contributorCtx);
@@ -2377,6 +2475,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get next claim to assign', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
+				db,
 					};
 
 					const mockGetNextClaimToAssign = await import('@/api/controllers/claimController');
@@ -2389,6 +2488,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting next claim to assign', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+				db,
 					};
 
 					const caller = createCaller(claimRouter, contributorCtx);

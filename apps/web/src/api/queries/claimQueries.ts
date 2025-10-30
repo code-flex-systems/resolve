@@ -1,5 +1,4 @@
 import { sql } from 'kysely';
-import { db } from '@/api/database/kysely';
 import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -17,7 +16,7 @@ import config from '@/config/config';
  */
 async function assertChecklistPublished(ctx: ProtectedContext, checklistId: number) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
-	const checklist = await db
+	const checklist = await ctx.db
 		.selectFrom('checklist')
 		.select(['id'])
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
@@ -34,7 +33,7 @@ async function assertChecklistPublished(ctx: ProtectedContext, checklistId: numb
 
 export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
 	await assertChecklistPublished(ctx, checklistId);
-	return await db
+	return await ctx.db
 		.insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
@@ -57,7 +56,7 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
  */
 export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	await assertChecklistPublished(ctx, checklistId);
-	await db
+	await ctx.db
 		.insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
@@ -69,7 +68,7 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.execute();
-	return await db
+	return await ctx.db
 		.selectFrom('claim')
 		.selectAll()
 		.where('claim.client_id', '=', ctx.session.user.client_id)
@@ -78,7 +77,7 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 }
 
 export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: number, offset = 0) {
-	const row = await db
+	const row = await ctx.db
 		.with('base', (qb) =>
 			qb
 				.selectFrom('claim')
@@ -139,7 +138,7 @@ export async function getClaims(
 ) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
-	let query = db
+	let query = ctx.db
 		.selectFrom('claim')
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id);
@@ -181,7 +180,7 @@ export async function getClaims(
 		}
 		// Column restrictions: Contributors only see columns needed for search UI
 		if (isAdmin) {
-			query = query.selectAll('claim').select('feeds.name as feed_name').orderBy('claim.claim_number');
+			query = query.selectAll('claim').select(['feeds.name as feed_name']).orderBy('claim.claim_number');
 		} else {
 			query = query
 				.select([
@@ -209,7 +208,7 @@ export async function getClaims(
  * @returns a count
  */
 export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('claim')
 		.select(({ eb, fn }) => [
 			eb.case().when('feed_id', 'is', null).then(true).else(false).end().as('manual'),
@@ -233,7 +232,7 @@ export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
 
 export async function getRolloverClaimCount(ctx: ProtectedContext) {
 	const currentFQStartDate = getCurrentFiscalQuarterStart().toDate();
-	const count = await db
+	const count = await ctx.db
 		.selectFrom('claim')
 		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
 		.leftJoin('checklist', (join) =>
@@ -261,7 +260,7 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  * @returns the first created claim as a convenience
  */
 export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
-	const [feed] = await db
+	const [feed] = await ctx.db
 		.insertInto('claim')
 		.values(
 			claims.map((c) => ({

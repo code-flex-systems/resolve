@@ -36,6 +36,7 @@ describe('Authorization Functions', () => {
 		it('should return true when user has the required role', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Admin' }),
+				db,
 			};
 
 			const result = requireRole(ctx, 'Admin');
@@ -45,6 +46,7 @@ describe('Authorization Functions', () => {
 		it('should return true when user has one of multiple required roles', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Contributor' }),
+				db,
 			};
 
 			const result = requireRole(ctx, ['Admin', 'Contributor']);
@@ -54,6 +56,7 @@ describe('Authorization Functions', () => {
 		it('should throw UNAUTHORIZED when user is not authenticated', () => {
 			const ctx: Context = {
 				session: null,
+				db,
 			};
 
 			expect(() => requireRole(ctx, 'Admin')).toThrow(TRPCError);
@@ -63,6 +66,7 @@ describe('Authorization Functions', () => {
 		it('should throw UNAUTHORIZED when session exists but user.role is missing', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: null }),
+				db,
 			};
 
 			expect(() => requireRole(ctx, 'Admin')).toThrow(TRPCError);
@@ -72,6 +76,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user does not have the required role', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Contributor' }),
+				db,
 			};
 
 			expect(() => requireRole(ctx, 'Admin')).toThrow(TRPCError);
@@ -81,6 +86,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user does not have any of multiple required roles', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Contributor' }),
+				db,
 			};
 
 			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow(TRPCError);
@@ -90,6 +96,7 @@ describe('Authorization Functions', () => {
 		it('should handle Super Admin role correctly', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Super Admin' }),
+				db,
 			};
 
 			const result = requireRole(ctx, 'Super Admin');
@@ -99,6 +106,7 @@ describe('Authorization Functions', () => {
 		it('should handle empty array of required roles', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Admin' }),
+				db,
 			};
 
 			// Empty array means no role can satisfy, so should throw
@@ -109,6 +117,7 @@ describe('Authorization Functions', () => {
 		it('should handle role case sensitivity', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Admin' }),
+				db,
 			};
 
 			// TypeScript would prevent this, but runtime check
@@ -117,8 +126,8 @@ describe('Authorization Functions', () => {
 		});
 
 		it('should throw correct error code for each scenario', () => {
-			const unauthCtx: Context = { session: null };
-			const wrongRoleCtx: Context = { session: createMockSession({ role: 'Contributor' }) };
+			const unauthCtx: Context = { session: null, db };
+			const wrongRoleCtx: Context = { session: createMockSession({ role: 'Contributor' }), db };
 
 			try {
 				requireRole(unauthCtx, 'Admin');
@@ -138,6 +147,7 @@ describe('Authorization Functions', () => {
 		it('should return true when user has the checked role', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Admin' }),
+				db,
 			};
 
 			const result = checkRole(ctx, 'Admin');
@@ -147,6 +157,7 @@ describe('Authorization Functions', () => {
 		it('should return true when user has one of multiple checked roles', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Contributor' }),
+				db,
 			};
 
 			const result = checkRole(ctx, ['Admin', 'Contributor']);
@@ -156,6 +167,7 @@ describe('Authorization Functions', () => {
 		it('should return false when user does not have the checked role', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Contributor' }),
+				db,
 			};
 
 			const result = checkRole(ctx, 'Admin');
@@ -165,6 +177,7 @@ describe('Authorization Functions', () => {
 		it('should return false when user does not have any of multiple checked roles', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Contributor' }),
+				db,
 			};
 
 			const result = checkRole(ctx, ['Admin', 'Super Admin']);
@@ -174,6 +187,7 @@ describe('Authorization Functions', () => {
 		it('should throw UNAUTHORIZED when user is not authenticated', () => {
 			const ctx: Context = {
 				session: null,
+				db,
 			};
 
 			expect(() => checkRole(ctx, 'Admin')).toThrow(TRPCError);
@@ -183,6 +197,7 @@ describe('Authorization Functions', () => {
 		it('should throw UNAUTHORIZED when session exists but user.role is missing', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: null }),
+				db,
 			};
 
 			expect(() => checkRole(ctx, 'Admin')).toThrow(TRPCError);
@@ -192,6 +207,7 @@ describe('Authorization Functions', () => {
 		it('should handle empty array of checked roles', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Admin' }),
+				db,
 			};
 
 			// Empty array means no role matches
@@ -202,6 +218,7 @@ describe('Authorization Functions', () => {
 		it('should handle role case sensitivity', () => {
 			const ctx: Context = {
 				session: createMockSession({ role: 'Admin' }),
+				db,
 			};
 
 			// TypeScript would prevent this, but runtime check
@@ -210,7 +227,7 @@ describe('Authorization Functions', () => {
 		});
 
 		it('should throw correct error code UNAUTHORIZED when not authenticated', () => {
-			const ctx: Context = { session: null };
+			const ctx: Context = { session: null, db };
 
 			try {
 				checkRole(ctx, 'Admin');
@@ -228,6 +245,7 @@ describe('Authorization Functions', () => {
 		it('should succeed when user is the creator', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -248,6 +266,7 @@ describe('Authorization Functions', () => {
 		it('should succeed when user is the assignee', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -268,6 +287,7 @@ describe('Authorization Functions', () => {
 		it('should succeed when user is both creator and assignee', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -288,6 +308,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user is neither creator nor assignee', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-789' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -311,6 +332,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user is not authenticated', async () => {
 			const ctx: Context = {
 				session: null,
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -334,6 +356,7 @@ describe('Authorization Functions', () => {
 		it('should throw BAD_REQUEST when checklist + claim does not exist', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -354,6 +377,7 @@ describe('Authorization Functions', () => {
 		it('should query the correct table and fields', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
@@ -382,6 +406,7 @@ describe('Authorization Functions', () => {
 		it('should succeed when assignee is null but user is creator', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -402,6 +427,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when assignee is null and user is not creator', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-789' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -423,9 +449,9 @@ describe('Authorization Functions', () => {
 		});
 
 		it('should throw correct error codes for each scenario', async () => {
-			const unauthCtx: Context = { session: null };
-			const wrongUserCtx: Context = { session: createMockSession({ id: 'user-999' }) };
-			const validCtx: Context = { session: createMockSession({ id: 'user-123' }) };
+			const unauthCtx: Context = { session: null, db };
+			const wrongUserCtx: Context = { session: createMockSession({ id: 'user-999' }), db };
+			const validCtx: Context = { session: createMockSession({ id: 'user-123' }), db };
 
 			// Unauthorized
 			const mockSelectUnauth = vi.fn().mockReturnValue({
@@ -484,6 +510,7 @@ describe('Authorization Functions', () => {
 		it('should succeed when user is the assignee', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -503,6 +530,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user is not the assignee', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -525,6 +553,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user created it but is not assigned', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -547,6 +576,7 @@ describe('Authorization Functions', () => {
 		it('should throw FORBIDDEN when user is not authenticated', async () => {
 			const ctx: Context = {
 				session: null,
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -569,6 +599,7 @@ describe('Authorization Functions', () => {
 		it('should throw BAD_REQUEST when checklist + claim does not exist', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -589,6 +620,7 @@ describe('Authorization Functions', () => {
 		it('should query the correct table and fields', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
@@ -616,6 +648,7 @@ describe('Authorization Functions', () => {
 		it('should handle null assignee', async () => {
 			const ctx: Context = {
 				session: createMockSession({ id: 'user-123' }),
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({
@@ -636,8 +669,8 @@ describe('Authorization Functions', () => {
 		});
 
 		it('should throw correct error codes for each scenario', async () => {
-			const wrongUserCtx: Context = { session: createMockSession({ id: 'user-999' }) };
-			const validCtx: Context = { session: createMockSession({ id: 'user-123' }) };
+			const wrongUserCtx: Context = { session: createMockSession({ id: 'user-999' }), db };
+			const validCtx: Context = { session: createMockSession({ id: 'user-123' }), db };
 
 			// Forbidden (wrong user)
 			const mockSelectForbidden = vi.fn().mockReturnValue({
@@ -683,6 +716,7 @@ describe('Authorization Functions', () => {
 					},
 					expires: '2025-12-31T23:59:59.999Z',
 				},
+				db,
 			};
 
 			const mockSelect = vi.fn().mockReturnValue({

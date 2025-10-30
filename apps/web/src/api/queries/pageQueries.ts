@@ -1,6 +1,5 @@
-import { sql, Transaction } from 'kysely';
+import { sql } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
-import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { PageInstance, PageTemplate } from '@/types/types';
 import { PageInstanceStatus } from '@/config/enums';
@@ -19,7 +18,7 @@ import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas
 export async function createPage(ctx: ProtectedContext, checklistId: number, params: PageParams) {
 	let newPage: PageTemplate;
 	let newInstance: PageInstance;
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		newPage = await trx
 			.insertInto('page')
 			.values({
@@ -29,7 +28,7 @@ export async function createPage(ctx: ProtectedContext, checklistId: number, par
 			})
 			.returningAll()
 			.executeTakeFirstOrThrow();
-		newInstance = await createPageInstance(ctx, {
+		newInstance = await createPageInstancePrivate(ctx, {
 			checklistId,
 			pageId: newPage.id,
 			parentId: params.parentId,
@@ -62,7 +61,7 @@ export async function copyPageTemplate(
 	let newPage: PageTemplate;
 	let newInstance: PageInstance;
 
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		// Copy the page template
 		newPage = await trx
 			.insertInto('page')
@@ -173,17 +172,12 @@ export async function createPageInstance(
 	params: {
 		checklistId: number;
 		pageId: number;
-		trx?: Transaction<DB>;
 	} & PageInstanceParams
 ) {
 	let newInstance: PageInstance;
-	if (params.trx) {
-		newInstance = await createPageInstancePrivate(ctx, { ...params, trx: params.trx });
-	} else {
-		await db.transaction().execute(async (localTrx) => {
-			newInstance = await createPageInstancePrivate(ctx, { ...params, trx: localTrx });
-		});
-	}
+	await ctx.db.transaction().execute(async (trx) => {
+		newInstance = await createPageInstancePrivate(ctx, { ...params, trx });
+	});
 	return newInstance;
 }
 
@@ -194,7 +188,7 @@ export async function createPageInstance(
  * @param instanceId - instance identifier to remove
  */
 export async function deletePageInstance(ctx: ProtectedContext, instanceId: number) {
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		await trx
 			.updateTable('answer')
 			.set({ calls_instance_id: null, updated_by: ctx.session.user.id, updated_at: sql`now()` })
@@ -226,7 +220,7 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
  * @returns the page template
  */
 export async function getPage(ctx: ProtectedContext, pageId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('page')
 		.selectAll()
 		.where('page.client_id', '=', ctx.session.user.client_id)
@@ -241,7 +235,7 @@ export async function getPage(ctx: ProtectedContext, pageId: number) {
  * @returns list of page templates
  */
 export async function getPages(ctx: ProtectedContext) {
-	return await db
+	return await ctx.db
 		.selectFrom('page')
 		.selectAll()
 		.where('page.client_id', '=', ctx.session.user.client_id)
@@ -257,7 +251,7 @@ export async function getPages(ctx: ProtectedContext) {
  * @returns the template with instance info
  */
 export async function getPageInstance(ctx: ProtectedContext, instanceId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
 		.selectAll('page')
@@ -276,7 +270,7 @@ export async function getPageInstance(ctx: ProtectedContext, instanceId: number)
  * @returns list of page instances
  */
 export async function getPageInstances(ctx: ProtectedContext, checklistId: number, parentId?: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
 		.select((eb) => [
@@ -318,7 +312,7 @@ export async function getPageInstancesForClaim(
 	parentId?: number
 ) {
 	// Determine the latest status for each page instance on a claim
-	return await db
+	return await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
 		.leftJoin('page_instance_status', (join) =>
@@ -370,7 +364,7 @@ export async function getPageInstancesForClaim(
  */
 export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	// Use a recursive CTE to resolve all visible page instance ids
-	const results = await db
+	const results = await ctx.db
 		.withRecursive('visible_pages', (eb) =>
 			eb
 				.selectFrom('page_instance')
@@ -412,7 +406,7 @@ export async function modifyPage(ctx: ProtectedContext, pageId: number, params: 
 	if (params.title !== undefined) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
 	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
-	return await db
+	return await ctx.db
 		.updateTable('page')
 		.set({
 			...updates,
@@ -437,11 +431,10 @@ export async function modifyPageInstanceStatus(
 		instanceIds: number[];
 		newStatus: PageInstanceStatus;
 		templateVersion: number;
-		trx?: Transaction<DB>;
 	}
 ) {
 	for (const id of params.instanceIds) {
-		await (params.trx ?? db)
+		await ctx.db
 			.insertInto('page_instance_status')
 			.values({
 				claim_id: params.claimId,
@@ -479,7 +472,7 @@ async function createPageInstancePrivate(
 		parentId,
 		position,
 		trx,
-	}: { checklistId: number; pageId: number; trx: Transaction<DB> } & PageInstanceParams
+	}: { checklistId: number; pageId: number; trx: any } & PageInstanceParams
 ) {
 	// Update positions for all page instances below the one we're inserting
 	await trx

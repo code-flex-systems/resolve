@@ -1,4 +1,3 @@
-import { db } from '@/api/database/kysely';
 import config from '@/config/config';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRangeStrict } from '@/types/types';
@@ -22,7 +21,7 @@ export async function getUsersPaginated(
 	offset?: number,
 	searchTerm?: string
 ) {
-	let query = db
+	let query = ctx.db
 		.selectFrom('users')
 		.selectAll()
 		.where((eb) => {
@@ -57,7 +56,7 @@ export async function getUsersPaginated(
 }
 
 export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
-	let query = db
+	let query = ctx.db
 		.selectFrom('users')
 		.select(['id', 'first', 'last', 'email', 'phone'])
 		.where((eb) => {
@@ -78,7 +77,7 @@ export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 }
 
 export async function getInactiveUserCount(ctx: ProtectedContext) {
-	const count = await db
+	const count = await ctx.db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('disabled', '=', false)
@@ -114,12 +113,12 @@ export async function getUserActivity(
             ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
         group by gs.day
         order by gs.day
-    `.compile(db);
-	return (await db.executeQuery(query))?.rows ?? [];
+    `.compile(ctx.db);
+	return (await ctx.db.executeQuery(query))?.rows ?? [];
 }
 
 export async function getUserActivityDetail(ctx: ProtectedContext, date: string) {
-	return await db
+	return await ctx.db
 		.selectFrom('response_audit_logs')
 		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
 		.selectAll('response_audit_logs')
@@ -143,7 +142,7 @@ export async function getUserActivityDetail(ctx: ProtectedContext, date: string)
  * @returns number of users
  */
 export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, inactive?: boolean, searchTerm?: string) {
-	const query = db
+	const query = ctx.db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where((eb) => {
@@ -181,7 +180,7 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, in
  * @returns active/inactive count
  */
 export async function getUserCountMetrics(ctx: ProtectedContext, clientId: string) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('users')
 		.select(({ fn }) => ['disabled', fn.count('id').as('count')])
 		.where('client_id', '=', clientId)
@@ -208,7 +207,7 @@ export async function getUserCountMetrics(ctx: ProtectedContext, clientId: strin
  * @returns the user or undefined
  */
 export async function getUser(ctx: ProtectedContext, id: string) {
-	return await db
+	return await ctx.db
 		.selectFrom('users')
 		.selectAll()
 		.where((eb) => eb.and([eb('id', '=', id), eb('client_id', '=', ctx.session.user.client_id)]))
@@ -232,7 +231,7 @@ export async function createUsers(
 		phone?: string;
 	}[]
 ) {
-	return await db
+	return await ctx.db
 		.insertInto('users')
 		.values(
 			users.map((u) => ({
@@ -266,7 +265,7 @@ export async function updateUser(
 		disabled?: boolean;
 	}>
 ) {
-	const [user] = await db
+	const [user] = await ctx.db
 		.updateTable('users')
 		.set({ ...params, updated_by: ctx.session.user.id, updated_at: sql`now()` })
 		.where('id', '=', id)
@@ -283,5 +282,5 @@ export async function updateUser(
  * @param id - user identifier to delete
  */
 export async function deleteUser(ctx: ProtectedContext, id: string) {
-	await db.deleteFrom('users').where('id', '=', id).where('client_id', '=', ctx.session.user.client_id).execute();
+	await ctx.db.deleteFrom('users').where('id', '=', id).where('client_id', '=', ctx.session.user.client_id).execute();
 }

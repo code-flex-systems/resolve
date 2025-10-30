@@ -1,4 +1,3 @@
-import { db } from '@/api/database/kysely';
 import { FeedStatus, FeedType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
@@ -33,7 +32,7 @@ export type UpdateFeedParams = Partial<NewFeedParams>;
  * @returns list of feeds
  */
 export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
-        return await db
+        return await ctx.db
                 .selectFrom('feeds')
                 .selectAll()
                 .where('feeds.client_id', '=', ctx.session.user.client_id)
@@ -43,7 +42,7 @@ export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
 }
 
 export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
-        const results = await db
+        const results = await ctx.db
                 .selectFrom('feeds')
                 .select(({ fn }) => ['status', fn.count('id').as('count')])
                 .where('feeds.client_id', '=', clientId)
@@ -69,7 +68,7 @@ export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
  * @returns the feed if found
  */
 export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed | undefined> {
-        return await db
+        return await ctx.db
                 .selectFrom('feeds')
                 .selectAll()
                 .where('feeds.client_id', '=', ctx.session.user.client_id)
@@ -78,7 +77,7 @@ export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed |
 }
 
 export async function getLastSyncedFeed(ctx: ProtectedContext) {
-        return await db
+        return await ctx.db
                 .selectFrom((eb) =>
                         eb
                                 .selectFrom('feeds')
@@ -123,7 +122,7 @@ export async function getLastSyncedFeed(ctx: ProtectedContext) {
  * @returns created feed
  */
 export async function createFeed(ctx: ProtectedContext, params: NewFeedParams): Promise<Feed> {
-	const [feed] = await db
+	const [feed] = await ctx.db
 		.insertInto('feeds')
 		.values({
 			name: params.name,
@@ -149,7 +148,7 @@ export async function createFeed(ctx: ProtectedContext, params: NewFeedParams): 
  * @returns updated feed
  */
 export async function updateFeed(ctx: ProtectedContext, id: number, params: UpdateFeedParams): Promise<Feed> {
-	const [feed] = await db
+	const [feed] = await ctx.db
 		.updateTable('feeds')
 		.set({
 			...(params.name !== undefined && { name: params.name }),
@@ -174,5 +173,5 @@ export async function updateFeed(ctx: ProtectedContext, id: number, params: Upda
  * @param id - feed identifier
  */
 export async function deleteFeed(ctx: ProtectedContext, id: number): Promise<void> {
-	await db.deleteFrom('feeds').where('id', '=', id).execute();
+	await ctx.db.deleteFrom('feeds').where('id', '=', id).execute();
 }

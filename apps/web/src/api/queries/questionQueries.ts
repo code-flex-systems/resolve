@@ -1,6 +1,5 @@
-import { sql, Transaction } from 'kysely';
+import { sql } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
-import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { Answer, DateRangeStrict } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -17,7 +16,7 @@ import { QuestionType } from '@/config/enums';
  */
 export async function createQuestion(ctx: ProtectedContext, pageId: number, params: QuestionParams) {
 	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		await trx
 			.updateTable('question')
 			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
@@ -54,7 +53,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
  * @returns new question
  */
 export async function copyQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
-	const maxPosition = await db
+	const maxPosition = await ctx.db
 		.selectFrom('question')
 		.select(({ fn }) => fn.max('position').as('max_position'))
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -62,7 +61,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 		.executeTakeFirstOrThrow();
 
 	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		newQuestion = await trx
 			.insertInto('question')
 			.columns([
@@ -161,7 +160,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
  * @param questionId - identifier of the question to delete
  */
 export async function deleteQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		const { position } = await trx
 			.deleteFrom('question')
 			.where('id', '=', questionId)
@@ -184,7 +183,7 @@ export async function deleteQuestion(ctx: ProtectedContext, pageId: number, ques
  * @returns the question row
  */
 export async function getQuestion(ctx: ProtectedContext, questionId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('question')
 		.selectAll()
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -200,7 +199,7 @@ export async function getQuestion(ctx: ProtectedContext, questionId: number) {
  * @returns number of questions
  */
 export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
-	const countRow = await db
+	const countRow = await ctx.db
 		.selectFrom('question')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -218,7 +217,7 @@ export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
  */
 export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 	// Pull questions with their aggregated answers for the given page
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('question')
 		.leftJoin('answer', 'answer.question_id', 'question.id')
 		.leftJoin('action', (join) =>
@@ -267,7 +266,7 @@ export async function getQuestionStats(
 	filters: { claimId?: number; range: DateRangeStrict; users?: string[] }
 ) {
 	// Collect answer counts for each question over the specified interval
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('question')
 		.innerJoin('answer', 'question.id', 'answer.question_id')
 		.leftJoin('question_response_answer', 'answer.id', 'question_response_answer.answer_id')
@@ -341,7 +340,7 @@ export async function modifyQuestion(
 	questionId: number,
 	params: QuestionUpdateParams
 ) {
-	const existingQuestion = await db
+	const existingQuestion = await ctx.db
 		.selectFrom('question')
 		.select(['position', 'type'])
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -363,7 +362,7 @@ export async function modifyQuestion(
 		params.type === QuestionType.FREEFORM && existingQuestion.type !== QuestionType.FREEFORM;
 
 	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		// Delete all existing answers when converting to free-form
 		if (convertingToFreeform) {
 			await trx.deleteFrom('answer').where('question_id', '=', questionId).execute();
@@ -416,7 +415,7 @@ export async function modifyQuestion(
  * @param pageId - page to bump
  * @param trx - transaction to run the update in
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: any) {
 	await trx
 		.updateTable('page')
 		.set((eb) => ({

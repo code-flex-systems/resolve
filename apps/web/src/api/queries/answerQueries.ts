@@ -1,6 +1,5 @@
-import { sql, Transaction } from 'kysely';
+import { sql } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
-import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
@@ -12,22 +11,20 @@ import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
  * @param pageId - id of the page that owns the question
  * @param questionId - id of the question to attach the answer to
  * @param params - answer fields to insert
- * @param trx - optional transaction to use
  * @returns the newly created answer
  */
 export async function createAnswer(
 	ctx: ProtectedContext,
 	pageId: number,
 	questionId: number,
-	params: AnswerParams,
-	trx?: Transaction<DB>
+	params: AnswerParams
 ) {
 	// If this answer calls another instance, check for cycles across all instances
 	// Note: Answers are template-level, but calls_instance_id references a specific instance.
 	// We need to check if this creates a cycle in ANY checklist that uses this template.
 	if (params.calls_instance_id) {
 		// Get all instances of this page template across all checklists
-		const pageInstances = await db
+		const pageInstances = await ctx.db
 			.selectFrom('page_instance')
 			.select(['id as instance_id', 'checklist_id'])
 			.where('page_instance.client_id', '=', ctx.session.user.client_id)
@@ -63,15 +60,11 @@ export async function createAnswer(
 	}
 
 	let newAnswer: any;
-	if (trx) {
-		newAnswer = await createAnswerPrivate(ctx, questionId, params, trx);
-	} else {
-		await db.transaction().execute(async (newTrx) => {
-			newAnswer = await createAnswerPrivate(ctx, questionId, params, newTrx);
-			// Only bump the version if this action isn't part of another update
-			await bumpPageVersion(ctx, pageId, newTrx);
-		});
-	}
+	await ctx.db.transaction().execute(async (newTrx) => {
+		newAnswer = await createAnswerPrivate(ctx, questionId, params, newTrx);
+		// Only bump the version if this action isn't part of another update
+		await bumpPageVersion(ctx, pageId, newTrx);
+	});
 	return newAnswer;
 }
 
@@ -83,7 +76,7 @@ export async function createAnswer(
  * @param answerId - identifier of the answer to delete
  */
 export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		const { position, question_id } = await trx
 			.deleteFrom('answer')
 			.where('id', '=', answerId)
@@ -106,7 +99,7 @@ export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answer
  * @returns the matching answer
  */
 export async function getAnswer(ctx: ProtectedContext, answerId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('answer')
 		.selectAll()
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -122,7 +115,7 @@ export async function getAnswer(ctx: ProtectedContext, answerId: number) {
  * @returns ordered list of answers
  */
 export async function getAnswers(ctx: ProtectedContext, questionId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('answer')
 		.selectAll()
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -139,7 +132,7 @@ export async function getAnswers(ctx: ProtectedContext, questionId: number) {
  * @returns number of answers
  */
 export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
-	const answerCountRecord = await db
+	const answerCountRecord = await ctx.db
 		.selectFrom('answer')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -157,7 +150,7 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @returns Array of { from_instance_id, to_instance_id } representing answer calls
  */
 export async function getAnswerCallGraph(ctx: ProtectedContext, checklistId: number) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('answer')
 		.innerJoin('question', 'question.id', 'answer.question_id')
 		.innerJoin('page_instance', 'page_instance.page_id', 'question.page_id')
@@ -269,7 +262,7 @@ export async function modifyAnswer(
 	answerId: number,
 	params: AnswerUpdateParams
 ) {
-	const existingAnswer = await db
+	const existingAnswer = await ctx.db
 		.selectFrom('answer')
 		.select(['position', 'question_id', 'calls_instance_id'])
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -280,7 +273,7 @@ export async function modifyAnswer(
 	if (params.calls_instance_id !== undefined && params.calls_instance_id !== existingAnswer.calls_instance_id) {
 		if (params.calls_instance_id !== null) {
 			// Get all instances of this page template across all checklists
-			const pageInstances = await db
+			const pageInstances = await ctx.db
 				.selectFrom('page_instance')
 				.select(['id as instance_id', 'checklist_id'])
 				.where('page_instance.client_id', '=', ctx.session.user.client_id)
@@ -333,7 +326,7 @@ export async function modifyAnswer(
 	if (params.hidden !== undefined) updates.hidden = params.hidden;
 
 	let newAnswer: Awaited<ReturnType<typeof getAnswer>>;
-	await db.transaction().execute(async (trx) => {
+	await ctx.db.transaction().execute(async (trx) => {
 		if (updates.position !== undefined) {
 			if (updates.position < existingAnswer.position) {
 				// Shift down: move answers [newPosition, currentPosition - 1] up by 1
@@ -380,7 +373,7 @@ export async function modifyAnswer(
  * @param pageId - page to bump
  * @param trx - transaction for the update
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: any) {
 	await trx
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
@@ -401,7 +394,7 @@ async function createAnswerPrivate(
 	ctx: ProtectedContext,
 	questionId: number,
 	params: AnswerParams,
-	trx: Transaction<DB>
+	trx: any
 ) {
 	await trx
 		.updateTable('answer')

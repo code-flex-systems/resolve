@@ -1,11 +1,10 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { db } from '../database/kysely';
 import { ExpressionWrapper, sql, SqlBool } from 'kysely';
 import { Comment, CommentFilters } from '@/types/types';
 import { DB } from '../database/types';
 
 export async function createComment(ctx: ProtectedContext, comment: Comment) {
-	return await db
+	return await ctx.db
 		.insertInto('comment')
 		.values({
 			checklist_id: comment.checklistId,
@@ -21,11 +20,11 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 }
 
 export async function deleteComment(ctx: ProtectedContext, id: number) {
-	return await db.deleteFrom('comment').where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+	return await ctx.db.deleteFrom('comment').where('id', '=', id).returningAll().executeTakeFirstOrThrow();
 }
 
 export async function getComment(ctx: ProtectedContext, id: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('comment')
 		.innerJoin('users', 'comment.created_by', 'users.id')
 		.selectAll('comment')
@@ -36,7 +35,7 @@ export async function getComment(ctx: ProtectedContext, id: number) {
 }
 
 export async function getCommentCount(ctx: ProtectedContext, filters: CommentFilters) {
-	const result = await db
+	const result = await ctx.db
 		.selectFrom('comment')
 		.innerJoin('users', 'comment.created_by', 'users.id')
 		.select(({ fn }) => fn.countAll().as('count'))
@@ -55,7 +54,7 @@ export async function getCommentCount(ctx: ProtectedContext, filters: CommentFil
 
 export async function getComments(ctx: ProtectedContext, filters: CommentFilters, limit?: number, offset?: number) {
 	// Base query
-	const baseQuery = db
+	const baseQuery = ctx.db
 		.selectFrom('comment')
 		.innerJoin('users', 'comment.created_by', 'users.id')
 		.leftJoin('checklist_claim', (join) =>
@@ -113,7 +112,7 @@ export async function getCommentsForPage(
 	claimId: number,
 	instanceId: number
 ) {
-	return await db
+	return await ctx.db
 		.selectFrom('comment')
 		.innerJoin('users', 'comment.created_by', 'users.id')
 		.selectAll('comment')

@@ -36,6 +36,7 @@ describe('getChecklistClaimProgress', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		// Reset all mocks before each test
@@ -479,6 +480,7 @@ describe('getChecklistClaimProgress', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({

@@ -34,6 +34,7 @@ describe('getAnswerCallGraph', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();
@@ -168,6 +169,7 @@ describe('createAnswer - cycle detection', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();
@@ -384,6 +386,7 @@ describe('modifyAnswer - cycle detection', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();

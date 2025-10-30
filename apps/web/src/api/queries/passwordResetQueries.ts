@@ -1,9 +1,8 @@
-import { db } from '@/api/database/kysely';
-import { sql, Transaction } from 'kysely';
-import { DB } from '../database/types';
+import { sql } from 'kysely';
+import { Context } from '@/server/trpc/context';
 
-export async function createPasswordResetToken(userId: string, token: string, expiresAt: Date) {
-	return db
+export async function createPasswordResetToken(ctx: Context, userId: string, token: string, expiresAt: Date) {
+	return ctx.db
 		.insertInto('password_reset_tokens')
 		.values({
 			user_id: userId,
@@ -15,12 +14,12 @@ export async function createPasswordResetToken(userId: string, token: string, ex
 		.executeTakeFirst();
 }
 
-export async function getPasswordResetToken(token: string) {
-	return db.selectFrom('password_reset_tokens').selectAll().where('token', '=', token).executeTakeFirst();
+export async function getPasswordResetToken(ctx: Context, token: string) {
+	return ctx.db.selectFrom('password_reset_tokens').selectAll().where('token', '=', token).executeTakeFirst();
 }
 
-export async function markPasswordResetTokenUsed(token: string, trx: Transaction<DB>) {
-	return trx
+export async function markPasswordResetTokenUsed(ctx: Context, token: string) {
+	return ctx.db
 		.updateTable('password_reset_tokens')
 		.set({
 			used: true,
@@ -30,15 +29,15 @@ export async function markPasswordResetTokenUsed(token: string, trx: Transaction
 		.execute();
 }
 
-export async function deleteExpiredPasswordResetTokens() {
-	return db
+export async function deleteExpiredPasswordResetTokens(ctx: Context) {
+	return ctx.db
 		.deleteFrom('password_reset_tokens')
 		.where('expires_at', '<', sql`now()`.$castTo<Date>())
 		.execute();
 }
 
-export async function canRequestPasswordReset(email: string, limit = 3, windowMinutes = 15) {
-	const recentRequests = await db
+export async function canRequestPasswordReset(ctx: Context, email: string, limit = 3, windowMinutes = 15) {
+	const recentRequests = await ctx.db
 		.selectFrom('password_reset_tokens')
 		.innerJoin('users', 'users.id', 'password_reset_tokens.user_id')
 		.select(({ fn }) => fn.countAll().as('count'))

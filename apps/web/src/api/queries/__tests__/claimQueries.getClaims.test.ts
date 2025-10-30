@@ -25,6 +25,7 @@ describe('claimQueries.getClaims', () => {
 			},
 			expires: '2025-12-31',
 		},
+		db,
 	};
 
 	const mockContributorContext: ProtectedContext = {
@@ -39,6 +40,7 @@ describe('claimQueries.getClaims', () => {
 			},
 			expires: '2025-12-31',
 		},
+		db,
 	};
 
 	// Create mock query builder chain

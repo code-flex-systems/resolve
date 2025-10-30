@@ -11,15 +11,15 @@ import {
 } from '@/api/controllers/passwordResetController';
 
 export const passwordResetRouter = router({
-	requestPasswordReset: publicProcedure.input(RequestPasswordResetSchema).mutation(async ({ input }) => {
-		return requestPasswordReset(input);
+	requestPasswordReset: publicProcedure.input(RequestPasswordResetSchema).mutation(async ({ ctx, input }) => {
+		return requestPasswordReset(ctx, input);
 	}),
 
-	validateResetToken: publicProcedure.input(ValidateResetTokenSchema).query(async ({ input }) => {
-		return validateResetToken(input);
+	validateResetToken: publicProcedure.input(ValidateResetTokenSchema).query(async ({ ctx, input }) => {
+		return validateResetToken(ctx, input);
 	}),
 
-	completePasswordReset: publicProcedure.input(CompletePasswordResetSchema).mutation(async ({ input }) => {
-		return completePasswordReset(input);
+	completePasswordReset: publicProcedure.input(CompletePasswordResetSchema).mutation(async ({ ctx, input }) => {
+		return completePasswordReset(ctx, input);
 	}),
 });

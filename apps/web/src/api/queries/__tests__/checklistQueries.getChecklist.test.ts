@@ -18,6 +18,7 @@ describe('getChecklist', () => {
 				role: 'Contributor',
 			},
 		},
+		db,
 	};
 
 	const mockAdminContext = {
@@ -28,6 +29,7 @@ describe('getChecklist', () => {
 				role: 'Admin',
 			},
 		},
+		db,
 	};
 
 	beforeEach(() => {
