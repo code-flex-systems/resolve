@@ -1,12 +1,11 @@
 import { trpc } from '@/lib/trpc';
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '@/server/trpc/appRouter';
+import type { RouterInput, RouterOutput } from '@/types/routerTypes';
 import * as utils from '@/lib/utils/utils';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '../useChecklistParams';
 
-type ResponseInput = inferRouterInputs<AppRouter>['response'];
-type ResponseOutput = inferRouterOutputs<AppRouter>['response'];
+type ResponseInput = RouterInput['response'];
+type ResponseOutput = RouterOutput['response'];
 
 export function useResponseTrpc() {
 	const trpcUtils = trpc.useUtils();

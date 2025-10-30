@@ -1,8 +1,7 @@
 import { trpc } from '@/lib/trpc';
-import type { inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '@/server/trpc/appRouter';
+import type { RouterOutput } from '@/types/routerTypes';
 
-type ClaimOutput = inferRouterOutputs<AppRouter>['claim'];
+type ClaimOutput = RouterOutput['claim'];
 
 export function useClaimTrpc() {
 	const utils = trpc.useUtils();

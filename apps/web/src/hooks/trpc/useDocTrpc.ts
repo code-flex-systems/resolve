@@ -1,9 +1,8 @@
 import { trpc } from '@/lib/trpc';
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '@/server/trpc/appRouter';
+import type { RouterInput, RouterOutput } from '@/types/routerTypes';
 
-type DocInput = inferRouterInputs<AppRouter>['doc'];
-type DocOutput = inferRouterOutputs<AppRouter>['doc'];
+type DocInput = RouterInput['doc'];
+type DocOutput = RouterOutput['doc'];
 
 export function useDocTrpc() {
        return {

@@ -1,8 +1,7 @@
 import { trpc } from '@/lib/trpc';
-import { AppRouter } from '@/server/trpc/appRouter';
-import { inferRouterOutputs } from '@trpc/server';
+import type { RouterOutput } from '@/types/routerTypes';
 
-type RecoveryOutput = inferRouterOutputs<AppRouter>['recovery'];
+type RecoveryOutput = RouterOutput['recovery'];
 
 export function useRecoveryTrpc() {
 	const utils = trpc.useUtils();

@@ -1,10 +1,9 @@
 import { trpc } from '@/lib/trpc';
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '@/server/trpc/appRouter';
+import type { RouterInput, RouterOutput } from '@/types/routerTypes';
 import { usePageInstanceTreeInvalidator } from '@/lib/utils/usePageInstanceTreeInvalidator';
 
-type AnswerInput = inferRouterInputs<AppRouter>['answer'];
-type AnswerOutput = inferRouterOutputs<AppRouter>['answer'];
+type AnswerInput = RouterInput['answer'];
+type AnswerOutput = RouterOutput['answer'];
 
 export function useAnswerTrpc() {
 	const utils = trpc.useUtils();
