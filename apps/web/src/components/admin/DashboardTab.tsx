@@ -26,6 +26,7 @@ import BasicButtonStyled from '../common/BasicButtonStyled';
 import { formatMD, getDaysToEndOfFiscalQuarter } from '@/lib/utils/utils';
 import MetricAction from '../common/MetricAction';
 import { ClaimStatus } from '@/config/enums';
+import RecoveryMetricsChart from '../metrics/Recovery/RecoveryMetricsChart';
 
 const defaultClaimStats = {
 	[ClaimStatus.SUBMITTED]: 0,
@@ -114,8 +115,7 @@ export default function DashboardTab() {
 							onClick={() => router.push('/admin/feeds-and-claims')}
 							onSelect={() => onSelect('feeds')}
 							icon={<RssFeed sx={styles.simpleMetricIcon} />}
-							// color={PURPLE}
-							color={'rgba(202, 142, 255, 0.7)'}
+							color={PURPLE}
 							values={feedCounts}
 							isLoading={isFetchingFeedCounts}
 							selected={selected === 'feeds'}
@@ -123,44 +123,6 @@ export default function DashboardTab() {
 					</Stack>
 					<Grid container marginTop="20px" alignContent="flex-start">
 						<Grid>
-							<Paper elevation={0} sx={styles.paper}>
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
-									Quick Stats
-								</Typography>
-								<Box
-									width="fit-content"
-									display="flex"
-									justifyContent="space-around"
-									alignContent="center"
-									padding="20px"
-								>
-									<StackedMetric
-										icon={<Timelapse sx={{ fontSize: 25 }} />}
-										value={`${getDaysToEndOfFiscalQuarter()}d`}
-										subtext="to end of quarter"
-										fontSize={25}
-										fontSizeSubtext={15}
-									/>
-									<Box padding="0px 20px">
-										<StackedMetric
-											icon={<HorizontalSplit sx={{ fontSize: 25 }} />}
-											value={unprocessedClaimCount.toLocaleString()}
-											subtext="unprocessed claims"
-											fontSize={25}
-											fontSizeSubtext={15}
-										/>
-									</Box>
-									<StackedMetric
-										icon={<Replay sx={{ fontSize: 25, transform: 'scaleX(-1)' }} />}
-										value={rolloverCount.count.toLocaleString()}
-										subtext="rollover claims"
-										fontSize={25}
-										fontSizeSubtext={15}
-									/>
-								</Box>
-							</Paper>
-						</Grid>
-						<Grid width="100%">
 							<Paper elevation={0} sx={styles.paper}>
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
 									Quick Actions
@@ -224,6 +186,44 @@ export default function DashboardTab() {
 							</Paper>
 						</Grid>
 						<Grid>
+							<Paper elevation={0} sx={styles.paper}>
+								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
+									Quick Stats
+								</Typography>
+								<Box
+									width="fit-content"
+									display="flex"
+									justifyContent="space-around"
+									alignContent="center"
+									padding="20px"
+								>
+									<StackedMetric
+										icon={<Timelapse sx={{ fontSize: 25 }} />}
+										value={`${getDaysToEndOfFiscalQuarter()}d`}
+										subtext="to end of quarter"
+										fontSize={25}
+										fontSizeSubtext={15}
+									/>
+									<Box padding="0px 20px">
+										<StackedMetric
+											icon={<HorizontalSplit sx={{ fontSize: 25 }} />}
+											value={unprocessedClaimCount.toLocaleString()}
+											subtext="unprocessed claims"
+											fontSize={25}
+											fontSizeSubtext={15}
+										/>
+									</Box>
+									<StackedMetric
+										icon={<Replay sx={{ fontSize: 25, transform: 'scaleX(-1)' }} />}
+										value={rolloverCount.count.toLocaleString()}
+										subtext="rollover claims"
+										fontSize={25}
+										fontSizeSubtext={15}
+									/>
+								</Box>
+							</Paper>
+						</Grid>
+						<Grid>
 							<UserActivityMetric />
 						</Grid>
 						<Grid>
@@ -231,6 +231,9 @@ export default function DashboardTab() {
 						</Grid>
 						<Grid>
 							<ActionsMetric />
+						</Grid>
+						<Grid margin="15px">
+							<RecoveryMetricsChart />
 						</Grid>
 					</Grid>
 				</Box>

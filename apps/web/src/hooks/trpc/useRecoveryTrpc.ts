@@ -10,9 +10,10 @@ export function useRecoveryTrpc() {
 	return {
 		// Recovery Event hooks
 		createRecoveryEvent: trpc.recovery.createRecoveryEvent.useMutation({
-			onSuccess(data, variables) {
+			onSuccess(_data, variables) {
 				// Invalidate recovery events list for this claim
 				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
+				utils.recovery.listRecoveryEventsWithFilters.invalidate();
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
@@ -21,10 +22,15 @@ export function useRecoveryTrpc() {
 
 		listRecoveryEvents: trpc.recovery.listRecoveryEvents.useQuery,
 
+		listRecoveryEventsWithFilters: trpc.recovery.listRecoveryEventsWithFilters.useQuery,
+
+		exportRecoveryEvents: trpc.recovery.exportRecoveryEvents.useQuery,
+
 		deleteRecoveryEvent: trpc.recovery.deleteRecoveryEvent.useMutation({
-			onSuccess(data, variables) {
+			onSuccess(_data, variables) {
 				// Invalidate recovery events list for this claim
 				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
+				utils.recovery.listRecoveryEventsWithFilters.invalidate();
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
@@ -33,7 +39,7 @@ export function useRecoveryTrpc() {
 
 		// Deadline hooks
 		createDeadline: trpc.recovery.createDeadline.useMutation({
-			onSuccess(data, variables) {
+			onSuccess(_data, variables) {
 				// Invalidate deadlines list for this claim
 				utils.recovery.listDeadlines.invalidate({ claimId: variables.claimId });
 			},
@@ -64,6 +70,7 @@ export function useRecoveryTrpc() {
 
 // Export types for use in components
 export type RecoveryEvent = RecoveryOutput['listRecoveryEvents'][number];
+export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFilters'][number];
 export type Deadline = RecoveryOutput['listDeadlines'][number];
 export type RecoveryMetricsSummary = RecoveryOutput['getRecoveryMetricsSummary'];
 export type RecoveryMetricsTimeSeries = RecoveryOutput['getRecoveryMetricsTimeSeries'];

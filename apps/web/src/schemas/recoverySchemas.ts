@@ -43,6 +43,28 @@ export const listRecoveryEventsInput = z.object({
 	claimId: z.number().int(),
 });
 
+export const listRecoveryEventsWithFiltersInput = z.object({
+	filters: z.object({
+		range: z.tuple([parseDate(), parseDate()]).optional(),
+		recoverySource: z.string().optional(),
+		recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
+		checklistId: z.number().int().optional(),
+		userId: z.string().uuid().optional(),
+	}),
+	limit: z.number().int().positive().optional(),
+	offset: z.number().int().nonnegative().optional(),
+});
+
+export const exportRecoveryEventsInput = z.object({
+	filters: z.object({
+		range: z.tuple([parseDate(), parseDate()]).optional(),
+		recoverySource: z.string().optional(),
+		recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
+		checklistId: z.number().int().optional(),
+		userId: z.string().uuid().optional(),
+	}),
+});
+
 // =====================================================================
 // DEADLINE SCHEMAS
 // =====================================================================
@@ -83,6 +105,7 @@ export const listDeadlinesInput = z.object({
 	claimId: z.number().int().optional(),
 	status: z.nativeEnum(DeadlineStatus).optional(),
 	dateRange: z.tuple([parseDate(), parseDate()]).optional(),
+	personalOnly: z.boolean().optional(),
 });
 
 export const updateDeadlineStatusInput = z.object({
@@ -94,10 +117,14 @@ export const updateDeadlineStatusInput = z.object({
 // RECOVERY METRICS SCHEMAS
 // =====================================================================
 
-export const getRecoveryMetricsSummaryInput = z.object({
+const recoveryMetricsFilters = z.object({
 	range: z.tuple([parseDate(), parseDate()]),
+	recoverySource: z.string().optional(),
+	recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
+	checklistId: z.number().int().optional(),
+	userId: z.string().uuid().optional(),
 });
 
-export const getRecoveryMetricsTimeSeriesInput = z.object({
-	range: z.tuple([parseDate(), parseDate()]),
-});
+export const getRecoveryMetricsSummaryInput = recoveryMetricsFilters;
+
+export const getRecoveryMetricsTimeSeriesInput = recoveryMetricsFilters;

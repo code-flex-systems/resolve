@@ -69,17 +69,105 @@ export async function getRecoveryEvents(ctx: ProtectedContext, claimId: number) 
 }
 
 /**
+ * List recovery events with optional filters for breakdown page.
+ *
+ * @param ctx - request context
+ * @param filters - optional filters including range, recovery_source, recovery_status, checklist, user
+ * @param limit - maximum number of rows to return (for pagination)
+ * @param offset - number of rows to skip (for pagination)
+ * @returns paginated list of recovery events with claim details and total count
+ */
+export async function listRecoveryEventsWithFilters(
+	ctx: ProtectedContext,
+	filters: {
+		range?: DateRangeStrict;
+		recoverySource?: string;
+		recoveryStatus?: string;
+		checklistId?: number;
+		userId?: string;
+	},
+	limit?: number,
+	offset?: number
+) {
+	let query = db
+		.selectFrom('recovery_event')
+		.innerJoin('claim', 'recovery_event.claim_id', 'claim.id')
+		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		.select([
+			'recovery_event.id',
+			'recovery_event.claim_id',
+			'recovery_event.recovery_date',
+			'recovery_event.recovery_amount',
+			'recovery_event.recovery_source',
+			'recovery_event.notes',
+			'recovery_event.created_by',
+			'recovery_event.created_at',
+			'claim.claim_number',
+			'claim.insured',
+			'claim.recovery_status',
+			'claim.expected_recovery',
+			'claim.actual_recovery',
+			'checklist_claim.checklist_id',
+		])
+		.where('recovery_event.client_id', '=', ctx.session.user.client_id);
+
+	// Filter by date range
+	if (filters.range) {
+		query = query
+			.where('recovery_event.recovery_date', '>=', filters.range[0])
+			.where('recovery_event.recovery_date', '<=', filters.range[1]);
+	}
+
+	// Filter by recovery source (ILIKE for partial match)
+	if (filters.recoverySource) {
+		query = query.where(sql`recovery_event.recovery_source ILIKE ${`%${filters.recoverySource}%`}`);
+	}
+
+	// Filter by recovery status on claim
+	if (filters.recoveryStatus) {
+		query = query.where('claim.recovery_status', '=', filters.recoveryStatus);
+	}
+
+	// Filter by checklist
+	if (filters.checklistId) {
+		query = query.where('checklist_claim.checklist_id', '=', filters.checklistId);
+	}
+
+	// Filter by user who created the recovery event
+	if (filters.userId) {
+		query = query.where('recovery_event.created_by', '=', filters.userId);
+	}
+
+	// Get total count for pagination
+	const countQuery = query
+		.clearSelect()
+		.select(({ fn }) => fn.countAll().as('count'))
+		.executeTakeFirst();
+
+	// Apply pagination and fetch rows
+	const rowsQuery = query
+		.orderBy('recovery_event.recovery_date desc')
+		.orderBy('recovery_event.created_at desc')
+		.$if(limit !== undefined, (qb) => qb.limit(limit!))
+		.$if(offset !== undefined, (qb) => qb.offset(offset!))
+		.execute();
+
+	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+
+	return {
+		rows,
+		count: countResult?.count ? Number(countResult.count) : 0,
+	};
+}
+
+/**
  * Delete a recovery event and recalculate the claim's actual_recovery.
  *
  * @param ctx - request context
  * @param recoveryEventId - recovery event identifier
  * @param claimId - claim identifier for recalculation
  */
-export async function deleteRecoveryEvent(
-	ctx: ProtectedContext,
-	recoveryEventId: number,
-	claimId: number
-) {
+export async function deleteRecoveryEvent(ctx: ProtectedContext, recoveryEventId: number, claimId: number) {
 	const clientId = ctx.session.user.client_id!;
 
 	return await db.transaction().execute(async (trx) => {
@@ -107,14 +195,74 @@ export async function deleteRecoveryEvent(
 }
 
 /**
+ * Export all recovery events matching filters (no pagination).
+ * Used for CSV export functionality.
+ *
+ * @param ctx - request context
+ * @param filters - optional filters (same as listRecoveryEventsWithFilters)
+ * @returns all matching recovery events with claim details
+ */
+export async function exportRecoveryEvents(
+	ctx: ProtectedContext,
+	filters: {
+		range?: DateRangeStrict;
+		recoverySource?: string;
+		recoveryStatus?: string;
+		checklistId?: number;
+		userId?: string;
+	}
+) {
+	let query = db
+		.selectFrom('recovery_event')
+		.innerJoin('claim', 'recovery_event.claim_id', 'claim.id')
+		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		.select([
+			'recovery_event.id',
+			'recovery_event.recovery_date',
+			'recovery_event.recovery_amount',
+			'recovery_event.recovery_source',
+			'recovery_event.notes',
+			'claim.id as claim_id',
+			'claim.claim_number',
+			'claim.insured',
+			'claim.recovery_status',
+			'recovery_event.created_at',
+			'recovery_event.created_by',
+		])
+		.where('recovery_event.client_id', '=', ctx.session.user.client_id);
+
+	// Apply filters (same logic as listRecoveryEventsWithFilters)
+	if (filters.range) {
+		query = query
+			.where('recovery_event.recovery_date', '>=', filters.range[0])
+			.where('recovery_event.recovery_date', '<=', filters.range[1]);
+	}
+
+	if (filters.recoverySource) {
+		query = query.where(sql`recovery_event.recovery_source ILIKE ${`%${filters.recoverySource}%`}` as any);
+	}
+
+	if (filters.recoveryStatus) {
+		query = query.where('claim.recovery_status', '=', filters.recoveryStatus);
+	}
+
+	if (filters.checklistId) {
+		query = query.where('checklist_claim.checklist_id', '=', filters.checklistId);
+	}
+
+	if (filters.userId) {
+		query = query.where('checklist_claim.assignee', '=', filters.userId);
+	}
+
+	// Order by date descending
+	return await query.orderBy('recovery_event.recovery_date', 'desc').execute();
+}
+
+/**
  * Helper: Recalculate and update claim.actual_recovery from all recovery_event records.
  * Must be called within a transaction.
  */
-async function recalculateClaimRecovery(
-	trx: Transaction<DB>,
-	claimId: number,
-	clientId: string
-) {
+async function recalculateClaimRecovery(trx: Transaction<DB>, claimId: number, clientId: string) {
 	// Sum all recovery events for this claim
 	const result = await trx
 		.selectFrom('recovery_event')
@@ -148,11 +296,7 @@ async function recalculateClaimRecovery(
  * @param params - deadline parameters
  * @returns created deadline
  */
-export async function createDeadline(
-	ctx: ProtectedContext,
-	claimId: number,
-	params: Omit<DeadlineParams, 'claim_id'>
-) {
+export async function createDeadline(ctx: ProtectedContext, claimId: number, params: Omit<DeadlineParams, 'claim_id'>) {
 	return await db
 		.insertInto('deadline')
 		.values({
@@ -173,23 +317,24 @@ export async function createDeadline(
  * List deadlines with optional filters.
  *
  * @param ctx - request context
- * @param filters - optional claim ID, status, and date range filters
+ * @param filters - optional claim ID, status, date range, and personalOnly flag
  * @returns list of deadlines
  */
 export async function getDeadlines(
 	ctx: ProtectedContext,
-	filters: { claimId?: number; status?: string; dateRange?: DateRangeStrict }
+	filters: { claimId?: number; status?: string; dateRange?: DateRangeStrict; personalOnly?: boolean }
 ) {
-	const isAdmin =
-		ctx.session.user.role === 'Admin' || ctx.session.user.role === 'Super Admin';
+	const isAdmin = ctx.session.user.role === 'Admin' || ctx.session.user.role === 'Super Admin';
 
 	let query = db
 		.selectFrom('deadline')
 		.selectAll('deadline')
 		.where('deadline.client_id', '=', ctx.session.user.client_id);
 
-	// For Contributors, only show deadlines for claims they're assigned to
-	if (!isAdmin) {
+	// Filter by personal assignments if personalOnly flag is true, or if user is a Contributor
+	const shouldFilterPersonal = filters.personalOnly || !isAdmin;
+
+	if (shouldFilterPersonal) {
 		query = query
 			.innerJoin('claim', 'deadline.claim_id', 'claim.id')
 			.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
@@ -215,10 +360,7 @@ export async function getDeadlines(
 			.where('deadline.deadline_date', '<=', filters.dateRange[1]);
 	}
 
-	return await query
-		.orderBy('deadline.deadline_date asc')
-		.orderBy('deadline.created_at desc')
-		.execute();
+	return await query.orderBy('deadline.deadline_date asc').orderBy('deadline.created_at desc').execute();
 }
 
 /**
@@ -229,11 +371,7 @@ export async function getDeadlines(
  * @param status - new status
  * @returns updated deadline
  */
-export async function updateDeadlineStatus(
-	ctx: ProtectedContext,
-	deadlineId: number,
-	status: DeadlineStatus
-) {
+export async function updateDeadlineStatus(ctx: ProtectedContext, deadlineId: number, status: DeadlineStatus) {
 	const updated = await db
 		.updateTable('deadline')
 		.set({
@@ -290,39 +428,94 @@ export async function deleteDeadline(ctx: ProtectedContext, deadlineId: number) 
  *
  * @param ctx - request context
  * @param range - date range [startDate, endDate]
+ * @param filters - optional filters
+ *   - recoverySource: applies to both (filters to claims with recovery events from matching source)
+ *   - recoveryStatus: applies to both (filters claim.recovery_status)
+ *   - checklistId: applies to both (filters by checklist assignment)
+ *   - userId: applies to both (filters by claim assignee)
  * @returns summary object with expected, actual, variance, and recovery rate
  */
 export async function getRecoveryMetricsSummary(
 	ctx: ProtectedContext,
-	range: DateRangeStrict
+	range: DateRangeStrict,
+	filters?: {
+		recoverySource?: string;
+		recoveryStatus?: string;
+		checklistId?: number;
+		userId?: string;
+	}
 ) {
+	// Build expected recovery query
+	let expectedQuery = db
+		.selectFrom('claim')
+		.select(({ fn }) => fn.sum('expected_recovery').as('total_expected'))
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('claim.created_at', '>=', range[0])
+		.where('claim.created_at', '<=', range[1]);
+
+	// Apply filters to expected query if needed
+	if (filters?.recoveryStatus) {
+		expectedQuery = expectedQuery.where('claim.recovery_status', '=', filters.recoveryStatus);
+	}
+
+	// If filtering by recoverySource, only include claims that have recovery events from that source
+	// Use EXISTS to avoid duplicate rows from join
+	if (filters?.recoverySource) {
+		expectedQuery = expectedQuery.where(({ eb, exists, selectFrom }) =>
+			exists(
+				selectFrom('recovery_event')
+					.select('recovery_event.id')
+					.whereRef('recovery_event.claim_id', '=', 'claim.id')
+					.where('recovery_event.recovery_source', 'ilike', `%${filters.recoverySource}%`)
+			)
+		);
+	}
+
+	// Join checklist_claim once if either checklistId or userId filter is provided
+	if (filters?.checklistId || filters?.userId) {
+		expectedQuery = expectedQuery.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id');
+
+		if (filters.checklistId) {
+			expectedQuery = expectedQuery.where('checklist_claim.checklist_id', '=', filters.checklistId);
+		}
+		if (filters.userId) {
+			expectedQuery = expectedQuery.where('checklist_claim.assignee', '=', filters.userId);
+		}
+	}
+
+	// Build actual recovery query - use different base depending on filters
+	let actualQueryBase = db.selectFrom('recovery_event');
+
+	// Add joins if needed for filters
+	if (filters?.recoveryStatus || filters?.checklistId || filters?.userId) {
+		actualQueryBase = actualQueryBase.innerJoin('claim', 'recovery_event.claim_id', 'claim.id');
+
+		if (filters?.checklistId || filters?.userId) {
+			actualQueryBase = actualQueryBase.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id');
+		}
+	}
+
+	const actualQuery = actualQueryBase
+		.select(({ fn }) => fn.sum('recovery_amount').as('total_actual'))
+		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
+		.where('recovery_event.recovery_date', '>=', range[0])
+		.where('recovery_event.recovery_date', '<=', range[1])
+		.$if(!!filters?.recoverySource, (qb) =>
+			qb.where('recovery_event.recovery_source', 'ilike', `%${filters!.recoverySource}%`)
+		)
+		.$if(!!filters?.recoveryStatus, (qb) => qb.where('claim.recovery_status', '=', filters!.recoveryStatus))
+		.$if(!!filters?.checklistId, (qb) => qb.where('checklist_claim.checklist_id', '=', filters!.checklistId))
+		.$if(!!filters?.userId, (qb) => qb.where('checklist_claim.assignee', '=', filters!.userId));
+
 	// Run both queries in parallel
 	const [expectedResult, actualResult] = await Promise.all([
-		// Get total expected recovery for claims created in range
-		db
-			.selectFrom('claim')
-			.select(({ fn }) => fn.sum('expected_recovery').as('total_expected'))
-			.where('claim.client_id', '=', ctx.session.user.client_id)
-			.where('claim.created_at', '>=', range[0])
-			.where('claim.created_at', '<=', range[1])
-			.executeTakeFirst(),
-		// Get total actual recovery for recovery events in range
-		db
-			.selectFrom('recovery_event')
-			.select(({ fn }) => fn.sum('recovery_amount').as('total_actual'))
-			.where('recovery_event.client_id', '=', ctx.session.user.client_id)
-			.where('recovery_event.recovery_date', '>=', range[0])
-			.where('recovery_event.recovery_date', '<=', range[1])
-			.executeTakeFirst(),
+		expectedQuery.executeTakeFirst(),
+		actualQuery.executeTakeFirst(),
 	]);
 
-	const totalExpected = expectedResult?.total_expected
-		? parseFloat(expectedResult.total_expected.toString())
-		: 0;
+	const totalExpected = expectedResult?.total_expected ? parseFloat(expectedResult.total_expected.toString()) : 0;
 
-	const totalActual = actualResult?.total_actual
-		? parseFloat(actualResult.total_actual.toString())
-		: 0;
+	const totalActual = actualResult?.total_actual ? parseFloat(actualResult.total_actual.toString()) : 0;
 
 	// Calculate variance and recovery rate
 	const variance = totalActual - totalExpected;
@@ -342,12 +535,73 @@ export async function getRecoveryMetricsSummary(
  *
  * @param ctx - request context
  * @param range - date range [startDate, endDate]
+ * @param filters - optional filters
+ *   - recoverySource: applies to both (filters to claims with recovery events from matching source)
+ *   - recoveryStatus: applies to both (filters claim.recovery_status)
+ *   - checklistId: applies to both (filters by checklist assignment)
+ *   - userId: applies to both (filters by claim assignee)
  * @returns array of monthly data points
  */
 export async function getRecoveryMetricsTimeSeries(
 	ctx: ProtectedContext,
-	range: DateRangeStrict
+	range: DateRangeStrict,
+	filters?: {
+		recoverySource?: string;
+		recoveryStatus?: string;
+		checklistId?: number;
+		userId?: string;
+	}
 ) {
+	// Build JOIN and WHERE clauses for filters
+	const expectedJoins: string[] = [];
+
+	// Join checklist_claim if needed
+	if (filters?.checklistId || filters?.userId) {
+		expectedJoins.push('INNER JOIN checklist_claim cc ON c.id = cc.claim_id');
+	}
+
+	const expectedJoinsStr = expectedJoins.join(' ');
+
+	const expectedFilterClauses: string[] = [];
+	if (filters?.recoveryStatus) {
+		expectedFilterClauses.push(`c.recovery_status = '${filters.recoveryStatus}'`);
+	}
+	if (filters?.recoverySource) {
+		// Use EXISTS to avoid duplicates from joining recovery_event
+		expectedFilterClauses.push(
+			`EXISTS (SELECT 1 FROM recovery_event re_exists WHERE re_exists.claim_id = c.id AND re_exists.recovery_source ILIKE '%${filters.recoverySource}%')`
+		);
+	}
+	if (filters?.checklistId) {
+		expectedFilterClauses.push(`cc.checklist_id = ${filters.checklistId}`);
+	}
+	if (filters?.userId) {
+		expectedFilterClauses.push(`cc.assignee = '${filters.userId}'`);
+	}
+	const expectedWhereClause = expectedFilterClauses.length > 0 ? `AND ${expectedFilterClauses.join(' AND ')}` : '';
+
+	// For actual recovery, need to join claim for recovery_status
+	const actualJoins =
+		filters?.recoveryStatus || filters?.checklistId || filters?.userId
+			? filters?.checklistId || filters?.userId
+				? 'INNER JOIN claim c2 ON re.claim_id = c2.id INNER JOIN checklist_claim cc2 ON c2.id = cc2.claim_id'
+				: 'INNER JOIN claim c2 ON re.claim_id = c2.id'
+			: '';
+	const actualFilterClauses: string[] = [];
+	if (filters?.recoverySource) {
+		actualFilterClauses.push(`re.recovery_source ILIKE '%${filters.recoverySource}%'`);
+	}
+	if (filters?.recoveryStatus) {
+		actualFilterClauses.push(`c2.recovery_status = '${filters.recoveryStatus}'`);
+	}
+	if (filters?.checklistId) {
+		actualFilterClauses.push(`cc2.checklist_id = ${filters.checklistId}`);
+	}
+	if (filters?.userId) {
+		actualFilterClauses.push(`cc2.assignee = '${filters.userId}'`);
+	}
+	const actualWhereClause = actualFilterClauses.length > 0 ? `AND ${actualFilterClauses.join(' AND ')}` : '';
+
 	const query: CompiledQuery<{
 		month_start: string;
 		expected_recovery: number;
@@ -367,9 +621,11 @@ export async function getRecoveryMetricsTimeSeries(
 				date_trunc('month', c.created_at)::date as month_start,
 				COALESCE(SUM(c.expected_recovery), 0)::numeric as total_expected
 			FROM claim c
+			${sql.raw(expectedJoinsStr)}
 			WHERE c.client_id = ${ctx.session.user.client_id}
 				AND c.created_at >= ${range[0]}
 				AND c.created_at <= ${range[1]}
+				${sql.raw(expectedWhereClause)}
 			GROUP BY date_trunc('month', c.created_at)
 		),
 		actual_by_month AS (
@@ -377,9 +633,11 @@ export async function getRecoveryMetricsTimeSeries(
 				date_trunc('month', re.recovery_date)::date as month_start,
 				COALESCE(SUM(re.recovery_amount), 0)::numeric as total_actual
 			FROM recovery_event re
+			${sql.raw(actualJoins)}
 			WHERE re.client_id = ${ctx.session.user.client_id}
 				AND re.recovery_date >= ${range[0]}
 				AND re.recovery_date <= ${range[1]}
+				${sql.raw(actualWhereClause)}
 			GROUP BY date_trunc('month', re.recovery_date)
 		)
 		SELECT

@@ -18,7 +18,7 @@ export default function BasicPopper(
 				anchorEl={anchorEl}
 				placement={placement}
 				className={className}
-				style={{ zIndex: 10000 }}
+				style={{ zIndex: 1000 }}
 				transition
 			>
 				{({ TransitionProps }) => (

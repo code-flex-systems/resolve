@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Divider, Fade, Paper, Stack, Typography } from '@mui/material';
+import { Box, CardContent, Divider, Fade, Paper, Stack, Typography } from '@mui/material';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Subject from '@mui/icons-material/Subject';
@@ -22,9 +22,10 @@ import CheckGradient from '@/components/common/CheckGradient';
 import ChecklistClaims from './ChecklistClaims';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import { ClaimStatus } from '@/config/enums';
-import { formatDateForSentence, formatMDY, getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+import { formatAmount, formatDateForSentence, formatMDY, getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+import { formatCurrency } from '@/lib/utils/recoveryUtils';
 
 const Highlight = ({
 	children,
@@ -178,7 +179,27 @@ export default function ClaimsView() {
 											alignItems="flex-start"
 											paddingTop="20px"
 										>
-											<Typography fontSize={14}>
+											<Box display="flex" justifyContent="center" alignItems="center">
+												<CardContent
+													sx={{ p: 1, '&:last-child': { pb: 1 }, marginRight: '10px' }}
+												>
+													<Typography color="#d9d9d9" fontSize={15} gutterBottom>
+														Expected
+													</Typography>
+													<Typography variant="h6" fontSize={18} component="div">
+														{formatAmount(claim.expected_recovery, true)}
+													</Typography>
+												</CardContent>
+												<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+													<Typography color="#d9d9d9" fontSize={15} gutterBottom>
+														Actual
+													</Typography>
+													<Typography variant="h6" fontSize={18} component="div">
+														{formatAmount(claim.actual_recovery ?? 0, true)}
+													</Typography>
+												</CardContent>
+											</Box>
+											<Typography fontSize={14} marginTop="10px">
 												{claim.assignee === claim.created_by ? (
 													<>
 														This claim{' '}

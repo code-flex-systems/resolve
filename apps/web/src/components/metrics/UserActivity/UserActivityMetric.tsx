@@ -52,13 +52,9 @@ export default function UserActivityMetric() {
 							alignItems="center"
 							padding="0px 5px"
 						>
-							<ExpandableTitle
-								title="User Activity"
-								icon={<GraphicEq sx={{ color: BASE_COLOR }} />}
-								color={'white'}
-								bgcolor="#F0F3F7"
-								padding="5px 0px 10px"
-							/>
+							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+								User Activity
+							</Typography>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
 								<Box marginRight="5px">
 									<BasicButtonStyled
@@ -86,9 +82,6 @@ export default function UserActivityMetric() {
 								/>
 							</Box>
 						</Box>
-						<div style={styles.divider}>
-							<Divider />
-						</div>
 						<Box
 							width="calc(100% - 30xp)"
 							display="flex"
@@ -170,7 +163,7 @@ const styles = {
 		alignItems: 'center',
 		flexDirection: 'column',
 		width: 375,
-		height: 190,
+		height: 210,
 		bottom: 0,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,

@@ -61,6 +61,57 @@ export async function deleteRecoveryEvent(
 	return await recoveryQueries.deleteRecoveryEvent(ctx, recoveryEventId, claimId);
 }
 
+/**
+ * List recovery events with optional filters for breakdown page.
+ *
+ * @param ctx - request context
+ * @param input - filters, limit, and offset for pagination
+ * @returns paginated list of recovery events with claim details
+ */
+export async function listRecoveryEventsWithFilters(
+	ctx: ProtectedContext,
+	input: {
+		filters: {
+			range?: DateRangeStrict;
+			recoverySource?: string;
+			recoveryStatus?: string;
+			checklistId?: number;
+			userId?: string;
+		};
+		limit?: number;
+		offset?: number;
+	}
+) {
+	return await recoveryQueries.listRecoveryEventsWithFilters(
+		ctx,
+		input.filters,
+		input.limit,
+		input.offset
+	);
+}
+
+/**
+ * Export all recovery events matching filters (for CSV export).
+ *
+ * @param ctx - request context
+ * @param input - filters (no pagination)
+ * @returns all matching recovery events
+ */
+export async function exportRecoveryEvents(
+	ctx: ProtectedContext,
+	input: {
+		filters: {
+			range?: DateRangeStrict;
+			recoverySource?: string;
+			recoveryStatus?: string;
+			checklistId?: number;
+			userId?: string;
+		};
+	}
+) {
+	return await recoveryQueries.exportRecoveryEvents(ctx, input.filters);
+}
+
 // =====================================================================
 // DEADLINE CONTROLLERS
 // =====================================================================
@@ -140,26 +191,40 @@ export async function deleteDeadline(
  * Get recovery metrics summary for KPI display.
  *
  * @param ctx - request context
- * @param range - date range [startDate, endDate]
+ * @param input - date range and optional filters
  * @returns summary with expected, actual, variance, and recovery rate
  */
 export async function getRecoveryMetricsSummary(
 	ctx: ProtectedContext,
-	{ range }: { range: DateRangeStrict }
+	input: {
+		range: DateRangeStrict;
+		recoverySource?: string;
+		recoveryStatus?: string;
+		checklistId?: number;
+		userId?: string;
+	}
 ) {
-	return await recoveryQueries.getRecoveryMetricsSummary(ctx, range);
+	const { range, ...filters } = input;
+	return await recoveryQueries.getRecoveryMetricsSummary(ctx, range, filters);
 }
 
 /**
  * Get recovery metrics time series for graphing.
  *
  * @param ctx - request context
- * @param range - date range [startDate, endDate]
+ * @param input - date range and optional filters
  * @returns monthly time series data
  */
 export async function getRecoveryMetricsTimeSeries(
 	ctx: ProtectedContext,
-	{ range }: { range: DateRangeStrict }
+	input: {
+		range: DateRangeStrict;
+		recoverySource?: string;
+		recoveryStatus?: string;
+		checklistId?: number;
+		userId?: string;
+	}
 ) {
-	return await recoveryQueries.getRecoveryMetricsTimeSeries(ctx, range);
+	const { range, ...filters } = input;
+	return await recoveryQueries.getRecoveryMetricsTimeSeries(ctx, range, filters);
 }

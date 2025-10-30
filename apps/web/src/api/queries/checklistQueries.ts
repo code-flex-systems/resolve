@@ -577,6 +577,7 @@ export async function getChecklistClaims(
 			'claim.claim_number',
 			'claim.client',
 			'claim.expected_recovery',
+			'claim.actual_recovery',
 			'u1.last as created_by_last',
 			'u1.first as created_by_first',
 			'u1.email as created_by_email',
@@ -626,22 +627,16 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  * @param params - fields to change
  * @returns the updated checklist
  */
-export async function modifyChecklist(
-        ctx: ProtectedContext,
-        checklistId: number,
-        params: ChecklistParams
-) {
-        const updates = Object.fromEntries(
-                Object.entries(params).filter(([, value]) => value !== undefined)
-        );
+export async function modifyChecklist(ctx: ProtectedContext, checklistId: number, params: ChecklistParams) {
+	const updates = Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined));
 
-        return await db
-                .updateTable('checklist')
-                .set({
-                        ...updates,
-                        updated_by: ctx.session.user.id,
-                        updated_at: sql`now()`,
-                })
+	return await db
+		.updateTable('checklist')
+		.set({
+			...updates,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		})
 		.where('id', '=', checklistId)
 		.returningAll()
 		.executeTakeFirstOrThrow();

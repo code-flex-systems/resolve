@@ -7,7 +7,7 @@ import {
 	GridPinnedColumnFields,
 	GridRowSelectionModel,
 } from '@mui/x-data-grid-pro';
-import { formatMDY, formatUser } from '@/lib/utils/utils';
+import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import { Paper } from '@mui/material';
 import IconHeaderCell from '../../common/IconHeaderCell';
 import { CustomPagination } from '../../common/CustomPagination';
@@ -45,11 +45,22 @@ const COLUMNS: GridColDef[] = [
 		width: 220,
 	},
 	{
-		headerName: 'Client / Expected Recovery',
+		headerName: 'Client',
 		field: 'client',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimClientCell {...params} />,
-		flex: 1,
+		width: 200,
+	},
+	{
+		headerName: 'Expected / Actual Recovery',
+		field: 'expected_recovery',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		renderCell: (params) => (
+			<StackedHeaderCell
+				primary={formatAmount(params.row.actual_recovery ?? 0, true)}
+				secondary={formatAmount(params.value, true)}
+			/>
+		),
+		width: 300,
 	},
 	{
 		headerName: 'Current assignee',

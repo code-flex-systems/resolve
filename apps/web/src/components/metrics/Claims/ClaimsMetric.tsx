@@ -74,13 +74,9 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 							alignItems="center"
 							padding="0px 5px"
 						>
-							<ExpandableTitle
-								title="Claim Submission"
-								icon={<CheckCircle sx={{ color: BASE_COLOR }} />}
-								color={'white'}
-								bgcolor="#F0F3F7"
-								padding="5px 0px 10px"
-							/>
+							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+								Claim Submission
+							</Typography>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
 								<Box marginRight="5px">
 									<BasicButtonStyled
@@ -109,9 +105,6 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 								)}
 							</Box>
 						</Box>
-						<div style={styles.divider}>
-							<Divider />
-						</div>
 						{(!checklistId || selectedChecklistOption) && (
 							<Stack flex={1} display="flex" justifyContent="center" alignItems="center">
 								<PieChart

@@ -17,6 +17,7 @@ import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
+import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -95,6 +96,20 @@ const COLUMNS: GridColDef[] = [
 		field: 'expected_recovery',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
 		renderCell: (params) => <ClaimAmountCell {...params} />,
+		width: 150,
+	},
+	{
+		headerName: 'Actual Recovery',
+		field: 'actual_recovery',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		renderCell: (params) => <ClaimAmountCell {...params} />,
+		width: 150,
+	},
+	{
+		headerName: 'Recovery Status',
+		field: 'recovery_status',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueFormatter: (v) => formatRecoveryStatus(v),
 		width: 150,
 	},
 ];

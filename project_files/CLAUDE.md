@@ -161,6 +161,32 @@ Required environment variables (in `apps/web/.env`):
 
 ## Key Patterns
 
+**DRY Principles & Shared Utilities:**
+
+When developing features, avoid duplicating code across components. Follow these patterns:
+
+1. **Shared Utilities:** Extract common functions to utility files
+   - Currency formatting, date formatting, enum conversions → `/lib/utils/`
+   - Domain-specific utilities → `/lib/utils/{domain}Utils.ts`
+   - Example: `formatCurrency()` in `/lib/utils/recoveryUtils.ts` used across recovery components
+
+2. **Server-Side Pagination:** All data tables should use server-side pagination
+   - Pattern: `{ rows: [], count: number }` return type from queries
+   - Use `limit` and `offset` parameters in tRPC endpoints
+   - DataGridPro with `paginationMode="server"` and `CustomPagination` slot
+   - Track row count with `useRef` to prevent flashing during refetch
+   - Example: `ChecklistClaims`, `RecoveryEventsTable`
+
+3. **Component Reusability:**
+   - Extract repeated rendering logic to shared components
+   - Use `IconHeaderCell` for consistent DataGrid headers
+   - Share filter components across breakdown pages (e.g., `RecoveryStatusSelect`, `UserFilter`)
+
+4. **Type Safety:**
+   - Export derived types from tRPC hooks (e.g., `RecoveryEventWithDetails`)
+   - Cast enums properly when needed: `recoveryStatus: recoveryStatus as any`
+   - Document any type workarounds with comments
+
 **Adding a new entity:**
 
 1. Create/update database table (run SQL migration if needed)

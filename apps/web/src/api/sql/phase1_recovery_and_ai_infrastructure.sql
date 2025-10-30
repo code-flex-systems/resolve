@@ -37,7 +37,8 @@ CREATE TABLE deadline (
     created_by          UUID NOT NULL REFERENCES users(id),
     created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_by          UUID REFERENCES users(id),
-    updated_at          TIMESTAMP
+    updated_at          TIMESTAMP,
+    CONSTRAINT deadline_status_check CHECK (status = ANY(ARRAY['pending', 'met', 'missed', 'extended']))
 );
 
 CREATE INDEX idx_deadline_claim ON deadline (claim_id);
@@ -52,7 +53,8 @@ CREATE INDEX idx_deadline_client_status ON deadline (client_id, status);
 -- Claim: Add recovery tracking fields
 ALTER TABLE claim
     ADD COLUMN actual_recovery NUMERIC,
-    ADD COLUMN recovery_status TEXT;
+    ADD COLUMN recovery_status TEXT,
+    ADD CONSTRAINT claim_recovery_status_check CHECK (recovery_status IS NULL OR recovery_status = ANY(ARRAY['pending', 'in_progress', 'recovered', 'closed_no_recovery']));
 
 CREATE INDEX idx_claim_client_recovery_status ON claim (client_id, recovery_status);
 
