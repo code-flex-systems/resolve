@@ -330,7 +330,7 @@ export default function UserActivityTable({
 
 	return (
 		<Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
-			{showPagination && (
+			{showPagination && !compact && (
 				<Box
 					sx={{
 						display: 'flex',

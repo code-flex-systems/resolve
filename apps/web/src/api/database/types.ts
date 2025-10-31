@@ -77,6 +77,10 @@ export interface AdminActionLogs {
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
+  /**
+   * Comma-separated list of allowed file extensions (e.g., '.pdf,.docx,.jpg'). NULL means all allowed file types are permitted
+   */
+  allowed_extensions: string | null;
   calls_instance_id: number | null;
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -89,6 +93,10 @@ export interface Answer {
   id: Generated<number>;
   position: number;
   question_id: number;
+  /**
+   * When true, this answer requires the user to upload a file instead of providing free-form text
+   */
+  requires_upload: Generated<boolean | null>;
   text: string;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -232,6 +240,10 @@ export interface Doc {
    */
   replaces_doc_id: number | null;
   /**
+   * Reference to question_response when this document is uploaded as part of a response to a question requiring file upload
+   */
+  response_doc_id: number | null;
+  /**
    * Azure Blob Storage key/path for the document
    */
   storage_key: string;
@@ -268,6 +280,10 @@ export interface DocGroup {
   sort_order: Generated<number | null>;
   updated_at: Timestamp | null;
   updated_by: string | null;
+  /**
+   * Links user folders to their owner. Used to display user name/email in Documents tab for folders under Users/
+   */
+  user_id: string | null;
 }
 
 export interface DocRequirement {
@@ -378,6 +394,10 @@ export interface QuestionResponse {
   id: Generated<number>;
   instance_id: number;
   question_id: number | null;
+  /**
+   * Reference to uploaded document when answer requires file upload
+   */
+  response_doc_id: number | null;
   response_text: string | null;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { useAdminStore } from '@/stores/useAdminStore';
 
-const tabs = ['dashboard', 'users', 'checklists', 'feeds-and-claims', 'settings'];
+const tabs = ['dashboard', 'users', 'checklists', 'feeds-and-claims', 'documents', 'settings'];
 
 export default function AdminTabs() {
 	const showNewUserDialog = useAdminStore((state) => state.showNewUserDialog);
@@ -34,7 +34,8 @@ export default function AdminTabs() {
 					<Tab label="Users" id="users" value={1} disableRipple />
 					<Tab label="Checklists" id="checklists" value={2} disableRipple />
 					<Tab label="Feeds & Claims" id="feeds-claims" value={3} disableRipple />
-					<Tab label="Settings" id="settings" value={4} disableRipple />
+					<Tab label="Documents" id="documents" value={4} disableRipple />
+					<Tab label="Settings" id="settings" value={5} disableRipple />
 				</Tabs>
 			</Box>
 			{showNewUserDialog && <NewUserDialog />}

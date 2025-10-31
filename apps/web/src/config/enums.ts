@@ -58,6 +58,35 @@ export enum DeadlineStatus {
 	EXTENDED = 'extended',
 }
 
+export enum DocType {
+	POLICE_REPORT = 'police_report',
+	MEDICAL_RECORD = 'medical_record',
+	INVOICE = 'invoice',
+	CORRESPONDENCE = 'correspondence',
+	SETTLEMENT = 'settlement',
+	PHOTO = 'photo',
+	ESTIMATE = 'estimate',
+	REPAIR_INVOICE = 'repair_invoice',
+	PROOF_OF_PAYMENT = 'proof_of_payment',
+	DEMAND_LETTER = 'demand_letter',
+	LEGAL_FILING = 'legal_filing',
+	OTHER = 'other',
+}
+
+export enum DocStatus {
+	DRAFT = 'draft',
+	PENDING_REVIEW = 'pending_review',
+	APPROVED = 'approved',
+	ARCHIVED = 'archived',
+}
+
+export enum DocGroupType {
+	CLAIM_FOLDER = 'claim_folder',
+	CATEGORY = 'category',
+	CUSTOM = 'custom',
+	USER = 'user',
+}
+
 export enum RecoveryStatus {
 	PENDING = 'pending',
 	IN_PROGRESS = 'in_progress',

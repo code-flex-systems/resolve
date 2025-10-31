@@ -337,6 +337,8 @@ export async function modifyAnswer(
 	if (params.calls_instance_id !== undefined) updates.calls_instance_id = params.calls_instance_id;
 	if (params.has_additional_info !== undefined) updates.has_additional_info = params.has_additional_info;
 	if (params.hidden !== undefined) updates.hidden = params.hidden;
+	if (params.requires_upload !== undefined) updates.requires_upload = params.requires_upload;
+	if (params.allowed_extensions !== undefined) updates.allowed_extensions = params.allowed_extensions;
 
 	if (updates.position !== undefined) {
 		if (updates.position < existingAnswer.position) {
@@ -426,6 +428,8 @@ async function createAnswerPrivate(
 			calls_instance_id: params.calls_instance_id,
 			has_additional_info: params.has_additional_info,
 			hidden: params.hidden ?? undefined,
+			requires_upload: params.requires_upload ?? undefined,
+			allowed_extensions: params.allowed_extensions ?? undefined,
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
 		})

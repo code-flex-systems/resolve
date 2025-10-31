@@ -77,6 +77,8 @@ export async function copyAnswer(
 		additional_info_num_lines: existingAnswer.additional_info_num_lines ? Number(existingAnswer.additional_info_num_lines) : null,
 		calls_instance_id: existingAnswer.calls_instance_id,
 		hidden: existingAnswer.hidden,
+		requires_upload: existingAnswer.requires_upload,
+		allowed_extensions: existingAnswer.allowed_extensions,
 	};
 
 	// Copy answer and log admin action within transaction

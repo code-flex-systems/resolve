@@ -6,6 +6,7 @@ import ChecklistAnswerRadio from './ChecklistAnswerRadio';
 import { QuestionType } from '@/config/enums';
 import ChecklistAnswerFreeform from './ChecklistAnswerFreeform';
 import ChecklistAnswerDropdown from './ChecklistAnswerDropdown';
+import ChecklistAnswerFileUpload from './ChecklistAnswerFileUpload';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 import useIsAssigned from '@/hooks/useIsAssigned';
@@ -23,7 +24,9 @@ export function ChecklistQuestion(props: {
 	const fieldName = question.id.toString();
 	const fieldValue = watch(fieldName);
 	const additionalInfoAnswer = question.answers?.find((a) => a.has_additional_info);
+	const uploadAnswer = question.answers?.find((a) => a.requires_upload);
 	const fieldFreeformName = `${question.id}-${additionalInfoAnswer?.id ?? ''}-${QuestionType.FREEFORM}`;
+	const fieldUploadName = `${question.id}-${uploadAnswer?.id ?? ''}-upload`;
 	const highlightedQuestion = useChecklistStore((state) => state.highlightedQuestion);
 	const isAssigned = useIsAssigned();
 	const disabled = props.disabled || !isAssigned;
@@ -77,6 +80,7 @@ export function ChecklistQuestion(props: {
 									field={field}
 									question={question}
 									disabled={disabled}
+									watch={watch}
 								/>
 							);
 						default:
@@ -94,6 +98,21 @@ export function ChecklistQuestion(props: {
 							field={field}
 							answer={additionalInfoAnswer}
 							disabled={disabled || !fieldValue || !fieldValue.includes(additionalInfoAnswer.id)}
+						/>
+					)}
+				/>
+			)}
+			{question.type !== QuestionType.FREEFORM && !!uploadAnswer && (
+				<Controller
+					name={fieldUploadName}
+					control={control}
+					render={({ field }) => (
+						<ChecklistAnswerFileUpload
+							key={fieldUploadName}
+							field={field}
+							answer={uploadAnswer}
+							disabled={disabled || !fieldValue || !fieldValue.includes(uploadAnswer.id)}
+							allowedExtensions={uploadAnswer.allowed_extensions}
 						/>
 					)}
 				/>

@@ -3,6 +3,30 @@ import { JSX } from 'react';
 import config from '@/config/config';
 import { PageInstanceStatus } from '@/config/enums';
 
+// Plain Answer interface for runtime use (matches query output)
+export interface Answer {
+	id: number;
+	text: string;
+	position: number;
+	question_id?: number;
+	description_text: string | null;
+	description_image_url: string | null;
+	grade: string | null;
+	additional_info_num_lines: number | null;
+	additional_info_placeholder: string | null;
+	has_additional_info: boolean | null;
+	hidden?: boolean | null;
+	calls_instance_id: number | null;
+	requires_upload: boolean | null;
+	allowed_extensions: string | null;
+	has_action?: boolean;
+	client_id?: string;
+	created_at?: string;
+	created_by?: string;
+	updated_at?: string;
+	updated_by?: string | null;
+}
+
 export interface ActionDefinition {
 	dept?: string;
 	desk_type?: string;
@@ -165,6 +189,7 @@ export interface QuestionResponse {
 	claim_id: number;
 	question_id: number;
 	response_text?: string | null;
+	response_doc_id?: number | null;
 	selected_answers: QuestionResponseAnswer[];
 }
 

@@ -291,7 +291,17 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				.filterWhere((f) =>
 					f.or([
 						f('question_response.response_text', 'is not', null),
-						f('question_response_answer.id', 'is not', null),
+						f('question_response.response_doc_id', 'is not', null),
+						f.and([
+							f('question_response_answer.id', 'is not', null),
+							sql<boolean>`not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)`,
+						]),
 					])
 				)
 				.as('answered_count'),
@@ -355,9 +365,19 @@ export async function getChecklistSummary(ctx: ProtectedContext, checklistId: nu
 			sql<number>`count(distinct question_response.id)
 		filter (
 		where question_response.response_text is not null
-		    or exists (
-			select 1 from question_response_answer
-			where question_response_answer.response_id = question_response.id
+		    or question_response.response_doc_id is not null
+		    or (
+			exists (
+			    select 1 from question_response_answer
+			    where question_response_answer.response_id = question_response.id
+			)
+			and not exists (
+			    select 1 from question_response_answer qra
+			    join answer a on a.id = qra.answer_id
+			    where qra.response_id = question_response.id
+			    and a.requires_upload = true
+			    and question_response.response_doc_id is null
+			)
 		    )
 		)`.as('total_answered'),
 			// All answers requiring action
@@ -451,7 +471,17 @@ export async function getChecklistSummaryDetail(
 			query = query.where((qb) =>
 				qb.or([
 					qb('question_response.response_text', 'is not', null),
-					sql<boolean>`question_response_answer.id is not null`,
+					qb('question_response.response_doc_id', 'is not', null),
+					sql<boolean>`(
+						question_response_answer.id is not null
+						and not exists (
+							select 1 from question_response_answer qra
+							join answer a on a.id = qra.answer_id
+							where qra.response_id = question_response.id
+							and a.requires_upload = true
+							and question_response.response_doc_id is null
+						)
+					)`,
 				])
 			);
 			break;
@@ -464,7 +494,17 @@ export async function getChecklistSummaryDetail(
 					// Must be answered
 					qb.or([
 						qb('question_response.response_text', 'is not', null),
-						sql<boolean>`question_response_answer.id is not null`,
+						qb('question_response.response_doc_id', 'is not', null),
+						sql<boolean>`(
+							question_response_answer.id is not null
+							and not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)
+						)`,
 					]),
 					// Must meet at least one action-required criterion
 					sql<boolean>`(
@@ -481,7 +521,17 @@ export async function getChecklistSummaryDetail(
 					// Must be answered
 					qb.or([
 						qb('question_response.response_text', 'is not', null),
-						sql<boolean>`question_response_answer.id is not null`,
+						qb('question_response.response_doc_id', 'is not', null),
+						sql<boolean>`(
+							question_response_answer.id is not null
+							and not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)
+						)`,
 					]),
 					// Must NOT meet any action-required criterion
 					sql<boolean>`(

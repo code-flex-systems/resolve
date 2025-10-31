@@ -92,7 +92,8 @@ export default function UserActivityMetric() {
 							display="flex"
 							justifyContent="center"
 							alignItems={yValues.length ? 'flex-end' : 'center'}
-							height={100}
+							height={120}
+							marginTop="20px"
 						>
 							{yValues.length ? (
 								<BarChart
@@ -109,7 +110,7 @@ export default function UserActivityMetric() {
 									yAxis={[{ position: 'none', tickMinStep: 1 }]}
 									series={[{ data: yValues, label: 'Active users' }]}
 									width={375}
-									height={80}
+									height={120}
 									margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
 									sx={{
 										borderRadius: 3,
@@ -164,7 +165,7 @@ const styles = {
 		alignItems: 'center',
 		flexDirection: 'column',
 		width: 375,
-		height: 160,
+		height: 120,
 		bottom: 0,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,

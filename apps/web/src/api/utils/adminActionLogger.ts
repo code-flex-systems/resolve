@@ -35,7 +35,10 @@ export enum EntityName {
 	// Configuration entities
 	FEED = 'feed',
 	ACTION = 'action',
+
+	// Document entities
 	DOCUMENT = 'document',
+	DOC_GROUP = 'doc_group',
 
 	// Recovery & deadline entities
 	RECOVERY_EVENT = 'recovery_event',

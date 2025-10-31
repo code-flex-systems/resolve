@@ -254,6 +254,8 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
                         'additional_info_placeholder', ${eb.ref('answer.additional_info_placeholder')},
                         'has_additional_info', ${eb.ref('answer.has_additional_info')},
                         'calls_instance_id', ${eb.ref('answer.calls_instance_id')},
+                        'requires_upload', ${eb.ref('answer.requires_upload')},
+                        'allowed_extensions', ${eb.ref('answer.allowed_extensions')},
                         'has_action', ${eb.case().when('action.id', 'is', null).then(false).else(true).end()}
                     ) ORDER BY ${eb.ref('answer.position')}
                 ) filter (where ${eb.ref('answer.id')} is not null)`

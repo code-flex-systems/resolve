@@ -122,6 +122,7 @@ export async function getResponsesForClaimChecklist(
 			'question_response.claim_id',
 			'question_response.question_id',
 			'question_response.response_text',
+			'question_response.response_doc_id',
 			'question_response.created_at',
 			'question_response.updated_at',
 			sql`jsonb_agg(jsonb_build_object(
@@ -263,16 +264,11 @@ export async function upsertQuestionResponses(
 	ctx: ProtectedContext,
 	responses: QuestionResponse[]
 ) {
-	const updatedPageStatus = getUpdatedPageStatus(
-		responses.length,
-		responses.filter((r) => !!r.response_text || r.selected_answers.length).length
-	);
-
 	for (const response of responses) {
 		// Fetch existing response if any
 		const oldRow = await ctx.db
 			.selectFrom('question_response')
-			.select(['id', 'response_text', 'created_by', 'updated_by'])
+			.select(['id', 'response_text', 'response_doc_id', 'created_by', 'updated_by'])
 			.where('question_response.client_id', '=', ctx.session.user.client_id)
 			.where('checklist_id', '=', response.checklist_id)
 			.where('instance_id', '=', response.instance_id)
@@ -294,13 +290,16 @@ export async function upsertQuestionResponses(
 					.execute()
 			: [];
 
-		// 3) build the “new” shape for comparison
+		// 3) build the "new" shape for comparison
 		const newText = response.response_text ?? null;
 		const oldText = oldRow?.response_text ?? null;
+		const newDocId = response.response_doc_id ?? null;
+		const oldDocId = oldRow?.response_doc_id ?? null;
 
 		// 4) if nothing changed, skip the rest
 		if (
 			oldText === newText &&
+			oldDocId === newDocId &&
 			isEqual(
 				oldAnswers.map((r) => ({
 					answer_id: r.answer_id,
@@ -321,7 +320,9 @@ export async function upsertQuestionResponses(
 		}));
 
 		const shouldClear =
-			!response.response_text && (!response.selected_answers || response.selected_answers.length === 0);
+			!response.response_text &&
+			!response.response_doc_id &&
+			(!response.selected_answers || response.selected_answers.length === 0);
 
 		if (shouldClear && oldRow) {
 			// Log the delete action (no new data)
@@ -354,12 +355,14 @@ export async function upsertQuestionResponses(
 				claim_id: response.claim_id,
 				question_id: response.question_id,
 				response_text: response.response_text ?? null,
+				response_doc_id: response.response_doc_id ?? null,
 				client_id: ctx.session.user.client_id,
 				created_by: ctx.session.user.id,
 			})
 			.onConflict((oc) =>
 				oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
 					response_text: response.response_text ?? null,
+					response_doc_id: response.response_doc_id ?? null,
 					updated_by: ctx.session.user.id,
 					updated_at: new Date(),
 				})
@@ -381,6 +384,24 @@ export async function upsertQuestionResponses(
 						additional_info: a.additional_info ?? null,
 					}))
 				)
+				.execute();
+		}
+
+		// Handle document linking/unlinking
+		if (oldDocId && oldDocId !== newDocId) {
+			// Unlink the old document
+			await ctx.db
+				.updateTable('doc')
+				.set({ response_doc_id: null })
+				.where('id', '=', oldDocId)
+				.execute();
+		}
+		if (newDocId && newDocId !== oldDocId) {
+			// Link the new document
+			await ctx.db
+				.updateTable('doc')
+				.set({ response_doc_id: saved.id })
+				.where('id', '=', newDocId)
 				.execute();
 		}
 
@@ -408,21 +429,62 @@ export async function upsertQuestionResponses(
 		});
 	}
 
-	// Update page instance status
+	// Update page instance status based on ALL responses for this page instance
 	const sample = responses[0];
-	const template = await ctx.db
-		.selectFrom('page')
+
+	// Get total question count and answered count for this page instance
+	const statusResult = await ctx.db
+		.selectFrom('question')
+		.innerJoin('page', 'page.id', 'question.page_id')
 		.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
-		.select('version')
+		.leftJoin(
+			'question_response',
+			(join) =>
+				join
+					.onRef('question_response.question_id', '=', 'question.id')
+					.on('question_response.instance_id', '=', sample.instance_id)
+					.on('question_response.claim_id', '=', sample.claim_id)
+					.on('question_response.checklist_id', '=', sample.checklist_id)
+		)
+		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+		.select((eb) => [
+			eb.fn.count('question.id').distinct().as('total_question_count'),
+			eb.fn
+				.count('question_response.id')
+				.distinct()
+				.filterWhere((f) =>
+					f.or([
+						f('question_response.response_text', 'is not', null),
+						f('question_response.response_doc_id', 'is not', null),
+						f.and([
+							f('question_response_answer.id', 'is not', null),
+							sql<boolean>`not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)`,
+						]),
+					])
+				)
+				.as('answered_count'),
+			'page.version',
+		])
 		.where('page.client_id', '=', ctx.session.user.client_id)
 		.where('page_instance.id', '=', sample.instance_id)
+		.groupBy('page.version')
 		.executeTakeFirstOrThrow();
+
+	const totalQuestions = parseInt(statusResult.total_question_count?.toString() ?? '0');
+	const answeredQuestions = parseInt(statusResult.answered_count?.toString() ?? '0');
+	const updatedPageStatus = getUpdatedPageStatus(totalQuestions, answeredQuestions);
 
 	await pageQueries.modifyPageInstanceStatus(ctx, {
 		claimId: sample.claim_id,
 		instanceIds: [sample.instance_id],
 		newStatus: updatedPageStatus,
-		templateVersion: template.version,
+		templateVersion: statusResult.version,
 	});
 
 	return updatedPageStatus;

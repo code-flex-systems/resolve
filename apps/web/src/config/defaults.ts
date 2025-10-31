@@ -7,13 +7,15 @@ export const DEFAULT_ANSWER: Answer = {
 	text: '',
 	position: -1,
 	grade: null,
-	description_text: '',
-	description_image_url: '',
+	description_text: null,
+	description_image_url: null,
 	has_additional_info: false,
 	additional_info_placeholder: null,
 	additional_info_num_lines: null,
 	hidden: false,
 	calls_instance_id: null,
+	requires_upload: false,
+	allowed_extensions: null,
 };
 
 export const DEFAULT_TREE_NODE: TreeNode = {

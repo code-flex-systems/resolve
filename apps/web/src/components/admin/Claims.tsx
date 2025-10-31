@@ -5,7 +5,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import ClaimAmountCell from './ClaimAmountCell';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { Button, Collapse, Paper, Switch, Typography } from '@mui/material';
+import { Box, Button, Collapse, Paper, Switch, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import PersonSearch from '@mui/icons-material/PersonSearch';
@@ -15,15 +15,15 @@ import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
+import Visibility from '@mui/icons-material/Visibility';
 
 const COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Claim',
 		field: 'claim_number',
-		cellClassName: 'cell-bold',
 		renderHeader: (params) => (
 			<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
 		),
@@ -156,22 +156,29 @@ export default function Claims() {
 				<Toolbar
 					left={
 						<>
-							<Collapse in={!!selectedFeed} orientation="horizontal">
-								<div style={{ width: 200, marginRight: 10 }}>
-									<Typography fontSize={15} lineHeight="19px">
-										Viewing claims for <b>{selectedFeed?.name ?? ''}</b>
-									</Typography>
-								</div>
-							</Collapse>
+							<Typography variant="h6" marginRight="10px">
+								Claims
+							</Typography>
 							<Switch
 								size="small"
 								checked={selectedFeedId === null}
 								onChange={(_, checked) => setFeedId(checked ? null : undefined)}
 								sx={{ marginLeft: '10px' }}
 							/>
-							<Typography fontSize={14} fontStyle="italic">
+							<Typography fontSize={14} fontStyle="italic" marginRight="25px" noWrap>
 								Only Manual Claims
 							</Typography>
+							<Collapse in={!!selectedFeed} orientation="horizontal">
+								<Box display="flex" alignItems="center">
+									<Visibility sx={{ color: 'text.secondary' }} />
+									<Typography fontSize={15} lineHeight="19px" marginLeft="10px" noWrap>
+										Viewing claims for{' '}
+										<span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>
+											{selectedFeed?.name ?? ''}
+										</span>
+									</Typography>
+								</Box>
+							</Collapse>
 						</>
 					}
 					right={
@@ -190,6 +197,8 @@ export default function Claims() {
 							</Button>
 						</>
 					}
+					leftWidth="75%"
+					rightWidth="25%"
 					height={50}
 					padding={'0px 10px'}
 				/>
