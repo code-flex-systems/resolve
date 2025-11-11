@@ -3,7 +3,7 @@
 import { Box, IconButton, Typography, Paper, Divider } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import CloseIcon from '@mui/icons-material/Close';
-import DownloadIcon from '@mui/icons-material/Download';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { formatMDY } from '@/lib/utils/utils';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useMemo } from 'react';
@@ -19,11 +19,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 	// Determine if file can be previewed
 	const canPreview = useMemo(() => {
 		const mimeType = document.mime_type || '';
-		return (
-			mimeType.startsWith('image/') ||
-			mimeType === 'application/pdf' ||
-			mimeType === 'text/plain'
-		);
+		return mimeType.startsWith('image/') || mimeType === 'application/pdf' || mimeType === 'text/plain';
 	}, [document.mime_type]);
 
 	const isImage = document.mime_type?.startsWith('image/');
@@ -42,15 +38,15 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 	return (
 		<BasicDialog
 			title={
-				<Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-					<Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
-						{document.title || document.alias}
-					</Typography>
-					<IconButton onClick={handleDownload} size="small" sx={{ mr: 1 }}>
-						<DownloadIcon />
-					</IconButton>
-				</Box>
+				<Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
+					{document.title || document.alias}
+				</Typography>
 			}
+			iconActions={[
+				<IconButton onClick={handleDownload} sx={{ marginRight: '5px' }}>
+					<CloudDownloadIcon />
+				</IconButton>,
+			]}
 			onClose={onClose}
 			width={900}
 			maxHeight="90vh"
@@ -65,7 +61,8 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 					<strong>Type:</strong> {document.doc_type.replace(/_/g, ' ')}
 				</Typography>
 				<Typography fontSize={12} color="text.secondary">
-					<strong>Size:</strong> {document.file_size ? `${(Number(document.file_size) / 1024).toFixed(1)} KB` : 'Unknown'}
+					<strong>Size:</strong>{' '}
+					{document.file_size ? `${(Number(document.file_size) / 1024).toFixed(1)} KB` : 'Unknown'}
 				</Typography>
 				<Typography fontSize={12} color="text.secondary">
 					<strong>Uploaded:</strong> {formatMDY(document.created_at)}
@@ -145,7 +142,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 							'&:hover': { bgcolor: 'primary.dark' },
 						}}
 					>
-						<DownloadIcon />
+						<CloudDownloadIcon />
 					</IconButton>
 					<Typography fontSize={12} color="text.secondary" mt={1}>
 						Click to download

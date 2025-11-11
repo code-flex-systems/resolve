@@ -63,7 +63,8 @@ jobs:
                       DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
                       RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
                       EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
-                      MUI_KEY="${{ secrets.MUI_KEY }}"
+                      MUI_KEY="${{ secrets.MUI_KEY }}" \
+                      AZURE_STORAGE_CONNECTION_STRING="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
 
                   # List all revisions
                   echo "All revisions:"
