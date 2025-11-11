@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 import MetricValue from '../common/MetricValue';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 350;
+const METRIC_HEIGHT = 300;
 
 export default function ActionsMetric() {
 	const router = useRouter();
@@ -73,13 +73,9 @@ export default function ActionsMetric() {
 							alignItems="center"
 							padding="0px 5px"
 						>
-							<ExpandableTitle
-								title="Popular Actions"
-								icon={<Share sx={{ color: BASE_COLOR }} />}
-								color={'white'}
-								bgcolor="#F0F3F7"
-								padding="5px 0px 10px"
-							/>
+							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+								Popular Actions
+							</Typography>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
 								<Box marginRight="5px">
 									<BasicButtonStyled
@@ -106,9 +102,6 @@ export default function ActionsMetric() {
 								/>
 							</Box>
 						</Box>
-						<div style={styles.divider}>
-							<Divider />
-						</div>
 						<Stack
 							width="100%"
 							height="100%"

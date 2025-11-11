@@ -1,6 +1,5 @@
-import { sql, Transaction } from 'kysely';
+import { sql } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
-import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
@@ -12,22 +11,20 @@ import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
  * @param pageId - id of the page that owns the question
  * @param questionId - id of the question to attach the answer to
  * @param params - answer fields to insert
- * @param trx - optional transaction to use
  * @returns the newly created answer
  */
 export async function createAnswer(
 	ctx: ProtectedContext,
 	pageId: number,
 	questionId: number,
-	params: AnswerParams,
-	trx?: Transaction<DB>
+	params: AnswerParams
 ) {
 	// If this answer calls another instance, check for cycles across all instances
 	// Note: Answers are template-level, but calls_instance_id references a specific instance.
 	// We need to check if this creates a cycle in ANY checklist that uses this template.
 	if (params.calls_instance_id) {
 		// Get all instances of this page template across all checklists
-		const pageInstances = await db
+		const pageInstances = await ctx.db
 			.selectFrom('page_instance')
 			.select(['id as instance_id', 'checklist_id'])
 			.where('page_instance.client_id', '=', ctx.session.user.client_id)
@@ -62,17 +59,26 @@ export async function createAnswer(
 		}
 	}
 
-	let newAnswer: any;
-	if (trx) {
-		newAnswer = await createAnswerPrivate(ctx, questionId, params, trx);
-	} else {
-		await db.transaction().execute(async (newTrx) => {
-			newAnswer = await createAnswerPrivate(ctx, questionId, params, newTrx);
-			// Only bump the version if this action isn't part of another update
-			await bumpPageVersion(ctx, pageId, newTrx);
-		});
-	}
+	const newAnswer = await createAnswerPrivate(ctx, questionId, params);
+	// Only bump the version if this action isn't part of another update
+	await bumpPageVersion(ctx, pageId);
 	return newAnswer;
+}
+
+/**
+ * Fetch an answer for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param answerId - answer identifier
+ * @returns the answer details
+ */
+export async function getAnswerForDeletion(ctx: ProtectedContext, answerId: number) {
+	return await ctx.db
+		.selectFrom('answer')
+		.select(['id', 'question_id', 'text', 'grade'])
+		.where('id', '=', answerId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**
@@ -83,19 +89,19 @@ export async function createAnswer(
  * @param answerId - identifier of the answer to delete
  */
 export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
-	await db.transaction().execute(async (trx) => {
-		const { position, question_id } = await trx
-			.deleteFrom('answer')
-			.where('id', '=', answerId)
-			.returning(['position', 'question_id'])
-			.executeTakeFirstOrThrow();
-		await trx
-			.updateTable('answer')
-			.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-			.where((eb) => eb.and([eb('question_id', '=', question_id), eb('position', '>', position)]))
-			.execute();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
+	const { position, question_id } = await ctx.db
+		.deleteFrom('answer')
+		.where('id', '=', answerId)
+		.returning(['position', 'question_id'])
+		.executeTakeFirstOrThrow();
+
+	await ctx.db
+		.updateTable('answer')
+		.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+		.where((eb) => eb.and([eb('question_id', '=', question_id), eb('position', '>', position)]))
+		.execute();
+
+	await bumpPageVersion(ctx, pageId);
 }
 
 /**
@@ -106,7 +112,7 @@ export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answer
  * @returns the matching answer
  */
 export async function getAnswer(ctx: ProtectedContext, answerId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('answer')
 		.selectAll()
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -122,7 +128,7 @@ export async function getAnswer(ctx: ProtectedContext, answerId: number) {
  * @returns ordered list of answers
  */
 export async function getAnswers(ctx: ProtectedContext, questionId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('answer')
 		.selectAll()
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -139,7 +145,7 @@ export async function getAnswers(ctx: ProtectedContext, questionId: number) {
  * @returns number of answers
  */
 export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
-	const answerCountRecord = await db
+	const answerCountRecord = await ctx.db
 		.selectFrom('answer')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -157,7 +163,7 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @returns Array of { from_instance_id, to_instance_id } representing answer calls
  */
 export async function getAnswerCallGraph(ctx: ProtectedContext, checklistId: number) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('answer')
 		.innerJoin('question', 'question.id', 'answer.question_id')
 		.innerJoin('page_instance', 'page_instance.page_id', 'question.page_id')
@@ -269,7 +275,7 @@ export async function modifyAnswer(
 	answerId: number,
 	params: AnswerUpdateParams
 ) {
-	const existingAnswer = await db
+	const existingAnswer = await ctx.db
 		.selectFrom('answer')
 		.select(['position', 'question_id', 'calls_instance_id'])
 		.where('answer.client_id', '=', ctx.session.user.client_id)
@@ -280,7 +286,7 @@ export async function modifyAnswer(
 	if (params.calls_instance_id !== undefined && params.calls_instance_id !== existingAnswer.calls_instance_id) {
 		if (params.calls_instance_id !== null) {
 			// Get all instances of this page template across all checklists
-			const pageInstances = await db
+			const pageInstances = await ctx.db
 				.selectFrom('page_instance')
 				.select(['id as instance_id', 'checklist_id'])
 				.where('page_instance.client_id', '=', ctx.session.user.client_id)
@@ -331,57 +337,57 @@ export async function modifyAnswer(
 	if (params.calls_instance_id !== undefined) updates.calls_instance_id = params.calls_instance_id;
 	if (params.has_additional_info !== undefined) updates.has_additional_info = params.has_additional_info;
 	if (params.hidden !== undefined) updates.hidden = params.hidden;
+	if (params.requires_upload !== undefined) updates.requires_upload = params.requires_upload;
+	if (params.allowed_extensions !== undefined) updates.allowed_extensions = params.allowed_extensions;
 
-	let newAnswer: Awaited<ReturnType<typeof getAnswer>>;
-	await db.transaction().execute(async (trx) => {
-		if (updates.position !== undefined) {
-			if (updates.position < existingAnswer.position) {
-				// Shift down: move answers [newPosition, currentPosition - 1] up by 1
-				await trx
-					.updateTable('answer')
-					.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
-					.where('question_id', '=', existingAnswer.question_id)
-					.where('position', '>=', updates.position)
-					.where('position', '<', existingAnswer.position)
-					.execute();
-			} else {
-				// Shift up: move answers [currentPosition + 1, newPosition] down by 1
-				await trx
-					.updateTable('answer')
-					.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-					.where('question_id', '=', existingAnswer.question_id)
-					.where('position', '>', existingAnswer.position)
-					.where('position', '<=', updates.position)
-					.execute();
-			}
+	if (updates.position !== undefined) {
+		if (updates.position < existingAnswer.position) {
+			// Shift down: move answers [newPosition, currentPosition - 1] up by 1
+			await ctx.db
+				.updateTable('answer')
+				.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+				.where('question_id', '=', existingAnswer.question_id)
+				.where('position', '>=', updates.position)
+				.where('position', '<', existingAnswer.position)
+				.execute();
+		} else {
+			// Shift up: move answers [currentPosition + 1, newPosition] down by 1
+			await ctx.db
+				.updateTable('answer')
+				.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+				.where('question_id', '=', existingAnswer.question_id)
+				.where('position', '>', existingAnswer.position)
+				.where('position', '<=', updates.position)
+				.execute();
 		}
+	}
 
-		newAnswer = await trx
-			.updateTable('answer')
-			.set({
-				...updates,
-				updated_by: ctx.session.user.id,
-				updated_at: sql`now()`,
-			})
-			.where('id', '=', answerId)
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
-	return newAnswer!;
+	const newAnswer = await ctx.db
+		.updateTable('answer')
+		.set({
+			...updates,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		})
+		.where('id', '=', answerId)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	await bumpPageVersion(ctx, pageId);
+
+	return newAnswer;
 }
 
 // private methods
 
 /**
- * Increment the version number of a page inside a transaction.
+ * Increment the version number of a page.
  *
  * @param ctx - request context
  * @param pageId - page to bump
- * @param trx - transaction for the update
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
-	await trx
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
+	await ctx.db
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
 		.where('id', '=', pageId)
@@ -389,27 +395,26 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Trans
 }
 
 /**
- * Helper to insert an answer within an existing transaction.
+ * Helper to insert an answer.
  *
  * @param ctx - request context
  * @param questionId - question to append the answer to
  * @param params - answer fields
- * @param trx - active transaction
  * @returns the newly created answer
  */
 async function createAnswerPrivate(
 	ctx: ProtectedContext,
 	questionId: number,
-	params: AnswerParams,
-	trx: Transaction<DB>
+	params: AnswerParams
 ) {
-	await trx
+	await ctx.db
 		.updateTable('answer')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
 		.where('question_id', '=', questionId)
 		.where('position', '>=', params.position)
 		.execute();
-	const newAnswer = await trx
+
+	const newAnswer = await ctx.db
 		.insertInto('answer')
 		.values({
 			question_id: questionId,
@@ -423,10 +428,13 @@ async function createAnswerPrivate(
 			calls_instance_id: params.calls_instance_id,
 			has_additional_info: params.has_additional_info,
 			hidden: params.hidden ?? undefined,
+			requires_upload: params.requires_upload ?? undefined,
+			allowed_extensions: params.allowed_extensions ?? undefined,
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
 	return newAnswer;
 }

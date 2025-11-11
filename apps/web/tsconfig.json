@@ -15,6 +15,9 @@
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "disableSourceOfProjectReferenceRedirect": true,
     "plugins": [
       {
         "name": "next"

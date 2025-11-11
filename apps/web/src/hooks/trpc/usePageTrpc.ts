@@ -1,9 +1,8 @@
 import { trpc } from '@/lib/trpc';
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '@/server/trpc/appRouter';
+import type { RouterInput, RouterOutput } from '@/types/routerTypes';
 
-type PageInput = inferRouterInputs<AppRouter>['page'];
-type PageOutput = inferRouterOutputs<AppRouter>['page'];
+type PageInput = RouterInput['page'];
+type PageOutput = RouterOutput['page'];
 
 export function usePageTrpc() {
 	const utils = trpc.useUtils();

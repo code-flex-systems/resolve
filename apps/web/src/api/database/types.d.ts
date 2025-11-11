@@ -9,6 +9,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
+
 export type Json = JsonValue;
 
 export type JsonArray = JsonValue[];
@@ -65,7 +67,7 @@ export interface AdminActionLogs {
   action: string;
   client_id: string;
   created_at: Generated<Timestamp>;
-  entity_id: number;
+  entity_id: string;
   entity_name: string;
   id: Generated<number>;
   user_id: string;
@@ -121,14 +123,26 @@ export interface ChecklistClaim {
   created_at: Generated<Timestamp>;
   created_by: string;
   last_opened: Generated<Timestamp>;
+  /**
+   * JSONB snapshot of key decisions and answers when checklist is submitted
+   */
+  outcome_snapshot: Json | null;
   status: string;
   submitted_at: Timestamp | null;
   submitted_by: string | null;
+  /**
+   * Auto-calculated days from created_at to submitted_at
+   */
+  time_to_resolution_days: number | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface Claim {
+  /**
+   * Sum of all recovery_event amounts for this claim
+   */
+  actual_recovery: Numeric | null;
   claim_amount: Numeric | null;
   claim_number: string | null;
   client: string | null;
@@ -144,6 +158,10 @@ export interface Claim {
   last_update: Timestamp | null;
   last_updated_by: string | null;
   loss_location: string | null;
+  /**
+   * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
+   */
+  recovery_status: string | null;
   total_incurred: Numeric | null;
 }
 
@@ -165,13 +183,114 @@ export interface Comment {
   updated_at: Timestamp | null;
 }
 
-export interface Doc {
-  alias: string;
+export interface Deadline {
+  claim_id: number;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deadline_date: Timestamp;
+  deadline_type: string;
+  description: string | null;
+  id: Generated<number>;
+  status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface Doc {
+  alias: string;
+  answer_id: number | null;
+  claim_id: number | null;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  deadline_id: number | null;
+  description: string | null;
+  doc_group_id: number | null;
+  /**
+   * Workflow status: draft, pending_review, approved, archived
+   */
+  doc_status: Generated<string>;
+  /**
+   * Categorical classification of document
+   */
+  doc_type: Generated<string>;
+  file_size: Int8 | null;
   filename: string;
   id: Generated<number>;
+  /**
+   * Flag to identify the latest version
+   */
+  is_current_version: Generated<boolean | null>;
+  mime_type: string | null;
+  page_instance_id: number | null;
+  preview_url: string | null;
+  question_id: number | null;
+  recovery_event_id: number | null;
+  /**
+   * Previous version of this document (if applicable)
+   */
+  replaces_doc_id: number | null;
+  /**
+   * Azure Blob Storage key/path for the document
+   */
+  storage_key: string;
+  title: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  /**
+   * Version number for document versioning
+   */
+  version: Generated<number | null>;
+}
+
+export interface DocGroup {
+  /**
+   * Associated claim for auto-created claim folders
+   */
+  claim_id: number | null;
+  client_id: string;
+  color: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  description: string | null;
+  /**
+   * claim_folder (auto-created), category (system), or custom (user-created)
+   */
+  group_type: Generated<string>;
+  icon: string | null;
+  id: Generated<number>;
+  name: string;
+  /**
+   * Parent group for hierarchical folder structure
+   */
+  parent_group_id: number | null;
+  sort_order: Generated<number | null>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface DocRequirement {
+  checklist_id: number | null;
+  claim_id: number | null;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  description: string | null;
+  id: Generated<number>;
+  is_required: Generated<boolean | null>;
+  required_doc_type: string;
+  requirement_name: string;
+}
+
+export interface DocRequirementFulfillment {
+  doc_id: number | null;
+  doc_requirement_id: number;
+  fulfilled_at: Generated<Timestamp>;
+  fulfilled_by: string;
+  id: Generated<number>;
+  manually_marked_complete: Generated<boolean | null>;
+  notes: string | null;
 }
 
 export interface Feeds {
@@ -258,7 +377,7 @@ export interface QuestionResponse {
   created_by: string;
   id: Generated<number>;
   instance_id: number;
-  question_id: number;
+  question_id: number | null;
   response_text: string | null;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -266,9 +385,23 @@ export interface QuestionResponse {
 
 export interface QuestionResponseAnswer {
   additional_info: string | null;
-  answer_id: number;
+  answer_id: number | null;
   id: Generated<number>;
   response_id: number;
+}
+
+export interface RecoveryEvent {
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  id: Generated<number>;
+  notes: string | null;
+  recovery_amount: Numeric;
+  recovery_date: Timestamp;
+  recovery_source: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface ResponseAuditLogs {
@@ -277,6 +410,18 @@ export interface ResponseAuditLogs {
   claim_id: number | null;
   client_id: string;
   created_at: Generated<Timestamp>;
+  /**
+   * Expert confidence level (0-1) for AI training metadata
+   */
+  decision_confidence: Numeric | null;
+  /**
+   * Expert reasoning for AI training (distinct from operational additional_info)
+   */
+  decision_rationale: string | null;
+  /**
+   * Marks high-quality responses suitable for AI training data
+   */
+  expert_flag: Generated<boolean>;
   id: Generated<number>;
   instance_id: number | null;
   new_answers: Generated<Json>;
@@ -338,7 +483,11 @@ export interface DB {
   claim: Claim;
   client: Client;
   comment: Comment;
+  deadline: Deadline;
   doc: Doc;
+  doc_group: DocGroup;
+  doc_requirement: DocRequirement;
+  doc_requirement_fulfillment: DocRequirementFulfillment;
   feeds: Feeds;
   page: Page;
   page_instance: PageInstance;
@@ -347,6 +496,7 @@ export interface DB {
   question: Question;
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;
+  recovery_event: RecoveryEvent;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
   users: Users;

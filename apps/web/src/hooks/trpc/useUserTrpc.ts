@@ -1,9 +1,8 @@
 import { trpc } from '@/lib/trpc';
-import { AppRouter } from '@/server/trpc/appRouter';
-import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import type { RouterInput, RouterOutput } from '@/types/routerTypes';
 
-type UserInput = inferRouterInputs<AppRouter>['user'];
-type UserOutput = inferRouterOutputs<AppRouter>['user'];
+type UserInput = RouterInput['user'];
+type UserOutput = RouterOutput['user'];
 
 export function useUserTrpc() {
 	const utils = trpc.useUtils();

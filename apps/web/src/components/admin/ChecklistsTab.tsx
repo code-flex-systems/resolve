@@ -2,7 +2,7 @@
 
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import { Button, Fade, Paper } from '@mui/material';
+import { Button, Fade, Paper, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Checklist from '@mui/icons-material/Checklist';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
@@ -20,10 +20,10 @@ import { BASE_COLOR_LIGHT } from '@/styles/theme';
 const COLUMNS: GridColDef[] = [
 	{
 		field: 'name',
-		headerName: 'Checklists',
-		renderHeader: (params) => (
-			<ExpandableHeaderCell {...params} icon={<ContentPasteSearch sx={{ fontSize: 17, color: 'white' }} />} />
-		),
+		headerName: '',
+		// renderHeader: (params) => (
+		// 	<ExpandableHeaderCell {...params} icon={<ContentPasteSearch sx={{ fontSize: 17, color: 'white' }} />} />
+		// ),
 		renderCell: (params) => <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />,
 		cellClassName: 'cell-primary cell-bold',
 		width: 200,
@@ -80,6 +80,7 @@ export default function ChecklistsTab() {
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
+						left={<Typography variant="h6">Checklists</Typography>}
 						right={
 							<>
 								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewChecklistDialog}>

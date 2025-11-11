@@ -2,6 +2,7 @@ import * as answerQueries from '@/api/queries/answerQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TRPCError } from '@trpc/server';
 import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
+import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 /**
  * Create an answer for a question.
@@ -23,7 +24,21 @@ export async function createAnswer(
 		params: AnswerParams;
 	}
 ) {
-	const results = await answerQueries.createAnswer(ctx, pageId, questionId, params);
+	// Create answer and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await answerQueries.createAnswer({ ...ctx, db: trx }, pageId, questionId, params);
+
+		// Log answer creation
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: created.id,
+			entityName: EntityName.ANSWER,
+			action: AdminAction.CREATE,
+			value: { text: created.text, grade: created.grade, questionId, pageId },
+		});
+
+		return created;
+	});
+
 	return results;
 }
 
@@ -62,9 +77,26 @@ export async function copyAnswer(
 		additional_info_num_lines: existingAnswer.additional_info_num_lines ? Number(existingAnswer.additional_info_num_lines) : null,
 		calls_instance_id: existingAnswer.calls_instance_id,
 		hidden: existingAnswer.hidden,
+		requires_upload: existingAnswer.requires_upload,
+		allowed_extensions: existingAnswer.allowed_extensions,
 	};
 
-	return await answerQueries.createAnswer(ctx, pageId, questionId, answerParams);
+	// Copy answer and log admin action within transaction
+	const created = await ctx.db.transaction().execute(async (trx) => {
+		const newAnswer = await answerQueries.createAnswer({ ...ctx, db: trx }, pageId, questionId, answerParams);
+
+		// Log answer creation (copied from source)
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: newAnswer.id,
+			entityName: EntityName.ANSWER,
+			action: AdminAction.CREATE,
+			value: { text: newAnswer.text, grade: newAnswer.grade, questionId, pageId, sourceAnswerId: answerId, copied: true },
+		});
+
+		return newAnswer;
+	});
+
+	return created;
 }
 
 /**
@@ -74,7 +106,24 @@ export async function copyAnswer(
  * @param input - page and answer identifiers
  */
 export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: number; answerId: number }) {
-	await answerQueries.deleteAnswer(ctx, pageId, answerId);
+	// Delete answer and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch answer data BEFORE deletion for logging
+		const answer = await answerQueries.getAnswerForDeletion({ ...ctx, db: trx }, answerId);
+
+		// Delete the answer
+		await answerQueries.deleteAnswer({ ...ctx, db: trx }, pageId, answerId);
+
+		// Log admin action for answer deletion
+		if (answer) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: answerId,
+				entityName: EntityName.ANSWER,
+				action: AdminAction.DELETE,
+				value: { text: answer.text, grade: answer.grade, questionId: answer.question_id },
+			});
+		}
+	});
 }
 
 /**
@@ -109,7 +158,21 @@ export async function modifyAnswer(
 	{ pageId, answerId, params }: { pageId: number; answerId: number; params: AnswerUpdateParams }
 ) {
 	try {
-		const results = await answerQueries.modifyAnswer(ctx, pageId, answerId, params);
+		// Update answer and log admin action within transaction
+		const results = await ctx.db.transaction().execute(async (trx) => {
+			const updated = await answerQueries.modifyAnswer({ ...ctx, db: trx }, pageId, answerId, params);
+
+			// Log admin action for answer update
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: answerId,
+				entityName: EntityName.ANSWER,
+				action: AdminAction.UPDATE,
+				value: params,
+			});
+
+			return updated;
+		});
+
 		return results;
 	} catch (e) {
 		console.error(e);

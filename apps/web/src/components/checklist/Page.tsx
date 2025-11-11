@@ -27,7 +27,7 @@ import useIsAssigned from '@/hooks/useIsAssigned';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
-	const defaults: Record<string, number[] | string> = {};
+	const defaults: Record<string, number[] | string | number | null> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
 		switch (q.type) {
@@ -37,10 +37,14 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 				if (responses?.[q.id]) {
 					const answers = responses[q.id].selected_answers ?? [];
 					const answerOther = q.answers.find((a) => a.has_additional_info);
+					const answerUpload = q.answers.find((a) => a.requires_upload);
 					defaults[q.id.toString()] = answers.map((a) => a.answer_id);
 					if (answerOther) {
 						defaults[`${q.id}-${answerOther.id}-${QuestionType.FREEFORM}`] =
 							answers.find((a) => a.answer_id === answerOther.id)?.additional_info ?? '';
+					}
+					if (answerUpload) {
+						defaults[`${q.id}-${answerUpload.id}-upload`] = responses[q.id].response_doc_id ?? null;
 					}
 				} else {
 					defaults[q.id.toString()] = [];
@@ -124,15 +128,19 @@ export default function Page() {
 		if (!isAssigned) return;
 		try {
 			const responses: QuestionResponse[] = Object.keys(data)
-				.filter((field) => !field.endsWith(QuestionType.FREEFORM))
+				.filter((field) => !field.endsWith(QuestionType.FREEFORM) && !field.endsWith('-upload'))
 				.map((field) => {
 					const questionId = parseInt(field);
+					const question = questions?.find((q) => q.id === questionId);
+					const uploadAnswer = question?.answers?.find((a) => a.requires_upload);
+					const uploadFieldName = uploadAnswer ? `${questionId}-${uploadAnswer.id}-upload` : null;
 					const response: QuestionResponse = {
 						checklist_id: checklist?.id ?? -1,
 						instance_id: selectedPageInstance,
 						claim_id: claimId,
 						question_id: questionId,
 						response_text: typeof data[field] === 'string' && !!data[field] ? data[field] : null,
+						response_doc_id: uploadFieldName && data[uploadFieldName] ? data[uploadFieldName] : null,
 						selected_answers: Array.isArray(data[field])
 							? data[field].map((id) => ({
 									answer_id: id,

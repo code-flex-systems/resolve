@@ -5,7 +5,7 @@ import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import './styles.css';
 import AnswerNode from './AnswerNode';
 import { useEffect, useState } from 'react';
-import { Answer } from '@/hooks/trpc/useAnswerTrpc';
+import { Answer } from '@/types/types';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 import { QuestionType } from '@/config/enums';
 

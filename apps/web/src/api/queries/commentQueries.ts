@@ -1,11 +1,10 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { db } from '../database/kysely';
 import { ExpressionWrapper, sql, SqlBool } from 'kysely';
 import { Comment, CommentFilters } from '@/types/types';
 import { DB } from '../database/types';
 
 export async function createComment(ctx: ProtectedContext, comment: Comment) {
-	return await db
+	return await ctx.db
 		.insertInto('comment')
 		.values({
 			checklist_id: comment.checklistId,
@@ -21,79 +20,79 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 }
 
 export async function deleteComment(ctx: ProtectedContext, id: number) {
-	return await db.deleteFrom('comment').where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+	return await ctx.db.deleteFrom('comment').where('id', '=', id).returningAll().executeTakeFirstOrThrow();
 }
 
 export async function getComment(ctx: ProtectedContext, id: number) {
-        return await db
-                .selectFrom('comment')
-                .innerJoin('users', 'comment.created_by', 'users.id')
-                .selectAll('comment')
-                .select(['first', 'last', 'email'])
-                .where('comment.client_id', '=', ctx.session.user.client_id)
-                .where('id', '=', id)
-                .executeTakeFirstOrThrow();
+	return await ctx.db
+		.selectFrom('comment')
+		.innerJoin('users', 'comment.created_by', 'users.id')
+		.selectAll('comment')
+		.select(['first', 'last', 'email'])
+		.where('comment.client_id', '=', ctx.session.user.client_id)
+		.where('id', '=', id)
+		.executeTakeFirstOrThrow();
 }
 
 export async function getCommentCount(ctx: ProtectedContext, filters: CommentFilters) {
-        const result = await db
-                .selectFrom('comment')
-                .innerJoin('users', 'comment.created_by', 'users.id')
-                .select(({ fn }) => fn.countAll().as('count'))
-                .where('comment.client_id', '=', ctx.session.user.client_id)
-                .where((eb) => {
-                        const andClause: ExpressionWrapper<DB, 'comment' | 'users', SqlBool>[] = [];
-                        if (filters.checklistId) andClause.push(eb('checklist_id', '=', filters.checklistId));
-                        if (filters.claimId) andClause.push(eb('claim_id', '=', filters.claimId));
-                        if (filters.instanceId) andClause.push(eb('instance_id', '=', filters.instanceId));
-                        if (filters.questionId) andClause.push(eb('question_id', '=', filters.questionId));
-                        return eb.and(andClause);
-                })
-                .executeTakeFirstOrThrow();
-        return parseInt(result.count.toString());
+	const result = await ctx.db
+		.selectFrom('comment')
+		.innerJoin('users', 'comment.created_by', 'users.id')
+		.select(({ fn }) => fn.countAll().as('count'))
+		.where('comment.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const andClause: ExpressionWrapper<DB, 'comment' | 'users', SqlBool>[] = [];
+			if (filters.checklistId) andClause.push(eb('checklist_id', '=', filters.checklistId));
+			if (filters.claimId) andClause.push(eb('claim_id', '=', filters.claimId));
+			if (filters.instanceId) andClause.push(eb('instance_id', '=', filters.instanceId));
+			if (filters.questionId) andClause.push(eb('question_id', '=', filters.questionId));
+			return eb.and(andClause);
+		})
+		.executeTakeFirstOrThrow();
+	return parseInt(result.count.toString());
 }
 
 export async function getComments(ctx: ProtectedContext, filters: CommentFilters, limit?: number, offset?: number) {
 	// Base query
-        const baseQuery = db
-                .selectFrom('comment')
-                .innerJoin('users', 'comment.created_by', 'users.id')
-                .leftJoin('checklist_claim', (join) =>
-                        join
-                                .onRef('comment.checklist_id', '=', 'checklist_claim.checklist_id')
-                                .onRef('comment.claim_id', '=', 'checklist_claim.claim_id')
-                )
-                .where('comment.client_id', '=', ctx.session.user.client_id)
-                .where((eb) => {
-                        const andClause: ExpressionWrapper<DB, 'comment' | 'checklist_claim' | 'users', SqlBool>[] = [];
-                        if (filters.userId) {
-                                andClause.push(
-                                        eb.or([
-                                                eb('checklist_claim.created_by', '=', filters.userId),
-                                                eb('checklist_claim.assignee', '=', filters.userId),
-                                        ])
-                                );
-                        }
-                        if (filters.checklistId) andClause.push(eb('comment.checklist_id', '=', filters.checklistId));
-                        if (filters.claimId) andClause.push(eb('comment.claim_id', '=', filters.claimId));
-                        if (filters.instanceId) andClause.push(eb('comment.instance_id', '=', filters.instanceId));
-                        if (filters.questionId) andClause.push(eb('comment.question_id', '=', filters.questionId));
-                        return eb.and(andClause);
-                });
+	const baseQuery = ctx.db
+		.selectFrom('comment')
+		.innerJoin('users', 'comment.created_by', 'users.id')
+		.leftJoin('checklist_claim', (join) =>
+			join
+				.onRef('comment.checklist_id', '=', 'checklist_claim.checklist_id')
+				.onRef('comment.claim_id', '=', 'checklist_claim.claim_id')
+		)
+		.where('comment.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const andClause: ExpressionWrapper<DB, 'comment' | 'checklist_claim' | 'users', SqlBool>[] = [];
+			if (filters.userId) {
+				andClause.push(
+					eb.or([
+						eb('checklist_claim.created_by', '=', filters.userId),
+						eb('checklist_claim.assignee', '=', filters.userId),
+					])
+				);
+			}
+			if (filters.checklistId) andClause.push(eb('comment.checklist_id', '=', filters.checklistId));
+			if (filters.claimId) andClause.push(eb('comment.claim_id', '=', filters.claimId));
+			if (filters.instanceId) andClause.push(eb('comment.instance_id', '=', filters.instanceId));
+			if (filters.questionId) andClause.push(eb('comment.question_id', '=', filters.questionId));
+			return eb.and(andClause);
+		});
 
 	// Data query
-        let dataQuery = baseQuery
-                .leftJoin('page_instance', 'comment.instance_id', 'page_instance.id')
-                .leftJoin('page', 'page_instance.page_id', 'page.id')
-                .leftJoin('question', 'comment.question_id', 'question.id')
-                .selectAll('comment')
-                .select(['users.first', 'users.last', 'users.email', 'page.title as page_title', 'question.position'])
-                .orderBy(['comment.updated_at desc', 'comment.created_at desc']);
+	let dataQuery = baseQuery
+		.leftJoin('page_instance', 'comment.instance_id', 'page_instance.id')
+		.leftJoin('page', 'page_instance.page_id', 'page.id')
+		.leftJoin('question', 'comment.question_id', 'question.id')
+		.selectAll('comment')
+		.select(['users.first', 'users.last', 'users.email', 'page.title as page_title', 'question.position'])
+		.orderBy(['comment.updated_at desc', 'comment.created_at desc']);
 	if (limit) dataQuery = dataQuery.limit(limit);
 	if (offset) dataQuery = dataQuery.offset(offset);
 
 	// Count query
-        const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));
+	const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));
 
 	// Only run count query when paginating
 	const [data, count] = await Promise.all([
@@ -108,20 +107,20 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 }
 
 export async function getCommentsForPage(
-        ctx: ProtectedContext,
-        checklistId: number,
-        claimId: number,
-        instanceId: number
+	ctx: ProtectedContext,
+	checklistId: number,
+	claimId: number,
+	instanceId: number
 ) {
-        return await db
-                .selectFrom('comment')
-                .innerJoin('users', 'comment.created_by', 'users.id')
-                .selectAll('comment')
-                .select(['users.first', 'users.last', 'users.email'])
-                .where('comment.client_id', '=', ctx.session.user.client_id)
-                .where('comment.checklist_id', '=', checklistId)
-                .where('comment.claim_id', '=', claimId)
-                .where('comment.instance_id', '=', instanceId)
-                .where('comment.question_id', 'is not', null)
-                .execute();
+	return await ctx.db
+		.selectFrom('comment')
+		.innerJoin('users', 'comment.created_by', 'users.id')
+		.selectAll('comment')
+		.select(['users.first', 'users.last', 'users.email'])
+		.where('comment.client_id', '=', ctx.session.user.client_id)
+		.where('comment.checklist_id', '=', checklistId)
+		.where('comment.claim_id', '=', claimId)
+		.where('comment.instance_id', '=', instanceId)
+		.where('comment.question_id', 'is not', null)
+		.execute();
 }

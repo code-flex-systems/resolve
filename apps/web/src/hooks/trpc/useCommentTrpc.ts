@@ -1,8 +1,7 @@
 import { trpc } from '@/lib/trpc';
-import { AppRouter } from '@/server/trpc/appRouter';
-import { inferRouterOutputs } from '@trpc/server';
+import type { RouterOutput } from '@/types/routerTypes';
 
-type CommentOutput = inferRouterOutputs<AppRouter>['comment'];
+type CommentOutput = RouterOutput['comment'];
 
 export function useCommentTrpc() {
 	const utils = trpc.useUtils();

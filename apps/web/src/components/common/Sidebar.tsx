@@ -70,7 +70,7 @@ export default function Sidebar({
 					color,
 					transition: 'width 0.3s',
 					overflowX: 'hidden',
-					zIndex: 1200,
+					zIndex: 500,
 					borderRadius: 0,
 				}}
 			>

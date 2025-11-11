@@ -1,6 +1,8 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
 import {
+	Box,
+	Button,
 	Divider,
 	Fade,
 	FormControl,
@@ -22,6 +24,8 @@ import Delete from '@mui/icons-material/Delete';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import HelpOutline from '@mui/icons-material/HelpOutline';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import Close from '@mui/icons-material/Close';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
@@ -34,6 +38,11 @@ import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
+import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
+import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
+import ImageTooltip from '../common/ImageTooltip';
+import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -43,6 +52,9 @@ function getDefaults(question: Question): Omit<Question, 'answers'> {
 
 export default function FormQuestion() {
 	const [copiedField, setCopiedField] = useState<string | null>(null);
+	const [showDocSelector, setShowDocSelector] = useState(false);
+	const [attachedDoc, setAttachedDoc] = useState<DocListItem | null>(null);
+
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
@@ -54,6 +66,13 @@ export default function FormQuestion() {
 	const { isPending: copying, mutateAsync: copyQuestion } = copy;
 	const { isPending: deleting, mutateAsync: deleteQuestion } = remove;
 	const { data: questions, isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
+
+	// Fetch attached document for current question
+	const { data: attachedDocs = [] } = useDocTrpc().listDocs({
+		filters: { question_id: selectedQuestionData.id },
+	}, { enabled: selectedQuestionData.id !== -1 });
+
+	const { mutateAsync: updateDoc } = useDocTrpc().updateDoc;
 
 	const {
 		control,
@@ -137,9 +156,50 @@ export default function FormQuestion() {
 		setTimeout(() => setCopiedField(null), 2000);
 	};
 
+	const handleSelectDocument = async (doc: DocListItem) => {
+		// Unlink the previous document first if there is one
+		if (attachedDoc && attachedDoc.id !== doc.id) {
+			try {
+				await updateDoc({
+					docId: attachedDoc.id,
+					params: { question_id: null },
+				});
+			} catch (e) {
+				console.error('Failed to unlink previous document:', e);
+				// Continue anyway - the new document will be linked
+			}
+		}
+		setAttachedDoc(doc);
+		setShowDocSelector(false);
+	};
+
+	const handleRemoveDocument = async () => {
+		if (!attachedDoc) return;
+		try {
+			// Unlink the document instead of deleting it
+			await updateDoc({
+				docId: attachedDoc.id,
+				params: { question_id: null },
+			});
+			setAttachedDoc(null);
+		} catch (e) {
+			console.error(e);
+			alert('Failed to remove document attachment');
+		}
+	};
+
 	useEffect(() => {
 		reset({ ...getDefaults(selectedQuestionData) });
 	}, [selectedQuestionData, selectedPageInfo.pageId]);
+
+	// Sync attached document when docs are fetched
+	useEffect(() => {
+		if (attachedDocs.length > 0) {
+			setAttachedDoc(attachedDocs[0]); // Only support one document per question
+		} else {
+			setAttachedDoc(null);
+		}
+	}, [attachedDocs]);
 
 	const positionOptions = useMemo(() => {
 		const options: number[] = [];
@@ -403,6 +463,43 @@ export default function FormQuestion() {
 								)}
 							/>
 						</Grid>
+
+						{/* Document attachment section */}
+						<Box display="flex" alignItems="center" margin="5px" gap={1}>
+							<Button
+								variant="outlined"
+								size="small"
+								startIcon={<AttachFileIcon />}
+								onClick={() => setShowDocSelector(true)}
+								disabled={inTransition || isPlaceholder}
+								sx={{ height: 30 }}
+							>
+								{attachedDoc ? 'Change Document' : 'Add Document...'}
+							</Button>
+							{attachedDoc && (
+								<Box display="flex" alignItems="center" gap={1} bgcolor="#f5f5f5" p={1} borderRadius={1}>
+									<Typography fontSize={12} color="text.secondary">
+										{attachedDoc.title || attachedDoc.alias}
+									</Typography>
+									{attachedDoc.mime_type?.startsWith('image/') ? (
+										<ImageTooltip
+											imageUrl={`/api/download?docId=${attachedDoc.id}`}
+											description={attachedDoc.title ?? undefined}
+										/>
+									) : (
+										<DocumentIconWithPreview document={attachedDoc} />
+									)}
+									<IconButton
+										size="small"
+										onClick={handleRemoveDocument}
+										disabled={inTransition}
+										sx={{ ml: 0.5, padding: 0.5 }}
+									>
+										<Close sx={{ fontSize: 16 }} />
+									</IconButton>
+								</Box>
+							)}
+						</Box>
 					</Grid>
 				</Form>
 			</Fade>
@@ -421,6 +518,16 @@ export default function FormQuestion() {
 						answers.
 					</Typography>
 				</ConfirmationDialog>
+			)}
+
+			{showDocSelector && (
+				<DocumentSelectorDialog
+					onClose={() => setShowDocSelector(false)}
+					onSelectDocument={handleSelectDocument}
+					filterByType="all"
+					title="Add Document to Question"
+					relationshipData={{ question_id: selectedQuestionData.id }}
+				/>
 			)}
 		</>
 	);

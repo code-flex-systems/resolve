@@ -2,6 +2,7 @@ import * as pageQueries from '@/api/queries/pageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TreeNode } from '@/types/types';
 import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas/pageSchemas';
+import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 /**
  * Create a page template and attach an instance.
@@ -11,11 +12,33 @@ import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas
  * @returns ids for new page and instance
  */
 export async function createPage(
-        ctx: ProtectedContext,
-        { checklistId, params }: { checklistId: number; params: PageParams }
+	ctx: ProtectedContext,
+	{ checklistId, params }: { checklistId: number; params: PageParams }
 ) {
-        const results = await pageQueries.createPage(ctx, checklistId, params);
-        return results;
+	// Create page and instance, log admin actions within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await pageQueries.createPage({ ...ctx, db: trx }, checklistId, params);
+
+		// Log both page and page instance creation
+		await logAdminActions({ ...ctx, db: trx }, [
+			{
+				entityId: created.id,
+				entityName: EntityName.PAGE,
+				action: AdminAction.CREATE,
+				value: { title: created.title, checklistId },
+			},
+			{
+				entityId: created.instance_id,
+				entityName: EntityName.PAGE_INSTANCE,
+				action: AdminAction.CREATE,
+				value: { pageId: created.id, checklistId, title: created.title },
+			},
+		]);
+
+		return created;
+	});
+
+	return results;
 }
 
 /**
@@ -37,7 +60,21 @@ export async function copyPageTemplate(
 		params: { parentId: number; position: number };
 	}
 ) {
-	const results = await pageQueries.copyPageTemplate(ctx, checklistId, pageId, params);
+	// Copy page template and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await pageQueries.copyPageTemplate({ ...ctx, db: trx }, checklistId, pageId, params);
+
+		// Log page creation (copied from source)
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: created.id,
+			entityName: EntityName.PAGE,
+			action: AdminAction.CREATE,
+			value: { title: created.title, checklistId, sourcePageId: pageId, copied: true },
+		});
+
+		return created;
+	});
+
 	return results;
 }
 
@@ -48,23 +85,37 @@ export async function copyPageTemplate(
  * @param input - ids and positioning info
  */
 export async function createPageInstance(
-        ctx: ProtectedContext,
-        {
-                checklistId,
-                pageId,
-                params,
-        }: {
-                checklistId: number;
-                pageId: number;
-                params: PageInstanceParams;
-        }
-) {
-        const results = await pageQueries.createPageInstance(ctx, {
-                checklistId,
+	ctx: ProtectedContext,
+	{
+		checklistId,
 		pageId,
-		parentId: params.parentId,
-		position: params.position,
+		params,
+	}: {
+		checklistId: number;
+		pageId: number;
+		params: PageInstanceParams;
+	}
+) {
+	// Create page instance and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const created = await pageQueries.createPageInstance({ ...ctx, db: trx }, {
+			checklistId,
+			pageId,
+			parentId: params.parentId,
+			position: params.position,
+		});
+
+		// Log page instance creation
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: created.id,
+			entityName: EntityName.PAGE_INSTANCE,
+			action: AdminAction.CREATE,
+			value: { pageId, checklistId, position: params.position },
+		});
+
+		return created;
 	});
+
 	return results;
 }
 
@@ -75,7 +126,24 @@ export async function createPageInstance(
  * @param input - instance id
  */
 export async function deletePageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: number }) {
-	await pageQueries.deletePageInstance(ctx, instanceId);
+	// Delete page instance and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch instance data BEFORE deletion for logging
+		const instance = await pageQueries.getPageInstanceForDeletion({ ...ctx, db: trx }, instanceId);
+
+		// Delete the page instance
+		await pageQueries.deletePageInstance({ ...ctx, db: trx }, instanceId);
+
+		// Log admin action for page instance deletion
+		if (instance) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: instanceId,
+				entityName: EntityName.PAGE_INSTANCE,
+				action: AdminAction.DELETE,
+				value: { pageId: instance.page_id, checklistId: instance.checklist_id, title: instance.title },
+			});
+		}
+	});
 }
 
 /**
@@ -179,11 +247,25 @@ export async function getVisiblePageInstances(
  * @param input - page id and update fields
  */
 export async function modifyPage(
-        ctx: ProtectedContext,
-        { id, params }: { id: number; params: PageUpdateParams }
+	ctx: ProtectedContext,
+	{ id, params }: { id: number; params: PageUpdateParams }
 ) {
-        const results = await pageQueries.modifyPage(ctx, id, params);
-        return results;
+	// Update page and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const updated = await pageQueries.modifyPage({ ...ctx, db: trx }, id, params);
+
+		// Log admin action for page update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: id,
+			entityName: EntityName.PAGE,
+			action: AdminAction.UPDATE,
+			value: params,
+		});
+
+		return updated;
+	});
+
+	return results;
 }
 
 // private methods

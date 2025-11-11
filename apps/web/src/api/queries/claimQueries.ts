@@ -1,5 +1,4 @@
 import { sql } from 'kysely';
-import { db } from '@/api/database/kysely';
 import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -17,7 +16,7 @@ import config from '@/config/config';
  */
 async function assertChecklistPublished(ctx: ProtectedContext, checklistId: number) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
-	const checklist = await db
+	const checklist = await ctx.db
 		.selectFrom('checklist')
 		.select(['id'])
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
@@ -33,10 +32,10 @@ async function assertChecklistPublished(ctx: ProtectedContext, checklistId: numb
 }
 
 export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
-        await assertChecklistPublished(ctx, checklistId);
-        return await db
-                .insertInto('checklist_claim')
-                .values({
+	await assertChecklistPublished(ctx, checklistId);
+	return await ctx.db
+		.insertInto('checklist_claim')
+		.values({
 			checklist_id: checklistId,
 			claim_id: claimId,
 			client_id: ctx.session.user.client_id,
@@ -56,9 +55,9 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
  * @returns claim record
  */
 export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-        await assertChecklistPublished(ctx, checklistId);
-        await db
-                .insertInto('checklist_claim')
+	await assertChecklistPublished(ctx, checklistId);
+	await ctx.db
+		.insertInto('checklist_claim')
 		.values({
 			checklist_id: checklistId,
 			claim_id: claimId,
@@ -69,33 +68,33 @@ export async function getClaim(ctx: ProtectedContext, checklistId: number, claim
 		})
 		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
 		.execute();
-        return await db
-                .selectFrom('claim')
-                .selectAll()
-                .where('claim.client_id', '=', ctx.session.user.client_id)
-                .where('id', '=', claimId)
-                .executeTakeFirstOrThrow();
+	return await ctx.db
+		.selectFrom('claim')
+		.selectAll()
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('id', '=', claimId)
+		.executeTakeFirstOrThrow();
 }
 
 export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: number, offset = 0) {
-        const row = await db
-                .with('base', (qb) =>
-                        qb
-                                .selectFrom('claim')
-                                .selectAll('claim')
-                                .where('claim.client_id', '=', ctx.session.user.client_id)
-                                .where('claim.feed_id', '=', feedId)
-                .where((eb) =>
-                                        eb.not(
-                                                eb.exists(
-                                                        eb
-                                                                .selectFrom('checklist_claim')
-                                                                .select(sql.raw('1').as('row'))
-                                                                .whereRef('checklist_claim.claim_id', '=', 'claim.id')
-                                                )
-                                        )
-                                )
-                )
+	const row = await ctx.db
+		.with('base', (qb) =>
+			qb
+				.selectFrom('claim')
+				.selectAll('claim')
+				.where('claim.client_id', '=', ctx.session.user.client_id)
+				.where('claim.feed_id', '=', feedId)
+				.where((eb) =>
+					eb.not(
+						eb.exists(
+							eb
+								.selectFrom('checklist_claim')
+								.select(sql.raw('1').as('row'))
+								.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+						)
+					)
+				)
+		)
 		.with('totals', (qb) => qb.selectFrom('base').select(sql<number>`count(*)`.as('total_unassigned')))
 		.with('next_row', (qb) =>
 			qb.selectFrom('base').selectAll().orderBy('created_at asc').orderBy('id asc').offset(offset).limit(1)
@@ -139,7 +138,7 @@ export async function getClaims(
 ) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
-	let query = db
+	let query = ctx.db
 		.selectFrom('claim')
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id);
@@ -150,15 +149,13 @@ export async function getClaims(
 	// 2. Assigned to them (assignee in checklist_claim)
 	// 3. Not assigned/worked (no entry in checklist_claim)
 	if (!isAdmin) {
-		query = query
-			.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id')
-			.where((eb) =>
-				eb.or([
-					eb('cc.created_by', '=', ctx.session.user.id), // Owned by them
-					eb('cc.assignee', '=', ctx.session.user.id), // Assigned to them
-					eb('cc.claim_id', 'is', null), // Not in checklist_claim (available)
-				])
-			);
+		query = query.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id').where((eb) =>
+			eb.or([
+				eb('cc.created_by', '=', ctx.session.user.id), // Owned by them
+				eb('cc.assignee', '=', ctx.session.user.id), // Assigned to them
+				eb('cc.claim_id', 'is', null), // Not in checklist_claim (available)
+			])
+		);
 	}
 
 	query =
@@ -211,15 +208,15 @@ export async function getClaims(
  * @returns a count
  */
 export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
-        const results = await db
-                .selectFrom('claim')
-                .select(({ eb, fn }) => [
-                        eb.case().when('feed_id', 'is', null).then(true).else(false).end().as('manual'),
-                        fn.count('id').as('count'),
-                ])
-                .where('claim.client_id', '=', clientId)
-                .groupBy('manual')
-                .execute();
+	const results = await ctx.db
+		.selectFrom('claim')
+		.select(({ eb, fn }) => [
+			eb.case().when('feed_id', 'is', null).then(true).else(false).end().as('manual'),
+			fn.count('id').as('count'),
+		])
+		.where('claim.client_id', '=', clientId)
+		.groupBy('manual')
+		.execute();
 	let total = 0;
 	const formattedResults = results.map((r) => {
 		const count = parseInt(r.count.toString());
@@ -235,26 +232,23 @@ export async function getClaimCount(ctx: ProtectedContext, clientId: string) {
 
 export async function getRolloverClaimCount(ctx: ProtectedContext) {
 	const currentFQStartDate = getCurrentFiscalQuarterStart().toDate();
-        const count = await db
-                .selectFrom('claim')
-                .leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
-                .leftJoin('checklist', (join) =>
-                        join
-                                .onRef('checklist_claim.checklist_id', '=', 'checklist.id')
-                                .on('checklist.client_id', '=', ctx.session.user.client_id)
-                )
-                .select(({ fn }) => fn.countAll().as('count'))
-                .where('claim.client_id', '=', ctx.session.user.client_id)
-                .where((eb) =>
-                        eb.or([
-                                eb.and([
-                                        eb('checklist_claim.claim_id', 'is', null),
-                                        eb('claim.created_at', '<', currentFQStartDate),
-                                ]),
-                                eb('checklist_claim.created_at', '<', currentFQStartDate),
-                        ])
-                )
-                .executeTakeFirstOrThrow();
+	const count = await ctx.db
+		.selectFrom('claim')
+		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		.leftJoin('checklist', (join) =>
+			join
+				.onRef('checklist_claim.checklist_id', '=', 'checklist.id')
+				.on('checklist.client_id', '=', ctx.session.user.client_id)
+		)
+		.select(({ fn }) => fn.countAll().as('count'))
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where((eb) =>
+			eb.or([
+				eb.and([eb('checklist_claim.claim_id', 'is', null), eb('claim.created_at', '<', currentFQStartDate)]),
+				eb('checklist_claim.created_at', '<', currentFQStartDate),
+			])
+		)
+		.executeTakeFirstOrThrow();
 	return { count: parseInt(count.count.toString()) };
 }
 
@@ -263,10 +257,10 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  *
  * @param ctx - request context
  * @param claims - claim objects without ids
- * @returns the first created claim as a convenience
+ * @returns all created/updated claims
  */
 export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
-	const [feed] = await db
+	const result = await ctx.db
 		.insertInto('claim')
 		.values(
 			claims.map((c) => ({
@@ -301,5 +295,5 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 		)
 		.returningAll()
 		.execute();
-	return feed;
+	return result;
 }

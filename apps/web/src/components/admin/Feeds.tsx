@@ -50,7 +50,7 @@ export default function Feeds() {
 		<div style={styles.container} className="flex-row-left">
 			<Paper sx={styles.paper}>
 				<Toolbar
-					left={<ExpandableTitle icon={<RssFeed sx={{ color: 'white' }} />} title="Feeds" />}
+					left={<Typography variant="h6">Feeds</Typography>}
 					right={
 						<BasicButtonStyled
 							buttonProps={{

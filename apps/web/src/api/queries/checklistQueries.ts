@@ -1,5 +1,4 @@
-import { ExpressionWrapper, sql, SqlBool, Transaction } from 'kysely';
-import { db } from '@/api/database/kysely';
+import { ExpressionWrapper, sql, SqlBool } from 'kysely';
 import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DB } from '../database/types';
@@ -20,38 +19,53 @@ const MAX_TREE_DEPTH = 30;
  * @returns the created checklist record
  */
 export async function createChecklist(ctx: ProtectedContext, name: string, existingChecklistId?: number) {
-	let newChecklist: any;
-	await db.transaction().execute(async (trx) => {
-		newChecklist = await trx
-			.insertInto('checklist')
-			.values({
-				name,
-				created_by: ctx.session.user.id,
-				client_id: ctx.session.user.client_id,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		if (existingChecklistId) {
-			await trx
-				.insertInto('page_instance')
-				.columns(['page_id', 'parent_instance_id', 'checklist_id', 'position', 'client_id', 'created_by'])
-				.expression((eb) =>
-					eb
-						.selectFrom('page_instance')
-						.select([
-							'page_id',
-							'parent_instance_id',
-							eb.val(newChecklist.id).as('checklist_id'),
-							'position',
-							'client_id',
-							eb.val(ctx.session.user.id).as('created_by'),
-						])
-						.where('checklist_id', '=', existingChecklistId)
-				)
-				.execute();
-		}
-	});
+	const newChecklist = await ctx.db
+		.insertInto('checklist')
+		.values({
+			name,
+			created_by: ctx.session.user.id,
+			client_id: ctx.session.user.client_id,
+		})
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	if (existingChecklistId) {
+		await ctx.db
+			.insertInto('page_instance')
+			.columns(['page_id', 'parent_instance_id', 'checklist_id', 'position', 'client_id', 'created_by'])
+			.expression((eb) =>
+				eb
+					.selectFrom('page_instance')
+					.select([
+						'page_id',
+						'parent_instance_id',
+						eb.val(newChecklist.id).as('checklist_id'),
+						'position',
+						'client_id',
+						eb.val(ctx.session.user.id).as('created_by'),
+					])
+					.where('checklist_id', '=', existingChecklistId)
+			)
+			.execute();
+	}
+
 	return newChecklist;
+}
+
+/**
+ * Fetch a checklist for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param checklistId - checklist identifier
+ * @returns the checklist details
+ */
+export async function getChecklistForDeletion(ctx: ProtectedContext, checklistId: number) {
+	return await ctx.db
+		.selectFrom('checklist')
+		.select(['id', 'name', 'published'])
+		.where('id', '=', checklistId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**
@@ -61,7 +75,7 @@ export async function createChecklist(ctx: ProtectedContext, name: string, exist
  * @param checklistId - identifier of the checklist
  */
 export async function deleteChecklist(ctx: ProtectedContext, checklistId: number) {
-	await db.deleteFrom('checklist').where('id', '=', checklistId).execute();
+	await ctx.db.deleteFrom('checklist').where('id', '=', checklistId).execute();
 }
 
 export async function modifyChecklistClaim(
@@ -69,20 +83,19 @@ export async function modifyChecklistClaim(
 	checklistId: number,
 	claimId: number,
 	status?: ClaimStatus,
-	assignee?: string,
-	trx?: Transaction<DB>
+	assignee?: string
 ) {
 	let assigneeId: string | undefined;
 	if (assignee) {
 		assigneeId = (
-			await (trx ?? db)
+			await ctx.db
 				.selectFrom('users')
 				.select('id')
 				.where((eb) => eb.and([eb('email', '=', assignee), eb('client_id', '=', ctx.session.user.client_id)]))
 				.executeTakeFirstOrThrow(() => new TRPCError({ code: 'BAD_REQUEST', message: 'Could not find user' }))
 		).id;
 	}
-	await (trx ?? db)
+	await ctx.db
 		.updateTable('checklist_claim')
 		.set({
 			status,
@@ -114,7 +127,7 @@ export async function modifyChecklistClaim(
  */
 export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
-	return await db
+	return await ctx.db
 		.selectFrom('checklist')
 		.selectAll()
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
@@ -133,7 +146,7 @@ export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
  */
 export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string } = {}) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
-	let query = db
+	let query = ctx.db
 		.selectFrom('checklist')
 		.leftJoin('page_instance', 'page_instance.checklist_id', 'checklist.id')
 		.leftJoin('users', 'checklist.created_by', 'users.id')
@@ -168,7 +181,7 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
  * @returns published/unpublished count
  */
 export async function getChecklistCount(ctx: ProtectedContext, clientId: string) {
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('checklist')
 		.select(({ fn }) => ['published', fn.count('id').as('count')])
 		.where('checklist.client_id', '=', clientId)
@@ -196,7 +209,7 @@ export async function getChecklistCount(ctx: ProtectedContext, clientId: string)
  * @returns the checklist_claim row
  */
 export async function getChecklistClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('checklist_claim')
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 		.innerJoin('users', 'checklist_claim.assignee', 'users.id')
@@ -208,7 +221,7 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 }
 
 export async function getChecklistClaimProgress(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	const unlockedPages = db.withRecursive('unlocked_pages', (db) =>
+	const unlockedPages = ctx.db.withRecursive('unlocked_pages', (db) =>
 		db
 			.selectFrom('page_instance')
 			.innerJoin('checklist', 'page_instance.checklist_id', 'checklist.id')
@@ -278,7 +291,17 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 				.filterWhere((f) =>
 					f.or([
 						f('question_response.response_text', 'is not', null),
-						f('question_response_answer.id', 'is not', null),
+						f('question_response.response_doc_id', 'is not', null),
+						f.and([
+							f('question_response_answer.id', 'is not', null),
+							sql<boolean>`not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)`,
+						]),
 					])
 				)
 				.as('answered_count'),
@@ -291,7 +314,7 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 }
 
 export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?: number, users?: string[]) {
-	return await db
+	return await ctx.db
 		.selectFrom('checklist_claim')
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 		.innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
@@ -324,7 +347,7 @@ export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?
  */
 export async function getChecklistSummary(ctx: ProtectedContext, checklistId: number, claimId: number) {
 	// Aggregate counts for a claim across all questions on the checklist
-	return await db
+	return await ctx.db
 		.selectFrom('page_instance')
 		.innerJoin('checklist', 'page_instance.checklist_id', 'checklist.id')
 		.innerJoin('question', 'question.page_id', 'page_instance.page_id')
@@ -342,9 +365,19 @@ export async function getChecklistSummary(ctx: ProtectedContext, checklistId: nu
 			sql<number>`count(distinct question_response.id)
 		filter (
 		where question_response.response_text is not null
-		    or exists (
-			select 1 from question_response_answer
-			where question_response_answer.response_id = question_response.id
+		    or question_response.response_doc_id is not null
+		    or (
+			exists (
+			    select 1 from question_response_answer
+			    where question_response_answer.response_id = question_response.id
+			)
+			and not exists (
+			    select 1 from question_response_answer qra
+			    join answer a on a.id = qra.answer_id
+			    where qra.response_id = question_response.id
+			    and a.requires_upload = true
+			    and question_response.response_doc_id is null
+			)
 		    )
 		)`.as('total_answered'),
 			// All answers requiring action
@@ -408,7 +441,7 @@ export async function getChecklistSummaryDetail(
 	}
 ) {
 	// Build the base query for pulling questions, answers and responses
-	let query = db
+	let query = ctx.db
 		.selectFrom('page_instance')
 		.innerJoin('checklist', 'page_instance.checklist_id', 'checklist.id')
 		.innerJoin('page', 'page.id', 'page_instance.page_id')
@@ -438,7 +471,17 @@ export async function getChecklistSummaryDetail(
 			query = query.where((qb) =>
 				qb.or([
 					qb('question_response.response_text', 'is not', null),
-					sql<boolean>`question_response_answer.id is not null`,
+					qb('question_response.response_doc_id', 'is not', null),
+					sql<boolean>`(
+						question_response_answer.id is not null
+						and not exists (
+							select 1 from question_response_answer qra
+							join answer a on a.id = qra.answer_id
+							where qra.response_id = question_response.id
+							and a.requires_upload = true
+							and question_response.response_doc_id is null
+						)
+					)`,
 				])
 			);
 			break;
@@ -451,7 +494,17 @@ export async function getChecklistSummaryDetail(
 					// Must be answered
 					qb.or([
 						qb('question_response.response_text', 'is not', null),
-						sql<boolean>`question_response_answer.id is not null`,
+						qb('question_response.response_doc_id', 'is not', null),
+						sql<boolean>`(
+							question_response_answer.id is not null
+							and not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)
+						)`,
 					]),
 					// Must meet at least one action-required criterion
 					sql<boolean>`(
@@ -468,7 +521,17 @@ export async function getChecklistSummaryDetail(
 					// Must be answered
 					qb.or([
 						qb('question_response.response_text', 'is not', null),
-						sql<boolean>`question_response_answer.id is not null`,
+						qb('question_response.response_doc_id', 'is not', null),
+						sql<boolean>`(
+							question_response_answer.id is not null
+							and not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)
+						)`,
 					]),
 					// Must NOT meet any action-required criterion
 					sql<boolean>`(
@@ -544,7 +607,7 @@ export async function getChecklistClaims(
 	limit: number,
 	offset: number
 ) {
-	const baseQuery = db
+	const baseQuery = ctx.db
 		.selectFrom('checklist')
 		.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
 		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
@@ -577,6 +640,7 @@ export async function getChecklistClaims(
 			'claim.claim_number',
 			'claim.client',
 			'claim.expected_recovery',
+			'claim.actual_recovery',
 			'u1.last as created_by_last',
 			'u1.first as created_by_first',
 			'u1.email as created_by_email',
@@ -593,13 +657,68 @@ export async function getChecklistClaims(
 }
 
 /**
+ * Export all checklist claims matching filters (no pagination).
+ * Used for CSV export functionality.
+ *
+ * @param ctx - request context
+ * @param filters - optional filters (same as getChecklistClaims)
+ * @returns all matching checklist claims
+ */
+export async function exportChecklistClaims(
+	ctx: ProtectedContext,
+	filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus }
+) {
+	const query = ctx.db
+		.selectFrom('checklist')
+		.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
+		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
+		.leftJoin('users as u1', 'u1.id', 'checklist_claim.created_by')
+		.leftJoin('users as u2', 'u2.id', 'checklist_claim.assignee')
+		.where('checklist.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
+			if (filters.checklistId) whereClause.push(eb('checklist.id', '=', filters.checklistId));
+			if (filters.users?.length) whereClause.push(eb('u2.id', 'in', filters.users));
+			if (filters.range && filters.range.some((d) => !!d)) {
+				if (filters.range[0]) {
+					whereClause.push(eb('checklist_claim.created_at', '>=', filters.range[0]));
+				}
+				if (filters.range[1]) {
+					whereClause.push(eb('checklist_claim.created_at', '<=', filters.range[1]));
+				}
+			}
+			if (filters.claimStatus) {
+				whereClause.push(eb('checklist_claim.status', '=', filters.claimStatus));
+			}
+			return eb.and(whereClause);
+		})
+		.selectAll('checklist_claim')
+		.select([
+			'checklist.name as checklist_name',
+			'claim.claim_number',
+			'claim.client',
+			'claim.expected_recovery',
+			'claim.actual_recovery',
+			'u1.last as created_by_last',
+			'u1.first as created_by_first',
+			'u1.email as created_by_email',
+			'u2.last as assignee_last',
+			'u2.first as assignee_first',
+			'u2.email as assignee_email',
+		])
+		.orderBy('checklist_claim.updated_at desc');
+
+	return await query.execute();
+}
+
+/**
  * Retrieve the most recently opened claims for any checklist.
  *
  * @param ctx - request context
  * @returns list of recent checklist/claim pairs
  */
 export async function getRecentChecklistClaims(ctx: ProtectedContext) {
-	return await db
+	return await ctx.db
 		.selectFrom('checklist')
 		.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
 		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
@@ -626,22 +745,16 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  * @param params - fields to change
  * @returns the updated checklist
  */
-export async function modifyChecklist(
-        ctx: ProtectedContext,
-        checklistId: number,
-        params: ChecklistParams
-) {
-        const updates = Object.fromEntries(
-                Object.entries(params).filter(([, value]) => value !== undefined)
-        );
+export async function modifyChecklist(ctx: ProtectedContext, checklistId: number, params: ChecklistParams) {
+	const updates = Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined));
 
-        return await db
-                .updateTable('checklist')
-                .set({
-                        ...updates,
-                        updated_by: ctx.session.user.id,
-                        updated_at: sql`now()`,
-                })
+	return await ctx.db
+		.updateTable('checklist')
+		.set({
+			...updates,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		})
 		.where('id', '=', checklistId)
 		.returningAll()
 		.executeTakeFirstOrThrow();

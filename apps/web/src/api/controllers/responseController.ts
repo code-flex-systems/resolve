@@ -7,7 +7,6 @@ import { ClaimStatus, PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRange, DateRangeStrict, Interval, QuestionResponse } from '@/types/types';
 import { TRPCError } from '@trpc/server';
-import { db } from '../database/kysely';
 import { executeActions } from './actionController';
 
 /**
@@ -139,6 +138,20 @@ export async function getResponseAuditLogStats(
 }
 
 /**
+ * Export all response audit logs matching filters (for CSV export).
+ *
+ * @param ctx - request context
+ * @param filters - filters for audit logs
+ * @returns all matching audit log entries
+ */
+export async function exportResponseAuditLogs(
+	ctx: ProtectedContext,
+	{ filters }: { filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string } }
+) {
+	return await responseQueries.exportResponseAuditLogs(ctx, filters);
+}
+
+/**
  * Insert or update multiple responses at once.
  *
  * @param ctx - request context
@@ -155,20 +168,19 @@ export async function upsertQuestionResponses(
 
 	let newStatus: PageInstanceStatus = PageInstanceStatus.UNSTARTED;
 	let newClaimStatus: ClaimStatus = ClaimStatus.UNWORKED;
-	await db.transaction().execute(async (trx) => {
-		newStatus = await responseQueries.upsertQuestionResponses(ctx, responses, trx);
+	await ctx.db.transaction().execute(async (trx) => {
+		newStatus = await responseQueries.upsertQuestionResponses({ ...ctx, db: trx }, responses);
 		// Update checklist + claim status when
 		// a) this is the first work being done on the checklist, or
 		// b) this work is being done post-submission
 		if (!claimStatus || [ClaimStatus.UNWORKED, ClaimStatus.SUBMITTED].includes(claimStatus)) {
 			newClaimStatus = ClaimStatus.IN_PROGRESS;
 			await checklistQueries.modifyChecklistClaim(
-				ctx,
+				{ ...ctx, db: trx },
 				sampleResponse.checklist_id,
 				sampleResponse.claim_id,
 				ClaimStatus.IN_PROGRESS,
-				undefined,
-				trx
+				undefined
 			);
 		}
 	});

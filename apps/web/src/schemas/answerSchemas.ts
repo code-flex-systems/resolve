@@ -12,6 +12,8 @@ export const answerParams = z.object({
         additional_info_num_lines: parseNumber().nullable().optional(),
         calls_instance_id: z.number().int().nullable().optional(),
         hidden: z.boolean().nullable().optional(),
+        requires_upload: z.boolean().nullable().optional(),
+        allowed_extensions: z.string().nullable().optional(),
 });
 export type AnswerParams = z.infer<typeof answerParams>;
 

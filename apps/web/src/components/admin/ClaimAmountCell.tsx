@@ -7,7 +7,7 @@ export default function ClaimAmountCell(props: GridRenderCellParams) {
 	return (
 		<div style={styles.cell} className="flex-row-between">
 			<Typography fontSize={14}>$</Typography>
-			<Typography fontSize={14}>{formatAmount(props.value)}</Typography>
+			<Typography fontSize={14}>{props.value ? formatAmount(props.value) : '0.00'}</Typography>
 		</div>
 	);
 }

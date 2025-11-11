@@ -11,6 +11,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import config from '@/config/config';
 import { DateRangeStrict } from '@/types/types';
+import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 export async function getUsers(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
 	const results = await userQueries.getUsers(ctx, searchTerm);
@@ -113,7 +114,24 @@ export async function createUsers(
 		phone?: string;
 	}[] = users.map((u) => ({ ...u, password: generateStrongPassword() }));
 	const hashedUsers = await hashAllPasswords(usersWithPasswords);
-	const createdUsers = await userQueries.createUsers(ctx, hashedUsers);
+
+	// Create users and log admin actions within transaction
+	const createdUsers = await ctx.db.transaction().execute(async (trx) => {
+		const created = await userQueries.createUsers({ ...ctx, db: trx }, hashedUsers);
+
+		// Log admin actions for bulk user creation
+		await logAdminActions(
+			{ ...ctx, db: trx },
+			created.map((u) => ({
+				entityId: u.id,
+				entityName: EntityName.USER,
+				action: AdminAction.CREATE,
+				value: { email: u.email, first: u.first, last: u.last, role: u.role },
+			}))
+		);
+
+		return created;
+	});
 
 	await Promise.all(
 		usersWithPasswords.map(async (user) => {
@@ -166,7 +184,21 @@ export async function updateUser(
 		}>;
 	}
 ) {
-	const updatedUser = await userQueries.updateUser(ctx, id, params);
+	// Update user and log admin action within transaction
+	const updatedUser = await ctx.db.transaction().execute(async (trx) => {
+		const updated = await userQueries.updateUser({ ...ctx, db: trx }, id, params);
+
+		// Log admin action for user update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: id,
+			entityName: EntityName.USER,
+			action: AdminAction.UPDATE,
+			value: params,
+		});
+
+		return updated;
+	});
+
 	if (params.disabled != null) {
 		await sendEmail({
 			to: updatedUser.email,
@@ -184,7 +216,24 @@ export async function updateUser(
  * @param input - user id
  */
 export async function deleteUser(ctx: ProtectedContext, { id }: { id: string }) {
-	await userQueries.deleteUser(ctx, id);
+	// Delete user and log admin action within transaction
+	await ctx.db.transaction().execute(async (trx) => {
+		// Fetch user data BEFORE deletion for logging
+		const user = await userQueries.getUser({ ...ctx, db: trx }, id);
+
+		// Delete the user
+		await userQueries.deleteUser({ ...ctx, db: trx }, id);
+
+		// Log admin action for user deletion
+		if (user) {
+			await logAdminAction({ ...ctx, db: trx }, {
+				entityId: id,
+				entityName: EntityName.USER,
+				action: AdminAction.DELETE,
+				value: { email: user.email, first: user.first, last: user.last },
+			});
+		}
+	});
 }
 
 // private methods

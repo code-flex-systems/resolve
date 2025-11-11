@@ -1,6 +1,5 @@
-import { sql, Transaction } from 'kysely';
+import { sql } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
-import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { Answer, DateRangeStrict } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -16,32 +15,32 @@ import { QuestionType } from '@/config/enums';
  * @returns newly created question
  */
 export async function createQuestion(ctx: ProtectedContext, pageId: number, params: QuestionParams) {
-	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
-		await trx
-			.updateTable('question')
-			.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
-			.where('page_id', '=', pageId)
-			.where('position', '>=', params.position)
-			.execute();
-		newQuestion = await trx
-			.insertInto('question')
-			.values({
-				page_id: pageId,
-				text: params.text,
-				type: params.type,
-				description_text: params.description_text,
-				description_image_url: params.description_image_url,
-				placeholder: params.placeholder,
-				hidden: params.hidden ?? undefined,
-				position: params.position,
-				client_id: ctx.session.user.client_id,
-				created_by: ctx.session.user.id,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
+	await ctx.db
+		.updateTable('question')
+		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+		.where('page_id', '=', pageId)
+		.where('position', '>=', params.position)
+		.execute();
+
+	const newQuestion = await ctx.db
+		.insertInto('question')
+		.values({
+			page_id: pageId,
+			text: params.text,
+			type: params.type,
+			description_text: params.description_text,
+			description_image_url: params.description_image_url,
+			placeholder: params.placeholder,
+			hidden: params.hidden ?? undefined,
+			position: params.position,
+			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
+		})
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	await bumpPageVersion(ctx, pageId);
+
 	return newQuestion;
 }
 
@@ -54,103 +53,119 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
  * @returns new question
  */
 export async function copyQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
-	const maxPosition = await db
+	const maxPosition = await ctx.db
 		.selectFrom('question')
 		.select(({ fn }) => fn.max('position').as('max_position'))
 		.where('question.client_id', '=', ctx.session.user.client_id)
 		.where('page_id', '=', pageId)
 		.executeTakeFirstOrThrow();
 
-	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
-		newQuestion = await trx
-			.insertInto('question')
-			.columns([
-				'page_id',
-				'description_text',
-				'description_image_url',
-				'text',
-				'type',
-				'placeholder',
-				'hidden',
-				'client_id',
-				'position',
-				'created_by',
-			])
-			.expression((eb) =>
-				eb
-					.selectFrom('question')
-					.select((eb) => [
-						'page_id',
-						'description_text',
-						'description_image_url',
-						'text',
-						'type',
-						'placeholder',
-						'hidden',
-						'client_id',
-						eb
-							.val(+maxPosition.max_position.toString() + 1)
-							.$castTo<number>()
-							.as('position'),
-						eb.val(ctx.session.user.id).as('created_by'),
-					])
-					.where('question.client_id', '=', ctx.session.user.client_id)
-					.where('id', '=', questionId)
-			)
-			.returningAll()
-			.executeTakeFirstOrThrow(() => new Error('Question does not exist'));
-		await trx
-			.insertInto('answer')
-			.columns([
-				'additional_info_num_lines',
-				'additional_info_placeholder',
-				'position',
-				'grade',
-				'text',
-				'description_text',
-				'description_image_url',
-				'has_additional_info',
-				'hidden',
-				'question_id',
-				'calls_instance_id',
-				'client_id',
-				'created_by',
-			])
-			.expression((eb) =>
-				eb
-					.selectFrom('answer')
-					.select((eb) => [
-						'additional_info_num_lines',
-						'additional_info_placeholder',
-						'position',
-						'grade',
-						'text',
-						'description_text',
-						'description_image_url',
-						'has_additional_info',
-						'hidden',
-						eb.val(newQuestion.id).$castTo<number>().as('question_id'),
-						'calls_instance_id',
-						'client_id',
-						eb.val(ctx.session.user.id).as('created_by'),
-					])
-					.where('answer.client_id', '=', ctx.session.user.client_id)
-					.where(
-						'id',
-						'in',
-						eb
-							.selectFrom('answer')
-							.select('id')
-							.where('question_id', '=', questionId)
-							.where('answer.client_id', '=', ctx.session.user.client_id)
-					)
-			)
-			.returning('id')
-			.execute();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
+	const newQuestion = await ctx.db
+		.insertInto('question')
+		.columns([
+			'page_id',
+			'description_text',
+			'description_image_url',
+			'text',
+			'type',
+			'placeholder',
+			'hidden',
+			'client_id',
+			'position',
+			'created_by',
+		])
+		.expression((eb) =>
+			eb
+				.selectFrom('question')
+				.select((eb) => [
+					'page_id',
+					'description_text',
+					'description_image_url',
+					'text',
+					'type',
+					'placeholder',
+					'hidden',
+					'client_id',
+					eb
+						.val(+maxPosition.max_position.toString() + 1)
+						.$castTo<number>()
+						.as('position'),
+					eb.val(ctx.session.user.id).as('created_by'),
+				])
+				.where('question.client_id', '=', ctx.session.user.client_id)
+				.where('id', '=', questionId)
+		)
+		.returningAll()
+		.executeTakeFirstOrThrow(() => new Error('Question does not exist'));
+
+	await ctx.db
+		.insertInto('answer')
+		.columns([
+			'additional_info_num_lines',
+			'additional_info_placeholder',
+			'position',
+			'grade',
+			'text',
+			'description_text',
+			'description_image_url',
+			'has_additional_info',
+			'hidden',
+			'question_id',
+			'calls_instance_id',
+			'client_id',
+			'created_by',
+		])
+		.expression((eb) =>
+			eb
+				.selectFrom('answer')
+				.select((eb) => [
+					'additional_info_num_lines',
+					'additional_info_placeholder',
+					'position',
+					'grade',
+					'text',
+					'description_text',
+					'description_image_url',
+					'has_additional_info',
+					'hidden',
+					eb.val(newQuestion.id).$castTo<number>().as('question_id'),
+					'calls_instance_id',
+					'client_id',
+					eb.val(ctx.session.user.id).as('created_by'),
+				])
+				.where('answer.client_id', '=', ctx.session.user.client_id)
+				.where(
+					'id',
+					'in',
+					eb
+						.selectFrom('answer')
+						.select('id')
+						.where('question_id', '=', questionId)
+						.where('answer.client_id', '=', ctx.session.user.client_id)
+				)
+		)
+		.returning('id')
+		.execute();
+
+	await bumpPageVersion(ctx, pageId);
+
 	return newQuestion;
+}
+
+/**
+ * Fetch a question for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param questionId - question identifier
+ * @returns the question details
+ */
+export async function getQuestionForDeletion(ctx: ProtectedContext, questionId: number) {
+	return await ctx.db
+		.selectFrom('question')
+		.select(['id', 'page_id', 'text', 'type'])
+		.where('id', '=', questionId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**
@@ -161,19 +176,19 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
  * @param questionId - identifier of the question to delete
  */
 export async function deleteQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
-	await db.transaction().execute(async (trx) => {
-		const { position } = await trx
-			.deleteFrom('question')
-			.where('id', '=', questionId)
-			.returning('position')
-			.executeTakeFirstOrThrow();
-		await trx
-			.updateTable('question')
-			.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-			.where((eb) => eb.and([eb('page_id', '=', pageId), eb('position', '>', position)]))
-			.execute();
-		await bumpPageVersion(ctx, pageId, trx);
-	});
+	const { position } = await ctx.db
+		.deleteFrom('question')
+		.where('id', '=', questionId)
+		.returning('position')
+		.executeTakeFirstOrThrow();
+
+	await ctx.db
+		.updateTable('question')
+		.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+		.where((eb) => eb.and([eb('page_id', '=', pageId), eb('position', '>', position)]))
+		.execute();
+
+	await bumpPageVersion(ctx, pageId);
 }
 
 /**
@@ -184,7 +199,7 @@ export async function deleteQuestion(ctx: ProtectedContext, pageId: number, ques
  * @returns the question row
  */
 export async function getQuestion(ctx: ProtectedContext, questionId: number) {
-	return await db
+	return await ctx.db
 		.selectFrom('question')
 		.selectAll()
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -200,7 +215,7 @@ export async function getQuestion(ctx: ProtectedContext, questionId: number) {
  * @returns number of questions
  */
 export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
-	const countRow = await db
+	const countRow = await ctx.db
 		.selectFrom('question')
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -218,7 +233,7 @@ export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
  */
 export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 	// Pull questions with their aggregated answers for the given page
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('question')
 		.leftJoin('answer', 'answer.question_id', 'question.id')
 		.leftJoin('action', (join) =>
@@ -239,6 +254,8 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
                         'additional_info_placeholder', ${eb.ref('answer.additional_info_placeholder')},
                         'has_additional_info', ${eb.ref('answer.has_additional_info')},
                         'calls_instance_id', ${eb.ref('answer.calls_instance_id')},
+                        'requires_upload', ${eb.ref('answer.requires_upload')},
+                        'allowed_extensions', ${eb.ref('answer.allowed_extensions')},
                         'has_action', ${eb.case().when('action.id', 'is', null).then(false).else(true).end()}
                     ) ORDER BY ${eb.ref('answer.position')}
                 ) filter (where ${eb.ref('answer.id')} is not null)`
@@ -267,7 +284,7 @@ export async function getQuestionStats(
 	filters: { claimId?: number; range: DateRangeStrict; users?: string[] }
 ) {
 	// Collect answer counts for each question over the specified interval
-	const results = await db
+	const results = await ctx.db
 		.selectFrom('question')
 		.innerJoin('answer', 'question.id', 'answer.question_id')
 		.leftJoin('question_response_answer', 'answer.id', 'question_response_answer.answer_id')
@@ -341,7 +358,7 @@ export async function modifyQuestion(
 	questionId: number,
 	params: QuestionUpdateParams
 ) {
-	const existingQuestion = await db
+	const existingQuestion = await ctx.db
 		.selectFrom('question')
 		.select(['position', 'type'])
 		.where('question.client_id', '=', ctx.session.user.client_id)
@@ -362,62 +379,60 @@ export async function modifyQuestion(
 	const convertingToFreeform =
 		params.type === QuestionType.FREEFORM && existingQuestion.type !== QuestionType.FREEFORM;
 
-	let newQuestion: any;
-	await db.transaction().execute(async (trx) => {
-		// Delete all existing answers when converting to free-form
-		if (convertingToFreeform) {
-			await trx.deleteFrom('answer').where('question_id', '=', questionId).execute();
-		}
+	// Delete all existing answers when converting to free-form
+	if (convertingToFreeform) {
+		await ctx.db.deleteFrom('answer').where('question_id', '=', questionId).execute();
+	}
 
-		if (updates.position) {
-			if (updates.position < existingQuestion.position) {
-				// Shift down: move questions [newPosition, currentPosition - 1] up by 1
-				await trx
-					.updateTable('question')
-					.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
-					.where('page_id', '=', pageId)
-					.where('position', '>=', updates.position)
-					.where('position', '<', existingQuestion.position)
-					.execute();
-			} else {
-				// Shift up: move questions [currentPosition + 1, newPosition] down by 1
-				await trx
-					.updateTable('question')
-					.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-					.where('page_id', '=', pageId)
-					.where('position', '>', existingQuestion.position)
-					.where('position', '<=', updates.position)
-					.execute();
-			}
+	if (updates.position) {
+		if (updates.position < existingQuestion.position) {
+			// Shift down: move questions [newPosition, currentPosition - 1] up by 1
+			await ctx.db
+				.updateTable('question')
+				.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+				.where('page_id', '=', pageId)
+				.where('position', '>=', updates.position)
+				.where('position', '<', existingQuestion.position)
+				.execute();
+		} else {
+			// Shift up: move questions [currentPosition + 1, newPosition] down by 1
+			await ctx.db
+				.updateTable('question')
+				.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+				.where('page_id', '=', pageId)
+				.where('position', '>', existingQuestion.position)
+				.where('position', '<=', updates.position)
+				.execute();
 		}
+	}
 
-		newQuestion = await trx
-			.updateTable('question')
-			.set({
-				...updates,
-				updated_by: ctx.session.user.id,
-				updated_at: sql`now()`,
-			})
-			.where('id', '=', questionId)
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		await bumpPageVersion(ctx, pageId, trx);
-		if (params.page_id) await bumpPageVersion(ctx, params.page_id, trx);
-	});
+	const newQuestion = await ctx.db
+		.updateTable('question')
+		.set({
+			...updates,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		})
+		.where('id', '=', questionId)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	await bumpPageVersion(ctx, pageId);
+	if (params.page_id) await bumpPageVersion(ctx, params.page_id);
+
 	return newQuestion;
 }
 
 // private methods
 
 /**
- * Helper to increment a page's version inside an existing transaction.
+ * Helper to increment a page's version.
  *
  * @param ctx - request context
  * @param pageId - page to bump
- * @param trx - transaction to run the update in
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number, trx: Transaction<DB>) {
-	await trx
+async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
+	await ctx.db
 		.updateTable('page')
 		.set((eb) => ({
 			version: sql`${eb.ref('version')} + 1`,

@@ -1,0 +1,75 @@
+import { trpc } from '@/lib/trpc';
+import type { RouterOutput } from '@/types/routerTypes';
+
+type RecoveryOutput = RouterOutput['recovery'];
+
+export function useRecoveryTrpc() {
+	const utils = trpc.useUtils();
+
+	return {
+		// Recovery Event hooks
+		createRecoveryEvent: trpc.recovery.createRecoveryEvent.useMutation({
+			onSuccess(_data, variables) {
+				// Invalidate recovery events list for this claim
+				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
+				utils.recovery.listRecoveryEventsWithFilters.invalidate();
+				// Invalidate recovery metrics as they depend on recovery events
+				utils.recovery.getRecoveryMetricsSummary.invalidate();
+				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+			},
+		}),
+
+		listRecoveryEvents: trpc.recovery.listRecoveryEvents.useQuery,
+
+		listRecoveryEventsWithFilters: trpc.recovery.listRecoveryEventsWithFilters.useQuery,
+
+		exportRecoveryEvents: trpc.recovery.exportRecoveryEvents.useQuery,
+
+		deleteRecoveryEvent: trpc.recovery.deleteRecoveryEvent.useMutation({
+			onSuccess(_data, variables) {
+				// Invalidate recovery events list for this claim
+				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
+				utils.recovery.listRecoveryEventsWithFilters.invalidate();
+				// Invalidate recovery metrics as they depend on recovery events
+				utils.recovery.getRecoveryMetricsSummary.invalidate();
+				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+			},
+		}),
+
+		// Deadline hooks
+		createDeadline: trpc.recovery.createDeadline.useMutation({
+			onSuccess(_data, variables) {
+				// Invalidate deadlines list for this claim
+				utils.recovery.listDeadlines.invalidate({ claimId: variables.claimId });
+			},
+		}),
+
+		listDeadlines: trpc.recovery.listDeadlines.useQuery,
+
+		updateDeadlineStatus: trpc.recovery.updateDeadlineStatus.useMutation({
+			onSuccess() {
+				// Invalidate all deadlines queries since we don't know which filters were used
+				utils.recovery.listDeadlines.invalidate();
+			},
+		}),
+
+		deleteDeadline: trpc.recovery.deleteDeadline.useMutation({
+			onSuccess() {
+				// Invalidate all deadlines queries
+				utils.recovery.listDeadlines.invalidate();
+			},
+		}),
+
+		// Recovery Metrics hooks
+		getRecoveryMetricsSummary: trpc.recovery.getRecoveryMetricsSummary.useQuery,
+
+		getRecoveryMetricsTimeSeries: trpc.recovery.getRecoveryMetricsTimeSeries.useQuery,
+	};
+}
+
+// Export types for use in components
+export type RecoveryEvent = RecoveryOutput['listRecoveryEvents'][number];
+export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFilters'][number];
+export type Deadline = RecoveryOutput['listDeadlines'][number];
+export type RecoveryMetricsSummary = RecoveryOutput['getRecoveryMetricsSummary'];
+export type RecoveryMetricsTimeSeries = RecoveryOutput['getRecoveryMetricsTimeSeries'];

@@ -161,6 +161,32 @@ Required environment variables (in `apps/web/.env`):
 
 ## Key Patterns
 
+**DRY Principles & Shared Utilities:**
+
+When developing features, avoid duplicating code across components. Follow these patterns:
+
+1. **Shared Utilities:** Extract common functions to utility files
+   - Currency formatting, date formatting, enum conversions → `/lib/utils/`
+   - Domain-specific utilities → `/lib/utils/{domain}Utils.ts`
+   - Example: `formatCurrency()` in `/lib/utils/recoveryUtils.ts` used across recovery components
+
+2. **Server-Side Pagination:** All data tables should use server-side pagination
+   - Pattern: `{ rows: [], count: number }` return type from queries
+   - Use `limit` and `offset` parameters in tRPC endpoints
+   - DataGridPro with `paginationMode="server"` and `CustomPagination` slot
+   - Track row count with `useRef` to prevent flashing during refetch
+   - Example: `ChecklistClaims`, `RecoveryEventsTable`
+
+3. **Component Reusability:**
+   - Extract repeated rendering logic to shared components
+   - Use `IconHeaderCell` for consistent DataGrid headers
+   - Share filter components across breakdown pages (e.g., `RecoveryStatusSelect`, `UserFilter`)
+
+4. **Type Safety:**
+   - Export derived types from tRPC hooks (e.g., `RecoveryEventWithDetails`)
+   - Cast enums properly when needed: `recoveryStatus: recoveryStatus as any`
+   - Document any type workarounds with comments
+
 **Adding a new entity:**
 
 1. Create/update database table (run SQL migration if needed)
@@ -171,6 +197,38 @@ Required environment variables (in `apps/web/.env`):
 6. Register router in `apps/web/src/server/trpc/appRouter.ts`
 7. Create frontend hook in `apps/web/src/hooks/trpc/`
 8. Add Zustand state slice if needed
+
+**SQL Migration Conventions:**
+
+When creating new database migrations:
+
+1. **Dual-File Approach:** Create both an individual migration file AND update the complete schema file
+   - Individual migration: `apps/web/src/api/sql/{feature}_infrastructure.sql` - For incremental updates
+   - Complete schema: `apps/web/src/api/sql/initial_tables_and_sql.sql` - For full database recreation
+   - Both files should be kept in sync - migrations are appended to the complete schema file
+
+2. **Enum Management:** Define enums in TypeScript, not SQL
+   - Add enum definitions to `apps/web/src/config/enums.ts` as TypeScript enums
+   - Reference these enums in Zod schemas using `z.nativeEnum(EnumName)`
+   - Use enum constants in query functions (e.g., `DocType.OTHER` instead of `'other'`)
+   - SQL CHECK constraints can validate against enum values, but TypeScript is the source of truth
+   - This prevents errors from hardcoded strings and ensures consistency across the codebase
+
+Example:
+```typescript
+// In apps/web/src/config/enums.ts
+export enum DocType {
+  POLICE_REPORT = 'police_report',
+  INVOICE = 'invoice',
+  OTHER = 'other',
+}
+
+// In apps/web/src/schemas/docSchemas.ts
+export const docTypeEnum = z.nativeEnum(DocType);
+
+// In apps/web/src/api/queries/docQueries.ts
+doc_type: params.doc_type || DocType.OTHER
+```
 
 **Client scoping enforcement:**
 

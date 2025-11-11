@@ -1,8 +1,7 @@
 import { trpc } from '@/lib/trpc';
-import { AppRouter } from '@/server/trpc/appRouter';
-import { inferRouterOutputs } from '@trpc/server';
+import type { RouterOutput } from '@/types/routerTypes';
 
-type ActionOutput = inferRouterOutputs<AppRouter>['action'];
+type ActionOutput = RouterOutput['action'];
 
 export function useActionTrpc() {
 	const utils = trpc.useUtils();

@@ -24,6 +24,7 @@ const createMockContext = (client_id: string = 'client-abc'): ProtectedContext =
 		},
 		expires: '2025-12-31T23:59:59.999Z',
 	},
+	db,
 });
 
 describe('getChecklistSummaryDetail()', () => {

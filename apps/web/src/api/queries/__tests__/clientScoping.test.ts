@@ -47,6 +47,7 @@ describe('Client-Scoping Security Tests', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();
@@ -109,6 +110,7 @@ describe('Client-Scoping Security Tests', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			const mockExecuteTakeFirst = vi.fn().mockResolvedValue(undefined);
@@ -310,6 +312,7 @@ describe('Client-Scoping Security Tests', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			const mockExecuteQuery = vi.fn().mockResolvedValue({
@@ -432,6 +435,7 @@ describe('Client-Scoping Security Tests', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			// Mock assertChecklistPublished query
@@ -878,6 +882,7 @@ describe('Client-Scoping Security Tests', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			const mockExecute = vi.fn().mockResolvedValue([]); // No rows deleted
@@ -934,6 +939,7 @@ describe('Client-Scoping Security Tests', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			const mockExecute = vi.fn().mockResolvedValue([]);
@@ -1222,6 +1228,7 @@ describe('Client-Scoping Security Tests', () => {
 					},
 					expires: '2025-12-31',
 				},
+				db,
 			};
 
 			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({

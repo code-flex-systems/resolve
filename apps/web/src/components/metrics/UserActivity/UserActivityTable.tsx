@@ -11,6 +11,9 @@ import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatUser } from '@/lib/utils/utils';
 import { useSession } from 'next-auth/react';
+import ExportButton from '@/components/common/ExportButton';
+import { CsvColumn } from '@/lib/utils/exportUtils';
+import { trpc } from '@/lib/trpc';
 
 function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boolean }) {
 	const { data: session } = useSession();
@@ -200,15 +203,23 @@ export default function UserActivityTable({
 	showPagination?: boolean;
 }) {
 	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize });
+	const trpcUtils = trpc.useUtils();
+	const { data: session } = useSession();
+
+	const filters = useMemo(
+		() => ({
+			checklistId,
+			claimId,
+			emails: users.map((u) => u.email),
+			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null] as [string | null, string | null],
+			searchTerm,
+		}),
+		[checklistId, claimId, users, range, searchTerm]
+	);
+
 	const { data: logs = { rows: [], count: undefined }, isFetching: isFetchingLogs } = useResponseTrpc().listLogs(
 		{
-			filters: {
-				checklistId,
-				claimId,
-				emails: users.map((u) => u.email),
-				range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null],
-				searchTerm,
-			},
+			filters,
 			limit: constraints.pageSize,
 			offset: constraints.page * constraints.pageSize,
 		},
@@ -237,30 +248,138 @@ export default function UserActivityTable({
 		return gridColumns;
 	}, [compact]);
 
+	// CSV column configuration matching table display
+	const csvColumns: CsvColumn<(typeof logs.rows)[number]>[] = useMemo(
+		() => [
+			{
+				header: 'Action',
+				accessor: 'action',
+				formatter: (value) => {
+					switch (value) {
+						case 'insert':
+							return 'Insert';
+						case 'update':
+							return 'Update';
+						case 'delete':
+							return 'Delete';
+						default:
+							return value || '';
+					}
+				},
+			},
+			{
+				header: 'Question',
+				accessor: 'question_text',
+			},
+			{
+				header: 'Page',
+				accessor: 'page_label',
+			},
+			{
+				header: 'Old Response Text',
+				accessor: 'old_response_text',
+				formatter: (value) => value || '',
+			},
+			{
+				header: 'New Response Text',
+				accessor: 'new_response_text',
+				formatter: (value) => value || '',
+			},
+			{
+				header: 'Old Answers',
+				accessor: (row) => {
+					try {
+						const answers =
+							typeof row.old_answers === 'string' ? JSON.parse(row.old_answers) : row.old_answers;
+						if (!answers || !Array.isArray(answers)) return '';
+						return answers.map((a: any) => a.label).join(', ');
+					} catch {
+						return '';
+					}
+				},
+			},
+			{
+				header: 'New Answers',
+				accessor: (row) => {
+					try {
+						const answers =
+							typeof row.new_answers === 'string' ? JSON.parse(row.new_answers) : row.new_answers;
+						if (!answers || !Array.isArray(answers)) return '';
+						return answers.map((a: any) => a.label).join(', ');
+					} catch {
+						return '';
+					}
+				},
+			},
+			{
+				header: 'User',
+				accessor: (row) => formatUser(row, session?.user?.email),
+			},
+			{
+				header: 'User Email',
+				accessor: 'email',
+			},
+			{
+				header: 'Timestamp',
+				accessor: 'created_at',
+				formatter: (value) => dayjs(value).format('MMMM D, YYYY hh:mm A'),
+			},
+		],
+		[session?.user?.email]
+	);
+
 	return (
-		<DataGridPro
-			columns={columns}
-			columnHeaderHeight={0}
-			loading={isFetchingLogs}
-			slots={{
-				pagination: CustomPagination,
-			}}
-			rows={logs.rows}
-			getRowHeight={() => 'auto'}
-			rowCount={rowCount}
-			hideFooterSelectedRowCount
-			pageSizeOptions={[]}
-			getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
-			hideFooter={!showPagination}
-			pagination={showPagination}
-			paginationMode="server"
-			paginationModel={constraints}
-			onPaginationModelChange={setConstraints}
-			disableColumnSelector
-			disableRowSelectionOnClick
-			disableColumnMenu
-			sx={styles.tableOverrides}
-		/>
+		<Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+			{showPagination && !compact && (
+				<Box
+					sx={{
+						display: 'flex',
+						justifyContent: 'flex-end',
+						alignItems: 'center',
+						position: 'absolute',
+						top: -45,
+						right: 0,
+						zIndex: 1,
+					}}
+				>
+					<Typography variant="caption" fontSize={12} color="text.secondary" marginRight="20px">
+						{rowCount.toLocaleString()} event{rowCount !== 1 ? 's' : ''}
+					</Typography>
+					<ExportButton
+						onExport={async () => {
+							const result = await trpcUtils.response.exportResponseAuditLogs.fetch({ filters });
+							return result;
+						}}
+						columns={csvColumns}
+						filename="user_activity"
+						size="small"
+					/>
+				</Box>
+			)}
+			<DataGridPro
+				columns={columns}
+				columnHeaderHeight={0}
+				loading={isFetchingLogs}
+				slots={{
+					pagination: CustomPagination,
+				}}
+				rows={logs.rows}
+				getRowHeight={() => 'auto'}
+				rowCount={rowCount}
+				hideFooterSelectedRowCount
+				pageSizeOptions={[]}
+				getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
+				hideFooter={!showPagination}
+				pagination={showPagination}
+				paginationMode="server"
+				paginationModel={constraints}
+				onPaginationModelChange={setConstraints}
+				disableColumnSelector
+				disableRowSelectionOnClick
+				disableColumnMenu
+				sx={styles.tableOverrides}
+			/>
+		</Box>
 	);
 }
 

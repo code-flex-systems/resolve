@@ -9,7 +9,9 @@
 		"lint": "next lint",
 		"test": "vitest",
 		"test:ui": "vitest --ui",
-		"test:coverage": "vitest --coverage"
+		"test:coverage": "vitest --coverage",
+		"azurite": "azurite-blob --silent --location ./azurite-data --blobPort 10000",
+		"typecheck": "tsc --noEmit"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
@@ -24,6 +26,7 @@
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"@vitest/ui": "3.2.4",
+		"azurite": "^3.33.0",
 		"eslint": "^9",
 		"eslint-config-next": "15.3.2",
 		"kysely": "^0.27.2",
@@ -36,6 +39,7 @@
 	},
 	"dependencies": {
 		"@auth/kysely-adapter": "1.9.1",
+		"@azure/storage-blob": "12.29.1",
 		"@emotion/react": "11.14.0",
 		"@emotion/styled": "11.14.0",
 		"@fontsource/inter": "5.2.6",

@@ -1,79 +1,70 @@
-import MetricValue from '@/components/common/MetricValue';
-import { Box, Typography } from '@mui/material';
+import { Card, CardContent, Grid, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 
 export default function UserActivitySummary({
 	totalEvents,
 	avgEvents,
 	maxEventsRow,
-	maxUserRow,
+	isBreakdown = false,
 }: {
 	totalEvents: number;
 	avgEvents: number;
 	maxEventsRow: { activity_date: string; event_count: number } | null;
-	maxUserRow?: { activity_date: string; active_users: number };
+	isBreakdown?: boolean;
 }) {
+	const cardPadding = isBreakdown ? 2 : 1;
+	const cardLabelSize = isBreakdown ? 13 : 12;
+	const cardValueSize = isBreakdown ? 24 : 16;
+	const cardSubtextSize = isBreakdown ? 13 : 12;
+	const spacing = isBreakdown ? 2 : 1;
+
 	return (
-		<ul style={{ margin: '10px 20px', padding: '0px 20px 10px' }}>
-			<li>
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-					<MetricValue value={totalEvents.toLocaleString()} fontSize={14} />
-					<Typography paddingLeft="5px" fontSize={14}>
-						event(s) total
-					</Typography>
-				</Box>
-			</li>
-			<li>
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center" paddingTop="5px">
-					<Typography paddingRight="5px" fontSize={14}>
-						Avg.
-					</Typography>
-					<MetricValue value={avgEvents.toLocaleString()} fontSize={14} />
-					<Typography paddingLeft="5px" fontSize={14}>
-						event(s) a day
-					</Typography>
-				</Box>
-			</li>
-			{maxEventsRow && maxUserRow && (
-				<li>
-					<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center" paddingTop="5px">
-						<Typography fontSize={14} paddingRight="5px" noWrap>
-							Busiest day -
+		<Grid container spacing={spacing} mb={isBreakdown ? 3 : 1.5} mt={isBreakdown ? 1 : 0}>
+			<Grid>
+				<Card variant="outlined" sx={{ height: '100%' }}>
+					<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+						<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+							Total Events
 						</Typography>
-						<MetricValue value={dayjs(maxEventsRow.activity_date).format('MMMM D')} fontSize={14} />
-					</Box>
-					<ul style={{ margin: 0, padding: 0, marginLeft: '20px' }}>
-						<li>
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="flex-start"
-								alignItems="center"
-								paddingTop="5px"
-							>
-								<MetricValue value={maxUserRow.active_users.toLocaleString()} fontSize={14} />
-								<Typography fontSize={14} padding="0px 5px" noWrap>
-									active user(s)
-								</Typography>
-							</Box>
-						</li>
-						<li>
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="flex-start"
-								alignItems="center"
-								paddingTop="5px"
-							>
-								<MetricValue value={maxEventsRow.event_count.toLocaleString()} fontSize={14} />
-								<Typography fontSize={15} paddingLeft="5px" noWrap>
-									event(s)
-								</Typography>
-							</Box>
-						</li>
-					</ul>
-				</li>
-			)}
-		</ul>
+						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
+							{totalEvents.toLocaleString()}
+						</Typography>
+						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary" maxWidth={100}>
+							{isBreakdown ? 'in selected range' : 'past 30 days'}
+						</Typography>
+					</CardContent>
+				</Card>
+			</Grid>
+			<Grid>
+				<Card variant="outlined" sx={{ height: '100%' }}>
+					<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+						<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+							Avg Events a Day
+						</Typography>
+						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
+							{avgEvents.toLocaleString()}
+						</Typography>
+						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
+							daily average
+						</Typography>
+					</CardContent>
+				</Card>
+			</Grid>
+			<Grid>
+				<Card variant="outlined" sx={{ height: '100%' }}>
+					<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+						<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+							Busiest Day
+						</Typography>
+						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
+							{maxEventsRow ? dayjs(maxEventsRow.activity_date).format('MMM D') : '-'}
+						</Typography>
+						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
+							{maxEventsRow ? `${maxEventsRow.event_count.toLocaleString()} events` : 'no data'}
+						</Typography>
+					</CardContent>
+				</Card>
+			</Grid>
+		</Grid>
 	);
 }

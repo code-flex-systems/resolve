@@ -17,7 +17,7 @@ import MetricValue from '@/components/common/MetricValue';
 import UserActivitySummary from './UserActivitySummary';
 
 const METRIC_WIDTH = 400;
-const METRIC_HEIGHT = 350;
+const METRIC_HEIGHT = 300;
 
 export default function UserActivityMetric() {
 	const today = dayjs().endOf('day');
@@ -52,14 +52,15 @@ export default function UserActivityMetric() {
 							alignItems="center"
 							padding="0px 5px"
 						>
-							<ExpandableTitle
-								title="User Activity"
-								icon={<GraphicEq sx={{ color: BASE_COLOR }} />}
-								color={'white'}
-								bgcolor="#F0F3F7"
-								padding="5px 0px 10px"
-							/>
+							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+								User Activity
+							</Typography>
 							<Box display="flex" justifyContent="flex-end" alignItems="center">
+								<Box marginRight="15px">
+									<Typography fontSize={13} color="#d9d9d9">
+										past 30 days
+									</Typography>
+								</Box>
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
@@ -86,15 +87,13 @@ export default function UserActivityMetric() {
 								/>
 							</Box>
 						</Box>
-						<div style={styles.divider}>
-							<Divider />
-						</div>
 						<Box
 							width="calc(100% - 30xp)"
 							display="flex"
 							justifyContent="center"
 							alignItems={yValues.length ? 'flex-end' : 'center'}
-							height={100}
+							height={120}
+							marginTop="20px"
 						>
 							{yValues.length ? (
 								<BarChart
@@ -111,7 +110,7 @@ export default function UserActivityMetric() {
 									yAxis={[{ position: 'none', tickMinStep: 1 }]}
 									series={[{ data: yValues, label: 'Active users' }]}
 									width={375}
-									height={80}
+									height={120}
 									margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
 									sx={{
 										borderRadius: 3,
@@ -129,17 +128,13 @@ export default function UserActivityMetric() {
 								width="100%"
 								height="100%"
 								display="flex"
-								justifyContent="flex-start"
-								alignItems="flex-start"
+								justifyContent="center"
+								alignItems="center"
 							>
-								<Typography color="warning" fontSize={15} padding="10px 20px 0px">
-									Past 30 days...
-								</Typography>
 								<UserActivitySummary
 									totalEvents={stats.total}
 									avgEvents={stats.avg}
 									maxEventsRow={stats.maxRow}
-									maxUserRow={maxUserRow}
 								/>
 							</Stack>
 						</Paper>
@@ -170,7 +165,7 @@ const styles = {
 		alignItems: 'center',
 		flexDirection: 'column',
 		width: 375,
-		height: 190,
+		height: 120,
 		bottom: 0,
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,

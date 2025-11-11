@@ -1,5 +1,5 @@
 'use client';
-import { Box, Paper, Stack } from '@mui/material';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import Comments from '../common/Comments';
 import { useSession } from 'next-auth/react';
@@ -20,7 +20,9 @@ export default function RecentComments() {
 	return (
 		<Paper elevation={0} sx={styles.container}>
 			<Box width="100%" height={40} minHeight={40} display="flex" justifyContent="flex-start" alignItems="center">
-				<ExpandableTitle title="Recent Comments" icon={<Sms sx={{ color: BASE_COLOR }} />} color="white" />
+				<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+					Recent Comments
+				</Typography>
 			</Box>
 			<Stack
 				width="100%"

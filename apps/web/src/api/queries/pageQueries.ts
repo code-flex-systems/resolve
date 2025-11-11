@@ -1,6 +1,5 @@
-import { sql, Transaction } from 'kysely';
+import { sql } from 'kysely';
 import { UpdateObjectExpression } from 'kysely/dist/cjs/parser/update-set-parser';
-import { db } from '@/api/database/kysely';
 import { DB } from '@/api/database/types';
 import { PageInstance, PageTemplate } from '@/types/types';
 import { PageInstanceStatus } from '@/config/enums';
@@ -17,26 +16,23 @@ import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas
  * @returns ids for the new page and instance
  */
 export async function createPage(ctx: ProtectedContext, checklistId: number, params: PageParams) {
-	let newPage: PageTemplate;
-	let newInstance: PageInstance;
-	await db.transaction().execute(async (trx) => {
-		newPage = await trx
-			.insertInto('page')
-			.values({
-				title: params.title,
-				client_id: ctx.session.user.client_id,
-				created_by: ctx.session.user.id,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
-		newInstance = await createPageInstance(ctx, {
-			checklistId,
-			pageId: newPage.id,
-			parentId: params.parentId,
-			position: params.position,
-			trx,
-		});
+	const newPage = await ctx.db
+		.insertInto('page')
+		.values({
+			title: params.title,
+			client_id: ctx.session.user.client_id,
+			created_by: ctx.session.user.id,
+		})
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	const newInstance = await createPageInstancePrivate(ctx, {
+		checklistId,
+		pageId: newPage.id,
+		parentId: params.parentId,
+		position: params.position,
 	});
+
 	return {
 		id: newPage.id,
 		title: newPage.title,
@@ -59,99 +55,93 @@ export async function copyPageTemplate(
 	pageId: number,
 	params: { parentId: number; position: number }
 ) {
-	let newPage: PageTemplate;
-	let newInstance: PageInstance;
+	// Copy the page template
+	const newPage = await ctx.db
+		.insertInto('page')
+		.columns(['title', 'client_id', 'created_by'])
+		.expression((eb) =>
+			eb
+				.selectFrom('page')
+				.select(['title', 'client_id', eb.val(ctx.session.user.id).as('created_by')])
+				.where('page.client_id', '=', ctx.session.user.client_id)
+				.where('id', '=', pageId)
+		)
+		.returningAll()
+		.executeTakeFirstOrThrow(() => new Error('Page template does not exist'));
 
-	await db.transaction().execute(async (trx) => {
-		// Copy the page template
-		newPage = await trx
-			.insertInto('page')
-			.columns(['title', 'client_id', 'created_by'])
+	// Copy all questions for the page
+	const questions = await ctx.db
+		.insertInto('question')
+		.columns(['page_id', 'description_text', 'text', 'type', 'position', 'client_id', 'created_by'])
+		.expression((eb) =>
+			eb
+				.selectFrom('question')
+				.select((eb) => [
+					eb.val(newPage.id).$castTo<number>().as('page_id'),
+					'description_text',
+					'text',
+					'type',
+					'position',
+					'client_id',
+					eb.val(ctx.session.user.id).as('created_by'),
+				])
+				.where('question.client_id', '=', ctx.session.user.client_id)
+				.where('page_id', '=', pageId)
+				.orderBy('position')
+		)
+		.returning(['id', 'position'])
+		.execute();
+
+	// Copy all answers for each question
+	for (const question of questions) {
+		await ctx.db
+			.insertInto('answer')
+			.columns([
+				'additional_info_num_lines',
+				'additional_info_placeholder',
+				'position',
+				'grade',
+				'text',
+				'description_text',
+				'description_image_url',
+				'has_additional_info',
+				'question_id',
+				'calls_instance_id',
+				'client_id',
+				'created_by',
+			])
 			.expression((eb) =>
 				eb
-					.selectFrom('page')
-					.select(['title', 'client_id', eb.val(ctx.session.user.id).as('created_by')])
-					.where('page.client_id', '=', ctx.session.user.client_id)
-					.where('id', '=', pageId)
-			)
-			.returningAll()
-			.executeTakeFirstOrThrow(() => new Error('Page template does not exist'));
-
-		// Copy all questions for the page
-		const questions = await trx
-			.insertInto('question')
-			.columns(['page_id', 'description_text', 'text', 'type', 'position', 'client_id', 'created_by'])
-			.expression((eb) =>
-				eb
-					.selectFrom('question')
+					.selectFrom('answer')
+					.innerJoin('question', 'question.id', 'answer.question_id')
 					.select((eb) => [
-						eb.val(newPage.id).$castTo<number>().as('page_id'),
-						'description_text',
-						'text',
-						'type',
-						'position',
-						'client_id',
+						'answer.additional_info_num_lines',
+						'answer.additional_info_placeholder',
+						'answer.position',
+						'answer.grade',
+						'answer.text',
+						'answer.description_text',
+						'answer.description_image_url',
+						'answer.has_additional_info',
+						eb.val(question.id).$castTo<number>().as('question_id'),
+						'answer.calls_instance_id',
+						'answer.client_id',
 						eb.val(ctx.session.user.id).as('created_by'),
 					])
+					.where('answer.client_id', '=', ctx.session.user.client_id)
 					.where('question.client_id', '=', ctx.session.user.client_id)
-					.where('page_id', '=', pageId)
-					.orderBy('position')
+					.where('question.page_id', '=', pageId)
+					.where('question.position', '=', question.position)
 			)
-			.returning(['id', 'position'])
 			.execute();
+	}
 
-		// Copy all answers for each question
-		for (const question of questions) {
-			await trx
-				.insertInto('answer')
-				.columns([
-					'additional_info_num_lines',
-					'additional_info_placeholder',
-					'position',
-					'grade',
-					'text',
-					'description_text',
-					'description_image_url',
-					'has_additional_info',
-					'question_id',
-					'calls_instance_id',
-					'client_id',
-					'created_by',
-				])
-				.expression((eb) =>
-					eb
-						.selectFrom('answer')
-						.innerJoin('question', 'question.id', 'answer.question_id')
-						.select((eb) => [
-							'answer.additional_info_num_lines',
-							'answer.additional_info_placeholder',
-							'answer.position',
-							'answer.grade',
-							'answer.text',
-							'answer.description_text',
-							'answer.description_image_url',
-							'answer.has_additional_info',
-							eb.val(question.id).$castTo<number>().as('question_id'),
-							'answer.calls_instance_id',
-							'answer.client_id',
-							eb.val(ctx.session.user.id).as('created_by'),
-						])
-						.where('answer.client_id', '=', ctx.session.user.client_id)
-						.where('question.client_id', '=', ctx.session.user.client_id)
-						.where('question.page_id', '=', pageId)
-						.where('question.position', '=', question.position)
-				)
-				.execute();
-		}
-
-		// Create an instance of the new page template
-		newInstance = await createPageInstancePrivate(ctx, {
-			checklistId,
-			pageId: newPage.id,
-			parentId: params.parentId,
-			position: params.position,
-			trx,
-		});
+	// Create an instance of the new page template
+	const newInstance = await createPageInstancePrivate(ctx, {
+		checklistId,
+		pageId: newPage.id,
+		parentId: params.parentId,
+		position: params.position,
 	});
 
 	return {
@@ -169,22 +159,35 @@ export async function copyPageTemplate(
  * @returns created page instance
  */
 export async function createPageInstance(
-        ctx: ProtectedContext,
-        params: {
-                checklistId: number;
-                pageId: number;
-                trx?: Transaction<DB>;
-        } & PageInstanceParams
+	ctx: ProtectedContext,
+	params: {
+		checklistId: number;
+		pageId: number;
+	} & PageInstanceParams
 ) {
-	let newInstance: PageInstance;
-	if (params.trx) {
-		newInstance = await createPageInstancePrivate(ctx, { ...params, trx: params.trx });
-	} else {
-		await db.transaction().execute(async (localTrx) => {
-			newInstance = await createPageInstancePrivate(ctx, { ...params, trx: localTrx });
-		});
-	}
-	return newInstance;
+	return await createPageInstancePrivate(ctx, params);
+}
+
+/**
+ * Fetch a page instance for logging before deletion.
+ *
+ * @param ctx - request context
+ * @param instanceId - instance identifier
+ * @returns the page instance details
+ */
+export async function getPageInstanceForDeletion(ctx: ProtectedContext, instanceId: number) {
+	return await ctx.db
+		.selectFrom('page_instance')
+		.innerJoin('page', 'page.id', 'page_instance.page_id')
+		.select([
+			'page_instance.id',
+			'page_instance.page_id',
+			'page_instance.checklist_id',
+			'page.title',
+		])
+		.where('page_instance.id', '=', instanceId)
+		.where('page_instance.client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
 }
 
 /**
@@ -194,31 +197,26 @@ export async function createPageInstance(
  * @param instanceId - instance identifier to remove
  */
 export async function deletePageInstance(ctx: ProtectedContext, instanceId: number) {
-	await db.transaction().execute(async (trx) => {
-		await trx
-			.updateTable('answer')
-			.set({ calls_instance_id: null, updated_by: ctx.session.user.id, updated_at: sql`now()` })
-			.where('calls_instance_id', '=', instanceId)
-			.execute();
-		await trx
-			.deleteFrom('comment')
-			.where('instance_id', '=', instanceId)
-			.execute();
-		const deletedRow = await trx
-			.deleteFrom('page_instance')
-			.where('id', '=', instanceId)
-			.returning('position')
-			.executeTakeFirstOrThrow();
-		await trx
-			.updateTable('page_instance')
-			.set((eb) => ({
-				position: sql`${eb.ref('position')} - 1`,
-				updated_by: ctx.session.user.id,
-				updated_at: sql`now()`,
-			}))
-			.where('position', '>', deletedRow.position)
-			.execute();
-	});
+	await ctx.db
+		.updateTable('answer')
+		.set({ calls_instance_id: null, updated_by: ctx.session.user.id, updated_at: sql`now()` })
+		.where('calls_instance_id', '=', instanceId)
+		.execute();
+	await ctx.db.deleteFrom('comment').where('instance_id', '=', instanceId).execute();
+	const deletedRow = await ctx.db
+		.deleteFrom('page_instance')
+		.where('id', '=', instanceId)
+		.returning('position')
+		.executeTakeFirstOrThrow();
+	await ctx.db
+		.updateTable('page_instance')
+		.set((eb) => ({
+			position: sql`${eb.ref('position')} - 1`,
+			updated_by: ctx.session.user.id,
+			updated_at: sql`now()`,
+		}))
+		.where('position', '>', deletedRow.position)
+		.execute();
 }
 
 /**
@@ -229,12 +227,12 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
  * @returns the page template
  */
 export async function getPage(ctx: ProtectedContext, pageId: number) {
-        return await db
-                .selectFrom('page')
-                .selectAll()
-                .where('page.client_id', '=', ctx.session.user.client_id)
-                .where('id', '=', pageId)
-                .executeTakeFirstOrThrow();
+	return await ctx.db
+		.selectFrom('page')
+		.selectAll()
+		.where('page.client_id', '=', ctx.session.user.client_id)
+		.where('id', '=', pageId)
+		.executeTakeFirstOrThrow();
 }
 
 /**
@@ -244,12 +242,12 @@ export async function getPage(ctx: ProtectedContext, pageId: number) {
  * @returns list of page templates
  */
 export async function getPages(ctx: ProtectedContext) {
-        return await db
-                .selectFrom('page')
-                .selectAll()
-                .where('page.client_id', '=', ctx.session.user.client_id)
-                .where('hidden', 'is', false)
-                .execute();
+	return await ctx.db
+		.selectFrom('page')
+		.selectAll()
+		.where('page.client_id', '=', ctx.session.user.client_id)
+		.where('hidden', 'is', false)
+		.execute();
 }
 
 /**
@@ -260,14 +258,14 @@ export async function getPages(ctx: ProtectedContext) {
  * @returns the template with instance info
  */
 export async function getPageInstance(ctx: ProtectedContext, instanceId: number) {
-        return await db
-                .selectFrom('page')
-                .innerJoin('page_instance', 'page_instance.page_id', 'page.id')
-                .selectAll('page')
-                .select(['page_instance.id as instance_id', 'page_instance.position'])
-                .where('page.client_id', '=', ctx.session.user.client_id)
-                .where('page_instance.id', '=', instanceId)
-                .executeTakeFirstOrThrow();
+	return await ctx.db
+		.selectFrom('page')
+		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
+		.selectAll('page')
+		.select(['page_instance.id as instance_id', 'page_instance.position'])
+		.where('page.client_id', '=', ctx.session.user.client_id)
+		.where('page_instance.id', '=', instanceId)
+		.executeTakeFirstOrThrow();
 }
 
 /**
@@ -279,30 +277,30 @@ export async function getPageInstance(ctx: ProtectedContext, instanceId: number)
  * @returns list of page instances
  */
 export async function getPageInstances(ctx: ProtectedContext, checklistId: number, parentId?: number) {
-        return await db
-                .selectFrom('page')
-                .innerJoin('page_instance', 'page_instance.page_id', 'page.id')
-                .select((eb) => [
-                        'page.id',
-                        'page.title',
-                        'page_instance.id as instance_id',
-                        'page_instance.parent_instance_id',
-                        'page_instance.position',
-                        'page.version as template_version',
-                        eb.val(PageInstanceStatus.UNSTARTED).as('status'),
-                ])
-                .where('page.client_id', '=', ctx.session.user.client_id)
-                .where((eb) => {
-                        const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
-                        if (parentId === -1) {
-                                andClause.push(eb('page_instance.parent_instance_id', 'is', null));
-                        } else if (parentId) {
-                                andClause.push(eb('page_instance.parent_instance_id', '=', parentId));
-                        }
-                        return eb.and(andClause);
-                })
-                .orderBy('page_instance.position')
-                .execute();
+	return await ctx.db
+		.selectFrom('page')
+		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
+		.select((eb) => [
+			'page.id',
+			'page.title',
+			'page_instance.id as instance_id',
+			'page_instance.parent_instance_id',
+			'page_instance.position',
+			'page.version as template_version',
+			eb.val(PageInstanceStatus.UNSTARTED).as('status'),
+		])
+		.where('page.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
+			if (parentId === -1) {
+				andClause.push(eb('page_instance.parent_instance_id', 'is', null));
+			} else if (parentId) {
+				andClause.push(eb('page_instance.parent_instance_id', '=', parentId));
+			}
+			return eb.and(andClause);
+		})
+		.orderBy('page_instance.position')
+		.execute();
 }
 
 /**
@@ -320,47 +318,47 @@ export async function getPageInstancesForClaim(
 	claimId: number,
 	parentId?: number
 ) {
-        // Determine the latest status for each page instance on a claim
-        return await db
-                .selectFrom('page')
-                .innerJoin('page_instance', 'page_instance.page_id', 'page.id')
-                .leftJoin('page_instance_status', (join) =>
-                        join
-                                .onRef('page_instance_status.page_instance_id', '=', 'page_instance.id')
-                                .on('page_instance_status.claim_id', '=', claimId)
-                )
-                .select((eb) => [
-                        'page.id',
-                        'page.title',
-                        'page_instance.id as instance_id',
-                        'page_instance.parent_instance_id',
-                        'page_instance.position',
-                        sql`coalesce(${eb.ref('page_instance_status.template_version')}, 1)`
-                                .$castTo<number>()
-                                .as('template_version'),
-                        eb
-                                .case()
-                                .when('page_instance_status.id', 'is', null)
-                                .then(PageInstanceStatus.UNSTARTED)
-                                .when('page_instance_status.template_version', '<>', eb.ref('page.version'))
-                                .then(PageInstanceStatus.STALE)
-                                .else(eb.ref('page_instance_status.status'))
-                                .end()
-                                .$castTo<PageInstanceStatus>()
-                                .as('status'),
-                ])
-                .where('page.client_id', '=', ctx.session.user.client_id)
-                .where((eb) => {
-                        const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
-                        if (parentId === -1) {
-                                andClause.push(eb('page_instance.parent_instance_id', 'is', null));
-                        } else if (parentId) {
-                                andClause.push(eb('page_instance.parent_instance_id', '=', parentId));
-                        }
-                        return eb.and(andClause);
-                })
-                .orderBy('page_instance.position')
-                .execute();
+	// Determine the latest status for each page instance on a claim
+	return await ctx.db
+		.selectFrom('page')
+		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
+		.leftJoin('page_instance_status', (join) =>
+			join
+				.onRef('page_instance_status.page_instance_id', '=', 'page_instance.id')
+				.on('page_instance_status.claim_id', '=', claimId)
+		)
+		.select((eb) => [
+			'page.id',
+			'page.title',
+			'page_instance.id as instance_id',
+			'page_instance.parent_instance_id',
+			'page_instance.position',
+			sql`coalesce(${eb.ref('page_instance_status.template_version')}, 1)`
+				.$castTo<number>()
+				.as('template_version'),
+			eb
+				.case()
+				.when('page_instance_status.id', 'is', null)
+				.then(PageInstanceStatus.UNSTARTED)
+				.when('page_instance_status.template_version', '<>', eb.ref('page.version'))
+				.then(PageInstanceStatus.STALE)
+				.else(eb.ref('page_instance_status.status'))
+				.end()
+				.$castTo<PageInstanceStatus>()
+				.as('status'),
+		])
+		.where('page.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => {
+			const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
+			if (parentId === -1) {
+				andClause.push(eb('page_instance.parent_instance_id', 'is', null));
+			} else if (parentId) {
+				andClause.push(eb('page_instance.parent_instance_id', '=', parentId));
+			}
+			return eb.and(andClause);
+		})
+		.orderBy('page_instance.position')
+		.execute();
 }
 
 /**
@@ -372,43 +370,33 @@ export async function getPageInstancesForClaim(
  * @returns list of visible instance ids
  */
 export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
-        // Use a recursive CTE to resolve all visible page instance ids
-        const results = await db
-                .withRecursive('visible_pages', (eb) =>
-                        eb
-                                .selectFrom('page_instance')
-                                .select([
-                                        'page_instance.id as id',
-                                        'page_instance.checklist_id',
-                                ])
-                                .where('page_instance.client_id', '=', ctx.session.user.client_id)
-                                .where('page_instance.checklist_id', '=', checklistId)
-                                .where('page_instance.parent_instance_id', 'is', null)
-                                .unionAll(
-                                        eb
-                                                .selectFrom('answer')
-                                                .innerJoin('question_response_answer', 'question_response_answer.answer_id', 'answer.id')
-                                                .innerJoin(
-                                                        'question_response',
-                                                        'question_response.id',
-                                                        'question_response_answer.response_id'
-                                                )
-                                                .select([
-                                                        'answer.calls_instance_id as id',
-                                                        'question_response.checklist_id',
-                                                ])
-                                                .$castTo<{ id: number; checklist_id: number }>()
-                                                .where('answer.client_id', '=', ctx.session.user.client_id)
-                                                .where('question_response.client_id', '=', ctx.session.user.client_id)
-                                                .where('question_response.checklist_id', '=', checklistId)
-                                                .where('question_response.claim_id', '=', claimId)
-                                                .where('answer.calls_instance_id', 'is not', null)
-                                )
-                )
-                .selectFrom('visible_pages')
-                .select('id')
-                .distinct()
-                .execute();
+	// Use a recursive CTE to resolve all visible page instance ids
+	const results = await ctx.db
+		.withRecursive('visible_pages', (eb) =>
+			eb
+				.selectFrom('page_instance')
+				.select(['page_instance.id as id', 'page_instance.checklist_id'])
+				.where('page_instance.client_id', '=', ctx.session.user.client_id)
+				.where('page_instance.checklist_id', '=', checklistId)
+				.where('page_instance.parent_instance_id', 'is', null)
+				.unionAll(
+					eb
+						.selectFrom('answer')
+						.innerJoin('question_response_answer', 'question_response_answer.answer_id', 'answer.id')
+						.innerJoin('question_response', 'question_response.id', 'question_response_answer.response_id')
+						.select(['answer.calls_instance_id as id', 'question_response.checklist_id'])
+						.$castTo<{ id: number; checklist_id: number }>()
+						.where('answer.client_id', '=', ctx.session.user.client_id)
+						.where('question_response.client_id', '=', ctx.session.user.client_id)
+						.where('question_response.checklist_id', '=', checklistId)
+						.where('question_response.claim_id', '=', claimId)
+						.where('answer.calls_instance_id', 'is not', null)
+				)
+		)
+		.selectFrom('visible_pages')
+		.select('id')
+		.distinct()
+		.execute();
 	return results.map((row) => row.id);
 }
 
@@ -421,11 +409,11 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
  * @returns the updated template
  */
 export async function modifyPage(ctx: ProtectedContext, pageId: number, params: PageUpdateParams) {
-        const updates: UpdateObjectExpression<DB, 'page'> = {};
-        if (params.title !== undefined) updates.title = params.title;
-        if (params.hidden != null) updates.hidden = params.hidden;
+	const updates: UpdateObjectExpression<DB, 'page'> = {};
+	if (params.title !== undefined) updates.title = params.title;
+	if (params.hidden != null) updates.hidden = params.hidden;
 	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
-	return await db
+	return await ctx.db
 		.updateTable('page')
 		.set({
 			...updates,
@@ -450,11 +438,10 @@ export async function modifyPageInstanceStatus(
 		instanceIds: number[];
 		newStatus: PageInstanceStatus;
 		templateVersion: number;
-		trx?: Transaction<DB>;
 	}
 ) {
 	for (const id of params.instanceIds) {
-		await (params.trx ?? db)
+		await ctx.db
 			.insertInto('page_instance_status')
 			.values({
 				claim_id: params.claimId,
@@ -485,17 +472,16 @@ export async function modifyPageInstanceStatus(
  * @returns the created instance
  */
 async function createPageInstancePrivate(
-        ctx: ProtectedContext,
-        {
-                checklistId,
-                pageId,
-                parentId,
-                position,
-                trx,
-        }: { checklistId: number; pageId: number; trx: Transaction<DB> } & PageInstanceParams
+	ctx: ProtectedContext,
+	{
+		checklistId,
+		pageId,
+		parentId,
+		position,
+	}: { checklistId: number; pageId: number } & PageInstanceParams
 ) {
 	// Update positions for all page instances below the one we're inserting
-	await trx
+	await ctx.db
 		.updateTable('page_instance')
 		.set((eb) => ({
 			position: sql`${eb.ref('position')} + 1`,
@@ -504,7 +490,7 @@ async function createPageInstancePrivate(
 		}))
 		.where('position', '>=', position)
 		.execute();
-	const newInstance = await trx
+	const newInstance = await ctx.db
 		.insertInto('page_instance')
 		.values({
 			checklist_id: checklistId,

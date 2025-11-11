@@ -34,6 +34,7 @@ describe('getAnswerCallGraph', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();
@@ -168,6 +169,7 @@ describe('createAnswer - cycle detection', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();
@@ -178,26 +180,26 @@ describe('createAnswer - cycle detection', () => {
 	});
 
 	it('should allow creating answer without calls_instance_id', async () => {
-		const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-			const trx = {
-				updateTable: vi.fn().mockReturnThis(),
-				set: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(undefined),
-				insertInto: vi.fn().mockReturnThis(),
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
-					id: 1,
-					question_id: 10,
-					text: 'Test Answer',
-					position: 1,
-				}),
-			};
-			return await callback(trx);
-		});
+		// Mock updateTable for position shift
+		const mockExecuteUpdate = vi.fn().mockResolvedValue(undefined);
+		vi.spyOn(db, 'updateTable').mockReturnValue({
+			set: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			execute: mockExecuteUpdate,
+		} as any);
 
-		vi.spyOn(db, 'transaction').mockReturnValue({ execute: mockTransaction } as any);
+		// Mock insertInto for answer creation
+		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
+			id: 1,
+			question_id: 10,
+			text: 'Test Answer',
+			position: 1,
+		});
+		vi.spyOn(db, 'insertInto').mockReturnValue({
+			values: vi.fn().mockReturnThis(),
+			returningAll: vi.fn().mockReturnThis(),
+			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+		} as any);
 
 		const params = {
 			text: 'Test Answer',
@@ -333,27 +335,27 @@ describe('createAnswer - cycle detection', () => {
 			} as any;
 		});
 
-		const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-			const trx = {
-				updateTable: vi.fn().mockReturnThis(),
-				set: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(undefined),
-				insertInto: vi.fn().mockReturnThis(),
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
-					id: 1,
-					question_id: 10,
-					text: 'Test Answer',
-					position: 1,
-					calls_instance_id: 2,
-				}),
-			};
-			return await callback(trx);
-		});
+		// Mock updateTable for position shift
+		const mockExecuteUpdate = vi.fn().mockResolvedValue(undefined);
+		vi.spyOn(db, 'updateTable').mockReturnValue({
+			set: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			execute: mockExecuteUpdate,
+		} as any);
 
-		vi.spyOn(db, 'transaction').mockReturnValue({ execute: mockTransaction } as any);
+		// Mock insertInto for answer creation
+		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
+			id: 1,
+			question_id: 10,
+			text: 'Test Answer',
+			position: 1,
+			calls_instance_id: 2,
+		});
+		vi.spyOn(db, 'insertInto').mockReturnValue({
+			values: vi.fn().mockReturnThis(),
+			returningAll: vi.fn().mockReturnThis(),
+			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+		} as any);
 
 		const params = {
 			text: 'Test Answer',
@@ -384,6 +386,7 @@ describe('modifyAnswer - cycle detection', () => {
 				},
 				expires: '2025-12-31',
 			},
+			db,
 		};
 
 		vi.clearAllMocks();
@@ -407,24 +410,32 @@ describe('modifyAnswer - cycle detection', () => {
 			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
 		} as any);
 
-		const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-			const trx = {
-				updateTable: vi.fn().mockReturnThis(),
+		// Mock updateTable for both modifyAnswer (answer table) and bumpPageVersion (page table)
+		const mockExecuteTakeFirstOrThrowUpdate = vi.fn().mockResolvedValue({
+			id: 1,
+			text: 'Updated Text',
+			position: 1,
+			calls_instance_id: 2,
+		});
+		const mockExecute = vi.fn().mockResolvedValue(undefined);
+
+		vi.spyOn(db, 'updateTable').mockImplementation((table: any) => {
+			if (table === 'page') {
+				// For bumpPageVersion
+				return {
+					set: vi.fn().mockReturnThis(),
+					where: vi.fn().mockReturnThis(),
+					execute: mockExecute,
+				} as any;
+			}
+			// For modifyAnswer
+			return {
 				set: vi.fn().mockReturnThis(),
 				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(undefined),
 				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
-					id: 1,
-					text: 'Updated Text',
-					position: 1,
-					calls_instance_id: 2,
-				}),
-			};
-			return await callback(trx);
+				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
+			} as any;
 		});
-
-		vi.spyOn(db, 'transaction').mockReturnValue({ execute: mockTransaction } as any);
 
 		const params = {
 			text: 'Updated Text',
@@ -505,24 +516,32 @@ describe('modifyAnswer - cycle detection', () => {
 			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
 		} as any);
 
-		const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-			const trx = {
-				updateTable: vi.fn().mockReturnThis(),
+		// Mock updateTable for both modifyAnswer (answer table) and bumpPageVersion (page table)
+		const mockExecuteTakeFirstOrThrowUpdate = vi.fn().mockResolvedValue({
+			id: 1,
+			text: 'Test',
+			position: 1,
+			calls_instance_id: null,
+		});
+		const mockExecute = vi.fn().mockResolvedValue(undefined);
+
+		vi.spyOn(db, 'updateTable').mockImplementation((table: any) => {
+			if (table === 'page') {
+				// For bumpPageVersion
+				return {
+					set: vi.fn().mockReturnThis(),
+					where: vi.fn().mockReturnThis(),
+					execute: mockExecute,
+				} as any;
+			}
+			// For modifyAnswer
+			return {
 				set: vi.fn().mockReturnThis(),
 				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(undefined),
 				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
-					id: 1,
-					text: 'Test',
-					position: 1,
-					calls_instance_id: null,
-				}),
-			};
-			return await callback(trx);
+				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
+			} as any;
 		});
-
-		vi.spyOn(db, 'transaction').mockReturnValue({ execute: mockTransaction } as any);
 
 		const params = {
 			calls_instance_id: null,
@@ -550,24 +569,32 @@ describe('modifyAnswer - cycle detection', () => {
 
 		vi.spyOn(db, 'selectFrom').mockImplementation(mockSelectFrom);
 
-		const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-			const trx = {
-				updateTable: vi.fn().mockReturnThis(),
+		// Mock updateTable for both modifyAnswer (answer table) and bumpPageVersion (page table)
+		const mockExecuteTakeFirstOrThrowUpdate = vi.fn().mockResolvedValue({
+			id: 1,
+			text: 'Updated',
+			position: 1,
+			calls_instance_id: 2,
+		});
+		const mockExecute = vi.fn().mockResolvedValue(undefined);
+
+		vi.spyOn(db, 'updateTable').mockImplementation((table: any) => {
+			if (table === 'page') {
+				// For bumpPageVersion
+				return {
+					set: vi.fn().mockReturnThis(),
+					where: vi.fn().mockReturnThis(),
+					execute: mockExecute,
+				} as any;
+			}
+			// For modifyAnswer
+			return {
 				set: vi.fn().mockReturnThis(),
 				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(undefined),
 				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
-					id: 1,
-					text: 'Updated',
-					position: 1,
-					calls_instance_id: 2,
-				}),
-			};
-			return await callback(trx);
+				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
+			} as any;
 		});
-
-		vi.spyOn(db, 'transaction').mockReturnValue({ execute: mockTransaction } as any);
 
 		const params = {
 			text: 'Updated',

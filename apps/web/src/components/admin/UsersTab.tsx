@@ -146,24 +146,9 @@ export default function UsersTab() {
 					<Toolbar
 						left={
 							<>
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search
-										sx={{
-											fontSize: 17,
-											marginRight: '5px',
-										}}
-									/>
-									<input
-										placeholder="Search"
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => {
-											setSearchTerm(e.target.value);
-											debouncedSearch(e.target.value);
-										}}
-									/>
-								</Paper>
+								<Typography variant="h6" marginRight="20px">
+									Users
+								</Typography>
 								<Switch
 									size="small"
 									checked={showDisabled}
@@ -188,6 +173,24 @@ export default function UsersTab() {
 						}
 						right={
 							<>
+								<Paper elevation={0} sx={styles.searchPaper}>
+									<Search
+										sx={{
+											fontSize: 17,
+											marginRight: '5px',
+										}}
+									/>
+									<input
+										placeholder="Search"
+										type="text"
+										style={styles.textField}
+										value={searchTerm}
+										onChange={(e) => {
+											setSearchTerm(e.target.value);
+											debouncedSearch(e.target.value);
+										}}
+									/>
+								</Paper>
 								<Button
 									variant="contained"
 									color="secondary"
@@ -281,7 +284,8 @@ const styles = {
 		justifyContent: 'center',
 		alignItems: 'center',
 		width: 200,
-		height: 40,
+		height: 35,
+		marginRight: '20px',
 	},
 	table: {
 		width: '100%',

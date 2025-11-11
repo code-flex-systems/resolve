@@ -1,9 +1,8 @@
 import { trpc } from '@/lib/trpc';
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '@/server/trpc/appRouter';
+import type { RouterInput, RouterOutput } from '@/types/routerTypes';
 
-type ChecklistInput = inferRouterInputs<AppRouter>['checklist'];
-type ChecklistOutput = inferRouterOutputs<AppRouter>['checklist'];
+type ChecklistInput = RouterInput['checklist'];
+type ChecklistOutput = RouterOutput['checklist'];
 
 export function useChecklistTrpc() {
 	const utils = trpc.useUtils();
@@ -12,6 +11,8 @@ export function useChecklistTrpc() {
 		list: trpc.checklist.getChecklists.useQuery,
 
 		listForClaims: trpc.checklist.getChecklistClaims.useQuery,
+
+		exportChecklistClaims: trpc.checklist.exportChecklistClaims.useQuery,
 
 		listRecents: trpc.checklist.getRecentChecklistClaims.useQuery,
 

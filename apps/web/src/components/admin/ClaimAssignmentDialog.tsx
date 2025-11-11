@@ -13,6 +13,7 @@ import { GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import UserSearch from '../checklist/UserSearch';
 import { StackedRow } from '../common/StackedRow';
+import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 
 export default function ClaimAssignmentDialog() {
 	const [progress, setProgress] = useState(0);
@@ -92,7 +93,7 @@ export default function ClaimAssignmentDialog() {
 						disabled={!isFetchingNextClaim && !nextClaimData.claim}
 					/>
 				</Box>
-				<Paper elevation={0} style={{ height: 325 }} sx={styles.paper}>
+				<Paper elevation={0} style={{ height: 345 }} sx={styles.paper}>
 					<Fade key={isFetchingNextClaim ? 'loading' : 'data'} in={true} unmountOnExit timeout={800}>
 						<Stack width="100%" height="100%" display="flex" justifyContent="center" alignItems="center">
 							{isFetchingNextClaim && (
@@ -145,6 +146,10 @@ export default function ClaimAssignmentDialog() {
 												primary="Total Incurred"
 												secondary={formatAmount(nextClaimData.claim.total_incurred!, true)}
 											/>
+											<StackedRow
+												primary="Recovery Status"
+												secondary={formatRecoveryStatus(nextClaimData.claim.recovery_status)}
+											/>
 										</Stack>
 										<Stack
 											width="50%"
@@ -169,6 +174,14 @@ export default function ClaimAssignmentDialog() {
 											<StackedRow
 												primary="Expected Recovery"
 												secondary={formatAmount(nextClaimData.claim.expected_recovery!, true)}
+											/>
+											<StackedRow
+												primary="Actual Recovery"
+												secondary={
+													nextClaimData.claim.actual_recovery
+														? formatAmount(nextClaimData.claim.actual_recovery, true)
+														: '$0.00'
+												}
 											/>
 										</Stack>
 									</Box>
