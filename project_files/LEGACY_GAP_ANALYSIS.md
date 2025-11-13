@@ -1,6 +1,7 @@
 # Legacy Oracle Manifest vs. Current System - Gap Analysis
 
-**Date:** 2025-11-11
+**Version:** 1.2
+**Last Updated:** 2025-11-13
 **Purpose:** Detailed comparison of legacy system components to current implementation
 **Context:** Inform development priorities for Hanover engagement (January 2025)
 
@@ -8,12 +9,19 @@
 
 ## Executive Summary
 
-The current Manifest system successfully implements the **core workflow engine** (checklist-driven process) but lacks several **operational components** critical to full subrogation lifecycle management. This analysis maps the 8 major components from the legacy Oracle system to the current implementation and recommends priorities.
+The current Manifest system successfully implements the **core workflow engine** (checklist-driven process) and has recently added comprehensive **document management infrastructure**. This analysis maps the 9 major components from the legacy Oracle system to the current implementation and recommends priorities.
 
 ### High-Level Status
-- **✅ Fully Implemented:** 4 of 8 components (50%)
-- **🟡 Partially Implemented:** 3 of 8 components (38%)
-- **❌ Not Implemented:** 1 of 8 components (12%)
+- **✅ Fully Implemented:** 5 of 9 components (56%)
+- **🟡 Partially Implemented:** 3 of 9 components (33%)
+- **❌ Not Implemented:** 1 of 9 components (11%)
+
+**Recent Progress (October-November 2025):**
+- ✅ **Document Management System** - Full implementation with Azure blob storage, folder structure, upload/download, preview capabilities, and standalone documents page
+- ✅ **Party Management** - Complete CRUD with soft delete, admin logging, and hierarchical structure
+- 🟡 **Claim Substatus** - Field added to database with basic enum support
+
+**Note:** The document management system (Component 9) provides the infrastructure foundation needed for Component 6 (Letters/Templates), significantly reducing the remaining gap in that area.
 
 ---
 
@@ -354,30 +362,47 @@ The current Manifest system successfully implements the **core workflow engine**
 
 ### Current Implementation
 **Database Tables:**
-- `doc` table for document storage (S3)
+- `doc` table for document storage (Azure Blob Storage)
+- `doc_group` table for folder organization
 - `doc_type` field (but no template system)
 
 **Features:**
-- ✅ Document upload/download
-- ✅ S3 storage
+- ✅ Document upload/download (Azure Blob Storage)
+- ✅ Complete document management infrastructure (see Component 9)
+- ✅ Folder organization and navigation
+- ✅ Document preview capabilities
 - ✅ Basic categorization via `doc_type`
+- ✅ Client-scoped document access
+- ✅ File upload answer types for checklists
 
-**Gaps:**
-- ❌ No letter templates
-- ❌ No variable substitution (claim data → template)
-- ❌ No letter generation workflow
+**✅ Infrastructure Complete (November 2025):**
+Component 9 (Document Management System) provides the complete foundation for letter management:
+- Document storage and retrieval ✅
+- Folder organization ✅
+- Upload/download capabilities ✅
+- Preview functionality ✅
+- Client scoping ✅
+
+**Gaps (Template Logic Only):**
+- ❌ No letter templates table/schema
+- ❌ No variable substitution engine (claim data → template)
+- ❌ No letter generation workflow/UI
 - ❌ No letter assignment/configuration
-- ❌ No client-specific customization
+- ❌ No client-specific template customization
 
-**Gap Severity:** MEDIUM (manual workaround exists)
-- Users can upload manually-created letters
+**Gap Severity:** LOW → MEDIUM (infrastructure solved, template logic remains)
+- Infrastructure for document storage/display is complete
+- Only template variable substitution logic needs to be built
+- Users can upload manually-created letters as workaround
 - Copy/paste from Word templates works for MVP
 - Becomes important at scale
 
 **Recommendation:**
-- **Defer** - Not critical for Hanover MVP (Phase 1)
-- Build in Month 3-4 if Hanover sends many demand letters
-- **Alternative:** Provide Word templates for manual use
+- **Defer template logic** - Not critical for Hanover MVP (Phase 1)
+- Build template system in Month 3-4 if Hanover sends many demand letters
+- **Infrastructure already complete** - Document storage/display ready (Component 9)
+- **Current workaround:** Provide Word templates for manual use
+- Estimated remaining effort: ~2-3 days for template logic only (reduced from 4 days due to infrastructure completion)
 
 **Future Implementation (Phase 2):**
 ```sql
@@ -522,6 +547,105 @@ ALTER TABLE recovery_event ADD COLUMN check_image_doc_id INT REFERENCES doc(id);
 
 ---
 
+## 9. Document Management System ✅ FULLY IMPLEMENTED
+
+### Legacy Oracle System
+**Structure:**
+- Document Repository
+  - Client Documents (policies, correspondence)
+  - Claim Documents (photos, estimates, invoices)
+  - Template Library (letter templates)
+- Document Categorization (by type, claim, client)
+- Document Versioning
+- Search and Retrieval
+
+**Purpose:** Centralized storage and management of all documents related to claims, parties, and correspondence.
+
+### Current Implementation
+**Database Tables:**
+- `doc` - Document metadata and blob storage references
+- `doc_group` - Folder/category organization with hierarchical structure
+- `doc_requirement` - Links documents to checklist requirements
+
+**Features:**
+- ✅ Azure Blob Storage integration for file persistence
+- ✅ Document CRUD operations (upload, download, delete, update metadata)
+- ✅ Folder/group organization with parent-child relationships
+- ✅ System folders (Users, Shared) with protection from deletion/editing
+- ✅ User-specific folders for personal document storage
+- ✅ Document browser UI with preview capabilities
+- ✅ Document preview dialog supporting PDFs and images
+- ✅ Standalone documents page for shared files accessible to all users
+- ✅ Document selector dialog for linking documents to questions/answers
+- ✅ File upload answer type for checklist questions
+- ✅ Document metadata (title, description, file size, mime type, doc type)
+- ✅ Client-scoped document access (users only see their organization's documents)
+- ✅ Folder depth limits (prevents excessive nesting)
+- ✅ Archive/soft delete functionality
+
+**API Routes:**
+- `/api/documents/[docId]/download` - Secure download with Azure SAS tokens
+- `/api/documents/upload` - Chunked file upload to Azure blob storage
+- Document management through tRPC endpoints (CRUD operations)
+
+**UI Components:**
+- `DocumentsTab.tsx` - Admin document management interface
+- `DocumentsPage.tsx` - User-facing shared documents page
+- `DocumentNavigationTable.tsx` - Reusable folder/file navigation table
+- `DocumentPreviewDialog.tsx` - In-app document preview
+- `CompactDocumentBrowser.tsx` - Document selector for checklist answers
+- `UploadDocumentDialog.tsx` - File upload interface
+
+**Database Schema:**
+```typescript
+// doc table
+{
+  id: number;
+  filename: string;
+  alias: string;
+  title: string | null;
+  description: string | null;
+  doc_type: string; // 'policy', 'invoice', 'photo', 'other', etc.
+  doc_status: string; // 'approved', 'pending', 'rejected'
+  storage_key: string; // Azure blob reference
+  file_size: bigint;
+  mime_type: string;
+  preview_url: string | null;
+  doc_group_id: number | null; // folder/category
+  claim_id: number | null; // optional claim association
+  question_id: number | null; // optional question attachment
+  answer_id: number | null; // optional answer attachment
+  // ... audit fields
+}
+
+// doc_group table
+{
+  id: number;
+  name: string;
+  description: string | null;
+  parent_group_id: number | null; // supports hierarchy
+  group_type: string; // 'claim_folder', 'category', 'custom', 'user'
+  system: boolean; // protects system folders from deletion
+  user_id: string | null; // for user-specific folders
+  claim_id: number | null; // for auto-created claim folders
+  // ... audit fields
+}
+```
+
+**Implementation Details:**
+- Commit `e638a31` (Oct 31, 2025) - "full doc system"
+- Commit `6eb1ab6` (Nov 12, 2025) - "adjustments to documents and new standalone documents page"
+- Files: `apps/web/src/api/queries/docQueries.ts`, `apps/web/src/components/admin/DocumentsTab.tsx`, `apps/web/src/components/documents/DocumentsPage.tsx`
+
+**Gaps:**
+- None for core document management
+
+**Gap Severity:** CLOSED ✅
+
+**Note:** This implementation provides the complete infrastructure foundation needed for Component 6 (Letters/Templates). Document storage, folder organization, upload/download, and preview capabilities are all in place. Only the template variable substitution logic remains to be built for the Letters component.
+
+---
+
 ## Priority Matrix
 
 ### Must Build (Before Hanover - Week 1-4)
@@ -544,10 +668,12 @@ ALTER TABLE recovery_event ADD COLUMN check_image_doc_id INT REFERENCES doc(id);
 | Component | Feature | Effort | Impact | Priority |
 |-----------|---------|--------|--------|----------|
 | Claim | Communication Log | 3 days | Medium | 🟢 P2 |
-| Letters | Template System | 5 days | Medium | 🟢 P2 |
+| Letters | Template Logic Only | 2-3 days | Medium | 🟢 P2 |
 | Check Processing | Check number & status | 0.5 day | Low | 🟢 P2 |
 
-**Total Effort:** ~9 days
+**Total Effort:** ~6-7 days (reduced from 9 days due to document infrastructure completion)
+
+**Note:** Letters effort reduced from 5 days to 2-3 days because document storage, upload/download, preview, and folder management infrastructure is complete (Component 9). Only template variable substitution logic remains.
 
 ### Defer (Post-Hanover or Client Request)
 | Component | Feature | Effort | Impact | Priority |
@@ -628,19 +754,27 @@ None - All critical infrastructure now in place
 ### Pre-Hanover (December 2024)
 **"Hidden Plumbing" Strategy - Build Database Foundations**
 
-1. ✅ **Party Management** (COMPLETED November 2025)
+1. ✅ **Document Management System** (COMPLETED October-November 2025)
+   - ✅ Azure blob storage integration
+   - ✅ Document/folder CRUD with hierarchical structure
+   - ✅ Upload/download API routes
+   - ✅ Document preview and browser UI
+   - ✅ Standalone documents page for shared files
+   - ✅ System folder support (Users, Shared)
+
+2. ✅ **Party Management** (COMPLETED November 2025)
    - ✅ Created all 4 party tables (party, claim_party, party_office, party_representative)
    - ✅ Added soft delete support with archive/restore
    - ✅ Built complete tRPC API layer
    - ✅ Full admin UI with search, pagination, archive toggle
 
-2. **Claim Enhancements** (1.5 days)
+3. **Claim Enhancements** (1.5 days)
    - Add LOB, loss_type fields
    - Create enums
    - Add to Kysely types
    - Note: substatus already added ✅
 
-3. **Task Due Dates** (0.5 day)
+4. **Task Due Dates** (0.5 day)
    - Add due_date to page_instance
    - Update schemas
 
@@ -679,11 +813,12 @@ Let Hanover workflow reveal what they need:
 
 The current Manifest system successfully implements the **core workflow engine** via the checklist system and has made significant progress on **operational components** critical for day-to-day subrogation work.
 
-### Completed Infrastructure (November 2025)
-1. ✅ **Party/Facilitator Management** - Full CRUD, soft delete, admin UI with search/pagination
-2. ✅ **Recovery Tracking** - Events, status, amounts, dates
-3. ✅ **Claim Substatus** - Granular workflow tracking beyond basic status
-4. ✅ **Multi-tenant Architecture** - Client scoping, authorization audit complete
+### Completed Infrastructure (October-November 2025)
+1. ✅ **Document Management System** - Azure blob storage, folder structure, upload/download, preview, standalone documents page (Component 9)
+2. ✅ **Party/Facilitator Management** - Full CRUD, soft delete, admin UI with search/pagination
+3. ✅ **Recovery Tracking** - Events, status, amounts, dates
+4. ✅ **Claim Substatus** - Granular workflow tracking beyond basic status
+5. ✅ **Multi-tenant Architecture** - Client scoping, authorization audit complete
 
 ### Remaining Gaps (Pre-Hanover)
 1. **Claim structure needs enrichment** - LOB, loss type, coverages provide essential classification
@@ -696,10 +831,10 @@ With party management now complete, focus on:
 - **January:** Party-claim linking UI + coverage tracking (4 days)
 - **February-March:** Client-driven features (letter templates, communication log) (15 days budget)
 
-The system is now well-positioned for the Hanover engagement with foundational party infrastructure in place.
+The system is now well-positioned for the Hanover engagement with foundational party infrastructure and complete document management capabilities in place. The document system significantly reduces the scope of work needed for letter templates (Component 6), as only template variable substitution logic remains to be built.
 
 ---
 
-**Document Version:** 1.1
-**Last Updated:** 2025-11-12
+**Document Version:** 1.2
+**Last Updated:** 2025-11-13
 **Next Review:** Pre-Hanover (late December 2024)
