@@ -82,7 +82,7 @@ export default function DashboardTab() {
 					<Stack display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
 						<SimpleMetric
 							title="checklists"
-							onClick={() => router.push('/admin/checklists')}
+							onClick={() => router.push('/admin/workflow-configuration/checklists')}
 							onSelect={() => onSelect('checklists')}
 							icon={<Checklist sx={styles.simpleMetricIcon} />}
 							color={theme.palette.primary.main}
@@ -92,7 +92,7 @@ export default function DashboardTab() {
 						/>
 						<SimpleMetric
 							title="claims"
-							onClick={() => router.push('/admin/feeds-and-claims')}
+							onClick={() => router.push('/admin/data-sources/feeds-and-claims')}
 							onSelect={() => onSelect('claims')}
 							icon={<ContentPasteSearch sx={styles.simpleMetricIcon} />}
 							color={theme.palette.secondary.main}
@@ -102,7 +102,7 @@ export default function DashboardTab() {
 						/>
 						<SimpleMetric
 							title="users"
-							onClick={() => router.push('/admin/users')}
+							onClick={() => router.push('/admin/user-management/users')}
 							onSelect={() => onSelect('users')}
 							icon={<People sx={styles.simpleMetricIcon} />}
 							color={theme.palette.warning.main}
@@ -112,7 +112,7 @@ export default function DashboardTab() {
 						/>
 						<SimpleMetric
 							title="feeds"
-							onClick={() => router.push('/admin/feeds-and-claims')}
+							onClick={() => router.push('/admin/data-sources/feeds-and-claims')}
 							onSelect={() => onSelect('feeds')}
 							icon={<RssFeed sx={styles.simpleMetricIcon} />}
 							color={PURPLE}
@@ -144,7 +144,7 @@ export default function DashboardTab() {
 											action={() => {
 												setFeedId(lastSyncedFeed?.id);
 												toggleClaimAssignmentDialog();
-												router.push('/admin/feeds-and-claims');
+												router.push('/admin/data-sources/feeds-and-claims');
 											}}
 											actionText={`Assign claims in ${lastSyncedFeed?.name ?? ''}`}
 											actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0').toLocaleString()} in queue`}
@@ -174,7 +174,7 @@ export default function DashboardTab() {
 										<MetricAction
 											action={() => {
 												setShowInactiveUsers(true);
-												router.push('/admin/users');
+												router.push('/admin/user-management/users');
 											}}
 											actionText="Review inactive accounts"
 											actionValue={`${inactiveUserCount.count.toLocaleString()} users`}

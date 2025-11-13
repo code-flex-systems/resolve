@@ -266,15 +266,17 @@ export default function UsersTab() {
 const styles = {
 	container: {
 		width: '100%',
-		height: 'calc(100vh - 75px)',
-		paddingTop: 20,
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		height: '100%',
+		flex: 1,
 		padding: '15px 15px 0px',
 		border: 1,
 		borderColor: 'divider',
+		minHeight: 0,
 	},
 	searchPaper: {
 		border: 1,

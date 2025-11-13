@@ -39,7 +39,7 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 			secondaryActions={[
 				{
 					label: 'Back to checklists',
-					onClick: () => router.push('/admin/checklists'),
+					onClick: () => router.push('/admin/workflow-configuration/checklists'),
 				},
 			]}
 			width={400}

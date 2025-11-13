@@ -43,6 +43,12 @@ export enum EntityName {
 	// Recovery & deadline entities
 	RECOVERY_EVENT = 'recovery_event',
 	DEADLINE = 'deadline',
+
+	// Party management entities
+	PARTY = 'party',
+	PARTY_OFFICE = 'party_office',
+	PARTY_REPRESENTATIVE = 'party_representative',
+	CLAIM_PARTY = 'claim_party',
 }
 
 export interface AdminActionLogParams {

@@ -76,7 +76,7 @@ export default function BasicAutocomplete<T>({
 					{...params}
 					variant={variant}
 					label={label}
-					placeholder={currentSelected.length ? undefined : placeholder}
+					placeholder={currentSelected?.length ? undefined : placeholder}
 					sx={styles.textFieldOverrides}
 				/>
 			)}

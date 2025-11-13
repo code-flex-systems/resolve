@@ -77,6 +77,10 @@ export interface AdminActionLogs {
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
+  /**
+   * Comma-separated list of allowed file extensions (e.g., '.pdf,.docx,.jpg'). NULL means all allowed file types are permitted
+   */
+  allowed_extensions: string | null;
   calls_instance_id: number | null;
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -89,6 +93,10 @@ export interface Answer {
   id: Generated<number>;
   position: number;
   question_id: number;
+  /**
+   * When true, this answer requires the user to upload a file instead of providing free-form text
+   */
+  requires_upload: Generated<boolean | null>;
   text: string;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -162,7 +170,41 @@ export interface Claim {
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
   recovery_status: string | null;
+  /**
+   * Granular workflow state: investigation, demand_sent, negotiation, settlement_reached, litigation, closed_recovered, closed_no_recovery, cancelled
+   */
+  substatus: string | null;
   total_incurred: Numeric | null;
+}
+
+export interface ClaimParty {
+  claim_id: number;
+  /**
+   * Coverage limit for this adverse carrier
+   */
+  coverage_amount: Numeric | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - unlinks party from claim
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who unlinked this party from claim
+   */
+  deleted_by: string | null;
+  id: Generated<number>;
+  is_primary: Generated<boolean>;
+  /**
+   * Percentage of liability attributed to this party (for responsible parties)
+   */
+  liability_percentage: Numeric | null;
+  notes: string | null;
+  party_id: number;
+  /**
+   * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
+   */
+  role: string;
 }
 
 export interface Client {
@@ -232,6 +274,10 @@ export interface Doc {
    */
   replaces_doc_id: number | null;
   /**
+   * Reference to question_response when this document is uploaded as part of a response to a question requiring file upload
+   */
+  response_doc_id: number | null;
+  /**
    * Azure Blob Storage key/path for the document
    */
   storage_key: string;
@@ -268,6 +314,10 @@ export interface DocGroup {
   sort_order: Generated<number | null>;
   updated_at: Timestamp | null;
   updated_by: string | null;
+  /**
+   * Links user folders to their owner. Used to display user name/email in Documents tab for folders under Users/
+   */
+  user_id: string | null;
 }
 
 export interface DocRequirement {
@@ -343,6 +393,85 @@ export interface PageInstanceStatus {
   updated_at: Generated<Timestamp | null>;
 }
 
+export interface Party {
+  address: string | null;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - party is archived when not null
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who archived this party
+   */
+  deleted_by: string | null;
+  email: string | null;
+  id: Generated<number>;
+  name: string;
+  notes: string | null;
+  organization: string | null;
+  /**
+   * For facilitators: adverse_carrier, attorney, expert, vendor. For entities: responsible_party, claimant, witness, property_owner
+   */
+  party_category: string;
+  /**
+   * entity = directly involved in loss, facilitator = representative/service provider
+   */
+  party_type: string;
+  phone: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface PartyOffice {
+  address: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - cascades from party deletion
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who archived this office
+   */
+  deleted_by: string | null;
+  fax: string | null;
+  id: Generated<number>;
+  is_primary: Generated<boolean>;
+  office_name: string | null;
+  party_id: number;
+  phone: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface PartyRepresentative {
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - cascades from party deletion
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who archived this representative
+   */
+  deleted_by: string | null;
+  email: string | null;
+  fax: string | null;
+  first_name: string;
+  id: Generated<number>;
+  is_primary: Generated<boolean>;
+  last_name: string;
+  mobile_phone: string | null;
+  office_id: number | null;
+  party_id: number;
+  phone: string | null;
+  title: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
 export interface PasswordResetTokens {
   created_at: Generated<Timestamp>;
   expires_at: Timestamp;
@@ -378,6 +507,10 @@ export interface QuestionResponse {
   id: Generated<number>;
   instance_id: number;
   question_id: number | null;
+  /**
+   * Reference to uploaded document when answer requires file upload
+   */
+  response_doc_id: number | null;
   response_text: string | null;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -481,6 +614,7 @@ export interface DB {
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
   claim: Claim;
+  claim_party: ClaimParty;
   client: Client;
   comment: Comment;
   deadline: Deadline;
@@ -492,6 +626,9 @@ export interface DB {
   page: Page;
   page_instance: PageInstance;
   page_instance_status: PageInstanceStatus;
+  party: Party;
+  party_office: PartyOffice;
+  party_representative: PartyRepresentative;
   password_reset_tokens: PasswordResetTokens;
   question: Question;
   question_response: QuestionResponse;

@@ -13,6 +13,7 @@ import { passwordResetRouter } from './routers/passwordReset';
 import { actionRouter } from './routers/action';
 import { commentRouter } from './routers/comment';
 import { recoveryRouter } from './routers/recovery';
+import { partyRouter } from './routers/party';
 
 export const appRouter = router({
 	action: actionRouter,
@@ -23,6 +24,7 @@ export const appRouter = router({
 	doc: docRouter,
 	feed: feedRouter,
 	page: pageRouter,
+	party: partyRouter,
 	passwordReset: passwordResetRouter,
 	question: questionRouter,
 	recovery: recoveryRouter,

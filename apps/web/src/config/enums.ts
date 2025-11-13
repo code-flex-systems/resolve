@@ -51,6 +51,17 @@ export enum ClaimStatus {
 	UNWORKED = 'Unworked',
 }
 
+export enum ClaimSubstatus {
+	INVESTIGATION = 'investigation',
+	DEMAND_SENT = 'demand_sent',
+	NEGOTIATION = 'negotiation',
+	SETTLEMENT_REACHED = 'settlement_reached',
+	LITIGATION = 'litigation',
+	CLOSED_RECOVERED = 'closed_recovered',
+	CLOSED_NO_RECOVERY = 'closed_no_recovery',
+	CANCELLED = 'cancelled',
+}
+
 export enum DeadlineStatus {
 	PENDING = 'pending',
 	MET = 'met',
@@ -127,6 +138,37 @@ export enum QuestionType {
 	FREEFORM = 'freeform',
 	MULTI = 'multi',
 	SINGLE = 'single',
+}
+
+export enum PartyType {
+	ENTITY = 'entity',
+	FACILITATOR = 'facilitator',
+}
+
+export enum FacilitatorCategory {
+	ADVERSE_CARRIER = 'adverse_carrier',
+	ATTORNEY = 'attorney',
+	EXPERT = 'expert',
+	VENDOR = 'vendor',
+}
+
+export enum EntityCategory {
+	RESPONSIBLE_PARTY = 'responsible_party',
+	CLAIMANT = 'claimant',
+	WITNESS = 'witness',
+	PROPERTY_OWNER = 'property_owner',
+}
+
+export enum ClaimPartyRole {
+	ADVERSE_CARRIER = 'adverse_carrier',
+	OUR_ATTORNEY = 'our_attorney',
+	THEIR_ATTORNEY = 'their_attorney',
+	EXPERT = 'expert',
+	RESPONSIBLE_PARTY = 'responsible_party',
+	WITNESS = 'witness',
+	PROPERTY_OWNER = 'property_owner',
+	CLAIMANT = 'claimant',
+	OTHER = 'other',
 }
 
 export enum UserStatus {}
