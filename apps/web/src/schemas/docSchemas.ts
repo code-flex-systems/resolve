@@ -117,6 +117,8 @@ export const docGroupParams = z.object({
 	color: z.string().optional(),
 	icon: z.string().optional(),
 	sort_order: z.number().int().default(0),
+	system: z.boolean().default(false),
+	user_id: z.string().uuid().optional(),
 });
 export type DocGroupParams = z.infer<typeof docGroupParams>;
 

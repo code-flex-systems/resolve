@@ -313,13 +313,13 @@ export interface DocGroup {
   parent_group_id: number | null;
   sort_order: Generated<number | null>;
   /**
-   * Marks system-managed folders that cannot be edited or deleted by admins
+   * System-managed folder that cannot be edited or deleted by regular admins
    */
-  system: Generated<boolean>;
+  system: Generated<boolean | null>;
   updated_at: Timestamp | null;
   updated_by: string | null;
   /**
-   * Links user folders to their owner. Used to display user name/email in Documents tab for folders under Users/
+   * Associated user ID for user-specific folders under Users/
    */
   user_id: string | null;
 }

@@ -520,11 +520,13 @@ CREATE TABLE doc_group (
     color               TEXT,
     icon                TEXT,
     sort_order          INTEGER DEFAULT 0,
+    system              BOOLEAN DEFAULT false,
+    user_id             UUID REFERENCES users(id),
     created_by          UUID NOT NULL REFERENCES users(id),
     created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_by          UUID REFERENCES users(id),
     updated_at          TIMESTAMP,
-    CONSTRAINT doc_group_type_check CHECK (group_type = ANY(ARRAY['claim_folder', 'category', 'custom']))
+    CONSTRAINT doc_group_type_check CHECK (group_type = ANY(ARRAY['claim_folder', 'category', 'custom', 'user']))
 );
 
 -- Indexes for doc_group
@@ -532,6 +534,21 @@ CREATE INDEX idx_doc_group_client ON doc_group (client_id);
 CREATE INDEX idx_doc_group_parent ON doc_group (parent_group_id) WHERE parent_group_id IS NOT NULL;
 CREATE INDEX idx_doc_group_claim ON doc_group (claim_id) WHERE claim_id IS NOT NULL;
 CREATE INDEX idx_doc_group_type ON doc_group (group_type);
+CREATE INDEX idx_doc_group_user ON doc_group (user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX idx_doc_group_system ON doc_group (system) WHERE system = true;
+
+-- Unique constraints for system folders
+CREATE UNIQUE INDEX idx_doc_group_users_folder
+ON doc_group (client_id, name)
+WHERE name = 'Users' AND group_type = 'category' AND parent_group_id IS NULL;
+
+CREATE UNIQUE INDEX idx_doc_group_user_folder
+ON doc_group (client_id, user_id)
+WHERE group_type = 'user' AND user_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_doc_group_shared_folder
+ON doc_group (client_id, name)
+WHERE name = 'Shared' AND group_type = 'category' AND parent_group_id IS NULL;
 
 -- DOC TABLE (Enhanced with Azure Storage Integration)
 CREATE TABLE doc (

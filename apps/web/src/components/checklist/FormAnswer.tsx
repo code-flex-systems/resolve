@@ -762,8 +762,8 @@ export default function FormAnswer() {
 				<DocumentSelectorDialog
 					onClose={() => setShowDocSelector(false)}
 					onSelectDocument={handleSelectImage}
-					filterByType="image"
-					title="Add Image to Answer"
+					filterByType="all"
+					title="Add Document to Answer"
 					relationshipData={{ answer_id: selectedAnswerData.id }}
 				/>
 			)}

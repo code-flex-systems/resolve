@@ -1,27 +1,20 @@
 'use client';
 
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
-import { Button, Breadcrumbs, Link, Paper, Typography } from '@mui/material';
-import { DataGridPro, GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import FolderIcon from '@mui/icons-material/Folder';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { Button, Paper, Typography } from '@mui/material';
+import { GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
-import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useState, useMemo } from 'react';
-import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
+import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import CreateFolderDialog from './CreateFolderDialog';
 import UploadDocumentDialog from './UploadDocumentDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import DocumentPreviewDialog from './DocumentPreviewDialog';
-
-type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
+import DocumentNavigationTable from './DocumentNavigationTable';
 
 export default function DocumentsTab() {
 	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
@@ -41,59 +34,13 @@ export default function DocumentsTab() {
 	const { mutateAsync: deleteDocGroup } = useDocTrpc().deleteDocGroup;
 	const isInTransition = isFetchingAllDocs || isFetchingDocs || isFetchingGroups;
 
-	// Get current folder for breadcrumbs
-	const currentFolder = useMemo(() => {
-		return currentFolderId ? groups.find((g) => g.id === currentFolderId) : null;
-	}, [currentFolderId, groups]);
-
-	// Get parent folder for breadcrumbs (for two-level navigation)
-	const parentFolder = useMemo(() => {
-		if (!currentFolder?.parent_group_id) return null;
-		return groups.find((g) => g.id === currentFolder.parent_group_id) || null;
-	}, [currentFolder, groups]);
-
 	// Calculate depth of current folder (0 = root, 1 = level 1, 2 = level 2)
 	const currentDepth = useMemo(() => {
+		const currentFolder = currentFolderId ? groups.find((g) => g.id === currentFolderId) : null;
 		if (!currentFolder) return 0;
 		if (!currentFolder.parent_group_id) return 1;
 		return 2;
-	}, [currentFolder]);
-
-	// Build rows: show child folders + documents
-	const rows: GridRow[] = useMemo(() => {
-		const result: GridRow[] = [];
-
-		// Show child folders at current level
-		if (currentFolderId === null) {
-			// At root level, show folders without a parent
-			const rootFolders = groups.filter((g) => g.parent_group_id === null);
-			rootFolders.forEach((folder) => {
-				result.push({ type: 'folder', data: folder });
-			});
-		} else {
-			// Inside a folder, show its child folders
-			const childFolders = groups.filter((g) => g.parent_group_id === currentFolderId);
-			childFolders.forEach((folder) => {
-				result.push({ type: 'folder', data: folder });
-			});
-		}
-
-		// Show documents for current location
-		docs.forEach((doc) => {
-			result.push({ type: 'document', data: doc });
-		});
-
-		return result;
-	}, [currentFolderId, groups, docs]);
-
-	const handleRowDoubleClick = (params: GridRowParams<GridRow>) => {
-		if (params.row.type === 'folder') {
-			setCurrentFolderId(params.row.data.id);
-		} else {
-			// Open document preview
-			setPreviewDocument(params.row.data);
-		}
-	};
+	}, [currentFolderId, groups]);
 
 	const handleAddFolder = () => {
 		setShowCreateFolderDialog(true);
@@ -135,17 +82,17 @@ export default function DocumentsTab() {
 
 	// Get info about selected items for delete confirmation
 	const selectedItemsInfo = useMemo(() => {
-		const folders: GridRow[] = [];
-		const documents: GridRow[] = [];
+		const folders: any[] = [];
+		const documents: any[] = [];
 
 		selectedRows.forEach((rowId) => {
-			const row = rows.find((r) => `${r.type}-${r.data.id}` === rowId);
-			if (row) {
-				if (row.type === 'folder') {
-					folders.push(row);
-				} else {
-					documents.push(row);
-				}
+			const [type, id] = String(rowId).split('-');
+			if (type === 'folder') {
+				const folder = groups.find((g) => g.id === Number(id));
+				if (folder) folders.push({ type: 'folder', data: folder });
+			} else if (type === 'document') {
+				const doc = docs.find((d) => d.id === Number(id));
+				if (doc) documents.push({ type: 'document', data: doc });
 			}
 		});
 
@@ -162,10 +109,10 @@ export default function DocumentsTab() {
 			docsInFolders,
 			totalDocs: documents.length + docsInFolders,
 		};
-	}, [selectedRows, rows, allDocs]);
+	}, [selectedRows, groups, docs, allDocs]);
 
 	return (
-		<Paper elevation={0} sx={styles.container}>
+		<Paper sx={styles.container}>
 			<Toolbar
 				left={<Typography variant="h6">Documents</Typography>}
 				right={
@@ -208,54 +155,19 @@ export default function DocumentsTab() {
 				}
 			/>
 
-			{/* Breadcrumbs for navigation */}
-			<Breadcrumbs sx={{ p: 2, pb: 1 }}>
-				<Link
-					component="button"
-					underline="hover"
-					color={currentFolderId === null ? 'text.primary' : 'inherit'}
-					onClick={() => setCurrentFolderId(null)}
-					sx={{ cursor: 'pointer' }}
-				>
-					Documents
-				</Link>
-				{parentFolder && (
-					<Link
-						component="button"
-						underline="hover"
-						color="inherit"
-						onClick={() => setCurrentFolderId(parentFolder.id)}
-						sx={{ cursor: 'pointer' }}
-					>
-						{parentFolder.name}
-					</Link>
-				)}
-				{currentFolder && <Typography color="text.primary">{currentFolder.name}</Typography>}
-			</Breadcrumbs>
-
-			<DataGridPro
-				rows={rows}
+			<DocumentNavigationTable
+				groups={groups}
+				docs={docs}
+				currentFolderId={currentFolderId}
+				onNavigate={setCurrentFolderId}
+				onDocumentPreview={setPreviewDocument}
 				loading={isInTransition}
-				columns={COLUMNS}
-				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowDoubleClick={editMode ? undefined : handleRowDoubleClick}
-				checkboxSelection={editMode}
-				rowSelectionModel={selectedRows}
-				onRowSelectionModelChange={setSelectedRows}
-				slots={{
-					noRowsOverlay: () => (
-						<CustomNoRowsOverlay
-							text={
-								currentFolderId === null
-									? 'No folders or documents yet. Click "Add Folder" or "Add Document" to get started.'
-									: 'No documents in this folder yet. Click "Add Document" to upload.'
-							}
-							icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
-						/>
-					),
-				}}
-				sx={styles.dataGrid}
-				hideFooter
+				editMode={editMode}
+				selectedRows={selectedRows}
+				onRowSelectionChange={setSelectedRows}
+				showBreadcrumbs={true}
+				breadcrumbRootLabel="Documents"
+				adminMode={true}
 			/>
 
 			{showCreateFolderDialog && (
@@ -284,108 +196,6 @@ export default function DocumentsTab() {
 	);
 }
 
-const COLUMNS: GridColDef<GridRow>[] = [
-	{
-		headerName: 'Name',
-		field: 'name',
-		flex: 1,
-		renderCell: ({ row }) => {
-			// For user folders, display user's full name and email
-			if (row.type === 'folder' && row.data.group_type === 'user' && row.data.user_first && row.data.user_last) {
-				return (
-					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
-						<div>
-							<Typography variant="body2">
-								{row.data.user_first} {row.data.user_last}
-							</Typography>
-							{row.data.user_email && (
-								<Typography variant="caption" color="text.secondary" display="block">
-									{row.data.user_email}
-								</Typography>
-							)}
-						</div>
-					</div>
-				);
-			}
-
-			// Default rendering for other folders and documents
-			return (
-				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-					{row.type === 'folder' ? (
-						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
-					) : (
-						<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
-					)}
-					<Typography variant="body2">
-						{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
-					</Typography>
-				</div>
-			);
-		},
-		renderHeader: (params) => (
-			<IconHeaderCell {...(params as any)} icon={<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
-	},
-	{
-		headerName: 'Type',
-		field: 'type',
-		width: 150,
-		renderCell: ({ row }) => {
-			if (row.type === 'folder') {
-				// Show "User Folder" for user-specific folders
-				if (row.data.group_type === 'user') {
-					return (
-						<Typography variant="body2" color="text.secondary">
-							User Folder
-						</Typography>
-					);
-				}
-				return (
-					<Typography variant="body2" color="text.secondary">
-						Folder
-					</Typography>
-				);
-			}
-			return (
-				<Typography variant="body2" color="text.secondary">
-					{capitalize(row.data.doc_type.replace('_', ' '))}
-				</Typography>
-			);
-		},
-	},
-	{
-		headerName: 'Date',
-		field: 'date',
-		width: 150,
-		renderCell: ({ row }) => (
-			<Typography variant="body2" color="text.secondary">
-				{formatMDY(row.data.created_at)}
-			</Typography>
-		),
-	},
-	{
-		headerName: 'Size',
-		field: 'size',
-		width: 120,
-		renderCell: ({ row }) => {
-			if (row.type === 'document' && row.data.file_size) {
-				const sizeInKB = Number(row.data.file_size) / 1024;
-				return (
-					<Typography variant="body2" color="text.secondary">
-						{sizeInKB.toFixed(1)} KB
-					</Typography>
-				);
-			}
-			return (
-				<Typography variant="body2" color="text.secondary">
-					—
-				</Typography>
-			);
-		},
-	},
-];
-
 const styles = {
 	container: {
 		width: '100%',
@@ -393,16 +203,7 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '20px',
-	},
-	dataGrid: {
-		flex: 1,
-		border: 'none',
-		'& .MuiDataGrid-row': {
-			cursor: 'pointer',
-		},
-		'& .MuiDataGrid-cell': {
-			display: 'flex',
-			alignItems: 'center',
-		},
+		border: 1,
+		borderColor: 'divider',
 	},
 };
