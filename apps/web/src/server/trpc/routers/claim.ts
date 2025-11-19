@@ -35,7 +35,6 @@ export const claimRouter = router({
 	}),
 
 	getClaimDetail: protectedProcedure.input(getClaimDetailInput).query(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return getClaimDetail(ctx, input);
 	}),
 

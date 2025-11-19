@@ -80,7 +80,7 @@ export const userRouter = router({
 
 	updateUser: protectedProcedure.input(updateUserInput).mutation(async ({ input, ctx }) => {
 		const isSelfUpdate = input.id === ctx.session.user.id;
-		const adminOnlyFields: string[] = ['role', 'disabled'];
+		const adminOnlyFields: string[] = ['first', 'last', 'role', 'disabled'];
 		// Must be admin to update other users, or to update role / activate/deactivate account
 		if (!isSelfUpdate || Object.keys(input.params).some((k) => adminOnlyFields.includes(k))) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);

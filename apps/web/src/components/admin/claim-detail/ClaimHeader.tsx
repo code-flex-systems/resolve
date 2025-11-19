@@ -13,13 +13,19 @@ import { formatLineOfBusiness, formatLossType, LOB_ICONS, LOSS_TYPE_ICONS } from
 import { LineOfBusiness, LossType } from '@/config/enums';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
+import useIsAdmin from '@/hooks/useIsAdmin';
+import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
 interface ClaimHeaderProps {
 	claimId: number;
+	backRoute?: string; // Optional custom back route
 }
 
-export default function ClaimHeader({ claimId }: ClaimHeaderProps) {
+export default function ClaimHeader({ claimId, backRoute = '/admin/claims' }: ClaimHeaderProps) {
 	const router = useRouter();
+	const isAdmin = useIsAdmin();
+	const isSuperAdmin = useIsSuperAdmin();
+	const canEditClaim = isAdmin || isSuperAdmin;
 	const { data: claimDetail, isLoading } = trpc.claim.getClaimDetail.useQuery({ claimId });
 
 	if (isLoading) {
@@ -43,9 +49,9 @@ export default function ClaimHeader({ claimId }: ClaimHeaderProps) {
 			<Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap">
 				{/* Left: Claim Number and Insured */}
 				<Box>
-					<Box display="flex" alignItems="center" gap={2} marginBottom={1}>
-						<IconButton onClick={() => router.push('/admin/claims')}>
-							<ArrowBack sx={{ fontSize: 17 }} />
+					<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
+						<IconButton onClick={() => router.push(backRoute)}>
+							<ArrowBack />
 						</IconButton>
 						<Typography variant="h4" color="primary">
 							{claimDetail.claim_number}
@@ -133,13 +139,15 @@ export default function ClaimHeader({ claimId }: ClaimHeaderProps) {
 					{claimDetail.feed_name && <Chip label={`Feed: ${claimDetail.feed_name}`} variant="outlined" />}
 				</Box>
 				<Box display="flex" gap={1} justifyContent="flex-end" alignItems="center">
-					<IconButton
-						size="small"
-						title="Edit Claim"
-						onClick={() => router.push(`/admin/claims/edit/${claimId}`)}
-					>
-						<Edit />
-					</IconButton>
+					{canEditClaim && (
+						<IconButton
+							size="small"
+							title="Edit Claim"
+							onClick={() => router.push(`/admin/claims/edit/${claimId}`)}
+						>
+							<Edit />
+						</IconButton>
+					)}
 					<IconButton size="small" title="Assign Claim" disabled>
 						<Assignment />
 					</IconButton>

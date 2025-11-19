@@ -12,22 +12,30 @@ import {
 	ClickAwayListener,
 	Typography,
 	Paper,
+	Box,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { TransitionGroup } from 'react-transition-group';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Claim } from '@/types/types';
 import { ClaimSearch } from '@/config/enums';
-import BasicSwitch from '../common/BasicSwitch';
 import ClaimMenuItem from './ClaimMenuItem';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
 import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
+import BasicButtonStyled from '../common/BasicButtonStyled';
 
-export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }) {
+interface ClaimsSearchProps {
+	showIcon?: boolean;
+	heroMode?: boolean;
+	onClaimSelect?: (claimId: number) => void;
+}
+
+export default function ClaimsSearch({ showIcon = true, heroMode = false, onClaimSelect }: ClaimsSearchProps) {
 	const trpcUtils = trpc.useUtils();
 	const selectedClaim = useChecklistsStore((state) => state.selectedClaim);
 	const [query, setQuery] = useState<string>('');
@@ -70,17 +78,23 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 		setResults([]);
 	};
 
+	const handleSwitchSearch = () => {
+		setType(type === ClaimSearch.CLAIM_NUMBER ? ClaimSearch.INSURED : ClaimSearch.CLAIM_NUMBER);
+		handleClearInput();
+		setResults([]);
+	};
+
 	return (
 		<div style={styles.container} className="flex-col-center">
 			<ClickAwayListener onClickAway={onClose}>
-				<span ref={spanRef}>
+				<span ref={spanRef} style={{ width: '100%' }}>
 					<TextField
 						placeholder={`Start typing a ${type === 'claim_number' ? 'claim number' : 'name'}...`}
 						fullWidth
 						value={query}
 						onChange={handleInputChange}
 						onFocus={onFocus}
-						sx={styles.textField}
+						sx={heroMode ? styles.textFieldHero : styles.textField}
 						slotProps={{
 							input: {
 								startAdornment: showIcon ? (
@@ -88,14 +102,33 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 										<SearchIcon />
 									</InputAdornment>
 								) : undefined,
-								endAdornment: query && (
+								endAdornment: (
 									<InputAdornment position="end">
 										{searching ? (
 											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
-										) : (
+										) : query ? (
 											<IconButton size="small" onClick={handleClearInput}>
 												<ClearIcon sx={{ fontSize: 15 }} />
 											</IconButton>
+										) : (
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: handleSwitchSearch,
+												}}
+												tooltipProps={{
+													title:
+														type === ClaimSearch.CLAIM_NUMBER
+															? 'Search by insured'
+															: 'Search by claim number',
+												}}
+												icon={
+													type === ClaimSearch.CLAIM_NUMBER ? (
+														<PersonSearchIcon />
+													) : (
+														<SearchIcon />
+													)
+												}
+											/>
 										)}
 									</InputAdornment>
 								),
@@ -107,21 +140,25 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 
 					<Popper
 						open={Boolean(anchorEl)}
-						sx={{ zIndex: 100 }}
+						sx={{ zIndex: 100, width: spanRef.current?.offsetWidth || 'auto' }}
 						anchorEl={anchorEl}
 						placement="bottom-start"
 						disablePortal
 					>
-						<Paper style={styles.popper}>
+						<Paper elevation={3} sx={styles.popper}>
 							{searching && (
-								<MenuItem key="searching" disabled style={styles.menuItem}>
-									<Typography fontStyle="italic">Searching...</Typography>
-								</MenuItem>
+								<Box sx={styles.emptyState}>
+									<Typography fontStyle="italic" color="text.secondary">
+										Searching...
+									</Typography>
+								</Box>
 							)}
 							{!searching && results.length === 0 && !selectedClaim && (
-								<MenuItem key="no-results" disabled style={styles.menuItem}>
-									<Typography fontStyle="italic">No claims found</Typography>
-								</MenuItem>
+								<Box sx={styles.emptyState}>
+									<Typography fontStyle="italic" color="text.secondary">
+										No claims found
+									</Typography>
+								</Box>
 							)}
 							{!searching && results.length === 0 && !!selectedClaim && (
 								<ClaimMenuItem
@@ -131,6 +168,7 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 										setQuery('');
 										setResults([]);
 									}}
+									onSelect={onClaimSelect}
 									selected={true}
 								/>
 							)}
@@ -146,6 +184,7 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 													setQuery('');
 													setResults([]);
 												}}
+												onSelect={onClaimSelect}
 												selected={selectedClaim?.id === c.id}
 											/>
 										</Collapse>
@@ -155,58 +194,50 @@ export default function ClaimsSearch({ showIcon = true }: { showIcon?: boolean }
 					</Popper>
 				</span>
 			</ClickAwayListener>
-
-			<div style={styles.switch} className="flex-row-left">
-				<BasicSwitch
-					checked={type === ClaimSearch.INSURED}
-					onChange={(e, value) => {
-						e.stopPropagation();
-						e.preventDefault();
-						setType(value ? ClaimSearch.INSURED : ClaimSearch.CLAIM_NUMBER);
-						handleClearInput();
-						setResults([]);
-					}}
-				/>
-				<Typography fontSize={13} fontWeight={type === 'insured' ? 'bold' : undefined} marginLeft="10px">
-					Search by Insured
-				</Typography>
-			</div>
 		</div>
 	);
 }
 
 const styles = {
 	container: {
-		width: 'fit-content',
-		padding: 10,
-	},
-	horizontalDiv: {
-		height: 1,
 		width: '100%',
 	},
-	icon: {
-		marginRight: '5px',
-	},
-	menuItem: {
-		width: 265,
+	emptyState: {
+		minHeight: 80,
+		padding: '16px',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	popper: {
-		maxHeight: 300,
+		maxHeight: 400,
 		overflowY: 'auto' as const,
 		width: '100%',
-		outline: '1px solid #E0E0E0',
-		borderBottomLeftRadius: 2,
-		borderBottomRightRadius: 2,
-		marginTop: 2,
+		borderRadius: 2,
+		marginTop: 1,
 	},
 	switch: {
 		width: '100%',
 		padding: '10px 0px 0px',
 	},
 	textField: {
-		width: 265,
+		width: '100%',
 		'& .MuiInput-input': {
 			fontSize: 15,
+		},
+		'& .MuiOutlinedInput-root': {
+			borderRadius: 2,
+		},
+	},
+	textFieldHero: {
+		width: '100%',
+		'& .MuiInput-input': {
+			fontSize: 18,
+		},
+		'& .MuiOutlinedInput-root': {
+			borderRadius: 3,
+			height: 64,
+			fontSize: 18,
 		},
 	},
 };

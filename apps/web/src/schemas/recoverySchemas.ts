@@ -128,3 +128,8 @@ const recoveryMetricsFilters = z.object({
 export const getRecoveryMetricsSummaryInput = recoveryMetricsFilters;
 
 export const getRecoveryMetricsTimeSeriesInput = recoveryMetricsFilters;
+
+export const getQuarterlyRecoveryStatsInput = z.object({
+	fiscalYearStart: parseDate().optional(),
+	userId: z.string().uuid().optional(),
+});

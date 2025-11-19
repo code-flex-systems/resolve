@@ -27,6 +27,7 @@ import { formatMD, getDaysToEndOfFiscalQuarter } from '@/lib/utils/utils';
 import MetricAction from '../common/MetricAction';
 import { ClaimStatus } from '@/config/enums';
 import RecoveryMetricsChart from '../metrics/Recovery/RecoveryMetricsChart';
+import FQStepper from '../home/FQStepper';
 
 const defaultClaimStats = {
 	[ClaimStatus.SUBMITTED]: 0,
@@ -79,6 +80,7 @@ export default function DashboardTab() {
 				overflow="auto"
 			>
 				<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
+					<FQStepper />
 					<Stack display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
 						<SimpleMetric
 							title="checklists"

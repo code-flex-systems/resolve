@@ -52,7 +52,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 
 	return (
 		<Box p={3}>
-			<Stack spacing={3} maxWidth={1000}>
+			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Workflow Status */}
 				<Paper elevation={0} sx={styles.paper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>

@@ -11,6 +11,7 @@ import {
 	deleteDeadline,
 	getRecoveryMetricsSummary,
 	getRecoveryMetricsTimeSeries,
+	getQuarterlyRecoveryStats,
 } from '@/api/controllers/recoveryController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -26,6 +27,7 @@ import {
 	deleteDeadlineInput,
 	getRecoveryMetricsSummaryInput,
 	getRecoveryMetricsTimeSeriesInput,
+	getQuarterlyRecoveryStatsInput,
 } from '@/schemas/recoverySchemas';
 
 export const recoveryRouter = router({
@@ -113,5 +115,12 @@ export const recoveryRouter = router({
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return getRecoveryMetricsTimeSeries(ctx, input);
+		}),
+
+	getQuarterlyRecoveryStats: protectedProcedure
+		.input(getQuarterlyRecoveryStatsInput)
+		.query(async ({ input, ctx }) => {
+			// No role requirement - all users can see quarterly stats for their client
+			return getQuarterlyRecoveryStats(ctx, input);
 		}),
 });

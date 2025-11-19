@@ -68,6 +68,8 @@ export function useRecoveryTrpc() {
 		getRecoveryMetricsSummary: trpc.recovery.getRecoveryMetricsSummary.useQuery,
 
 		getRecoveryMetricsTimeSeries: trpc.recovery.getRecoveryMetricsTimeSeries.useQuery,
+
+		getQuarterlyRecoveryStats: trpc.recovery.getQuarterlyRecoveryStats.useQuery,
 	};
 }
 
@@ -77,3 +79,4 @@ export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFil
 export type Deadline = RecoveryOutput['listDeadlines'][number];
 export type RecoveryMetricsSummary = RecoveryOutput['getRecoveryMetricsSummary'];
 export type RecoveryMetricsTimeSeries = RecoveryOutput['getRecoveryMetricsTimeSeries'];
+export type QuarterlyRecoveryStats = RecoveryOutput['getQuarterlyRecoveryStats'];

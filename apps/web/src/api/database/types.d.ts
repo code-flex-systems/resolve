@@ -116,6 +116,7 @@ export interface Checklist {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
+  description: string | null;
   id: Generated<number>;
   name: string;
   published: Generated<boolean>;

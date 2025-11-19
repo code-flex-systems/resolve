@@ -308,3 +308,20 @@ export async function getRecoveryMetricsTimeSeries(
 	const { range, ...filters } = input;
 	return await recoveryQueries.getRecoveryMetricsTimeSeries(ctx, range, filters);
 }
+
+/**
+ * Get quarterly recovery statistics for fiscal year display.
+ *
+ * @param ctx - request context
+ * @param input - optional fiscal year start and user filter
+ * @returns recovery totals for Q1-Q4
+ */
+export async function getQuarterlyRecoveryStats(
+	ctx: ProtectedContext,
+	input?: {
+		fiscalYearStart?: Date;
+		userId?: string;
+	}
+) {
+	return await recoveryQueries.getQuarterlyRecoveryStats(ctx, input);
+}

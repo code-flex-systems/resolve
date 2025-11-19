@@ -34,7 +34,7 @@ export default function ProfileAvatar() {
 			</div>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
-					<Paper sx={styles.paper}>
+					<Paper elevation={3} sx={styles.paper}>
 						<div
 							style={{
 								...styles.row,

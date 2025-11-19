@@ -4,6 +4,8 @@ import { RecoveryEventParams, DeadlineParams } from '@/schemas/recoverySchemas';
 import { DeadlineStatus } from '@/config/enums';
 import { DateRangeStrict } from '@/types/types';
 import { TRPCError } from '@trpc/server';
+import config from '@/config/config';
+import dayjs from 'dayjs';
 
 // =====================================================================
 // RECOVERY EVENT QUERIES
@@ -683,4 +685,91 @@ export async function getRecoveryMetricsTimeSeries(
 	`.compile(ctx.db);
 
 	return (await ctx.db.executeQuery(query))?.rows ?? [];
+}
+
+// =====================================================================
+// QUARTERLY RECOVERY STATS
+// =====================================================================
+
+/**
+ * Get total actual recovery amounts per fiscal quarter.
+ *
+ * @param ctx - request context
+ * @param params - optional fiscal year start date and user ID filter
+ * @returns recovery totals for Q1-Q4
+ */
+export async function getQuarterlyRecoveryStats(
+	ctx: ProtectedContext,
+	params?: {
+		fiscalYearStart?: Date;
+		userId?: string;
+	}
+): Promise<{
+	q1: string;
+	q2: string;
+	q3: string;
+	q4: string;
+}> {
+	const clientId = ctx.session.user.client_id!;
+
+	// Use provided fiscal year start or default from config
+	const fiscalYearStart = params?.fiscalYearStart
+		? dayjs(params.fiscalYearStart)
+		: config.FISCAL_YEAR_START_DATE;
+
+	// Calculate quarter date ranges
+	const quarters = [
+		{
+			name: 'q1',
+			start: fiscalYearStart.toDate(),
+			end: fiscalYearStart.add(3, 'months').subtract(1, 'day').toDate(),
+		},
+		{
+			name: 'q2',
+			start: fiscalYearStart.add(3, 'months').toDate(),
+			end: fiscalYearStart.add(6, 'months').subtract(1, 'day').toDate(),
+		},
+		{
+			name: 'q3',
+			start: fiscalYearStart.add(6, 'months').toDate(),
+			end: fiscalYearStart.add(9, 'months').subtract(1, 'day').toDate(),
+		},
+		{
+			name: 'q4',
+			start: fiscalYearStart.add(9, 'months').toDate(),
+			end: fiscalYearStart.add(12, 'months').subtract(1, 'day').toDate(),
+		},
+	];
+
+	// Query recovery amounts for each quarter
+	const results = await Promise.all(
+		quarters.map(async (quarter) => {
+			let query = ctx.db
+				.selectFrom('recovery_event')
+				.select((eb) => eb.fn.sum('recovery_amount').as('total'))
+				.where('client_id', '=', clientId)
+				.where('recovery_date', '>=', quarter.start)
+				.where('recovery_date', '<=', quarter.end);
+
+			// Optional user filter (future enhancement)
+			if (params?.userId) {
+				query = query.where('created_by', '=', params.userId);
+			}
+
+			const result = await query.executeTakeFirst();
+
+			return {
+				quarter: quarter.name,
+				total: result?.total || '0',
+			};
+		})
+	);
+
+	// Format results into expected shape
+	return {
+		q1: results.find((r) => r.quarter === 'q1')?.total || '0',
+		q2: results.find((r) => r.quarter === 'q2')?.total || '0',
+		q3: results.find((r) => r.quarter === 'q3')?.total || '0',
+		q4: results.find((r) => r.quarter === 'q4')?.total || '0',
+	};
 }
