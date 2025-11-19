@@ -1,7 +1,7 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Fade, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { Button, Chip, Fade, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
@@ -9,10 +9,11 @@ import LocationOn from '@mui/icons-material/LocationOn';
 import Phone from '@mui/icons-material/Phone';
 import Search from '@mui/icons-material/Search';
 import Warning from '@mui/icons-material/Warning';
+import Clear from '@mui/icons-material/Clear';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import OfficeActionsCell from './OfficeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -20,6 +21,7 @@ import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import OfficeDialog from './OfficeDialog';
+import { useUrlFilters } from '@/hooks/useUrlFilters';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -91,14 +93,19 @@ function NoRows() {
 
 export default function OfficesTab() {
 	const showNewOfficeDialog = useAdminStore((state) => state.showNewOfficeDialog);
-	const showArchivedOffices = useAdminStore((state) => state.showArchivedOffices);
 	const officeConstraints = useAdminStore((state) => state.officeConstraints);
-	const officeSearchTerm = useAdminStore((state) => state.officeSearchTerm);
 	const toggleNewOfficeDialog = useAdminStore((state) => state.toggleNewOfficeDialog);
-	const setShowArchivedOffices = useAdminStore((state) => state.setShowArchivedOffices);
 	const updateOfficeConstraints = useAdminStore((state) => state.updateOfficeConstraints);
-	const updateOfficeSearchTerm = useAdminStore((state) => state.updateOfficeSearchTerm);
-	const [searchTerm, setSearchTerm] = useState('');
+
+	// URL filters hook for managing filters via search params
+	const { getParam, getBoolParam, setParam } = useUrlFilters();
+
+	// Filter states from URL params
+	const officeSearchTerm = getParam('search') ?? '';
+	const showArchivedOffices = getBoolParam('archived');
+
+	// Local state for search input
+	const [searchTerm, setSearchTerm] = useState(officeSearchTerm);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllOffices({
 		limit: officeConstraints.pageSize,
@@ -115,9 +122,15 @@ export default function OfficesTab() {
 		return rowCountRef.current;
 	}, [data.count]);
 
+	// Sync local search state with URL param changes
+	useEffect(() => {
+		setSearchTerm(officeSearchTerm);
+	}, [officeSearchTerm]);
+
+	// Debounce search input to URL param
 	const debouncedSearch = useCallback(
-		useDebounce((search: string) => updateOfficeSearchTerm(search), 500),
-		[]
+		useDebounce((search: string) => setParam('search', search), 500),
+		[setParam]
 	);
 
 	return (
@@ -133,7 +146,7 @@ export default function OfficesTab() {
 								<Switch
 									size="small"
 									checked={showArchivedOffices}
-									onChange={(_, checked) => setShowArchivedOffices(checked)}
+									onChange={(_, checked) => setParam('archived', checked)}
 									color="warning"
 									sx={{ marginLeft: '10px' }}
 								/>
@@ -161,6 +174,18 @@ export default function OfficesTab() {
 											debouncedSearch(e.target.value);
 										}}
 									/>
+									{searchTerm && (
+										<IconButton
+											size="small"
+											onClick={() => {
+												setSearchTerm('');
+												setParam('search', '');
+											}}
+											sx={{ padding: '2px', marginLeft: '2px' }}
+										>
+											<Clear sx={{ fontSize: 16 }} />
+										</IconButton>
+									)}
 								</Paper>
 								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewOfficeDialog}>
 									Office

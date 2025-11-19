@@ -16,6 +16,8 @@ export function useRecoveryTrpc() {
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+				// Invalidate claim detail to update actual_recovery totals
+				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
 			},
 		}),
 
@@ -33,6 +35,8 @@ export function useRecoveryTrpc() {
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+				// Invalidate claim detail to update actual_recovery totals
+				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
 			},
 		}),
 

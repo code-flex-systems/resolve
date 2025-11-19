@@ -1,26 +1,30 @@
 import { router } from './trpc';
 
+import { actionRouter } from './routers/action';
+import { adminLogsRouter } from './routers/adminLogs';
 import { answerRouter } from './routers/answer';
 import { checklistRouter } from './routers/checklist';
 import { claimRouter } from './routers/claim';
+import { commentRouter } from './routers/comment';
+import { coverageRouter } from './routers/coverage';
 import { docRouter } from './routers/doc';
+import { feedRouter } from './routers/feed';
 import { pageRouter } from './routers/page';
+import { partyRouter } from './routers/party';
+import { passwordResetRouter } from './routers/passwordReset';
 import { questionRouter } from './routers/question';
+import { recoveryRouter } from './routers/recovery';
 import { responseRouter } from './routers/response';
 import { userRouter } from './routers/user';
-import { feedRouter } from './routers/feed';
-import { passwordResetRouter } from './routers/passwordReset';
-import { actionRouter } from './routers/action';
-import { commentRouter } from './routers/comment';
-import { recoveryRouter } from './routers/recovery';
-import { partyRouter } from './routers/party';
 
 export const appRouter = router({
 	action: actionRouter,
+	adminLogs: adminLogsRouter,
 	answer: answerRouter,
 	checklist: checklistRouter,
 	claim: claimRouter,
 	comment: commentRouter,
+	coverage: coverageRouter,
 	doc: docRouter,
 	feed: feedRouter,
 	page: pageRouter,

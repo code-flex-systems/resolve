@@ -32,7 +32,10 @@ function getCurrentQuarterRange(): [Dayjs, Dayjs] {
 	const startMonth = (currentQuarter - 1) * 3;
 
 	const start = dayjs().year(currentYear).month(startMonth).startOf('month');
-	const end = dayjs().year(currentYear).month(startMonth + 2).endOf('month');
+	const end = dayjs()
+		.year(currentYear)
+		.month(startMonth + 2)
+		.endOf('month');
 
 	return [start, end];
 }
@@ -47,83 +50,67 @@ export default function RecoveryView() {
 	const [recoverySource, setRecoverySource] = useState<string>('');
 
 	return (
-		<PageWrapper>
-			<Stack
-				flex={1}
+		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
+				<Box marginRight="5px">
+					<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
+				</Box>
+				<Box marginRight="5px">
+					<RecoveryStatusSelect recoveryStatus={recoveryStatus} setRecoveryStatus={setRecoveryStatus} />
+				</Box>
+				<Box marginRight="5px">
+					<RecoverySourceFilter recoverySource={recoverySource} setRecoverySource={setRecoverySource} />
+				</Box>
+				<Box marginRight="5px">
+					<ChecklistSelect checklist={checklist} setChecklist={setChecklist} />
+				</Box>
+				<UserFilter
+					users={users}
+					setUsers={setUsers}
+					width="100%"
+					text="Filter by recovery creator"
+					multi={false}
+				/>
+			</Box>
+			<div style={styles.divider}>
+				<Divider />
+			</div>
+			<Box
 				width="100%"
+				height="calc(100vh - 70px)"
 				display="flex"
 				justifyContent="flex-start"
 				alignItems="flex-start"
-				padding="10px"
+				bgcolor="#F7F8FA"
+				padding="20px"
+				overflow="auto"
 			>
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-					<Box marginRight="5px">
-						<BasicButtonStyled
-							icon={<ArrowBack />}
-							buttonProps={{ onClick: () => router.back() }}
-							tooltipProps={{ title: 'Back to dashboard' }}
-						/>
-					</Box>
-					<Box marginRight="5px">
-						<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
-					</Box>
-					<Box marginRight="5px">
-						<RecoveryStatusSelect recoveryStatus={recoveryStatus} setRecoveryStatus={setRecoveryStatus} />
-					</Box>
-					<Box marginRight="5px">
-						<RecoverySourceFilter recoverySource={recoverySource} setRecoverySource={setRecoverySource} />
-					</Box>
-					<Box marginRight="5px">
-						<ChecklistSelect checklist={checklist} setChecklist={setChecklist} />
-					</Box>
-					<UserFilter
-						users={users}
-						setUsers={setUsers}
-						width="100%"
-						text="Filter by recovery creator"
-						multi={false}
+				<Stack width="100%" spacing={2}>
+					<RecoveryMetricsChart
+						range={range}
+						isBreakdown={true}
+						recoveryStatus={recoveryStatus}
+						recoverySource={recoverySource}
+						checklistId={checklist?.id}
+						userId={users[0]?.id}
 					/>
-				</Box>
-				<div style={styles.divider}>
-					<Divider />
-				</div>
-				<Box
-					width="100%"
-					height="calc(100vh - 70px)"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="flex-start"
-					bgcolor="#F7F8FA"
-					padding="20px"
-					overflow="auto"
-				>
-					<Stack width="100%" spacing={2}>
-						<RecoveryMetricsChart
-							range={range}
-							isBreakdown={true}
-							recoveryStatus={recoveryStatus}
-							recoverySource={recoverySource}
-							checklistId={checklist?.id}
-							userId={users[0]?.id}
-						/>
-						<TopPerformersSection
-							range={range}
-							recoveryStatus={recoveryStatus}
-							recoverySource={recoverySource}
-							checklistId={checklist?.id}
-							userId={users[0]?.id}
-						/>
-						<RecoveryEventsTable
-							range={range}
-							recoveryStatus={recoveryStatus}
-							recoverySource={recoverySource}
-							checklistId={checklist?.id}
-							userId={users[0]?.id}
-						/>
-					</Stack>
-				</Box>
-			</Stack>
-		</PageWrapper>
+					<TopPerformersSection
+						range={range}
+						recoveryStatus={recoveryStatus}
+						recoverySource={recoverySource}
+						checklistId={checklist?.id}
+						userId={users[0]?.id}
+					/>
+					<RecoveryEventsTable
+						range={range}
+						recoveryStatus={recoveryStatus}
+						recoverySource={recoverySource}
+						checklistId={checklist?.id}
+						userId={users[0]?.id}
+					/>
+				</Stack>
+			</Box>
+		</Stack>
 	);
 }
 

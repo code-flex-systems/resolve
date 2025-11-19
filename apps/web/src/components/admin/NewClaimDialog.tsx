@@ -24,11 +24,11 @@ export default function NewClaimDialog() {
 				claims: [
 					{
 						...data,
-						claim_amount: Number(data.claim_amount),
-						expected_recovery: Number(data.expected_recovery),
-						total_incurred: Number(data.total_incurred),
-						date_of_loss: new Date(data.date_of_loss?.toString() ?? ''),
-						last_update: new Date(data.last_update?.toString() ?? ''),
+						claim_amount: data.claim_amount?.toString() ?? null,
+						expected_recovery: data.expected_recovery?.toString() ?? null,
+						total_incurred: data.total_incurred?.toString() ?? null,
+						date_of_loss: data.date_of_loss?.toString() ?? null,
+						last_update: data.last_update?.toString() ?? null,
 					},
 				],
 			});

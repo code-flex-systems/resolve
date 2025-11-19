@@ -9,6 +9,8 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import { useEffect } from 'react';
 
 // Icons
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
@@ -23,6 +25,9 @@ import ContentPasteSearchIcon from '@mui/icons-material/ContentPasteSearch';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import ChecklistIcon from '@mui/icons-material/Checklist';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import ShieldIcon from '@mui/icons-material/Shield';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -47,6 +52,11 @@ const adminNavCategories: AdminNavCategory[] = [
 				route: '/admin/user-management/users',
 				icon: <PeopleIcon fontSize="small" />,
 			},
+			{
+				label: 'Activity',
+				route: '/admin/user-management/activity',
+				icon: <GraphicEqIcon fontSize="small" />,
+			},
 		],
 		defaultExpanded: true,
 	},
@@ -55,9 +65,26 @@ const adminNavCategories: AdminNavCategory[] = [
 		icon: <CloudSyncIcon fontSize="small" color="secondary" />,
 		items: [
 			{
-				label: 'Feeds & Claims',
-				route: '/admin/data-sources/feeds-and-claims',
+				label: 'Feeds',
+				route: '/admin/data-sources/feeds',
+				icon: <RssFeedIcon fontSize="small" />,
+			},
+		],
+		defaultExpanded: true,
+	},
+	{
+		label: 'Claim Management',
+		icon: <ContentPasteSearchIcon fontSize="small" color="secondary" />,
+		items: [
+			{
+				label: 'All Claims',
+				route: '/admin/claims',
 				icon: <ContentPasteSearchIcon fontSize="small" />,
+			},
+			{
+				label: 'Coverages',
+				route: '/admin/claims/coverages',
+				icon: <ShieldIcon fontSize="small" />,
 			},
 		],
 		defaultExpanded: true,
@@ -96,12 +123,18 @@ const adminNavCategories: AdminNavCategory[] = [
 		],
 		defaultExpanded: true,
 	},
-	// {
-	// 	label: 'Financial',
-	// 	icon: <AttachMoneyIcon fontSize="small" />,
-	// 	items: [],
-	// 	defaultExpanded: false,
-	// },
+	{
+		label: 'Financial',
+		icon: <AttachMoneyIcon fontSize="small" color="secondary" />,
+		items: [
+			{
+				label: 'Recovery',
+				route: '/admin/financial/recovery',
+				icon: <CurrencyExchangeIcon fontSize="small" />,
+			},
+		],
+		defaultExpanded: true,
+	},
 	// {
 	// 	label: 'Litigation',
 	// 	icon: <GavelIcon fontSize="small" />,

@@ -66,6 +66,8 @@ export interface Claim {
 	last_updated_by: string | null;
 	last_update: Date | null;
 	expected_recovery: number | null;
+	line_of_business: string | null;
+	loss_type: string | null;
 }
 
 export interface Checklist {

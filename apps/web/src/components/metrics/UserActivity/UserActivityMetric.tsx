@@ -72,7 +72,7 @@ export default function UserActivityMetric() {
 								</Box>
 								<BasicButtonStyled
 									buttonProps={{
-										onClick: () => router.push('/metrics/user-activity'),
+										onClick: () => router.push('/admin/user-management/activity'),
 										sx: { marginLeft: '5px' },
 									}}
 									icon={

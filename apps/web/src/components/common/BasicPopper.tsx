@@ -8,9 +8,10 @@ export default function BasicPopper(
 		setAnchorEl: (newEl: PopperProps['anchorEl']) => void;
 		placement?: PopperProps['placement'];
 		className?: string;
+		zIndex?: number;
 	} & PropsWithChildren
 ) {
-	const { anchorEl, setAnchorEl, placement, className } = props;
+	const { anchorEl, setAnchorEl, placement, className, zIndex = 1000 } = props;
 	return (
 		<ClickAwayListener onClickAway={() => setAnchorEl(null)}>
 			<Popper
@@ -18,7 +19,7 @@ export default function BasicPopper(
 				anchorEl={anchorEl}
 				placement={placement}
 				className={className}
-				style={{ zIndex: 1000 }}
+				style={{ zIndex }}
 				transition
 			>
 				{({ TransitionProps }) => (

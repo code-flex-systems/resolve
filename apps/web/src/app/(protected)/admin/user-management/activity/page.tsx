@@ -1,5 +1,7 @@
+'use client';
+
 import UserActivityView from '@/components/metrics/UserActivity/UserActivityView';
 
-export default function UserActivityPage() {
+export default function AdminPageActivityTab() {
 	return <UserActivityView />;
 }

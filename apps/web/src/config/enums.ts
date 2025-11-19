@@ -62,6 +62,43 @@ export enum ClaimSubstatus {
 	CANCELLED = 'cancelled',
 }
 
+export enum LineOfBusiness {
+	AUTO = 'auto',
+	PROPERTY = 'property',
+	GENERAL_LIABILITY = 'general_liability',
+	WORKERS_COMP = 'workers_comp',
+	PROFESSIONAL_LIABILITY = 'professional_liability',
+}
+
+export enum LossType {
+	COLLISION = 'collision',
+	COMPREHENSIVE = 'comprehensive',
+	FIRE = 'fire',
+	THEFT = 'theft',
+	WATER_DAMAGE = 'water_damage',
+	WIND = 'wind',
+	VANDALISM = 'vandalism',
+	BODILY_INJURY = 'bodily_injury',
+	PROPERTY_DAMAGE = 'property_damage',
+	UNINSURED_MOTORIST = 'uninsured_motorist',
+	MEDICAL_PAYMENTS = 'medical_payments',
+	PERSONAL_INJURY_PROTECTION = 'personal_injury_protection',
+	OTHER = 'other',
+}
+
+export enum CoverageType {
+	COLLISION = 'collision',
+	COMPREHENSIVE = 'comprehensive',
+	LIABILITY = 'liability',
+	UNINSURED_MOTORIST = 'uninsured_motorist',
+	MEDICAL_PAYMENTS = 'medical_payments',
+	PERSONAL_INJURY_PROTECTION = 'personal_injury_protection',
+	DWELLING = 'dwelling',
+	PERSONAL_PROPERTY = 'personal_property',
+	LOSS_OF_USE = 'loss_of_use',
+	OTHER = 'other',
+}
+
 export enum DeadlineStatus {
 	PENDING = 'pending',
 	MET = 'met',

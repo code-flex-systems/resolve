@@ -162,8 +162,13 @@ export default function AdminSidebar({ categories, collapsedWidth = 60, expanded
 								<Collapse in={category.hideHeader || isCategoryExpanded} timeout="auto" unmountOnExit>
 									<List disablePadding>
 										{category.items.map((item) => {
-											const selected =
-												pathname === item.route || pathname.startsWith(item.route + '/');
+											// Find the longest matching route in this category to prevent highlighting multiple routes
+											const matchingRoute = category.items
+												.filter(
+													(i) => pathname === i.route || pathname.startsWith(i.route + '/')
+												)
+												.sort((a, b) => b.route.length - a.route.length)[0];
+											const selected = matchingRoute?.route === item.route;
 											return (
 												<ListItem key={item.route} disablePadding sx={{ pl: 1 }}>
 													<ListItemButton
@@ -222,8 +227,11 @@ export default function AdminSidebar({ categories, collapsedWidth = 60, expanded
 								// Collapsed state - show icons only
 								<List disablePadding>
 									{category.items.map((item) => {
-										const selected =
-											pathname === item.route || pathname.startsWith(item.route + '/');
+										// Find the longest matching route in this category to prevent highlighting multiple routes
+										const matchingRoute = category.items
+											.filter((i) => pathname === i.route || pathname.startsWith(i.route + '/'))
+											.sort((a, b) => b.route.length - a.route.length)[0];
+										const selected = matchingRoute?.route === item.route;
 										return (
 											<ListItem key={item.route} disablePadding>
 												<Tooltip title={item.label} placement="right">

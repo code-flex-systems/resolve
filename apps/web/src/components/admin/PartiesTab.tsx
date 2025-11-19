@@ -1,17 +1,18 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Fade, Paper, Switch, Typography } from '@mui/material';
+import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
 import Category from '@mui/icons-material/Category';
 import Email from '@mui/icons-material/Email';
 import Search from '@mui/icons-material/Search';
+import Clear from '@mui/icons-material/Clear';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PartyActionsCell from './PartyActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -19,6 +20,7 @@ import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
+import { useUrlFilters } from '@/hooks/useUrlFilters';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -83,14 +85,19 @@ function NoRows() {
 
 export default function PartiesTab() {
 	const showNewPartyDialog = useAdminStore((state) => state.showNewPartyDialog);
-	const showArchivedParties = useAdminStore((state) => state.showArchivedParties);
 	const partyConstraints = useAdminStore((state) => state.partyConstraints);
-	const partySearchTerm = useAdminStore((state) => state.partySearchTerm);
 	const toggleNewPartyDialog = useAdminStore((state) => state.toggleNewPartyDialog);
-	const setShowArchivedParties = useAdminStore((state) => state.setShowArchivedParties);
 	const updatePartyConstraints = useAdminStore((state) => state.updatePartyConstraints);
-	const updatePartySearchTerm = useAdminStore((state) => state.updatePartySearchTerm);
-	const [searchTerm, setSearchTerm] = useState('');
+
+	// URL filters hook for managing filters via search params
+	const { getParam, getBoolParam, setParam } = useUrlFilters();
+
+	// Filter states from URL params
+	const partySearchTerm = getParam('search') ?? '';
+	const showArchivedParties = getBoolParam('archived');
+
+	// Local state for search input
+	const [searchTerm, setSearchTerm] = useState(partySearchTerm);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().list({
 		limit: partyConstraints.pageSize,
@@ -107,9 +114,15 @@ export default function PartiesTab() {
 		return rowCountRef.current;
 	}, [data.count]);
 
+	// Sync local search state with URL param changes
+	useEffect(() => {
+		setSearchTerm(partySearchTerm);
+	}, [partySearchTerm]);
+
+	// Debounce search input to URL param
 	const debouncedSearch = useCallback(
-		useDebounce((search: string) => updatePartySearchTerm(search), 500),
-		[]
+		useDebounce((search: string) => setParam('search', search), 500),
+		[setParam]
 	);
 
 	return (
@@ -125,7 +138,7 @@ export default function PartiesTab() {
 								<Switch
 									size="small"
 									checked={showArchivedParties}
-									onChange={(_, checked) => setShowArchivedParties(checked)}
+									onChange={(_, checked) => setParam('archived', checked)}
 									color="warning"
 									sx={{ marginLeft: '10px' }}
 								/>
@@ -153,6 +166,18 @@ export default function PartiesTab() {
 											debouncedSearch(e.target.value);
 										}}
 									/>
+									{searchTerm && (
+										<IconButton
+											size="small"
+											onClick={() => {
+												setSearchTerm('');
+												setParam('search', '');
+											}}
+											sx={{ padding: '2px', marginLeft: '2px' }}
+										>
+											<Clear sx={{ fontSize: 16 }} />
+										</IconButton>
+									)}
 								</Paper>
 								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewPartyDialog}>
 									Party

@@ -181,8 +181,18 @@ When developing features, avoid duplicating code across components. Follow these
    - Extract repeated rendering logic to shared components
    - Use `IconHeaderCell` for consistent DataGrid headers
    - Share filter components across breakdown pages (e.g., `RecoveryStatusSelect`, `UserFilter`)
+   - **CRITICAL**: If you find yourself copying dialog/form code between files, create a reusable component
+   - Example: `CoverageFormDialog` is used by both `CoverageManager` and `CoverageTab` instead of duplicating the form logic
 
-4. **Type Safety:**
+4. **Centralized Select Options with Icons:**
+   - For finite option lists (enums), create centralized configuration objects with icons and labels
+   - Pattern: Define `{ENUM}_CONFIG` object mapping enum values to `{ label, icon }` objects
+   - Create reusable select components (e.g., `CoverageTypeSelect`, `LineOfBusinessSelect`)
+   - Place configuration in `/lib/utils/{domain}Utils.tsx` (allows importing icon components)
+   - Example: `COVERAGE_TYPE_CONFIG` in `/lib/utils/coverageUtils.tsx` used by `CoverageTypeSelect`
+   - Benefits: Consistent labeling, easier maintenance, enhanced UX with visual indicators
+
+5. **Type Safety:**
    - Export derived types from tRPC hooks (e.g., `RecoveryEventWithDetails`)
    - Cast enums properly when needed: `recoveryStatus: recoveryStatus as any`
    - Document any type workarounds with comments
@@ -198,16 +208,46 @@ When developing features, avoid duplicating code across components. Follow these
 7. Create frontend hook in `apps/web/src/hooks/trpc/`
 8. Add Zustand state slice if needed
 
-**SQL Migration Conventions:**
+**Database Migrations:**
 
-When creating new database migrations:
+**Use Kysely Migrations (as of November 2025):**
 
-1. **Dual-File Approach:** Create both an individual migration file AND update the complete schema file
-   - Individual migration: `apps/web/src/api/sql/{feature}_infrastructure.sql` - For incremental updates
-   - Complete schema: `apps/web/src/api/sql/initial_tables_and_sql.sql` - For full database recreation
-   - Both files should be kept in sync - migrations are appended to the complete schema file
+All schema changes should now use the Kysely migration system:
 
-2. **Enum Management:** Define enums in TypeScript, not SQL
+1. **Create a new migration:**
+   ```bash
+   cd apps/web && npm run db:migration:create add_new_field
+   ```
+
+2. **Edit the generated file** in `apps/web/src/api/database/migrations/`:
+   - Implement `up()` function for schema changes
+   - Implement `down()` function for rollback
+   - Use Kysely schema builder API (type-safe)
+
+3. **Run migrations:**
+   ```bash
+   cd apps/web && npm run db:migrate
+   ```
+
+4. **Regenerate TypeScript types:**
+   ```bash
+   npm run db:types
+   ```
+
+5. **Commit the migration file** to git
+
+**Migration Infrastructure:**
+- Migrations tracked in `kysely_migration` table
+- Migration files: `apps/web/src/api/database/migrations/*.ts`
+- Baseline migration marked as executed for existing databases
+- Rollback available via `npm run db:migrate:down`
+
+**Legacy SQL Files:**
+- Files in `apps/web/src/api/sql/` are now legacy (pre-November 2025)
+- `initial_tables_and_sql.sql` represents the baseline schema
+- Do NOT create new SQL files - use Kysely migrations instead
+
+**Enum Management:** Define enums in TypeScript, not SQL
    - Add enum definitions to `apps/web/src/config/enums.ts` as TypeScript enums
    - Reference these enums in Zod schemas using `z.nativeEnum(EnumName)`
    - Use enum constants in query functions (e.g., `DocType.OTHER` instead of `'other'`)

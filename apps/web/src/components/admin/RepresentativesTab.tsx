@@ -1,7 +1,7 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Fade, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { Button, Chip, Fade, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
@@ -10,10 +10,11 @@ import LocationOn from '@mui/icons-material/LocationOn';
 import Phone from '@mui/icons-material/Phone';
 import Search from '@mui/icons-material/Search';
 import Warning from '@mui/icons-material/Warning';
+import Clear from '@mui/icons-material/Clear';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -21,6 +22,7 @@ import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import RepresentativeDialog from './RepresentativeDialog';
+import { useUrlFilters } from '@/hooks/useUrlFilters';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -120,14 +122,19 @@ function NoRows() {
 
 export default function RepresentativesTab() {
 	const showNewRepresentativeDialog = useAdminStore((state) => state.showNewRepresentativeDialog);
-	const showArchivedRepresentatives = useAdminStore((state) => state.showArchivedRepresentatives);
 	const representativeConstraints = useAdminStore((state) => state.representativeConstraints);
-	const representativeSearchTerm = useAdminStore((state) => state.representativeSearchTerm);
 	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
-	const setShowArchivedRepresentatives = useAdminStore((state) => state.setShowArchivedRepresentatives);
 	const updateRepresentativeConstraints = useAdminStore((state) => state.updateRepresentativeConstraints);
-	const updateRepresentativeSearchTerm = useAdminStore((state) => state.updateRepresentativeSearchTerm);
-	const [searchTerm, setSearchTerm] = useState('');
+
+	// URL filters hook for managing filters via search params
+	const { getParam, getBoolParam, setParam } = useUrlFilters();
+
+	// Filter states from URL params
+	const representativeSearchTerm = getParam('search') ?? '';
+	const showArchivedRepresentatives = getBoolParam('archived');
+
+	// Local state for search input
+	const [searchTerm, setSearchTerm] = useState(representativeSearchTerm);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
@@ -144,9 +151,15 @@ export default function RepresentativesTab() {
 		return rowCountRef.current;
 	}, [data.count]);
 
+	// Sync local search state with URL param changes
+	useEffect(() => {
+		setSearchTerm(representativeSearchTerm);
+	}, [representativeSearchTerm]);
+
+	// Debounce search input to URL param
 	const debouncedSearch = useCallback(
-		useDebounce((search: string) => updateRepresentativeSearchTerm(search), 500),
-		[]
+		useDebounce((search: string) => setParam('search', search), 500),
+		[setParam]
 	);
 
 	return (
@@ -162,7 +175,7 @@ export default function RepresentativesTab() {
 								<Switch
 									size="small"
 									checked={showArchivedRepresentatives}
-									onChange={(_, checked) => setShowArchivedRepresentatives(checked)}
+									onChange={(_, checked) => setParam('archived', checked)}
 									color="warning"
 									sx={{ marginLeft: '10px' }}
 								/>
@@ -190,6 +203,18 @@ export default function RepresentativesTab() {
 											debouncedSearch(e.target.value);
 										}}
 									/>
+									{searchTerm && (
+										<IconButton
+											size="small"
+											onClick={() => {
+												setSearchTerm('');
+												setParam('search', '');
+											}}
+											sx={{ padding: '2px', marginLeft: '2px' }}
+										>
+											<Clear sx={{ fontSize: 16 }} />
+										</IconButton>
+									)}
 								</Paper>
 								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewRepresentativeDialog}>
 									Representative

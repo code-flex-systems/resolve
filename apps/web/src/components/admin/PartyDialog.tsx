@@ -35,10 +35,12 @@ interface PartyFormInputs {
 
 interface PartyDialogProps {
 	party?: Party;
-	onClose?: () => void;
+	lockedType?: 'entity' | 'facilitator';
+	lockedRole?: string;
+	onClose?: (createdParty?: Party) => void;
 }
 
-export default function PartyDialog({ party, onClose }: PartyDialogProps) {
+export default function PartyDialog({ party, lockedType, lockedRole, onClose }: PartyDialogProps) {
 	const toggleNewPartyDialog = useAdminStore((state) => state.toggleNewPartyDialog);
 	const partyTrpc = usePartyTrpc();
 	const { mutateAsync: createParty, isPending: creating } = partyTrpc.create;
@@ -48,6 +50,7 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 
 	const isEditMode = !!party;
 	const isPending = creating || updating;
+	const hasLockedValues = !!lockedType && !!lockedRole;
 
 	// Search for duplicates (only when searchTerm is at least 2 chars)
 	const { data: searchResults } = partyTrpc.search(searchTerm.length >= 2 ? { searchTerm } : skipToken);
@@ -70,8 +73,8 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 					notes: party.notes ?? '',
 				}
 			: {
-					party_type: PartyType.ENTITY,
-					party_category: EntityCategory.CLAIMANT,
+					party_type: lockedType === 'facilitator' ? PartyType.FACILITATOR : PartyType.ENTITY,
+					party_category: lockedRole || EntityCategory.CLAIMANT,
 					name: '',
 					organization: '',
 					email: '',
@@ -171,6 +174,8 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
+			let createdParty: Party | undefined;
+
 			if (isEditMode) {
 				// Build update object using only dirty fields
 				const updates: any = {};
@@ -190,7 +195,7 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 				});
 			} else {
 				// Create new party
-				await createParty({
+				createdParty = (await createParty({
 					party_type: data.party_type,
 					party_category: data.party_category,
 					name: data.name,
@@ -199,9 +204,15 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 					phone: data.phone || undefined,
 					address: data.address || undefined,
 					notes: data.notes || undefined,
-				});
+				})) as any;
 			}
-			handleClose();
+
+			// Pass created party back to caller
+			if (onClose) {
+				onClose(createdParty as any);
+			} else {
+				toggleNewPartyDialog();
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -237,7 +248,7 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 							select
 							error={!!errors.party_type}
 							{...field}
-							disabled={isSubmitting}
+							disabled={isSubmitting || hasLockedValues}
 							sx={styles.textFieldOverrides}
 						>
 							<MenuItem value={PartyType.ENTITY}>
@@ -267,7 +278,7 @@ export default function PartyDialog({ party, onClose }: PartyDialogProps) {
 							select
 							error={!!errors.party_category}
 							{...field}
-							disabled={isSubmitting}
+							disabled={isSubmitting || hasLockedValues}
 							sx={styles.textFieldOverrides}
 						>
 							{availableCategories.map((category) => (

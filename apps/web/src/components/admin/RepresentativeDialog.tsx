@@ -6,7 +6,7 @@ import BasicDialog from '../common/BasicDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Party, PartyRepresentative, PartyOffice } from '@/api/database/types';
 import useDebounce from '@/lib/utils/useDebounce';
 
@@ -25,10 +25,17 @@ interface RepresentativeFormData {
 
 interface RepresentativeDialogProps {
 	representative?: PartyRepresentative & { party_name?: string; office_name?: string };
-	onClose?: () => void;
+	partyId?: number;
+	lockParty?: boolean;
+	onClose?: (createdRep?: PartyRepresentative) => void;
 }
 
-export default function RepresentativeDialog({ representative, onClose }: RepresentativeDialogProps) {
+export default function RepresentativeDialog({
+	representative,
+	partyId,
+	lockParty,
+	onClose,
+}: RepresentativeDialogProps) {
 	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
@@ -40,6 +47,14 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 	const [selectedParty, setSelectedParty] = useState<Party | null>(null);
 	const [selectedOffice, setSelectedOffice] = useState<PartyOffice | null>(null);
 
+	// Load party data if partyId is provided
+	const { data: initialParty } = partyTrpc.get(
+		{ id: partyId! },
+		{
+			enabled: !!partyId && !isEditMode,
+		}
+	);
+
 	// Party search with debounce
 	const { data: partyMatches = [] } = partyTrpc.search(
 		{ searchTerm: partySearchTerm },
@@ -49,14 +64,14 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 	);
 
 	// Get offices for the selected party (no search, just list all offices for this party)
-	const partyId = (selectedParty?.id || representative?.party_id || 0) as number;
+	const effectivePartyId = (selectedParty?.id || representative?.party_id || partyId || 0) as number;
 	const { data: partyOffices = [] } = partyTrpc.listOffices(
 		{
-			partyId: partyId,
+			partyId: effectivePartyId,
 			showArchived: false,
 		},
 		{
-			enabled: partyId > 0,
+			enabled: effectivePartyId > 0,
 		}
 	);
 
@@ -67,7 +82,7 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 		formState: { errors, isSubmitting, isDirty },
 	} = useForm<RepresentativeFormData>({
 		defaultValues: {
-			party_id: representative?.party_id || null,
+			party_id: representative?.party_id || partyId || null,
 			office_id: representative?.office_id || null,
 			first_name: representative?.first_name || '',
 			last_name: representative?.last_name || '',
@@ -87,9 +102,16 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 	// Both first and last name are required
 	const hasRequiredFields = first_name && last_name;
 
-	const handleClose = () => {
+	// Set selectedParty when initialParty loads (when partyId prop is provided)
+	useEffect(() => {
+		if (initialParty && !selectedParty) {
+			setSelectedParty(initialParty as any);
+		}
+	}, [initialParty, selectedParty]);
+
+	const handleClose = (createdRep?: PartyRepresentative) => {
 		if (onClose) {
-			onClose();
+			onClose(createdRep);
 		} else {
 			toggleNewRepresentativeDialog();
 		}
@@ -101,6 +123,8 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 				showAlert('Please select a party', 'error');
 				return;
 			}
+
+			let createdRep: PartyRepresentative | undefined;
 
 			if (isEditMode && representative) {
 				// Update existing representative
@@ -121,7 +145,7 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 				showAlert('Representative updated successfully', 'success');
 			} else {
 				// Create new representative
-				await createRepresentative({
+				createdRep = (await createRepresentative({
 					party_id: data.party_id!,
 					office_id: data.office_id || undefined,
 					first_name: data.first_name,
@@ -132,10 +156,10 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 					mobile_phone: data.mobile_phone || undefined,
 					fax: data.fax || undefined,
 					is_primary: data.is_primary,
-				});
+				})) as any;
 				showAlert('Representative created successfully', 'success');
 			}
-			handleClose();
+			handleClose(createdRep as any);
 		} catch (error: any) {
 			showAlert(error?.message || 'Failed to save representative', 'error');
 		}
@@ -185,6 +209,7 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 									debouncedPartySearch(value);
 								}}
 								value={selectedParty}
+								disabled={lockParty}
 								renderOption={(props, party: any) => (
 									<li {...props} key={String(party.id)}>
 										<div>
@@ -205,8 +230,12 @@ export default function RepresentativeDialog({ representative, onClose }: Repres
 										label="Party"
 										variant="standard"
 										error={!!errors.party_id}
-										helperText={errors.party_id?.message}
-										placeholder="Search for party..."
+										helperText={
+											lockParty && selectedParty
+												? `Locked to: ${selectedParty.name}`
+												: errors.party_id?.message
+										}
+										placeholder={lockParty ? 'Party is locked' : 'Search for party...'}
 									/>
 								)}
 							/>

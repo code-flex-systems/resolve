@@ -776,6 +776,7 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		.selectFrom('claim_party')
 		.innerJoin('party', 'party.id', 'claim_party.party_id')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
+		.leftJoin('party_representative', 'party_representative.id', 'claim_party.representative_id')
 		.selectAll('claim_party')
 		.select([
 			'party.id as party_id',
@@ -785,6 +786,12 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 			'party.organization as party_organization',
 			'party.email as party_email',
 			'party.phone as party_phone',
+			'party_representative.id as representative_id',
+			'party_representative.first_name as representative_first_name',
+			'party_representative.last_name as representative_last_name',
+			'party_representative.email as representative_email',
+			'party_representative.phone as representative_phone',
+			'party_representative.title as representative_title',
 		])
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
@@ -792,7 +799,7 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		.orderBy('party.name asc')
 		.execute();
 
-	// Transform results to nest party data
+	// Transform results to nest party and representative data
 	return results.map((row) => ({
 		id: row.id,
 		claim_id: row.claim_id,
@@ -804,6 +811,7 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		notes: row.notes,
 		created_at: row.created_at,
 		created_by: row.created_by,
+		representative_id: row.representative_id,
 		party: {
 			id: row.party_id,
 			name: row.party_name,
@@ -813,6 +821,16 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 			email: row.party_email,
 			phone: row.party_phone,
 		},
+		representative: row.representative_id
+			? {
+					id: row.representative_id,
+					first_name: row.representative_first_name!,
+					last_name: row.representative_last_name!,
+					email: row.representative_email,
+					phone: row.representative_phone,
+					title: row.representative_title,
+			  }
+			: null,
 	}));
 }
 
@@ -825,6 +843,7 @@ export async function linkPartyToClaim(
 		claim_id: number;
 		party_id: number;
 		role: string;
+		representative_id?: number | null;
 		liability_percentage?: number;
 		coverage_amount?: number;
 		is_primary?: boolean;
@@ -849,6 +868,7 @@ export async function updateClaimParty(
 	id: number,
 	params: {
 		role?: string;
+		representative_id?: number | null;
 		liability_percentage?: number;
 		coverage_amount?: number;
 		is_primary?: boolean;

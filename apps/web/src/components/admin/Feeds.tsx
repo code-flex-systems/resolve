@@ -235,7 +235,7 @@ const styles = {
 	container: {
 		width: 'fit-content',
 		height: '100%',
-		paddingTop: 20,
+		marginRight: 20,
 	},
 	dot: {
 		width: 10,

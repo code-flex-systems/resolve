@@ -165,7 +165,15 @@ export interface Claim {
   insured: string | null;
   last_update: Timestamp | null;
   last_updated_by: string | null;
+  /**
+   * Line of business for the claim (LineOfBusiness enum enforced in TypeScript)
+   */
+  line_of_business: string | null;
   loss_location: string | null;
+  /**
+   * Type of loss for the claim (LossType enum enforced in TypeScript)
+   */
+  loss_type: string | null;
   /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
@@ -175,6 +183,21 @@ export interface Claim {
    */
   substatus: string | null;
   total_incurred: Numeric | null;
+}
+
+export interface ClaimCoverage {
+  claim_id: number;
+  client_id: string;
+  coverage_amount: Numeric | null;
+  /**
+   * Type of coverage (CoverageType enum enforced in TypeScript)
+   */
+  coverage_type: string;
+  created_at: Generated<Timestamp | null>;
+  created_by: string | null;
+  id: Generated<number>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface ClaimParty {
@@ -201,6 +224,10 @@ export interface ClaimParty {
   liability_percentage: Numeric | null;
   notes: string | null;
   party_id: number;
+  /**
+   * Specific representative from the party handling this claim (optional)
+   */
+  representative_id: number | null;
   /**
    * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
    */
@@ -313,13 +340,13 @@ export interface DocGroup {
   parent_group_id: number | null;
   sort_order: Generated<number | null>;
   /**
-   * Marks system-managed folders that cannot be edited or deleted by admins
+   * System-managed folder that cannot be edited or deleted by regular admins
    */
-  system: Generated<boolean>;
+  system: Generated<boolean | null>;
   updated_at: Timestamp | null;
   updated_by: string | null;
   /**
-   * Links user folders to their owner. Used to display user name/email in Documents tab for folders under Users/
+   * Associated user ID for user-specific folders under Users/
    */
   user_id: string | null;
 }
@@ -618,6 +645,7 @@ export interface DB {
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
   claim: Claim;
+  claim_coverage: ClaimCoverage;
   claim_party: ClaimParty;
   client: Client;
   comment: Comment;

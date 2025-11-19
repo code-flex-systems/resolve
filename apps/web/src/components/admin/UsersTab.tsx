@@ -1,7 +1,7 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, Fade, InputAdornment, Paper, Switch, TextField, Typography } from '@mui/material';
+import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AccountCircle from '@mui/icons-material/AccountCircle';
@@ -11,6 +11,7 @@ import Search from '@mui/icons-material/Search';
 import Shield from '@mui/icons-material/Shield';
 import Upload from '@mui/icons-material/Upload';
 import Person from '@mui/icons-material/Person';
+import Clear from '@mui/icons-material/Clear';
 import { CustomPagination } from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -29,6 +30,7 @@ import useDebounce from '@/lib/utils/useDebounce';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
+import { useUrlFilters } from '@/hooks/useUrlFilters';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -106,16 +108,21 @@ function NoRows() {
 export default function UsersTab() {
 	const { data: session } = useSession();
 	const showImportUsersDialog = useAdminStore((state) => state.showImportUsersDialog);
-	const showInactiveUsers = useAdminStore((state) => state.showInactiveUsers);
 	const userConstraints = useAdminStore((state) => state.userConstraints);
-	const userSearchTerm = useAdminStore((state) => state.userSearchTerm);
-	const setShowInactiveUsers = useAdminStore((state) => state.setShowInactiveUsers);
 	const toggleImportUsersDialog = useAdminStore((state) => state.toggleImportUsersDialog);
 	const toggleNewUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
 	const updateUserConstraints = useAdminStore((state) => state.updateUserConstraints);
-	const updateUserSearchTerm = useAdminStore((state) => state.updateUserSearchTerm);
-	const [searchTerm, setSearchTerm] = useState('');
-	const [showDisabled, setShowDisabled] = useState(false);
+
+	// URL filters hook for managing filters via search params
+	const { getParam, getBoolParam, setParam } = useUrlFilters();
+
+	// Filter states from URL params
+	const userSearchTerm = getParam('search') ?? '';
+	const showInactiveUsers = getBoolParam('inactive');
+	const showDisabled = getBoolParam('disabled');
+
+	// Local state for search input
+	const [searchTerm, setSearchTerm] = useState(userSearchTerm);
 
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
@@ -134,9 +141,15 @@ export default function UsersTab() {
 		return rowCountRef.current;
 	}, [data.count]);
 
+	// Sync local search state with URL param changes
+	useEffect(() => {
+		setSearchTerm(userSearchTerm);
+	}, [userSearchTerm]);
+
+	// Debounce search input to URL param
 	const debouncedSearch = useCallback(
-		useDebounce((search: string) => updateUserSearchTerm(search), 500),
-		[]
+		useDebounce((search: string) => setParam('search', search), 500),
+		[setParam]
 	);
 
 	return (
@@ -152,7 +165,7 @@ export default function UsersTab() {
 								<Switch
 									size="small"
 									checked={showDisabled}
-									onChange={(_, checked) => setShowDisabled(checked)}
+									onChange={(_, checked) => setParam('disabled', checked)}
 									color="warning"
 									sx={{ marginLeft: '10px' }}
 								/>
@@ -162,7 +175,7 @@ export default function UsersTab() {
 								<Switch
 									size="small"
 									checked={showInactiveUsers}
-									onChange={(_, checked) => setShowInactiveUsers(checked)}
+									onChange={(_, checked) => setParam('inactive', checked)}
 									color="warning"
 									sx={{ marginLeft: '10px' }}
 								/>
@@ -190,6 +203,18 @@ export default function UsersTab() {
 											debouncedSearch(e.target.value);
 										}}
 									/>
+									{searchTerm && (
+										<IconButton
+											size="small"
+											onClick={() => {
+												setSearchTerm('');
+												setParam('search', '');
+											}}
+											sx={{ padding: '2px', marginLeft: '2px' }}
+										>
+											<Clear sx={{ fontSize: 16 }} />
+										</IconButton>
+									)}
 								</Paper>
 								<Button
 									variant="contained"

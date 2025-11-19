@@ -130,7 +130,7 @@ export default function RecoveryMetricsChart({
 							</Typography>
 							<BasicButtonStyled
 								buttonProps={{
-									onClick: () => router.push('/metrics/recovery'),
+									onClick: () => router.push('/admin/financial/recovery'),
 								}}
 								icon={
 									<Troubleshoot

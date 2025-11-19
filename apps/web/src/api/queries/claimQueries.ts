@@ -1,5 +1,5 @@
 import { sql } from 'kysely';
-import { ClaimSearch, ClaimStatus, FeedStatus } from '@/config/enums';
+import { ClaimSearch, ClaimStatus, FeedStatus, LineOfBusiness, LossType, RecoveryStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
@@ -54,20 +54,22 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
  * @param claimId - claim identifier
  * @returns claim record
  */
-export async function getClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	await assertChecklistPublished(ctx, checklistId);
-	await ctx.db
-		.insertInto('checklist_claim')
-		.values({
-			checklist_id: checklistId,
-			claim_id: claimId,
-			client_id: ctx.session.user.client_id,
-			created_by: ctx.session.user.id,
-			status: ClaimStatus.UNWORKED,
-			assignee: ctx.session.user.id,
-		})
-		.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
-		.execute();
+export async function getClaim(ctx: ProtectedContext, claimId: number, checklistId?: number) {
+	if (checklistId !== undefined) {
+		await assertChecklistPublished(ctx, checklistId);
+		await ctx.db
+			.insertInto('checklist_claim')
+			.values({
+				checklist_id: checklistId,
+				claim_id: claimId,
+				client_id: ctx.session.user.client_id,
+				created_by: ctx.session.user.id,
+				status: ClaimStatus.UNWORKED,
+				assignee: ctx.session.user.id,
+			})
+			.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
+			.execute();
+	}
 	return await ctx.db
 		.selectFrom('claim')
 		.selectAll()
@@ -126,12 +128,22 @@ export async function getClaims(
 		type,
 		feedId,
 		searchTerm,
+		line_of_business,
+		loss_type,
+		recovery_status,
+		insured,
+		client,
 		limit,
 		offset,
 	}: {
 		type: 'data' | 'count';
 		feedId?: number | null;
 		searchTerm?: { value: string; type: ClaimSearch };
+		line_of_business?: LineOfBusiness;
+		loss_type?: LossType;
+		recovery_status?: RecoveryStatus;
+		insured?: string;
+		client?: string;
 		limit?: number;
 		offset?: number;
 	}
@@ -169,6 +181,26 @@ export async function getClaims(
 		query = query.where((eb) =>
 			eb(sql`lower(${eb.ref(searchTerm.type)})`, 'like', `${searchTerm.value.toLowerCase()}%`)
 		);
+	}
+
+	if (line_of_business) {
+		query = query.where('claim.line_of_business', '=', line_of_business);
+	}
+
+	if (loss_type) {
+		query = query.where('claim.loss_type', '=', loss_type);
+	}
+
+	if (recovery_status) {
+		query = query.where('claim.recovery_status', '=', recovery_status);
+	}
+
+	if (insured) {
+		query = query.where((eb) => eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${insured.toLowerCase()}%`));
+	}
+
+	if (client) {
+		query = query.where((eb) => eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${client.toLowerCase()}%`));
 	}
 
 	if (type === 'data') {
@@ -253,6 +285,59 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
 }
 
 /**
+ * Update an existing claim
+ */
+export async function updateClaim(
+	ctx: ProtectedContext,
+	claimId: number,
+	updates: Partial<{
+		claim_number: string | null;
+		client: string | null;
+		client_adjuster: string | null;
+		insured: string | null;
+		claim_amount: string | null;
+		total_incurred: string | null;
+		date_of_loss: Date | null;
+		loss_location: string | null;
+		expected_recovery: string | null;
+		line_of_business: string;
+		loss_type: string;
+		recovery_status: string;
+		substatus: string;
+	}>
+) {
+	const result = await ctx.db
+		.updateTable('claim')
+		.set({
+			...updates,
+			last_updated_by: ctx.session.user.id,
+			last_update: new Date(),
+		})
+		.where('id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id!)
+		.returning([
+			'id',
+			'claim_number',
+			'client',
+			'client_adjuster',
+			'insured',
+			'claim_amount',
+			'total_incurred',
+			'expected_recovery',
+			'actual_recovery',
+			'date_of_loss',
+			'loss_location',
+			'line_of_business',
+			'loss_type',
+			'recovery_status',
+			'substatus',
+		])
+		.executeTakeFirst();
+
+	return result;
+}
+
+/**
  * Bulk insert claim records.
  *
  * @param ctx - request context
@@ -275,6 +360,8 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
 				expected_recovery: c.expected_recovery,
+				line_of_business: c.line_of_business,
+				loss_type: c.loss_type,
 				client_id: ctx.session.user.client_id,
 				created_by: ctx.session.user.id,
 			}))
@@ -291,9 +378,80 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				last_updated_by: eb.ref('excluded.last_updated_by'),
 				last_update: eb.ref('excluded.last_update'),
 				expected_recovery: eb.ref('excluded.expected_recovery'),
+				line_of_business: eb.ref('excluded.line_of_business'),
+				loss_type: eb.ref('excluded.loss_type'),
 			}))
 		)
 		.returningAll()
 		.execute();
 	return result;
+}
+
+/**
+ * Get detailed claim information for admin panel.
+ * Includes checklist assignments, feed info, and recovery data.
+ *
+ * @param ctx - request context
+ * @param claimId - claim identifier
+ * @returns detailed claim information
+ */
+export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
+	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+
+	// Get basic claim info with feed info
+	// Note: actual_recovery is already a column on claim table (sum of recovery_event records)
+	const claim = await ctx.db
+		.selectFrom('claim')
+		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
+		.selectAll('claim')
+		.select(['feeds.name as feed_name'])
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('claim.id', '=', claimId)
+		.executeTakeFirst();
+
+	if (!claim) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Claim not found.',
+		});
+	}
+
+	// Get all checklist assignments for this claim
+	// A claim can be worked in multiple checklists
+	const checklistAssignments = await ctx.db
+		.selectFrom('checklist_claim')
+		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
+		.innerJoin('users as assignee', 'checklist_claim.assignee', 'assignee.id')
+		.innerJoin('users as creator', 'checklist_claim.created_by', 'creator.id')
+		.leftJoin('users as submitter', 'checklist_claim.submitted_by', 'submitter.id')
+		.select((eb) => [
+			'checklist_claim.claim_id',
+			'checklist_claim.checklist_id',
+			'checklist_claim.status',
+			'checklist_claim.assignee',
+			'checklist_claim.created_by',
+			'checklist_claim.submitted_by',
+			'checklist_claim.submitted_at',
+			'checklist_claim.created_at',
+			'checklist_claim.updated_at',
+			'checklist_claim.last_opened',
+			'checklist_claim.time_to_resolution_days',
+			eb.ref('checklist.name').as('checklist_name'),
+			eb.ref('assignee.first').as('assignee_first_name'),
+			eb.ref('assignee.last').as('assignee_last_name'),
+			eb.ref('creator.first').as('creator_first_name'),
+			eb.ref('creator.last').as('creator_last_name'),
+			eb.ref('submitter.first').as('submitted_by_first_name'),
+			eb.ref('submitter.last').as('submitted_by_last_name'),
+		])
+		.where('checklist_claim.claim_id', '=', claimId)
+		.where('checklist_claim.client_id', '=', ctx.session.user.client_id)
+		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
+		.orderBy('checklist_claim.last_opened', 'desc')
+		.execute();
+
+	return {
+		...claim,
+		checklistAssignments,
+	};
 }

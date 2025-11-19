@@ -21,6 +21,7 @@ export enum EntityName {
 	CHECKLIST = 'checklist',
 	CLAIM = 'claim',
 	CHECKLIST_CLAIM = 'checklist_claim',
+	CLAIM_COVERAGE = 'claim_coverage',
 
 	// Template entities
 	PAGE = 'page',

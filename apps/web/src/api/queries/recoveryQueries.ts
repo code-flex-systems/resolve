@@ -24,7 +24,10 @@ export async function createRecoveryEvent(
 ) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await ctx.db.transaction().execute(async (trx) => {
+	// Check if we're already in a transaction to avoid nested transactions
+	const isInTransaction = ctx.db.isTransaction;
+
+	const executeOperation = async (trx: any) => {
 		// Create recovery event
 		const recoveryEvent = await trx
 			.insertInto('recovery_event')
@@ -45,7 +48,14 @@ export async function createRecoveryEvent(
 		await recalculateClaimRecovery(trx, claimId, clientId);
 
 		return recoveryEvent;
-	});
+	};
+
+	// If already in a transaction, use it; otherwise create a new one
+	if (isInTransaction) {
+		return await executeOperation(ctx.db);
+	} else {
+		return await ctx.db.transaction().execute(executeOperation);
+	}
 }
 
 /**
@@ -298,6 +308,8 @@ async function recalculateClaimRecovery(trx: any, claimId: number, clientId: str
 
 /**
  * Create a deadline for a claim.
+ * Note: This function doesn't need transaction handling since it's a single insert operation.
+ * The transaction is managed by the controller when logging is needed.
  *
  * @param ctx - request context
  * @param claimId - claim identifier
