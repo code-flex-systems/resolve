@@ -8,6 +8,7 @@ import OverviewTab from './OverviewTab';
 import WorkflowTab from './WorkflowTab';
 import CoverageTabForClaim from './CoverageTabForClaim';
 import RecoveryTab from './RecoveryTab';
+import PartyLiabilityTab from './PartyLiabilityTab';
 
 interface ClaimDetailViewProps {
 	claimId: number;
@@ -31,6 +32,7 @@ export default function ClaimDetailView({ claimId, backRoute }: ClaimDetailViewP
 				workflow: 1,
 				coverage: 2,
 				recovery: 3,
+				'party-liability': 4,
 			};
 			const tabIndex = tabMap[tabParam.toLowerCase()];
 			if (tabIndex !== undefined) {
@@ -56,6 +58,7 @@ export default function ClaimDetailView({ claimId, backRoute }: ClaimDetailViewP
 						<Tab label="Workflow & Assignment" />
 						<Tab label="Coverage" />
 						<Tab label="Recovery" />
+						<Tab label="Party & Liability" />
 					</Tabs>
 				</Box>
 
@@ -72,6 +75,7 @@ export default function ClaimDetailView({ claimId, backRoute }: ClaimDetailViewP
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
 								{currentTab === 2 && <CoverageTabForClaim claimId={claimId} />}
 								{currentTab === 3 && <RecoveryTab claimId={claimId} />}
+								{currentTab === 4 && <PartyLiabilityTab claimId={claimId} />}
 							</Box>
 						</Box>
 					</Box>

@@ -177,7 +177,9 @@ export async function updateClaim(
 		total_incurred?: number | null;
 		date_of_loss?: Date | null;
 		loss_location?: string | null;
-		expected_recovery?: number | null;
+		reserved_recovery?: number | null; // Client's expected recovery (from feed/manual)
+		paid_recovery?: number | null; // Client's reported paid amount (from feed/manual)
+		expected_recovery?: number | null; // Team's forecasted recovery
 		line_of_business?: string;
 		loss_type?: string;
 		recovery_status?: string;
@@ -186,14 +188,25 @@ export async function updateClaim(
 		representative_id?: number | null;
 	}
 ) {
-	const { claimId, claim_amount, total_incurred, expected_recovery, party_id, representative_id, ...otherUpdates } =
-		input;
+	const {
+		claimId,
+		claim_amount,
+		total_incurred,
+		reserved_recovery,
+		paid_recovery,
+		expected_recovery,
+		party_id,
+		representative_id,
+		...otherUpdates
+	} = input;
 
 	// Convert number amounts to strings for DB storage
 	const updates = {
 		...otherUpdates,
 		...(claim_amount !== undefined && { claim_amount: claim_amount?.toString() ?? null }),
 		...(total_incurred !== undefined && { total_incurred: total_incurred?.toString() ?? null }),
+		...(reserved_recovery !== undefined && { reserved_recovery: reserved_recovery?.toString() ?? null }),
+		...(paid_recovery !== undefined && { paid_recovery: paid_recovery?.toString() ?? null }),
 		...(expected_recovery !== undefined && { expected_recovery: expected_recovery?.toString() ?? null }),
 	};
 

@@ -299,7 +299,9 @@ export async function updateClaim(
 		total_incurred: string | null;
 		date_of_loss: Date | null;
 		loss_location: string | null;
-		expected_recovery: string | null;
+		reserved_recovery: string | null; // Client's expected recovery (from feed/manual)
+		paid_recovery: string | null; // Client's reported paid amount (from feed/manual)
+		expected_recovery: string | null; // Team's forecasted recovery
 		line_of_business: string;
 		loss_type: string;
 		recovery_status: string;
@@ -323,6 +325,8 @@ export async function updateClaim(
 			'insured',
 			'claim_amount',
 			'total_incurred',
+			'reserved_recovery',
+			'paid_recovery',
 			'expected_recovery',
 			'actual_recovery',
 			'date_of_loss',
@@ -359,7 +363,8 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				loss_location: c.loss_location,
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
-				expected_recovery: c.expected_recovery,
+				reserved_recovery: c.reserved_recovery, // Client's expected recovery (from feed/manual)
+				paid_recovery: c.paid_recovery, // Client's reported paid amount (from feed/manual)
 				line_of_business: c.line_of_business,
 				loss_type: c.loss_type,
 				client_id: ctx.session.user.client_id,
@@ -377,7 +382,8 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				loss_location: eb.ref('excluded.loss_location'),
 				last_updated_by: eb.ref('excluded.last_updated_by'),
 				last_update: eb.ref('excluded.last_update'),
-				expected_recovery: eb.ref('excluded.expected_recovery'),
+				reserved_recovery: eb.ref('excluded.reserved_recovery'),
+				paid_recovery: eb.ref('excluded.paid_recovery'),
 				line_of_business: eb.ref('excluded.line_of_business'),
 				loss_type: eb.ref('excluded.loss_type'),
 			}))

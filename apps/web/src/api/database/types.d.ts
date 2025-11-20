@@ -175,10 +175,12 @@ export interface Claim {
    * Type of loss for the claim (LossType enum enforced in TypeScript)
    */
   loss_type: string | null;
+  paid_recovery: Numeric | null;
   /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
   recovery_status: string | null;
+  reserved_recovery: Numeric | null;
   /**
    * Granular workflow state: investigation, demand_sent, negotiation, settlement_reached, litigation, closed_recovered, closed_no_recovery, cancelled
    */

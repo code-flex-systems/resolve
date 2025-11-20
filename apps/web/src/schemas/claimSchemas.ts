@@ -57,7 +57,8 @@ export const createClaimInput = z.object({
 			loss_location: z.string().nullable(),
 			last_updated_by: z.string().nullable(),
 			last_update: parseDate().nullable(),
-			expected_recovery: z.union([parseNumber(), z.number()]).nullable(),
+			reserved_recovery: z.union([parseNumber(), z.number()]).nullable(), // Client's expected recovery (from feed/manual)
+			paid_recovery: z.union([parseNumber(), z.number()]).nullable(), // Client's reported paid amount (from feed/manual)
 			line_of_business: z.nativeEnum(LineOfBusiness),
 			loss_type: z.nativeEnum(LossType),
 		})
@@ -76,7 +77,9 @@ export const updateClaimInput = z.object({
 	total_incurred: z.number().nullable().optional(),
 	date_of_loss: parseDate().nullable().optional(),
 	loss_location: z.string().nullable().optional(),
-	expected_recovery: z.number().nullable().optional(),
+	reserved_recovery: z.number().nullable().optional(), // Client's expected recovery (from feed/manual)
+	paid_recovery: z.number().nullable().optional(), // Client's reported paid amount (from feed/manual)
+	expected_recovery: z.number().nullable().optional(), // Team's forecasted recovery (manual, eventually auto-calculated)
 	line_of_business: z.nativeEnum(LineOfBusiness).optional(),
 	loss_type: z.nativeEnum(LossType).optional(),
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),

@@ -106,12 +106,39 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Recovery Summary
 					</Typography>
-					<Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={2}>
+					<Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
+						{/* Client-reported fields */}
+						<Box>
+							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+								Reserved Recovery
+							</Typography>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Client's expected recovery (from feed/manual)
+							</Typography>
+							<Typography variant="h6" fontSize={18}>
+								{formatCurrencyExact(Number(claimDetail?.reserved_recovery) || 0)}
+							</Typography>
+						</Box>
+						<Box>
+							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+								Paid Recovery
+							</Typography>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Client's reported paid amount (from feed/manual)
+							</Typography>
+							<Typography variant="h6" fontSize={18}>
+								{formatCurrencyExact(Number(claimDetail?.paid_recovery) || 0)}
+							</Typography>
+						</Box>
+						{/* Team-tracked fields */}
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Expected Recovery
 							</Typography>
-							<Typography variant="h6" fontSize={18}>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Team's forecasted recovery
+							</Typography>
+							<Typography variant="h6" fontSize={18} color="primary.main">
 								{formatCurrencyExact(Number(claimDetail?.expected_recovery) || 0)}
 							</Typography>
 						</Box>
@@ -119,13 +146,20 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Actual Recovery
 							</Typography>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Team's meaningful payments (from recovery events)
+							</Typography>
 							<Typography variant="h6" fontSize={18} color="success.main">
 								{formatCurrencyExact(Number(claimDetail?.actual_recovery) || 0)}
 							</Typography>
 						</Box>
-						<Box>
+						{/* Recovery Rate */}
+						<Box gridColumn="1 / -1">
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Recovery Rate
+							</Typography>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Actual vs Expected (team forecast)
 							</Typography>
 							<Typography variant="h6" fontSize={18}>
 								{claimDetail?.expected_recovery && Number(claimDetail.expected_recovery) > 0

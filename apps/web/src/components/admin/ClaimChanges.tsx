@@ -41,7 +41,9 @@ interface ClaimFormData {
 	insured: string;
 	claim_amount: string;
 	total_incurred: string;
-	expected_recovery: string;
+	reserved_recovery: string; // Client's expected recovery (from feed/manual)
+	paid_recovery: string; // Client's reported paid amount (from feed/manual)
+	expected_recovery: string; // Team's forecasted recovery
 	date_of_loss: Dayjs | null;
 	loss_location: string;
 	line_of_business: LineOfBusiness;
@@ -78,6 +80,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			insured: '',
 			claim_amount: '',
 			total_incurred: '',
+			reserved_recovery: '',
+			paid_recovery: '',
 			expected_recovery: '',
 			date_of_loss: null,
 			loss_location: '',
@@ -118,6 +122,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				insured: existingClaim.insured || '',
 				claim_amount: existingClaim.claim_amount?.toString() || '',
 				total_incurred: existingClaim.total_incurred?.toString() || '',
+				reserved_recovery: existingClaim.reserved_recovery?.toString() || '',
+				paid_recovery: existingClaim.paid_recovery?.toString() || '',
 				expected_recovery: existingClaim.expected_recovery?.toString() || '',
 				date_of_loss: existingClaim.date_of_loss ? dayjs(existingClaim.date_of_loss) : null,
 				loss_location: existingClaim.loss_location || '',
@@ -222,6 +228,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					insured: data.insured || null,
 					claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
 					total_incurred: data.total_incurred ? parseFloat(data.total_incurred) : null,
+					reserved_recovery: data.reserved_recovery ? parseFloat(data.reserved_recovery) : null,
+					paid_recovery: data.paid_recovery ? parseFloat(data.paid_recovery) : null,
 					expected_recovery: data.expected_recovery ? parseFloat(data.expected_recovery) : null,
 					date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 					loss_location: data.loss_location || null,
@@ -245,7 +253,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							insured: data.insured || null,
 							claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
 							total_incurred: data.total_incurred ? parseFloat(data.total_incurred) : null,
-							expected_recovery: data.expected_recovery ? parseFloat(data.expected_recovery) : null,
+							reserved_recovery: data.reserved_recovery ? parseFloat(data.reserved_recovery) : null,
+							paid_recovery: data.paid_recovery ? parseFloat(data.paid_recovery) : null,
 							date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 							loss_location: data.loss_location || null,
 							line_of_business: data.line_of_business,
@@ -611,9 +620,49 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							/>
 
 							<TextField
+								id="reserved_recovery"
+								label="Reserved Recovery"
+								placeholder="0.00"
+								error={!!errors.reserved_recovery}
+								type="number"
+								size="small"
+								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+								slotProps={{
+									input: {
+										startAdornment: <InputAdornment position="start">$</InputAdornment>,
+									},
+									inputLabel: {
+										shrink: true,
+									},
+								}}
+								helperText="Client's expected recovery (from feed/manual)"
+								{...register('reserved_recovery', { required: false })}
+							/>
+
+							<TextField
+								id="paid_recovery"
+								label="Paid Recovery"
+								placeholder="0.00"
+								error={!!errors.paid_recovery}
+								type="number"
+								size="small"
+								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+								slotProps={{
+									input: {
+										startAdornment: <InputAdornment position="start">$</InputAdornment>,
+									},
+									inputLabel: {
+										shrink: true,
+									},
+								}}
+								helperText="Client's reported paid amount (from feed/manual)"
+								{...register('paid_recovery', { required: false })}
+							/>
+
+							<TextField
 								id="expected_recovery"
 								label="Expected Recovery"
-								placeholder="21521.43"
+								placeholder="0.00"
 								error={!!errors.expected_recovery}
 								type="number"
 								size="small"
@@ -622,8 +671,12 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 									input: {
 										startAdornment: <InputAdornment position="start">$</InputAdornment>,
 									},
+									inputLabel: {
+										shrink: true,
+									},
 								}}
-								{...register('expected_recovery', { required: true })}
+								helperText="Team's forecasted recovery"
+								{...register('expected_recovery', { required: false })}
 							/>
 						</Box>
 					</Box>

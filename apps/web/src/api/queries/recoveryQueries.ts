@@ -115,8 +115,10 @@ export async function listRecoveryEventsWithFilters(
 			'claim.claim_number',
 			'claim.insured',
 			'claim.recovery_status',
-			'claim.expected_recovery',
-			'claim.actual_recovery',
+			'claim.reserved_recovery', // Client's expected recovery (from feed/manual)
+			'claim.paid_recovery', // Client's reported paid amount (from feed/manual)
+			'claim.expected_recovery', // Team's forecasted recovery
+			'claim.actual_recovery', // Team's meaningful payments (calculated from recovery events)
 			'checklist_claim.checklist_id',
 		])
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id);

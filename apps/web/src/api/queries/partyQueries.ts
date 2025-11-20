@@ -777,6 +777,12 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		.innerJoin('party', 'party.id', 'claim_party.party_id')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
 		.leftJoin('party_representative', 'party_representative.id', 'claim_party.representative_id')
+		.leftJoin('party_office', (join) =>
+			join
+				.onRef('party_office.party_id', '=', 'party.id')
+				.on('party_office.is_primary', '=', true)
+				.on('party_office.deleted_at', 'is', null)
+		)
 		.selectAll('claim_party')
 		.select([
 			'party.id as party_id',
@@ -792,14 +798,18 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 			'party_representative.email as representative_email',
 			'party_representative.phone as representative_phone',
 			'party_representative.title as representative_title',
+			'party_office.id as office_id',
+			'party_office.office_name as office_name',
+			'party_office.address as office_address',
+			'party_office.phone as office_phone',
 		])
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
-		.orderBy('claim_party.is_primary desc')
-		.orderBy('party.name asc')
+		.orderBy('claim_party.liability_percentage', 'desc')
+		.orderBy('party.name', 'asc')
 		.execute();
 
-	// Transform results to nest party and representative data
+	// Transform results to nest party, representative, and office data
 	return results.map((row) => ({
 		id: row.id,
 		claim_id: row.claim_id,
@@ -829,6 +839,14 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 					email: row.representative_email,
 					phone: row.representative_phone,
 					title: row.representative_title,
+			  }
+			: null,
+		office: row.office_id
+			? {
+					id: row.office_id,
+					office_name: row.office_name!,
+					address: row.office_address,
+					phone: row.office_phone,
 			  }
 			: null,
 	}));

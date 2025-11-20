@@ -226,6 +226,7 @@ export const linkPartyToClaimInput = z.object({
 	claim_id: z.number().int().positive(),
 	party_id: z.number().int().positive(),
 	role: z.nativeEnum(ClaimPartyRole),
+	representative_id: z.number().int().positive().nullable().optional(),
 	liability_percentage: z.number().min(0).max(100).optional(),
 	coverage_amount: z.number().min(0).optional(),
 	is_primary: z.boolean().optional(),
@@ -239,6 +240,7 @@ export const updateClaimPartyInput = z.object({
 	id: z.number().int().positive(),
 	params: z.object({
 		role: z.nativeEnum(ClaimPartyRole).optional(),
+		representative_id: z.number().int().positive().nullable().optional(),
 		liability_percentage: z.number().min(0).max(100).optional(),
 		coverage_amount: z.number().min(0).optional(),
 		is_primary: z.boolean().optional(),
