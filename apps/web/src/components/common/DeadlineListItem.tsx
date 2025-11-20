@@ -10,7 +10,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 interface DeadlineListItemProps {
 	deadline: Deadline;
-	onClaimClick: (claimId: number) => void;
+	onClaimClick: (claimId: string) => void;
 	showTime?: boolean;
 }
 
@@ -46,21 +46,11 @@ export function formatDeadlineType(type: string): string {
  * Reusable deadline list item component
  * Used in DailyEventsList and MyClaimsDeadlines
  */
-export default function DeadlineListItem({
-	deadline,
-	onClaimClick,
-	showTime = true,
-}: DeadlineListItemProps) {
+export default function DeadlineListItem({ deadline, onClaimClick, showTime = true }: DeadlineListItemProps) {
 	return (
 		<Box sx={styles.deadlineItem}>
 			<Stack spacing={0.5}>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="space-between"
-					alignItems="center"
-					gap={0.5}
-				>
+				<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" gap={0.5}>
 					<Box display="flex" alignItems="center" gap={1}>
 						{getDeadlineStatusIcon(deadline.status)}
 						<Typography variant="body2" fontWeight={600} fontSize={13}>
@@ -90,9 +80,11 @@ export default function DeadlineListItem({
 							textDecoration: 'underline',
 						},
 					}}
-					onClick={() => onClaimClick(deadline.claim_id)}
+					onClick={() => {
+						if (deadline.claim_number) onClaimClick(deadline.claim_number);
+					}}
 				>
-					Claim #{deadline.claim_id}
+					Claim {deadline.claim_number}
 				</Typography>
 			</Stack>
 		</Box>

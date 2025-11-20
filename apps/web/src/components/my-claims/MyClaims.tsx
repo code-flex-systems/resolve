@@ -503,7 +503,7 @@ const styles = {
 		border: `1px solid ${BASE_COLOR_LIGHT}`,
 		borderRadius: 2,
 		padding: '5px 10px',
-		minWidth: 250,
+		minWidth: 350,
 	},
 	textField: {
 		border: 'none',

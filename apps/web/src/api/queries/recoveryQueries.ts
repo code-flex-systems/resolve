@@ -352,7 +352,9 @@ export async function getDeadlines(
 
 	let query = ctx.db
 		.selectFrom('deadline')
+		.innerJoin('claim', 'deadline.claim_id', 'claim.id')
 		.selectAll('deadline')
+		.select('claim.claim_number')
 		.where('deadline.client_id', '=', ctx.session.user.client_id);
 
 	// Filter by personal assignments if personalOnly flag is true, or if user is a Contributor
@@ -360,7 +362,6 @@ export async function getDeadlines(
 
 	if (shouldFilterPersonal) {
 		query = query
-			.innerJoin('claim', 'deadline.claim_id', 'claim.id')
 			.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
 			.where((eb) =>
 				eb.or([
@@ -715,9 +716,7 @@ export async function getQuarterlyRecoveryStats(
 	const clientId = ctx.session.user.client_id!;
 
 	// Use provided fiscal year start or default from config
-	const fiscalYearStart = params?.fiscalYearStart
-		? dayjs(params.fiscalYearStart)
-		: config.FISCAL_YEAR_START_DATE;
+	const fiscalYearStart = params?.fiscalYearStart ? dayjs(params.fiscalYearStart) : config.FISCAL_YEAR_START_DATE;
 
 	// Calculate quarter date ranges
 	const quarters = [
@@ -769,9 +768,9 @@ export async function getQuarterlyRecoveryStats(
 
 	// Format results into expected shape
 	return {
-		q1: results.find((r) => r.quarter === 'q1')?.total || '0',
-		q2: results.find((r) => r.quarter === 'q2')?.total || '0',
-		q3: results.find((r) => r.quarter === 'q3')?.total || '0',
-		q4: results.find((r) => r.quarter === 'q4')?.total || '0',
+		q1: (results.find((r) => r.quarter === 'q1')?.total || '0').toString(),
+		q2: (results.find((r) => r.quarter === 'q2')?.total || '0').toString(),
+		q3: (results.find((r) => r.quarter === 'q3')?.total || '0').toString(),
+		q4: (results.find((r) => r.quarter === 'q4')?.total || '0').toString(),
 	};
 }
