@@ -9,7 +9,7 @@ import Category from '@mui/icons-material/Category';
 import Email from '@mui/icons-material/Email';
 import Search from '@mui/icons-material/Search';
 import Clear from '@mui/icons-material/Clear';
-import { CustomPagination } from '../common/CustomPagination';
+import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -27,10 +27,7 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Party',
 		field: 'party',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.name}
-				secondary={row.organization ?? 'No organization'}
-			/>
+			<StackedHeaderCell primary={row.name} secondary={row.organization ?? 'No organization'} />
 		),
 		renderHeader: (params) => (
 			<IconHeaderCell {...params} icon={<Business style={{ color: BASE_COLOR_LIGHT }} />} />
@@ -41,10 +38,7 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Type',
 		field: 'party_type',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.party_type}
-				secondary={row.party_category.replace(/_/g, ' ')}
-			/>
+			<StackedHeaderCell primary={row.party_type} secondary={row.party_category.replace(/_/g, ' ')} />
 		),
 		renderHeader: (params) => (
 			<IconHeaderCell {...params} icon={<Category style={{ color: BASE_COLOR_LIGHT }} />} />
@@ -55,14 +49,9 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Contact',
 		field: 'contact',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.email ?? 'No email'}
-				secondary={row.phone ?? 'No phone'}
-			/>
+			<StackedHeaderCell primary={row.email ?? 'No email'} secondary={row.phone ?? 'No phone'} />
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Email style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Email style={{ color: BASE_COLOR_LIGHT }} />} />,
 		width: 250,
 	},
 	{

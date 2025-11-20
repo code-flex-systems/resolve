@@ -11,7 +11,7 @@ import Phone from '@mui/icons-material/Phone';
 import Search from '@mui/icons-material/Search';
 import Warning from '@mui/icons-material/Warning';
 import Clear from '@mui/icons-material/Clear';
-import { CustomPagination } from '../common/CustomPagination';
+import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -54,7 +54,13 @@ const COLUMNS: GridColDef[] = [
 			const secondary = [row.title, row.email].filter(Boolean).join(' • ') || 'No title or email';
 			return (
 				<div
-					style={{ height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}
+					style={{
+						height: '100%',
+						display: 'flex',
+						justifyContent: 'flex-start',
+						alignItems: 'center',
+						gap: 8,
+					}}
 				>
 					{row.office_deleted_at && (
 						<Tooltip title="Associated office is archived" placement="right">
@@ -216,7 +222,11 @@ export default function RepresentativesTab() {
 										</IconButton>
 									)}
 								</Paper>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewRepresentativeDialog}>
+								<Button
+									variant="contained"
+									startIcon={<AddBox />}
+									onClick={toggleNewRepresentativeDialog}
+								>
 									Representative
 								</Button>
 							</>

@@ -119,6 +119,26 @@ npx kysely-codegen --out-file apps/web/src/api/database/types.d.ts
 - Public routes: `apps/web/src/app/(public)/`
 - API routes: `apps/web/src/app/api/`
 
+**IMPORTANT - PageWrapper Requirement:**
+
+All protected page routes MUST wrap their main component in `<PageWrapper>`:
+```typescript
+// apps/web/src/app/(protected)/my-route/page.tsx
+import PageWrapper from '@/components/common/PageWrapper';
+import MyComponent from '@/components/my-domain/MyComponent';
+
+export default function MyPage() {
+  return (
+    <PageWrapper>
+      <MyComponent />
+    </PageWrapper>
+  );
+}
+```
+- PageWrapper provides the main sidebar navigation visible on all protected pages
+- PageWrapper handles layout, Fade transitions, and navigation items based on user role
+- Do NOT wrap in PageWrapper: Dialog components, panels, or components that are already within a page
+
 ### Data Model Concepts
 
 **Checklist hierarchy:**

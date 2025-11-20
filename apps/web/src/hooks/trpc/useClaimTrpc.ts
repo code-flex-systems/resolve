@@ -11,6 +11,8 @@ export function useClaimTrpc() {
 
 		list: trpc.claim.getClaims.useQuery,
 
+		listMyClaims: trpc.claim.listMyClaims.useQuery,
+
 		count: trpc.claim.getClaimCount.useQuery,
 
 		countRollover: trpc.claim.getRolloverClaimCount.useQuery,
@@ -23,6 +25,7 @@ export function useClaimTrpc() {
 			onSuccess(data) {
 				// Invalidate claims list
 				utils.claim.getClaims.invalidate();
+				utils.claim.listMyClaims.invalidate();
 				// Invalidate party relationships for newly created claims
 				if (data && Array.isArray(data)) {
 					data.forEach((claim) => {
@@ -38,6 +41,7 @@ export function useClaimTrpc() {
 			onSuccess(_data, variables) {
 				// Invalidate claim queries
 				utils.claim.getClaims.invalidate();
+				utils.claim.listMyClaims.invalidate();
 				utils.claim.getClaim.invalidate({ claimId: variables.claimId });
 				// Invalidate party relationships since linking/unlinking may have occurred
 				utils.party.getClaimParties.invalidate({ claimId: variables.claimId });
@@ -47,3 +51,5 @@ export function useClaimTrpc() {
 }
 
 export type Claim = ClaimOutput['getClaim'];
+export type MyClaimListItem = ClaimOutput['listMyClaims']['rows'][number];
+export type MyClaimsMetrics = ClaimOutput['listMyClaims']['metrics'];

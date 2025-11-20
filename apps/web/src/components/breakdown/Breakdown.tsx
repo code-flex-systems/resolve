@@ -7,7 +7,7 @@ import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import { CustomPagination } from '../common/CustomPagination';
+import CustomPagination from '../common/CustomPagination';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';

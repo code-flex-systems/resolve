@@ -461,3 +461,111 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		checklistAssignments,
 	};
 }
+
+/**
+ * Get all claims assigned to the current user with filters, pagination, and metrics
+ *
+ * @param ctx - request context
+ * @param filters - filter options
+ * @returns claims with count and metrics
+ */
+export async function listMyClaims(
+	ctx: ProtectedContext,
+	{
+		searchTerm,
+		claimStatus,
+		recoveryStatus,
+		limit = 500,
+		offset = 0,
+		sortField = 'claim.last_update',
+		sortOrder = 'desc',
+	}: {
+		searchTerm?: string;
+		claimStatus?: ClaimStatus;
+		recoveryStatus?: RecoveryStatus;
+		limit?: number;
+		offset?: number;
+		sortField?: string;
+		sortOrder?: 'asc' | 'desc';
+	}
+) {
+	// Base query: get claims where user is the assignee
+	let query = ctx.db
+		.selectFrom('claim')
+		.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
+		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
+		.leftJoin('users as assignee_user', 'checklist_claim.assignee', 'assignee_user.id')
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('checklist_claim.assignee', '=', ctx.session.user.id);
+
+	// Apply filters
+	if (searchTerm && searchTerm.length > 0) {
+		query = query.where((eb) =>
+			eb.or([
+				eb(sql`lower(${eb.ref('claim.claim_number')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+				eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+				eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+			])
+		);
+	}
+
+	if (claimStatus) {
+		query = query.where('checklist_claim.status', '=', claimStatus);
+	}
+
+	if (recoveryStatus) {
+		query = query.where('claim.recovery_status', '=', recoveryStatus);
+	}
+
+	// Get total count and metrics (before pagination)
+	const metricsQuery = await query
+		.select(({ fn }) => [
+			fn.countAll().as('count'),
+			fn.sum('claim.claim_amount').as('total_value'),
+			fn.avg(sql`EXTRACT(epoch FROM (NOW() - checklist_claim.created_at)) / 86400`).as('avg_days_in_queue'),
+		])
+		.executeTakeFirst();
+
+	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
+	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
+	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
+
+	// Get data (with optional pagination)
+	const sortDirection = sortOrder === 'asc' ? 'asc' : 'desc';
+	const rows = await query
+		.select([
+			'claim.id',
+			'claim.claim_number',
+			'claim.client',
+			'claim.insured',
+			'claim.claim_amount',
+			'claim.date_of_loss',
+			'claim.last_update',
+			'claim.expected_recovery',
+			'claim.actual_recovery',
+			'claim.recovery_status',
+			'claim.created_at',
+			'checklist_claim.status as claim_status',
+			'checklist_claim.checklist_id',
+			'checklist_claim.assignee',
+			'checklist_claim.created_at as assigned_at',
+			'checklist.name as checklist_name',
+			'assignee_user.first as assignee_first',
+			'assignee_user.last as assignee_last',
+			'assignee_user.email as assignee_email',
+		])
+		.orderBy(sortField as any, sortDirection)
+		.limit(limit)
+		.offset(offset)
+		.execute();
+
+	return {
+		rows,
+		count,
+		metrics: {
+			totalValue,
+			avgDaysInQueue: Math.round(avgDaysInQueue * 10) / 10, // Round to 1 decimal
+		},
+	};
+}

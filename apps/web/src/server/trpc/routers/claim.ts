@@ -10,6 +10,7 @@ import {
 	getClaimDetail,
 	getNextClaimToAssign,
 	getRolloverClaimCount,
+	listMyClaims,
 } from '@/api/controllers/claimController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -22,6 +23,7 @@ import {
 	getClaimInput,
 	getClaimsInput,
 	getNextClaimToAssignInput,
+	listMyClaimsInput,
 } from '@/schemas/claimSchemas';
 
 export const claimRouter = router({
@@ -71,5 +73,9 @@ export const claimRouter = router({
 	updateClaim: protectedProcedure.input(updateClaimInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return updateClaim(ctx, input);
+	}),
+
+	listMyClaims: protectedProcedure.input(listMyClaimsInput).query(async ({ input, ctx }) => {
+		return listMyClaims(ctx, input);
 	}),
 });

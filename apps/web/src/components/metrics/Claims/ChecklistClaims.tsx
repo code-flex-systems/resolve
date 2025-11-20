@@ -10,7 +10,7 @@ import {
 import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import { Box, Paper, Typography } from '@mui/material';
 import IconHeaderCell from '../../common/IconHeaderCell';
-import { CustomPagination } from '../../common/CustomPagination';
+import CustomPagination from '../../common/CustomPagination';
 import { useMemo, useRef, useState } from 'react';
 import { ChecklistClaimsOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';

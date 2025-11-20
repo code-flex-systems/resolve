@@ -12,7 +12,7 @@ import Shield from '@mui/icons-material/Shield';
 import Upload from '@mui/icons-material/Upload';
 import Person from '@mui/icons-material/Person';
 import Clear from '@mui/icons-material/Clear';
-import { CustomPagination } from '../common/CustomPagination';
+import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { formatMDY } from '@/lib/utils/utils';

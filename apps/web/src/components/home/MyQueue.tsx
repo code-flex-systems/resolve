@@ -1,11 +1,7 @@
 'use client';
-import { Box, Chip, Link, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import theme, { BASE_COLOR_LIGHT, ORANGE } from '@/styles/theme';
+import { Box, Link, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { formatMD } from '@/lib/utils/utils';
-import { ClaimStatus as ClaimStatusType, LineOfBusiness, RecoveryStatus } from '@/config/enums';
-import { formatLineOfBusiness, LOB_ICONS } from '@/lib/utils/claimUtils';
-import { formatRecoveryStatus, RECOVERY_STATUS_ICONS } from '@/lib/utils/recoveryUtils';
 import ClaimDetailPanel from '../admin/ClaimDetailPanel';
 import { useState } from 'react';
 import dayjs from 'dayjs';
@@ -14,7 +10,7 @@ import ClaimStatusCell from '../metrics/Claims/ClaimStatusCell';
 
 dayjs.extend(relativeTime);
 
-export default function Recents() {
+export default function MyQueue() {
 	const { isFetching, data: recentChecklistClaims = [] } = useChecklistTrpc().listRecents(undefined, {
 		refetchOnMount: 'always',
 		refetchOnWindowFocus: true,
@@ -44,7 +40,7 @@ export default function Recents() {
 						{/* Header */}
 						<Box width="100%" height={40} display="flex" justifyContent="space-between" alignItems="center">
 							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
-								Recent Claims
+								My Queue
 							</Typography>
 							{recentChecklistClaims.length > 0 && (
 								<Typography variant="caption" color="text.secondary">
@@ -195,7 +191,7 @@ const styles = {
 	container: {
 		width: 550,
 		minWidth: 550,
-		height: 600,
+		height: 'calc(100vh - 320px)',
 		padding: '20px',
 		overflow: 'hidden',
 		borderRadius: 4,
@@ -203,7 +199,7 @@ const styles = {
 	},
 	listContainer: {
 		width: '100%',
-		height: 'calc(100% - 90px)', // Account for header and footer
+		// height: 'calc(100% - 110px)', // Account for header and footer
 		overflowY: 'auto',
 		overflowX: 'hidden',
 		'&::-webkit-scrollbar': {

@@ -16,7 +16,7 @@ export default function StandaloneClaimDetailPage() {
 	return (
 		<PageWrapper>
 			<Stack width="100%" flex={1} padding="20px">
-				<ClaimDetailView claimId={claimId} backRoute="/dashboard" />
+				<ClaimDetailView claimId={claimId} />
 			</Stack>
 		</PageWrapper>
 	);

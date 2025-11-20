@@ -2,7 +2,7 @@
 
 import { Box, Fade, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import Recents from '@/components/home/Recents';
+import MyQueue from '@/components/home/MyQueue';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import ProfileAvatar from '../home/ProfileAvatar';
 import RecentComments from '../home/RecentComments';
@@ -110,7 +110,7 @@ export default function Home() {
 									</Grid>
 									<Grid container>
 										<Grid>
-											<Recents />
+											<MyQueue />
 										</Grid>
 										<Grid>
 											<Calendar />

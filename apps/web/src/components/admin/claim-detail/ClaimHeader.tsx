@@ -12,16 +12,10 @@ import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryU
 import { formatLineOfBusiness, formatLossType, LOB_ICONS, LOSS_TYPE_ICONS } from '@/lib/utils/claimUtils';
 import { LineOfBusiness, LossType } from '@/config/enums';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
-interface ClaimHeaderProps {
-	claimId: number;
-	backRoute?: string; // Optional custom back route
-}
-
-export default function ClaimHeader({ claimId, backRoute = '/admin/claims' }: ClaimHeaderProps) {
+export default function ClaimHeader({ claimId }: { claimId: number }) {
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
@@ -50,7 +44,7 @@ export default function ClaimHeader({ claimId, backRoute = '/admin/claims' }: Cl
 				{/* Left: Claim Number and Insured */}
 				<Box>
 					<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
-						<IconButton onClick={() => router.push(backRoute)}>
+						<IconButton onClick={() => router.back()}>
 							<ArrowBack />
 						</IconButton>
 						<Typography variant="h4" color="primary">

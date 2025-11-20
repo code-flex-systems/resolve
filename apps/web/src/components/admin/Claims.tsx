@@ -26,7 +26,7 @@ import Search from '@mui/icons-material/Search';
 import FilterList from '@mui/icons-material/FilterList';
 import Clear from '@mui/icons-material/Clear';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { CustomPagination } from '../common/CustomPagination';
+import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';

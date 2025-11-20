@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, MenuItem, Stack, Typography } from '@mui/material';
+import { Box, Fade, MenuItem, Stack, Typography } from '@mui/material';
 import Checklist from '@mui/icons-material/Checklist';
 import Description from '@mui/icons-material/Description';
 import CheckCircle from '@mui/icons-material/CheckCircle';
@@ -86,6 +86,7 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 										...styles.menuItem,
 										backgroundColor: isSelected ? '#F0F7F5 !important' : undefined,
 									}}
+									disableRipple
 								>
 									<Stack width="100%" spacing={0.5}>
 										{/* Name and Page Count */}
@@ -95,11 +96,11 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 												<Typography variant="subtitle1" fontSize={16} fontWeight={600}>
 													{checklist.name}
 												</Typography>
-												{isSelected && (
+												<Fade in={isSelected}>
 													<CheckCircle
 														sx={{ color: theme.palette.secondary.main, fontSize: 20 }}
 													/>
-												)}
+												</Fade>
 											</Box>
 											<Box
 												px={1.5}

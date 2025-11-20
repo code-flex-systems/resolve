@@ -5,7 +5,7 @@ import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useMemo, useRef } from 'react';
 import { SummarySegment } from '@/config/enums';
 
-import { CustomPagination } from '../common/CustomPagination';
+import CustomPagination from '../common/CustomPagination';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import IconHeaderCell from '../common/IconHeaderCell';

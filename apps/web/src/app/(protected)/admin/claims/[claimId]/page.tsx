@@ -7,5 +7,5 @@ export default function ClaimDetailPage() {
 	const params = useParams();
 	const claimId = parseInt(params.claimId as string, 10);
 
-	return <ClaimDetailView claimId={claimId} backRoute="/admin/claims" />;
+	return <ClaimDetailView claimId={claimId} />;
 }

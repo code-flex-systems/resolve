@@ -748,7 +748,6 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 				eb('checklist_claim.assignee', '=', ctx.session.user.id),
 			])
 		)
-		.orderBy('checklist_claim.submitted_at asc')
 		.orderBy('checklist_claim.last_opened desc')
 		.limit(12)
 		.execute();

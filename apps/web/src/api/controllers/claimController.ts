@@ -351,3 +351,28 @@ export async function getClaimDetail(ctx: ProtectedContext, { claimId }: { claim
 	const results = await claimQueries.getClaimDetail(ctx, claimId);
 	return results;
 }
+
+/**
+ * Get all claims assigned to the current user with filters, pagination, and metrics
+ *
+ * @param ctx - request context
+ * @param input - filter and pagination options
+ */
+export async function listMyClaims(
+	ctx: ProtectedContext,
+	input: {
+		searchTerm?: string;
+		claimStatus?: import('@/config/enums').ClaimStatus;
+		recoveryStatus?: import('@/config/enums').RecoveryStatus;
+		substatus?: string;
+		line_of_business?: LineOfBusiness;
+		loss_type?: LossType;
+		limit?: number;
+		offset?: number;
+		sortField?: string;
+		sortOrder?: 'asc' | 'desc';
+	}
+) {
+	const results = await claimQueries.listMyClaims(ctx, input);
+	return results;
+}

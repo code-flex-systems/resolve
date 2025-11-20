@@ -6,7 +6,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DataGridPro, GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
-import { CustomPagination } from '@/components/common/CustomPagination';
+import CustomPagination from '@/components/common/CustomPagination';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatUser } from '@/lib/utils/utils';

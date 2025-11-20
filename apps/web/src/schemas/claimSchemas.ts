@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { ClaimSearch, LineOfBusiness, LossType, RecoveryStatus } from '@/config/enums';
+import {
+	ClaimSearch,
+	ClaimStatus,
+	ClaimSubstatus,
+	LineOfBusiness,
+	LossType,
+	RecoveryStatus,
+} from '@/config/enums';
 import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 
 export const assignClaimInput = z.object({
@@ -95,3 +102,15 @@ export const updateClaimRecoveryInput = z.object({
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
 	// actual_recovery is calculated from recovery_event records, not set directly
 });
+
+// My Claims list with filters and metrics
+export const listMyClaimsInput = z.object({
+	searchTerm: z.string().optional(),
+	claimStatus: z.nativeEnum(ClaimStatus).optional(),
+	recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
+	limit: z.number().int().positive().optional(),
+	offset: z.number().int().nonnegative().optional(),
+	sortField: z.string().optional(),
+	sortOrder: z.enum(['asc', 'desc']).optional(),
+});
+export type ListMyClaimsInput = z.infer<typeof listMyClaimsInput>;

@@ -10,16 +10,11 @@ import CoverageTabForClaim from './CoverageTabForClaim';
 import RecoveryTab from './RecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
 
-interface ClaimDetailViewProps {
-	claimId: number;
-	backRoute?: string; // Optional custom back route
-}
-
 /**
  * Reusable claim detail view component
  * Can be used in both admin and standalone contexts
  */
-export default function ClaimDetailView({ claimId, backRoute }: ClaimDetailViewProps) {
+export default function ClaimDetailView({ claimId }: { claimId: number }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
 
@@ -45,7 +40,7 @@ export default function ClaimDetailView({ claimId, backRoute }: ClaimDetailViewP
 		<Fade in={true} timeout={1000}>
 			<Box display="flex" flexDirection="column" height="calc(100vh - 50px)" overflow="hidden">
 				{/* Sticky Header */}
-				<ClaimHeader claimId={claimId} backRoute={backRoute} />
+				<ClaimHeader claimId={claimId} />
 
 				{/* Tab Navigation */}
 				<Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
@@ -65,11 +60,7 @@ export default function ClaimDetailView({ claimId, backRoute }: ClaimDetailViewP
 				{/* Tab Content */}
 				<Fade key={currentTab} in={true} timeout={1000}>
 					<Box flex={1} overflow="auto" bgcolor="#F7F8FA">
-						<Box
-							display="flex"
-							justifyContent="center"
-							width="100%"
-						>
+						<Box display="flex" justifyContent="center" width="100%">
 							<Box width="100%" maxWidth={1400}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
