@@ -133,3 +133,93 @@ export const SUGGESTED_DESK_LOCATIONS = [
 ] as const;
 
 export type SuggestedDeskLocation = (typeof SUGGESTED_DESK_LOCATIONS)[number];
+
+// ============================================================================
+// USER DESK LOCATION ASSIGNMENT SCHEMAS (Phase 2)
+// ============================================================================
+
+/**
+ * Get user desk location assignments for a specific user
+ */
+export const getUserDeskLocationsInput = z.object({
+	userId: z.string().uuid(),
+});
+export type GetUserDeskLocationsInput = z.infer<typeof getUserDeskLocationsInput>;
+
+/**
+ * Get users assigned to a specific desk location
+ */
+export const getDeskLocationUsersInput = z.object({
+	deskLocationId: z.number().int().positive(),
+});
+export type GetDeskLocationUsersInput = z.infer<typeof getDeskLocationUsersInput>;
+
+/**
+ * Assign user to desk location with priority
+ */
+export const assignUserToDeskLocationInput = z.object({
+	userId: z.string().uuid(),
+	deskLocationId: z.number().int().positive(),
+	priority: z.number().int().min(1).max(5),
+});
+export type AssignUserToDeskLocationInput = z.infer<typeof assignUserToDeskLocationInput>;
+
+/**
+ * Bulk assign multiple users to the same desk location with the same priority
+ * All-or-nothing transaction
+ */
+export const bulkAssignUsersToDeskLocationInput = z.object({
+	userIds: z.array(z.string().uuid()).min(1).max(50),
+	deskLocationId: z.number().int().positive(),
+	priority: z.number().int().min(1).max(5),
+});
+export type BulkAssignUsersToDeskLocationInput = z.infer<typeof bulkAssignUsersToDeskLocationInput>;
+
+/**
+ * Update user desk location assignment priority
+ */
+export const updateUserDeskLocationPriorityInput = z.object({
+	id: z.number().int().positive(),
+	priority: z.number().int().min(1).max(5),
+});
+export type UpdateUserDeskLocationPriorityInput = z.infer<typeof updateUserDeskLocationPriorityInput>;
+
+/**
+ * Remove user from desk location (soft delete)
+ */
+export const removeUserFromDeskLocationInput = z.object({
+	id: z.number().int().positive(),
+});
+export type RemoveUserFromDeskLocationInput = z.infer<typeof removeUserFromDeskLocationInput>;
+
+/**
+ * Bulk update user desk location priorities (for drag-and-drop)
+ */
+export const updateUserDeskLocationPrioritiesInput = z.object({
+	updates: z.array(
+		z.object({
+			id: z.number().int().positive(),
+			priority: z.number().int().min(1).max(5),
+		})
+	),
+});
+export type UpdateUserDeskLocationPrioritiesInput = z.infer<typeof updateUserDeskLocationPrioritiesInput>;
+
+/**
+ * Update user desk assignments (unified endpoint for individual and bulk updates)
+ * Accepts an array of users with their complete desired desk assignment state
+ */
+export const updateUsersDeskAssignmentsInput = z.object({
+	updates: z.array(
+		z.object({
+			userId: z.string().uuid(),
+			assignments: z.array(
+				z.object({
+					deskLocationId: z.number().int().positive(),
+					priority: z.number().int().min(1).max(5),
+				})
+			).max(5), // Max 5 assignments per user
+		})
+	).min(1).max(50), // Support 1-50 users per bulk update
+});
+export type UpdateUsersDeskAssignmentsInput = z.infer<typeof updateUsersDeskAssignmentsInput>;

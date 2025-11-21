@@ -10,6 +10,7 @@ export function useUserTrpc() {
 	return {
 		list: trpc.user.getUsers.useQuery,
 		paginated: trpc.user.getUsersPaginated.useQuery,
+		withDeskAssignments: trpc.user.getUsersWithDeskAssignments.useQuery,
 		count: trpc.user.getUserCount.useQuery,
 		countInactive: trpc.user.getInactiveUserCount.useQuery,
 		get: trpc.user.getUser.useQuery,
@@ -19,12 +20,14 @@ export function useUserTrpc() {
 		create: trpc.user.createUsers.useMutation({
 			onSuccess() {
 				utils.user.getUsersPaginated.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
 			},
 		}),
 
 		update: trpc.user.updateUser.useMutation({
 			onSuccess(_, { id }) {
 				utils.user.getUsersPaginated.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
 				utils.user.getUser.invalidate({ id });
 			},
 		}),
@@ -32,6 +35,7 @@ export function useUserTrpc() {
 		remove: trpc.user.deleteUser.useMutation({
 			onSuccess() {
 				utils.user.getUsersPaginated.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
 			},
 		}),
 	};

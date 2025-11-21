@@ -661,6 +661,41 @@ export interface Sessions {
   user_id: string;
 }
 
+export interface UserDeskLocation {
+  /**
+   * When the user was assigned to this desk location
+   */
+  assigned_at: Generated<Timestamp>;
+  /**
+   * User who made the assignment
+   */
+  assigned_by: string | null;
+  /**
+   * Desk location the user is assigned to
+   */
+  desk_location_id: number;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Priority level (1-5) for this desk location assignment, 1 being highest
+   */
+  priority: number;
+  /**
+   * Soft deletion timestamp - when assignment was removed
+   */
+  removed_at: Timestamp | null;
+  /**
+   * User who removed the assignment
+   */
+  removed_by: string | null;
+  /**
+   * User assigned to this desk location
+   */
+  user_id: string;
+}
+
 export interface Users {
   client_id: string | null;
   created_at: Generated<Timestamp>;
@@ -725,6 +760,7 @@ export interface DB {
   recovery_event: RecoveryEvent;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
+  user_desk_location: UserDeskLocation;
   users: Users;
   verification_tokens: VerificationTokens;
 }

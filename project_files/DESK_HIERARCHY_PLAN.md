@@ -13,24 +13,27 @@ This document outlines the implementation of a **workflow-based desk location ro
 This is a **workflow automation system** where claims move through phases:
 
 **Three-Tier Structure:**
+
 1. **Desk Location Type** = Workflow phase/stage (e.g., "Evaluation", "Adverse Coverage Verification", "Pursuit of Recovery")
-   - Primary purpose: Provides contact information (email, phone, fax) for letter generation
-   - Represents which stage of the process the work is in
-   - Does NOT directly contain users
+    - Primary purpose: Provides contact information (email, phone, fax) for letter generation
+    - Represents which stage of the process the work is in
+    - Does NOT directly contain users
 
 2. **Desk Location** = Work queue within a phase (e.g., "Evaluation - Transactional", "Adverse Coverage - Request for Information")
-   - This is where claims actually sit and wait to be worked
-   - Multiple users are assigned TO each desk location
-   - Users pull work from their assigned desk location queues
+    - This is where claims actually sit and wait to be worked
+    - Multiple users are assigned TO each desk location
+    - Users pull work from their assigned desk location queues
 
 3. **User-Desk Location Assignment** (future phase) = Which queues a user has access to, in priority order
 
 **Claim Routing:**
+
 - Claims MOVE between desk locations as workflow progresses
 - Automatic routing: Jon completes Evaluation → system moves claim to Adverse Coverage Verification
 - Manual reassignment: Jane reassigns claim within same phase to "Request for Information"
 
 **Collaborative Work Within Queues:**
+
 - Multiple users assigned to same desk location see the same work pool
 - No exclusive claiming - any assigned user can work any claim in the queue
 - The `assignee` field tracks who is currently working (audit trail), NOT exclusive ownership
@@ -41,6 +44,7 @@ This is a **workflow automation system** where claims move through phases:
 The desk hierarchy is an **optional advanced feature** controlled by a feature flag. Direct user assignment (admin assigns claim to specific user) remains the foundation and is **always available**, regardless of feature flag state. When the feature flag is enabled, desk location assignment becomes available as an additional option, allowing both modes to coexist.
 
 **Use Cases:**
+
 - **Direct Assignment (always available):** Complex claim needs Jane specifically—she's the expert
 - **Desk Location Assignment (when flag enabled):** Standard workflow claim routed through phases—any trained user at that phase can handle it
 
@@ -49,28 +53,32 @@ The desk hierarchy is an **optional advanced feature** controlled by a feature f
 This example from the team illustrates how the workflow routing system works:
 
 **1. Initial Assignment:**
+
 - Claim ABC123 enters the system
 - Assigned to **Desk Type:** "Evaluation" + **Desk Location:** "Evaluation - Transactional"
 - User Jon Doe (assigned to "Evaluation - Transactional") receives the claim to work
 
 **2. Automatic Workflow Routing:**
+
 - Jon completes his portion of the evaluation
 - **Workflow automatically moves** the claim to:
-  - **Desk Type:** "Adverse Coverage Verification"
-  - **Desk Location:** "Adverse Coverage Verification - Transactional"
+    - **Desk Type:** "Adverse Coverage Verification"
+    - **Desk Location:** "Adverse Coverage Verification - Transactional"
 - User Jane Doe (assigned to "Adverse Coverage Verification - Transactional") receives the claim
 
 **3. Manual Reassignment Within Phase:**
+
 - During her review, Jane determines she cannot verify coverage without additional information
 - Jane generates a letter requesting information
-  - **Letter includes contact information from the "Adverse Coverage Verification" desk type** (email, phone, fax)
-  - This ensures responses are directed back to the correct workflow phase
+    - **Letter includes contact information from the "Adverse Coverage Verification" desk type** (email, phone, fax)
+    - This ensures responses are directed back to the correct workflow phase
 - Jane **manually reassigns** the claim within same phase to:
-  - **Desk Type:** "Adverse Coverage Verification" (same)
-  - **Desk Location:** "Adverse Coverage Verification - Request for Information" (different queue)
+    - **Desk Type:** "Adverse Coverage Verification" (same)
+    - **Desk Location:** "Adverse Coverage Verification - Request for Information" (different queue)
 - Claim remains in this location until the necessary information is obtained
 
 **Key Takeaways:**
+
 - Desk Type provides contact information for each workflow phase
 - Claims move between locations as they progress through the workflow
 - Users assigned to a desk location can work any claim in that queue
@@ -81,6 +89,7 @@ This example from the team illustrates how the workflow routing system works:
 ### ✅ Phase 1: Basic Structure (COMPLETED - November 2025)
 
 **What We Built:**
+
 - Database tables for `desk_location_type` and `desk_location` with soft deletion
 - Added `desk_location_id` column to `checklist_claim` table
 - Backend CRUD operations for types and locations (queries, controller, router)
@@ -88,16 +97,17 @@ This example from the team illustrates how the workflow routing system works:
 - tRPC router with Admin-only access and proper authorization
 - Frontend hooks (`useDeskTrpc`) with cache invalidation
 - Admin UI at `/admin/workflow-configuration/desk-locations`
-  - Master-detail layout (types → locations)
-  - Edit/Archive/Restore actions for both types and locations
-  - Inactive locations shown with greyed-out styling
-  - No pagination (finite lists expected)
-  - Row highlighting for selected desk type
+    - Master-detail layout (types → locations)
+    - Edit/Archive/Restore actions for both types and locations
+    - Inactive locations shown with greyed-out styling
+    - No pagination (finite lists expected)
+    - Row highlighting for selected desk type
 - Feature flag (`FEATURE_DESK_HIERARCHY`)
 - Suggested default locations when creating a type (Pending, Transactional, Closed, etc.)
 - Admin action logging for all operations
 
 **What Phase 1 Enables:**
+
 - Admins can create Desk Location Types (workflow phases)
 - Admins can create Desk Locations within types (work queues)
 - Admins can edit, archive, and restore types and locations
@@ -107,6 +117,7 @@ This example from the team illustrates how the workflow routing system works:
 - Foundation for Phase 2 user assignments
 
 **Implementation Notes:**
+
 - Used soft deletion instead of permanent deletion for audit trail preservation
 - Simplified UI design: no search bars or pagination (finite lists expected)
 - Action cells follow `PartyActionsCell` pattern for consistency
@@ -114,6 +125,7 @@ This example from the team illustrates how the workflow routing system works:
 - Inactive locations remain visible but greyed out
 
 **What Phase 1 Does NOT Include:**
+
 - ❌ Contact information fields (email, phone, fax) on desk types (Phase 3)
 - ❌ User-desk location assignments (who can see which queues) (Phase 2)
 - ❌ Priority ordering system (Phase 2)
@@ -123,19 +135,63 @@ This example from the team illustrates how the workflow routing system works:
 - ❌ "My Queue" view showing desk location work (Phase 2)
 - ❌ Authorization updates for desk-based access (Phase 2)
 
-### 🔄 Phase 2: User Assignments & Priorities (Next)
+### ✅ Phase 2: User Assignments & Priorities (COMPLETED - November 2025)
 
-**Additions:**
-- `user_desk_location` junction table with priority field
-- UI for assigning users to desk locations (1-5 priorities)
-- User work queue showing claims from their assigned desks
-- Priority-based work display
-- Collaborative access (multiple users see same pool)
-- Authorization middleware updates
+**What We Built:**
+
+- Database table `user_desk_location` with soft deletion and priority field (1-5)
+- Unique constraints:
+  - Prevent duplicate user-desk associations
+  - Prevent duplicate priorities for same user
+- Backend CRUD operations for user desk assignments (queries, controller, router)
+- Admin UI at `/admin/workflow-configuration/desk-locations` (Desk Assignments tab)
+  - DataGrid with pagination showing users and their assignment counts
+  - Filter by desk type, desk location, and user search
+  - URL-based filter state management
+  - Individual user assignment dialog (EditUserDeskAssignmentsDialog)
+    - Manage all 5 priority slots per user
+    - Cascading dropdowns: select type → select location
+    - Auto-bump on removal: removing priority 2 bumps lower priorities up
+    - Excludes already-selected locations from dropdowns
+    - Unified endpoint for atomic updates (all-or-nothing)
+  - Bulk assignment dialog (BulkDeskAssignmentDialog)
+    - Assign multiple users to same desk location at same priority
+    - All-or-nothing transaction (if any fails, all rollback)
+    - User-friendly error messages for duplicate assignments
+- Frontend hooks (`useDeskTrpc`) with cache invalidation
+- User assignment count aggregation:
+  - Inline COUNT in getUsersWithDeskAssignments query
+  - Displayed in Desk Assignments tab
+- Desk user count aggregation:
+  - Inline COUNT in getDeskLocations query
+  - Displayed in Desk Locations tab
+- Admin action logging for all assignment operations
+- Separate components for filters vs form selects:
+  - `DeskLocationTypeFilter` / `DeskLocationFilter` (Chip + Popper for toolbars)
+  - `DeskLocationTypeSelect` / `DeskLocationSelect` (TextField for forms)
+
+**Implementation Notes:**
+
+- All operations are client-scoped via `applyClientScope()`
+- Soft deletion using `removed_at` and `removed_by` preserves audit trail
+- Assignment changes use unified endpoint that diffs existing vs desired state
+- Bulk operations ensure atomicity - all succeed or all fail
+- Cache invalidation keeps UI in sync across all views
+- Error messages are user-friendly for common conflicts (duplicate assignments)
+
+**What Phase 2 Does NOT Include:**
+
+- ❌ User work queue showing claims from their assigned desks
+- ❌ Priority-based work display in user UI
+- ❌ Collaborative access (multiple users see same pool)
+- ❌ Authorization middleware updates for desk-based access
+- ❌ "My Queue" view integration
+- ❌ Claim assignment to desk locations (still assigned to users only)
 
 ### 🔄 Phase 3: Workflow Routing (Future)
 
 **Additions:**
+
 - Contact information fields on `desk_location_type`
 - Automatic routing rules (claim moves when phase complete)
 - Manual reassignment UI (user/admin moves claim to different location)
@@ -145,6 +201,7 @@ This example from the team illustrates how the workflow routing system works:
 ### 🔄 Phase 4: Advanced Features (Future)
 
 **Potential Additions:**
+
 - Desk location capacity limits
 - Load balancing across users
 - Analytics and reporting
@@ -167,14 +224,20 @@ This example from the team illustrates how the workflow routing system works:
 ## Implementation Status
 
 **Phase 1: ✅ COMPLETED (November 2025)**
-- All basic structure components implemented and tested
-- Ready for Phase 2: User Assignments
 
-**Phase 2: 🔄 PENDING**
-- Awaiting business prioritization
+- All basic structure components implemented and tested
+- Desk location types and locations fully manageable via admin UI
+
+**Phase 2: ✅ COMPLETED (November 2025)**
+
+- User-desk location assignment infrastructure complete
+- Admin UI for managing user assignments (individual and bulk)
+- All assignment operations tested and working
+- Remaining Phase 2 features (user work queue, authorization) awaiting business prioritization
 
 **Phase 3: 🔄 PENDING**
-- Awaiting Phase 2 completion
+
+- Awaiting business requirements and Phase 2 completion
 
 ## Current State
 
@@ -183,16 +246,19 @@ This example from the team illustrates how the workflow routing system works:
 **Database:** `checklist_claim` table with `assignee` field (references `user.id`)
 
 **Authorization:**
+
 - Contributors can only modify responses where they are the current assignee
 - Contributors can comment where they are assignee OR created_by (ownership)
 
 **Visibility Rules (Contributors):**
 Claims are visible if they fall into one of these buckets:
+
 1. **Owned by them** - They created/worked this claim (`checklist_claim.created_by`)
 2. **Assigned to them** - Current assignee (`checklist_claim.assignee`)
 3. **Not assigned/worked** - No entry in `checklist_claim` table for this claim+checklist combination
 
 **UI Components:**
+
 - `ClaimAssignmentDialog.tsx` - Manual assignment to users
 - `ChecklistHandoffDialog.tsx` - Transfer claims between users
 - `middleware/requireAssigned.ts` - Authorization enforcement
@@ -212,6 +278,7 @@ checklist_claim {
 ```
 
 **Workflow:**
+
 1. Admin opens claim
 2. Clicks "Assign to User"
 3. Selects Jane from dropdown
@@ -239,6 +306,7 @@ user_desk_location {
 ```
 
 **Workflow (Team-Based Work Pools):**
+
 1. Admin opens claim
 2. Chooses "Assign to Desk Location" (new option)
 3. Selects "Claims Processing → Pending"
@@ -257,14 +325,15 @@ user_desk_location {
 
 **When feature flag is ON, a single claim can be in various states:**
 
-| State | assignee | desk_location_id | Meaning | Where Visible |
-|-------|----------|------------------|---------|---------------|
-| Direct assignment only | 123 (Jane) | NULL | Jane owns this exclusively | Jane's work queue only |
-| Desk pool (unworked) | NULL | 5 (Pending) | Available to desk team, no one working yet | All users on Pending desk |
-| Desk pool (being worked) | 123 (Jane) | 5 (Pending) | Jane currently working, but others can too | All users on Pending desk |
-| Unassigned | NULL | NULL | Not assigned anywhere yet | Admin only |
+| State                    | assignee   | desk_location_id | Meaning                                    | Where Visible             |
+| ------------------------ | ---------- | ---------------- | ------------------------------------------ | ------------------------- |
+| Direct assignment only   | 123 (Jane) | NULL             | Jane owns this exclusively                 | Jane's work queue only    |
+| Desk pool (unworked)     | NULL       | 5 (Pending)      | Available to desk team, no one working yet | All users on Pending desk |
+| Desk pool (being worked) | 123 (Jane) | 5 (Pending)      | Jane currently working, but others can too | All users on Pending desk |
+| Unassigned               | NULL       | NULL             | Not assigned anywhere yet                  | Admin only                |
 
 **Business Rules:**
+
 - `assignee` tracks **who is currently working** on desk-assigned work (audit/tracking purpose)
 - `desk_location_id` determines **which team owns** the work
 - Both fields CAN coexist when work is assigned to a desk and someone is actively working it
@@ -277,35 +346,41 @@ user_desk_location {
 
 ```typescript
 function getUserWork(userId: number, ctx: ProtectedContext) {
-  const ENABLE_DESK_HIERARCHY = process.env.ENABLE_DESK_HIERARCHY === 'true';
+	const ENABLE_DESK_HIERARCHY = process.env.ENABLE_DESK_HIERARCHY === 'true';
 
-  let query = ctx.db
-    .selectFrom('checklist_claim')
-    .where((eb) => eb.or([
-      // ALWAYS get direct assignments (foundation) - exclusive ownership
-      eb.and([
-        eb('checklist_claim.assignee', '=', userId),
-        eb('checklist_claim.desk_location_id', 'is', null)  // Only direct, not desk
-      ]),
+	let query = ctx.db.selectFrom('checklist_claim').where((eb) =>
+		eb.or([
+			// ALWAYS get direct assignments (foundation) - exclusive ownership
+			eb.and([
+				eb('checklist_claim.assignee', '=', userId),
+				eb('checklist_claim.desk_location_id', 'is', null), // Only direct, not desk
+			]),
 
-      // IF feature flag enabled, ADDITIONALLY get desk location work
-      ...(ENABLE_DESK_HIERARCHY ? [
-        // Claim is assigned to a desk location user has access to
-        // (regardless of who is currently working it - team-based access)
-        eb('checklist_claim.desk_location_id', 'in',
-          ctx.db.selectFrom('user_desk_location')
-            .select('desk_location_id')
-            .where('user_id', '=', userId)
-            .where('removed_at', 'is', null)
-        )
-      ] : [])
-    ]));
+			// IF feature flag enabled, ADDITIONALLY get desk location work
+			...(ENABLE_DESK_HIERARCHY
+				? [
+						// Claim is assigned to a desk location user has access to
+						// (regardless of who is currently working it - team-based access)
+						eb(
+							'checklist_claim.desk_location_id',
+							'in',
+							ctx.db
+								.selectFrom('user_desk_location')
+								.select('desk_location_id')
+								.where('user_id', '=', userId)
+								.where('removed_at', 'is', null)
+						),
+					]
+				: []),
+		])
+	);
 
-  return query.execute();
+	return query.execute();
 }
 ```
 
 **Result:**
+
 - Flag OFF: User only sees their directly assigned claims (exclusive)
 - Flag ON: User sees their directly assigned claims + ALL work assigned to their desks (shared)
 
@@ -318,12 +393,14 @@ function getUserWork(userId: number, ctx: ProtectedContext) {
 **Desk Location Type → Desk Location**
 
 **Desk Location Type = Workflow Phase/Stage:**
+
 - Represents which phase of the process the work is in
 - **Primary Purpose:** Stores contact information (email, phone, fax) for letter generation
 - Examples: "Evaluation", "Adverse Coverage Verification", "Pursuit of Recovery"
 - Does NOT contain users directly
 
 **Desk Location = Work Queue Within a Phase:**
+
 - Represents the pool of work from which users receive inventory
 - This is where claims actually sit and wait to be worked
 - Users are assigned TO desk locations to receive work
@@ -335,8 +412,8 @@ function getUserWork(userId: number, ctx: ProtectedContext) {
 - Associations are **fluid** and can change day-to-day based on workflow needs
 - Users are assigned desk locations in **priority order** (currently up to 5 priorities)
 - System ensures user always receives work without searching:
-  - If work runs out on 1st-priority desk location, automatically shift to 2nd priority
-  - If new work becomes available in higher-priority location, that becomes next task
+    - If work runs out on 1st-priority desk location, automatically shift to 2nd priority
+    - If new work becomes available in higher-priority location, that becomes next task
 
 ### Management & Permissions
 
@@ -374,11 +451,13 @@ CREATE INDEX idx_desk_location_type_deleted_at ON desk_location_type(deleted_at)
 ```
 
 **Purpose:**
+
 - Represents which phase of the workflow the claim is in
 - Provides contact information that prints on system-generated letters
 - Groups related desk locations together
 
 **Common Examples:**
+
 - "Evaluation" (initial review phase)
 - "Adverse Coverage Verification" (verification phase)
 - "Pursuit of Recovery" (recovery phase)
@@ -412,12 +491,14 @@ CREATE INDEX idx_desk_location_deleted_at ON desk_location(deleted_at);
 ```
 
 **Purpose:**
+
 - Represents a specific work queue within a workflow phase
 - Claims are routed to desk locations by workflow automation
 - Users are assigned to desk locations to receive work
 - Multiple users can be assigned to same desk location (collaborative pool)
 
 **Common Examples:**
+
 - "Transactional" (standard processing queue)
 - "Request for Information" (waiting for external data)
 - "Pending" (not yet started)
@@ -452,6 +533,7 @@ CREATE INDEX idx_user_desk_location_priority ON user_desk_location(user_id, prio
 ```
 
 **Key Features:**
+
 - Supports up to 5 priority levels per user
 - Soft deletion via `removed_at` (maintains audit trail)
 - Unique constraints prevent conflicts
@@ -507,6 +589,7 @@ CREATE INDEX idx_checklist_claim_desk_location_id ON checklist_claim(desk_locati
 When `FEATURE_DESK_HIERARCHY=true`, admins choose which assignment mode to use **per claim**:
 
 #### 1. Direct User Assignment (Always Available)
+
 - `assignee = user_id`, `desk_location_id = NULL`
 - Admin selects specific user from dropdown
 - Claim appears **only** in that user's work queue (exclusive ownership)
@@ -515,6 +598,7 @@ When `FEATURE_DESK_HIERARCHY=true`, admins choose which assignment mode to use *
 - **Use when:** Specific expertise required, VIP client, complex case needs expert handling
 
 #### 2. Desk Location Assignment (Feature Flag Enabled)
+
 - `desk_location_id = location_id`, `assignee = NULL` initially
 - Admin (or workflow automation) routes claim to a desk location within a workflow phase
 - Claim appears in work queue for **all users** assigned to that desk location
@@ -532,22 +616,28 @@ When `FEATURE_DESK_HIERARCHY=true`, admins choose which assignment mode to use *
 Claims assigned to desk locations can move in two ways:
 
 #### Automatic Workflow Routing (Future Phase)
+
 When a user completes their portion of the work at one phase:
+
 - Workflow engine automatically moves claim to next phase's desk location
 - Example: Jon completes "Evaluation - Transactional" → System routes to "Adverse Coverage Verification - Transactional"
 - New user (Jane) assigned to destination desk location receives the claim
 
 **Implementation Note:** Workflow routing rules to be defined in future phase. Could be triggered by:
+
 - Checklist submission at a desk location
 - Specific question responses (e.g., "Coverage verified? Yes")
 - Admin-configured routing rules per desk location
 
 #### Manual Reassignment (Future Phase)
+
 User or admin can manually move claim to different desk location:
+
 - **Within same phase:** Jane moves claim from "Adverse Coverage - Transactional" to "Adverse Coverage - Request for Information"
 - **Across phases:** Admin escalates claim from "Evaluation" to "Litigation"
 
 **Use cases:**
+
 - Claim needs additional information (move to "Request for Information")
 - Claim requires special handling (move to "Complex Review")
 - Process exception (skip a phase, jump back to previous phase)
@@ -558,20 +648,21 @@ User or admin can manually move claim to different desk location:
 
 1. User opens their work queue
 2. System queries for all desk work in priority order:
-   ```sql
-   SELECT c.*, udl.priority
-   FROM checklist_claim c
-   JOIN user_desk_location udl ON c.desk_location_id = udl.desk_location_id
-   WHERE udl.user_id = ?
-     AND udl.removed_at IS NULL
-   ORDER BY udl.priority ASC, c.created_at ASC;
-   ```
+    ```sql
+    SELECT c.*, udl.priority
+    FROM checklist_claim c
+    JOIN user_desk_location udl ON c.desk_location_id = udl.desk_location_id
+    WHERE udl.user_id = ?
+      AND udl.removed_at IS NULL
+    ORDER BY udl.priority ASC, c.created_at ASC;
+    ```
 3. UI groups/sorts claims by desk location priority
 4. User opens any claim and starts working (no claiming step)
 5. System sets `assignee = user_id` when user opens claim (tracking only)
 6. Claim **remains in desk queue** - other team members can still work it
 
 **Key Features:**
+
 - **Automatic Fallback:** If priority 1 location is empty, user sees priority 2 work
 - **Priority Promotion:** If new work arrives in priority 1, it appears at top of queue
 - **No Manual Search:** User doesn't need to hunt for work
@@ -625,12 +716,12 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 **Modified Rules:**
 
 - Contributors can modify responses where:
-  - They are the current assignee (direct assignment, exclusive), OR
-  - **The claim is assigned to one of their desk locations (team-based, shared access)**
+    - They are the current assignee (direct assignment, exclusive), OR
+    - **The claim is assigned to one of their desk locations (team-based, shared access)**
 
 - Contributors can comment where:
-  - They are assignee OR created_by (ownership), OR
-  - **The claim is assigned to one of their desk locations**
+    - They are assignee OR created_by (ownership), OR
+    - **The claim is assigned to one of their desk locations**
 
 **Rationale:** Team-based work requires shared access. Multiple users from same desk can contribute to answering checklist questions. The `assignee` field tracks who is currently working for audit purposes, but doesn't restrict access for desk-assigned work.
 
@@ -643,6 +734,7 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 **Location:** `/admin/user-management/desk-types` (new route)
 
 **Features:**
+
 - DataGrid listing all desk location types
 - Columns: Type Name, Description, # Locations, Created Date, Actions
 - Actions: Create, Edit, Archive, Restore
@@ -655,6 +747,7 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 **Location:** `/admin/user-management/desk-locations` (new route)
 
 **Features:**
+
 - DataGrid listing all desk locations
 - Columns: Location Name, Type, # Assigned Users, Active Status, Created Date
 - Filters: By Type, Active/Inactive
@@ -668,13 +761,14 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 **Location:** `/admin/user-management/user-desks` (new route) OR integrated into UsersTab
 
 **Features:**
+
 - Select user → view/edit their desk location assignments
 - Drag-and-drop priority reordering (1-5)
 - Add/remove desk location associations
 - Visual indication of which locations have available work
 - Save/Cancel changes
 
-**Component:** `UserDeskAssignmentTab.tsx` (new)
+**Component:** `DeskAssignmentTab.tsx` (new)
 
 **Alternative:** Integrate into existing `UsersTab.tsx` as expandable row detail
 
@@ -683,29 +777,31 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 **Update:** `ClaimAssignmentDialog.tsx` and `ChecklistHandoffDialog.tsx`
 
 **Features:**
+
 - Radio button group: "Assign to User" | "Assign to Desk Location"
 - When "Assign to User" selected:
-  - Existing user dropdown (unchanged)
-  - Shows "(Direct Assignment)" label
+    - Existing user dropdown (unchanged)
+    - Shows "(Direct Assignment)" label
 - When "Assign to Desk Location" selected:
-  - Grouped dropdown by Desk Location Type
-  - Shows location name + count of assigned users
-  - Example: "Pending (3 users)" under "Claims Processing"
+    - Grouped dropdown by Desk Location Type
+    - Shows location name + count of assigned users
+    - Example: "Pending (3 users)" under "Claims Processing"
 
 ### 5. User: My Queue View
 
 **Location:** `/my-queue` (enhanced existing view)
 
 **Features:**
+
 - **Tab 1: My Work** - Claims directly assigned to me (existing)
 - **Tab 2: Available Work** - Claims from my desk locations, ordered by priority
-  - Group by desk location
-  - Show priority badge (P1, P2, etc.)
-  - "Start Work" button to claim
-  - Show count of users who can see this work
+    - Group by desk location
+    - Show priority badge (P1, P2, etc.)
+    - "Start Work" button to claim
+    - Show count of users who can see this work
 - **Header Stats:**
-  - "Your Desk Locations: 3 active"
-  - "Available Claims: 12 total (5 in P1, 4 in P2, 3 in P3)"
+    - "Your Desk Locations: 3 active"
+    - "Available Claims: 12 total (5 in P1, 4 in P2, 3 in P3)"
 
 **Component:** Update `MyQueue.tsx`
 
@@ -714,13 +810,14 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 **Update:** `ClaimDetailPanel.tsx`
 
 **Features:**
+
 - Display assignment type:
-  - "Assigned to: John Doe (Direct)"
-  - "Assigned to: Pending Queue (Claims Processing)"
-  - "Available in: 3 desk locations"
+    - "Assigned to: John Doe (Direct)"
+    - "Assigned to: Pending Queue (Claims Processing)"
+    - "Available in: 3 desk locations"
 - When viewing unclaimed desk location work:
-  - Show "Claim This Work" button
-  - Show list of other users who can see it
+    - Show "Claim This Work" button
+    - Show list of other users who can see it
 
 ## Default Desk Locations Feature
 
@@ -729,12 +826,12 @@ claim.assignee === NULL && claim.desk_location_id === NULL
 1. Admin creates new Desk Location Type (e.g., "Medical Review")
 2. System shows dialog: "Would you like to add default desk locations?"
 3. If Yes → Show checklist of common templates with checkboxes:
-   - ☑ Pending
-   - ☑ Transactional
-   - ☑ Closed
-   - ☐ Complex Review
-   - ☐ Expedited
-   - ☐ On Hold
+    - ☑ Pending
+    - ☑ Transactional
+    - ☑ Closed
+    - ☐ Complex Review
+    - ☐ Expedited
+    - ☐ On Hold
 4. User can check/uncheck any options
 5. On save, system creates selected locations (all active by default)
 6. User can manually add custom locations afterward
@@ -751,15 +848,15 @@ Add to `user` table or separate `user_role` table:
 
 ```typescript
 enum Permission {
-  // Existing permissions
-  MANAGE_USERS = 'manage_users',
-  MANAGE_CLAIMS = 'manage_claims',
-  // ... existing permissions
+	// Existing permissions
+	MANAGE_USERS = 'manage_users',
+	MANAGE_CLAIMS = 'manage_claims',
+	// ... existing permissions
 
-  // New permissions
-  MANAGE_DESK_TYPES = 'manage_desk_types', // Create/edit desk location types
-  MANAGE_DESK_LOCATIONS = 'manage_desk_locations', // Create/edit desk locations
-  ASSIGN_USER_DESKS = 'assign_user_desks', // Associate users with desk locations
+	// New permissions
+	MANAGE_DESK_TYPES = 'manage_desk_types', // Create/edit desk location types
+	MANAGE_DESK_LOCATIONS = 'manage_desk_locations', // Create/edit desk locations
+	ASSIGN_USER_DESKS = 'assign_user_desks', // Associate users with desk locations
 }
 ```
 
@@ -781,12 +878,13 @@ enum Permission {
 ### Step 1: Database Migration (2-3 hours)
 
 **Tasks:**
+
 - Create migration file: `2025-11-20_desk_hierarchy.ts`
 - Create tables:
-  - `desk_location_type`
-  - `desk_location`
-  - `user_desk_location`
-  - `desk_location_template`
+    - `desk_location_type`
+    - `desk_location`
+    - `user_desk_location`
+    - `desk_location_template`
 - Add `desk_location_id` to `checklist_claim`
 - Add indexes
 - Seed `desk_location_template` with system defaults
@@ -797,11 +895,12 @@ enum Permission {
 ### Step 2: Backend - Schemas & Types (2 hours)
 
 **Tasks:**
+
 - Create `deskSchemas.ts` with Zod validation:
-  - `deskLocationTypeInput` (create/update)
-  - `deskLocationInput` (create/update)
-  - `userDeskLocationInput` (assign/update priority)
-  - `listDeskLocationsInput` (pagination/filtering)
+    - `deskLocationTypeInput` (create/update)
+    - `deskLocationInput` (create/update)
+    - `userDeskLocationInput` (assign/update priority)
+    - `listDeskLocationsInput` (pagination/filtering)
 - Regenerate Kysely types: `npm run db:types`
 - Create TypeScript types for frontend use
 
@@ -814,6 +913,7 @@ enum Permission {
 **Functions:**
 
 **Desk Location Types:**
+
 - `getDeskLocationTypes()` - List with pagination
 - `getDeskLocationType()` - Single type by ID
 - `createDeskLocationType()` - With optional default locations
@@ -822,6 +922,7 @@ enum Permission {
 - `restoreDeskLocationType()` - Unarchive
 
 **Desk Locations:**
+
 - `getDeskLocations()` - List with pagination/filters (by type, active status)
 - `getDeskLocation()` - Single location by ID
 - `createDeskLocation()` - Create location under type
@@ -831,18 +932,21 @@ enum Permission {
 - `restoreDeskLocation()` - Unarchive
 
 **User Desk Associations:**
+
 - `getUserDeskLocations()` - Get user's desk locations with priorities
 - `assignUserToDeskLocation()` - Add association with priority
 - `updateUserDeskLocationPriority()` - Change priority order
 - `removeUserFromDeskLocation()` - Soft delete association
 
 **Templates:**
+
 - `getDeskLocationTemplates()` - List all templates
 - `createDeskLocationTemplate()` - Add custom template
 
 **Update:** `apps/web/src/api/queries/claimQueries.ts`
 
 **Changes:**
+
 - Modify visibility queries to include desk location logic
 - Add desk location info to claim responses (JOIN)
 - Add "available work" query for user's desk locations
@@ -855,6 +959,7 @@ enum Permission {
 **Create:** `apps/web/src/server/trpc/routers/desk.ts`
 
 **Procedures:**
+
 - `listTypes`, `getType`, `createType`, `updateType`, `archiveType`, `restoreType`
 - `listLocations`, `getLocation`, `createLocation`, `updateLocation`, `activateLocation`, `deactivateLocation`, `archiveLocation`, `restoreLocation`
 - `listTemplates`, `createTemplate`
@@ -863,6 +968,7 @@ enum Permission {
 **Update:** `apps/web/src/server/trpc/routers/claim.ts`
 
 **Changes:**
+
 - Add `desk_location_id` support to assignment mutations
 - Add `getAvailableWork` query for user's desk location queues
 - Add `claimWork` mutation to assign desk location claim to user
@@ -870,6 +976,7 @@ enum Permission {
 **Update:** `apps/web/src/server/trpc/appRouter.ts`
 
 **Changes:**
+
 - Register new `desk` router
 
 **Deliverable:** All endpoints functional and type-safe
@@ -879,23 +986,25 @@ enum Permission {
 **Create:** `apps/web/src/hooks/trpc/useDeskTrpc.ts`
 
 **Exports:**
+
 - Mutation wrappers with cache invalidation
 - Query wrappers
 - Derived types:
-  - `DeskLocationType`
-  - `DeskLocation`
-  - `UserDeskLocation`
-  - `DeskLocationTemplate`
+    - `DeskLocationType`
+    - `DeskLocation`
+    - `UserDeskLocation`
+    - `DeskLocationTemplate`
 
 **Deliverable:** Hooks ready for use in components
 
 ### Step 6: Frontend - Admin Desk Type Management (6-8 hours)
 
 **Create:**
+
 - `DeskLocationTypesTab.tsx` - DataGrid with types
 - `DeskLocationTypeDialog.tsx` - Create/edit dialog
-  - Include checkbox list for default locations
-  - "Add Default Locations" toggle
+    - Include checkbox list for default locations
+    - "Add Default Locations" toggle
 - Add route in admin layout: `/admin/user-management/desk-types`
 - Add to admin sidebar navigation
 
@@ -904,6 +1013,7 @@ enum Permission {
 ### Step 7: Frontend - Admin Desk Location Management (6-8 hours)
 
 **Create:**
+
 - `DeskLocationsTab.tsx` - DataGrid with locations
 - `DeskLocationDialog.tsx` - Create/edit dialog
 - `DeskLocationTypeSelect.tsx` - Reusable dropdown for selecting type
@@ -911,6 +1021,7 @@ enum Permission {
 - Add to admin sidebar navigation
 
 **Features:**
+
 - Filter by type
 - Filter by active/inactive
 - Bulk activate/deactivate
@@ -923,7 +1034,8 @@ enum Permission {
 **Option A:** New dedicated tab
 
 **Create:**
-- `UserDeskAssignmentTab.tsx`
+
+- `DeskAssignmentTab.tsx`
 - `UserDeskLocationManager.tsx` - Drag-drop priority list
 - `DeskLocationSelect.tsx` - Multi-select with search
 - Add route: `/admin/user-management/user-desks`
@@ -931,10 +1043,12 @@ enum Permission {
 **Option B:** Integrate into UsersTab
 
 **Update:**
+
 - `UsersTab.tsx` - Add expandable row detail
 - `UserDeskLocationManager.tsx` - Same component, different context
 
 **Features:**
+
 - Drag-and-drop priority reordering (use `react-beautiful-dnd` or similar)
 - Visual priority badges (P1, P2, etc.)
 - Add/remove desk location associations
@@ -946,11 +1060,13 @@ enum Permission {
 ### Step 9: Frontend - Assignment Dialog Enhancement (4-5 hours)
 
 **Update:**
+
 - `ClaimAssignmentDialog.tsx`
 - `ChecklistHandoffDialog.tsx`
 - `DeskLocationSelect.tsx` (reuse from Step 7)
 
 **Changes:**
+
 - Add radio button group: User vs Desk Location
 - Conditional rendering based on selection
 - Update submit logic to set `desk_location_id` instead of `assignee` when appropriate
@@ -963,6 +1079,7 @@ enum Permission {
 **Update:** `MyQueue.tsx`
 
 **Changes:**
+
 - Add "Available Work" tab
 - Implement priority-based grouping
 - Add "Start Work" button with claim mutation
@@ -978,6 +1095,7 @@ enum Permission {
 **Update:** `ClaimDetailPanel.tsx`
 
 **Changes:**
+
 - Display desk location assignment (if applicable)
 - Show "Claim This Work" button for unclaimed desk location work
 - Show list of users who can see this claim
@@ -989,6 +1107,7 @@ enum Permission {
 **Update:** `apps/web/src/middleware/requireAssigned.ts`
 
 **Changes:**
+
 - Check desk location associations
 - Verify user can access claim via desk location
 
@@ -999,6 +1118,7 @@ enum Permission {
 ### Step 13: Permission System (4-5 hours)
 
 **Tasks:**
+
 - Add permission columns/tables to database
 - Create permission checking utilities
 - Update admin UI to check permissions before showing tabs
@@ -1011,33 +1131,39 @@ enum Permission {
 **Test Cases:**
 
 **Priority Routing:**
+
 - User assigned to 3 locations (P1, P2, P3)
 - Verify P1 work shows first
 - Mark P1 location empty, verify P2 work shows
 - Add new P1 work, verify it becomes next task
 
 **Claiming:**
+
 - Two users assigned to same location
 - User A claims work
 - Verify User B no longer sees it
 - Test race condition handling
 
 **Permissions:**
+
 - Verify BA can create types/locations
 - Verify manager can assign users
 - Verify contributor cannot access admin tabs
 
 **Visibility:**
+
 - Verify users only see work from their locations
 - Verify direct assignment bypasses desk locations
 - Verify ownership rules maintained
 
 **Assignment:**
+
 - Assign claim to desk location
 - Assign claim directly to user
 - Verify both modes coexist
 
 **Deletion:**
+
 - Try to delete location with assigned users → should warn or block
 - Try to delete location with claims → should reassign or warn
 - Verify soft deletion preserves audit trail
@@ -1047,11 +1173,13 @@ enum Permission {
 ### Step 15: Documentation (3-4 hours)
 
 **Update:**
+
 - `CLAUDE.md` - Add desk assignment patterns and architecture notes
 - `README.md` - Document environment variables (if any)
 - `DESK_HIERARCHY_PLAN.md` - Mark as implemented, add lessons learned
 
 **Create:**
+
 - Migration notes for future developers
 - Admin user guide for desk management
 - End-user guide for using desk location queues
@@ -1079,28 +1207,33 @@ enum Permission {
 ### Rollout Plan
 
 **Week 1: Development Foundations**
+
 - Database migration
 - Backend schemas, types, query functions
 - tRPC routers and hooks
 
 **Week 2: Admin UI**
+
 - Desk type management
 - Desk location management
 - User desk assignment interface
 
 **Week 3: User-Facing Features**
+
 - Assignment dialogs
 - My Queue enhancements
 - Claim detail updates
 - Permission system
 
 **Week 4: Testing & Refinement**
+
 - QA testing
 - Bug fixes
 - Performance optimization
 - Documentation
 
 **Week 5: Deployment**
+
 - Deploy to staging
 - User training (admins and end-users)
 - Monitor usage and performance
@@ -1109,48 +1242,60 @@ enum Permission {
 ## Risks & Mitigation
 
 ### Risk 1: Priority Logic Complexity
+
 **Risk:** Edge cases in priority routing cause confusion or bugs
 **Mitigation:**
+
 - Extensive unit tests for priority algorithm
 - Clear UI indication of which priority level user is currently viewing
 - Admin dashboard showing priority distribution
 - Logging priority transitions for debugging
 
 ### Risk 2: Race Conditions on Claiming
+
 **Risk:** Two users claim same work simultaneously
 **Mitigation:**
+
 - Database-level UPDATE with WHERE clause checking `assignee IS NULL`
 - Return error to second user with friendly message
 - Auto-refresh queue after failed claim attempt
 - Add optimistic locking if needed
 
 ### Risk 3: Permission Confusion
+
 **Risk:** Users/admins unsure who can do what
 **Mitigation:**
+
 - Clear permission labels in UI
 - Help tooltips explaining each permission
 - Admin audit log showing who made changes
 - Role-based templates (BA, Manager, Contributor)
 
 ### Risk 4: User Assignment Overhead
+
 **Risk:** Managing up to 5 priorities per user becomes tedious
 **Mitigation:**
+
 - Drag-and-drop interface for priority reordering
 - Bulk assignment tools (assign entire team to same locations)
 - Templates for common assignment patterns
 - Copy assignments from one user to another
 
 ### Risk 5: Performance on Large Datasets
+
 **Risk:** Queries with multiple JOINs slow down with many users/locations
 **Mitigation:**
+
 - Proper indexes on all foreign keys and priority columns
 - Materialized view for frequently accessed user-location data (if needed)
 - Query performance monitoring
 - Pagination on all list views
 
 ### Risk 6: Migration from Existing System
+
 **Risk:** Existing workflows disrupted during transition
 **Mitigation:**
+
 - Maintain direct user assignment option (no forced migration)
 - Phased rollout by team/department
 - Training sessions before go-live
@@ -1159,21 +1304,25 @@ enum Permission {
 ## Success Metrics
 
 ### Adoption Metrics
+
 - **% of claims assigned to desk locations** - Target: 60% within 3 months
 - **% of users with desk location assignments** - Target: 80% within 1 month
 - **Average desk locations per user** - Baseline: Track to understand usage patterns
 
 ### Efficiency Metrics
+
 - **Average time to claim work** - How quickly users find and start work
 - **Work distribution balance** - Standard deviation of claims per user (lower is better)
 - **Priority utilization** - % of time users working P1 vs P2-P5
 
 ### User Satisfaction
+
 - **User survey scores** - "Desk location system improves my workflow" (1-5 scale)
 - **Support tickets related to assignment** - Should decrease after system stabilizes
 - **Admin feedback** - "System makes user assignment easier" (1-5 scale)
 
 ### System Health
+
 - **Query performance** - P95 response time for claim list queries
 - **Race condition frequency** - # of failed claim attempts due to simultaneous claiming
 - **Error rate** - % of desk assignment operations that fail
@@ -1181,34 +1330,39 @@ enum Permission {
 ## Open Questions
 
 ### 1. Should we support automatic reassignment when user completes work?
+
 - **Question:** When user finishes a claim from P1 location, should system auto-assign next P1 claim, or require explicit "Start Work" action?
 - **Options:**
-  - A) Auto-assign (maximizes throughput, may overwhelm users)
-  - B) Require action (gives users control, may cause delays)
+    - A) Auto-assign (maximizes throughput, may overwhelm users)
+    - B) Require action (gives users control, may cause delays)
 - **Recommendation:** Start with Option B, add Option A as user preference later
 
 ### 2. How should we handle desk location capacity/limits?
+
 - **Question:** Should locations have max capacity (e.g., "Pending can only have 50 active claims")?
 - **Impact:** Would help prevent queue overload, but adds complexity
 - **Recommendation:** Not for MVP, add in future iteration based on feedback
 
 ### 3. Should we show users what priority level they're viewing?
+
 - **Question:** In "Available Work" tab, should we visually separate P1, P2, P3 work?
 - **Options:**
-  - A) Single unified list (simpler UI, less obvious)
-  - B) Grouped by priority with expandable sections (clearer, more clicks)
-  - C) Tabs for each priority (most explicit, fragmented)
+    - A) Single unified list (simpler UI, less obvious)
+    - B) Grouped by priority with expandable sections (clearer, more clicks)
+    - C) Tabs for each priority (most explicit, fragmented)
 - **Recommendation:** Option B (grouped with badges)
 
 ### 4. How should we handle desk location deletion with active claims?
+
 - **Question:** What happens to claims when a desk location is deleted?
 - **Options:**
-  - A) Block deletion if any claims exist
-  - B) Require manual reassignment first
-  - C) Auto-reassign to another location (which one?)
+    - A) Block deletion if any claims exist
+    - B) Require manual reassignment first
+    - C) Auto-reassign to another location (which one?)
 - **Recommendation:** Option A for MVP (safest), add reassignment workflow later
 
 ### 5. Should we support desk location hierarchies (sub-locations)?
+
 - **Question:** Should locations support nesting (e.g., "Pending" → "Pending - Expedited")?
 - **Impact:** Would enable more granular routing, but increases complexity
 - **Recommendation:** Not for MVP, revisit if users request it
@@ -1223,30 +1377,37 @@ enum Permission {
 6. **Begin Development** - Start with database migration and backend foundations
 7. **Schedule Training** - Plan admin training sessions before rollout
 
-## Phase 1 Implementation Files
+## Implementation Files
+
+### Phase 1: Basic Structure (November 2025)
 
 **Backend:**
+
 - Migration: `apps/web/src/api/database/migrations/2025-11-20_192227_add_desk_location_hierarchy.ts`
 - Schemas: `apps/web/src/schemas/deskSchemas.ts` (includes SUGGESTED_DESK_LOCATIONS)
 - Queries: `apps/web/src/api/queries/deskQueries.ts`
+  - Desk location type CRUD operations
+  - Desk location CRUD operations with user count aggregation
 - Controller: `apps/web/src/api/controllers/deskController.ts`
 - Router: `apps/web/src/server/trpc/routers/desk.ts`
 
 **Frontend:**
+
 - Hook: `apps/web/src/hooks/trpc/useDeskTrpc.ts`
-- Main Tab: `apps/web/src/components/admin/DeskLocationsTab.tsx`
+- Main Tab: `apps/web/src/components/admin/DeskLocationsTab.tsx` (master-detail with 3 sub-tabs)
 - Dialogs:
-  - `apps/web/src/components/admin/DeskLocationTypeDialog.tsx`
-  - `apps/web/src/components/admin/DeskLocationDialog.tsx`
+    - `apps/web/src/components/admin/DeskLocationTypeDialog.tsx`
+    - `apps/web/src/components/admin/DeskLocationDialog.tsx`
 - Action Cells:
-  - `apps/web/src/components/admin/DeskTypeActionsCell.tsx`
-  - `apps/web/src/components/admin/DeskLocationActionsCell.tsx`
-- Selects:
-  - `apps/web/src/components/common/DeskLocationTypeSelect.tsx`
-  - `apps/web/src/components/common/DeskLocationSelect.tsx`
+    - `apps/web/src/components/admin/DeskTypeActionsCell.tsx`
+    - `apps/web/src/components/admin/DeskLocationActionsCell.tsx`
+- Form Selects (TextField style):
+    - `apps/web/src/components/common/DeskLocationTypeSelect.tsx`
+    - `apps/web/src/components/common/DeskLocationSelect.tsx`
 - Styles: `apps/web/src/app/globals.css` (added `.selected-row` and `.inactive-cell`)
 
 **Implementation Notes:**
+
 - All queries are client-scoped via `applyClientScope()`
 - Soft deletion using `deleted_at` timestamps preserves audit trail
 - Unique constraint: name must be unique within client (excluding deleted records)
@@ -1254,15 +1415,69 @@ enum Permission {
 - Suggested default locations available when creating new types
 - Archive enforcement prevents data inconsistencies (types with locations, locations with claims)
 
+### Phase 2: User Assignments (November 2025)
+
+**Backend:**
+
+- Migration: `apps/web/src/api/database/migrations/2025-11-21_011200_add_user_desk_location_assignments.ts`
+- Schemas: `apps/web/src/schemas/deskSchemas.ts` (added user assignment schemas)
+- Queries: `apps/web/src/api/queries/deskQueries.ts`
+  - `getUserDeskLocations()` - Get user's assignments with priorities
+  - `getDeskLocationUsers()` - Get users assigned to a desk
+  - `assignUserToDeskLocation()` - Single assignment with priority
+  - `bulkAssignUsersToDeskLocation()` - Atomic bulk assignment
+  - `updateUserDeskLocationPriority()` - Change single priority
+  - `updateUserDeskLocationPriorities()` - Bulk priority updates
+  - `removeUserFromDeskLocation()` - Remove single assignment
+  - `updateUsersDeskAssignments()` - Unified endpoint (diff + apply)
+- Queries: `apps/web/src/api/queries/userQueries.ts`
+  - `getUsersWithDeskAssignments()` - Paginated users with assignment counts
+- Controller: `apps/web/src/api/controllers/deskController.ts` (added user assignment operations with logging)
+- Router: `apps/web/src/server/trpc/routers/desk.ts` (added user assignment endpoints)
+
+**Frontend:**
+
+- Hook: `apps/web/src/hooks/trpc/useDeskTrpc.ts` (added assignment mutations with cache invalidation)
+- Hook: `apps/web/src/hooks/trpc/useUserTrpc.ts` (added `withDeskAssignments()` query)
+- Main Tab: `apps/web/src/components/admin/DeskAssignmentTab.tsx`
+  - DataGrid with server-side pagination
+  - Filters: user search, desk type, desk location (URL-based state)
+  - Displays assignment count per user
+  - Bulk assignment action for selected users
+- Dialogs:
+    - `apps/web/src/components/admin/EditUserDeskAssignmentsDialog.tsx`
+      - Manage 5 priority slots per user
+      - Cascading type → location selects
+      - Auto-bump on removal
+      - Excludes already-selected locations
+      - Unified atomic save
+    - `apps/web/src/components/admin/BulkDeskAssignmentDialog.tsx`
+      - Assign multiple users to same desk + priority
+      - All-or-nothing transaction
+      - User-friendly conflict errors
+- Filter Components (Chip + Popper style):
+    - `apps/web/src/components/common/DeskLocationTypeFilter.tsx`
+    - `apps/web/src/components/common/DeskLocationFilter.tsx`
+
+**Implementation Notes:**
+
+- Unified endpoint approach eliminates complex client-side change tracking
+- Bulk operations are truly atomic - all succeed or all rollback
+- User-friendly error messages for duplicate assignment conflicts
+- Inline aggregation for counts (no separate queries)
+- Cache invalidation keeps all views in sync
+- URL-based filter state for shareable/bookmarkable views
+- Separate filter vs form select components for appropriate UX
+
 ## References
 
 - **desk_hierarchy_team_correspondance.txt** - Business team requirements clarification
 - **LEGACY_GAP_ANALYSIS.md** - Component 5 (Claim Delivery) describes legacy Oracle desk hierarchy
 - **CLAUDE.md** - Architecture patterns and development standards
 - **Current Assignment Code:**
-  - `apps/web/src/api/queries/claimQueries.ts` - Visibility logic
-  - `apps/web/src/components/admin/ClaimAssignmentDialog.tsx` - Manual assignment UI
-  - `apps/web/src/middleware/requireAssigned.ts` - Authorization enforcement
+    - `apps/web/src/api/queries/claimQueries.ts` - Visibility logic
+    - `apps/web/src/components/admin/ClaimAssignmentDialog.tsx` - Manual assignment UI
+    - `apps/web/src/middleware/requireAssigned.ts` - Authorization enforcement
 
 ## Appendix A: Example Data Model
 

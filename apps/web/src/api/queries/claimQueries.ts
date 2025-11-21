@@ -160,14 +160,24 @@ export async function getClaims(
 	// 1. Owned by them (created_by in checklist_claim)
 	// 2. Assigned to them (assignee in checklist_claim)
 	// 3. Not assigned/worked (no entry in checklist_claim)
+	// 4. Assigned to a desk location they are assigned to (desk-based access)
 	if (!isAdmin) {
-		query = query.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id').where((eb) =>
-			eb.or([
-				eb('cc.created_by', '=', ctx.session.user.id), // Owned by them
-				eb('cc.assignee', '=', ctx.session.user.id), // Assigned to them
-				eb('cc.claim_id', 'is', null), // Not in checklist_claim (available)
-			])
-		);
+		query = query
+			.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id')
+			.leftJoin('user_desk_location as udl', (join) =>
+				join
+					.onRef('cc.desk_location_id', '=', 'udl.desk_location_id')
+					.on('udl.user_id', '=', ctx.session.user.id)
+					.on('udl.removed_at', 'is', null)
+			)
+			.where((eb) =>
+				eb.or([
+					eb('cc.created_by', '=', ctx.session.user.id), // Owned by them
+					eb('cc.assignee', '=', ctx.session.user.id), // Assigned to them
+					eb('cc.claim_id', 'is', null), // Not in checklist_claim (available)
+					eb('udl.desk_location_id', 'is not', null), // Assigned to their desk location
+				])
+			);
 	}
 
 	query =
@@ -422,6 +432,35 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		});
 	}
 
+	// Authorization check for contributors: verify user has access to this claim
+	if (!isAdmin) {
+		const hasAccess = await ctx.db
+			.selectFrom('checklist_claim')
+			.leftJoin('user_desk_location', (join) =>
+				join
+					.onRef('checklist_claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
+					.on('user_desk_location.user_id', '=', ctx.session.user.id)
+					.on('user_desk_location.removed_at', 'is', null)
+			)
+			.select(sql`1`.as('has_access'))
+			.where('checklist_claim.claim_id', '=', claimId)
+			.where((eb) =>
+				eb.or([
+					eb('checklist_claim.created_by', '=', ctx.session.user.id), // Owned by them
+					eb('checklist_claim.assignee', '=', ctx.session.user.id), // Assigned to them
+					eb('user_desk_location.desk_location_id', 'is not', null), // Assigned to their desk location
+				])
+			)
+			.executeTakeFirst();
+
+		if (!hasAccess) {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: 'You do not have access to this claim.',
+			});
+		}
+	}
+
 	// Get all checklist assignments for this claim
 	// A claim can be worked in multiple checklists
 	const checklistAssignments = await ctx.db
@@ -556,6 +595,114 @@ export async function listMyClaims(
 			'assignee_user.email as assignee_email',
 		])
 		.orderBy(sortField as any, sortDirection)
+		.limit(limit)
+		.offset(offset)
+		.execute();
+
+	return {
+		rows,
+		count,
+		metrics: {
+			totalValue,
+			avgDaysInQueue: Math.round(avgDaysInQueue * 10) / 10, // Round to 1 decimal
+		},
+	};
+}
+
+/**
+ * Get claims assigned to the user's desk locations, ordered by desk priority
+ * Used for the "Desk Queue" tab when desk hierarchy feature is enabled
+ */
+export async function listMyDeskClaims(
+	ctx: ProtectedContext,
+	{
+		searchTerm,
+		claimStatus,
+		recoveryStatus,
+		limit = 500,
+		offset = 0,
+	}: {
+		searchTerm?: string;
+		claimStatus?: ClaimStatus;
+		recoveryStatus?: RecoveryStatus;
+		limit?: number;
+		offset?: number;
+	}
+) {
+	// Base query: get claims assigned to desk locations where user is assigned
+	let query = ctx.db
+		.selectFrom('user_desk_location')
+		.innerJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
+		.innerJoin('checklist_claim', 'desk_location.id', 'checklist_claim.desk_location_id')
+		.innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
+		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
+		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
+		.leftJoin('users as assignee_user', 'checklist_claim.assignee', 'assignee_user.id')
+		.where('user_desk_location.user_id', '=', ctx.session.user.id)
+		.where('user_desk_location.removed_at', 'is', null)
+		.where('desk_location.deleted_at', 'is', null)
+		.where('claim.client_id', '=', ctx.session.user.client_id);
+
+	// Apply filters
+	if (searchTerm && searchTerm.length > 0) {
+		query = query.where((eb) =>
+			eb.or([
+				eb(sql`lower(${eb.ref('claim.claim_number')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+				eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+				eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+			])
+		);
+	}
+
+	if (claimStatus) {
+		query = query.where('checklist_claim.status', '=', claimStatus);
+	}
+
+	if (recoveryStatus) {
+		query = query.where('claim.recovery_status', '=', recoveryStatus);
+	}
+
+	// Get total count and metrics (before pagination)
+	const metricsQuery = await query
+		.select(({ fn }) => [
+			fn.countAll().as('count'),
+			fn.sum('claim.claim_amount').as('total_value'),
+			fn.avg(sql`EXTRACT(epoch FROM (NOW() - checklist_claim.created_at)) / 86400`).as('avg_days_in_queue'),
+		])
+		.executeTakeFirst();
+
+	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
+	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
+	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
+
+	// Get data (ordered by desk priority, then by last update)
+	const rows = await query
+		.select([
+			'claim.id',
+			'claim.claim_number',
+			'claim.client',
+			'claim.insured',
+			'claim.claim_amount',
+			'claim.date_of_loss',
+			'claim.last_update',
+			'claim.expected_recovery',
+			'claim.actual_recovery',
+			'claim.recovery_status',
+			'claim.created_at',
+			'checklist_claim.status as claim_status',
+			'checklist_claim.checklist_id',
+			'checklist_claim.assignee',
+			'checklist_claim.desk_location_id',
+			'checklist_claim.created_at as assigned_at',
+			'checklist.name as checklist_name',
+			'assignee_user.first as assignee_first',
+			'assignee_user.last as assignee_last',
+			'assignee_user.email as assignee_email',
+			'user_desk_location.priority as desk_priority',
+			'desk_location.name as desk_location_name',
+		])
+		.orderBy('user_desk_location.priority asc') // Higher priority desks first (1, 2, 3...)
+		.orderBy('claim.last_update desc') // Then by last update within each priority
 		.limit(limit)
 		.offset(offset)
 		.execute();

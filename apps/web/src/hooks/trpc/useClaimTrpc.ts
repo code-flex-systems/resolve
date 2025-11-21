@@ -13,6 +13,8 @@ export function useClaimTrpc() {
 
 		listMyClaims: trpc.claim.listMyClaims.useQuery,
 
+		listMyDeskClaims: trpc.claim.listMyDeskClaims.useQuery,
+
 		count: trpc.claim.getClaimCount.useQuery,
 
 		countRollover: trpc.claim.getRolloverClaimCount.useQuery,

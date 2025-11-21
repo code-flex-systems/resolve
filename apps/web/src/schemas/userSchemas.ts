@@ -12,6 +12,14 @@ export const getUsersPaginatedInput = z.object({
 	offset: z.number().optional(),
 	searchTerm: z.string().optional(),
 });
+
+export const getUsersWithDeskAssignmentsInput = z.object({
+	limit: z.number().optional(),
+	offset: z.number().optional(),
+	searchTerm: z.string().optional(),
+	deskLocationTypeId: z.number().int().optional(),
+	deskLocationId: z.number().int().optional(),
+});
 export const getUserInput = z.object({ id: z.string() });
 
 export const getUserActivityInput = z.object({

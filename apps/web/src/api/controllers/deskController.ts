@@ -387,3 +387,254 @@ export async function restoreDeskLocation(
 
 	return restored;
 }
+
+// ============================================================================
+// USER DESK LOCATION ASSIGNMENT CONTROLLERS (Phase 2)
+// ============================================================================
+
+/**
+ * Get user desk location assignments for a specific user
+ */
+export async function getUserDeskLocations(
+	ctx: ProtectedContext,
+	{ userId }: { userId: string }
+) {
+	return await deskQueries.getUserDeskLocations(ctx, userId);
+}
+
+/**
+ * Get users assigned to a specific desk location
+ */
+export async function getDeskLocationUsers(
+	ctx: ProtectedContext,
+	{ deskLocationId }: { deskLocationId: number }
+) {
+	return await deskQueries.getDeskLocationUsers(ctx, deskLocationId);
+}
+
+/**
+ * Assign user to desk location with admin logging
+ */
+export async function assignUserToDeskLocation(
+	ctx: ProtectedContext,
+	input: {
+		userId: string;
+		deskLocationId: number;
+		priority: number;
+	}
+) {
+	const assigned = await ctx.db.transaction().execute(async (trx) => {
+		const assignment = await deskQueries.assignUserToDeskLocation(
+			{ ...ctx, db: trx },
+			input
+		);
+
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: assignment.id,
+				entityName: EntityName.USER_DESK_LOCATION,
+				action: AdminAction.CREATE,
+				value: {
+					userId: input.userId,
+					deskLocationId: input.deskLocationId,
+					priority: input.priority,
+				},
+			}
+		);
+
+		return assignment;
+	});
+
+	return assigned;
+}
+
+/**
+ * Bulk assign multiple users to desk location with admin logging
+ * All-or-nothing transaction
+ */
+export async function bulkAssignUsersToDeskLocation(
+	ctx: ProtectedContext,
+	input: {
+		userIds: string[];
+		deskLocationId: number;
+		priority: number;
+	}
+) {
+	const assignments = await deskQueries.bulkAssignUsersToDeskLocation(ctx, input);
+
+	// Log the bulk assignment action
+	await logAdminAction(
+		ctx,
+		{
+			entityId: 0, // Bulk operation
+			entityName: EntityName.USER_DESK_LOCATION,
+			action: AdminAction.CREATE,
+			value: {
+				bulkAssignment: true,
+				userCount: input.userIds.length,
+				deskLocationId: input.deskLocationId,
+				priority: input.priority,
+			},
+		}
+	);
+
+	return assignments;
+}
+
+/**
+ * Update user desk location priority with admin logging
+ */
+export async function updateUserDeskLocationPriority(
+	ctx: ProtectedContext,
+	{
+		id,
+		priority,
+	}: {
+		id: number;
+		priority: number;
+	}
+) {
+	const updated = await ctx.db.transaction().execute(async (trx) => {
+		const assignment = await deskQueries.updateUserDeskLocationPriority(
+			{ ...ctx, db: trx },
+			id,
+			priority
+		);
+
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.USER_DESK_LOCATION,
+				action: AdminAction.UPDATE,
+				value: {
+					priority,
+				},
+			}
+		);
+
+		return assignment;
+	});
+
+	return updated;
+}
+
+/**
+ * Remove user from desk location with admin logging (soft delete)
+ */
+export async function removeUserFromDeskLocation(
+	ctx: ProtectedContext,
+	{ id }: { id: number }
+) {
+	const removed = await ctx.db.transaction().execute(async (trx) => {
+		const assignment = await deskQueries.removeUserFromDeskLocation(
+			{ ...ctx, db: trx },
+			id
+		);
+
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.USER_DESK_LOCATION,
+				action: AdminAction.DELETE,
+				value: {
+					userId: assignment.user_id,
+					deskLocationId: assignment.desk_location_id,
+				},
+			}
+		);
+
+		return assignment;
+	});
+
+	return removed;
+}
+
+/**
+ * Bulk update user desk location priorities with admin logging
+ */
+export async function updateUserDeskLocationPriorities(
+	ctx: ProtectedContext,
+	{ updates }: { updates: Array<{ id: number; priority: number }> }
+) {
+	const updated = await ctx.db.transaction().execute(async (trx) => {
+		const assignments = await deskQueries.updateUserDeskLocationPriorities(
+			{ ...ctx, db: trx },
+			updates
+		);
+
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: 0, // Bulk operation
+				entityName: EntityName.USER_DESK_LOCATION,
+				action: AdminAction.UPDATE,
+				value: {
+					bulkUpdate: true,
+					count: updates.length,
+					updates,
+				},
+			}
+		);
+
+		return assignments;
+	});
+
+	return updated;
+}
+
+/**
+ * Get count of desk assignments for all users
+ * Returns a map of userId -> count
+ */
+export async function getAllUserDeskAssignmentCounts(ctx: ProtectedContext) {
+	return await deskQueries.getAllUserDeskAssignmentCounts(ctx);
+}
+
+/**
+ * Update user desk assignments (unified endpoint)
+ * Takes complete desired state for each user and diffs with existing assignments
+ * Handles individual and bulk updates efficiently
+ */
+export async function updateUsersDeskAssignments(
+	ctx: ProtectedContext,
+	{
+		updates,
+	}: {
+		updates: Array<{
+			userId: string;
+			assignments: Array<{ deskLocationId: number; priority: number }>;
+		}>;
+	}
+) {
+	const updated = await ctx.db.transaction().execute(async (trx) => {
+		const results = await deskQueries.updateUsersDeskAssignments(
+			{ ...ctx, db: trx },
+			updates
+		);
+
+		// Log each user's assignment update
+		for (const result of results) {
+			const userUpdate = updates.find((u) => u.userId === result.userId);
+			await logAdminAction(
+				{ ...ctx, db: trx },
+				{
+					entityId: 0, // No single entity ID for this operation
+					entityName: EntityName.USER_DESK_LOCATION,
+					action: AdminAction.UPDATE,
+					value: {
+						userId: result.userId,
+						assignmentsUpdated: result.assignmentsUpdated,
+						newState: userUpdate?.assignments,
+					},
+				}
+			);
+		}
+
+		return results;
+	});
+
+	return updated;
+}

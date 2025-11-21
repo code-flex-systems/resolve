@@ -11,6 +11,7 @@ import {
 	getNextClaimToAssign,
 	getRolloverClaimCount,
 	listMyClaims,
+	listMyDeskClaims,
 } from '@/api/controllers/claimController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -24,6 +25,7 @@ import {
 	getClaimsInput,
 	getNextClaimToAssignInput,
 	listMyClaimsInput,
+	listMyDeskClaimsInput,
 } from '@/schemas/claimSchemas';
 
 export const claimRouter = router({
@@ -77,5 +79,9 @@ export const claimRouter = router({
 
 	listMyClaims: protectedProcedure.input(listMyClaimsInput).query(async ({ input, ctx }) => {
 		return listMyClaims(ctx, input);
+	}),
+
+	listMyDeskClaims: protectedProcedure.input(listMyDeskClaimsInput).query(async ({ input, ctx }) => {
+		return listMyDeskClaims(ctx, input);
 	}),
 });

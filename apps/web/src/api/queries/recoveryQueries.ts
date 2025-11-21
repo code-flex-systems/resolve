@@ -363,10 +363,17 @@ export async function getDeadlines(
 	if (shouldFilterPersonal) {
 		query = query
 			.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+			.leftJoin('user_desk_location', (join) =>
+				join
+					.onRef('checklist_claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
+					.on('user_desk_location.user_id', '=', ctx.session.user.id)
+					.on('user_desk_location.removed_at', 'is', null)
+			)
 			.where((eb) =>
 				eb.or([
 					eb('checklist_claim.created_by', '=', ctx.session.user.id),
 					eb('checklist_claim.assignee', '=', ctx.session.user.id),
+					eb('user_desk_location.desk_location_id', 'is not', null), // Assigned to their desk location
 				])
 			);
 	}

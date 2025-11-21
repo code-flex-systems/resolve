@@ -46,6 +46,35 @@ export async function getUsersPaginated(
 	return { rows, count };
 }
 
+/**
+ * List users with desk assignment counts and optional filters.
+ * Used for the User Desk Assignments tab.
+ */
+export async function getUsersWithDeskAssignments(
+	ctx: ProtectedContext,
+	{
+		limit,
+		offset,
+		searchTerm,
+		deskLocationTypeId,
+		deskLocationId,
+	}: {
+		limit?: number;
+		offset?: number;
+		searchTerm?: string;
+		deskLocationTypeId?: number;
+		deskLocationId?: number;
+	}
+) {
+	return await userQueries.getUsersWithDeskAssignments(ctx, {
+		limit,
+		offset,
+		searchTerm,
+		deskLocationTypeId,
+		deskLocationId,
+	});
+}
+
 export async function getUserActivity(
 	ctx: ProtectedContext,
 	{

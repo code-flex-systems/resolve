@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, Paper, IconButton, PopperProps, Typography, Button } from '@mui/material';
+import { Box, Paper, IconButton, PopperProps, Typography, Button, Tabs, Tab } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import { useClaimTrpc, type MyClaimListItem } from '@/hooks/trpc/useClaimTrpc';
+import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ClaimDetailPanel from '@/components/admin/ClaimDetailPanel';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import MyClaimsMetrics from './MyClaimsMetrics';
 import MyClaimsDeadlines from './MyClaimsDeadlines';
+import MyClaimsQueueTable, { type MyClaimListItem } from './MyClaimsQueueTable';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import StackedHeaderCell from '@/components/common/StackedHeaderCell';
@@ -22,6 +23,8 @@ import FileDownload from '@mui/icons-material/FileDownload';
 import FilterList from '@mui/icons-material/FilterList';
 import Clear from '@mui/icons-material/Clear';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
+import Desk from '@mui/icons-material/Desk';
+import Person from '@mui/icons-material/Person';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
@@ -29,8 +32,11 @@ import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { ClaimStatus, RecoveryStatus } from '@/config/enums';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import useDebounce from '@/lib/utils/useDebounce';
+import config from '@/config/config';
 
 export default function MyClaims() {
+	const showDeskHierarchy = config.FEATURES.DESK_HIERARCHY;
+	const [activeTab, setActiveTab] = useState(showDeskHierarchy ? 0 : 1); // 0 = Desk Queue, 1 = Direct Assignments
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -86,8 +92,8 @@ export default function MyClaims() {
 		}
 	}, [searchParams]);
 
-	// Fetch claims with filters (no pagination)
-	const { data, isFetching } = claimTrpc.listMyClaims(
+	// Fetch direct assignment claims
+	const { data: directData, isFetching: directFetching } = claimTrpc.listMyClaims(
 		{
 			searchTerm: appliedSearch || undefined,
 			claimStatus: (appliedClaimStatus as ClaimStatus) || undefined,
@@ -100,17 +106,27 @@ export default function MyClaims() {
 		}
 	);
 
-	const rows = data?.rows ?? [];
-	const count = data?.count ?? 0;
-	const metrics = data?.metrics ?? { totalValue: 0, avgDaysInQueue: 0 };
+	// Fetch desk queue claims (only if feature enabled)
+	const { data: deskData, isFetching: deskFetching } = claimTrpc.listMyDeskClaims(
+		{
+			searchTerm: appliedSearch || undefined,
+			claimStatus: (appliedClaimStatus as ClaimStatus) || undefined,
+			recoveryStatus: (appliedRecoveryStatus as RecoveryStatus) || undefined,
+		},
+		{
+			enabled: showDeskHierarchy,
+			refetchOnMount: 'always',
+			refetchOnWindowFocus: true,
+			staleTime: 0,
+		}
+	);
 
-	// Handle row click - update URL with selected claim ID
-	const handleRowClick = (params: any) => {
-		const claimId = params.row.id;
-		const newParams = new URLSearchParams(searchParams.toString());
-		newParams.set('selected', claimId.toString());
-		router.push(`${pathname}?${newParams.toString()}`);
-	};
+	// Use data from active tab
+	const activeData = activeTab === 0 ? deskData : directData;
+	const rows = activeData?.rows ?? [];
+	const count = activeData?.count ?? 0;
+	const metrics = activeData?.metrics ?? { totalValue: 0, avgDaysInQueue: 0 };
+	const isFetching = activeTab === 0 ? deskFetching : directFetching;
 
 	// Handle panel close - clear selected claim from URL
 	const handleClosePanel = () => {
@@ -150,136 +166,6 @@ export default function MyClaims() {
 
 	const hasActiveFilters = appliedClaimStatus || appliedRecoveryStatus || appliedSearch;
 
-	// Export to CSV
-	const handleExport = () => {
-		if (!rows || rows.length === 0) return;
-
-		const headers = [
-			'Claim Number',
-			'Checklist',
-			'Insured',
-			'Expected Recovery',
-			'Actual Recovery',
-			'Status',
-			'Assignee',
-			'Last Update',
-		];
-
-		const csvRows = rows.map((row: MyClaimListItem) => [
-			row.claim_number || '',
-			row.checklist_name || '',
-			row.insured || '',
-			row.expected_recovery?.toString() || '',
-			row.actual_recovery?.toString() || '',
-			row.claim_status || '',
-			row.assignee ? `${row.assignee_last}, ${row.assignee_first}` : '',
-			row.last_update ? dayjs(row.last_update).format('MM/DD/YYYY') : '',
-		]);
-
-		const csvContent = [
-			headers.join(','),
-			...csvRows.map((row: string[]) => row.map((cell: string) => `"${cell}"`).join(',')),
-		].join('\n');
-
-		const blob = new Blob([csvContent], { type: 'text/csv' });
-		const url = window.URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `my-claims-${dayjs().format('YYYY-MM-DD')}.csv`;
-		a.click();
-		window.URL.revokeObjectURL(url);
-	};
-
-	// Last activity indicator
-	const getActivityIndicator = (lastUpdate: string | null) => {
-		if (!lastUpdate) return null;
-		const daysSince = dayjs().diff(dayjs(lastUpdate), 'day');
-		if (daysSince === 0) return <Box sx={{ ...styles.indicator, bgcolor: 'success.main' }} />;
-		if (daysSince <= 7) return <Box sx={{ ...styles.indicator, bgcolor: 'warning.main' }} />;
-		return <Box sx={{ ...styles.indicator, bgcolor: 'error.main' }} />;
-	};
-
-	// DataGrid columns
-	const columns: GridColDef<MyClaimListItem>[] = useMemo(
-		() => [
-			{
-				field: 'claim_status',
-				headerName: 'Status',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => <ClaimStatusCell {...params} row={{ status: params.row.claim_status }} />,
-				width: 150,
-				align: 'right',
-			},
-			{
-				field: 'claim_number',
-				headerName: 'Claim / Checklist',
-				renderHeader: (params) => (
-					<IconHeaderCell
-						{...(params as any)}
-						icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />}
-					/>
-				),
-				renderCell: (params) => (
-					<StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />
-				),
-				cellClassName: 'cell-bold',
-				width: 220,
-			},
-			{
-				field: 'insured',
-				headerName: 'Insured',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				width: 180,
-			},
-			{
-				field: 'expected_recovery',
-				headerName: 'Expected',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => formatCurrencyExact(parseFloat(params.value?.toString() || '0')),
-				align: 'right',
-				width: 130,
-			},
-			{
-				field: 'actual_recovery',
-				headerName: 'Actual',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => formatCurrencyExact(parseFloat(params.value?.toString() || '0')),
-				align: 'right',
-				width: 130,
-			},
-			{
-				field: 'assignee',
-				headerName: 'Assignee',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => {
-					const user = formatUser({
-						id: params.value,
-						first: params.row.assignee_first,
-						last: params.row.assignee_last,
-						email: params.row.assignee_email,
-						phone: null,
-					});
-					return <StackedHeaderCell primary={user} secondary={params.row.assignee_email} />;
-				},
-				width: 250,
-			},
-			{
-				field: 'last_update',
-				headerName: 'Last Update',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => (
-					<Box display="flex" alignItems="center" gap={1}>
-						{getActivityIndicator(params.value)}
-						{formatMDYAbv(params.value)}
-					</Box>
-				),
-				align: 'right',
-				width: 140,
-			},
-		],
-		[]
-	);
-
 	return (
 		<Box display="flex" gap={2} width="100%" height="100%" padding="20px">
 			<Box flexShrink={0}>
@@ -287,9 +173,9 @@ export default function MyClaims() {
 			</Box>
 			<Box flex={1} minWidth={0} height="100%">
 				<Paper sx={styles.paper} className="flex-col-start">
-					{/* Main Toolbar: Title and Actions */}
+					{/* Title */}
 					<Box width="100%" padding="10px">
-						<Typography variant="h6">My Claims</Typography>
+						<Typography variant="h6">My Queue</Typography>
 					</Box>
 
 					{/* Metrics and Legend */}
@@ -325,153 +211,38 @@ export default function MyClaims() {
 						</Box>
 					</Box>
 
-					{/* Search and Filters Toolbar */}
-					<Toolbar
-						left={
-							<Box display="flex" gap={1} alignItems="center">
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search sx={{ fontSize: 17, marginRight: '5px' }} />
-									<input
-										placeholder="Search by claim number, insured, or client..."
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => setSearchTerm(e.target.value)}
-									/>
-									{searchTerm && (
-										<IconButton
-											size="small"
-											onClick={() => setSearchTerm('')}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: handleOpenFilters,
-										endIcon: <FilterList />,
-									}}
-								>
-									Filters...
-									{hasActiveFilters && (
-										<Box
-											component="span"
-											sx={{
-												ml: 0.5,
-												bgcolor: 'primary.main',
-												color: 'white',
-												borderRadius: '50%',
-												width: 18,
-												height: 18,
-												display: 'inline-flex',
-												alignItems: 'center',
-												justifyContent: 'center',
-												fontSize: 11,
-												fontWeight: 600,
-											}}
-										>
-											{
-												[appliedClaimStatus, appliedRecoveryStatus, appliedSearch].filter(
-													Boolean
-												).length
-											}
-										</Box>
-									)}
-								</BasicButtonStyled>
-								{hasActiveFilters && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: handleClearAllFilters,
-											size: 'small',
-										}}
-									>
-										Clear all filters
-									</BasicButtonStyled>
-								)}
-							</Box>
-						}
-						right={
-							<Button
-								variant="contained"
-								startIcon={<FileDownload />}
-								onClick={handleExport}
-								disabled={rows.length === 0}
-							>
-								Export
-							</Button>
-						}
-						height={45}
-						padding={'0px 10px'}
-					/>
-
-					{/* Filters Popper */}
-					{!!filtersAnchorEl && (
-						<BasicPopper
-							anchorEl={filtersAnchorEl}
-							setAnchorEl={handleCloseFilters}
-							placement="bottom-start"
-						>
-							<Paper sx={styles.filtersPaper}>
-								<Typography fontSize={14} fontWeight={600} marginBottom={2}>
-									Filter My Claims
-								</Typography>
-								<Box display="flex" flexDirection="column" gap={2}>
-									<ClaimStatusSelect
-										claimStatus={draftClaimStatus as ClaimStatus | null}
-										setClaimStatus={(status) => setDraftClaimStatus(status as string | null)}
-										text="Status"
-									/>
-									<RecoveryStatusSelect
-										recoveryStatus={draftRecoveryStatus as RecoveryStatus | null}
-										setRecoveryStatus={(status) => setDraftRecoveryStatus(status as string | null)}
-										text="Recovery"
-									/>
-								</Box>
-								<Box display="flex" gap={1} marginTop={2} justifyContent="flex-end">
-									<Button size="small" onClick={handleCloseFilters}>
-										Cancel
-									</Button>
-									<Button size="small" variant="contained" onClick={handleApplyFilters}>
-										Apply
-									</Button>
-								</Box>
-							</Paper>
-						</BasicPopper>
+					{/* Tabs (only show if desk hierarchy enabled) */}
+					{showDeskHierarchy && (
+						<Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
+							<Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+								<Tab icon={<Desk sx={{ fontSize: 18 }} />} iconPosition="start" label="Desk Queue" />
+								<Tab icon={<Person sx={{ fontSize: 18 }} />} iconPosition="start" label="Direct Assignments" />
+							</Tabs>
+						</Box>
 					)}
 
-					{/* DataGrid and Deadlines */}
-					<Box sx={styles.table}>
-						<DataGridPro
-							rows={rows}
-							columns={columns}
-							loading={isFetching}
-							rowHeight={60}
-							columnHeaderHeight={45}
-							onRowClick={handleRowClick}
-							getRowClassName={() => 'cursor-pointer'}
-							hideFooter={true}
-							disableColumnSelector={true}
-							disableColumnMenu={true}
-							initialState={{
-								pinnedColumns: { left: ['claim_status'] },
-							}}
-							sx={styles.tableOverrides}
-							slots={{
-								noRowsOverlay: () => (
-									<CustomNoRowsOverlay
-										text={
-											hasActiveFilters
-												? 'No claims match your filters'
-												: 'No claims assigned to you'
-										}
-										icon={<ContentPasteSearch sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
-									/>
-								),
-							}}
-						/>
-					</Box>
+					{/* Queue Table */}
+					<MyClaimsQueueTable
+						rows={rows}
+						count={count}
+						isFetching={isFetching}
+						searchTerm={searchTerm}
+						setSearchTerm={setSearchTerm}
+						appliedClaimStatus={appliedClaimStatus}
+						appliedRecoveryStatus={appliedRecoveryStatus}
+						appliedSearch={appliedSearch}
+						hasActiveFilters={hasActiveFilters}
+						filtersAnchorEl={filtersAnchorEl}
+						handleOpenFilters={handleOpenFilters}
+						handleCloseFilters={handleCloseFilters}
+						handleClearAllFilters={handleClearAllFilters}
+						draftClaimStatus={draftClaimStatus}
+						setDraftClaimStatus={setDraftClaimStatus}
+						draftRecoveryStatus={draftRecoveryStatus}
+						setDraftRecoveryStatus={setDraftRecoveryStatus}
+						handleApplyFilters={handleApplyFilters}
+						showDeskColumn={activeTab === 0}
+					/>
 				</Paper>
 			</Box>
 
@@ -488,38 +259,6 @@ const styles = {
 		border: 1,
 		borderColor: 'divider',
 		padding: '15px 15px 0px',
-	},
-	table: {
-		width: '100%',
-		height: 'calc(100% - 95px)', // Account for two toolbars (50px + 45px)
-	},
-	tableOverrides: {
-		border: 'none',
-	},
-	searchPaper: {
-		display: 'flex',
-		alignItems: 'center',
-		bgcolor: 'white',
-		border: `1px solid ${BASE_COLOR_LIGHT}`,
-		borderRadius: 2,
-		padding: '5px 10px',
-		minWidth: 350,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-		width: '100%',
-		fontSize: 13,
-		fontFamily: 'Inter',
-	} as React.CSSProperties,
-	filtersPaper: {
-		outline: 1,
-		outlineColor: 'divider',
-		marginTop: '5px',
-		padding: '15px',
-		minWidth: 300,
-		maxWidth: 400,
 	},
 	indicator: {
 		width: 8,

@@ -376,3 +376,21 @@ export async function listMyClaims(
 	const results = await claimQueries.listMyClaims(ctx, input);
 	return results;
 }
+
+/**
+ * Get claims assigned to the user's desk locations
+ * Used for desk hierarchy feature
+ */
+export async function listMyDeskClaims(
+	ctx: ProtectedContext,
+	input: {
+		searchTerm?: string;
+		claimStatus?: import('@/config/enums').ClaimStatus;
+		recoveryStatus?: import('@/config/enums').RecoveryStatus;
+		limit?: number;
+		offset?: number;
+	}
+) {
+	const results = await claimQueries.listMyDeskClaims(ctx, input);
+	return results;
+}

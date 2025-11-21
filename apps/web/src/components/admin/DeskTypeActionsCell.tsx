@@ -69,7 +69,7 @@ export default function DeskTypeActionsCell(params: GridRenderCellParams) {
 					<Typography paddingTop="10px" fontStyle="italic">
 						{isArchived
 							? 'The desk type will be restored and become available for use.'
-							: 'The desk type and all associated locations must be archived first.'}
+							: 'All associated desk locations must be archived first.'}
 					</Typography>
 				</BasicDialog>
 			)}

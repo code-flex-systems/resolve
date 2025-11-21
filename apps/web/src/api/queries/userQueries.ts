@@ -55,6 +55,132 @@ export async function getUsersPaginated(
 	return await query.execute();
 }
 
+/**
+ * Retrieve users with desk assignment counts and optional filters
+ * Used for the User Desk Assignments tab
+ */
+export async function getUsersWithDeskAssignments(
+	ctx: ProtectedContext,
+	{
+		limit,
+		offset,
+		searchTerm,
+		deskLocationTypeId,
+		deskLocationId,
+	}: {
+		limit?: number;
+		offset?: number;
+		searchTerm?: string;
+		deskLocationTypeId?: number;
+		deskLocationId?: number;
+	}
+) {
+	// Base query - all users with assignment counts
+	let query = ctx.db
+		.selectFrom('users')
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('user_desk_location')
+					.select([
+						'user_desk_location.user_id',
+						eb.fn.countAll<number>().as('assignment_count'),
+					])
+					.where('user_desk_location.removed_at', 'is', null)
+					.groupBy('user_desk_location.user_id')
+					.as('assignment_counts'),
+			(join) => join.onRef('assignment_counts.user_id', '=', 'users.id')
+		)
+		.selectAll('users')
+		.select(sql<number>`MAX(COALESCE(assignment_counts.assignment_count, 0))`.as('assignment_count'))
+		.where('users.client_id', '=', ctx.session.user.client_id)
+		.where('users.disabled', '=', false);
+
+	// Apply search filter
+	if (searchTerm) {
+		query = query.where((eb) =>
+			eb.or([
+				eb(
+					sql`concat(lower(${eb.ref('users.first')}), ' ', lower(${eb.ref('users.last')}))`,
+					'like',
+					`%${searchTerm.toLowerCase()}%`
+				),
+				eb(sql`lower(${eb.ref('users.email')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+			])
+		);
+	}
+
+	// If desk filters are provided, filter to users with at least one matching assignment
+	if (deskLocationTypeId !== undefined || deskLocationId !== undefined) {
+		if (deskLocationId !== undefined) {
+			query = query
+				.innerJoin('user_desk_location', (join) =>
+					join
+						.onRef('users.id', '=', 'user_desk_location.user_id')
+						.on('user_desk_location.removed_at', 'is', null)
+						.on('user_desk_location.desk_location_id', '=', deskLocationId)
+				);
+		} else if (deskLocationTypeId !== undefined) {
+			query = query
+				.innerJoin('user_desk_location', (join) =>
+					join.onRef('users.id', '=', 'user_desk_location.user_id').on('user_desk_location.removed_at', 'is', null)
+				)
+				.innerJoin('desk_location', (join) =>
+					join
+						.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
+						.on('desk_location.deleted_at', 'is', null)
+						.on('desk_location.desk_location_type_id', '=', deskLocationTypeId)
+				);
+		}
+	}
+
+	// Always group by user columns to support assignment count aggregation
+	query = query.groupBy([
+		'users.id',
+		'users.first',
+		'users.last',
+		'users.email',
+		'users.phone',
+		'users.role',
+		'users.client_id',
+		'users.created_at',
+		'users.created_by',
+		'users.updated_at',
+		'users.updated_by',
+		'users.disabled',
+		'users.password_hash',
+		'users.must_change_password',
+		'users.last_login',
+		'users.email_verified',
+		'users.phone_verified',
+		'users.onboarding_email_sent',
+		'users.mfa_enabled',
+		'users.mfa_secret',
+	]);
+
+	// Count query (run in parallel with data query)
+	const countQuery = query
+		.clearSelect()
+		.clearOrderBy()
+		.select(({ fn }) => fn.countAll<number>().as('count'))
+		.executeTakeFirst();
+
+	// Data query with pagination
+	const rowsQuery = query
+		.orderBy(['users.last', 'users.first'])
+		.$if(limit !== undefined, (qb) => qb.limit(limit!))
+		.$if(offset !== undefined, (qb) => qb.offset(offset!))
+		.execute();
+
+	// Execute in parallel
+	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+
+	return {
+		rows,
+		count: countResult?.count ? Number(countResult.count) : 0,
+	};
+}
+
 export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 	let query = ctx.db
 		.selectFrom('users')

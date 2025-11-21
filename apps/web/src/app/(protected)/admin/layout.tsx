@@ -30,6 +30,7 @@ import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import ShieldIcon from '@mui/icons-material/Shield';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import DeskIcon from '@mui/icons-material/Desk';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -106,6 +107,11 @@ const adminNavCategories: AdminNavCategory[] = [
 							label: 'Desk Locations',
 							route: '/admin/workflow-configuration/desk-locations',
 							icon: <DeskIcon fontSize="small" />,
+						},
+						{
+							label: 'Desk Assignments',
+							route: '/admin/workflow-configuration/desk-assignments',
+							icon: <AssignmentIcon fontSize="small" />,
 						},
 					]
 				: []),

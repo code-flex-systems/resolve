@@ -731,6 +731,12 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 		.selectFrom('checklist')
 		.innerJoin('checklist_claim', 'checklist.id', 'checklist_claim.checklist_id')
 		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
+		.leftJoin('user_desk_location', (join) =>
+			join
+				.onRef('checklist_claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
+				.on('user_desk_location.user_id', '=', ctx.session.user.id)
+				.on('user_desk_location.removed_at', 'is', null)
+		)
 		.selectAll('checklist_claim')
 		.select([
 			'checklist.name as checklist_name',
@@ -746,6 +752,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 			eb.or([
 				eb('checklist_claim.created_by', '=', ctx.session.user.id),
 				eb('checklist_claim.assignee', '=', ctx.session.user.id),
+				eb('user_desk_location.desk_location_id', 'is not', null), // Assigned to their desk location
 			])
 		)
 		.orderBy('checklist_claim.last_opened desc')

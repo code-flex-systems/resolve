@@ -68,7 +68,7 @@ export function useUrlFilters() {
 			}
 
 			const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-			router.push(newUrl);
+			router.replace(newUrl);
 		},
 		[searchParams, pathname, router]
 	);
@@ -95,7 +95,7 @@ export function useUrlFilters() {
 			});
 
 			const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-			router.push(newUrl);
+			router.replace(newUrl);
 		},
 		[searchParams, pathname, router]
 	);

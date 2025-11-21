@@ -145,6 +145,92 @@ export function useDeskTrpc() {
 				});
 			},
 		}),
+
+		// ====================================================================
+		// USER DESK LOCATION ASSIGNMENT OPERATIONS (Phase 2)
+		// ====================================================================
+
+		/**
+		 * Get desk location assignments for a specific user
+		 */
+		getUserAssignments: trpc.desk.getUserDeskLocations.useQuery,
+
+		/**
+		 * Get users assigned to a specific desk location
+		 */
+		getDeskUsers: trpc.desk.getDeskLocationUsers.useQuery,
+
+		/**
+		 * Assign user to desk location with priority
+		 * Invalidates user assignments, desk users, and user list (for assignment counts)
+		 */
+		assignUser: trpc.desk.assignUserToDeskLocation.useMutation({
+			onSuccess() {
+				utils.desk.getUserDeskLocations.invalidate();
+				utils.desk.getDeskLocationUsers.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
+			},
+		}),
+
+		/**
+		 * Bulk assign multiple users to desk location with priority
+		 * All-or-nothing transaction - if any assignment fails, none are applied
+		 * Invalidates user assignments, desk users, and user list (for assignment counts)
+		 */
+		bulkAssignUsers: trpc.desk.bulkAssignUsersToDeskLocation.useMutation({
+			onSuccess() {
+				utils.desk.getUserDeskLocations.invalidate();
+				utils.desk.getDeskLocationUsers.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
+			},
+		}),
+
+		/**
+		 * Update user desk location priority
+		 * Invalidates user assignments (no need to invalidate user list since count doesn't change)
+		 */
+		updateAssignmentPriority: trpc.desk.updateUserDeskLocationPriority.useMutation({
+			onSuccess() {
+				utils.desk.getUserDeskLocations.invalidate();
+			},
+		}),
+
+		/**
+		 * Remove user from desk location
+		 * Invalidates user assignments, desk users, and user list (for assignment counts)
+		 */
+		removeAssignment: trpc.desk.removeUserFromDeskLocation.useMutation({
+			onSuccess() {
+				utils.desk.getUserDeskLocations.invalidate();
+				utils.desk.getDeskLocationUsers.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
+			},
+		}),
+
+		/**
+		 * Bulk update user desk location priorities
+		 * Used for managing all of a user's desk assignments
+		 * Invalidates user assignments
+		 */
+		updateAssignmentPriorities: trpc.desk.updateUserDeskLocationPriorities.useMutation({
+			onSuccess() {
+				utils.desk.getUserDeskLocations.invalidate();
+			},
+		}),
+
+		/**
+		 * Update user desk assignments (unified endpoint)
+		 * Takes complete desired state for one or more users and applies changes atomically
+		 * Handles individual and bulk updates efficiently (1-50 users)
+		 * Invalidates all related queries
+		 */
+		updateUsersDeskAssignments: trpc.desk.updateUsersDeskAssignments.useMutation({
+			onSuccess() {
+				utils.desk.getUserDeskLocations.invalidate();
+				utils.desk.getDeskLocationUsers.invalidate();
+				utils.user.getUsersWithDeskAssignments.invalidate();
+			},
+		}),
 	};
 }
 

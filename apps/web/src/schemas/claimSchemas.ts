@@ -114,3 +114,13 @@ export const listMyClaimsInput = z.object({
 	sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 export type ListMyClaimsInput = z.infer<typeof listMyClaimsInput>;
+
+// My Desk Claims list (desk hierarchy feature)
+export const listMyDeskClaimsInput = z.object({
+	searchTerm: z.string().optional(),
+	claimStatus: z.nativeEnum(ClaimStatus).optional(),
+	recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
+	limit: z.number().int().positive().optional(),
+	offset: z.number().int().nonnegative().optional(),
+});
+export type ListMyDeskClaimsInput = z.infer<typeof listMyDeskClaimsInput>;

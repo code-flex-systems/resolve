@@ -7,6 +7,7 @@ interface DeskLocationSelectProps extends Omit<TextFieldProps, 'children' | 'sel
 	onChange: (value: number | null) => void;
 	deskLocationTypeId?: number | null;
 	showInactive?: boolean;
+	excludedLocationIds?: number[];
 }
 
 export default function DeskLocationSelect({
@@ -14,6 +15,7 @@ export default function DeskLocationSelect({
 	onChange,
 	deskLocationTypeId,
 	showInactive = false,
+	excludedLocationIds = [],
 	...textFieldProps
 }: DeskLocationSelectProps) {
 	const { data = { rows: [], count: 0 }, isFetching } = useDeskTrpc().listLocations(
@@ -26,7 +28,12 @@ export default function DeskLocationSelect({
 	);
 
 	// Filter by active status unless showInactive is true
-	const filteredLocations = showInactive ? data.rows : data.rows.filter((loc) => loc.is_active);
+	let filteredLocations = showInactive ? data.rows : data.rows.filter((loc) => loc.is_active);
+
+	// Filter out excluded locations (but keep the currently selected one)
+	if (excludedLocationIds.length > 0) {
+		filteredLocations = filteredLocations.filter((loc) => loc.id === value || !excludedLocationIds.includes(loc.id));
+	}
 
 	return (
 		<TextField
