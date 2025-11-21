@@ -7,6 +7,7 @@ import AdminSidebar, { AdminNavCategory } from '@/components/admin/AdminSidebar'
 import NewUserDialog from '@/components/admin/NewUserDialog';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useEffect } from 'react';
+import config from '@/config/config';
 
 // Icons
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -28,6 +29,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import ShieldIcon from '@mui/icons-material/Shield';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
+import DeskIcon from '@mui/icons-material/Desk';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -98,6 +100,15 @@ const adminNavCategories: AdminNavCategory[] = [
 				route: '/admin/workflow-configuration/checklists',
 				icon: <ChecklistIcon fontSize="small" />,
 			},
+			...(config.FEATURES.DESK_HIERARCHY
+				? [
+						{
+							label: 'Desk Locations',
+							route: '/admin/workflow-configuration/desk-locations',
+							icon: <DeskIcon fontSize="small" />,
+						},
+					]
+				: []),
 		],
 		defaultExpanded: true,
 	},

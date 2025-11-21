@@ -6,6 +6,10 @@ interface AdminState {
 		page: number;
 		pageSize: number;
 	};
+	deskLocationTypeConstraints: {
+		page: number;
+		pageSize: number;
+	};
 	officeConstraints: {
 		page: number;
 		pageSize: number;
@@ -19,6 +23,7 @@ interface AdminState {
 		pageSize: number;
 	};
 	selectedChecklistId: number | null;
+	selectedDeskLocationTypeId: number | null;
 	selectedFeedId: number | null | undefined;
 	selectedTab: number;
 	showClaimAssignmentDialog: boolean;
@@ -26,6 +31,8 @@ interface AdminState {
 	showImportUsersDialog: boolean;
 	showNewChecklistDialog: boolean;
 	showNewClaimDialog: boolean;
+	showNewDeskLocationDialog: boolean;
+	showNewDeskLocationTypeDialog: boolean;
 	showNewOfficeDialog: boolean;
 	showNewPartyDialog: boolean;
 	showNewRepresentativeDialog: boolean;
@@ -38,6 +45,7 @@ interface AdminState {
 
 interface AdminActions {
 	setChecklistId: (newId: number | null) => void;
+	setDeskLocationTypeId: (newId: number | null) => void;
 	setFeedId: (newId: number | null | undefined) => void;
 	setTab: (newTab: number) => void;
 	toggleClaimAssignmentDialog: () => void;
@@ -45,11 +53,14 @@ interface AdminActions {
 	toggleImportUsersDialog: () => void;
 	toggleNewChecklistDialog: () => void;
 	toggleNewClaimDialog: () => void;
+	toggleNewDeskLocationDialog: () => void;
+	toggleNewDeskLocationTypeDialog: () => void;
 	toggleNewOfficeDialog: () => void;
 	toggleNewPartyDialog: () => void;
 	toggleNewRepresentativeDialog: () => void;
 	toggleNewUserDialog: () => void;
 	updateClaimConstraints: (newConstraints: { page: number; pageSize: number }) => void;
+	updateDeskLocationTypeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateOfficeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updatePartyConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateRepresentativeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
@@ -62,6 +73,10 @@ type AdminStore = AdminState & AdminActions;
 const initialState: AdminState = {
 	claimConstraints: {
 		pageSize: 20,
+		page: 0,
+	},
+	deskLocationTypeConstraints: {
+		pageSize: 10,
 		page: 0,
 	},
 	officeConstraints: {
@@ -77,6 +92,7 @@ const initialState: AdminState = {
 		page: 0,
 	},
 	selectedChecklistId: null,
+	selectedDeskLocationTypeId: null,
 	selectedFeedId: undefined,
 	selectedTab: 1,
 	showClaimAssignmentDialog: false,
@@ -84,6 +100,8 @@ const initialState: AdminState = {
 	showImportUsersDialog: false,
 	showNewChecklistDialog: false,
 	showNewClaimDialog: false,
+	showNewDeskLocationDialog: false,
+	showNewDeskLocationTypeDialog: false,
 	showNewOfficeDialog: false,
 	showNewPartyDialog: false,
 	showNewRepresentativeDialog: false,
@@ -101,6 +119,11 @@ export const useAdminStore = create<AdminStore>()(
 		setChecklistId: (newId) =>
 			set((state) => {
 				state.selectedChecklistId = newId;
+			}),
+
+		setDeskLocationTypeId: (newId) =>
+			set((state) => {
+				state.selectedDeskLocationTypeId = newId;
 			}),
 
 		setFeedId: (newId) =>
@@ -138,6 +161,16 @@ export const useAdminStore = create<AdminStore>()(
 				state.showNewClaimDialog = !state.showNewClaimDialog;
 			}),
 
+		toggleNewDeskLocationDialog: () =>
+			set((state) => {
+				state.showNewDeskLocationDialog = !state.showNewDeskLocationDialog;
+			}),
+
+		toggleNewDeskLocationTypeDialog: () =>
+			set((state) => {
+				state.showNewDeskLocationTypeDialog = !state.showNewDeskLocationTypeDialog;
+			}),
+
 		toggleNewOfficeDialog: () =>
 			set((state) => {
 				state.showNewOfficeDialog = !state.showNewOfficeDialog;
@@ -161,6 +194,11 @@ export const useAdminStore = create<AdminStore>()(
 		updateClaimConstraints: (newConstraints) =>
 			set((state) => {
 				state.claimConstraints = newConstraints;
+			}),
+
+		updateDeskLocationTypeConstraints: (newConstraints) =>
+			set((state) => {
+				state.deskLocationTypeConstraints = newConstraints;
 			}),
 
 		updateOfficeConstraints: (newConstraints) =>

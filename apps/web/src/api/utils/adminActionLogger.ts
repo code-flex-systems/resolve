@@ -50,6 +50,10 @@ export enum EntityName {
 	PARTY_OFFICE = 'party_office',
 	PARTY_REPRESENTATIVE = 'party_representative',
 	CLAIM_PARTY = 'claim_party',
+
+	// Desk management entities
+	DESK_LOCATION_TYPE = 'desk_location_type',
+	DESK_LOCATION = 'desk_location',
 }
 
 export interface AdminActionLogParams {

@@ -179,6 +179,69 @@ Required environment variables (in `apps/web/.env`):
 - `AWS_*` - S3 configuration for document storage
 - NextAuth configuration (not shown in .env)
 
+## Desk Hierarchy System (Phase 1)
+
+**Overview:**
+
+The desk hierarchy system manages workflow routing for claims through different workflow phases (desk location types) and work queues (desk locations). This is a **workflow routing system**, not a team grouping system.
+
+**Three-Tier Structure:**
+
+1. **Desk Location Type** - Workflow phase (e.g., "Evaluation", "Adverse Coverage Verification")
+   - Primary purpose: Store contact information (email, phone, fax) for letter generation (Phase 3)
+   - Contains multiple desk locations
+   - Client-scoped and supports soft deletion
+
+2. **Desk Location** - Work queue within a phase (e.g., "Evaluation - Transactional", "Request for Information")
+   - Where claims are assigned for collaborative work
+   - Has active/inactive status
+   - Users will be assigned to locations with priority ordering (Phase 2)
+
+3. **User Assignment** - Priority-based assignment to desk locations (Phase 2+)
+   - Not yet implemented in Phase 1
+   - Will support 1-5 priority levels per user
+   - Multiple users can work on same claim (collaborative)
+
+**Phase 1 Implementation (Complete):**
+
+- Database tables: `desk_location_type`, `desk_location`
+- Added `desk_location_id` to `checklist_claim` table (for future routing)
+- Backend: Full CRUD operations in `deskQueries.ts`, `deskController.ts`
+- tRPC router: `desk.ts` with admin-only access
+- Frontend: Admin UI at `/admin/workflow-configuration/desk-locations`
+  - Master-detail layout (types list → locations detail)
+  - Create/edit dialogs for both types and locations
+  - Optional default location creation (Pending, Transactional, Closed, etc.)
+- Feature flag: `FEATURE_DESK_HIERARCHY` in `.env`
+
+**Key Files:**
+
+- Schemas: `apps/web/src/schemas/deskSchemas.ts` (includes SUGGESTED_DESK_LOCATIONS)
+- Queries: `apps/web/src/api/queries/deskQueries.ts`
+- Controller: `apps/web/src/api/controllers/deskController.ts`
+- Router: `apps/web/src/server/trpc/routers/desk.ts`
+- Hook: `apps/web/src/hooks/trpc/useDeskTrpc.ts`
+- Components:
+  - `apps/web/src/components/admin/DeskLocationsTab.tsx`
+  - `apps/web/src/components/admin/DeskLocationTypeDialog.tsx`
+  - `apps/web/src/components/admin/DeskLocationDialog.tsx`
+  - `apps/web/src/components/common/DeskLocationTypeSelect.tsx`
+  - `apps/web/src/components/common/DeskLocationSelect.tsx`
+- Migration: `apps/web/src/api/database/migrations/2025-11-20_192227_add_desk_location_hierarchy.ts`
+
+**Future Phases:**
+
+- Phase 2: User assignments with priority ordering, collaborative work pools, user work queue
+- Phase 3: Contact information fields (email, phone, fax), workflow routing rules, letter generation integration
+
+**Important Notes:**
+
+- All queries are client-scoped via `applyClientScope()`
+- Soft deletion using `deleted_at` timestamps
+- Unique constraint: name must be unique within client (excluding deleted records)
+- Admin action logging tracks all create/update/delete operations
+- Suggested default locations available when creating new types
+
 ## Key Patterns
 
 **DRY Principles & Shared Utilities:**

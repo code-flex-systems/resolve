@@ -131,6 +131,10 @@ export interface ChecklistClaim {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
+  /**
+   * Desk location assignment (mutually exclusive with assignee - for future use in claiming workflow)
+   */
+  desk_location_id: number | null;
   last_opened: Generated<Timestamp>;
   /**
    * JSONB snapshot of key decisions and answers when checklist is submitted
@@ -265,6 +269,54 @@ export interface Deadline {
   description: string | null;
   id: Generated<number>;
   status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface DeskLocation {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Parent desk location type
+   */
+  desk_location_type_id: number;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Whether this desk location is currently active and accepting work
+   */
+  is_active: Generated<boolean>;
+  /**
+   * Name of the desk location (e.g., "Pending", "Transactional", "Closed")
+   */
+  name: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface DeskLocationType {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Name of the desk location type (e.g., "Documentation and Demand Packages")
+   */
+  name: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -653,6 +705,8 @@ export interface DB {
   client: Client;
   comment: Comment;
   deadline: Deadline;
+  desk_location: DeskLocation;
+  desk_location_type: DeskLocationType;
   doc: Doc;
   doc_group: DocGroup;
   doc_requirement: DocRequirement;
