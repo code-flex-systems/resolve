@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import { trpc } from '@/lib/trpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
+import TaskListPanel from '@/components/common/TaskListPanel';
 
 dayjs.extend(relativeTime);
 
@@ -267,6 +268,17 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 						</Stack>
 					</Paper>
 				)}
+
+				{/* Tasks */}
+				<Paper elevation={0} sx={styles.paper}>
+					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+						Tasks
+					</Typography>
+					<TaskListPanel
+						claimId={claimId}
+						claimNumber={claimDetail.claim_number ?? undefined}
+					/>
+				</Paper>
 			</Stack>
 		</Box>
 	);

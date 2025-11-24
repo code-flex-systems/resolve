@@ -131,10 +131,6 @@ export interface ChecklistClaim {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
-  /**
-   * Desk location assignment (mutually exclusive with assignee - for future use in claiming workflow)
-   */
-  desk_location_id: number | null;
   last_opened: Generated<Timestamp>;
   /**
    * JSONB snapshot of key decisions and answers when checklist is submitted
@@ -164,6 +160,10 @@ export interface Claim {
   created_at: Timestamp | null;
   created_by: string | null;
   date_of_loss: Timestamp | null;
+  /**
+   * Current desk location for workflow routing. Claims move through desk locations as they progress through the workflow.
+   */
+  desk_location_id: number | null;
   expected_recovery: Numeric | null;
   feed_id: number | null;
   id: Generated<number>;
@@ -277,6 +277,10 @@ export interface DeskLocation {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string | null;
+  /**
+   * Maximum work units per day for this location (NULL = unlimited). 1 unit = 5 minutes.
+   */
+  daily_work_units: number | null;
   /**
    * Soft delete timestamp
    */
@@ -661,6 +665,79 @@ export interface Sessions {
   user_id: string;
 }
 
+export interface Task {
+  assigned_at: Generated<Timestamp>;
+  /**
+   * User who created/assigned the task
+   */
+  assigned_by: string;
+  /**
+   * Reason for cancellation
+   */
+  cancellation_reason: string | null;
+  cancelled_at: Timestamp | null;
+  /**
+   * User who cancelled the task
+   */
+  cancelled_by: string | null;
+  /**
+   * The claim this task is associated with
+   */
+  claim_id: number;
+  claimed_at: Timestamp | null;
+  /**
+   * User currently working on the task
+   */
+  claimed_by: string | null;
+  /**
+   * Client scope for multi-tenancy
+   */
+  client_id: string;
+  completed_at: Timestamp | null;
+  /**
+   * User who completed the task
+   */
+  completed_by: string | null;
+  /**
+   * Notes added when completing the task
+   */
+  completion_notes: string | null;
+  created_at: Generated<Timestamp>;
+  /**
+   * Detailed task instructions
+   */
+  description: string | null;
+  /**
+   * The desk location where this task should be worked
+   */
+  desk_location_id: number;
+  /**
+   * Optional deadline for task completion
+   */
+  due_date: Timestamp | null;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Current task status (pending, in_progress, completed, cancelled)
+   */
+  status: Generated<string>;
+  /**
+   * Type of task (enum value from TaskType)
+   */
+  task_type: Generated<string>;
+  /**
+   * Brief description of the task
+   */
+  title: string;
+  updated_at: Timestamp | null;
+  /**
+   * Work units for capacity tracking (1 unit = 5 minutes)
+   */
+  work_units: Generated<number>;
+}
+
 export interface UserDeskLocation {
   /**
    * When the user was assigned to this desk location
@@ -760,6 +837,7 @@ export interface DB {
   recovery_event: RecoveryEvent;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
+  task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;
   verification_tokens: VerificationTokens;

@@ -6,6 +6,10 @@ import ChecklistRtl from '@mui/icons-material/ChecklistRtl';
 import Edit from '@mui/icons-material/Edit';
 import Shield from '@mui/icons-material/Shield';
 import PlaylistAddCheck from '@mui/icons-material/PlaylistAddCheck';
+import Groups from '@mui/icons-material/Groups';
+import Task from '@mui/icons-material/Task';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import Link from 'next/link';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
@@ -147,7 +151,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 							)}
 							{claimDetail.recovery_status && (
 								<Chip
-									label={formatRecoveryStatus(claimDetail.recovery_status)}
+									label={`Recovery - ${formatRecoveryStatus(claimDetail.recovery_status)}`}
 									size="small"
 									variant="outlined"
 								/>
@@ -195,6 +199,111 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 									</Typography>
 								</CardContent>
 							</Box>
+						</Paper>
+
+						{/* Quick Summary: Coverage, Parties, Tasks */}
+						<Paper elevation={0} style={{ height: 'fit-content' }} sx={styles.paper}>
+							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
+								Quick Summary
+							</Typography>
+							<Stack spacing={1.5}>
+								{/* Coverage Summary */}
+								<Box display="flex" alignItems="center" gap={1}>
+									<Shield sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
+									<Typography fontSize={13}>
+										<Highlight bold={false}>Coverage:</Highlight>{' '}
+										{claimDetail.coverageSummary.count === 0 ? (
+											<Box component="span" fontStyle="italic" color={BASE_COLOR_LIGHT}>
+												None entered
+											</Box>
+										) : (
+											<>
+												{formatCurrencyExact(claimDetail.coverageSummary.total)} from{' '}
+												{claimDetail.coverageSummary.count} coverage
+												{claimDetail.coverageSummary.count === 1 ? '' : 's'}
+											</>
+										)}
+									</Typography>
+								</Box>
+
+								{/* Party/Liability Summary */}
+								<Box display="flex" alignItems="center" gap={1}>
+									<Groups sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
+									<Typography fontSize={13} display="flex">
+										<Highlight bold={false}>Liability:</Highlight>{' '}
+										{claimDetail.partySummary.count === 0 ? (
+											<Box component="span" fontStyle="italic" color={BASE_COLOR_LIGHT} ml={0.5}>
+												None linked
+											</Box>
+										) : (
+											<Box display="flex" alignItems="center" gap={1} ml={0.5}>
+												{claimDetail.partySummary.totalLiability}% from{' '}
+												{claimDetail.partySummary.count} part
+												{claimDetail.partySummary.count === 1 ? 'y' : 'ies'}
+												{claimDetail.partySummary.totalLiability === 100 && (
+													<CheckCircle
+														sx={{
+															fontSize: 14,
+															color: 'success.main',
+														}}
+													/>
+												)}
+											</Box>
+										)}
+									</Typography>
+								</Box>
+
+								{/* Task Summary */}
+								<Box display="flex" alignItems="center" gap={1}>
+									<Task sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
+									<Typography fontSize={13}>
+										<Highlight bold={false}>Tasks:</Highlight>{' '}
+										{(() => {
+											const totalTasks =
+												claimDetail.taskSummary.completed +
+												claimDetail.taskSummary.in_progress +
+												claimDetail.taskSummary.pending;
+											return totalTasks === 0 ? (
+												<Box component="span" fontStyle="italic" color={BASE_COLOR_LIGHT}>
+													None created
+												</Box>
+											) : (
+											<Link
+												href={`/claims/${claimId}?tab=workflow`}
+												style={{ textDecoration: 'none' }}
+											>
+												<Box
+													component="span"
+													sx={{
+														color: 'primary.main',
+														'&:hover': {
+															textDecoration: 'underline',
+														},
+													}}
+												>
+													{claimDetail.taskSummary.completed > 0 && (
+														<>{claimDetail.taskSummary.completed} completed</>
+													)}
+													{claimDetail.taskSummary.completed > 0 &&
+														claimDetail.taskSummary.in_progress > 0 &&
+														', '}
+													{claimDetail.taskSummary.in_progress > 0 && (
+														<>{claimDetail.taskSummary.in_progress} in progress</>
+													)}
+													{(claimDetail.taskSummary.completed > 0 ||
+														claimDetail.taskSummary.in_progress > 0) &&
+														claimDetail.taskSummary.pending > 0 &&
+														', '}
+													{claimDetail.taskSummary.pending > 0 && (
+														<>{claimDetail.taskSummary.pending} pending</>
+													)}
+												</Box>
+											</Link>
+											);
+										})()}
+									</Typography>
+								</Box>
+							</Stack>
 						</Paper>
 
 						{/* Checklist Progress (if applicable) */}

@@ -209,3 +209,76 @@ export enum ClaimPartyRole {
 }
 
 export enum UserStatus {}
+
+// ============================================================================
+// WORKFLOW MANAGEMENT ENUMS
+// ============================================================================
+
+/**
+ * Status of a task in the workflow system
+ */
+export enum TaskStatus {
+	PENDING = 'pending',
+	IN_PROGRESS = 'in_progress',
+	COMPLETED = 'completed',
+	CANCELLED = 'cancelled',
+}
+
+/**
+ * Types of tasks that can be assigned
+ * Add new task types here as business requirements emerge
+ */
+export enum TaskType {
+	GENERIC = 'generic',
+	OUTBOUND_CALL = 'outbound_call',
+	INBOUND_CALL = 'inbound_call',
+	SEND_DOCUMENT = 'send_document',
+	REQUEST_DOCUMENT = 'request_document',
+	SEND_DEMAND = 'send_demand',
+	REVIEW = 'review',
+	FOLLOW_UP = 'follow_up',
+	LETTER = 'letter',
+}
+
+/**
+ * Trigger types for workflow rules
+ * Defines what event causes a rule to be evaluated
+ */
+export enum WorkflowTriggerType {
+	MANUAL = 'manual', // Admin-initiated
+	CLAIM_AGE = 'claim_age', // Days since loss date
+	LOCATION_AGE = 'location_age', // Days in current desk location
+	FIELD_CHANGE = 'field_change', // Specific field updated
+	TASK_COMPLETED = 'task_completed', // Task marked complete
+	// Add more as requirements emerge
+}
+
+/**
+ * Action types for workflow rules
+ * Defines what happens when a rule fires
+ */
+export enum WorkflowActionType {
+	MOVE_CLAIM = 'move_claim', // Move to different desk location
+	CREATE_TASK = 'create_task', // Create task for another desk
+	NOTIFY_USER = 'notify_user', // Send notification
+	UPDATE_PRIORITY = 'update_priority', // Change claim priority
+	// Add more as requirements emerge
+}
+
+/**
+ * Execution mode for workflow rules
+ */
+export enum WorkflowExecutionMode {
+	SUGGEST = 'suggest', // Rule generates suggestions for admin approval
+	AUTO = 'auto', // Rule executes automatically (future)
+}
+
+/**
+ * Threshold types for workflow evaluation queries
+ */
+export enum WorkflowThresholdType {
+	USER_CAPACITY = 'user_capacity', // Max claims per user
+	LOCATION_AGE = 'location_age', // Max days in location before stale
+	TASK_DUE = 'task_due', // Days before due date to warn
+	// Add more as requirements emerge
+}

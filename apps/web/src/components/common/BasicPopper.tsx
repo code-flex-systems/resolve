@@ -13,7 +13,7 @@ export default function BasicPopper(
 ) {
 	const { anchorEl, setAnchorEl, placement, className, zIndex = 1000 } = props;
 	return (
-		<ClickAwayListener onClickAway={() => setAnchorEl(null)}>
+		<ClickAwayListener onClickAway={() => setAnchorEl(null)} mouseEvent="onMouseUp">
 			<Popper
 				open={!!anchorEl}
 				anchorEl={anchorEl}

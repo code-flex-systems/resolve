@@ -16,6 +16,7 @@ import { passwordResetRouter } from './routers/passwordReset';
 import { questionRouter } from './routers/question';
 import { recoveryRouter } from './routers/recovery';
 import { responseRouter } from './routers/response';
+import { taskRouter } from './routers/task';
 import { userRouter } from './routers/user';
 
 export const appRouter = router({
@@ -35,6 +36,7 @@ export const appRouter = router({
 	question: questionRouter,
 	recovery: recoveryRouter,
 	response: responseRouter,
+	task: taskRouter,
 	user: userRouter,
 });
 

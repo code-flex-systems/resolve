@@ -55,6 +55,9 @@ export enum EntityName {
 	DESK_LOCATION_TYPE = 'desk_location_type',
 	DESK_LOCATION = 'desk_location',
 	USER_DESK_LOCATION = 'user_desk_location',
+
+	// Workflow management entities (Phase 3)
+	TASK = 'task',
 }
 
 export interface AdminActionLogParams {

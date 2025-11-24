@@ -733,7 +733,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
 		.leftJoin('user_desk_location', (join) =>
 			join
-				.onRef('checklist_claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
+				.onRef('claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
 				.on('user_desk_location.user_id', '=', ctx.session.user.id)
 				.on('user_desk_location.removed_at', 'is', null)
 		)

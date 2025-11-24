@@ -430,9 +430,10 @@ export async function getDeskLocationClaimAssignments(
 	deskLocationId: number
 ) {
 	return await ctx.db
-		.selectFrom('checklist_claim')
-		.select(['checklist_claim.checklist_id', 'checklist_claim.claim_id'])
-		.where('checklist_claim.desk_location_id', '=', deskLocationId)
+		.selectFrom('claim')
+		.select(['claim.id', 'claim.claim_number'])
+		.where('claim.desk_location_id', '=', deskLocationId)
+		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.execute();
 }
 

@@ -31,6 +31,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import DeskIcon from '@mui/icons-material/Desk';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import TaskIcon from '@mui/icons-material/Task';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -112,6 +113,11 @@ const adminNavCategories: AdminNavCategory[] = [
 							label: 'Desk Assignments',
 							route: '/admin/workflow-configuration/desk-assignments',
 							icon: <AssignmentIcon fontSize="small" />,
+						},
+						{
+							label: 'Tasks',
+							route: '/admin/workflow-configuration/tasks',
+							icon: <TaskIcon fontSize="small" />,
 						},
 					]
 				: []),

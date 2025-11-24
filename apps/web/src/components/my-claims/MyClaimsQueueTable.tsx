@@ -109,14 +109,29 @@ export default function MyClaimsQueueTable({
 		if (!rows || rows.length === 0) return;
 
 		const headers = showDeskColumn
-			? ['Claim Number', 'Checklist', 'Desk', 'Insured', 'Expected Recovery', 'Actual Recovery', 'Status', 'Last Update']
-			: ['Claim Number', 'Checklist', 'Insured', 'Expected Recovery', 'Actual Recovery', 'Status', 'Assignee', 'Last Update'];
+			? [
+					'Claim Number',
+					'Checklist',
+					'Desk',
+					'Insured',
+					'Expected Recovery',
+					'Actual Recovery',
+					'Status',
+					'Last Update',
+				]
+			: [
+					'Claim Number',
+					'Checklist',
+					'Insured',
+					'Expected Recovery',
+					'Actual Recovery',
+					'Status',
+					'Assignee',
+					'Last Update',
+				];
 
 		const csvRows = rows.map((row: MyClaimListItem) => {
-			const baseRow = [
-				row.claim_number || '',
-				row.checklist_name || '',
-			];
+			const baseRow = [row.claim_number || '', row.checklist_name || ''];
 
 			if (showDeskColumn) {
 				baseRow.push(row.desk_location_name || '');
@@ -126,7 +141,7 @@ export default function MyClaimsQueueTable({
 				row.insured || '',
 				row.expected_recovery?.toString() || '',
 				row.actual_recovery?.toString() || '',
-				row.claim_status || '',
+				row.claim_status || ''
 			);
 
 			if (!showDeskColumn) {
@@ -176,9 +191,14 @@ export default function MyClaimsQueueTable({
 				field: 'claim_number',
 				headerName: 'Claim / Checklist',
 				renderHeader: (params) => (
-					<IconHeaderCell {...(params as any)} icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+					<IconHeaderCell
+						{...(params as any)}
+						icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />}
+					/>
 				),
-				renderCell: (params) => <StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />,
+				renderCell: (params) => (
+					<StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />
+				),
 				cellClassName: 'cell-bold',
 				width: 220,
 			},
@@ -320,7 +340,12 @@ export default function MyClaimsQueueTable({
 					</Box>
 				}
 				right={
-					<Button variant="contained" startIcon={<FileDownload />} onClick={handleExport} disabled={rows.length === 0}>
+					<Button
+						variant="contained"
+						startIcon={<FileDownload />}
+						onClick={handleExport}
+						disabled={rows.length === 0}
+					>
 						Export
 					</Button>
 				}
@@ -393,7 +418,7 @@ export default function MyClaimsQueueTable({
 const styles = {
 	table: {
 		width: '100%',
-		height: 'calc(100% - 45px)', // Account for toolbar
+		height: 'calc(100% - 250px)', // Account for toolbar
 	},
 	tableOverrides: {
 		border: 'none',

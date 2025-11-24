@@ -134,6 +134,58 @@ export async function getUsersWithDeskAssignments(
 		}
 	}
 
+	// Build count query using subquery to count distinct users matching filters
+	// This avoids TypeScript issues with changing query types when adding joins
+	const buildCountQuery = async () => {
+		// Build a subquery to find matching user IDs
+		let userIdsQuery = ctx.db
+			.selectFrom('users')
+			.select('users.id')
+			.where('users.client_id', '=', ctx.session.user.client_id)
+			.where('users.disabled', '=', false);
+
+		if (searchTerm) {
+			userIdsQuery = userIdsQuery.where((eb) =>
+				eb.or([
+					eb(
+						sql`concat(lower(${eb.ref('users.first')}), ' ', lower(${eb.ref('users.last')}))`,
+						'like',
+						`%${searchTerm.toLowerCase()}%`
+					),
+					eb(sql`lower(${eb.ref('users.email')})`, 'like', `%${searchTerm.toLowerCase()}%`),
+				])
+			);
+		}
+
+		if (deskLocationId !== undefined) {
+			userIdsQuery = userIdsQuery.innerJoin('user_desk_location', (join) =>
+				join
+					.onRef('users.id', '=', 'user_desk_location.user_id')
+					.on('user_desk_location.removed_at', 'is', null)
+					.on('user_desk_location.desk_location_id', '=', deskLocationId)
+			) as typeof userIdsQuery;
+		} else if (deskLocationTypeId !== undefined) {
+			userIdsQuery = userIdsQuery
+				.innerJoin('user_desk_location', (join) =>
+					join.onRef('users.id', '=', 'user_desk_location.user_id').on('user_desk_location.removed_at', 'is', null)
+				)
+				.innerJoin('desk_location', (join) =>
+					join
+						.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
+						.on('desk_location.deleted_at', 'is', null)
+						.on('desk_location.desk_location_type_id', '=', deskLocationTypeId)
+				) as typeof userIdsQuery;
+		}
+
+		// Count distinct user IDs
+		const result = await ctx.db
+			.selectFrom(userIdsQuery.distinct().as('filtered_users'))
+			.select(({ fn }) => fn.countAll<number>().as('count'))
+			.executeTakeFirst();
+
+		return result;
+	};
+
 	// Always group by user columns to support assignment count aggregation
 	query = query.groupBy([
 		'users.id',
@@ -158,13 +210,6 @@ export async function getUsersWithDeskAssignments(
 		'users.mfa_secret',
 	]);
 
-	// Count query (run in parallel with data query)
-	const countQuery = query
-		.clearSelect()
-		.clearOrderBy()
-		.select(({ fn }) => fn.countAll<number>().as('count'))
-		.executeTakeFirst();
-
 	// Data query with pagination
 	const rowsQuery = query
 		.orderBy(['users.last', 'users.first'])
@@ -173,7 +218,7 @@ export async function getUsersWithDeskAssignments(
 		.execute();
 
 	// Execute in parallel
-	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+	const [countResult, rows] = await Promise.all([buildCountQuery(), rowsQuery]);
 
 	return {
 		rows,

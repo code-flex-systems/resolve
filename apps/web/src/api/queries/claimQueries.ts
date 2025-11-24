@@ -160,13 +160,13 @@ export async function getClaims(
 	// 1. Owned by them (created_by in checklist_claim)
 	// 2. Assigned to them (assignee in checklist_claim)
 	// 3. Not assigned/worked (no entry in checklist_claim)
-	// 4. Assigned to a desk location they are assigned to (desk-based access)
+	// 4. Assigned to a desk location they are assigned to (desk-based access via claim.desk_location_id)
 	if (!isAdmin) {
 		query = query
 			.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id')
 			.leftJoin('user_desk_location as udl', (join) =>
 				join
-					.onRef('cc.desk_location_id', '=', 'udl.desk_location_id')
+					.onRef('claim.desk_location_id', '=', 'udl.desk_location_id')
 					.on('udl.user_id', '=', ctx.session.user.id)
 					.on('udl.removed_at', 'is', null)
 			)
@@ -434,16 +434,18 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 
 	// Authorization check for contributors: verify user has access to this claim
 	if (!isAdmin) {
+		// Check if user has access via checklist_claim (ownership/assignment) or desk location
 		const hasAccess = await ctx.db
-			.selectFrom('checklist_claim')
+			.selectFrom('claim')
+			.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
 			.leftJoin('user_desk_location', (join) =>
 				join
-					.onRef('checklist_claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
+					.onRef('claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
 					.on('user_desk_location.user_id', '=', ctx.session.user.id)
 					.on('user_desk_location.removed_at', 'is', null)
 			)
 			.select(sql`1`.as('has_access'))
-			.where('checklist_claim.claim_id', '=', claimId)
+			.where('claim.id', '=', claimId)
 			.where((eb) =>
 				eb.or([
 					eb('checklist_claim.created_by', '=', ctx.session.user.id), // Owned by them
@@ -495,9 +497,66 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.orderBy('checklist_claim.last_opened', 'desc')
 		.execute();
 
+	// Get insured coverage summary (claim_coverage table)
+	const coverageSummary = await ctx.db
+		.selectFrom('claim_coverage')
+		.select((eb) => [
+			eb.fn.count('id').as('count'),
+			eb.fn.sum('coverage_amount').as('total'),
+		])
+		.where('claim_id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+
+	// Get party/liability summary (claim_party table - only non-deleted)
+	const partySummary = await ctx.db
+		.selectFrom('claim_party')
+		.select((eb) => [
+			eb.fn.count('id').as('count'),
+			eb.fn.sum('liability_percentage').as('total_liability'),
+		])
+		.where('claim_id', '=', claimId)
+		.where('deleted_at', 'is', null)
+		.executeTakeFirst();
+
+	// Get task summary by status
+	const taskSummary = await ctx.db
+		.selectFrom('task')
+		.select((eb) => [
+			'status',
+			eb.fn.count('id').as('count'),
+		])
+		.where('claim_id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.groupBy('status')
+		.execute();
+
+	// Transform task summary into object
+	const taskCounts = {
+		pending: 0,
+		in_progress: 0,
+		completed: 0,
+		cancelled: 0,
+	};
+	taskSummary.forEach((row) => {
+		const status = row.status as keyof typeof taskCounts;
+		if (status in taskCounts) {
+			taskCounts[status] = Number(row.count);
+		}
+	});
+
 	return {
 		...claim,
 		checklistAssignments,
+		coverageSummary: {
+			count: Number(coverageSummary?.count || 0),
+			total: Number(coverageSummary?.total || 0),
+		},
+		partySummary: {
+			count: Number(partySummary?.count || 0),
+			totalLiability: Number(partySummary?.total_liability || 0),
+		},
+		taskSummary: taskCounts,
 	};
 }
 
@@ -557,12 +616,27 @@ export async function listMyClaims(
 		query = query.where('claim.recovery_status', '=', recoveryStatus);
 	}
 
-	// Get total count and metrics (before pagination)
-	const metricsQuery = await query
+	// Get total count and metrics from distinct claims to avoid duplicates
+	// First get distinct claim IDs with their most recent assignment, then aggregate
+	const distinctClaimsSubquery = query
+		.distinctOn('claim.id')
+		.select([
+			'claim.id',
+			'claim.claim_amount',
+			'checklist_claim.created_at as assignment_created_at',
+		])
+		.orderBy('claim.id')
+		.orderBy('checklist_claim.created_at', 'desc')
+		.as('distinct_claims');
+
+	const metricsQuery = await ctx.db
+		.selectFrom(distinctClaimsSubquery)
 		.select(({ fn }) => [
 			fn.countAll().as('count'),
-			fn.sum('claim.claim_amount').as('total_value'),
-			fn.avg(sql`EXTRACT(epoch FROM (NOW() - checklist_claim.created_at)) / 86400`).as('avg_days_in_queue'),
+			fn.sum('distinct_claims.claim_amount').as('total_value'),
+			fn.avg(
+				sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`
+			).as('avg_days_in_queue'),
 		])
 		.executeTakeFirst();
 
@@ -571,8 +645,10 @@ export async function listMyClaims(
 	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
 
 	// Get data (with optional pagination)
+	// Use DISTINCT ON to ensure each claim appears only once (take most recent assignment)
 	const sortDirection = sortOrder === 'asc' ? 'asc' : 'desc';
 	const rows = await query
+		.distinctOn('claim.id')
 		.select([
 			'claim.id',
 			'claim.claim_number',
@@ -594,6 +670,8 @@ export async function listMyClaims(
 			'assignee_user.last as assignee_last',
 			'assignee_user.email as assignee_email',
 		])
+		.orderBy('claim.id')
+		.orderBy('checklist_claim.created_at', 'desc') // Most recent assignment first
 		.orderBy(sortField as any, sortDirection)
 		.limit(limit)
 		.offset(offset)
@@ -630,11 +708,12 @@ export async function listMyDeskClaims(
 	}
 ) {
 	// Base query: get claims assigned to desk locations where user is assigned
+	// desk_location_id is now on claim table, not checklist_claim
 	let query = ctx.db
 		.selectFrom('user_desk_location')
 		.innerJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
-		.innerJoin('checklist_claim', 'desk_location.id', 'checklist_claim.desk_location_id')
-		.innerJoin('claim', 'checklist_claim.claim_id', 'claim.id')
+		.innerJoin('claim', 'desk_location.id', 'claim.desk_location_id')
+		.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.leftJoin('users as assignee_user', 'checklist_claim.assignee', 'assignee_user.id')
@@ -662,12 +741,28 @@ export async function listMyDeskClaims(
 		query = query.where('claim.recovery_status', '=', recoveryStatus);
 	}
 
-	// Get total count and metrics (before pagination)
-	const metricsQuery = await query
+	// Get total count and metrics from distinct claims to avoid duplicates
+	// First get distinct claim IDs with their highest priority desk assignment, then aggregate
+	const distinctClaimsSubquery = query
+		.distinctOn('claim.id')
+		.select([
+			'claim.id',
+			'claim.claim_amount',
+			'checklist_claim.created_at as assignment_created_at',
+		])
+		.orderBy('claim.id')
+		.orderBy('user_desk_location.priority', 'asc')
+		.orderBy('checklist_claim.created_at', 'desc')
+		.as('distinct_claims');
+
+	const metricsQuery = await ctx.db
+		.selectFrom(distinctClaimsSubquery)
 		.select(({ fn }) => [
 			fn.countAll().as('count'),
-			fn.sum('claim.claim_amount').as('total_value'),
-			fn.avg(sql`EXTRACT(epoch FROM (NOW() - checklist_claim.created_at)) / 86400`).as('avg_days_in_queue'),
+			fn.sum('distinct_claims.claim_amount').as('total_value'),
+			fn.avg(
+				sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`
+			).as('avg_days_in_queue'),
 		])
 		.executeTakeFirst();
 
@@ -676,7 +771,9 @@ export async function listMyDeskClaims(
 	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
 
 	// Get data (ordered by desk priority, then by last update)
+	// Use DISTINCT ON to ensure each claim appears only once (take highest priority desk assignment)
 	const rows = await query
+		.distinctOn('claim.id')
 		.select([
 			'claim.id',
 			'claim.claim_number',
@@ -689,10 +786,10 @@ export async function listMyDeskClaims(
 			'claim.actual_recovery',
 			'claim.recovery_status',
 			'claim.created_at',
+			'claim.desk_location_id',
 			'checklist_claim.status as claim_status',
 			'checklist_claim.checklist_id',
 			'checklist_claim.assignee',
-			'checklist_claim.desk_location_id',
 			'checklist_claim.created_at as assigned_at',
 			'checklist.name as checklist_name',
 			'assignee_user.first as assignee_first',
@@ -701,8 +798,10 @@ export async function listMyDeskClaims(
 			'user_desk_location.priority as desk_priority',
 			'desk_location.name as desk_location_name',
 		])
+		.orderBy('claim.id')
 		.orderBy('user_desk_location.priority asc') // Higher priority desks first (1, 2, 3...)
-		.orderBy('claim.last_update desc') // Then by last update within each priority
+		.orderBy('checklist_claim.created_at desc') // Most recent assignment first
+		.orderBy('claim.last_update desc') // Then by last update
 		.limit(limit)
 		.offset(offset)
 		.execute();
