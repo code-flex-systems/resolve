@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
+import { useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { DeadlineStatus } from '@/config/enums';
 import theme from '@/styles/theme';
 import { useMemo } from 'react';
@@ -10,7 +10,7 @@ import Warning from '@mui/icons-material/Warning';
 import dayjs from 'dayjs';
 
 export default function MyDeadlinesMetric() {
-	const { data: deadlines = [], isLoading } = useRecoveryTrpc().listDeadlines(
+	const { data = { rows: [], count: 0 }, isLoading } = useDeadlineTrpc().listDeadlines(
 		{ personalOnly: true },
 		{ enabled: true }
 	);
@@ -23,7 +23,7 @@ export default function MyDeadlinesMetric() {
 		let overdue = 0;
 		let upcoming = 0;
 
-		deadlines.forEach((deadline) => {
+		data.rows.forEach((deadline) => {
 			const deadlineDate = dayjs(deadline.deadline_date).startOf('day');
 
 			// Overdue: past due date and not met
@@ -42,7 +42,7 @@ export default function MyDeadlinesMetric() {
 		});
 
 		return { overdueCount: overdue, upcomingCount: upcoming };
-	}, [deadlines]);
+	}, [data]);
 
 	return (
 		<Paper elevation={0} sx={styles.container}>

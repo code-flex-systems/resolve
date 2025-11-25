@@ -624,6 +624,7 @@ export async function assignUserToDeskLocation(
 	// Helper function to perform the assignment
 	const performAssignment = async (db: typeof ctx.db) => {
 		// First, soft-delete any existing assignment at this priority for this user
+		// (to make room for the new assignment at this priority slot)
 		await db
 			.updateTable('user_desk_location')
 			.set({
@@ -635,30 +636,30 @@ export async function assignUserToDeskLocation(
 			.where('user_desk_location.removed_at', 'is', null)
 			.execute();
 
+		// Also soft-delete any existing assignment for this user-desk combo at ANY priority
+		// (to allow reassigning the same desk at a different priority)
+		await db
+			.updateTable('user_desk_location')
+			.set({
+				removed_at: sql`now()`,
+				removed_by: ctx.session.user.id,
+			})
+			.where('user_desk_location.user_id', '=', params.userId)
+			.where('user_desk_location.desk_location_id', '=', params.deskLocationId)
+			.where('user_desk_location.removed_at', 'is', null)
+			.execute();
+
 		// Then insert the new assignment
-		try {
-			return await db
-				.insertInto('user_desk_location')
-				.values({
-					user_id: params.userId,
-					desk_location_id: params.deskLocationId,
-					priority: params.priority,
-					assigned_by: ctx.session.user.id,
-				})
-				.returningAll()
-				.executeTakeFirstOrThrow();
-		} catch (error: any) {
-			// Check for unique constraint violation (user already assigned to this desk location at a different priority)
-			if (error.code === '23505' && (
-				error.constraint === 'idx_user_desk_location_unique_user_desk' ||
-				(error.message && error.message.includes('idx_user_desk_location_unique_user_desk'))
-			)) {
-				throw new Error(
-					`One or more users are already assigned to "${deskLocation.name}" at a different priority. Please remove the existing assignment first or choose a different desk location.`
-				);
-			}
-			throw error;
-		}
+		return await db
+			.insertInto('user_desk_location')
+			.values({
+				user_id: params.userId,
+				desk_location_id: params.deskLocationId,
+				priority: params.priority,
+				assigned_by: ctx.session.user.id,
+			})
+			.returningAll()
+			.executeTakeFirstOrThrow();
 	};
 
 	// If already in a transaction, use it; otherwise create a new one
@@ -694,6 +695,7 @@ export async function bulkAssignUsersToDeskLocation(
 
 		for (const userId of params.userIds) {
 			// First, soft-delete any existing assignment at this priority for this user
+			// (to make room for the new assignment at this priority slot)
 			await trx
 				.updateTable('user_desk_location')
 				.set({
@@ -705,32 +707,32 @@ export async function bulkAssignUsersToDeskLocation(
 				.where('user_desk_location.removed_at', 'is', null)
 				.execute();
 
-			// Then insert the new assignment
-			try {
-				const result = await trx
-					.insertInto('user_desk_location')
-					.values({
-						user_id: userId,
-						desk_location_id: params.deskLocationId,
-						priority: params.priority,
-						assigned_by: ctx.session.user.id,
-					})
-					.returningAll()
-					.executeTakeFirstOrThrow();
+			// Also soft-delete any existing assignment for this user-desk combo at ANY priority
+			// (to allow reassigning the same desk at a different priority)
+			await trx
+				.updateTable('user_desk_location')
+				.set({
+					removed_at: sql`now()`,
+					removed_by: ctx.session.user.id,
+				})
+				.where('user_desk_location.user_id', '=', userId)
+				.where('user_desk_location.desk_location_id', '=', params.deskLocationId)
+				.where('user_desk_location.removed_at', 'is', null)
+				.execute();
 
-				results.push(result);
-			} catch (error: any) {
-				// Check for unique constraint violation (user already assigned to this desk location at a different priority)
-				if (error.code === '23505' && (
-					error.constraint === 'idx_user_desk_location_unique_user_desk' ||
-					(error.message && error.message.includes('idx_user_desk_location_unique_user_desk'))
-				)) {
-					throw new Error(
-						`One or more users are already assigned to "${deskLocation.name}" at a different priority. Please remove the existing assignments first or choose a different desk location.`
-					);
-				}
-				throw error;
-			}
+			// Then insert the new assignment
+			const result = await trx
+				.insertInto('user_desk_location')
+				.values({
+					user_id: userId,
+					desk_location_id: params.deskLocationId,
+					priority: params.priority,
+					assigned_by: ctx.session.user.id,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+
+			results.push(result);
 		}
 
 		return results;
@@ -739,21 +741,52 @@ export async function bulkAssignUsersToDeskLocation(
 
 /**
  * Update user desk location assignment priority
+ * Soft-deletes any existing assignment at the new priority first
  */
 export async function updateUserDeskLocationPriority(
 	ctx: ProtectedContext,
 	id: number,
 	newPriority: number
 ) {
-	return await ctx.db
-		.updateTable('user_desk_location')
-		.set({
-			priority: newPriority,
-		})
-		.where('user_desk_location.id', '=', id)
-		.where('user_desk_location.removed_at', 'is', null)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return await ctx.db.transaction().execute(async (trx) => {
+		// Get the current assignment to find the user_id
+		const current = await trx
+			.selectFrom('user_desk_location')
+			.select(['user_id', 'priority'])
+			.where('id', '=', id)
+			.where('removed_at', 'is', null)
+			.executeTakeFirst();
+
+		if (!current) {
+			throw new Error('Assignment not found');
+		}
+
+		// If priority is changing, soft-delete any existing assignment at the new priority
+		if (current.priority !== newPriority) {
+			await trx
+				.updateTable('user_desk_location')
+				.set({
+					removed_at: sql`now()`,
+					removed_by: ctx.session.user.id,
+				})
+				.where('user_desk_location.user_id', '=', current.user_id)
+				.where('user_desk_location.priority', '=', newPriority)
+				.where('user_desk_location.id', '!=', id) // Don't soft-delete the one we're updating
+				.where('user_desk_location.removed_at', 'is', null)
+				.execute();
+		}
+
+		// Update the priority
+		return await trx
+			.updateTable('user_desk_location')
+			.set({
+				priority: newPriority,
+			})
+			.where('user_desk_location.id', '=', id)
+			.where('user_desk_location.removed_at', 'is', null)
+			.returningAll()
+			.executeTakeFirstOrThrow();
+	});
 }
 
 /**
@@ -778,33 +811,67 @@ export async function removeUserFromDeskLocation(
 /**
  * Update multiple user desk location priorities at once
  * Used for drag-and-drop reordering
+ * Soft-deletes existing records and re-inserts with new priorities to avoid constraint conflicts
  */
 export async function updateUserDeskLocationPriorities(
 	ctx: ProtectedContext,
 	updates: Array<{ id: number; priority: number }>
 ) {
+	if (updates.length === 0) {
+		return [];
+	}
+
+	const ids = updates.map((u) => u.id);
+
+	// Use a transaction to update priorities atomically
+	// Soft-delete existing records and re-insert with new priorities to avoid constraint conflicts
 	return await ctx.db.transaction().execute(async (trx) => {
-		const results = [];
+		// Get the existing records to preserve their data
+		const existingRecords = await trx
+			.selectFrom('user_desk_location')
+			.selectAll()
+			.where('user_desk_location.id', 'in', ids)
+			.where('user_desk_location.removed_at', 'is', null)
+			.execute();
+
+		// Soft-delete the existing records
+		await trx
+			.updateTable('user_desk_location')
+			.set({
+				removed_at: sql`now()`,
+				removed_by: ctx.session.user.id,
+			})
+			.where('user_desk_location.id', 'in', ids)
+			.where('user_desk_location.removed_at', 'is', null)
+			.execute();
+
+		// Re-insert with new priorities
+		const newRecords = [];
 		for (const update of updates) {
-			const result = await trx
-				.updateTable('user_desk_location')
-				.set({
-					priority: update.priority,
-				})
-				.where('user_desk_location.id', '=', update.id)
-				.where('user_desk_location.removed_at', 'is', null)
-				.returningAll()
-				.executeTakeFirstOrThrow();
-			results.push(result);
+			const existing = existingRecords.find((r) => r.id === update.id);
+			if (existing) {
+				const newRecord = await trx
+					.insertInto('user_desk_location')
+					.values({
+						user_id: existing.user_id,
+						desk_location_id: existing.desk_location_id,
+						priority: update.priority,
+						assigned_by: ctx.session.user.id,
+					})
+					.returningAll()
+					.executeTakeFirstOrThrow();
+				newRecords.push(newRecord);
+			}
 		}
-		return results;
+
+		return newRecords;
 	});
 }
 
 /**
  * Update desk assignments for multiple users at once
  * Handles both individual user editing and bulk assignment
- * Diffs existing vs desired assignments and applies changes atomically
+ * Uses a simple soft-delete-all then insert-all approach to avoid unique constraint issues
  * NOTE: This function expects to be called within a transaction from the controller
  */
 export async function updateUsersDeskAssignments(
@@ -817,64 +884,28 @@ export async function updateUsersDeskAssignments(
 	const results = [];
 
 	for (const { userId, assignments: desiredAssignments } of updates) {
-		// Get existing assignments for this user
-		const existingAssignments = await ctx.db
-			.selectFrom('user_desk_location')
-			.selectAll()
+		// Step 1: Soft-delete ALL existing assignments for this user
+		await ctx.db
+			.updateTable('user_desk_location')
+			.set({
+				removed_at: sql`now()`,
+				removed_by: ctx.session.user.id,
+			})
 			.where('user_desk_location.user_id', '=', userId)
 			.where('user_desk_location.removed_at', 'is', null)
 			.execute();
 
-		// Remove or update assignments that are no longer in desired list
-		for (const existing of existingAssignments) {
-			const matchingDesired = desiredAssignments.find(
-				(d) => d.deskLocationId === existing.desk_location_id && d.priority === existing.priority
-			);
-
-			if (!matchingDesired) {
-				// Check if same location exists at different priority
-				const sameLocationDifferentPriority = desiredAssignments.find(
-					(d) => d.deskLocationId === existing.desk_location_id && d.priority !== existing.priority
-				);
-
-				if (sameLocationDifferentPriority) {
-					// Update priority instead of remove/add
-					await ctx.db
-						.updateTable('user_desk_location')
-						.set({ priority: sameLocationDifferentPriority.priority })
-						.where('user_desk_location.id', '=', existing.id)
-						.execute();
-				} else {
-					// Remove assignment
-					await ctx.db
-						.updateTable('user_desk_location')
-						.set({
-							removed_at: sql`now()`,
-							removed_by: ctx.session.user.id,
-						})
-						.where('user_desk_location.id', '=', existing.id)
-						.execute();
-				}
-			}
-		}
-
-		// Add new assignments that don't exist
+		// Step 2: Insert all desired assignments fresh
 		for (const desired of desiredAssignments) {
-			const existsAlready = existingAssignments.some(
-				(e) => e.desk_location_id === desired.deskLocationId
-			);
-
-			if (!existsAlready) {
-				await ctx.db
-					.insertInto('user_desk_location')
-					.values({
-						user_id: userId,
-						desk_location_id: desired.deskLocationId,
-						priority: desired.priority,
-						assigned_by: ctx.session.user.id,
-					})
-					.execute();
-			}
+			await ctx.db
+				.insertInto('user_desk_location')
+				.values({
+					user_id: userId,
+					desk_location_id: desired.deskLocationId,
+					priority: desired.priority,
+					assigned_by: ctx.session.user.id,
+				})
+				.execute();
 		}
 
 		results.push({ userId, assignmentsUpdated: desiredAssignments.length });

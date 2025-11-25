@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Fade, Stack, Typography } from '@mui/material';
-import { Deadline } from '@/hooks/trpc/useRecoveryTrpc';
+import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import { Dayjs } from 'dayjs';
 import theme from '@/styles/theme';
 import { useRouter } from 'next/navigation';
@@ -20,7 +20,7 @@ export default function DailyEventsList({ deadlines, selectedDate }: DailyEvents
 
 	const handleClaimClick = (claimId: number) => {
 		// Navigate to claim detail (could also open in a dialog/panel)
-		router.push(`/claim/${claimId}`);
+		router.push(`/claims/${claimId}`);
 	};
 
 	return (

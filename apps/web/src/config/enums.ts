@@ -99,11 +99,24 @@ export enum CoverageType {
 	OTHER = 'other',
 }
 
+/**
+ * Entity types that can have deadlines linked to them
+ */
+export enum DeadlineEntityType {
+	TASK = 'task',
+	CLAIM = 'claim',
+	CHECKLIST_CLAIM = 'checklist_claim',
+	MANUAL = 'manual', // Standalone deadline not linked to any entity
+}
+
+/**
+ * Status of a deadline
+ */
 export enum DeadlineStatus {
 	PENDING = 'pending',
 	MET = 'met',
 	MISSED = 'missed',
-	EXTENDED = 'extended',
+	CANCELLED = 'cancelled',
 }
 
 export enum DocType {
@@ -215,13 +228,26 @@ export enum UserStatus {}
 // ============================================================================
 
 /**
- * Status of a task in the workflow system
+ * Task status stored in the database
+ * Represents the workflow state of a task
  */
 export enum TaskStatus {
-	PENDING = 'pending',
-	IN_PROGRESS = 'in_progress',
-	COMPLETED = 'completed',
-	CANCELLED = 'cancelled',
+	PENDING = 'pending', // Task created, not yet claimed
+	IN_PROGRESS = 'in_progress', // Task claimed and being worked on
+	COMPLETED = 'completed', // Task completed
+	CANCELLED = 'cancelled', // Task cancelled
+}
+
+/**
+ * Derived task status calculated from task fields + linked deadline
+ * Used for display purposes to show if task was completed on time or late
+ */
+export enum DerivedTaskStatus {
+	AVAILABLE = 'available', // status = 'pending' AND claimed_by IS NULL
+	IN_PROGRESS = 'in_progress', // status = 'in_progress' OR (status = 'pending' AND claimed_by IS NOT NULL)
+	COMPLETED_ON_TIME = 'completed_on_time', // status = 'completed' AND deadline.status = 'met'
+	COMPLETED_LATE = 'completed_late', // status = 'completed' AND deadline.status = 'missed'
+	CANCELLED = 'cancelled', // status = 'cancelled'
 }
 
 /**

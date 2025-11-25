@@ -119,6 +119,7 @@ export async function getTaskCountsByStatus(
 
 /**
  * Create a new task with admin logging
+ * Uses transaction to ensure task creation and admin logging are atomic
  */
 export async function createTask(
 	ctx: ProtectedContext,
@@ -128,30 +129,35 @@ export async function createTask(
 		taskType?: TaskType;
 		title: string;
 		description?: string;
-		dueDate?: string;
+		deadlineDate?: string;
+		deadlineDescription?: string;
 		workUnits?: number;
 	}
 ) {
-	const task = await taskQueries.createTask(ctx, input);
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.createTask(trxCtx, input);
 
-	await logAdminAction(ctx, {
-		entityId: task.id,
-		entityName: EntityName.TASK,
-		action: AdminAction.CREATE,
-		value: {
-			title: task.title,
-			deskLocationId: task.desk_location_id,
-			claimId: task.claim_id,
-			taskType: task.task_type,
-			workUnits: task.work_units,
-		},
+		await logAdminAction(trxCtx, {
+			entityId: task.id,
+			entityName: EntityName.TASK,
+			action: AdminAction.CREATE,
+			value: {
+				title: task.title,
+				deskLocationId: task.desk_location_id,
+				claimId: task.claim_id,
+				taskType: task.task_type,
+				workUnits: task.work_units,
+			},
+		});
+
+		return task;
 	});
-
-	return task;
 }
 
 /**
  * Update task details with admin logging
+ * Uses transaction to ensure task update and admin logging are atomic
  */
 export async function updateTask(
 	ctx: ProtectedContext,
@@ -169,16 +175,19 @@ export async function updateTask(
 		};
 	}
 ) {
-	const task = await taskQueries.updateTask(ctx, id, params);
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.updateTask(trxCtx, id, params);
 
-	await logAdminAction(ctx, {
-		entityId: task.id,
-		entityName: EntityName.TASK,
-		action: AdminAction.UPDATE,
-		value: params,
+		await logAdminAction(trxCtx, {
+			entityId: task.id,
+			entityName: EntityName.TASK,
+			action: AdminAction.UPDATE,
+			value: params,
+		});
+
+		return task;
 	});
-
-	return task;
 }
 
 /**
@@ -199,46 +208,54 @@ export async function unclaimTask(ctx: ProtectedContext, { id }: { id: number })
 
 /**
  * Complete task with admin logging
+ * Uses transaction to ensure task completion and admin logging are atomic
  */
 export async function completeTask(
 	ctx: ProtectedContext,
 	{ id, completionNotes }: { id: number; completionNotes?: string }
 ) {
-	const task = await taskQueries.completeTask(ctx, id, completionNotes);
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.completeTask(trxCtx, id, completionNotes);
 
-	await logAdminAction(ctx, {
-		entityId: task.id,
-		entityName: EntityName.TASK,
-		action: AdminAction.UPDATE,
-		value: {
-			action: 'complete',
-			completionNotes,
-		},
+		await logAdminAction(trxCtx, {
+			entityId: task.id,
+			entityName: EntityName.TASK,
+			action: AdminAction.UPDATE,
+			value: {
+				action: 'complete',
+				completionNotes,
+			},
+		});
+
+		return task;
 	});
-
-	return task;
 }
 
 /**
  * Cancel task with admin logging
+ * Uses transaction to ensure task cancellation and admin logging are atomic
  */
 export async function cancelTask(
 	ctx: ProtectedContext,
 	{ id, cancellationReason }: { id: number; cancellationReason: string }
 ) {
-	const task = await taskQueries.cancelTask(ctx, id, cancellationReason);
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.cancelTask(trxCtx, id, cancellationReason);
 
-	await logAdminAction(ctx, {
-		entityId: task.id,
-		entityName: EntityName.TASK,
-		action: AdminAction.DELETE,
-		value: {
-			action: 'cancel',
-			cancellationReason,
-		},
+		await logAdminAction(trxCtx, {
+			entityId: task.id,
+			entityName: EntityName.TASK,
+			action: AdminAction.DELETE,
+			value: {
+				action: 'cancel',
+				cancellationReason,
+			},
+		});
+
+		return task;
 	});
-
-	return task;
 }
 
 // ============================================================================
@@ -260,25 +277,29 @@ export async function getTasksByDueDateWeek(
 
 /**
  * Bulk cancel multiple tasks with admin logging
+ * Uses transaction to ensure bulk cancellation and admin logging are atomic
  */
 export async function bulkCancelTasks(
 	ctx: ProtectedContext,
 	{ ids, cancellationReason }: { ids: number[]; cancellationReason: string }
 ) {
-	const result = await taskQueries.bulkCancelTasks(ctx, { ids, cancellationReason });
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const result = await taskQueries.bulkCancelTasks(trxCtx, { ids, cancellationReason });
 
-	// Log admin action for bulk cancel
-	await logAdminAction(ctx, {
-		entityId: 0, // Bulk action, no single entity
-		entityName: EntityName.TASK,
-		action: AdminAction.DELETE,
-		value: {
-			action: 'bulk_cancel',
-			taskIds: ids,
-			cancelledCount: result.cancelledCount,
-			cancellationReason,
-		},
+		// Log admin action for bulk cancel
+		await logAdminAction(trxCtx, {
+			entityId: 0, // Bulk action, no single entity
+			entityName: EntityName.TASK,
+			action: AdminAction.DELETE,
+			value: {
+				action: 'bulk_cancel',
+				taskIds: ids,
+				cancelledCount: result.cancelledCount,
+				cancellationReason,
+			},
+		});
+
+		return result;
 	});
-
-	return result;
 }

@@ -465,7 +465,7 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 
 	// Get all checklist assignments for this claim
 	// A claim can be worked in multiple checklists
-	const checklistAssignments = await ctx.db
+	const checklistAssignmentsQuery = ctx.db
 		.selectFrom('checklist_claim')
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 		.innerJoin('users as assignee', 'checklist_claim.assignee', 'assignee.id')
@@ -494,42 +494,37 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where('checklist_claim.claim_id', '=', claimId)
 		.where('checklist_claim.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
-		.orderBy('checklist_claim.last_opened', 'desc')
-		.execute();
+		.orderBy('checklist_claim.last_opened', 'desc');
 
 	// Get insured coverage summary (claim_coverage table)
-	const coverageSummary = await ctx.db
+	const coverageSummaryQuery = ctx.db
 		.selectFrom('claim_coverage')
-		.select((eb) => [
-			eb.fn.count('id').as('count'),
-			eb.fn.sum('coverage_amount').as('total'),
-		])
+		.select((eb) => [eb.fn.count('id').as('count'), eb.fn.sum('coverage_amount').as('total')])
 		.where('claim_id', '=', claimId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
+		.where('client_id', '=', ctx.session.user.client_id);
 
 	// Get party/liability summary (claim_party table - only non-deleted)
-	const partySummary = await ctx.db
+	const partySummaryQuery = ctx.db
 		.selectFrom('claim_party')
-		.select((eb) => [
-			eb.fn.count('id').as('count'),
-			eb.fn.sum('liability_percentage').as('total_liability'),
-		])
+		.select((eb) => [eb.fn.count('id').as('count'), eb.fn.sum('liability_percentage').as('total_liability')])
 		.where('claim_id', '=', claimId)
-		.where('deleted_at', 'is', null)
-		.executeTakeFirst();
+		.where('deleted_at', 'is', null);
 
 	// Get task summary by status
-	const taskSummary = await ctx.db
+	const taskSummaryQuery = ctx.db
 		.selectFrom('task')
-		.select((eb) => [
-			'status',
-			eb.fn.count('id').as('count'),
-		])
-		.where('claim_id', '=', claimId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.groupBy('status')
-		.execute();
+		.innerJoin('deadline', 'task.id', 'deadline.entity_id')
+		.select((eb) => ['deadline.status', eb.fn.count('task.id').as('count')])
+		.where('task.claim_id', '=', claimId)
+		.where('task.client_id', '=', ctx.session.user.client_id)
+		.groupBy('deadline.status');
+
+	const [checklistAssignments, coverageSummary, partySummary, taskSummary] = await Promise.all([
+		checklistAssignmentsQuery.execute(),
+		coverageSummaryQuery.executeTakeFirst(),
+		partySummaryQuery.executeTakeFirst(),
+		taskSummaryQuery.execute(),
+	]);
 
 	// Transform task summary into object
 	const taskCounts = {
@@ -620,11 +615,7 @@ export async function listMyClaims(
 	// First get distinct claim IDs with their most recent assignment, then aggregate
 	const distinctClaimsSubquery = query
 		.distinctOn('claim.id')
-		.select([
-			'claim.id',
-			'claim.claim_amount',
-			'checklist_claim.created_at as assignment_created_at',
-		])
+		.select(['claim.id', 'claim.claim_amount', 'checklist_claim.created_at as assignment_created_at'])
 		.orderBy('claim.id')
 		.orderBy('checklist_claim.created_at', 'desc')
 		.as('distinct_claims');
@@ -634,9 +625,9 @@ export async function listMyClaims(
 		.select(({ fn }) => [
 			fn.countAll().as('count'),
 			fn.sum('distinct_claims.claim_amount').as('total_value'),
-			fn.avg(
-				sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`
-			).as('avg_days_in_queue'),
+			fn
+				.avg(sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`)
+				.as('avg_days_in_queue'),
 		])
 		.executeTakeFirst();
 
@@ -745,11 +736,7 @@ export async function listMyDeskClaims(
 	// First get distinct claim IDs with their highest priority desk assignment, then aggregate
 	const distinctClaimsSubquery = query
 		.distinctOn('claim.id')
-		.select([
-			'claim.id',
-			'claim.claim_amount',
-			'checklist_claim.created_at as assignment_created_at',
-		])
+		.select(['claim.id', 'claim.claim_amount', 'checklist_claim.created_at as assignment_created_at'])
 		.orderBy('claim.id')
 		.orderBy('user_desk_location.priority', 'asc')
 		.orderBy('checklist_claim.created_at', 'desc')
@@ -760,9 +747,9 @@ export async function listMyDeskClaims(
 		.select(({ fn }) => [
 			fn.countAll().as('count'),
 			fn.sum('distinct_claims.claim_amount').as('total_value'),
-			fn.avg(
-				sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`
-			).as('avg_days_in_queue'),
+			fn
+				.avg(sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`)
+				.as('avg_days_in_queue'),
 		])
 		.executeTakeFirst();
 

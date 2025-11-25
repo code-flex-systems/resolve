@@ -13,7 +13,7 @@ export const getTasksInput = z.object({
 	deskLocationId: z.number().int().positive().optional(),
 	// Filter by claim
 	claimId: z.number().int().positive().optional(),
-	// Filter by status
+	// Filter by derived status (calculated from claimed_by + deadline.status)
 	status: z.nativeEnum(TaskStatus).optional(),
 	// Filter by task type
 	taskType: z.nativeEnum(TaskType).optional(),
@@ -26,7 +26,7 @@ export const getTasksInput = z.object({
 	// Pagination
 	limit: z.number().int().positive().optional(),
 	offset: z.number().int().nonnegative().optional(),
-	// Include cancelled tasks
+	// Include cancelled tasks (tasks with cancelled deadline)
 	showCancelled: z.boolean().optional(),
 });
 export type GetTasksInput = z.infer<typeof getTasksInput>;
@@ -83,8 +83,10 @@ export const createTaskInput = z.object({
 	taskType: z.nativeEnum(TaskType).optional().default(TaskType.GENERIC),
 	title: z.string().min(1).max(255),
 	description: z.string().max(2000).optional(),
-	dueDate: z.string().optional(), // ISO date string
 	workUnits: z.number().int().min(1).max(100).optional().default(2),
+	// Optional deadline fields (creates linked deadline if provided)
+	deadlineDate: z.string().optional(), // ISO date string
+	deadlineDescription: z.string().max(500).optional(),
 });
 export type CreateTaskInput = z.infer<typeof createTaskInput>;
 
@@ -96,7 +98,7 @@ export const updateTaskInput = z.object({
 	params: z.object({
 		title: z.string().min(1).max(255).optional(),
 		description: z.string().max(2000).optional(),
-		dueDate: z.string().nullable().optional(), // ISO date string, null to clear
+		dueDate: z.string().nullable().optional(), // ISO date string, null to remove deadline
 		workUnits: z.number().int().min(1).max(100).optional(),
 		deskLocationId: z.number().int().positive().optional(),
 	}),

@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
+import { useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 import { useRouter } from 'next/navigation';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -11,13 +11,14 @@ import AccessTime from '@mui/icons-material/AccessTime';
 
 export default function MyClaimsDeadlines() {
 	const router = useRouter();
-	const { data: deadlines = [], isLoading } = useRecoveryTrpc().listDeadlines(
+	const { data = { rows: [], count: 0 }, isLoading } = useDeadlineTrpc().listDeadlines(
 		{ personalOnly: true },
 		{ refetchOnMount: 'always' }
 	);
+	const deadlines = data.rows;
 
 	const handleClaimClick = (claimId: number) => {
-		router.push(`/claim/${claimId}`);
+		router.push(`/claims/${claimId}`);
 	};
 
 	// Calculate overdue and upcoming
@@ -78,9 +79,9 @@ export default function MyClaimsDeadlines() {
 							</Stack>
 						)}
 					</Box>
-					{deadlines.length > 10 && (
+					{data.count > 10 && (
 						<Typography fontSize={11} color="text.secondary" textAlign="center" marginTop={1}>
-							Showing 10 of {deadlines.length} deadlines
+							Showing 10 of {data.count} deadlines
 						</Typography>
 					)}
 				</>

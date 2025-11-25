@@ -75,7 +75,7 @@ export default function TaskCreationDialog({
 				taskType: data.taskType,
 				title: data.title,
 				description: data.description || undefined,
-				dueDate: data.dueDate ? data.dueDate.format('YYYY-MM-DD') : undefined,
+				deadlineDate: data.dueDate ? data.dueDate.format('YYYY-MM-DD') : undefined,
 				workUnits: data.workUnits,
 			});
 

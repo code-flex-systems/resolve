@@ -2,7 +2,7 @@
 
 import { Badge, Paper } from '@mui/material';
 import { DateCalendar, PickersDay, PickersDayProps } from '@mui/x-date-pickers-pro';
-import { Deadline, useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
+import { Deadline, useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { useMemo, useState, useEffect } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import theme from '@/styles/theme';
@@ -24,7 +24,7 @@ export default function Calendar() {
 		return [start, end] as [string, string];
 	}, [currentMonth]);
 
-	const { data: deadlines = [] } = useRecoveryTrpc().listDeadlines(
+	const { data = { rows: [], count: 0 } } = useDeadlineTrpc().listDeadlines(
 		{
 			dateRange,
 			personalOnly: true, // Only show deadlines for claims the user is assigned to
@@ -36,7 +36,7 @@ export default function Calendar() {
 	// Group deadlines by day
 	const deadlinesByDay = useMemo(() => {
 		const grouped = new Map<string, Deadline[]>();
-		deadlines.forEach((deadline) => {
+		data.rows.forEach((deadline) => {
 			const dateKey = dayjs(deadline.deadline_date).format('YYYY-MM-DD');
 			if (!grouped.has(dateKey)) {
 				grouped.set(dateKey, []);
@@ -44,7 +44,7 @@ export default function Calendar() {
 			grouped.get(dateKey)!.push(deadline);
 		});
 		return grouped;
-	}, [deadlines]);
+	}, [data]);
 
 	// Custom day renderer with badge
 	function CustomDay(props: PickersDayProps) {

@@ -1,16 +1,15 @@
 import { Box, Stack, Typography } from '@mui/material';
-import { Deadline } from '@/hooks/trpc/useRecoveryTrpc';
+import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import dayjs from 'dayjs';
 import theme from '@/styles/theme';
 import { DeadlineStatus } from '@/config/enums';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 interface DeadlineListItemProps {
 	deadline: Deadline;
-	onClaimClick: (claimId: string) => void;
+	onClaimClick: (claimId: number) => void;
 	showTime?: boolean;
 }
 
@@ -25,8 +24,8 @@ function getDeadlineStatusIcon(status: string) {
 			return <CheckCircleIcon sx={{ ...styles.icon, color: theme.palette.success.main }} />;
 		case DeadlineStatus.MISSED:
 			return <CancelIcon sx={{ ...styles.icon, color: theme.palette.error.main }} />;
-		case DeadlineStatus.EXTENDED:
-			return <CalendarMonthIcon sx={{ ...styles.icon, color: theme.palette.warning.main }} />;
+		case DeadlineStatus.CANCELLED:
+			return <CancelIcon sx={{ ...styles.icon, color: theme.palette.warning.main }} />;
 		default:
 			return null;
 	}
@@ -81,7 +80,7 @@ export default function DeadlineListItem({ deadline, onClaimClick, showTime = tr
 						},
 					}}
 					onClick={() => {
-						if (deadline.claim_number) onClaimClick(deadline.claim_number);
+						onClaimClick(deadline.claim_id);
 					}}
 				>
 					Claim {deadline.claim_number}

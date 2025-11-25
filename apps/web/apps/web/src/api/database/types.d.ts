@@ -713,9 +713,6 @@ export interface Task {
    * Primary key
    */
   id: Generated<number>;
-  /**
-   * Task workflow status (pending, in_progress, completed, cancelled)
-   */
   status: Generated<string>;
   /**
    * Type of task (enum value from TaskType)

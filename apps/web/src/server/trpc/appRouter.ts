@@ -7,6 +7,7 @@ import { checklistRouter } from './routers/checklist';
 import { claimRouter } from './routers/claim';
 import { commentRouter } from './routers/comment';
 import { coverageRouter } from './routers/coverage';
+import { deadlineRouter } from './routers/deadline';
 import { deskRouter } from './routers/desk';
 import { docRouter } from './routers/doc';
 import { feedRouter } from './routers/feed';
@@ -27,6 +28,7 @@ export const appRouter = router({
 	claim: claimRouter,
 	comment: commentRouter,
 	coverage: coverageRouter,
+	deadline: deadlineRouter,
 	desk: deskRouter,
 	doc: docRouter,
 	feed: feedRouter,

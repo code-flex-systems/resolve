@@ -1,6 +1,12 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
-import { TaskStatus, TaskType } from '@/config/enums';
+import {
+	DeadlineEntityType,
+	DeadlineStatus,
+	DerivedTaskStatus,
+	TaskStatus,
+	TaskType,
+} from '@/config/enums';
 
 // ============================================================================
 // TASK CRUD OPERATIONS
@@ -9,6 +15,13 @@ import { TaskStatus, TaskType } from '@/config/enums';
 /**
  * Get paginated list of tasks with optional filters
  * Returns { rows, count } for server-side pagination
+ *
+ * Derived task status combines task.status with deadline info for display:
+ * - task.status = 'cancelled' → cancelled
+ * - task.status = 'completed' AND deadline.status = 'met' → completed_on_time
+ * - task.status = 'completed' AND deadline.status = 'missed' → completed_late
+ * - task.status = 'in_progress' → in_progress
+ * - task.status = 'pending' → available
  */
 export async function getTasks(
 	ctx: ProtectedContext,
@@ -25,24 +38,41 @@ export async function getTasks(
 		showCancelled?: boolean;
 	}
 ) {
-	// Base query with client scoping
+	// SQL expression for derived status (combines task.status with deadline timing)
+	const derivedStatusExpr = sql<string>`
+		CASE
+			WHEN task.status = 'cancelled' THEN 'cancelled'
+			WHEN task.status = 'completed' AND deadline.status = 'met' THEN 'completed_on_time'
+			WHEN task.status = 'completed' AND deadline.status = 'missed' THEN 'completed_late'
+			WHEN task.status = 'completed' THEN 'completed_on_time'
+			WHEN task.status = 'in_progress' THEN 'in_progress'
+			WHEN task.status = 'pending' THEN 'available'
+			ELSE 'available'
+		END
+	`;
+
+	// Base query with client scoping and deadline join
 	let query = ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
 		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
 		.leftJoin('users as claimed_user', 'task.claimed_by', 'claimed_user.id')
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
 		.select([
 			'task.id',
 			'task.client_id',
 			'task.claim_id',
 			'task.desk_location_id',
 			'task.task_type',
+			'task.status',
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.due_date',
-			'task.status',
 			'task.assigned_by',
 			'task.assigned_at',
 			'task.claimed_by',
@@ -50,9 +80,6 @@ export async function getTasks(
 			'task.completed_by',
 			'task.completed_at',
 			'task.completion_notes',
-			'task.cancelled_by',
-			'task.cancelled_at',
-			'task.cancellation_reason',
 			'task.created_at',
 			'task.updated_at',
 			'desk_location.name as desk_location_name',
@@ -61,12 +88,20 @@ export async function getTasks(
 			'claimed_user.first as claimed_by_first',
 			'claimed_user.last as claimed_by_last',
 			'claim.claim_number',
+			// Deadline fields
+			'deadline.id as deadline_id',
+			'deadline.deadline_date',
+			'deadline.deadline_type',
+			'deadline.description as deadline_description',
+			'deadline.status as deadline_status',
+			// Derived status
+			derivedStatusExpr.as('derived_status'),
 		])
 		.where('task.client_id', '=', ctx.session.user.client_id);
 
 	// Filter by cancelled status
 	if (!params.showCancelled) {
-		query = query.where('task.cancelled_at', 'is', null);
+		query = query.where('task.status', '!=', TaskStatus.CANCELLED);
 	}
 
 	// Apply filters
@@ -79,6 +114,7 @@ export async function getTasks(
 	}
 
 	if (params.status) {
+		// Filter by task status
 		query = query.where('task.status', '=', params.status);
 	}
 
@@ -98,15 +134,27 @@ export async function getTasks(
 		query = query.where(sql<boolean>`task.title ILIKE ${`%${params.searchTerm}%`}`);
 	}
 
-	// Order by due date (urgent first), then created date
-	query = query.orderBy(sql`task.due_date asc nulls last`).orderBy('task.created_at asc');
+	// Order by deadline date (urgent first), then created date
+	query = query
+		.orderBy(sql`deadline.deadline_date asc nulls last`)
+		.orderBy('task.created_at asc');
 
-	// Count query (run in parallel with data query)
-	const countQuery = ctx.db
+	// Build count query with same filters
+	let countQuery = ctx.db
 		.selectFrom('task')
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
 		.select(({ fn }) => fn.countAll().as('count'))
-		.where('task.client_id', '=', ctx.session.user.client_id)
-		.$if(!params.showCancelled, (qb) => qb.where('task.cancelled_at', 'is', null))
+		.where('task.client_id', '=', ctx.session.user.client_id);
+
+	if (!params.showCancelled) {
+		countQuery = countQuery.where('task.status', '!=', TaskStatus.CANCELLED);
+	}
+
+	countQuery = countQuery
 		.$if(params.deskLocationId !== undefined, (qb) =>
 			qb.where('task.desk_location_id', '=', params.deskLocationId!)
 		)
@@ -121,8 +169,7 @@ export async function getTasks(
 		)
 		.$if(params.searchTerm !== undefined, (qb) =>
 			qb.where(sql<boolean>`task.title ILIKE ${`%${params.searchTerm}%`}`)
-		)
-		.executeTakeFirst();
+		);
 
 	// Data query with pagination
 	const rowsQuery = query
@@ -131,7 +178,7 @@ export async function getTasks(
 		.execute();
 
 	// Execute in parallel
-	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+	const [countResult, rows] = await Promise.all([countQuery.executeTakeFirst(), rowsQuery]);
 
 	return {
 		rows,
@@ -143,23 +190,38 @@ export async function getTasks(
  * Get single task by ID
  */
 export async function getTask(ctx: ProtectedContext, id: number) {
+	const derivedStatusExpr = sql<string>`
+		CASE
+			WHEN deadline.status = 'cancelled' THEN 'cancelled'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
+			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
+			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
+			ELSE 'available'
+		END
+	`;
+
 	return await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
 		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
 		.leftJoin('users as claimed_user', 'task.claimed_by', 'claimed_user.id')
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
 		.select([
 			'task.id',
 			'task.client_id',
 			'task.claim_id',
 			'task.desk_location_id',
 			'task.task_type',
+			'task.status',
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.due_date',
-			'task.status',
 			'task.assigned_by',
 			'task.assigned_at',
 			'task.claimed_by',
@@ -167,9 +229,6 @@ export async function getTask(ctx: ProtectedContext, id: number) {
 			'task.completed_by',
 			'task.completed_at',
 			'task.completion_notes',
-			'task.cancelled_by',
-			'task.cancelled_at',
-			'task.cancellation_reason',
 			'task.created_at',
 			'task.updated_at',
 			'desk_location.name as desk_location_name',
@@ -178,6 +237,14 @@ export async function getTask(ctx: ProtectedContext, id: number) {
 			'claimed_user.first as claimed_by_first',
 			'claimed_user.last as claimed_by_last',
 			'claim.claim_number',
+			// Deadline fields
+			'deadline.id as deadline_id',
+			'deadline.deadline_date',
+			'deadline.deadline_type',
+			'deadline.description as deadline_description',
+			'deadline.status as deadline_status',
+			// Derived status
+			derivedStatusExpr.as('derived_status'),
 		])
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
@@ -232,6 +299,17 @@ export async function getTasksForUser(
 ) {
 	const userId = params?.userId || ctx.session.user.id;
 
+	const derivedStatusExpr = sql<string>`
+		CASE
+			WHEN deadline.status = 'cancelled' THEN 'cancelled'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
+			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
+			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
+			ELSE 'available'
+		END
+	`;
+
 	// Build base query with subquery for desk location filtering (single query, no N+1)
 	let query = ctx.db
 		.selectFrom('task')
@@ -243,6 +321,11 @@ export async function getTasksForUser(
 				.on('user_desk_location.removed_at', 'is', null)
 		)
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
 		.select([
 			'task.id',
 			'task.client_id',
@@ -252,8 +335,6 @@ export async function getTasksForUser(
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.due_date',
-			'task.status',
 			'task.assigned_by',
 			'task.assigned_at',
 			'task.claimed_by',
@@ -262,9 +343,17 @@ export async function getTasksForUser(
 			'desk_location.name as desk_location_name',
 			'user_desk_location.priority as user_priority',
 			'claim.claim_number',
+			// Deadline fields
+			'deadline.id as deadline_id',
+			'deadline.deadline_date',
+			'deadline.deadline_type',
+			'deadline.description as deadline_description',
+			'deadline.status as deadline_status',
+			// Derived status
+			derivedStatusExpr.as('derived_status'),
 		])
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null)
+		.where('task.status', '!=', TaskStatus.CANCELLED)
 		.where('task.desk_location_id', 'in', (eb) =>
 			eb
 				.selectFrom('user_desk_location')
@@ -277,27 +366,34 @@ export async function getTasksForUser(
 		query = query.where('task.status', '=', params.status);
 	}
 
-	// Order by user priority, then due date, then created date
+	// Order by user priority, then deadline date, then created date
 	query = query
 		.orderBy('user_desk_location.priority asc')
-		.orderBy(sql`task.due_date asc nulls last`)
+		.orderBy(sql`deadline.deadline_date asc nulls last`)
 		.orderBy('task.created_at asc');
 
 	// Count query using same subquery pattern
-	const countQuery = ctx.db
+	let countQuery = ctx.db
 		.selectFrom('task')
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
 		.select(({ fn }) => fn.countAll().as('count'))
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null)
+		.where('task.status', '!=', TaskStatus.CANCELLED)
 		.where('task.desk_location_id', 'in', (eb) =>
 			eb
 				.selectFrom('user_desk_location')
 				.select('desk_location_id')
 				.where('user_id', '=', userId)
 				.where('removed_at', 'is', null)
-		)
-		.$if(params?.status !== undefined, (qb) => qb.where('task.status', '=', params!.status!))
-		.executeTakeFirst();
+		);
+
+	if (params?.status) {
+		countQuery = countQuery.where('task.status', '=', params.status);
+	}
 
 	// Data query with pagination
 	const rowsQuery = query
@@ -305,7 +401,7 @@ export async function getTasksForUser(
 		.$if(params?.offset !== undefined, (qb) => qb.offset(params!.offset!))
 		.execute();
 
-	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+	const [countResult, rows] = await Promise.all([countQuery.executeTakeFirst(), rowsQuery]);
 
 	return {
 		rows,
@@ -315,6 +411,8 @@ export async function getTasksForUser(
 
 /**
  * Create a new task
+ * If deadlineDate is provided, creates a linked deadline record automatically
+ * Uses transaction to ensure task and deadline are created atomically
  */
 export async function createTask(
 	ctx: ProtectedContext,
@@ -324,73 +422,64 @@ export async function createTask(
 		taskType?: TaskType;
 		title: string;
 		description?: string;
-		dueDate?: string;
 		workUnits?: number;
+		deadlineDate?: string;
+		deadlineDescription?: string;
 	}
 ) {
 	if (!ctx.session.user.client_id) {
 		throw new Error('User client_id is required to create task');
 	}
 
-	return await ctx.db
-		.insertInto('task')
-		.values({
-			client_id: ctx.session.user.client_id,
-			claim_id: params.claimId,
-			desk_location_id: params.deskLocationId,
-			task_type: params.taskType || TaskType.GENERIC,
-			title: params.title,
-			description: params.description,
-			due_date: params.dueDate ? sql<Date>`${params.dueDate}::date` : undefined,
-			work_units: params.workUnits || 2,
-			status: TaskStatus.PENDING,
-			assigned_by: ctx.session.user.id,
-		})
-		.returningAll()
-		.executeTakeFirstOrThrow();
-}
+	const executeOperation = async (db: typeof ctx.db) => {
+		// Create the task
+		const task = await db
+			.insertInto('task')
+			.values({
+				client_id: ctx.session.user.client_id!,
+				claim_id: params.claimId,
+				desk_location_id: params.deskLocationId,
+				task_type: params.taskType || TaskType.GENERIC,
+				status: TaskStatus.PENDING,
+				title: params.title,
+				description: params.description,
+				work_units: params.workUnits || 2,
+				assigned_by: ctx.session.user.id,
+			})
+			.returningAll()
+			.executeTakeFirstOrThrow();
 
-/**
- * Update task details
- */
-export async function updateTask(
-	ctx: ProtectedContext,
-	id: number,
-	params: {
-		title?: string;
-		description?: string;
-		dueDate?: string | null;
-		workUnits?: number;
-		deskLocationId?: number;
-	}
-) {
-	// Build update object dynamically - Kysely will infer correct types
-	// Possible fields: title, description, due_date, work_units, desk_location_id, updated_at
-	const updateValues: {
-		[K in 'title' | 'description' | 'due_date' | 'work_units' | 'desk_location_id' | 'updated_at']?: any;
-	} = {
-		updated_at: sql`now()`,
+		// If deadline date provided, create linked deadline
+		if (params.deadlineDate) {
+			await db
+				.insertInto('deadline')
+				.values({
+					client_id: ctx.session.user.client_id!,
+					claim_id: params.claimId,
+					entity_type: DeadlineEntityType.TASK,
+					entity_id: task.id,
+					deadline_type: params.taskType || TaskType.GENERIC,
+					deadline_date: sql<Date>`${params.deadlineDate}::date`,
+					description: params.deadlineDescription || params.title,
+					status: DeadlineStatus.PENDING,
+					created_by: ctx.session.user.id,
+				})
+				.execute();
+		}
+
+		return task;
 	};
 
-	if (params.title !== undefined) updateValues.title = params.title;
-	if (params.description !== undefined) updateValues.description = params.description;
-	if (params.dueDate !== undefined)
-		updateValues.due_date = params.dueDate ? sql`${params.dueDate}::date` : null;
-	if (params.workUnits !== undefined) updateValues.work_units = params.workUnits;
-	if (params.deskLocationId !== undefined) updateValues.desk_location_id = params.deskLocationId;
-
-	return await ctx.db
-		.updateTable('task')
-		.set(updateValues)
-		.where('task.id', '=', id)
-		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	// Check if we're already in a transaction to avoid nested transactions
+	if (ctx.db.isTransaction) {
+		return await executeOperation(ctx.db);
+	}
+	return await ctx.db.transaction().execute(executeOperation);
 }
 
 /**
  * Claim task (start working on it)
+ * Sets status to IN_PROGRESS
  */
 export async function claimTask(ctx: ProtectedContext, id: number) {
 	return await ctx.db
@@ -403,14 +492,15 @@ export async function claimTask(ctx: ProtectedContext, id: number) {
 		})
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.status', '=', TaskStatus.PENDING)
-		.where('task.cancelled_at', 'is', null)
+		.where('task.status', '=', TaskStatus.PENDING) // Only claim if pending
+		.where('task.claimed_by', 'is', null) // Only claim if not already claimed
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
 
 /**
  * Unclaim task (release it back to queue)
+ * Sets status back to PENDING
  */
 export async function unclaimTask(ctx: ProtectedContext, id: number) {
 	return await ctx.db
@@ -423,58 +513,177 @@ export async function unclaimTask(ctx: ProtectedContext, id: number) {
 		})
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.status', '=', TaskStatus.IN_PROGRESS)
-		.where('task.cancelled_at', 'is', null)
+		.where('task.claimed_by', '=', ctx.session.user.id) // Only unclaim your own tasks
+		.where('task.status', '=', TaskStatus.IN_PROGRESS) // Only unclaim if in progress
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
 
 /**
- * Complete task
+ * Update task details
+ * Updates the linked deadline if dueDate is provided
+ * Uses transaction to ensure task and deadline are updated atomically
+ */
+export async function updateTask(
+	ctx: ProtectedContext,
+	id: number,
+	params: {
+		title?: string;
+		description?: string;
+		dueDate?: string | null;
+		workUnits?: number;
+		deskLocationId?: number;
+	}
+) {
+	const executeOperation = async (db: typeof ctx.db) => {
+		// Update task fields
+		const task = await db
+			.updateTable('task')
+			.set({
+				...(params.title !== undefined && { title: params.title }),
+				...(params.description !== undefined && { description: params.description }),
+				...(params.workUnits !== undefined && { work_units: params.workUnits }),
+				...(params.deskLocationId !== undefined && { desk_location_id: params.deskLocationId }),
+				updated_at: sql`now()`,
+			})
+			.where('task.id', '=', id)
+			.where('task.client_id', '=', ctx.session.user.client_id)
+			.returningAll()
+			.executeTakeFirstOrThrow();
+
+		// Update linked deadline's due date if provided
+		if (params.dueDate !== undefined) {
+			if (params.dueDate === null) {
+				// If dueDate is null, cancel the existing deadline
+				await db
+					.updateTable('deadline')
+					.set({
+						status: DeadlineStatus.CANCELLED,
+						cancelled_at: sql`now()`,
+						cancelled_by: ctx.session.user.id,
+						cancellation_reason: 'Due date removed',
+					})
+					.where('deadline.entity_type', '=', DeadlineEntityType.TASK)
+					.where('deadline.entity_id', '=', id)
+					.where('deadline.status', '=', DeadlineStatus.PENDING)
+					.execute();
+			} else {
+				// Update the deadline date
+				await db
+					.updateTable('deadline')
+					.set({
+						deadline_date: sql<Date>`${params.dueDate}::date`,
+					})
+					.where('deadline.entity_type', '=', DeadlineEntityType.TASK)
+					.where('deadline.entity_id', '=', id)
+					.where('deadline.status', '=', DeadlineStatus.PENDING)
+					.execute();
+			}
+		}
+
+		return task;
+	};
+
+	// Check if we're already in a transaction to avoid nested transactions
+	if (ctx.db.isTransaction) {
+		return await executeOperation(ctx.db);
+	}
+	return await ctx.db.transaction().execute(executeOperation);
+}
+
+/**
+ * Complete task and sync linked deadline status to 'met' or 'missed'
+ * Uses transaction to ensure task and deadline are updated atomically
  */
 export async function completeTask(
 	ctx: ProtectedContext,
 	id: number,
 	completionNotes?: string
 ) {
-	return await ctx.db
-		.updateTable('task')
-		.set({
-			status: TaskStatus.COMPLETED,
-			completed_by: ctx.session.user.id,
-			completed_at: sql`now()`,
-			completion_notes: completionNotes,
-			updated_at: sql`now()`,
-		})
-		.where('task.id', '=', id)
-		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	const executeOperation = async (db: typeof ctx.db) => {
+		// Update task completion fields
+		const task = await db
+			.updateTable('task')
+			.set({
+				status: TaskStatus.COMPLETED,
+				completed_by: ctx.session.user.id,
+				completed_at: sql`now()`,
+				completion_notes: completionNotes,
+				updated_at: sql`now()`,
+			})
+			.where('task.id', '=', id)
+			.where('task.client_id', '=', ctx.session.user.client_id)
+			.where('task.status', '!=', TaskStatus.COMPLETED) // Only complete if not already completed
+			.where('task.status', '!=', TaskStatus.CANCELLED) // Don't complete cancelled tasks
+			.returningAll()
+			.executeTakeFirstOrThrow();
+
+		// Update linked deadline status to 'met' or 'missed' based on deadline_date
+		await db
+			.updateTable('deadline')
+			.set({
+				status: sql<DeadlineStatus>`
+					CASE
+						WHEN deadline_date >= CURRENT_DATE THEN 'met'
+						ELSE 'missed'
+					END
+				`,
+				completed_at: sql`now()`,
+				completed_by: ctx.session.user.id,
+			})
+			.where('deadline.entity_type', '=', DeadlineEntityType.TASK)
+			.where('deadline.entity_id', '=', id)
+			.where('deadline.status', '=', DeadlineStatus.PENDING)
+			.execute();
+
+		return task;
+	};
+
+	// Check if we're already in a transaction to avoid nested transactions
+	if (ctx.db.isTransaction) {
+		return await executeOperation(ctx.db);
+	}
+	return await ctx.db.transaction().execute(executeOperation);
 }
 
 /**
  * Cancel task
+ * Sets task status to CANCELLED and cancels linked deadline
  */
 export async function cancelTask(
 	ctx: ProtectedContext,
 	id: number,
 	cancellationReason: string
 ) {
-	return await ctx.db
+	// Update task status to cancelled
+	const task = await ctx.db
 		.updateTable('task')
 		.set({
 			status: TaskStatus.CANCELLED,
-			cancelled_by: ctx.session.user.id,
-			cancelled_at: sql`now()`,
-			cancellation_reason: cancellationReason,
 			updated_at: sql`now()`,
 		})
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null)
+		.where('task.status', '!=', TaskStatus.CANCELLED) // Don't cancel if already cancelled
+		.where('task.status', '!=', TaskStatus.COMPLETED) // Don't cancel completed tasks
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
+	// Cancel the linked deadline
+	await ctx.db
+		.updateTable('deadline')
+		.set({
+			status: DeadlineStatus.CANCELLED,
+			cancelled_at: sql`now()`,
+			cancelled_by: ctx.session.user.id,
+			cancellation_reason: cancellationReason,
+		})
+		.where('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		.where('deadline.entity_id', '=', id)
+		.where('deadline.status', '!=', DeadlineStatus.CANCELLED) // Don't cancel if already cancelled
+		.execute();
+
+	return task;
 }
 
 /**
@@ -500,14 +709,26 @@ export async function getDeskCapacity(
 		throw new Error('Desk location not found');
 	}
 
-	// Get current usage (sum of work units for pending/in_progress tasks assigned on target date)
+	// Get current usage (sum of work units for available/in_progress tasks assigned on target date)
+	// Available = claimed_by IS NULL, In Progress = claimed_by IS NOT NULL
+	// Both must have completed_at IS NULL and deadline.status = 'pending'
 	const usageResult = await ctx.db
 		.selectFrom('task')
-		.select(({ fn }) => fn.sum('work_units').as('total_work_units'))
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
+		.select(({ fn }) => fn.sum('task.work_units').as('total_work_units'))
 		.where('task.desk_location_id', '=', deskLocationId)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.status', 'in', [TaskStatus.PENDING, TaskStatus.IN_PROGRESS])
-		.where('task.cancelled_at', 'is', null)
+		.where('task.completed_at', 'is', null)
+		.where((eb) =>
+			eb.or([
+				eb('deadline.status', '=', DeadlineStatus.PENDING),
+				eb('deadline.status', 'is', null),
+			])
+		)
 		.where(sql<boolean>`DATE(task.assigned_at) = ${targetDate}::date`)
 		.executeTakeFirst();
 
@@ -524,22 +745,50 @@ export async function getDeskCapacity(
 }
 
 /**
- * Get task counts by status for a desk location
+ * Get task counts by derived status for a desk location
  */
 export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationId: number) {
+	const derivedStatusExpr = sql<string>`
+		CASE
+			WHEN deadline.status = 'cancelled' THEN 'cancelled'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
+			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
+			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
+			ELSE 'available'
+		END
+	`;
+
 	const result = await ctx.db
 		.selectFrom('task')
-		.select(['status', ({ fn }) => fn.countAll().as('count')])
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
+		.select([derivedStatusExpr.as('derived_status'), ({ fn }) => fn.countAll().as('count')])
 		.where('task.desk_location_id', '=', deskLocationId)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null)
-		.groupBy('status')
+		.where((eb) =>
+			eb.or([
+				eb('deadline.status', '!=', DeadlineStatus.CANCELLED),
+				eb('deadline.status', 'is', null),
+			])
+		)
+		.groupBy(derivedStatusExpr)
 		.execute();
 
 	return {
-		pending: Number(result.find((r) => r.status === TaskStatus.PENDING)?.count || 0),
-		in_progress: Number(result.find((r) => r.status === TaskStatus.IN_PROGRESS)?.count || 0),
-		completed: Number(result.find((r) => r.status === TaskStatus.COMPLETED)?.count || 0),
+		available: Number(result.find((r) => r.derived_status === DerivedTaskStatus.AVAILABLE)?.count || 0),
+		in_progress: Number(
+			result.find((r) => r.derived_status === DerivedTaskStatus.IN_PROGRESS)?.count || 0
+		),
+		completed_on_time: Number(
+			result.find((r) => r.derived_status === DerivedTaskStatus.COMPLETED_ON_TIME)?.count || 0
+		),
+		completed_late: Number(
+			result.find((r) => r.derived_status === DerivedTaskStatus.COMPLETED_LATE)?.count || 0
+		),
 	};
 }
 
@@ -548,7 +797,7 @@ export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationI
 // ============================================================================
 
 /**
- * Get all tasks with due_date within a given week range
+ * Get all tasks with deadline_date within a given week range
  * Used for admin task management view with client-side filtering
  */
 export async function getTasksByDueDateWeek(
@@ -558,23 +807,38 @@ export async function getTasksByDueDateWeek(
 		weekEnd: string; // ISO date string (YYYY-MM-DD)
 	}
 ) {
+	const derivedStatusExpr = sql<string>`
+		CASE
+			WHEN deadline.status = 'cancelled' THEN 'cancelled'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
+			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
+			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
+			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
+			ELSE 'available'
+		END
+	`;
+
 	const rows = await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
 		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
 		.leftJoin('users as claimed_user', 'task.claimed_by', 'claimed_user.id')
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
+		.leftJoin('deadline', (join) =>
+			join
+				.onRef('deadline.entity_id', '=', 'task.id')
+				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		)
 		.select([
 			'task.id',
 			'task.client_id',
 			'task.claim_id',
 			'task.desk_location_id',
 			'task.task_type',
+			'task.status',
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.due_date',
-			'task.status',
 			'task.assigned_by',
 			'task.assigned_at',
 			'task.claimed_by',
@@ -582,9 +846,6 @@ export async function getTasksByDueDateWeek(
 			'task.completed_by',
 			'task.completed_at',
 			'task.completion_notes',
-			'task.cancelled_by',
-			'task.cancelled_at',
-			'task.cancellation_reason',
 			'task.created_at',
 			'task.updated_at',
 			'desk_location.name as desk_location_name',
@@ -593,11 +854,19 @@ export async function getTasksByDueDateWeek(
 			'claimed_user.first as claimed_by_first',
 			'claimed_user.last as claimed_by_last',
 			'claim.claim_number',
+			// Deadline fields
+			'deadline.id as deadline_id',
+			'deadline.deadline_date',
+			'deadline.deadline_type',
+			'deadline.description as deadline_description',
+			'deadline.status as deadline_status',
+			// Derived status
+			derivedStatusExpr.as('derived_status'),
 		])
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.due_date', '>=', sql<Date>`${params.weekStart}::date`)
-		.where('task.due_date', '<=', sql<Date>`${params.weekEnd}::date`)
-		.orderBy('task.due_date', 'asc')
+		.where('deadline.deadline_date', '>=', sql<Date>`${params.weekStart}::date`)
+		.where('deadline.deadline_date', '<=', sql<Date>`${params.weekEnd}::date`)
+		.orderBy('deadline.deadline_date', 'asc')
 		.orderBy('task.created_at', 'asc')
 		.execute();
 
@@ -605,7 +874,7 @@ export async function getTasksByDueDateWeek(
 }
 
 /**
- * Bulk cancel multiple tasks with the same cancellation reason
+ * Bulk cancel multiple tasks by cancelling their linked deadlines
  * Used for admin bulk task management
  */
 export async function bulkCancelTasks(
@@ -619,21 +888,35 @@ export async function bulkCancelTasks(
 		return { cancelledCount: 0 };
 	}
 
-	const result = await ctx.db
+	// Update task statuses to cancelled
+	const taskResult = await ctx.db
 		.updateTable('task')
 		.set({
 			status: TaskStatus.CANCELLED,
-			cancelled_by: ctx.session.user.id,
-			cancelled_at: sql`now()`,
-			cancellation_reason: params.cancellationReason,
 			updated_at: sql`now()`,
 		})
 		.where('task.id', 'in', params.ids)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.cancelled_at', 'is', null) // Only cancel tasks not already cancelled
+		.where('task.status', '!=', TaskStatus.CANCELLED) // Only cancel tasks not already cancelled
+		.where('task.status', '!=', TaskStatus.COMPLETED) // Don't cancel completed tasks
 		.executeTakeFirst();
 
+	// Cancel all linked deadlines for these tasks
+	await ctx.db
+		.updateTable('deadline')
+		.set({
+			status: DeadlineStatus.CANCELLED,
+			cancelled_at: sql`now()`,
+			cancelled_by: ctx.session.user.id,
+			cancellation_reason: params.cancellationReason,
+		})
+		.where('deadline.entity_type', '=', DeadlineEntityType.TASK)
+		.where('deadline.entity_id', 'in', params.ids)
+		.where('deadline.client_id', '=', ctx.session.user.client_id)
+		.where('deadline.status', '!=', DeadlineStatus.CANCELLED) // Only cancel deadlines not already cancelled
+		.execute();
+
 	return {
-		cancelledCount: Number(result.numUpdatedRows || 0),
+		cancelledCount: Number(taskResult.numUpdatedRows || 0),
 	};
 }
