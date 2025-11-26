@@ -100,6 +100,19 @@ export enum CoverageType {
 }
 
 /**
+ * Simplified coverage type categories for liability tracking
+ * More focused on liability perspective than policy coverage details
+ */
+export enum LiabilityCoverageType {
+	PROPERTY = 'property', // Property damage liability
+	INJURY = 'injury', // Bodily injury liability
+	AUTO_LIABILITY = 'auto_liability', // Auto-specific liability
+	GENERAL_LIABILITY = 'general_liability', // General business liability
+	PROFESSIONAL_LIABILITY = 'professional_liability', // Errors & omissions
+	OTHER = 'other', // Catch-all
+}
+
+/**
  * Entity types that can have deadlines linked to them
  */
 export enum DeadlineEntityType {

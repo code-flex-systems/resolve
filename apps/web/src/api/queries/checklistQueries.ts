@@ -743,7 +743,6 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 			'claim.claim_number',
 			'claim.client',
 			'claim.insured',
-			'claim.line_of_business',
 			'claim.recovery_status',
 			'checklist_claim.status',
 		])

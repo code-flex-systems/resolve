@@ -96,20 +96,22 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 			{/* Action Toolbar */}
 			<Box display="flex" justifyContent="space-between" gap={1} marginTop={2}>
 				<Box display="flex" flexWrap="wrap" gap={1} justifyContent="flex-start" alignItems="center">
-					{claimDetail.line_of_business && (
-						<Chip
-							icon={
-								<Box marginLeft="5px">
-									<Typography fontSize={14}>
-										{LOB_ICONS[claimDetail.line_of_business as LineOfBusiness]}
-									</Typography>
-								</Box>
-							}
-							label={formatLineOfBusiness(claimDetail.line_of_business)}
-							color="primary"
-							variant="outlined"
-						/>
-					)}
+					{claimDetail.aggregated_line_of_business && claimDetail.aggregated_line_of_business.length > 0 &&
+						claimDetail.aggregated_line_of_business.map((lob: string) => (
+							<Chip
+								key={lob}
+								icon={
+									<Box marginLeft="5px">
+										<Typography fontSize={14}>
+											{LOB_ICONS[lob as LineOfBusiness]}
+										</Typography>
+									</Box>
+								}
+								label={formatLineOfBusiness(lob)}
+								color="primary"
+								variant="outlined"
+							/>
+						))}
 					{claimDetail.loss_type && (
 						<Chip
 							icon={

@@ -9,6 +9,7 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatClaimPartyRole } from '@/lib/utils/partyUtils';
+import { formatLineOfBusiness, formatLiabilityCoverageType } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -51,6 +52,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		liability_percentage?: number | null;
 		coverage_amount?: string | null;
 		notes?: string | null;
+		line_of_business?: string | null;
+		coverage_type?: string | null;
+		paid_recovery?: number | null;
+		reserved_recovery?: number | null;
 	}) => {
 		try {
 			if (editingClaimParty) {
@@ -63,6 +68,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 						liability_percentage: data.liability_percentage ?? undefined,
 						coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : undefined,
 						notes: data.notes ?? undefined,
+						line_of_business: data.line_of_business ?? undefined,
+						coverage_type: data.coverage_type ?? undefined,
+						paid_recovery: data.paid_recovery ?? undefined,
+						reserved_recovery: data.reserved_recovery ?? undefined,
 					},
 				});
 			} else {
@@ -75,6 +84,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					liability_percentage: data.liability_percentage ?? undefined,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : undefined,
 					notes: data.notes ?? undefined,
+					line_of_business: data.line_of_business ?? undefined,
+					coverage_type: data.coverage_type ?? undefined,
+					paid_recovery: data.paid_recovery ?? undefined,
+					reserved_recovery: data.reserved_recovery ?? undefined,
 				});
 			}
 			handleCloseDialog();
@@ -94,6 +107,16 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		return sum + amount;
 	}, 0);
 
+	const totalPaidRecovery = claimParties.reduce((sum, cp) => {
+		const amount = cp.paid_recovery ? parseFloat(cp.paid_recovery.toString()) : 0;
+		return sum + amount;
+	}, 0);
+
+	const totalReservedRecovery = claimParties.reduce((sum, cp) => {
+		const amount = cp.reserved_recovery ? parseFloat(cp.reserved_recovery.toString()) : 0;
+		return sum + amount;
+	}, 0);
+
 	return (
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
@@ -102,7 +125,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Liability Summary
 					</Typography>
-					<Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
+					<Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={2}>
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Total Coverage Amount
@@ -123,6 +146,28 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							</Typography>
 							<Typography variant="h6" fontSize={18} color="warning.main">
 								{totalLiability.toFixed(2)}%
+							</Typography>
+						</Box>
+						<Box>
+							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+								Total Paid Recovery
+							</Typography>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Sum of paid recovery across liabilities
+							</Typography>
+							<Typography variant="h6" fontSize={18} color="success.main">
+								{formatCurrencyExact(totalPaidRecovery)}
+							</Typography>
+						</Box>
+						<Box>
+							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+								Total Reserved Recovery
+							</Typography>
+							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+								Sum of reserved recovery across liabilities
+							</Typography>
+							<Typography variant="h6" fontSize={18} color="info.main">
+								{formatCurrencyExact(totalReservedRecovery)}
 							</Typography>
 						</Box>
 					</Box>
@@ -278,7 +323,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 													)}
 
 													{/* Liability & Coverage */}
-													<Box display="flex" gap={1} marginTop={1} marginBottom={0.5}>
+													<Box display="flex" gap={1} marginTop={1} marginBottom={0.5} flexWrap="wrap">
 														{claimParty.liability_percentage !== null && (
 															<Chip
 																label={`Liability: ${parseFloat(claimParty.liability_percentage.toString()).toFixed(2)}%`}
@@ -293,7 +338,45 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																color="success"
 															/>
 														)}
+														{claimParty.line_of_business && (
+															<Chip
+																label={`LOB: ${formatLineOfBusiness(claimParty.line_of_business)}`}
+																size="small"
+																color="primary"
+																variant="outlined"
+															/>
+														)}
+														{claimParty.coverage_type && (
+															<Chip
+																label={`Type: ${formatLiabilityCoverageType(claimParty.coverage_type)}`}
+																size="small"
+																color="secondary"
+																variant="outlined"
+															/>
+														)}
 													</Box>
+
+													{/* Recovery Tracking */}
+													{(claimParty.paid_recovery || claimParty.reserved_recovery) && (
+														<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
+															{claimParty.paid_recovery && (
+																<Chip
+																	label={`Paid: ${formatCurrencyExact(parseFloat(claimParty.paid_recovery.toString()))}`}
+																	size="small"
+																	color="success"
+																	variant="outlined"
+																/>
+															)}
+															{claimParty.reserved_recovery && (
+																<Chip
+																	label={`Reserved: ${formatCurrencyExact(parseFloat(claimParty.reserved_recovery.toString()))}`}
+																	size="small"
+																	color="info"
+																	variant="outlined"
+																/>
+															)}
+														</Box>
+													)}
 
 													{/* Notes */}
 													{claimParty.notes && (

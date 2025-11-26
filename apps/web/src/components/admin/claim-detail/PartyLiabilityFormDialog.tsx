@@ -5,7 +5,8 @@ import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/m
 import BasicDialog from '@/components/common/BasicDialog';
 import ClaimPartyRoleSelect from '@/components/common/ClaimPartyRoleSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { ClaimPartyRole } from '@/config/enums';
+import { ClaimPartyRole, LineOfBusiness, LiabilityCoverageType } from '@/config/enums';
+import { formatLineOfBusiness, formatLiabilityCoverageType } from '@/lib/utils/claimUtils';
 
 interface PartyLiabilityFormData {
 	role: ClaimPartyRole;
@@ -14,6 +15,10 @@ interface PartyLiabilityFormData {
 	liability_percentage: string;
 	coverage_amount: string;
 	notes: string;
+	line_of_business: LineOfBusiness | '';
+	coverage_type: LiabilityCoverageType | '';
+	paid_recovery: string;
+	reserved_recovery: string;
 }
 
 interface PartyLiabilityFormDialogProps {
@@ -26,6 +31,10 @@ interface PartyLiabilityFormDialogProps {
 		liability_percentage?: number | null;
 		coverage_amount?: string | null;
 		notes?: string | null;
+		line_of_business?: string | null;
+		coverage_type?: string | null;
+		paid_recovery?: number | null;
+		reserved_recovery?: number | null;
 	}) => Promise<void>;
 	editingClaimParty?: any | null;
 	currentClaimParties?: any[];
@@ -47,6 +56,10 @@ export default function PartyLiabilityFormDialog({
 		liability_percentage: '',
 		coverage_amount: '',
 		notes: '',
+		line_of_business: '',
+		coverage_type: '',
+		paid_recovery: '',
+		reserved_recovery: '',
 	});
 
 	const [partySearchTerm, setPartySearchTerm] = useState('');
@@ -90,6 +103,10 @@ export default function PartyLiabilityFormDialog({
 				liability_percentage: editingClaimParty.liability_percentage?.toString() || '',
 				coverage_amount: editingClaimParty.coverage_amount?.toString() || '',
 				notes: editingClaimParty.notes || '',
+				line_of_business: editingClaimParty.line_of_business || '',
+				coverage_type: editingClaimParty.coverage_type || '',
+				paid_recovery: editingClaimParty.paid_recovery?.toString() || '',
+				reserved_recovery: editingClaimParty.reserved_recovery?.toString() || '',
 			});
 			// Set selected party and representative for autocompletes
 			if (editingClaimParty.party) {
@@ -107,6 +124,10 @@ export default function PartyLiabilityFormDialog({
 				liability_percentage: '',
 				coverage_amount: '',
 				notes: '',
+				line_of_business: '',
+				coverage_type: '',
+				paid_recovery: '',
+				reserved_recovery: '',
 			});
 			setSelectedParty(null);
 			setSelectedRepresentative(null);
@@ -144,6 +165,10 @@ export default function PartyLiabilityFormDialog({
 			liability_percentage: formData.liability_percentage ? parseFloat(formData.liability_percentage) : null,
 			coverage_amount: formData.coverage_amount || null,
 			notes: formData.notes || null,
+			line_of_business: formData.line_of_business || null,
+			coverage_type: formData.coverage_type || null,
+			paid_recovery: formData.paid_recovery ? parseFloat(formData.paid_recovery) : null,
+			reserved_recovery: formData.reserved_recovery ? parseFloat(formData.reserved_recovery) : null,
 		});
 	};
 
@@ -294,6 +319,84 @@ export default function PartyLiabilityFormDialog({
 					}}
 					error={!isValidCoverage}
 					helperText={!isValidCoverage ? 'Must be greater than 0' : ''}
+				/>
+
+				{/* Line of Business */}
+				<Box>
+					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
+						Line of Business
+					</Typography>
+					<Autocomplete
+						options={Object.values(LineOfBusiness)}
+						value={formData.line_of_business || null}
+						onChange={(_, newValue) => setFormData({ ...formData, line_of_business: newValue || '' })}
+						getOptionLabel={(option) => formatLineOfBusiness(option)}
+						renderOption={(props, option) => (
+							<li {...props} key={option}>
+								{formatLineOfBusiness(option)}
+							</li>
+						)}
+						fullWidth
+						renderInput={(params) => (
+							<TextField {...params} placeholder="Select line of business..." />
+						)}
+					/>
+				</Box>
+
+				{/* Coverage Type */}
+				<Box>
+					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
+						Coverage Type
+					</Typography>
+					<Autocomplete
+						options={Object.values(LiabilityCoverageType)}
+						value={formData.coverage_type || null}
+						onChange={(_, newValue) => setFormData({ ...formData, coverage_type: newValue || '' })}
+						getOptionLabel={(option) => formatLiabilityCoverageType(option)}
+						renderOption={(props, option) => (
+							<li {...props} key={option}>
+								{formatLiabilityCoverageType(option)}
+							</li>
+						)}
+						fullWidth
+						renderInput={(params) => (
+							<TextField {...params} placeholder="Select coverage type..." />
+						)}
+					/>
+				</Box>
+
+				{/* Paid Recovery */}
+				<TextField
+					label="Paid Recovery"
+					type="number"
+					value={formData.paid_recovery}
+					onChange={(e) => setFormData({ ...formData, paid_recovery: e.target.value })}
+					fullWidth
+					placeholder="Enter paid recovery amount"
+					inputProps={{ step: '0.01', min: '0' }}
+					slotProps={{
+						input: {
+							startAdornment: <InputAdornment position="start">$</InputAdornment>,
+						},
+					}}
+					helperText="Amount already paid for this specific liability"
+				/>
+
+				{/* Reserved Recovery */}
+				<TextField
+					label="Reserved Recovery"
+					type="number"
+					value={formData.reserved_recovery}
+					onChange={(e) => setFormData({ ...formData, reserved_recovery: e.target.value })}
+					fullWidth
+					placeholder="Enter reserved recovery amount"
+					inputProps={{ step: '0.01', min: '0' }}
+					slotProps={{
+						input: {
+							startAdornment: <InputAdornment position="start">$</InputAdornment>,
+						},
+					}}
+					helperText="Expected recovery reserved for this specific liability"
 				/>
 
 				{/* Notes */}

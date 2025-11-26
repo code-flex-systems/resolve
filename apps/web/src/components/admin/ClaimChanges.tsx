@@ -46,7 +46,6 @@ interface ClaimFormData {
 	expected_recovery: string; // Team's forecasted recovery
 	date_of_loss: Dayjs | null;
 	loss_location: string;
-	line_of_business: LineOfBusiness;
 	loss_type: LossType;
 	recovery_status: RecoveryStatus;
 	substatus: ClaimSubstatus;
@@ -85,7 +84,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			expected_recovery: '',
 			date_of_loss: null,
 			loss_location: '',
-			line_of_business: LineOfBusiness.AUTO,
 			loss_type: LossType.COLLISION,
 			recovery_status: RecoveryStatus.PENDING,
 			substatus: ClaimSubstatus.INVESTIGATION,
@@ -127,7 +125,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				expected_recovery: existingClaim.expected_recovery?.toString() || '',
 				date_of_loss: existingClaim.date_of_loss ? dayjs(existingClaim.date_of_loss) : null,
 				loss_location: existingClaim.loss_location || '',
-				line_of_business: (existingClaim.line_of_business as LineOfBusiness) || LineOfBusiness.AUTO,
 				loss_type: (existingClaim.loss_type as LossType) || LossType.COLLISION,
 				recovery_status: (existingClaim.recovery_status as RecoveryStatus) || RecoveryStatus.PENDING,
 				substatus: (existingClaim.substatus as ClaimSubstatus) || ClaimSubstatus.INVESTIGATION,
@@ -233,7 +230,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					expected_recovery: data.expected_recovery ? parseFloat(data.expected_recovery) : null,
 					date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 					loss_location: data.loss_location || null,
-					line_of_business: data.line_of_business,
 					loss_type: data.loss_type,
 					recovery_status: data.recovery_status,
 					substatus: data.substatus,
@@ -257,7 +253,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							paid_recovery: data.paid_recovery ? parseFloat(data.paid_recovery) : null,
 							date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 							loss_location: data.loss_location || null,
-							line_of_business: data.line_of_business,
 							loss_type: data.loss_type,
 							last_updated_by: null,
 							last_update: null,
@@ -278,7 +273,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 		router.back();
 	}, [router]);
 
-	const lineOfBusiness = watch('line_of_business');
 	const lossType = watch('loss_type');
 	const recoveryStatus = watch('recovery_status');
 	const substatus = watch('substatus');
@@ -507,23 +501,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 						</Typography>
 
 						<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>
-							<FormControl size="small" sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
-								<InputLabel>Line of Business</InputLabel>
-								<Select
-									value={lineOfBusiness}
-									label="Line of Business"
-									onChange={(e) => setValue('line_of_business', e.target.value as LineOfBusiness)}
-								>
-									{Object.values(LineOfBusiness).map((lob) => (
-										<MenuItem key={lob} value={lob}>
-											<Box display="flex" alignItems="center" gap={1}>
-												<Typography fontSize={14}>{LOB_ICONS[lob]}</Typography>
-												<Typography fontSize={14}>{formatLabel(lob)}</Typography>
-											</Box>
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
 
 							<FormControl size="small" sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
 								<InputLabel>Loss Type</InputLabel>

@@ -32,6 +32,13 @@ export function formatLineOfBusiness(lob: string | null): string {
 }
 
 /**
+ * Format liability coverage type enum to display-friendly text
+ */
+export function formatLiabilityCoverageType(coverageType: string | null): string {
+	return formatLabel(coverageType);
+}
+
+/**
  * Format loss type enum to display-friendly text
  */
 export function formatLossType(lossType: string | null): string {

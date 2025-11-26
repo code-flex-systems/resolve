@@ -4,6 +4,8 @@ import {
 	FacilitatorCategory,
 	EntityCategory,
 	ClaimPartyRole,
+	LineOfBusiness,
+	LiabilityCoverageType,
 } from '@/config/enums';
 
 // ============================================================================
@@ -231,6 +233,10 @@ export const linkPartyToClaimInput = z.object({
 	coverage_amount: z.number().min(0).optional(),
 	is_primary: z.boolean().optional(),
 	notes: z.string().max(2000).optional(),
+	line_of_business: z.nativeEnum(LineOfBusiness).optional(),
+	coverage_type: z.nativeEnum(LiabilityCoverageType).optional(),
+	paid_recovery: z.number().min(0).optional(),
+	reserved_recovery: z.number().min(0).optional(),
 });
 
 /**
@@ -245,6 +251,10 @@ export const updateClaimPartyInput = z.object({
 		coverage_amount: z.number().min(0).optional(),
 		is_primary: z.boolean().optional(),
 		notes: z.string().max(2000).optional(),
+		line_of_business: z.nativeEnum(LineOfBusiness).optional(),
+		coverage_type: z.nativeEnum(LiabilityCoverageType).optional(),
+		paid_recovery: z.number().min(0).optional(),
+		reserved_recovery: z.number().min(0).optional(),
 	}),
 });
 

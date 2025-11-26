@@ -822,6 +822,10 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		created_at: row.created_at,
 		created_by: row.created_by,
 		representative_id: row.representative_id,
+		line_of_business: row.line_of_business,
+		coverage_type: row.coverage_type,
+		paid_recovery: row.paid_recovery,
+		reserved_recovery: row.reserved_recovery,
 		party: {
 			id: row.party_id,
 			name: row.party_name,
@@ -866,6 +870,10 @@ export async function linkPartyToClaim(
 		coverage_amount?: number;
 		is_primary?: boolean;
 		notes?: string;
+		line_of_business?: string;
+		coverage_type?: string;
+		paid_recovery?: number;
+		reserved_recovery?: number;
 	}
 ) {
 	return await ctx.db
@@ -891,6 +899,10 @@ export async function updateClaimParty(
 		coverage_amount?: number;
 		is_primary?: boolean;
 		notes?: string;
+		line_of_business?: string;
+		coverage_type?: string;
+		paid_recovery?: number;
+		reserved_recovery?: number;
 	}
 ) {
 	return await ctx.db

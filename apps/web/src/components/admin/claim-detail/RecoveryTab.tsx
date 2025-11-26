@@ -107,16 +107,16 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 						Recovery Summary
 					</Typography>
 					<Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
-						{/* Client-reported fields */}
+						{/* Liability-level aggregated fields */}
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Reserved Recovery
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Client's expected recovery (from feed/manual)
+								Total reserved across all liabilities
 							</Typography>
 							<Typography variant="h6" fontSize={18}>
-								{formatCurrencyExact(Number(claimDetail?.reserved_recovery) || 0)}
+								{formatCurrencyExact(Number(claimDetail?.aggregated_reserved_recovery) || 0)}
 							</Typography>
 						</Box>
 						<Box>
@@ -124,10 +124,10 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 								Paid Recovery
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Client's reported paid amount (from feed/manual)
+								Total paid across all liabilities
 							</Typography>
 							<Typography variant="h6" fontSize={18}>
-								{formatCurrencyExact(Number(claimDetail?.paid_recovery) || 0)}
+								{formatCurrencyExact(Number(claimDetail?.aggregated_paid_recovery) || 0)}
 							</Typography>
 						</Box>
 						{/* Team-tracked fields */}

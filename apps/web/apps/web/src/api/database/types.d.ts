@@ -170,10 +170,6 @@ export interface Claim {
   insured: string | null;
   last_update: Timestamp | null;
   last_updated_by: string | null;
-  /**
-   * Line of business for the claim (LineOfBusiness enum enforced in TypeScript)
-   */
-  line_of_business: string | null;
   loss_location: string | null;
   /**
    * Type of loss for the claim (LossType enum enforced in TypeScript)
@@ -213,6 +209,10 @@ export interface ClaimParty {
    * Coverage limit for this adverse carrier
    */
   coverage_amount: Numeric | null;
+  /**
+   * Coverage type category for this liability (LiabilityCoverageType enum)
+   */
+  coverage_type: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -229,12 +229,24 @@ export interface ClaimParty {
    * Percentage of liability attributed to this party (for responsible parties)
    */
   liability_percentage: Numeric | null;
+  /**
+   * Line of business for this liability (LineOfBusiness enum)
+   */
+  line_of_business: string | null;
   notes: string | null;
+  /**
+   * Paid recovery tracked for this specific liability
+   */
+  paid_recovery: Numeric | null;
   party_id: number;
   /**
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
+  /**
+   * Reserved recovery tracked for this specific liability
+   */
+  reserved_recovery: Numeric | null;
   /**
    * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
    */
