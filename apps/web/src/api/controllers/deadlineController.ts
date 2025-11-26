@@ -4,6 +4,7 @@ import type { DeadlineParams } from '@/schemas/deadlineSchemas';
 import { DeadlineStatus } from '@/config/enums';
 import { DateRangeStrict } from '@/types/types';
 import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logUserWorkflowAction } from '@/api/utils/activityLogger';
 
 // =====================================================================
 // DEADLINE CONTROLLERS
@@ -89,20 +90,32 @@ export async function updateDeadlineStatus(
 		status: DeadlineStatus;
 	}
 ) {
-	// Update deadline status and log admin action within transaction
+	// Update deadline status and log action within transaction
 	const updated = await ctx.db.transaction().execute(async (trx) => {
 		const deadline = await deadlineQueries.updateDeadlineStatus({ ...ctx, db: trx }, deadlineId, status);
 
-		// Log admin action for deadline status update
-		await logAdminAction(
-			{ ...ctx, db: trx },
-			{
-				entityId: deadlineId,
-				entityName: EntityName.DEADLINE,
-				action: AdminAction.UPDATE,
-				value: { status },
-			}
-		);
+		// Log user workflow action if completing, otherwise log as admin action
+		if (status === DeadlineStatus.MET) {
+			await logUserWorkflowAction(
+				{ ...ctx, db: trx },
+				{
+					claimId: deadline.claim_id,
+					action: 'deadline_complete',
+					entityId: deadlineId,
+					value: { status },
+				}
+			);
+		} else {
+			await logAdminAction(
+				{ ...ctx, db: trx },
+				{
+					entityId: deadlineId,
+					entityName: EntityName.DEADLINE,
+					action: AdminAction.UPDATE,
+					value: { status },
+				}
+			);
+		}
 
 		return deadline;
 	});

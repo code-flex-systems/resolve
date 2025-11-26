@@ -22,7 +22,6 @@ import { trpc } from '@/lib/trpc';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { formatMDY } from '@/lib/utils/utils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -106,30 +105,15 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Recovery Summary
 					</Typography>
-					<Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
-						{/* Liability-level aggregated fields */}
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Reserved Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Total reserved across all liabilities
-							</Typography>
-							<Typography variant="h6" fontSize={18}>
-								{formatCurrencyExact(Number(claimDetail?.aggregated_reserved_recovery) || 0)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Paid Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Total paid across all liabilities
-							</Typography>
-							<Typography variant="h6" fontSize={18}>
-								{formatCurrencyExact(Number(claimDetail?.aggregated_paid_recovery) || 0)}
-							</Typography>
-						</Box>
+					<Box
+						display="grid"
+						gridTemplateColumns={{
+							xs: '1fr',
+							sm: 'repeat(2, 1fr)',
+							md: 'repeat(3, 1fr)',
+						}}
+						gap={3}
+					>
 						{/* Team-tracked fields */}
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
@@ -154,7 +138,7 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 							</Typography>
 						</Box>
 						{/* Recovery Rate */}
-						<Box gridColumn="1 / -1">
+						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Recovery Rate
 							</Typography>
@@ -205,51 +189,68 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 
 					{!isLoading && recoveryEvents.length > 0 && (
 						<Stack spacing={2}>
-							{recoveryEvents.map((event) => (
-								<Box key={event.id}>
-									<Box display="flex" gap={2}>
-										<Box
-											sx={{
-												width: 8,
-												height: 8,
-												borderRadius: '50%',
-												bgcolor: 'success.main',
-												marginTop: '6px',
-												flexShrink: 0,
-											}}
-										/>
-										<Box flex={1}>
-											<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-												<Box flex={1}>
-													<Typography fontSize={14} fontWeight={600} marginBottom={0.5}>
-														{formatCurrencyExact(parseFloat(event.recovery_amount.toString()))}
-													</Typography>
-													{event.recovery_source && (
-														<Typography fontSize={13} marginBottom={0.5}>
-															Source: <Highlight>{event.recovery_source}</Highlight>
+							{recoveryEvents.map((event, index) => {
+								// Calculate running total up to this event
+								const runningTotal = recoveryEvents
+									.slice(0, index + 1)
+									.reduce((sum, e) => sum + parseFloat(e.recovery_amount.toString()), 0);
+
+								return (
+									<Box key={event.id}>
+										<Box display="flex" gap={2}>
+											<Box
+												sx={{
+													width: 8,
+													height: 8,
+													borderRadius: '50%',
+													bgcolor: 'success.main',
+													marginTop: '6px',
+													flexShrink: 0,
+												}}
+											/>
+											<Box flex={1}>
+												<Box
+													display="flex"
+													justifyContent="space-between"
+													alignItems="flex-start"
+												>
+													<Box flex={1}>
+														<Typography fontSize={14} fontWeight={600} marginBottom={0.5}>
+															{formatCurrencyExact(
+																parseFloat(event.recovery_amount.toString())
+															)}
 														</Typography>
-													)}
-													{event.notes && (
-														<Typography fontSize={13} color="text.secondary">
-															{event.notes}
+														{event.recovery_source && (
+															<Typography fontSize={13} marginBottom={0.5}>
+																Source: <Highlight>{event.recovery_source}</Highlight>
+															</Typography>
+														)}
+														{event.notes && (
+															<Typography fontSize={13} color="text.secondary">
+																{event.notes}
+															</Typography>
+														)}
+														<Typography
+															fontSize={12}
+															color={BASE_COLOR_LIGHT}
+															marginTop={1}
+														>
+															{dayjs(event.recovery_date).format('MMM D, YYYY')} (
+															{dayjs(event.recovery_date).fromNow()})
 														</Typography>
-													)}
-													<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginTop={1}>
-														{dayjs(event.recovery_date).format('MMM D, YYYY')} (
-														{dayjs(event.recovery_date).fromNow()})
-													</Typography>
+													</Box>
+													<Chip
+														label={formatCurrencyExact(runningTotal)}
+														size="small"
+														color="success"
+													/>
 												</Box>
-												<Chip
-													label={formatCurrencyExact(parseFloat(event.recovery_amount.toString()))}
-													size="small"
-													color="success"
-												/>
 											</Box>
 										</Box>
+										<Divider sx={{ marginTop: 2 }} />
 									</Box>
-									<Divider sx={{ marginTop: 2 }} />
-								</Box>
-							))}
+								);
+							})}
 							<Box padding={2} bgcolor="#f5f5f5" borderRadius={1}>
 								<Box display="flex" justifyContent="space-between" alignItems="center">
 									<Typography fontSize={14} fontWeight={600}>

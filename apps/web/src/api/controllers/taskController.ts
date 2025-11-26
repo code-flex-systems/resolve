@@ -1,6 +1,7 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as taskQueries from '@/api/queries/taskQueries';
 import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logUserWorkflowAction } from '@/api/utils/activityLogger';
 import { TaskStatus, TaskType } from '@/config/enums';
 
 // ============================================================================
@@ -192,23 +193,45 @@ export async function updateTask(
 
 /**
  * Claim task (start working on it)
- * No admin logging - this is a user action, not admin action
+ * Logs user workflow action to claim_activity_logs
  */
 export async function claimTask(ctx: ProtectedContext, { id }: { id: number }) {
-	return await taskQueries.claimTask(ctx, id);
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.claimTask(trxCtx, id);
+
+		await logUserWorkflowAction(trxCtx, {
+			claimId: task.claim_id!,
+			action: 'task_claim',
+			entityId: task.id,
+		});
+
+		return task;
+	});
 }
 
 /**
  * Unclaim task (release it back to queue)
- * No admin logging - this is a user action, not admin action
+ * Logs user workflow action to claim_activity_logs
  */
 export async function unclaimTask(ctx: ProtectedContext, { id }: { id: number }) {
-	return await taskQueries.unclaimTask(ctx, id);
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.unclaimTask(trxCtx, id);
+
+		await logUserWorkflowAction(trxCtx, {
+			claimId: task.claim_id!,
+			action: 'task_unclaim',
+			entityId: task.id,
+		});
+
+		return task;
+	});
 }
 
 /**
- * Complete task with admin logging
- * Uses transaction to ensure task completion and admin logging are atomic
+ * Complete task with user workflow logging
+ * Uses transaction to ensure task completion and logging are atomic
  */
 export async function completeTask(
 	ctx: ProtectedContext,
@@ -218,12 +241,11 @@ export async function completeTask(
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.completeTask(trxCtx, id, completionNotes);
 
-		await logAdminAction(trxCtx, {
+		await logUserWorkflowAction(trxCtx, {
+			claimId: task.claim_id!,
+			action: 'task_complete',
 			entityId: task.id,
-			entityName: EntityName.TASK,
-			action: AdminAction.UPDATE,
 			value: {
-				action: 'complete',
 				completionNotes,
 			},
 		});

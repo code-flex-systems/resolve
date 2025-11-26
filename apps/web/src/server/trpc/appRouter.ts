@@ -1,6 +1,7 @@
 import { router } from './trpc';
 
 import { actionRouter } from './routers/action';
+import { activityLogsRouter } from './routers/activityLogs';
 import { adminLogsRouter } from './routers/adminLogs';
 import { answerRouter } from './routers/answer';
 import { checklistRouter } from './routers/checklist';
@@ -22,6 +23,7 @@ import { userRouter } from './routers/user';
 
 export const appRouter = router({
 	action: actionRouter,
+	activityLogs: activityLogsRouter,
 	adminLogs: adminLogsRouter,
 	answer: answerRouter,
 	checklist: checklistRouter,

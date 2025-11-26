@@ -72,8 +72,8 @@ export async function getRecoveryEvents(ctx: ProtectedContext, claimId: number) 
 		.selectAll()
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
 		.where('recovery_event.claim_id', '=', claimId)
-		.orderBy('recovery_date desc')
-		.orderBy('created_at desc')
+		.orderBy('recovery_date asc')
+		.orderBy('created_at asc')
 		.execute();
 }
 

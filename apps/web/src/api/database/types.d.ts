@@ -74,6 +74,17 @@ export interface AdminActionLogs {
   value: Json | null;
 }
 
+export interface AdminConfigLogs {
+  action: string;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  entity_id: string;
+  entity_name: string;
+  id: Generated<number>;
+  user_id: string;
+  value: Json | null;
+}
+
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
@@ -186,6 +197,19 @@ export interface Claim {
    */
   substatus: string | null;
   total_incurred: Numeric | null;
+}
+
+export interface ClaimActivityLogs {
+  action: string;
+  actor_type: string;
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  entity_id: string;
+  entity_name: string;
+  id: Generated<number>;
+  user_id: string;
+  value: Json | null;
 }
 
 export interface ClaimCoverage {
@@ -810,11 +834,13 @@ export interface DB {
   action: Action;
   action_log: ActionLog;
   admin_action_logs: AdminActionLogs;
+  admin_config_logs: AdminConfigLogs;
   answer: Answer;
   auth_events: AuthEvents;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
   claim: Claim;
+  claim_activity_logs: ClaimActivityLogs;
   claim_coverage: ClaimCoverage;
   claim_party: ClaimParty;
   client: Client;
