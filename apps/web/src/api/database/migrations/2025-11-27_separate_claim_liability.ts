@@ -29,34 +29,28 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// 2. Create claim_liability table
-	await db.schema
-		.createTable('claim_liability')
-		.addColumn('id', 'serial', (col) => col.primaryKey())
-		.addColumn('claim_party_id', 'integer', (col) =>
-			col.notNull().references('claim_party.id').onDelete('cascade')
+	await sql`
+		CREATE TABLE claim_liability (
+			id SERIAL PRIMARY KEY,
+			claim_party_id INTEGER NOT NULL REFERENCES claim_party(id) ON DELETE CASCADE,
+			client_id UUID NOT NULL REFERENCES client(id),
+			liability_percentage NUMERIC(5,2),
+			coverage_amount NUMERIC(12,2),
+			line_of_business TEXT,
+			loss_type TEXT,
+			paid_recovery NUMERIC(12,2),
+			reserved_recovery NUMERIC(12,2),
+			notes TEXT,
+			feed_id INTEGER REFERENCES feeds(id),
+			external_reference TEXT,
+			last_synced_at TIMESTAMPTZ,
+			manually_overridden BOOLEAN DEFAULT false,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			created_by UUID REFERENCES users(id),
+			updated_at TIMESTAMPTZ,
+			updated_by UUID REFERENCES users(id)
 		)
-		.addColumn('client_id', 'uuid', (col) =>
-			col.notNull().references('client.id')
-		)
-		// Liability fields
-		.addColumn('liability_percentage', 'numeric(5,2)')
-		.addColumn('coverage_amount', 'numeric(12,2)')
-		.addColumn('line_of_business', 'text')
-		.addColumn('loss_type', 'text')
-		.addColumn('paid_recovery', 'numeric(12,2)')
-		.addColumn('reserved_recovery', 'numeric(12,2)')
-		.addColumn('notes', 'text')
-		// Source tracking for feed integration
-		.addColumn('feed_id', 'integer', (col) => col.references('feeds.id'))
-		.addColumn('external_reference', 'text')
-		.addColumn('last_synced_at', 'timestamptz')
-		.addColumn('manually_overridden', 'boolean', (col) => col.defaultTo(false))
-		// Audit fields
-		.addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
-		.addColumn('created_by', 'uuid', (col) => col.references('users.id'))
-		.addColumn('updated_at', 'timestamptz')
-		.addColumn('updated_by', 'uuid', (col) => col.references('users.id'))
-		.execute();
+	`.execute(db);
 
 	// 3. Add CHECK constraints
 	await sql`
@@ -281,35 +275,15 @@ export async function down(db: Kysely<any>): Promise<void> {
 	`.execute(db);
 
 	// 3. Restore liability columns to claim_party
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('liability_percentage', 'numeric(5,2)')
-		.execute();
-
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('coverage_amount', 'numeric(12,2)')
-		.execute();
-
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('line_of_business', 'text')
-		.execute();
-
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('coverage_type', 'text')
-		.execute();
-
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('paid_recovery', 'numeric(12,2)')
-		.execute();
-
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('reserved_recovery', 'numeric(12,2)')
-		.execute();
+	await sql`
+		ALTER TABLE claim_party
+		ADD COLUMN liability_percentage NUMERIC(5,2),
+		ADD COLUMN coverage_amount NUMERIC(12,2),
+		ADD COLUMN line_of_business TEXT,
+		ADD COLUMN coverage_type TEXT,
+		ADD COLUMN paid_recovery NUMERIC(12,2),
+		ADD COLUMN reserved_recovery NUMERIC(12,2)
+	`.execute(db);
 
 	// 4. Restore CHECK constraints
 	await sql`

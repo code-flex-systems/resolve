@@ -7,18 +7,19 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Create claim_coverage table
-	await db.schema
-		.createTable('claim_coverage')
-		.addColumn('id', 'serial', (col) => col.primaryKey())
-		.addColumn('claim_id', 'integer', (col) => col.notNull())
-		.addColumn('client_id', 'uuid', (col) => col.notNull())
-		.addColumn('coverage_type', 'text', (col) => col.notNull())
-		.addColumn('coverage_amount', 'numeric(15, 2)')
-		.addColumn('created_by', 'uuid')
-		.addColumn('created_at', 'timestamp', (col) => col.defaultTo(sql`now()`))
-		.addColumn('updated_by', 'uuid')
-		.addColumn('updated_at', 'timestamp')
-		.execute();
+	await sql`
+		CREATE TABLE claim_coverage (
+			id SERIAL PRIMARY KEY,
+			claim_id INTEGER NOT NULL,
+			client_id UUID NOT NULL,
+			coverage_type TEXT NOT NULL,
+			coverage_amount NUMERIC(15, 2),
+			created_by UUID,
+			created_at TIMESTAMP DEFAULT now(),
+			updated_by UUID,
+			updated_at TIMESTAMP
+		)
+	`.execute(db);
 
 	// Add foreign key constraint to claim table
 	await sql`
