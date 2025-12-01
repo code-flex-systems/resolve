@@ -459,10 +459,10 @@ export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
 
 	const deletedAt = new Date();
 
-	// Soft delete desk location and remove user assignments in a transaction
-	const result = await ctx.db.transaction().execute(async (trx) => {
+	// Helper function to perform the archive operations
+	const performArchive = async (db: typeof ctx.db) => {
 		// 1. Remove all user assignments to this desk location
-		await trx
+		await db
 			.updateTable('user_desk_location')
 			.set({
 				removed_at: deletedAt,
@@ -473,7 +473,7 @@ export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
 			.execute();
 
 		// 2. Archive the desk location
-		return await trx
+		return await db
 			.updateTable('desk_location')
 			.set({
 				deleted_at: deletedAt,
@@ -484,9 +484,18 @@ export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
 			.where('desk_location.client_id', '=', ctx.session.user.client_id)
 			.returningAll()
 			.executeTakeFirstOrThrow();
-	});
+	};
 
-	return result;
+	// Check if we're already in a transaction
+	if (ctx.db.isTransaction) {
+		// Already in a transaction, use the existing transaction
+		return await performArchive(ctx.db);
+	} else {
+		// Not in a transaction, create one
+		return await ctx.db.transaction().execute(async (trx) => {
+			return await performArchive(trx);
+		});
+	}
 }
 
 /**
@@ -690,13 +699,14 @@ export async function bulkAssignUsersToDeskLocation(
 		throw new Error('Desk location not found');
 	}
 
-	return await ctx.db.transaction().execute(async (trx) => {
+	// Helper function to perform the bulk assignments
+	const performBulkAssignment = async (db: typeof ctx.db) => {
 		const results = [];
 
 		for (const userId of params.userIds) {
 			// First, soft-delete any existing assignment at this priority for this user
 			// (to make room for the new assignment at this priority slot)
-			await trx
+			await db
 				.updateTable('user_desk_location')
 				.set({
 					removed_at: sql`now()`,
@@ -709,7 +719,7 @@ export async function bulkAssignUsersToDeskLocation(
 
 			// Also soft-delete any existing assignment for this user-desk combo at ANY priority
 			// (to allow reassigning the same desk at a different priority)
-			await trx
+			await db
 				.updateTable('user_desk_location')
 				.set({
 					removed_at: sql`now()`,
@@ -721,7 +731,7 @@ export async function bulkAssignUsersToDeskLocation(
 				.execute();
 
 			// Then insert the new assignment
-			const result = await trx
+			const result = await db
 				.insertInto('user_desk_location')
 				.values({
 					user_id: userId,
@@ -736,7 +746,18 @@ export async function bulkAssignUsersToDeskLocation(
 		}
 
 		return results;
-	});
+	};
+
+	// Check if we're already in a transaction
+	if (ctx.db.isTransaction) {
+		// Already in a transaction, use the existing transaction
+		return await performBulkAssignment(ctx.db);
+	} else {
+		// Not in a transaction, create one
+		return await ctx.db.transaction().execute(async (trx) => {
+			return await performBulkAssignment(trx);
+		});
+	}
 }
 
 /**
@@ -748,9 +769,10 @@ export async function updateUserDeskLocationPriority(
 	id: number,
 	newPriority: number
 ) {
-	return await ctx.db.transaction().execute(async (trx) => {
+	// Helper function to perform the priority update
+	const performPriorityUpdate = async (db: typeof ctx.db) => {
 		// Get the current assignment to find the user_id
-		const current = await trx
+		const current = await db
 			.selectFrom('user_desk_location')
 			.select(['user_id', 'priority'])
 			.where('id', '=', id)
@@ -763,7 +785,7 @@ export async function updateUserDeskLocationPriority(
 
 		// If priority is changing, soft-delete any existing assignment at the new priority
 		if (current.priority !== newPriority) {
-			await trx
+			await db
 				.updateTable('user_desk_location')
 				.set({
 					removed_at: sql`now()`,
@@ -777,7 +799,7 @@ export async function updateUserDeskLocationPriority(
 		}
 
 		// Update the priority
-		return await trx
+		return await db
 			.updateTable('user_desk_location')
 			.set({
 				priority: newPriority,
@@ -786,7 +808,18 @@ export async function updateUserDeskLocationPriority(
 			.where('user_desk_location.removed_at', 'is', null)
 			.returningAll()
 			.executeTakeFirstOrThrow();
-	});
+	};
+
+	// Check if we're already in a transaction
+	if (ctx.db.isTransaction) {
+		// Already in a transaction, use the existing transaction
+		return await performPriorityUpdate(ctx.db);
+	} else {
+		// Not in a transaction, create one
+		return await ctx.db.transaction().execute(async (trx) => {
+			return await performPriorityUpdate(trx);
+		});
+	}
 }
 
 /**
@@ -823,11 +856,10 @@ export async function updateUserDeskLocationPriorities(
 
 	const ids = updates.map((u) => u.id);
 
-	// Use a transaction to update priorities atomically
-	// Soft-delete existing records and re-insert with new priorities to avoid constraint conflicts
-	return await ctx.db.transaction().execute(async (trx) => {
+	// Helper function to perform the priority updates
+	const performPriorityUpdates = async (db: typeof ctx.db) => {
 		// Get the existing records to preserve their data
-		const existingRecords = await trx
+		const existingRecords = await db
 			.selectFrom('user_desk_location')
 			.selectAll()
 			.where('user_desk_location.id', 'in', ids)
@@ -835,7 +867,7 @@ export async function updateUserDeskLocationPriorities(
 			.execute();
 
 		// Soft-delete the existing records
-		await trx
+		await db
 			.updateTable('user_desk_location')
 			.set({
 				removed_at: sql`now()`,
@@ -850,7 +882,7 @@ export async function updateUserDeskLocationPriorities(
 		for (const update of updates) {
 			const existing = existingRecords.find((r) => r.id === update.id);
 			if (existing) {
-				const newRecord = await trx
+				const newRecord = await db
 					.insertInto('user_desk_location')
 					.values({
 						user_id: existing.user_id,
@@ -865,7 +897,18 @@ export async function updateUserDeskLocationPriorities(
 		}
 
 		return newRecords;
-	});
+	};
+
+	// Check if we're already in a transaction
+	if (ctx.db.isTransaction) {
+		// Already in a transaction, use the existing transaction
+		return await performPriorityUpdates(ctx.db);
+	} else {
+		// Not in a transaction, create one
+		return await ctx.db.transaction().execute(async (trx) => {
+			return await performPriorityUpdates(trx);
+		});
+	}
 }
 
 /**
