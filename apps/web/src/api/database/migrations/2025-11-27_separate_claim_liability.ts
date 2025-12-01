@@ -235,17 +235,8 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS unique_claim_party_role`.execute(db);
 
 	// 10. Drop paid_recovery and reserved_recovery from claim table (calculate from liabilities instead)
-	await db.schema
-		.alterTable('claim')
-		.dropColumn('paid_recovery')
-		.ifExists()
-		.execute();
-
-	await db.schema
-		.alterTable('claim')
-		.dropColumn('reserved_recovery')
-		.ifExists()
-		.execute();
+	await sql`ALTER TABLE claim DROP COLUMN IF EXISTS paid_recovery`.execute(db);
+	await sql`ALTER TABLE claim DROP COLUMN IF EXISTS reserved_recovery`.execute(db);
 
 	// 11. Add column comments
 	await sql`COMMENT ON COLUMN claim_party.external_reference IS 'External ID from source system for feed matching'`.execute(db);
