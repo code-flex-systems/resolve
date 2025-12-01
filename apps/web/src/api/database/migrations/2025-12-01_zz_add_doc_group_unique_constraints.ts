@@ -2,12 +2,14 @@ import { Kysely, sql } from 'kysely';
 
 /**
  * Migration: add_doc_group_unique_constraints
- * Created: 2025-12-01T01:00:00.000Z
+ * Created: 2025-12-01T00:00:00.000Z
  *
  * Adds unique constraints to doc_group table to prevent duplicate system folders.
  * These constraints were in the baseline schema but missing from production.
  *
  * Cleans up any existing duplicates before adding the constraints.
+ * 
+ * Uses zz_ prefix to ensure this runs AFTER other 12/1 migrations.
  */
 
 export async function up(db: Kysely<any>): Promise<void> {
