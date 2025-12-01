@@ -33,6 +33,29 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run database migrations
+              env:
+                  NODE_ENV: production
+                  DB_HOST: ${{ secrets.DB_HOST }}
+                  DB_PORT: ${{ secrets.DB_PORT }}
+                  DB_USER: ${{ secrets.DB_USER }}
+                  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+                  DB_DATABASE: ${{ secrets.DB_DATABASE }}
+                  DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
+              run: |
+                  echo "Running database migrations..."
+                  npm --workspace apps/web run db:migrate
+                  echo "Migrations complete!"
+
             - name: Build and deploy Container App
               run: |
                   # Check current status
