@@ -2,78 +2,51 @@ import { Kysely, sql } from 'kysely';
 
 /**
  * Migration: add_soft_delete_to_party_tables
- * Created: 2025-11-16T00:00:00.000Z
+ * Created: 2025-12-01T00:00:00.000Z
  *
  * Adds soft delete support to party, party_office, and party_representative tables.
- * Must run BEFORE 2025-11-17_add_deleted_at_to_claim_party.ts
+ * These columns should have been added earlier but were missing from production.
  */
 
 export async function up(db: Kysely<any>): Promise<void> {
-	// Add deleted_at and deleted_by to party table
-	await db.schema
-		.alterTable('party')
-		.addColumn('deleted_at', 'timestamptz')
-		.execute();
+	// Add deleted_at and deleted_by to party table (using IF NOT EXISTS)
+	await sql`
+		ALTER TABLE party
+		ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+		ADD COLUMN IF NOT EXISTS deleted_by UUID
+	`.execute(db);
 
-	await db.schema
-		.alterTable('party')
-		.addColumn('deleted_by', 'uuid')
-		.execute();
+	await sql`
+		ALTER TABLE party
+		ADD CONSTRAINT IF NOT EXISTS party_deleted_by_fkey
+		FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
+	`.execute(db);
 
-	await db.schema
-		.alterTable('party')
-		.addForeignKeyConstraint(
-			'party_deleted_by_fkey',
-			['deleted_by'],
-			'users',
-			['id']
-		)
-		.onDelete('set null')
-		.execute();
+	// Add deleted_at and deleted_by to party_office table (using IF NOT EXISTS)
+	await sql`
+		ALTER TABLE party_office
+		ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+		ADD COLUMN IF NOT EXISTS deleted_by UUID
+	`.execute(db);
 
-	// Add deleted_at and deleted_by to party_office table
-	await db.schema
-		.alterTable('party_office')
-		.addColumn('deleted_at', 'timestamptz')
-		.execute();
+	await sql`
+		ALTER TABLE party_office
+		ADD CONSTRAINT IF NOT EXISTS party_office_deleted_by_fkey
+		FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
+	`.execute(db);
 
-	await db.schema
-		.alterTable('party_office')
-		.addColumn('deleted_by', 'uuid')
-		.execute();
+	// Add deleted_at and deleted_by to party_representative table (using IF NOT EXISTS)
+	await sql`
+		ALTER TABLE party_representative
+		ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+		ADD COLUMN IF NOT EXISTS deleted_by UUID
+	`.execute(db);
 
-	await db.schema
-		.alterTable('party_office')
-		.addForeignKeyConstraint(
-			'party_office_deleted_by_fkey',
-			['deleted_by'],
-			'users',
-			['id']
-		)
-		.onDelete('set null')
-		.execute();
-
-	// Add deleted_at and deleted_by to party_representative table
-	await db.schema
-		.alterTable('party_representative')
-		.addColumn('deleted_at', 'timestamptz')
-		.execute();
-
-	await db.schema
-		.alterTable('party_representative')
-		.addColumn('deleted_by', 'uuid')
-		.execute();
-
-	await db.schema
-		.alterTable('party_representative')
-		.addForeignKeyConstraint(
-			'party_representative_deleted_by_fkey',
-			['deleted_by'],
-			'users',
-			['id']
-		)
-		.onDelete('set null')
-		.execute();
+	await sql`
+		ALTER TABLE party_representative
+		ADD CONSTRAINT IF NOT EXISTS party_representative_deleted_by_fkey
+		FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
+	`.execute(db);
 
 	// Add column comments
 	await sql`COMMENT ON COLUMN party.deleted_at IS 'Soft delete timestamp - party is archived when not null'`.execute(db);

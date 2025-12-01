@@ -2,11 +2,13 @@ import { Kysely, sql } from 'kysely';
 
 /**
  * Migration: add_missing_baseline_columns
- * Created: 2025-11-15T00:00:00.000Z
+ * Created: 2025-12-01T00:00:00.000Z
  *
  * Adds columns that should have been in the baseline schema but were missing
  * in the production database. This handles the case where production was
  * partially initialized before migrations were properly set up.
+ *
+ * Uses IF NOT EXISTS to safely add columns even if they already exist.
  */
 
 export async function up(db: Kysely<any>): Promise<void> {
