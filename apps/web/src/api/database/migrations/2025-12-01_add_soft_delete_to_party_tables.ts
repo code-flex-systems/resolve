@@ -16,9 +16,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 		ADD COLUMN IF NOT EXISTS deleted_by UUID
 	`.execute(db);
 
+	// Add foreign key constraint (drop first if exists, then recreate)
 	await sql`
 		ALTER TABLE party
-		ADD CONSTRAINT IF NOT EXISTS party_deleted_by_fkey
+		DROP CONSTRAINT IF EXISTS party_deleted_by_fkey
+	`.execute(db);
+
+	await sql`
+		ALTER TABLE party
+		ADD CONSTRAINT party_deleted_by_fkey
 		FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 	`.execute(db);
 
@@ -29,9 +35,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 		ADD COLUMN IF NOT EXISTS deleted_by UUID
 	`.execute(db);
 
+	// Add foreign key constraint (drop first if exists, then recreate)
 	await sql`
 		ALTER TABLE party_office
-		ADD CONSTRAINT IF NOT EXISTS party_office_deleted_by_fkey
+		DROP CONSTRAINT IF EXISTS party_office_deleted_by_fkey
+	`.execute(db);
+
+	await sql`
+		ALTER TABLE party_office
+		ADD CONSTRAINT party_office_deleted_by_fkey
 		FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 	`.execute(db);
 
@@ -42,9 +54,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 		ADD COLUMN IF NOT EXISTS deleted_by UUID
 	`.execute(db);
 
+	// Add foreign key constraint (drop first if exists, then recreate)
 	await sql`
 		ALTER TABLE party_representative
-		ADD CONSTRAINT IF NOT EXISTS party_representative_deleted_by_fkey
+		DROP CONSTRAINT IF EXISTS party_representative_deleted_by_fkey
+	`.execute(db);
+
+	await sql`
+		ALTER TABLE party_representative
+		ADD CONSTRAINT party_representative_deleted_by_fkey
 		FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 	`.execute(db);
 
