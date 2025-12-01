@@ -3,21 +3,29 @@ import { router, protectedProcedure } from '../trpc';
 import {
 	assignClaim,
 	createClaims,
+	updateClaim,
 	getClaim,
 	getClaimCount,
 	getClaims,
+	getClaimDetail,
 	getNextClaimToAssign,
 	getRolloverClaimCount,
+	listMyClaims,
+	listMyDeskClaims,
 } from '@/api/controllers/claimController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
 import {
 	assignClaimInput,
 	createClaimInput,
+	updateClaimInput,
 	getClaimCountInput,
+	getClaimDetailInput,
 	getClaimInput,
 	getClaimsInput,
 	getNextClaimToAssignInput,
+	listMyClaimsInput,
+	listMyDeskClaimsInput,
 } from '@/schemas/claimSchemas';
 
 export const claimRouter = router({
@@ -28,6 +36,10 @@ export const claimRouter = router({
 
 	getClaim: protectedProcedure.input(getClaimInput).query(async ({ input, ctx }) => {
 		return getClaim(ctx, input);
+	}),
+
+	getClaimDetail: protectedProcedure.input(getClaimDetailInput).query(async ({ input, ctx }) => {
+		return getClaimDetail(ctx, input);
 	}),
 
 	getNextClaimToAssign: protectedProcedure.input(getNextClaimToAssignInput).query(async ({ input, ctx }) => {
@@ -58,5 +70,18 @@ export const claimRouter = router({
 	createClaims: protectedProcedure.input(createClaimInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return createClaims(ctx, input);
+	}),
+
+	updateClaim: protectedProcedure.input(updateClaimInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return updateClaim(ctx, input);
+	}),
+
+	listMyClaims: protectedProcedure.input(listMyClaimsInput).query(async ({ input, ctx }) => {
+		return listMyClaims(ctx, input);
+	}),
+
+	listMyDeskClaims: protectedProcedure.input(listMyDeskClaimsInput).query(async ({ input, ctx }) => {
+		return listMyDeskClaims(ctx, input);
 	}),
 });

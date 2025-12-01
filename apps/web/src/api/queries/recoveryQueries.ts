@@ -1,9 +1,10 @@
 import { sql, type CompiledQuery } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { RecoveryEventParams, DeadlineParams } from '@/schemas/recoverySchemas';
-import { DeadlineStatus } from '@/config/enums';
+import { RecoveryEventParams } from '@/schemas/recoverySchemas';
 import { DateRangeStrict } from '@/types/types';
 import { TRPCError } from '@trpc/server';
+import config from '@/config/config';
+import dayjs from 'dayjs';
 
 // =====================================================================
 // RECOVERY EVENT QUERIES
@@ -24,7 +25,10 @@ export async function createRecoveryEvent(
 ) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await ctx.db.transaction().execute(async (trx) => {
+	// Check if we're already in a transaction to avoid nested transactions
+	const isInTransaction = ctx.db.isTransaction;
+
+	const executeOperation = async (trx: any) => {
 		// Create recovery event
 		const recoveryEvent = await trx
 			.insertInto('recovery_event')
@@ -45,7 +49,14 @@ export async function createRecoveryEvent(
 		await recalculateClaimRecovery(trx, claimId, clientId);
 
 		return recoveryEvent;
-	});
+	};
+
+	// If already in a transaction, use it; otherwise create a new one
+	if (isInTransaction) {
+		return await executeOperation(ctx.db);
+	} else {
+		return await ctx.db.transaction().execute(executeOperation);
+	}
 }
 
 /**
@@ -61,8 +72,8 @@ export async function getRecoveryEvents(ctx: ProtectedContext, claimId: number) 
 		.selectAll()
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
 		.where('recovery_event.claim_id', '=', claimId)
-		.orderBy('recovery_date desc')
-		.orderBy('created_at desc')
+		.orderBy('recovery_date asc')
+		.orderBy('created_at asc')
 		.execute();
 }
 
@@ -103,8 +114,10 @@ export async function listRecoveryEventsWithFilters(
 			'claim.claim_number',
 			'claim.insured',
 			'claim.recovery_status',
-			'claim.expected_recovery',
-			'claim.actual_recovery',
+			'claim.reserved_recovery', // Client's expected recovery (from feed/manual)
+			'claim.paid_recovery', // Client's reported paid amount (from feed/manual)
+			'claim.expected_recovery', // Team's forecasted recovery
+			'claim.actual_recovery', // Team's meaningful payments (calculated from recovery events)
 			'checklist_claim.checklist_id',
 		])
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id);
@@ -290,152 +303,6 @@ async function recalculateClaimRecovery(trx: any, claimId: number, clientId: str
 		.where('claim.id', '=', claimId)
 		.where('claim.client_id', '=', clientId)
 		.execute();
-}
-
-// =====================================================================
-// DEADLINE QUERIES
-// =====================================================================
-
-/**
- * Create a deadline for a claim.
- *
- * @param ctx - request context
- * @param claimId - claim identifier
- * @param params - deadline parameters
- * @returns created deadline
- */
-export async function createDeadline(ctx: ProtectedContext, claimId: number, params: Omit<DeadlineParams, 'claim_id'>) {
-	return await ctx.db
-		.insertInto('deadline')
-		.values({
-			claim_id: claimId,
-			client_id: ctx.session.user.client_id!,
-			deadline_type: params.deadline_type,
-			deadline_date: params.deadline_date,
-			status: params.status ?? 'pending',
-			created_by: ctx.session.user.id,
-			created_at: sql`now()`,
-			...(params.description && { description: params.description }),
-		})
-		.returningAll()
-		.executeTakeFirstOrThrow();
-}
-
-/**
- * List deadlines with optional filters.
- *
- * @param ctx - request context
- * @param filters - optional claim ID, status, date range, and personalOnly flag
- * @returns list of deadlines
- */
-export async function getDeadlines(
-	ctx: ProtectedContext,
-	filters: { claimId?: number; status?: string; dateRange?: DateRangeStrict; personalOnly?: boolean }
-) {
-	const isAdmin = ctx.session.user.role === 'Admin' || ctx.session.user.role === 'Super Admin';
-
-	let query = ctx.db
-		.selectFrom('deadline')
-		.selectAll('deadline')
-		.where('deadline.client_id', '=', ctx.session.user.client_id);
-
-	// Filter by personal assignments if personalOnly flag is true, or if user is a Contributor
-	const shouldFilterPersonal = filters.personalOnly || !isAdmin;
-
-	if (shouldFilterPersonal) {
-		query = query
-			.innerJoin('claim', 'deadline.claim_id', 'claim.id')
-			.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
-			.where((eb) =>
-				eb.or([
-					eb('checklist_claim.created_by', '=', ctx.session.user.id),
-					eb('checklist_claim.assignee', '=', ctx.session.user.id),
-				])
-			);
-	}
-
-	if (filters.claimId) {
-		query = query.where('deadline.claim_id', '=', filters.claimId);
-	}
-
-	if (filters.status) {
-		query = query.where('deadline.status', '=', filters.status);
-	}
-
-	if (filters.dateRange) {
-		query = query
-			.where('deadline.deadline_date', '>=', filters.dateRange[0])
-			.where('deadline.deadline_date', '<=', filters.dateRange[1]);
-	}
-
-	return await query.orderBy('deadline.deadline_date asc').orderBy('deadline.created_at desc').execute();
-}
-
-/**
- * Update a deadline's status.
- *
- * @param ctx - request context
- * @param deadlineId - deadline identifier
- * @param status - new status
- * @returns updated deadline
- */
-export async function updateDeadlineStatus(ctx: ProtectedContext, deadlineId: number, status: DeadlineStatus) {
-	const updated = await ctx.db
-		.updateTable('deadline')
-		.set({
-			status,
-			updated_by: ctx.session.user.id,
-			updated_at: sql`now()`,
-		})
-		.where('deadline.id', '=', deadlineId)
-		.where('deadline.client_id', '=', ctx.session.user.client_id)
-		.returningAll()
-		.executeTakeFirst();
-
-	if (!updated) {
-		throw new TRPCError({
-			code: 'NOT_FOUND',
-			message: 'Deadline not found',
-		});
-	}
-
-	return updated;
-}
-
-/**
- * Fetch a deadline for logging before deletion.
- */
-export async function getDeadlineForDeletion(ctx: ProtectedContext, deadlineId: number) {
-	return await ctx.db
-		.selectFrom('deadline')
-		.select(['id', 'claim_id', 'deadline_date', 'deadline_type', 'status', 'description'])
-		.where('id', '=', deadlineId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-}
-
-/**
- * Delete a deadline.
- *
- * @param ctx - request context
- * @param deadlineId - deadline identifier
- */
-export async function deleteDeadline(ctx: ProtectedContext, deadlineId: number) {
-	const deleted = await ctx.db
-		.deleteFrom('deadline')
-		.where('deadline.id', '=', deadlineId)
-		.where('deadline.client_id', '=', ctx.session.user.client_id)
-		.returning(['id'])
-		.executeTakeFirst();
-
-	if (!deleted) {
-		throw new TRPCError({
-			code: 'NOT_FOUND',
-			message: 'Deadline not found',
-		});
-	}
-
-	return deleted;
 }
 
 // =====================================================================
@@ -671,4 +538,89 @@ export async function getRecoveryMetricsTimeSeries(
 	`.compile(ctx.db);
 
 	return (await ctx.db.executeQuery(query))?.rows ?? [];
+}
+
+// =====================================================================
+// QUARTERLY RECOVERY STATS
+// =====================================================================
+
+/**
+ * Get total actual recovery amounts per fiscal quarter.
+ *
+ * @param ctx - request context
+ * @param params - optional fiscal year start date and user ID filter
+ * @returns recovery totals for Q1-Q4
+ */
+export async function getQuarterlyRecoveryStats(
+	ctx: ProtectedContext,
+	params?: {
+		fiscalYearStart?: Date;
+		userId?: string;
+	}
+): Promise<{
+	q1: string;
+	q2: string;
+	q3: string;
+	q4: string;
+}> {
+	const clientId = ctx.session.user.client_id!;
+
+	// Use provided fiscal year start or default from config
+	const fiscalYearStart = params?.fiscalYearStart ? dayjs(params.fiscalYearStart) : config.FISCAL_YEAR_START_DATE;
+
+	// Calculate quarter date ranges
+	const quarters = [
+		{
+			name: 'q1',
+			start: fiscalYearStart.toDate(),
+			end: fiscalYearStart.add(3, 'months').subtract(1, 'day').toDate(),
+		},
+		{
+			name: 'q2',
+			start: fiscalYearStart.add(3, 'months').toDate(),
+			end: fiscalYearStart.add(6, 'months').subtract(1, 'day').toDate(),
+		},
+		{
+			name: 'q3',
+			start: fiscalYearStart.add(6, 'months').toDate(),
+			end: fiscalYearStart.add(9, 'months').subtract(1, 'day').toDate(),
+		},
+		{
+			name: 'q4',
+			start: fiscalYearStart.add(9, 'months').toDate(),
+			end: fiscalYearStart.add(12, 'months').subtract(1, 'day').toDate(),
+		},
+	];
+
+	// Query recovery amounts for each quarter
+	const results = await Promise.all(
+		quarters.map(async (quarter) => {
+			let query = ctx.db
+				.selectFrom('recovery_event')
+				.select((eb) => eb.fn.sum('recovery_amount').as('total'))
+				.where('client_id', '=', clientId)
+				.where('recovery_date', '>=', quarter.start)
+				.where('recovery_date', '<=', quarter.end);
+
+			// Optional user filter (future enhancement)
+			if (params?.userId) {
+				query = query.where('created_by', '=', params.userId);
+			}
+
+			const result = await query.executeTakeFirst();
+
+			return {
+				quarter: quarter.name,
+				total: result?.total || '0',
+			};
+		})
+	);
+
+	// Format results into expected shape
+	return {
+		q1: (results.find((r) => r.quarter === 'q1')?.total || '0').toString(),
+		q2: (results.find((r) => r.quarter === 'q2')?.total || '0').toString(),
+		q3: (results.find((r) => r.quarter === 'q3')?.total || '0').toString(),
+		q4: (results.find((r) => r.quarter === 'q4')?.total || '0').toString(),
+	};
 }

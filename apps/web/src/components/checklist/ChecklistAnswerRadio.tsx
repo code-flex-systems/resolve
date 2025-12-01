@@ -1,6 +1,6 @@
 'use client';
 import { Box, Checkbox, FormControlLabel, Link, Radio, Stack, Tooltip, Typography } from '@mui/material';
-import { QuestionType } from '@/config/enums';
+import { ChecklistMode, QuestionType } from '@/config/enums';
 import { Question } from '@/types/types';
 import { ControllerRenderProps, FieldValues, UseFormWatch } from 'react-hook-form';
 import { useChecklistStore } from '@/stores/useChecklistStore';
@@ -22,6 +22,7 @@ function AnswerWithImage(props: {
 	question: Question;
 }) {
 	const { answer: a, questionType, field, disabled, visibleInstanceIds, goToPage, tree, watch, question } = props;
+	const mode = useChecklistStore((s) => s.mode);
 
 	// Fetch attached image for this answer
 	const { data: attachedImages = [] } = useDocTrpc().listDocs(
@@ -86,7 +87,9 @@ function AnswerWithImage(props: {
 				}
 				label={
 					<Box display="flex" alignItems="center" gap={0.5}>
-						{a.calls_instance_id && visibleInstanceIds.includes(a.calls_instance_id) && answerComplete ? (
+						{a.calls_instance_id &&
+						visibleInstanceIds.includes(a.calls_instance_id) &&
+						(answerComplete || mode === ChecklistMode.TEST) ? (
 							<Link fontSize={13} color="info" onClick={() => goToPage(a.calls_instance_id!, tree)}>
 								{a.text}
 							</Link>

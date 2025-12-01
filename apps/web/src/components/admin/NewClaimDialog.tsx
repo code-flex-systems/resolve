@@ -24,11 +24,12 @@ export default function NewClaimDialog() {
 				claims: [
 					{
 						...data,
-						claim_amount: Number(data.claim_amount),
-						expected_recovery: Number(data.expected_recovery),
-						total_incurred: Number(data.total_incurred),
-						date_of_loss: new Date(data.date_of_loss?.toString() ?? ''),
-						last_update: new Date(data.last_update?.toString() ?? ''),
+						claim_amount: data.claim_amount?.toString() ?? null,
+						reserved_recovery: data.reserved_recovery?.toString() ?? null,
+						paid_recovery: data.paid_recovery?.toString() ?? null,
+						total_incurred: data.total_incurred?.toString() ?? null,
+						date_of_loss: data.date_of_loss?.toString() ?? null,
+						last_update: data.last_update?.toString() ?? null,
 					},
 				],
 			});
@@ -127,20 +128,38 @@ export default function NewClaimDialog() {
 					</Grid>
 					<Grid style={styles.row}>
 						<TextField
-							id="expected_recovery"
-							label="Expected Recovery"
+							id="reserved_recovery"
+							label="Reserved Recovery"
 							placeholder="21521.43"
 							slotProps={{
 								input: {
 									startAdornment: <InputAdornment position="start">$</InputAdornment>,
 								},
 							}}
-							error={!!errors.expected_recovery}
+							error={!!errors.reserved_recovery}
 							type="number"
 							sx={{
 								width: 200,
 							}}
-							{...register('expected_recovery', { required: true })}
+							{...register('reserved_recovery', { required: false })}
+						/>
+					</Grid>
+					<Grid style={styles.row}>
+						<TextField
+							id="paid_recovery"
+							label="Paid Recovery"
+							placeholder="0.00"
+							slotProps={{
+								input: {
+									startAdornment: <InputAdornment position="start">$</InputAdornment>,
+								},
+							}}
+							error={!!errors.paid_recovery}
+							type="number"
+							sx={{
+								width: 200,
+							}}
+							{...register('paid_recovery', { required: false })}
 						/>
 					</Grid>
 					<Grid style={styles.row}>

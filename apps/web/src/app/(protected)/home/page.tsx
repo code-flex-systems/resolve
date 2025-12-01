@@ -1,6 +1,6 @@
 'use client';
-import Home from '@/components/pages/Home';
+import SearchLanding from '@/components/pages/SearchLanding';
 
-export default function ChecklistPage() {
-	return <Home />;
+export default function HomePage() {
+	return <SearchLanding />;
 }

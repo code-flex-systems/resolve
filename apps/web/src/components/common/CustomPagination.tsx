@@ -7,7 +7,7 @@ import {
 	useGridSelector,
 } from '@mui/x-data-grid-pro';
 
-export function CustomPagination() {
+export default function CustomPagination() {
 	const apiRef = useGridApiContext();
 	const pageCount = useGridSelector(apiRef, gridPageCountSelector);
 	const paginationModel = useGridSelector(apiRef, gridPaginationModelSelector);

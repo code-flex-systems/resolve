@@ -63,7 +63,7 @@ export interface ActionLog {
   status: string;
 }
 
-export interface AdminActionLogs {
+export interface AdminConfigLogs {
   action: string;
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -77,6 +77,10 @@ export interface AdminActionLogs {
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
+  /**
+   * Comma-separated list of allowed file extensions (e.g., '.pdf,.docx,.jpg'). NULL means all allowed file types are permitted
+   */
+  allowed_extensions: string | null;
   calls_instance_id: number | null;
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -89,6 +93,10 @@ export interface Answer {
   id: Generated<number>;
   position: number;
   question_id: number;
+  /**
+   * When true, this answer requires the user to upload a file instead of providing free-form text
+   */
+  requires_upload: Generated<boolean | null>;
   text: string;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -108,6 +116,7 @@ export interface Checklist {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
+  description: string | null;
   id: Generated<number>;
   name: string;
   published: Generated<boolean>;
@@ -151,6 +160,10 @@ export interface Claim {
   created_at: Timestamp | null;
   created_by: string | null;
   date_of_loss: Timestamp | null;
+  /**
+   * Current desk location for workflow routing. Claims move through desk locations as they progress through the workflow.
+   */
+  desk_location_id: number | null;
   expected_recovery: Numeric | null;
   feed_id: number | null;
   id: Generated<number>;
@@ -159,10 +172,110 @@ export interface Claim {
   last_updated_by: string | null;
   loss_location: string | null;
   /**
+   * Type of loss for the claim (LossType enum enforced in TypeScript)
+   */
+  loss_type: string | null;
+  /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
   recovery_status: string | null;
+  /**
+   * Granular workflow state: investigation, demand_sent, negotiation, settlement_reached, litigation, closed_recovered, closed_no_recovery, cancelled
+   */
+  substatus: string | null;
   total_incurred: Numeric | null;
+}
+
+export interface ClaimActivityLogs {
+  action: string;
+  actor_type: string;
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  entity_id: string;
+  entity_name: string;
+  id: Generated<number>;
+  user_id: string;
+  value: Json | null;
+}
+
+export interface ClaimCoverage {
+  claim_id: number;
+  client_id: string;
+  coverage_amount: Numeric | null;
+  /**
+   * Type of coverage (CoverageType enum enforced in TypeScript)
+   */
+  coverage_type: string;
+  created_at: Generated<Timestamp | null>;
+  created_by: string | null;
+  id: Generated<number>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface ClaimLiability {
+  claim_party_id: number;
+  client_id: string;
+  coverage_amount: Numeric | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  /**
+   * External ID from source system (for upsert logic)
+   */
+  external_reference: string | null;
+  /**
+   * Which feed sourced this liability
+   */
+  feed_id: number | null;
+  id: Generated<number>;
+  /**
+   * When feed last updated this record
+   */
+  last_synced_at: Timestamp | null;
+  liability_percentage: Numeric | null;
+  line_of_business: string | null;
+  loss_type: string | null;
+  /**
+   * User edited after feed sync - prevents feed overwrites
+   */
+  manually_overridden: Generated<boolean | null>;
+  notes: string | null;
+  paid_recovery: Numeric | null;
+  reserved_recovery: Numeric | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface ClaimParty {
+  claim_id: number;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - unlinks party from claim
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who unlinked this party from claim
+   */
+  deleted_by: string | null;
+  /**
+   * External ID from source system for feed matching
+   */
+  external_reference: string | null;
+  id: Generated<number>;
+  is_primary: Generated<boolean>;
+  notes: string | null;
+  party_id: number;
+  /**
+   * Specific representative from the party handling this claim (optional)
+   */
+  representative_id: number | null;
+  /**
+   * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
+   */
+  role: string;
 }
 
 export interface Client {
@@ -184,15 +297,74 @@ export interface Comment {
 }
 
 export interface Deadline {
+  cancellation_reason: string | null;
+  cancelled_at: Timestamp | null;
+  cancelled_by: string | null;
   claim_id: number;
   client_id: string;
+  completed_at: Timestamp | null;
+  completed_by: string | null;
   created_at: Generated<Timestamp>;
   created_by: string;
   deadline_date: Timestamp;
   deadline_type: string;
   description: string | null;
+  entity_id: number | null;
+  entity_type: string | null;
   id: Generated<number>;
   status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface DeskLocation {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Maximum work units per day for this location (NULL = unlimited). 1 unit = 5 minutes.
+   */
+  daily_work_units: number | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Parent desk location type
+   */
+  desk_location_type_id: number;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Whether this desk location is currently active and accepting work
+   */
+  is_active: Generated<boolean>;
+  /**
+   * Name of the desk location (e.g., "Pending", "Transactional", "Closed")
+   */
+  name: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface DeskLocationType {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Name of the desk location type (e.g., "Documentation and Demand Packages")
+   */
+  name: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -232,6 +404,10 @@ export interface Doc {
    */
   replaces_doc_id: number | null;
   /**
+   * Reference to question_response when this document is uploaded as part of a response to a question requiring file upload
+   */
+  response_doc_id: number | null;
+  /**
    * Azure Blob Storage key/path for the document
    */
   storage_key: string;
@@ -266,8 +442,16 @@ export interface DocGroup {
    */
   parent_group_id: number | null;
   sort_order: Generated<number | null>;
+  /**
+   * System-managed folder that cannot be edited or deleted by regular admins
+   */
+  system: Generated<boolean | null>;
   updated_at: Timestamp | null;
   updated_by: string | null;
+  /**
+   * Associated user ID for user-specific folders under Users/
+   */
+  user_id: string | null;
 }
 
 export interface DocRequirement {
@@ -343,6 +527,85 @@ export interface PageInstanceStatus {
   updated_at: Generated<Timestamp | null>;
 }
 
+export interface Party {
+  address: string | null;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - party is archived when not null
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who archived this party
+   */
+  deleted_by: string | null;
+  email: string | null;
+  id: Generated<number>;
+  name: string;
+  notes: string | null;
+  organization: string | null;
+  /**
+   * For facilitators: adverse_carrier, attorney, expert, vendor. For entities: responsible_party, claimant, witness, property_owner
+   */
+  party_category: string;
+  /**
+   * entity = directly involved in loss, facilitator = representative/service provider
+   */
+  party_type: string;
+  phone: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface PartyOffice {
+  address: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - cascades from party deletion
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who archived this office
+   */
+  deleted_by: string | null;
+  fax: string | null;
+  id: Generated<number>;
+  is_primary: Generated<boolean>;
+  office_name: string | null;
+  party_id: number;
+  phone: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface PartyRepresentative {
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp - cascades from party deletion
+   */
+  deleted_at: Timestamp | null;
+  /**
+   * Email of user who archived this representative
+   */
+  deleted_by: string | null;
+  email: string | null;
+  fax: string | null;
+  first_name: string;
+  id: Generated<number>;
+  is_primary: Generated<boolean>;
+  last_name: string;
+  mobile_phone: string | null;
+  office_id: number | null;
+  party_id: number;
+  phone: string | null;
+  title: string | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
 export interface PasswordResetTokens {
   created_at: Generated<Timestamp>;
   expires_at: Timestamp;
@@ -378,6 +641,10 @@ export interface QuestionResponse {
   id: Generated<number>;
   instance_id: number;
   question_id: number | null;
+  /**
+   * Reference to uploaded document when answer requires file upload
+   */
+  response_doc_id: number | null;
   response_text: string | null;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -442,6 +709,98 @@ export interface Sessions {
   user_id: string;
 }
 
+export interface Task {
+  assigned_at: Generated<Timestamp>;
+  /**
+   * User who created/assigned the task
+   */
+  assigned_by: string;
+  /**
+   * The claim this task is associated with
+   */
+  claim_id: number;
+  claimed_at: Timestamp | null;
+  /**
+   * User currently working on the task
+   */
+  claimed_by: string | null;
+  /**
+   * Client scope for multi-tenancy
+   */
+  client_id: string;
+  completed_at: Timestamp | null;
+  /**
+   * User who completed the task
+   */
+  completed_by: string | null;
+  /**
+   * Notes added when completing the task
+   */
+  completion_notes: string | null;
+  created_at: Generated<Timestamp>;
+  /**
+   * Detailed task instructions
+   */
+  description: string | null;
+  /**
+   * The desk location where this task should be worked
+   */
+  desk_location_id: number;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  status: Generated<string>;
+  /**
+   * Type of task (enum value from TaskType)
+   */
+  task_type: Generated<string>;
+  /**
+   * Brief description of the task
+   */
+  title: string;
+  updated_at: Timestamp | null;
+  /**
+   * Work units for capacity tracking (1 unit = 5 minutes)
+   */
+  work_units: Generated<number>;
+}
+
+export interface UserDeskLocation {
+  /**
+   * When the user was assigned to this desk location
+   */
+  assigned_at: Generated<Timestamp>;
+  /**
+   * User who made the assignment
+   */
+  assigned_by: string | null;
+  /**
+   * Desk location the user is assigned to
+   */
+  desk_location_id: number;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  /**
+   * Priority level (1-5) for this desk location assignment, 1 being highest
+   */
+  priority: number;
+  /**
+   * Soft deletion timestamp - when assignment was removed
+   */
+  removed_at: Timestamp | null;
+  /**
+   * User who removed the assignment
+   */
+  removed_by: string | null;
+  /**
+   * User assigned to this desk location
+   */
+  user_id: string;
+}
+
 export interface Users {
   client_id: string | null;
   created_at: Generated<Timestamp>;
@@ -475,15 +834,21 @@ export interface DB {
   accounts: Accounts;
   action: Action;
   action_log: ActionLog;
-  admin_action_logs: AdminActionLogs;
+  admin_config_logs: AdminConfigLogs;
   answer: Answer;
   auth_events: AuthEvents;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
   claim: Claim;
+  claim_activity_logs: ClaimActivityLogs;
+  claim_coverage: ClaimCoverage;
+  claim_liability: ClaimLiability;
+  claim_party: ClaimParty;
   client: Client;
   comment: Comment;
   deadline: Deadline;
+  desk_location: DeskLocation;
+  desk_location_type: DeskLocationType;
   doc: Doc;
   doc_group: DocGroup;
   doc_requirement: DocRequirement;
@@ -492,6 +857,9 @@ export interface DB {
   page: Page;
   page_instance: PageInstance;
   page_instance_status: PageInstanceStatus;
+  party: Party;
+  party_office: PartyOffice;
+  party_representative: PartyRepresentative;
   password_reset_tokens: PasswordResetTokens;
   question: Question;
   question_response: QuestionResponse;
@@ -499,6 +867,8 @@ export interface DB {
   recovery_event: RecoveryEvent;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
+  task: Task;
+  user_desk_location: UserDeskLocation;
   users: Users;
   verification_tokens: VerificationTokens;
 }

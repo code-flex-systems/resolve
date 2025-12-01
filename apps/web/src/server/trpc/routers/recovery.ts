@@ -5,12 +5,9 @@ import {
 	listRecoveryEventsWithFilters,
 	deleteRecoveryEvent,
 	exportRecoveryEvents,
-	createDeadline,
-	listDeadlines,
-	updateDeadlineStatus,
-	deleteDeadline,
 	getRecoveryMetricsSummary,
 	getRecoveryMetricsTimeSeries,
+	getQuarterlyRecoveryStats,
 } from '@/api/controllers/recoveryController';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -20,12 +17,9 @@ import {
 	listRecoveryEventsWithFiltersInput,
 	deleteRecoveryEventInput,
 	exportRecoveryEventsInput,
-	createDeadlineInput,
-	listDeadlinesInput,
-	updateDeadlineStatusInput,
-	deleteDeadlineInput,
 	getRecoveryMetricsSummaryInput,
 	getRecoveryMetricsTimeSeriesInput,
+	getQuarterlyRecoveryStatsInput,
 } from '@/schemas/recoverySchemas';
 
 export const recoveryRouter = router({
@@ -69,35 +63,6 @@ export const recoveryRouter = router({
 		}),
 
 	// =====================================================================
-	// DEADLINE ENDPOINTS
-	// =====================================================================
-
-	createDeadline: protectedProcedure.input(createDeadlineInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return createDeadline(ctx, input);
-	}),
-
-	listDeadlines: protectedProcedure.input(listDeadlinesInput).query(async ({ input, ctx }) => {
-		// Require Admin/Super Admin role if not filtering by personal deadlines
-		if (!input.personalOnly) {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		}
-		return listDeadlines(ctx, input);
-	}),
-
-	updateDeadlineStatus: protectedProcedure
-		.input(updateDeadlineStatusInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return updateDeadlineStatus(ctx, input);
-		}),
-
-	deleteDeadline: protectedProcedure.input(deleteDeadlineInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return deleteDeadline(ctx, input);
-	}),
-
-	// =====================================================================
 	// RECOVERY METRICS ENDPOINTS
 	// =====================================================================
 
@@ -113,5 +78,12 @@ export const recoveryRouter = router({
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return getRecoveryMetricsTimeSeries(ctx, input);
+		}),
+
+	getQuarterlyRecoveryStats: protectedProcedure
+		.input(getQuarterlyRecoveryStatsInput)
+		.query(async ({ input, ctx }) => {
+			// No role requirement - all users can see quarterly stats for their client
+			return getQuarterlyRecoveryStats(ctx, input);
 		}),
 });

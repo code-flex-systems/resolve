@@ -1,0 +1,321 @@
+'use client';
+import { LineChart } from '@mui/x-charts-pro';
+import theme from '@/styles/theme';
+import { Box, Card, CardContent, Grid, Paper, Stack, Typography } from '@mui/material';
+import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
+import { useMemo } from 'react';
+import WobbleLoadingIndicator from '@/components/common/WobbleLoadingIndicator';
+import dayjs, { Dayjs } from 'dayjs';
+import BasicButtonStyled from '../../common/BasicButtonStyled';
+import Troubleshoot from '@mui/icons-material/Troubleshoot';
+import { useRouter } from 'next/navigation';
+import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
+import { DateRange } from '@mui/x-date-pickers-pro';
+
+export default function RecoveryMetricsChart({
+	range,
+	isBreakdown = false,
+	recoveryStatus,
+	recoverySource,
+	checklistId,
+	userId,
+}: {
+	range?: DateRange<Dayjs>;
+	isBreakdown?: boolean;
+	recoveryStatus?: string | null;
+	recoverySource?: string;
+	checklistId?: number;
+	userId?: string;
+}) {
+	const router = useRouter();
+	const quarters = useMemo(() => getQuarterRanges(), []);
+
+	// Convert DateRange to tuple of ISO strings for tRPC, default to current quarter
+	const rangeISO = useMemo(
+		() =>
+			range && range[0] && range[1]
+				? ([range[0].toISOString(), range[1].toISOString()] as [string, string])
+				: quarters.current,
+		[range, quarters.current]
+	);
+
+	// Build filter params
+	const filterParams = useMemo(
+		() => ({
+			range: rangeISO,
+			...(recoverySource && { recoverySource }),
+			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
+			...(checklistId && { checklistId }),
+			...(userId && { userId }),
+		}),
+		[rangeISO, recoverySource, recoveryStatus, checklistId, userId]
+	);
+
+	// Fetch time series data for selected range
+	const { data: timeSeriesData = [], isFetching: isFetchingTimeSeries } =
+		useRecoveryTrpc().getRecoveryMetricsTimeSeries(filterParams, { enabled: true });
+
+	// Fetch summary data for current range
+	const { data: currentSummary, isFetching: isFetchingCurrentSummary } = useRecoveryTrpc().getRecoveryMetricsSummary(
+		filterParams,
+		{ enabled: true }
+	);
+
+	// Fetch summary data for last quarter (for comparison)
+	const { data: lastQuarterSummary, isFetching: isFetchingLastSummary } = useRecoveryTrpc().getRecoveryMetricsSummary(
+		{
+			range: quarters.last,
+			...(recoverySource && { recoverySource }),
+			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
+			...(checklistId && { checklistId }),
+			...(userId && { userId }),
+		},
+		{ enabled: true }
+	);
+
+	const isLoading = isFetchingTimeSeries || isFetchingCurrentSummary || isFetchingLastSummary;
+
+	// Format data for chart
+	const xLabels = timeSeriesData.map((d) => dayjs(d.month_start).format('MMM YYYY'));
+	const expectedData = timeSeriesData.map((d) => d.expected_recovery);
+	const actualData = timeSeriesData.map((d) => d.actual_recovery);
+
+	// Calculate summary metrics
+	const currentExpected = currentSummary?.total_expected ?? 0;
+	const currentActual = currentSummary?.total_actual ?? 0;
+	const currentVariance = currentSummary?.variance ?? 0;
+	const currentRate = currentSummary?.recovery_rate ?? 0;
+
+	const lastExpected = lastQuarterSummary?.total_expected ?? 0;
+	const lastActual = lastQuarterSummary?.total_actual ?? 0;
+
+	const expectedChange = lastExpected > 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
+	const actualChange = lastActual > 0 ? ((currentActual - lastActual) / lastActual) * 100 : 0;
+
+	const containerWidth = isBreakdown ? '100%' : 600;
+	const chartHeight = isBreakdown ? 400 : 260;
+	const chartMargin = isBreakdown ? { left: 80, right: 20, top: 20, bottom: 60 } : { left: 60, right: 10, top: 10 };
+	const padding = isBreakdown ? '30px' : '20px';
+	const titleFontSize = isBreakdown ? 18 : 14;
+	const cardPadding = isBreakdown ? 2 : 1;
+	const cardLabelSize = isBreakdown ? 13 : 12;
+	const cardValueSize = isBreakdown ? 24 : 16;
+	const cardSubtextSize = isBreakdown ? 13 : 12;
+	const spacing = isBreakdown ? 2 : 1;
+	const marginBottom = isBreakdown ? 3 : 1.5;
+
+	return (
+		<Box width={containerWidth}>
+			<Paper elevation={0} sx={{ ...styles.paper, padding }}>
+				<Box
+					width="100%"
+					display="flex"
+					justifyContent="space-between"
+					alignItems="center"
+					mb={isBreakdown ? 2 : 1}
+				>
+					<Typography variant={isBreakdown ? 'h6' : 'subtitle1'} fontSize={titleFontSize} fontWeight={600}>
+						{isBreakdown
+							? 'Recovery Metrics'
+							: `Recovery Metrics - Q${quarters.currentQuarter} ${quarters.currentYear}`}
+					</Typography>
+					{isBreakdown ? (
+						<Typography variant="caption" fontSize={14} color="#d9d9d9">
+							vs Q{quarters.lastQuarter} {quarters.lastYear}
+						</Typography>
+					) : (
+						<Box>
+							<Typography variant="caption" fontSize={13} color="#d9d9d9" marginRight="15px">
+								vs Q{quarters.lastQuarter} {quarters.lastYear}
+							</Typography>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => router.push('/admin/financial/recovery'),
+								}}
+								icon={
+									<Troubleshoot
+										sx={{
+											transform: 'scaleX(-1)',
+											color: theme.palette.primary.main,
+										}}
+									/>
+								}
+								tooltipProps={{ title: 'Open in Inspector' }}
+							/>
+						</Box>
+					)}
+				</Box>
+
+				{isLoading && (
+					<Stack width="100%" height={300} display="flex" justifyContent="center" alignItems="center">
+						<WobbleLoadingIndicator />
+					</Stack>
+				)}
+
+				{!isLoading && (
+					<>
+						{/* Summary Cards */}
+						{!hideTotals && (
+							<Grid container spacing={spacing} mb={marginBottom}>
+							<Grid>
+								<Card variant="outlined" sx={{ height: '100%' }}>
+									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+											Total Expected
+										</Typography>
+										<Typography
+											variant={isBreakdown ? 'h5' : 'h6'}
+											fontSize={cardValueSize}
+											component="div"
+										>
+											{formatCurrency(currentExpected)}
+										</Typography>
+										<Typography
+											variant="body2"
+											fontSize={cardSubtextSize}
+											color={expectedChange >= 0 ? 'success.main' : 'error.main'}
+										>
+											{expectedChange >= 0 ? '+' : ''}
+											{expectedChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
+										</Typography>
+									</CardContent>
+								</Card>
+							</Grid>
+							<Grid>
+								<Card variant="outlined" sx={{ height: '100%' }}>
+									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+											Total Actual
+										</Typography>
+										<Typography
+											variant={isBreakdown ? 'h5' : 'h6'}
+											fontSize={cardValueSize}
+											component="div"
+										>
+											{formatCurrency(currentActual)}
+										</Typography>
+										<Typography
+											variant="body2"
+											fontSize={cardSubtextSize}
+											color={actualChange >= 0 ? 'success.main' : 'error.main'}
+										>
+											{actualChange >= 0 ? '+' : ''}
+											{actualChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
+										</Typography>
+									</CardContent>
+								</Card>
+							</Grid>
+							<Grid>
+								<Card variant="outlined" sx={{ height: '100%' }}>
+									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+											Variance
+										</Typography>
+										<Typography
+											variant={isBreakdown ? 'h5' : 'h6'}
+											fontSize={cardValueSize}
+											component="div"
+										>
+											{formatCurrency(currentVariance)}
+										</Typography>
+										<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
+											{currentRate.toFixed(1)}% rate
+										</Typography>
+									</CardContent>
+								</Card>
+							</Grid>
+							{isBreakdown && (
+								<Grid>
+									<Card variant="outlined" sx={{ height: '100%' }}>
+										<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+											<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+												Recovery Rate
+											</Typography>
+											<Typography variant="h5" fontSize={cardValueSize} component="div">
+												{currentRate.toFixed(1)}%
+											</Typography>
+											<Typography
+												variant="body2"
+												fontSize={cardSubtextSize}
+												color="text.secondary"
+											>
+												actual / expected
+											</Typography>
+										</CardContent>
+									</Card>
+								</Grid>
+							)}
+						</Grid>
+						)}
+
+						{/* Line Chart */}
+						<Box width="100%" height={chartHeight}>
+							<LineChart
+								xAxis={[
+									{
+										scaleType: 'band',
+										data: xLabels,
+										tickLabelStyle: {
+											angle: 0,
+											textAnchor: 'middle',
+											fontSize: isBreakdown ? 11 : 10,
+										},
+									},
+								]}
+								yAxis={[
+									{
+										valueFormatter: (value: number) => formatCurrency(value),
+										tickLabelStyle: {
+											fontSize: isBreakdown ? 11 : 10,
+										},
+									},
+								]}
+								series={[
+									{
+										data: expectedData,
+										label: 'Expected',
+										color: theme.palette.primary.main,
+										curve: 'linear',
+										valueFormatter: (value: number | null) =>
+											value !== null
+												? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+												: 'N/A',
+									},
+									{
+										data: actualData,
+										label: 'Actual',
+										color: theme.palette.success.main,
+										curve: 'linear',
+										valueFormatter: (value: number | null) =>
+											value !== null
+												? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+												: 'N/A',
+									},
+								]}
+								margin={chartMargin}
+								slotProps={{
+									legend: {
+										direction: 'horizontal',
+										position: { vertical: 'bottom', horizontal: 'center' },
+									},
+								}}
+							/>
+						</Box>
+					</>
+				)}
+			</Paper>
+		</Box>
+	);
+}
+
+const styles = {
+	paper: {
+		display: 'flex',
+		flexDirection: 'column' as const,
+		justifyContent: 'flex-start',
+		alignItems: 'flex-start',
+		width: '100%',
+		borderRadius: 3,
+		padding: '20px',
+	},
+};

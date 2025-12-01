@@ -20,7 +20,15 @@ export function useChecklistTrpc() {
 
 		get: trpc.checklist.getChecklist.useQuery,
 
-		getForClaim: trpc.checklist.getChecklistClaim.useQuery,
+		getForClaim: (input: any, opts?: any) =>
+			trpc.checklist.getChecklistClaim.useQuery(input, {
+				...opts,
+				onSuccess: (data: any) => {
+					// Invalidate recents when a checklist claim is opened (last_opened is updated)
+					utils.checklist.getRecentChecklistClaims.invalidate();
+					opts?.onSuccess?.(data);
+				},
+			}),
 
 		getSummary: trpc.checklist.getChecklistSummary.useQuery,
 

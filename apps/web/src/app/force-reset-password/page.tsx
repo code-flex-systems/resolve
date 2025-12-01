@@ -1,18 +1,33 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import NewPassword, { NewPasswordFormInputs } from '@/components/auth/NewPassword';
+import { Box, CircularProgress } from '@mui/material';
 
 export default function ForceResetPasswordPage() {
 	const router = useRouter();
-	const { data: session } = useSession();
+	const { data: session, status } = useSession();
 	const { mutateAsync: updateUser, isPending: isUpdating } = useUserTrpc().update;
 
+	useEffect(() => {
+		if (status === 'unauthenticated') {
+			router.push('/unauthorized');
+		}
+	}, [status, router]);
+
+	if (status === 'loading') {
+		return (
+			<Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+				<CircularProgress />
+			</Box>
+		);
+	}
+
 	if (!session?.user) {
-		router.push('/unauthorized');
-		return <></>;
+		return null;
 	}
 
 	const onSubmit = async (data: NewPasswordFormInputs) => {

@@ -11,7 +11,11 @@
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest --coverage",
 		"azurite": "azurite-blob --silent --location ./azurite-data --blobPort 10000",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"db:migrate": "tsx src/api/database/migrate-to-latest.ts",
+		"db:migrate:down": "tsx src/api/database/migrate-down.ts",
+		"db:migration:create": "tsx src/api/database/create-migration.ts",
+		"db:types": "kysely-codegen --out-file=src/api/database/types.d.ts --dialect=postgres"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",

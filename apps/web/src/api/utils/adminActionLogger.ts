@@ -21,6 +21,7 @@ export enum EntityName {
 	CHECKLIST = 'checklist',
 	CLAIM = 'claim',
 	CHECKLIST_CLAIM = 'checklist_claim',
+	CLAIM_COVERAGE = 'claim_coverage',
 
 	// Template entities
 	PAGE = 'page',
@@ -43,6 +44,20 @@ export enum EntityName {
 	// Recovery & deadline entities
 	RECOVERY_EVENT = 'recovery_event',
 	DEADLINE = 'deadline',
+
+	// Party management entities
+	PARTY = 'party',
+	PARTY_OFFICE = 'party_office',
+	PARTY_REPRESENTATIVE = 'party_representative',
+	CLAIM_PARTY = 'claim_party',
+
+	// Desk management entities (Phase 1+2)
+	DESK_LOCATION_TYPE = 'desk_location_type',
+	DESK_LOCATION = 'desk_location',
+	USER_DESK_LOCATION = 'user_desk_location',
+
+	// Workflow management entities (Phase 3)
+	TASK = 'task',
 }
 
 export interface AdminActionLogParams {
@@ -83,18 +98,15 @@ export async function logAdminAction(
 	ctx: ProtectedContext,
 	params: AdminActionLogParams
 ): Promise<void> {
-	const { entityId, entityName, action, value } = params;
+	// Import and use the new activity logger for auto-routing
+	const { logAction } = await import('./activityLogger');
 
-	const logData = {
-		client_id: ctx.session.user.client_id as string,
-		user_id: ctx.session.user.id,
-		entity_id: entityId.toString(),
-		entity_name: entityName,
-		action,
-		value: value ? JSON.parse(JSON.stringify(value)) : null,
-	};
-
-	await ctx.db.insertInto('admin_action_logs').values(logData).execute();
+	await logAction(ctx, {
+		entityId: params.entityId,
+		entityName: params.entityName as any, // Type compatibility
+		action: params.action as any,
+		value: params.value,
+	});
 }
 
 /**
@@ -109,14 +121,16 @@ export async function logAdminActions(
 ): Promise<void> {
 	if (logs.length === 0) return;
 
-	const logData = logs.map((params) => ({
-		client_id: ctx.session.user.client_id as string,
-		user_id: ctx.session.user.id,
-		entity_id: params.entityId.toString(),
-		entity_name: params.entityName,
-		action: params.action,
-		value: params.value ? JSON.parse(JSON.stringify(params.value)) : null,
-	}));
+	// Import and use the new activity logger for auto-routing
+	const { logActions } = await import('./activityLogger');
 
-	await ctx.db.insertInto('admin_action_logs').values(logData).execute();
+	await logActions(
+		ctx,
+		logs.map((params) => ({
+			entityId: params.entityId,
+			entityName: params.entityName as any,
+			action: params.action as any,
+			value: params.value,
+		}))
+	);
 }

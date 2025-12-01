@@ -7,7 +7,7 @@ import { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatCurrency, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import { CustomPagination } from '@/components/common/CustomPagination';
+import CustomPagination from '@/components/common/CustomPagination';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';

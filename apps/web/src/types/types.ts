@@ -65,7 +65,12 @@ export interface Claim {
 	loss_location: string | null;
 	last_updated_by: string | null;
 	last_update: Date | null;
-	expected_recovery: number | null;
+	reserved_recovery: number | null; // Client's expected recovery (from feed/manual)
+	paid_recovery: number | null; // Client's reported paid amount (from feed/manual)
+	expected_recovery: number | null; // Team's forecasted recovery (manual, eventually auto-calculated)
+	actual_recovery: number | null; // Team's meaningful payments (calculated from recovery events)
+	line_of_business: string | null;
+	loss_type: string | null;
 }
 
 export interface Checklist {

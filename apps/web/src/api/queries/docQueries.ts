@@ -198,6 +198,22 @@ export async function deleteDoc(ctx: ProtectedContext, docId: number) {
 // =====================================================================
 
 /**
+ * Reserved folder names that cannot be used by users
+ */
+const RESERVED_FOLDER_NAMES = ['Users', 'Shared'];
+
+/**
+ * Validate folder name against reserved names
+ * @param name - folder name to validate
+ * @throws Error if name is reserved
+ */
+function validateFolderName(name: string) {
+	if (RESERVED_FOLDER_NAMES.includes(name)) {
+		throw new Error(`"${name}" is a reserved folder name and cannot be used`);
+	}
+}
+
+/**
  * Create a document group (folder).
  *
  * @param ctx - request context
@@ -205,6 +221,11 @@ export async function deleteDoc(ctx: ProtectedContext, docId: number) {
  * @returns created group
  */
 export async function createDocGroup(ctx: ProtectedContext, params: DocGroupParams) {
+	// Validate folder name against reserved names (unless creating system folders)
+	if (!params.system) {
+		validateFolderName(params.name);
+	}
+
 	return await ctx.db
 		.insertInto('doc_group')
 		.values({
@@ -216,6 +237,8 @@ export async function createDocGroup(ctx: ProtectedContext, params: DocGroupPara
 			color: params.color,
 			icon: params.icon,
 			sort_order: params.sort_order || 0,
+			system: params.system || false,
+			user_id: params.user_id,
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
@@ -246,6 +269,9 @@ export async function getDocGroup(ctx: ProtectedContext, groupId: number) {
  * @returns array of groups
  */
 export async function getDocGroups(ctx: ProtectedContext) {
+	// Ensure Shared folder exists
+	await getOrCreateSharedFolder(ctx);
+
 	return await ctx.db
 		.selectFrom('doc_group')
 		.leftJoin('users', 'users.id', 'doc_group.user_id')
@@ -279,6 +305,23 @@ export async function getDocGroupHierarchy(ctx: ProtectedContext) {
  * @returns updated group
  */
 export async function updateDocGroup(ctx: ProtectedContext, groupId: number, params: UpdateDocGroupParams) {
+	// Check if this is a system folder
+	const group = await ctx.db
+		.selectFrom('doc_group')
+		.select(['system'])
+		.where('id', '=', groupId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+
+	if (group?.system) {
+		throw new Error('Cannot update system folders');
+	}
+
+	// Validate new name if being changed
+	if (params.name) {
+		validateFolderName(params.name);
+	}
+
 	return await ctx.db
 		.updateTable('doc_group')
 		.set({
@@ -316,6 +359,18 @@ export async function getDocGroupForDeletion(ctx: ProtectedContext, groupId: num
  * @param groupId - group identifier
  */
 export async function deleteDocGroup(ctx: ProtectedContext, groupId: number) {
+	// Check if this is a system folder
+	const group = await ctx.db
+		.selectFrom('doc_group')
+		.select(['system'])
+		.where('id', '=', groupId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+
+	if (group?.system) {
+		throw new Error('Cannot delete system folders');
+	}
+
 	await ctx.db
 		.deleteFrom('doc_group')
 		.where('id', '=', groupId)
@@ -432,6 +487,7 @@ export async function getOrCreateUsersFolder(ctx: ProtectedContext): Promise<num
 			client_id: ctx.session.user.client_id!,
 			group_type: DocGroupType.CATEGORY,
 			parent_group_id: null,
+			system: true,
 			created_by: ctx.session.user.id,
 		})
 		.onConflict((oc) => oc.doNothing())
@@ -494,4 +550,92 @@ export async function getOrCreateUserFolder(ctx: ProtectedContext, userId: strin
 	}
 
 	return result.id;
+}
+
+/**
+ * Get or create the root "Shared" folder.
+ * This folder is used for documents that should be accessible to all users in the client.
+ *
+ * @param ctx - request context
+ * @returns the Shared folder id
+ */
+export async function getOrCreateSharedFolder(ctx: ProtectedContext): Promise<number> {
+	// Always attempt to create Shared folder (unique constraint prevents duplicates)
+	const result = await ctx.db
+		.insertInto('doc_group')
+		.values({
+			name: 'Shared',
+			description: 'Shared documents accessible to all users' as string | null,
+			client_id: ctx.session.user.client_id!,
+			group_type: DocGroupType.CATEGORY,
+			parent_group_id: null,
+			system: true,
+			created_by: ctx.session.user.id,
+		})
+		.onConflict((oc) => oc.doNothing())
+		.returningAll()
+		.executeTakeFirst();
+
+	// If insert was ignored due to conflict, fetch the existing folder
+	if (!result) {
+		const existing = await ctx.db
+			.selectFrom('doc_group')
+			.select('id')
+			.where('client_id', '=', ctx.session.user.client_id)
+			.where('name', '=', 'Shared')
+			.where('group_type', '=', DocGroupType.CATEGORY)
+			.where('parent_group_id', 'is', null)
+			.where('system', '=', true)
+			.executeTakeFirstOrThrow();
+		return existing.id;
+	}
+
+	return result.id;
+}
+
+/**
+ * Get the Shared folder and all its contents (folders and documents) recursively.
+ * Used for displaying the shared folder view to regular users.
+ *
+ * @param ctx - request context
+ * @returns object with shared folder info, child folders, and documents
+ */
+export async function getSharedFolderContents(ctx: ProtectedContext) {
+	// Ensure Shared folder exists
+	const sharedFolderId = await getOrCreateSharedFolder(ctx);
+
+	// Get the shared folder
+	const sharedFolder = await ctx.db
+		.selectFrom('doc_group')
+		.selectAll()
+		.where('id', '=', sharedFolderId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirstOrThrow();
+
+	// Get all child folders recursively using CTE
+	const childFolders = await ctx.db
+		.withRecursive('folder_tree', (db) =>
+			db
+				.selectFrom('doc_group')
+				.selectAll()
+				.where('parent_group_id', '=', sharedFolderId)
+				.where('client_id', '=', ctx.session.user.client_id)
+				.unionAll(
+					db
+						.selectFrom('doc_group')
+						.innerJoin('folder_tree', 'doc_group.parent_group_id', 'folder_tree.id')
+						.selectAll('doc_group')
+						.where('doc_group.client_id', '=', ctx.session.user.client_id)
+				)
+		)
+		.selectFrom('folder_tree')
+		.selectAll()
+		.orderBy('sort_order', 'asc')
+		.orderBy('name', 'asc')
+		.execute();
+
+	return {
+		sharedFolder,
+		childFolders,
+	};
 }

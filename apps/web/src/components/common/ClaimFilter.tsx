@@ -15,12 +15,14 @@ export default function ClaimFilter({
 	claim,
 	setClaim,
 	height = 30,
+	zIndex,
 }: {
 	claim: Claim | null;
 	setClaim: (newClaim: Claim | null) => void;
 	width?: number | string;
 	padding?: string;
 	height?: number;
+	zIndex?: number;
 }) {
 	const trpcUtils = trpc.useUtils();
 	const [results, setResults] = useState<Claim[]>([]);
@@ -63,7 +65,7 @@ export default function ClaimFilter({
 				}}
 			/>
 			{!!anchorEl && (
-				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start">
+				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={zIndex}>
 					<Paper sx={styles.paper}>
 						<Box display="flex" justifyContent="center" alignItems="center" padding="5px">
 							<Autocomplete

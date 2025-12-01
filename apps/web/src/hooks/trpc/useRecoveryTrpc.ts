@@ -16,6 +16,8 @@ export function useRecoveryTrpc() {
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+				// Invalidate claim detail to update actual_recovery totals
+				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
 			},
 		}),
 
@@ -33,30 +35,8 @@ export function useRecoveryTrpc() {
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
-			},
-		}),
-
-		// Deadline hooks
-		createDeadline: trpc.recovery.createDeadline.useMutation({
-			onSuccess(_data, variables) {
-				// Invalidate deadlines list for this claim
-				utils.recovery.listDeadlines.invalidate({ claimId: variables.claimId });
-			},
-		}),
-
-		listDeadlines: trpc.recovery.listDeadlines.useQuery,
-
-		updateDeadlineStatus: trpc.recovery.updateDeadlineStatus.useMutation({
-			onSuccess() {
-				// Invalidate all deadlines queries since we don't know which filters were used
-				utils.recovery.listDeadlines.invalidate();
-			},
-		}),
-
-		deleteDeadline: trpc.recovery.deleteDeadline.useMutation({
-			onSuccess() {
-				// Invalidate all deadlines queries
-				utils.recovery.listDeadlines.invalidate();
+				// Invalidate claim detail to update actual_recovery totals
+				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
 			},
 		}),
 
@@ -64,12 +44,14 @@ export function useRecoveryTrpc() {
 		getRecoveryMetricsSummary: trpc.recovery.getRecoveryMetricsSummary.useQuery,
 
 		getRecoveryMetricsTimeSeries: trpc.recovery.getRecoveryMetricsTimeSeries.useQuery,
+
+		getQuarterlyRecoveryStats: trpc.recovery.getQuarterlyRecoveryStats.useQuery,
 	};
 }
 
 // Export types for use in components
 export type RecoveryEvent = RecoveryOutput['listRecoveryEvents'][number];
-export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFilters'][number];
-export type Deadline = RecoveryOutput['listDeadlines'][number];
+export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFilters']['rows'][number];
 export type RecoveryMetricsSummary = RecoveryOutput['getRecoveryMetricsSummary'];
 export type RecoveryMetricsTimeSeries = RecoveryOutput['getRecoveryMetricsTimeSeries'];
+export type QuarterlyRecoveryStats = RecoveryOutput['getQuarterlyRecoveryStats'];

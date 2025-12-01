@@ -89,6 +89,8 @@ export default function PageNavigation() {
 	const showChangeLog = useChecklistStore((state) => state.showChangeLog);
 	const showComments = useChecklistStore((state) => state.showComments);
 	const commentOffset = useChecklistStore((state) => state.commentOffset);
+	const toggleComments = useChecklistStore((state) => state.toggleComments);
+	const toggleChangeLog = useChecklistStore((state) => state.toggleChangeLog);
 
 	const { data: checklist, isSuccess: isChSuccess } = useChecklistTrpc().get(
 		{ id: checklistId! },
@@ -178,8 +180,12 @@ export default function PageNavigation() {
 									exclusive
 									onChange={(_, value) => {
 										useChecklistStore.getState().updateMode(value);
-										if (value === ChecklistMode.VIEW)
+										if (value === ChecklistMode.VIEW) {
 											refetchTree().catch((e: any) => console.error(e));
+										} else {
+											if (showComments) toggleComments();
+											if (showChangeLog) toggleChangeLog();
+										}
 									}}
 								>
 									{!!claimId && (

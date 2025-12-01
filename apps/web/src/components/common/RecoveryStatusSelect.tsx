@@ -1,24 +1,10 @@
-import { Box, Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
 import { useState } from 'react';
 import BasicPopper from './BasicPopper';
-import CheckCircle from '@mui/icons-material/CheckCircle';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { RecoveryStatus } from '@/config/enums';
-import AccountBalance from '@mui/icons-material/AccountBalance';
-
-const STATUS_ICONS = {
-	[RecoveryStatus.PENDING]: '⏳',
-	[RecoveryStatus.IN_PROGRESS]: '🔄',
-	[RecoveryStatus.RECOVERED]: '✅',
-	[RecoveryStatus.CLOSED_NO_RECOVERY]: '❌',
-};
-
-const STATUS_LABELS = {
-	[RecoveryStatus.PENDING]: 'Pending',
-	[RecoveryStatus.IN_PROGRESS]: 'In Progress',
-	[RecoveryStatus.RECOVERED]: 'Recovered',
-	[RecoveryStatus.CLOSED_NO_RECOVERY]: 'Closed - No Recovery',
-};
+import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
+import AttachMoney from '@mui/icons-material/AttachMoney';
 
 export default function RecoveryStatusSelect({
 	recoveryStatus,
@@ -37,21 +23,13 @@ export default function RecoveryStatusSelect({
 }) {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 
-	const displayLabel = recoveryStatus ? STATUS_LABELS[recoveryStatus as RecoveryStatus] : text;
+	const displayLabel = recoveryStatus ? formatRecoveryStatus(recoveryStatus) : text;
 
 	return (
 		<>
 			<Chip
 				label={displayLabel}
-				icon={
-					recoveryStatus ? (
-						<Box marginLeft="5px">
-							<Typography fontSize={14}>{STATUS_ICONS[recoveryStatus as RecoveryStatus]}</Typography>
-						</Box>
-					) : (
-						<AccountBalance sx={{ color: BASE_COLOR_LIGHT }} />
-					)
-				}
+				icon={<AttachMoney sx={{ color: recoveryStatus ? undefined : BASE_COLOR_LIGHT }} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -80,12 +58,7 @@ export default function RecoveryStatusSelect({
 									setAnchorEl(null);
 								}}
 							>
-								<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-									<Typography fontSize={14}>{STATUS_ICONS[status]}</Typography>
-									<Typography fontSize={13} marginLeft="5px">
-										{STATUS_LABELS[status]}
-									</Typography>
-								</Box>
+								<Typography fontSize={13}>{formatRecoveryStatus(status)}</Typography>
 							</MenuItem>
 						))}
 					</Paper>
@@ -103,6 +76,6 @@ const styles = {
 		outline: 1,
 		outlineColor: 'divider',
 		marginTop: '5px',
-		minWidth: 220,
+		minWidth: 200,
 	},
 };

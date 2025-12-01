@@ -1,0 +1,107 @@
+'use client';
+
+import { Stack, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
+import Assignment from '@mui/icons-material/Assignment';
+import BasicDialog from '../common/BasicDialog';
+import { useState } from 'react';
+import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
+import { useAlertStore } from '@/stores/useAlertStore';
+import DeskLocationTypeSelect from '../common/DeskLocationTypeSelect';
+import DeskLocationSelect from '../common/DeskLocationSelect';
+
+interface BulkDeskAssignmentDialogProps {
+	selectedUserIds: string[];
+	onClose: () => void;
+}
+
+export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: BulkDeskAssignmentDialogProps) {
+	const [deskLocationTypeId, setDeskLocationTypeId] = useState<number | null>(null);
+	const [deskLocationId, setDeskLocationId] = useState<number | null>(null);
+	const [priority, setPriority] = useState<number>(1);
+
+	const showAlert = useAlertStore((state) => state.showAlert);
+	const { mutateAsync: bulkAssignUsers, isPending } = useDeskTrpc().bulkAssignUsers;
+
+	const handleAssign = async () => {
+		if (!deskLocationId) {
+			showAlert('Please select a desk location', 'error');
+			return;
+		}
+
+		try {
+			// Bulk assign all users in a single transaction (all-or-nothing)
+			await bulkAssignUsers({
+				userIds: selectedUserIds,
+				deskLocationId,
+				priority,
+			});
+
+			showAlert(
+				`Successfully assigned ${selectedUserIds.length} user(s) to desk location`,
+				'success'
+			);
+			onClose();
+		} catch (error: any) {
+			const message = error?.message || 'Failed to assign users to desk location';
+			showAlert(message, 'error');
+		}
+	};
+
+	return (
+		<BasicDialog
+			title="Bulk Assign Users to Desk"
+			primaryAction={{
+				label: 'Assign',
+				onClick: handleAssign,
+				icon: <Assignment />,
+				disabled: isPending || !deskLocationId,
+			}}
+			secondaryActions={[
+				{
+					label: 'Cancel',
+					onClick: onClose,
+				},
+			]}
+			onClose={onClose}
+			width={500}
+		>
+			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+				<Typography variant="body2" color="text.secondary" sx={{ width: 400, marginBottom: 1 }}>
+					Assigning {selectedUserIds.length} user(s) to a desk location
+				</Typography>
+
+				<DeskLocationTypeSelect
+					value={deskLocationTypeId}
+					onChange={(newValue) => {
+						setDeskLocationTypeId(newValue);
+						setDeskLocationId(null); // Reset location when type changes
+					}}
+					required
+				/>
+
+				<DeskLocationSelect
+					value={deskLocationId}
+					onChange={setDeskLocationId}
+					deskLocationTypeId={deskLocationTypeId}
+					disabled={!deskLocationTypeId}
+					required
+				/>
+
+				<FormControl variant="standard" sx={{ width: 400, margin: '5px 0px' }}>
+					<InputLabel>Priority</InputLabel>
+					<Select
+						value={priority}
+						onChange={(e) => setPriority(e.target.value as number)}
+						disabled={isPending}
+					>
+						<MenuItem value={1}>Priority 1 (Highest)</MenuItem>
+						<MenuItem value={2}>Priority 2</MenuItem>
+						<MenuItem value={3}>Priority 3</MenuItem>
+						<MenuItem value={4}>Priority 4</MenuItem>
+						<MenuItem value={5}>Priority 5 (Lowest)</MenuItem>
+					</Select>
+				</FormControl>
+			</Stack>
+		</BasicDialog>
+	);
+}

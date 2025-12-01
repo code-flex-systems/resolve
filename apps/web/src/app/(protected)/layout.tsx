@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import AlertContainer from '@/components/common/AlertContainer';
 
 const FORCE_PATH = '/force-reset-password';
 
@@ -17,5 +18,10 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 		}
 	}, [session, status, pathname, router]);
 
-	return children;
+	return (
+		<>
+			<AlertContainer />
+			{children}
+		</>
+	);
 }

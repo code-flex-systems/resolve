@@ -8,6 +8,8 @@ import {
 	Stepper,
 	styled,
 	Typography,
+	Skeleton,
+	Tooltip,
 } from '@mui/material';
 import { useState } from 'react';
 import CalendarToday from '@mui/icons-material/CalendarToday';
@@ -15,6 +17,10 @@ import Check from '@mui/icons-material/Check';
 import Event from '@mui/icons-material/Event';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
+import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
+import { formatCurrency } from '@/lib/utils/recoveryUtils';
+import config from '@/config/config';
+import dayjs from 'dayjs';
 
 const steps: { value: number; label: string }[] = [
 	{ value: 1, label: 'Q1' },
@@ -81,33 +87,42 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 export default function FQStepper() {
 	const [active, setActive] = useState<number>(getCurrentFiscalQuarter());
 
+	// Fetch quarterly recovery stats
+	const { data: quarterlyStats, isLoading } = useRecoveryTrpc().getQuarterlyRecoveryStats({}, { enabled: true });
+
+	// Helper to get date range for tooltip
+	const getQuarterDateRange = (quarterIndex: number) => {
+		const start = config.FISCAL_YEAR_START_DATE.add(quarterIndex * 3, 'months');
+		const end = start.add(3, 'months').subtract(1, 'day');
+		return `${start.format('MMM D')} - ${end.format('MMM D, YYYY')}`;
+	};
+
+	// Map quarter stats to array
+	const quarterAmounts = quarterlyStats
+		? [quarterlyStats.q1, quarterlyStats.q2, quarterlyStats.q3, quarterlyStats.q4]
+		: ['0', '0', '0', '0'];
+
 	return (
 		<Stack
-			width={140}
-			minWidth={140}
-			height={350}
+			width={150}
+			minWidth={150}
+			height={600}
 			display="flex"
 			justifyContent="flex-start"
 			alignItems="center"
 			bgcolor="white"
 			borderRadius={4}
 			margin="15px"
+			padding="15px"
 		>
-			<Box
-				display="flex"
-				justifyContent="center"
-				alignItems="center"
-				height={40}
-				margin="10px 0px"
-				padding="5px 20px"
-			>
-				<Typography variant="subtitle1" fontSize={14} fontWeight={600} minWidth={100}>
-					Fiscal Year Progress
+			<Box display="flex" justifyContent="center" alignItems="center" marginBottom={2}>
+				<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+					Fiscal Year Recovery
 				</Typography>
 			</Box>
 
 			<Stepper
-				sx={{ height: 'calc(100% - 80px)' }}
+				sx={{ width: '100%', height: 'calc(100% - 50px)', marginLeft: '20px' }}
 				connector={<Connector />}
 				orientation="vertical"
 				activeStep={active}
@@ -115,12 +130,31 @@ export default function FQStepper() {
 				{steps.map(({ value, label }, i) => (
 					<Step key={value}>
 						<StepLabel icon={<IconContainer active={active} index={i} />}>
-							<Typography
-								fontSize={15}
-								color={i <= active ? theme.palette.secondary.main : BASE_COLOR_LIGHT}
-							>
-								{label}
-							</Typography>
+							<Box display="flex" flexDirection="column" alignItems="flex-start">
+								<Typography
+									fontSize={15}
+									fontWeight={i === active ? 700 : 500}
+									color={i <= active ? theme.palette.secondary.main : BASE_COLOR_LIGHT}
+								>
+									{label}
+								</Typography>
+								{isLoading ? (
+									<Skeleton variant="text" width={80} height={20} />
+								) : (
+									<Tooltip title={getQuarterDateRange(i)} placement="right">
+										<Typography
+											fontSize={i === active ? 15 : 13}
+											fontWeight={i === active ? 600 : 400}
+											color={
+												i <= active ? theme.palette.text.primary : theme.palette.text.disabled
+											}
+											sx={{ cursor: 'help' }}
+										>
+											{formatCurrency(parseFloat(quarterAmounts[i]))}
+										</Typography>
+									</Tooltip>
+								)}
+							</Box>
 						</StepLabel>
 					</Step>
 				))}

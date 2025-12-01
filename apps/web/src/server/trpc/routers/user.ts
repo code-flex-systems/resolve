@@ -9,6 +9,7 @@ import {
 	getUserActivityInput,
 	getUserActivityDetailInput,
 	getUsersPaginatedInput,
+	getUsersWithDeskAssignmentsInput,
 } from '@/schemas/userSchemas';
 import { protectedProcedure, router } from '../trpc';
 import config from '@/config/config';
@@ -30,6 +31,13 @@ export const userRouter = router({
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getUsersPaginated(ctx, input);
 	}),
+
+	getUsersWithDeskAssignments: protectedProcedure
+		.input(getUsersWithDeskAssignmentsInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return userController.getUsersWithDeskAssignments(ctx, input);
+		}),
 
 	getUserActivity: protectedProcedure.input(getUserActivityInput).query(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
@@ -80,7 +88,7 @@ export const userRouter = router({
 
 	updateUser: protectedProcedure.input(updateUserInput).mutation(async ({ input, ctx }) => {
 		const isSelfUpdate = input.id === ctx.session.user.id;
-		const adminOnlyFields: string[] = ['role', 'disabled'];
+		const adminOnlyFields: string[] = ['first', 'last', 'role', 'disabled'];
 		// Must be admin to update other users, or to update role / activate/deactivate account
 		if (!isSelfUpdate || Object.keys(input.params).some((k) => adminOnlyFields.includes(k))) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);

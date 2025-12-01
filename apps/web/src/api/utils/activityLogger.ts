@@ -1,0 +1,402 @@
+import { ProtectedContext } from '@/server/trpc/trpc';
+
+/**
+ * Action types that can be logged across both admin and user workflows
+ */
+export enum LogAction {
+	// Admin CRUD actions
+	CREATE = 'CREATE',
+	UPDATE = 'UPDATE',
+	DELETE = 'DELETE',
+	BULK_UPDATE = 'BULK_UPDATE',
+	BULK_DELETE = 'BULK_DELETE',
+
+	// User workflow actions
+	CLAIM = 'CLAIM',
+	UNCLAIM = 'UNCLAIM',
+	COMPLETE = 'COMPLETE',
+	CANCEL = 'CANCEL',
+}
+
+/**
+ * Actor type - who performed the action
+ */
+export enum ActorType {
+	ADMIN = 'admin',
+	USER = 'user',
+}
+
+/**
+ * Entity types that actions can be performed on
+ */
+export enum EntityName {
+	// Core entities
+	USER = 'user',
+	CLIENT = 'client',
+	CHECKLIST = 'checklist',
+	CLAIM = 'claim',
+	CHECKLIST_CLAIM = 'checklist_claim',
+	CLAIM_COVERAGE = 'claim_coverage',
+
+	// Template entities
+	PAGE = 'page',
+	PAGE_INSTANCE = 'page_instance',
+	QUESTION = 'question',
+	ANSWER = 'answer',
+
+	// Response entities
+	QUESTION_RESPONSE = 'question_response',
+	COMMENT = 'comment',
+
+	// Configuration entities
+	FEED = 'feed',
+	ACTION = 'action',
+
+	// Document entities
+	DOCUMENT = 'document',
+	DOC_GROUP = 'doc_group',
+
+	// Recovery & deadline entities
+	RECOVERY_EVENT = 'recovery_event',
+	DEADLINE = 'deadline',
+
+	// Party management entities
+	PARTY = 'party',
+	PARTY_OFFICE = 'party_office',
+	PARTY_REPRESENTATIVE = 'party_representative',
+	CLAIM_PARTY = 'claim_party',
+	CLAIM_LIABILITY = 'claim_liability',
+
+	// Desk management entities
+	DESK_LOCATION_TYPE = 'desk_location_type',
+	DESK_LOCATION = 'desk_location',
+	USER_DESK_LOCATION = 'user_desk_location',
+
+	// Workflow management entities
+	TASK = 'task',
+}
+
+/**
+ * Config entities - these go to admin_config_logs
+ */
+const CONFIG_ENTITIES: Set<EntityName> = new Set([
+	EntityName.USER,
+	EntityName.CLIENT,
+	EntityName.CHECKLIST,
+	EntityName.PAGE,
+	EntityName.QUESTION,
+	EntityName.ANSWER,
+	EntityName.FEED,
+	EntityName.ACTION,
+	EntityName.DOC_GROUP,
+	EntityName.DESK_LOCATION_TYPE,
+	EntityName.DESK_LOCATION,
+	EntityName.USER_DESK_LOCATION,
+	EntityName.PARTY,
+	EntityName.PARTY_OFFICE,
+	EntityName.PARTY_REPRESENTATIVE,
+	EntityName.PAGE_INSTANCE,
+]);
+
+/**
+ * Claim-related entities - these go to claim_activity_logs
+ */
+const CLAIM_ENTITIES: Set<EntityName> = new Set([
+	EntityName.CLAIM,
+	EntityName.TASK,
+	EntityName.DEADLINE,
+	EntityName.RECOVERY_EVENT,
+	EntityName.CLAIM_COVERAGE,
+	EntityName.CLAIM_PARTY,
+	EntityName.CLAIM_LIABILITY,
+	EntityName.DOCUMENT,
+	EntityName.CHECKLIST_CLAIM,
+	EntityName.COMMENT,
+]);
+
+/**
+ * Check if an entity is a config entity
+ */
+function isConfigEntity(entityName: EntityName): boolean {
+	return CONFIG_ENTITIES.has(entityName);
+}
+
+/**
+ * Check if an entity is a claim-related entity
+ */
+function isClaimEntity(entityName: EntityName): boolean {
+	return CLAIM_ENTITIES.has(entityName);
+}
+
+/**
+ * Derive claim_id from entity
+ */
+async function deriveClaimId(
+	ctx: ProtectedContext,
+	entityName: EntityName,
+	entityId: string | number
+): Promise<number | null> {
+	// Direct claim reference
+	if (entityName === EntityName.CLAIM) {
+		return Number(entityId);
+	}
+
+	// For comment, check if it has a claim_id column
+	if (entityName === EntityName.COMMENT) {
+		const comment = await ctx.db
+			.selectFrom('comment')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return comment?.claim_id ?? null;
+	}
+
+	// Task -> claim_id
+	if (entityName === EntityName.TASK) {
+		const task = await ctx.db
+			.selectFrom('task')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return task?.claim_id ?? null;
+	}
+
+	// Deadline -> claim_id
+	if (entityName === EntityName.DEADLINE) {
+		const deadline = await ctx.db
+			.selectFrom('deadline')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return deadline?.claim_id ?? null;
+	}
+
+	// Recovery event -> claim_id
+	if (entityName === EntityName.RECOVERY_EVENT) {
+		const recoveryEvent = await ctx.db
+			.selectFrom('recovery_event')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return recoveryEvent?.claim_id ?? null;
+	}
+
+	// Claim coverage -> claim_id
+	if (entityName === EntityName.CLAIM_COVERAGE) {
+		const claimCoverage = await ctx.db
+			.selectFrom('claim_coverage')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return claimCoverage?.claim_id ?? null;
+	}
+
+	// Claim party -> claim_id
+	if (entityName === EntityName.CLAIM_PARTY) {
+		const claimParty = await ctx.db
+			.selectFrom('claim_party')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return claimParty?.claim_id ?? null;
+	}
+
+	// Claim liability -> claim_id (via claim_party)
+	if (entityName === EntityName.CLAIM_LIABILITY) {
+		const claimLiability = await ctx.db
+			.selectFrom('claim_liability')
+			.innerJoin('claim_party', 'claim_party.id', 'claim_liability.claim_party_id')
+			.select('claim_party.claim_id')
+			.where('claim_liability.id', '=', Number(entityId))
+			.executeTakeFirst();
+		return claimLiability?.claim_id ?? null;
+	}
+
+	// Document -> claim_id
+	if (entityName === EntityName.DOCUMENT) {
+		const doc = await ctx.db
+			.selectFrom('doc')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return doc?.claim_id ?? null;
+	}
+
+	// Checklist claim - extract from value
+	if (entityName === EntityName.CHECKLIST_CLAIM) {
+		// This will be handled by the caller passing claim_id explicitly
+		return null;
+	}
+
+	return null;
+}
+
+/**
+ * Detect actor type based on action
+ * User workflow actions are always 'user', CRUD actions are always 'admin'
+ */
+function detectActorType(action: LogAction): ActorType {
+	const userActions = new Set([
+		LogAction.CLAIM,
+		LogAction.UNCLAIM,
+		LogAction.COMPLETE,
+		LogAction.CANCEL,
+	]);
+
+	return userActions.has(action) ? ActorType.USER : ActorType.ADMIN;
+}
+
+export interface LogActionParams {
+	entityId: string | number;
+	entityName: EntityName;
+	action: LogAction;
+	value?: any;
+	actorType?: ActorType; // Auto-detected if not provided
+	claimId?: number; // Auto-derived for claim entities if not provided
+}
+
+/**
+ * Main logging function - auto-routes to correct table based on entity type
+ *
+ * This replaces logAdminAction and handles both admin and user activity logging.
+ *
+ * @param ctx - The protected context containing user, client info, and db (with transaction if applicable)
+ * @param params - The log parameters
+ *
+ * @example
+ * // Admin config action
+ * await logAction(ctx, {
+ *   entityId: userId,
+ *   entityName: EntityName.USER,
+ *   action: LogAction.UPDATE,
+ *   value: { email: newEmail }
+ * });
+ *
+ * @example
+ * // User workflow action (within transaction)
+ * await ctx.db.transaction().execute(async (trx) => {
+ *   const task = await claimTask({ ...ctx, db: trx }, taskId);
+ *   await logAction({ ...ctx, db: trx }, {
+ *     entityId: taskId,
+ *     entityName: EntityName.TASK,
+ *     action: LogAction.CLAIM,
+ *     claimId: task.claim_id // Optional, will be auto-derived
+ *   });
+ * });
+ */
+export async function logAction(
+	ctx: ProtectedContext,
+	params: LogActionParams
+): Promise<void> {
+	const { entityId, entityName, action, value } = params;
+
+	// Auto-detect actor type if not provided
+	const actorType = params.actorType ?? detectActorType(action);
+
+	// Route to appropriate table
+	if (isConfigEntity(entityName)) {
+		// Log to admin_config_logs
+		await ctx.db
+			.insertInto('admin_config_logs')
+			.values({
+				client_id: ctx.session.user.client_id as string,
+				user_id: ctx.session.user.id,
+				entity_id: entityId.toString(),
+				entity_name: entityName,
+				action,
+				value: value ? JSON.parse(JSON.stringify(value)) : null,
+			})
+			.execute();
+	} else if (isClaimEntity(entityName)) {
+		// Derive claim_id if not provided
+		const claimId =
+			params.claimId ?? (await deriveClaimId(ctx, entityName, entityId));
+
+		if (claimId === null) {
+			console.warn(
+				`Could not derive claim_id for ${entityName} ${entityId}. Skipping log.`
+			);
+			return;
+		}
+
+		// Log to claim_activity_logs
+		await ctx.db
+			.insertInto('claim_activity_logs')
+			.values({
+				client_id: ctx.session.user.client_id as string,
+				user_id: ctx.session.user.id,
+				claim_id: claimId,
+				entity_id: entityId.toString(),
+				entity_name: entityName,
+				action,
+				actor_type: actorType,
+				value: value ? JSON.parse(JSON.stringify(value)) : null,
+			})
+			.execute();
+	} else {
+		console.warn(`Unknown entity type: ${entityName}. Skipping log.`);
+	}
+}
+
+/**
+ * Convenience wrapper for user workflow actions
+ *
+ * @param ctx - The protected context
+ * @param params - Workflow action parameters
+ *
+ * @example
+ * await logUserWorkflowAction(ctx, {
+ *   claimId: 123,
+ *   action: 'task_claim',
+ *   entityId: taskId,
+ * });
+ */
+export async function logUserWorkflowAction(
+	ctx: ProtectedContext,
+	params: {
+		claimId: number;
+		action: 'task_claim' | 'task_unclaim' | 'task_complete' | 'deadline_complete' | 'comment_create';
+		entityId: number;
+		value?: any;
+	}
+): Promise<void> {
+	const actionMap: Record<typeof params.action, { entityName: EntityName; logAction: LogAction }> = {
+		task_claim: { entityName: EntityName.TASK, logAction: LogAction.CLAIM },
+		task_unclaim: { entityName: EntityName.TASK, logAction: LogAction.UNCLAIM },
+		task_complete: { entityName: EntityName.TASK, logAction: LogAction.COMPLETE },
+		deadline_complete: { entityName: EntityName.DEADLINE, logAction: LogAction.COMPLETE },
+		comment_create: { entityName: EntityName.COMMENT, logAction: LogAction.CREATE },
+	};
+
+	const { entityName, logAction: action } = actionMap[params.action];
+
+	await logAction(ctx, {
+		entityId: params.entityId,
+		entityName,
+		action,
+		claimId: params.claimId,
+		actorType: ActorType.USER,
+		value: params.value,
+	});
+}
+
+/**
+ * Helper to log multiple actions in bulk (useful for bulk operations)
+ *
+ * @param ctx - The protected context containing user, client info, and db (with transaction if applicable)
+ * @param logs - Array of log parameters
+ */
+export async function logActions(
+	ctx: ProtectedContext,
+	logs: LogActionParams[]
+): Promise<void> {
+	for (const log of logs) {
+		await logAction(ctx, log);
+	}
+}
+
+// Re-export for backwards compatibility
+export { EntityName as AdminEntityName, LogAction as AdminAction };
+export type AdminActionLogParams = LogActionParams;
+export const logAdminAction = logAction;
+export const logAdminActions = logActions;

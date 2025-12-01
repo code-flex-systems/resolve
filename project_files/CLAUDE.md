@@ -119,6 +119,26 @@ npx kysely-codegen --out-file apps/web/src/api/database/types.d.ts
 - Public routes: `apps/web/src/app/(public)/`
 - API routes: `apps/web/src/app/api/`
 
+**IMPORTANT - PageWrapper Requirement:**
+
+All protected page routes MUST wrap their main component in `<PageWrapper>`:
+```typescript
+// apps/web/src/app/(protected)/my-route/page.tsx
+import PageWrapper from '@/components/common/PageWrapper';
+import MyComponent from '@/components/my-domain/MyComponent';
+
+export default function MyPage() {
+  return (
+    <PageWrapper>
+      <MyComponent />
+    </PageWrapper>
+  );
+}
+```
+- PageWrapper provides the main sidebar navigation visible on all protected pages
+- PageWrapper handles layout, Fade transitions, and navigation items based on user role
+- Do NOT wrap in PageWrapper: Dialog components, panels, or components that are already within a page
+
 ### Data Model Concepts
 
 **Checklist hierarchy:**
@@ -159,6 +179,69 @@ Required environment variables (in `apps/web/.env`):
 - `AWS_*` - S3 configuration for document storage
 - NextAuth configuration (not shown in .env)
 
+## Desk Hierarchy System (Phase 1)
+
+**Overview:**
+
+The desk hierarchy system manages workflow routing for claims through different workflow phases (desk location types) and work queues (desk locations). This is a **workflow routing system**, not a team grouping system.
+
+**Three-Tier Structure:**
+
+1. **Desk Location Type** - Workflow phase (e.g., "Evaluation", "Adverse Coverage Verification")
+   - Primary purpose: Store contact information (email, phone, fax) for letter generation (Phase 3)
+   - Contains multiple desk locations
+   - Client-scoped and supports soft deletion
+
+2. **Desk Location** - Work queue within a phase (e.g., "Evaluation - Transactional", "Request for Information")
+   - Where claims are assigned for collaborative work
+   - Has active/inactive status
+   - Users will be assigned to locations with priority ordering (Phase 2)
+
+3. **User Assignment** - Priority-based assignment to desk locations (Phase 2+)
+   - Not yet implemented in Phase 1
+   - Will support 1-5 priority levels per user
+   - Multiple users can work on same claim (collaborative)
+
+**Phase 1 Implementation (Complete):**
+
+- Database tables: `desk_location_type`, `desk_location`
+- Added `desk_location_id` to `checklist_claim` table (for future routing)
+- Backend: Full CRUD operations in `deskQueries.ts`, `deskController.ts`
+- tRPC router: `desk.ts` with admin-only access
+- Frontend: Admin UI at `/admin/workflow-configuration/desk-locations`
+  - Master-detail layout (types list → locations detail)
+  - Create/edit dialogs for both types and locations
+  - Optional default location creation (Pending, Transactional, Closed, etc.)
+- Feature flag: `FEATURE_DESK_HIERARCHY` in `.env`
+
+**Key Files:**
+
+- Schemas: `apps/web/src/schemas/deskSchemas.ts` (includes SUGGESTED_DESK_LOCATIONS)
+- Queries: `apps/web/src/api/queries/deskQueries.ts`
+- Controller: `apps/web/src/api/controllers/deskController.ts`
+- Router: `apps/web/src/server/trpc/routers/desk.ts`
+- Hook: `apps/web/src/hooks/trpc/useDeskTrpc.ts`
+- Components:
+  - `apps/web/src/components/admin/DeskLocationsTab.tsx`
+  - `apps/web/src/components/admin/DeskLocationTypeDialog.tsx`
+  - `apps/web/src/components/admin/DeskLocationDialog.tsx`
+  - `apps/web/src/components/common/DeskLocationTypeSelect.tsx`
+  - `apps/web/src/components/common/DeskLocationSelect.tsx`
+- Migration: `apps/web/src/api/database/migrations/2025-11-20_192227_add_desk_location_hierarchy.ts`
+
+**Future Phases:**
+
+- Phase 2: User assignments with priority ordering, collaborative work pools, user work queue
+- Phase 3: Contact information fields (email, phone, fax), workflow routing rules, letter generation integration
+
+**Important Notes:**
+
+- All queries are client-scoped via `applyClientScope()`
+- Soft deletion using `deleted_at` timestamps
+- Unique constraint: name must be unique within client (excluding deleted records)
+- Admin action logging tracks all create/update/delete operations
+- Suggested default locations available when creating new types
+
 ## Key Patterns
 
 **DRY Principles & Shared Utilities:**
@@ -181,8 +264,18 @@ When developing features, avoid duplicating code across components. Follow these
    - Extract repeated rendering logic to shared components
    - Use `IconHeaderCell` for consistent DataGrid headers
    - Share filter components across breakdown pages (e.g., `RecoveryStatusSelect`, `UserFilter`)
+   - **CRITICAL**: If you find yourself copying dialog/form code between files, create a reusable component
+   - Example: `CoverageFormDialog` is used by both `CoverageManager` and `CoverageTab` instead of duplicating the form logic
 
-4. **Type Safety:**
+4. **Centralized Select Options with Icons:**
+   - For finite option lists (enums), create centralized configuration objects with icons and labels
+   - Pattern: Define `{ENUM}_CONFIG` object mapping enum values to `{ label, icon }` objects
+   - Create reusable select components (e.g., `CoverageTypeSelect`, `LineOfBusinessSelect`)
+   - Place configuration in `/lib/utils/{domain}Utils.tsx` (allows importing icon components)
+   - Example: `COVERAGE_TYPE_CONFIG` in `/lib/utils/coverageUtils.tsx` used by `CoverageTypeSelect`
+   - Benefits: Consistent labeling, easier maintenance, enhanced UX with visual indicators
+
+5. **Type Safety:**
    - Export derived types from tRPC hooks (e.g., `RecoveryEventWithDetails`)
    - Cast enums properly when needed: `recoveryStatus: recoveryStatus as any`
    - Document any type workarounds with comments
@@ -198,16 +291,46 @@ When developing features, avoid duplicating code across components. Follow these
 7. Create frontend hook in `apps/web/src/hooks/trpc/`
 8. Add Zustand state slice if needed
 
-**SQL Migration Conventions:**
+**Database Migrations:**
 
-When creating new database migrations:
+**Use Kysely Migrations (as of November 2025):**
 
-1. **Dual-File Approach:** Create both an individual migration file AND update the complete schema file
-   - Individual migration: `apps/web/src/api/sql/{feature}_infrastructure.sql` - For incremental updates
-   - Complete schema: `apps/web/src/api/sql/initial_tables_and_sql.sql` - For full database recreation
-   - Both files should be kept in sync - migrations are appended to the complete schema file
+All schema changes should now use the Kysely migration system:
 
-2. **Enum Management:** Define enums in TypeScript, not SQL
+1. **Create a new migration:**
+   ```bash
+   cd apps/web && npm run db:migration:create add_new_field
+   ```
+
+2. **Edit the generated file** in `apps/web/src/api/database/migrations/`:
+   - Implement `up()` function for schema changes
+   - Implement `down()` function for rollback
+   - Use Kysely schema builder API (type-safe)
+
+3. **Run migrations:**
+   ```bash
+   cd apps/web && npm run db:migrate
+   ```
+
+4. **Regenerate TypeScript types:**
+   ```bash
+   npm run db:types
+   ```
+
+5. **Commit the migration file** to git
+
+**Migration Infrastructure:**
+- Migrations tracked in `kysely_migration` table
+- Migration files: `apps/web/src/api/database/migrations/*.ts`
+- Baseline migration marked as executed for existing databases
+- Rollback available via `npm run db:migrate:down`
+
+**Legacy SQL Files:**
+- Files in `apps/web/src/api/sql/` are now legacy (pre-November 2025)
+- `initial_tables_and_sql.sql` represents the baseline schema
+- Do NOT create new SQL files - use Kysely migrations instead
+
+**Enum Management:** Define enums in TypeScript, not SQL
    - Add enum definitions to `apps/web/src/config/enums.ts` as TypeScript enums
    - Reference these enums in Zod schemas using `z.nativeEnum(EnumName)`
    - Use enum constants in query functions (e.g., `DocType.OTHER` instead of `'other'`)

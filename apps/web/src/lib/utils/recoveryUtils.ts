@@ -4,12 +4,14 @@
 
 import dayjs from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+import { RecoveryStatus } from '@/config/enums';
 
 dayjs.extend(quarterOfYear);
 
 /**
  * Format large numbers with friendly abbreviations (K, M)
  * Handles negative values correctly by using absolute value for comparison
+ * Use this for high-level metrics and summaries.
  */
 export function formatCurrency(value: number): string {
 	const absValue = Math.abs(value);
@@ -24,6 +26,24 @@ export function formatCurrency(value: number): string {
 }
 
 /**
+ * Format currency with exact precision (two decimal places, thousands separators)
+ * Use this for detailed views where exact amounts are important.
+ * Examples:
+ *   - 1234.56 -> "$1,234.56"
+ *   - 1000000 -> "$1,000,000.00"
+ *   - -500.5 -> "-$500.50"
+ */
+export function formatCurrencyExact(value: number): string {
+	const sign = value < 0 ? '-' : '';
+	const absValue = Math.abs(value);
+
+	return `${sign}$${absValue.toLocaleString('en-US', {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	})}`;
+}
+
+/**
  * Format recovery status enum to display-friendly text
  */
 export function formatRecoveryStatus(status: string | null): string {
@@ -34,6 +54,14 @@ export function formatRecoveryStatus(status: string | null): string {
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(' ');
 }
+
+// Icon mappings for recovery status
+export const RECOVERY_STATUS_ICONS: Record<RecoveryStatus, string> = {
+	[RecoveryStatus.PENDING]: '⏳',
+	[RecoveryStatus.IN_PROGRESS]: '🔄',
+	[RecoveryStatus.RECOVERED]: '✅',
+	[RecoveryStatus.CLOSED_NO_RECOVERY]: '❌',
+};
 
 /**
  * Calculate the start and end dates for a quarter as ISO strings

@@ -2,9 +2,11 @@
 import { PropsWithChildren, useMemo } from 'react';
 import Sidebar, { NavItem } from './Sidebar';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Home from '@mui/icons-material/Home';
+import Dashboard from '@mui/icons-material/Dashboard';
+import Search from '@mui/icons-material/Search';
 import ManageAccounts from '@mui/icons-material/ManageAccounts';
 import Security from '@mui/icons-material/Security';
+import FolderOpen from '@mui/icons-material/FolderOpen';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -21,7 +23,11 @@ export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor
 	);
 
 	const navItems = useMemo(() => {
-		const items: NavItem[] = [{ label: 'Home', route: '/home', icon: <Home sx={{ fontSize: 23 }} /> }];
+		const items: NavItem[] = [
+			{ label: 'Home', route: '/home', icon: <Search sx={{ fontSize: 23 }} /> },
+			{ label: 'Dashboard', route: '/dashboard', icon: <Dashboard sx={{ fontSize: 23 }} /> },
+			{ label: 'Documents', route: '/documents', icon: <FolderOpen sx={{ fontSize: 23 }} /> },
+		];
 		if (claim) {
 			items.push({
 				label: claim.claim_number ?? '',

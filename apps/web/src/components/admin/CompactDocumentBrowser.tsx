@@ -181,8 +181,8 @@ export default function CompactDocumentBrowser({
 										? 'No images found. Upload images to select from the library.'
 										: 'No documents found. Upload documents to select from the library.'
 									: filterByType === 'image'
-									? 'No images in this folder.'
-									: 'No documents in this folder.'
+										? 'No images in this folder.'
+										: 'No documents in this folder.'
 							}
 							icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
 						/>
@@ -206,18 +206,40 @@ const COLUMNS: GridColDef<GridRow>[] = [
 		headerName: 'Name',
 		field: 'name',
 		flex: 1,
-		renderCell: ({ row }) => (
-			<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-				{row.type === 'folder' ? (
-					<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
-				) : (
-					<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
-				)}
-				<Typography variant="body2">
-					{row.type === 'folder' ? row.data.name : row.data.title ?? row.data.alias}
-				</Typography>
-			</div>
-		),
+		renderCell: ({ row }) => {
+			// For user folders, display user's full name and email
+			if (row.type === 'folder' && row.data.group_type === 'user' && row.data.user_first && row.data.user_last) {
+				return (
+					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<div>
+							<Typography variant="body2">
+								{row.data.user_first} {row.data.user_last}
+							</Typography>
+							{row.data.user_email && (
+								<Typography variant="caption" color="text.secondary" display="block">
+									{row.data.user_email}
+								</Typography>
+							)}
+						</div>
+					</div>
+				);
+			}
+
+			// Default rendering for other folders and documents
+			return (
+				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+					{row.type === 'folder' ? (
+						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+					) : (
+						<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
+					)}
+					<Typography variant="body2">
+						{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
+					</Typography>
+				</div>
+			);
+		},
 		renderHeader: (params) => (
 			<IconHeaderCell {...(params as any)} icon={<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />} />
 		),

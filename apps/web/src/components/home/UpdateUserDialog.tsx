@@ -248,7 +248,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 							placeholder="John"
 							error={!!errors.first}
 							{...field}
-							disabled={isSubmitting || confirmingRoleChange}
+							disabled={isSubmitting || confirmingRoleChange || (!isAdmin && !isSuperAdmin)}
 							sx={styles.textFieldOverrides}
 						/>
 					)}
@@ -265,7 +265,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 							placeholder="Doe"
 							error={!!errors.last}
 							{...field}
-							disabled={isSubmitting || confirmingRoleChange}
+							disabled={isSubmitting || confirmingRoleChange || (!isAdmin && !isSuperAdmin)}
 							sx={styles.textFieldOverrides}
 						/>
 					)}

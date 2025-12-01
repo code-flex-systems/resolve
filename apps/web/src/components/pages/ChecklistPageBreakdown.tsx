@@ -91,7 +91,7 @@ export default function ChecklistPageBreakdown() {
 					<Box marginRight="5px">
 						<BasicButtonStyled
 							icon={<ArrowBack />}
-							buttonProps={{ onClick: () => router.push('/admin/checklists') }}
+							buttonProps={{ onClick: () => router.push('/admin/workflow-configuration/checklists') }}
 							tooltipProps={{ title: 'Back to dashboard' }}
 						/>
 					</Box>
