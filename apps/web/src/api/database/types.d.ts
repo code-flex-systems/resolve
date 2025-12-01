@@ -63,17 +63,6 @@ export interface ActionLog {
   status: string;
 }
 
-export interface AdminActionLogs {
-  action: string;
-  client_id: string;
-  created_at: Generated<Timestamp>;
-  entity_id: string;
-  entity_name: string;
-  id: Generated<number>;
-  user_id: string;
-  value: Json | null;
-}
-
 export interface AdminConfigLogs {
   action: string;
   client_id: string;
@@ -186,12 +175,10 @@ export interface Claim {
    * Type of loss for the claim (LossType enum enforced in TypeScript)
    */
   loss_type: string | null;
-  paid_recovery: Numeric | null;
   /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
   recovery_status: string | null;
-  reserved_recovery: Numeric | null;
   /**
    * Granular workflow state: investigation, demand_sent, negotiation, settlement_reached, litigation, closed_recovered, closed_no_recovery, cancelled
    */
@@ -227,16 +214,42 @@ export interface ClaimCoverage {
   updated_by: string | null;
 }
 
+export interface ClaimLiability {
+  claim_party_id: number;
+  client_id: string;
+  coverage_amount: Numeric | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  /**
+   * External ID from source system (for upsert logic)
+   */
+  external_reference: string | null;
+  /**
+   * Which feed sourced this liability
+   */
+  feed_id: number | null;
+  id: Generated<number>;
+  /**
+   * When feed last updated this record
+   */
+  last_synced_at: Timestamp | null;
+  liability_percentage: Numeric | null;
+  line_of_business: string | null;
+  loss_type: string | null;
+  /**
+   * User edited after feed sync - prevents feed overwrites
+   */
+  manually_overridden: Generated<boolean | null>;
+  notes: string | null;
+  paid_recovery: Numeric | null;
+  reserved_recovery: Numeric | null;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
 export interface ClaimParty {
   claim_id: number;
-  /**
-   * Coverage limit for this adverse carrier
-   */
-  coverage_amount: Numeric | null;
-  /**
-   * Coverage type category for this liability (LiabilityCoverageType enum)
-   */
-  coverage_type: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -247,30 +260,18 @@ export interface ClaimParty {
    * Email of user who unlinked this party from claim
    */
   deleted_by: string | null;
+  /**
+   * External ID from source system for feed matching
+   */
+  external_reference: string | null;
   id: Generated<number>;
   is_primary: Generated<boolean>;
-  /**
-   * Percentage of liability attributed to this party (for responsible parties)
-   */
-  liability_percentage: Numeric | null;
-  /**
-   * Line of business for this liability (LineOfBusiness enum)
-   */
-  line_of_business: string | null;
   notes: string | null;
-  /**
-   * Paid recovery tracked for this specific liability
-   */
-  paid_recovery: Numeric | null;
   party_id: number;
   /**
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
-  /**
-   * Reserved recovery tracked for this specific liability
-   */
-  reserved_recovery: Numeric | null;
   /**
    * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
    */
@@ -833,7 +834,6 @@ export interface DB {
   accounts: Accounts;
   action: Action;
   action_log: ActionLog;
-  admin_action_logs: AdminActionLogs;
   admin_config_logs: AdminConfigLogs;
   answer: Answer;
   auth_events: AuthEvents;
@@ -842,6 +842,7 @@ export interface DB {
   claim: Claim;
   claim_activity_logs: ClaimActivityLogs;
   claim_coverage: ClaimCoverage;
+  claim_liability: ClaimLiability;
   claim_party: ClaimParty;
   client: Client;
   comment: Comment;

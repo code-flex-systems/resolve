@@ -12,6 +12,7 @@ import { deadlineRouter } from './routers/deadline';
 import { deskRouter } from './routers/desk';
 import { docRouter } from './routers/doc';
 import { feedRouter } from './routers/feed';
+import { liabilityRouter } from './routers/liability';
 import { pageRouter } from './routers/page';
 import { partyRouter } from './routers/party';
 import { passwordResetRouter } from './routers/passwordReset';
@@ -34,6 +35,7 @@ export const appRouter = router({
 	desk: deskRouter,
 	doc: docRouter,
 	feed: feedRouter,
+	liability: liabilityRouter,
 	page: pageRouter,
 	party: partyRouter,
 	passwordReset: passwordResetRouter,

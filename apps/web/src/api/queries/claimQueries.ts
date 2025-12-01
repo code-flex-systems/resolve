@@ -196,7 +196,12 @@ export async function getClaims(
 	if (line_of_business) {
 		query = query
 			.leftJoin('claim_party', 'claim_party.claim_id', 'claim.id')
-			.where('claim_party.line_of_business', '=', line_of_business)
+			.leftJoin('claim_liability', (join) =>
+				join
+					.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
+					.on('claim_liability.deleted_at', 'is', null)
+			)
+			.where('claim_liability.line_of_business', '=', line_of_business)
 			.where('claim_party.deleted_at', 'is', null)
 			.groupBy('claim.id')
 			.groupBy('feeds.id');
@@ -314,8 +319,6 @@ export async function updateClaim(
 		total_incurred: string | null;
 		date_of_loss: Date | null;
 		loss_location: string | null;
-		reserved_recovery: string | null; // Client's expected recovery (from feed/manual)
-		paid_recovery: string | null; // Client's reported paid amount (from feed/manual)
 		expected_recovery: string | null; // Team's forecasted recovery
 		loss_type: string;
 		recovery_status: string;
@@ -339,8 +342,6 @@ export async function updateClaim(
 			'insured',
 			'claim_amount',
 			'total_incurred',
-			'reserved_recovery',
-			'paid_recovery',
 			'expected_recovery',
 			'actual_recovery',
 			'date_of_loss',
@@ -376,8 +377,6 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				loss_location: c.loss_location,
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
-				reserved_recovery: c.reserved_recovery, // Client's expected recovery (from feed/manual)
-				paid_recovery: c.paid_recovery, // Client's reported paid amount (from feed/manual)
 				loss_type: c.loss_type,
 				client_id: ctx.session.user.client_id,
 				created_by: ctx.session.user.id,
@@ -394,8 +393,6 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				loss_location: eb.ref('excluded.loss_location'),
 				last_updated_by: eb.ref('excluded.last_updated_by'),
 				last_update: eb.ref('excluded.last_update'),
-				reserved_recovery: eb.ref('excluded.reserved_recovery'),
-				paid_recovery: eb.ref('excluded.paid_recovery'),
 				loss_type: eb.ref('excluded.loss_type'),
 			}))
 		)
@@ -405,19 +402,21 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 }
 
 /**
- * Get aggregated party/liability data for a claim
- * Returns distinct LOBs and summed recovery amounts
+ * Get aggregated liability data for a claim
+ * Returns distinct LOBs and summed recovery amounts from claim_liability table
+ * Uses LEFT JOIN so claims without liabilities still return results
  */
 export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: number) {
 	const result = await ctx.db
 		.selectFrom('claim_party')
+		.leftJoin('claim_liability', 'claim_liability.claim_party_id', 'claim_party.id')
 		.select(({ fn }) => [
-			// Aggregate distinct LOBs as array
-			fn.agg<string[]>('array_agg', [sql`DISTINCT line_of_business`]).as('line_of_business_array'),
+			// Aggregate distinct LOBs as array (filtering out nulls in the aggregate)
+			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_liability.line_of_business`]).as('line_of_business_array'),
 			// Sum paid recovery
-			fn.sum<string>('paid_recovery').as('total_paid_recovery'),
+			fn.sum<string>('claim_liability.paid_recovery').as('total_paid_recovery'),
 			// Sum reserved recovery
-			fn.sum<string>('reserved_recovery').as('total_reserved_recovery'),
+			fn.sum<string>('claim_liability.reserved_recovery').as('total_reserved_recovery'),
 		])
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.deleted_at', 'is', null)
@@ -533,12 +532,21 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where('claim_id', '=', claimId)
 		.where('client_id', '=', ctx.session.user.client_id);
 
-	// Get party/liability summary (claim_party table - only non-deleted)
+	// Get party count and liability summary
 	const partySummaryQuery = ctx.db
 		.selectFrom('claim_party')
-		.select((eb) => [eb.fn.count('id').as('count'), eb.fn.sum('liability_percentage').as('total_liability')])
-		.where('claim_id', '=', claimId)
-		.where('deleted_at', 'is', null);
+		.select((eb) => [eb.fn.count('claim_party.id').as('count')])
+		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.deleted_at', 'is', null);
+
+	// Get total liability percentage from claim_liability table
+	const liabilitySummaryQuery = ctx.db
+		.selectFrom('claim_liability')
+		.innerJoin('claim_party', 'claim_party.id', 'claim_liability.claim_party_id')
+		.select((eb) => [eb.fn.sum('claim_liability.liability_percentage').as('total_liability')])
+		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.deleted_at', 'is', null)
+		.where('claim_liability.deleted_at', 'is', null);
 
 	// Get task summary by status
 	const taskSummaryQuery = ctx.db
@@ -549,13 +557,15 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where('task.client_id', '=', ctx.session.user.client_id)
 		.groupBy('deadline.status');
 
-	const [checklistAssignments, coverageSummary, partySummary, taskSummary, partyAggregates] = await Promise.all([
-		checklistAssignmentsQuery.execute(),
-		coverageSummaryQuery.executeTakeFirst(),
-		partySummaryQuery.executeTakeFirst(),
-		taskSummaryQuery.execute(),
-		getClaimPartyAggregates(ctx, claimId),
-	]);
+	const [checklistAssignments, coverageSummary, partySummary, liabilitySummary, taskSummary, partyAggregates] =
+		await Promise.all([
+			checklistAssignmentsQuery.execute(),
+			coverageSummaryQuery.executeTakeFirst(),
+			partySummaryQuery.executeTakeFirst(),
+			liabilitySummaryQuery.executeTakeFirst(),
+			taskSummaryQuery.execute(),
+			getClaimPartyAggregates(ctx, claimId),
+		]);
 
 	// Transform task summary into object
 	const taskCounts = {
@@ -580,7 +590,7 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		},
 		partySummary: {
 			count: Number(partySummary?.count || 0),
-			totalLiability: Number(partySummary?.total_liability || 0),
+			totalLiability: Number(liabilitySummary?.total_liability || 0),
 		},
 		taskSummary: taskCounts,
 		aggregated_line_of_business: partyAggregates.line_of_business,

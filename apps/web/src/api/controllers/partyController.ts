@@ -536,14 +536,10 @@ export async function linkPartyToClaim(
 		claim_id: number;
 		party_id: number;
 		role: string;
-		liability_percentage?: number;
-		coverage_amount?: number;
+		representative_id?: number | null;
 		is_primary?: boolean;
 		notes?: string;
-		line_of_business?: string;
-		coverage_type?: string;
-		paid_recovery?: number;
-		reserved_recovery?: number;
+		external_reference?: string;
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
@@ -581,14 +577,10 @@ export async function updateClaimParty(
 		id: number;
 		params: {
 			role?: string;
-			liability_percentage?: number;
-			coverage_amount?: number;
+			representative_id?: number | null;
 			is_primary?: boolean;
 			notes?: string;
-			line_of_business?: string;
-			coverage_type?: string;
-			paid_recovery?: number;
-			reserved_recovery?: number;
+			external_reference?: string;
 		};
 	}
 ) {

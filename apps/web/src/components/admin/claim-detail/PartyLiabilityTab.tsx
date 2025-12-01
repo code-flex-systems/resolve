@@ -1,20 +1,25 @@
 'use client';
 
-import { Box, Button, Chip, Divider, Paper, Skeleton, Stack, Typography, IconButton } from '@mui/material';
+import { Box, Button, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
 import Edit from '@mui/icons-material/Edit';
+import Archive from '@mui/icons-material/Archive';
 import { useState } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
+import { useLiabilityTrpc } from '@/hooks/trpc/useLiabilityTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatClaimPartyRole } from '@/lib/utils/partyUtils';
-import { formatLineOfBusiness, formatLiabilityCoverageType } from '@/lib/utils/claimUtils';
+import { formatLineOfBusiness, formatLossType, LOSS_TYPE_ICONS, LOB_ICONS } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
+import LiabilityFormDialog from './LiabilityFormDialog';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
+import BasicDialog from '@/components/common/BasicDialog';
+import { useAlertStore } from '@/stores/useAlertStore';
 
 dayjs.extend(relativeTime);
 
@@ -23,39 +28,58 @@ interface PartyLiabilityTabProps {
 }
 
 export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
-	const [showDialog, setShowDialog] = useState(false);
+	const [showPartyDialog, setShowPartyDialog] = useState(false);
 	const [editingClaimParty, setEditingClaimParty] = useState<any | null>(null);
+	const [showLiabilityDialog, setShowLiabilityDialog] = useState(false);
+	const [editingLiability, setEditingLiability] = useState<any | null>(null);
+	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<number | null>(null);
+	const [archivingLiability, setArchivingLiability] = useState<{ id: number; lossType: string | null } | null>(null);
 
+	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
+	const liabilityTrpc = useLiabilityTrpc();
 	const { data: claimParties = [], isLoading } = partyTrpc.listClaimParties({ claimId }, { enabled: !!claimId });
 	const linkPartyMutation = partyTrpc.linkToClaim;
 	const updatePartyMutation = partyTrpc.updateClaimParty;
+	const createLiabilityMutation = liabilityTrpc.create;
+	const updateLiabilityMutation = liabilityTrpc.update;
+	const deleteLiabilityMutation = liabilityTrpc.delete;
 
-	const handleOpenDialog = (claimParty?: any) => {
+	const handleOpenPartyDialog = (claimParty?: any) => {
 		if (claimParty) {
 			setEditingClaimParty(claimParty);
 		} else {
 			setEditingClaimParty(null);
 		}
-		setShowDialog(true);
+		setShowPartyDialog(true);
 	};
 
-	const handleCloseDialog = () => {
-		setShowDialog(false);
+	const handleClosePartyDialog = () => {
+		setShowPartyDialog(false);
 		setEditingClaimParty(null);
 	};
 
-	const handleSubmit = async (data: {
+	const handleOpenLiabilityDialog = (claimPartyId: number, liability?: any) => {
+		setSelectedClaimPartyId(claimPartyId);
+		if (liability) {
+			setEditingLiability(liability);
+		} else {
+			setEditingLiability(null);
+		}
+		setShowLiabilityDialog(true);
+	};
+
+	const handleCloseLiabilityDialog = () => {
+		setShowLiabilityDialog(false);
+		setEditingLiability(null);
+		setSelectedClaimPartyId(null);
+	};
+
+	const handlePartySubmit = async (data: {
 		role: string;
 		party_id: number;
 		representative_id?: number | null;
-		liability_percentage?: number | null;
-		coverage_amount?: string | null;
 		notes?: string | null;
-		line_of_business?: string | null;
-		coverage_type?: string | null;
-		paid_recovery?: number | null;
-		reserved_recovery?: number | null;
 	}) => {
 		try {
 			if (editingClaimParty) {
@@ -65,13 +89,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					params: {
 						role: data.role as import('@/config/enums').ClaimPartyRole,
 						representative_id: data.representative_id ?? undefined,
-						liability_percentage: data.liability_percentage ?? undefined,
-						coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : undefined,
 						notes: data.notes ?? undefined,
-						line_of_business: data.line_of_business ?? undefined,
-						coverage_type: data.coverage_type ?? undefined,
-						paid_recovery: data.paid_recovery ?? undefined,
-						reserved_recovery: data.reserved_recovery ?? undefined,
 					},
 				});
 			} else {
@@ -81,40 +99,106 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					party_id: data.party_id,
 					role: data.role as import('@/config/enums').ClaimPartyRole,
 					representative_id: data.representative_id ?? undefined,
-					liability_percentage: data.liability_percentage ?? undefined,
-					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : undefined,
 					notes: data.notes ?? undefined,
-					line_of_business: data.line_of_business ?? undefined,
-					coverage_type: data.coverage_type ?? undefined,
-					paid_recovery: data.paid_recovery ?? undefined,
-					reserved_recovery: data.reserved_recovery ?? undefined,
 				});
 			}
-			handleCloseDialog();
+			handleClosePartyDialog();
 		} catch (error) {
-			console.error('Failed to save party liability:', error);
+			console.error('Failed to save party:', error);
 		}
 	};
 
-	// Calculate totals
-	const totalLiability = claimParties.reduce(
-		(sum, cp) => sum + (cp.liability_percentage ? parseFloat(cp.liability_percentage.toString()) : 0),
-		0
-	);
+	const handleLiabilitySubmit = async (data: {
+		claim_party_id: number;
+		loss_type?: string | null;
+		liability_percentage?: number | null;
+		coverage_amount?: number | null;
+		line_of_business?: string | null;
+		paid_recovery?: number | null;
+		reserved_recovery?: number | null;
+		notes?: string | null;
+	}) => {
+		try {
+			if (editingLiability) {
+				// Update existing liability
+				await updateLiabilityMutation.mutateAsync({
+					id: editingLiability.id,
+					params: {
+						loss_type: data.loss_type as import('@/config/enums').LossType | undefined,
+						liability_percentage: data.liability_percentage ?? undefined,
+						coverage_amount: data.coverage_amount ?? undefined,
+						line_of_business: data.line_of_business as import('@/config/enums').LineOfBusiness | undefined,
+						paid_recovery: data.paid_recovery ?? undefined,
+						reserved_recovery: data.reserved_recovery ?? undefined,
+						notes: data.notes ?? undefined,
+					},
+				});
+			} else {
+				// Create new liability
+				await createLiabilityMutation.mutateAsync({
+					claim_party_id: data.claim_party_id,
+					loss_type: data.loss_type as import('@/config/enums').LossType | undefined,
+					liability_percentage: data.liability_percentage ?? undefined,
+					coverage_amount: data.coverage_amount ?? undefined,
+					line_of_business: data.line_of_business as import('@/config/enums').LineOfBusiness | undefined,
+					paid_recovery: data.paid_recovery ?? undefined,
+					reserved_recovery: data.reserved_recovery ?? undefined,
+					notes: data.notes ?? undefined,
+				});
+			}
+			handleCloseLiabilityDialog();
+		} catch (error) {
+			console.error('Failed to save liability:', error);
+		}
+	};
+
+	const handleArchiveLiability = async () => {
+		if (!archivingLiability) return;
+
+		try {
+			await deleteLiabilityMutation.mutateAsync({ id: archivingLiability.id });
+			showAlert('Liability archived successfully', 'success');
+			setArchivingLiability(null);
+		} catch (error: any) {
+			const message = error?.message || 'Failed to archive liability';
+			showAlert(message, 'error');
+			setArchivingLiability(null);
+		}
+	};
+
+	// Calculate totals from nested liabilities
+	const totalLiability = claimParties.reduce((sum, cp) => {
+		const partyLiabilitySum = (cp.liabilities || []).reduce(
+			(liabilitySum: number, liability: any) =>
+				liabilitySum +
+				(liability.liability_percentage ? parseFloat(liability.liability_percentage.toString()) : 0),
+			0
+		);
+		return sum + partyLiabilitySum;
+	}, 0);
 
 	const totalCoverage = claimParties.reduce((sum, cp) => {
-		const amount = cp.coverage_amount ? parseFloat(cp.coverage_amount.toString()) : 0;
-		return sum + amount;
+		const partyCoverageSum = (cp.liabilities || []).reduce((coverageSum: number, liability: any) => {
+			const amount = liability.coverage_amount ? parseFloat(liability.coverage_amount.toString()) : 0;
+			return coverageSum + amount;
+		}, 0);
+		return sum + partyCoverageSum;
 	}, 0);
 
 	const totalPaidRecovery = claimParties.reduce((sum, cp) => {
-		const amount = cp.paid_recovery ? parseFloat(cp.paid_recovery.toString()) : 0;
-		return sum + amount;
+		const partyPaidSum = (cp.liabilities || []).reduce((paidSum: number, liability: any) => {
+			const amount = liability.paid_recovery ? parseFloat(liability.paid_recovery.toString()) : 0;
+			return paidSum + amount;
+		}, 0);
+		return sum + partyPaidSum;
 	}, 0);
 
 	const totalReservedRecovery = claimParties.reduce((sum, cp) => {
-		const amount = cp.reserved_recovery ? parseFloat(cp.reserved_recovery.toString()) : 0;
-		return sum + amount;
+		const partyReservedSum = (cp.liabilities || []).reduce((reservedSum: number, liability: any) => {
+			const amount = liability.reserved_recovery ? parseFloat(liability.reserved_recovery.toString()) : 0;
+			return reservedSum + amount;
+		}, 0);
+		return sum + partyReservedSum;
 	}, 0);
 
 	return (
@@ -183,7 +267,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							size="small"
 							startIcon={<AddBox />}
 							variant="contained"
-							onClick={() => handleOpenDialog()}
+							onClick={() => handleOpenPartyDialog()}
 						>
 							Add Party
 						</Button>
@@ -322,61 +406,152 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 														</Typography>
 													)}
 
-													{/* Liability & Coverage */}
-													<Box display="flex" gap={1} marginTop={1} marginBottom={0.5} flexWrap="wrap">
-														{claimParty.liability_percentage !== null && (
-															<Chip
-																label={`Liability: ${parseFloat(claimParty.liability_percentage.toString()).toFixed(2)}%`}
+													{/* Liabilities Section */}
+													<Box marginTop={2}>
+														<Box
+															display="flex"
+															justifyContent="space-between"
+															alignItems="center"
+															marginBottom={1}
+														>
+															<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
+																Liabilities ({(claimParty.liabilities || []).length})
+															</Typography>
+															<Button
 																size="small"
-																color="warning"
-															/>
-														)}
-														{claimParty.coverage_amount && (
-															<Chip
-																label={`Coverage: ${formatCurrencyExact(parseFloat(claimParty.coverage_amount.toString()))}`}
-																size="small"
-																color="success"
-															/>
-														)}
-														{claimParty.line_of_business && (
-															<Chip
-																label={`LOB: ${formatLineOfBusiness(claimParty.line_of_business)}`}
-																size="small"
-																color="primary"
+																startIcon={<AddBox />}
 																variant="outlined"
-															/>
+																onClick={() => handleOpenLiabilityDialog(claimParty.id)}
+															>
+																Add Liability
+															</Button>
+														</Box>
+
+														{(claimParty.liabilities || []).length === 0 && (
+															<Typography
+																fontSize={12}
+																color="text.secondary"
+																fontStyle="italic"
+																marginY={1}
+															>
+																No liabilities added yet
+															</Typography>
 														)}
-														{claimParty.coverage_type && (
-															<Chip
-																label={`Type: ${formatLiabilityCoverageType(claimParty.coverage_type)}`}
-																size="small"
-																color="secondary"
-																variant="outlined"
-															/>
+
+														{(claimParty.liabilities || []).length > 0 && (
+															<Stack spacing={1.5} marginTop={1}>
+																{claimParty.liabilities.map((liability: any) => (
+																	<Paper
+																		key={liability.id}
+																		variant="outlined"
+																		sx={{
+																			padding: 2,
+																			backgroundColor: 'background.default',
+																		}}
+																	>
+																		<Box
+																			display="flex"
+																			justifyContent="space-between"
+																			alignItems="flex-start"
+																		>
+																			<Box flex={1}>
+																				{/* Loss Type */}
+																				{liability.loss_type && (
+																					<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
+																						<Typography fontSize={14} fontWeight={600}>
+																							{LOSS_TYPE_ICONS[liability.loss_type as import('@/config/enums').LossType] || ''}{' '}
+																							{formatLossType(liability.loss_type)}
+																						</Typography>
+																					</Box>
+																				)}
+
+																				{/* Liability Details */}
+																				<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
+																					{liability.liability_percentage !== null && (
+																						<Chip
+																							label={`Liability: ${parseFloat(liability.liability_percentage.toString()).toFixed(2)}%`}
+																							size="small"
+																							color="warning"
+																						/>
+																					)}
+																					{liability.coverage_amount && (
+																						<Chip
+																							label={`Coverage: ${formatCurrencyExact(parseFloat(liability.coverage_amount.toString()))}`}
+																							size="small"
+																							color="success"
+																						/>
+																					)}
+																					{liability.line_of_business && (
+																						<Chip
+																							label={`${LOB_ICONS[liability.line_of_business as import('@/config/enums').LineOfBusiness] || ''} ${formatLineOfBusiness(liability.line_of_business)}`}
+																							size="small"
+																							color="primary"
+																							variant="outlined"
+																						/>
+																					)}
+																				</Box>
+
+																				{/* Recovery Tracking */}
+																				{(liability.paid_recovery || liability.reserved_recovery) && (
+																					<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
+																						{liability.paid_recovery && (
+																							<Chip
+																								label={`Paid: ${formatCurrencyExact(parseFloat(liability.paid_recovery.toString()))}`}
+																								size="small"
+																								color="success"
+																								variant="outlined"
+																							/>
+																						)}
+																						{liability.reserved_recovery && (
+																							<Chip
+																								label={`Reserved: ${formatCurrencyExact(parseFloat(liability.reserved_recovery.toString()))}`}
+																								size="small"
+																								color="info"
+																								variant="outlined"
+																							/>
+																						)}
+																					</Box>
+																				)}
+
+																				{/* Liability Notes */}
+																				{liability.notes && (
+																					<Typography fontSize={12} color="text.secondary" marginTop={0.5}>
+																						{liability.notes}
+																					</Typography>
+																				)}
+																			</Box>
+
+																			{/* Liability Actions */}
+																			<Box display="flex" gap={0.5}>
+																				<BasicButtonStyled
+																					buttonProps={{
+																						onClick: () =>
+																							handleOpenLiabilityDialog(
+																								claimParty.id,
+																								liability
+																							),
+																					}}
+																					tooltipProps={{ title: 'Edit liability' }}
+																					icon={<Edit />}
+																				/>
+																				<BasicButtonStyled
+																					buttonProps={{
+																						onClick: () =>
+																							setArchivingLiability({
+																								id: liability.id,
+																								lossType: liability.loss_type,
+																							}),
+																					}}
+																					tooltipProps={{ title: 'Archive liability' }}
+																					icon={<Archive sx={{ color: 'error.main' }} />}
+																				/>
+																			</Box>
+																		</Box>
+																	</Paper>
+																))}
+															</Stack>
 														)}
 													</Box>
-
-													{/* Recovery Tracking */}
-													{(claimParty.paid_recovery || claimParty.reserved_recovery) && (
-														<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
-															{claimParty.paid_recovery && (
-																<Chip
-																	label={`Paid: ${formatCurrencyExact(parseFloat(claimParty.paid_recovery.toString()))}`}
-																	size="small"
-																	color="success"
-																	variant="outlined"
-																/>
-															)}
-															{claimParty.reserved_recovery && (
-																<Chip
-																	label={`Reserved: ${formatCurrencyExact(parseFloat(claimParty.reserved_recovery.toString()))}`}
-																	size="small"
-																	color="info"
-																	variant="outlined"
-																/>
-															)}
-														</Box>
-													)}
 
 													{/* Notes */}
 													{claimParty.notes && (
@@ -392,10 +567,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 													</Typography>
 												</Box>
 
-												{/* Edit Button */}
+												{/* Edit Party Button */}
 												<BasicButtonStyled
 													buttonProps={{
-														onClick: () => handleOpenDialog(claimParty),
+														onClick: () => handleOpenPartyDialog(claimParty),
 													}}
 													icon={<Edit />}
 												/>
@@ -410,15 +585,67 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				</Paper>
 			</Stack>
 
-			{/* Dialog */}
+			{/* Party Dialog */}
 			<PartyLiabilityFormDialog
-				open={showDialog}
-				onClose={handleCloseDialog}
-				onSubmit={handleSubmit}
+				open={showPartyDialog}
+				onClose={handleClosePartyDialog}
+				onSubmit={handlePartySubmit}
 				editingClaimParty={editingClaimParty}
 				currentClaimParties={claimParties}
 				isSubmitting={linkPartyMutation.isPending || updatePartyMutation.isPending}
 			/>
+
+			{/* Liability Dialog */}
+			{selectedClaimPartyId && (
+				<LiabilityFormDialog
+					open={showLiabilityDialog}
+					onClose={handleCloseLiabilityDialog}
+					onSubmit={handleLiabilitySubmit}
+					claimPartyId={selectedClaimPartyId}
+					editingLiability={editingLiability}
+					currentLiabilities={
+						claimParties.find((cp) => cp.id === selectedClaimPartyId)?.liabilities || []
+					}
+					isSubmitting={
+						createLiabilityMutation.isPending ||
+						updateLiabilityMutation.isPending ||
+						deleteLiabilityMutation.isPending
+					}
+				/>
+			)}
+
+			{/* Archive Confirmation Dialog */}
+			{archivingLiability && (
+				<BasicDialog
+					title="Archive Liability"
+					primaryAction={{
+						label: 'Archive',
+						onClick: handleArchiveLiability,
+						color: 'error',
+					}}
+					secondaryActions={[
+						{
+							label: 'Cancel',
+							onClick: () => setArchivingLiability(null),
+						},
+					]}
+					onClose={() => setArchivingLiability(null)}
+					width={500}
+				>
+					<Typography fontStyle="italic" fontWeight="bold" marginBottom={1}>
+						Are you sure you want to archive this liability?
+					</Typography>
+					{archivingLiability.lossType && (
+						<Typography fontSize={13} color="text.secondary" marginBottom={2}>
+							Loss Type: {formatLossType(archivingLiability.lossType)}
+						</Typography>
+					)}
+					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
+						The liability will be archived and hidden from view, but the record will be preserved for
+						traceability.
+					</Typography>
+				</BasicDialog>
+			)}
 		</Box>
 	);
 }

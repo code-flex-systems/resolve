@@ -24,6 +24,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 	// Drop the new constraint
 	await sql`ALTER TABLE deadline DROP CONSTRAINT IF EXISTS deadline_status_check`.execute(db);
 
+	// Convert any cancelled deadlines to missed before restoring old constraint
+	await sql`UPDATE deadline SET status = 'missed' WHERE status = 'cancelled'`.execute(db);
+
 	// Restore the old constraint without 'cancelled'
 	await sql`
 		ALTER TABLE deadline

@@ -772,6 +772,7 @@ export async function deletePartyRepresentative(ctx: ProtectedContext, id: numbe
  * Get all parties linked to a claim with their role information
  */
 export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
+	// Fetch claim parties with related data
 	const results = await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('party', 'party.id', 'claim_party.party_id')
@@ -805,27 +806,46 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		])
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
-		.orderBy('claim_party.liability_percentage', 'desc')
+		.where('claim_party.deleted_at', 'is', null)
 		.orderBy('party.name', 'asc')
 		.execute();
 
-	// Transform results to nest party, representative, and office data
+	// If no claim parties, return empty array
+	if (results.length === 0) {
+		return [];
+	}
+
+	// Fetch all non-deleted liabilities for these claim parties
+	const claimPartyIds = results.map(r => r.id);
+	const liabilities = await ctx.db
+		.selectFrom('claim_liability')
+		.selectAll()
+		.where('claim_liability.claim_party_id', 'in', claimPartyIds)
+		.where('claim_liability.deleted_at', 'is', null)
+		.orderBy('claim_liability.created_at', 'asc')
+		.execute();
+
+	// Group liabilities by claim_party_id
+	const liabilitiesByParty = liabilities.reduce((acc, liability) => {
+		if (!acc[liability.claim_party_id]) {
+			acc[liability.claim_party_id] = [];
+		}
+		acc[liability.claim_party_id].push(liability);
+		return acc;
+	}, {} as Record<number, typeof liabilities>);
+
+	// Transform results to nest party, representative, office, and liabilities data
 	return results.map((row) => ({
 		id: row.id,
 		claim_id: row.claim_id,
 		party_id: row.party_id,
 		role: row.role,
-		liability_percentage: row.liability_percentage,
-		coverage_amount: row.coverage_amount,
 		is_primary: row.is_primary,
 		notes: row.notes,
+		external_reference: row.external_reference,
 		created_at: row.created_at,
 		created_by: row.created_by,
 		representative_id: row.representative_id,
-		line_of_business: row.line_of_business,
-		coverage_type: row.coverage_type,
-		paid_recovery: row.paid_recovery,
-		reserved_recovery: row.reserved_recovery,
 		party: {
 			id: row.party_id,
 			name: row.party_name,
@@ -853,6 +873,7 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 					phone: row.office_phone,
 			  }
 			: null,
+		liabilities: liabilitiesByParty[row.id] || [],
 	}));
 }
 
@@ -866,14 +887,9 @@ export async function linkPartyToClaim(
 		party_id: number;
 		role: string;
 		representative_id?: number | null;
-		liability_percentage?: number;
-		coverage_amount?: number;
 		is_primary?: boolean;
 		notes?: string;
-		line_of_business?: string;
-		coverage_type?: string;
-		paid_recovery?: number;
-		reserved_recovery?: number;
+		external_reference?: string;
 	}
 ) {
 	return await ctx.db
@@ -895,14 +911,9 @@ export async function updateClaimParty(
 	params: {
 		role?: string;
 		representative_id?: number | null;
-		liability_percentage?: number;
-		coverage_amount?: number;
 		is_primary?: boolean;
 		notes?: string;
-		line_of_business?: string;
-		coverage_type?: string;
-		paid_recovery?: number;
-		reserved_recovery?: number;
+		external_reference?: string;
 	}
 ) {
 	return await ctx.db
