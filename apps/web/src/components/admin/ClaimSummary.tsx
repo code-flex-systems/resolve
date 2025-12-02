@@ -17,11 +17,10 @@ import ChecklistProgress from '@/components/checklist/ChecklistProgress';
 import Highlight from '@/components/common/Highlight';
 import { formatMDY } from '@/lib/utils/utils';
 import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import { formatLineOfBusiness, formatLossType, LOB_ICONS, LOSS_TYPE_ICONS } from '@/lib/utils/claimUtils';
 import { useRouter } from 'next/navigation';
+import { LineOfBusinessValue, LossTypeValue } from '@/components/common/ReferenceDataSelect';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { LineOfBusiness, LossType } from '@/config/enums';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
@@ -119,18 +118,12 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 					<Stack spacing={2} mr={1}>
 						{/* Header with status badges */}
 						<Box display="flex" flexWrap="wrap" gap={1}>
-							{claimDetail.aggregated_line_of_business && claimDetail.aggregated_line_of_business.length > 0 &&
+							{claimDetail.aggregated_line_of_business &&
+								claimDetail.aggregated_line_of_business.length > 0 &&
 								claimDetail.aggregated_line_of_business.map((lob: string) => (
 									<Chip
 										key={lob}
-										icon={
-											<Box marginLeft="5px">
-												<Typography fontSize={14}>
-													{LOB_ICONS[lob as LineOfBusiness]}
-												</Typography>
-											</Box>
-										}
-										label={formatLineOfBusiness(lob)}
+										label={<LineOfBusinessValue value={lob} fontSize={12} />}
 										size="small"
 										color="primary"
 										variant="outlined"
@@ -138,14 +131,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 								))}
 							{claimDetail.loss_type && (
 								<Chip
-									icon={
-										<Box marginLeft="5px">
-											<Typography fontSize={14} marginLeft="5px">
-												{LOSS_TYPE_ICONS[claimDetail.loss_type as LossType]}
-											</Typography>
-										</Box>
-									}
-									label={formatLossType(claimDetail.loss_type)}
+									label={<LossTypeValue value={claimDetail.loss_type} fontSize={12} />}
 									size="small"
 									color="secondary"
 									variant="outlined"
@@ -270,37 +256,37 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 													None created
 												</Box>
 											) : (
-											<Link
-												href={`/claims/${claimId}?tab=workflow`}
-												style={{ textDecoration: 'none' }}
-											>
-												<Box
-													component="span"
-													sx={{
-														color: 'primary.main',
-														'&:hover': {
-															textDecoration: 'underline',
-														},
-													}}
+												<Link
+													href={`/claims/${claimId}?tab=workflow`}
+													style={{ textDecoration: 'none' }}
 												>
-													{claimDetail.taskSummary.completed > 0 && (
-														<>{claimDetail.taskSummary.completed} completed</>
-													)}
-													{claimDetail.taskSummary.completed > 0 &&
-														claimDetail.taskSummary.in_progress > 0 &&
-														', '}
-													{claimDetail.taskSummary.in_progress > 0 && (
-														<>{claimDetail.taskSummary.in_progress} in progress</>
-													)}
-													{(claimDetail.taskSummary.completed > 0 ||
-														claimDetail.taskSummary.in_progress > 0) &&
-														claimDetail.taskSummary.pending > 0 &&
-														', '}
-													{claimDetail.taskSummary.pending > 0 && (
-														<>{claimDetail.taskSummary.pending} pending</>
-													)}
-												</Box>
-											</Link>
+													<Box
+														component="span"
+														sx={{
+															color: 'primary.main',
+															'&:hover': {
+																textDecoration: 'underline',
+															},
+														}}
+													>
+														{claimDetail.taskSummary.completed > 0 && (
+															<>{claimDetail.taskSummary.completed} completed</>
+														)}
+														{claimDetail.taskSummary.completed > 0 &&
+															claimDetail.taskSummary.in_progress > 0 &&
+															', '}
+														{claimDetail.taskSummary.in_progress > 0 && (
+															<>{claimDetail.taskSummary.in_progress} in progress</>
+														)}
+														{(claimDetail.taskSummary.completed > 0 ||
+															claimDetail.taskSummary.in_progress > 0) &&
+															claimDetail.taskSummary.pending > 0 &&
+															', '}
+														{claimDetail.taskSummary.pending > 0 && (
+															<>{claimDetail.taskSummary.pending} pending</>
+														)}
+													</Box>
+												</Link>
 											);
 										})()}
 									</Typography>

@@ -10,9 +10,8 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useLiabilityTrpc } from '@/hooks/trpc/useLiabilityTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { formatClaimPartyRole } from '@/lib/utils/partyUtils';
-import { formatLineOfBusiness, formatLossType, LOSS_TYPE_ICONS, LOB_ICONS } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { LineOfBusinessValue, LossTypeValue, ClaimPartyRoleValue } from '@/components/common/ReferenceDataSelect';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
@@ -319,7 +318,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 															{claimParty.party?.name || 'Unknown Party'}
 														</Typography>
 														<Chip
-															label={formatClaimPartyRole(claimParty.role)}
+															label={<ClaimPartyRoleValue value={claimParty.role} showEmoji={false} fontSize={12} />}
 															size="small"
 															color="primary"
 															variant="outlined"
@@ -458,10 +457,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																				{/* Loss Type */}
 																				{liability.loss_type && (
 																					<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
-																						<Typography fontSize={14} fontWeight={600}>
-																							{LOSS_TYPE_ICONS[liability.loss_type as import('@/config/enums').LossType] || ''}{' '}
-																							{formatLossType(liability.loss_type)}
-																						</Typography>
+																						<LossTypeValue value={liability.loss_type} fontSize={14} sx={{ fontWeight: 600 }} />
 																					</Box>
 																				)}
 
@@ -483,7 +479,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																					)}
 																					{liability.line_of_business && (
 																						<Chip
-																							label={`${LOB_ICONS[liability.line_of_business as import('@/config/enums').LineOfBusiness] || ''} ${formatLineOfBusiness(liability.line_of_business)}`}
+																							label={<LineOfBusinessValue value={liability.line_of_business} showEmoji={false} fontSize={12} />}
 																							size="small"
 																							color="primary"
 																							variant="outlined"
@@ -636,9 +632,12 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 						Are you sure you want to archive this liability?
 					</Typography>
 					{archivingLiability.lossType && (
-						<Typography fontSize={13} color="text.secondary" marginBottom={2}>
-							Loss Type: {formatLossType(archivingLiability.lossType)}
-						</Typography>
+						<Box display="flex" alignItems="center" gap={1} marginBottom={2}>
+							<Typography fontSize={13} color="text.secondary">
+								Loss Type:
+							</Typography>
+							<LossTypeValue value={archivingLiability.lossType} fontSize={13} />
+						</Box>
 					)}
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
 						The liability will be archived and hidden from view, but the record will be preserved for

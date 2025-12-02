@@ -6,8 +6,8 @@ import { useForm } from 'react-hook-form';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import Info from '@mui/icons-material/Info';
 import { useAdminStore } from '@/stores/useAdminStore';
-import { Claim } from '@/types/types';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import type { ClaimData } from '@/schemas/claimSchemas';
 
 export default function NewClaimDialog() {
 	const toggleNewClaimDialog = useAdminStore((state) => state.toggleNewClaimDialog);
@@ -15,7 +15,7 @@ export default function NewClaimDialog() {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting },
-	} = useForm<Omit<Claim, 'id'>>();
+	} = useForm<ClaimData>();
 	const { mutateAsync: createClaims, isPending } = useClaimTrpc().createMany;
 
 	const onSubmit = handleSubmit(async (data) => {
@@ -25,8 +25,6 @@ export default function NewClaimDialog() {
 					{
 						...data,
 						claim_amount: data.claim_amount?.toString() ?? null,
-						reserved_recovery: data.reserved_recovery?.toString() ?? null,
-						paid_recovery: data.paid_recovery?.toString() ?? null,
 						total_incurred: data.total_incurred?.toString() ?? null,
 						date_of_loss: data.date_of_loss?.toString() ?? null,
 						last_update: data.last_update?.toString() ?? null,
@@ -124,42 +122,6 @@ export default function NewClaimDialog() {
 								width: 200,
 							}}
 							{...register('date_of_loss', { required: true })}
-						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="reserved_recovery"
-							label="Reserved Recovery"
-							placeholder="21521.43"
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">$</InputAdornment>,
-								},
-							}}
-							error={!!errors.reserved_recovery}
-							type="number"
-							sx={{
-								width: 200,
-							}}
-							{...register('reserved_recovery', { required: false })}
-						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="paid_recovery"
-							label="Paid Recovery"
-							placeholder="0.00"
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">$</InputAdornment>,
-								},
-							}}
-							error={!!errors.paid_recovery}
-							type="number"
-							sx={{
-								width: 200,
-							}}
-							{...register('paid_recovery', { required: false })}
 						/>
 					</Grid>
 					<Grid style={styles.row}>

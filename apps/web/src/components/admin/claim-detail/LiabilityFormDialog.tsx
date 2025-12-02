@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/material';
+import { Box, TextField, Typography, InputAdornment } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
-import { LineOfBusiness, LossType } from '@/config/enums';
-import { formatLineOfBusiness, formatLossType, LOSS_TYPE_ICONS, LOB_ICONS } from '@/lib/utils/claimUtils';
+import { LineOfBusinessSelect, LossTypeSelect } from '@/components/common/ReferenceDataSelect';
 
 interface LiabilityFormData {
-	loss_type: LossType | '';
+	loss_type: string;
 	liability_percentage: string;
 	coverage_amount: string;
-	line_of_business: LineOfBusiness | '';
+	line_of_business: string;
 	paid_recovery: string;
 	reserved_recovery: string;
 	notes: string;
@@ -158,24 +157,10 @@ export default function LiabilityFormDialog({
 					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
 						Line of Business
 					</Typography>
-					<Autocomplete
-						options={Object.values(LineOfBusiness)}
-						value={formData.line_of_business || null}
-						onChange={(_, newValue) => setFormData({ ...formData, line_of_business: newValue || '' })}
-						getOptionLabel={(option) => {
-							const icon = LOB_ICONS[option as LineOfBusiness] || '';
-							return `${icon} ${formatLineOfBusiness(option)}`;
-						}}
-						renderOption={(props, option) => {
-							const icon = LOB_ICONS[option as LineOfBusiness] || '';
-							return (
-								<li {...props} key={option}>
-									{icon} {formatLineOfBusiness(option)}
-								</li>
-							);
-						}}
-						fullWidth
-						renderInput={(params) => <TextField {...params} placeholder="Select line of business..." />}
+					<LineOfBusinessSelect
+						lineOfBusiness={formData.line_of_business || null}
+						setLineOfBusiness={(value) => setFormData({ ...formData, line_of_business: value || '' })}
+						text="Select line of business..."
 					/>
 				</Box>
 
@@ -184,24 +169,10 @@ export default function LiabilityFormDialog({
 					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
 						Loss Type
 					</Typography>
-					<Autocomplete
-						options={Object.values(LossType)}
-						value={formData.loss_type || null}
-						onChange={(_, newValue) => setFormData({ ...formData, loss_type: newValue || '' })}
-						getOptionLabel={(option) => {
-							const icon = LOSS_TYPE_ICONS[option as LossType] || '';
-							return `${icon} ${formatLossType(option)}`;
-						}}
-						renderOption={(props, option) => {
-							const icon = LOSS_TYPE_ICONS[option as LossType] || '';
-							return (
-								<li {...props} key={option}>
-									{icon} {formatLossType(option)}
-								</li>
-							);
-						}}
-						fullWidth
-						renderInput={(params) => <TextField {...params} placeholder="Select loss type..." />}
+					<LossTypeSelect
+						lossType={formData.loss_type || null}
+						setLossType={(value) => setFormData({ ...formData, loss_type: value || '' })}
+						text="Select loss type..."
 					/>
 				</Box>
 

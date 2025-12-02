@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { LineOfBusiness, LossType } from '@/config/enums';
 
 // ============================================================================
 // CLAIM LIABILITY SCHEMAS
@@ -47,8 +46,8 @@ export const createClaimLiabilityInput = z.object({
 	claim_party_id: z.number().int().positive(),
 	liability_percentage: z.number().min(0).max(100).optional(),
 	coverage_amount: z.number().min(0).optional(),
-	line_of_business: z.nativeEnum(LineOfBusiness).optional(),
-	loss_type: z.nativeEnum(LossType).optional(),
+	line_of_business: z.string().optional(),
+	loss_type: z.string().optional(),
 	paid_recovery: z.number().min(0).optional(),
 	reserved_recovery: z.number().min(0).optional(),
 	notes: z.string().max(2000).optional(),
@@ -65,8 +64,8 @@ export const updateClaimLiabilityInput = z.object({
 	params: z.object({
 		liability_percentage: z.number().min(0).max(100).optional(),
 		coverage_amount: z.number().min(0).optional(),
-		line_of_business: z.nativeEnum(LineOfBusiness).optional(),
-		loss_type: z.nativeEnum(LossType).optional(),
+		line_of_business: z.string().optional(),
+		loss_type: z.string().optional(),
 		paid_recovery: z.number().min(0).optional(),
 		reserved_recovery: z.number().min(0).optional(),
 		notes: z.string().max(2000).optional(),

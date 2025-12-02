@@ -4,19 +4,12 @@ import { MenuItem, Stack, TextField, Typography, Box } from '@mui/material';
 import Send from '@mui/icons-material/Send';
 import Business from '@mui/icons-material/Business';
 import SupportAgent from '@mui/icons-material/SupportAgent';
-import Person from '@mui/icons-material/Person';
-import AccountBalance from '@mui/icons-material/AccountBalance';
-import Gavel from '@mui/icons-material/Gavel';
-import Science from '@mui/icons-material/Science';
-import Shield from '@mui/icons-material/Shield';
-import Store from '@mui/icons-material/Store';
-import Visibility from '@mui/icons-material/Visibility';
-import Home from '@mui/icons-material/Home';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
-import { PartyType, FacilitatorCategory, EntityCategory } from '@/config/enums';
+import { trpc } from '@/lib/trpc';
+import { PartyType } from '@/config/enums';
 import type { Party } from '@/api/database/types';
 import { useEffect, useState, useMemo } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -52,13 +45,33 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 	const isPending = creating || updating;
 	const hasLockedValues = !!lockedType && !!lockedRole;
 
+	// Fetch reference data for party categories
+	const { data: facilitatorCategories = [] } = trpc.referenceData.getReferenceOptions.useQuery(
+		{ entity: 'facilitator_category' },
+		{ staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
+	);
+	const { data: entityCategories = [] } = trpc.referenceData.getReferenceOptions.useQuery(
+		{ entity: 'entity_category' },
+		{ staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
+	);
+
 	// Search for duplicates (only when searchTerm is at least 2 chars)
 	const { data: searchResults } = partyTrpc.search(searchTerm.length >= 2 ? { searchTerm } : skipToken);
+
+	// Get default category based on type
+	const getDefaultCategory = (type: PartyType) => {
+		if (lockedRole) return lockedRole;
+		if (type === PartyType.FACILITATOR) {
+			return facilitatorCategories[0]?.value || '';
+		}
+		return entityCategories[0]?.value || '';
+	};
 
 	const {
 		control,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors, isSubmitting, isValid, isDirty, dirtyFields },
 	} = useForm<PartyFormInputs>({
 		defaultValues: party
@@ -74,7 +87,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 				}
 			: {
 					party_type: lockedType === 'facilitator' ? PartyType.FACILITATOR : PartyType.ENTITY,
-					party_category: lockedRole || EntityCategory.CLAIMANT,
+					party_category: lockedRole || '',
 					name: '',
 					organization: '',
 					email: '',
@@ -86,11 +99,23 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 	});
 
 	const partyType = watch('party_type');
+	const partyCategory = watch('party_category');
 	const name = watch('name');
 
+	// Set default category when reference data loads (only for new parties without locked role)
+	useEffect(() => {
+		if (!isEditMode && !lockedRole && !partyCategory) {
+			const defaultCategory = getDefaultCategory(partyType);
+			if (defaultCategory) {
+				setValue('party_category', defaultCategory);
+			}
+		}
+	}, [isEditMode, lockedRole, partyCategory, partyType, facilitatorCategories, entityCategories, setValue]);
+
 	// Get available categories based on party type
-	const availableCategories =
-		partyType === PartyType.FACILITATOR ? Object.values(FacilitatorCategory) : Object.values(EntityCategory);
+	const availableCategories = useMemo(() => {
+		return partyType === PartyType.FACILITATOR ? facilitatorCategories : entityCategories;
+	}, [partyType, facilitatorCategories, entityCategories]);
 
 	// Icon mapping for party types
 	const getPartyTypeIcon = (type: PartyType) => {
@@ -99,30 +124,6 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 				return <Business sx={{ fontSize: 18 }} />;
 			case PartyType.FACILITATOR:
 				return <SupportAgent sx={{ fontSize: 18 }} />;
-		}
-	};
-
-	// Icon mapping for party categories
-	const getCategoryIcon = (category: string) => {
-		switch (category) {
-			case EntityCategory.CLAIMANT:
-				return <Person sx={{ fontSize: 18 }} />;
-			case EntityCategory.RESPONSIBLE_PARTY:
-				return <AccountBalance sx={{ fontSize: 18 }} />;
-			case EntityCategory.WITNESS:
-				return <Visibility sx={{ fontSize: 18 }} />;
-			case EntityCategory.PROPERTY_OWNER:
-				return <Home sx={{ fontSize: 18 }} />;
-			case FacilitatorCategory.ATTORNEY:
-				return <Gavel sx={{ fontSize: 18 }} />;
-			case FacilitatorCategory.EXPERT:
-				return <Science sx={{ fontSize: 18 }} />;
-			case FacilitatorCategory.ADVERSE_CARRIER:
-				return <Shield sx={{ fontSize: 18 }} />;
-			case FacilitatorCategory.VENDOR:
-				return <Store sx={{ fontSize: 18 }} />;
-			default:
-				return null;
 		}
 	};
 
@@ -282,12 +283,12 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 							sx={styles.textFieldOverrides}
 						>
 							{availableCategories.map((category) => (
-								<MenuItem key={category} value={category}>
+								<MenuItem key={category.value} value={category.value}>
 									<Box display="flex" alignItems="center" gap={1}>
-										{getCategoryIcon(category)}
-										<Typography fontSize={13}>
-											{category.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-										</Typography>
+										{category.icon_emoji && (
+											<Typography fontSize={14}>{category.icon_emoji}</Typography>
+										)}
+										<Typography fontSize={13}>{category.display_label}</Typography>
 									</Box>
 								</MenuItem>
 							))}

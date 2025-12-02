@@ -1,10 +1,11 @@
 import { sql } from 'kysely';
-import { ClaimSearch, ClaimStatus, FeedStatus, LineOfBusiness, LossType, RecoveryStatus } from '@/config/enums';
+import { ClaimSearch, ClaimStatus, FeedStatus, RecoveryStatus } from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 import { TRPCError } from '@trpc/server';
 import config from '@/config/config';
+import type { ClaimData } from '@/schemas/claimSchemas';
 
 /**
  * Verify that a checklist exists and is accessible.
@@ -139,8 +140,8 @@ export async function getClaims(
 		type: 'data' | 'count';
 		feedId?: number | null;
 		searchTerm?: { value: string; type: ClaimSearch };
-		line_of_business?: LineOfBusiness;
-		loss_type?: LossType;
+		line_of_business?: string;
+		loss_type?: string;
 		recovery_status?: RecoveryStatus;
 		insured?: string;
 		client?: string;
@@ -362,7 +363,7 @@ export async function updateClaim(
  * @param claims - claim objects without ids
  * @returns all created/updated claims
  */
-export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'id'>[]) {
+export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 	const result = await ctx.db
 		.insertInto('claim')
 		.values(
@@ -378,7 +379,7 @@ export async function createClaims(ctx: ProtectedContext, claims: Omit<Claim, 'i
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
 				loss_type: c.loss_type,
-				client_id: ctx.session.user.client_id,
+				client_id: ctx.session.user.client_id!,
 				created_by: ctx.session.user.id,
 			}))
 		)

@@ -5,10 +5,9 @@ import { Box, TextField, Autocomplete, Typography } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
 import ClaimPartyRoleSelect from '@/components/common/ClaimPartyRoleSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { ClaimPartyRole } from '@/config/enums';
 
 interface PartyLiabilityFormData {
-	role: ClaimPartyRole;
+	role: string | null;
 	party_id: number | null;
 	representative_id: number | null;
 	notes: string;
@@ -37,7 +36,7 @@ export default function PartyLiabilityFormDialog({
 	isSubmitting = false,
 }: PartyLiabilityFormDialogProps) {
 	const [formData, setFormData] = useState<PartyLiabilityFormData>({
-		role: ClaimPartyRole.ADVERSE_CARRIER,
+		role: null,
 		party_id: null,
 		representative_id: null,
 		notes: '',
@@ -78,7 +77,7 @@ export default function PartyLiabilityFormDialog({
 	useEffect(() => {
 		if (editingClaimParty) {
 			setFormData({
-				role: editingClaimParty.role as ClaimPartyRole,
+				role: editingClaimParty.role,
 				party_id: editingClaimParty.party_id,
 				representative_id: editingClaimParty.representative_id,
 				notes: editingClaimParty.notes || '',
@@ -93,7 +92,7 @@ export default function PartyLiabilityFormDialog({
 		} else {
 			// Reset form for new entry
 			setFormData({
-				role: ClaimPartyRole.ADVERSE_CARRIER,
+				role: null,
 				party_id: null,
 				representative_id: null,
 				notes: '',
@@ -125,7 +124,7 @@ export default function PartyLiabilityFormDialog({
 	}, []);
 
 	const handleSubmit = async () => {
-		if (!formData.party_id) return;
+		if (!formData.party_id || !formData.role) return;
 
 		await onSubmit({
 			role: formData.role,
@@ -143,7 +142,7 @@ export default function PartyLiabilityFormDialog({
 			primaryAction={{
 				label: editingClaimParty ? 'Update' : 'Add',
 				onClick: handleSubmit,
-				disabled: !formData.party_id || isSubmitting,
+				disabled: !formData.party_id || !formData.role || isSubmitting,
 			}}
 			secondaryActions={[
 				{
@@ -162,7 +161,7 @@ export default function PartyLiabilityFormDialog({
 					</Typography>
 					<ClaimPartyRoleSelect
 						role={formData.role}
-						setRole={(role) => setFormData({ ...formData, role: role as ClaimPartyRole })}
+						setRole={(role) => setFormData({ ...formData, role })}
 						clearable={false}
 						text="Select role"
 					/>

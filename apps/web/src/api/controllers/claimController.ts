@@ -1,8 +1,9 @@
 import * as claimQueries from '@/api/queries/claimQueries';
-import { ClaimSearch, LineOfBusiness, LossType } from '@/config/enums';
+import { ClaimSearch } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Claim } from '@/types/types';
 import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import type { CreateClaimInput, ClaimData } from '@/schemas/claimSchemas';
 
 export async function assignClaim(
 	ctx: ProtectedContext,
@@ -62,8 +63,8 @@ export async function getClaims(
 	params: {
 		feedId?: number | null;
 		searchTerm?: { value: string; type: ClaimSearch };
-		line_of_business?: LineOfBusiness;
-		loss_type?: LossType;
+		line_of_business?: string;
+		loss_type?: string;
 		limit?: number;
 		offset?: number;
 	}
@@ -102,10 +103,12 @@ export async function createClaims(
 		claims,
 		party_id,
 		representative_id,
+		role,
 	}: {
-		claims: Omit<Claim, 'id'>[];
+		claims: ClaimData[];
 		party_id?: number | null;
 		representative_id?: number | null;
+		role?: string | null;
 	}
 ) {
 	// Create claims and log admin actions within transaction
@@ -123,10 +126,9 @@ export async function createClaims(
 			}))
 		);
 
-		// Link party to claims if party_id provided
-		if (party_id && newClaims.length > 0) {
+		// Link party to claims if party_id and role provided
+		if (party_id && role && newClaims.length > 0) {
 			const { linkPartyToClaim } = await import('@/api/queries/partyQueries');
-			const { ClaimPartyRole } = await import('@/config/enums');
 
 			for (const claim of newClaims) {
 				await linkPartyToClaim(
@@ -134,7 +136,7 @@ export async function createClaims(
 					{
 						claim_id: claim.id!,
 						party_id,
-						role: ClaimPartyRole.ADVERSE_CARRIER,
+						role,
 						is_primary: true,
 						representative_id: representative_id ?? null,
 					}
@@ -177,26 +179,24 @@ export async function updateClaim(
 		total_incurred?: number | null;
 		date_of_loss?: Date | null;
 		loss_location?: string | null;
-		reserved_recovery?: number | null; // Client's expected recovery (from feed/manual)
-		paid_recovery?: number | null; // Client's reported paid amount (from feed/manual)
-		expected_recovery?: number | null; // Team's forecasted recovery
+		expected_recovery?: number | null;
 		line_of_business?: string;
 		loss_type?: string;
 		recovery_status?: string;
 		substatus?: string;
 		party_id?: number | null;
 		representative_id?: number | null;
+		role?: string | null;
 	}
 ) {
 	const {
 		claimId,
 		claim_amount,
 		total_incurred,
-		reserved_recovery,
-		paid_recovery,
 		expected_recovery,
 		party_id,
 		representative_id,
+		role,
 		...otherUpdates
 	} = input;
 
@@ -205,8 +205,6 @@ export async function updateClaim(
 		...otherUpdates,
 		...(claim_amount !== undefined && { claim_amount: claim_amount?.toString() ?? null }),
 		...(total_incurred !== undefined && { total_incurred: total_incurred?.toString() ?? null }),
-		...(reserved_recovery !== undefined && { reserved_recovery: reserved_recovery?.toString() ?? null }),
-		...(paid_recovery !== undefined && { paid_recovery: paid_recovery?.toString() ?? null }),
 		...(expected_recovery !== undefined && { expected_recovery: expected_recovery?.toString() ?? null }),
 	};
 
@@ -237,17 +235,14 @@ export async function updateClaim(
 				unlinkPartyFromClaim,
 				updateClaimParty,
 			} = await import('@/api/queries/partyQueries');
-			const { ClaimPartyRole } = await import('@/config/enums');
 
 			// Get existing party relationships for this claim
 			const existingParties = await getClaimParties({ ...ctx, db: trx }, claimId);
-			// Filter to get the primary adverse_carrier specifically (the "client" relationship)
-			const existingPrimary = existingParties.find(
-				(p) => p.is_primary && p.role === ClaimPartyRole.ADVERSE_CARRIER
-			);
+			// Find the primary party relationship (regardless of role)
+			const existingPrimary = existingParties.find((p) => p.is_primary);
 
 			if (party_id === null) {
-				// User wants to remove party - unlink the primary adverse_carrier
+				// User wants to remove party - unlink the primary party
 				if (existingPrimary) {
 					await unlinkPartyFromClaim({ ...ctx, db: trx }, existingPrimary.id);
 					await logAdminAction(
@@ -260,22 +255,23 @@ export async function updateClaim(
 						}
 					);
 				}
-			} else {
-				// User wants to set/update party
+			} else if (role) {
+				// User wants to set/update party (role is required for creating/updating)
 				const partyChanged = !existingPrimary || existingPrimary.party_id !== party_id;
 				const repChanged = !existingPrimary || existingPrimary.representative_id !== representative_id;
+				const roleChanged = !existingPrimary || existingPrimary.role !== role;
 
 				if (existingPrimary) {
 					// Update existing primary party
-					if (partyChanged) {
-						// Party changed - delete old and create new
+					if (partyChanged || roleChanged) {
+						// Party or role changed - delete old and create new
 						await unlinkPartyFromClaim({ ...ctx, db: trx }, existingPrimary.id);
 						await linkPartyToClaim(
 							{ ...ctx, db: trx },
 							{
 								claim_id: claimId,
 								party_id,
-								role: ClaimPartyRole.ADVERSE_CARRIER,
+								role,
 								is_primary: true,
 								representative_id: representative_id ?? null,
 							}
@@ -291,6 +287,7 @@ export async function updateClaim(
 									old_party_id: existingPrimary.party_id,
 									new_party_id: party_id,
 									representative_id,
+									role,
 								},
 							}
 						);
@@ -317,7 +314,7 @@ export async function updateClaim(
 						{
 							claim_id: claimId,
 							party_id,
-							role: ClaimPartyRole.ADVERSE_CARRIER,
+							role,
 							is_primary: true,
 							representative_id: representative_id ?? null,
 						}
@@ -328,7 +325,7 @@ export async function updateClaim(
 							entityId: claimId,
 							entityName: EntityName.CLAIM,
 							action: AdminAction.UPDATE,
-							value: { action: 'linked_party', party_id, representative_id },
+							value: { action: 'linked_party', party_id, representative_id, role },
 						}
 					);
 				}
@@ -365,8 +362,8 @@ export async function listMyClaims(
 		claimStatus?: import('@/config/enums').ClaimStatus;
 		recoveryStatus?: import('@/config/enums').RecoveryStatus;
 		substatus?: string;
-		line_of_business?: LineOfBusiness;
-		loss_type?: LossType;
+		line_of_business?: string;
+		loss_type?: string;
 		limit?: number;
 		offset?: number;
 		sortField?: string;

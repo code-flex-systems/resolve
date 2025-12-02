@@ -671,6 +671,71 @@ export interface RecoveryEvent {
   updated_by: string | null;
 }
 
+export interface ReferenceList {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  description: string | null;
+  /**
+   * Human-readable name for the entity type
+   */
+  display_name: string;
+  /**
+   * Entity type identifier (e.g., "line_of_business", "loss_type")
+   */
+  entity: string;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface ReferenceOption {
+  client_id: string;
+  color_hex: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  description: string | null;
+  /**
+   * Human-readable label for display
+   */
+  display_label: string;
+  /**
+   * Emoji icon for visual display
+   */
+  icon_emoji: string | null;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  is_active: Generated<boolean>;
+  /**
+   * Whether this is a system-seeded option (cannot be deleted)
+   */
+  is_system_default: Generated<boolean>;
+  reference_list_id: number;
+  /**
+   * Custom sort order (reserved for future use; currently sorted alphabetically)
+   */
+  sort_order: Generated<number>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  /**
+   * Snake_case identifier used in code (e.g., "auto", "collision")
+   */
+  value: string;
+}
+
 export interface ResponseAuditLogs {
   action: string;
   checklist_id: number | null;
@@ -865,6 +930,8 @@ export interface DB {
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;
   recovery_event: RecoveryEvent;
+  reference_list: ReferenceList;
+  reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
   task: Task;

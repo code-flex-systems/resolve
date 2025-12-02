@@ -2,20 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { Box, TextField } from '@mui/material';
-import { CoverageType } from '@/config/enums';
 import { CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import CoverageTypeSelect from '../common/CoverageTypeSelect';
 import BasicDialog from '../common/BasicDialog';
 
 interface CoverageFormData {
-	coverage_type: CoverageType;
+	coverage_type: string;
 	coverage_amount: string;
 }
 
 interface CoverageFormDialogProps {
 	open: boolean;
 	onClose: () => void;
-	onSubmit: (data: { coverage_type: CoverageType; coverage_amount: string | null }) => Promise<void>;
+	onSubmit: (data: { coverage_type: string; coverage_amount: string | null }) => Promise<void>;
 	editingCoverage?: CoverageListItem | null;
 	isSubmitting?: boolean;
 }
@@ -28,7 +27,7 @@ export default function CoverageFormDialog({
 	isSubmitting = false,
 }: CoverageFormDialogProps) {
 	const [formData, setFormData] = useState<CoverageFormData>({
-		coverage_type: CoverageType.COLLISION,
+		coverage_type: '',
 		coverage_amount: '',
 	});
 
@@ -36,12 +35,12 @@ export default function CoverageFormDialog({
 	useEffect(() => {
 		if (editingCoverage) {
 			setFormData({
-				coverage_type: editingCoverage.coverage_type as CoverageType,
+				coverage_type: editingCoverage.coverage_type,
 				coverage_amount: editingCoverage.coverage_amount?.toString() || '',
 			});
 		} else {
 			setFormData({
-				coverage_type: CoverageType.COLLISION,
+				coverage_type: '',
 				coverage_amount: '',
 			});
 		}

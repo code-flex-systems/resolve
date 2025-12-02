@@ -33,14 +33,12 @@ import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import { formatLineOfBusiness, formatLossType } from '@/lib/utils/claimUtils';
 import Visibility from '@mui/icons-material/Visibility';
-import LineOfBusinessSelect from '../common/LineOfBusinessSelect';
-import LossTypeSelect from '../common/LossTypeSelect';
+import { LineOfBusinessSelect, LossTypeSelect, LineOfBusinessValue, LossTypeValue } from '../common/ReferenceDataSelect';
 import RecoveryStatusSelect from '../common/RecoveryStatusSelect';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
-import { LineOfBusiness, LossType, RecoveryStatus, ClaimSearch } from '@/config/enums';
+import { RecoveryStatus, ClaimSearch } from '@/config/enums';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ClaimDetailPanel from './ClaimDetailPanel';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -135,14 +133,14 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Line of Business',
 		field: 'line_of_business',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (v) => formatLineOfBusiness(v),
+		renderCell: (params) => <LineOfBusinessValue value={params.value} showEmoji={false} />,
 		width: 150,
 	},
 	{
 		headerName: 'Loss Type',
 		field: 'loss_type',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (v) => formatLossType(v),
+		renderCell: (params) => <LossTypeValue value={params.value} showEmoji={false} />,
 		width: 150,
 	},
 	{
@@ -218,8 +216,8 @@ export default function Claims() {
 	const { data = { rows: [], count: undefined }, isFetching } = trpcUtils.list({
 		feedId: effectiveFeedId,
 		searchTerm: appliedClaimNumber ? { value: appliedClaimNumber, type: ClaimSearch.CLAIM_NUMBER } : undefined,
-		line_of_business: (appliedLob as LineOfBusiness) ?? undefined,
-		loss_type: (appliedLossType as LossType) ?? undefined,
+		line_of_business: appliedLob ?? undefined,
+		loss_type: appliedLossType ?? undefined,
 		recovery_status: (appliedRecoveryStatus as RecoveryStatus) ?? undefined,
 		insured: appliedInsured ?? undefined,
 		client: appliedClient ?? undefined,

@@ -58,6 +58,10 @@ export enum EntityName {
 
 	// Workflow management entities (Phase 3)
 	TASK = 'task',
+
+	// Reference data management entities
+	REFERENCE_LIST = 'reference_list',
+	REFERENCE_OPTION = 'reference_option',
 }
 
 export interface AdminActionLogParams {
