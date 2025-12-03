@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
-import ClaimPartyRoleSelect from '@/components/common/ClaimPartyRoleSelect';
+import { ClaimPartyRoleSelect } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 
 interface PartyLiabilityFormData {
@@ -167,17 +167,13 @@ export default function PartyLiabilityFormDialog({
 		>
 			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
 				{/* Role Selection */}
-				<Box>
-					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
-						Party Role *
-					</Typography>
-					<ClaimPartyRoleSelect
-						role={formData.role}
-						setRole={(role) => setFormData({ ...formData, role })}
-						clearable={false}
-						text="Select role"
-					/>
-				</Box>
+				<ClaimPartyRoleSelect
+					role={formData.role}
+					setRole={(role) => setFormData({ ...formData, role })}
+					clearable={false}
+					isFilter={false}
+					label="Party Role *"
+				/>
 
 				{/* Party Selection */}
 				<Autocomplete

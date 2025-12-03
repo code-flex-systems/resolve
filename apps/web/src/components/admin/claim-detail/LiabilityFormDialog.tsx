@@ -96,7 +96,12 @@ export default function LiabilityFormDialog({
 			primaryAction={{
 				label: editingLiability ? 'Update' : 'Add',
 				onClick: handleSubmit,
-				disabled: !isValidCoverage || !isValidAmountPaid || isSubmitting,
+				disabled:
+					!formData.line_of_business ||
+					!formData.loss_type ||
+					!isValidCoverage ||
+					!isValidAmountPaid ||
+					isSubmitting,
 			}}
 			secondaryActions={[
 				{
@@ -109,28 +114,22 @@ export default function LiabilityFormDialog({
 		>
 			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
 				{/* Line of Business */}
-				<Box>
-					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
-						Line of Business
-					</Typography>
-					<LineOfBusinessSelect
-						lineOfBusiness={formData.line_of_business || null}
-						setLineOfBusiness={(value) => setFormData({ ...formData, line_of_business: value || '' })}
-						text="Select line of business..."
-					/>
-				</Box>
+				<LineOfBusinessSelect
+					lineOfBusiness={formData.line_of_business || null}
+					setLineOfBusiness={(value) => setFormData({ ...formData, line_of_business: value || '' })}
+					isFilter={false}
+					label="Line of Business *"
+					clearable={false}
+				/>
 
 				{/* Loss Type */}
-				<Box>
-					<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
-						Loss Type
-					</Typography>
-					<LossTypeSelect
-						lossType={formData.loss_type || null}
-						setLossType={(value) => setFormData({ ...formData, loss_type: value || '' })}
-						text="Select loss type..."
-					/>
-				</Box>
+				<LossTypeSelect
+					lossType={formData.loss_type || null}
+					setLossType={(value) => setFormData({ ...formData, loss_type: value || '' })}
+					isFilter={false}
+					label="Loss Type *"
+					clearable={false}
+				/>
 
 				{/* Coverage Amount */}
 				<TextField

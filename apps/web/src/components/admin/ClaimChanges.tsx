@@ -441,17 +441,13 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							/>
 
 							{selectedParty && (
-								<Box>
-									<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
-										Party Role
-									</Typography>
-									<ClaimPartyRoleSelect
-										role={selectedRole}
-										setRole={setSelectedRole}
-										clearable={false}
-										text="Select role"
-									/>
-								</Box>
+								<ClaimPartyRoleSelect
+									role={selectedRole}
+									setRole={setSelectedRole}
+									clearable={false}
+									isFilter={false}
+									label="Party Role"
+								/>
 							)}
 
 							<TextField
@@ -519,17 +515,13 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								</Select>
 							</FormControl>
 
-							<Box>
-								<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
-									Substatus
-								</Typography>
-								<ClaimSubstatusSelect
-									substatus={substatus}
-									setSubstatus={(value) => setValue('substatus', value)}
-									clearable={false}
-									text="Select substatus"
-								/>
-							</Box>
+							<ClaimSubstatusSelect
+								substatus={substatus}
+								setSubstatus={(value) => setValue('substatus', value)}
+								clearable={false}
+								isFilter={false}
+								label="Substatus"
+							/>
 						</Box>
 
 						{/* Financial Information Section */}

@@ -1,4 +1,16 @@
-import { Box, Chip, CircularProgress, MenuItem, Paper, PopperProps, Tooltip, Typography } from '@mui/material';
+import {
+	Box,
+	Chip,
+	CircularProgress,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Paper,
+	PopperProps,
+	Select,
+	Tooltip,
+	Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -29,7 +41,7 @@ interface ReferenceDataSelectProps {
 	 */
 	clearable?: boolean;
 	/**
-	 * Custom height for the chip
+	 * Custom height for the chip (only applies when isFilter=true)
 	 */
 	height?: number;
 	/**
@@ -41,21 +53,49 @@ interface ReferenceDataSelectProps {
 	 */
 	disabled?: boolean;
 	/**
-	 * Custom styles for the chip
+	 * Custom styles
 	 */
 	sx?: object;
+	/**
+	 * Display as a filter chip (true) or standard form dropdown (false)
+	 * - Filter mode: Compact chip style, good for toolbars/filter bars
+	 * - Form mode: Standard MUI Select, good for forms/dialogs
+	 */
+	isFilter?: boolean;
+	/**
+	 * Label for the select (only applies when isFilter=false)
+	 */
+	label?: string;
+	/**
+	 * Size of the select (only applies when isFilter=false)
+	 */
+	size?: 'small' | 'medium';
+	/**
+	 * Whether to take full width (only applies when isFilter=false)
+	 */
+	fullWidth?: boolean;
 }
 
 /**
  * Generic select component for reference data entities
  * Fetches options from the database and displays them in a dropdown
  *
- * Usage:
+ * Usage (filter mode - chip style for toolbars):
  * <ReferenceDataSelect
  *   entity="loss_type"
  *   value={lossType}
  *   onChange={setLossType}
  *   placeholder="Filter by loss type"
+ *   isFilter={true}
+ * />
+ *
+ * Usage (form mode - standard dropdown for forms):
+ * <ReferenceDataSelect
+ *   entity="loss_type"
+ *   value={lossType}
+ *   onChange={setLossType}
+ *   label="Loss Type"
+ *   isFilter={false}
  * />
  */
 export default function ReferenceDataSelect({
@@ -68,6 +108,10 @@ export default function ReferenceDataSelect({
 	placeholder = 'Select...',
 	disabled = false,
 	sx,
+	isFilter = true,
+	label,
+	size = 'small',
+	fullWidth = true,
 }: ReferenceDataSelectProps) {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 
@@ -85,6 +129,42 @@ export default function ReferenceDataSelect({
 	const displayLabel = selectedOption?.display_label || placeholder;
 	const displayIcon = selectedOption?.icon_emoji;
 
+	// Standard form dropdown mode
+	if (!isFilter) {
+		return (
+			<FormControl fullWidth={fullWidth} size={size} disabled={disabled || isLoading} sx={sx}>
+				{label && <InputLabel>{label}</InputLabel>}
+				<Select
+					value={value || ''}
+					onChange={(e) => {
+						const newValue = e.target.value as string;
+						onChange(newValue === '' ? null : newValue);
+					}}
+					label={label}
+					displayEmpty={!label}
+					variant="standard"
+				>
+					{clearable && (
+						<MenuItem value="">
+							<Typography color="text.secondary">None</Typography>
+						</MenuItem>
+					)}
+					{options.map((option) => (
+						<MenuItem key={option.value} value={option.value}>
+							<Box display="flex" alignItems="center" gap={0.5}>
+								{showIcon && option.icon_emoji && (
+									<Typography fontSize={14}>{option.icon_emoji}</Typography>
+								)}
+								<Typography>{option.display_label}</Typography>
+							</Box>
+						</MenuItem>
+					))}
+				</Select>
+			</FormControl>
+		);
+	}
+
+	// Filter chip mode (original behavior)
 	return (
 		<>
 			<Chip
@@ -142,7 +222,10 @@ export default function ReferenceDataSelect({
 										{showIcon && option.icon_emoji && (
 											<Typography fontSize={14}>{option.icon_emoji}</Typography>
 										)}
-										<Typography fontSize={13} marginLeft={showIcon && option.icon_emoji ? '5px' : 0}>
+										<Typography
+											fontSize={13}
+											marginLeft={showIcon && option.icon_emoji ? '5px' : 0}
+										>
 											{option.display_label}
 										</Typography>
 									</Box>
@@ -172,9 +255,20 @@ const styles = {
 
 /**
  * Convenience wrapper components for common entity types
- * These provide the same API as the original enum-based selects
- * and can be dropped in as replacements
+ * These provide a simpler API for common use cases
+ *
+ * Use isFilter=true (default) for filter bars/toolbars (chip style)
+ * Use isFilter=false for forms/dialogs (standard dropdown)
  */
+
+interface CommonSelectProps {
+	clearable?: boolean;
+	height?: number;
+	text?: string;
+	disabled?: boolean;
+	isFilter?: boolean;
+	label?: string;
+}
 
 export function LossTypeSelect({
 	lossType,
@@ -183,13 +277,11 @@ export function LossTypeSelect({
 	height,
 	text = 'Filter by loss type',
 	disabled = false,
-}: {
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
 	lossType: string | null;
 	setLossType: (newType: string | null) => void;
-	clearable?: boolean;
-	height?: number;
-	text?: string;
-	disabled?: boolean;
 }) {
 	return (
 		<ReferenceDataSelect
@@ -200,6 +292,8 @@ export function LossTypeSelect({
 			height={height}
 			placeholder={text}
 			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
 		/>
 	);
 }
@@ -211,13 +305,11 @@ export function LineOfBusinessSelect({
 	height,
 	text = 'Filter by line of business',
 	disabled = false,
-}: {
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
 	lineOfBusiness: string | null;
 	setLineOfBusiness: (newType: string | null) => void;
-	clearable?: boolean;
-	height?: number;
-	text?: string;
-	disabled?: boolean;
 }) {
 	return (
 		<ReferenceDataSelect
@@ -228,6 +320,8 @@ export function LineOfBusinessSelect({
 			height={height}
 			placeholder={text}
 			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
 		/>
 	);
 }
@@ -239,13 +333,11 @@ export function ClaimSubstatusSelect({
 	height,
 	text = 'Filter by substatus',
 	disabled = false,
-}: {
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
 	substatus: string | null;
 	setSubstatus: (newType: string | null) => void;
-	clearable?: boolean;
-	height?: number;
-	text?: string;
-	disabled?: boolean;
 }) {
 	return (
 		<ReferenceDataSelect
@@ -256,6 +348,8 @@ export function ClaimSubstatusSelect({
 			height={height}
 			placeholder={text}
 			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
 		/>
 	);
 }
@@ -267,13 +361,11 @@ export function ClaimPartyRoleSelect({
 	height,
 	text = 'Select role',
 	disabled = false,
-}: {
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
 	role: string | null;
 	setRole: (newRole: string | null) => void;
-	clearable?: boolean;
-	height?: number;
-	text?: string;
-	disabled?: boolean;
 }) {
 	return (
 		<ReferenceDataSelect
@@ -284,6 +376,8 @@ export function ClaimPartyRoleSelect({
 			height={height}
 			placeholder={text}
 			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
 		/>
 	);
 }
@@ -295,13 +389,11 @@ export function FacilitatorCategorySelect({
 	height,
 	text = 'Select category',
 	disabled = false,
-}: {
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
 	category: string | null;
 	setCategory: (newCategory: string | null) => void;
-	clearable?: boolean;
-	height?: number;
-	text?: string;
-	disabled?: boolean;
 }) {
 	return (
 		<ReferenceDataSelect
@@ -312,6 +404,8 @@ export function FacilitatorCategorySelect({
 			height={height}
 			placeholder={text}
 			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
 		/>
 	);
 }
@@ -323,13 +417,11 @@ export function EntityCategorySelect({
 	height,
 	text = 'Select category',
 	disabled = false,
-}: {
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
 	category: string | null;
 	setCategory: (newCategory: string | null) => void;
-	clearable?: boolean;
-	height?: number;
-	text?: string;
-	disabled?: boolean;
 }) {
 	return (
 		<ReferenceDataSelect
@@ -340,6 +432,8 @@ export function EntityCategorySelect({
 			height={height}
 			placeholder={text}
 			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
 		/>
 	);
 }
@@ -436,9 +530,7 @@ export function ReferenceDataValue({
 
 	return (
 		<Box display="flex" alignItems="center" gap={0.5} sx={sx}>
-			{showEmoji && option.icon_emoji && (
-				<Typography fontSize={fontSize}>{option.icon_emoji}</Typography>
-			)}
+			{showEmoji && option.icon_emoji && <Typography fontSize={fontSize}>{option.icon_emoji}</Typography>}
 			<Typography fontSize={fontSize}>{option.display_label}</Typography>
 			{isDeactivated && (
 				<Tooltip title="This option has been deactivated" arrow>
