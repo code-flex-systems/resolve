@@ -129,14 +129,17 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 										variant="outlined"
 									/>
 								))}
-							{claimDetail.loss_type && (
-								<Chip
-									label={<LossTypeValue value={claimDetail.loss_type} fontSize={12} />}
-									size="small"
-									color="secondary"
-									variant="outlined"
-								/>
-							)}
+							{claimDetail.aggregated_loss_type &&
+								claimDetail.aggregated_loss_type.length > 0 &&
+								claimDetail.aggregated_loss_type.map((lt: string) => (
+									<Chip
+										key={lt}
+										label={<LossTypeValue value={lt} fontSize={12} />}
+										size="small"
+										color="secondary"
+										variant="outlined"
+									/>
+								))}
 							{claimDetail.recovery_status && (
 								<Chip
 									label={`Recovery - ${formatRecoveryStatus(claimDetail.recovery_status)}`}

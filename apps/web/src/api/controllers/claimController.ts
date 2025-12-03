@@ -163,6 +163,7 @@ export async function createClaims(
 
 /**
  * Update an existing claim.
+ * Note: loss_type is no longer on the claim table - it's set per claim_liability
  *
  * @param ctx - request context
  * @param input - claim ID and fields to update
@@ -176,12 +177,8 @@ export async function updateClaim(
 		client_adjuster?: string | null;
 		insured?: string | null;
 		claim_amount?: number | null;
-		total_incurred?: number | null;
 		date_of_loss?: Date | null;
 		loss_location?: string | null;
-		expected_recovery?: number | null;
-		line_of_business?: string;
-		loss_type?: string;
 		recovery_status?: string;
 		substatus?: string;
 		party_id?: number | null;
@@ -192,8 +189,6 @@ export async function updateClaim(
 	const {
 		claimId,
 		claim_amount,
-		total_incurred,
-		expected_recovery,
 		party_id,
 		representative_id,
 		role,
@@ -201,11 +196,10 @@ export async function updateClaim(
 	} = input;
 
 	// Convert number amounts to strings for DB storage
+	// Note: total_incurred and expected_recovery are now calculated fields
 	const updates = {
 		...otherUpdates,
 		...(claim_amount !== undefined && { claim_amount: claim_amount?.toString() ?? null }),
-		...(total_incurred !== undefined && { total_incurred: total_incurred?.toString() ?? null }),
-		...(expected_recovery !== undefined && { expected_recovery: expected_recovery?.toString() ?? null }),
 	};
 
 	// Update claim and log admin action within transaction

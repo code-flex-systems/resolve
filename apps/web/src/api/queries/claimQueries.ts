@@ -194,7 +194,8 @@ export async function getClaims(
 		);
 	}
 
-	if (line_of_business) {
+	// Join claim_liability if filtering by line_of_business or loss_type
+	if (line_of_business || loss_type) {
 		query = query
 			.leftJoin('claim_party', 'claim_party.claim_id', 'claim.id')
 			.leftJoin('claim_liability', (join) =>
@@ -202,14 +203,17 @@ export async function getClaims(
 					.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
 					.on('claim_liability.deleted_at', 'is', null)
 			)
-			.where('claim_liability.line_of_business', '=', line_of_business)
 			.where('claim_party.deleted_at', 'is', null)
 			.groupBy('claim.id')
 			.groupBy('feeds.id');
-	}
 
-	if (loss_type) {
-		query = query.where('claim.loss_type', '=', loss_type);
+		if (line_of_business) {
+			query = query.where((eb) => eb(sql`claim_liability.line_of_business`, '=', line_of_business));
+		}
+
+		if (loss_type) {
+			query = query.where((eb) => eb(sql`claim_liability.loss_type`, '=', loss_type));
+		}
 	}
 
 	if (recovery_status) {
@@ -307,6 +311,7 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
 
 /**
  * Update an existing claim
+ * Note: loss_type is no longer on the claim table - it's aggregated from claim_liability
  */
 export async function updateClaim(
 	ctx: ProtectedContext,
@@ -317,11 +322,8 @@ export async function updateClaim(
 		client_adjuster: string | null;
 		insured: string | null;
 		claim_amount: string | null;
-		total_incurred: string | null;
 		date_of_loss: Date | null;
 		loss_location: string | null;
-		expected_recovery: string | null; // Team's forecasted recovery
-		loss_type: string;
 		recovery_status: string;
 		substatus: string;
 	}>
@@ -342,12 +344,9 @@ export async function updateClaim(
 			'client_adjuster',
 			'insured',
 			'claim_amount',
-			'total_incurred',
-			'expected_recovery',
 			'actual_recovery',
 			'date_of_loss',
 			'loss_location',
-			'loss_type',
 			'recovery_status',
 			'substatus',
 		])
@@ -358,6 +357,7 @@ export async function updateClaim(
 
 /**
  * Bulk insert claim records.
+ * Note: loss_type is no longer on the claim table - it's set per claim_liability
  *
  * @param ctx - request context
  * @param claims - claim objects without ids
@@ -373,12 +373,10 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				client_adjuster: c.client_adjuster,
 				insured: c.insured,
 				claim_amount: c.claim_amount,
-				total_incurred: c.total_incurred,
 				date_of_loss: c.date_of_loss,
 				loss_location: c.loss_location,
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
-				loss_type: c.loss_type,
 				client_id: ctx.session.user.client_id!,
 				created_by: ctx.session.user.id,
 			}))
@@ -389,12 +387,10 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				client_adjuster: eb.ref('excluded.client_adjuster'),
 				insured: eb.ref('excluded.insured'),
 				claim_amount: eb.ref('excluded.claim_amount'),
-				total_incurred: eb.ref('excluded.total_incurred'),
 				date_of_loss: eb.ref('excluded.date_of_loss'),
 				loss_location: eb.ref('excluded.loss_location'),
 				last_updated_by: eb.ref('excluded.last_updated_by'),
 				last_update: eb.ref('excluded.last_update'),
-				loss_type: eb.ref('excluded.loss_type'),
 			}))
 		)
 		.returningAll()
@@ -404,33 +400,143 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 
 /**
  * Get aggregated liability data for a claim
- * Returns distinct LOBs and summed recovery amounts from claim_liability table
+ * Returns distinct LOBs, distinct loss types, summed amount_paid, and total liability percentage
  * Uses LEFT JOIN so claims without liabilities still return results
+ * Note: liability_percentage is now on claim_party, amount_paid is on claim_liability
  */
 export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: number) {
 	const result = await ctx.db
 		.selectFrom('claim_party')
-		.leftJoin('claim_liability', 'claim_liability.claim_party_id', 'claim_party.id')
+		.leftJoin('claim_liability', (join) =>
+			join
+				.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
+				.on('claim_liability.deleted_at', 'is', null)
+		)
 		.select(({ fn }) => [
 			// Aggregate distinct LOBs as array (filtering out nulls in the aggregate)
 			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_liability.line_of_business`]).as('line_of_business_array'),
-			// Sum paid recovery
-			fn.sum<string>('claim_liability.paid_recovery').as('total_paid_recovery'),
-			// Sum reserved recovery
-			fn.sum<string>('claim_liability.reserved_recovery').as('total_reserved_recovery'),
+			// Aggregate distinct loss types as array (filtering out nulls in the aggregate)
+			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_liability.loss_type`]).as('loss_type_array'),
+			// Sum amount paid from liabilities
+			fn.sum<string>('claim_liability.amount_paid').as('total_amount_paid'),
+			// Sum liability percentage from parties (need distinct to avoid double counting due to liability join)
+			sql<string>`SUM(DISTINCT claim_party.liability_percentage)`.as('total_liability_percentage'),
 		])
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.deleted_at', 'is', null)
 		.executeTakeFirst();
 
-	// Filter out nulls from LOB array
+	// Filter out nulls from arrays
 	const lobs = result?.line_of_business_array?.filter((lob: string | null) => lob !== null) || [];
+	const lossTypes = result?.loss_type_array?.filter((lt: string | null) => lt !== null) || [];
+	const totalLiabilityPercentage = result?.total_liability_percentage ? parseFloat(result.total_liability_percentage) : 0;
+	const totalAmountPaid = result?.total_amount_paid ? parseFloat(result.total_amount_paid) : 0;
+
+	// Calculate our liability percentage (100% - total other parties' liability)
+	const ourLiabilityPercentage = Math.max(0, 100 - totalLiabilityPercentage);
+
+	// Calculate expected recovery: our liability % × total amount paid
+	const expectedRecovery = (ourLiabilityPercentage / 100) * totalAmountPaid;
 
 	return {
 		line_of_business: lobs,
-		total_paid_recovery: result?.total_paid_recovery || '0',
-		total_reserved_recovery: result?.total_reserved_recovery || '0',
+		loss_type: lossTypes,
+		total_amount_paid: totalAmountPaid,
+		total_liability_percentage: totalLiabilityPercentage,
+		our_liability_percentage: ourLiabilityPercentage,
+		expected_recovery: expectedRecovery,
 	};
+}
+
+/**
+ * Recalculate and update the expected_recovery cached field on a claim.
+ *
+ * Formula: expected_recovery = (100% - sum(claim_party.liability_percentage)) / 100 × sum(claim_liability.amount_paid)
+ *
+ * Call this function transactionally when:
+ * - claim_party.liability_percentage is created/updated/deleted
+ * - claim_liability.amount_paid is created/updated/deleted
+ *
+ * @param ctx - request context (can use transaction context)
+ * @param claimId - claim identifier to recalculate
+ * @returns the updated expected_recovery value
+ */
+export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, claimId: number) {
+	// Get sum of liability percentages from parties
+	const partyResult = await ctx.db
+		.selectFrom('claim_party')
+		.select(({ fn }) => [fn.sum<string>('liability_percentage').as('total_liability_percentage')])
+		.where('claim_id', '=', claimId)
+		.where('deleted_at', 'is', null)
+		.executeTakeFirst();
+
+	// Get sum of amount_paid from liabilities
+	const liabilityResult = await ctx.db
+		.selectFrom('claim_party')
+		.innerJoin('claim_liability', (join) =>
+			join
+				.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
+				.on('claim_liability.deleted_at', 'is', null)
+		)
+		.select(({ fn }) => [fn.sum<string>('claim_liability.amount_paid').as('total_amount_paid')])
+		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.deleted_at', 'is', null)
+		.executeTakeFirst();
+
+	const totalLiabilityPercentage = partyResult?.total_liability_percentage
+		? parseFloat(partyResult.total_liability_percentage)
+		: 0;
+	const totalAmountPaid = liabilityResult?.total_amount_paid
+		? parseFloat(liabilityResult.total_amount_paid)
+		: 0;
+
+	// Calculate our liability percentage (100% - total other parties' liability)
+	const ourLiabilityPercentage = Math.max(0, 100 - totalLiabilityPercentage);
+
+	// Calculate expected recovery: our liability % × total amount paid
+	const expectedRecovery = (ourLiabilityPercentage / 100) * totalAmountPaid;
+
+	// Update the claim's cached expected_recovery field
+	await ctx.db
+		.updateTable('claim')
+		.set({ expected_recovery: expectedRecovery.toFixed(2) })
+		.where('id', '=', claimId)
+		.execute();
+
+	return expectedRecovery;
+}
+
+/**
+ * Recalculate and update the total_incurred field on a claim.
+ * total_incurred = sum of all amount_reserved from claim_coverage for this claim.
+ *
+ * This should be called whenever coverage amount_reserved changes:
+ * - createClaimCoverage (if amount_reserved is set)
+ * - updateClaimCoverage (if amount_reserved is changed)
+ * - deleteClaimCoverage
+ *
+ * @param ctx - request context
+ * @param claimId - claim to recalculate
+ * @returns the new total_incurred value
+ */
+export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: number) {
+	// Get sum of amount_reserved from all coverages for this claim
+	const result = await ctx.db
+		.selectFrom('claim_coverage')
+		.select(({ fn }) => [fn.sum<string>('amount_reserved').as('total_reserved')])
+		.where('claim_id', '=', claimId)
+		.executeTakeFirst();
+
+	const totalIncurred = result?.total_reserved ? parseFloat(result.total_reserved) : 0;
+
+	// Update the claim's cached total_incurred field
+	await ctx.db
+		.updateTable('claim')
+		.set({ total_incurred: totalIncurred.toFixed(2) })
+		.where('id', '=', claimId)
+		.execute();
+
+	return totalIncurred;
 }
 
 /**
@@ -540,14 +646,13 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.deleted_at', 'is', null);
 
-	// Get total liability percentage from claim_liability table
+	// Get total liability percentage from claim_party table (liability_percentage moved here from claim_liability)
 	const liabilitySummaryQuery = ctx.db
-		.selectFrom('claim_liability')
-		.innerJoin('claim_party', 'claim_party.id', 'claim_liability.claim_party_id')
-		.select((eb) => [eb.fn.sum('claim_liability.liability_percentage').as('total_liability')])
+		.selectFrom('claim_party')
+		.select((eb) => [eb.fn.sum('claim_party.liability_percentage').as('total_liability')])
 		.where('claim_party.claim_id', '=', claimId)
-		.where('claim_party.deleted_at', 'is', null)
-		.where('claim_liability.deleted_at', 'is', null);
+		.where('claim_party.deleted_at', 'is', null);
+
 
 	// Get task summary by status
 	const taskSummaryQuery = ctx.db
@@ -594,9 +699,17 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 			totalLiability: Number(liabilitySummary?.total_liability || 0),
 		},
 		taskSummary: taskCounts,
+		// Aggregated values from parties and liabilities
 		aggregated_line_of_business: partyAggregates.line_of_business,
-		aggregated_paid_recovery: partyAggregates.total_paid_recovery,
-		aggregated_reserved_recovery: partyAggregates.total_reserved_recovery,
+		aggregated_loss_type: partyAggregates.loss_type,
+		aggregated_amount_paid: partyAggregates.total_amount_paid,
+		// Liability percentages
+		total_liability_percentage: partyAggregates.total_liability_percentage,
+		our_liability_percentage: partyAggregates.our_liability_percentage,
+		// Cached calculated values (updated transactionally when related data changes)
+		// total_incurred: sum of amount_reserved from claim_coverage (included in ...claim)
+		// expected_recovery: calculated from party liability percentages and liability amount_paid (included in ...claim)
+		expected_recovery: partyAggregates.expected_recovery,
 	};
 }
 
@@ -693,8 +806,8 @@ export async function listMyClaims(
 			'claim.claim_amount',
 			'claim.date_of_loss',
 			'claim.last_update',
-			'claim.expected_recovery',
 			'claim.actual_recovery',
+			'claim.expected_recovery',
 			'claim.recovery_status',
 			'claim.created_at',
 			'checklist_claim.status as claim_status',
@@ -814,8 +927,8 @@ export async function listMyDeskClaims(
 			'claim.claim_amount',
 			'claim.date_of_loss',
 			'claim.last_update',
-			'claim.expected_recovery',
 			'claim.actual_recovery',
+			'claim.expected_recovery',
 			'claim.recovery_status',
 			'claim.created_at',
 			'claim.desk_location_id',

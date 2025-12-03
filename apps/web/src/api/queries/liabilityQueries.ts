@@ -1,5 +1,6 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
+import { recalculateClaimExpectedRecovery } from './claimQueries';
 
 // ============================================================================
 // CLAIM LIABILITY CRUD OPERATIONS
@@ -57,17 +58,16 @@ export async function getClaimLiability(ctx: ProtectedContext, id: number) {
 
 /**
  * Calculate aggregated liability totals for a claim (excludes soft-deleted)
- * Returns sums of liability percentages, coverage amounts, and recovery totals
+ * Returns sums of coverage amounts and amount_paid
+ * Note: liability_percentage is now on claim_party, not claim_liability
  */
 export async function getClaimLiabilityAggregates(ctx: ProtectedContext, claimId: number) {
 	const result = await ctx.db
 		.selectFrom('claim_liability')
 		.innerJoin('claim_party', 'claim_party.id', 'claim_liability.claim_party_id')
 		.select(({ fn }) => [
-			fn.sum<string>('claim_liability.liability_percentage').as('total_liability_percentage'),
 			fn.sum<string>('claim_liability.coverage_amount').as('total_coverage_amount'),
-			fn.sum<string>('claim_liability.paid_recovery').as('total_paid_recovery'),
-			fn.sum<string>('claim_liability.reserved_recovery').as('total_reserved_recovery'),
+			fn.sum<string>('claim_liability.amount_paid').as('total_amount_paid'),
 			fn.count<string>('claim_liability.id').as('liability_count'),
 		])
 		.where('claim_liability.client_id', '=', ctx.session.user.client_id)
@@ -77,25 +77,22 @@ export async function getClaimLiabilityAggregates(ctx: ProtectedContext, claimId
 		.executeTakeFirst();
 
 	return {
-		total_liability_percentage: result?.total_liability_percentage ? parseFloat(result.total_liability_percentage) : 0,
 		total_coverage_amount: result?.total_coverage_amount ? parseFloat(result.total_coverage_amount) : 0,
-		total_paid_recovery: result?.total_paid_recovery ? parseFloat(result.total_paid_recovery) : 0,
-		total_reserved_recovery: result?.total_reserved_recovery ? parseFloat(result.total_reserved_recovery) : 0,
+		total_amount_paid: result?.total_amount_paid ? parseFloat(result.total_amount_paid) : 0,
 		liability_count: result?.liability_count ? parseInt(result.liability_count) : 0,
 	};
 }
 
 /**
- * Calculate paid and reserved recovery totals for a claim (excludes soft-deleted)
- * Replaces the paid_recovery and reserved_recovery fields that were removed from the claim table
+ * Calculate total amount paid across all liabilities for a claim (excludes soft-deleted)
+ * Note: Reserved amounts are now tracked on claim_coverage, not claim_liability
  */
-export async function getClaimRecoveryTotals(ctx: ProtectedContext, claimId: number) {
+export async function getClaimAmountPaidTotal(ctx: ProtectedContext, claimId: number) {
 	const result = await ctx.db
 		.selectFrom('claim_liability')
 		.innerJoin('claim_party', 'claim_party.id', 'claim_liability.claim_party_id')
 		.select(({ fn }) => [
-			fn.sum<string>('claim_liability.paid_recovery').as('paid_recovery'),
-			fn.sum<string>('claim_liability.reserved_recovery').as('reserved_recovery'),
+			fn.sum<string>('claim_liability.amount_paid').as('total_amount_paid'),
 		])
 		.where('claim_liability.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
@@ -103,36 +100,35 @@ export async function getClaimRecoveryTotals(ctx: ProtectedContext, claimId: num
 		.where('claim_liability.deleted_at', 'is', null)
 		.executeTakeFirst();
 
-	return {
-		paid_recovery: result?.paid_recovery ? parseFloat(result.paid_recovery) : 0,
-		reserved_recovery: result?.reserved_recovery ? parseFloat(result.reserved_recovery) : 0,
-	};
+	return result?.total_amount_paid ? parseFloat(result.total_amount_paid) : 0;
 }
 
 /**
  * Create new liability for a claim_party
  * Automatically sets manually_overridden to false and derives client_id
+ * Recalculates expected_recovery after creation
+ * Note: liability_percentage is now on claim_party, not claim_liability
+ *
+ * @returns liability and updated expectedRecovery
  */
 export async function createClaimLiability(
 	ctx: ProtectedContext,
 	params: {
 		claim_party_id: number;
-		liability_percentage?: number;
 		coverage_amount?: number;
 		line_of_business?: string;
 		loss_type?: string;
-		paid_recovery?: number;
-		reserved_recovery?: number;
+		amount_paid?: number;
 		notes?: string;
 		feed_id?: number;
 		external_reference?: string;
 	}
 ) {
-	// Derive client_id from claim_party
+	// Derive client_id and claim_id from claim_party
 	const claimParty = await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
-		.select('claim.client_id')
+		.select(['claim.client_id', 'claim_party.claim_id'])
 		.where('claim_party.id', '=', params.claim_party_id)
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
@@ -141,17 +137,15 @@ export async function createClaimLiability(
 		throw new Error('Claim party not found or access denied');
 	}
 
-	return await ctx.db
+	const liability = await ctx.db
 		.insertInto('claim_liability')
 		.values({
 			claim_party_id: params.claim_party_id,
 			client_id: claimParty.client_id,
-			liability_percentage: params.liability_percentage?.toString(),
 			coverage_amount: params.coverage_amount?.toString(),
 			line_of_business: params.line_of_business,
 			loss_type: params.loss_type,
-			paid_recovery: params.paid_recovery?.toString(),
-			reserved_recovery: params.reserved_recovery?.toString(),
+			amount_paid: params.amount_paid?.toString(),
 			notes: params.notes,
 			feed_id: params.feed_id,
 			external_reference: params.external_reference,
@@ -161,22 +155,29 @@ export async function createClaimLiability(
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
+	// Recalculate expected_recovery and return the new value
+	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
+
+	return { liability, expectedRecovery, claimId: claimParty.claim_id };
 }
 
 /**
  * Update existing liability
  * Sets manually_overridden to true when user updates (not when feed updates)
+ * Recalculates expected_recovery after update
+ * Note: liability_percentage is now on claim_party, not claim_liability
+ *
+ * @returns liability and updated expectedRecovery
  */
 export async function updateClaimLiability(
 	ctx: ProtectedContext,
 	id: number,
 	params: {
-		liability_percentage?: number;
 		coverage_amount?: number;
 		line_of_business?: string;
 		loss_type?: string;
-		paid_recovery?: number;
-		reserved_recovery?: number;
+		amount_paid?: number;
 		notes?: string;
 		feed_id?: number;
 		external_reference?: string;
@@ -187,12 +188,9 @@ export async function updateClaimLiability(
 		fromFeed?: boolean; // If true, don't set manually_overridden to true
 	}
 ) {
-	return await ctx.db
+	const liability = await ctx.db
 		.updateTable('claim_liability')
 		.set({
-			...(params.liability_percentage !== undefined && {
-				liability_percentage: params.liability_percentage?.toString()
-			}),
 			...(params.coverage_amount !== undefined && {
 				coverage_amount: params.coverage_amount?.toString()
 			}),
@@ -202,11 +200,8 @@ export async function updateClaimLiability(
 			...(params.loss_type !== undefined && {
 				loss_type: params.loss_type
 			}),
-			...(params.paid_recovery !== undefined && {
-				paid_recovery: params.paid_recovery?.toString()
-			}),
-			...(params.reserved_recovery !== undefined && {
-				reserved_recovery: params.reserved_recovery?.toString()
+			...(params.amount_paid !== undefined && {
+				amount_paid: params.amount_paid?.toString()
 			}),
 			...(params.notes !== undefined && {
 				notes: params.notes
@@ -232,14 +227,31 @@ export async function updateClaimLiability(
 		.where('claim_liability.client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
+	// Get claim_id from claim_party
+	const claimParty = await ctx.db
+		.selectFrom('claim_party')
+		.select(['claim_id'])
+		.where('id', '=', liability.claim_party_id)
+		.executeTakeFirst();
+
+	// Recalculate expected_recovery and return the new value
+	const expectedRecovery = claimParty
+		? await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id)
+		: 0;
+
+	return { liability, expectedRecovery, claimId: claimParty?.claim_id };
 }
 
 /**
  * Delete liability (soft delete)
  * Uses soft delete to preserve traceability
+ * Recalculates expected_recovery after deletion
+ *
+ * @returns deleted liability and updated expectedRecovery
  */
 export async function deleteClaimLiability(ctx: ProtectedContext, id: number) {
-	const deleted = await ctx.db
+	const liability = await ctx.db
 		.updateTable('claim_liability')
 		.set({
 			deleted_at: new Date().toISOString(),
@@ -250,11 +262,23 @@ export async function deleteClaimLiability(ctx: ProtectedContext, id: number) {
 		.returningAll()
 		.executeTakeFirst();
 
-	if (!deleted) {
+	if (!liability) {
 		throw new Error('Liability not found or already deleted');
 	}
 
-	return deleted;
+	// Get claim_id from claim_party
+	const claimParty = await ctx.db
+		.selectFrom('claim_party')
+		.select(['claim_id'])
+		.where('id', '=', liability.claim_party_id)
+		.executeTakeFirst();
+
+	// Recalculate expected_recovery and return the new value
+	const expectedRecovery = claimParty
+		? await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id)
+		: 0;
+
+	return { liability, expectedRecovery, claimId: claimParty?.claim_id };
 }
 
 /**
@@ -268,7 +292,6 @@ export async function getClaimLiabilityForDeletion(ctx: ProtectedContext, id: nu
 			'claim_liability.id',
 			'claim_liability.claim_party_id',
 			'claim_liability.loss_type',
-			'claim_liability.liability_percentage',
 			'claim_party.claim_id',
 		])
 		.where('claim_liability.id', '=', id)

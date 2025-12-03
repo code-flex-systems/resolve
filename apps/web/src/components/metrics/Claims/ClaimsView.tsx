@@ -184,19 +184,9 @@ export default function ClaimsView() {
 												{claim.claim_number}
 											</Typography>
 											<Box display="flex" justifyContent="center" alignItems="center">
-												<CardContent
-													sx={{ p: 1, '&:last-child': { pb: 1 }, marginRight: '10px' }}
-												>
-													<Typography color="#d9d9d9" fontSize={15} gutterBottom>
-														Expected
-													</Typography>
-													<Typography variant="h6" fontSize={18} component="div">
-														{formatAmount(claim.expected_recovery, true)}
-													</Typography>
-												</CardContent>
 												<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
 													<Typography color="#d9d9d9" fontSize={15} gutterBottom>
-														Actual
+														Actual Recovery
 													</Typography>
 													<Typography variant="h6" fontSize={18} component="div">
 														{formatAmount(claim.actual_recovery ?? 0, true)}

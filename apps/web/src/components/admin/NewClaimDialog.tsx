@@ -20,12 +20,12 @@ export default function NewClaimDialog() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
+			// Note: total_incurred is now a calculated field
 			await createClaims({
 				claims: [
 					{
 						...data,
 						claim_amount: data.claim_amount?.toString() ?? null,
-						total_incurred: data.total_incurred?.toString() ?? null,
 						date_of_loss: data.date_of_loss?.toString() ?? null,
 						last_update: data.last_update?.toString() ?? null,
 					},
@@ -172,24 +172,7 @@ export default function NewClaimDialog() {
 							{...register('loss_location', { required: true })}
 						/>
 					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="total_incurred"
-							label="Total Incurred"
-							placeholder="94017.73"
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">$</InputAdornment>,
-								},
-							}}
-							error={!!errors.total_incurred}
-							type="number"
-							sx={{
-								width: 200,
-							}}
-							{...register('total_incurred', { required: true })}
-						/>
-					</Grid>
+					{/* Note: Total Incurred is now a calculated field from claim_coverage.amount_reserved */}
 				</Grid>
 			</form>
 		</BasicDialog>

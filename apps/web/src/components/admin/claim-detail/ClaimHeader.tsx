@@ -104,13 +104,15 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 								variant="outlined"
 							/>
 						))}
-					{claimDetail.loss_type && (
-						<Chip
-							label={<LossTypeValue value={claimDetail.loss_type} showEmoji={false} />}
-							color="secondary"
-							variant="outlined"
-						/>
-					)}
+					{claimDetail.aggregated_loss_type && claimDetail.aggregated_loss_type.length > 0 &&
+						claimDetail.aggregated_loss_type.map((lt: string) => (
+							<Chip
+								key={lt}
+								label={<LossTypeValue value={lt} showEmoji={false} />}
+								color="secondary"
+								variant="outlined"
+							/>
+						))}
 					{claimDetail.recovery_status && (
 						<Chip
 							label={`Recovery: ${formatRecoveryStatus(claimDetail.recovery_status)}`}

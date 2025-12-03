@@ -45,18 +45,18 @@ export type GetClaimsInput = z.infer<typeof getClaimsInput>;
 export const getClaimCountInput = z.object({ clientId: z.string().optional() });
 
 // Schema for individual claim data when creating
+// Note: loss_type is no longer on the claim table - it's set per claim_liability
+// Note: total_incurred is now calculated from claim_coverage.amount_reserved
 export const claimDataSchema = z.object({
 	claim_number: z.string().nullable(),
 	client: z.string().nullable(),
 	client_adjuster: z.string().nullable(),
 	insured: z.string().nullable(),
 	claim_amount: z.union([parseNumber(), z.number()]).nullable(),
-	total_incurred: z.union([parseNumber(), z.number()]).nullable(),
 	date_of_loss: parseDate().nullable(),
 	loss_location: z.string().nullable(),
 	last_updated_by: z.string().nullable(),
 	last_update: parseDate().nullable(),
-	loss_type: z.string().nullable().optional(),
 });
 export type ClaimData = z.infer<typeof claimDataSchema>;
 
@@ -68,6 +68,9 @@ export const createClaimInput = z.object({
 });
 export type CreateClaimInput = z.infer<typeof createClaimInput>;
 
+// Note: loss_type is no longer on the claim table - it's set per claim_liability
+// Note: total_incurred is calculated from claim_coverage.amount_reserved
+// Note: expected_recovery is calculated from liability percentages and amount_paid
 export const updateClaimInput = z.object({
 	claimId: z.number().int(),
 	claim_number: z.string().nullable().optional(),
@@ -75,11 +78,8 @@ export const updateClaimInput = z.object({
 	client_adjuster: z.string().nullable().optional(),
 	insured: z.string().nullable().optional(),
 	claim_amount: z.number().nullable().optional(),
-	total_incurred: z.number().nullable().optional(),
 	date_of_loss: parseDate().nullable().optional(),
 	loss_location: z.string().nullable().optional(),
-	expected_recovery: z.number().nullable().optional(),
-	loss_type: z.string().optional(),
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
 	substatus: z.string().optional(),
 	party_id: z.number().int().nullable().optional(),

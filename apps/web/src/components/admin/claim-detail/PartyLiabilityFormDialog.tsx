@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, TextField, Autocomplete, Typography } from '@mui/material';
+import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
 import ClaimPartyRoleSelect from '@/components/common/ClaimPartyRoleSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
@@ -10,6 +10,7 @@ interface PartyLiabilityFormData {
 	role: string | null;
 	party_id: number | null;
 	representative_id: number | null;
+	liability_percentage: string;
 	notes: string;
 }
 
@@ -20,6 +21,7 @@ interface PartyLiabilityFormDialogProps {
 		role: string;
 		party_id: number;
 		representative_id?: number | null;
+		liability_percentage?: number | null;
 		notes?: string | null;
 	}) => Promise<void>;
 	editingClaimParty?: any | null;
@@ -39,6 +41,7 @@ export default function PartyLiabilityFormDialog({
 		role: null,
 		party_id: null,
 		representative_id: null,
+		liability_percentage: '',
 		notes: '',
 	});
 
@@ -80,6 +83,7 @@ export default function PartyLiabilityFormDialog({
 				role: editingClaimParty.role,
 				party_id: editingClaimParty.party_id,
 				representative_id: editingClaimParty.representative_id,
+				liability_percentage: editingClaimParty.liability_percentage?.toString() || '',
 				notes: editingClaimParty.notes || '',
 			});
 			// Set selected party and representative for autocompletes
@@ -95,6 +99,7 @@ export default function PartyLiabilityFormDialog({
 				role: null,
 				party_id: null,
 				representative_id: null,
+				liability_percentage: '',
 				notes: '',
 			});
 			setSelectedParty(null);
@@ -130,9 +135,16 @@ export default function PartyLiabilityFormDialog({
 			role: formData.role,
 			party_id: formData.party_id,
 			representative_id: formData.representative_id || null,
+			liability_percentage: formData.liability_percentage ? parseFloat(formData.liability_percentage) : null,
 			notes: formData.notes || null,
 		});
 	};
+
+	const isValidLiabilityPercentage =
+		!formData.liability_percentage ||
+		(!isNaN(parseFloat(formData.liability_percentage)) &&
+			parseFloat(formData.liability_percentage) >= 0 &&
+			parseFloat(formData.liability_percentage) <= 100);
 
 	if (!open) return null;
 
@@ -142,7 +154,7 @@ export default function PartyLiabilityFormDialog({
 			primaryAction={{
 				label: editingClaimParty ? 'Update' : 'Add',
 				onClick: handleSubmit,
-				disabled: !formData.party_id || !formData.role || isSubmitting,
+				disabled: !formData.party_id || !formData.role || !isValidLiabilityPercentage || isSubmitting,
 			}}
 			secondaryActions={[
 				{
@@ -210,6 +222,28 @@ export default function PartyLiabilityFormDialog({
 							placeholder={selectedParty ? 'Search representatives...' : 'Select party first'}
 						/>
 					)}
+				/>
+
+				{/* Liability Percentage */}
+				<TextField
+					label="Liability Percentage"
+					type="number"
+					value={formData.liability_percentage}
+					onChange={(e) => setFormData({ ...formData, liability_percentage: e.target.value })}
+					fullWidth
+					placeholder="Enter percentage (0-100)"
+					inputProps={{ step: '0.01', min: '0', max: '100' }}
+					slotProps={{
+						input: {
+							endAdornment: <InputAdornment position="end">%</InputAdornment>,
+						},
+					}}
+					error={!isValidLiabilityPercentage}
+					helperText={
+						!isValidLiabilityPercentage
+							? 'Must be between 0 and 100'
+							: "This party's percentage of liability for the claim"
+					}
 				/>
 
 				{/* Notes */}

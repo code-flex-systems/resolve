@@ -19,32 +19,32 @@ export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId
  *
  * @param ctx - request context
  * @param params - coverage data
- * @returns created coverage
+ * @returns created coverage and updated totalIncurred
  */
 export async function createCoverage(ctx: ProtectedContext, params: CreateCoverageInput) {
 	// Create coverage and log admin action within transaction
-	const coverage = await ctx.db.transaction().execute(async (trx) => {
-		const newCoverage = await coverageQueries.createCoverage({ ...ctx, db: trx }, params);
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { coverage, totalIncurred } = await coverageQueries.createCoverage({ ...ctx, db: trx }, params);
 
 		// Log admin action
 		await logAdminAction(
 			{ ...ctx, db: trx },
 			{
-				entityId: newCoverage.id,
+				entityId: coverage.id,
 				entityName: EntityName.CLAIM_COVERAGE,
 				action: AdminAction.CREATE,
 				value: {
-					claim_id: newCoverage.claim_id,
-					coverage_type: newCoverage.coverage_type,
-					coverage_amount: newCoverage.coverage_amount,
+					claim_id: coverage.claim_id,
+					coverage_type: coverage.coverage_type,
+					coverage_amount: coverage.coverage_amount,
 				},
 			}
 		);
 
-		return newCoverage;
+		return { coverage, totalIncurred };
 	});
 
-	return coverage;
+	return result;
 }
 
 /**
@@ -52,30 +52,30 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
  *
  * @param ctx - request context
  * @param input - coverage id and fields to update
- * @returns updated coverage
+ * @returns updated coverage and updated totalIncurred
  */
 export async function updateCoverage(ctx: ProtectedContext, input: UpdateCoverageInput) {
 	const { id, ...params } = input;
 
 	// Update coverage and log admin action within transaction
-	const coverage = await ctx.db.transaction().execute(async (trx) => {
-		const updatedCoverage = await coverageQueries.updateCoverage({ ...ctx, db: trx }, id, params);
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { coverage, totalIncurred } = await coverageQueries.updateCoverage({ ...ctx, db: trx }, id, params);
 
 		// Log admin action
 		await logAdminAction(
 			{ ...ctx, db: trx },
 			{
-				entityId: updatedCoverage.id,
+				entityId: coverage.id,
 				entityName: EntityName.CLAIM_COVERAGE,
 				action: AdminAction.UPDATE,
 				value: params,
 			}
 		);
 
-		return updatedCoverage;
+		return { coverage, totalIncurred };
 	});
 
-	return coverage;
+	return result;
 }
 
 /**
@@ -83,11 +83,12 @@ export async function updateCoverage(ctx: ProtectedContext, input: UpdateCoverag
  *
  * @param ctx - request context
  * @param id - coverage identifier
+ * @returns claimId and updated totalIncurred
  */
 export async function deleteCoverage(ctx: ProtectedContext, { id }: { id: number }) {
 	// Delete coverage and log admin action within transaction
-	await ctx.db.transaction().execute(async (trx) => {
-		await coverageQueries.deleteCoverage({ ...ctx, db: trx }, id);
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { claimId, totalIncurred } = await coverageQueries.deleteCoverage({ ...ctx, db: trx }, id);
 
 		// Log admin action
 		await logAdminAction(
@@ -99,5 +100,9 @@ export async function deleteCoverage(ctx: ProtectedContext, { id }: { id: number
 				value: { id },
 			}
 		);
+
+		return { claimId, totalIncurred };
 	});
+
+	return result;
 }

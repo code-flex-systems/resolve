@@ -1,5 +1,6 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
+import { recalculateClaimExpectedRecovery } from './claimQueries';
 
 // ============================================================================
 // PARTY CRUD OPERATIONS
@@ -843,6 +844,7 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 		is_primary: row.is_primary,
 		notes: row.notes,
 		external_reference: row.external_reference,
+		liability_percentage: row.liability_percentage,
 		created_at: row.created_at,
 		created_by: row.created_by,
 		representative_id: row.representative_id,
@@ -879,6 +881,9 @@ export async function getClaimParties(ctx: ProtectedContext, claimId: number) {
 
 /**
  * Link party to claim with role information
+ * Recalculates expected_recovery after creation
+ *
+ * @returns claimParty and updated expectedRecovery
  */
 export async function linkPartyToClaim(
 	ctx: ProtectedContext,
@@ -890,20 +895,36 @@ export async function linkPartyToClaim(
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
+		liability_percentage?: number;
 	}
 ) {
-	return await ctx.db
+	const claimParty = await ctx.db
 		.insertInto('claim_party')
 		.values({
-			...params,
+			claim_id: params.claim_id,
+			party_id: params.party_id,
+			role: params.role,
+			representative_id: params.representative_id,
+			is_primary: params.is_primary,
+			notes: params.notes,
+			external_reference: params.external_reference,
+			liability_percentage: params.liability_percentage?.toString(),
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
+	// Recalculate expected_recovery and return the new value
+	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, params.claim_id);
+
+	return { claimParty, expectedRecovery };
 }
 
 /**
  * Update claim party relationship
+ * Recalculates expected_recovery after update
+ *
+ * @returns claimParty and updated expectedRecovery
  */
 export async function updateClaimParty(
 	ctx: ProtectedContext,
@@ -914,14 +935,29 @@ export async function updateClaimParty(
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
+		liability_percentage?: number;
 	}
 ) {
-	return await ctx.db
+	const claimParty = await ctx.db
 		.updateTable('claim_party')
-		.set(params)
+		.set({
+			...(params.role !== undefined && { role: params.role }),
+			...(params.representative_id !== undefined && { representative_id: params.representative_id }),
+			...(params.is_primary !== undefined && { is_primary: params.is_primary }),
+			...(params.notes !== undefined && { notes: params.notes }),
+			...(params.external_reference !== undefined && { external_reference: params.external_reference }),
+			...(params.liability_percentage !== undefined && {
+				liability_percentage: params.liability_percentage?.toString()
+			}),
+		})
 		.where('claim_party.id', '=', id)
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
+	// Recalculate expected_recovery and return the new value
+	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
+
+	return { claimParty, expectedRecovery };
 }
 
 /**
@@ -946,7 +982,43 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
 
 /**
  * Unlink party from claim (delete claim_party relationship)
+ * Recalculates expected_recovery after deletion
+ *
+ * @returns updated expectedRecovery
  */
 export async function unlinkPartyFromClaim(ctx: ProtectedContext, id: number) {
+	// Get claim_id before deletion for recalculation
+	const claimParty = await ctx.db
+		.selectFrom('claim_party')
+		.select(['claim_id'])
+		.where('id', '=', id)
+		.executeTakeFirst();
+
+	if (!claimParty) {
+		throw new Error('Claim party not found');
+	}
+
 	await ctx.db.deleteFrom('claim_party').where('claim_party.id', '=', id).execute();
+
+	// Recalculate expected_recovery and return the new value
+	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
+
+	return { expectedRecovery, claimId: claimParty.claim_id };
+}
+
+/**
+ * Get total liability percentage for a claim (sum of all party liability_percentages)
+ * Used to calculate "our liability" as (100 - total party liability percentage)
+ */
+export async function getClaimLiabilityPercentageTotal(ctx: ProtectedContext, claimId: number) {
+	const result = await ctx.db
+		.selectFrom('claim_party')
+		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
+		.select(({ fn }) => fn.sum<string>('claim_party.liability_percentage').as('total_liability_percentage'))
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.deleted_at', 'is', null)
+		.executeTakeFirst();
+
+	return result?.total_liability_percentage ? parseFloat(result.total_liability_percentage) : 0;
 }

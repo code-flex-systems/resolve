@@ -114,9 +114,6 @@ export async function listRecoveryEventsWithFilters(
 			'claim.claim_number',
 			'claim.insured',
 			'claim.recovery_status',
-			'claim.reserved_recovery', // Client's expected recovery (from feed/manual)
-			'claim.paid_recovery', // Client's reported paid amount (from feed/manual)
-			'claim.expected_recovery', // Team's forecasted recovery
 			'claim.actual_recovery', // Team's meaningful payments (calculated from recovery events)
 			'checklist_claim.checklist_id',
 		])
@@ -131,7 +128,7 @@ export async function listRecoveryEventsWithFilters(
 
 	// Filter by recovery source (ILIKE for partial match)
 	if (filters.recoverySource) {
-		query = query.where(sql`recovery_event.recovery_source ILIKE ${`%${filters.recoverySource}%`}`);
+		query = query.where('recovery_event.recovery_source', 'ilike', `%${filters.recoverySource}%`);
 	}
 
 	// Filter by recovery status on claim
@@ -287,7 +284,7 @@ async function recalculateClaimRecovery(trx: any, claimId: number, clientId: str
 	// Sum all recovery events for this claim
 	const result = await trx
 		.selectFrom('recovery_event')
-		.select(({ fn }) => fn.sum('recovery_amount').as('total'))
+		.select(({ fn }: { fn: any }) => fn.sum('recovery_amount').as('total'))
 		.where('recovery_event.claim_id', '=', claimId)
 		.where('recovery_event.client_id', '=', clientId)
 		.executeTakeFirst();
@@ -332,57 +329,26 @@ export async function getRecoveryMetricsSummary(
 		userId?: string;
 	}
 ) {
-	// Build expected recovery query
-	let expectedQuery = ctx.db
-		.selectFrom('claim')
-		.select(({ fn }) => fn.sum('expected_recovery').as('total_expected'))
-		.where('claim.client_id', '=', ctx.session.user.client_id)
-		.where('claim.created_at', '>=', range[0])
-		.where('claim.created_at', '<=', range[1]);
+	// TODO: expected_recovery is now calculated per-claim from:
+	// (100 - sum(claim_party.liability_percentage)) / 100 * sum(claim_liability.amount_paid)
+	// For now we return 0 until this complex aggregation is implemented
+	// The calculation needs to:
+	// 1. Get each claim's parties and their liability percentages
+	// 2. Get each claim's liabilities and their amount_paid values
+	// 3. Calculate expected_recovery = (100 - party_liability_total) / 100 * amount_paid_total per claim
+	// 4. Sum all expected_recovery values
+	const totalExpected = 0;
 
-	// Apply filters to expected query if needed
-	if (filters?.recoveryStatus) {
-		expectedQuery = expectedQuery.where('claim.recovery_status', '=', filters.recoveryStatus);
-	}
+	// Build actual recovery query with all joins upfront (conditionally applied)
+	const needsClaimJoin = !!(filters?.recoveryStatus || filters?.checklistId || filters?.userId);
+	const needsChecklistJoin = !!(filters?.checklistId || filters?.userId);
 
-	// If filtering by recoverySource, only include claims that have recovery events from that source
-	// Use EXISTS to avoid duplicate rows from join
-	if (filters?.recoverySource) {
-		expectedQuery = expectedQuery.where(({ eb, exists, selectFrom }) =>
-			exists(
-				selectFrom('recovery_event')
-					.select('recovery_event.id')
-					.whereRef('recovery_event.claim_id', '=', 'claim.id')
-					.where('recovery_event.recovery_source', 'ilike', `%${filters.recoverySource}%`)
-			)
-		);
-	}
-
-	// Join checklist_claim once if either checklistId or userId filter is provided
-	if (filters?.checklistId || filters?.userId) {
-		expectedQuery = expectedQuery.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id');
-
-		if (filters.checklistId) {
-			expectedQuery = expectedQuery.where('checklist_claim.checklist_id', '=', filters.checklistId);
-		}
-		if (filters.userId) {
-			expectedQuery = expectedQuery.where('checklist_claim.assignee', '=', filters.userId);
-		}
-	}
-
-	// Build actual recovery query - use different base depending on filters
-	let actualQueryBase = ctx.db.selectFrom('recovery_event');
-
-	// Add joins if needed for filters
-	if (filters?.recoveryStatus || filters?.checklistId || filters?.userId) {
-		actualQueryBase = actualQueryBase.innerJoin('claim', 'recovery_event.claim_id', 'claim.id');
-
-		if (filters?.checklistId || filters?.userId) {
-			actualQueryBase = actualQueryBase.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id');
-		}
-	}
-
-	const actualQuery = actualQueryBase
+	const actualQuery = ctx.db
+		.selectFrom('recovery_event')
+		.$if(needsClaimJoin, (qb) => qb.innerJoin('claim', 'recovery_event.claim_id', 'claim.id'))
+		.$if(needsChecklistJoin, (qb) =>
+			qb.innerJoin('checklist_claim', 'checklist_claim.claim_id', 'recovery_event.claim_id')
+		)
 		.select(({ fn }) => fn.sum('recovery_amount').as('total_actual'))
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
 		.where('recovery_event.recovery_date', '>=', range[0])
@@ -390,17 +356,16 @@ export async function getRecoveryMetricsSummary(
 		.$if(!!filters?.recoverySource, (qb) =>
 			qb.where('recovery_event.recovery_source', 'ilike', `%${filters!.recoverySource}%`)
 		)
-		.$if(!!filters?.recoveryStatus, (qb) => qb.where('claim.recovery_status', '=', filters!.recoveryStatus))
-		.$if(!!filters?.checklistId, (qb) => qb.where('checklist_claim.checklist_id', '=', filters!.checklistId))
-		.$if(!!filters?.userId, (qb) => qb.where('checklist_claim.assignee', '=', filters!.userId));
+		.$if(!!filters?.recoveryStatus, (qb) =>
+			qb.where(sql`claim.recovery_status = ${filters!.recoveryStatus}` as any)
+		)
+		.$if(!!filters?.checklistId, (qb) =>
+			qb.where(sql`checklist_claim.checklist_id = ${filters!.checklistId}` as any)
+		)
+		.$if(!!filters?.userId, (qb) => qb.where(sql`checklist_claim.assignee = ${filters!.userId}` as any));
 
-	// Run both queries in parallel
-	const [expectedResult, actualResult] = await Promise.all([
-		expectedQuery.executeTakeFirst(),
-		actualQuery.executeTakeFirst(),
-	]);
-
-	const totalExpected = expectedResult?.total_expected ? parseFloat(expectedResult.total_expected.toString()) : 0;
+	// Run actual query
+	const actualResult = await actualQuery.executeTakeFirst();
 
 	const totalActual = actualResult?.total_actual ? parseFloat(actualResult.total_actual.toString()) : 0;
 
@@ -439,33 +404,9 @@ export async function getRecoveryMetricsTimeSeries(
 		userId?: string;
 	}
 ) {
-	// Build JOIN and WHERE clauses for filters
-	const expectedJoins: string[] = [];
-
-	// Join checklist_claim if needed
-	if (filters?.checklistId || filters?.userId) {
-		expectedJoins.push('INNER JOIN checklist_claim cc ON c.id = cc.claim_id');
-	}
-
-	const expectedJoinsStr = expectedJoins.join(' ');
-
-	const expectedFilterClauses: string[] = [];
-	if (filters?.recoveryStatus) {
-		expectedFilterClauses.push(`c.recovery_status = '${filters.recoveryStatus}'`);
-	}
-	if (filters?.recoverySource) {
-		// Use EXISTS to avoid duplicates from joining recovery_event
-		expectedFilterClauses.push(
-			`EXISTS (SELECT 1 FROM recovery_event re_exists WHERE re_exists.claim_id = c.id AND re_exists.recovery_source ILIKE '%${filters.recoverySource}%')`
-		);
-	}
-	if (filters?.checklistId) {
-		expectedFilterClauses.push(`cc.checklist_id = ${filters.checklistId}`);
-	}
-	if (filters?.userId) {
-		expectedFilterClauses.push(`cc.assignee = '${filters.userId}'`);
-	}
-	const expectedWhereClause = expectedFilterClauses.length > 0 ? `AND ${expectedFilterClauses.join(' AND ')}` : '';
+	// NOTE: expected_recovery is now calculated per-claim from party liability percentages
+	// and liability amount_paid. We no longer query it from the claim table.
+	// The expected_by_month CTE has been removed and we return 0 for expected_recovery.
 
 	// For actual recovery, need to join claim for recovery_status
 	const actualJoins =
@@ -489,6 +430,9 @@ export async function getRecoveryMetricsTimeSeries(
 	}
 	const actualWhereClause = actualFilterClauses.length > 0 ? `AND ${actualFilterClauses.join(' AND ')}` : '';
 
+	// TODO: expected_recovery is now calculated per-claim from party liability percentages
+	// and liability amount_paid. For now, we return 0 for expected_recovery in the time series.
+	// See getRecoveryMetricsSummary for the calculation formula.
 	const query: CompiledQuery<{
 		month_start: string;
 		expected_recovery: number;
@@ -502,18 +446,6 @@ export async function getRecoveryMetricsTimeSeries(
 				date_trunc('month', ${range[1]}::timestamp),
 				interval '1 month'
 			) as gs(month)
-		),
-		expected_by_month AS (
-			SELECT
-				date_trunc('month', c.created_at)::date as month_start,
-				COALESCE(SUM(c.expected_recovery), 0)::numeric as total_expected
-			FROM claim c
-			${sql.raw(expectedJoinsStr)}
-			WHERE c.client_id = ${ctx.session.user.client_id}
-				AND c.created_at >= ${range[0]}
-				AND c.created_at <= ${range[1]}
-				${sql.raw(expectedWhereClause)}
-			GROUP BY date_trunc('month', c.created_at)
 		),
 		actual_by_month AS (
 			SELECT
@@ -529,10 +461,9 @@ export async function getRecoveryMetricsTimeSeries(
 		)
 		SELECT
 			ms.month_start::text,
-			COALESCE(ebm.total_expected, 0)::float as expected_recovery,
+			0::float as expected_recovery,
 			COALESCE(abm.total_actual, 0)::float as actual_recovery
 		FROM monthly_series ms
-		LEFT JOIN expected_by_month ebm ON ms.month_start = ebm.month_start
 		LEFT JOIN actual_by_month abm ON ms.month_start = abm.month_start
 		ORDER BY ms.month_start
 	`.compile(ctx.db);

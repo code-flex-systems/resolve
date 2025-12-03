@@ -216,6 +216,7 @@ export const getClaimPartiesInput = z.object({
 
 /**
  * Link party to claim input
+ * Note: liability_percentage is now on claim_party (moved from claim_liability)
  */
 export const linkPartyToClaimInput = z.object({
 	claim_id: z.number().int().positive(),
@@ -223,12 +224,14 @@ export const linkPartyToClaimInput = z.object({
 	role: z.string(),
 	representative_id: z.number().int().positive().nullable().optional(),
 	is_primary: z.boolean().optional(),
+	liability_percentage: z.number().min(0).max(100).optional(),
 	notes: z.string().max(2000).optional(),
 	external_reference: z.string().max(255).optional(),
 });
 
 /**
  * Update claim party relationship input
+ * Note: liability_percentage is now on claim_party (moved from claim_liability)
  */
 export const updateClaimPartyInput = z.object({
 	id: z.number().int().positive(),
@@ -236,6 +239,7 @@ export const updateClaimPartyInput = z.object({
 		role: z.string().optional(),
 		representative_id: z.number().int().positive().nullable().optional(),
 		is_primary: z.boolean().optional(),
+		liability_percentage: z.number().min(0).max(100).nullable().optional(),
 		notes: z.string().max(2000).optional(),
 		external_reference: z.string().max(255).optional(),
 	}),

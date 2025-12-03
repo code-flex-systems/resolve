@@ -26,7 +26,7 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { RecoveryStatus } from '@/config/enums';
 import { formatLabel } from '@/lib/utils/claimUtils';
 import { formatRecoveryStatus, RECOVERY_STATUS_ICONS } from '@/lib/utils/recoveryUtils';
-import { LossTypeSelect, ClaimSubstatusSelect, ClaimPartyRoleSelect } from '../common/ReferenceDataSelect';
+import { ClaimSubstatusSelect, ClaimPartyRoleSelect } from '../common/ReferenceDataSelect';
 import PartyDialog from './PartyDialog';
 import RepresentativeDialog from './RepresentativeDialog';
 import type { Party, PartyRepresentative } from '@/api/database/types';
@@ -35,17 +35,15 @@ interface ClaimChangesProps {
 	claimId?: number;
 }
 
+// Note: total_incurred and expected_recovery are now calculated fields
 interface ClaimFormData {
 	claim_number: string;
 	client: string;
 	client_adjuster: string;
 	insured: string;
 	claim_amount: string;
-	total_incurred: string;
-	expected_recovery: string;
 	date_of_loss: Dayjs | null;
 	loss_location: string;
-	loss_type: string | null;
 	recovery_status: RecoveryStatus;
 	substatus: string | null;
 }
@@ -78,11 +76,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			client_adjuster: '',
 			insured: '',
 			claim_amount: '',
-			total_incurred: '',
-			expected_recovery: '',
 			date_of_loss: null,
 			loss_location: '',
-			loss_type: null,
 			recovery_status: RecoveryStatus.PENDING,
 			substatus: null,
 		},
@@ -117,11 +112,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				client_adjuster: existingClaim.client_adjuster || '',
 				insured: existingClaim.insured || '',
 				claim_amount: existingClaim.claim_amount?.toString() || '',
-				total_incurred: existingClaim.total_incurred?.toString() || '',
-				expected_recovery: existingClaim.expected_recovery?.toString() || '',
 				date_of_loss: existingClaim.date_of_loss ? dayjs(existingClaim.date_of_loss) : null,
 				loss_location: existingClaim.loss_location || '',
-				loss_type: existingClaim.loss_type || null,
 				recovery_status: (existingClaim.recovery_status as RecoveryStatus) || RecoveryStatus.PENDING,
 				substatus: existingClaim.substatus || null,
 			});
@@ -217,6 +209,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 		try {
 			if (isEditMode) {
 				// Update the claim
+				// Note: total_incurred and expected_recovery are now calculated fields
 				await updateClaim({
 					claimId: claimId!,
 					claim_number: data.claim_number || null,
@@ -224,11 +217,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					client_adjuster: data.client_adjuster || null,
 					insured: data.insured || null,
 					claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
-					total_incurred: data.total_incurred ? parseFloat(data.total_incurred) : null,
-					expected_recovery: data.expected_recovery ? parseFloat(data.expected_recovery) : null,
 					date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 					loss_location: data.loss_location || null,
-					loss_type: data.loss_type ?? undefined,
 					recovery_status: data.recovery_status,
 					substatus: data.substatus ?? undefined,
 					party_id: selectedParty?.id ? Number(selectedParty.id) : null,
@@ -239,6 +229,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				router.push('/admin/claims');
 			} else {
 				// Create the claim
+				// Note: total_incurred and expected_recovery are now calculated fields
 				await createClaims({
 					claims: [
 						{
@@ -247,10 +238,8 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							client_adjuster: data.client_adjuster || null,
 							insured: data.insured || null,
 							claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
-							total_incurred: data.total_incurred ? parseFloat(data.total_incurred) : null,
 							date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 							loss_location: data.loss_location || null,
-							loss_type: data.loss_type,
 							last_updated_by: null,
 							last_update: null,
 						},
@@ -271,7 +260,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 		router.back();
 	}, [router]);
 
-	const lossType = watch('loss_type');
 	const recoveryStatus = watch('recovery_status');
 	const substatus = watch('substatus');
 
@@ -513,18 +501,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 						</Typography>
 
 						<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5} alignItems="center">
-							<Box>
-								<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
-									Loss Type
-								</Typography>
-								<LossTypeSelect
-									lossType={lossType}
-									setLossType={(value) => setValue('loss_type', value)}
-									clearable={false}
-									text="Select loss type"
-								/>
-							</Box>
-
 							<FormControl size="small" sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
 								<InputLabel>Recovery Status</InputLabel>
 								<Select
@@ -579,41 +555,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								{...register('claim_amount', { required: true })}
 							/>
 
-							<TextField
-								id="total_incurred"
-								label="Total Incurred"
-								placeholder="94017.73"
-								error={!!errors.total_incurred}
-								type="number"
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								slotProps={{
-									input: {
-										startAdornment: <InputAdornment position="start">$</InputAdornment>,
-									},
-								}}
-								{...register('total_incurred', { required: true })}
-							/>
-
-							<TextField
-								id="expected_recovery"
-								label="Expected Recovery"
-								placeholder="0.00"
-								error={!!errors.expected_recovery}
-								type="number"
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								slotProps={{
-									input: {
-										startAdornment: <InputAdornment position="start">$</InputAdornment>,
-									},
-									inputLabel: {
-										shrink: true,
-									},
-								}}
-								helperText="Team's forecasted recovery"
-								{...register('expected_recovery', { required: false })}
-							/>
+							{/* Note: Total Incurred and Expected Recovery are now calculated fields */}
 						</Box>
 					</Box>
 				</form>

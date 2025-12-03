@@ -7,6 +7,17 @@ import { trpc } from '@/lib/trpc';
 export function usePartyTrpc() {
 	const utils = trpc.useUtils();
 
+	// Helper to update expected_recovery in cached claim detail
+	const updateClaimExpectedRecovery = (claimId: number, expectedRecovery: number) => {
+		const currentData = utils.claim.getClaimDetail.getData({ claimId });
+		if (currentData) {
+			utils.claim.getClaimDetail.setData({ claimId }, {
+				...currentData,
+				expected_recovery: expectedRecovery,
+			});
+		}
+	};
+
 	return {
 		// ====================================================================
 		// PARTY OPERATIONS
@@ -223,8 +234,10 @@ export function usePartyTrpc() {
 		 * Link party to claim (invalidates claim party list after success)
 		 */
 		linkToClaim: trpc.party.linkPartyToClaim.useMutation({
-			onSuccess({ claim_id }) {
-				utils.party.getClaimParties.invalidate({ claimId: claim_id });
+			onSuccess(data) {
+				utils.party.getClaimParties.invalidate({ claimId: data.claimParty.claim_id });
+				// Update cached claim detail with new expected_recovery
+				updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
 			},
 		}),
 
@@ -232,8 +245,10 @@ export function usePartyTrpc() {
 		 * Update claim party relationship (invalidates claim party list after success)
 		 */
 		updateClaimParty: trpc.party.updateClaimParty.useMutation({
-			onSuccess({ claim_id }) {
-				utils.party.getClaimParties.invalidate({ claimId: claim_id });
+			onSuccess(data) {
+				utils.party.getClaimParties.invalidate({ claimId: data.claimParty.claim_id });
+				// Update cached claim detail with new expected_recovery
+				updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
 			},
 		}),
 
@@ -241,9 +256,10 @@ export function usePartyTrpc() {
 		 * Unlink party from claim (invalidates claim party list after success)
 		 */
 		unlinkFromClaim: trpc.party.unlinkPartyFromClaim.useMutation({
-			onSuccess() {
-				// Need to invalidate all claim party lists since we don't know claim_id from delete response
-				utils.party.getClaimParties.invalidate();
+			onSuccess(data) {
+				utils.party.getClaimParties.invalidate({ claimId: data.claimId });
+				// Update cached claim detail with new expected_recovery
+				updateClaimExpectedRecovery(data.claimId, data.expectedRecovery);
 			},
 		}),
 	};

@@ -143,10 +143,6 @@ export default function ClaimAssignmentDialog() {
 												secondary={formatAmount(nextClaimData.claim.claim_amount!, true)}
 											/>
 											<StackedRow
-												primary="Total Incurred"
-												secondary={formatAmount(nextClaimData.claim.total_incurred!, true)}
-											/>
-											<StackedRow
 												primary="Recovery Status"
 												secondary={formatRecoveryStatus(nextClaimData.claim.recovery_status)}
 											/>
@@ -170,10 +166,6 @@ export default function ClaimAssignmentDialog() {
 											<StackedRow
 												primary="Last Update By"
 												secondary={`${nextClaimData.claim.last_updated_by} on ${formatMDY(nextClaimData.claim.last_update?.toString() ?? '')}`}
-											/>
-											<StackedRow
-												primary="Expected Recovery"
-												secondary={formatAmount(nextClaimData.claim.expected_recovery!, true)}
 											/>
 											<StackedRow
 												primary="Actual Recovery"

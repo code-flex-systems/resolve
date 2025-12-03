@@ -172,10 +172,6 @@ export interface Claim {
   last_updated_by: string | null;
   loss_location: string | null;
   /**
-   * Type of loss for the claim (LossType enum enforced in TypeScript)
-   */
-  loss_type: string | null;
-  /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
   recovery_status: string | null;
@@ -200,6 +196,7 @@ export interface ClaimActivityLogs {
 }
 
 export interface ClaimCoverage {
+  amount_reserved: Numeric | null;
   claim_id: number;
   client_id: string;
   coverage_amount: Numeric | null;
@@ -215,6 +212,7 @@ export interface ClaimCoverage {
 }
 
 export interface ClaimLiability {
+  amount_paid: Numeric | null;
   claim_party_id: number;
   client_id: string;
   coverage_amount: Numeric | null;
@@ -234,7 +232,6 @@ export interface ClaimLiability {
    * When feed last updated this record
    */
   last_synced_at: Timestamp | null;
-  liability_percentage: Numeric | null;
   line_of_business: string | null;
   loss_type: string | null;
   /**
@@ -242,8 +239,6 @@ export interface ClaimLiability {
    */
   manually_overridden: Generated<boolean | null>;
   notes: string | null;
-  paid_recovery: Numeric | null;
-  reserved_recovery: Numeric | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -266,6 +261,7 @@ export interface ClaimParty {
   external_reference: string | null;
   id: Generated<number>;
   is_primary: Generated<boolean>;
+  liability_percentage: Numeric | null;
   notes: string | null;
   party_id: number;
   /**
