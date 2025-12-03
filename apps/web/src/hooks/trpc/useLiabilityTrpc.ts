@@ -7,6 +7,17 @@ import { trpc } from '@/lib/trpc';
 export function useLiabilityTrpc() {
 	const utils = trpc.useUtils();
 
+	// Helper to update expected_recovery in cached claim detail
+	const updateClaimExpectedRecovery = (claimId: number, expectedRecovery: number) => {
+		const currentData = utils.claim.getClaimDetail.getData({ claimId });
+		if (currentData) {
+			utils.claim.getClaimDetail.setData({ claimId }, {
+				...currentData,
+				expected_recovery: expectedRecovery,
+			});
+		}
+	};
+
 	return {
 		// ====================================================================
 		// LIABILITY QUERY OPERATIONS
@@ -33,9 +44,9 @@ export function useLiabilityTrpc() {
 		getAggregates: trpc.liability.getClaimLiabilityAggregates.useQuery,
 
 		/**
-		 * Get recovery totals for a claim (replaces claim.paid_recovery and claim.reserved_recovery)
+		 * Get total amount paid for a claim
 		 */
-		getRecoveryTotals: trpc.liability.getClaimRecoveryTotals.useQuery,
+		getAmountPaidTotal: trpc.liability.getClaimAmountPaidTotal.useQuery,
 
 		// ====================================================================
 		// LIABILITY MUTATION OPERATIONS
@@ -45,14 +56,18 @@ export function useLiabilityTrpc() {
 		 * Create claim liability (invalidates party and liability lists)
 		 */
 		create: trpc.liability.createClaimLiability.useMutation({
-			onSuccess() {
+			onSuccess(data) {
 				// Invalidate all liability-related queries
 				utils.liability.getClaimPartyLiabilities.invalidate();
 				utils.liability.getClaimLiabilities.invalidate();
 				utils.liability.getClaimLiabilityAggregates.invalidate();
-				utils.liability.getClaimRecoveryTotals.invalidate();
+				utils.liability.getClaimAmountPaidTotal.invalidate();
 				// Also invalidate party queries since they now include nested liabilities
 				utils.party.getClaimParties.invalidate();
+				// Update cached claim detail with new expected_recovery
+				if (data.claimId) {
+					updateClaimExpectedRecovery(data.claimId, data.expectedRecovery);
+				}
 			},
 		}),
 
@@ -62,13 +77,17 @@ export function useLiabilityTrpc() {
 		update: trpc.liability.updateClaimLiability.useMutation({
 			onSuccess(data) {
 				// Invalidate all liability-related queries
-				utils.liability.getClaimLiability.invalidate({ id: data.id });
+				utils.liability.getClaimLiability.invalidate({ id: data.liability.id });
 				utils.liability.getClaimPartyLiabilities.invalidate();
 				utils.liability.getClaimLiabilities.invalidate();
 				utils.liability.getClaimLiabilityAggregates.invalidate();
-				utils.liability.getClaimRecoveryTotals.invalidate();
+				utils.liability.getClaimAmountPaidTotal.invalidate();
 				// Also invalidate party queries since they now include nested liabilities
 				utils.party.getClaimParties.invalidate();
+				// Update cached claim detail with new expected_recovery
+				if (data.claimId) {
+					updateClaimExpectedRecovery(data.claimId, data.expectedRecovery);
+				}
 			},
 		}),
 
@@ -76,14 +95,18 @@ export function useLiabilityTrpc() {
 		 * Delete claim liability (invalidates party and liability lists)
 		 */
 		delete: trpc.liability.deleteClaimLiability.useMutation({
-			onSuccess() {
+			onSuccess(data) {
 				// Invalidate all liability-related queries
 				utils.liability.getClaimPartyLiabilities.invalidate();
 				utils.liability.getClaimLiabilities.invalidate();
 				utils.liability.getClaimLiabilityAggregates.invalidate();
-				utils.liability.getClaimRecoveryTotals.invalidate();
+				utils.liability.getClaimAmountPaidTotal.invalidate();
 				// Also invalidate party queries since they now include nested liabilities
 				utils.party.getClaimParties.invalidate();
+				// Update cached claim detail with new expected_recovery
+				if (data.claimId) {
+					updateClaimExpectedRecovery(data.claimId, data.expectedRecovery);
+				}
 			},
 		}),
 	};

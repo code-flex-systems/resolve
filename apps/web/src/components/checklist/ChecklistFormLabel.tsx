@@ -67,7 +67,7 @@ export default function ChecklistFormLabel(props: {
 			<Typography
 				fontSize={14}
 				color={
-					isEmpty && mode === ChecklistMode.EDIT
+					isEmpty && mode === ChecklistMode.VIEW
 						? 'error'
 						: highlightedQuestion === question.id
 							? 'secondary'

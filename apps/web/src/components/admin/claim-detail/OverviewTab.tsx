@@ -5,9 +5,9 @@ import { trpc } from '@/lib/trpc';
 import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import Highlight from '@/components/common/Highlight';
-import { formatLabel } from '@/lib/utils/claimUtils';
 import { formatMDY } from '@/lib/utils/utils';
 import { ClaimStatus } from '@/config/enums';
+import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -102,9 +102,10 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 							</Typography>
 						)}
 						{claimDetail.substatus && (
-							<Typography fontSize={14}>
-								Current workflow state: <Highlight>{formatLabel(claimDetail.substatus)}</Highlight>
-							</Typography>
+							<Box display="flex" alignItems="center" gap={0.5}>
+								<Typography fontSize={14}>Current workflow state:</Typography>
+								<ClaimSubstatusValue value={claimDetail.substatus} fontSize={14} />
+							</Box>
 						)}
 					</Stack>
 				</Paper>

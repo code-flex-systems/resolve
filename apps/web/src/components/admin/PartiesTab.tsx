@@ -21,6 +21,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import { PartyCategoryValue } from '../common/ReferenceDataSelect';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -38,7 +39,10 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Type',
 		field: 'party_type',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={row.party_type} secondary={row.party_category.replace(/_/g, ' ')} />
+			<StackedHeaderCell
+				primary={row.party_type}
+				secondary={<PartyCategoryValue value={row.party_category} partyType={row.party_type} showEmoji={false} fontSize={12} />}
+			/>
 		),
 		renderHeader: (params) => (
 			<IconHeaderCell {...params} icon={<Category style={{ color: BASE_COLOR_LIGHT }} />} />

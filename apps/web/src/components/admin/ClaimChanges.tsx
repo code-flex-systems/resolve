@@ -23,9 +23,10 @@ import Cancel from '@mui/icons-material/Cancel';
 import dayjs, { Dayjs } from 'dayjs';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { LineOfBusiness, LossType, RecoveryStatus, ClaimSubstatus } from '@/config/enums';
-import { formatLabel, LOB_ICONS, LOSS_TYPE_ICONS, SUBSTATUS_ICONS } from '@/lib/utils/claimUtils';
+import { RecoveryStatus } from '@/config/enums';
+import { formatLabel } from '@/lib/utils/claimUtils';
 import { formatRecoveryStatus, RECOVERY_STATUS_ICONS } from '@/lib/utils/recoveryUtils';
+import { ClaimSubstatusSelect, ClaimPartyRoleSelect } from '../common/ReferenceDataSelect';
 import PartyDialog from './PartyDialog';
 import RepresentativeDialog from './RepresentativeDialog';
 import type { Party, PartyRepresentative } from '@/api/database/types';
@@ -34,21 +35,17 @@ interface ClaimChangesProps {
 	claimId?: number;
 }
 
+// Note: total_incurred and expected_recovery are now calculated fields
 interface ClaimFormData {
 	claim_number: string;
 	client: string;
 	client_adjuster: string;
 	insured: string;
 	claim_amount: string;
-	total_incurred: string;
-	reserved_recovery: string; // Client's expected recovery (from feed/manual)
-	paid_recovery: string; // Client's reported paid amount (from feed/manual)
-	expected_recovery: string; // Team's forecasted recovery
 	date_of_loss: Dayjs | null;
 	loss_location: string;
-	loss_type: LossType;
 	recovery_status: RecoveryStatus;
-	substatus: ClaimSubstatus;
+	substatus: string | null;
 }
 
 export default function ClaimChanges({ claimId }: ClaimChangesProps) {
@@ -58,6 +55,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 	// Party and representative state
 	const [selectedParty, setSelectedParty] = useState<Party | null>(null);
 	const [selectedRepresentative, setSelectedRepresentative] = useState<PartyRepresentative | null>(null);
+	const [selectedRole, setSelectedRole] = useState<string | null>(null);
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [showPartyDialog, setShowPartyDialog] = useState(false);
 	const [showRepresentativeDialog, setShowRepresentativeDialog] = useState(false);
@@ -78,15 +76,10 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			client_adjuster: '',
 			insured: '',
 			claim_amount: '',
-			total_incurred: '',
-			reserved_recovery: '',
-			paid_recovery: '',
-			expected_recovery: '',
 			date_of_loss: null,
 			loss_location: '',
-			loss_type: LossType.COLLISION,
 			recovery_status: RecoveryStatus.PENDING,
-			substatus: ClaimSubstatus.INVESTIGATION,
+			substatus: null,
 		},
 	});
 
@@ -119,15 +112,10 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				client_adjuster: existingClaim.client_adjuster || '',
 				insured: existingClaim.insured || '',
 				claim_amount: existingClaim.claim_amount?.toString() || '',
-				total_incurred: existingClaim.total_incurred?.toString() || '',
-				reserved_recovery: existingClaim.reserved_recovery?.toString() || '',
-				paid_recovery: existingClaim.paid_recovery?.toString() || '',
-				expected_recovery: existingClaim.expected_recovery?.toString() || '',
 				date_of_loss: existingClaim.date_of_loss ? dayjs(existingClaim.date_of_loss) : null,
 				loss_location: existingClaim.loss_location || '',
-				loss_type: (existingClaim.loss_type as LossType) || LossType.COLLISION,
 				recovery_status: (existingClaim.recovery_status as RecoveryStatus) || RecoveryStatus.PENDING,
-				substatus: (existingClaim.substatus as ClaimSubstatus) || ClaimSubstatus.INVESTIGATION,
+				substatus: existingClaim.substatus || null,
 			});
 		}
 	}, [existingClaim, isEditMode, reset]);
@@ -138,6 +126,10 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			const linkedParty = existingClaimParties[0]; // Get first linked party
 			if (linkedParty.party) {
 				setSelectedParty(linkedParty.party as any);
+			}
+			// Also set the role if one was saved
+			if (linkedParty.role) {
+				setSelectedRole(linkedParty.role);
 			}
 			// Also set the representative if one was saved
 			if (linkedParty.representative) {
@@ -168,10 +160,10 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				// Update client text field with party name
 				setValue('client', party.name);
 			} else {
-				// Party was cleared - clear the client field
+				// Party was cleared - clear the client field, role, and adjuster
 				setValue('client', '');
-				// Also clear client_adjuster since rep is being cleared
 				setValue('client_adjuster', '');
+				setSelectedRole(null);
 			}
 		},
 		[setValue]
@@ -217,6 +209,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 		try {
 			if (isEditMode) {
 				// Update the claim
+				// Note: total_incurred and expected_recovery are now calculated fields
 				await updateClaim({
 					claimId: claimId!,
 					claim_number: data.claim_number || null,
@@ -224,22 +217,19 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					client_adjuster: data.client_adjuster || null,
 					insured: data.insured || null,
 					claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
-					total_incurred: data.total_incurred ? parseFloat(data.total_incurred) : null,
-					reserved_recovery: data.reserved_recovery ? parseFloat(data.reserved_recovery) : null,
-					paid_recovery: data.paid_recovery ? parseFloat(data.paid_recovery) : null,
-					expected_recovery: data.expected_recovery ? parseFloat(data.expected_recovery) : null,
 					date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 					loss_location: data.loss_location || null,
-					loss_type: data.loss_type,
 					recovery_status: data.recovery_status,
-					substatus: data.substatus,
+					substatus: data.substatus ?? undefined,
 					party_id: selectedParty?.id ? Number(selectedParty.id) : null,
 					representative_id: selectedRepresentative?.id ? Number(selectedRepresentative.id) : null,
+					role: selectedRole,
 				});
 
 				router.push('/admin/claims');
 			} else {
 				// Create the claim
+				// Note: total_incurred and expected_recovery are now calculated fields
 				await createClaims({
 					claims: [
 						{
@@ -248,18 +238,15 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							client_adjuster: data.client_adjuster || null,
 							insured: data.insured || null,
 							claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
-							total_incurred: data.total_incurred ? parseFloat(data.total_incurred) : null,
-							reserved_recovery: data.reserved_recovery ? parseFloat(data.reserved_recovery) : null,
-							paid_recovery: data.paid_recovery ? parseFloat(data.paid_recovery) : null,
 							date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
 							loss_location: data.loss_location || null,
-							loss_type: data.loss_type,
 							last_updated_by: null,
 							last_update: null,
 						},
 					],
 					party_id: selectedParty?.id ? Number(selectedParty.id) : null,
 					representative_id: selectedRepresentative?.id ? Number(selectedRepresentative.id) : null,
+					role: selectedRole,
 				});
 
 				router.push('/admin/claims');
@@ -273,7 +260,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 		router.back();
 	}, [router]);
 
-	const lossType = watch('loss_type');
 	const recoveryStatus = watch('recovery_status');
 	const substatus = watch('substatus');
 
@@ -454,6 +440,16 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								)}
 							/>
 
+							{selectedParty && (
+								<ClaimPartyRoleSelect
+									role={selectedRole}
+									setRole={setSelectedRole}
+									clearable={false}
+									isFilter={false}
+									label="Party Role"
+								/>
+							)}
+
 							<TextField
 								id="client_adjuster"
 								label="Client Adjuster"
@@ -500,26 +496,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							Classification
 						</Typography>
 
-						<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>
-
-							<FormControl size="small" sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
-								<InputLabel>Loss Type</InputLabel>
-								<Select
-									value={lossType}
-									label="Loss Type"
-									onChange={(e) => setValue('loss_type', e.target.value as LossType)}
-								>
-									{Object.values(LossType).map((type) => (
-										<MenuItem key={type} value={type}>
-											<Box display="flex" alignItems="center" gap={1}>
-												<Typography fontSize={14}>{LOSS_TYPE_ICONS[type]}</Typography>
-												<Typography fontSize={14}>{formatLabel(type)}</Typography>
-											</Box>
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-
+						<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5} alignItems="center">
 							<FormControl size="small" sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
 								<InputLabel>Recovery Status</InputLabel>
 								<Select
@@ -538,23 +515,13 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								</Select>
 							</FormControl>
 
-							<FormControl size="small" sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
-								<InputLabel>Substatus</InputLabel>
-								<Select
-									value={substatus}
-									label="Substatus"
-									onChange={(e) => setValue('substatus', e.target.value as ClaimSubstatus)}
-								>
-									{Object.values(ClaimSubstatus).map((sub) => (
-										<MenuItem key={sub} value={sub}>
-											<Box display="flex" alignItems="center" gap={1}>
-												<Typography fontSize={14}>{SUBSTATUS_ICONS[sub]}</Typography>
-												<Typography fontSize={14}>{formatLabel(sub)}</Typography>
-											</Box>
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<ClaimSubstatusSelect
+								substatus={substatus}
+								setSubstatus={(value) => setValue('substatus', value)}
+								clearable={false}
+								isFilter={false}
+								label="Substatus"
+							/>
 						</Box>
 
 						{/* Financial Information Section */}
@@ -580,81 +547,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								{...register('claim_amount', { required: true })}
 							/>
 
-							<TextField
-								id="total_incurred"
-								label="Total Incurred"
-								placeholder="94017.73"
-								error={!!errors.total_incurred}
-								type="number"
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								slotProps={{
-									input: {
-										startAdornment: <InputAdornment position="start">$</InputAdornment>,
-									},
-								}}
-								{...register('total_incurred', { required: true })}
-							/>
-
-							<TextField
-								id="reserved_recovery"
-								label="Reserved Recovery"
-								placeholder="0.00"
-								error={!!errors.reserved_recovery}
-								type="number"
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								slotProps={{
-									input: {
-										startAdornment: <InputAdornment position="start">$</InputAdornment>,
-									},
-									inputLabel: {
-										shrink: true,
-									},
-								}}
-								helperText="Client's expected recovery (from feed/manual)"
-								{...register('reserved_recovery', { required: false })}
-							/>
-
-							<TextField
-								id="paid_recovery"
-								label="Paid Recovery"
-								placeholder="0.00"
-								error={!!errors.paid_recovery}
-								type="number"
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								slotProps={{
-									input: {
-										startAdornment: <InputAdornment position="start">$</InputAdornment>,
-									},
-									inputLabel: {
-										shrink: true,
-									},
-								}}
-								helperText="Client's reported paid amount (from feed/manual)"
-								{...register('paid_recovery', { required: false })}
-							/>
-
-							<TextField
-								id="expected_recovery"
-								label="Expected Recovery"
-								placeholder="0.00"
-								error={!!errors.expected_recovery}
-								type="number"
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								slotProps={{
-									input: {
-										startAdornment: <InputAdornment position="start">$</InputAdornment>,
-									},
-									inputLabel: {
-										shrink: true,
-									},
-								}}
-								helperText="Team's forecasted recovery"
-								{...register('expected_recovery', { required: false })}
-							/>
+							{/* Note: Total Incurred and Expected Recovery are now calculated fields */}
 						</Box>
 					</Box>
 				</form>

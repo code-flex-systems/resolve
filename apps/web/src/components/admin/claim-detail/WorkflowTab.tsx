@@ -9,6 +9,7 @@ import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import Highlight from '@/components/common/Highlight';
 import { formatLabel } from '@/lib/utils/claimUtils';
 import { ClaimStatus } from '@/config/enums';
+import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -77,7 +78,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 								<Highlight bold={false}>Substatus:</Highlight>
 							</Typography>
 							{claimDetail.substatus ? (
-								<Chip label={formatLabel(claimDetail.substatus)} size="small" color="secondary" />
+								<Chip label={<ClaimSubstatusValue value={claimDetail.substatus} showEmoji={false} fontSize={12} />} size="small" color="secondary" />
 							) : (
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
 									N/A

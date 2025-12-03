@@ -125,6 +125,13 @@ Manifest is a claims management system designed to help claims adjusters work th
 - Run with: `npm run db:migrate`
 - Always regenerate types after migration
 
+**IMPORTANT: Never create migrations to revert uncommitted migrations.** If you need to change a migration you created in the current commit:
+1. Modify the existing migration file directly
+2. Run raw SQL to adjust the current database state to match
+3. Regenerate types
+
+Creating "fix" or "revert" migrations for uncommitted changes causes bloat in the migrations directory and deployment issues. Only create new migrations for changes after the previous ones have been committed and deployed.
+
 ### Type Generation
 - Database types: `npx kysely-codegen` (outputs to `src/api/database/types.d.ts`)
 - TRPC types: Auto-generated at build time

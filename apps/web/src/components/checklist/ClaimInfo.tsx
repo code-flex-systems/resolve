@@ -66,10 +66,6 @@ export default function ClaimInfo() {
 											primary="Claim Amount"
 											secondary={formatAmount(claim.claim_amount!, true)}
 										/>
-										<StackedRow
-											primary="Total Incurred"
-											secondary={formatAmount(claim.total_incurred!, true)}
-										/>
 									</Stack>
 									<Stack
 										width="50%"
@@ -86,10 +82,6 @@ export default function ClaimInfo() {
 										<StackedRow
 											primary="Last Update By"
 											secondary={`${claim.last_updated_by} on ${formatMDY(claim.last_update?.toString() ?? '')}`}
-										/>
-										<StackedRow
-											primary="Expected Recovery"
-											secondary={formatAmount(claim.expected_recovery!, true)}
 										/>
 										<StackedRow primary="Grade" secondary={'###'} />
 									</Stack>

@@ -8,27 +8,45 @@ export type CoverageListItem = CoverageOutput['getCoverages'][number];
 export function useCoverageTrpc() {
 	const utils = trpc.useUtils();
 
+	// Helper to update total_incurred in cached claim detail
+	const updateClaimTotalIncurred = (claimId: number, totalIncurred: number) => {
+		const currentData = utils.claim.getClaimDetail.getData({ claimId });
+		if (currentData) {
+			utils.claim.getClaimDetail.setData({ claimId }, {
+				...currentData,
+				total_incurred: totalIncurred,
+			});
+		}
+	};
+
 	return {
-		list: trpc.coverage.getCoverages.useQuery,
+		list: (input: { claimId: number }, options?: { enabled?: boolean }) =>
+			trpc.coverage.getCoverages.useQuery(input, options),
 
 		create: trpc.coverage.createCoverage.useMutation({
-			onSuccess(_data, variables) {
+			onSuccess(data, variables) {
 				// Invalidate coverages list for the specific claim
 				utils.coverage.getCoverages.invalidate({ claimId: variables.claim_id });
+				// Update cached claim detail with new total_incurred
+				updateClaimTotalIncurred(variables.claim_id, data.totalIncurred);
 			},
 		}),
 
 		update: trpc.coverage.updateCoverage.useMutation({
-			onSuccess(_data, variables) {
-				// Invalidate coverages list for any claims (we don't have claim_id in update variables)
+			onSuccess(data) {
+				// Invalidate coverages list
 				utils.coverage.getCoverages.invalidate();
+				// Update cached claim detail with new total_incurred
+				updateClaimTotalIncurred(data.coverage.claim_id, data.totalIncurred);
 			},
 		}),
 
 		remove: trpc.coverage.deleteCoverage.useMutation({
-			onSuccess() {
+			onSuccess(data) {
 				// Invalidate all coverages lists
 				utils.coverage.getCoverages.invalidate();
+				// Update cached claim detail with new total_incurred
+				updateClaimTotalIncurred(data.claimId, data.totalIncurred);
 			},
 		}),
 	};

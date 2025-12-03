@@ -195,11 +195,6 @@ export default function ChecklistClaims({
 				formatter: (value) => formatAmount(value, true),
 			},
 			{
-				header: 'Expected Recovery',
-				accessor: 'expected_recovery',
-				formatter: (value) => formatAmount(value, true),
-			},
-			{
 				header: 'Current Assignee',
 				accessor: (row) =>
 					formatUser({

@@ -172,10 +172,6 @@ export interface Claim {
   last_updated_by: string | null;
   loss_location: string | null;
   /**
-   * Type of loss for the claim (LossType enum enforced in TypeScript)
-   */
-  loss_type: string | null;
-  /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
   recovery_status: string | null;
@@ -200,6 +196,7 @@ export interface ClaimActivityLogs {
 }
 
 export interface ClaimCoverage {
+  amount_reserved: Numeric | null;
   claim_id: number;
   client_id: string;
   coverage_amount: Numeric | null;
@@ -215,6 +212,7 @@ export interface ClaimCoverage {
 }
 
 export interface ClaimLiability {
+  amount_paid: Numeric | null;
   claim_party_id: number;
   client_id: string;
   coverage_amount: Numeric | null;
@@ -234,7 +232,6 @@ export interface ClaimLiability {
    * When feed last updated this record
    */
   last_synced_at: Timestamp | null;
-  liability_percentage: Numeric | null;
   line_of_business: string | null;
   loss_type: string | null;
   /**
@@ -242,8 +239,6 @@ export interface ClaimLiability {
    */
   manually_overridden: Generated<boolean | null>;
   notes: string | null;
-  paid_recovery: Numeric | null;
-  reserved_recovery: Numeric | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -266,6 +261,7 @@ export interface ClaimParty {
   external_reference: string | null;
   id: Generated<number>;
   is_primary: Generated<boolean>;
+  liability_percentage: Numeric | null;
   notes: string | null;
   party_id: number;
   /**
@@ -671,6 +667,71 @@ export interface RecoveryEvent {
   updated_by: string | null;
 }
 
+export interface ReferenceList {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  description: string | null;
+  /**
+   * Human-readable name for the entity type
+   */
+  display_name: string;
+  /**
+   * Entity type identifier (e.g., "line_of_business", "loss_type")
+   */
+  entity: string;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface ReferenceOption {
+  client_id: string;
+  color_hex: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  /**
+   * Soft delete timestamp
+   */
+  deleted_at: Timestamp | null;
+  description: string | null;
+  /**
+   * Human-readable label for display
+   */
+  display_label: string;
+  /**
+   * Emoji icon for visual display
+   */
+  icon_emoji: string | null;
+  /**
+   * Primary key
+   */
+  id: Generated<number>;
+  is_active: Generated<boolean>;
+  /**
+   * Whether this is a system-seeded option (cannot be deleted)
+   */
+  is_system_default: Generated<boolean>;
+  reference_list_id: number;
+  /**
+   * Custom sort order (reserved for future use; currently sorted alphabetically)
+   */
+  sort_order: Generated<number>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  /**
+   * Snake_case identifier used in code (e.g., "auto", "collision")
+   */
+  value: string;
+}
+
 export interface ResponseAuditLogs {
   action: string;
   checklist_id: number | null;
@@ -865,6 +926,8 @@ export interface DB {
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;
   recovery_event: RecoveryEvent;
+  reference_list: ReferenceList;
+  reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
   sessions: Sessions;
   task: Task;

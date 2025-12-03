@@ -38,6 +38,11 @@ export default function CoverageManager({
 		0
 	);
 
+	const totalReserved = coverages.reduce(
+		(sum, c) => sum + (c.amount_reserved ? parseFloat(c.amount_reserved.toString()) : 0),
+		0
+	);
+
 	const handleOpenDialog = (coverage?: CoverageListItem) => {
 		setEditingCoverage(coverage || null);
 		setShowDialog(true);
@@ -48,19 +53,25 @@ export default function CoverageManager({
 		setEditingCoverage(null);
 	};
 
-	const handleSubmit = async (data: { coverage_type: string; coverage_amount: string | null }) => {
+	const handleSubmit = async (data: {
+		coverage_type: string;
+		coverage_amount: string | null;
+		amount_reserved: string | null;
+	}) => {
 		try {
 			if (editingCoverage) {
 				await updateCoverage.mutateAsync({
 					id: editingCoverage.id,
 					coverage_type: data.coverage_type as any,
 					coverage_amount: data.coverage_amount,
+					amount_reserved: data.amount_reserved,
 				});
 			} else {
 				await createCoverage.mutateAsync({
 					claim_id: claimId,
 					coverage_type: data.coverage_type as any,
 					coverage_amount: data.coverage_amount,
+					amount_reserved: data.amount_reserved,
 				});
 			}
 			handleCloseDialog();
@@ -83,6 +94,14 @@ export default function CoverageManager({
 			field: 'coverage_amount',
 			renderHeader: (params) => <IconHeaderCell {...params} />,
 			valueFormatter: (value: string) => (value ? formatCurrencyExact(parseFloat(value)) : 'N/A'),
+			flex: 1,
+			minWidth: 150,
+		},
+		{
+			headerName: 'Amount Reserved',
+			field: 'amount_reserved',
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			valueFormatter: (value: string) => (value ? formatCurrencyExact(parseFloat(value)) : '-'),
 			flex: 1,
 			minWidth: 150,
 		},
@@ -115,6 +134,9 @@ export default function CoverageManager({
 								</Typography>
 								<Typography fontSize={14} marginLeft="5px" color="text.secondary">
 									Total Coverage: {formatCurrencyExact(totalCoverage)}
+								</Typography>
+								<Typography fontSize={14} marginLeft="15px" color="text.secondary">
+									Total Reserved: {formatCurrencyExact(totalReserved)}
 								</Typography>
 							</>
 						}

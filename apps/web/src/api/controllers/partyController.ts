@@ -529,6 +529,7 @@ export async function getClaimParties(
 
 /**
  * Link party to claim with admin logging
+ * @returns claimParty and updated expectedRecovery
  */
 export async function linkPartyToClaim(
 	ctx: ProtectedContext,
@@ -542,8 +543,8 @@ export async function linkPartyToClaim(
 		external_reference?: string;
 	}
 ) {
-	const created = await ctx.db.transaction().execute(async (trx) => {
-		const claimParty = await partyQueries.linkPartyToClaim(
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { claimParty, expectedRecovery } = await partyQueries.linkPartyToClaim(
 			{ ...ctx, db: trx },
 			input
 		);
@@ -559,14 +560,15 @@ export async function linkPartyToClaim(
 			},
 		});
 
-		return claimParty;
+		return { claimParty, expectedRecovery };
 	});
 
-	return created;
+	return result;
 }
 
 /**
  * Update claim party relationship with admin logging
+ * @returns claimParty and updated expectedRecovery
  */
 export async function updateClaimParty(
 	ctx: ProtectedContext,
@@ -581,6 +583,7 @@ export async function updateClaimParty(
 			is_primary?: boolean;
 			notes?: string;
 			external_reference?: string;
+			liability_percentage?: number;
 		};
 	}
 ) {
@@ -591,8 +594,8 @@ export async function updateClaimParty(
 		});
 	}
 
-	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const claimParty = await partyQueries.updateClaimParty(
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { claimParty, expectedRecovery } = await partyQueries.updateClaimParty(
 			{ ...ctx, db: trx },
 			id,
 			params
@@ -605,39 +608,44 @@ export async function updateClaimParty(
 			value: params,
 		});
 
-		return claimParty;
+		return { claimParty, expectedRecovery };
 	});
 
-	return updated;
+	return result;
 }
 
 /**
  * Unlink party from claim with admin logging
+ * @returns expectedRecovery and claimId
  */
 export async function unlinkPartyFromClaim(
 	ctx: ProtectedContext,
 	{ id }: { id: number }
 ) {
-	await ctx.db.transaction().execute(async (trx) => {
-		const claimParty = await partyQueries.getClaimPartyForDeletion(
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const claimPartyForLog = await partyQueries.getClaimPartyForDeletion(
 			{ ...ctx, db: trx },
 			id
 		);
 
-		await partyQueries.unlinkPartyFromClaim({ ...ctx, db: trx }, id);
+		const { expectedRecovery, claimId } = await partyQueries.unlinkPartyFromClaim({ ...ctx, db: trx }, id);
 
-		if (claimParty) {
+		if (claimPartyForLog) {
 			await logAdminAction({ ...ctx, db: trx }, {
 				entityId: id,
 				entityName: EntityName.CLAIM_PARTY,
 				action: AdminAction.DELETE,
 				value: {
-					claim_id: claimParty.claim_id,
-					party_id: claimParty.party_id,
-					party_name: claimParty.party_name,
-					role: claimParty.role,
+					claim_id: claimPartyForLog.claim_id,
+					party_id: claimPartyForLog.party_id,
+					party_name: claimPartyForLog.party_name,
+					role: claimPartyForLog.role,
 				},
 			});
 		}
+
+		return { expectedRecovery, claimId };
 	});
+
+	return result;
 }

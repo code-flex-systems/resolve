@@ -47,65 +47,62 @@ export async function getClaimLiabilityAggregates(
 }
 
 /**
- * Get recovery totals for a claim (replaces claim.paid_recovery and claim.reserved_recovery)
+ * Get total amount paid for a claim (sum of claim_liability.amount_paid)
  */
-export async function getClaimRecoveryTotals(
+export async function getClaimAmountPaidTotal(
 	ctx: ProtectedContext,
 	{ claimId }: { claimId: number }
 ) {
-	return await liabilityQueries.getClaimRecoveryTotals(ctx, claimId);
+	return await liabilityQueries.getClaimAmountPaidTotal(ctx, claimId);
 }
 
 /**
  * Create claim liability with activity logging
+ * Note: liability_percentage is now on claim_party, not claim_liability
+ * Note: amount_paid replaces paid_recovery; reserved_recovery removed
+ * @returns liability, expectedRecovery, and claimId
  */
 export async function createClaimLiability(
 	ctx: ProtectedContext,
 	input: {
 		claim_party_id: number;
-		liability_percentage?: number;
 		coverage_amount?: number;
 		line_of_business?: string;
 		loss_type?: string;
-		paid_recovery?: number;
-		reserved_recovery?: number;
+		amount_paid?: number;
 		notes?: string;
 		feed_id?: number;
 		external_reference?: string;
 	}
 ) {
-	const created = await ctx.db.transaction().execute(async (trx) => {
-		const liability = await liabilityQueries.createClaimLiability({ ...ctx, db: trx }, input);
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { liability, expectedRecovery, claimId } = await liabilityQueries.createClaimLiability({ ...ctx, db: trx }, input);
 
-		// Get claim_id for activity logging
-		const claimParty = await trx
-			.selectFrom('claim_party')
-			.select('claim_id')
-			.where('id', '=', input.claim_party_id)
-			.executeTakeFirst();
-
-		if (claimParty) {
+		if (claimId) {
 			await logAction({ ...ctx, db: trx }, {
 				entityId: liability.id,
 				entityName: EntityName.CLAIM_LIABILITY,
 				action: LogAction.CREATE,
 				value: {
-					liability_percentage: liability.liability_percentage,
 					coverage_amount: liability.coverage_amount,
 					loss_type: liability.loss_type,
 					line_of_business: liability.line_of_business,
+					amount_paid: liability.amount_paid,
 				},
 			});
 		}
 
-		return liability;
+		return { liability, expectedRecovery, claimId };
 	});
 
-	return created;
+	return result;
 }
 
 /**
  * Update claim liability with activity logging
+ * Note: liability_percentage is now on claim_party, not claim_liability
+ * Note: amount_paid replaces paid_recovery; reserved_recovery removed
+ * @returns liability, expectedRecovery, and claimId
  */
 export async function updateClaimLiability(
 	ctx: ProtectedContext,
@@ -116,12 +113,10 @@ export async function updateClaimLiability(
 	}: {
 		id: number;
 		params: {
-			liability_percentage?: number;
 			coverage_amount?: number;
 			line_of_business?: string;
 			loss_type?: string;
-			paid_recovery?: number;
-			reserved_recovery?: number;
+			amount_paid?: number;
 			notes?: string;
 			feed_id?: number;
 			external_reference?: string;
@@ -131,8 +126,8 @@ export async function updateClaimLiability(
 		fromFeed?: boolean;
 	}
 ) {
-	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const liability = await liabilityQueries.updateClaimLiability(
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { liability, expectedRecovery, claimId } = await liabilityQueries.updateClaimLiability(
 			{ ...ctx, db: trx },
 			id,
 			params,
@@ -140,38 +135,30 @@ export async function updateClaimLiability(
 		);
 
 		// Only log if this is a user update (not feed update)
-		if (!fromFeed) {
-			// Get claim_id for activity logging
-			const claimParty = await trx
-				.selectFrom('claim_party')
-				.select('claim_id')
-				.where('id', '=', liability.claim_party_id)
-				.executeTakeFirst();
-
-			if (claimParty) {
-				await logAction({ ...ctx, db: trx }, {
-					entityId: liability.id,
-					entityName: EntityName.CLAIM_LIABILITY,
-					action: LogAction.UPDATE,
-					value: params,
-				});
-			}
+		if (!fromFeed && claimId) {
+			await logAction({ ...ctx, db: trx }, {
+				entityId: liability.id,
+				entityName: EntityName.CLAIM_LIABILITY,
+				action: LogAction.UPDATE,
+				value: params,
+			});
 		}
 
-		return liability;
+		return { liability, expectedRecovery, claimId };
 	});
 
-	return updated;
+	return result;
 }
 
 /**
  * Delete claim liability with activity logging
+ * @returns liability, expectedRecovery, and claimId
  */
 export async function deleteClaimLiability(
 	ctx: ProtectedContext,
 	{ id }: { id: number }
 ) {
-	const deleted = await ctx.db.transaction().execute(async (trx) => {
+	const result = await ctx.db.transaction().execute(async (trx) => {
 		// Get liability details for logging before deletion
 		const liabilityForLog = await liabilityQueries.getClaimLiabilityForDeletion({ ...ctx, db: trx }, id);
 
@@ -180,7 +167,7 @@ export async function deleteClaimLiability(
 		}
 
 		// Delete the liability
-		const liability = await liabilityQueries.deleteClaimLiability({ ...ctx, db: trx }, id);
+		const { liability, expectedRecovery, claimId } = await liabilityQueries.deleteClaimLiability({ ...ctx, db: trx }, id);
 
 		// Log the deletion
 		await logAction({ ...ctx, db: trx }, {
@@ -189,12 +176,11 @@ export async function deleteClaimLiability(
 			action: LogAction.DELETE,
 			value: {
 				loss_type: liabilityForLog.loss_type,
-				liability_percentage: liabilityForLog.liability_percentage,
 			},
 		});
 
-		return liability;
+		return { liability, expectedRecovery, claimId };
 	});
 
-	return deleted;
+	return result;
 }

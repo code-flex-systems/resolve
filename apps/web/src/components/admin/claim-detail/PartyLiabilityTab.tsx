@@ -10,9 +10,8 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useLiabilityTrpc } from '@/hooks/trpc/useLiabilityTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { formatClaimPartyRole } from '@/lib/utils/partyUtils';
-import { formatLineOfBusiness, formatLossType, LOSS_TYPE_ICONS, LOB_ICONS } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { LineOfBusinessValue, LossTypeValue, ClaimPartyRoleValue } from '@/components/common/ReferenceDataSelect';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
@@ -79,6 +78,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		role: string;
 		party_id: number;
 		representative_id?: number | null;
+		liability_percentage?: number | null;
 		notes?: string | null;
 	}) => {
 		try {
@@ -89,6 +89,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					params: {
 						role: data.role as import('@/config/enums').ClaimPartyRole,
 						representative_id: data.representative_id ?? undefined,
+						liability_percentage: data.liability_percentage ?? undefined,
 						notes: data.notes ?? undefined,
 					},
 				});
@@ -99,6 +100,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					party_id: data.party_id,
 					role: data.role as import('@/config/enums').ClaimPartyRole,
 					representative_id: data.representative_id ?? undefined,
+					liability_percentage: data.liability_percentage ?? undefined,
 					notes: data.notes ?? undefined,
 				});
 			}
@@ -108,14 +110,14 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		}
 	};
 
+	// Note: liability_percentage is now on claim_party, not claim_liability
+	// amount_paid replaces amount_paid; reserved_recovery removed (reserved is on coverage)
 	const handleLiabilitySubmit = async (data: {
 		claim_party_id: number;
 		loss_type?: string | null;
-		liability_percentage?: number | null;
 		coverage_amount?: number | null;
 		line_of_business?: string | null;
-		paid_recovery?: number | null;
-		reserved_recovery?: number | null;
+		amount_paid?: number | null;
 		notes?: string | null;
 	}) => {
 		try {
@@ -125,11 +127,9 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					id: editingLiability.id,
 					params: {
 						loss_type: data.loss_type as import('@/config/enums').LossType | undefined,
-						liability_percentage: data.liability_percentage ?? undefined,
 						coverage_amount: data.coverage_amount ?? undefined,
 						line_of_business: data.line_of_business as import('@/config/enums').LineOfBusiness | undefined,
-						paid_recovery: data.paid_recovery ?? undefined,
-						reserved_recovery: data.reserved_recovery ?? undefined,
+						amount_paid: data.amount_paid ?? undefined,
 						notes: data.notes ?? undefined,
 					},
 				});
@@ -138,11 +138,9 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				await createLiabilityMutation.mutateAsync({
 					claim_party_id: data.claim_party_id,
 					loss_type: data.loss_type as import('@/config/enums').LossType | undefined,
-					liability_percentage: data.liability_percentage ?? undefined,
 					coverage_amount: data.coverage_amount ?? undefined,
 					line_of_business: data.line_of_business as import('@/config/enums').LineOfBusiness | undefined,
-					paid_recovery: data.paid_recovery ?? undefined,
-					reserved_recovery: data.reserved_recovery ?? undefined,
+					amount_paid: data.amount_paid ?? undefined,
 					notes: data.notes ?? undefined,
 				});
 			}
@@ -166,15 +164,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		}
 	};
 
-	// Calculate totals from nested liabilities
+	// Calculate totals - liability_percentage is now on claim_party, not claim_liability
 	const totalLiability = claimParties.reduce((sum, cp) => {
-		const partyLiabilitySum = (cp.liabilities || []).reduce(
-			(liabilitySum: number, liability: any) =>
-				liabilitySum +
-				(liability.liability_percentage ? parseFloat(liability.liability_percentage.toString()) : 0),
-			0
-		);
-		return sum + partyLiabilitySum;
+		const partyLiability = cp.liability_percentage ? parseFloat(cp.liability_percentage.toString()) : 0;
+		return sum + partyLiability;
 	}, 0);
 
 	const totalCoverage = claimParties.reduce((sum, cp) => {
@@ -187,18 +180,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 
 	const totalPaidRecovery = claimParties.reduce((sum, cp) => {
 		const partyPaidSum = (cp.liabilities || []).reduce((paidSum: number, liability: any) => {
-			const amount = liability.paid_recovery ? parseFloat(liability.paid_recovery.toString()) : 0;
+			const amount = liability.amount_paid ? parseFloat(liability.amount_paid.toString()) : 0;
 			return paidSum + amount;
 		}, 0);
 		return sum + partyPaidSum;
-	}, 0);
-
-	const totalReservedRecovery = claimParties.reduce((sum, cp) => {
-		const partyReservedSum = (cp.liabilities || []).reduce((reservedSum: number, liability: any) => {
-			const amount = liability.reserved_recovery ? parseFloat(liability.reserved_recovery.toString()) : 0;
-			return reservedSum + amount;
-		}, 0);
-		return sum + partyReservedSum;
 	}, 0);
 
 	return (
@@ -234,24 +219,13 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 						</Box>
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Total Paid Recovery
+								Total Paid
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of paid recovery across liabilities
+								Sum of paid across liabilities
 							</Typography>
 							<Typography variant="h6" fontSize={18} color="success.main">
 								{formatCurrencyExact(totalPaidRecovery)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Total Reserved Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of reserved recovery across liabilities
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="info.main">
-								{formatCurrencyExact(totalReservedRecovery)}
 							</Typography>
 						</Box>
 					</Box>
@@ -319,7 +293,13 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 															{claimParty.party?.name || 'Unknown Party'}
 														</Typography>
 														<Chip
-															label={formatClaimPartyRole(claimParty.role)}
+															label={
+																<ClaimPartyRoleValue
+																	value={claimParty.role}
+																	showEmoji={false}
+																	fontSize={12}
+																/>
+															}
 															size="small"
 															color="primary"
 															variant="outlined"
@@ -406,6 +386,17 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 														</Typography>
 													)}
 
+													{/* Liability Percentage (now on claim_party) */}
+													{claimParty.liability_percentage != null && (
+														<Box marginTop={1} marginBottom={0.5}>
+															<Chip
+																label={`Liability: ${parseFloat(claimParty.liability_percentage.toString()).toFixed(2)}%`}
+																size="small"
+																color="warning"
+															/>
+														</Box>
+													)}
+
 													{/* Liabilities Section */}
 													<Box marginTop={2}>
 														<Box
@@ -414,7 +405,11 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 															alignItems="center"
 															marginBottom={1}
 														>
-															<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
+															<Typography
+																fontSize={13}
+																fontWeight={600}
+																color={BASE_COLOR_LIGHT}
+															>
 																Liabilities ({(claimParty.liabilities || []).length})
 															</Typography>
 															<Button
@@ -457,23 +452,27 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																			<Box flex={1}>
 																				{/* Loss Type */}
 																				{liability.loss_type && (
-																					<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
-																						<Typography fontSize={14} fontWeight={600}>
-																							{LOSS_TYPE_ICONS[liability.loss_type as import('@/config/enums').LossType] || ''}{' '}
-																							{formatLossType(liability.loss_type)}
-																						</Typography>
+																					<Box
+																						display="flex"
+																						alignItems="center"
+																						gap={1}
+																						marginBottom={1}
+																					>
+																						<LossTypeValue
+																							value={liability.loss_type}
+																							fontSize={14}
+																							sx={{ fontWeight: 600 }}
+																						/>
 																					</Box>
 																				)}
 
 																				{/* Liability Details */}
-																				<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
-																					{liability.liability_percentage !== null && (
-																						<Chip
-																							label={`Liability: ${parseFloat(liability.liability_percentage.toString()).toFixed(2)}%`}
-																							size="small"
-																							color="warning"
-																						/>
-																					)}
+																				<Box
+																					display="flex"
+																					gap={1}
+																					marginBottom={0.5}
+																					flexWrap="wrap"
+																				>
 																					{liability.coverage_amount && (
 																						<Chip
 																							label={`Coverage: ${formatCurrencyExact(parseFloat(liability.coverage_amount.toString()))}`}
@@ -483,39 +482,37 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																					)}
 																					{liability.line_of_business && (
 																						<Chip
-																							label={`${LOB_ICONS[liability.line_of_business as import('@/config/enums').LineOfBusiness] || ''} ${formatLineOfBusiness(liability.line_of_business)}`}
+																							label={
+																								<LineOfBusinessValue
+																									value={
+																										liability.line_of_business
+																									}
+																									showEmoji={false}
+																									fontSize={12}
+																								/>
+																							}
 																							size="small"
 																							color="primary"
 																							variant="outlined"
 																						/>
 																					)}
+																					{liability.amount_paid && (
+																						<Chip
+																							label={`Paid: ${formatCurrencyExact(parseFloat(liability.amount_paid.toString()))}`}
+																							size="small"
+																							color="info"
+																							variant="outlined"
+																						/>
+																					)}
 																				</Box>
-
-																				{/* Recovery Tracking */}
-																				{(liability.paid_recovery || liability.reserved_recovery) && (
-																					<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
-																						{liability.paid_recovery && (
-																							<Chip
-																								label={`Paid: ${formatCurrencyExact(parseFloat(liability.paid_recovery.toString()))}`}
-																								size="small"
-																								color="success"
-																								variant="outlined"
-																							/>
-																						)}
-																						{liability.reserved_recovery && (
-																							<Chip
-																								label={`Reserved: ${formatCurrencyExact(parseFloat(liability.reserved_recovery.toString()))}`}
-																								size="small"
-																								color="info"
-																								variant="outlined"
-																							/>
-																						)}
-																					</Box>
-																				)}
 
 																				{/* Liability Notes */}
 																				{liability.notes && (
-																					<Typography fontSize={12} color="text.secondary" marginTop={0.5}>
+																					<Typography
+																						fontSize={12}
+																						color="text.secondary"
+																						marginTop={0.5}
+																					>
 																						{liability.notes}
 																					</Typography>
 																				)}
@@ -531,7 +528,9 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																								liability
 																							),
 																					}}
-																					tooltipProps={{ title: 'Edit liability' }}
+																					tooltipProps={{
+																						title: 'Edit liability',
+																					}}
 																					icon={<Edit />}
 																				/>
 																				<BasicButtonStyled
@@ -539,11 +538,18 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																						onClick: () =>
 																							setArchivingLiability({
 																								id: liability.id,
-																								lossType: liability.loss_type,
+																								lossType:
+																									liability.loss_type,
 																							}),
 																					}}
-																					tooltipProps={{ title: 'Archive liability' }}
-																					icon={<Archive sx={{ color: 'error.main' }} />}
+																					tooltipProps={{
+																						title: 'Archive liability',
+																					}}
+																					icon={
+																						<Archive
+																							sx={{ color: 'error.main' }}
+																						/>
+																					}
 																				/>
 																			</Box>
 																		</Box>
@@ -603,9 +609,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					onSubmit={handleLiabilitySubmit}
 					claimPartyId={selectedClaimPartyId}
 					editingLiability={editingLiability}
-					currentLiabilities={
-						claimParties.find((cp) => cp.id === selectedClaimPartyId)?.liabilities || []
-					}
+					currentLiabilities={claimParties.find((cp) => cp.id === selectedClaimPartyId)?.liabilities || []}
 					isSubmitting={
 						createLiabilityMutation.isPending ||
 						updateLiabilityMutation.isPending ||
@@ -636,9 +640,12 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 						Are you sure you want to archive this liability?
 					</Typography>
 					{archivingLiability.lossType && (
-						<Typography fontSize={13} color="text.secondary" marginBottom={2}>
-							Loss Type: {formatLossType(archivingLiability.lossType)}
-						</Typography>
+						<Box display="flex" alignItems="center" gap={1} marginBottom={2}>
+							<Typography fontSize={13} color="text.secondary">
+								Loss Type:
+							</Typography>
+							<LossTypeValue value={archivingLiability.lossType} fontSize={13} />
+						</Box>
 					)}
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
 						The liability will be archived and hidden from view, but the record will be preserved for

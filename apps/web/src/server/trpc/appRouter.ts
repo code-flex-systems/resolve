@@ -18,6 +18,7 @@ import { partyRouter } from './routers/party';
 import { passwordResetRouter } from './routers/passwordReset';
 import { questionRouter } from './routers/question';
 import { recoveryRouter } from './routers/recovery';
+import { referenceDataRouter } from './routers/referenceData';
 import { responseRouter } from './routers/response';
 import { taskRouter } from './routers/task';
 import { userRouter } from './routers/user';
@@ -41,6 +42,7 @@ export const appRouter = router({
 	passwordReset: passwordResetRouter,
 	question: questionRouter,
 	recovery: recoveryRouter,
+	referenceData: referenceDataRouter,
 	response: responseRouter,
 	task: taskRouter,
 	user: userRouter,

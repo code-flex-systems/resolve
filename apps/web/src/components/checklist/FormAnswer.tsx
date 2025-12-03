@@ -27,7 +27,7 @@ import CheckCircle from '@mui/icons-material/CheckCircle';
 import Share from '@mui/icons-material/Share';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import Close from '@mui/icons-material/Close';
-import ImageIcon from '@mui/icons-material/Image';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import Toolbar from '../common/Toolbar';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { Answer } from '@/types/types';
@@ -47,6 +47,7 @@ import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import { getAllowedExtensions } from '@/config/allowedFileTypes';
+import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -79,7 +80,7 @@ export default function FormAnswer() {
 	const toggleActionDialog = useChecklistStore((state) => state.toggleActionDialog);
 	const [copiedField, setCopiedField] = useState<string | null>(null);
 	const [showDocSelector, setShowDocSelector] = useState(false);
-	const [attachedImage, setAttachedImage] = useState<DocListItem | null>(null);
+	const [attachedDoc, setAttachedDoc] = useState<DocListItem | null>(null);
 
 	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
 		{ answerId: selectedAnswerData.id },
@@ -165,9 +166,9 @@ export default function FormAnswer() {
 	// Sync attached image when images are fetched
 	useEffect(() => {
 		if (attachedImages.length > 0) {
-			setAttachedImage(attachedImages[0]); // Only support one image per answer
+			setAttachedDoc(attachedImages[0]); // Only support one image per answer
 		} else {
-			setAttachedImage(null);
+			setAttachedDoc(null);
 		}
 	}, [attachedImages]);
 
@@ -239,12 +240,12 @@ export default function FormAnswer() {
 		setTimeout(() => setCopiedField(null), 2000);
 	};
 
-	const handleSelectImage = async (doc: DocListItem) => {
+	const handleSelectDocument = async (doc: DocListItem) => {
 		// Unlink the previous image first if there is one
-		if (attachedImage && attachedImage.id !== doc.id) {
+		if (attachedDoc && attachedDoc.id !== doc.id) {
 			try {
 				await updateDoc({
-					docId: attachedImage.id,
+					docId: attachedDoc.id,
 					params: { answer_id: null },
 				});
 			} catch (e) {
@@ -252,19 +253,19 @@ export default function FormAnswer() {
 				// Continue anyway - the new document will be linked
 			}
 		}
-		setAttachedImage(doc);
+		setAttachedDoc(doc);
 		setShowDocSelector(false);
 	};
 
-	const handleRemoveImage = async () => {
-		if (!attachedImage) return;
+	const handleRemoveDocument = async () => {
+		if (!attachedDoc) return;
 		try {
 			// Unlink the document instead of deleting it
 			await updateDoc({
-				docId: attachedImage.id,
+				docId: attachedDoc.id,
 				params: { answer_id: null },
 			});
-			setAttachedImage(null);
+			setAttachedDoc(null);
 		} catch (e) {
 			console.error(e);
 			alert('Failed to remove image attachment');
@@ -652,19 +653,19 @@ export default function FormAnswer() {
 							</Grid>
 						</Collapse>
 
-						{/* Image attachment section */}
+						{/* Document attachment section */}
 						<Box display="flex" alignItems="center" margin="5px" gap={1}>
 							<Button
 								variant="outlined"
 								size="small"
-								startIcon={<ImageIcon />}
+								startIcon={<AttachFileIcon />}
 								onClick={() => setShowDocSelector(true)}
 								disabled={inTransition || isPlaceholder}
 								sx={{ height: 30 }}
 							>
-								{attachedImage ? 'Change Image' : 'Add Image...'}
+								{attachedDoc ? 'Change Document' : 'Add Document...'}
 							</Button>
-							{attachedImage && (
+							{attachedDoc && (
 								<Box
 									display="flex"
 									alignItems="center"
@@ -674,15 +675,19 @@ export default function FormAnswer() {
 									borderRadius={1}
 								>
 									<Typography fontSize={12} color="text.secondary">
-										{attachedImage.title || attachedImage.alias}
+										{attachedDoc.title || attachedDoc.alias}
 									</Typography>
-									<ImageTooltip
-										imageUrl={`/api/download?docId=${attachedImage.id}`}
-										description={attachedImage.title ?? undefined}
-									/>
+									{attachedDoc.mime_type?.startsWith('image/') ? (
+										<ImageTooltip
+											imageUrl={`/api/download?docId=${attachedDoc.id}`}
+											description={attachedDoc.title ?? undefined}
+										/>
+									) : (
+										<DocumentIconWithPreview document={attachedDoc} />
+									)}
 									<IconButton
 										size="small"
-										onClick={handleRemoveImage}
+										onClick={handleRemoveDocument}
 										disabled={inTransition}
 										sx={{ ml: 0.5, padding: 0.5 }}
 									>
@@ -761,7 +766,7 @@ export default function FormAnswer() {
 			{showDocSelector && (
 				<DocumentSelectorDialog
 					onClose={() => setShowDocSelector(false)}
-					onSelectDocument={handleSelectImage}
+					onSelectDocument={handleSelectDocument}
 					filterByType="all"
 					title="Add Document to Answer"
 					relationshipData={{ answer_id: selectedAnswerData.id }}
@@ -805,6 +810,7 @@ const styles = {
 		'& .MuiOutlinedInput-input': {
 			paddingTop: '3px',
 			paddingBottom: '3px',
+			overflow: 'auto',
 		},
 	},
 	toolbar: {

@@ -1,32 +1,49 @@
-import { MenuItem, Select, SelectProps, ListItemIcon, ListItemText, Box } from '@mui/material';
-import { CoverageType } from '@/config/enums';
-import { COVERAGE_TYPE_CONFIG } from '@/lib/utils/coverageUtils';
+import { MenuItem, Select, SelectProps, ListItemText, Box, CircularProgress, Typography } from '@mui/material';
+import { trpc } from '@/lib/trpc';
 
-interface CoverageTypeSelectProps extends Omit<SelectProps, 'children'> {
-	value: CoverageType;
-	onChange: (value: CoverageType) => void;
+interface CoverageTypeSelectProps extends Omit<SelectProps, 'children' | 'onChange'> {
+	value: string;
+	onChange: (value: string) => void;
 }
 
 export default function CoverageTypeSelect({ value, onChange, ...selectProps }: CoverageTypeSelectProps) {
+	const { data: options = [], isLoading } = trpc.referenceData.getReferenceOptions.useQuery(
+		{ entity: 'coverage_type' },
+		{
+			staleTime: 5 * 60 * 1000,
+			gcTime: 10 * 60 * 1000,
+		}
+	);
+
+	if (isLoading) {
+		return (
+			<Box display="flex" alignItems="center" padding="10px">
+				<CircularProgress size={16} sx={{ mr: 1 }} />
+				<Typography fontSize={13}>Loading...</Typography>
+			</Box>
+		);
+	}
+
 	return (
 		<Select
 			value={value}
-			onChange={(e) => onChange(e.target.value as CoverageType)}
+			onChange={(e) => onChange(e.target.value as string)}
 			variant="standard"
 			{...selectProps}
 			sx={styles.textFieldOverrides}
 		>
-			{Object.entries(COVERAGE_TYPE_CONFIG).map(([type, config]) => {
-				const IconComponent = config.icon;
-				return (
-					<MenuItem key={type} value={type}>
-						<Box display="flex" alignItems="center">
-							<IconComponent fontSize="small" sx={{ mr: 1 }} />
-							<ListItemText>{config.label}</ListItemText>
-						</Box>
-					</MenuItem>
-				);
-			})}
+			{options.map((option) => (
+				<MenuItem key={option.value} value={option.value}>
+					<Box display="flex" alignItems="center">
+						{option.icon_emoji && (
+							<Typography fontSize={14} sx={{ mr: 1 }}>
+								{option.icon_emoji}
+							</Typography>
+						)}
+						<ListItemText>{option.display_label}</ListItemText>
+					</Box>
+				</MenuItem>
+			))}
 		</Select>
 	);
 }

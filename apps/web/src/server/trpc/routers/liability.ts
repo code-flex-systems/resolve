@@ -7,7 +7,7 @@ import {
 	getClaimLiabilitiesInput,
 	getClaimLiabilityInput,
 	getClaimLiabilityAggregatesInput,
-	getClaimRecoveryTotalsInput,
+	getClaimAmountPaidTotalInput,
 	createClaimLiabilityInput,
 	updateClaimLiabilityInput,
 	deleteClaimLiabilityInput,
@@ -75,18 +75,18 @@ export const liabilityRouter = router({
 		}),
 
 	/**
-	 * Get recovery totals for a claim (Admin + Contributor read access)
-	 * Replaces claim.paid_recovery and claim.reserved_recovery
+	 * Get total amount paid for a claim (Admin + Contributor read access)
+	 * Returns sum of claim_liability.amount_paid
 	 */
-	getClaimRecoveryTotals: protectedProcedure
-		.input(getClaimRecoveryTotalsInput)
+	getClaimAmountPaidTotal: protectedProcedure
+		.input(getClaimAmountPaidTotalInput)
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [
 				config.ROLES.CONTRIBUTOR,
 				config.ROLES.ADMIN,
 				config.ROLES.SUPER_ADMIN,
 			]);
-			return liabilityController.getClaimRecoveryTotals(ctx, input);
+			return liabilityController.getClaimAmountPaidTotal(ctx, input);
 		}),
 
 	// ========================================================================

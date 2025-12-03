@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { LineOfBusiness, LossType } from '@/config/enums';
 
 // ============================================================================
 // CLAIM LIABILITY SCHEMAS
@@ -34,23 +33,23 @@ export const getClaimLiabilityAggregatesInput = z.object({
 });
 
 /**
- * Get recovery totals for a claim
+ * Get total amount paid for a claim (sum of claim_liability.amount_paid)
  */
-export const getClaimRecoveryTotalsInput = z.object({
+export const getClaimAmountPaidTotalInput = z.object({
 	claimId: z.number().int().positive(),
 });
 
 /**
  * Create claim liability input
+ * Note: liability_percentage is now on claim_party, not claim_liability
+ * Note: amount_paid replaces paid_recovery; reserved_recovery removed (reserved is on coverage)
  */
 export const createClaimLiabilityInput = z.object({
 	claim_party_id: z.number().int().positive(),
-	liability_percentage: z.number().min(0).max(100).optional(),
 	coverage_amount: z.number().min(0).optional(),
-	line_of_business: z.nativeEnum(LineOfBusiness).optional(),
-	loss_type: z.nativeEnum(LossType).optional(),
-	paid_recovery: z.number().min(0).optional(),
-	reserved_recovery: z.number().min(0).optional(),
+	line_of_business: z.string().optional(),
+	loss_type: z.string().optional(),
+	amount_paid: z.number().min(0).optional(),
 	notes: z.string().max(2000).optional(),
 	// Feed integration fields (admin/feed use only)
 	feed_id: z.number().int().positive().optional(),
@@ -59,16 +58,16 @@ export const createClaimLiabilityInput = z.object({
 
 /**
  * Update claim liability input
+ * Note: liability_percentage is now on claim_party, not claim_liability
+ * Note: amount_paid replaces paid_recovery; reserved_recovery removed (reserved is on coverage)
  */
 export const updateClaimLiabilityInput = z.object({
 	id: z.number().int().positive(),
 	params: z.object({
-		liability_percentage: z.number().min(0).max(100).optional(),
 		coverage_amount: z.number().min(0).optional(),
-		line_of_business: z.nativeEnum(LineOfBusiness).optional(),
-		loss_type: z.nativeEnum(LossType).optional(),
-		paid_recovery: z.number().min(0).optional(),
-		reserved_recovery: z.number().min(0).optional(),
+		line_of_business: z.string().optional(),
+		loss_type: z.string().optional(),
+		amount_paid: z.number().min(0).optional(),
 		notes: z.string().max(2000).optional(),
 		// Feed integration fields (admin/feed use only)
 		feed_id: z.number().int().positive().optional(),

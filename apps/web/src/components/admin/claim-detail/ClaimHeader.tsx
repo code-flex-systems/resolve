@@ -9,11 +9,10 @@ import Print from '@mui/icons-material/Print';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import { formatLineOfBusiness, formatLossType, LOB_ICONS, LOSS_TYPE_ICONS } from '@/lib/utils/claimUtils';
-import { LineOfBusiness, LossType } from '@/config/enums';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { LineOfBusinessValue, LossTypeValue } from '@/components/common/ReferenceDataSelect';
 
 export default function ClaimHeader({ claimId }: { claimId: number }) {
 	const router = useRouter();
@@ -100,32 +99,20 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 						claimDetail.aggregated_line_of_business.map((lob: string) => (
 							<Chip
 								key={lob}
-								icon={
-									<Box marginLeft="5px">
-										<Typography fontSize={14}>
-											{LOB_ICONS[lob as LineOfBusiness]}
-										</Typography>
-									</Box>
-								}
-								label={formatLineOfBusiness(lob)}
+								label={<LineOfBusinessValue value={lob} showEmoji={false} />}
 								color="primary"
 								variant="outlined"
 							/>
 						))}
-					{claimDetail.loss_type && (
-						<Chip
-							icon={
-								<Box marginLeft="5px">
-									<Typography fontSize={14}>
-										{LOSS_TYPE_ICONS[claimDetail.loss_type as LossType]}
-									</Typography>
-								</Box>
-							}
-							label={formatLossType(claimDetail.loss_type)}
-							color="secondary"
-							variant="outlined"
-						/>
-					)}
+					{claimDetail.aggregated_loss_type && claimDetail.aggregated_loss_type.length > 0 &&
+						claimDetail.aggregated_loss_type.map((lt: string) => (
+							<Chip
+								key={lt}
+								label={<LossTypeValue value={lt} showEmoji={false} />}
+								color="secondary"
+								variant="outlined"
+							/>
+						))}
 					{claimDetail.recovery_status && (
 						<Chip
 							label={`Recovery: ${formatRecoveryStatus(claimDetail.recovery_status)}`}

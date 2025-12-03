@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-	PartyType,
-	FacilitatorCategory,
-	EntityCategory,
-	ClaimPartyRole,
-} from '@/config/enums';
+import { PartyType } from '@/config/enums';
 
 // ============================================================================
 // PARTY SCHEMAS
@@ -221,26 +216,30 @@ export const getClaimPartiesInput = z.object({
 
 /**
  * Link party to claim input
+ * Note: liability_percentage is now on claim_party (moved from claim_liability)
  */
 export const linkPartyToClaimInput = z.object({
 	claim_id: z.number().int().positive(),
 	party_id: z.number().int().positive(),
-	role: z.nativeEnum(ClaimPartyRole),
+	role: z.string(),
 	representative_id: z.number().int().positive().nullable().optional(),
 	is_primary: z.boolean().optional(),
+	liability_percentage: z.number().min(0).max(100).optional(),
 	notes: z.string().max(2000).optional(),
 	external_reference: z.string().max(255).optional(),
 });
 
 /**
  * Update claim party relationship input
+ * Note: liability_percentage is now on claim_party (moved from claim_liability)
  */
 export const updateClaimPartyInput = z.object({
 	id: z.number().int().positive(),
 	params: z.object({
-		role: z.nativeEnum(ClaimPartyRole).optional(),
+		role: z.string().optional(),
 		representative_id: z.number().int().positive().nullable().optional(),
 		is_primary: z.boolean().optional(),
+		liability_percentage: z.number().min(0).max(100).nullable().optional(),
 		notes: z.string().max(2000).optional(),
 		external_reference: z.string().max(255).optional(),
 	}),
@@ -259,20 +258,14 @@ export const unlinkPartyFromClaimInput = z.object({
 
 /**
  * Validate party_category based on party_type
- * Called at application layer
+ * Note: This now just validates that the category is a non-empty string.
+ * The actual valid values are managed in the reference_option table.
  */
 export function validatePartyCategoryForType(
 	party_type: PartyType,
 	party_category: string
 ): boolean {
-	if (party_type === PartyType.FACILITATOR) {
-		return Object.values(FacilitatorCategory).includes(
-			party_category as FacilitatorCategory
-		);
-	} else if (party_type === PartyType.ENTITY) {
-		return Object.values(EntityCategory).includes(
-			party_category as EntityCategory
-		);
-	}
-	return false;
+	// Basic validation - category must be a non-empty string
+	// The actual valid values are now database-driven (reference_option table)
+	return typeof party_category === 'string' && party_category.length > 0;
 }

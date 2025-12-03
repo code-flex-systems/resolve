@@ -1,12 +1,5 @@
 import { z } from 'zod';
-import {
-	ClaimSearch,
-	ClaimStatus,
-	ClaimSubstatus,
-	LineOfBusiness,
-	LossType,
-	RecoveryStatus,
-} from '@/config/enums';
+import { ClaimSearch, ClaimStatus, RecoveryStatus } from '@/config/enums';
 import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 
 export const assignClaimInput = z.object({
@@ -39,8 +32,8 @@ export const getClaimsInput = z.object({
 			type: z.nativeEnum(ClaimSearch),
 		})
 		.optional(),
-	line_of_business: z.nativeEnum(LineOfBusiness).optional(),
-	loss_type: z.nativeEnum(LossType).optional(),
+	line_of_business: z.string().optional(),
+	loss_type: z.string().optional(),
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
 	insured: z.string().optional(),
 	client: z.string().optional(),
@@ -51,28 +44,33 @@ export type GetClaimsInput = z.infer<typeof getClaimsInput>;
 
 export const getClaimCountInput = z.object({ clientId: z.string().optional() });
 
+// Schema for individual claim data when creating
+// Note: loss_type is no longer on the claim table - it's set per claim_liability
+// Note: total_incurred is now calculated from claim_coverage.amount_reserved
+export const claimDataSchema = z.object({
+	claim_number: z.string().nullable(),
+	client: z.string().nullable(),
+	client_adjuster: z.string().nullable(),
+	insured: z.string().nullable(),
+	claim_amount: z.union([parseNumber(), z.number()]).nullable(),
+	date_of_loss: parseDate().nullable(),
+	loss_location: z.string().nullable(),
+	last_updated_by: z.string().nullable(),
+	last_update: parseDate().nullable(),
+});
+export type ClaimData = z.infer<typeof claimDataSchema>;
+
 export const createClaimInput = z.object({
-	claims: z.array(
-		z.object({
-			claim_number: z.string().nullable(),
-			client: z.string().nullable(),
-			client_adjuster: z.string().nullable(),
-			insured: z.string().nullable(),
-			claim_amount: z.union([parseNumber(), z.number()]).nullable(),
-			total_incurred: z.union([parseNumber(), z.number()]).nullable(),
-			date_of_loss: parseDate().nullable(),
-			loss_location: z.string().nullable(),
-			last_updated_by: z.string().nullable(),
-			last_update: parseDate().nullable(),
-			reserved_recovery: z.union([parseNumber(), z.number()]).nullable(), // Client's expected recovery (from feed/manual)
-			paid_recovery: z.union([parseNumber(), z.number()]).nullable(), // Client's reported paid amount (from feed/manual)
-			loss_type: z.nativeEnum(LossType),
-		})
-	),
+	claims: z.array(claimDataSchema),
 	party_id: z.number().int().nullable().optional(),
 	representative_id: z.number().int().nullable().optional(),
+	role: z.string().nullable().optional(),
 });
+export type CreateClaimInput = z.infer<typeof createClaimInput>;
 
+// Note: loss_type is no longer on the claim table - it's set per claim_liability
+// Note: total_incurred is calculated from claim_coverage.amount_reserved
+// Note: expected_recovery is calculated from liability percentages and amount_paid
 export const updateClaimInput = z.object({
 	claimId: z.number().int(),
 	claim_number: z.string().nullable().optional(),
@@ -80,17 +78,13 @@ export const updateClaimInput = z.object({
 	client_adjuster: z.string().nullable().optional(),
 	insured: z.string().nullable().optional(),
 	claim_amount: z.number().nullable().optional(),
-	total_incurred: z.number().nullable().optional(),
 	date_of_loss: parseDate().nullable().optional(),
 	loss_location: z.string().nullable().optional(),
-	reserved_recovery: z.number().nullable().optional(), // Client's expected recovery (from feed/manual)
-	paid_recovery: z.number().nullable().optional(), // Client's reported paid amount (from feed/manual)
-	expected_recovery: z.number().nullable().optional(), // Team's forecasted recovery (manual, eventually auto-calculated)
-	loss_type: z.nativeEnum(LossType).optional(),
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
 	substatus: z.string().optional(),
 	party_id: z.number().int().nullable().optional(),
 	representative_id: z.number().int().nullable().optional(),
+	role: z.string().nullable().optional(),
 });
 export type UpdateClaimInput = z.infer<typeof updateClaimInput>;
 

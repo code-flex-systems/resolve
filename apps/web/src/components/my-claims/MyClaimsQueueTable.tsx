@@ -32,8 +32,8 @@ export interface MyClaimListItem {
 	claim_amount: number | null;
 	date_of_loss: Date | null;
 	last_update: string | null;
-	expected_recovery: number | null;
 	actual_recovery: number | null;
+	expected_recovery: number | null;
 	recovery_status: RecoveryStatus | null;
 	created_at: Date | null;
 	claim_status: ClaimStatus;

@@ -32,6 +32,7 @@ import RssFeedIcon from '@mui/icons-material/RssFeed';
 import DeskIcon from '@mui/icons-material/Desk';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import TaskIcon from '@mui/icons-material/Task';
+import ListIcon from '@mui/icons-material/List';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -186,6 +187,11 @@ const adminNavCategories: AdminNavCategory[] = [
 		label: 'System',
 		icon: <SettingsIcon fontSize="small" color="secondary" />,
 		items: [
+			{
+				label: 'Reference Data',
+				route: '/admin/system/reference-data',
+				icon: <ListIcon fontSize="small" />,
+			},
 			{
 				label: 'Settings',
 				route: '/admin/system/settings',

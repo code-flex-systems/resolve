@@ -1,21 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, TextField } from '@mui/material';
-import { CoverageType } from '@/config/enums';
+import { Box, TextField, InputAdornment } from '@mui/material';
 import { CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import CoverageTypeSelect from '../common/CoverageTypeSelect';
 import BasicDialog from '../common/BasicDialog';
 
 interface CoverageFormData {
-	coverage_type: CoverageType;
+	coverage_type: string;
 	coverage_amount: string;
+	amount_reserved: string;
 }
 
 interface CoverageFormDialogProps {
 	open: boolean;
 	onClose: () => void;
-	onSubmit: (data: { coverage_type: CoverageType; coverage_amount: string | null }) => Promise<void>;
+	onSubmit: (data: {
+		coverage_type: string;
+		coverage_amount: string | null;
+		amount_reserved: string | null;
+	}) => Promise<void>;
 	editingCoverage?: CoverageListItem | null;
 	isSubmitting?: boolean;
 }
@@ -28,36 +32,43 @@ export default function CoverageFormDialog({
 	isSubmitting = false,
 }: CoverageFormDialogProps) {
 	const [formData, setFormData] = useState<CoverageFormData>({
-		coverage_type: CoverageType.COLLISION,
+		coverage_type: '',
 		coverage_amount: '',
+		amount_reserved: '',
 	});
 
 	// Update form when editingCoverage changes
 	useEffect(() => {
 		if (editingCoverage) {
 			setFormData({
-				coverage_type: editingCoverage.coverage_type as CoverageType,
+				coverage_type: editingCoverage.coverage_type,
 				coverage_amount: editingCoverage.coverage_amount?.toString() || '',
+				amount_reserved: editingCoverage.amount_reserved?.toString() || '',
 			});
 		} else {
 			setFormData({
-				coverage_type: CoverageType.COLLISION,
+				coverage_type: '',
 				coverage_amount: '',
+				amount_reserved: '',
 			});
 		}
 	}, [editingCoverage, open]);
 
 	const handleSubmit = async () => {
-		const amount = formData.coverage_amount ? formData.coverage_amount : null;
 		await onSubmit({
 			coverage_type: formData.coverage_type,
-			coverage_amount: amount,
+			coverage_amount: formData.coverage_amount || null,
+			amount_reserved: formData.amount_reserved || null,
 		});
 	};
 
-	const isValidAmount =
+	const isValidCoverageAmount =
 		!formData.coverage_amount ||
 		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount) > 0);
+
+	const isValidReservedAmount =
+		!formData.amount_reserved ||
+		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved) >= 0);
 
 	if (!open) return null;
 
@@ -67,7 +78,7 @@ export default function CoverageFormDialog({
 			primaryAction={{
 				label: editingCoverage ? 'Update' : 'Create',
 				onClick: handleSubmit,
-				disabled: !formData.coverage_type || !isValidAmount || isSubmitting,
+				disabled: !formData.coverage_type || !isValidCoverageAmount || !isValidReservedAmount || isSubmitting,
 			}}
 			secondaryActions={[
 				{
@@ -90,8 +101,35 @@ export default function CoverageFormDialog({
 					value={formData.coverage_amount}
 					onChange={(e) => setFormData({ ...formData, coverage_amount: e.target.value })}
 					fullWidth
-					placeholder="Enter amount"
+					placeholder="Enter coverage limit"
 					inputProps={{ step: '0.01', min: '0' }}
+					slotProps={{
+						input: {
+							startAdornment: <InputAdornment position="start">$</InputAdornment>,
+						},
+					}}
+					error={!isValidCoverageAmount}
+					helperText={!isValidCoverageAmount ? 'Must be greater than 0' : 'Policy coverage limit'}
+				/>
+				<TextField
+					label="Amount Reserved"
+					type="number"
+					value={formData.amount_reserved}
+					onChange={(e) => setFormData({ ...formData, amount_reserved: e.target.value })}
+					fullWidth
+					placeholder="Enter reserved amount"
+					inputProps={{ step: '0.01', min: '0' }}
+					slotProps={{
+						input: {
+							startAdornment: <InputAdornment position="start">$</InputAdornment>,
+						},
+					}}
+					error={!isValidReservedAmount}
+					helperText={
+						!isValidReservedAmount
+							? 'Must be 0 or greater'
+							: 'Amount reserved for potential claim payments'
+					}
 				/>
 			</Box>
 		</BasicDialog>

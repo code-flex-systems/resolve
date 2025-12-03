@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import type { ReferenceEntity } from '@/schemas/referenceDataSchemas';
 
 interface AdminState {
 	claimConstraints: {
@@ -25,6 +26,8 @@ interface AdminState {
 	selectedChecklistId: number | null;
 	selectedDeskLocationTypeId: number | null;
 	selectedFeedId: number | null | undefined;
+	selectedReferenceEntity: ReferenceEntity | null;
+	selectedReferenceOptionId: number | null;
 	selectedTab: number;
 	showClaimAssignmentDialog: boolean;
 	showImportClaimsDialog: boolean;
@@ -35,6 +38,7 @@ interface AdminState {
 	showNewDeskLocationTypeDialog: boolean;
 	showNewOfficeDialog: boolean;
 	showNewPartyDialog: boolean;
+	showNewReferenceOptionDialog: boolean;
 	showNewRepresentativeDialog: boolean;
 	showNewUserDialog: boolean;
 	userConstraints: {
@@ -47,6 +51,8 @@ interface AdminActions {
 	setChecklistId: (newId: number | null) => void;
 	setDeskLocationTypeId: (newId: number | null) => void;
 	setFeedId: (newId: number | null | undefined) => void;
+	setReferenceEntity: (entity: ReferenceEntity | null) => void;
+	setReferenceOptionId: (id: number | null) => void;
 	setTab: (newTab: number) => void;
 	toggleClaimAssignmentDialog: () => void;
 	toggleImportClaimsDialog: () => void;
@@ -57,6 +63,7 @@ interface AdminActions {
 	toggleNewDeskLocationTypeDialog: () => void;
 	toggleNewOfficeDialog: () => void;
 	toggleNewPartyDialog: () => void;
+	toggleNewReferenceOptionDialog: () => void;
 	toggleNewRepresentativeDialog: () => void;
 	toggleNewUserDialog: () => void;
 	updateClaimConstraints: (newConstraints: { page: number; pageSize: number }) => void;
@@ -94,6 +101,8 @@ const initialState: AdminState = {
 	selectedChecklistId: null,
 	selectedDeskLocationTypeId: null,
 	selectedFeedId: undefined,
+	selectedReferenceEntity: null,
+	selectedReferenceOptionId: null,
 	selectedTab: 1,
 	showClaimAssignmentDialog: false,
 	showImportClaimsDialog: false,
@@ -104,6 +113,7 @@ const initialState: AdminState = {
 	showNewDeskLocationTypeDialog: false,
 	showNewOfficeDialog: false,
 	showNewPartyDialog: false,
+	showNewReferenceOptionDialog: false,
 	showNewRepresentativeDialog: false,
 	showNewUserDialog: false,
 	userConstraints: {
@@ -129,6 +139,17 @@ export const useAdminStore = create<AdminStore>()(
 		setFeedId: (newId) =>
 			set((state) => {
 				state.selectedFeedId = newId;
+			}),
+
+		setReferenceEntity: (entity) =>
+			set((state) => {
+				state.selectedReferenceEntity = entity;
+				state.selectedReferenceOptionId = null; // Reset selection when entity changes
+			}),
+
+		setReferenceOptionId: (id) =>
+			set((state) => {
+				state.selectedReferenceOptionId = id;
 			}),
 
 		setTab: (newTab) =>
@@ -179,6 +200,11 @@ export const useAdminStore = create<AdminStore>()(
 		toggleNewPartyDialog: () =>
 			set((state) => {
 				state.showNewPartyDialog = !state.showNewPartyDialog;
+			}),
+
+		toggleNewReferenceOptionDialog: () =>
+			set((state) => {
+				state.showNewReferenceOptionDialog = !state.showNewReferenceOptionDialog;
 			}),
 
 		toggleNewRepresentativeDialog: () =>
