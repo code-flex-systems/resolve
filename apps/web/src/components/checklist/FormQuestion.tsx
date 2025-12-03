@@ -567,6 +567,7 @@ const styles = {
 		'& .MuiOutlinedInput-input': {
 			paddingTop: '3px',
 			paddingBottom: '3px',
+			overflow: 'auto',
 		},
 	},
 	toolbar: {
