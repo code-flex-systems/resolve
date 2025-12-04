@@ -6,11 +6,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import SuperJSON from 'superjson';
 import { trpc } from '@/lib/trpc';
-import { createTRPCClient } from '@trpc/client';
-import type { AppRouter } from '@/server/trpc/appRouter';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/styles/theme';
-import { SessionProvider } from 'next-auth/react';
+import { ClerkProvider } from '@clerk/nextjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
@@ -33,25 +31,25 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
 	// 2) Create one tRPC client
 	const [trpcClient] = useState(() =>
-		createTRPCClient<AppRouter>({
-			transformer: SuperJSON,
+		trpc.createClient({
 			links: [
 				httpBatchLink({
 					url: '/api/trpc',
+					transformer: SuperJSON,
 				}),
 			],
 		})
 	);
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			<trpc.Provider client={trpcClient} queryClient={queryClient}>
-				<SessionProvider>
+		<ClerkProvider>
+			<QueryClientProvider client={queryClient}>
+				<trpc.Provider client={trpcClient} queryClient={queryClient}>
 					<LocalizationProvider dateAdapter={AdapterDayjs}>
 						<ThemeProvider theme={theme}>{children}</ThemeProvider>
 					</LocalizationProvider>
-				</SessionProvider>
-			</trpc.Provider>
-		</QueryClientProvider>
+				</trpc.Provider>
+			</QueryClientProvider>
+		</ClerkProvider>
 	);
 }

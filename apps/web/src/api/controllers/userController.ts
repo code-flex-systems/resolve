@@ -1,17 +1,23 @@
 import * as userQueries from '@/api/queries/userQueries';
-import { hashAllPasswords, hashPasswordIfPresent } from '../utils/hasherUtils';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { enqueueLog } from '@/lib/logs/logQueue';
 import { safeLog } from '@/lib/logs/safeLog';
 import { logAuthEvent } from '@/lib/logs/logAuthEvents';
 import { AuthEventType } from '@/config/enums';
-import { generateStrongPassword } from '@/lib/auth/generateStrongPassword';
-import { sendEmail } from '@/lib/email/sendEmail';
 import { readFileSync } from 'fs';
 import path from 'path';
 import config from '@/config/config';
 import { DateRangeStrict } from '@/types/types';
 import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import {
+	updateClerkUser,
+	updateUserRole,
+	disableClerkUser,
+	enableClerkUser,
+	deleteClerkUser,
+	inviteUserToOrganization,
+	getClerkUserIdByEmail,
+} from '@/lib/clerk/clerk-admin';
 
 export async function getUsers(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
 	const results = await userQueries.getUsers(ctx, searchTerm);
@@ -117,10 +123,12 @@ export async function getUser(ctx: ProtectedContext, { id }: { id: string }) {
 }
 
 /**
- * Bulk create users with hashed passwords.
+ * Invite users to the organization via Clerk.
+ * Sends invitation emails - users will be created in local DB via webhook
+ * when they accept the invitation and complete signup.
  *
  * @param ctx - request context
- * @param input - array of user objects
+ * @param input - array of user objects with email and optional role
  */
 export async function createUsers(
 	ctx: ProtectedContext,
@@ -128,70 +136,77 @@ export async function createUsers(
 		users,
 	}: {
 		users: {
-			first: string;
-			last: string;
 			email: string;
-			phone?: string;
+			role?: string;
 		}[];
 	}
 ) {
-	const usersWithPasswords: {
-		first: string;
-		last: string;
-		email: string;
-		password: string;
-		phone?: string;
-	}[] = users.map((u) => ({ ...u, password: generateStrongPassword() }));
-	const hashedUsers = await hashAllPasswords(usersWithPasswords);
+	const clientId = ctx.session.user.client_id;
+	if (!clientId) {
+		throw new Error('Client ID not found in session');
+	}
 
-	// Create users and log admin actions within transaction
-	const createdUsers = await ctx.db.transaction().execute(async (trx) => {
-		const created = await userQueries.createUsers({ ...ctx, db: trx }, hashedUsers);
+	// Look up Clerk org ID from our client table
+	const client = await ctx.db
+		.selectFrom('client')
+		.select('clerk_org_id')
+		.where('id', '=', clientId)
+		.executeTakeFirst();
 
-		// Log admin actions for bulk user creation
-		await logAdminActions(
-			{ ...ctx, db: trx },
-			created.map((u) => ({
-				entityId: u.id,
-				entityName: EntityName.USER,
-				action: AdminAction.CREATE,
-				value: { email: u.email, first: u.first, last: u.last, role: u.role },
-			}))
-		);
+	if (!client?.clerk_org_id) {
+		throw new Error('Clerk organization ID not found for client');
+	}
 
-		return created;
-	});
+	const invitedUsers: { email: string; role: string }[] = [];
 
-	await Promise.all(
-		usersWithPasswords.map(async (user) => {
-			sendEmail({
-				to: user.email,
-				subject: 'Welcome to Manifest!',
-				html: getOnboardingTemplate()
-					.replace('{{AppName}}', config.APP_NAME)
-					.replace('{{userEmail}}', user.email)
-					.replace('{{defaultPassword}}', user.password)
-					.replace('{{loginLink}}', `${process.env.BASE_URL}/login`),
-			});
-		})
+	for (const user of users) {
+		const role = user.role || config.ROLES.CONTRIBUTOR;
+
+		// Send invitation via Clerk (user will receive email to complete signup)
+		// The local user record will be created by the webhook when they accept
+		await inviteUserToOrganization(client.clerk_org_id, user.email, role);
+
+		invitedUsers.push({
+			email: user.email,
+			role,
+		});
+	}
+
+	// Log admin actions for invitations
+	await logAdminActions(
+		ctx,
+		invitedUsers.map((u) => ({
+			entityId: u.email, // Use email as identifier since user doesn't exist yet
+			entityName: EntityName.USER,
+			action: AdminAction.CREATE,
+			value: { email: u.email, role: u.role, status: 'invited' },
+		}))
 	);
 
-	createdUsers.forEach((u) => {
+	invitedUsers.forEach((u) => {
 		enqueueLog(() =>
 			safeLog(
 				() =>
 					logAuthEvent(ctx.session.user.id, AuthEventType.AccountCreated, {
-						details: { createdId: u.id, createdEmail: u.email },
+						details: { invitedEmail: u.email, status: 'invitation_sent' },
 					}),
 				'authLog'
 			)
 		);
 	});
-	return createdUsers;
+
+	// Return invited users info (they don't have IDs yet until they accept)
+	return invitedUsers.map((u) => ({
+		id: null,
+		email: u.email,
+		role: u.role,
+		status: 'invited',
+	}));
 }
 
 /**
  * Update a user account.
+ * Syncs profile changes to Clerk and updates local DB.
  *
  * @param ctx - request context
  * @param input - user id and fields to modify
@@ -213,55 +228,120 @@ export async function updateUser(
 		}>;
 	}
 ) {
-	// Update user and log admin action within transaction
+	const clientId = ctx.session.user.client_id;
+
+	// Sync profile changes to Clerk (if not a placeholder user)
+	if (!id.startsWith('pending_')) {
+		// First, look up the user to get their email for Clerk API lookup
+		const user = await userQueries.getUser(ctx, id);
+		if (!user) {
+			throw new Error('User not found');
+		}
+
+		// Get the Clerk user ID by email
+		const clerkUserId = await getClerkUserIdByEmail(user.email);
+		if (!clerkUserId) {
+			console.warn(`No Clerk user found for email ${user.email}, skipping Clerk sync`);
+		} else {
+			// Update name/phone in Clerk
+			if (params.first !== undefined || params.last !== undefined || params.phone !== undefined) {
+				await updateClerkUser({
+					userId: clerkUserId,
+					firstName: params.first,
+					lastName: params.last,
+					phone: params.phone,
+				});
+			}
+
+			// Update role in Clerk organization
+			if (params.role !== undefined && clientId) {
+				// Look up Clerk org ID from our client table
+				const client = await ctx.db
+					.selectFrom('client')
+					.select('clerk_org_id')
+					.where('id', '=', clientId)
+					.executeTakeFirst();
+
+				if (client?.clerk_org_id) {
+					await updateUserRole({
+						userId: clerkUserId,
+						organizationId: client.clerk_org_id,
+						role: params.role,
+					});
+				}
+			}
+
+			// Handle disable/enable via Clerk ban/unban
+			if (params.disabled !== undefined) {
+				if (params.disabled) {
+					await disableClerkUser(clerkUserId);
+				} else {
+					await enableClerkUser(clerkUserId);
+				}
+			}
+		}
+	}
+
+	// Update local DB and log admin action
 	const updatedUser = await ctx.db.transaction().execute(async (trx) => {
 		const updated = await userQueries.updateUser({ ...ctx, db: trx }, id, params);
 
-		// Log admin action for user update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.USER,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.USER,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return updated;
 	});
 
-	if (params.disabled != null) {
-		await sendEmail({
-			to: updatedUser.email,
-			subject: params.disabled ? 'Account Deactivation' : 'Account Reactivation',
-			html: getAccountActivationTemplate(params.disabled ? 'deactivation' : 'reactivation', updatedUser.email),
-		});
-	}
 	return updatedUser;
 }
 
 /**
  * Remove a user account.
+ * Deletes from Clerk first, then local DB.
  *
  * @param ctx - request context
  * @param input - user id
  */
 export async function deleteUser(ctx: ProtectedContext, { id }: { id: string }) {
-	// Delete user and log admin action within transaction
+	// Delete user from local DB and log admin action
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch user data BEFORE deletion for logging
+		// Fetch user data BEFORE deletion for logging and Clerk lookup
 		const user = await userQueries.getUser({ ...ctx, db: trx }, id);
 
-		// Delete the user
+		if (!user) {
+			throw new Error('User not found');
+		}
+
+		// Delete from Clerk first (if not a placeholder user)
+		if (!id.startsWith('pending_')) {
+			const clerkUserId = await getClerkUserIdByEmail(user.email);
+			if (clerkUserId) {
+				await deleteClerkUser(clerkUserId);
+			} else {
+				console.warn(`No Clerk user found for email ${user.email}, skipping Clerk deletion`);
+			}
+		}
+
+		// Delete the user from local DB
 		await userQueries.deleteUser({ ...ctx, db: trx }, id);
 
 		// Log admin action for user deletion
-		if (user) {
-			await logAdminAction({ ...ctx, db: trx }, {
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
 				entityId: id,
 				entityName: EntityName.USER,
 				action: AdminAction.DELETE,
 				value: { email: user.email, first: user.first, last: user.last },
-			});
-		}
+			}
+		);
 	});
 }
 

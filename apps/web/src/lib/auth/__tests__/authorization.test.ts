@@ -17,6 +17,7 @@ vi.mock('@/api/database/kysely', () => ({
 // Reusable mock user with all required fields
 const createMockUser = (overrides?: Partial<NonNullable<Context['session']>['user']>) => ({
 	id: 'user-123',
+	clerkId: 'clerk_user_123',
 	name: 'Test User',
 	email: 'test@example.com',
 	phone: null,
@@ -28,7 +29,6 @@ const createMockUser = (overrides?: Partial<NonNullable<Context['session']>['use
 // Reusable mock session with all required fields
 const createMockSession = (userOverrides?: Partial<NonNullable<Context['session']>['user']>) => ({
 	user: createMockUser(userOverrides),
-	expires: '2025-12-31T23:59:59.999Z',
 });
 
 describe('Authorization Functions', () => {
@@ -708,13 +708,13 @@ describe('Authorization Functions', () => {
 				session: {
 					user: {
 						id: undefined as any, // Edge case: undefined id
+						clerkId: 'clerk_user_123',
 						name: 'Test User',
 						email: 'test@example.com',
 						phone: null,
 						role: 'Admin',
 						client_id: 'client-abc',
 					},
-					expires: '2025-12-31T23:59:59.999Z',
 				},
 				db,
 			};

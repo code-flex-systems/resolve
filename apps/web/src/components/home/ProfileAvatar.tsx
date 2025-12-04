@@ -5,7 +5,8 @@ import Email from '@mui/icons-material/Email';
 import Phone from '@mui/icons-material/Phone';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from '../common/BasicPopper';
-import { signOut, useSession } from 'next-auth/react';
+import { useClerk } from '@clerk/nextjs';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import BasicButtonStyled from '../common/BasicButtonStyled';
@@ -18,7 +19,8 @@ import { Role } from '@/types/types';
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
+	const { signOut } = useClerk();
 
 	return (
 		<>
@@ -78,7 +80,7 @@ export default function ProfileAvatar() {
 							</Box>
 							<BasicButtonStyled
 								buttonProps={{
-									onClick: () => signOut({ callbackUrl: '/login' }),
+									onClick: () => signOut({ redirectUrl: '/sign-in' }),
 								}}
 								tooltipProps={{ title: 'Sign out' }}
 								icon={<Logout />}

@@ -1,16 +1,17 @@
 import { initTRPC, TRPCError } from '@trpc/server';
+import superjson from 'superjson';
 import { Context } from './context';
-import { Session } from 'next-auth';
+import type { AppSession } from '@/lib/auth/clerk-session';
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+	transformer: superjson,
+});
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
 export type ProtectedContext = Context & {
-	session: {
-		user: NonNullable<Session['user']>;
-	};
+	session: AppSession;
 };
 
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
@@ -23,7 +24,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 	// Force non-null typing for session
 	const protectedCtx: ProtectedContext = {
 		...ctx,
-		session: { user: session.user, expires: session.expires },
+		session: { user: session.user },
 	};
 
 	return next({ ctx: protectedCtx });

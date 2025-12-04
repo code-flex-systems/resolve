@@ -7,9 +7,7 @@ import Send from '@mui/icons-material/Send';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 
-type NewUserFormInputs = {
-	first: string;
-	last: string;
+type InviteUserFormInputs = {
 	email: string;
 };
 
@@ -21,12 +19,12 @@ export default function NewUserDialog() {
 		handleSubmit,
 		formState: { errors, isSubmitting },
 		watch,
-	} = useForm<NewUserFormInputs>();
+	} = useForm<InviteUserFormInputs>();
 	const email = watch('email');
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			await createUsers({ users: [data] });
+			await createUsers({ users: [{ email: data.email }] });
 			toggleNewUserDialog();
 		} catch (e) {
 			console.error(e);
@@ -35,9 +33,9 @@ export default function NewUserDialog() {
 
 	return (
 		<BasicDialog
-			title="New User"
+			title="Invite User"
 			primaryAction={{
-				label: 'Initiate account',
+				label: 'Send Invitation',
 				onClick: onSubmit,
 				icon: <Send />,
 				disabled: !email || isSubmitting || isPending,
@@ -46,48 +44,22 @@ export default function NewUserDialog() {
 			width={475}
 		>
 			<Typography fontStyle="italic" fontSize={13}>
-				The new user will receive an email at the address you specify below. A default password will be created
-				to allow the user one-time access.
+				Enter the email address of the user you want to invite. They will receive an invitation email from Clerk
+				to join your organization.
 			</Typography>
 			<Typography padding="10px 0px" fontStyle="italic" fontSize={13}>
-				Upon logging in with their email and the default password, they will be required to choose a new
-				password.
+				Once they accept the invitation, they will create their own account with their name and password.
 			</Typography>
 			<form>
 				<div className="flex-row-left" style={styles.row}>
 					<TextField
-						id="first"
-						label="First"
-						placeholder="John"
-						error={!!errors.first}
-						helperText={errors.first?.message}
-						sx={{
-							width: 130,
-							marginRight: '20px',
-						}}
-						{...register('first', { required: 'First name is required' })}
-					/>
-					<TextField
-						id="last"
-						label="Last"
-						placeholder="Doe"
-						error={!!errors.last}
-						helperText={errors.last?.message}
-						sx={{
-							width: 200,
-						}}
-						{...register('last', { required: 'Last name is required' })}
-					/>
-				</div>
-				<div className="flex-row-left" style={styles.row}>
-					<TextField
 						id="email"
-						label="Organization email"
-						placeholder="example@myorg.com"
+						label="Email address"
+						placeholder="user@example.com"
 						error={!!errors.email}
 						helperText={errors.email?.message}
 						sx={{
-							width: 300,
+							width: '100%',
 						}}
 						{...register('email', { required: 'Email is required' })}
 					/>

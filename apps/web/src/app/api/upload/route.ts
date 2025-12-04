@@ -1,11 +1,9 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getClerkSession } from '@/lib/auth/clerk-session';
 import * as blobStorage from '@/lib/azure/blobStorage';
 import { validateFileType, getAllowedExtensions, getAllowedMimeTypes } from '@/config/allowedFileTypes';
-import config from '@/config/config';
 
 /**
  * POST /api/upload
@@ -16,7 +14,7 @@ import config from '@/config/config';
 export async function POST(request: NextRequest) {
 	try {
 		// Check authentication
-		const session = await getServerSession(authOptions);
+		const session = await getClerkSession();
 		if (!session?.user) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}

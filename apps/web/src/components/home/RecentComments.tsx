@@ -2,7 +2,7 @@
 import { Box, Paper, Stack, Typography } from '@mui/material';
 import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import Comments from '../common/Comments';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import './styles.css';
 import ExpandableTitle from '../common/ExpandableTitle';
 import Sms from '@mui/icons-material/Sms';
@@ -12,7 +12,7 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 
 export default function RecentComments() {
 	const router = useRouter();
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const userId = session?.user.id;
 
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({ filters: { userId } });

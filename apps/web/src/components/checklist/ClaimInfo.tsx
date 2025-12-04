@@ -9,10 +9,10 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { StackedRow } from '../common/StackedRow';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 
 export default function ClaimInfo() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const [claimAnchorEl, setClaimAnchorEl] = useState<PopperProps['anchorEl']>(null);
 	const { data: claim } = useClaimTrpc().get(

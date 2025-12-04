@@ -28,13 +28,13 @@ describe('getChecklistClaimProgress', () => {
 			session: {
 				user: {
 					id: 'user-123',
+					clerkId: 'clerk_user_123',
 					name: 'Test User',
 					email: 'test@example.com',
 					phone: null,
 					client_id: 'client-abc',
 					role: 'user',
 				},
-				expires: '2025-12-31',
 			},
 			db,
 		};
@@ -472,13 +472,13 @@ describe('getChecklistClaimProgress', () => {
 				session: {
 					user: {
 						id: 'different-user',
+						clerkId: 'clerk_different_user',
 						name: 'Other User',
 						email: 'other@example.com',
 						phone: null,
 						client_id: 'client-xyz',
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};

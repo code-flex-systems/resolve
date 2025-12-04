@@ -12,10 +12,10 @@ import ChecklistClaimDialog from '@/components/home/ChecklistClaimDialog';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import InsuranceGraphic1 from '@/lib/resources/images/insurance-graphic-1.png';
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 
 export default function HomeSearch() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const selectedChecklist = useChecklistsStore((state) => state.selectedChecklist);
 	const selectedClaim = useChecklistsStore((state) => state.selectedClaim);
 	const showChecklistClaimDialog = useChecklistsStore((state) => state.showChecklistClaimDialog);

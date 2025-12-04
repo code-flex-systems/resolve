@@ -27,21 +27,6 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface Accounts {
-  access_token: string | null;
-  expires_at: number | null;
-  id: Generated<number>;
-  id_token: string | null;
-  provider: string;
-  provider_account_id: string;
-  refresh_token: string | null;
-  scope: string | null;
-  session_state: string | null;
-  token_type: string | null;
-  type: string;
-  user_id: string;
-}
-
 export interface Action {
   answer_id: number;
   client_id: string;
@@ -275,6 +260,7 @@ export interface ClaimParty {
 }
 
 export interface Client {
+  clerk_org_id: string | null;
   id: Generated<string>;
   name: string;
 }
@@ -602,15 +588,6 @@ export interface PartyRepresentative {
   updated_by: string | null;
 }
 
-export interface PasswordResetTokens {
-  created_at: Generated<Timestamp>;
-  expires_at: Timestamp;
-  id: Generated<string>;
-  token: string;
-  used: Generated<boolean>;
-  user_id: string;
-}
-
 export interface Question {
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -763,13 +740,6 @@ export interface ResponseAuditLogs {
   user_id: string | null;
 }
 
-export interface Sessions {
-  expires: Timestamp;
-  id: Generated<number>;
-  session_token: string;
-  user_id: string;
-}
-
 export interface Task {
   assigned_at: Generated<Timestamp>;
   /**
@@ -873,11 +843,7 @@ export interface Users {
   id: Generated<string>;
   last: string;
   last_login: Timestamp | null;
-  mfa_enabled: Generated<boolean>;
-  mfa_secret: string | null;
-  must_change_password: Generated<boolean>;
   onboarding_email_sent: Generated<boolean>;
-  password_hash: string;
   phone: string | null;
   phone_verified: Timestamp | null;
   role: string | null;
@@ -885,14 +851,7 @@ export interface Users {
   updated_by: string | null;
 }
 
-export interface VerificationTokens {
-  expires: Timestamp;
-  identifier: string;
-  token: string;
-}
-
 export interface DB {
-  accounts: Accounts;
   action: Action;
   action_log: ActionLog;
   admin_config_logs: AdminConfigLogs;
@@ -921,7 +880,6 @@ export interface DB {
   party: Party;
   party_office: PartyOffice;
   party_representative: PartyRepresentative;
-  password_reset_tokens: PasswordResetTokens;
   question: Question;
   question_response: QuestionResponse;
   question_response_answer: QuestionResponseAnswer;
@@ -929,9 +887,7 @@ export interface DB {
   reference_list: ReferenceList;
   reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
-  sessions: Sessions;
   task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;
-  verification_tokens: VerificationTokens;
 }

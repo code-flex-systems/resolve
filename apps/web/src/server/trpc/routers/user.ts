@@ -18,6 +18,14 @@ import { checkRole } from '@/lib/auth/checkRole';
 import { TRPCError } from '@trpc/server';
 
 export const userRouter = router({
+	/**
+	 * Get the current authenticated user's info from session.
+	 * Returns the internal user ID (UUID) and other session data.
+	 */
+	me: protectedProcedure.query(async ({ ctx }) => {
+		return ctx.session.user;
+	}),
+
 	getUsers: protectedProcedure.input(getUsersInput).query(async ({ input, ctx }) => {
 		return userController.getUsers(ctx, input);
 	}),

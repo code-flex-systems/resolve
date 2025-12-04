@@ -5,7 +5,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 import ClaimsSearch from '@/components/home/ClaimsSearch';
 import ClaimSummaryDialog from '@/components/admin/ClaimSummaryDialog';
 import ChecklistSelectionDialog from '@/components/common/ChecklistSelectionDialog';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import theme from '@/styles/theme';
 
 /**
@@ -16,7 +16,7 @@ import theme from '@/styles/theme';
  * - Can start a checklist from the summary
  */
 export default function SearchLanding() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
 	const [showClaimDialog, setShowClaimDialog] = useState(false);
 	const [showChecklistDialog, setShowChecklistDialog] = useState(false);

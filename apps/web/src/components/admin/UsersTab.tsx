@@ -5,11 +5,10 @@ import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/materi
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import AddBox from '@mui/icons-material/AddBox';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import Phone from '@mui/icons-material/Phone';
 import Search from '@mui/icons-material/Search';
 import Shield from '@mui/icons-material/Shield';
-import Upload from '@mui/icons-material/Upload';
 import Person from '@mui/icons-material/Person';
 import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
@@ -19,13 +18,10 @@ import { formatMDY } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
-import config from '@/config/config';
-import { createUsersInput } from '@/schemas/userSchemas';
 import useDebounce from '@/lib/utils/useDebounce';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
@@ -106,11 +102,9 @@ function NoRows() {
 }
 
 export default function UsersTab() {
-	const { data: session } = useSession();
-	const showImportUsersDialog = useAdminStore((state) => state.showImportUsersDialog);
+	const { data: session } = useClerkSession();
 	const userConstraints = useAdminStore((state) => state.userConstraints);
-	const toggleImportUsersDialog = useAdminStore((state) => state.toggleImportUsersDialog);
-	const toggleNewUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
+	const toggleInviteUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
 	const updateUserConstraints = useAdminStore((state) => state.updateUserConstraints);
 
 	// URL filters hook for managing filters via search params
@@ -131,7 +125,6 @@ export default function UsersTab() {
 		offset: userConstraints.page * userConstraints.pageSize,
 		searchTerm: userSearchTerm,
 	});
-	const { mutateAsync: createUsers, isPending: creating } = useUserTrpc().create;
 	const rowCountRef = useRef(data.count ?? 0);
 
 	const rowCount = useMemo(() => {
@@ -216,17 +209,8 @@ export default function UsersTab() {
 										</IconButton>
 									)}
 								</Paper>
-								<Button
-									variant="contained"
-									color="secondary"
-									startIcon={<Upload />}
-									onClick={toggleImportUsersDialog}
-									sx={{ marginRight: '10px' }}
-								>
-									Import
-								</Button>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewUserDialog}>
-									User
+								<Button variant="contained" startIcon={<PersonAdd />} onClick={toggleInviteUserDialog}>
+									Invite User
 								</Button>
 							</>
 						}
@@ -268,20 +252,6 @@ export default function UsersTab() {
 							sx={styles.tableOverrides}
 						/>
 					</div>
-
-					{showImportUsersDialog && (
-						<CSVImportWizard
-							fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
-							validateRow={(row: any) =>
-								createUsersInput.safeParse({
-									users: [row],
-								})
-							}
-							onSubmit={(rows) => createUsers({ users: rows })}
-							submitting={creating}
-							onClose={toggleImportUsersDialog}
-						/>
-					)}
 				</Paper>
 			</div>
 		</Fade>

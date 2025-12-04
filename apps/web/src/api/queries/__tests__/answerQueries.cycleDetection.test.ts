@@ -26,13 +26,13 @@ describe('getAnswerCallGraph', () => {
 			session: {
 				user: {
 					id: 'user-123',
+					clerkId: 'clerk_user_123',
 					name: 'Test User',
 					email: 'test@example.com',
 					phone: null,
 					client_id: 'client-abc',
 					role: 'user',
 				},
-				expires: '2025-12-31',
 			},
 			db,
 		};
@@ -161,13 +161,13 @@ describe('createAnswer - cycle detection', () => {
 			session: {
 				user: {
 					id: 'user-123',
+					clerkId: 'clerk_user_123',
 					name: 'Test User',
 					email: 'test@example.com',
 					phone: null,
 					client_id: 'client-abc',
 					role: 'user',
 				},
-				expires: '2025-12-31',
 			},
 			db,
 		};
@@ -378,13 +378,13 @@ describe('modifyAnswer - cycle detection', () => {
 			session: {
 				user: {
 					id: 'user-123',
+					clerkId: 'clerk_user_123',
 					name: 'Test User',
 					email: 'test@example.com',
 					phone: null,
 					client_id: 'client-abc',
 					role: 'user',
 				},
-				expires: '2025-12-31',
 			},
 			db,
 		};

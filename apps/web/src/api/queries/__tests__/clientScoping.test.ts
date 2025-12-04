@@ -39,13 +39,13 @@ describe('Client-Scoping Security Tests', () => {
 			session: {
 				user: {
 					id: 'user-123',
+					clerkId: 'clerk_user_123',
 					name: 'Test User',
 					email: 'test@example.com',
 					phone: null,
 					client_id: 'client-abc',
 					role: 'user',
 				},
-				expires: '2025-12-31',
 			},
 			db,
 		};
@@ -102,13 +102,13 @@ describe('Client-Scoping Security Tests', () => {
 				session: {
 					user: {
 						id: 'user-789',
+						clerkId: 'clerk_user_789',
 						name: 'Other User',
 						email: 'other@example.com',
 						phone: null,
 						client_id: 'client-xyz', // Different client
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};
@@ -304,13 +304,13 @@ describe('Client-Scoping Security Tests', () => {
 				session: {
 					user: {
 						id: 'admin-1',
+						clerkId: 'clerk_admin_1',
 						name: 'Admin User',
 						email: 'admin@example.com',
 						phone: null,
 						client_id: 'client-xyz',
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};
@@ -427,13 +427,13 @@ describe('Client-Scoping Security Tests', () => {
 				session: {
 					user: {
 						id: 'user-999',
+						clerkId: 'clerk_user_999',
 						name: 'Other User',
 						email: 'other@company.com',
 						phone: null,
 						client_id: 'client-different',
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};
@@ -874,13 +874,13 @@ describe('Client-Scoping Security Tests', () => {
 				session: {
 					user: {
 						id: 'user-evil',
+						clerkId: 'clerk_user_evil',
 						name: 'Evil User',
 						email: 'evil@clientb.com',
 						phone: null,
 						client_id: 'client-b',
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};
@@ -931,13 +931,13 @@ describe('Client-Scoping Security Tests', () => {
 				session: {
 					user: {
 						id: 'admin-1',
+						clerkId: 'clerk_admin_1',
 						name: 'Admin',
 						email: 'admin@clientxyz.com',
 						phone: null,
 						client_id: 'client-xyz',
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};
@@ -1220,13 +1220,13 @@ describe('Client-Scoping Security Tests', () => {
 				session: {
 					user: {
 						id: 'user-999',
+						clerkId: 'clerk_user_999',
 						name: 'Other User',
 						email: 'other@company.com',
 						phone: null,
 						client_id: 'client-xyz',
 						role: 'admin',
 					},
-					expires: '2025-12-31',
 				},
 				db,
 			};

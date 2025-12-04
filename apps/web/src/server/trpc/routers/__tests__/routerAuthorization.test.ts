@@ -138,6 +138,7 @@ vi.mock('@/api/controllers/answerController', () => ({
 // Reusable mock user with all required fields
 const createMockUser = (overrides?: Partial<NonNullable<Context['session']>['user']>) => ({
 	id: 'user-123',
+	clerkId: 'clerk_user_123',
 	name: 'Test User',
 	email: 'test@example.com',
 	phone: null,
