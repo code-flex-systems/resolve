@@ -43,13 +43,13 @@ export default function HomeSearch() {
 								onDelete={() => updateSelectedClaim(null)}
 							/>
 						</Collapse>
-						<div style={{ height: 30 }} className="flex-row-center">
+						<Box sx={{ height: 30 }} className="flex-row-center">
 							<Separator />
 							<Separator />
 							<Separator />
-						</div>
+						</Box>
 						<ChecklistsSearch showIcon={false} />
-						<Collapse in={Boolean(selectedChecklist)} style={{ marginTop: 5 }} className="flex-col-center">
+						<Collapse in={Boolean(selectedChecklist)} sx={{ mt: 0.625 }} className="flex-col-center">
 							<Chip
 								label={selectedChecklist?.name ?? ''}
 								icon={<Checklist />}

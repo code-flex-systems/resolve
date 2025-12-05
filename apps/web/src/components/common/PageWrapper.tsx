@@ -4,16 +4,18 @@ import Sidebar, { NavItem } from './Sidebar';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import Dashboard from '@mui/icons-material/Dashboard';
 import Search from '@mui/icons-material/Search';
-import ManageAccounts from '@mui/icons-material/ManageAccounts';
 import Security from '@mui/icons-material/Security';
 import FolderOpen from '@mui/icons-material/FolderOpen';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { Fade } from '@mui/material';
+import { Box, Fade } from '@mui/material';
 
-export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor?: string } & PropsWithChildren) {
+export default function PageWrapper({
+	bgcolor = 'var(--color-bg-secondary)',
+	children,
+}: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -44,31 +46,33 @@ export default function PageWrapper({ bgcolor = '#F9FAFC', children }: { bgcolor
 	}, [isAdmin, isSuperAdmin, claim]);
 
 	return (
-		<div style={{ ...styles.container, backgroundColor: bgcolor }}>
+		<Box
+			sx={{
+				width: '100vw',
+				height: '100vh',
+				display: 'flex',
+				justifyContent: 'flex-start',
+				alignItems: 'flex-start',
+				bgcolor,
+			}}
+		>
 			<Sidebar items={navItems} />
 			<Fade in={true} timeout={1000}>
-				<div style={styles.content}>{children}</div>
+				<Box
+					sx={{
+						flex: 1,
+						minWidth: 0,
+						ml: '60px',
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+						justifyContent: 'flex-start',
+						alignItems: 'flex-start',
+					}}
+				>
+					{children}
+				</Box>
 			</Fade>
-		</div>
+		</Box>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100vw',
-		height: '100vh',
-		display: 'flex',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-	},
-	content: {
-		flex: 1,
-		minWidth: 0,
-		marginLeft: 60,
-		height: '100%',
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-	},
-};

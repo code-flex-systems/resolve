@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip, Collapse, Stack, Typography } from '@mui/material';
+import { Box, Chip, Collapse, Stack, Typography } from '@mui/material';
 import ArrowCircleRightOutlined from '@mui/icons-material/ArrowCircleRightOutlined';
 import Checklist from '@mui/icons-material/Checklist';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
@@ -39,15 +39,15 @@ export default function HomeSearch() {
 							onDelete={() => updateSelectedClaim(null)}
 						/>
 					</Collapse>
-					<div style={{ height: 40 }} className="flex-row-center">
+					<Box sx={{ height: 40 }} className="flex-row-center">
 						<Separator />
 						<Separator />
 						<Separator />
-					</div>
+					</Box>
 					<Typography>Find a checklist to fill out.</Typography>
 					<ChecklistsSearch />
 				</div>
-				<Collapse in={Boolean(selectedChecklist)} style={{ marginTop: 5 }} className="flex-col-center">
+				<Collapse in={Boolean(selectedChecklist)} sx={{ mt: 0.625 }} className="flex-col-center">
 					<Chip
 						label={selectedChecklist?.name ?? ''}
 						icon={<Checklist />}

@@ -103,28 +103,34 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 
 				{skippedRows.length > 0 && (
 					<>
-						<div
-							style={styles.skippedContainer}
-							className="flex-row-left"
+						<Box
+							sx={{
+								width: '100%',
+								height: 30,
+								cursor: 'pointer',
+								mt: 1,
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+							}}
 							onClick={() => setSkippedRowsExpanded((prev) => !prev)}
 						>
 							<ExpandMoreIcon
 								sx={{
-									marginRight: '5px',
+									mr: 0.5,
 									transform: skippedRowsExpanded ? undefined : 'rotate(-90deg)',
 									transition: 'transform 100ms ease',
 								}}
 							/>
-							<Typography fontSize={15}>{skippedRows.length} skipped row(s)</Typography>
-						</div>
+							<Typography fontSize={13}>{skippedRows.length} skipped row(s)</Typography>
+						</Box>
 						<Collapse
 							in={skippedRowsExpanded}
-							style={{ width: '100%' }}
-							className="flex-col-start"
+							sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
 							unmountOnExit
 						>
 							{skippedRows.map((row, idx) => (
-								<Typography key={idx} fontSize={14} padding="5px 0px">
+								<Typography key={idx} fontSize={13} py={0.5}>
 									<b>Row {row.rowIndex}:</b> Invalid entry for <b>{row.reason}</b>
 								</Typography>
 							))}
@@ -135,12 +141,3 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 		);
 	}
 );
-
-const styles = {
-	skippedContainer: {
-		width: '100%',
-		height: 30,
-		cursor: 'pointer',
-		marginTop: 10,
-	},
-};

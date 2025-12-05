@@ -130,9 +130,9 @@ export default function SummaryChart() {
 					padding="0px 0px 10px"
 				/>
 			</Stack>
-			<div style={styles.divider}>
+			<Box sx={styles.divider}>
 				<Divider />
-			</div>
+			</Box>
 			<PieChart
 				loading={loadingSummary}
 				series={chartData}
@@ -158,7 +158,6 @@ export default function SummaryChart() {
 const styles = {
 	divider: {
 		width: '100%',
-		height: 1,
 		padding: '5px 10px',
 	},
 	paper: {

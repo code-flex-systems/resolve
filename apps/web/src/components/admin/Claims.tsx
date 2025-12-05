@@ -30,7 +30,7 @@ import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import Visibility from '@mui/icons-material/Visibility';
@@ -192,7 +192,7 @@ export default function Claims() {
 
 	// Claim number search - synced with URL param
 	const appliedClaimNumber = getParam('claim_number') ?? '';
-	const [claimNumberSearch, setClaimNumberSearch] = useState(appliedClaimNumber);
+	const [claimNumberSearch, setClaimNumberSearch] = useState('');
 
 	// Search states for autocompletes (in filters popper)
 	const [insuredSearchTerm, setInsuredSearchTerm] = useState('');
@@ -239,22 +239,13 @@ export default function Claims() {
 	}, [feeds, selectedFeedId]);
 
 	// Debounce claim number search - write to URL param
-	const debouncedClaimSearch = useCallback(
-		useDebounce((search: string) => setParam('claim_number', search), 500),
-		[setParam]
-	);
+	const debouncedClaimSearch = useDebounce((search: string) => setParam('claim_number', search), 500);
 
 	// Debounce insured search
-	const debouncedInsuredSearchCallback = useCallback(
-		useDebounce((search: string) => setDebouncedInsuredSearch(search), 500),
-		[]
-	);
+	const debouncedInsuredSearchCallback = useDebounce((search: string) => setDebouncedInsuredSearch(search), 500);
 
 	// Debounce client search
-	const debouncedClientSearchCallback = useCallback(
-		useDebounce((search: string) => setDebouncedClientSearch(search), 500),
-		[]
-	);
+	const debouncedClientSearchCallback = useDebounce((search: string) => setDebouncedClientSearch(search), 500);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -729,7 +720,7 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		bgcolor: 'white',
-		border: `1px solid ${BASE_COLOR_LIGHT}`,
+		border: `1px solid ${BORDER_COLOR}`,
 		borderRadius: 2,
 		padding: '5px 10px',
 		minWidth: 250,

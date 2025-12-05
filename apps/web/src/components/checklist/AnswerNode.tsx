@@ -1,5 +1,5 @@
 'use client';
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ChecklistMode } from '@/config/enums';
 import './styles.css';
@@ -21,12 +21,12 @@ export default function AnswerNode(props: {
 	const selected = selectedAnswer === answerId && selectedQuestion === questionId;
 	const isPlaceholder = answerId === -1;
 	return (
-		<div
-			style={{ ...styles.node, paddingLeft: level * 25 }}
+		<Box
+			sx={{ ...styles.node, pl: level * 3.125 }}
 			onClick={mode === ChecklistMode.EDIT ? () => updateSelectedAnswer(questionId, answerId) : undefined}
 			className="flex-row-between"
 		>
-			<div className="flex-row-left">
+			<Box className="flex-row-left">
 				<FormatQuote
 					sx={{ fontSize: 16, marginRight: '10px', color: selected ? 'warning.main' : BASE_COLOR_LIGHT }}
 				/>
@@ -39,8 +39,8 @@ export default function AnswerNode(props: {
 				>
 					{answerText} (p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId})
 				</Typography>
-			</div>
-		</div>
+			</Box>
+		</Box>
 	);
 }
 
@@ -48,6 +48,6 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '5px 0px',
+		py: 0.625,
 	},
 };

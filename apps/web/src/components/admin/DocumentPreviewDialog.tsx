@@ -2,7 +2,6 @@
 
 import { Box, IconButton, Typography, Paper, Divider } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import CloseIcon from '@mui/icons-material/Close';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { formatMDY } from '@/lib/utils/utils';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -43,7 +42,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 				</Typography>
 			}
 			iconActions={[
-				<IconButton onClick={handleDownload} sx={{ marginRight: '5px' }}>
+				<IconButton onClick={handleDownload} sx={{ mr: 0.5 }}>
 					<CloudDownloadIcon />
 				</IconButton>,
 			]}
@@ -86,16 +85,17 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						display: 'flex',
 						justifyContent: 'center',
 						alignItems: 'center',
-						bgcolor: '#f5f5f5',
+						bgcolor: 'var(--color-bg-hover)',
 						borderRadius: 1,
 						overflow: 'hidden',
 					}}
 				>
 					{isImage && (
-						<img
+						<Box
+							component="img"
 							src={previewUrl}
 							alt={document.title || document.alias}
-							style={{
+							sx={{
 								maxWidth: '100%',
 								maxHeight: '100%',
 								objectFit: 'contain',
@@ -103,10 +103,11 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						/>
 					)}
 					{isPdf && (
-						<iframe
+						<Box
+							component="iframe"
 							src={previewUrl}
 							title={document.title || document.alias}
-							style={{
+							sx={{
 								width: '100%',
 								height: 600,
 								border: 'none',
@@ -120,7 +121,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 					sx={{
 						p: 4,
 						textAlign: 'center',
-						bgcolor: '#f5f5f5',
+						bgcolor: 'var(--color-bg-hover)',
 						minHeight: 200,
 						display: 'flex',
 						flexDirection: 'column',
@@ -128,7 +129,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						alignItems: 'center',
 					}}
 				>
-					<Typography fontSize={14} color="text.secondary" mb={2}>
+					<Typography fontSize={13} color="text.secondary" mb={2}>
 						Preview not available for this file type.
 					</Typography>
 					<Typography fontSize={12} color="text.secondary" mb={3}>

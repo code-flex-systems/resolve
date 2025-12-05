@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import TextField, { TextFieldProps } from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
@@ -38,17 +38,14 @@ export default function BasicAutocomplete<T>({
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<T[]>([]);
 
-	const debouncedSearch = useCallback(
-		useDebounce(async (query: string) => {
-			onSearch({ searchTerm: query })
-				.then((results) => {
-					if (Array.isArray(results)) setResults(results);
-				})
-				.catch((e) => console.error(e))
-				.finally(() => setSearching(false));
-		}, 500),
-		[]
-	);
+	const debouncedSearch = useDebounce(async (query: string) => {
+		onSearch({ searchTerm: query })
+			.then((results) => {
+				if (Array.isArray(results)) setResults(results);
+			})
+			.catch((e) => console.error(e))
+			.finally(() => setSearching(false));
+	}, 500);
 
 	return (
 		<Autocomplete

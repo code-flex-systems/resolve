@@ -155,7 +155,6 @@ export default function ChecklistProgressDialog() {
 						key={confirmingStatus ?? 'none'}
 						in={true}
 						unmountOnExit
-						style={{ width: '100%', height: '100%' }}
 					>
 						<Stack width="100%" display="flex" justifyContent="center" alignContent="center" height="100%">
 							{!confirmingStatus && (

@@ -1,5 +1,5 @@
 'use client';
-import { TextField, TextFieldProps, Typography } from '@mui/material';
+import { Box, TextField, TextFieldProps, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 
 export default function BasicTextField(props: {
@@ -38,23 +38,26 @@ export default function BasicTextField(props: {
 	};
 
 	return (
-		<div
-			style={{
-				...styles.row,
+		<Box
+			sx={{
+				width: '100%',
+				display: 'flex',
 				justifyContent: spaceBetween ? 'space-between' : 'flex-start',
+				alignItems: 'center',
+				my: 0.5,
 			}}
 		>
 			{label && (
-				<Typography fontSize={15} fontWeight="bold" marginRight="10px" noWrap>
+				<Typography fontSize={13} fontWeight={500} mr={1} noWrap>
 					{label}
 				</Typography>
 			)}
 			{readOnly ? (
-				<div style={{ width }}>
-					<Typography fontSize={15} textAlign="right" noWrap>
+				<Box sx={{ width }}>
+					<Typography fontSize={13} textAlign="right" noWrap>
 						{getFormattedInput()}
 					</Typography>
-				</div>
+				</Box>
 			) : (
 				<TextField
 					value={value}
@@ -66,21 +69,11 @@ export default function BasicTextField(props: {
 						'& .MuiInputBase-root': {
 							width,
 							height: 25,
-							fontSize: '15px',
+							fontSize: 13,
 						},
 					}}
 				/>
 			)}
-		</div>
+		</Box>
 	);
 }
-
-const styles = {
-	row: {
-		width: '100%',
-		display: 'flex',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		margin: '5px 0px',
-	},
-};

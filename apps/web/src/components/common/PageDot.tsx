@@ -1,18 +1,18 @@
 'use client';
+import { Box } from '@mui/material';
 import { useState } from 'react';
-import theme from '@/styles/theme';
 
 export default function PageDot(props: { id: number; onClick: () => void; filled?: boolean; disabled?: boolean }) {
 	const [hovered, setHovered] = useState(false);
 	return (
-		<div
-			style={{
+		<Box
+			sx={{
 				width: props.disabled ? 5 : 10,
 				height: props.disabled ? 5 : 10,
-				margin: 5,
+				m: 0.5,
 				borderRadius: 25,
-				outline: `1px solid ${theme.palette.primary.main}`,
-				backgroundColor: props.filled || props.disabled || hovered ? theme.palette.primary.main : 'white',
+				outline: '1px solid var(--color-primary)',
+				bgcolor: props.filled || props.disabled || hovered ? 'var(--color-primary)' : 'white',
 				transition: 'background-color 300ms ease, width 300ms ease, height 100ms ease',
 				cursor: props.disabled ? undefined : 'pointer',
 			}}

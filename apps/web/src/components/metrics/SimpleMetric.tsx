@@ -43,7 +43,7 @@ export default function SimpleMetric({
 	const formattedMetric = formatMetric(values?.total, { showNegative });
 	const textColor = !showNegative && formattedMetric.isNegative ? 'error' : '';
 	return (
-		<Stack margin="10px" className="metric" style={styles.container}>
+		<Stack margin="10px" className="metric" sx={styles.container}>
 			<Paper
 				elevation={0}
 				onClick={hasDetail ? onSelect : onClick}
@@ -68,7 +68,7 @@ export default function SimpleMetric({
 					>
 						<Box position="relative" top={-20} right={-140}>
 							<Paper elevation={0} sx={{ position: 'absolute', borderRadius: 25 }}>
-								<div style={{ ...styles.circle, backgroundColor: color }}>{icon}</div>
+								<Box sx={{ ...styles.circle, backgroundColor: color }}>{icon}</Box>
 							</Paper>
 						</Box>
 						<Box
@@ -124,7 +124,7 @@ export default function SimpleMetric({
 												display="flex"
 												justifyContent="center"
 												alignItems="center"
-												style={styles.dot}
+												sx={styles.dot}
 												bgcolor="white"
 											>
 												<Typography
@@ -164,7 +164,7 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 25,
+		borderRadius: '25px',
 	},
 	container: {
 		transition: 'scale 300ms ease',
@@ -172,7 +172,7 @@ const styles = {
 	dot: {
 		minWidth: 40,
 		height: 21,
-		borderRadius: 5,
+		borderRadius: '5px',
 		cursor: 'pointer',
 	},
 	expandedPaper: {

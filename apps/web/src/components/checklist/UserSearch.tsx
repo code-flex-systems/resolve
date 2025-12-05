@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
 	TextField,
 	IconButton,
@@ -45,18 +45,15 @@ export default function UserSearch({
 	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);
 	const onClose = () => setAnchorEl(null);
 
-	const debouncedSearch = useCallback(
-		useDebounce(async (query: string) => {
-			trpcUtils.user.getUsers
-				.fetch({ searchTerm: query })
-				.then((results) => {
-					if (Array.isArray(results)) setResults(results);
-				})
-				.catch((e) => console.error(e))
-				.finally(() => setSearching(false));
-		}, 500),
-		[]
-	);
+	const debouncedSearch = useDebounce(async (query: string) => {
+		trpcUtils.user.getUsers
+			.fetch({ searchTerm: query })
+			.then((results) => {
+				if (Array.isArray(results)) setResults(results);
+			})
+			.catch((e) => console.error(e))
+			.finally(() => setSearching(false));
+	}, 500);
 
 	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const { value } = event.target;

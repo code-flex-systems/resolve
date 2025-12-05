@@ -9,8 +9,8 @@ import Edit from '@mui/icons-material/Edit';
 import Search from '@mui/icons-material/Search';
 import Clear from '@mui/icons-material/Clear';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -50,7 +50,7 @@ export default function DeskAssignmentTab() {
 	const deskLocationId = deskLocationIdStr ? Number(deskLocationIdStr) : null;
 
 	// Local state for search input
-	const [searchTerm, setSearchTerm] = useState(userSearchTerm);
+	const [searchTerm, setSearchTerm] = useState('');
 
 	// Fetch users with desk assignments
 	const { data: usersData = { rows: [], count: undefined }, isFetching: usersFetching } =
@@ -76,10 +76,7 @@ export default function DeskAssignmentTab() {
 	}, [userSearchTerm]);
 
 	// Debounce search input to URL param
-	const debouncedSearch = useCallback(
-		useDebounce((search: string) => setParam('search', search), 500),
-		[]
-	);
+	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	const COLUMNS: GridColDef[] = [
 		{
@@ -285,7 +282,7 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		bgcolor: 'white',
-		border: `1px solid ${BASE_COLOR_LIGHT}`,
+		border: `1px solid ${BORDER_COLOR}`,
 		borderRadius: 2,
 		padding: '5px 10px',
 		minWidth: 250,

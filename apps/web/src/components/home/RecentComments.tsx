@@ -44,8 +44,8 @@ export default function RecentComments() {
 					}}
 				/>
 			</Stack>
-			<div
-				style={{
+			<Box
+				sx={{
 					width: 470,
 					height: 50,
 					position: 'absolute',
@@ -69,13 +69,6 @@ const styles = {
 		borderRadius: 4,
 		margin: '15px',
 		position: 'relative',
-	},
-	divider: {
-		width: 5,
-		height: 5,
-		borderRadius: 10,
-		backgroundColor: BASE_COLOR_LIGHT,
-		margin: '0px 10px',
 	},
 	horizontalDiv: {
 		padding: 0,

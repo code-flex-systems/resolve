@@ -72,9 +72,9 @@ export default function RecoveryView() {
 					multi={false}
 				/>
 			</Box>
-			<div style={styles.divider}>
+			<Box sx={styles.divider}>
 				<Divider />
-			</div>
+			</Box>
 			<Box
 				width="100%"
 				height="calc(100vh - 70px)"
@@ -117,6 +117,5 @@ export default function RecoveryView() {
 const styles = {
 	divider: {
 		width: '100%',
-		height: 1,
 	},
 };

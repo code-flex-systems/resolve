@@ -23,6 +23,8 @@ export default function ClaimDetailPanel({ claimId, open, onClose, onStartCheckl
 					padding: '20px',
 					display: 'flex',
 					flexDirection: 'column',
+					borderTopRightRadius: 0,
+					borderBottomRightRadius: 0,
 				},
 			}}
 		>

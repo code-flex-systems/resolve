@@ -19,9 +19,8 @@ import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
@@ -36,7 +35,7 @@ const COLUMNS: GridColDef[] = [
 			<StackedHeaderCell primary={`${row.last}, ${row.first}`} secondary={row.email.toLowerCase()} />
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: 'var(--color-neutral-300)' }} />} />
 		),
 		flex: 1,
 	},
@@ -50,14 +49,14 @@ const COLUMNS: GridColDef[] = [
 				disabled={params.row.disabled}
 			/>
 		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone style={{ color: BASE_COLOR_LIGHT }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone sx={{ color: 'var(--color-neutral-300)' }} />} />,
 		width: 180,
 	},
 	{
 		headerName: 'Role',
 		field: 'role',
 		renderCell: (params) => <RoleCell {...params} />,
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield style={{ color: BASE_COLOR_LIGHT }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: 'var(--color-neutral-300)' }} />} />,
 		width: 180,
 	},
 	{
@@ -82,7 +81,7 @@ const COLUMNS: GridColDef[] = [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccessTimeFilled style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: 'var(--color-neutral-300)' }} />} />
 		),
 		width: 180,
 	},
@@ -97,7 +96,7 @@ const COLUMNS: GridColDef[] = [
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />} />
+		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: 'var(--color-neutral-300)' }} />} />
 	);
 }
 
@@ -116,7 +115,7 @@ export default function UsersTab() {
 	const showDisabled = getBoolParam('disabled');
 
 	// Local state for search input
-	const [searchTerm, setSearchTerm] = useState(userSearchTerm);
+	const [searchTerm, setSearchTerm] = useState('');
 
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
@@ -140,10 +139,7 @@ export default function UsersTab() {
 	}, [userSearchTerm]);
 
 	// Debounce search input to URL param
-	const debouncedSearch = useCallback(
-		useDebounce((search: string) => setParam('search', search), 500),
-		[setParam]
-	);
+	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
 		<Fade in={true} timeout={1000}>

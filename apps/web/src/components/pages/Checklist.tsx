@@ -33,7 +33,7 @@ export default function Checklist() {
 	return !checklist || (claimId !== -1 && !claim) ? (
 		<></>
 	) : (
-		<Box width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+		<Box width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="stretch">
 			<PageNavigation />
 			{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
 			{showChecklistHandoffDialog && <ChecklistHandoffDialog />}

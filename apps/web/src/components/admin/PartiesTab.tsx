@@ -12,7 +12,7 @@ import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import PartyActionsCell from './PartyActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -90,7 +90,7 @@ export default function PartiesTab() {
 	const showArchivedParties = getBoolParam('archived');
 
 	// Local state for search input
-	const [searchTerm, setSearchTerm] = useState(partySearchTerm);
+	const [searchTerm, setSearchTerm] = useState('');
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().list({
 		limit: partyConstraints.pageSize,
@@ -113,10 +113,7 @@ export default function PartiesTab() {
 	}, [partySearchTerm]);
 
 	// Debounce search input to URL param
-	const debouncedSearch = useCallback(
-		useDebounce((search: string) => setParam('search', search), 500),
-		[setParam]
-	);
+	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
 		<Fade in={true} timeout={1000}>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import { Button, Paper, Typography } from '@mui/material';
+import { Box, Button, Paper, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Shield from '@mui/icons-material/Shield';
 import { useCoverageTrpc, CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
@@ -14,6 +14,15 @@ import Toolbar from '../common/Toolbar';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import CoverageActionsCell from './CoverageActionsCell';
 import CoverageFormDialog from './CoverageFormDialog';
+
+function NoRows() {
+	return (
+		<CustomNoRowsOverlay
+			text="No coverages found"
+			icon={<Shield sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
 
 interface CoverageManagerProps {
 	claimId: number;
@@ -113,15 +122,6 @@ export default function CoverageManager({
 		},
 	];
 
-	function NoRows() {
-		return (
-			<CustomNoRowsOverlay
-				text="No coverages found"
-				icon={<Shield sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
-			/>
-		);
-	}
-
 	return (
 		<>
 			<Paper sx={styles.paper} className="flex-col-start">
@@ -152,7 +152,7 @@ export default function CoverageManager({
 					/>
 				)}
 
-				<div style={styles.table}>
+				<Box sx={styles.table}>
 					<DataGridPro
 						columns={COLUMNS}
 						rows={coverages}
@@ -169,7 +169,7 @@ export default function CoverageManager({
 						getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
 						sx={styles.tableOverrides}
 					/>
-				</div>
+				</Box>
 			</Paper>
 
 			<CoverageFormDialog

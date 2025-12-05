@@ -108,11 +108,6 @@ export default function UserActivityChart({
 }
 
 const styles = {
-	divider: {
-		width: '100%',
-		height: 1,
-		padding: '5px 10px',
-	},
 	paper: {
 		display: 'flex',
 		flexDirection: 'column' as const,

@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@mui/material';
+import { Box, Link } from '@mui/material';
 
 export default function PhoneCell({
 	value,
@@ -12,17 +12,10 @@ export default function PhoneCell({
 	disabled: boolean;
 }) {
 	return value ? (
-		<div style={{ width: '100%' }} className="flex-row-left">
-			<Link marginLeft="5px">{value}</Link>
-		</div>
+		<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+			<Link sx={{ ml: 0.5 }}>{value}</Link>
+		</Box>
 	) : (
 		<>-</>
 	);
 }
-
-const styles = {
-	icon: {
-		fontSize: 17,
-		cursor: 'pointer',
-	},
-};

@@ -3,24 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-	Box,
-	List,
-	ListItem,
-	ListItemButton,
-	ListItemIcon,
-	ListItemText,
-	Collapse,
-	IconButton,
-	Tooltip,
-	Divider,
-	Paper,
-} from '@mui/material';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import ChevronLeft from '@mui/icons-material/ChevronLeft';
-import ChevronRight from '@mui/icons-material/ChevronRight';
-import theme from '@/styles/theme';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Collapse, Typography } from '@mui/material';
 
 export interface AdminNavItem {
 	label: string;
@@ -39,14 +22,11 @@ export interface AdminNavCategory {
 
 export interface AdminSidebarProps {
 	categories: AdminNavCategory[];
-	collapsedWidth?: number;
-	expandedWidth?: number;
+	width?: number;
 }
 
-export default function AdminSidebar({ categories, collapsedWidth = 60, expandedWidth = 250 }: AdminSidebarProps) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+export default function AdminSidebar({ categories, width = 240 }: AdminSidebarProps) {
 	const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
-		// Initialize with default expanded states
 		const initial: Record<string, boolean> = {};
 		categories.forEach((cat) => {
 			initial[cat.label] = cat.defaultExpanded ?? true;
@@ -55,225 +35,71 @@ export default function AdminSidebar({ categories, collapsedWidth = 60, expanded
 	});
 	const pathname = usePathname();
 
-	const toggleSidebar = () => setSidebarOpen((o) => !o);
-
-	const toggleCategory = (categoryLabel: string) => {
-		setExpandedCategories((prev) => ({
-			...prev,
-			[categoryLabel]: !prev[categoryLabel],
-		}));
-	};
-
 	return (
-		<Box
-			sx={{
-				width: sidebarOpen ? expandedWidth : collapsedWidth,
-				height: '100vh',
-				backgroundColor: '#fafafa',
-				borderRight: '1px solid #e0e0e0',
-				transition: 'width 0.3s',
-				overflowY: 'auto',
-				overflowX: 'hidden',
-				flexShrink: 0,
-			}}
-		>
-			{/* Toggle button */}
-			<Box
-				sx={{
-					display: 'flex',
-					justifyContent: sidebarOpen ? 'flex-end' : 'center',
-					alignItems: 'center',
-					height: 50,
-					px: 1,
-					borderBottom: '1px solid #e0e0e0',
-				}}
-			>
-				<IconButton onClick={toggleSidebar} size="small">
-					{sidebarOpen ? <ChevronLeft /> : <ChevronRight />}
-				</IconButton>
-			</Box>
-
+		<Box sx={styles.container} style={{ width }}>
 			{/* Categories */}
-			<List disablePadding sx={{ py: 1 }}>
+			<List disablePadding sx={{ pt: 1.5 }}>
 				{categories.map((category, categoryIndex) => {
 					const isCategoryExpanded = expandedCategories[category.label];
 
 					return (
-						<Box key={category.label}>
-							{/* Category Header (optional) */}
-							{!category.hideHeader &&
-								(sidebarOpen ? (
-									<ListItemButton
-										onClick={() => toggleCategory(category.label)}
-										sx={{
-											px: 2,
-											py: 1,
-											minHeight: 40,
-										}}
-									>
-										<ListItemIcon
-											sx={{
-												minWidth: 0,
-												mr: 1,
-												color: theme.palette.text.secondary,
-												'& .MuiSvgIcon-root': { fontSize: 20 },
-											}}
-										>
-											{category.icon}
-										</ListItemIcon>
-
-										<ListItemText
-											primary={category.label}
-											slotProps={{
-												primary: {
-													style: {
-														fontSize: 12,
-														fontWeight: 600,
-														textTransform: 'uppercase',
-														color: theme.palette.text.secondary,
-														textWrap: 'nowrap',
-													},
-												},
-											}}
-										/>
-										{/* {isCategoryExpanded ? (
-											<ExpandLess fontSize="small" />
-										) : (
-											<ExpandMore fontSize="small" />
-										)} */}
-									</ListItemButton>
-								) : (
-									<Tooltip title={category.label} placement="right">
-										<Box
-											sx={{
-												display: 'flex',
-												justifyContent: 'center',
-												py: 1,
-												color: theme.palette.text.secondary,
-											}}
-										>
-											{category.icon}
-										</Box>
-									</Tooltip>
-								))}
+						<Box key={category.label} sx={{ mb: 2 }}>
+							{/* Category Header */}
+							{!category.hideHeader && (
+								<Box sx={styles.categoryHeader}>
+									<Typography sx={styles.categoryLabel}>{category.label}</Typography>
+								</Box>
+							)}
 
 							{/* Category Items */}
-							{sidebarOpen ? (
-								<Collapse in={category.hideHeader || isCategoryExpanded} timeout="auto" unmountOnExit>
-									<List disablePadding>
-										{category.items.map((item) => {
-											// Find the longest matching route in this category to prevent highlighting multiple routes
-											const matchingRoute = category.items
-												.filter(
-													(i) => pathname === i.route || pathname.startsWith(i.route + '/')
-												)
-												.sort((a, b) => b.route.length - a.route.length)[0];
-											const selected = matchingRoute?.route === item.route;
-											return (
-												<ListItem key={item.route} disablePadding sx={{ pl: 1 }}>
-													<ListItemButton
-														component={Link}
-														href={item.route}
-														sx={{
-															minHeight: 36,
-															pl: 4,
-															pr: 2,
-															borderRadius: 1,
-															mx: 1,
-															color: selected
-																? theme.palette.primary.main
-																: theme.palette.text.primary,
-															bgcolor: selected
-																? `${theme.palette.primary.main}15`
-																: 'transparent',
-															'&:hover': {
-																bgcolor: selected
-																	? `${theme.palette.primary.main}25`
-																	: theme.palette.action.hover,
-															},
-														}}
-													>
-														<ListItemIcon
-															sx={{
-																minWidth: 0,
-																mr: 1,
-																color: selected
-																	? theme.palette.primary.main
-																	: theme.palette.text.secondary,
-																'& .MuiSvgIcon-root': { fontSize: 18 },
-															}}
-														>
-															{item.icon}
-														</ListItemIcon>
-														<ListItemText
-															primary={item.label}
-															slotProps={{
-																primary: {
-																	style: {
-																		fontSize: 13,
-																		fontWeight: selected ? 500 : 400,
-																		textWrap: 'nowrap',
-																	},
-																},
-															}}
-														/>
-													</ListItemButton>
-												</ListItem>
-											);
-										})}
-									</List>
-								</Collapse>
-							) : (
-								// Collapsed state - show icons only
+							<Collapse in={category.hideHeader || isCategoryExpanded} timeout="auto" unmountOnExit>
 								<List disablePadding>
 									{category.items.map((item) => {
-										// Find the longest matching route in this category to prevent highlighting multiple routes
 										const matchingRoute = category.items
 											.filter((i) => pathname === i.route || pathname.startsWith(i.route + '/'))
 											.sort((a, b) => b.route.length - a.route.length)[0];
 										const selected = matchingRoute?.route === item.route;
 										return (
-											<ListItem key={item.route} disablePadding>
-												<Tooltip title={item.label} placement="right">
-													<ListItemButton
-														component={Link}
-														href={item.route}
+											<ListItem key={item.route} disablePadding sx={{ px: 1.5, py: 0.25 }}>
+												<ListItemButton
+													component={Link}
+													href={item.route}
+													sx={{
+														...styles.navItem,
+														...(selected && styles.navItemSelected),
+													}}
+												>
+													<ListItemIcon
 														sx={{
-															minHeight: 36,
-															justifyContent: 'center',
+															...styles.navIcon,
 															color: selected
-																? theme.palette.primary.main
-																: theme.palette.text.secondary,
-															bgcolor: selected
-																? `${theme.palette.primary.main}15`
-																: 'transparent',
-															'&:hover': {
-																bgcolor: selected
-																	? `${theme.palette.primary.main}25`
-																	: theme.palette.action.hover,
-															},
+																? 'var(--color-primary)'
+																: 'var(--color-text-secondary)',
 														}}
 													>
-														<ListItemIcon
-															sx={{
-																minWidth: 0,
-																justifyContent: 'center',
-																color: 'inherit',
-																'& .MuiSvgIcon-root': { fontSize: 20 },
-															}}
-														>
-															{item.icon}
-														</ListItemIcon>
-													</ListItemButton>
-												</Tooltip>
+														{item.icon}
+													</ListItemIcon>
+													<ListItemText
+														primary={item.label}
+														slotProps={{
+															primary: {
+																sx: {
+																	fontSize: 13,
+																	fontWeight: selected ? 500 : 400,
+																	color: selected
+																		? 'var(--color-text-primary)'
+																		: 'var(--color-text-secondary)',
+																	whiteSpace: 'nowrap',
+																},
+															},
+														}}
+													/>
+												</ListItemButton>
 											</ListItem>
 										);
 									})}
 								</List>
-							)}
-
-							{/* Divider between categories */}
-							{categoryIndex < categories.length - 1 && <Divider sx={{ my: 1, mx: 2 }} />}
+							</Collapse>
 						</Box>
 					);
 				})}
@@ -281,3 +107,49 @@ export default function AdminSidebar({ categories, collapsedWidth = 60, expanded
 		</Box>
 	);
 }
+
+const styles = {
+	container: {
+		height: '100vh',
+		bgcolor: 'var(--color-bg-primary)',
+		borderRight: '1px solid var(--color-border)',
+		overflowY: 'auto',
+		overflowX: 'hidden',
+		flexShrink: 0,
+	},
+	categoryHeader: {
+		px: 2,
+		py: 0.75,
+		mb: 0.5,
+	},
+	categoryLabel: {
+		fontSize: 11,
+		fontWeight: 600,
+		textTransform: 'uppercase',
+		color: 'var(--color-text-muted)',
+		letterSpacing: '0.5px',
+	},
+	navItem: {
+		minHeight: 32,
+		px: 1.5,
+		py: 0.5,
+		borderRadius: 'var(--radius-md)',
+		transition: 'all 150ms ease',
+		'&:hover': {
+			bgcolor: 'var(--color-bg-hover)',
+		},
+	},
+	navItemSelected: {
+		bgcolor: 'var(--color-primary-light)',
+		'&:hover': {
+			bgcolor: 'var(--color-primary-light)',
+		},
+	},
+	navIcon: {
+		minWidth: 0,
+		mr: 1.5,
+		'& .MuiSvgIcon-root': {
+			fontSize: 18,
+		},
+	},
+};

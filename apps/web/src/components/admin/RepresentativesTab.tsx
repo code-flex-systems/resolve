@@ -14,7 +14,7 @@ import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -140,7 +140,7 @@ export default function RepresentativesTab() {
 	const showArchivedRepresentatives = getBoolParam('archived');
 
 	// Local state for search input
-	const [searchTerm, setSearchTerm] = useState(representativeSearchTerm);
+	const [searchTerm, setSearchTerm] = useState('');
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
@@ -163,10 +163,7 @@ export default function RepresentativesTab() {
 	}, [representativeSearchTerm]);
 
 	// Debounce search input to URL param
-	const debouncedSearch = useCallback(
-		useDebounce((search: string) => setParam('search', search), 500),
-		[setParam]
-	);
+	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
 		<Fade in={true} timeout={1000}>

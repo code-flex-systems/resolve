@@ -19,11 +19,11 @@ export default function Legend() {
 				}}
 				icon={<Info />}
 			/>
-			<Popper open={!!anchorEl} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 100 }} transition>
+			<Popper open={!!anchorEl} anchorEl={anchorEl} placement="bottom-start" sx={{ zIndex: 100 }} transition>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
 						<span>
-							<Paper style={styles.container} className="flex-col-start">
+							<Paper sx={styles.container} className="flex-col-start">
 								<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 									<Typography marginBottom="5px">Legend</Typography>
 									<Divider flexItem />
@@ -61,17 +61,16 @@ export default function Legend() {
 const styles = {
 	container: {
 		width: 'fit-content',
-		padding: '10px 20px',
+		p: '10px 20px',
 		height: 'fit-content',
 		borderTopRightRadius: 5,
 		borderBottomLeftRadius: 5,
 		borderBottomRightRadius: 5,
 		border: `1px solid ${theme.palette.divider}`,
-		marginTop: 5,
+		mt: 0.625,
 	},
 	icon: {
 		color: theme.palette.primary.main,
-		// fontSize: 17,
-		marginRight: '10px',
+		mr: 1.25,
 	},
 };

@@ -1,6 +1,5 @@
 'use client';
 import { Box, Fade, Paper, Popper, PopperProps, Stack } from '@mui/material';
-import theme, { BASE_COLOR } from '@/styles/theme';
 import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useState } from 'react';
@@ -26,13 +25,13 @@ export default function ClaimInfo() {
 
 	if (!claim) return <></>;
 	return (
-		<div className="flex-row-left">
+		<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 			<BasicButtonStyled
 				buttonProps={{
 					onMouseEnter: (e) => setClaimAnchorEl(e.currentTarget),
 					onMouseLeave: () => setClaimAnchorEl(null),
-					startIcon: <ContentPasteSearch sx={{ color: theme.palette.primary.main }} />,
-					sx: { marginRight: '5px' },
+					startIcon: <ContentPasteSearch sx={{ color: 'primary.main' }} />,
+					sx: { mr: 0.5 },
 				}}
 			>
 				{claim.claim_number}
@@ -41,13 +40,29 @@ export default function ClaimInfo() {
 				open={!!claimAnchorEl}
 				anchorEl={claimAnchorEl}
 				placement="bottom-start"
-				style={{ zIndex: 100 }}
+				sx={{ zIndex: 100 }}
 				transition
 			>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
 						<span>
-							<Paper style={styles.container} className="flex-col-start">
+							<Paper
+								sx={{
+									width: 450,
+									maxWidth: 450,
+									p: '0px 10px 10px',
+									height: 'fit-content',
+									borderTopRightRadius: 1,
+									borderBottomLeftRadius: 1,
+									borderBottomRightRadius: 1,
+									border: '1px solid',
+									borderColor: 'divider',
+									mt: 0.5,
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'flex-start',
+								}}
+							>
 								<Box width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 									<Stack
 										width="50%"
@@ -91,20 +106,6 @@ export default function ClaimInfo() {
 					</Fade>
 				)}
 			</Popper>
-		</div>
+		</Box>
 	);
 }
-
-const styles = {
-	container: {
-		width: 450,
-		maxWidth: 450,
-		padding: '0px 10px 10px',
-		height: 'fit-content',
-		borderTopRightRadius: 5,
-		borderBottomLeftRadius: 5,
-		borderBottomRightRadius: 5,
-		border: `1px solid ${theme.palette.divider}`,
-		marginTop: 5,
-	},
-};

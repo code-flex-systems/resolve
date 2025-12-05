@@ -1,5 +1,6 @@
 'use client';
-import { Box, Divider, IconButton, Stack } from '@mui/material';
+import { Box, Divider, Stack } from '@mui/material';
+import { BG_TERTIARY } from '@/styles/theme';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import Toolbar from '@/components/common/Toolbar';
@@ -30,13 +31,13 @@ export default function Summary() {
 				}
 				padding={0}
 			/>
-			<div style={styles.divider}>
+			<Box sx={styles.divider}>
 				<Divider />
-			</div>
-			<div style={styles.containerInner} className="flex-row-left">
+			</Box>
+			<Box sx={styles.containerInner} className="flex-row-left">
 				<SummaryChart />
 				<SummaryDetails />
-			</div>
+			</Box>
 		</Stack>
 	);
 }
@@ -54,11 +55,10 @@ const styles = {
 	containerInner: {
 		width: '100%',
 		height: 'calc(100vh - 60px)',
-		backgroundColor: '#F7F8FA',
-		padding: '20px',
+		bgcolor: BG_TERTIARY,
+		p: '20px',
 	},
 	divider: {
 		width: '100%',
-		height: 1,
 	},
 };
