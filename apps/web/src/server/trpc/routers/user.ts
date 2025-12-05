@@ -96,15 +96,27 @@ export const userRouter = router({
 
 	updateUser: protectedProcedure.input(updateUserInput).mutation(async ({ input, ctx }) => {
 		const isSelfUpdate = input.id === ctx.session.user.id;
-		const adminOnlyFields: string[] = ['first', 'last', 'role', 'disabled'];
-		// Must be admin to update other users, or to update role / activate/deactivate account
-		if (!isSelfUpdate || Object.keys(input.params).some((k) => adminOnlyFields.includes(k))) {
+		const superAdminOnlyFields: (keyof typeof input.params)[] = ['first', 'last'];
+		const adminOnlyFields: (keyof typeof input.params)[] = ['role', 'disabled'];
+
+		// Check if any field with a defined value is in the given list
+		const hasFieldWithValue = (fields: (keyof typeof input.params)[]) =>
+			fields.some((field) => input.params[field] !== undefined);
+
+		// Super admin required for name changes
+		if (hasFieldWithValue(superAdminOnlyFields)) {
+			requireRole(ctx, config.ROLES.SUPER_ADMIN);
+		}
+
+		// Admin required to update other users, or to update role/disabled status
+		if (!isSelfUpdate || hasFieldWithValue(adminOnlyFields)) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			// Must be super admin to remove a user's escalated privileges
-			if ('role' in input.params && input.params.role !== config.ROLES.ADMIN) {
+			if (input.params.role !== undefined && input.params.role !== config.ROLES.ADMIN) {
 				requireRole(ctx, config.ROLES.SUPER_ADMIN);
 			}
 		}
+
 		return userController.updateUser(ctx, input);
 	}),
 
