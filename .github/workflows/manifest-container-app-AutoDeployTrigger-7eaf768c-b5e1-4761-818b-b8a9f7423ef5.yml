@@ -56,6 +56,8 @@ jobs:
                   echo "Migrations complete!"
 
             - name: Build and deploy Container App
+              env:
+                  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
               run: |
                   # Check current status
                   echo "Current container app status:"
@@ -64,13 +66,14 @@ jobs:
                     --resource-group Manifest \
                     --query "properties.provisioningState" -o tsv
 
-                  # Build and deploy
+                  # Build and deploy with build arg for NEXT_PUBLIC env var
                   az containerapp up \
                     --name manifest-container-app \
                     --resource-group Manifest \
                     --source . \
                     --ingress external \
                     --target-port 8080 \
+                    --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}" \
                     --env-vars \
                       PORT=8080 \
                       NODE_ENV=production \

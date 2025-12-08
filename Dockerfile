@@ -15,6 +15,10 @@ RUN npm ci
 # Copy application code
 COPY . .
 
+# Build args for Next.js public env vars (must be available at build time)
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
 # Build the Next.js application
 RUN npm run build
 
