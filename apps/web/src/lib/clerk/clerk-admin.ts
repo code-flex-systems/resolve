@@ -139,6 +139,6 @@ export async function inviteUserToOrganization(
 		organizationId,
 		emailAddress: email,
 		role: mapAppRoleToClerkRole(role),
-		redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-in`,
+		redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
 	});
 }

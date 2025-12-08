@@ -80,7 +80,7 @@ export default function ProfileAvatar() {
 							</Box>
 							<BasicButtonStyled
 								buttonProps={{
-									onClick: () => signOut({ redirectUrl: '/sign-in' }),
+									onClick: () => signOut({ redirectUrl: '/login' }),
 								}}
 								tooltipProps={{ title: 'Sign out' }}
 								icon={<Logout />}
