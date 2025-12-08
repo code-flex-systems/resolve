@@ -1,5 +1,5 @@
 import { CompiledQuery, ExpressionWrapper, sql, SqlBool } from 'kysely';
-import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
+import { getUpdatedPageStatus, isEqual, sqlFilters } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { DateRange, DateRangeStrict, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -234,10 +234,10 @@ export async function getResponseAuditLogStats(
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day::date
             and r.client_id = ${ctx.session.user.client_id}
-            ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
-            ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
-            ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
-            ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
+            ${sqlFilters.eq('r.checklist_id', filters.checklistId)}
+            ${sqlFilters.eq('r.claim_id', filters.claimId)}
+            ${sqlFilters.inArray('r.user_id', filters.users)}
+            ${sqlFilters.ilike('r.question_text', filters.searchTerm)}
         group by gs.day
         order by gs.day
     `.compile(ctx.db);

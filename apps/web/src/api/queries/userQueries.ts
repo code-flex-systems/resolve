@@ -2,6 +2,7 @@ import config from '@/config/config';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRangeStrict } from '@/types/types';
 import { CompiledQuery, sql } from 'kysely';
+import { sqlFilters } from '@/api/utils/utils';
 
 /**
  * Retrieve users for the current client with optional pagination.
@@ -278,10 +279,10 @@ export async function getUserActivity(
         ) as gs(day)
         left join response_audit_logs r on date(r.created_at) = gs.day::date
             and r.client_id = ${ctx.session.user.client_id}
-            ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
-            ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
-            ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
-            ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
+            ${sqlFilters.eq('r.checklist_id', filters.checklistId)}
+            ${sqlFilters.eq('r.claim_id', filters.claimId)}
+            ${sqlFilters.inArray('r.user_id', filters.users)}
+            ${sqlFilters.ilike('r.question_text', filters.searchTerm)}
         group by gs.day
         order by gs.day
     `.compile(ctx.db);
