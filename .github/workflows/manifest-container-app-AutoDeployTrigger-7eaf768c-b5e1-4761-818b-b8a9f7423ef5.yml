@@ -93,6 +93,7 @@ jobs:
                   az containerapp update \
                     --name manifest-container-app \
                     --resource-group Manifest \
+                    --container-name manifest-container-app \
                     --image ${ACR_NAME}.azurecr.io/manifest-container-app:${{ github.sha }} \
                     --set-env-vars \
                       PORT=8080 \
