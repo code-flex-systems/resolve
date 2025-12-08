@@ -1,5 +1,5 @@
 import { CompiledQuery, ExpressionWrapper, sql, SqlBool } from 'kysely';
-import { getUpdatedPageStatus, isEqual } from '@/api/utils/utils';
+import { getUpdatedPageStatus, isEqual, sqlFilters } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
 import { DateRange, DateRangeStrict, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
@@ -7,12 +7,14 @@ import { DB } from '../database/types';
 
 /**
  * Count question responses for a specific claim checklist instance.
+ * Only counts responses that have actual content (response_text, response_doc_id,
+ * or selected answers that don't require an upload without one).
  *
  * @param ctx - request context
  * @param checklistId - checklist identifier
  * @param claimId - claim identifier
  * @param instanceId - page instance id
- * @returns number of responses
+ * @returns number of answered responses
  */
 export async function getResponseCount(
 	ctx: ProtectedContext,
@@ -22,7 +24,29 @@ export async function getResponseCount(
 ) {
 	const countRow = await ctx.db
 		.selectFrom('question_response')
-		.select(({ fn }) => fn.countAll().as('count'))
+		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+		.select((eb) =>
+			eb.fn
+				.count('question_response.id')
+				.distinct()
+				.filterWhere((f) =>
+					f.or([
+						f('question_response.response_text', 'is not', null),
+						f('question_response.response_doc_id', 'is not', null),
+						f.and([
+							f('question_response_answer.id', 'is not', null),
+							sql<boolean>`not exists (
+								select 1 from question_response_answer qra
+								join answer a on a.id = qra.answer_id
+								where qra.response_id = question_response.id
+								and a.requires_upload = true
+								and question_response.response_doc_id is null
+							)`,
+						]),
+					])
+				)
+				.as('count')
+		)
 		.where('question_response.client_id', '=', ctx.session.user.client_id)
 		.where((eb) =>
 			eb.and([
@@ -195,22 +219,27 @@ export async function getResponseAuditLogStats(
 	ctx: ProtectedContext,
 	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
 ) {
+	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
+	const startDate = filters.range[0].toISOString().split('T')[0];
+	const endDate = filters.range[1].toISOString().split('T')[0];
+
 	const query: CompiledQuery<{ activity_date: string; event_count: number }> = sql`
         select
             gs.day::date as activity_date,
             count(r.id)::int as event_count
         from generate_series(
-            ${filters.range[0]},
-            ${filters.range[1]},
+            ${startDate}::date,
+            ${endDate}::date,
             interval '1 day'
         ) as gs(day)
-        left join response_audit_logs r on date(r.created_at) = gs.day
+        left join response_audit_logs r on date(r.created_at) = gs.day::date
             and r.client_id = ${ctx.session.user.client_id}
-            ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
-            ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
-            ${sql.raw(filters.users?.length ? `and r.user_id in (${filters.users.map((u) => `'${u}'`)})` : '')}
-            ${sql.raw(filters.searchTerm ? `and r.question_text ilike '%${filters.searchTerm}%'` : '')}
+            ${sqlFilters.eq('r.checklist_id', filters.checklistId)}
+            ${sqlFilters.eq('r.claim_id', filters.claimId)}
+            ${sqlFilters.inArray('r.user_id', filters.users)}
+            ${sqlFilters.ilike('r.question_text', filters.searchTerm)}
         group by gs.day
+        order by gs.day
     `.compile(ctx.db);
 	return (await ctx.db.executeQuery(query))?.rows ?? [];
 }

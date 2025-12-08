@@ -15,7 +15,6 @@ import { feedRouter } from './routers/feed';
 import { liabilityRouter } from './routers/liability';
 import { pageRouter } from './routers/page';
 import { partyRouter } from './routers/party';
-import { passwordResetRouter } from './routers/passwordReset';
 import { questionRouter } from './routers/question';
 import { recoveryRouter } from './routers/recovery';
 import { referenceDataRouter } from './routers/referenceData';
@@ -39,7 +38,6 @@ export const appRouter = router({
 	liability: liabilityRouter,
 	page: pageRouter,
 	party: partyRouter,
-	passwordReset: passwordResetRouter,
 	question: questionRouter,
 	recovery: recoveryRouter,
 	referenceData: referenceDataRouter,

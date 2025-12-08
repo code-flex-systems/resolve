@@ -5,8 +5,8 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 import ClaimsSearch from '@/components/home/ClaimsSearch';
 import ClaimSummaryDialog from '@/components/admin/ClaimSummaryDialog';
 import ChecklistSelectionDialog from '@/components/common/ChecklistSelectionDialog';
-import { useSession } from 'next-auth/react';
-import theme from '@/styles/theme';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import theme, { BG_TERTIARY, BORDER_COLOR } from '@/styles/theme';
 
 /**
  * Landing page with hero search
@@ -16,7 +16,7 @@ import theme from '@/styles/theme';
  * - Can start a checklist from the summary
  */
 export default function SearchLanding() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
 	const [showClaimDialog, setShowClaimDialog] = useState(false);
 	const [showChecklistDialog, setShowChecklistDialog] = useState(false);
@@ -43,7 +43,7 @@ export default function SearchLanding() {
 
 	return (
 		<>
-			<Box style={styles.container}>
+			<Box sx={styles.container}>
 				<Paper sx={styles.paper}>
 					<Stack width="100%" maxWidth={700} spacing={4} mx="auto">
 						{/* Hero Header */}
@@ -52,7 +52,7 @@ export default function SearchLanding() {
 								MANIFEST
 							</Typography>
 							<Typography variant="h5" fontSize={24} fontWeight={500} color="text.secondary" mb={1}>
-								Welcome{session?.user ? `, ${session.user.name.split(' ')[0] ?? ''}` : ''}!
+								Welcome{session?.user ? `, ${session.user.name?.split(' ')[0] ?? ''}` : ''}!
 							</Typography>
 							<Typography variant="body1" fontSize={16} color="text.secondary" mt={2}>
 								Search for a claim to get started
@@ -102,20 +102,19 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: '#F7F8FA',
-		padding: '40px 20px',
+		p: '40px 20px',
 	},
 	paper: {
 		width: '100%',
 		maxWidth: 900,
-		padding: '30px 40px',
+		p: '30px 40px',
 		borderRadius: 4,
-		margin: '15px auto',
-		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.08) 0%, rgba(255, 255, 255, 1) 100%)',
-		border: '1px solid',
-		borderColor: theme.palette.primary.light,
+		m: '15px auto',
+		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.06) 0%, rgba(255, 255, 255, 1) 100%)',
+		border: `1px solid ${BORDER_COLOR}`,
 	},
 	searchContainer: {
 		width: '100%',
+		height: '100%',
 	},
 };

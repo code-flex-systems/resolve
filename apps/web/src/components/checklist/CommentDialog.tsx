@@ -9,11 +9,11 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 export default function CommentDialog() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const { instanceId, questionId, existingComment } = useChecklistStore((state) => state.questionCommentDialog);
 	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
 	const clearExistingComment = useChecklistStore((state) => state.clearExistingComment);

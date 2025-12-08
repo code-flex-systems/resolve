@@ -6,7 +6,7 @@ import { Box, Button, Typography } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
@@ -15,7 +15,7 @@ import UpdateUserDialog from '../home/UpdateUserDialog';
 export default function UserActionsCell(params: GridRenderCellParams) {
 	const { row } = params;
 	const { mutate, isPending } = useUserTrpc().update;
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const [onOffboarding, setOnOffboarding] = useState(false);
 	const [updating, setUpdating] = useState(false);
 	return (

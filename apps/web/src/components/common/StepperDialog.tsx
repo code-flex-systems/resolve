@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { MenuItem, Select, TextField, TextFieldProps, Typography } from '@mui/material';
+import { Box, MenuItem, Select, TextField, TextFieldProps, Typography } from '@mui/material';
 import { Controller, Form, SubmitHandler, useForm } from 'react-hook-form';
 
 import BasicDialog from './BasicDialog';
@@ -79,8 +79,14 @@ export default function StepperDialog(props: {
 			width={400}
 			maxHeight={500}
 		>
-			<Form control={control} style={{ opacity: faded ? 0 : 1, transition: 'opacity 100ms ease' }}>
-				<Typography marginBottom="10px">{label}</Typography>
+			<Box
+				component={Form}
+				control={control}
+				sx={{ opacity: faded ? 0 : 1, transition: 'opacity 100ms ease' }}
+			>
+				<Typography mb={1} fontSize={13}>
+					{label}
+				</Typography>
 				{type === 'select' ? (
 					<Controller
 						name={key}
@@ -119,8 +125,7 @@ export default function StepperDialog(props: {
 						{...register(key)}
 					/>
 				)}
-			</Form>
+			</Box>
 		</BasicDialog>
 	);
 }
-

@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { PageInstanceStatus } from '@/config/enums';
+import { RawBuilder, sql } from 'kysely';
 
 export function getUpdatedPageStatus(questionCount: number, responseCount: number) {
 	if (questionCount === responseCount) return PageInstanceStatus.COMPLETE;
@@ -71,3 +72,21 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(fn
 		}
 	}) as T;
 }
+
+/**
+ * Build optional SQL filter conditions with proper parameterization.
+ * Returns empty SQL fragment if value is undefined/null/empty.
+ */
+export const sqlFilters = {
+	/** Filter by exact match on a column */
+	eq: <T>(column: string, value: T | undefined | null): RawBuilder<unknown> =>
+		value !== undefined && value !== null ? sql`and ${sql.ref(column)} = ${value}` : sql``,
+
+	/** Filter by array membership using PostgreSQL's ANY() */
+	inArray: (column: string, values: string[] | undefined): RawBuilder<unknown> =>
+		values?.length ? sql`and ${sql.ref(column)} = any(${sql.val(values)}::text[])` : sql``,
+
+	/** Filter by ILIKE pattern match (case-insensitive) */
+	ilike: (column: string, searchTerm: string | undefined): RawBuilder<unknown> =>
+		searchTerm ? sql`and ${sql.ref(column)} ilike ${'%' + searchTerm + '%'}` : sql``,
+};

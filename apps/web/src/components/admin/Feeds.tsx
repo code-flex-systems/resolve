@@ -1,8 +1,8 @@
 'use client';
 
 import { FeedStatus } from '@/config/enums';
-import theme, { BACKDROP_COLOR, OFFWHITE_COLOR } from '@/styles/theme';
-import { Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
+import theme from '@/styles/theme';
+import { Box, Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
 import Toolbar from '../common/Toolbar';
@@ -12,11 +12,9 @@ import Notifications from '@mui/icons-material/Notifications';
 import NotificationsOff from '@mui/icons-material/NotificationsOff';
 import Power from '@mui/icons-material/Power';
 import PowerOff from '@mui/icons-material/PowerOff';
-import RssFeed from '@mui/icons-material/RssFeed';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import ExpandableTitle from '../common/ExpandableTitle';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ClaimAssignmentDialog from './ClaimAssignmentDialog';
 
@@ -47,8 +45,8 @@ export default function Feeds() {
 	};
 
 	return (
-		<div style={styles.container} className="flex-row-left">
-			<Paper sx={styles.paper}>
+		<Box sx={{ width: 'fit-content', height: '100%', mr: 2, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+			<Paper sx={{ minWidth: 325, height: '100%', p: 2, border: 1, borderColor: 'divider' }}>
 				<Toolbar
 					left={<Typography variant="h6">Feeds</Typography>}
 					right={
@@ -65,13 +63,13 @@ export default function Feeds() {
 					padding={0}
 				/>
 				<Divider />
-				<List disablePadding sx={{ paddingTop: '5px' }}>
+				<List disablePadding sx={{ pt: 0.5 }}>
 					{!feeds.length && !isFetching && (
-						<div style={styles.menuItem}>
-							<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontStyle="italic">
+						<Box sx={{ width: 300, mt: 0.5 }}>
+							<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontStyle="italic" fontSize={13}>
 								No feeds found
 							</Typography>
-						</div>
+						</Box>
 					)}
 					{feeds.map((f) => [
 						<MenuItem
@@ -80,63 +78,71 @@ export default function Feeds() {
 							onClick={() => setFeedId(selectedFeedId === f.id ? undefined : f.id)}
 							disableRipple
 							sx={{
-								...styles.menuItem,
+								width: 300,
+								mt: 0.5,
 								...(selectedFeedId === f.id
-									? { border: `1px solid ${theme.palette.primary.main}`, borderBottom: 'none' }
+									? { border: '1px solid var(--color-primary)', borderBottom: 'none' }
 									: {}),
 							}}
 						>
-							<div style={{ width: '100%' }} className="flex-row-between">
-								<div className="flex-row-left">
-									<Typography width={200} lineHeight="19px" whiteSpace="wrap">
+							<Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+								<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+									<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontSize={13}>
 										{f.name}
 									</Typography>
-								</div>
+								</Box>
 
 								{testing ? (
 									<Ping size="30" speed="2" color={getStatusColor(f.status)} />
 								) : (
-									<div style={{ width: 30, height: 30 }} className="flex-row-center">
-										<div style={{ ...styles.dot, backgroundColor: getStatusColor(f.status) }} />
-									</div>
+									<Box sx={{ width: 30, height: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+										<Box sx={{ width: 10, height: 10, borderRadius: 5, bgcolor: getStatusColor(f.status) }} />
+									</Box>
 								)}
-							</div>
+							</Box>
 						</MenuItem>,
 						<Collapse key={`${f.id}-content`} in={selectedFeedId === f.id} unmountOnExit>
-							<div
-								style={{
-									...styles.feedContent,
+							<Box
+								sx={{
+									width: '100%',
+									display: 'flex',
+									flexDirection: 'column',
+									justifyContent: 'flex-start',
+									alignItems: 'center',
+									height: 'fit-content',
+									p: '10px 15px',
+									bgcolor: 'var(--color-bg-secondary)',
 									...(selectedFeedId === f.id
-										? { border: `1px solid ${theme.palette.primary.main}`, borderTop: 'none' }
+										? { border: '1px solid var(--color-primary)', borderTop: 'none' }
 										: {}),
 								}}
 							>
-								<div style={{ width: '100%', paddingBottom: 5 }} className="flex-row-between">
-									<Typography fontStyle="italic" fontWeight="bold" fontSize={14}>
+								<Box sx={{ width: '100%', pb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
 										Status
 									</Typography>
-									<Typography fontStyle="italic" fontSize={14}>
+									<Typography fontStyle="italic" fontSize={13}>
 										{f.status}
 									</Typography>
-								</div>
-								<div style={{ width: '100%', paddingBottom: 5 }} className="flex-row-between">
-									<Typography fontStyle="italic" fontWeight="bold" fontSize={14}>
+								</Box>
+								<Box sx={{ width: '100%', pb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
 										Schedule
 									</Typography>
-									<Typography fontStyle="italic" fontSize={14}>
+									<Typography fontStyle="italic" fontSize={13}>
 										{formatHour(f.schedule)}{' '}
 										{f.schedule < 5 || f.schedule >= 19 ? '(nightly)' : '(daily)'}
 									</Typography>
-								</div>
-								<div style={{ width: '100%', paddingBottom: 10 }} className="flex-row-between">
-									<Typography fontStyle="italic" fontWeight="bold" fontSize={14}>
+								</Box>
+								<Box sx={{ width: '100%', pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
 										Last published
 									</Typography>
-									<Typography fontStyle="italic" fontSize={14}>
+									<Typography fontStyle="italic" fontSize={13}>
 										{formatMDYAbv(f.last_synced_at?.toString())}
 									</Typography>
-								</div>
-								<div style={{ width: '100%', paddingBottom: 10 }} className="flex-row-between">
+								</Box>
+								<Box sx={{ width: '100%', pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 									<Button
 										onClick={() => toggleClaimAssignmentDialog()}
 										variant="contained"
@@ -145,8 +151,8 @@ export default function Feeds() {
 									>
 										Assign claims
 									</Button>
-								</div>
-								<div style={{ width: '100%' }} className="flex-row-left">
+								</Box>
+								<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 									<Tooltip
 										title={f.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
 										enterDelay={500}
@@ -155,7 +161,7 @@ export default function Feeds() {
 										<span>
 											<IconButton
 												disabled={f.status === FeedStatus.OFFLINE || isPending}
-												sx={{ marginRight: '5px' }}
+												sx={{ mr: 0.5 }}
 											>
 												<NetworkCheck />
 											</IconButton>
@@ -186,7 +192,7 @@ export default function Feeds() {
 													})
 												}
 												disabled={f.status === FeedStatus.OFFLINE || isPending}
-												sx={{ marginRight: '5px' }}
+												sx={{ mr: 0.5 }}
 											>
 												{f.status === FeedStatus.MUTED ? (
 													<Notifications />
@@ -220,47 +226,13 @@ export default function Feeds() {
 											</IconButton>
 										</span>
 									</Tooltip>
-								</div>
-							</div>
+								</Box>
+							</Box>
 						</Collapse>,
 					])}
 				</List>
 			</Paper>
 			{showClaimAssignmentDialog && <ClaimAssignmentDialog />}
-		</div>
+		</Box>
 	);
 }
-
-const styles = {
-	container: {
-		width: 'fit-content',
-		height: '100%',
-		marginRight: 20,
-	},
-	dot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-	},
-	feedContent: {
-		width: '100%',
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'center',
-		height: 'fit-content',
-		padding: '10px 15px',
-		backgroundColor: '#F9FAFC',
-	},
-	menuItem: {
-		width: 300,
-		marginTop: '5px',
-	},
-	paper: {
-		minWidth: 325,
-		height: '100%',
-		padding: '15px',
-		border: 1,
-		borderColor: 'divider',
-	},
-};

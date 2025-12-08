@@ -8,7 +8,7 @@ import { formatMD, formatUser } from '@/lib/utils/utils';
 import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CommentFilters } from '@/types/types';
 import { useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useRouter } from 'next/navigation';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
@@ -32,7 +32,7 @@ export default function Comments({
 	onNavigate: (args: { checklistId?: number; claimId?: number; instanceId?: number; questionId?: number }) => void;
 }) {
 	const router = useRouter();
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const toggleComments = useChecklistStore((state) => state.toggleComments);
 
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list(

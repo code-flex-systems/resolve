@@ -37,13 +37,13 @@ export default function QuestionStatItem(props: {
 			</AccordionSummary>
 			<AccordionDetails>
 				{answers.map((a) => (
-					<div key={a.answer_id} style={styles.container} className="flex-col-left">
-						<div style={styles.container} className="flex-row-left">
+					<Box key={a.answer_id} sx={styles.container} className="flex-col-left">
+						<Box sx={styles.container} className="flex-row-left">
 							<Box
 								display="flex"
 								justifyContent="center"
 								alignItems="center"
-								style={{
+								sx={{
 									...styles.dot,
 									backgroundColor:
 										selectedAnswerId === a.answer_id ? theme.palette.primary.main : '#EBEBEB',
@@ -71,8 +71,8 @@ export default function QuestionStatItem(props: {
 									{a.answer_text} (p{pageId}.q{question_id}.a{a.answer_id})
 								</Typography>
 							)}
-						</div>
-					</div>
+						</Box>
+					</Box>
 				))}
 			</AccordionDetails>
 		</Accordion>

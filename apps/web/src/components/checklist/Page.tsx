@@ -160,9 +160,9 @@ export default function Page() {
 
 	return (
 		<>
-			<div style={styles.container}>
+			<Box sx={styles.container}>
 				{(selectedPageInstance === -1 || loading) && (
-					<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
+					<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
 						{loading ? (
 							<>
 								<Typography fontStyle="italic" color="primary">
@@ -184,7 +184,7 @@ export default function Page() {
 								</Typography>
 							</Box>
 						)}
-					</div>
+					</Box>
 				)}
 				{selectedPageInstance !== -1 && !loading && (
 					<>
@@ -197,17 +197,17 @@ export default function Page() {
 										color="white"
 									/>
 									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
-										<div style={{ marginLeft: 10 }} className="flex-row-left">
+										<Box sx={{ ml: 1.25 }} className="flex-row-left">
 											<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
 											<Typography color={theme.palette.success.light}>Saved!</Typography>
-										</div>
+										</Box>
 									</Fade>
 								</>
 							}
 							leftWidth="70%"
 							right={
 								<Fade in={mode === ChecklistMode.VIEW && isAssigned} unmountOnExit>
-									<div className="flex-row-right">
+									<Box className="flex-row-right">
 										<BasicButtonStyled
 											buttonProps={{
 												onClick: () =>
@@ -238,35 +238,37 @@ export default function Page() {
 										>
 											Save
 										</BasicButtonStyled>
-									</div>
+									</Box>
 								</Fade>
 							}
 							rightWidth="30%"
 							height={60}
 							padding={'10px 0px'}
 						/>
-						<div style={styles.divider}>
+						<Box sx={styles.divider}>
 							<Divider />
-						</div>
-						<Fade key={selectedPageInstance} in={!loading} style={styles.form} timeout={500} unmountOnExit>
-							<Form control={control} style={styles.form}>
-								{(questions ?? []).map((question, i) => (
-									<ChecklistQuestion
-										key={question.id}
-										control={control}
-										setValue={setValue}
-										watch={watch}
-										question={question}
-										comment={comments?.[question.id]}
-										disabled={isSubmitting}
-										idx={i}
-									/>
-								))}
-							</Form>
-						</Fade>
+						</Box>
+						<Box sx={styles.formWrapper}>
+							<Fade key={selectedPageInstance} in={!loading} timeout={500} unmountOnExit>
+								<Form control={control} style={{ width: '100%' }}>
+									{(questions ?? []).map((question, i) => (
+										<ChecklistQuestion
+											key={question.id}
+											control={control}
+											setValue={setValue}
+											watch={watch}
+											question={question}
+											comment={comments?.[question.id]}
+											disabled={isSubmitting}
+											idx={i}
+										/>
+									))}
+								</Form>
+							</Fade>
+						</Box>
 					</>
 				)}
-			</div>
+			</Box>
 			{questionCommentDialog.show && <CommentDialog />}
 			{!!updateSubmittedDialogAction && <UpdateSubmittedDialog />}
 		</>
@@ -277,21 +279,24 @@ const styles = {
 	container: {
 		flex: 1,
 		minWidth: 500,
+		width: '100%',
 		height: '100%',
 		display: 'flex',
-		flexDirection: 'column' as const,
+		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		padding: '20px',
+		p: 2.5,
+		overflow: 'hidden',
 	},
 	divider: {
 		width: '100%',
-		height: 1,
-		marginBottom: 5,
+		mb: 0.625,
+		flexShrink: 0,
 	},
-	form: {
+	formWrapper: {
+		flex: 1,
 		width: '100%',
-		height: '100%',
+		minHeight: 0,
 		overflow: 'auto',
 	},
 };

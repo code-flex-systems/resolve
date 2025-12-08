@@ -14,7 +14,7 @@ import {
 import PersonOutlined from '@mui/icons-material/PersonOutlined';
 import Security from '@mui/icons-material/Security';
 import Warning from '@mui/icons-material/Warning';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { formatPhoneNumber, getInitials, parsePhoneNumber } from '@/lib/utils/utils';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
@@ -60,7 +60,7 @@ Notes:
 */
 
 export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutput; onClose: () => void }) {
-	const { data: session, update: updateSessionInfo } = useSession();
+	const { data: session } = useClerkSession();
 	const [confirmingRoleChange, setConfirmingRoleChange] = useState(false);
 	const userData = user ?? session?.user;
 	const isAdmin = useIsAdmin();
@@ -124,16 +124,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 				params: updates,
 			});
 
-			if (!user) {
-				await updateSessionInfo({
-					user: {
-						name: `${updatedInfo.first} ${updatedInfo.last}`,
-						email: updatedInfo.email,
-						phone: updatedInfo.phone,
-					},
-				});
-			}
-
+			// Clerk handles session updates automatically when user data changes
 			onClose();
 		} catch (e) {
 			console.error(e);
@@ -248,7 +239,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 							placeholder="John"
 							error={!!errors.first}
 							{...field}
-							disabled={isSubmitting || confirmingRoleChange || (!isAdmin && !isSuperAdmin)}
+							disabled={isSubmitting || confirmingRoleChange || !isSuperAdmin}
 							sx={styles.textFieldOverrides}
 						/>
 					)}
@@ -265,7 +256,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 							placeholder="Doe"
 							error={!!errors.last}
 							{...field}
-							disabled={isSubmitting || confirmingRoleChange || (!isAdmin && !isSuperAdmin)}
+							disabled={isSubmitting || confirmingRoleChange || !isSuperAdmin}
 							sx={styles.textFieldOverrides}
 						/>
 					)}

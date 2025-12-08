@@ -55,7 +55,7 @@ export default function MyClaims() {
 	const [draftRecoveryStatus, setDraftRecoveryStatus] = useState<string | null>(null);
 
 	// Search state - synced with URL param
-	const [searchTerm, setSearchTerm] = useState(appliedSearch);
+	const [searchTerm, setSearchTerm] = useState('');
 
 	// Selected claim for detail panel
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
@@ -64,10 +64,7 @@ export default function MyClaims() {
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
 
 	// Debounce search - write to URL param
-	const debouncedSearch = useCallback(
-		useDebounce((search: string) => setParam('search', search), 500),
-		[setParam]
-	);
+	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {

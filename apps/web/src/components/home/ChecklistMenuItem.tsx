@@ -24,14 +24,14 @@ export default function ChecklistMenuItem(props: {
 		>
 			<Paper elevation={0} sx={{ width: '100%', borderRadius: 1 }}>
 				<MenuItem
-					style={styles.menuItem}
+					sx={styles.menuItem}
 					onClick={() => {
 						useChecklistsStore.getState().updateSelectedChecklist(checklist);
 						if (typeof onClose === 'function') onClose();
 					}}
 					className="flex-row-between"
 				>
-					<div style={styles.menuItemInner} className="flex-row-left">
+					<Box sx={styles.menuItemInner} className="flex-row-left">
 						<Box display="flex" alignItems="center" width={200} overflow="hidden">
 							<Checklist sx={{ ...styles.icon, color: theme.palette.primary.main }} />
 							<Typography fontSize={13} fontWeight="bold" color="primary" textOverflow="ellipsis" noWrap>
@@ -50,10 +50,10 @@ export default function ChecklistMenuItem(props: {
 								{formatMDYAbv(checklist?.updated_at?.toString())}
 							</Typography>
 						</Box>
-					</div>
-					<div className="flex-row-right">
+					</Box>
+					<Box className="flex-row-right">
 						{selected ? <CheckCircle sx={{ color: 'primary.main', marginLeft: '10px' }} /> : <></>}
-					</div>
+					</Box>
 				</MenuItem>
 			</Paper>
 		</Tooltip>
@@ -61,17 +61,6 @@ export default function ChecklistMenuItem(props: {
 }
 
 const styles = {
-	clearIcon: {
-		fontSize: 17,
-	},
-	dividerDot: {
-		minWidth: 5,
-		width: 5,
-		height: 5,
-		borderRadius: 10,
-		backgroundColor: '#d9d9d9',
-		margin: '0px 10px',
-	},
 	icon: {
 		fontSize: 15,
 		marginRight: '5px',
@@ -80,11 +69,6 @@ const styles = {
 		width: '100%',
 	},
 	menuItemInner: {
-		padding: 5,
-	},
-	verticalDiv: {
-		height: 20,
-		width: 1,
-		margin: '0px 10px',
+		p: 0.625,
 	},
 };

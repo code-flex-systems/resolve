@@ -8,7 +8,6 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
 import { useSearchParams } from 'next/navigation';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
@@ -56,7 +55,7 @@ export default function BreakdownNavigation() {
 			display="flex"
 			justifyContent="flex-start"
 			alignItems="flex-start"
-			paddingRight="20px"
+			pr={2.5}
 		>
 			<Paper elevation={0} sx={styles.paper}>
 				<Box
@@ -64,11 +63,11 @@ export default function BreakdownNavigation() {
 					display="flex"
 					justifyContent="flex-start"
 					alignItems="center"
-					paddingTop="10px"
-					paddingLeft="10px"
+					pt={1.5}
+					pl={1.5}
 				>
-					<Leaderboard sx={{ color: BASE_COLOR_LIGHT, transform: 'rotate(90deg)' }} />
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginLeft="10px">
+					<Leaderboard sx={{ color: 'var(--color-text-muted)', transform: 'rotate(90deg)' }} />
+					<Typography fontSize="var(--font-size-base)" color="var(--color-text-muted)" ml={1.5}>
 						{pageInstance
 							? `Breakdown for ${pageInstance.title}`
 							: isLoading
@@ -79,18 +78,18 @@ export default function BreakdownNavigation() {
 
 				<Fade key={isLoading ? 'loading' : 'data'} in={true}>
 					<span>
-						<Paper elevation={0} sx={{ height: 'calc(100% - 60px)', padding: '20px' }}>
+						<Paper elevation={0} sx={styles.contentPaper}>
 							{isLoading && (
-								<div style={styles.loadingContainer} className="flex-col-center">
+								<Box sx={styles.loadingContainer} className="flex-col-center">
 									<WobbleLoadingIndicator />
-								</div>
+								</Box>
 							)}
 							{!isLoading && !questionStats.length && (
-								<div style={styles.loadingContainer} className="flex-col-center">
-									<Typography color="#d9d9d9" fontSize={15}>
+								<Box sx={styles.loadingContainer} className="flex-col-center">
+									<Typography color="var(--color-text-muted)" fontSize="var(--font-size-lg)">
 										No response data found
 									</Typography>
-								</div>
+								</Box>
 							)}
 							{!isLoading &&
 								!!questionStats.length &&
@@ -122,13 +121,17 @@ const styles = {
 		width: 'fit-content',
 		minWidth: 500,
 		height: 'calc(100vh - 65px)',
-		backgroundColor: '#F7F8FA',
-		padding: 10,
+		bgcolor: 'var(--color-bg-tertiary)',
+		p: 1.5,
 		overflow: 'hidden',
 		borderRadius: 0,
 	},
+	contentPaper: {
+		height: 'calc(100% - 60px)',
+		p: 2.5,
+	},
 	dateFilter: {
-		margin: '0px 5px',
+		mx: 0.5,
 	},
 	loadingContainer: {
 		width: '100%',
@@ -138,8 +141,9 @@ const styles = {
 		width: '100%',
 		height: '100%',
 		zIndex: 10,
-		padding: '20px',
-		borderRadius: 6,
+		p: 2.5,
+		borderRadius: 'var(--radius-md)',
+		border: '1px solid var(--color-border)',
 		overflow: 'auto',
 	},
 };

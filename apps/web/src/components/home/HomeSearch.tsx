@@ -12,10 +12,10 @@ import ChecklistClaimDialog from '@/components/home/ChecklistClaimDialog';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import InsuranceGraphic1 from '@/lib/resources/images/insurance-graphic-1.png';
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 
 export default function HomeSearch() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const selectedChecklist = useChecklistsStore((state) => state.selectedChecklist);
 	const selectedClaim = useChecklistsStore((state) => state.selectedClaim);
 	const showChecklistClaimDialog = useChecklistsStore((state) => state.showChecklistClaimDialog);
@@ -43,13 +43,13 @@ export default function HomeSearch() {
 								onDelete={() => updateSelectedClaim(null)}
 							/>
 						</Collapse>
-						<div style={{ height: 30 }} className="flex-row-center">
+						<Box sx={{ height: 30 }} className="flex-row-center">
 							<Separator />
 							<Separator />
 							<Separator />
-						</div>
+						</Box>
 						<ChecklistsSearch showIcon={false} />
-						<Collapse in={Boolean(selectedChecklist)} style={{ marginTop: 5 }} className="flex-col-center">
+						<Collapse in={Boolean(selectedChecklist)} sx={{ mt: 0.625 }} className="flex-col-center">
 							<Chip
 								label={selectedChecklist?.name ?? ''}
 								icon={<Checklist />}

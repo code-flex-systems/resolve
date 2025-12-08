@@ -8,7 +8,7 @@ import Close from '@mui/icons-material/Close';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
@@ -21,7 +21,7 @@ interface ChecklistAnswerFileUploadProps {
 
 export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUploadProps) {
 	const { field, answer, disabled, allowedExtensions } = props;
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const [showDocSelector, setShowDocSelector] = useState(false);

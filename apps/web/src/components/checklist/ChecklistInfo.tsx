@@ -33,13 +33,13 @@ export default function ChecklistInfo() {
 				open={!!checklistAnchorEl}
 				anchorEl={checklistAnchorEl}
 				placement="bottom-start"
-				style={{ zIndex: 100 }}
+				sx={{ zIndex: 100 }}
 				transition
 			>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
 						<span>
-							<Paper style={styles.container} className="flex-col-start">
+							<Paper sx={styles.container} className="flex-col-start">
 								<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 									{(isAdmin || isSuperAdmin) && (
 										<StackedRow
@@ -64,16 +64,12 @@ export default function ChecklistInfo() {
 const styles = {
 	container: {
 		width: 'fit-content',
-		padding: '0px 20px 10px',
+		p: '0px 20px 10px',
 		height: 'fit-content',
 		borderTopRightRadius: 5,
 		borderBottomLeftRadius: 5,
 		borderBottomRightRadius: 5,
 		border: `1px solid ${theme.palette.divider}`,
-		marginTop: 5,
-	},
-	row: {
-		width: '100%',
-		margin: '2px 0px',
+		mt: 0.625,
 	},
 };

@@ -19,7 +19,7 @@ import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import { ClaimStatus, RecoveryStatus } from '@/config/enums';
@@ -427,7 +427,7 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		bgcolor: 'white',
-		border: `1px solid ${BASE_COLOR_LIGHT}`,
+		border: `1px solid ${BORDER_COLOR}`,
 		borderRadius: 2,
 		padding: '5px 10px',
 		minWidth: 350,

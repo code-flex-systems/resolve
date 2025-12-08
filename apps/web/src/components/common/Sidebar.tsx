@@ -11,9 +11,9 @@ import {
 	ListItemIcon,
 	ListItemText,
 	ClickAwayListener,
-	Divider,
 	Typography,
 	Paper,
+	Fade,
 } from '@mui/material';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import Image from 'next/image';
@@ -47,7 +47,7 @@ export default function Sidebar({
 	collapsedWidth = 60,
 	expandedWidth = 240,
 	color = BASE_COLOR_LIGHT,
-	hoverBackgroundColor = '#fff',
+	hoverBackgroundColor = 'rgba(33, 181, 255, 0.08)',
 }: SidebarProps) {
 	const [open, setOpen] = useState(false);
 	const pathname = usePathname();
@@ -56,6 +56,9 @@ export default function Sidebar({
 	const handleClickAway = () => {
 		if (open) setOpen(false);
 	};
+
+	// Fixed icon width for consistent centering
+	const iconWidth = collapsedWidth - 10; // Account for padding
 
 	return (
 		<ClickAwayListener onClickAway={handleClickAway}>
@@ -68,7 +71,7 @@ export default function Sidebar({
 					width: open ? expandedWidth : collapsedWidth,
 					backgroundColor: 'white',
 					color,
-					transition: 'width 0.3s',
+					transition: 'width 0.3s ease',
 					overflowX: 'hidden',
 					zIndex: 500,
 					borderRadius: 0,
@@ -83,26 +86,28 @@ export default function Sidebar({
 						height: 50,
 						cursor: 'pointer',
 						overflow: 'hidden',
+						background: 'linear-gradient(180deg, #21B5FF 0%, #1a9fd9 100%)',
+						borderRadius: '8px',
+						margin: '5px',
 					}}
-					borderRadius={1}
-					bgcolor={theme.palette.primary.main}
-					margin="5px"
 				>
 					<Box
-						width={collapsedWidth}
-						minWidth={collapsedWidth}
-						display="flex"
-						justifyContent="flex-start"
-						alignItems="center"
-						paddingLeft="10px"
+						sx={{
+							width: iconWidth,
+							minWidth: iconWidth,
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+						}}
 					>
 						<Image src={logo} alt="logo" height={35} />
 					</Box>
-					<Typography color="white" fontSize={30} paddingTop="5px" marginRight="5px">
-						{config.APP_NAME}
-					</Typography>
+					<Fade in={open} timeout={200}>
+						<Typography color="white" fontSize={30} paddingTop="5px" marginRight="5px">
+							{config.APP_NAME}
+						</Typography>
+					</Fade>
 				</Box>
-				{/* <Divider sx={{ borderColor: color }} /> */}
 
 				<List disablePadding>
 					{items.map((item) => {
@@ -114,7 +119,6 @@ export default function Sidebar({
 								sx={{
 									display: 'block',
 									padding: '5px',
-									// borderRadius: 20,
 									borderRight: selected ? `3px solid ${theme.palette.primary.main}` : undefined,
 								}}
 							>
@@ -122,42 +126,53 @@ export default function Sidebar({
 									component={Link}
 									href={item.route}
 									sx={{
-										minHeight: 30,
-										justifyContent: open ? 'initial' : 'center',
-										px: 2.5,
+										minHeight: 40,
+										justifyContent: 'flex-start',
+										px: 0,
 										color: selected ? theme.palette.primary.main : color,
-										bgcolor: selected ? hoverBackgroundColor : 'inherit',
+										bgcolor: selected ? hoverBackgroundColor : 'transparent',
+										transition: 'background-color 0.2s ease, color 0.2s ease',
 										'&:hover': {
 											bgcolor: hoverBackgroundColor,
 											color: theme.palette.primary.main,
+											'& .MuiListItemIcon-root': {
+												color: theme.palette.primary.main,
+											},
 										},
-										borderRadius: 1,
+										borderRadius: '8px',
 									}}
 								>
 									<ListItemIcon
 										sx={{
-											minWidth: 0,
-											mr: open ? 3 : 'auto',
+											width: iconWidth,
+											minWidth: iconWidth,
 											justifyContent: 'center',
-											color: selected ? BASE_COLOR : BASE_COLOR_LIGHT,
+											color: selected ? theme.palette.primary.main : BASE_COLOR_LIGHT,
+											transition: 'color 0.2s ease',
 											'& .MuiSvgIcon-root': { fontSize: 23 },
 										}}
 									>
 										{item.icon}
 									</ListItemIcon>
-									{open && (
+									<Fade in={open} timeout={200}>
 										<ListItemText
 											primary={item.label}
+											sx={{
+												opacity: open ? 1 : 0,
+												whiteSpace: 'nowrap',
+											}}
 											slotProps={{
 												primary: {
 													typography: {
 														color: 'inherit',
+														fontSize: 14,
+														fontWeight: 500,
 													},
 													noWrap: true,
 												},
 											}}
 										/>
-									)}
+									</Fade>
 								</ListItemButton>
 							</ListItem>
 						);

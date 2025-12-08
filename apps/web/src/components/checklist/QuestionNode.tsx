@@ -1,5 +1,5 @@
 'use client';
-import { Collapse, IconButton, Typography } from '@mui/material';
+import { Box, Collapse, IconButton, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import './styles.css';
@@ -30,12 +30,12 @@ export default function QuestionNode(props: {
 
 	return (
 		<>
-			<div
-				style={{ ...styles.node, paddingLeft: level * 15, paddingRight: '10px' }}
+			<Box
+				sx={{ ...styles.node, pl: level * 1.875, pr: 1.25 }}
 				onClick={() => updateSelectedQuestion(questionId)}
 				className="flex-row-between"
 			>
-				<div className="flex-row-left">
+				<Box className="flex-row-left">
 					<HelpOutline sx={{ fontSize: 16, marginRight: '10px', color: selected ? 'secondary.main' : '' }} />
 					<Typography
 						color={selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : ''}
@@ -47,9 +47,9 @@ export default function QuestionNode(props: {
 						{questionId !== -1 ? `${idx + 1}. ` : ''}
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
 					</Typography>
-				</div>
+				</Box>
 				{questionId === -1 || questionType === QuestionType.FREEFORM ? (
-					<div style={{ width: 25 }} />
+					<Box sx={{ width: 25 }} />
 				) : (
 					<IconButton
 						onClick={(e) => {
@@ -68,7 +68,7 @@ export default function QuestionNode(props: {
 						/>
 					</IconButton>
 				)}
-			</div>
+			</Box>
 			<Collapse in={expanded} unmountOnExit>
 				<span>
 					{[...questionAnswers]
@@ -103,6 +103,6 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		padding: '10px 0px',
+		py: 1.25,
 	},
 };

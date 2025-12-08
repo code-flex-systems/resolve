@@ -20,7 +20,7 @@ import MovieEdit from '@mui/icons-material/MovieEdit';
 import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import Visibility from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/navigation';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import theme from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
@@ -53,12 +53,12 @@ function ExpandAllButton({ expandAll, disabled }: { expandAll: boolean; disabled
 				disabled,
 			}}
 			icon={
-				<SvgIcon>
+				<SvgIcon sx={{ color: 'var(--color-text-secondary)' }}>
 					{expandAll ? (
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 							<title>collapse-all</title>
 							<path
-								fill={BASE_COLOR}
+								fill="currentColor"
 								d="M14,4H4V14H2V4A2,2 0 0,1 4,2H14V4M18,6H8A2,2 0 0,0 6,8V18H8V8H18V6M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H12V17H20V15Z"
 							/>
 						</svg>
@@ -66,7 +66,7 @@ function ExpandAllButton({ expandAll, disabled }: { expandAll: boolean; disabled
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 							<title>expand-all</title>
 							<path
-								fill={BASE_COLOR}
+								fill="currentColor"
 								d="M18,8H8V18H6V8A2,2 0 0,1 8,6H18V8M14,2H4A2,2 0 0,0 2,4V14H4V4H14V2M22,12V20A2,2 0 0,1 20,22H12A2,2 0 0,1 10,20V12A2,2 0 0,1 12,10H20A2,2 0 0,1 22,12M20,15H17V12H15V15H12V17H15V20H17V17H20V15Z"
 							/>
 						</svg>
@@ -175,7 +175,7 @@ export default function PageNavigation() {
 							left={
 								<ToggleButtonGroup
 									color="secondary"
-									sx={{ bgcolor: 'white', borderRadius: 2 }}
+									sx={styles.toggleButtonGroup}
 									value={mode}
 									exclusive
 									onChange={(_, value) => {
@@ -193,20 +193,23 @@ export default function PageNavigation() {
 											<Visibility
 												sx={{
 													...styles.icon,
-													color: mode === ChecklistMode.VIEW ? 'secondary.main' : '#787878',
+													color:
+														mode === ChecklistMode.VIEW
+															? 'secondary.main'
+															: 'var(--color-text-muted)',
 												}}
 											/>
 											View
 										</ToggleButton>
 									)}
-									<ToggleButton
-										value={ChecklistMode.TEST}
-										sx={{ ...styles.toggleButton, padding: '0px 12.5px' }}
-									>
+									<ToggleButton value={ChecklistMode.TEST} sx={styles.toggleButton}>
 										<MovieCreationOutlined
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.TEST ? 'secondary.main' : '#787878',
+												color:
+													mode === ChecklistMode.TEST
+														? 'secondary.main'
+														: 'var(--color-text-muted)',
 											}}
 										/>
 										Test
@@ -215,7 +218,10 @@ export default function PageNavigation() {
 										<MovieEdit
 											sx={{
 												...styles.icon,
-												color: mode === ChecklistMode.EDIT ? 'secondary.main' : '#787878',
+												color:
+													mode === ChecklistMode.EDIT
+														? 'secondary.main'
+														: 'var(--color-text-muted)',
 											}}
 										/>
 										Edit
@@ -223,9 +229,9 @@ export default function PageNavigation() {
 								</ToggleButtonGroup>
 							}
 							padding={0}
-							height={40}
+							height={36}
 						/>
-						<Divider flexItem sx={{ margin: '2.5px 0px 2.5px' }} />
+						<Divider flexItem sx={{ my: 1 }} />
 					</>
 				)}
 				<Toolbar
@@ -234,7 +240,7 @@ export default function PageNavigation() {
 							<ClaimInfo />
 							<ChecklistInfo />
 							{!claimId && (
-								<Box marginLeft="5px">
+								<Box ml={1}>
 									<ExpandAllButton expandAll={expandAll} disabled={false} />
 								</Box>
 							)}
@@ -285,39 +291,33 @@ export default function PageNavigation() {
 					leftWidth="70%"
 					rightWidth="30%"
 					padding={0}
-					height={40}
+					height={36}
 				/>
 				{!!claimId && (
 					<Toolbar
 						left={
 							<>
-								<Box marginRight="5px">
+								<Box mr={1}>
 									<ExpandAllButton expandAll={expandAll} disabled={visibleInstanceIds.length < 2} />
 								</Box>
 								<Fade in={mode === ChecklistMode.VIEW && !!claimId}>
-									<Box display="flex" justifyContent="flex-start" alignItems="center">
-										<Box marginRight="5px">
-											<Legend />
-										</Box>
-										<Box marginRight="5px">
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () => useChecklistStore.getState().toggleChangeLog(),
-												}}
-												icon={
-													<AccessTime
-														sx={{
-															color: showChangeLog
-																? theme.palette.primary.main
-																: undefined,
-														}}
-													/>
-												}
-												tooltipProps={{
-													title: `${showChangeLog ? 'Hide' : 'Show'} change log`,
-												}}
-											/>
-										</Box>
+									<Box display="flex" justifyContent="flex-start" alignItems="center" gap={1}>
+										<Legend />
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () => useChecklistStore.getState().toggleChangeLog(),
+											}}
+											icon={
+												<AccessTime
+													sx={{
+														color: showChangeLog ? theme.palette.primary.main : undefined,
+													}}
+												/>
+											}
+											tooltipProps={{
+												title: `${showChangeLog ? 'Hide' : 'Show'} change log`,
+											}}
+										/>
 										<Badge
 											badgeContent={commentData?.count ?? 0}
 											color="secondary"
@@ -369,13 +369,13 @@ export default function PageNavigation() {
 								</Fade>
 							</>
 						}
-						padding={'0px 0px 5px'}
-						height={40}
+						padding={0}
+						height={36}
 					/>
 				)}
 
-				<Divider />
-				<div style={styles.nodeContainer}>
+				<Divider sx={{ my: 1 }} />
+				<Box sx={styles.nodeContainer}>
 					<Fade in={!!checklist && !isFetching && (!claimId || !!claim)} unmountOnExit timeout={500}>
 						<span>
 							{navigation.tree.length ? (
@@ -388,14 +388,14 @@ export default function PageNavigation() {
 									justifyContent="center"
 									alignItems="center"
 								>
-									<Typography color="#d9d9d9" fontSize={15}>
+									<Typography color="var(--color-text-muted)" fontSize="var(--font-size-lg)">
 										No pages found
 									</Typography>
 								</Stack>
 							)}
 						</span>
 					</Fade>
-				</div>
+				</Box>
 				<Collapse in={showComments} unmountOnExit>
 					<ChecklistComments tree={navigation.tree} />
 				</Collapse>
@@ -413,43 +413,55 @@ const styles = {
 		[`& .${badgeClasses.badge}`]: {
 			top: 5,
 			right: -2,
-			fontSize: 10,
+			fontSize: 'var(--font-size-xs)',
 		},
 	},
 	button: {
 		height: 25,
-		marginLeft: '15px',
+		ml: 2,
 		minWidth: 120,
 	},
 	checklistCard: {
-		backgroundColor: 'white',
-		padding: '2px 5px',
+		bgcolor: 'var(--color-bg-primary)',
+		p: 0.5,
+		px: 1,
 	},
 	container: {
 		width: 'fit-content',
 		minWidth: 500,
 		maxWidth: 500,
 		height: '100vh',
-		backgroundColor: '#F7F8FA',
-		padding: 10,
+		backgroundColor: 'var(--color-bg-tertiary)',
+		padding: 12,
 		overflow: 'hidden',
 		display: 'flex',
 		flex: 1,
 		flexDirection: 'column' as const,
+		borderRight: '1px solid var(--color-border)',
 	},
 	icon: {
-		marginRight: '5px',
+		mr: 0.5,
 	},
 	nodeContainer: {
 		width: '100%',
 		overflow: 'auto',
-		margin: '10px 0px',
-		padding: '10px',
-		backgroundColor: 'white',
+		p: 1.5,
+		bgcolor: 'var(--color-bg-primary)',
+		borderRadius: 'var(--radius-lg)',
+		border: '1px solid var(--color-border)',
 		flex: 1,
+		mb: 1,
+	},
+	toggleButtonGroup: {
+		bgcolor: 'var(--color-bg-primary)',
+		borderRadius: 'var(--radius-lg)',
+		border: '1px solid var(--color-border)',
 	},
 	toggleButton: {
-		height: 29,
-		borderRadius: 2,
+		height: 28,
+		px: 1.5,
+		fontSize: 'var(--font-size-sm)',
+		borderRadius: 'var(--radius-md)',
+		textTransform: 'none' as const,
 	},
 };

@@ -37,13 +37,13 @@ export default function QuestionInfo(props: {
 						anchorEl={ref.current}
 						placement="right"
 						className="popper"
-						style={{ zIndex: 100 }}
+						sx={{ zIndex: 100 }}
 						transition
 					>
 						{({ TransitionProps }) => (
 							<Fade {...TransitionProps} timeout={350}>
 								<span>
-									<Paper style={styles.paper}>
+									<Paper sx={styles.paper}>
 										<Typography fontSize={17} fontWeight="bold">
 											{description}
 										</Typography>
@@ -77,11 +77,11 @@ const styles = {
 		width: 250,
 		height: 'fit-content',
 		display: 'flex',
-		flexDirection: 'column' as const,
+		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		outline: `1px solid ${theme.palette.primary.light}`,
-		padding: 10,
-		marginTop: 5,
+		p: 1.25,
+		mt: 0.625,
 	},
 };

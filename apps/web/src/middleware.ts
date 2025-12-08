@@ -1,26 +1,23 @@
-import { withAuth } from 'next-auth/middleware';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-export default withAuth(
-	// options
-	{
-		pages: {
-			signIn: '/login', // redirect here if not signed in
-		},
-		callbacks: {
-			authorized: ({ token }) => !!token, // only allow if a valid JWT is present
-		},
+// Public routes that don't require authentication
+const isPublicRoute = createRouteMatcher([
+	'/sign-in(.*)',
+	'/sign-up(.*)',
+	'/api/webhooks/clerk(.*)',
+]);
+
+export default clerkMiddleware(async (auth, request) => {
+	if (!isPublicRoute(request)) {
+		await auth.protect();
 	}
-);
+});
 
-// apply to everything except Next.js internals and your auth endpoints
 export const config = {
 	matcher: [
-		/*
-		 * Match all request paths except for:
-		 *  - next-auth API routes
-		 *  - static files (_next/static, _next/image)
-		 *  - favicon.ico
-		 */
-		'/((?!api/auth|api/trpc|_next/static|_next/image|favicon.ico|login|reset-password-email|reset-password|force-reset-password).*)',
+		// Skip Next.js internals and static files
+		'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+		// Always run for API routes
+		'/(api|trpc)(.*)',
 	],
 };

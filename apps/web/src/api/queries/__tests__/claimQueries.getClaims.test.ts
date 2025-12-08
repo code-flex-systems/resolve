@@ -17,13 +17,13 @@ describe('claimQueries.getClaims', () => {
 		session: {
 			user: {
 				id: 'admin-123',
+				clerkId: 'clerk_admin_123',
 				name: 'Admin User',
 				email: 'admin@example.com',
 				phone: null,
 				role: config.ROLES.ADMIN,
 				client_id: 'client-abc',
 			},
-			expires: '2025-12-31',
 		},
 		db,
 	};
@@ -32,13 +32,13 @@ describe('claimQueries.getClaims', () => {
 		session: {
 			user: {
 				id: 'user-456',
+				clerkId: 'clerk_user_456',
 				name: 'Regular User',
 				email: 'user@example.com',
 				phone: null,
 				role: config.ROLES.CONTRIBUTOR,
 				client_id: 'client-abc',
 			},
-			expires: '2025-12-31',
 		},
 		db,
 	};

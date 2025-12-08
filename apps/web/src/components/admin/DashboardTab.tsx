@@ -9,7 +9,7 @@ import Replay from '@mui/icons-material/Replay';
 import RssFeed from '@mui/icons-material/RssFeed';
 import Timelapse from '@mui/icons-material/Timelapse';
 import SimpleMetric from '../metrics/SimpleMetric';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT, PURPLE } from '@/styles/theme';
+import theme, { BASE_COLOR, BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, PURPLE, TEXT_MUTED } from '@/styles/theme';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -76,7 +76,7 @@ export default function DashboardTab() {
 				justifyContent="flex-start"
 				alignContent="flex-start"
 				padding="10px 0px"
-				bgcolor="#F7F8FA"
+				bgcolor={BG_TERTIARY}
 				overflow="auto"
 			>
 				<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
@@ -126,7 +126,7 @@ export default function DashboardTab() {
 					<Grid container marginTop="20px" alignContent="flex-start">
 						<Grid>
 							<Paper elevation={0} sx={styles.paper}>
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
+								<Typography fontSize={13} color={TEXT_MUTED} paddingTop="10px" paddingLeft="10px">
 									Quick Actions
 								</Typography>
 								<Box
@@ -189,7 +189,7 @@ export default function DashboardTab() {
 						</Grid>
 						<Grid>
 							<Paper elevation={0} sx={styles.paper}>
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} paddingTop="10px" paddingLeft="10px">
+								<Typography fontSize={13} color={TEXT_MUTED} paddingTop="10px" paddingLeft="10px">
 									Quick Stats
 								</Typography>
 								<Box
@@ -251,6 +251,8 @@ const styles = {
 		height: 145,
 		borderRadius: 3,
 		margin: '15px',
+		border: `1px solid ${BORDER_COLOR}`,
+		boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 	},
 	simpleMetricIcon: {
 		color: 'white',

@@ -5,11 +5,10 @@ import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/materi
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import AddBox from '@mui/icons-material/AddBox';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import Phone from '@mui/icons-material/Phone';
 import Search from '@mui/icons-material/Search';
 import Shield from '@mui/icons-material/Shield';
-import Upload from '@mui/icons-material/Upload';
 import Person from '@mui/icons-material/Person';
 import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
@@ -19,13 +18,9 @@ import { formatMDY } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
-import { useSession } from 'next-auth/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { CSVImportWizard } from '../common/CSV-wizard/CSVWizard';
-import config from '@/config/config';
-import { createUsersInput } from '@/schemas/userSchemas';
 import useDebounce from '@/lib/utils/useDebounce';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
@@ -40,7 +35,7 @@ const COLUMNS: GridColDef[] = [
 			<StackedHeaderCell primary={`${row.last}, ${row.first}`} secondary={row.email.toLowerCase()} />
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: 'var(--color-neutral-300)' }} />} />
 		),
 		flex: 1,
 	},
@@ -54,14 +49,14 @@ const COLUMNS: GridColDef[] = [
 				disabled={params.row.disabled}
 			/>
 		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone style={{ color: BASE_COLOR_LIGHT }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone sx={{ color: 'var(--color-neutral-300)' }} />} />,
 		width: 180,
 	},
 	{
 		headerName: 'Role',
 		field: 'role',
 		renderCell: (params) => <RoleCell {...params} />,
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield style={{ color: BASE_COLOR_LIGHT }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: 'var(--color-neutral-300)' }} />} />,
 		width: 180,
 	},
 	{
@@ -86,7 +81,7 @@ const COLUMNS: GridColDef[] = [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccessTimeFilled style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: 'var(--color-neutral-300)' }} />} />
 		),
 		width: 180,
 	},
@@ -101,16 +96,14 @@ const COLUMNS: GridColDef[] = [
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />} />
+		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: 'var(--color-neutral-300)' }} />} />
 	);
 }
 
 export default function UsersTab() {
-	const { data: session } = useSession();
-	const showImportUsersDialog = useAdminStore((state) => state.showImportUsersDialog);
+	const { data: session } = useClerkSession();
 	const userConstraints = useAdminStore((state) => state.userConstraints);
-	const toggleImportUsersDialog = useAdminStore((state) => state.toggleImportUsersDialog);
-	const toggleNewUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
+	const toggleInviteUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
 	const updateUserConstraints = useAdminStore((state) => state.updateUserConstraints);
 
 	// URL filters hook for managing filters via search params
@@ -122,7 +115,7 @@ export default function UsersTab() {
 	const showDisabled = getBoolParam('disabled');
 
 	// Local state for search input
-	const [searchTerm, setSearchTerm] = useState(userSearchTerm);
+	const [searchTerm, setSearchTerm] = useState('');
 
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
@@ -131,7 +124,6 @@ export default function UsersTab() {
 		offset: userConstraints.page * userConstraints.pageSize,
 		searchTerm: userSearchTerm,
 	});
-	const { mutateAsync: createUsers, isPending: creating } = useUserTrpc().create;
 	const rowCountRef = useRef(data.count ?? 0);
 
 	const rowCount = useMemo(() => {
@@ -147,10 +139,7 @@ export default function UsersTab() {
 	}, [userSearchTerm]);
 
 	// Debounce search input to URL param
-	const debouncedSearch = useCallback(
-		useDebounce((search: string) => setParam('search', search), 500),
-		[setParam]
-	);
+	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
 		<Fade in={true} timeout={1000}>
@@ -216,17 +205,8 @@ export default function UsersTab() {
 										</IconButton>
 									)}
 								</Paper>
-								<Button
-									variant="contained"
-									color="secondary"
-									startIcon={<Upload />}
-									onClick={toggleImportUsersDialog}
-									sx={{ marginRight: '10px' }}
-								>
-									Import
-								</Button>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewUserDialog}>
-									User
+								<Button variant="contained" startIcon={<PersonAdd />} onClick={toggleInviteUserDialog}>
+									Invite User
 								</Button>
 							</>
 						}
@@ -268,20 +248,6 @@ export default function UsersTab() {
 							sx={styles.tableOverrides}
 						/>
 					</div>
-
-					{showImportUsersDialog && (
-						<CSVImportWizard
-							fields={config.USER_FIELDS.map((f) => ({ ...f, required: true }))}
-							validateRow={(row: any) =>
-								createUsersInput.safeParse({
-									users: [row],
-								})
-							}
-							onSubmit={(rows) => createUsers({ users: rows })}
-							submitting={creating}
-							onClose={toggleImportUsersDialog}
-						/>
-					)}
 				</Paper>
 			</div>
 		</Fade>

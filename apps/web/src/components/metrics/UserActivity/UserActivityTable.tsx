@@ -10,13 +10,13 @@ import CustomPagination from '@/components/common/CustomPagination';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatUser } from '@/lib/utils/utils';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
 
 function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boolean }) {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const getLogText = () => {
 		switch (row.action) {
 			case 'insert':
@@ -204,7 +204,7 @@ export default function UserActivityTable({
 }) {
 	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize });
 	const trpcUtils = trpc.useUtils();
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 
 	const filters = useMemo(
 		() => ({

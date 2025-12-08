@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
 	TextField,
 	IconButton,
@@ -48,18 +48,15 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);
 	const onClose = () => setAnchorEl(null);
 
-	const debouncedSearch = useCallback(
-		useDebounce(async (query: string) => {
-			trpcUtils.claim.getClaims
-				.fetch({ searchTerm: { type, value: query }, limit: 50 })
-				.then((results) => {
-					if (Array.isArray(results.rows)) setResults(results.rows);
-				})
-				.catch((e) => console.error(e))
-				.finally(() => setSearching(false));
-		}, 500),
-		[type]
-	);
+	const debouncedSearch = useDebounce(async (query: string) => {
+		trpcUtils.claim.getClaims
+			.fetch({ searchTerm: { type, value: query }, limit: 50 })
+			.then((results) => {
+				if (Array.isArray(results.rows)) setResults(results.rows);
+			})
+			.catch((e) => console.error(e))
+			.finally(() => setSearching(false));
+	}, 500);
 
 	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const { value } = event.target;
@@ -85,7 +82,7 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 	};
 
 	return (
-		<div style={styles.container} className="flex-col-center">
+		<Box sx={styles.container} className="flex-col-center">
 			<ClickAwayListener onClickAway={onClose}>
 				<span ref={spanRef} style={{ width: '100%' }}>
 					<TextField
@@ -194,7 +191,7 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 					</Popper>
 				</span>
 			</ClickAwayListener>
-		</div>
+		</Box>
 	);
 }
 

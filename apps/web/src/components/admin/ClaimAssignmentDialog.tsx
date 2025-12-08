@@ -5,7 +5,6 @@ import { Box, Chip, Collapse, Fade, Paper, Stack, Typography } from '@mui/materi
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatAmount, formatMDY } from '@/lib/utils/utils';
 import StackedMetric from '../checklist/StackedMetric';
-import theme, { BASE_COLOR } from '@/styles/theme';
 import ChecklistSelect from '../common/ChecklistSelect';
 import { useEffect, useState } from 'react';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
@@ -71,7 +70,6 @@ export default function ClaimAssignmentDialog() {
 					label: 'Back',
 					onClick: () => onNext(-1, true),
 					disabled: progress === 0,
-					color: BASE_COLOR,
 				},
 				{
 					label: `Skip${count == null ? '' : ` (${count ? (count - progress - 1).toLocaleString() : 0} more)`}`,
@@ -84,7 +82,7 @@ export default function ClaimAssignmentDialog() {
 			width={550}
 		>
 			<Stack width="100%" height="100%" display="flex" justifyContent="center" alignItems="center">
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center" paddingBottom="10px">
+				<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pb: 1 }}>
 					<ChecklistSelect
 						checklist={checklist}
 						setChecklist={setChecklist}
@@ -93,7 +91,16 @@ export default function ClaimAssignmentDialog() {
 						disabled={!isFetchingNextClaim && !nextClaimData.claim}
 					/>
 				</Box>
-				<Paper elevation={0} style={{ height: 345 }} sx={styles.paper}>
+				<Paper
+					elevation={0}
+					sx={{
+						height: 345,
+						borderRadius: 1.5,
+						border: '1px solid var(--color-primary)',
+						p: 2,
+						bgcolor: 'rgba(34, 180, 255, 0.05)',
+					}}
+				>
 					<Fade key={isFetchingNextClaim ? 'loading' : 'data'} in={true} unmountOnExit timeout={800}>
 						<Stack width="100%" height="100%" display="flex" justifyContent="center" alignItems="center">
 							{isFetchingNextClaim && (
@@ -102,16 +109,19 @@ export default function ClaimAssignmentDialog() {
 								</Typography>
 							)}
 							{!isFetchingNextClaim && !nextClaimData.claim && (
-								<Typography fontSize={15}>You're all caught up!</Typography>
+								<Typography fontSize={13}>You're all caught up!</Typography>
 							)}
 							{!isFetchingNextClaim && !!nextClaimData.claim && (
 								<>
 									<Box
-										width="100%"
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										padding="0px 10px 20px"
+										sx={{
+											width: '100%',
+											display: 'flex',
+											justifyContent: 'flex-start',
+											alignItems: 'flex-start',
+											px: 1,
+											pb: 2,
+										}}
 									>
 										<StackedMetric
 											value={nextClaimData.claim.claim_number!}
@@ -120,11 +130,13 @@ export default function ClaimAssignmentDialog() {
 										/>
 									</Box>
 									<Box
-										width="100%"
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										padding="0px 20px"
+										sx={{
+											width: '100%',
+											display: 'flex',
+											justifyContent: 'flex-start',
+											alignItems: 'flex-start',
+											px: 2,
+										}}
 									>
 										<Stack
 											width="50%"
@@ -182,9 +194,9 @@ export default function ClaimAssignmentDialog() {
 						</Stack>
 					</Fade>
 				</Paper>
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center" paddingTop="10px">
+				<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pt: 1 }}>
 					<Stack width="100%" display="flex" justifyContent="center" alignItems="center">
-						<Box bgcolor="white" margin="10px" borderRadius={4}>
+						<Box sx={{ bgcolor: 'white', m: 1, borderRadius: 1 }}>
 							<UserSearch
 								selectedUser={user}
 								setSelectedUser={setUser}
@@ -206,12 +218,3 @@ export default function ClaimAssignmentDialog() {
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	paper: {
-		borderRadius: 6,
-		border: `1px solid ${theme.palette.primary.main}`,
-		padding: '20px',
-		bgcolor: 'rgba(34, 180, 255, 0.05)',
-	},
-};

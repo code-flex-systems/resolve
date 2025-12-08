@@ -1,10 +1,9 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
-import { Box, Divider, Fade, Link, TextField, Typography } from '@mui/material';
+import { Box, Fade, Link, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import CopyPageDialog from './CopyPageDialog';
-import Toolbar from '../common/Toolbar';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import East from '@mui/icons-material/East';
@@ -17,7 +16,6 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import ExpandableTitle from '../common/ExpandableTitle';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 import FormatQuote from '@mui/icons-material/FormatQuote';
 
@@ -31,7 +29,6 @@ export default function PageEditor() {
 	const updateSelectedPageInfo = useChecklistStore((state) => state.updateSelectedPageInfo);
 	const updateSelectedPageInfoSearch = useChecklistStore((state) => state.updateSelectedPageInfoSearch);
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
-	const goToPage = useChecklistStore((state) => state.goToPage);
 
 	const [pageTitle, setPageTitle] = useState('');
 	const [editingPageTitle, setEditingPageTitle] = useState(false);
@@ -178,170 +175,203 @@ export default function PageEditor() {
 	};
 
 	return (
-		<div style={styles.container}>
+		<Box sx={styles.container}>
 			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
-				<>
-					<Toolbar
-						left={
-							<>
-								{editingPageTitle ? (
-									<TextField
-										autoFocus
-										value={pageTitle}
-										onChange={(e) => setPageTitle(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === 'Enter') stopEditing();
-										}}
-										placeholder="New Page"
-										onBlur={stopEditing}
-										error={!pageTitle}
-										variant="outlined"
-										disabled={updating}
-										sx={styles.textFieldOverrides}
-									/>
-								) : (
-									<Typography
-										onClick={startEditing}
-										className="text-hover"
-										lineHeight={'21px'}
-										fontSize={19}
-										minWidth={200}
-									>
-										{selectedPageInfo.title} (p{selectedPageInfo.pageId}.i
-										{selectedPageInfo.instanceId})
-									</Typography>
-								)}
+				<Box sx={styles.formContainer}>
+					{/* Page Header */}
+					<Box sx={styles.headerSection}>
+						{editingPageTitle ? (
+							<TextField
+								autoFocus
+								value={pageTitle}
+								onChange={(e) => setPageTitle(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') stopEditing();
+								}}
+								placeholder="New Page"
+								onBlur={stopEditing}
+								error={!pageTitle}
+								variant="outlined"
+								disabled={updating}
+								fullWidth
+								sx={styles.titleField}
+							/>
+						) : (
+							<Box sx={styles.titleRow}>
+								<Typography onClick={startEditing} sx={styles.pageTitle}>
+									{selectedPageInfo.title}
+								</Typography>
+								<Typography sx={styles.pageId}>
+									p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
+								</Typography>
 								<Fade in={showUpdateMsg} timeout={500}>
-									<div style={{ marginLeft: 10 }} className="flex-row-left">
-										<TaskAlt sx={{ color: 'warning.main', marginRight: '5px' }} />
-										<Typography color="warning" fontStyle="italic">
-											Updated!
+									<Box sx={{ ml: 1.5 }} className="flex-row-left">
+										<TaskAlt sx={{ color: 'success.main', fontSize: 18, mr: 0.5 }} />
+										<Typography color="success.main" fontSize={13}>
+											Saved
 										</Typography>
-									</div>
+									</Box>
 								</Fade>
-							</>
-						}
-						leftWidth="100%"
-						rightWidth="0%"
-						height={60}
-						padding={'10px 0px'}
-					/>
-					<div style={styles.divider}>
-						<Divider />
-					</div>
-					<ExpandableTitle title={`Questions: ${questions.length}`} color="white" icon={<HelpOutline />} />
-					<Box margin="10px 0px">
-						<ExpandableTitle title={`Answers: ${answerCount}`} color="white" icon={<FormatQuote />} />
+							</Box>
+						)}
 					</Box>
+
+					{/* Page Information Section */}
+					<Box sx={styles.section}>
+						<Typography sx={styles.sectionTitle}>Information</Typography>
+						<Box sx={styles.sectionContent}>
+							<Box sx={styles.statsRow}>
+								<Box sx={styles.statItem}>
+									<HelpOutline sx={{ fontSize: 18, color: 'var(--color-text-secondary)' }} />
+									<Typography fontSize={13}>
+										<strong>{questions.length}</strong>{' '}
+										{questions.length === 1 ? 'Question' : 'Questions'}
+									</Typography>
+								</Box>
+								<Box sx={styles.statItem}>
+									<FormatQuote sx={{ fontSize: 18, color: 'var(--color-text-secondary)' }} />
+									<Typography fontSize={13}>
+										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
+									</Typography>
+								</Box>
+							</Box>
+						</Box>
+					</Box>
+
+					{/* Related Instances Section */}
 					{otherInstances.length > 0 && (
-						<>
-							{otherInstances.length === 1 ? (
-								<Typography fontSize={15} marginTop="5px">
-									Another page uses this template:
+						<Box sx={styles.section}>
+							<Typography sx={styles.sectionTitle}>Related Instances</Typography>
+							<Box sx={styles.sectionContent}>
+								<Typography fontSize={13} color="text.secondary" mb={1}>
+									{otherInstances.length === 1
+										? 'Another page uses this template:'
+										: `${otherInstances.length} other pages use this template:`}
 								</Typography>
-							) : (
-								<Typography fontSize={15} marginTop="5px">
-									<b>{otherInstances.length}</b> other pages use this template:
-								</Typography>
-							)}
-							{otherInstances.map((node) => (
-								<Link
-									key={node.instanceId}
-									onClick={() => {
-										updateSelectedPage(node.instanceId);
-										updateSelectedPageInfo(node);
-									}}
-									fontSize={15}
-									sx={{ marginTop: '5px' }}
-								>
-									p{node.pageId}.i{node.instanceId}
-								</Link>
-							))}
-						</>
+								<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+									{otherInstances.map((node) => (
+										<Link
+											key={node.instanceId}
+											onClick={() => {
+												updateSelectedPage(node.instanceId);
+												updateSelectedPageInfo(node);
+											}}
+											sx={styles.instanceLink}
+										>
+											p{node.pageId}.i{node.instanceId}
+										</Link>
+									))}
+								</Box>
+							</Box>
+						</Box>
 					)}
-				</>
-			)}
-			{!!selectedPageInstance && !selectedQuestion && (
-				<div className="flex-col-left" style={{ marginTop: 10 }}>
-					<BasicButton
-						buttonProps={{
-							onClick: () => {
-								setCopyType('template');
-								setCopyDialogOpen(true);
-							},
-							disabled: inTransition,
-							variant: 'contained',
-							color: 'primary',
-							sx: styles.button,
-							startIcon: <ContentCopy sx={{ color: 'white' }} />,
-						}}
-					>
-						Copy page template...
-					</BasicButton>
-					<BasicButton
-						buttonProps={{
-							onClick: () => {
-								setCopyType('instance');
-								setCopyDialogOpen(true);
-							},
-							disabled: inTransition,
-							variant: 'contained',
-							color: 'error',
-							sx: styles.button,
-							startIcon: <ContentCopy sx={{ color: 'white' }} />,
-						}}
-					>
-						Copy page instance...
-					</BasicButton>
-					<BasicButton
-						buttonProps={{
-							onClick: () => onAddPage(selectedPageInfo.parentInstanceId).catch((e) => console.error(e)),
-							disabled: inTransition,
-							variant: 'contained',
-							color: 'secondary',
-							sx: styles.button,
-							startIcon: <East sx={{ color: 'white', fontSize: 17 }} />,
-						}}
-					>
-						New sibling page
-					</BasicButton>
-					<BasicButton
-						buttonProps={{
-							onClick: () => onAddPage(selectedPageInfo.instanceId).catch((e) => console.error(e)),
-							disabled: inTransition,
-							variant: 'contained',
-							color: 'secondary',
-							sx: styles.button,
-							startIcon: <SubdirectoryArrowRight sx={{ color: 'white' }} />,
-						}}
-					>
-						New child page
-					</BasicButton>
-					<BasicButton
-						buttonProps={{
-							onClick: () => onDeletePage().catch((e) => console.error(e)),
-							disabled: inTransition,
-							variant: 'contained',
-							color: 'warning',
-							sx: styles.button,
-							startIcon: <Delete sx={{ color: 'white' }} />,
-						}}
-					>
-						Delete page
-					</BasicButton>
-				</div>
+
+					{/* Actions Section */}
+					<Box sx={styles.section}>
+						<Typography sx={styles.sectionTitle}>Actions</Typography>
+						<Box sx={styles.sectionContent}>
+							<Box sx={styles.actionsGrid}>
+								<Box sx={styles.actionGroup}>
+									<Typography sx={styles.actionGroupTitle}>Copy</Typography>
+									<Box sx={styles.actionButtons}>
+										<BasicButton
+											buttonProps={{
+												onClick: () => {
+													setCopyType('template');
+													setCopyDialogOpen(true);
+												},
+												disabled: inTransition,
+												variant: 'outlined',
+												size: 'small',
+												startIcon: <ContentCopy sx={{ fontSize: 16 }} />,
+											}}
+										>
+											Copy template
+										</BasicButton>
+										<BasicButton
+											buttonProps={{
+												onClick: () => {
+													setCopyType('instance');
+													setCopyDialogOpen(true);
+												},
+												disabled: inTransition,
+												variant: 'outlined',
+												size: 'small',
+												startIcon: <ContentCopy sx={{ fontSize: 16 }} />,
+											}}
+										>
+											Copy instance
+										</BasicButton>
+									</Box>
+								</Box>
+
+								<Box sx={styles.actionGroup}>
+									<Typography sx={styles.actionGroupTitle}>Create</Typography>
+									<Box sx={styles.actionButtons}>
+										<BasicButton
+											buttonProps={{
+												onClick: () =>
+													onAddPage(selectedPageInfo.parentInstanceId).catch((e) =>
+														console.error(e)
+													),
+												disabled: inTransition,
+												variant: 'outlined',
+												size: 'small',
+												startIcon: <East sx={{ fontSize: 16 }} />,
+											}}
+										>
+											New sibling
+										</BasicButton>
+										<BasicButton
+											buttonProps={{
+												onClick: () =>
+													onAddPage(selectedPageInfo.instanceId).catch((e) =>
+														console.error(e)
+													),
+												disabled: inTransition,
+												variant: 'outlined',
+												size: 'small',
+												startIcon: <SubdirectoryArrowRight sx={{ fontSize: 16 }} />,
+											}}
+										>
+											New child
+										</BasicButton>
+									</Box>
+								</Box>
+
+								<Box sx={styles.actionGroup}>
+									<Typography sx={styles.actionGroupTitle}>Delete</Typography>
+									<Box sx={styles.actionButtons}>
+										<BasicButton
+											buttonProps={{
+												onClick: () => onDeletePage().catch((e) => console.error(e)),
+												disabled: inTransition,
+												variant: 'outlined',
+												color: 'error',
+												size: 'small',
+												startIcon: <Delete sx={{ fontSize: 16 }} />,
+											}}
+										>
+											Delete page
+										</BasicButton>
+									</Box>
+								</Box>
+							</Box>
+						</Box>
+					</Box>
+				</Box>
 			)}
 			{!!selectedQuestion && !selectedAnswer && <FormQuestion />}
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
-				<div style={{ width: '100%', height: '100%' }} className="flex-col-center">
+				<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
 					<Box width={200} display="flex" justifyContent="center" alignItems="center">
 						<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
 						<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
 							No page selected
 						</Typography>
 					</Box>
-				</div>
+				</Box>
 			)}
 			{copyDialogOpen && (
 				<CopyPageDialog
@@ -355,39 +385,117 @@ export default function PageEditor() {
 					isPending={inTransition}
 				/>
 			)}
-		</div>
+		</Box>
 	);
 }
 
 const styles = {
-	button: {
-		marginTop: '10px',
-	},
 	container: {
-		flex: 1,
+		width: '100%',
 		height: '100%',
 		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		padding: 20,
+		flexDirection: 'column',
+		p: 2.5,
 		minWidth: 500,
+		overflow: 'auto',
 	},
-	divider: {
+	formContainer: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 2.5,
 		width: '100%',
-		height: 1,
-		marginBottom: 15,
 	},
-	textFieldOverrides: {
-		minWidth: 200,
-		width: 300,
+	headerSection: {
+		mb: 1,
+	},
+	titleRow: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 1.5,
+	},
+	pageTitle: {
+		fontSize: 20,
+		fontWeight: 600,
+		color: 'var(--color-text-primary)',
+		cursor: 'pointer',
+		'&:hover': {
+			color: 'primary.main',
+		},
+	},
+	pageId: {
+		fontSize: 13,
+		color: 'var(--color-text-muted)',
+		bgcolor: 'var(--color-bg-tertiary)',
+		px: 1,
+		py: 0.25,
+		borderRadius: '4px',
+	},
+	titleField: {
 		'& .MuiInputBase-root': {
-			fontSize: 19,
-			lineHeight: '21px',
-			padding: '2px',
+			fontSize: 20,
+			fontWeight: 600,
 		},
-		'& .MuiOutlinedInput-input': {
-			padding: '2px 10px',
+	},
+	section: {
+		bgcolor: 'var(--color-bg-secondary)',
+		borderRadius: '12px',
+		border: '1px solid var(--color-border)',
+		overflow: 'hidden',
+		maxWidth: 600,
+	},
+	sectionTitle: {
+		fontSize: 13,
+		fontWeight: 600,
+		color: 'var(--color-text-primary)',
+		px: 2,
+		py: 1.5,
+		bgcolor: 'white',
+		borderBottom: '1px solid var(--color-border)',
+	},
+	sectionContent: {
+		p: 2,
+		bgcolor: 'white',
+	},
+	statsRow: {
+		display: 'flex',
+		gap: 3,
+	},
+	statItem: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 1,
+	},
+	instanceLink: {
+		fontSize: 13,
+		bgcolor: 'var(--color-bg-tertiary)',
+		px: 1.5,
+		py: 0.5,
+		borderRadius: '6px',
+		cursor: 'pointer',
+		'&:hover': {
+			bgcolor: 'var(--color-bg-hover)',
 		},
+	},
+	actionsGrid: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 2.5,
+	},
+	actionGroup: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 1,
+	},
+	actionGroupTitle: {
+		fontSize: 12,
+		fontWeight: 500,
+		color: 'var(--color-text-secondary)',
+		textTransform: 'uppercase',
+		letterSpacing: '0.5px',
+	},
+	actionButtons: {
+		display: 'flex',
+		gap: 1,
+		flexWrap: 'wrap',
 	},
 };

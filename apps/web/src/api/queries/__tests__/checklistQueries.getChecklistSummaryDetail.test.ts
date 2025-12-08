@@ -16,13 +16,13 @@ const createMockContext = (client_id: string = 'client-abc'): ProtectedContext =
 	session: {
 		user: {
 			id: 'user-123',
+			clerkId: 'clerk_user_123',
 			name: 'Test User',
 			email: 'test@example.com',
 			phone: null,
 			role: 'Admin',
 			client_id,
 		},
-		expires: '2025-12-31T23:59:59.999Z',
 	},
 	db,
 });

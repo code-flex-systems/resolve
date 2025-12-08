@@ -1,8 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getClerkSession } from '@/lib/auth/clerk-session';
 import * as blobStorage from '@/lib/azure/blobStorage';
 import { db } from '@/api/database/kysely';
 
@@ -15,12 +14,9 @@ import { db } from '@/api/database/kysely';
 export async function GET(request: NextRequest) {
 	try {
 		// Check authentication
-		const session = await getServerSession(authOptions);
+		const session = await getClerkSession();
 		if (!session?.user) {
-			return NextResponse.json(
-				{ error: 'Unauthorized' },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
 
 		const clientId = session.user.client_id;

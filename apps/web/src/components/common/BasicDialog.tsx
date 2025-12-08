@@ -1,5 +1,5 @@
 'use client';
-import { Dialog, DialogActions, DialogContent, Fade, IconButton, Paper, Typography } from '@mui/material';
+import { Box, Dialog, DialogActions, DialogContent, Fade, IconButton, Paper, Typography } from '@mui/material';
 import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '@/types/types';
@@ -24,7 +24,7 @@ export default function BasicDialog(
 ) {
 	const {
 		title,
-		titleHeight = 50,
+		titleHeight = 40,
 		onClose,
 		closeDisabled,
 		primaryAction,
@@ -52,38 +52,65 @@ export default function BasicDialog(
 			}}
 		>
 			{(!!title || !!iconActions.length || showCloseButton) && (
-				<div style={{ ...styles.title, height: titleHeight }}>
-					<div
-						style={{
-							...styles.titleSide,
-							width: `${100 - iconActionsPercentage}%`,
+				<Box
+					sx={{
+						width: '100%',
+						height: titleHeight,
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						px: 2,
+						flexShrink: 0,
+					}}
+				>
+					<Box
+						sx={{
+							display: 'flex',
+							alignItems: 'center',
+							flex: 1,
+							minWidth: 0,
+							overflow: 'hidden',
 							justifyContent: 'flex-start',
 						}}
 					>
 						{typeof title === 'string' ? (
-							<Paper elevation={0} style={styles.titleCard}>
-								<Typography fontSize={17} lineHeight="21px">
+							<Paper
+								elevation={0}
+								sx={{
+									bgcolor: 'var(--color-bg-tertiary)',
+									py: 0.5,
+									px: 1,
+									maxWidth: '100%',
+								}}
+							>
+								<Typography fontSize={15} lineHeight={1.25} noWrap>
 									{title}
 								</Typography>
 							</Paper>
 						) : (
 							<>{title ?? <></>}</>
 						)}
-					</div>
-					<div
-						style={{ ...styles.titleSide, width: `${iconActionsPercentage}%`, justifyContent: 'flex-end' }}
+					</Box>
+					<Box
+						sx={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'flex-end',
+							flexShrink: 0,
+							gap: 0.5,
+						}}
 					>
 						{...iconActions}
 						{showCloseButton && (
 							<IconButton onClick={onClose} disabled={closeDisabled}>
-								<Cancel sx={{ fontSize: 21 }} />
+								<Cancel sx={{ fontSize: 19 }} />
 							</IconButton>
 						)}
-					</div>
-				</div>
+					</Box>
+				</Box>
 			)}
 
-			<DialogContent style={{ overflow: showOverflow ? 'visible' : 'auto', height: 'calc(100% - 90px)' }}>
+			<DialogContent sx={{ overflow: showOverflow ? 'visible' : 'auto', height: 'calc(100% - 90px)' }}>
 				{props.children}
 			</DialogContent>
 
@@ -129,24 +156,3 @@ export default function BasicDialog(
 		</Dialog>
 	);
 }
-
-const styles = {
-	title: {
-		width: '100%',
-		minHeight: 50,
-		display: 'flex',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		padding: '0px 10px',
-	},
-	titleSide: {
-		display: 'flex',
-		alignItems: 'center',
-	},
-	titleCard: {
-		backgroundColor: '#e8e8f3',
-		padding: 5,
-		width: 'fit-content',
-		height: 'fit-content',
-	},
-};

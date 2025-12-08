@@ -15,7 +15,7 @@ export default function ClaimSummaryDialog({ claimId, open, onClose, onStartChec
 	if (!open || !claimId) return null;
 
 	return (
-		<BasicDialog title="Claim Details" onClose={onClose} width={500} height="90vh" showOverflow={false}>
+		<BasicDialog title="Claim Details" onClose={onClose} width={500} showOverflow={false}>
 			<Box height="100%" overflow="hidden">
 				<ClaimSummary claimId={claimId} onStartChecklist={onStartChecklist} />
 			</Box>

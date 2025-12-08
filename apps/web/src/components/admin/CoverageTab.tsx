@@ -19,6 +19,24 @@ import { useUrlFilters } from '@/hooks/useUrlFilters';
 import BasicDialog from '../common/BasicDialog';
 import CoverageFormDialog from '../coverage/CoverageFormDialog';
 
+function NoRowsWithClaim() {
+	return (
+		<CustomNoRowsOverlay
+			text="No coverages found"
+			icon={<Shield sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
+
+function NoRowsNoClaim() {
+	return (
+		<CustomNoRowsOverlay
+			text="Select a claim to view coverages"
+			icon={<Shield sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+		/>
+	);
+}
+
 export default function CoverageTab() {
 	const { getParam, setParam } = useUrlFilters();
 	const claimIdFromUrl = getParam('claimId');
@@ -136,14 +154,7 @@ export default function CoverageTab() {
 		},
 	];
 
-	function NoRows() {
-		return (
-			<CustomNoRowsOverlay
-				text={selectedClaim ? 'No coverages found' : 'Select a claim to view coverages'}
-				icon={<Shield sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
-			/>
-		);
-	}
+	const NoRowsOverlay = selectedClaim ? NoRowsWithClaim : NoRowsNoClaim;
 
 	return (
 		<div style={styles.container} className="flex-col-start">
@@ -190,8 +201,8 @@ export default function CoverageTab() {
 						disableColumnMenu
 						disableColumnSelector
 						slots={{
-							noRowsOverlay: NoRows,
-							noResultsOverlay: NoRows,
+							noRowsOverlay: NoRowsOverlay,
+							noResultsOverlay: NoRowsOverlay,
 						}}
 						getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
 						sx={styles.tableOverrides}

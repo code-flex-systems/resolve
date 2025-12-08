@@ -12,10 +12,10 @@ import MyRecoveryMetric from '../home/MyRecoveryMetric';
 import RingLoadingIndicator from '../common/RingLoadingIndicator';
 import Calendar from '../home/Calendar';
 import PageWrapper from '../common/PageWrapper';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 
 export default function Home() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 	const resetChecklistsStore = useChecklistsStore((state) => state.reset);
 	const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -30,7 +30,7 @@ export default function Home() {
 
 	return (
 		<PageWrapper>
-			<div style={styles.container}>
+			<Box sx={styles.container}>
 				<Stack width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
 					{/* Loading State */}
 					<Fade in={isInitialLoad} timeout={500}>
@@ -127,7 +127,7 @@ export default function Home() {
 						</Box>
 					</Fade>
 				</Stack>
-			</div>
+			</Box>
 		</PageWrapper>
 	);
 }
@@ -136,10 +136,11 @@ const styles = {
 	container: {
 		width: '100%',
 		height: '100%',
+		flex: 1,
 		display: 'flex',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		backgroundColor: '#F7F8FA',
-		padding: 20,
+		bgcolor: 'var(--color-bg-tertiary)',
+		p: 2.5,
 	},
 };

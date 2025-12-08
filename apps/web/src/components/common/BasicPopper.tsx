@@ -1,5 +1,5 @@
 'use client';
-import { ClickAwayListener, Fade, Popper, PopperProps } from '@mui/material';
+import { Box, ClickAwayListener, Fade, Popper, PopperProps } from '@mui/material';
 import { PropsWithChildren } from 'react';
 
 export default function BasicPopper(
@@ -19,12 +19,12 @@ export default function BasicPopper(
 				anchorEl={anchorEl}
 				placement={placement}
 				className={className}
-				style={{ zIndex }}
+				sx={{ zIndex }}
 				transition
 			>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
-						<span>{props.children}</span>
+						<Box sx={{ borderRadius: '12px', overflow: 'hidden' }}>{props.children}</Box>
 					</Fade>
 				)}
 			</Popper>

@@ -1,5 +1,4 @@
 'use client';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { Button, ButtonProps, Tooltip, TooltipProps } from '@mui/material';
 import { JSX, PropsWithChildren } from 'react';
 import BasicIconButton from './BasicIconButton';
@@ -38,13 +37,27 @@ export default function BasicButtonStyled(
 					{...buttonProps}
 					variant={buttonProps.variant ?? 'outlined'}
 					sx={{
-						...styles.button,
-						...buttonProps.sx,
-						color: buttonProps.color ?? BASE_COLOR,
-					}}
-					style={{
+						bgcolor: 'white',
+						outline: '1px solid var(--color-border)',
+						border: 'none',
+						borderRadius: '8px',
+						boxShadow: 'none',
+						fontFamily: 'Inter',
+						fontWeight: 500,
 						minWidth: props.wrapText ? undefined : 'fit-content',
-						textWrap: props.wrapText === true ? undefined : 'nowrap',
+						whiteSpace: props.wrapText === true ? undefined : 'nowrap',
+						'&:hover': {
+							bgcolor: 'var(--color-bg-hover)',
+							outline: '1px solid var(--color-border-hover)',
+						},
+						'&:disabled': {
+							border: 'none',
+							outline: '1px solid var(--color-border-light)',
+							bgcolor: 'var(--color-bg-tertiary)',
+							color: 'var(--color-text-muted)',
+						},
+						...buttonProps.sx,
+						color: buttonProps.color ?? 'var(--color-text-primary)',
 					}}
 				>
 					{props.children}
@@ -53,22 +66,3 @@ export default function BasicButtonStyled(
 		</TooltipWrapper>
 	);
 }
-
-const styles = {
-	button: {
-		bgcolor: 'white',
-		outline: `1px solid ${BASE_COLOR_LIGHT}`,
-		border: 'none',
-		borderRadius: 2,
-		boxShadow: 'none',
-		fontFamily: 'Inter',
-		fontWeight: 'normal',
-		'&:hover': {
-			backgroundColor: theme.palette.action.hover,
-		},
-		'&:disabled': {
-			border: 'none',
-			backgroundColor: theme.palette.action.disabledBackground,
-		},
-	},
-};

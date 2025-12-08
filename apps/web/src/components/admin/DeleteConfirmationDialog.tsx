@@ -51,13 +51,23 @@ export default function DeleteConfirmationDialog({
 			width={450}
 		>
 			{hasNonEmptyFolders && (
-				<Box display="flex" alignItems="flex-start" gap={1} mb={2} p={1.5} bgcolor="#fff3e0" borderRadius={1}>
-					<WarningIcon sx={{ color: '#ff9800', mt: 0.5 }} />
+				<Box
+					sx={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						gap: 1,
+						mb: 2,
+						p: 1.5,
+						bgcolor: 'warning.light',
+						borderRadius: 1,
+					}}
+				>
+					<WarningIcon sx={{ color: 'warning.main', mt: 0.5 }} />
 					<Box>
-						<Typography fontSize={13} fontWeight={600} color="#e65100" mb={0.5}>
+						<Typography fontSize={13} fontWeight={600} color="warning.dark" mb={0.5}>
 							Warning: Non-empty folders
 						</Typography>
-						<Typography fontSize={12} color="#e65100">
+						<Typography fontSize={12} color="warning.dark">
 							You are about to delete {docsInFolders} document{docsInFolders !== 1 ? 's' : ''} contained
 							in the selected folder{folders.length !== 1 ? 's' : ''}.
 						</Typography>
@@ -75,13 +85,13 @@ export default function DeleteConfirmationDialog({
 						<Typography fontSize={12} fontWeight={600} color="text.secondary">
 							Folders ({folders.length}):
 						</Typography>
-						<ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+						<Box component="ul" sx={{ m: '4px 0', pl: 2.5 }}>
 							{folders.map((folder) => (
 								<li key={folder.data.id}>
 									<Typography fontSize={12}>{folder.data.name}</Typography>
 								</li>
 							))}
-						</ul>
+						</Box>
 					</Box>
 				)}
 
@@ -90,13 +100,13 @@ export default function DeleteConfirmationDialog({
 						<Typography fontSize={12} fontWeight={600} color="text.secondary">
 							Documents ({documents.length}):
 						</Typography>
-						<ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+						<Box component="ul" sx={{ m: '4px 0', pl: 2.5 }}>
 							{documents.map((doc) => (
 								<li key={doc.data.id}>
 									<Typography fontSize={12}>{doc.data.title || doc.data.alias}</Typography>
 								</li>
 							))}
-						</ul>
+						</Box>
 					</Box>
 				)}
 			</Box>

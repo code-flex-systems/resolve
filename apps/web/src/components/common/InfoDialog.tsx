@@ -3,7 +3,6 @@ import { JSX } from 'react';
 import { Fade, Paper, Typography } from '@mui/material';
 import Clear from '@mui/icons-material/Clear';
 
-import theme from '@/styles/theme';
 import BasicButton from './BasicButton';
 import Toolbar from './Toolbar';
 
@@ -20,8 +19,15 @@ export default function InfoDialog(props: {
 		<Fade in={open}>
 			<Paper
 				elevation={3}
-				style={{
-					...styles.paper,
+				sx={{
+					position: 'fixed',
+					zIndex: 100,
+					display: 'flex',
+					flexDirection: 'column',
+					justifyContent: 'center',
+					alignItems: 'center',
+					border: '1px solid var(--color-primary)',
+					p: '5px 20px 20px',
 					width,
 					height,
 					left: `calc(50vw - ${width / 2}px)`,
@@ -29,7 +35,7 @@ export default function InfoDialog(props: {
 				}}
 			>
 				<Toolbar
-					left={title ? <Typography fontWeight="bold">{title}</Typography> : undefined}
+					left={title ? <Typography fontWeight={500} fontSize={13}>{title}</Typography> : undefined}
 					right={
 						<BasicButton
 							buttonProps={{
@@ -40,21 +46,8 @@ export default function InfoDialog(props: {
 					}
 					padding={0}
 				/>
-				<Typography fontStyle="italic">{message}</Typography>
+				<Typography fontStyle="italic" fontSize={13}>{message}</Typography>
 			</Paper>
 		</Fade>
 	);
 }
-
-const styles = {
-	paper: {
-		position: 'fixed' as const,
-		zIndex: 100,
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'center',
-		alignItems: 'center',
-		border: `1px solid ${theme.palette.primary.main}`,
-		padding: '5px 20px 20px',
-	},
-};

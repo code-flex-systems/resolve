@@ -25,13 +25,11 @@ export default function ImageTooltip({
 	const [imageError, setImageError] = useState(false);
 	const [imageLoaded, setImageLoaded] = useState(false);
 
-	console.log('ImageTooltip rendering with URL:', imageUrl);
-
 	// If image failed to load, fallback to text description
 	if (imageError) {
 		return (
 			<Tooltip title={description || 'Image failed to load'} arrow>
-				<IconButton size="small" sx={{ ml: 0.5, padding: 0.5 }}>
+				<IconButton size="small" sx={{ ml: 0.5, p: 0.5 }}>
 					<InfoIcon sx={{ fontSize: 16, color: 'error.main' }} />
 				</IconButton>
 			</Tooltip>
@@ -49,41 +47,27 @@ export default function ImageTooltip({
 							</Typography>
 						</Box>
 					)}
-					<img
+					<Box
+						component="img"
 						src={imageUrl}
 						alt={alt}
-						onError={(e) => {
-							console.error('Image failed to load:', imageUrl);
-							console.error('Error event:', e);
-							// Try to fetch the URL to see what the actual error is
-							fetch(imageUrl)
-								.then((res) => {
-									console.error('Fetch response status:', res.status);
-									return res.text();
-								})
-								.then((text) => {
-									console.error('Fetch response body:', text);
-								})
-								.catch((err) => {
-									console.error('Fetch error:', err);
-								});
+						onError={() => {
 							setImageError(true);
 						}}
 						onLoad={() => {
-							console.log('Image loaded successfully:', imageUrl);
 							setImageLoaded(true);
 						}}
-						style={{
+						sx={{
 							maxWidth,
 							maxHeight,
 							width: 'auto',
 							height: 'auto',
 							display: imageLoaded ? 'block' : 'none',
-							borderRadius: 4,
+							borderRadius: 0.5,
 						}}
 					/>
 					{description && imageLoaded && (
-						<Box mt={1} fontSize={12} color="rgba(255,255,255,0.9)">
+						<Box sx={{ mt: 1, fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
 							{description}
 						</Box>
 					)}
@@ -95,12 +79,12 @@ export default function ImageTooltip({
 					sx: {
 						bgcolor: 'rgba(0, 0, 0, 0.9)',
 						maxWidth: maxWidth + 40,
-						padding: 0,
+						p: 0,
 					},
 				},
 			}}
 		>
-			<IconButton size="small" sx={{ ml: 0.5, padding: 0.5 }}>
+			<IconButton size="small" sx={{ ml: 0.5, p: 0.5 }}>
 				<InfoIcon sx={{ fontSize: 16, color: imageLoaded ? 'primary.main' : 'text.secondary' }} />
 			</IconButton>
 		</Tooltip>

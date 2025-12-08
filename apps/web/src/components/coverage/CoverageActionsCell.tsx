@@ -62,7 +62,7 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 				</BasicDialog>
 			)}
 
-			<div style={styles.container}>
+			<Box sx={styles.container}>
 				<BasicButtonStyled
 					buttonProps={{
 						onClick: () => onEdit(coverage),
@@ -81,7 +81,7 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 						icon={<Delete sx={{ fontSize: 15 }} />}
 					/>
 				</Box>
-			</div>
+			</Box>
 		</>
 	);
 }

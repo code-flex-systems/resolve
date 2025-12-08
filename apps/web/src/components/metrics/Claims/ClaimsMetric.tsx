@@ -167,11 +167,6 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 }
 
 const styles = {
-	divider: {
-		width: '100%',
-		height: 1,
-		marginTop: 5,
-	},
 	paper: {
 		borderRadius: 3,
 		margin: '15px',

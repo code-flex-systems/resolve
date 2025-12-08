@@ -66,25 +66,25 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			case PageInstanceStatus.UNSTARTED:
 				return (
 					<Tooltip title="Unstarted">
-						<PanoramaFishEye sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+						<PanoramaFishEye sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
 					<Tooltip title="Started">
-						<Adjust sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+						<Adjust sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.COMPLETE:
 				return (
 					<Tooltip title="Complete">
-						<CheckCircle sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+						<CheckCircle sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip title="This page has changed">
-						<Error sx={{ color: iconColor }} className={iconClassname} style={styles.icon} />
+						<Error sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 		}
@@ -129,7 +129,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							/>
 						</IconButton>
 					) : (
-						<div style={{ width: 30, minWidth: 30 }} />
+						<Box sx={{ width: 30, minWidth: 30 }} />
 					)}
 					<Typography
 						maxWidth={350}
@@ -143,7 +143,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 				<Fade in={mode === ChecklistMode.VIEW || isFetching} unmountOnExit>
 					<span>
 						{isFetching ? (
-							<CircularProgress style={{ color: 'white', ...styles.icon, width: 19, height: 19 }} />
+							<CircularProgress size={19} sx={{ color: 'white', ...styles.icon }} />
 						) : (
 							statusIcon
 						)}
@@ -153,7 +153,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 			{questions && mode === ChecklistMode.EDIT && (
 				<Collapse in={selected && !isFetching} unmountOnExit>
-					<Stack bgcolor="rgba(33, 106, 196, 0.1)" paddingBottom="5px" style={styles.questionsContainer}>
+					<Stack bgcolor="var(--color-primary-light)" pb={1} sx={styles.questionsContainer}>
 						{questions.map((q, i) => (
 							<QuestionNode
 								key={i}
@@ -195,23 +195,19 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 const styles = {
 	icon: {
-		marginTop: '4px',
-		marginLeft: '5px',
-		marginRight: '10px',
-		width: 19,
-		height: 19,
+		mt: 0.5,
+		ml: 0.75,
+		mr: 1.25,
+		width: 18,
+		height: 18,
 	},
 	node: {
 		width: '100%',
-		minHeight: 30,
-		padding: '5px 0px',
+		minHeight: 32,
+		py: 0.75,
 	},
 	questionsContainer: {
-		borderBottomLeftRadius: 5,
-		borderBottomRightRadius: 5,
-	},
-	reportIcon: {
-		color: 'primary.main',
-		margin: '0px 5px',
+		borderBottomLeftRadius: 'var(--radius-md)',
+		borderBottomRightRadius: 'var(--radius-md)',
 	},
 };

@@ -8,6 +8,8 @@ export function useUserTrpc() {
 	const utils = trpc.useUtils();
 
 	return {
+		/** Get current user's session data with internal UUID */
+		me: trpc.user.me.useQuery,
 		list: trpc.user.getUsers.useQuery,
 		paginated: trpc.user.getUsersPaginated.useQuery,
 		withDeskAssignments: trpc.user.getUsersWithDeskAssignments.useQuery,

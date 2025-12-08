@@ -8,13 +8,9 @@ import {
 	Collapse,
 	Divider,
 	Fade,
-	FormControl,
-	FormLabel,
-	Grid,
 	IconButton,
 	InputAdornment,
 	MenuItem,
-	Select,
 	TextField,
 	Typography,
 } from '@mui/material';
@@ -283,7 +279,7 @@ export default function FormAnswer() {
 	}, [selectedQuestionData, isPlaceholder]);
 
 	return (
-		<>
+		<Box sx={styles.container}>
 			<Toolbar
 				left={
 					<>
@@ -294,10 +290,10 @@ export default function FormAnswer() {
 							{isPlaceholder ? '?' : selectedAnswerData.id})
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
-							<div style={{ marginLeft: 10 }} className="flex-row-left">
+							<Box sx={{ ml: 1.25 }} className="flex-row-left">
 								<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
 								<Typography color={theme.palette.success.light}>Saved!</Typography>
-							</div>
+							</Box>
 						</Fade>
 					</>
 				}
@@ -355,359 +351,68 @@ export default function FormAnswer() {
 				height={60}
 				padding={'10px 0px'}
 			/>
-			<div style={styles.divider}>
+			<Box sx={styles.divider}>
 				<Divider />
-			</div>
+			</Box>
 			<Fade
 				key={selectedAnswerData.id}
 				in={!!selectedAnswerData.id && !fetchingAction}
 				timeout={500}
 				unmountOnExit
 			>
-				<Form control={control} style={styles.form}>
-					<Grid container>
-						<Grid container alignItems="center">
-							<Grid margin="5px">
-								<Controller
-									name="text"
-									control={control}
-									rules={{ required: true }}
-									render={({ field }) => (
-										<TextField
-											label="Answer text"
-											placeholder="Water Damage"
-											variant="outlined"
-											error={!!errors.text}
-											{...field}
-											slotProps={{
-												input: {
-													endAdornment: (
-														<InputAdornment position="end">
-															<IconButton
-																disableRipple
-																onClick={() => onCopyText(field.name, field.value)}
-															>
-																{copiedField === field.name ? (
-																	<Check
-																		sx={{ color: theme.palette.success.light }}
-																	/>
-																) : (
-																	<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
-																)}
-															</IconButton>
-														</InputAdornment>
-													),
-												},
-											}}
-											sx={styles.textFieldOverrides}
-											style={styles.item}
-										/>
-									)}
-								/>
-							</Grid>
-
-							<Grid margin="5px">
-								<Controller
-									name="description_text"
-									control={control}
-									render={({ field }) => (
-										<TextField
-											label="Answer description (optional)"
-											placeholder="Damage as a result of leaks or condensation"
-											variant="outlined"
-											{...field}
-											slotProps={{
-												input: {
-													endAdornment: (
-														<InputAdornment position="end">
-															<IconButton
-																disableRipple
-																onClick={() =>
-																	onCopyText(field.name, field.value ?? '')
-																}
-															>
-																{copiedField === field.name ? (
-																	<Check
-																		sx={{ color: theme.palette.success.light }}
-																	/>
-																) : (
-																	<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
-																)}
-															</IconButton>
-														</InputAdornment>
-													),
-												},
-											}}
-											value={field.value ?? ''}
-											sx={{ ...styles.textFieldOverrides, width: 400 }}
-											style={styles.item}
-										/>
-									)}
-								/>
-							</Grid>
-						</Grid>
-
-						<Grid container alignItems="center">
-							<Grid margin="5px">
-								<Controller
-									name="grade"
-									control={control}
-									render={({ field }) => (
-										<TextField
-											label="Grade (optional)"
-											placeholder="1.1"
-											variant="outlined"
-											type="number"
-											{...field}
-											value={field.value ?? ''}
-											sx={{ ...styles.textFieldOverrides, width: 120 }}
-											style={styles.item}
-										/>
-									)}
-								/>
-							</Grid>
-							<Grid margin="5px">
-								<Controller
-									name="position"
-									control={control}
-									rules={{ required: true }}
-									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px' }}>
-											<FormLabel sx={styles.formLabel}>Order</FormLabel>
-											<Select
-												variant="outlined"
-												error={!!errors.position}
-												{...field}
-												sx={{ ...styles.textFieldOverrides, width: 80, height: 35 }}
-											>
-												{positionOptions.map((o) => (
-													<MenuItem key={o} value={o}>
-														{o}
-													</MenuItem>
-												))}
-											</Select>
-										</FormControl>
-									)}
-								/>
-							</Grid>
-
-							<Grid margin="5px">
-								<Controller
-									name="calls_instance_id"
-									control={control}
-									render={({ field }) => (
-										<FormControl style={{ padding: '0px 5px' }}>
-											<FormLabel sx={styles.formLabel}>Calls page (optional)</FormLabel>
-											<Select
-												displayEmpty
-												variant="outlined"
-												error={!!errors.calls_instance_id}
-												{...field}
-												value={field.value ?? ''}
-												renderValue={(value) => {
-													if (value === 0) return 'None';
-													const option = pageInstanceOptions.find(
-														(o) => o.instanceId === value
-													);
-													return option
-														? `${option.title} (p${option.pageId}.i${option.instanceId})`
-														: 'Choose a page';
-												}}
-												sx={{ ...styles.textFieldOverrides, height: 35 }}
-											>
-												<MenuItem key="none" value="">
-													<Typography fontSize={13}>None</Typography>
-												</MenuItem>
-												{pageInstanceOptions
-													.sort((a, b) => a.pageId - b.pageId)
-													.map((o) => (
-														<MenuItem key={o.instanceId} value={o.instanceId}>
-															<Typography fontSize={13}>
-																{o.title} (p{o.pageId}.i{o.instanceId})
-															</Typography>
-														</MenuItem>
-													))}
-											</Select>
-										</FormControl>
-									)}
-								/>
-							</Grid>
-						</Grid>
-
-						<Grid container alignItems="center">
-							<Grid margin="5px">
-								<Button
-									disabled={inTransition || isFreeform}
-									variant="outlined"
-									color="primary"
-									startIcon={<Share />}
-									onClick={toggleActionDialog}
-									sx={{ height: 30 }}
-									style={styles.item}
-								>
-									User actions
-								</Button>
-								{formatActionText(answerAction)}
-							</Grid>
-							<Grid margin="5px">
-								<Controller
-									name="has_additional_info"
-									control={control}
-									render={({ field }) => (
-										<FormControl style={styles.item}>
-											<div className="flex-row-left">
-												<Checkbox
-													{...field}
-													onChange={(e) => field.onChange(e.target.checked)}
-													checked={Boolean(field?.value)}
-													value={Boolean(field?.value)}
-													disabled={Boolean(requiresUpload)}
-													sx={{ width: 15, height: 15 }}
-												/>
-												<FormLabel sx={{ fontSize: 12, paddingLeft: '5px' }}>
-													Requires additional info...
-												</FormLabel>
-											</div>
-										</FormControl>
-									)}
-								/>
-							</Grid>
-							<Grid margin="5px">
-								<Controller
-									name="requires_upload"
-									control={control}
-									render={({ field }) => (
-										<FormControl style={styles.item}>
-											<div className="flex-row-left">
-												<Checkbox
-													{...field}
-													onChange={(e) => field.onChange(e.target.checked)}
-													checked={Boolean(field?.value)}
-													value={Boolean(field?.value)}
-													disabled={Boolean(hasAdditionalInfo)}
-													sx={{ width: 15, height: 15 }}
-												/>
-												<FormLabel sx={{ fontSize: 12, paddingLeft: '5px' }}>
-													Requires file upload
-												</FormLabel>
-											</div>
-										</FormControl>
-									)}
-								/>
-							</Grid>
-						</Grid>
-
-						<Collapse in={!!requiresUpload}>
-							<Grid margin="5px">
-								<Controller
-									name="allowed_extensions"
-									control={control}
-									render={({ field }) => {
-										const selectedExtensions = field.value
-											? field.value.split(',').filter(Boolean)
-											: [];
-										const allExtensions = Array.from(new Set(getAllowedExtensions()));
-
-										return (
-											<FormControl sx={{ minWidth: 300 }} size="small">
-												<FormLabel sx={{ fontSize: 12, mb: 0.5 }}>
-													Allowed file extensions (optional)
-												</FormLabel>
-												<Select
-													{...field}
-													multiple
-													value={selectedExtensions}
-													onChange={(e) => {
-														const value = e.target.value;
-														const extensionsArray =
-															typeof value === 'string' ? value.split(',') : value;
-														field.onChange(extensionsArray.join(','));
-													}}
-													renderValue={(selected) => {
-														if (selected.length === 0) {
-															return (
-																<em style={{ fontSize: 12, color: '#999' }}>
-																	All file types allowed
-																</em>
-															);
-														}
-														return selected.join(', ');
-													}}
-													displayEmpty
-													sx={{ fontSize: 13 }}
-												>
-													{allExtensions.map((ext) => (
-														<MenuItem key={ext} value={ext} sx={{ fontSize: 13 }}>
-															<Checkbox
-																checked={selectedExtensions.indexOf(ext) > -1}
-																sx={{ width: 15, height: 15, mr: 1 }}
-															/>
-															{ext}
-														</MenuItem>
-													))}
-												</Select>
-											</FormControl>
-										);
-									}}
-								/>
-							</Grid>
-						</Collapse>
-
-						{/* Document attachment section */}
-						<Box display="flex" alignItems="center" margin="5px" gap={1}>
-							<Button
-								variant="outlined"
-								size="small"
-								startIcon={<AttachFileIcon />}
-								onClick={() => setShowDocSelector(true)}
-								disabled={inTransition || isPlaceholder}
-								sx={{ height: 30 }}
-							>
-								{attachedDoc ? 'Change Document' : 'Add Document...'}
-							</Button>
-							{attachedDoc && (
-								<Box
-									display="flex"
-									alignItems="center"
-									gap={1}
-									bgcolor="#f5f5f5"
-									p={1}
-									borderRadius={1}
-								>
-									<Typography fontSize={12} color="text.secondary">
-										{attachedDoc.title || attachedDoc.alias}
-									</Typography>
-									{attachedDoc.mime_type?.startsWith('image/') ? (
-										<ImageTooltip
-											imageUrl={`/api/download?docId=${attachedDoc.id}`}
-											description={attachedDoc.title ?? undefined}
-										/>
-									) : (
-										<DocumentIconWithPreview document={attachedDoc} />
-									)}
-									<IconButton
-										size="small"
-										onClick={handleRemoveDocument}
-										disabled={inTransition}
-										sx={{ ml: 0.5, padding: 0.5 }}
-									>
-										<Close sx={{ fontSize: 16 }} />
-									</IconButton>
-								</Box>
-							)}
-						</Box>
-
-						<Collapse in={!!hasAdditionalInfo}>
-							<Grid container alignItems="center">
-								<Grid margin="5px">
+				<Form control={control} style={{ width: '100%' }}>
+					<Box sx={styles.formContainer}>
+						{/* Basic Information Section */}
+						<Box sx={styles.section}>
+							<Typography sx={styles.sectionTitle}>Basic Information</Typography>
+							<Box sx={styles.sectionContent}>
+								<Box sx={styles.fieldRow}>
 									<Controller
-										name="additional_info_placeholder"
+										name="text"
+										control={control}
+										rules={{ required: true }}
+										render={({ field }) => (
+											<TextField
+												label="Answer text"
+												placeholder="Water Damage"
+												variant="outlined"
+												fullWidth
+												error={!!errors.text}
+												{...field}
+												slotProps={{
+													input: {
+														endAdornment: (
+															<InputAdornment position="end">
+																<IconButton
+																	disableRipple
+																	onClick={() => onCopyText(field.name, field.value)}
+																>
+																	{copiedField === field.name ? (
+																		<Check
+																			sx={{ color: theme.palette.success.light }}
+																		/>
+																	) : (
+																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																	)}
+																</IconButton>
+															</InputAdornment>
+														),
+													},
+												}}
+											/>
+										)}
+									/>
+								</Box>
+								<Box sx={styles.fieldRow}>
+									<Controller
+										name="description_text"
 										control={control}
 										render={({ field }) => (
 											<TextField
-												label="Free-form placeholder (optional)"
-												placeholder="Please list"
+												label="Description (optional)"
+												placeholder="Damage as a result of leaks or condensation"
 												variant="outlined"
+												fullWidth
 												{...field}
 												slotProps={{
 													input: {
@@ -732,33 +437,316 @@ export default function FormAnswer() {
 													},
 												}}
 												value={field.value ?? ''}
-												sx={styles.textFieldOverrides}
-												style={styles.item}
 											/>
 										)}
 									/>
-								</Grid>
-								<Grid margin="5px">
+								</Box>
+							</Box>
+						</Box>
+
+						{/* Organization Section */}
+						<Box sx={styles.section}>
+							<Typography sx={styles.sectionTitle}>Organization</Typography>
+							<Box sx={styles.sectionContent}>
+								<Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
 									<Controller
-										name="additional_info_num_lines"
+										name="position"
+										control={control}
+										rules={{ required: true }}
+										render={({ field }) => (
+											<TextField
+												select
+												label="Display order"
+												error={!!errors.position}
+												{...field}
+												sx={{ width: 100 }}
+											>
+												{positionOptions.map((o) => (
+													<MenuItem key={o} value={o}>
+														{o}
+													</MenuItem>
+												))}
+											</TextField>
+										)}
+									/>
+									<Controller
+										name="grade"
 										control={control}
 										render={({ field }) => (
 											<TextField
-												label="Free-form # of lines (optional)"
-												placeholder="2"
-												variant="outlined"
+												label="Grade"
+												placeholder="1.1"
 												type="number"
 												{...field}
 												value={field.value ?? ''}
-												sx={{ ...styles.textFieldOverrides, width: 200 }}
-												style={styles.item}
+												sx={{ width: 100 }}
 											/>
 										)}
 									/>
-								</Grid>
-							</Grid>
-						</Collapse>
-					</Grid>
+									<Controller
+										name="calls_instance_id"
+										control={control}
+										render={({ field }) => (
+											<TextField
+												select
+												label="Navigates to page"
+												error={!!errors.calls_instance_id}
+												{...field}
+												value={field.value ?? ''}
+												sx={{ minWidth: 200 }}
+											>
+												<MenuItem key="none" value="">
+													None
+												</MenuItem>
+												{pageInstanceOptions
+													.sort((a, b) => a.pageId - b.pageId)
+													.map((o) => (
+														<MenuItem key={o.instanceId} value={o.instanceId}>
+															{o.title} (p{o.pageId}.i{o.instanceId})
+														</MenuItem>
+													))}
+											</TextField>
+										)}
+									/>
+								</Box>
+							</Box>
+						</Box>
+
+						{/* Behavior Section */}
+						<Box sx={styles.section}>
+							<Typography sx={styles.sectionTitle}>Behavior</Typography>
+							<Box sx={styles.sectionContent}>
+								<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+									{/* User Actions */}
+									<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+										<Button
+											disabled={inTransition || isFreeform}
+											variant="outlined"
+											color="primary"
+											size="small"
+											startIcon={<Share />}
+											onClick={toggleActionDialog}
+										>
+											Configure User Actions
+										</Button>
+										{formatActionText(answerAction)}
+									</Box>
+
+									{/* Checkboxes */}
+									<Box sx={{ display: 'flex', gap: 3 }}>
+										<Controller
+											name="has_additional_info"
+											control={control}
+											render={({ field }) => (
+												<Box sx={styles.checkboxRow}>
+													<Checkbox
+														{...field}
+														onChange={(e) => field.onChange(e.target.checked)}
+														checked={Boolean(field?.value)}
+														disabled={Boolean(requiresUpload)}
+														size="small"
+													/>
+													<Typography fontSize={13}>
+														Requires additional text input
+													</Typography>
+												</Box>
+											)}
+										/>
+										<Controller
+											name="requires_upload"
+											control={control}
+											render={({ field }) => (
+												<Box sx={styles.checkboxRow}>
+													<Checkbox
+														{...field}
+														onChange={(e) => field.onChange(e.target.checked)}
+														checked={Boolean(field?.value)}
+														disabled={Boolean(hasAdditionalInfo)}
+														size="small"
+													/>
+													<Typography fontSize={13}>Requires file upload</Typography>
+												</Box>
+											)}
+										/>
+									</Box>
+
+									{/* File Extensions (conditional) */}
+									<Collapse in={!!requiresUpload}>
+										<Controller
+											name="allowed_extensions"
+											control={control}
+											render={({ field }) => {
+												const selectedExtensions = field.value
+													? field.value.split(',').filter(Boolean)
+													: [];
+												const allExtensions = Array.from(new Set(getAllowedExtensions()));
+
+												return (
+													<TextField
+														select
+														label="Allowed file extensions"
+														{...field}
+														value={selectedExtensions}
+														onChange={(e) => {
+															const value = e.target.value;
+															const extensionsArray =
+																typeof value === 'string'
+																	? value.split(',')
+																	: value;
+															field.onChange(
+																(extensionsArray as string[]).join(',')
+															);
+														}}
+														slotProps={{
+															select: {
+																multiple: true,
+																displayEmpty: true,
+																renderValue: (selected) => {
+																	const sel = selected as string[];
+																	if (sel.length === 0) {
+																		return (
+																			<em style={{ fontSize: 12, color: '#999' }}>
+																				All file types allowed
+																			</em>
+																		);
+																	}
+																	return sel.join(', ');
+																},
+															},
+														}}
+														sx={{ maxWidth: 350 }}
+													>
+														{allExtensions.map((ext) => (
+															<MenuItem key={ext} value={ext}>
+																<Checkbox
+																	checked={selectedExtensions.indexOf(ext) > -1}
+																	size="small"
+																/>
+																{ext}
+															</MenuItem>
+														))}
+													</TextField>
+												);
+											}}
+										/>
+									</Collapse>
+
+									{/* Additional Info Fields (conditional) */}
+									<Collapse in={!!hasAdditionalInfo}>
+										<Box sx={{ display: 'flex', gap: 2 }}>
+											<Controller
+												name="additional_info_placeholder"
+												control={control}
+												render={({ field }) => (
+													<TextField
+														label="Placeholder text"
+														placeholder="Please list"
+														variant="outlined"
+														size="small"
+														{...field}
+														slotProps={{
+															input: {
+																endAdornment: (
+																	<InputAdornment position="end">
+																		<IconButton
+																			disableRipple
+																			size="small"
+																			onClick={() =>
+																				onCopyText(
+																					field.name,
+																					field.value ?? ''
+																				)
+																			}
+																		>
+																			{copiedField === field.name ? (
+																				<Check
+																					sx={{
+																						color: theme.palette.success
+																							.light,
+																						fontSize: 16,
+																					}}
+																				/>
+																			) : (
+																				<ContentCopy
+																					sx={{
+																						color: BASE_COLOR_LIGHT,
+																						fontSize: 16,
+																					}}
+																				/>
+																			)}
+																		</IconButton>
+																	</InputAdornment>
+																),
+															},
+														}}
+														value={field.value ?? ''}
+														sx={{ width: 250 }}
+													/>
+												)}
+											/>
+											<Controller
+												name="additional_info_num_lines"
+												control={control}
+												render={({ field }) => (
+													<TextField
+														label="Number of lines"
+														placeholder="2"
+														variant="outlined"
+														type="number"
+														size="small"
+														{...field}
+														value={field.value ?? ''}
+														sx={{ width: 120 }}
+													/>
+												)}
+											/>
+										</Box>
+									</Collapse>
+								</Box>
+							</Box>
+						</Box>
+
+						{/* Attachments Section */}
+						<Box sx={styles.section}>
+							<Typography sx={styles.sectionTitle}>Attachments</Typography>
+							<Box sx={styles.sectionContent}>
+								<Box display="flex" alignItems="center" gap={1.5}>
+									<Button
+										variant="outlined"
+										size="small"
+										startIcon={<AttachFileIcon />}
+										onClick={() => setShowDocSelector(true)}
+										disabled={inTransition || isPlaceholder}
+									>
+										{attachedDoc ? 'Change Document' : 'Add Document'}
+									</Button>
+									{attachedDoc && (
+										<Box sx={styles.attachmentChip}>
+											<Typography fontSize={12} color="text.secondary">
+												{attachedDoc.title || attachedDoc.alias}
+											</Typography>
+											{attachedDoc.mime_type?.startsWith('image/') ? (
+												<ImageTooltip
+													imageUrl={`/api/download?docId=${attachedDoc.id}`}
+													description={attachedDoc.title ?? undefined}
+												/>
+											) : (
+												<DocumentIconWithPreview document={attachedDoc} />
+											)}
+											<IconButton
+												size="small"
+												onClick={handleRemoveDocument}
+												disabled={inTransition}
+												sx={{ padding: '2px' }}
+											>
+												<Close sx={{ fontSize: 14 }} />
+											</IconButton>
+										</Box>
+									)}
+								</Box>
+							</Box>
+						</Box>
+					</Box>
 				</Form>
 			</Fade>
 			{showActionDialog && <UserActionsDialog />}
@@ -772,50 +760,69 @@ export default function FormAnswer() {
 					relationshipData={{ answer_id: selectedAnswerData.id }}
 				/>
 			)}
-		</>
+		</Box>
 	);
 }
 
 const styles = {
+	container: {
+		width: '100%',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column',
+		p: 2.5,
+		minWidth: 500,
+		overflow: 'auto',
+	},
 	divider: {
 		width: '100%',
-		height: 1,
-		marginBottom: 5,
+		mb: 3,
 	},
-	form: {
+	formContainer: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 2.5,
 		width: '100%',
-		paddingTop: 10,
 	},
-	formLabel: {
-		zIndex: 100,
-		backgroundColor: 'white',
-		position: 'absolute',
-		marginLeft: '10px',
-		padding: '1px 5px',
-		fontSize: 12,
-		top: -10,
+	section: {
+		bgcolor: 'var(--color-bg-secondary)',
+		borderRadius: '12px',
+		border: '1px solid var(--color-border)',
+		overflow: 'hidden',
+		maxWidth: 600,
 	},
-	item: {
-		margin: 5,
+	sectionTitle: {
+		fontSize: 13,
+		fontWeight: 600,
+		color: 'var(--color-text-primary)',
+		px: 2,
+		py: 1.5,
+		bgcolor: 'white',
+		borderBottom: '1px solid var(--color-border)',
 	},
-	row: {
-		padding: '15px 5px',
+	sectionContent: {
+		p: 2,
+		bgcolor: 'white',
 	},
-	textFieldOverrides: {
-		width: 300,
-		'& .MuiInputBase-root': {
-			paddingTop: '3px',
-			paddingBottom: '3px',
-		},
-		'& .MuiOutlinedInput-input': {
-			paddingTop: '3px',
-			paddingBottom: '3px',
-			overflow: 'auto',
+	fieldRow: {
+		mb: 2,
+		'&:last-child': {
+			mb: 0,
 		},
 	},
-	toolbar: {
-		color: 'secondary.main',
-		fontSize: 20,
-		marginRight: '5px',
+	checkboxRow: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 0.5,
+	},
+	attachmentChip: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 1,
+		bgcolor: 'var(--color-bg-tertiary)',
+		border: '1px solid var(--color-border)',
+		borderRadius: '8px',
+		px: 1.5,
+		py: 0.75,
 	},
 };

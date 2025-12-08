@@ -1,12 +1,12 @@
 'use client';
 
 import { Paper } from '@mui/material';
-import { useSession } from 'next-auth/react';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import UserRecoveryMetricChart from './UserRecoveryMetricChart';
 import theme from '@/styles/theme';
 
 export default function MyRecoveryMetric() {
-	const { data: session } = useSession();
+	const { data: session } = useClerkSession();
 
 	return (
 		<Paper elevation={0} sx={styles.container}>

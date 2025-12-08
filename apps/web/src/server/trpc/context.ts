@@ -1,10 +1,9 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getClerkSession } from '@/lib/auth/clerk-session';
 import { db } from '@/api/database/kysely';
 
 export async function createContext() {
-       const session = await getServerSession(authOptions);
-       return { session, db };
+	const session = await getClerkSession();
+	return { session, db };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

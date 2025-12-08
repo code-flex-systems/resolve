@@ -1,8 +1,7 @@
 'use client';
 import CameraAlt from '@mui/icons-material/CameraAlt';
-import { Collapse } from '@mui/material';
+import { Box, Collapse } from '@mui/material';
 import { useRef, useState } from 'react';
-import { BACKDROP_COLOR, HOVERED_COLOR } from '@/styles/theme';
 
 export default function PhotoPicker(props: {
 	image?: string;
@@ -25,7 +24,7 @@ export default function PhotoPicker(props: {
 
 	return (
 		<>
-			<div
+			<Box
 				onMouseEnter={disabled ? undefined : () => setHovered(true)}
 				onMouseLeave={disabled ? undefined : () => setHovered(false)}
 				onClick={
@@ -35,28 +34,23 @@ export default function PhotoPicker(props: {
 								if (ref.current) ref.current.click();
 						  }
 				}
-				style={{ ...styles.container(hovered, disabled), width, height }}
+				sx={{
+					width,
+					height,
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					bgcolor: hovered ? 'var(--color-bg-hover)' : 'var(--color-bg-tertiary)',
+					transition: 'background-color 300ms ease',
+					cursor: disabled ? undefined : 'pointer',
+					mb: 1,
+				}}
 			>
-				{image ? <img width={width} height={height} src={image} /> : <CameraAlt sx={styles.icon} />}
-			</div>
+				{image ? <img width={width} height={height} src={image} /> : <CameraAlt sx={{ fontSize: 50 }} />}
+			</Box>
 			<Collapse in={!disabled}>
 				<input ref={ref} type="file" accept="image/*" src={image} onChange={onChange} />
 			</Collapse>
 		</>
 	);
 }
-
-const styles = {
-	container: (hovered: boolean, disabled?: boolean) => ({
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: hovered ? HOVERED_COLOR : BACKDROP_COLOR,
-		transition: 'background-color 300ms ease',
-		cursor: disabled ? undefined : 'pointer',
-		marginBottom: 10,
-	}),
-	icon: {
-		fontSize: 50,
-	},
-};

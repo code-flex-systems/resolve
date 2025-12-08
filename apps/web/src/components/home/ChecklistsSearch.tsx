@@ -12,6 +12,7 @@ import {
 	ClickAwayListener,
 	Typography,
 	Paper,
+	Box,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -68,7 +69,7 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 	};
 
 	return (
-		<div style={styles.container} className="flex-row-left">
+		<Box sx={styles.container} className="flex-row-left">
 			<ClickAwayListener onClickAway={onClose}>
 				<span ref={spanRef}>
 					<TextField
@@ -111,14 +112,14 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 						placement="bottom-end"
 						disablePortal
 					>
-						<Paper style={styles.popper}>
+						<Paper sx={styles.popper}>
 							{searching && (
-								<MenuItem key="searching" disabled style={styles.menuItem}>
+								<MenuItem key="searching" disabled sx={styles.menuItem}>
 									<Typography fontStyle="italic">Searching...</Typography>
 								</MenuItem>
 							)}
 							{!searching && results.length === 0 && !selectedChecklist && (
-								<MenuItem key="no-results" disabled style={styles.menuItem}>
+								<MenuItem key="no-results" disabled sx={styles.menuItem}>
 									<Typography fontStyle="italic">No checklists found</Typography>
 								</MenuItem>
 							)}
@@ -154,26 +155,26 @@ export default function ChecklistsSearch({ showIcon = true }: { showIcon?: boole
 					</Popper>
 				</span>
 			</ClickAwayListener>
-		</div>
+		</Box>
 	);
 }
 
 const styles = {
 	container: {
 		width: 'fit-content',
-		padding: 5,
+		p: 0.625,
 	},
 	menuItem: {
 		width: 265,
 	},
 	popper: {
 		maxHeight: 300,
-		overflowY: 'auto' as const,
+		overflowY: 'auto',
 		width: '100%',
 		outline: '1px solid #E0E0E0',
-		borderBottomLeftRadius: 2,
-		borderBottomRightRadius: 2,
-		marginTop: 2,
+		borderBottomLeftRadius: '2px',
+		borderBottomRightRadius: '2px',
+		mt: 0.25,
 	},
 	textField: {
 		width: 265,

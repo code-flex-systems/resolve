@@ -1,5 +1,6 @@
 'use client';
 import { Question } from '@/types/types';
+import { Box } from '@mui/material';
 import { Control, Controller, FieldValues, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import ChecklistFormLabel from './ChecklistFormLabel';
 import ChecklistAnswerRadio from './ChecklistAnswerRadio';
@@ -32,8 +33,8 @@ export function ChecklistQuestion(props: {
 	const disabled = props.disabled || !isAssigned;
 
 	return (
-		<div
-			style={{
+		<Box
+			sx={{
 				...styles.container,
 				backgroundColor: highlightedQuestion === question.id ? 'rgba(50, 174, 153, 0.1)' : undefined,
 			}}
@@ -117,14 +118,14 @@ export function ChecklistQuestion(props: {
 					)}
 				/>
 			)}
-		</div>
+		</Box>
 	);
 }
 
 const styles = {
 	container: {
 		width: '100%',
-		padding: '10px 0px',
+		py: 1.25,
 		transition: 'background-color 300ms ease',
 	},
 };

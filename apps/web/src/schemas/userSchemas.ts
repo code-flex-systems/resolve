@@ -43,10 +43,7 @@ export const getUserCountInput = z.object({
 export const createUsersInput = z.object({
 	users: z.array(
 		z.object({
-			first: z.string(),
-			last: z.string(),
 			email: z.string().email(),
-			phone: z.string().optional(),
 			role: z.string().optional(),
 		})
 	),

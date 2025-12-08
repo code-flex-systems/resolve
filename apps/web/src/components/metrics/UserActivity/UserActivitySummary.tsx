@@ -18,6 +18,10 @@ export default function UserActivitySummary({
 	const cardSubtextSize = isBreakdown ? 13 : 12;
 	const spacing = isBreakdown ? 2 : 1;
 
+	// Validate and format the busiest day date
+	const busiestDayDate = maxEventsRow?.activity_date ? dayjs(maxEventsRow.activity_date) : null;
+	const hasValidBusiestDay = busiestDayDate?.isValid() ?? false;
+
 	return (
 		<Grid container spacing={spacing} mb={isBreakdown ? 3 : 1.5} mt={isBreakdown ? 1 : 0}>
 			<Grid>
@@ -57,10 +61,10 @@ export default function UserActivitySummary({
 							Busiest Day
 						</Typography>
 						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
-							{maxEventsRow ? dayjs(maxEventsRow.activity_date).format('MMM D') : '-'}
+							{hasValidBusiestDay ? busiestDayDate!.format('MMM D') : '-'}
 						</Typography>
 						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
-							{maxEventsRow ? `${maxEventsRow.event_count.toLocaleString()} events` : 'no data'}
+							{hasValidBusiestDay ? `${maxEventsRow!.event_count.toLocaleString()} events` : 'no data'}
 						</Typography>
 					</CardContent>
 				</Card>

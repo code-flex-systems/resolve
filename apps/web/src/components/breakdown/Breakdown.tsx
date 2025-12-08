@@ -6,7 +6,7 @@ import FormatQuote from '@mui/icons-material/FormatQuote';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CustomPagination from '../common/CustomPagination';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -90,6 +90,14 @@ export default function Breakdown() {
 		{ enabled: selectedAnswerId !== -1 }
 	);
 
+	const rowCountRef = useRef(answerData?.answer_count ?? 0);
+	const rowCount = useMemo(() => {
+		if (answerData?.answer_count !== undefined) {
+			rowCountRef.current = answerData.answer_count;
+		}
+		return rowCountRef.current;
+	}, [answerData?.answer_count]);
+
 	useEffect(() => {
 		setContraints({ page: 0, pageSize: 25 });
 	}, [selectedAnswerId]);
@@ -97,7 +105,7 @@ export default function Breakdown() {
 	return (
 		<Box flex={1} height="100%" flexShrink={1} minWidth={0}>
 			<Paper sx={styles.paper} className="flex-col-start">
-				<div style={styles.table}>
+				<Box sx={styles.table}>
 					<DataGridPro
 						columns={COLUMNS}
 						columnHeaderHeight={45}
@@ -114,7 +122,7 @@ export default function Breakdown() {
 							noResultsOverlay: NoResults,
 						}}
 						rows={breakdown}
-						rowCount={answerData?.answer_count ?? 0}
+						rowCount={rowCount}
 						rowHeight={40}
 						hideFooterSelectedRowCount
 						getRowClassName={(params) =>
@@ -130,7 +138,7 @@ export default function Breakdown() {
 						disableColumnMenu
 						sx={styles.tableOverrides}
 					/>
-				</div>
+				</Box>
 			</Paper>
 		</Box>
 	);

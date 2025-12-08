@@ -45,9 +45,9 @@ export default function UserActivityView() {
 				</Box>
 				<UserFilter users={users} setUsers={setUsers} width="100%" />
 			</Box>
-			<div style={styles.divider}>
+			<Box sx={styles.divider}>
 				<Divider />
-			</div>
+			</Box>
 			<Stack
 				width="100%"
 				height="calc(100vh - 70px)"
@@ -131,7 +131,6 @@ const styles = {
 	},
 	divider: {
 		width: '100%',
-		height: 1,
 	},
 	dividerDot: {
 		minWidth: 5,

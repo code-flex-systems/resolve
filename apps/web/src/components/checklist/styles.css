@@ -1,6 +1,6 @@
 .badge {
 	scale: 1;
-	transition: scale 100ms ease;
+	transition: scale var(--transition-fast);
 }
 
 .comment:hover .go-icon {
@@ -11,7 +11,7 @@
 .go-icon {
 	visibility: hidden;
 	opacity: 0;
-	transition: opacity 200ms ease;
+	transition: opacity var(--transition-normal);
 }
 
 .link:hover .badge {
@@ -19,12 +19,12 @@
 }
 
 .info {
-	color: #21b5ff;
+	color: var(--color-primary);
 }
 
 .info:hover {
-	color: #21b5ff;
-	transition: color 100ms ease;
+	color: var(--color-primary);
+	transition: color var(--transition-fast);
 	cursor: pointer;
 }
 
@@ -34,50 +34,54 @@
 }
 
 .list-button-inner {
-	color: 'inherit';
+	color: inherit;
 }
 
 .list-item-outer:hover .list-button-inner {
-	color: #21b5ff;
-	transition: color 100ms ease;
+	color: var(--color-primary);
+	transition: color var(--transition-fast);
+}
+
+.node {
+	border-radius: var(--radius-md);
 }
 
 .node:hover {
-	background-color: #e8e9ed;
-	transition: background-color 100ms ease;
+	background-color: var(--color-bg-hover);
+	transition: background-color var(--transition-fast);
 	cursor: pointer;
 }
 
 .node-selected {
-	background-color: #21b5ff;
-	transition: background-color 100ms ease;
+	background-color: var(--color-primary);
+	transition: background-color var(--transition-fast);
 	cursor: pointer;
 }
 
 .node-selected:hover {
-	background-color: #167eb2;
-	transition: background-color 100ms ease;
+	background-color: var(--color-primary-hover);
+	transition: background-color var(--transition-fast);
 	cursor: pointer;
 }
 
 .node-selected-inner {
-	color: white;
+	color: var(--color-text-inverse);
 }
 
 .node-text-selected-color {
-	color: 'white';
+	color: var(--color-text-inverse);
 }
 
 .node:hover .node-text-selected-color {
-	color: '#3f4a56';
+	color: var(--color-text-primary);
 }
 
 .node-a:hover {
-	color: #f5bf48;
+	color: var(--color-warning);
 }
 
 .node-q:hover {
-	color: #237a6b;
+	color: var(--color-secondary);
 }
 
 .node-p:hover {
@@ -94,10 +98,10 @@
 }
 
 .text-hover:hover {
-	outline: 1px solid #21b5ff;
-	border-radius: 2px;
+	outline: 1px solid var(--color-primary);
+	border-radius: var(--radius-sm);
 }
 
 .text-hover {
-	padding: 5px 10px;
+	padding: var(--space-1) var(--space-2);
 }
