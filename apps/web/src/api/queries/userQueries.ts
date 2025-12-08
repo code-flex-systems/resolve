@@ -263,16 +263,20 @@ export async function getUserActivity(
 	ctx: ProtectedContext,
 	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
 ) {
+	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
+	const startDate = filters.range[0].toISOString().split('T')[0];
+	const endDate = filters.range[1].toISOString().split('T')[0];
+
 	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
         select
             gs.day::date as activity_date,
             coalesce(count(distinct r.user_id), 0) as active_users
         from generate_series(
-            ${filters.range[0]},
-            ${filters.range[1]},
+            ${startDate}::date,
+            ${endDate}::date,
             interval '1 day'
         ) as gs(day)
-        left join response_audit_logs r on date(r.created_at) = gs.day
+        left join response_audit_logs r on date(r.created_at) = gs.day::date
             and r.client_id = ${ctx.session.user.client_id}
             ${sql.raw(filters.checklistId ? `and r.checklist_id = ${filters.checklistId}` : '')}
             ${sql.raw(filters.claimId ? `and r.claim_id = ${filters.claimId}` : '')}
