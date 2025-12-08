@@ -55,9 +55,32 @@ jobs:
                   npm --workspace apps/web run db:migrate
                   echo "Migrations complete!"
 
-            - name: Build and deploy Container App
-              env:
-                  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            - name: Build image with ACR
+              run: |
+                  # Get the ACR name from the container app
+                  ACR_NAME=$(az containerapp show \
+                    --name manifest-container-app \
+                    --resource-group Manifest \
+                    --query "properties.configuration.registries[0].server" -o tsv | cut -d'.' -f1)
+
+                  # If no ACR found, use default naming convention
+                  if [ -z "$ACR_NAME" ]; then
+                    ACR_NAME="manifestcontainerapp"
+                  fi
+
+                  echo "Using ACR: $ACR_NAME"
+
+                  # Build image with build args using ACR
+                  az acr build \
+                    --registry $ACR_NAME \
+                    --image manifest-container-app:${{ github.sha }} \
+                    --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+                    .
+
+                  # Store ACR name for next step
+                  echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+
+            - name: Deploy Container App
               run: |
                   # Check current status
                   echo "Current container app status:"
@@ -66,15 +89,12 @@ jobs:
                     --resource-group Manifest \
                     --query "properties.provisioningState" -o tsv
 
-                  # Build and deploy with build arg for NEXT_PUBLIC env var
-                  az containerapp up \
+                  # Deploy using the pre-built image
+                  az containerapp update \
                     --name manifest-container-app \
                     --resource-group Manifest \
-                    --source . \
-                    --ingress external \
-                    --target-port 8080 \
-                    --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}" \
-                    --env-vars \
+                    --image ${ACR_NAME}.azurecr.io/manifest-container-app:${{ github.sha }} \
+                    --set-env-vars \
                       PORT=8080 \
                       NODE_ENV=production \
                       AUTH_SECRET="${{ secrets.AUTH_SECRET }}" \
