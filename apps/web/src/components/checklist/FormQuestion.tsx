@@ -15,6 +15,7 @@ import {
 	Typography,
 } from '@mui/material';
 import Check from '@mui/icons-material/Check';
+import Clear from '@mui/icons-material/Clear';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import CheckCircle from '@mui/icons-material/CheckCircle';
@@ -216,10 +217,11 @@ export default function FormQuestion() {
 				left={
 					<>
 						<HelpOutline sx={{ color: theme.palette.secondary.main, marginRight: '10px' }} />
-						<Typography color="secondary" lineHeight={'21px'} fontSize={17} minWidth={200}>
-							{questionText === '' && isPlaceholder ? 'New question' : questionText} (p
-							{selectedPageInfo.pageId}.q
-							{isPlaceholder ? '?' : selectedQuestionData.id})
+						<Typography color="secondary" lineHeight={'21px'} fontSize={17}>
+							{questionText === '' && isPlaceholder ? 'New question' : questionText}
+						</Typography>
+						<Typography sx={styles.entityId}>
+							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<Box sx={{ ml: 1.25 }} className="flex-row-left">
@@ -317,6 +319,13 @@ export default function FormQuestion() {
 																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
+																<IconButton
+																	disableRipple
+																	onClick={() => field.onChange('')}
+																	disabled={!field.value}
+																>
+																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																</IconButton>
 															</InputAdornment>
 														),
 													},
@@ -355,11 +364,20 @@ export default function FormQuestion() {
 																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
+																<IconButton
+																	disableRipple
+																	onClick={() => field.onChange('')}
+																	disabled={!field.value}
+																>
+																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																</IconButton>
 															</InputAdornment>
 														),
 													},
 												}}
 												value={field.value ?? ''}
+												multiline
+												minRows={3}
 											/>
 										)}
 									/>
@@ -542,6 +560,15 @@ const styles = {
 	divider: {
 		width: '100%',
 		mb: 3,
+	},
+	entityId: {
+		fontSize: 13,
+		color: 'var(--color-text-muted)',
+		bgcolor: 'var(--color-bg-tertiary)',
+		px: 1,
+		py: 0.25,
+		borderRadius: '4px',
+		ml: 1.5,
 	},
 	formContainer: {
 		display: 'flex',

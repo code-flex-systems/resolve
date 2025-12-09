@@ -1,21 +1,24 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
-import { Box, Fade, Link, TextField, Typography } from '@mui/material';
+import { Box, Divider, Fade, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import CopyPageDialog from './CopyPageDialog';
+import Check from '@mui/icons-material/Check';
+import Clear from '@mui/icons-material/Clear';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import East from '@mui/icons-material/East';
 import Description from '@mui/icons-material/Description';
+import Save from '@mui/icons-material/Save';
 import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 import FormatQuote from '@mui/icons-material/FormatQuote';
 
@@ -31,10 +34,10 @@ export default function PageEditor() {
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
-	const [editingPageTitle, setEditingPageTitle] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const [copyDialogOpen, setCopyDialogOpen] = useState(false);
 	const [copyType, setCopyType] = useState<'template' | 'instance'>('template');
+	const [copiedField, setCopiedField] = useState<string | null>(null);
 
 	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
 	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
@@ -58,6 +61,12 @@ export default function PageEditor() {
 
 	const answerCount = questions.reduce((prev, curr) => prev + (curr.answers?.length ?? 0), 0);
 	const inTransition = adding || copyingTemplate || copyingInstance || deleting || isFetching;
+
+	// Sync pageTitle state when selected page changes
+	useEffect(() => {
+		setPageTitle(selectedPageInfo.title);
+	}, [selectedPageInfo.instanceId, selectedPageInfo.title]);
+
 	const otherInstances = useMemo(() => {
 		return findInstancesByTemplateId(selectedPageInfo.pageId, data.tree).filter(
 			(node) => node.instanceId !== selectedPageInfo.instanceId
@@ -137,41 +146,31 @@ export default function PageEditor() {
 		}
 	};
 
-	const onModifyPage = async () => {
+	const onModifyPage = async (newTitle?: string) => {
+		const titleToSave = newTitle ?? pageTitle;
 		try {
-			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: pageTitle } });
+			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: titleToSave } });
 			if (modifiedPage) {
 				const { data: freshData } = await refetchTree();
 				if (freshData) {
 					updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, freshData.tree);
 				}
+				setShowUpdateMsg(true);
+				setTimeout(() => setShowUpdateMsg(false), 1000);
 			}
 		} catch (e) {
 			console.error(e);
 		}
 	};
 
-	const startEditing = () => {
-		if (!updating) {
-			setEditingPageTitle(true);
-			setPageTitle(selectedPageInfo.title);
-		}
+	const onCopyText = (field: string, text: string) => {
+		navigator.clipboard.writeText(text);
+		setCopiedField(field);
+		setTimeout(() => setCopiedField(null), 2000);
 	};
 
-	const stopEditing = async () => {
-		if (!updating) {
-			try {
-				if (pageTitle && pageTitle !== selectedPageInfo.title) {
-					await onModifyPage();
-					setShowUpdateMsg(true);
-					setTimeout(() => setShowUpdateMsg(false), 1000);
-				}
-				setEditingPageTitle(false);
-				setPageTitle('');
-			} catch (e) {
-				console.error(e);
-			}
-		}
+	const onClearField = () => {
+		setPageTitle('');
 	};
 
 	return (
@@ -180,46 +179,102 @@ export default function PageEditor() {
 				<Box sx={styles.formContainer}>
 					{/* Page Header */}
 					<Box sx={styles.headerSection}>
-						{editingPageTitle ? (
-							<TextField
-								autoFocus
-								value={pageTitle}
-								onChange={(e) => setPageTitle(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === 'Enter') stopEditing();
-								}}
-								placeholder="New Page"
-								onBlur={stopEditing}
-								error={!pageTitle}
-								variant="outlined"
-								disabled={updating}
-								fullWidth
-								sx={styles.titleField}
-							/>
-						) : (
-							<Box sx={styles.titleRow}>
-								<Typography onClick={startEditing} sx={styles.pageTitle}>
-									{selectedPageInfo.title}
-								</Typography>
-								<Typography sx={styles.pageId}>
-									p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
-								</Typography>
-								<Fade in={showUpdateMsg} timeout={500}>
-									<Box sx={{ ml: 1.5 }} className="flex-row-left">
-										<TaskAlt sx={{ color: 'success.main', fontSize: 18, mr: 0.5 }} />
-										<Typography color="success.main" fontSize={13}>
-											Saved
-										</Typography>
-									</Box>
-								</Fade>
-							</Box>
-						)}
+						<Box sx={styles.titleRow}>
+							<Typography sx={styles.pageTitle}>{pageTitle}</Typography>
+							<Typography sx={styles.pageId}>
+								p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
+							</Typography>
+							<Fade in={showUpdateMsg} timeout={500}>
+								<Box sx={{ ml: 1.5 }} className="flex-row-left">
+									<TaskAlt sx={{ color: 'success.main', fontSize: 18, mr: 0.5 }} />
+									<Typography color="success.main" fontSize={13}>
+										Saved
+									</Typography>
+								</Box>
+							</Fade>
+						</Box>
+					</Box>
+					<Box sx={styles.divider}>
+						<Divider />
 					</Box>
 
 					{/* Page Information Section */}
 					<Box sx={styles.section}>
 						<Typography sx={styles.sectionTitle}>Information</Typography>
 						<Box sx={styles.sectionContent}>
+							<Box sx={styles.fieldRow}>
+								<TextField
+									label="Page title"
+									placeholder="New Page"
+									variant="outlined"
+									fullWidth
+									value={pageTitle}
+									onChange={(e) => setPageTitle(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === 'Enter' && pageTitle && pageTitle !== selectedPageInfo.title) {
+											onModifyPage();
+										}
+									}}
+									disabled={updating}
+									error={pageTitle === ''}
+									slotProps={{
+										input: {
+											endAdornment: (
+												<InputAdornment position="end">
+													<IconButton
+														disableRipple
+														size="small"
+														onClick={() => onCopyText('pageTitle', pageTitle)}
+													>
+														{copiedField === 'pageTitle' ? (
+															<Check
+																sx={{
+																	color: theme.palette.success.light,
+																	fontSize: 18,
+																}}
+															/>
+														) : (
+															<ContentCopy
+																sx={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
+															/>
+														)}
+													</IconButton>
+													<IconButton
+														disableRipple
+														size="small"
+														onClick={onClearField}
+														disabled={!pageTitle}
+													>
+														<Clear sx={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
+													</IconButton>
+													<IconButton
+														disableRipple
+														size="small"
+														onClick={() => onModifyPage()}
+														disabled={
+															updating ||
+															!pageTitle ||
+															pageTitle === selectedPageInfo.title
+														}
+													>
+														<Save
+															sx={{
+																color:
+																	!updating &&
+																	pageTitle &&
+																	pageTitle !== selectedPageInfo.title
+																		? theme.palette.primary.main
+																		: BASE_COLOR_LIGHT,
+																fontSize: 18,
+															}}
+														/>
+													</IconButton>
+												</InputAdornment>
+											),
+										},
+									}}
+								/>
+							</Box>
 							<Box sx={styles.statsRow}>
 								<Box sx={styles.statItem}>
 									<HelpOutline sx={{ fontSize: 18, color: 'var(--color-text-secondary)' }} />
@@ -403,10 +458,15 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column',
 		gap: 2.5,
+		p: 2.5,
 		width: '100%',
 	},
 	headerSection: {
-		mb: 1,
+		mb: 0,
+	},
+	divider: {
+		width: '100%',
+		mb: 3,
 	},
 	titleRow: {
 		display: 'flex',
@@ -417,10 +477,6 @@ const styles = {
 		fontSize: 20,
 		fontWeight: 600,
 		color: 'var(--color-text-primary)',
-		cursor: 'pointer',
-		'&:hover': {
-			color: 'primary.main',
-		},
 	},
 	pageId: {
 		fontSize: 13,
@@ -430,11 +486,8 @@ const styles = {
 		py: 0.25,
 		borderRadius: '4px',
 	},
-	titleField: {
-		'& .MuiInputBase-root': {
-			fontSize: 20,
-			fontWeight: 600,
-		},
+	fieldRow: {
+		mb: 2,
 	},
 	section: {
 		bgcolor: 'var(--color-bg-secondary)',

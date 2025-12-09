@@ -17,6 +17,7 @@ import {
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import Check from '@mui/icons-material/Check';
+import Clear from '@mui/icons-material/Clear';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import Delete from '@mui/icons-material/Delete';
 import CheckCircle from '@mui/icons-material/CheckCircle';
@@ -284,10 +285,12 @@ export default function FormAnswer() {
 				left={
 					<>
 						<FormatQuote sx={{ color: theme.palette.warning.main, marginRight: '10px' }} />
-						<Typography color="warning" lineHeight={'21px'} fontSize={17} minWidth={200}>
-							{answerText === '' && isPlaceholder ? 'New answer' : answerText} (p{selectedPageInfo.pageId}
-							.q{selectedQuestion}.a
-							{isPlaceholder ? '?' : selectedAnswerData.id})
+						<Typography color="warning" lineHeight={'21px'} fontSize={17}>
+							{answerText === '' && isPlaceholder ? 'New answer' : answerText}
+						</Typography>
+						<Typography sx={styles.entityId}>
+							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
+							{isPlaceholder ? '?' : selectedAnswerData.id}
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<Box sx={{ ml: 1.25 }} className="flex-row-left">
@@ -395,6 +398,13 @@ export default function FormAnswer() {
 																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
+																<IconButton
+																	disableRipple
+																	onClick={() => field.onChange('')}
+																	disabled={!field.value}
+																>
+																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																</IconButton>
 															</InputAdornment>
 														),
 													},
@@ -432,11 +442,20 @@ export default function FormAnswer() {
 																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
+																<IconButton
+																	disableRipple
+																	onClick={() => field.onChange('')}
+																	disabled={!field.value}
+																>
+																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																</IconButton>
 															</InputAdornment>
 														),
 													},
 												}}
 												value={field.value ?? ''}
+												multiline
+												minRows={3}
 											/>
 										)}
 									/>
@@ -494,6 +513,7 @@ export default function FormAnswer() {
 												{...field}
 												value={field.value ?? ''}
 												sx={{ minWidth: 200 }}
+												placeholder="Select a page"
 											>
 												<MenuItem key="none" value="">
 													None
@@ -590,12 +610,8 @@ export default function FormAnswer() {
 														onChange={(e) => {
 															const value = e.target.value;
 															const extensionsArray =
-																typeof value === 'string'
-																	? value.split(',')
-																	: value;
-															field.onChange(
-																(extensionsArray as string[]).join(',')
-															);
+																typeof value === 'string' ? value.split(',') : value;
+															field.onChange(extensionsArray.join(','));
 														}}
 														slotProps={{
 															select: {
@@ -675,12 +691,25 @@ export default function FormAnswer() {
 																				/>
 																			)}
 																		</IconButton>
+																		<IconButton
+																			disableRipple
+																			size="small"
+																			onClick={() => field.onChange('')}
+																			disabled={!field.value}
+																		>
+																			<Clear
+																				sx={{
+																					color: BASE_COLOR_LIGHT,
+																					fontSize: 16,
+																				}}
+																			/>
+																		</IconButton>
 																	</InputAdornment>
 																),
 															},
 														}}
 														value={field.value ?? ''}
-														sx={{ width: 250 }}
+														sx={{ width: 300 }}
 													/>
 												)}
 											/>
@@ -777,6 +806,15 @@ const styles = {
 	divider: {
 		width: '100%',
 		mb: 3,
+	},
+	entityId: {
+		fontSize: 13,
+		color: 'var(--color-text-muted)',
+		bgcolor: 'var(--color-bg-tertiary)',
+		px: 1,
+		py: 0.25,
+		borderRadius: '4px',
+		ml: 1.5,
 	},
 	formContainer: {
 		display: 'flex',
