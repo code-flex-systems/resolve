@@ -297,7 +297,7 @@ export default function PageNavigation() {
 					<Toolbar
 						left={
 							<>
-								<Box mr={1}>
+								<Box mr={0.5}>
 									<ExpandAllButton expandAll={expandAll} disabled={visibleInstanceIds.length < 2} />
 								</Box>
 								<Fade in={mode === ChecklistMode.VIEW && !!claimId}>

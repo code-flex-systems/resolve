@@ -12,10 +12,11 @@ import { getClerkClient, mapClerkRoleToAppRole } from '@/lib/clerk/clerk-utils';
  * Handles events from Clerk to sync data with our local database.
  *
  * Events handled:
- * - user.created / user.updated - sync user profile
+ * - user.created / user.updated - sync user profile (including email_verified)
  * - user.deleted - remove user from local DB
  * - organizationMembership.created / updated - set client_id and role
  * - organization.created / updated - sync client table
+ * - session.created - update last_login timestamp
  */
 export async function POST(req: Request) {
 	const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -87,6 +88,10 @@ export async function POST(req: Request) {
 				await handleOrganizationUpdated(evt.data);
 				break;
 
+			case 'session.created':
+				await handleSessionCreated(evt.data);
+				break;
+
 			default:
 				console.log(`Unhandled webhook event type: ${eventType}`);
 		}
@@ -108,7 +113,11 @@ async function handleUserSync(data: WebhookEvent['data']) {
 		id: string;
 		first_name?: string | null;
 		last_name?: string | null;
-		email_addresses?: Array<{ email_address: string; id: string }>;
+		email_addresses?: Array<{
+			email_address: string;
+			id: string;
+			verification?: { status: string };
+		}>;
 		primary_email_address_id?: string;
 		phone_numbers?: Array<{ phone_number: string; id: string }>;
 		primary_phone_number_id?: string;
@@ -149,6 +158,9 @@ async function handleUserSync(data: WebhookEvent['data']) {
 		return;
 	}
 
+	// Check email verification status
+	const emailVerified = primaryEmail.verification?.status === 'verified';
+
 	// Upsert user to local DB (uses email for conflict resolution, generates internal UUID)
 	const internalUser = await upsertUserFromClerk(db, {
 		first: userData.first_name || '',
@@ -157,6 +169,7 @@ async function handleUserSync(data: WebhookEvent['data']) {
 		phone: primaryPhone?.phone_number,
 		role: mapClerkRoleToAppRole(membership.role, isSuperAdmin),
 		client_id: client.id,
+		email_verified: emailVerified,
 	});
 
 	// Update Clerk user's public metadata with internal user ID (for client-side session)
@@ -396,5 +409,46 @@ async function handleOrganizationUpdated(data: WebhookEvent['data']) {
 		} catch (error) {
 			console.error(`Failed to update Clerk org metadata for ${orgData.id}:`, error);
 		}
+	}
+}
+
+/**
+ * Handle session creation - update last_login timestamp
+ */
+async function handleSessionCreated(data: WebhookEvent['data']) {
+	const sessionData = data as {
+		id: string;
+		user_id: string;
+		created_at: number; // Unix timestamp in milliseconds
+	};
+
+	// Fetch user from Clerk to get their email
+	let email: string | null = null;
+	try {
+		const clerkUser = await getClerkClient().users.getUser(sessionData.user_id);
+		email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress || null;
+	} catch (error) {
+		console.error(`Failed to fetch Clerk user ${sessionData.user_id}:`, error);
+		return;
+	}
+
+	if (!email) {
+		console.log(`No email found for user ${sessionData.user_id}, skipping last_login update`);
+		return;
+	}
+
+	// Update last_login timestamp
+	const result = await db
+		.updateTable('users')
+		.set({
+			last_login: new Date(sessionData.created_at),
+		})
+		.where('email', '=', email)
+		.executeTakeFirst();
+
+	if (result.numUpdatedRows > 0) {
+		console.log(`Updated last_login for user ${email}`);
+	} else {
+		console.log(`No local user found with email ${email}, skipping last_login update`);
 	}
 }
