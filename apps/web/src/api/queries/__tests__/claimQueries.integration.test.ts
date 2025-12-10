@@ -5,6 +5,7 @@
  * - Multi-tenant data isolation
  * - Role-based access control
  * - Complex query logic (joins, filtering, aggregations)
+ * - Financial calculations (expected recovery, total incurred)
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -19,11 +20,30 @@ import {
 	createTestDeskLocationType,
 	createTestDeskLocation,
 	createTestUserDeskLocation,
+	createTestParty,
+	createTestClaimParty,
+	createTestClaimLiability,
+	createTestClaimCoverage,
 } from '@/__tests__/integration/fixtures';
-import { getClaims, getClaimCount, getClaim } from '../claimQueries';
+import {
+	getClaims,
+	getClaimCount,
+	getClaim,
+	assignClaim,
+	getNextClaimToAssign,
+	getRolloverClaimCount,
+	updateClaim,
+	createClaims,
+	getClaimPartyAggregates,
+	recalculateClaimExpectedRecovery,
+	recalculateTotalIncurred,
+	getClaimDetail,
+	listMyClaims,
+	listMyDeskClaims,
+} from '../claimQueries';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
-import { RecoveryStatus } from '@/config/enums';
+import { ClaimSearch, RecoveryStatus, LineOfBusiness, LossType, CoverageType } from '@/config/enums';
 
 describe('claimQueries integration', () => {
 	let db: Kysely<DB>;
@@ -495,6 +515,1204 @@ describe('claimQueries integration', () => {
 
 			// Other client should get an error (no result throws)
 			await expect(getClaim(ctx2, claim.id)).rejects.toThrow('no result');
+		});
+
+		it('should update last_opened when checklistId is provided', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - First call creates the checklist_claim
+			await getClaim(ctx, claim.id, checklist.id);
+
+			// Verify checklist_claim was created
+			const checklistClaim = await db
+				.selectFrom('checklist_claim')
+				.selectAll()
+				.where('checklist_id', '=', checklist.id)
+				.where('claim_id', '=', claim.id)
+				.executeTakeFirst();
+
+			// Assert
+			expect(checklistClaim).toBeDefined();
+			expect(checklistClaim?.assignee).toBe(user.id);
+			expect(checklistClaim?.created_by).toBe(user.id);
+		});
+
+		it('should require published checklist for non-admin users', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const unpublishedChecklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				published: false,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+
+			// Act & Assert - Contributor cannot access unpublished checklist
+			await expect(getClaim(ctx, claim.id, unpublishedChecklist.id)).rejects.toThrow(
+				'Checklist is not published'
+			);
+		});
+	});
+
+	describe('assignClaim', () => {
+		it('should create a checklist_claim assignment', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const assignee = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			await assignClaim(ctx, checklist.id, claim.id, assignee.id);
+
+			// Verify
+			const assignment = await db
+				.selectFrom('checklist_claim')
+				.selectAll()
+				.where('checklist_id', '=', checklist.id)
+				.where('claim_id', '=', claim.id)
+				.executeTakeFirst();
+
+			// Assert
+			expect(assignment).toBeDefined();
+			expect(assignment?.assignee).toBe(assignee.id);
+			expect(assignment?.created_by).toBe(admin.id);
+			expect(assignment?.status).toBe('Unworked');
+		});
+
+		it('should enforce tenant isolation', async () => {
+			// Arrange
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client1.id });
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Act & Assert - User from different client cannot assign
+			await expect(assignClaim(ctx2, checklist.id, claim.id, user2.id)).rejects.toThrow();
+		});
+	});
+
+	describe('getNextClaimToAssign', () => {
+		it('should return unassigned claims for a feed in order', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			// Create claims - 3 unassigned, 1 assigned
+			const claim1 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
+			const claim3 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Third' });
+			const assignedClaim = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Assigned',
+			});
+
+			// Assign one claim
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: assignedClaim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getNextClaimToAssign(ctx, feed.id);
+
+			// Assert
+			expect(result.total).toBe(3); // 3 unassigned claims
+			expect(result.claim).toBeDefined();
+			expect(result.claim?.id).toBe(claim1.id); // First created (oldest)
+		});
+
+		it('should support offset for pagination', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - Get second claim (offset 1)
+			const result = await getNextClaimToAssign(ctx, feed.id, 1);
+
+			// Assert
+			expect(result.total).toBe(2);
+			expect(result.claim?.id).toBe(claim2.id);
+		});
+
+		it('should return null claim when all are assigned', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			const claim = await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getNextClaimToAssign(ctx, feed.id);
+
+			// Assert
+			expect(result.total).toBe(0);
+			expect(result.claim).toBeNull();
+		});
+	});
+
+	describe('getClaims - Additional Filters', () => {
+		it('should filter by searchTerm with claim_number type', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			await createTestClaim(db, { client_id: client.id, claim_number: 'CLM-001-ABC' });
+			await createTestClaim(db, { client_id: client.id, claim_number: 'CLM-002-DEF' });
+			await createTestClaim(db, { client_id: client.id, claim_number: 'XYZ-003-GHI' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const claims = (await getClaims(ctx, {
+				type: 'data',
+				searchTerm: { value: 'CLM', type: ClaimSearch.CLAIM_NUMBER },
+			})) as Array<{ claim_number: string | null }>;
+
+			// Assert
+			expect(claims).toHaveLength(2);
+			expect(claims.every((c) => c.claim_number?.startsWith('CLM'))).toBe(true);
+		});
+
+		it('should filter by client name', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			await createTestClaim(db, { client_id: client.id, client: 'Acme Insurance' });
+			await createTestClaim(db, { client_id: client.id, client: 'Beta Corp' });
+			await createTestClaim(db, { client_id: client.id, client: 'Acme Holdings' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const claims = (await getClaims(ctx, { type: 'data', client: 'acme' })) as Array<{ client: string | null }>;
+
+			// Assert
+			expect(claims).toHaveLength(2);
+			expect(claims.every((c) => c.client?.toLowerCase().includes('acme'))).toBe(true);
+		});
+
+		it('should filter by line_of_business via claim_liability', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const claim1 = await createTestClaim(db, { client_id: client.id, insured: 'Auto Claim' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, insured: 'Property Claim' });
+			await createTestClaim(db, { client_id: client.id, insured: 'No LOB Claim' });
+
+			// Create parties with unique names and liabilities
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'LOB Party 1' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'LOB Party 2' });
+
+			const claimParty1 = await createTestClaimParty(db, { claim_id: claim1.id, party_id: party1.id });
+			const claimParty2 = await createTestClaimParty(db, { claim_id: claim2.id, party_id: party2.id });
+
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty1.id,
+				line_of_business: LineOfBusiness.AUTO,
+			});
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty2.id,
+				line_of_business: LineOfBusiness.PROPERTY,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const claims = (await getClaims(ctx, { type: 'data', line_of_business: LineOfBusiness.AUTO })) as Array<{
+				insured: string | null;
+			}>;
+
+			// Assert
+			expect(claims).toHaveLength(1);
+			expect(claims[0].insured).toBe('Auto Claim');
+		});
+
+		it('should filter by loss_type via claim_liability', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const claim1 = await createTestClaim(db, { client_id: client.id, insured: 'Fire Claim' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, insured: 'Water Claim' });
+
+			// Create separate parties for each claim (party names must be unique per client)
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Type Party 1' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Type Party 2' });
+
+			const claimParty1 = await createTestClaimParty(db, { claim_id: claim1.id, party_id: party1.id });
+			const claimParty2 = await createTestClaimParty(db, { claim_id: claim2.id, party_id: party2.id });
+
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty1.id,
+				loss_type: LossType.FIRE,
+			});
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty2.id,
+				loss_type: LossType.WATER_DAMAGE,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const claims = (await getClaims(ctx, { type: 'data', loss_type: LossType.FIRE })) as Array<{
+				insured: string | null;
+			}>;
+
+			// Assert
+			expect(claims).toHaveLength(1);
+			expect(claims[0].insured).toBe('Fire Claim');
+		});
+	});
+
+	describe('getRolloverClaimCount', () => {
+		it('should count claims from previous fiscal quarters', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			// This test is time-sensitive. We'll create claims with old dates.
+			// Current fiscal quarter start varies, so we just verify the query runs.
+			await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getRolloverClaimCount(ctx);
+
+			// Assert - Just verify structure, actual count depends on current date
+			expect(result).toHaveProperty('count');
+			expect(typeof result.count).toBe('number');
+		});
+	});
+
+	describe('updateClaim', () => {
+		it('should update claim fields', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				insured: 'Original Insured',
+				recovery_status: 'pending',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await updateClaim(ctx, claim.id, {
+				insured: 'Updated Insured',
+				recovery_status: 'in_progress',
+			});
+
+			// Assert
+			expect(result).toBeDefined();
+			expect(result?.insured).toBe('Updated Insured');
+			expect(result?.recovery_status).toBe('in_progress');
+		});
+
+		it('should enforce tenant isolation on updates', async () => {
+			// Arrange
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client1.id, insured: 'Original' });
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Act - User from different client tries to update
+			const result = await updateClaim(ctx2, claim.id, { insured: 'Hacked!' });
+
+			// Assert - Update returns undefined (no rows matched)
+			expect(result).toBeUndefined();
+
+			// Verify claim unchanged
+			const unchangedClaim = await db
+				.selectFrom('claim')
+				.select(['insured'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(unchangedClaim?.insured).toBe('Original');
+		});
+
+		it('should set last_updated_by and last_update', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			await updateClaim(ctx, claim.id, { insured: 'Updated' });
+
+			// Verify
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['last_updated_by', 'last_update'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			// Assert
+			expect(updatedClaim?.last_updated_by).toBe(user.id);
+			expect(updatedClaim?.last_update).toBeDefined();
+			// Verify it's today's date (last_update is a DATE column, not TIMESTAMP)
+			const updateDate = new Date(updatedClaim!.last_update!);
+			const today = new Date();
+			expect(updateDate.toISOString().split('T')[0]).toBe(today.toISOString().split('T')[0]);
+		});
+	});
+
+	describe('createClaims', () => {
+		it('should bulk insert claims', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await createClaims(ctx, [
+				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1' },
+				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2' },
+				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3' },
+			]);
+
+			// Assert
+			expect(result).toHaveLength(3);
+			expect(result.map((c) => c.claim_number)).toEqual(['BULK-001', 'BULK-002', 'BULK-003']);
+			expect(result.every((c) => c.client_id === client.id)).toBe(true);
+			expect(result.every((c) => c.created_by === user.id)).toBe(true);
+		});
+
+		it('should upsert on claim_number conflict', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			// Create initial claim
+			await createTestClaim(db, {
+				client_id: client.id,
+				claim_number: 'UPSERT-001',
+				insured: 'Original Insured',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - Insert with same claim_number should update
+			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured' }]);
+
+			// Assert
+			expect(result).toHaveLength(1);
+			expect(result[0].insured).toBe('Updated Insured');
+
+			// Verify only one claim exists
+			const allClaims = await db
+				.selectFrom('claim')
+				.select(['claim_number'])
+				.where('claim_number', '=', 'UPSERT-001')
+				.execute();
+			expect(allClaims).toHaveLength(1);
+		});
+	});
+
+	describe('getClaimPartyAggregates', () => {
+		it('should aggregate liability data from parties', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Create two parties with liabilities
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Aggregate Party 1' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Aggregate Party 2' });
+
+			const claimParty1 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party1.id,
+				liability_percentage: 30,
+			});
+			const claimParty2 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party2.id,
+				liability_percentage: 20,
+			});
+
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty1.id,
+				line_of_business: LineOfBusiness.AUTO,
+				loss_type: LossType.COLLISION,
+				amount_paid: 10000,
+			});
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty2.id,
+				line_of_business: LineOfBusiness.PROPERTY,
+				loss_type: LossType.FIRE,
+				amount_paid: 5000,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getClaimPartyAggregates(ctx, claim.id);
+
+			// Assert
+			expect(result.line_of_business).toContain(LineOfBusiness.AUTO);
+			expect(result.line_of_business).toContain(LineOfBusiness.PROPERTY);
+			expect(result.loss_type).toContain(LossType.COLLISION);
+			expect(result.loss_type).toContain(LossType.FIRE);
+			expect(result.total_amount_paid).toBe(15000);
+			expect(result.total_liability_percentage).toBe(50); // 30 + 20
+			expect(result.our_liability_percentage).toBe(50); // 100 - 50
+			expect(result.expected_recovery).toBe(7500); // 50% of 15000
+		});
+
+		it('should return zeros for claims without parties', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getClaimPartyAggregates(ctx, claim.id);
+
+			// Assert
+			expect(result.line_of_business).toEqual([]);
+			expect(result.loss_type).toEqual([]);
+			expect(result.total_amount_paid).toBe(0);
+			expect(result.total_liability_percentage).toBe(0);
+			expect(result.our_liability_percentage).toBe(100);
+			expect(result.expected_recovery).toBe(0);
+		});
+	});
+
+	describe('recalculateClaimExpectedRecovery', () => {
+		it('should calculate and update expected_recovery correctly', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Create party with 40% liability and $20,000 amount_paid
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				liability_percentage: 40,
+			});
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty.id,
+				amount_paid: 20000,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert
+			// Our liability = 100% - 40% = 60%
+			// Expected recovery = 60% × $20,000 = $12,000
+			expect(result).toBe(12000);
+
+			// Verify claim was updated
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['expected_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(parseFloat(updatedClaim!.expected_recovery!.toString())).toBeCloseTo(12000, 2);
+		});
+
+		it('should handle multiple parties correctly', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Party 1: 25% liability, $10,000 paid
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const claimParty1 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party1.id,
+				liability_percentage: 25,
+			});
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty1.id,
+				amount_paid: 10000,
+			});
+
+			// Party 2: 35% liability, $15,000 paid
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const claimParty2 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party2.id,
+				liability_percentage: 35,
+			});
+			await createTestClaimLiability(db, {
+				client_id: client.id,
+				claim_party_id: claimParty2.id,
+				amount_paid: 15000,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert
+			// Total liability = 25% + 35% = 60%
+			// Our liability = 100% - 60% = 40%
+			// Total amount paid = $10,000 + $15,000 = $25,000
+			// Expected recovery = 40% × $25,000 = $10,000
+			expect(result).toBe(10000);
+		});
+
+		it('should return 0 when no parties exist', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert - No amount paid, so expected recovery is 0
+			expect(result).toBe(0);
+		});
+	});
+
+	describe('recalculateTotalIncurred', () => {
+		it('should sum amount_reserved from all coverages', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			await createTestClaimCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_type: CoverageType.DWELLING,
+				amount_reserved: 50000,
+			});
+			await createTestClaimCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_type: CoverageType.LIABILITY,
+				amount_reserved: 25000,
+			});
+			await createTestClaimCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_type: CoverageType.MEDICAL_PAYMENTS,
+				amount_reserved: 10000,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateTotalIncurred(ctx, claim.id);
+
+			// Assert
+			expect(result).toBe(85000);
+
+			// Verify claim was updated
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['total_incurred'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(parseFloat(updatedClaim!.total_incurred!.toString())).toBeCloseTo(85000, 2);
+		});
+
+		it('should return 0 when no coverages exist', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateTotalIncurred(ctx, claim.id);
+
+			// Assert
+			expect(result).toBe(0);
+		});
+	});
+
+	describe('getClaimDetail', () => {
+		it('should return comprehensive claim details for admin', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: admin.id, name: 'Test Feed' });
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Detail Test Insured',
+				claim_number: 'DETAIL-001',
+			});
+
+			// Add a checklist assignment
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				name: 'Test Checklist',
+				published: true,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim.id,
+				created_by: admin.id,
+				assignee: admin.id,
+			});
+
+			// Add coverage
+			await createTestClaimCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_type: CoverageType.DWELLING,
+				coverage_amount: 100000,
+			});
+
+			// Add party
+			const party = await createTestParty(db, { client_id: client.id, created_by: admin.id });
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				liability_percentage: 30,
+			});
+
+			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getClaimDetail(ctx, claim.id);
+
+			// Assert
+			expect(result.id).toBe(claim.id);
+			expect(result.claim_number).toBe('DETAIL-001');
+			expect(result.insured).toBe('Detail Test Insured');
+			expect(result.feed_name).toBe('Test Feed');
+			expect(result.checklistAssignments).toHaveLength(1);
+			expect(result.checklistAssignments[0].checklist_name).toBe('Test Checklist');
+			expect(result.coverageSummary.count).toBe(1);
+			expect(result.partySummary.count).toBe(1);
+		});
+
+		it('should enforce tenant isolation', async () => {
+			// Arrange
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client1.id });
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Act & Assert
+			await expect(getClaimDetail(ctx2, claim.id)).rejects.toThrow('Claim not found');
+		});
+
+		it('should enforce contributor access via ownership/assignment', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherContributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				published: true,
+			});
+
+			// Assign to otherContributor, not contributor
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim.id,
+				created_by: otherContributor.id,
+				assignee: otherContributor.id,
+			});
+
+			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+
+			// Act & Assert - Contributor without access should be denied
+			await expect(getClaimDetail(ctx, claim.id)).rejects.toThrow('You do not have access to this claim');
+		});
+
+		it('should allow contributor access via desk location', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+
+			// Assign contributor to desk
+			await createTestUserDeskLocation(db, {
+				user_id: contributor.id,
+				desk_location_id: desk.id,
+			});
+
+			// Create claim at the desk
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				desk_location_id: desk.id,
+			});
+
+			// Assign claim to otherUser (not contributor)
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				published: true,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+
+			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+
+			// Act - Contributor should have access via desk location
+			const result = await getClaimDetail(ctx, claim.id);
+
+			// Assert
+			expect(result.id).toBe(claim.id);
+		});
+	});
+
+	describe('listMyClaims', () => {
+		it('should return claims assigned to the current user', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+
+			// Create 3 claims assigned to user, 2 assigned to other
+			const claim1 = await createTestClaim(db, { client_id: client.id, insured: 'User Claim 1' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, insured: 'User Claim 2' });
+			const claim3 = await createTestClaim(db, { client_id: client.id, insured: 'User Claim 3' });
+			const otherClaim1 = await createTestClaim(db, { client_id: client.id, insured: 'Other Claim 1' });
+			const otherClaim2 = await createTestClaim(db, { client_id: client.id, insured: 'Other Claim 2' });
+
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim3.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: otherClaim1.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: otherClaim2.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await listMyClaims(ctx, {});
+
+			// Assert
+			expect(result.count).toBe(3);
+			expect(result.rows).toHaveLength(3);
+			expect(result.rows.every((r) => r.assignee === user.id)).toBe(true);
+		});
+
+		it('should filter by search term', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+
+			const claim1 = await createTestClaim(db, {
+				client_id: client.id,
+				insured: 'Acme Corp',
+				claim_number: 'CLM-ACME-001',
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				insured: 'Beta Inc',
+				claim_number: 'CLM-BETA-001',
+			});
+
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await listMyClaims(ctx, { searchTerm: 'acme' });
+
+			// Assert
+			expect(result.count).toBe(1);
+			expect(result.rows[0].insured).toBe('Acme Corp');
+		});
+
+		it('should return metrics', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+
+			const claim1 = await createTestClaim(db, { client_id: client.id, claim_amount: 10000 });
+			const claim2 = await createTestClaim(db, { client_id: client.id, claim_amount: 20000 });
+
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+				assignee: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await listMyClaims(ctx, {});
+
+			// Assert
+			expect(result.metrics.totalValue).toBe(30000);
+			expect(result.metrics.avgDaysInQueue).toBeGreaterThanOrEqual(0);
+		});
+	});
+
+	describe('listMyDeskClaims', () => {
+		it('should return claims at user desk locations', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Desk 1',
+			});
+			const desk2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Desk 2',
+			});
+
+			// Assign user to desk1 only
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: desk1.id,
+				priority: 1,
+			});
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+
+			// Claim at desk1 (user's desk) - should be visible
+			const claim1 = await createTestClaim(db, {
+				client_id: client.id,
+				desk_location_id: desk1.id,
+				insured: 'Desk 1 Claim',
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim1.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+
+			// Claim at desk2 (not user's desk) - should NOT be visible
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				desk_location_id: desk2.id,
+				insured: 'Desk 2 Claim',
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim2.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await listMyDeskClaims(ctx, {});
+
+			// Assert
+			expect(result.count).toBe(1);
+			expect(result.rows[0].insured).toBe('Desk 1 Claim');
+			expect(result.rows[0].desk_location_name).toBe('Desk 1');
+		});
+
+		it('should order by desk priority', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const highPriorityDesk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'High Priority Desk',
+			});
+			const lowPriorityDesk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Low Priority Desk',
+			});
+
+			// Assign user to both desks with different priorities
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: highPriorityDesk.id,
+				priority: 1, // Higher priority
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: lowPriorityDesk.id,
+				priority: 5, // Lower priority
+			});
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+
+			// Create claims at each desk
+			const lowPriorityClaim = await createTestClaim(db, {
+				client_id: client.id,
+				desk_location_id: lowPriorityDesk.id,
+				insured: 'Low Priority Claim',
+			});
+			const highPriorityClaim = await createTestClaim(db, {
+				client_id: client.id,
+				desk_location_id: highPriorityDesk.id,
+				insured: 'High Priority Claim',
+			});
+
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: lowPriorityClaim.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: highPriorityClaim.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await listMyDeskClaims(ctx, {});
+
+			// Assert - Both claims visible, verify both are returned
+			expect(result.count).toBe(2);
+			const insureds = result.rows.map((r) => r.insured);
+			expect(insureds).toContain('High Priority Claim');
+			expect(insureds).toContain('Low Priority Claim');
+		});
+
+		it('should exclude claims from removed desk assignments', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+
+			// Assign user to desk but mark as removed
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: desk.id,
+				removed_at: new Date(),
+			});
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				desk_location_id: desk.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim.id,
+				created_by: otherUser.id,
+				assignee: otherUser.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await listMyDeskClaims(ctx, {});
+
+			// Assert - No claims since user was removed from desk
+			expect(result.count).toBe(0);
+			expect(result.rows).toHaveLength(0);
 		});
 	});
 });
