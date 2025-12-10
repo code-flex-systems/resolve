@@ -3,6 +3,16 @@ import { getAnswerCallGraph, createAnswer, modifyAnswer } from '../answerQueries
 import { db } from '@/api/database/kysely';
 import type { ProtectedContext } from '@/server/trpc/trpc';
 
+// Mock the database module to avoid deep type instantiation errors
+vi.mock('@/api/database/kysely', () => ({
+	db: {
+		selectFrom: vi.fn(),
+		insertInto: vi.fn(),
+		updateTable: vi.fn(),
+		deleteFrom: vi.fn(),
+	},
+}));
+
 /**
  * Tests for Answer Cycle Detection
  *
@@ -182,11 +192,12 @@ describe('createAnswer - cycle detection', () => {
 	it('should allow creating answer without calls_instance_id', async () => {
 		// Mock updateTable for position shift
 		const mockExecuteUpdate = vi.fn().mockResolvedValue(undefined);
-		vi.spyOn(db, 'updateTable').mockReturnValue({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.updateTable as any) = vi.fn().mockImplementation(() => ({
 			set: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			execute: mockExecuteUpdate,
-		} as any);
+		}));
 
 		// Mock insertInto for answer creation
 		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
@@ -195,11 +206,12 @@ describe('createAnswer - cycle detection', () => {
 			text: 'Test Answer',
 			position: 1,
 		});
-		vi.spyOn(db, 'insertInto').mockReturnValue({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.insertInto as any) = vi.fn().mockImplementation(() => ({
 			values: vi.fn().mockReturnThis(),
 			returningAll: vi.fn().mockReturnThis(),
 			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-		} as any);
+		}));
 
 		const params = {
 			text: 'Test Answer',
@@ -337,11 +349,12 @@ describe('createAnswer - cycle detection', () => {
 
 		// Mock updateTable for position shift
 		const mockExecuteUpdate = vi.fn().mockResolvedValue(undefined);
-		vi.spyOn(db, 'updateTable').mockReturnValue({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.updateTable as any) = vi.fn().mockImplementation(() => ({
 			set: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			execute: mockExecuteUpdate,
-		} as any);
+		}));
 
 		// Mock insertInto for answer creation
 		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
@@ -351,11 +364,12 @@ describe('createAnswer - cycle detection', () => {
 			position: 1,
 			calls_instance_id: 2,
 		});
-		vi.spyOn(db, 'insertInto').mockReturnValue({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.insertInto as any) = vi.fn().mockImplementation(() => ({
 			values: vi.fn().mockReturnThis(),
 			returningAll: vi.fn().mockReturnThis(),
 			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-		} as any);
+		}));
 
 		const params = {
 			text: 'Test Answer',
@@ -419,14 +433,15 @@ describe('modifyAnswer - cycle detection', () => {
 		});
 		const mockExecute = vi.fn().mockResolvedValue(undefined);
 
-		vi.spyOn(db, 'updateTable').mockImplementation((table: any) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.updateTable as any) = vi.fn().mockImplementation((table: string) => {
 			if (table === 'page') {
 				// For bumpPageVersion
 				return {
 					set: vi.fn().mockReturnThis(),
 					where: vi.fn().mockReturnThis(),
 					execute: mockExecute,
-				} as any;
+				};
 			}
 			// For modifyAnswer
 			return {
@@ -434,7 +449,7 @@ describe('modifyAnswer - cycle detection', () => {
 				where: vi.fn().mockReturnThis(),
 				returningAll: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
-			} as any;
+			};
 		});
 
 		const params = {
@@ -525,14 +540,15 @@ describe('modifyAnswer - cycle detection', () => {
 		});
 		const mockExecute = vi.fn().mockResolvedValue(undefined);
 
-		vi.spyOn(db, 'updateTable').mockImplementation((table: any) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.updateTable as any) = vi.fn().mockImplementation((table: string) => {
 			if (table === 'page') {
 				// For bumpPageVersion
 				return {
 					set: vi.fn().mockReturnThis(),
 					where: vi.fn().mockReturnThis(),
 					execute: mockExecute,
-				} as any;
+				};
 			}
 			// For modifyAnswer
 			return {
@@ -540,7 +556,7 @@ describe('modifyAnswer - cycle detection', () => {
 				where: vi.fn().mockReturnThis(),
 				returningAll: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
-			} as any;
+			};
 		});
 
 		const params = {
@@ -578,14 +594,15 @@ describe('modifyAnswer - cycle detection', () => {
 		});
 		const mockExecute = vi.fn().mockResolvedValue(undefined);
 
-		vi.spyOn(db, 'updateTable').mockImplementation((table: any) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.updateTable as any) = vi.fn().mockImplementation((table: string) => {
 			if (table === 'page') {
 				// For bumpPageVersion
 				return {
 					set: vi.fn().mockReturnThis(),
 					where: vi.fn().mockReturnThis(),
 					execute: mockExecute,
-				} as any;
+				};
 			}
 			// For modifyAnswer
 			return {
@@ -593,7 +610,7 @@ describe('modifyAnswer - cycle detection', () => {
 				where: vi.fn().mockReturnThis(),
 				returningAll: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
-			} as any;
+			};
 		});
 
 		const params = {

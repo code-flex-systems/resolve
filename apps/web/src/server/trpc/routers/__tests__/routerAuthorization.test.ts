@@ -693,7 +693,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				).resolves.toBeDefined();
 			});
 
-			it('should allow contributor to update their own non-privileged fields', async () => {
+			it('should allow contributor to update their own email field', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
 				db,
@@ -702,8 +702,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const mockUpdateUser = await import('@/api/controllers/userController');
 				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
 					id: 'user-123',
-					first: 'Updated',
-					last: 'Name',
+					first: 'Test',
+					last: 'User',
 					email: 'updated@example.com',
 					phone: null,
 					role: config.ROLES.CONTRIBUTOR,
@@ -718,16 +718,40 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(userRouter, userCtx);
+				// email is the only non-privileged field - first/last require Super Admin
+				await expect(
+					caller.updateUser({
+						id: 'user-123',
+						params: {
+							email: 'updated@example.com',
+						},
+					})
+				).resolves.toBeDefined();
+			});
+
+			it('should reject contributor updating their own first/last name fields (super admin only)', async () => {
+				const userCtx: Context = {
+					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
+					db,
+				};
+
+				const caller = createCaller(userRouter, userCtx);
 				await expect(
 					caller.updateUser({
 						id: 'user-123',
 						params: {
 							first: 'Updated',
-							last: 'Name',
-							email: 'updated@example.com',
 						},
 					})
-				).resolves.toBeDefined();
+				).rejects.toThrow(TRPCError);
+				await expect(
+					caller.updateUser({
+						id: 'user-123',
+						params: {
+							last: 'Name',
+						},
+					})
+				).rejects.toThrow('User must have one of: Super Admin');
 			});
 
 			it('should reject contributor updating their own role field', async () => {

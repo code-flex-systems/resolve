@@ -8,6 +8,8 @@
 		"start": "next start",
 		"lint": "next lint",
 		"test": "vitest",
+		"test:integration": "vitest --config vitest.integration.config.ts",
+		"test:integration:setup": "tsx src/__tests__/integration/setup-test-db.ts",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest --coverage",
 		"azurite": "azurite-blob --silent --location ./azurite-data --blobPort 10000",
