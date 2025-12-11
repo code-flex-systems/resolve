@@ -371,7 +371,11 @@ export async function upsertQuestionResponses(
 			});
 
 			// Remove the response and its answers
-			await ctx.db.deleteFrom('question_response').where('id', '=', oldRow.id).execute();
+			await ctx.db
+				.deleteFrom('question_response')
+				.where('id', '=', oldRow.id)
+				.where('client_id', '=', ctx.session.user.client_id)
+				.execute();
 			continue;
 		}
 
@@ -423,6 +427,7 @@ export async function upsertQuestionResponses(
 				.updateTable('doc')
 				.set({ response_doc_id: null })
 				.where('id', '=', oldDocId)
+				.where('client_id', '=', ctx.session.user.client_id)
 				.execute();
 		}
 		if (newDocId && newDocId !== oldDocId) {
@@ -431,6 +436,7 @@ export async function upsertQuestionResponses(
 				.updateTable('doc')
 				.set({ response_doc_id: saved.id })
 				.where('id', '=', newDocId)
+				.where('client_id', '=', ctx.session.user.client_id)
 				.execute();
 		}
 

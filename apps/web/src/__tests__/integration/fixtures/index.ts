@@ -15,3 +15,5 @@ export * from './task';
 export * from './deadline';
 export * from './feed';
 export * from './page';
+export * from './recovery';
+export * from './doc';

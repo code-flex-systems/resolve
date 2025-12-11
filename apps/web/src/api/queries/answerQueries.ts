@@ -92,13 +92,16 @@ export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answer
 	const { position, question_id } = await ctx.db
 		.deleteFrom('answer')
 		.where('id', '=', answerId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returning(['position', 'question_id'])
 		.executeTakeFirstOrThrow();
 
 	await ctx.db
 		.updateTable('answer')
 		.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-		.where((eb) => eb.and([eb('question_id', '=', question_id), eb('position', '>', position)]))
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('question_id', '=', question_id)
+		.where('position', '>', position)
 		.execute();
 
 	await bumpPageVersion(ctx, pageId);
@@ -346,6 +349,7 @@ export async function modifyAnswer(
 			await ctx.db
 				.updateTable('answer')
 				.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+				.where('client_id', '=', ctx.session.user.client_id)
 				.where('question_id', '=', existingAnswer.question_id)
 				.where('position', '>=', updates.position)
 				.where('position', '<', existingAnswer.position)
@@ -355,6 +359,7 @@ export async function modifyAnswer(
 			await ctx.db
 				.updateTable('answer')
 				.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+				.where('client_id', '=', ctx.session.user.client_id)
 				.where('question_id', '=', existingAnswer.question_id)
 				.where('position', '>', existingAnswer.position)
 				.where('position', '<=', updates.position)
@@ -370,6 +375,7 @@ export async function modifyAnswer(
 			updated_at: sql`now()`,
 		})
 		.where('id', '=', answerId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
@@ -391,6 +397,7 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
 		.where('id', '=', pageId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
 }
 
@@ -410,6 +417,7 @@ async function createAnswerPrivate(
 	await ctx.db
 		.updateTable('answer')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+		.where('client_id', '=', ctx.session.user.client_id)
 		.where('question_id', '=', questionId)
 		.where('position', '>=', params.position)
 		.execute();

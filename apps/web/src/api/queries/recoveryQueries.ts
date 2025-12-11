@@ -269,7 +269,7 @@ export async function exportRecoveryEvents(
 	}
 
 	if (filters.userId) {
-		query = query.where('checklist_claim.assignee', '=', filters.userId);
+		query = query.where('recovery_event.created_by', '=', filters.userId);
 	}
 
 	// Order by date descending

@@ -192,11 +192,20 @@ export async function archiveParty(ctx: ProtectedContext, id: number) {
 		.where('party.client_id', '=', ctx.session.user.client_id)
 		.execute();
 
-	// Cascade to party offices
+	// Cascade to party offices (party_id FK to party which we already verified via getParty)
 	await ctx.db
 		.updateTable('party_office')
 		.set({ deleted_at: deletedAt, deleted_by: deletedBy })
 		.where('party_office.party_id', '=', id)
+		.where(
+			'party_office.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+				.where('party.id', '=', id)
+		)
 		.execute();
 
 	// Cascade to party representatives
@@ -204,6 +213,15 @@ export async function archiveParty(ctx: ProtectedContext, id: number) {
 		.updateTable('party_representative')
 		.set({ deleted_at: deletedAt, deleted_by: deletedBy })
 		.where('party_representative.party_id', '=', id)
+		.where(
+			'party_representative.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+				.where('party.id', '=', id)
+		)
 		.execute();
 
 	return party;
@@ -232,6 +250,15 @@ export async function restoreParty(ctx: ProtectedContext, id: number) {
 		.updateTable('party_office')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_office.party_id', '=', id)
+		.where(
+			'party_office.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+				.where('party.id', '=', id)
+		)
 		.execute();
 
 	// Cascade to party representatives
@@ -239,6 +266,15 @@ export async function restoreParty(ctx: ProtectedContext, id: number) {
 		.updateTable('party_representative')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_representative.party_id', '=', id)
+		.where(
+			'party_representative.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+				.where('party.id', '=', id)
+		)
 		.execute();
 
 	return party;
@@ -363,12 +399,20 @@ export async function createPartyOffice(
 		is_primary?: boolean;
 	}
 ) {
+	// Verify party belongs to client
+	const partyBelongsToClient = ctx.db
+		.selectFrom('party')
+		.select('party.id')
+		.where('party.client_id', '=', ctx.session.user.client_id)
+		.where('party.id', '=', params.party_id);
+
 	// If setting as primary, unset all other primaries for this party
 	if (params.is_primary) {
 		await ctx.db
 			.updateTable('party_office')
 			.set({ is_primary: false })
 			.where('party_id', '=', params.party_id)
+			.where('party_id', 'in', partyBelongsToClient)
 			.where('is_primary', '=', true)
 			.execute();
 	}
@@ -402,8 +446,10 @@ export async function updatePartyOffice(
 	if (params.is_primary) {
 		const office = await ctx.db
 			.selectFrom('party_office')
-			.select('party_id')
-			.where('id', '=', id)
+			.innerJoin('party', 'party.id', 'party_office.party_id')
+			.select('party_office.party_id')
+			.where('party_office.id', '=', id)
+			.where('party.client_id', '=', ctx.session.user.client_id)
 			.executeTakeFirst();
 
 		if (office) {
@@ -413,6 +459,14 @@ export async function updatePartyOffice(
 				.where('party_id', '=', office.party_id)
 				.where('id', '!=', id)
 				.where('is_primary', '=', true)
+				.where(
+					'party_id',
+					'in',
+					ctx.db
+						.selectFrom('party')
+						.select('party.id')
+						.where('party.client_id', '=', ctx.session.user.client_id)
+				)
 				.execute();
 		}
 	}
@@ -425,6 +479,14 @@ export async function updatePartyOffice(
 			updated_at: sql`now()`,
 		})
 		.where('party_office.id', '=', id)
+		.where(
+			'party_office.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
@@ -459,6 +521,14 @@ export async function archivePartyOffice(ctx: ProtectedContext, id: number) {
 		.updateTable('party_office')
 		.set({ deleted_at: deletedAt, deleted_by: deletedBy })
 		.where('party_office.id', '=', id)
+		.where(
+			'party_office.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
 		.execute();
 
 	return office;
@@ -477,6 +547,14 @@ export async function restorePartyOffice(ctx: ProtectedContext, id: number) {
 		.updateTable('party_office')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_office.id', '=', id)
+		.where(
+			'party_office.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
 		.execute();
 
 	return office;
@@ -635,6 +713,14 @@ export async function archivePartyRepresentative(ctx: ProtectedContext, id: numb
 		.updateTable('party_representative')
 		.set({ deleted_at: deletedAt, deleted_by: deletedBy })
 		.where('party_representative.id', '=', id)
+		.where(
+			'party_representative.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
 		.execute();
 
 	return representative;
@@ -653,6 +739,14 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, id: numb
 		.updateTable('party_representative')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_representative.id', '=', id)
+		.where(
+			'party_representative.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
 		.execute();
 
 	return representative;
@@ -677,12 +771,20 @@ export async function createPartyRepresentative(
 		is_primary?: boolean;
 	}
 ) {
+	// Verify party belongs to client
+	const partyBelongsToClient = ctx.db
+		.selectFrom('party')
+		.select('party.id')
+		.where('party.client_id', '=', ctx.session.user.client_id)
+		.where('party.id', '=', params.party_id);
+
 	// If setting as primary, unset all other primaries for this party
 	if (params.is_primary) {
 		await ctx.db
 			.updateTable('party_representative')
 			.set({ is_primary: false })
 			.where('party_id', '=', params.party_id)
+			.where('party_id', 'in', partyBelongsToClient)
 			.where('is_primary', '=', true)
 			.execute();
 	}
@@ -720,8 +822,10 @@ export async function updatePartyRepresentative(
 	if (params.is_primary) {
 		const representative = await ctx.db
 			.selectFrom('party_representative')
-			.select('party_id')
-			.where('id', '=', id)
+			.innerJoin('party', 'party.id', 'party_representative.party_id')
+			.select('party_representative.party_id')
+			.where('party_representative.id', '=', id)
+			.where('party.client_id', '=', ctx.session.user.client_id)
 			.executeTakeFirst();
 
 		if (representative) {
@@ -731,6 +835,14 @@ export async function updatePartyRepresentative(
 				.where('party_id', '=', representative.party_id)
 				.where('id', '!=', id)
 				.where('is_primary', '=', true)
+				.where(
+					'party_id',
+					'in',
+					ctx.db
+						.selectFrom('party')
+						.select('party.id')
+						.where('party.client_id', '=', ctx.session.user.client_id)
+				)
 				.execute();
 		}
 	}
@@ -743,6 +855,14 @@ export async function updatePartyRepresentative(
 			updated_at: sql`now()`,
 		})
 		.where('party_representative.id', '=', id)
+		.where(
+			'party_representative.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
@@ -753,8 +873,17 @@ export async function updatePartyRepresentative(
 export async function getPartyRepresentativeForDeletion(ctx: ProtectedContext, id: number) {
 	return await ctx.db
 		.selectFrom('party_representative')
-		.select(['id', 'party_id', 'first_name', 'last_name', 'title', 'email'])
+		.innerJoin('party', 'party.id', 'party_representative.party_id')
+		.select([
+			'party_representative.id',
+			'party_representative.party_id',
+			'party_representative.first_name',
+			'party_representative.last_name',
+			'party_representative.title',
+			'party_representative.email',
+		])
 		.where('party_representative.id', '=', id)
+		.where('party.client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 }
 
@@ -762,7 +891,18 @@ export async function getPartyRepresentativeForDeletion(ctx: ProtectedContext, i
  * Delete party representative
  */
 export async function deletePartyRepresentative(ctx: ProtectedContext, id: number) {
-	await ctx.db.deleteFrom('party_representative').where('party_representative.id', '=', id).execute();
+	await ctx.db
+		.deleteFrom('party_representative')
+		.where('party_representative.id', '=', id)
+		.where(
+			'party_representative.party_id',
+			'in',
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
+		)
+		.execute();
 }
 
 // ============================================================================
@@ -951,6 +1091,14 @@ export async function updateClaimParty(
 			}),
 		})
 		.where('claim_party.id', '=', id)
+		.where(
+			'claim_party.claim_id',
+			'in',
+			ctx.db
+				.selectFrom('claim')
+				.select('claim.id')
+				.where('claim.client_id', '=', ctx.session.user.client_id)
+		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
@@ -977,6 +1125,7 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
 			'claim.claim_number as claim_number',
 		])
 		.where('claim_party.id', '=', id)
+		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 }
 
@@ -987,18 +1136,31 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
  * @returns updated expectedRecovery
  */
 export async function unlinkPartyFromClaim(ctx: ProtectedContext, id: number) {
-	// Get claim_id before deletion for recalculation
+	// Get claim_id before deletion for recalculation (with client check)
 	const claimParty = await ctx.db
 		.selectFrom('claim_party')
-		.select(['claim_id'])
-		.where('id', '=', id)
+		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
+		.select(['claim_party.claim_id'])
+		.where('claim_party.id', '=', id)
+		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 
 	if (!claimParty) {
 		throw new Error('Claim party not found');
 	}
 
-	await ctx.db.deleteFrom('claim_party').where('claim_party.id', '=', id).execute();
+	await ctx.db
+		.deleteFrom('claim_party')
+		.where('claim_party.id', '=', id)
+		.where(
+			'claim_party.claim_id',
+			'in',
+			ctx.db
+				.selectFrom('claim')
+				.select('claim.id')
+				.where('claim.client_id', '=', ctx.session.user.client_id)
+		)
+		.execute();
 
 	// Recalculate expected_recovery and return the new value
 	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);

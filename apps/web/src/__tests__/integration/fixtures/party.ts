@@ -16,9 +16,13 @@ export async function createTestParty(
 		name?: string;
 		party_type?: string;
 		party_category?: string;
+		organization?: string | null;
 		email?: string | null;
 		phone?: string | null;
 		address?: string | null;
+		notes?: string | null;
+		deleted_at?: Date | null;
+		deleted_by?: string | null;
 	}
 ) {
 	const data = {
@@ -26,14 +30,138 @@ export async function createTestParty(
 		name: overrides.name || `Test Party ${Date.now()}`,
 		party_type: overrides.party_type || 'facilitator',
 		party_category: overrides.party_category || 'adverse_carrier',
+		organization: overrides.organization ?? null,
 		email: overrides.email ?? null,
 		phone: overrides.phone ?? null,
 		address: overrides.address ?? null,
+		notes: overrides.notes ?? null,
+		deleted_at: overrides.deleted_at ?? null,
+		deleted_by: overrides.deleted_by ?? null,
 		created_by: overrides.created_by,
 	};
 
 	return db
 		.insertInto('party')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Create a test party office
+ */
+export async function createTestPartyOffice(
+	db: Kysely<DB>,
+	overrides: {
+		party_id: number;
+		created_by: string;
+		office_name?: string | null;
+		address?: string | null;
+		phone?: string | null;
+		fax?: string | null;
+		is_primary?: boolean;
+		deleted_at?: Date | null;
+		deleted_by?: string | null;
+	}
+) {
+	const data = {
+		party_id: overrides.party_id,
+		office_name: overrides.office_name ?? `Office ${Date.now()}`,
+		address: overrides.address ?? null,
+		phone: overrides.phone ?? null,
+		fax: overrides.fax ?? null,
+		is_primary: overrides.is_primary ?? false,
+		deleted_at: overrides.deleted_at ?? null,
+		deleted_by: overrides.deleted_by ?? null,
+		created_by: overrides.created_by,
+	};
+
+	return db
+		.insertInto('party_office')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Create a test party representative
+ */
+export async function createTestPartyRepresentative(
+	db: Kysely<DB>,
+	overrides: {
+		party_id: number;
+		created_by: string;
+		office_id?: number | null;
+		first_name?: string;
+		last_name?: string;
+		title?: string | null;
+		email?: string | null;
+		phone?: string | null;
+		mobile_phone?: string | null;
+		fax?: string | null;
+		is_primary?: boolean;
+		deleted_at?: Date | null;
+		deleted_by?: string | null;
+	}
+) {
+	const data = {
+		party_id: overrides.party_id,
+		office_id: overrides.office_id ?? null,
+		first_name: overrides.first_name || 'Test',
+		last_name: overrides.last_name || `Rep ${Date.now()}`,
+		title: overrides.title ?? null,
+		email: overrides.email ?? null,
+		phone: overrides.phone ?? null,
+		mobile_phone: overrides.mobile_phone ?? null,
+		fax: overrides.fax ?? null,
+		is_primary: overrides.is_primary ?? false,
+		deleted_at: overrides.deleted_at ?? null,
+		deleted_by: overrides.deleted_by ?? null,
+		created_by: overrides.created_by,
+	};
+
+	return db
+		.insertInto('party_representative')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Create a test claim party link
+ */
+export async function createTestClaimParty(
+	db: Kysely<DB>,
+	overrides: {
+		claim_id: number;
+		party_id: number;
+		created_by: string;
+		role?: string;
+		representative_id?: number | null;
+		is_primary?: boolean;
+		notes?: string | null;
+		external_reference?: string | null;
+		liability_percentage?: string | null;
+		deleted_at?: Date | null;
+		deleted_by?: string | null;
+	}
+) {
+	const data = {
+		claim_id: overrides.claim_id,
+		party_id: overrides.party_id,
+		role: overrides.role || 'adverse_carrier',
+		representative_id: overrides.representative_id ?? null,
+		is_primary: overrides.is_primary ?? false,
+		notes: overrides.notes ?? null,
+		external_reference: overrides.external_reference ?? null,
+		liability_percentage: overrides.liability_percentage ?? null,
+		deleted_at: overrides.deleted_at ?? null,
+		deleted_by: overrides.deleted_by ?? null,
+		created_by: overrides.created_by,
+	};
+
+	return db
+		.insertInto('claim_party')
 		.values(data)
 		.returningAll()
 		.executeTakeFirstOrThrow();

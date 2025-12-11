@@ -226,6 +226,28 @@ psql postgres://postgres:password@localhost/manifest
 - Validate multi-tenant isolation
 - Use test fixtures for common scenarios
 
+### Writing Integration Tests - Systematic Approach
+
+**Before writing any tests**, analyze the source file systematically:
+
+1. **Map every function** - List all exported functions that need tests
+2. **Analyze each WHERE clause** - Every `client_id` filter needs a tenant isolation test
+3. **Analyze soft-delete filters** - Every `deleted_at is null` check needs an exclusion test
+4. **Identify all parameters** - Each optional parameter needs coverage for when it's used vs omitted
+5. **Identify conditional logic** - Each `if`/ternary/spread conditional needs both branches tested
+6. **Map error paths** - Every `throw` or error condition needs a test
+7. **Check joins** - Joined tables with their own soft-delete columns need separate exclusion tests
+
+**Required test categories for query functions:**
+- Basic functionality (happy path)
+- Tenant isolation (different client_id returns nothing / throws error)
+- Soft-delete exclusion (deleted records not returned) - for EACH table in joins
+- Non-existent record handling (returns undefined or throws as appropriate)
+- All optional parameters exercised
+- Error conditions (invalid input, constraint violations)
+
+**Do this analysis BEFORE writing tests, not as a review after.** This prevents gaps that require additional passes.
+
 ## Notes for AI Assistants
 
 When working on this codebase:
