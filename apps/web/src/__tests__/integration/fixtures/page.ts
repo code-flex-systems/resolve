@@ -94,6 +94,8 @@ export async function createTestAnswer(
 		position?: number;
 		grade?: number | null;
 		has_additional_info?: boolean;
+		additional_info_num_lines?: number | null;
+		additional_info_placeholder?: string | null;
 		calls_instance_id?: number | null;
 		requires_upload?: boolean;
 		hidden?: boolean;
@@ -107,6 +109,8 @@ export async function createTestAnswer(
 		position: overrides.position ?? 0,
 		grade: overrides.grade ?? null,
 		has_additional_info: overrides.has_additional_info ?? false,
+		additional_info_num_lines: overrides.additional_info_num_lines ?? null,
+		additional_info_placeholder: overrides.additional_info_placeholder ?? null,
 		calls_instance_id: overrides.calls_instance_id ?? null,
 		requires_upload: overrides.requires_upload ?? false,
 		hidden: overrides.hidden ?? false,
