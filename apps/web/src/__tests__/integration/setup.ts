@@ -23,6 +23,12 @@ beforeAll(() => {
 // Note: This runs once per file, not per test
 beforeEach(async () => {
 	const db = getTestDb();
+	// Set search_path to 'test' schema so raw SQL queries find the right tables
+	await db.executeQuery({
+		sql: `SET search_path TO test, public`,
+		parameters: [],
+		query: { kind: 'RawNode' } as any,
+	});
 	await truncateAllTables(db);
 });
 
