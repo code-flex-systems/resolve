@@ -20,7 +20,12 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 }
 
 export async function deleteComment(ctx: ProtectedContext, id: number) {
-	return await ctx.db.deleteFrom('comment').where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+	return await ctx.db
+		.deleteFrom('comment')
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 }
 
 export async function getComment(ctx: ProtectedContext, id: number) {
@@ -30,7 +35,7 @@ export async function getComment(ctx: ProtectedContext, id: number) {
 		.selectAll('comment')
 		.select(['first', 'last', 'email'])
 		.where('comment.client_id', '=', ctx.session.user.client_id)
-		.where('id', '=', id)
+		.where('comment.id', '=', id)
 		.executeTakeFirstOrThrow();
 }
 

@@ -428,12 +428,59 @@ _Claim Search & Visibility:_
 
 ## Testing & Quality
 
-**Testing Standards:**
+**Testing Commands:**
 
-- See `project_files/TESTING_PROGRESS.md` for current test coverage and standards
-- Unit tests for queries, utilities, state management
-- Integration tests for tRPC routers and component interactions
-- Run tests with: `npm test` (when configured)
+```bash
+npm --workspace apps/web test -- --run          # Run all tests
+npm --workspace apps/web test -- <pattern> --run # Run specific tests
+npm run typecheck                                # Type checking
+```
+
+**Testing Principles - What Makes a Good Unit Test:**
+
+1. **Test actual logic, not mocks**
+   - BAD: Mock `totalIncurred: 15000`, then expect `totalIncurred` to be 15000 (passthrough)
+   - GOOD: Test that null values default to 0, NaN is handled, rounding works correctly
+
+2. **Test transformations and calculations**
+   - Data type conversions (string → number, null → default)
+   - Mathematical calculations (percentages, aggregations, rounding)
+   - Conditional branching (different paths based on input)
+
+3. **Test error handling and edge cases**
+   - NOT_FOUND when entity doesn't exist
+   - FORBIDDEN when user lacks access
+   - Null/undefined/NaN handling
+   - Empty arrays, boundary values
+
+4. **Test authorization logic**
+   - Role-based access (admin vs contributor)
+   - Ownership checks (creator OR assignee)
+   - Client scoping (multi-tenant isolation)
+
+**What NOT to Unit Test:**
+
+- **Passthrough mock tests**: Mocking a function's return value and asserting it returns that value tests nothing
+- **Mock assertion tests**: Verifying `mockWhere.toHaveBeenCalledWith(...)` only proves mocks work
+- **Simple CRUD operations**: These are just database passthrough - use integration tests
+- **Controllers**: Thin orchestration layers - logic lives in queries
+- **Query construction**: Integration tests with real database are better
+
+**Test File Organization:**
+
+- Query tests: `apps/web/src/api/queries/__tests__/*.test.ts`
+- Utility tests: `apps/web/src/lib/utils/__tests__/*.test.ts`, `apps/web/src/api/utils/__tests__/*.test.ts`
+- Auth tests: `apps/web/src/lib/auth/__tests__/*.test.ts`
+- Router tests: `apps/web/src/server/trpc/routers/__tests__/*.test.ts`
+
+**When Writing Tests:**
+
+1. Read the function to understand what logic actually exists
+2. Identify transformations, calculations, and conditional branches
+3. Test those specific behaviors, not query construction
+4. If most of the test is setting up mocks to return values you then assert, reconsider the test's value
+
+See `project_files/TESTING_PROGRESS.md` for current coverage and detailed standards.
 
 **Code Quality:**
 

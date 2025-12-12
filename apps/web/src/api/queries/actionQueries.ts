@@ -33,7 +33,11 @@ export async function upsertAction(
 }
 
 export async function deleteAction(ctx: ProtectedContext, actionId: number) {
-	await ctx.db.deleteFrom('action').where('id', '=', actionId).execute();
+	await ctx.db
+		.deleteFrom('action')
+		.where('id', '=', actionId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.execute();
 }
 
 export async function getActions(ctx: ProtectedContext, answerIds: number[]) {
@@ -116,7 +120,13 @@ export async function getActionStatsDetail(
 			}
 			return eb.and(whereClause);
 		})
-		.groupBy('action.id')
+		.groupBy([
+			'action.id',
+			'answer.text',
+			'question.text',
+			'page.id',
+			'page_instance.id',
+		])
 		.orderBy('count desc')
 		.execute();
 	return results.map((row) => ({ ...row, count: parseInt(row.count?.toString() ?? '0') }));
@@ -147,5 +157,6 @@ export async function updateAction(
 			updated_at: sql`now()`,
 		})
 		.where('id', '=', actionId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
 }

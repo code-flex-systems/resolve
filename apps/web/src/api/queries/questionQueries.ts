@@ -18,6 +18,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
 	await ctx.db
 		.updateTable('question')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+		.where('client_id', '=', ctx.session.user.client_id)
 		.where('page_id', '=', pageId)
 		.where('position', '>=', params.position)
 		.execute();
@@ -179,13 +180,16 @@ export async function deleteQuestion(ctx: ProtectedContext, pageId: number, ques
 	const { position } = await ctx.db
 		.deleteFrom('question')
 		.where('id', '=', questionId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returning('position')
 		.executeTakeFirstOrThrow();
 
 	await ctx.db
 		.updateTable('question')
 		.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-		.where((eb) => eb.and([eb('page_id', '=', pageId), eb('position', '>', position)]))
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('page_id', '=', pageId)
+		.where('position', '>', position)
 		.execute();
 
 	await bumpPageVersion(ctx, pageId);
@@ -381,7 +385,11 @@ export async function modifyQuestion(
 
 	// Delete all existing answers when converting to free-form
 	if (convertingToFreeform) {
-		await ctx.db.deleteFrom('answer').where('question_id', '=', questionId).execute();
+		await ctx.db
+			.deleteFrom('answer')
+			.where('question_id', '=', questionId)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.execute();
 	}
 
 	if (updates.position) {
@@ -390,6 +398,7 @@ export async function modifyQuestion(
 			await ctx.db
 				.updateTable('question')
 				.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
+				.where('client_id', '=', ctx.session.user.client_id)
 				.where('page_id', '=', pageId)
 				.where('position', '>=', updates.position)
 				.where('position', '<', existingQuestion.position)
@@ -399,6 +408,7 @@ export async function modifyQuestion(
 			await ctx.db
 				.updateTable('question')
 				.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
+				.where('client_id', '=', ctx.session.user.client_id)
 				.where('page_id', '=', pageId)
 				.where('position', '>', existingQuestion.position)
 				.where('position', '<=', updates.position)
@@ -414,6 +424,7 @@ export async function modifyQuestion(
 			updated_at: sql`now()`,
 		})
 		.where('id', '=', questionId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
@@ -440,5 +451,6 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
 			updated_at: sql`now()`,
 		}))
 		.where('id', '=', pageId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
 }

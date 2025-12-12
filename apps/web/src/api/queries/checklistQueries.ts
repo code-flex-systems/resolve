@@ -75,7 +75,11 @@ export async function getChecklistForDeletion(ctx: ProtectedContext, checklistId
  * @param checklistId - identifier of the checklist
  */
 export async function deleteChecklist(ctx: ProtectedContext, checklistId: number) {
-	await ctx.db.deleteFrom('checklist').where('id', '=', checklistId).execute();
+	await ctx.db
+		.deleteFrom('checklist')
+		.where('id', '=', checklistId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.execute();
 }
 
 export async function modifyChecklistClaim(
@@ -113,6 +117,7 @@ export async function modifyChecklistClaim(
 					}
 				: {}),
 		})
+		.where('client_id', '=', ctx.session.user.client_id)
 		.where((eb) => eb.and([eb('checklist_id', '=', checklistId), eb('claim_id', '=', claimId)]))
 		.execute();
 }
@@ -776,6 +781,7 @@ export async function modifyChecklist(ctx: ProtectedContext, checklistId: number
 			updated_at: sql`now()`,
 		})
 		.where('id', '=', checklistId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }

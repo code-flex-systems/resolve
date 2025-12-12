@@ -161,6 +161,7 @@ export async function updateFeed(ctx: ProtectedContext, id: number, params: Upda
 			updated_at: sql`now()`,
 		})
 		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.execute();
 	return feed;
@@ -189,5 +190,9 @@ export async function getFeedForDeletion(ctx: ProtectedContext, id: number) {
  * @param id - feed identifier
  */
 export async function deleteFeed(ctx: ProtectedContext, id: number): Promise<void> {
-	await ctx.db.deleteFrom('feeds').where('id', '=', id).execute();
+	await ctx.db
+		.deleteFrom('feeds')
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.execute();
 }

@@ -501,6 +501,7 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
 		.updateTable('claim')
 		.set({ expected_recovery: expectedRecovery.toFixed(2) })
 		.where('id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
 
 	return expectedRecovery;
@@ -534,6 +535,7 @@ export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: n
 		.updateTable('claim')
 		.set({ total_incurred: totalIncurred.toFixed(2) })
 		.where('id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
 
 	return totalIncurred;

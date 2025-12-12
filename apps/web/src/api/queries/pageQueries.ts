@@ -201,11 +201,17 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
 		.updateTable('answer')
 		.set({ calls_instance_id: null, updated_by: ctx.session.user.id, updated_at: sql`now()` })
 		.where('calls_instance_id', '=', instanceId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
-	await ctx.db.deleteFrom('comment').where('instance_id', '=', instanceId).execute();
+	await ctx.db
+		.deleteFrom('comment')
+		.where('instance_id', '=', instanceId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.execute();
 	const deletedRow = await ctx.db
 		.deleteFrom('page_instance')
 		.where('id', '=', instanceId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returning('position')
 		.executeTakeFirstOrThrow();
 	await ctx.db
@@ -216,6 +222,7 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
 			updated_at: sql`now()`,
 		}))
 		.where('position', '>', deletedRow.position)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.execute();
 }
 
@@ -421,6 +428,7 @@ export async function modifyPage(ctx: ProtectedContext, pageId: number, params: 
 			updated_at: sql`now()`,
 		})
 		.where('id', '=', pageId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
