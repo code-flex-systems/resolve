@@ -27,6 +27,7 @@ export const getPartyInput = z.object({
  */
 export const searchPartiesInput = z.object({
 	searchTerm: z.string().min(1),
+	partyType: z.nativeEnum(PartyType).optional(),
 });
 
 /**
@@ -212,6 +213,7 @@ export const deletePartyRepresentativeInput = archivePartyRepresentativeInput;
  */
 export const getClaimPartiesInput = z.object({
 	claimId: z.number().int().positive(),
+	partyType: z.nativeEnum(PartyType).optional(),
 });
 
 /**

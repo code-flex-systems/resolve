@@ -198,7 +198,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 								Quick Summary
 							</Typography>
 							<Stack spacing={1.5}>
-								{/* Coverage Summary */}
+								{/* Coverage Summary - shows count of coverages and Entity parties */}
 								<Box display="flex" alignItems="center" gap={1}>
 									<Shield sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
 									<Typography fontSize={13}>
@@ -209,15 +209,16 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 											</Box>
 										) : (
 											<>
-												{formatCurrencyExact(claimDetail.coverageSummary.total)} from{' '}
 												{claimDetail.coverageSummary.count} coverage
-												{claimDetail.coverageSummary.count === 1 ? '' : 's'}
+												{claimDetail.coverageSummary.count === 1 ? '' : 's'} from{' '}
+												{claimDetail.coverageSummary.partyCount} part
+												{claimDetail.coverageSummary.partyCount === 1 ? 'y' : 'ies'}
 											</>
 										)}
 									</Typography>
 								</Box>
 
-								{/* Party/Liability Summary */}
+								{/* Liability Summary - shows liability % from Facilitator parties only */}
 								<Box display="flex" alignItems="center" gap={1}>
 									<Groups sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
 									<Typography fontSize={13} display="flex">

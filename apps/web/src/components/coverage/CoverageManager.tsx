@@ -72,16 +72,13 @@ export default function CoverageManager({
 				await updateCoverage.mutateAsync({
 					id: editingCoverage.id,
 					coverage_type: data.coverage_type as any,
-					coverage_amount: data.coverage_amount,
-					amount_reserved: data.amount_reserved,
+					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
+					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
 			} else {
-				await createCoverage.mutateAsync({
-					claim_id: claimId,
-					coverage_type: data.coverage_type as any,
-					coverage_amount: data.coverage_amount,
-					amount_reserved: data.amount_reserved,
-				});
+				// Note: Creating coverages requires claim_party_id which is not supported in this component.
+				// Coverage creation should be done through the ClaimantsCoverageTab in claim detail view.
+				console.warn('Coverage creation is disabled - use ClaimantsCoverageTab instead');
 			}
 			handleCloseDialog();
 		} catch (error) {

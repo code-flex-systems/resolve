@@ -5,6 +5,7 @@ import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/m
 import BasicDialog from '@/components/common/BasicDialog';
 import { ClaimPartyRoleSelect } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
+import { PartyType } from '@/config/enums';
 
 interface PartyLiabilityFormData {
 	role: string | null;
@@ -27,6 +28,8 @@ interface PartyLiabilityFormDialogProps {
 	editingClaimParty?: any | null;
 	currentClaimParties?: any[];
 	isSubmitting?: boolean;
+	/** Filter party search results to a specific party type */
+	partyTypeFilter?: PartyType;
 }
 
 export default function PartyLiabilityFormDialog({
@@ -36,6 +39,7 @@ export default function PartyLiabilityFormDialog({
 	editingClaimParty,
 	currentClaimParties = [],
 	isSubmitting = false,
+	partyTypeFilter,
 }: PartyLiabilityFormDialogProps) {
 	const [formData, setFormData] = useState<PartyLiabilityFormData>({
 		role: null,
@@ -53,7 +57,7 @@ export default function PartyLiabilityFormDialog({
 
 	// Fetch parties based on search term
 	const { data: partySearchResults = [] } = partyTrpc.search(
-		{ searchTerm: partySearchTerm },
+		{ searchTerm: partySearchTerm, partyType: partyTypeFilter },
 		{ enabled: partySearchTerm.length >= 2 }
 	);
 
@@ -220,27 +224,29 @@ export default function PartyLiabilityFormDialog({
 					)}
 				/>
 
-				{/* Liability Percentage */}
-				<TextField
-					label="Liability Percentage"
-					type="number"
-					value={formData.liability_percentage}
-					onChange={(e) => setFormData({ ...formData, liability_percentage: e.target.value })}
-					fullWidth
-					placeholder="Enter percentage (0-100)"
-					inputProps={{ step: '0.01', min: '0', max: '100' }}
-					slotProps={{
-						input: {
-							endAdornment: <InputAdornment position="end">%</InputAdornment>,
-						},
-					}}
-					error={!isValidLiabilityPercentage}
-					helperText={
-						!isValidLiabilityPercentage
-							? 'Must be between 0 and 100'
-							: "This party's percentage of liability for the claim"
-					}
-				/>
+				{/* Liability Percentage - only show for Facilitator parties */}
+				{partyTypeFilter !== PartyType.ENTITY && (
+					<TextField
+						label="Liability Percentage"
+						type="number"
+						value={formData.liability_percentage}
+						onChange={(e) => setFormData({ ...formData, liability_percentage: e.target.value })}
+						fullWidth
+						placeholder="Enter percentage (0-100)"
+						inputProps={{ step: '0.01', min: '0', max: '100' }}
+						slotProps={{
+							input: {
+								endAdornment: <InputAdornment position="end">%</InputAdornment>,
+							},
+						}}
+						error={!isValidLiabilityPercentage}
+						helperText={
+							!isValidLiabilityPercentage
+								? 'Must be between 0 and 100'
+								: "This party's percentage of liability for the claim"
+						}
+					/>
+				)}
 
 				{/* Notes */}
 				<TextField
@@ -250,7 +256,11 @@ export default function PartyLiabilityFormDialog({
 					fullWidth
 					multiline
 					rows={3}
-					placeholder="Additional notes about this party's liability..."
+					placeholder={
+						partyTypeFilter === PartyType.ENTITY
+							? "Notes about this party's coverage(s)..."
+							: "Additional notes about this party's liability..."
+					}
 				/>
 			</Box>
 		</BasicDialog>

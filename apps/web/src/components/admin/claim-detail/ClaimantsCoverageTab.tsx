@@ -2,20 +2,21 @@
 
 import { Box, Button, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
-import Business from '@mui/icons-material/Business';
+import Person from '@mui/icons-material/Person';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
 import { useState } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { useLiabilityTrpc } from '@/hooks/trpc/useLiabilityTrpc';
+import { useCoverageTrpc } from '@/hooks/trpc/useCoverageTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { LineOfBusinessValue, LossTypeValue, ClaimPartyRoleValue } from '@/components/common/ReferenceDataSelect';
+import { ClaimPartyRoleValue, EntityCategoryValue } from '@/components/common/ReferenceDataSelect';
+import { formatCoverageType } from '@/lib/utils/claimUtils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
-import LiabilityFormDialog from './LiabilityFormDialog';
+import CoverageFormDialog from '../../coverage/CoverageFormDialog';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -23,31 +24,33 @@ import { PartyType } from '@/config/enums';
 
 dayjs.extend(relativeTime);
 
-interface PartyLiabilityTabProps {
+interface ClaimantsCoverageTabProps {
 	claimId: number;
 }
 
-export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
+export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabProps) {
 	const [showPartyDialog, setShowPartyDialog] = useState(false);
 	const [editingClaimParty, setEditingClaimParty] = useState<any | null>(null);
-	const [showLiabilityDialog, setShowLiabilityDialog] = useState(false);
-	const [editingLiability, setEditingLiability] = useState<any | null>(null);
+	const [showCoverageDialog, setShowCoverageDialog] = useState(false);
+	const [editingCoverage, setEditingCoverage] = useState<any | null>(null);
 	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<number | null>(null);
-	const [archivingLiability, setArchivingLiability] = useState<{ id: number; lossType: string | null } | null>(null);
+	const [archivingCoverage, setArchivingCoverage] = useState<{ id: number; coverageType: string | null } | null>(null);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
-	const liabilityTrpc = useLiabilityTrpc();
-	// Filter to only Facilitator-type parties (adverse carriers, attorneys, experts, vendors)
+	const coverageTrpc = useCoverageTrpc();
+
+	// Only fetch Entity-type parties (claimants, responsible parties, witnesses, property owners)
 	const { data: claimParties = [], isLoading } = partyTrpc.listClaimParties(
-		{ claimId, partyType: PartyType.FACILITATOR },
+		{ claimId, partyType: PartyType.ENTITY },
 		{ enabled: !!claimId }
 	);
+
 	const linkPartyMutation = partyTrpc.linkToClaim;
 	const updatePartyMutation = partyTrpc.updateClaimParty;
-	const createLiabilityMutation = liabilityTrpc.create;
-	const updateLiabilityMutation = liabilityTrpc.update;
-	const deleteLiabilityMutation = liabilityTrpc.delete;
+	const createCoverageMutation = coverageTrpc.create;
+	const updateCoverageMutation = coverageTrpc.update;
+	const archiveCoverageMutation = coverageTrpc.archive;
 
 	const handleOpenPartyDialog = (claimParty?: any) => {
 		if (claimParty) {
@@ -63,19 +66,19 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		setEditingClaimParty(null);
 	};
 
-	const handleOpenLiabilityDialog = (claimPartyId: number, liability?: any) => {
+	const handleOpenCoverageDialog = (claimPartyId: number, coverage?: any) => {
 		setSelectedClaimPartyId(claimPartyId);
-		if (liability) {
-			setEditingLiability(liability);
+		if (coverage) {
+			setEditingCoverage(coverage);
 		} else {
-			setEditingLiability(null);
+			setEditingCoverage(null);
 		}
-		setShowLiabilityDialog(true);
+		setShowCoverageDialog(true);
 	};
 
-	const handleCloseLiabilityDialog = () => {
-		setShowLiabilityDialog(false);
-		setEditingLiability(null);
+	const handleCloseCoverageDialog = () => {
+		setShowCoverageDialog(false);
+		setEditingCoverage(null);
 		setSelectedClaimPartyId(null);
 	};
 
@@ -115,80 +118,67 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		}
 	};
 
-	// Note: liability_percentage is now on claim_party, not claim_liability
-	// amount_paid replaces amount_paid; reserved_recovery removed (reserved is on coverage)
-	const handleLiabilitySubmit = async (data: {
-		claim_party_id: number;
-		loss_type?: string | null;
-		coverage_amount?: number | null;
-		line_of_business?: string | null;
-		amount_paid?: number | null;
-		notes?: string | null;
+	const handleCoverageSubmit = async (data: {
+		coverage_type: string;
+		coverage_amount: string | null;
+		amount_reserved: string | null;
 	}) => {
 		try {
-			if (editingLiability) {
-				// Update existing liability
-				await updateLiabilityMutation.mutateAsync({
-					id: editingLiability.id,
-					params: {
-						loss_type: data.loss_type as import('@/config/enums').LossType | undefined,
-						coverage_amount: data.coverage_amount ?? undefined,
-						line_of_business: data.line_of_business as import('@/config/enums').LineOfBusiness | undefined,
-						amount_paid: data.amount_paid ?? undefined,
-						notes: data.notes ?? undefined,
-					},
+			if (!selectedClaimPartyId) return;
+
+			if (editingCoverage) {
+				// Update existing coverage
+				await updateCoverageMutation.mutateAsync({
+					id: editingCoverage.id,
+					coverage_type: data.coverage_type,
+					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
+					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
 			} else {
-				// Create new liability
-				await createLiabilityMutation.mutateAsync({
-					claim_party_id: data.claim_party_id,
-					loss_type: data.loss_type as import('@/config/enums').LossType | undefined,
-					coverage_amount: data.coverage_amount ?? undefined,
-					line_of_business: data.line_of_business as import('@/config/enums').LineOfBusiness | undefined,
-					amount_paid: data.amount_paid ?? undefined,
-					notes: data.notes ?? undefined,
+				// Create new coverage
+				await createCoverageMutation.mutateAsync({
+					claim_id: claimId,
+					claim_party_id: selectedClaimPartyId,
+					coverage_type: data.coverage_type,
+					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
+					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
 			}
-			handleCloseLiabilityDialog();
+			handleCloseCoverageDialog();
 		} catch (error) {
-			console.error('Failed to save liability:', error);
+			console.error('Failed to save coverage:', error);
 		}
 	};
 
-	const handleArchiveLiability = async () => {
-		if (!archivingLiability) return;
+	const handleArchiveCoverage = async () => {
+		if (!archivingCoverage) return;
 
 		try {
-			await deleteLiabilityMutation.mutateAsync({ id: archivingLiability.id });
-			showAlert('Liability archived successfully', 'success');
-			setArchivingLiability(null);
+			await archiveCoverageMutation.mutateAsync({ id: archivingCoverage.id });
+			showAlert('Coverage archived successfully', 'success');
+			setArchivingCoverage(null);
 		} catch (error: any) {
-			const message = error?.message || 'Failed to archive liability';
+			const message = error?.message || 'Failed to archive coverage';
 			showAlert(message, 'error');
-			setArchivingLiability(null);
+			setArchivingCoverage(null);
 		}
 	};
 
-	// Calculate totals - liability_percentage is now on claim_party, not claim_liability
-	const totalLiability = claimParties.reduce((sum, cp) => {
-		const partyLiability = cp.liability_percentage ? parseFloat(cp.liability_percentage.toString()) : 0;
-		return sum + partyLiability;
-	}, 0);
-
-	const totalCoverage = claimParties.reduce((sum, cp) => {
-		const partyCoverageSum = (cp.liabilities || []).reduce((coverageSum: number, liability: any) => {
-			const amount = liability.coverage_amount ? parseFloat(liability.coverage_amount.toString()) : 0;
+	// Calculate totals from coverages
+	const totalCoverageAmount = claimParties.reduce((sum, cp) => {
+		const partyCoverageSum = (cp.coverages || []).reduce((coverageSum: number, coverage: any) => {
+			const amount = coverage.coverage_amount ? parseFloat(coverage.coverage_amount.toString()) : 0;
 			return coverageSum + amount;
 		}, 0);
 		return sum + partyCoverageSum;
 	}, 0);
 
-	const totalPaidRecovery = claimParties.reduce((sum, cp) => {
-		const partyPaidSum = (cp.liabilities || []).reduce((paidSum: number, liability: any) => {
-			const amount = liability.amount_paid ? parseFloat(liability.amount_paid.toString()) : 0;
-			return paidSum + amount;
+	const totalAmountReserved = claimParties.reduce((sum, cp) => {
+		const partyReservedSum = (cp.coverages || []).reduce((reservedSum: number, coverage: any) => {
+			const amount = coverage.amount_reserved ? parseFloat(coverage.amount_reserved.toString()) : 0;
+			return reservedSum + amount;
 		}, 0);
-		return sum + partyPaidSum;
+		return sum + partyReservedSum;
 	}, 0);
 
 	return (
@@ -197,40 +187,40 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				{/* Summary */}
 				<Paper elevation={0} sx={styles.paper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
-						Liability Summary
+						Coverage Summary
 					</Typography>
-					<Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={2}>
+					<Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={2}>
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 								Total Coverage Amount
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of all party coverage amounts
+								Sum of all party coverage limits
 							</Typography>
 							<Typography variant="h6" fontSize={18} color="primary.main">
-								{formatCurrencyExact(totalCoverage)}
+								{formatCurrencyExact(totalCoverageAmount)}
 							</Typography>
 						</Box>
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Total Liability Percentage
+								Total Amount Reserved
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of all party liability percentages
+								Sum of all reserved amounts
 							</Typography>
 							<Typography variant="h6" fontSize={18} color="warning.main">
-								{totalLiability.toFixed(2)}%
+								{formatCurrencyExact(totalAmountReserved)}
 							</Typography>
 						</Box>
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Total Paid
+								Linked Parties
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of paid across liabilities
+								Claimants and other entities
 							</Typography>
 							<Typography variant="h6" fontSize={18} color="success.main">
-								{formatCurrencyExact(totalPaidRecovery)}
+								{claimParties.length}
 							</Typography>
 						</Box>
 					</Box>
@@ -240,7 +230,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				<Paper elevation={0} sx={styles.paper}>
 					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
-							Linked Parties ({claimParties.length})
+							Claimants & Entities ({claimParties.length})
 						</Typography>
 						<Button
 							size="small"
@@ -260,16 +250,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					)}
 
 					{!isLoading && claimParties.length === 0 && (
-						<Box
-							display="flex"
-							flexDirection="column"
-							alignItems="center"
-							justifyContent="center"
-							padding={4}
-						>
-							<Business sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
+						<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" padding={4}>
+							<Person sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
-								No parties linked yet
+								No claimants or entities linked yet
 							</Typography>
 						</Box>
 					)}
@@ -309,17 +293,26 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 															color="primary"
 															variant="outlined"
 														/>
+														{claimParty.party?.party_category && (
+															<Chip
+																label={
+																	<EntityCategoryValue
+																		value={claimParty.party.party_category}
+																		showEmoji={false}
+																		fontSize={12}
+																	/>
+																}
+																size="small"
+																color="secondary"
+																variant="outlined"
+															/>
+														)}
 													</Box>
 
 													{/* Party Organization */}
 													{claimParty.party?.organization && (
-														<Typography
-															fontSize={13}
-															marginBottom={0.5}
-															color="text.secondary"
-														>
-															Organization:{' '}
-															<Highlight>{claimParty.party.organization}</Highlight>
+														<Typography fontSize={13} marginBottom={0.5} color="text.secondary">
+															Organization: <Highlight>{claimParty.party.organization}</Highlight>
 														</Typography>
 													)}
 
@@ -328,18 +321,18 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 														<Box display="flex" gap={2} marginBottom={0.5}>
 															{claimParty.party?.email && (
 																<Typography fontSize={12} color="text.secondary">
-																	✉️ {claimParty.party.email}
+																	{claimParty.party.email}
 																</Typography>
 															)}
 															{claimParty.party?.phone && (
 																<Typography fontSize={12} color="text.secondary">
-																	📞 {claimParty.party.phone}
+																	{claimParty.party.phone}
 																</Typography>
 															)}
 														</Box>
 													)}
 
-													{/* Representative with inline contact info */}
+													{/* Representative */}
 													{claimParty.representative && (
 														<Box marginBottom={0.5}>
 															<Typography fontSize={13} display="inline">
@@ -350,33 +343,6 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																</Highlight>
 																{claimParty.representative.title &&
 																	` - ${claimParty.representative.title}`}
-																{(claimParty.representative.email ||
-																	claimParty.representative.phone) && (
-																	<>
-																		{' '}
-																		<Typography
-																			component="span"
-																			fontSize={12}
-																			color="text.secondary"
-																		>
-																			(
-																			{claimParty.representative.email && (
-																				<>
-																					✉️ {claimParty.representative.email}
-																				</>
-																			)}
-																			{claimParty.representative.email &&
-																				claimParty.representative.phone &&
-																				' • '}
-																			{claimParty.representative.phone && (
-																				<>
-																					📞 {claimParty.representative.phone}
-																				</>
-																			)}
-																			)
-																		</Typography>
-																	</>
-																)}
 															</Typography>
 														</Box>
 													)}
@@ -384,25 +350,12 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 													{/* Office */}
 													{claimParty.office && (
 														<Typography fontSize={13} marginBottom={0.5}>
-															Office:{' '}
-															<Highlight>{claimParty.office.office_name}</Highlight>
-															{claimParty.office.address &&
-																` - ${claimParty.office.address}`}
+															Office: <Highlight>{claimParty.office.office_name}</Highlight>
+															{claimParty.office.address && ` - ${claimParty.office.address}`}
 														</Typography>
 													)}
 
-													{/* Liability Percentage (now on claim_party) */}
-													{claimParty.liability_percentage != null && (
-														<Box marginTop={1} marginBottom={0.5}>
-															<Chip
-																label={`Liability: ${parseFloat(claimParty.liability_percentage.toString()).toFixed(2)}%`}
-																size="small"
-																color="warning"
-															/>
-														</Box>
-													)}
-
-													{/* Liabilities Section */}
+													{/* Coverages Section */}
 													<Box marginTop={2}>
 														<Box
 															display="flex"
@@ -410,39 +363,35 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 															alignItems="center"
 															marginBottom={1}
 														>
-															<Typography
-																fontSize={13}
-																fontWeight={600}
-																color={BASE_COLOR_LIGHT}
-															>
-																Liabilities ({(claimParty.liabilities || []).length})
+															<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
+																Coverages ({(claimParty.coverages || []).length})
 															</Typography>
 															<Button
 																size="small"
 																startIcon={<AddBox />}
 																variant="outlined"
-																onClick={() => handleOpenLiabilityDialog(claimParty.id)}
+																onClick={() => handleOpenCoverageDialog(claimParty.id)}
 															>
-																Add Liability
+																Add Coverage
 															</Button>
 														</Box>
 
-														{(claimParty.liabilities || []).length === 0 && (
+														{(claimParty.coverages || []).length === 0 && (
 															<Typography
 																fontSize={12}
 																color="text.secondary"
 																fontStyle="italic"
 																marginY={1}
 															>
-																No liabilities added yet
+																No coverages added yet
 															</Typography>
 														)}
 
-														{(claimParty.liabilities || []).length > 0 && (
+														{(claimParty.coverages || []).length > 0 && (
 															<Stack spacing={1.5} marginTop={1}>
-																{claimParty.liabilities.map((liability: any) => (
+																{claimParty.coverages.map((coverage: any) => (
 																	<Paper
-																		key={liability.id}
+																		key={coverage.id}
 																		variant="outlined"
 																		sx={{
 																			padding: 2,
@@ -455,106 +404,67 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																			alignItems="flex-start"
 																		>
 																			<Box flex={1}>
-																				{/* Loss Type */}
-																				{liability.loss_type && (
-																					<Box
-																						display="flex"
-																						alignItems="center"
-																						gap={1}
-																						marginBottom={1}
-																					>
-																						<LossTypeValue
-																							value={liability.loss_type}
-																							fontSize={14}
-																							sx={{ fontWeight: 600 }}
-																						/>
-																					</Box>
-																				)}
+																				{/* Coverage Type */}
+																				<Typography
+																					fontSize={14}
+																					fontWeight={600}
+																					marginBottom={1}
+																				>
+																					{formatCoverageType(coverage.coverage_type)}
+																				</Typography>
 
-																				{/* Liability Details */}
+																				{/* Coverage Details */}
 																				<Box
 																					display="flex"
 																					gap={1}
 																					marginBottom={0.5}
 																					flexWrap="wrap"
 																				>
-																					{liability.coverage_amount && (
+																					{coverage.coverage_amount && (
 																						<Chip
-																							label={`Coverage: ${formatCurrencyExact(parseFloat(liability.coverage_amount.toString()))}`}
-																							size="small"
-																							color="success"
-																						/>
-																					)}
-																					{liability.line_of_business && (
-																						<Chip
-																							label={
-																								<LineOfBusinessValue
-																									value={
-																										liability.line_of_business
-																									}
-																									showEmoji={false}
-																									fontSize={12}
-																								/>
-																							}
+																							label={`Limit: ${formatCurrencyExact(parseFloat(coverage.coverage_amount.toString()))}`}
 																							size="small"
 																							color="primary"
-																							variant="outlined"
 																						/>
 																					)}
-																					{liability.amount_paid && (
+																					{coverage.amount_reserved && (
 																						<Chip
-																							label={`Paid: ${formatCurrencyExact(parseFloat(liability.amount_paid.toString()))}`}
+																							label={`Reserved: ${formatCurrencyExact(parseFloat(coverage.amount_reserved.toString()))}`}
 																							size="small"
-																							color="info"
+																							color="warning"
 																							variant="outlined"
 																						/>
 																					)}
 																				</Box>
-
-																				{/* Liability Notes */}
-																				{liability.notes && (
-																					<Typography
-																						fontSize={12}
-																						color="text.secondary"
-																						marginTop={0.5}
-																					>
-																						{liability.notes}
-																					</Typography>
-																				)}
 																			</Box>
 
-																			{/* Liability Actions */}
+																			{/* Coverage Actions */}
 																			<Box display="flex" gap={0.5}>
 																				<BasicButtonStyled
 																					buttonProps={{
 																						onClick: () =>
-																							handleOpenLiabilityDialog(
+																							handleOpenCoverageDialog(
 																								claimParty.id,
-																								liability
+																								coverage
 																							),
 																					}}
 																					tooltipProps={{
-																						title: 'Edit liability',
+																						title: 'Edit coverage',
 																					}}
 																					icon={<Edit />}
 																				/>
 																				<BasicButtonStyled
 																					buttonProps={{
 																						onClick: () =>
-																							setArchivingLiability({
-																								id: liability.id,
-																								lossType:
-																									liability.loss_type,
+																							setArchivingCoverage({
+																								id: coverage.id,
+																								coverageType: coverage.coverage_type,
 																							}),
 																					}}
 																					tooltipProps={{
-																						title: 'Archive liability',
+																						title: 'Archive coverage',
 																					}}
-																					icon={
-																						<Archive
-																							sx={{ color: 'error.main' }}
-																						/>
-																					}
+																					icon={<Archive sx={{ color: 'error.main' }} />}
 																				/>
 																			</Box>
 																		</Box>
@@ -596,7 +506,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				</Paper>
 			</Stack>
 
-			{/* Party Dialog */}
+			{/* Party Dialog - filtered to Entity types only */}
 			<PartyLiabilityFormDialog
 				open={showPartyDialog}
 				onClose={handleClosePartyDialog}
@@ -604,57 +514,51 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				editingClaimParty={editingClaimParty}
 				currentClaimParties={claimParties}
 				isSubmitting={linkPartyMutation.isPending || updatePartyMutation.isPending}
-				partyTypeFilter={PartyType.FACILITATOR}
+				partyTypeFilter={PartyType.ENTITY}
 			/>
 
-			{/* Liability Dialog */}
+			{/* Coverage Dialog */}
 			{selectedClaimPartyId && (
-				<LiabilityFormDialog
-					open={showLiabilityDialog}
-					onClose={handleCloseLiabilityDialog}
-					onSubmit={handleLiabilitySubmit}
-					claimPartyId={selectedClaimPartyId}
-					editingLiability={editingLiability}
-					currentLiabilities={claimParties.find((cp) => cp.id === selectedClaimPartyId)?.liabilities || []}
-					isSubmitting={
-						createLiabilityMutation.isPending ||
-						updateLiabilityMutation.isPending ||
-						deleteLiabilityMutation.isPending
-					}
+				<CoverageFormDialog
+					open={showCoverageDialog}
+					onClose={handleCloseCoverageDialog}
+					onSubmit={handleCoverageSubmit}
+					editingCoverage={editingCoverage}
+					isSubmitting={createCoverageMutation.isPending || updateCoverageMutation.isPending}
 				/>
 			)}
 
 			{/* Archive Confirmation Dialog */}
-			{archivingLiability && (
+			{archivingCoverage && (
 				<BasicDialog
-					title="Archive Liability"
+					title="Archive Coverage"
 					primaryAction={{
 						label: 'Archive',
-						onClick: handleArchiveLiability,
+						onClick: handleArchiveCoverage,
 						color: 'error',
 					}}
 					secondaryActions={[
 						{
 							label: 'Cancel',
-							onClick: () => setArchivingLiability(null),
+							onClick: () => setArchivingCoverage(null),
 						},
 					]}
-					onClose={() => setArchivingLiability(null)}
+					onClose={() => setArchivingCoverage(null)}
 					width={500}
 				>
 					<Typography fontStyle="italic" fontWeight="bold" marginBottom={1}>
-						Are you sure you want to archive this liability?
+						Are you sure you want to archive this coverage?
 					</Typography>
-					{archivingLiability.lossType && (
+					{archivingCoverage.coverageType && (
 						<Box display="flex" alignItems="center" gap={1} marginBottom={2}>
 							<Typography fontSize={13} color="text.secondary">
-								Loss Type:
+								Coverage Type:
 							</Typography>
-							<LossTypeValue value={archivingLiability.lossType} fontSize={13} />
+							<Typography fontSize={13}>{formatCoverageType(archivingCoverage.coverageType)}</Typography>
 						</Box>
 					)}
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
-						The liability will be archived and hidden from view, but the record will be preserved for
+						The coverage will be archived and hidden from view, but the record will be preserved for
 						traceability.
 					</Typography>
 				</BasicDialog>

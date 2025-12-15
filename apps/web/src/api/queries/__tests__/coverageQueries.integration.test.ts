@@ -2,11 +2,14 @@
  * Integration tests for coverageQueries
  *
  * Tests cover:
- * - getCoverages: List coverages for a claim
- * - createCoverage: Create coverage with total_incurred recalculation
+ * - getCoverages: List coverages for a claim (with soft-delete exclusion)
+ * - getCoveragesByClaimParty: List coverages for a specific claim party
+ * - createCoverage: Create coverage with claim_party_id and total_incurred recalculation
  * - updateCoverage: Update coverage with total_incurred recalculation
- * - deleteCoverage: Delete coverage with total_incurred recalculation
- * - getCoverageReservedTotal: Get sum of reserved amounts
+ * - archiveCoverage: Soft-delete coverage with total_incurred recalculation
+ * - deleteCoverage: Hard delete coverage with total_incurred recalculation
+ * - getCoverageReservedTotal: Get sum of reserved amounts (excluding soft-deleted)
+ * - archiveCoveragesByClaimParty: Cascade soft-delete all coverages for a party
  * - Tenant isolation on all operations
  */
 
@@ -16,12 +19,22 @@ import type { DB } from '@/api/database/types';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
 import {
 	getCoverages,
+	getCoveragesByClaimParty,
 	createCoverage,
 	updateCoverage,
+	archiveCoverage,
 	deleteCoverage,
 	getCoverageReservedTotal,
+	archiveCoveragesByClaimParty,
 } from '../coverageQueries';
-import { createTestClient, createTestUser, createTestClaim } from '@/__tests__/integration/fixtures';
+import {
+	createTestClient,
+	createTestUser,
+	createTestClaim,
+	createTestParty,
+	createTestClaimParty,
+	createTestCoverage,
+} from '@/__tests__/integration/fixtures';
 
 describe('coverageQueries integration tests', () => {
 	let db: Kysely<DB>;
@@ -445,6 +458,447 @@ describe('coverageQueries integration tests', () => {
 			// Client B should only see their own total
 			const totalB = await getCoverageReservedTotal(ctxB, claimB.id);
 			expect(totalB).toBe(10000);
+		});
+
+		it('should exclude soft-deleted coverages from total', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create active coverage
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '5000',
+			});
+
+			// Create soft-deleted coverage
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '3000',
+				deleted_at: new Date(),
+				deleted_by: user.id,
+			});
+
+			const total = await getCoverageReservedTotal(ctx, claim.id);
+			expect(total).toBe(5000); // Only active coverage
+		});
+	});
+
+	describe('getCoverages - soft-delete exclusion', () => {
+		it('should exclude soft-deleted coverages', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create active coverage
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				coverage_type: 'dwelling',
+			});
+
+			// Create soft-deleted coverage
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				coverage_type: 'personal_property',
+				deleted_at: new Date(),
+				deleted_by: user.id,
+			});
+
+			const coverages = await getCoverages(ctx, claim.id);
+
+			expect(coverages).toHaveLength(1);
+			expect(coverages[0].coverage_type).toBe('dwelling');
+		});
+	});
+
+	describe('getCoveragesByClaimParty', () => {
+		it('should return coverages for a specific claim party', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create coverages for this claim party
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				created_by: user.id,
+				coverage_type: 'dwelling',
+				coverage_amount: '100000',
+			});
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				created_by: user.id,
+				coverage_type: 'personal_property',
+				coverage_amount: '50000',
+			});
+
+			const coverages = await getCoveragesByClaimParty(ctx, claimParty.id);
+
+			expect(coverages).toHaveLength(2);
+			expect(coverages.some((c) => c.coverage_type === 'dwelling')).toBe(true);
+			expect(coverages.some((c) => c.coverage_type === 'personal_property')).toBe(true);
+		});
+
+		it('should not return coverages from other claim parties', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty1 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party1.id,
+				created_by: user.id,
+			});
+			const claimParty2 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party2.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create coverage for party 1
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty1.id,
+				created_by: user.id,
+				coverage_type: 'dwelling',
+			});
+
+			// Create coverage for party 2
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty2.id,
+				created_by: user.id,
+				coverage_type: 'personal_property',
+			});
+
+			const coverages = await getCoveragesByClaimParty(ctx, claimParty1.id);
+
+			expect(coverages).toHaveLength(1);
+			expect(coverages[0].coverage_type).toBe('dwelling');
+		});
+
+		it('should exclude soft-deleted coverages', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create active coverage
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				created_by: user.id,
+				coverage_type: 'dwelling',
+			});
+
+			// Create soft-deleted coverage
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				created_by: user.id,
+				coverage_type: 'personal_property',
+				deleted_at: new Date(),
+				deleted_by: user.id,
+			});
+
+			const coverages = await getCoveragesByClaimParty(ctx, claimParty.id);
+
+			expect(coverages).toHaveLength(1);
+			expect(coverages[0].coverage_type).toBe('dwelling');
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const clientA = await createTestClient(db);
+			const clientB = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id });
+			const userB = await createTestUser(db, { client_id: clientB.id });
+			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
+			const partyA = await createTestParty(db, { client_id: clientA.id, created_by: userA.id, party_type: 'entity' });
+			const claimPartyA = await createTestClaimParty(db, {
+				claim_id: claimA.id,
+				party_id: partyA.id,
+				created_by: userA.id,
+			});
+			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+
+			// Create coverage for client A
+			await createTestCoverage(db, {
+				client_id: clientA.id,
+				claim_id: claimA.id,
+				claim_party_id: claimPartyA.id,
+				created_by: userA.id,
+			});
+
+			// Client B should not see client A's coverages
+			const coverages = await getCoveragesByClaimParty(ctxB, claimPartyA.id);
+			expect(coverages).toHaveLength(0);
+		});
+	});
+
+	describe('createCoverage with claim_party_id', () => {
+		it('should create coverage linked to a claim party', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				coverage_type: 'dwelling',
+				coverage_amount: 100000,
+			});
+
+			expect(result.coverage.claim_party_id).toBe(claimParty.id);
+			expect(result.coverage.claim_id).toBe(claim.id);
+		});
+	});
+
+	describe('archiveCoverage', () => {
+		it('should soft-delete a coverage', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '5000',
+			});
+
+			const result = await archiveCoverage(ctx, coverage.id);
+
+			expect(result.claimId).toBe(claim.id);
+			expect(result.totalIncurred).toBe(0); // Coverage is now archived
+
+			// Verify coverage is soft-deleted
+			const archived = await db
+				.selectFrom('claim_coverage')
+				.selectAll()
+				.where('id', '=', coverage.id)
+				.executeTakeFirst();
+			expect(archived?.deleted_at).not.toBeNull();
+			expect(archived?.deleted_by).toBe(user.id);
+		});
+
+		it('should recalculate total_incurred after archiving', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create two coverages
+			const cov1 = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '5000',
+			});
+
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '3000',
+			});
+
+			// Archive first coverage
+			const result = await archiveCoverage(ctx, cov1.id);
+
+			expect(result.totalIncurred).toBe(3000); // Only second coverage remains
+		});
+
+		it('should throw error for non-existent coverage', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			await expect(archiveCoverage(ctx, 999999)).rejects.toThrow('Coverage not found');
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const clientA = await createTestClient(db);
+			const clientB = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id });
+			const userB = await createTestUser(db, { client_id: clientB.id });
+			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
+			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+
+			const coverage = await createTestCoverage(db, {
+				client_id: clientA.id,
+				claim_id: claimA.id,
+				created_by: userA.id,
+			});
+
+			// Client B should not be able to archive client A's coverage
+			await expect(archiveCoverage(ctxB, coverage.id)).rejects.toThrow('Coverage not found');
+		});
+	});
+
+	describe('archiveCoveragesByClaimParty', () => {
+		it('should soft-delete all coverages for a claim party and nullify FK', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create coverages for this claim party
+			const cov1 = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				created_by: user.id,
+			});
+			const cov2 = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				created_by: user.id,
+			});
+
+			await archiveCoveragesByClaimParty(ctx, claimParty.id);
+
+			// Verify both coverages are soft-deleted and FK nullified
+			const archived1 = await db
+				.selectFrom('claim_coverage')
+				.selectAll()
+				.where('id', '=', cov1.id)
+				.executeTakeFirst();
+			const archived2 = await db
+				.selectFrom('claim_coverage')
+				.selectAll()
+				.where('id', '=', cov2.id)
+				.executeTakeFirst();
+
+			expect(archived1?.deleted_at).not.toBeNull();
+			expect(archived2?.deleted_at).not.toBeNull();
+			expect(archived1?.claim_party_id).toBeNull();
+			expect(archived2?.claim_party_id).toBeNull();
+		});
+
+		it('should not affect coverages from other claim parties', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty1 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party1.id,
+				created_by: user.id,
+			});
+			const claimParty2 = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party2.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create coverage for party 1
+			await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty1.id,
+				created_by: user.id,
+			});
+
+			// Create coverage for party 2
+			const cov2 = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty2.id,
+				created_by: user.id,
+			});
+
+			// Archive coverages for party 1 only
+			await archiveCoveragesByClaimParty(ctx, claimParty1.id);
+
+			// Party 2's coverage should be unaffected
+			const stillActive = await db
+				.selectFrom('claim_coverage')
+				.selectAll()
+				.where('id', '=', cov2.id)
+				.executeTakeFirst();
+			expect(stillActive?.deleted_at).toBeNull();
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const clientA = await createTestClient(db);
+			const clientB = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id });
+			const userB = await createTestUser(db, { client_id: clientB.id });
+			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
+			const partyA = await createTestParty(db, { client_id: clientA.id, created_by: userA.id, party_type: 'entity' });
+			const claimPartyA = await createTestClaimParty(db, {
+				claim_id: claimA.id,
+				party_id: partyA.id,
+				created_by: userA.id,
+			});
+			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+
+			const coverage = await createTestCoverage(db, {
+				client_id: clientA.id,
+				claim_id: claimA.id,
+				claim_party_id: claimPartyA.id,
+				created_by: userA.id,
+			});
+
+			// Client B tries to archive client A's coverages - should do nothing (no error, just no effect)
+			await archiveCoveragesByClaimParty(ctxB, claimPartyA.id);
+
+			// Coverage should still be active
+			const stillActive = await db
+				.selectFrom('claim_coverage')
+				.selectAll()
+				.where('id', '=', coverage.id)
+				.executeTakeFirst();
+			expect(stillActive?.deleted_at).toBeNull();
 		});
 	});
 });

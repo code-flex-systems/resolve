@@ -207,56 +207,6 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 					</Stack>
 				</Paper>
 
-				{/* Activity Timeline */}
-				<Paper elevation={0} sx={styles.paper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
-						Activity Timeline
-					</Typography>
-					{logsLoading && (
-						<Stack spacing={1}>
-							<Skeleton variant="text" />
-							<Skeleton variant="text" />
-							<Skeleton variant="text" />
-						</Stack>
-					)}
-					{!logsLoading && adminLogs.length === 0 && (
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
-							No activity recorded yet
-						</Typography>
-					)}
-					{!logsLoading && adminLogs.length > 0 && (
-						<Stack spacing={2}>
-							{adminLogs.map((log) => (
-								<Box key={log.id} display="flex" gap={2}>
-									<Box
-										sx={{
-											width: 8,
-											height: 8,
-											borderRadius: '50%',
-											bgcolor: 'secondary.main',
-											marginTop: '6px',
-											flexShrink: 0,
-										}}
-									/>
-									<Box flex={1}>
-										<Typography fontSize={13}>
-											<Highlight color="secondary.main">
-												{log.first_name} {log.last_name}
-											</Highlight>{' '}
-											{log.action.toLowerCase()}d{' '}
-											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>
-										</Typography>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
-											{dayjs(log.created_at).format('MMM D, YYYY [at] h:mm A')} (
-											{dayjs(log.created_at).fromNow()})
-										</Typography>
-									</Box>
-								</Box>
-							))}
-						</Stack>
-					)}
-				</Paper>
-
 				{/* Checklist Progress (if assigned) */}
 				{currentAssignment && (
 					<Paper elevation={0} sx={styles.paper}>
@@ -343,6 +293,56 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 						</Stack>
 					</Paper>
 				)}
+
+				{/* Activity Timeline */}
+				<Paper elevation={0} sx={styles.paper}>
+					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+						Activity Timeline
+					</Typography>
+					{logsLoading && (
+						<Stack spacing={1}>
+							<Skeleton variant="text" />
+							<Skeleton variant="text" />
+							<Skeleton variant="text" />
+						</Stack>
+					)}
+					{!logsLoading && adminLogs.length === 0 && (
+						<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+							No activity recorded yet
+						</Typography>
+					)}
+					{!logsLoading && adminLogs.length > 0 && (
+						<Stack spacing={2}>
+							{adminLogs.map((log) => (
+								<Box key={log.id} display="flex" gap={2}>
+									<Box
+										sx={{
+											width: 8,
+											height: 8,
+											borderRadius: '50%',
+											bgcolor: 'secondary.main',
+											marginTop: '6px',
+											flexShrink: 0,
+										}}
+									/>
+									<Box flex={1}>
+										<Typography fontSize={13}>
+											<Highlight color="secondary.main">
+												{log.first_name} {log.last_name}
+											</Highlight>{' '}
+											{log.action.toLowerCase()}d{' '}
+											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>
+										</Typography>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+											{dayjs(log.created_at).format('MMM D, YYYY [at] h:mm A')} (
+											{dayjs(log.created_at).fromNow()})
+										</Typography>
+									</Box>
+								</Box>
+							))}
+						</Stack>
+					)}
+				</Paper>
 			</Stack>
 		</Box>
 	);

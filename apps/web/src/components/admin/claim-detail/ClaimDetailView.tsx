@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import ClaimHeader from './ClaimHeader';
 import OverviewTab from './OverviewTab';
 import WorkflowTab from './WorkflowTab';
-import CoverageTabForClaim from './CoverageTabForClaim';
+import ClaimantsCoverageTab from './ClaimantsCoverageTab';
 import RecoveryTab from './RecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
 
@@ -18,16 +18,16 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
 
-	// Support pre-selecting tab via URL parameter (e.g., ?tab=coverage)
+	// Support pre-selecting tab via URL parameter (e.g., ?tab=claimants-coverage)
 	useEffect(() => {
 		const tabParam = searchParams.get('tab');
 		if (tabParam) {
 			const tabMap: Record<string, number> = {
 				overview: 0,
 				workflow: 1,
-				coverage: 2,
-				recovery: 3,
-				'party-liability': 4,
+				recovery: 2,
+				'claimants-coverage': 3,
+				'facilitators-liability': 4,
 			};
 			const tabIndex = tabMap[tabParam.toLowerCase()];
 			if (tabIndex !== undefined) {
@@ -51,9 +51,9 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 					>
 						<Tab label="Overview" />
 						<Tab label="Workflow & Assignment" />
-						<Tab label="Coverage" />
 						<Tab label="Recovery" />
-						<Tab label="Party & Liability" />
+						<Tab label="Claimants & Coverage" />
+						<Tab label="Facilitators & Liability" />
 					</Tabs>
 				</Box>
 
@@ -64,8 +64,8 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 							<Box width="100%" maxWidth={1400}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
-								{currentTab === 2 && <CoverageTabForClaim claimId={claimId} />}
-								{currentTab === 3 && <RecoveryTab claimId={claimId} />}
+								{currentTab === 2 && <RecoveryTab claimId={claimId} />}
+								{currentTab === 3 && <ClaimantsCoverageTab claimId={claimId} />}
 								{currentTab === 4 && <PartyLiabilityTab claimId={claimId} />}
 							</Box>
 						</Box>

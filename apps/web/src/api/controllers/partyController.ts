@@ -34,9 +34,9 @@ export async function getParty(ctx: ProtectedContext, { id }: { id: number }) {
  */
 export async function searchParties(
 	ctx: ProtectedContext,
-	{ searchTerm }: { searchTerm: string }
+	{ searchTerm, partyType }: { searchTerm: string; partyType?: 'entity' | 'facilitator' }
 ) {
-	return await partyQueries.searchParties(ctx, searchTerm);
+	return await partyQueries.searchParties(ctx, searchTerm, { partyType });
 }
 
 /**
@@ -522,9 +522,9 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: 
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId, partyType }: { claimId: number; partyType?: 'entity' | 'facilitator' }
 ) {
-	return await partyQueries.getClaimParties(ctx, claimId);
+	return await partyQueries.getClaimParties(ctx, claimId, { partyType });
 }
 
 /**
@@ -583,7 +583,7 @@ export async function updateClaimParty(
 			is_primary?: boolean;
 			notes?: string;
 			external_reference?: string;
-			liability_percentage?: number;
+			liability_percentage?: number | null;
 		};
 	}
 ) {

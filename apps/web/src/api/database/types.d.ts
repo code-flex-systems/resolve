@@ -183,6 +183,7 @@ export interface ClaimActivityLogs {
 export interface ClaimCoverage {
   amount_reserved: Numeric | null;
   claim_id: number;
+  claim_party_id: number | null;
   client_id: string;
   coverage_amount: Numeric | null;
   /**
@@ -191,6 +192,8 @@ export interface ClaimCoverage {
   coverage_type: string;
   created_at: Generated<Timestamp | null>;
   created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   id: Generated<number>;
   updated_at: Timestamp | null;
   updated_by: string | null;
