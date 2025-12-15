@@ -9,7 +9,7 @@ const { Pool } = require('pg');
 const db = new Kysely({
 	dialect: new PostgresDialect({
 		pool: new Pool({
-			connectionString: 'postgres://postgres:password@localhost/manifest',
+			connectionString: process.env.DATABASE_URL,
 		}),
 	}),
 });
@@ -225,11 +225,8 @@ async function runTests() {
 			)
 			.execute();
 		console.log(`✓ Contributor sees ${contributorDeadlines.length} deadlines (expected: 2)`);
-		console.log(
-			`  Deadline IDs: ${contributorDeadlines.map((d) => d.id).join(', ')}`
-		);
-		if (contributorDeadlines.length !== 2)
-			throw new Error('Contributor should see only 2 deadlines (claim1)');
+		console.log(`  Deadline IDs: ${contributorDeadlines.map((d) => d.id).join(', ')}`);
+		if (contributorDeadlines.length !== 2) throw new Error('Contributor should see only 2 deadlines (claim1)');
 
 		// Test 3: Date range filtering - next 7 days
 		console.log('\n🔍 Test 3: Date range filter - next 7 days');
@@ -252,8 +249,7 @@ async function runTests() {
 			.execute();
 		console.log(`✓ Found ${weekDeadlines.length} deadlines in next 7 days (expected: 3)`);
 		console.log(`  Deadline IDs: ${weekDeadlines.map((d) => d.id).join(', ')}`);
-		if (weekDeadlines.length !== 3)
-			throw new Error('Should find 3 deadlines in next 7 days');
+		if (weekDeadlines.length !== 3) throw new Error('Should find 3 deadlines in next 7 days');
 
 		// Test 4: Combined filter - contributor + date range
 		console.log('\n🔍 Test 4: Combined filter - contributor assigned + next 7 days');
@@ -280,18 +276,17 @@ async function runTests() {
 				])
 			)
 			.execute();
-		console.log(
-			`✓ Contributor sees ${contributorWeekDeadlines.length} deadlines in next 7 days (expected: 1)`
-		);
-		console.log(
-			`  Deadline IDs: ${contributorWeekDeadlines.map((d) => d.id).join(', ')}`
-		);
+		console.log(`✓ Contributor sees ${contributorWeekDeadlines.length} deadlines in next 7 days (expected: 1)`);
+		console.log(`  Deadline IDs: ${contributorWeekDeadlines.map((d) => d.id).join(', ')}`);
 		if (contributorWeekDeadlines.length !== 1)
 			throw new Error('Contributor should see 1 deadline in next 7 days (deadline1 only)');
 
 		// Cleanup
 		console.log('\n🧹 Cleaning up test data...');
-		await db.deleteFrom('deadline').where('id', 'in', [deadline1.id, deadline2.id, deadline3.id, deadline4.id]).execute();
+		await db
+			.deleteFrom('deadline')
+			.where('id', 'in', [deadline1.id, deadline2.id, deadline3.id, deadline4.id])
+			.execute();
 		await db.deleteFrom('checklist_claim').where('checklist_id', '=', checklist.id).execute();
 		await db.deleteFrom('claim').where('id', 'in', [claim1.id, claim2.id, claim3.id]).execute();
 		await db.deleteFrom('checklist').where('id', '=', checklist.id).execute();
