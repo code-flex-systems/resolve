@@ -101,7 +101,11 @@ export async function listRecoveryEventsWithFilters(
 	let query = ctx.db
 		.selectFrom('recovery_event')
 		.innerJoin('claim', 'recovery_event.claim_id', 'claim.id')
-		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		// Only join checklist_claim when filtering by checklistId to avoid row duplication
+		// (a claim can have multiple checklists, causing duplicate recovery event rows)
+		.$if(filters.checklistId !== undefined, (qb) =>
+			qb.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		)
 		.select([
 			'recovery_event.id',
 			'recovery_event.claim_id',
@@ -115,7 +119,6 @@ export async function listRecoveryEventsWithFilters(
 			'claim.insured',
 			'claim.recovery_status',
 			'claim.actual_recovery', // Team's meaningful payments (calculated from recovery events)
-			'checklist_claim.checklist_id',
 		])
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id);
 
@@ -136,9 +139,9 @@ export async function listRecoveryEventsWithFilters(
 		query = query.where('claim.recovery_status', '=', filters.recoveryStatus);
 	}
 
-	// Filter by checklist
+	// Filter by checklist (join is conditionally added above)
 	if (filters.checklistId) {
-		query = query.where('checklist_claim.checklist_id', '=', filters.checklistId);
+		query = query.where('checklist_claim.checklist_id' as any, '=', filters.checklistId);
 	}
 
 	// Filter by user who created the recovery event
@@ -233,7 +236,11 @@ export async function exportRecoveryEvents(
 	let query = ctx.db
 		.selectFrom('recovery_event')
 		.innerJoin('claim', 'recovery_event.claim_id', 'claim.id')
-		.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		// Only join checklist_claim when filtering by checklistId to avoid row duplication
+		// (a claim can have multiple checklists, causing duplicate recovery event rows)
+		.$if(filters.checklistId !== undefined, (qb) =>
+			qb.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
+		)
 		.select([
 			'recovery_event.id',
 			'recovery_event.recovery_date',
@@ -264,8 +271,9 @@ export async function exportRecoveryEvents(
 		query = query.where('claim.recovery_status', '=', filters.recoveryStatus);
 	}
 
+	// Filter by checklist (join is conditionally added above)
 	if (filters.checklistId) {
-		query = query.where('checklist_claim.checklist_id', '=', filters.checklistId);
+		query = query.where('checklist_claim.checklist_id' as any, '=', filters.checklistId);
 	}
 
 	if (filters.userId) {
