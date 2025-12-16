@@ -114,8 +114,6 @@ const styles = {
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px',
 	},
 };

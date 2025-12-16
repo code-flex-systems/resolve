@@ -18,7 +18,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, containerStyles } from '@/styles/theme';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 import FormatQuote from '@mui/icons-material/FormatQuote';
 
@@ -277,14 +277,14 @@ export default function PageEditor() {
 							</Box>
 							<Box sx={styles.statsRow}>
 								<Box sx={styles.statItem}>
-									<HelpOutline sx={{ fontSize: 18, color: 'var(--color-text-secondary)' }} />
+									<HelpOutline sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
 									<Typography fontSize={13}>
 										<strong>{questions.length}</strong>{' '}
 										{questions.length === 1 ? 'Question' : 'Questions'}
 									</Typography>
 								</Box>
 								<Box sx={styles.statItem}>
-									<FormatQuote sx={{ fontSize: 18, color: 'var(--color-text-secondary)' }} />
+									<FormatQuote sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
 									<Typography fontSize={13}>
 										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
 									</Typography>
@@ -476,12 +476,12 @@ const styles = {
 	pageTitle: {
 		fontSize: 20,
 		fontWeight: 600,
-		color: 'var(--color-text-primary)',
+		color: TEXT_PRIMARY,
 	},
 	pageId: {
 		fontSize: 13,
-		color: 'var(--color-text-muted)',
-		bgcolor: 'var(--color-bg-tertiary)',
+		color: TEXT_MUTED,
+		bgcolor: BG_TERTIARY,
 		px: 1,
 		py: 0.25,
 		borderRadius: '4px',
@@ -490,25 +490,11 @@ const styles = {
 		mb: 2,
 	},
 	section: {
-		bgcolor: 'var(--color-bg-secondary)',
-		borderRadius: '12px',
-		border: '1px solid var(--color-border)',
-		overflow: 'hidden',
+		...containerStyles.section,
 		maxWidth: 600,
 	},
-	sectionTitle: {
-		fontSize: 13,
-		fontWeight: 600,
-		color: 'var(--color-text-primary)',
-		px: 2,
-		py: 1.5,
-		bgcolor: 'white',
-		borderBottom: '1px solid var(--color-border)',
-	},
-	sectionContent: {
-		p: 2,
-		bgcolor: 'white',
-	},
+	sectionTitle: containerStyles.sectionTitle,
+	sectionContent: containerStyles.sectionContent,
 	statsRow: {
 		display: 'flex',
 		gap: 3,
@@ -520,13 +506,13 @@ const styles = {
 	},
 	instanceLink: {
 		fontSize: 13,
-		bgcolor: 'var(--color-bg-tertiary)',
+		bgcolor: BG_TERTIARY,
 		px: 1.5,
 		py: 0.5,
 		borderRadius: '6px',
 		cursor: 'pointer',
 		'&:hover': {
-			bgcolor: 'var(--color-bg-hover)',
+			bgcolor: HOVERED_COLOR,
 		},
 	},
 	actionsGrid: {
@@ -542,7 +528,7 @@ const styles = {
 	actionGroupTitle: {
 		fontSize: 12,
 		fontWeight: 500,
-		color: 'var(--color-text-secondary)',
+		color: TEXT_SECONDARY,
 		textTransform: 'uppercase',
 		letterSpacing: '0.5px',
 	},

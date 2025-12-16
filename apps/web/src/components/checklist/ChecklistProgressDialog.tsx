@@ -8,7 +8,7 @@ import StopCircle from '@mui/icons-material/StopCircle';
 import Warning from '@mui/icons-material/Warning';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { BASE_COLOR } from '@/styles/theme';
+import { BASE_COLOR, containerStyles } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { ClaimStatus } from '@/config/enums';
@@ -190,8 +190,7 @@ export default function ChecklistProgressDialog() {
 
 const styles = {
 	paper: {
-		borderRadius: 4,
-		bgcolor: '#F7F8FA',
+		...containerStyles.gradientCard,
 		padding: '20px 10px',
 		height: 120,
 		minHeight: 120,

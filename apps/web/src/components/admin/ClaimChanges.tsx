@@ -599,15 +599,13 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 
 const styles = {
 	container: {
-		padding: '20px',
+		padding: '24px',
 		width: '100%',
 		height: '100%',
 		margin: '0 auto',
 	},
 	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px',
 		height: '100%',
 		overflow: 'auto',
 	},

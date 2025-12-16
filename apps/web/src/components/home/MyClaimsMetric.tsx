@@ -96,7 +96,7 @@ const styles = {
 		width: 400,
 		minWidth: 400,
 		height: 180,
-		padding: '20px',
+		padding: '24px',
 		borderRadius: 4,
 		margin: '15px',
 		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.03) 0%, rgba(255, 255, 255, 1) 100%)',

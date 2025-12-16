@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import WobbleLoadingIndicator from '@/components/common/WobbleLoadingIndicator';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
+import { containerStyles } from '@/styles/theme';
 
 export default function TopPerformersSection({
 	range,
@@ -102,7 +103,7 @@ export default function TopPerformersSection({
 	}
 
 	return (
-		<Paper elevation={0} sx={styles.paper}>
+		<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
 			<Typography variant="h6" fontSize={18} fontWeight={600} mb={2}>
 				Top Performers
 			</Typography>
@@ -197,7 +198,7 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		width: '100%',
-		borderRadius: 6,
-		padding: '30px',
+		borderRadius: 3,
+		padding: '24px',
 	},
 };

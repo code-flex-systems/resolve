@@ -393,7 +393,7 @@ export default function TasksTab() {
 						/>
 
 						{/* Toolbar */}
-						<Paper elevation={0} sx={{ p: 1.5, mb: 2, border: 1, borderColor: 'divider' }}>
+						<Paper elevation={0} sx={{ p: 1.5, mb: 2 }}>
 							<Stack direction="row" justifyContent="space-between" alignItems="center">
 								{/* Left: Week navigation */}
 								<Stack direction="row" spacing={1} alignItems="center">
@@ -618,9 +618,7 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
-		border: 1,
-		borderColor: 'divider',
 		minHeight: 0,
-		padding: '20px',
+		padding: '24px',
 	},
 };

@@ -47,7 +47,7 @@ export default function PartiesLayout(props: PropsWithChildren) {
 	return (
 		<PageWrapper>
 			<Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
-				<AdminSidebar categories={partyNavCategories} />
+				<AdminSidebar title="Party Management" categories={partyNavCategories} />
 				<Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>{props.children}</Box>
 			</Box>
 		</PageWrapper>

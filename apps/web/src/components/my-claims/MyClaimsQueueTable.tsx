@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { Box, Paper, IconButton, PopperProps, Typography, Button } from '@mui/material';
+import { Box, Paper, PopperProps, Typography, Button } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
@@ -11,15 +11,14 @@ import ClaimStatusCell from '@/components/metrics/Claims/ClaimStatusCell';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicPopper from '@/components/common/BasicPopper';
 import Toolbar from '@/components/common/Toolbar';
-import Search from '@mui/icons-material/Search';
+import SearchInput from '@/components/common/SearchInput';
 import FileDownload from '@mui/icons-material/FileDownload';
 import FilterList from '@mui/icons-material/FilterList';
-import Clear from '@mui/icons-material/Clear';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
-import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import { ClaimStatus, RecoveryStatus } from '@/config/enums';
@@ -280,25 +279,12 @@ export default function MyClaimsQueueTable({
 			<Toolbar
 				left={
 					<Box display="flex" gap={1} alignItems="center">
-						<Paper elevation={0} sx={styles.searchPaper}>
-							<Search sx={{ fontSize: 17, marginRight: '5px' }} />
-							<input
-								placeholder="Search by claim number, insured, or client..."
-								type="text"
-								style={styles.textField}
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-							/>
-							{searchTerm && (
-								<IconButton
-									size="small"
-									onClick={() => setSearchTerm('')}
-									sx={{ padding: '2px', marginLeft: '2px' }}
-								>
-									<Clear sx={{ fontSize: 16 }} />
-								</IconButton>
-							)}
-						</Paper>
+						<SearchInput
+							value={searchTerm}
+							onChange={(value) => setSearchTerm(value)}
+							placeholder="Search by claim number, insured, or client..."
+							width={350}
+						/>
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: handleOpenFilters,
@@ -423,28 +409,9 @@ const styles = {
 	tableOverrides: {
 		border: 'none',
 	},
-	searchPaper: {
-		display: 'flex',
-		alignItems: 'center',
-		bgcolor: 'white',
-		border: `1px solid ${BORDER_COLOR}`,
-		borderRadius: 2,
-		padding: '5px 10px',
-		minWidth: 350,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-		width: '100%',
-		fontSize: 13,
-		fontFamily: 'Inter',
-	} as React.CSSProperties,
 	filtersPaper: {
-		outline: 1,
-		outlineColor: 'divider',
-		marginTop: '5px',
-		padding: '15px',
+		mt: 0.625,
+		padding: '24px',
 		minWidth: 300,
 		maxWidth: 400,
 	},

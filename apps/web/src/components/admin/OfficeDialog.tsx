@@ -198,7 +198,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 									<TextField
 										{...params}
 										label="Party"
-										variant="standard"
+										
 										error={!!errors.party_id}
 										helperText={errors.party_id?.message}
 										placeholder="Search for party..."
@@ -217,7 +217,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 						<TextField
 							{...field}
 							label="Office Name"
-							variant="standard"
+							
 							fullWidth
 							placeholder="e.g., Main Office, Regional Branch"
 						/>
@@ -231,7 +231,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 						errors={errors}
 						setValue={setValue}
 						disabled={isSubmitting}
-						variant="standard"
+						
 						width={552}
 					/>
 				</Stack>
@@ -241,7 +241,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 					name="phone"
 					control={control}
 					render={({ field }) => (
-						<TextField {...field} label="Phone" variant="standard" fullWidth placeholder="(555) 123-4567" />
+						<TextField {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />
 					)}
 				/>
 
@@ -250,7 +250,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 					name="fax"
 					control={control}
 					render={({ field }) => (
-						<TextField {...field} label="Fax" variant="standard" fullWidth placeholder="(555) 123-4567" />
+						<TextField {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />
 					)}
 				/>
 

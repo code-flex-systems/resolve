@@ -115,7 +115,7 @@ const styles = {
 		overflow: 'auto',
 		marginLeft: '20px',
 		borderRadius: 6,
-		padding: '20px 20px 10px',
+		padding: '24px 30px 12px',
 	},
 	tableOverrides: {
 		border: 'none',

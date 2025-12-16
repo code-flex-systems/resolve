@@ -6,6 +6,7 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { formatMDY } from '@/lib/utils/utils';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useMemo } from 'react';
+import { HOVERED_COLOR } from '@/styles/theme';
 
 interface DocumentPreviewDialogProps {
 	onClose: () => void;
@@ -85,7 +86,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						display: 'flex',
 						justifyContent: 'center',
 						alignItems: 'center',
-						bgcolor: 'var(--color-bg-hover)',
+						bgcolor: HOVERED_COLOR,
 						borderRadius: 1,
 						overflow: 'hidden',
 					}}
@@ -121,7 +122,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 					sx={{
 						p: 4,
 						textAlign: 'center',
-						bgcolor: 'var(--color-bg-hover)',
+						bgcolor: HOVERED_COLOR,
 						minHeight: 200,
 						display: 'flex',
 						flexDirection: 'column',

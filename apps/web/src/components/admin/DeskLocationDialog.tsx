@@ -113,7 +113,7 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					render={({ field }) => (
 						<TextField
 							label="Name"
-							variant="standard"
+							
 							placeholder="Desk location name"
 							error={!!errors.name}
 							helperText={errors.name?.message}

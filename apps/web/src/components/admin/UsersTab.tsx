@@ -1,16 +1,14 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/material';
+import { Button, Fade, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Phone from '@mui/icons-material/Phone';
-import Search from '@mui/icons-material/Search';
 import Shield from '@mui/icons-material/Shield';
 import Person from '@mui/icons-material/Person';
-import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -26,6 +24,8 @@ import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import SearchInput from '../common/SearchInput';
+import { TEXT_MUTED } from '@/styles/theme';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -35,7 +35,7 @@ const COLUMNS: GridColDef[] = [
 			<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: 'var(--color-neutral-300)' }} />} />
+			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: TEXT_MUTED }} />} />
 		),
 		flex: 1,
 	},
@@ -49,14 +49,14 @@ const COLUMNS: GridColDef[] = [
 				disabled={params.row.disabled}
 			/>
 		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone sx={{ color: 'var(--color-neutral-300)' }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone sx={{ color: TEXT_MUTED }} />} />,
 		width: 180,
 	},
 	{
 		headerName: 'Role',
 		field: 'role',
 		renderCell: (params) => <RoleCell {...params} />,
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: 'var(--color-neutral-300)' }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: TEXT_MUTED }} />} />,
 		width: 180,
 	},
 	{
@@ -81,7 +81,7 @@ const COLUMNS: GridColDef[] = [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: 'var(--color-neutral-300)' }} />} />
+			<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: TEXT_MUTED }} />} />
 		),
 		width: 180,
 	},
@@ -96,7 +96,7 @@ const COLUMNS: GridColDef[] = [
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: 'var(--color-neutral-300)' }} />} />
+		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: TEXT_MUTED }} />} />
 	);
 }
 
@@ -175,37 +175,24 @@ export default function UsersTab() {
 						}
 						right={
 							<>
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search
-										sx={{
-											fontSize: 17,
-											marginRight: '5px',
-										}}
-									/>
-									<input
-										placeholder="Search"
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => {
-											setSearchTerm(e.target.value);
-											debouncedSearch(e.target.value);
-										}}
-									/>
-									{searchTerm && (
-										<IconButton
-											size="small"
-											onClick={() => {
-												setSearchTerm('');
-												setParam('search', '');
-											}}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
-								<Button variant="contained" startIcon={<PersonAdd />} onClick={toggleInviteUserDialog}>
+								<SearchInput
+									value={searchTerm}
+									onChange={(value) => {
+										setSearchTerm(value);
+										if (value === '') {
+											setParam('search', '');
+										} else {
+											debouncedSearch(value);
+										}
+									}}
+									placeholder="Search users..."
+								/>
+								<Button
+									variant="contained"
+									startIcon={<PersonAdd />}
+									onClick={toggleInviteUserDialog}
+									sx={{ ml: 2 }}
+								>
 									Invite User
 								</Button>
 							</>
@@ -264,21 +251,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		flex: 1,
-		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px 24px 0px',
 		minHeight: 0,
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 35,
-		marginRight: '20px',
 	},
 	table: {
 		width: '100%',
@@ -286,10 +260,5 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

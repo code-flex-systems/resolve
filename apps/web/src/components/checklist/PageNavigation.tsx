@@ -20,7 +20,7 @@ import MovieEdit from '@mui/icons-material/MovieEdit';
 import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import Visibility from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/navigation';
-import theme from '@/styles/theme';
+import theme, { BG_TERTIARY, BORDER_COLOR, BORDER_LIGHT, TEXT_MUTED, TEXT_SECONDARY } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
@@ -34,7 +34,6 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import ChecklistInfo from './ChecklistInfo';
 import ClaimStatusIcon from './ClaimStatusIcon';
 import ChecklistComments from './ChecklistComments';
 import ChecklistChangeLog from './ChecklistChangeLog';
@@ -42,6 +41,7 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistDeepLink } from '@/hooks/useChecklistDeepLink';
 import { useEffect } from 'react';
 import Legend from './Legend';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 
 const COMMENT_LIMIT = 30;
 
@@ -53,7 +53,7 @@ function ExpandAllButton({ expandAll, disabled }: { expandAll: boolean; disabled
 				disabled,
 			}}
 			icon={
-				<SvgIcon sx={{ color: 'var(--color-text-secondary)' }}>
+				<SvgIcon sx={{ color: TEXT_SECONDARY }}>
 					{expandAll ? (
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 							<title>collapse-all</title>
@@ -74,6 +74,7 @@ function ExpandAllButton({ expandAll, disabled }: { expandAll: boolean; disabled
 				</SvgIcon>
 			}
 			tooltipProps={{ title: expandAll ? 'Collapse all' : 'Expand all' }}
+			compact
 		/>
 	);
 }
@@ -169,10 +170,18 @@ export default function PageNavigation() {
 	return (
 		<>
 			<Paper elevation={2} sx={{ borderRadius: 0 }} style={styles.container}>
-				{(isAdmin || isSuperAdmin) && (
-					<>
-						<Toolbar
-							left={
+				<>
+					<Toolbar
+						left={
+							<>
+								<ChecklistIcon />
+								<Typography variant="h6" ml={0.5} mr={2}>
+									{checklist?.name}
+								</Typography>
+							</>
+						}
+						right={
+							isAdmin || isSuperAdmin ? (
 								<ToggleButtonGroup
 									color="secondary"
 									sx={styles.toggleButtonGroup}
@@ -196,7 +205,7 @@ export default function PageNavigation() {
 													color:
 														mode === ChecklistMode.VIEW
 															? 'secondary.main'
-															: 'var(--color-text-muted)',
+															: TEXT_MUTED,
 												}}
 											/>
 											View
@@ -209,7 +218,7 @@ export default function PageNavigation() {
 												color:
 													mode === ChecklistMode.TEST
 														? 'secondary.main'
-														: 'var(--color-text-muted)',
+														: TEXT_MUTED,
 											}}
 										/>
 										Test
@@ -221,30 +230,26 @@ export default function PageNavigation() {
 												color:
 													mode === ChecklistMode.EDIT
 														? 'secondary.main'
-														: 'var(--color-text-muted)',
+														: TEXT_MUTED,
 											}}
 										/>
 										Edit
 									</ToggleButton>
 								</ToggleButtonGroup>
-							}
-							padding={0}
-							height={36}
-						/>
-						<Divider flexItem sx={{ my: 1 }} />
-					</>
-				)}
+							) : undefined
+						}
+						padding={0}
+						height={36}
+					/>
+					<Divider flexItem sx={{ my: 1 }} />
+				</>
 				<Toolbar
 					left={
-						<>
-							<ClaimInfo />
-							<ChecklistInfo />
-							{!claimId && (
-								<Box ml={1}>
-									<ExpandAllButton expandAll={expandAll} disabled={false} />
-								</Box>
-							)}
-						</>
+						<Fade in={!!claim}>
+							<span>
+								<ClaimInfo />
+							</span>
+						</Fade>
 					}
 					right={
 						<Fade
@@ -263,119 +268,108 @@ export default function PageNavigation() {
 									</BasicButtonStyled>
 								)}
 								{mode === ChecklistMode.VIEW && !!checklist && !!claim && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: () =>
-												router.push(`/checklist/${checklistId}/claim/${claimId}/summary`),
-											startIcon: (
-												<SvgIcon>
-													<svg
-														fill={theme.palette.secondary.main}
-														xmlns="http://www.w3.org/2000/svg"
-														viewBox="0 0 24 24"
-													>
-														<title>chart-donut-variant</title>
-														<path d="M13,2.05C18.05,2.55 22,6.82 22,12C22,13.45 21.68,14.83 21.12,16.07L18.5,14.54C18.82,13.75 19,12.9 19,12C19,8.47 16.39,5.57 13,5.08V2.05M12,19C14.21,19 16.17,18 17.45,16.38L20.05,17.91C18.23,20.39 15.3,22 12,22C6.47,22 2,17.5 2,12C2,6.81 5.94,2.55 11,2.05V5.08C7.61,5.57 5,8.47 5,12A7,7 0 0,0 12,19M12,6A6,6 0 0,1 18,12C18,14.97 15.84,17.44 13,17.92V14.83C14.17,14.42 15,13.31 15,12A3,3 0 0,0 12,9L11.45,9.05L9.91,6.38C10.56,6.13 11.26,6 12,6M6,12C6,10.14 6.85,8.5 8.18,7.38L9.72,10.05C9.27,10.57 9,11.26 9,12C9,13.31 9.83,14.42 11,14.83V17.92C8.16,17.44 6,14.97 6,12Z" />
-													</svg>
-												</SvgIcon>
-											),
-										}}
-										tooltipProps={{ title: 'Q/A Summary' }}
-									>
-										Q/A Summary
-									</BasicButtonStyled>
+									<>
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () =>
+													router.push(`/checklist/${checklistId}/claim/${claimId}/summary`),
+												startIcon: (
+													<SvgIcon>
+														<svg
+															fill={theme.palette.secondary.main}
+															xmlns="http://www.w3.org/2000/svg"
+															viewBox="0 0 24 24"
+														>
+															<title>chart-donut-variant</title>
+															<path d="M13,2.05C18.05,2.55 22,6.82 22,12C22,13.45 21.68,14.83 21.12,16.07L18.5,14.54C18.82,13.75 19,12.9 19,12C19,8.47 16.39,5.57 13,5.08V2.05M12,19C14.21,19 16.17,18 17.45,16.38L20.05,17.91C18.23,20.39 15.3,22 12,22C6.47,22 2,17.5 2,12C2,6.81 5.94,2.55 11,2.05V5.08C7.61,5.57 5,8.47 5,12A7,7 0 0,0 12,19M12,6A6,6 0 0,1 18,12C18,14.97 15.84,17.44 13,17.92V14.83C14.17,14.42 15,13.31 15,12A3,3 0 0,0 12,9L11.45,9.05L9.91,6.38C10.56,6.13 11.26,6 12,6M6,12C6,10.14 6.85,8.5 8.18,7.38L9.72,10.05C9.27,10.57 9,11.26 9,12C9,13.31 9.83,14.42 11,14.83V17.92C8.16,17.44 6,14.97 6,12Z" />
+														</svg>
+													</SvgIcon>
+												),
+											}}
+											tooltipProps={{ title: 'Q/A Summary' }}
+										>
+											Q/A Summary
+										</BasicButtonStyled>
+										{!isFetchingChecklistClaim && (
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () =>
+														useChecklistStore
+															.getState()
+															.toggleChecklistProgressDialog(true),
+													startIcon: (
+														<ClaimStatusIcon
+															status={
+																(checklistClaim?.status ??
+																	ClaimStatus.UNWORKED) as ClaimStatus
+															}
+														/>
+													),
+													sx: { ml: 1 },
+												}}
+												tooltipProps={{ title: 'Evaluate' }}
+											>
+												Evaluate
+											</BasicButtonStyled>
+										)}
+									</>
 								)}
 							</span>
 						</Fade>
 					}
-					leftWidth="70%"
-					rightWidth="30%"
+					rightWidth="100%"
 					padding={0}
 					height={36}
 				/>
-				{!!claimId && (
-					<Toolbar
-						left={
-							<>
-								<Box mr={0.5}>
-									<ExpandAllButton expandAll={expandAll} disabled={visibleInstanceIds.length < 2} />
-								</Box>
-								<Fade in={mode === ChecklistMode.VIEW && !!claimId}>
-									<Box display="flex" justifyContent="flex-start" alignItems="center" gap={1}>
-										<Legend />
+
+				<Box mt={1} sx={styles.nodeContainer}>
+					<Box display="flex" justifyContent="space-between" alignItems="center" pb={2}>
+						<Box display="flex" alignItems="center">
+							<ExpandAllButton expandAll={expandAll} disabled={visibleInstanceIds.length < 2} />
+							<Fade in={mode === ChecklistMode.VIEW && !!claimId}>
+								<Box display="flex" justifyContent="flex-start" alignItems="center" gap={1} ml={1}>
+									<BasicButtonStyled
+										buttonProps={{
+											onClick: () => useChecklistStore.getState().toggleChangeLog(),
+										}}
+										icon={
+											<AccessTime
+												sx={{
+													color: showChangeLog ? theme.palette.primary.main : undefined,
+												}}
+											/>
+										}
+										tooltipProps={{
+											title: `${showChangeLog ? 'Hide' : 'Show'} change log`,
+										}}
+										compact
+									/>
+									<Badge
+										badgeContent={commentData?.count ?? 0}
+										color="secondary"
+										showZero={false}
+										sx={styles.badge}
+									>
 										<BasicButtonStyled
 											buttonProps={{
-												onClick: () => useChecklistStore.getState().toggleChangeLog(),
+												onClick: () => useChecklistStore.getState().toggleComments(),
 											}}
 											icon={
-												<AccessTime
+												<SmsOutlined
 													sx={{
-														color: showChangeLog ? theme.palette.primary.main : undefined,
+														color: showComments ? theme.palette.secondary.main : undefined,
 													}}
 												/>
 											}
-											tooltipProps={{
-												title: `${showChangeLog ? 'Hide' : 'Show'} change log`,
-											}}
+											tooltipProps={{ title: `${showComments ? 'Hide' : 'Show'} comments` }}
+											compact
 										/>
-										<Badge
-											badgeContent={commentData?.count ?? 0}
-											color="secondary"
-											showZero={false}
-											sx={styles.badge}
-										>
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () => useChecklistStore.getState().toggleComments(),
-												}}
-												icon={
-													<SmsOutlined
-														sx={{
-															color: showComments
-																? theme.palette.secondary.main
-																: undefined,
-														}}
-													/>
-												}
-												tooltipProps={{ title: `${showComments ? 'Hide' : 'Show'} comments` }}
-											/>
-										</Badge>
-									</Box>
-								</Fade>
-							</>
-						}
-						right={
-							<>
-								<Fade in={!isFetchingChecklistClaim && mode === ChecklistMode.VIEW}>
-									<span>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () =>
-													useChecklistStore.getState().toggleChecklistProgressDialog(true),
-												startIcon: (
-													<ClaimStatusIcon
-														status={
-															(checklistClaim?.status ??
-																ClaimStatus.UNWORKED) as ClaimStatus
-														}
-													/>
-												),
-											}}
-											tooltipProps={{ title: 'Evaluate' }}
-										>
-											Evaluate
-										</BasicButtonStyled>
-									</span>
-								</Fade>
-							</>
-						}
-						padding={0}
-						height={36}
-					/>
-				)}
-
-				<Divider sx={{ my: 1 }} />
-				<Box sx={styles.nodeContainer}>
+									</Badge>
+								</Box>
+							</Fade>
+						</Box>
+						<Legend />
+					</Box>
 					<Fade in={!!checklist && !isFetching && (!claimId || !!claim)} unmountOnExit timeout={500}>
 						<span>
 							{navigation.tree.length ? (
@@ -388,7 +382,7 @@ export default function PageNavigation() {
 									justifyContent="center"
 									alignItems="center"
 								>
-									<Typography color="var(--color-text-muted)" fontSize="var(--font-size-lg)">
+									<Typography color={TEXT_MUTED} fontSize={18}>
 										No pages found
 									</Typography>
 								</Stack>
@@ -422,7 +416,7 @@ const styles = {
 		minWidth: 120,
 	},
 	checklistCard: {
-		bgcolor: 'var(--color-bg-primary)',
+		bgcolor: '#ffffff',
 		p: 0.5,
 		px: 1,
 	},
@@ -431,13 +425,16 @@ const styles = {
 		minWidth: 500,
 		maxWidth: 500,
 		height: '100vh',
-		backgroundColor: 'var(--color-bg-tertiary)',
+		backgroundColor: BG_TERTIARY,
 		padding: 12,
 		overflow: 'hidden',
 		display: 'flex',
 		flex: 1,
 		flexDirection: 'column' as const,
-		borderRight: '1px solid var(--color-border)',
+		borderRight: `1px solid ${BORDER_COLOR}`,
+		borderTop: 'none',
+		borderBottom: 'none',
+		borderLeft: 'none',
 	},
 	icon: {
 		mr: 0.5,
@@ -446,16 +443,14 @@ const styles = {
 		width: '100%',
 		overflow: 'auto',
 		p: 1.5,
-		bgcolor: 'var(--color-bg-primary)',
-		borderRadius: 'var(--radius-lg)',
-		border: '1px solid var(--color-border)',
+		bgcolor: '#ffffff',
+		borderRadius: 2,
 		flex: 1,
 		mb: 1,
 	},
 	toggleButtonGroup: {
-		bgcolor: 'var(--color-bg-primary)',
+		bgcolor: '#ffffff',
 		borderRadius: 'var(--radius-lg)',
-		border: '1px solid var(--color-border)',
 	},
 	toggleButton: {
 		height: 28,

@@ -235,7 +235,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 					render={({ field }) => (
 						<TextField
 							label="First"
-							variant="standard"
+							
 							placeholder="John"
 							error={!!errors.first}
 							{...field}
@@ -252,7 +252,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 					render={({ field }) => (
 						<TextField
 							label="Last"
-							variant="standard"
+							
 							placeholder="Doe"
 							error={!!errors.last}
 							{...field}
@@ -269,7 +269,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 					render={({ field }) => (
 						<TextField
 							label="Email"
-							variant="standard"
+							
 							placeholder="youremail@example.com"
 							error={!!errors.email}
 							{...field}
@@ -296,7 +296,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 					render={({ field }) => (
 						<TextField
 							label="Contact number"
-							variant="standard"
+							
 							placeholder="10-digit number"
 							type="tel"
 							error={!!errors.phone}

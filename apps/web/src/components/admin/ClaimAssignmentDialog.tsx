@@ -97,7 +97,7 @@ export default function ClaimAssignmentDialog() {
 					sx={{
 						height: 345,
 						borderRadius: 1.5,
-						border: '1px solid var(--color-primary)',
+						borderColor: 'primary.main',
 						p: 2,
 						bgcolor: 'rgba(34, 180, 255, 0.05)',
 					}}

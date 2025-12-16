@@ -115,7 +115,7 @@ export default function FQStepper() {
 			margin="15px"
 			padding="15px"
 		>
-			<Box display="flex" justifyContent="center" alignItems="center" marginBottom={2}>
+			<Box display="flex" justifyContent="center" alignItems="center" marginBottom={2} padding="0px 10px">
 				<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
 					Fiscal Year Recovery
 				</Typography>

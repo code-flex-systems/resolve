@@ -7,6 +7,7 @@ import { TransitionGroup } from 'react-transition-group';
 import BasicButton from './BasicButton';
 import AttachFile from '@mui/icons-material/AttachFile';
 import Clear from '@mui/icons-material/Clear';
+import { BG_TERTIARY, HOVERED_COLOR } from '@/styles/theme';
 
 export default function UploadDialog(props: {
 	onClose: () => void;
@@ -42,7 +43,6 @@ export default function UploadDialog(props: {
 			<Paper
 				elevation={0}
 				sx={{
-					outline: '1px solid var(--color-border)',
 					width: 200,
 					height: 150,
 					my: 1,
@@ -60,7 +60,8 @@ export default function UploadDialog(props: {
 						alignItems: 'center',
 						transition: 'background-color 300ms ease',
 						cursor: 'pointer',
-						bgcolor: isDragActive || dropzoneHovered ? 'var(--color-bg-hover)' : 'var(--color-bg-tertiary)',
+						bgcolor: isDragActive || dropzoneHovered ? HOVERED_COLOR : BG_TERTIARY,
+						borderRadius: 3,
 					}}
 				>
 					<input {...getInputProps()} />

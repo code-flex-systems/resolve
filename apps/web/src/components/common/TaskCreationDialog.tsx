@@ -121,7 +121,7 @@ export default function TaskCreationDialog({
 						<TextField
 							{...field}
 							label="Task Title"
-							variant="standard"
+							
 							required
 							error={!!errors.title}
 							helperText={errors.title?.message}
@@ -138,7 +138,7 @@ export default function TaskCreationDialog({
 						<TextField
 							{...field}
 							label="Description (optional)"
-							variant="standard"
+							
 							multiline
 							rows={2}
 							sx={{ width: 400 }}
@@ -189,7 +189,7 @@ export default function TaskCreationDialog({
 					)}
 				/>
 
-				<FormControl variant="standard" sx={{ width: 400 }}>
+				<FormControl sx={{ width: 400 }}>
 					<InputLabel>Work Units (1 unit = 5 min)</InputLabel>
 					<Controller
 						name="workUnits"

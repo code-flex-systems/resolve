@@ -97,7 +97,7 @@ export default function StepperDialog(props: {
 								key={key}
 								required={required}
 								autoFocus
-								variant="standard"
+								
 								sx={{ width: '100%' }}
 								{...field}
 							>

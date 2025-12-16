@@ -289,9 +289,7 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
-		border: 1,
-		borderColor: 'divider',
-		padding: '15px 15px 0px',
+		padding: '24px 24px 0px',
 	},
 	table: {
 		width: '100%',

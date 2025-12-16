@@ -1,16 +1,15 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Box, Button, Fade, IconButton, Paper, Typography } from '@mui/material';
+import { Box, Button, Fade, Paper, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Assignment from '@mui/icons-material/Assignment';
 import Edit from '@mui/icons-material/Edit';
-import Search from '@mui/icons-material/Search';
-import Clear from '@mui/icons-material/Clear';
 import IconHeaderCell from '../common/IconHeaderCell';
+import SearchInput from '../common/SearchInput';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -167,31 +166,18 @@ export default function DeskAssignmentTab() {
 								deskLocationTypeId={deskLocationTypeId ?? undefined}
 								label="Desk Location"
 							/>
-							<Paper elevation={0} sx={styles.searchPaper}>
-								<Search sx={{ fontSize: 17, marginRight: '5px' }} />
-								<input
-									placeholder="Search"
-									type="text"
-									style={styles.textField}
-									value={searchTerm}
-									onChange={(e) => {
-										setSearchTerm(e.target.value);
-										debouncedSearch(e.target.value);
-									}}
-								/>
-								{searchTerm && (
-									<IconButton
-										size="small"
-										onClick={() => {
-											setSearchTerm('');
-											setParam('search', '');
-										}}
-										sx={{ padding: '2px', marginLeft: '2px' }}
-									>
-										<Clear sx={{ fontSize: 16 }} />
-									</IconButton>
-								)}
-							</Paper>
+							<SearchInput
+								value={searchTerm}
+								onChange={(value) => {
+									setSearchTerm(value);
+									if (value === '') {
+										setParam('search', '');
+									} else {
+										debouncedSearch(value);
+									}
+								}}
+								placeholder="Search users..."
+							/>
 						</Box>
 					</Box>
 					<div style={styles.table}>
@@ -259,10 +245,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
-		border: 1,
-		borderColor: 'divider',
 		minHeight: 0,
-		padding: '20px',
+		padding: '24px',
 	},
 	table: {
 		width: '100%',
@@ -278,21 +262,4 @@ const styles = {
 		justifyContent: 'flex-end',
 		alignItems: 'center',
 	},
-	searchPaper: {
-		display: 'flex',
-		alignItems: 'center',
-		bgcolor: 'white',
-		border: `1px solid ${BORDER_COLOR}`,
-		borderRadius: 2,
-		padding: '5px 10px',
-		minWidth: 250,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-		width: '100%',
-		fontSize: 13,
-		fontFamily: 'Inter',
-	} as React.CSSProperties,
 };

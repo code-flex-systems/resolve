@@ -12,9 +12,10 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { Box, Fade } from '@mui/material';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { BG_SECONDARY } from '@/styles/theme';
 
 export default function PageWrapper({
-	bgcolor = 'var(--color-bg-secondary)',
+	bgcolor = BG_SECONDARY,
 	children,
 }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();

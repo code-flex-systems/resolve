@@ -71,7 +71,7 @@ function AnswerWithImage(props: {
 								field.onChange(newValue);
 							}}
 							disabled={disabled}
-							sx={{ color: 'primary.main' }}
+							color="primary"
 						/>
 					) : (
 						<Radio

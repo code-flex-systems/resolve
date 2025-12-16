@@ -192,7 +192,7 @@ const styles = {
 		width: 550,
 		minWidth: 550,
 		height: 'calc(100vh - 320px)',
-		padding: '20px',
+		padding: '24px',
 		overflow: 'hidden',
 		borderRadius: 4,
 		margin: '15px',

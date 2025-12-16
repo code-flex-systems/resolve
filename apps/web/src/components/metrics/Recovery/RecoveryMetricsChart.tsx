@@ -1,6 +1,6 @@
 'use client';
 import { LineChart } from '@mui/x-charts-pro';
-import theme from '@/styles/theme';
+import theme, { containerStyles } from '@/styles/theme';
 import { Box, Card, CardContent, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
@@ -106,7 +106,7 @@ export default function RecoveryMetricsChart({
 
 	return (
 		<Box width={containerWidth}>
-			<Paper elevation={0} sx={{ ...styles.paper, padding }}>
+			<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard, padding }}>
 				<Box
 					width="100%"
 					display="flex"
@@ -314,6 +314,6 @@ const styles = {
 		alignItems: 'flex-start',
 		width: '100%',
 		borderRadius: 3,
-		padding: '20px',
+		padding: '24px',
 	},
 };

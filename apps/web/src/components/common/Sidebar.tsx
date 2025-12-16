@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import Image from 'next/image';
-import logo from '@/lib/resources/images/logo.png';
+import logo from '@/lib/resources/images/Full Logo.png';
 import config from '@/config/config';
 
 export interface NavItem {
@@ -75,6 +75,9 @@ export default function Sidebar({
 					overflowX: 'hidden',
 					zIndex: 500,
 					borderRadius: 0,
+					borderTop: 'none',
+					borderBottom: 'none',
+					borderLeft: 'none',
 				}}
 			>
 				<Box
@@ -86,9 +89,9 @@ export default function Sidebar({
 						height: 50,
 						cursor: 'pointer',
 						overflow: 'hidden',
-						background: 'linear-gradient(180deg, #21B5FF 0%, #1a9fd9 100%)',
-						borderRadius: '8px',
-						margin: '5px',
+						// background: 'linear-gradient(180deg, #21B5FF 0%, #1a9fd9 100%)',
+						// borderRadius: '8px',
+						margin: '8px',
 					}}
 				>
 					<Box
@@ -96,17 +99,12 @@ export default function Sidebar({
 							width: iconWidth,
 							minWidth: iconWidth,
 							display: 'flex',
-							justifyContent: 'center',
+							justifyContent: 'flex-start',
 							alignItems: 'center',
 						}}
 					>
-						<Image src={logo} alt="logo" height={35} />
+						<Image src={logo} alt="logo" height={45} />
 					</Box>
-					<Fade in={open} timeout={200}>
-						<Typography color="white" fontSize={30} paddingTop="5px" marginRight="5px">
-							{config.APP_NAME}
-						</Typography>
-					</Fade>
 				</Box>
 
 				<List disablePadding>

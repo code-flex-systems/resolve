@@ -131,7 +131,7 @@ const styles = {
 		width: 450,
 		minWidth: 450,
 		height: 600,
-		padding: '10px 20px 20px 20px',
+		padding: '12px 24px 24px 24px',
 		borderRadius: 4,
 		margin: '15px',
 		display: 'flex',

@@ -267,7 +267,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Type"
-							variant="standard"
+							
 							select
 							error={!!errors.party_type}
 							{...field}
@@ -297,7 +297,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Role"
-							variant="standard"
+							
 							select
 							error={!!errors.party_category}
 							{...field}
@@ -325,7 +325,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Name"
-							variant="standard"
+							
 							placeholder="Party name"
 							error={!!errors.name || duplicateMatches.length > 0}
 							helperText={
@@ -347,7 +347,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Organization (optional)"
-							variant="standard"
+							
 							placeholder="Organization name"
 							error={!!errors.organization}
 							{...field}
@@ -369,7 +369,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Email (optional)"
-							variant="standard"
+							
 							placeholder="email@example.com"
 							type="email"
 							error={!!errors.email}
@@ -388,7 +388,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Phone (optional)"
-							variant="standard"
+							
 							placeholder="Phone number"
 							error={!!errors.phone}
 							{...field}
@@ -403,7 +403,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					errors={errors}
 					setValue={setValue}
 					disabled={isSubmitting}
-					variant="standard"
+					
 					width={400}
 				/>
 
@@ -414,7 +414,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Notes (optional)"
-							variant="standard"
+							
 							placeholder="Additional notes"
 							error={!!errors.notes}
 							multiline

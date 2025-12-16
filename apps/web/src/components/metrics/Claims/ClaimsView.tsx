@@ -326,27 +326,12 @@ const styles = {
 		width: '100%',
 		height: 'fit-content',
 		zIndex: 10,
-		padding: '20px',
+		padding: '24px',
 		borderRadius: 6,
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 30,
 	},
 	table: {
 		width: '49.5%',
 		height: 'calc(100vh - 290px)',
 		border: '1px solid #E0E0E0',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

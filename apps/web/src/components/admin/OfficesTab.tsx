@@ -1,16 +1,15 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Fade, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { Button, Chip, Fade, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
 import LocationOn from '@mui/icons-material/LocationOn';
 import Phone from '@mui/icons-material/Phone';
-import Search from '@mui/icons-material/Search';
 import Warning from '@mui/icons-material/Warning';
-import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
+import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -170,37 +169,19 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 						}
 						right={
 							<>
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search
-										sx={{
-											fontSize: 17,
-											marginRight: '5px',
-										}}
-									/>
-									<input
-										placeholder="Search"
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => {
-											setSearchTerm(e.target.value);
-											debouncedSearch(e.target.value);
-										}}
-									/>
-									{searchTerm && (
-										<IconButton
-											size="small"
-											onClick={() => {
-												setSearchTerm('');
-												setParam('search', '');
-											}}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewOfficeDialog}>
+								<SearchInput
+									value={searchTerm}
+									onChange={(value) => {
+										setSearchTerm(value);
+										if (value === '') {
+											setParam('search', '');
+										} else {
+											debouncedSearch(value);
+										}
+									}}
+									placeholder="Search offices..."
+								/>
+								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewOfficeDialog} sx={{ ml: 2 }}>
 									Office
 								</Button>
 							</>
@@ -257,21 +238,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		flex: 1,
-		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px 24px 0px',
 		minHeight: 0,
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 35,
-		marginRight: '20px',
 	},
 	table: {
 		width: '100%',
@@ -279,10 +247,5 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

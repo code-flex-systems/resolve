@@ -253,6 +253,7 @@ const styles = {
 		margin: '15px',
 		border: `1px solid ${BORDER_COLOR}`,
 		boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+		padding: '5px',
 	},
 	simpleMetricIcon: {
 		color: 'white',

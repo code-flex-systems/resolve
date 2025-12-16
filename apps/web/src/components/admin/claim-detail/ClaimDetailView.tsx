@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Fade, Tab, Tabs } from '@mui/material';
+import { Box, Fade, Paper, Tab, Tabs } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ClaimHeader from './ClaimHeader';
@@ -9,6 +9,7 @@ import WorkflowTab from './WorkflowTab';
 import ClaimantsCoverageTab from './ClaimantsCoverageTab';
 import RecoveryTab from './RecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
+import { containerStyles } from '@/styles/theme';
 
 /**
  * Reusable claim detail view component
@@ -38,12 +39,20 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 
 	return (
 		<Fade in={true} timeout={1000}>
-			<Box display="flex" flexDirection="column" height="calc(100vh - 50px)" overflow="hidden">
+			<Paper
+				sx={{
+					display: 'flex',
+					flexDirection: 'column',
+					height: 'calc(100vh - 50px)',
+					overflow: 'hidden',
+					...containerStyles.beveledCard,
+				}}
+			>
 				{/* Sticky Header */}
 				<ClaimHeader claimId={claimId} />
 
 				{/* Tab Navigation */}
-				<Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+				<Paper sx={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', px: 1, pb: 0.2 }}>
 					<Tabs
 						value={currentTab}
 						onChange={(_, newValue) => setCurrentTab(newValue)}
@@ -55,11 +64,11 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 						<Tab label="Claimants & Coverage" />
 						<Tab label="Facilitators & Liability" />
 					</Tabs>
-				</Box>
+				</Paper>
 
 				{/* Tab Content */}
 				<Fade key={currentTab} in={true} timeout={1000}>
-					<Box flex={1} overflow="auto" bgcolor="#F7F8FA">
+					<Box flex={1} overflow="auto">
 						<Box display="flex" justifyContent="center" width="100%">
 							<Box width="100%" maxWidth={1400}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
@@ -71,7 +80,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 						</Box>
 					</Box>
 				</Fade>
-			</Box>
+			</Paper>
 		</Fade>
 	);
 }

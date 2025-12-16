@@ -9,7 +9,7 @@ import { formatMDY } from '@/lib/utils/utils';
 import { ClaimStatus } from '@/config/enums';
 import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
 import { formatCityState } from '@/schemas/addressSchemas';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -52,7 +52,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Contextual Summary */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.gradientPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Summary
 					</Typography>
@@ -112,7 +112,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 				</Paper>
 
 				{/* Claim Details */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Claim Details
 					</Typography>
@@ -212,7 +212,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 
 				{/* Checklist Progress (if assigned) */}
 				{currentAssignment && (
-					<Paper elevation={0} sx={styles.paper}>
+					<Paper elevation={0} sx={styles.beveledPaper}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 							Current Assignment
 						</Typography>
@@ -298,7 +298,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 				)}
 
 				{/* Activity Timeline */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Activity Timeline
 					</Typography>
@@ -352,9 +352,12 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 }
 
 const styles = {
-	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		padding: '24px',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '24px',
 	},
 };

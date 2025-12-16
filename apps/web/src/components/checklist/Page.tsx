@@ -193,7 +193,7 @@ export default function Page() {
 								<>
 									<ExpandableTitle
 										title={selectedPageInfo.title}
-										icon={<Description sx={{ color: BASE_COLOR }} />}
+										icon={<Description />}
 										color="white"
 									/>
 									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>

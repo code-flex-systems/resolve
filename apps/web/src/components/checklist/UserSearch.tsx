@@ -114,7 +114,7 @@ export default function UserSearch({
 					/>
 
 					<Popper open={Boolean(anchorEl)} sx={{ zIndex: 100000 }} anchorEl={anchorEl} placement="bottom">
-						<Paper style={styles.popper}>
+						<Paper sx={styles.popper}>
 							{searching && (
 								<MenuItem key="searching" disabled style={styles.menuItem}>
 									<Typography fontSize={fontSize} fontStyle="italic">
@@ -176,15 +176,9 @@ const styles = {
 		maxHeight: 300,
 		overflowY: 'auto' as const,
 		width: 300,
-		outline: '1px solid #E0E0E0',
-		borderBottomLeftRadius: 2,
-		borderBottomRightRadius: 2,
-		marginTop: 2,
+		mt: 0.625,
 	},
 	textField: {
 		width: 300,
-		'& .MuiOutlinedInput-root': {
-			borderRadius: 4,
-		},
 	},
 };

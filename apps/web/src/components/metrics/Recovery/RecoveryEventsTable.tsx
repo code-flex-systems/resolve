@@ -12,6 +12,7 @@ import IconHeaderCell from '@/components/common/IconHeaderCell';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
+import { containerStyles } from '@/styles/theme';
 
 const columns: GridColDef<RecoveryEventWithDetails>[] = [
 	{
@@ -155,7 +156,7 @@ export default function RecoveryEventsTable({
 	);
 
 	return (
-		<Paper elevation={0} sx={styles.paper}>
+		<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
 			<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
 				<Typography variant="h6" fontSize={18} fontWeight={600}>
 					Recovery Events
@@ -221,7 +222,7 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		width: '100%',
-		borderRadius: 6,
-		padding: '30px',
+		borderRadius: 3,
+		padding: '24px',
 	},
 };

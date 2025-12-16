@@ -12,7 +12,7 @@ import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryU
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
-import { LineOfBusinessValue, LossTypeValue } from '@/components/common/ReferenceDataSelect';
+import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
 
 export default function ClaimHeader({ claimId }: { claimId: number }) {
 	const router = useRouter();
@@ -95,31 +95,26 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 			{/* Action Toolbar */}
 			<Box display="flex" justifyContent="space-between" gap={1} marginTop={2}>
 				<Box display="flex" flexWrap="wrap" gap={1} justifyContent="flex-start" alignItems="center">
-					{claimDetail.aggregated_line_of_business && claimDetail.aggregated_line_of_business.length > 0 &&
+					{claimDetail.aggregated_line_of_business &&
+						claimDetail.aggregated_line_of_business.length > 0 &&
 						claimDetail.aggregated_line_of_business.map((lob: string) => (
-							<Chip
-								key={lob}
-								label={<LineOfBusinessValue value={lob} showEmoji={false} />}
-								color="primary"
-								variant="outlined"
-							/>
+							<LineOfBusinessChip key={lob} value={lob} />
 						))}
-					{claimDetail.aggregated_loss_type && claimDetail.aggregated_loss_type.length > 0 &&
+					{claimDetail.aggregated_loss_type &&
+						claimDetail.aggregated_loss_type.length > 0 &&
 						claimDetail.aggregated_loss_type.map((lt: string) => (
-							<Chip
-								key={lt}
-								label={<LossTypeValue value={lt} showEmoji={false} />}
-								color="secondary"
-								variant="outlined"
-							/>
+							<LossTypeChip key={lt} value={lt} />
 						))}
 					{claimDetail.recovery_status && (
 						<Chip
 							label={`Recovery: ${formatRecoveryStatus(claimDetail.recovery_status)}`}
+							size="small"
 							variant="outlined"
 						/>
 					)}
-					{claimDetail.feed_name && <Chip label={`Feed: ${claimDetail.feed_name}`} variant="outlined" />}
+					{claimDetail.feed_name && (
+						<Chip label={`Feed: ${claimDetail.feed_name}`} size="small" variant="outlined" />
+					)}
 				</Box>
 				<Box display="flex" gap={1} justifyContent="flex-end" alignItems="center">
 					{canEditClaim && (
@@ -149,8 +144,6 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 const styles = {
 	container: {
 		padding: '20px 30px',
-		borderBottom: 1,
-		borderRadius: 0,
-		borderColor: 'divider',
+		border: 'none',
 	},
 };

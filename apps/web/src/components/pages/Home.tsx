@@ -13,6 +13,7 @@ import RingLoadingIndicator from '../common/RingLoadingIndicator';
 import Calendar from '../home/Calendar';
 import PageWrapper from '../common/PageWrapper';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { BG_TERTIARY } from '@/styles/theme';
 
 export default function Home() {
 	const { data: session } = useClerkSession();
@@ -140,7 +141,7 @@ const styles = {
 		display: 'flex',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		bgcolor: 'var(--color-bg-tertiary)',
+		bgcolor: BG_TERTIARY,
 		p: 2.5,
 	},
 };

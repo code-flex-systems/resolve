@@ -22,7 +22,7 @@ import { trpc } from '@/lib/trpc';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -101,7 +101,7 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Recovery Summary */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.gradientPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Recovery Summary
 					</Typography>
@@ -155,7 +155,7 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 				</Paper>
 
 				{/* Recovery Events */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
 							Recovery Events ({recoveryEvents.length})
@@ -323,9 +323,12 @@ export default function RecoveryTab({ claimId }: RecoveryTabProps) {
 }
 
 const styles = {
-	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		padding: '24px',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '24px',
 	},
 };

@@ -4,6 +4,7 @@ import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import { JSX, useState } from 'react';
 import PageDot from './PageDot';
+import { BORDER_COLOR, BORDER_LIGHT } from '@/styles/theme';
 
 export interface SlideshowProps {
 	slides: {
@@ -50,9 +51,8 @@ export default function Slideshow(props: SlideshowProps) {
 					sx={{
 						width: 20,
 						height: 50,
-						outline: leftDisabled ? '1px solid var(--color-neutral-300)' : '1px solid var(--color-neutral-500)',
+						border: `1px solid ${leftDisabled ? BORDER_LIGHT : BORDER_COLOR}`,
 						m: 1,
-						borderRadius: '10px',
 					}}
 				>
 					<KeyboardArrowLeft />
@@ -74,7 +74,8 @@ export default function Slideshow(props: SlideshowProps) {
 					sx={{
 						width: '100%',
 						height: '100%',
-						outline: '1px solid var(--color-bg-tertiary)',
+						border: `1px solid ${BORDER_LIGHT}`,
+						borderRadius: 3,
 						p: 0.5,
 					}}
 				>
@@ -94,9 +95,8 @@ export default function Slideshow(props: SlideshowProps) {
 					sx={{
 						width: 20,
 						height: 50,
-						outline: rightDisabled ? '1px solid var(--color-neutral-300)' : '1px solid var(--color-neutral-500)',
+						border: `1px solid ${rightDisabled ? BORDER_LIGHT : BORDER_COLOR}`,
 						m: 1,
-						borderRadius: '10px',
 					}}
 				>
 					<KeyboardArrowRight />

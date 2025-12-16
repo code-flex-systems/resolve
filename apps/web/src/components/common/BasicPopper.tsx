@@ -24,7 +24,7 @@ export default function BasicPopper(
 			>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
-						<Box sx={{ borderRadius: '12px', overflow: 'hidden' }}>{props.children}</Box>
+						<Box>{props.children}</Box>
 					</Fade>
 				)}
 			</Popper>

@@ -117,7 +117,7 @@ export default function AddressFields({
 				render={({ field }) => (
 					<TextField
 						label="Street Address (optional)"
-						variant="standard"
+						
 						placeholder="123 Main St"
 						error={!!getError(fieldNames.street_address)}
 						{...field}
@@ -136,7 +136,7 @@ export default function AddressFields({
 					render={({ field }) => (
 						<TextField
 							label="City (optional)"
-							variant="standard"
+							
 							placeholder="City"
 							error={!!getError(fieldNames.city)}
 							{...field}
@@ -153,7 +153,7 @@ export default function AddressFields({
 					render={({ field }) => (
 						<TextField
 							label="State/Province (optional)"
-							variant="standard"
+							
 							select
 							error={!!getError(fieldNames.state)}
 							{...field}
@@ -194,7 +194,7 @@ export default function AddressFields({
 					render={({ field }) => (
 						<TextField
 							label="Postal Code (optional)"
-							variant="standard"
+							
 							placeholder="12345"
 							error={!!getError(fieldNames.postal_code)}
 							{...field}
@@ -211,7 +211,7 @@ export default function AddressFields({
 					render={({ field }) => (
 						<TextField
 							label="Country (optional)"
-							variant="standard"
+							
 							select
 							error={!!getError(fieldNames.country)}
 							{...field}

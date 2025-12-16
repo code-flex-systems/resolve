@@ -10,8 +10,8 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useCoverageTrpc } from '@/hooks/trpc/useCoverageTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { ClaimPartyRoleValue, EntityCategoryValue } from '@/components/common/ReferenceDataSelect';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { ClaimPartyRoleChip, EntityCategoryChip } from '@/components/common/ReferenceDataSelect';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
@@ -186,7 +186,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Summary */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.gradientPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Coverage Summary
 					</Typography>
@@ -228,7 +228,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				</Paper>
 
 				{/* Party List */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
 							Claimants & Entities ({claimParties.length})
@@ -270,7 +270,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 												height: 8,
 												borderRadius: '50%',
 												bgcolor: 'primary.main',
-												marginTop: '6px',
+												marginTop: '8px',
 												flexShrink: 0,
 											}}
 										/>
@@ -282,30 +282,11 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 														<Typography fontSize={16} fontWeight={600}>
 															{claimParty.party?.name || 'Unknown Party'}
 														</Typography>
-														<Chip
-															label={
-																<ClaimPartyRoleValue
-																	value={claimParty.role}
-																	showEmoji={false}
-																	fontSize={12}
-																/>
-															}
-															size="small"
-															color="primary"
-															variant="outlined"
-														/>
+														<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />
 														{claimParty.party?.party_category && (
-															<Chip
-																label={
-																	<EntityCategoryValue
-																		value={claimParty.party.party_category}
-																		showEmoji={false}
-																		fontSize={12}
-																	/>
-																}
-																size="small"
-																color="secondary"
-																variant="outlined"
+															<EntityCategoryChip
+																value={claimParty.party.party_category}
+																showEmoji={false}
 															/>
 														)}
 													</Box>
@@ -398,6 +379,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 																		sx={{
 																			padding: 2,
 																			backgroundColor: 'background.default',
+																			boxShadow:
+																				'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 																		}}
 																	>
 																		<Box
@@ -454,6 +437,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 																						title: 'Edit coverage',
 																					}}
 																					icon={<Edit />}
+																					compact
 																				/>
 																				<BasicButtonStyled
 																					buttonProps={{
@@ -467,6 +451,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 																						title: 'Archive coverage',
 																					}}
 																					icon={<Archive sx={{ color: 'error.main' }} />}
+																					compact
 																				/>
 																			</Box>
 																		</Box>
@@ -496,6 +481,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 														onClick: () => handleOpenPartyDialog(claimParty),
 													}}
 													icon={<Edit />}
+													compact
 												/>
 											</Box>
 										</Box>
@@ -570,9 +556,12 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 }
 
 const styles = {
-	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		padding: '24px',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '24px',
 	},
 };

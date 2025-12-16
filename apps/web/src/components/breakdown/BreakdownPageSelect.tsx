@@ -49,7 +49,7 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 			</Typography>
 			<Select
 				displayEmpty
-				variant="standard"
+				
 				value={selectedInstanceId}
 				renderValue={() =>
 					selectedPage

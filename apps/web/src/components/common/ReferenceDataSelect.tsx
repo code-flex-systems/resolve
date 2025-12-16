@@ -1,13 +1,13 @@
 import {
 	Box,
 	Chip,
-	CircularProgress,
 	FormControl,
 	InputLabel,
 	MenuItem,
 	Paper,
 	PopperProps,
 	Select,
+	Skeleton,
 	Tooltip,
 	Typography,
 } from '@mui/material';
@@ -131,9 +131,13 @@ export default function ReferenceDataSelect({
 
 	// Standard form dropdown mode
 	if (!isFilter) {
+		if (isLoading) {
+			return <Skeleton variant="rounded" width="100%" height={40} sx={sx} />;
+		}
+
 		return (
-			<FormControl fullWidth={fullWidth} size={size} disabled={disabled || isLoading} sx={sx}>
-				{label && <InputLabel>{label}</InputLabel>}
+			<FormControl fullWidth={fullWidth} size={size} disabled={disabled} sx={sx}>
+				{label && <InputLabel shrink>{label}</InputLabel>}
 				<Select
 					value={value || ''}
 					onChange={(e) => {
@@ -141,8 +145,25 @@ export default function ReferenceDataSelect({
 						onChange(newValue === '' ? null : newValue);
 					}}
 					label={label}
-					displayEmpty={!label}
-					variant="standard"
+					notched={!!label}
+					displayEmpty
+					renderValue={(selected) => {
+						if (!selected) {
+							return <Typography color="text.secondary">{placeholder}</Typography>;
+						}
+						const option = options.find((o) => o.value === selected);
+						if (!option) return selected;
+						return (
+							<Box display="flex" alignItems="center" gap={0.5}>
+								{showIcon && option.icon_emoji && (
+									<Typography component="span" fontSize={14}>
+										{option.icon_emoji}
+									</Typography>
+								)}
+								<Typography component="span">{option.display_label}</Typography>
+							</Box>
+						);
+					}}
 				>
 					{clearable && (
 						<MenuItem value="">
@@ -165,14 +186,17 @@ export default function ReferenceDataSelect({
 	}
 
 	// Filter chip mode (original behavior)
+	// Show skeleton while loading
+	if (isLoading) {
+		return <Skeleton variant="rounded" width={120} height={height || 32} sx={{ borderRadius: 9999, ...sx }} />;
+	}
+
 	return (
 		<>
 			<Chip
-				label={isLoading ? 'Loading...' : displayLabel}
+				label={displayLabel}
 				icon={
-					isLoading ? (
-						<CircularProgress size={14} sx={{ marginLeft: '8px' }} />
-					) : showIcon && displayIcon ? (
+					showIcon && displayIcon ? (
 						<Box marginLeft="5px">
 							<Typography fontSize={14}>{displayIcon}</Typography>
 						</Box>
@@ -181,7 +205,7 @@ export default function ReferenceDataSelect({
 					)
 				}
 				onClick={(e) => {
-					if (!disabled && !isLoading) {
+					if (!disabled) {
 						setAnchorEl(e.currentTarget);
 						e.preventDefault();
 						e.stopPropagation();
@@ -196,7 +220,7 @@ export default function ReferenceDataSelect({
 					},
 					...sx,
 				}}
-				disabled={disabled || isLoading}
+				disabled={disabled}
 			/>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
@@ -244,9 +268,7 @@ const styles = {
 		margin: '5px 0px',
 	},
 	paper: {
-		outline: 1,
-		outlineColor: 'divider',
-		marginTop: '5px',
+		mt: 0.625,
 		minWidth: 220,
 		maxHeight: 300,
 		overflow: 'auto',
@@ -504,16 +526,9 @@ export function ReferenceDataValue({
 		);
 	}
 
-	// Loading state
+	// Loading state - show skeleton matching label dimensions
 	if (isLoading) {
-		return (
-			<Box display="flex" alignItems="center" gap={0.5} sx={sx}>
-				<CircularProgress size={12} />
-				<Typography fontSize={fontSize} color="text.secondary">
-					Loading...
-				</Typography>
-			</Box>
-		);
+		return <Skeleton variant="rounded" width={70} height={18} sx={{ display: 'inline-block', verticalAlign: 'middle', ...sx }} />;
 	}
 
 	// Option not found - show raw value
@@ -682,4 +697,126 @@ export function PartyCategoryValue({
 			sx={sx}
 		/>
 	);
+}
+
+// ============================================================================
+// REFERENCE DATA CHIP COMPONENT
+// ============================================================================
+
+interface ReferenceDataChipProps {
+	/**
+	 * The reference entity type
+	 */
+	entity: ReferenceEntity;
+	/**
+	 * The value to display (snake_case key)
+	 */
+	value: string | null | undefined;
+	/**
+	 * Whether to show the emoji icon (defaults to true)
+	 */
+	showEmoji?: boolean;
+	/**
+	 * Chip size
+	 */
+	size?: 'small' | 'medium';
+	/**
+	 * Chip color
+	 */
+	color?: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+	/**
+	 * Chip variant
+	 */
+	variant?: 'filled' | 'outlined';
+	/**
+	 * Font size for the label
+	 */
+	fontSize?: number;
+	/**
+	 * Custom styles for the chip
+	 */
+	sx?: object;
+}
+
+/**
+ * Chip component for reference data values that shows a skeleton when loading
+ * Use this instead of wrapping ReferenceDataValue in a Chip manually
+ */
+export function ReferenceDataChip({
+	entity,
+	value,
+	showEmoji = true,
+	size = 'small',
+	color = 'default',
+	variant = 'outlined',
+	fontSize = 12,
+	sx,
+}: ReferenceDataChipProps) {
+	const { data: option, isLoading } = trpc.referenceData.getReferenceOption.useQuery(
+		{ entity, value: value!, includeDeactivated: true },
+		{
+			enabled: !!value,
+			staleTime: 5 * 60 * 1000,
+			gcTime: 10 * 60 * 1000,
+		}
+	);
+
+	// Show skeleton while loading
+	if (isLoading || !value) {
+		if (!value) return null;
+		return (
+			<Skeleton
+				variant="rounded"
+				width={80}
+				height={size === 'small' ? 26 : 32}
+				sx={{ borderRadius: 9999, ...sx }}
+			/>
+		);
+	}
+
+	const displayLabel = option?.display_label || value;
+	const displayIcon = option?.icon_emoji;
+
+	return (
+		<Chip
+			size={size}
+			color={color}
+			variant={variant}
+			label={
+				<Box display="flex" alignItems="center" gap={0.5}>
+					{showEmoji && displayIcon && <Typography fontSize={fontSize}>{displayIcon}</Typography>}
+					<Typography fontSize={fontSize}>{displayLabel}</Typography>
+				</Box>
+			}
+			sx={sx}
+		/>
+	);
+}
+
+/**
+ * Convenience chip wrappers for common entity types
+ */
+
+export function LossTypeChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
+	return <ReferenceDataChip entity="loss_type" color="secondary" {...props} />;
+}
+
+export function LineOfBusinessChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
+	return <ReferenceDataChip entity="line_of_business" color="primary" {...props} />;
+}
+
+export function ClaimSubstatusChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
+	return <ReferenceDataChip entity="claim_substatus" color="secondary" {...props} />;
+}
+
+export function ClaimPartyRoleChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
+	return <ReferenceDataChip entity="claim_party_role" color="primary" {...props} />;
+}
+
+export function EntityCategoryChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
+	return <ReferenceDataChip entity="entity_category" color="secondary" {...props} />;
+}
+
+export function FacilitatorCategoryChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
+	return <ReferenceDataChip entity="facilitator_category" color="secondary" {...props} />;
 }

@@ -87,7 +87,7 @@ export default function TaskBulkCancellationDialog({
 						<TextField
 							{...field}
 							label="Cancellation Reason"
-							variant="standard"
+							
 							multiline
 							rows={3}
 							sx={{ width: 380 }}

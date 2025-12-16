@@ -87,7 +87,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					required
 				/>
 
-				<FormControl variant="standard" sx={{ width: 400, margin: '5px 0px' }}>
+				<FormControl sx={{ width: 400, margin: '5px 0px' }}>
 					<InputLabel>Priority</InputLabel>
 					<Select
 						value={priority}

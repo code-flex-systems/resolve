@@ -1,15 +1,14 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/material';
+import { Button, Fade, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
 import Category from '@mui/icons-material/Category';
 import Email from '@mui/icons-material/Email';
-import Search from '@mui/icons-material/Search';
-import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
+import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -45,7 +44,14 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 		renderCell: ({ row }) => (
 			<StackedHeaderCell
 				primary={row.party_type}
-				secondary={<PartyCategoryValue value={row.party_category} partyType={row.party_type} showEmoji={false} fontSize={12} />}
+				secondary={
+					<PartyCategoryValue
+						value={row.party_category}
+						partyType={row.party_type}
+						showEmoji={false}
+						fontSize={12}
+					/>
+				}
 			/>
 		),
 		renderHeader: (params) => (
@@ -151,37 +157,24 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 						}
 						right={
 							<>
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search
-										sx={{
-											fontSize: 17,
-											marginRight: '5px',
-										}}
-									/>
-									<input
-										placeholder="Search"
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => {
-											setSearchTerm(e.target.value);
-											debouncedSearch(e.target.value);
-										}}
-									/>
-									{searchTerm && (
-										<IconButton
-											size="small"
-											onClick={() => {
-												setSearchTerm('');
-												setParam('search', '');
-											}}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewPartyDialog}>
+								<SearchInput
+									value={searchTerm}
+									onChange={(value) => {
+										setSearchTerm(value);
+										if (value === '') {
+											setParam('search', '');
+										} else {
+											debouncedSearch(value);
+										}
+									}}
+									placeholder="Search parties..."
+								/>
+								<Button
+									variant="contained"
+									startIcon={<AddBox />}
+									onClick={toggleNewPartyDialog}
+									sx={{ ml: 2 }}
+								>
 									Party
 								</Button>
 							</>
@@ -238,21 +231,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		flex: 1,
-		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px 24px 0px',
 		minHeight: 0,
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 35,
-		marginRight: '20px',
 	},
 	table: {
 		width: '100%',
@@ -260,10 +240,5 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

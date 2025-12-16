@@ -171,10 +171,7 @@ const styles = {
 		maxHeight: 300,
 		overflowY: 'auto',
 		width: '100%',
-		outline: '1px solid #E0E0E0',
-		borderBottomLeftRadius: '2px',
-		borderBottomRightRadius: '2px',
-		mt: 0.25,
+		mt: 0.625,
 	},
 	textField: {
 		width: 265,

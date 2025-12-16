@@ -34,7 +34,7 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -563,8 +563,8 @@ const styles = {
 	},
 	entityId: {
 		fontSize: 13,
-		color: 'var(--color-text-muted)',
-		bgcolor: 'var(--color-bg-tertiary)',
+		color: TEXT_MUTED,
+		bgcolor: BG_TERTIARY,
 		px: 1,
 		py: 0.25,
 		borderRadius: '4px',
@@ -577,25 +577,11 @@ const styles = {
 		width: '100%',
 	},
 	section: {
-		bgcolor: 'var(--color-bg-secondary)',
-		borderRadius: '12px',
-		border: '1px solid var(--color-border)',
-		overflow: 'hidden',
+		...containerStyles.section,
 		maxWidth: 600,
 	},
-	sectionTitle: {
-		fontSize: 13,
-		fontWeight: 600,
-		color: 'var(--color-text-primary)',
-		px: 2,
-		py: 1.5,
-		bgcolor: 'white',
-		borderBottom: '1px solid var(--color-border)',
-	},
-	sectionContent: {
-		p: 2,
-		bgcolor: 'white',
-	},
+	sectionTitle: containerStyles.sectionTitle,
+	sectionContent: containerStyles.sectionContent,
 	fieldRow: {
 		mb: 2,
 		'&:last-child': {
@@ -611,8 +597,8 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		gap: 1,
-		bgcolor: 'var(--color-bg-tertiary)',
-		border: '1px solid var(--color-border)',
+		bgcolor: BG_TERTIARY,
+		border: `1px solid ${BORDER_COLOR}`,
 		borderRadius: '8px',
 		px: 1.5,
 		py: 0.75,

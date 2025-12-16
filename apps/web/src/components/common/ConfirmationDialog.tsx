@@ -2,7 +2,6 @@
 import { Dialog, DialogActions } from '@mui/material';
 import { PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
-import theme from '@/styles/theme';
 
 export default function ConfirmationDialog(
 	props: {
@@ -19,7 +18,7 @@ export default function ConfirmationDialog(
 			sx={{
 				'& .MuiPaper-root': {
 					maxWidth: '100%',
-					outline: `1px solid ${theme.palette.primary.main}`,
+					borderColor: 'primary.main',
 					padding: '20px 20px 10px',
 				},
 			}}

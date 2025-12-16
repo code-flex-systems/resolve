@@ -12,7 +12,7 @@ import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import theme from '@/styles/theme';
+import theme, { BORDER_LIGHT, containerStyles } from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -153,7 +153,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 			{questions && mode === ChecklistMode.EDIT && (
 				<Collapse in={selected && !isFetching} unmountOnExit>
-					<Stack bgcolor="var(--color-primary-light)" pb={1} sx={styles.questionsContainer}>
+					<Stack pb={1} sx={styles.questionsContainer}>
 						{questions.map((q, i) => (
 							<QuestionNode
 								key={i}
@@ -207,7 +207,8 @@ const styles = {
 		py: 0.75,
 	},
 	questionsContainer: {
-		borderBottomLeftRadius: 'var(--radius-md)',
-		borderBottomRightRadius: 'var(--radius-md)',
+		borderBottomLeftRadius: 2,
+		borderBottomRightRadius: 2,
+		background: containerStyles.gradientCard.background,
 	},
 };

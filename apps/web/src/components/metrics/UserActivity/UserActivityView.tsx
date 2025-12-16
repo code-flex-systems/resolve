@@ -1,8 +1,8 @@
 'use client';
 
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
-import Search from '@mui/icons-material/Search';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
+import SearchInput from '@/components/common/SearchInput';
 import { useCallback, useState } from 'react';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
@@ -78,24 +78,14 @@ export default function UserActivityView() {
 							Change Log
 						</Typography>
 						<Box display="flex" justifyContent="flex-end" alignItems="center" marginLeft="20px">
-							<Paper elevation={0} sx={styles.searchPaper}>
-								<Search
-									sx={{
-										fontSize: 17,
-										marginRight: '5px',
-									}}
-								/>
-								<input
-									placeholder="Search by question"
-									type="text"
-									style={styles.textField}
-									value={searchTerm}
-									onChange={(e) => {
-										setSearchTerm(e.target.value);
-										debouncedSearch(e.target.value);
-									}}
-								/>
-							</Paper>
+							<SearchInput
+								value={searchTerm}
+								onChange={(value) => {
+									setSearchTerm(value);
+									debouncedSearch(value);
+								}}
+								placeholder="Search by question..."
+							/>
 						</Box>
 					</Box>
 					<Box height={500}>
@@ -144,28 +134,13 @@ const styles = {
 		width: '100%',
 		height: '100%',
 		zIndex: 10,
-		padding: '20px',
+		padding: '24px',
 		borderRadius: 6,
 		marginTop: '20px',
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 30,
 	},
 	table: {
 		width: '49.5%',
 		height: 'calc(100vh - 290px)',
 		border: '1px solid #E0E0E0',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

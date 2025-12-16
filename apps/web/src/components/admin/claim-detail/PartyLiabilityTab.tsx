@@ -10,8 +10,8 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useLiabilityTrpc } from '@/hooks/trpc/useLiabilityTrpc';
 import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { LineOfBusinessValue, LossTypeValue, ClaimPartyRoleValue } from '@/components/common/ReferenceDataSelect';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { LineOfBusinessChip, LossTypeValue, ClaimPartyRoleChip } from '@/components/common/ReferenceDataSelect';
 import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -196,7 +196,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Summary */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.gradientPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Liability Summary
 					</Typography>
@@ -238,7 +238,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				</Paper>
 
 				{/* Party List */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
 							Linked Parties ({claimParties.length})
@@ -286,7 +286,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 												height: 8,
 												borderRadius: '50%',
 												bgcolor: 'primary.main',
-												marginTop: '6px',
+												marginTop: '8px',
 												flexShrink: 0,
 											}}
 										/>
@@ -298,18 +298,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 														<Typography fontSize={16} fontWeight={600}>
 															{claimParty.party?.name || 'Unknown Party'}
 														</Typography>
-														<Chip
-															label={
-																<ClaimPartyRoleValue
-																	value={claimParty.role}
-																	showEmoji={false}
-																	fontSize={12}
-																/>
-															}
-															size="small"
-															color="primary"
-															variant="outlined"
-														/>
+														<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />
 													</Box>
 
 													{/* Party Organization */}
@@ -448,6 +437,8 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																		sx={{
 																			padding: 2,
 																			backgroundColor: 'background.default',
+																			boxShadow:
+																				'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 																		}}
 																	>
 																		<Box
@@ -487,19 +478,9 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																						/>
 																					)}
 																					{liability.line_of_business && (
-																						<Chip
-																							label={
-																								<LineOfBusinessValue
-																									value={
-																										liability.line_of_business
-																									}
-																									showEmoji={false}
-																									fontSize={12}
-																								/>
-																							}
-																							size="small"
-																							color="primary"
-																							variant="outlined"
+																						<LineOfBusinessChip
+																							value={liability.line_of_business}
+																							showEmoji={false}
 																						/>
 																					)}
 																					{liability.amount_paid && (
@@ -538,6 +519,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																						title: 'Edit liability',
 																					}}
 																					icon={<Edit />}
+																					compact
 																				/>
 																				<BasicButtonStyled
 																					buttonProps={{
@@ -556,6 +538,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 																							sx={{ color: 'error.main' }}
 																						/>
 																					}
+																					compact
 																				/>
 																			</Box>
 																		</Box>
@@ -585,6 +568,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 														onClick: () => handleOpenPartyDialog(claimParty),
 													}}
 													icon={<Edit />}
+													compact
 												/>
 											</Box>
 										</Box>
@@ -665,9 +649,12 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 }
 
 const styles = {
-	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		padding: '24px',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '24px',
 	},
 };

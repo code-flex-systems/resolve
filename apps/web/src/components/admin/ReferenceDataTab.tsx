@@ -279,8 +279,6 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
 		minHeight: 0,
 	},
 	rightPanel: {
@@ -288,8 +286,6 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
 		minHeight: 0,
 	},
 	table: {
