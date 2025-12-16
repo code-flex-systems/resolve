@@ -13,7 +13,12 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import theme from '@/styles/theme';
 
-export default function PartyActionsCell(params: GridRenderCellParams) {
+interface PartyActionsCellProps extends GridRenderCellParams {
+	isAdminContext?: boolean;
+}
+
+export default function PartyActionsCell(params: PartyActionsCellProps) {
+	const { isAdminContext = true } = params;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
@@ -75,7 +80,7 @@ export default function PartyActionsCell(params: GridRenderCellParams) {
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight="10px">
+				<Box marginRight={isAdminContext ? '10px' : undefined}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => setEditing(true),
@@ -85,20 +90,22 @@ export default function PartyActionsCell(params: GridRenderCellParams) {
 						icon={<Edit sx={{ fontSize: 15 }} />}
 					/>
 				</Box>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setShowActionConfirm(true),
-						disabled: isPending,
-					}}
-					tooltipProps={{ title: isArchived ? 'Restore party' : 'Archive party' }}
-					icon={
-						isArchived ? (
-							<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
-						) : (
-							<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
-						)
-					}
-				/>
+				{isAdminContext && (
+					<BasicButtonStyled
+						buttonProps={{
+							onClick: () => setShowActionConfirm(true),
+							disabled: isPending,
+						}}
+						tooltipProps={{ title: isArchived ? 'Restore party' : 'Archive party' }}
+						icon={
+							isArchived ? (
+								<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+							) : (
+								<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+							)
+						}
+					/>
+				)}
 			</div>
 		</>
 	);

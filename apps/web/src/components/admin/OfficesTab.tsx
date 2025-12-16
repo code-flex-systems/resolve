@@ -24,7 +24,11 @@ import OfficeDialog from './OfficeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { formatCityState } from '@/schemas/addressSchemas';
 
-const COLUMNS: GridColDef[] = [
+interface OfficesTabProps {
+	isAdminContext?: boolean;
+}
+
+const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party',
@@ -80,8 +84,8 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <OfficeActionsCell {...params} />,
-		width: 100,
+		renderCell: (params) => <OfficeActionsCell {...params} isAdminContext={isAdminContext} />,
+		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
 ];
@@ -95,7 +99,7 @@ function NoRows() {
 	);
 }
 
-export default function OfficesTab() {
+export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 	const showNewOfficeDialog = useAdminStore((state) => state.showNewOfficeDialog);
 	const officeConstraints = useAdminStore((state) => state.officeConstraints);
 	const toggleNewOfficeDialog = useAdminStore((state) => state.toggleNewOfficeDialog);
@@ -106,10 +110,14 @@ export default function OfficesTab() {
 
 	// Filter states from URL params
 	const officeSearchTerm = getParam('search') ?? '';
-	const showArchivedOffices = getBoolParam('archived');
+	// Only allow archived filter in admin context
+	const showArchivedOffices = isAdminContext ? getBoolParam('archived') : false;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+
+	// Memoize columns based on isAdminContext
+	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllOffices({
 		limit: officeConstraints.pageSize,
@@ -144,16 +152,20 @@ export default function OfficesTab() {
 								<Typography variant="h6" marginRight="20px">
 									Offices
 								</Typography>
-								<Switch
-									size="small"
-									checked={showArchivedOffices}
-									onChange={(_, checked) => setParam('archived', checked)}
-									color="warning"
-									sx={{ marginLeft: '10px' }}
-								/>
-								<Typography fontSize={14} fontStyle="italic">
-									Show Archived Only
-								</Typography>
+								{isAdminContext && (
+									<>
+										<Switch
+											size="small"
+											checked={showArchivedOffices}
+											onChange={(_, checked) => setParam('archived', checked)}
+											color="warning"
+											sx={{ marginLeft: '10px' }}
+										/>
+										<Typography fontSize={14} fontStyle="italic">
+											Show Archived Only
+										</Typography>
+									</>
+								)}
 							</>
 						}
 						right={
@@ -198,7 +210,7 @@ export default function OfficesTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{

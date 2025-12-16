@@ -76,22 +76,30 @@ export const partyRouter = router({
 		}),
 
 	/**
-	 * Create party (Admin only)
+	 * Create party (Admin + Contributor)
 	 */
 	createParty: protectedProcedure
 		.input(createPartyInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
 			return partyController.createParty(ctx, input);
 		}),
 
 	/**
-	 * Update party (Admin only)
+	 * Update party (Admin + Contributor)
 	 */
 	updateParty: protectedProcedure
 		.input(updatePartyInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
 			return partyController.updateParty(ctx, input);
 		}),
 
@@ -148,22 +156,30 @@ export const partyRouter = router({
 		}),
 
 	/**
-	 * Create party office (Admin only)
+	 * Create party office (Admin + Contributor)
 	 */
 	createPartyOffice: protectedProcedure
 		.input(createPartyOfficeInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
 			return partyController.createPartyOffice(ctx, input);
 		}),
 
 	/**
-	 * Update party office (Admin only)
+	 * Update party office (Admin + Contributor)
 	 */
 	updatePartyOffice: protectedProcedure
 		.input(updatePartyOfficeInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
 			return partyController.updatePartyOffice(ctx, input);
 		}),
 
@@ -230,22 +246,30 @@ export const partyRouter = router({
 		}),
 
 	/**
-	 * Create party representative (Admin only)
+	 * Create party representative (Admin + Contributor)
 	 */
 	createPartyRepresentative: protectedProcedure
 		.input(createPartyRepresentativeInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
 			return partyController.createPartyRepresentative(ctx, input);
 		}),
 
 	/**
-	 * Update party representative (Admin only)
+	 * Update party representative (Admin + Contributor)
 	 */
 	updatePartyRepresentative: protectedProcedure
 		.input(updatePartyRepresentativeInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
 			return partyController.updatePartyRepresentative(ctx, input);
 		}),
 

@@ -25,7 +25,11 @@ import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { formatCityState } from '@/schemas/addressSchemas';
 
-const COLUMNS: GridColDef[] = [
+interface RepresentativesTabProps {
+	isAdminContext?: boolean;
+}
+
+const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party',
@@ -112,8 +116,8 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <RepresentativeActionsCell {...params} />,
-		width: 100,
+		renderCell: (params) => <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} />,
+		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
 ];
@@ -127,7 +131,7 @@ function NoRows() {
 	);
 }
 
-export default function RepresentativesTab() {
+export default function RepresentativesTab({ isAdminContext = true }: RepresentativesTabProps) {
 	const showNewRepresentativeDialog = useAdminStore((state) => state.showNewRepresentativeDialog);
 	const representativeConstraints = useAdminStore((state) => state.representativeConstraints);
 	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
@@ -138,10 +142,14 @@ export default function RepresentativesTab() {
 
 	// Filter states from URL params
 	const representativeSearchTerm = getParam('search') ?? '';
-	const showArchivedRepresentatives = getBoolParam('archived');
+	// Only allow archived filter in admin context
+	const showArchivedRepresentatives = isAdminContext ? getBoolParam('archived') : false;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+
+	// Memoize columns based on isAdminContext
+	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
@@ -176,16 +184,20 @@ export default function RepresentativesTab() {
 								<Typography variant="h6" marginRight="20px">
 									Representatives
 								</Typography>
-								<Switch
-									size="small"
-									checked={showArchivedRepresentatives}
-									onChange={(_, checked) => setParam('archived', checked)}
-									color="warning"
-									sx={{ marginLeft: '10px' }}
-								/>
-								<Typography fontSize={14} fontStyle="italic">
-									Show Archived Only
-								</Typography>
+								{isAdminContext && (
+									<>
+										<Switch
+											size="small"
+											checked={showArchivedRepresentatives}
+											onChange={(_, checked) => setParam('archived', checked)}
+											color="warning"
+											sx={{ marginLeft: '10px' }}
+										/>
+										<Typography fontSize={14} fontStyle="italic">
+											Show Archived Only
+										</Typography>
+									</>
+								)}
 							</>
 						}
 						right={
@@ -234,7 +246,7 @@ export default function RepresentativesTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{

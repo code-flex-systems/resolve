@@ -6,6 +6,7 @@ import Dashboard from '@mui/icons-material/Dashboard';
 import Search from '@mui/icons-material/Search';
 import Security from '@mui/icons-material/Security';
 import FolderOpen from '@mui/icons-material/FolderOpen';
+import Business from '@mui/icons-material/Business';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -29,6 +30,7 @@ export default function PageWrapper({
 			{ label: 'Home', route: '/home', icon: <Search sx={{ fontSize: 23 }} /> },
 			{ label: 'Dashboard', route: '/dashboard', icon: <Dashboard sx={{ fontSize: 23 }} /> },
 			{ label: 'Documents', route: '/documents', icon: <FolderOpen sx={{ fontSize: 23 }} /> },
+			{ label: 'Parties', route: '/parties', icon: <Business sx={{ fontSize: 23 }} /> },
 		];
 		if (claim) {
 			items.push({

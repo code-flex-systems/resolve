@@ -13,7 +13,12 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import theme from '@/styles/theme';
 
-export default function RepresentativeActionsCell(params: GridRenderCellParams) {
+interface RepresentativeActionsCellProps extends GridRenderCellParams {
+	isAdminContext?: boolean;
+}
+
+export default function RepresentativeActionsCell(params: RepresentativeActionsCellProps) {
+	const { isAdminContext = true } = params;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
@@ -81,7 +86,7 @@ export default function RepresentativeActionsCell(params: GridRenderCellParams) 
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight="5px">
+				<Box marginRight={isAdminContext ? '5px' : undefined}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => setEditing(true),
@@ -97,26 +102,28 @@ export default function RepresentativeActionsCell(params: GridRenderCellParams) 
 						icon={<Edit sx={{ fontSize: 15 }} />}
 					/>
 				</Box>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setShowActionConfirm(true),
-						disabled: isPending || isPartyArchived,
-					}}
-					tooltipProps={{
-						title: isPartyArchived
-							? 'Cannot modify representative - parent party is archived'
-							: isArchived
-								? 'Restore representative'
-								: 'Archive representative',
-					}}
-					icon={
-						isArchived ? (
-							<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
-						) : (
-							<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
-						)
-					}
-				/>
+				{isAdminContext && (
+					<BasicButtonStyled
+						buttonProps={{
+							onClick: () => setShowActionConfirm(true),
+							disabled: isPending || isPartyArchived,
+						}}
+						tooltipProps={{
+							title: isPartyArchived
+								? 'Cannot modify representative - parent party is archived'
+								: isArchived
+									? 'Restore representative'
+									: 'Archive representative',
+						}}
+						icon={
+							isArchived ? (
+								<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+							) : (
+								<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+							)
+						}
+					/>
+				)}
 			</div>
 		</>
 	);

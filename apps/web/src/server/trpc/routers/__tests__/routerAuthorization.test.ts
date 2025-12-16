@@ -16,6 +16,7 @@ import { actionRouter } from '../action';
 import { questionRouter } from '../question';
 import { pageRouter } from '../page';
 import { answerRouter } from '../answer';
+import { partyRouter } from '../party';
 
 // Mock the database
 vi.mock('@/api/database/kysely', () => ({
@@ -133,6 +134,32 @@ vi.mock('@/api/controllers/answerController', () => ({
 	updateAnswer: vi.fn(),
 	copyAnswer: vi.fn(),
 	deleteAnswer: vi.fn(),
+}));
+
+vi.mock('@/api/controllers/partyController', () => ({
+	getParties: vi.fn(),
+	getParty: vi.fn(),
+	searchParties: vi.fn(),
+	createParty: vi.fn(),
+	updateParty: vi.fn(),
+	archiveParty: vi.fn(),
+	restoreParty: vi.fn(),
+	getPartyOffices: vi.fn(),
+	getAllPartyOffices: vi.fn(),
+	createPartyOffice: vi.fn(),
+	updatePartyOffice: vi.fn(),
+	archivePartyOffice: vi.fn(),
+	restorePartyOffice: vi.fn(),
+	getPartyRepresentatives: vi.fn(),
+	getAllPartyRepresentatives: vi.fn(),
+	createPartyRepresentative: vi.fn(),
+	updatePartyRepresentative: vi.fn(),
+	archivePartyRepresentative: vi.fn(),
+	restorePartyRepresentative: vi.fn(),
+	getClaimParties: vi.fn(),
+	linkPartyToClaim: vi.fn(),
+	updateClaimParty: vi.fn(),
+	unlinkPartyFromClaim: vi.fn(),
 }));
 
 // Reusable mock user with all required fields
@@ -2518,6 +2545,396 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(caller.getNextClaimToAssign({ feedId: 1 })).rejects.toThrow(TRPCError);
+				});
+			});
+		});
+
+		/**
+		 * Party Router Authorization Tests
+		 * Tests that contributors can create/update parties but cannot archive/restore them.
+		 */
+		describe('Party Router Authorization', () => {
+			describe('Party CRUD - Contributor Access', () => {
+				it('should allow contributor to create party', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.createParty).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.createParty({
+							name: 'Test Party',
+							party_type: 'entity',
+							party_category: 'insurer',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should allow admin to create party', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.createParty).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(
+						caller.createParty({
+							name: 'Test Party',
+							party_type: 'entity',
+							party_category: 'insurer',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to update party', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.updateParty).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.updateParty({
+							id: 1,
+							params: { name: 'Updated Party' },
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should reject contributor archiving party', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.archiveParty({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+
+				it('should allow admin to archive party', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.archiveParty).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(caller.archiveParty({ id: 1 })).resolves.toBeDefined();
+				});
+
+				it('should reject contributor restoring party', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.restoreParty({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+
+				it('should allow admin to restore party', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.restoreParty).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(caller.restoreParty({ id: 1 })).resolves.toBeDefined();
+				});
+			});
+
+			describe('Party Office CRUD - Contributor Access', () => {
+				it('should allow contributor to create party office', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.createPartyOffice).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.createPartyOffice({
+							party_id: 1,
+							office_name: 'Test Office',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to update party office', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.updatePartyOffice).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.updatePartyOffice({
+							id: 1,
+							params: { office_name: 'Updated Office' },
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should reject contributor archiving party office', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.archivePartyOffice({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+
+				it('should allow admin to archive party office', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.archivePartyOffice).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(caller.archivePartyOffice({ id: 1 })).resolves.toBeDefined();
+				});
+
+				it('should reject contributor restoring party office', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.restorePartyOffice({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+			});
+
+			describe('Party Representative CRUD - Contributor Access', () => {
+				it('should allow contributor to create party representative', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.createPartyRepresentative).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.createPartyRepresentative({
+							party_id: 1,
+							first_name: 'John',
+							last_name: 'Doe',
+							email: 'john@example.com',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to update party representative', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.updatePartyRepresentative).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.updatePartyRepresentative({
+							id: 1,
+							params: { first_name: 'Jane' },
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should reject contributor archiving party representative', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.archivePartyRepresentative({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+
+				it('should allow admin to archive party representative', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.archivePartyRepresentative).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(caller.archivePartyRepresentative({ id: 1 })).resolves.toBeDefined();
+				});
+
+				it('should reject contributor restoring party representative', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.restorePartyRepresentative({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+			});
+
+			describe('Claim Party Linking - Admin Only', () => {
+				it('should reject contributor linking party to claim', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(
+						caller.linkPartyToClaim({
+							claim_id: 100,
+							party_id: 1,
+							role: 'Insured',
+						})
+					).rejects.toThrow(TRPCError);
+				});
+
+				it('should allow admin to link party to claim', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.linkPartyToClaim).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(
+						caller.linkPartyToClaim({
+							claim_id: 100,
+							party_id: 1,
+							role: 'Insured',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should reject contributor unlinking party from claim', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.unlinkPartyFromClaim({ id: 1 })).rejects.toThrow(TRPCError);
+				});
+
+				it('should allow admin to unlink party from claim', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockPartyController.unlinkPartyFromClaim).mockResolvedValue({} as any);
+
+					const caller = createCaller(partyRouter, adminCtx);
+					await expect(caller.unlinkPartyFromClaim({ id: 1 })).resolves.toBeDefined();
+				});
+			});
+
+			describe('Party Read Operations - Contributor Access', () => {
+				it('should allow contributor to get parties', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					vi.mocked(mockPartyController.getParties).mockResolvedValue({
+						rows: [],
+						count: 0,
+					});
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.getParties({})).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to search parties', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					vi.mocked(mockPartyController.searchParties).mockResolvedValue([]);
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.searchParties({ searchTerm: 'test' })).resolves.toEqual([]);
+				});
+
+				it('should allow contributor to get party offices', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					vi.mocked(mockPartyController.getAllPartyOffices).mockResolvedValue({
+						rows: [],
+						count: 0,
+					});
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.getAllPartyOffices({})).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to get party representatives', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockPartyController = await import('@/api/controllers/partyController');
+					vi.mocked(mockPartyController.getAllPartyRepresentatives).mockResolvedValue({
+						rows: [],
+						count: 0,
+					});
+
+					const caller = createCaller(partyRouter, contributorCtx);
+					await expect(caller.getAllPartyRepresentatives({})).resolves.toBeDefined();
 				});
 			});
 		});

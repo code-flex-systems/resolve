@@ -23,7 +23,11 @@ import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { PartyCategoryValue } from '../common/ReferenceDataSelect';
 
-const COLUMNS: GridColDef[] = [
+interface PartiesTabProps {
+	isAdminContext?: boolean;
+}
+
+const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party',
@@ -61,8 +65,8 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <PartyActionsCell {...params} />,
-		width: 100,
+		renderCell: (params) => <PartyActionsCell {...params} isAdminContext={isAdminContext} />,
+		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
 ];
@@ -76,7 +80,7 @@ function NoRows() {
 	);
 }
 
-export default function PartiesTab() {
+export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	const showNewPartyDialog = useAdminStore((state) => state.showNewPartyDialog);
 	const partyConstraints = useAdminStore((state) => state.partyConstraints);
 	const toggleNewPartyDialog = useAdminStore((state) => state.toggleNewPartyDialog);
@@ -87,10 +91,14 @@ export default function PartiesTab() {
 
 	// Filter states from URL params
 	const partySearchTerm = getParam('search') ?? '';
-	const showArchivedParties = getBoolParam('archived');
+	// Only allow archived filter in admin context
+	const showArchivedParties = isAdminContext ? getBoolParam('archived') : false;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+
+	// Memoize columns based on isAdminContext
+	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().list({
 		limit: partyConstraints.pageSize,
@@ -125,16 +133,20 @@ export default function PartiesTab() {
 								<Typography variant="h6" marginRight="20px">
 									Parties
 								</Typography>
-								<Switch
-									size="small"
-									checked={showArchivedParties}
-									onChange={(_, checked) => setParam('archived', checked)}
-									color="warning"
-									sx={{ marginLeft: '10px' }}
-								/>
-								<Typography fontSize={14} fontStyle="italic">
-									Show Archived Only
-								</Typography>
+								{isAdminContext && (
+									<>
+										<Switch
+											size="small"
+											checked={showArchivedParties}
+											onChange={(_, checked) => setParam('archived', checked)}
+											color="warning"
+											sx={{ marginLeft: '10px' }}
+										/>
+										<Typography fontSize={14} fontStyle="italic">
+											Show Archived Only
+										</Typography>
+									</>
+								)}
 							</>
 						}
 						right={
@@ -179,7 +191,7 @@ export default function PartiesTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{
