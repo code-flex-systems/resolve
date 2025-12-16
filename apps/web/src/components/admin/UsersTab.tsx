@@ -32,7 +32,7 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'User',
 		field: 'user',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={`${row.last}, ${row.first}`} secondary={row.email.toLowerCase()} />
+			<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 		),
 		renderHeader: (params) => (
 			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: 'var(--color-neutral-300)' }} />} />

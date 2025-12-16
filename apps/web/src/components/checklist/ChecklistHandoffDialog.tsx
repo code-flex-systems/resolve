@@ -13,7 +13,7 @@ import theme, { BASE_COLOR } from '@/styles/theme';
 export default function ChecklistHandoffDialog() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const selectedAssignee = useChecklistStore((state) => state.selectedAssignee);
-	const formattedAssignee = `${selectedAssignee?.last ?? ''}, ${selectedAssignee?.first ?? ''}`;
+	const formattedAssignee = `${selectedAssignee?.first ?? ''} ${selectedAssignee?.last ?? ''}`.trim();
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
 
 	const onClose = () => {

@@ -8,10 +8,10 @@ import Security from '@mui/icons-material/Security';
 import FolderOpen from '@mui/icons-material/FolderOpen';
 import Business from '@mui/icons-material/Business';
 import useIsAdmin from '@/hooks/useIsAdmin';
-import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { Box, Fade } from '@mui/material';
+import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 
 export default function PageWrapper({
 	bgcolor = 'var(--color-bg-secondary)',
@@ -39,10 +39,8 @@ export default function PageWrapper({
 				icon: <ContentPasteSearch sx={{ fontSize: 23 }} />,
 			});
 		}
-		if (isAdmin || isSuperAdmin)
+		if (isAdmin || isSuperAdmin) {
 			items.push({ label: 'Admin', route: '/admin', icon: <Security sx={{ fontSize: 23 }} /> });
-		if (isSuperAdmin) {
-			items.push({ label: 'Super Admin', route: '/super-admin', icon: <Security sx={{ fontSize: 23 }} /> });
 		}
 		return items;
 	}, [isAdmin, isSuperAdmin, claim]);

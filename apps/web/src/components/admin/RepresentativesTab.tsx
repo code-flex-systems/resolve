@@ -55,7 +55,7 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 		headerName: 'Representative',
 		field: 'representative',
 		renderCell: ({ row }) => {
-			const name = `${row.last_name}, ${row.first_name}`;
+			const name = `${row.first_name} ${row.last_name}`;
 			const secondary = [row.title, row.email].filter(Boolean).join(' • ') || 'No title or email';
 			return (
 				<div

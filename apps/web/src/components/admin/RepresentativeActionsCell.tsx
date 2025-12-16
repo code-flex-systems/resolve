@@ -31,7 +31,7 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 	const isPartyArchived = !!row.party_deleted_at;
 	const isPending = archiving || restoring;
 
-	const representativeName = `${row.last_name}, ${row.first_name}`;
+	const representativeName = `${row.first_name} ${row.last_name}`;
 
 	const handleAction = async () => {
 		try {

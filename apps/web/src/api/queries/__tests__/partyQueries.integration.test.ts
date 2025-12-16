@@ -1109,7 +1109,11 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			// Search by first name
+			// Search by full name "First Last"
+			const resultFullName = await getAllPartyRepresentatives(ctx, 'SearchFirst SearchLast');
+			expect(resultFullName.rows.some((r) => r.first_name === 'SearchFirst')).toBe(true);
+
+			// Search by partial first name
 			const result1 = await getAllPartyRepresentatives(ctx, 'SearchFirst');
 			expect(result1.rows.some((r) => r.first_name === 'SearchFirst')).toBe(true);
 

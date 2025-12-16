@@ -669,8 +669,7 @@ export async function getAllPartyRepresentatives(
 		query = query.where((eb) =>
 			eb.or([
 				sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_representative.first_name ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_representative.last_name ILIKE ${`%${searchTerm}%`}`,
+				sql<boolean>`concat(party_representative.first_name, ' ', party_representative.last_name) ILIKE ${`%${searchTerm}%`}`,
 				sql<boolean>`party_representative.title ILIKE ${`%${searchTerm}%`}`,
 				sql<boolean>`party_representative.email ILIKE ${`%${searchTerm}%`}`,
 			])

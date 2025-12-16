@@ -83,7 +83,7 @@ export default function DeskAssignmentTab() {
 			headerName: 'User',
 			field: 'user',
 			renderCell: ({ row }) => (
-				<StackedHeaderCell primary={`${row.last}, ${row.first}`} secondary={row.email.toLowerCase()} />
+				<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 			),
 			renderHeader: (params) => (
 				<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />

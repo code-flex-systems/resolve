@@ -33,7 +33,7 @@ export default function ClaimAssignmentDialog() {
 	);
 	const { mutateAsync: assignClaim } = useClaimTrpc().assign;
 	const feedName = feeds.find((f) => f.id === selectedFeedId)?.name ?? '';
-	const formattedAssignee = `${user?.last ?? ''}, ${user?.first ?? ''}`;
+	const formattedAssignee = `${user?.first ?? ''} ${user?.last ?? ''}`.trim();
 
 	useEffect(() => {
 		if (typeof nextClaimData.total === 'number') setCount(nextClaimData.total);

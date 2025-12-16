@@ -119,7 +119,7 @@ export function formatMDYAbv(date?: string) {
 
 export function formatUser<T extends GetUserOutput | undefined>(user: T, me?: string) {
 	if (!user) return '';
-	return user.email === me ? 'You' : `${user.last}, ${user.first}`;
+	return user.email === me ? 'You' : `${user.first} ${user.last}`;
 }
 
 export function formatPhoneNumber(phoneRaw: string) {

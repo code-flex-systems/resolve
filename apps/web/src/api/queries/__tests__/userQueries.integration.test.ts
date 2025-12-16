@@ -455,6 +455,30 @@ describe('userQueries integration tests', () => {
 
 			expect(count).toBe(1); // Only client A's user
 		});
+
+		it('should filter by searchTerm using "First Last" format', async () => {
+			const client = await createTestClient(db);
+			await createTestUser(db, { client_id: client.id, first: 'John', last: 'Smith' });
+			await createTestUser(db, { client_id: client.id, first: 'Jane', last: 'Doe' });
+			const user = await createTestUser(db, { client_id: client.id, first: 'Admin', last: 'User' });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+
+			// Search by full name "First Last"
+			const fullNameCount = await getUserCount(ctx, false, false, 'John Smith');
+			expect(fullNameCount).toBe(1);
+
+			// Search by partial first name
+			const partialFirstCount = await getUserCount(ctx, false, false, 'John');
+			expect(partialFirstCount).toBe(1);
+
+			// Search by partial last name
+			const partialLastCount = await getUserCount(ctx, false, false, 'Doe');
+			expect(partialLastCount).toBe(1);
+
+			// Search with no matches
+			const noMatchCount = await getUserCount(ctx, false, false, 'Nobody Here');
+			expect(noMatchCount).toBe(0);
+		});
 	});
 
 	describe('getUserCountMetrics', () => {

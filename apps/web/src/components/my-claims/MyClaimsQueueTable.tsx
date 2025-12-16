@@ -145,7 +145,7 @@ export default function MyClaimsQueueTable({
 			);
 
 			if (!showDeskColumn) {
-				baseRow.push(row.assignee ? `${row.assignee_last}, ${row.assignee_first}` : '');
+				baseRow.push(row.assignee ? `${row.assignee_first} ${row.assignee_last}` : '');
 			}
 
 			baseRow.push(row.last_update ? dayjs(row.last_update).format('MM/DD/YYYY') : '');

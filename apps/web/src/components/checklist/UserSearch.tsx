@@ -142,7 +142,7 @@ export default function UserSearch({
 												selected={selectedUser?.email === u.email}
 											>
 												<StackedRow
-													primary={`${u.last}, ${u.first}`}
+													primary={`${u.first} ${u.last}`}
 													secondary={u.email}
 													fontSize={fontSize}
 												/>

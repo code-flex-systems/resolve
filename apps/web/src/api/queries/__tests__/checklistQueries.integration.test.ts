@@ -498,7 +498,7 @@ describe('checklistQueries integration', () => {
 			expect(Number(result[0].page_count)).toBe(2);
 		});
 
-		it('should include creator name formatted as "Last, First"', async () => {
+		it('should include creator name formatted as "First Last"', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, {
@@ -520,7 +520,7 @@ describe('checklistQueries integration', () => {
 
 			// Assert
 			expect(result.length).toBe(1);
-			expect(result[0].creator).toBe('Smith, John');
+			expect(result[0].creator).toBe('John Smith');
 		});
 	});
 
