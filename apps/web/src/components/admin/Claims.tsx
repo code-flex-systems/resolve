@@ -5,6 +5,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import ClaimAmountCell from './ClaimAmountCell';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import { formatCityState } from '@/schemas/addressSchemas';
 import {
 	Autocomplete,
 	Box,
@@ -97,8 +98,9 @@ const COLUMNS: GridColDef[] = [
 	},
 	{
 		headerName: 'Loss Location',
-		field: 'loss_location',
+		field: 'loss_city',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueGetter: (_value: any, row: any) => formatCityState(row.loss_city, row.loss_state),
 		width: 150,
 	},
 	{

@@ -27,9 +27,11 @@ import { RecoveryStatus } from '@/config/enums';
 import { formatLabel } from '@/lib/utils/claimUtils';
 import { formatRecoveryStatus, RECOVERY_STATUS_ICONS } from '@/lib/utils/recoveryUtils';
 import { ClaimSubstatusSelect, ClaimPartyRoleSelect } from '../common/ReferenceDataSelect';
+import AddressFields from '../common/AddressFields';
 import PartyDialog from './PartyDialog';
 import RepresentativeDialog from './RepresentativeDialog';
 import type { Party, PartyRepresentative } from '@/api/database/types';
+import type { CountryCode } from '@/config/addressConstants';
 
 interface ClaimChangesProps {
 	claimId?: number;
@@ -43,7 +45,11 @@ interface ClaimFormData {
 	insured: string;
 	claim_amount: string;
 	date_of_loss: Dayjs | null;
-	loss_location: string;
+	loss_street_address: string | null;
+	loss_city: string | null;
+	loss_state: string | null;
+	loss_postal_code: string | null;
+	loss_country: string | null;
 	recovery_status: RecoveryStatus;
 	substatus: string | null;
 }
@@ -77,7 +83,11 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			insured: '',
 			claim_amount: '',
 			date_of_loss: null,
-			loss_location: '',
+			loss_street_address: '',
+			loss_city: '',
+			loss_state: '',
+			loss_postal_code: '',
+			loss_country: '',
 			recovery_status: RecoveryStatus.PENDING,
 			substatus: null,
 		},
@@ -113,7 +123,11 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				insured: existingClaim.insured || '',
 				claim_amount: existingClaim.claim_amount?.toString() || '',
 				date_of_loss: existingClaim.date_of_loss ? dayjs(existingClaim.date_of_loss) : null,
-				loss_location: existingClaim.loss_location || '',
+				loss_street_address: existingClaim.loss_street_address || '',
+				loss_city: existingClaim.loss_city || '',
+				loss_state: existingClaim.loss_state || '',
+				loss_postal_code: existingClaim.loss_postal_code || '',
+				loss_country: existingClaim.loss_country || '',
 				recovery_status: (existingClaim.recovery_status as RecoveryStatus) || RecoveryStatus.PENDING,
 				substatus: existingClaim.substatus || null,
 			});
@@ -218,7 +232,11 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					insured: data.insured || null,
 					claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
 					date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
-					loss_location: data.loss_location || null,
+					loss_street_address: data.loss_street_address || null,
+					loss_city: data.loss_city || null,
+					loss_state: data.loss_state || null,
+					loss_postal_code: data.loss_postal_code || null,
+					loss_country: (data.loss_country as CountryCode) || null,
 					recovery_status: data.recovery_status,
 					substatus: data.substatus ?? undefined,
 					party_id: selectedParty?.id ? Number(selectedParty.id) : null,
@@ -239,7 +257,11 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							insured: data.insured || null,
 							claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
 							date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
-							loss_location: data.loss_location || null,
+							loss_street_address: data.loss_street_address || null,
+							loss_city: data.loss_city || null,
+							loss_state: data.loss_state || null,
+							loss_postal_code: data.loss_postal_code || null,
+							loss_country: (data.loss_country as CountryCode) || null,
 							last_updated_by: null,
 							last_update: null,
 						},
@@ -368,16 +390,6 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								{...register('insured', { required: true })}
 							/>
 
-							<TextField
-								id="loss_location"
-								label="Loss Location"
-								placeholder="New York City, NY"
-								error={!!errors.loss_location}
-								size="small"
-								sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								{...register('loss_location', { required: true })}
-							/>
-
 							<Controller
 								name="date_of_loss"
 								control={control}
@@ -396,6 +408,21 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 										}}
 									/>
 								)}
+							/>
+						</Box>
+
+						{/* Loss Location */}
+						<Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'text.secondary' }}>
+							Loss Location
+						</Typography>
+						<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>
+							<AddressFields
+								control={control}
+								errors={errors}
+								setValue={setValue}
+								disabled={isSubmitting || isCreating || isUpdating}
+								variant="loss"
+								width={300}
 							/>
 						</Box>
 						<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>

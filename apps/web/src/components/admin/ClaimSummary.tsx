@@ -19,6 +19,7 @@ import { formatMDY } from '@/lib/utils/utils';
 import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import { useRouter } from 'next/navigation';
 import { LineOfBusinessValue, LossTypeValue } from '@/components/common/ReferenceDataSelect';
+import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -380,7 +381,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 								</Typography>
 								<Typography fontSize={13}>
 									<Highlight bold={false}>Loss Location:</Highlight>{' '}
-									{claimDetail.loss_location ?? 'N/A'}
+									{formatCityState(claimDetail.loss_city, claimDetail.loss_state) || 'N/A'}
 								</Typography>
 								{claimDetail.feed_name && (
 									<>

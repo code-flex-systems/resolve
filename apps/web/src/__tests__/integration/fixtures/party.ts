@@ -19,7 +19,11 @@ export async function createTestParty(
 		organization?: string | null;
 		email?: string | null;
 		phone?: string | null;
-		address?: string | null;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		notes?: string | null;
 		deleted_at?: Date | null;
 		deleted_by?: string | null;
@@ -33,7 +37,11 @@ export async function createTestParty(
 		organization: overrides.organization ?? null,
 		email: overrides.email ?? null,
 		phone: overrides.phone ?? null,
-		address: overrides.address ?? null,
+		street_address: overrides.street_address ?? null,
+		city: overrides.city ?? null,
+		state: overrides.state ?? null,
+		postal_code: overrides.postal_code ?? null,
+		country: overrides.country ?? null,
 		notes: overrides.notes ?? null,
 		deleted_at: overrides.deleted_at ?? null,
 		deleted_by: overrides.deleted_by ?? null,
@@ -56,7 +64,11 @@ export async function createTestPartyOffice(
 		party_id: number;
 		created_by: string;
 		office_name?: string | null;
-		address?: string | null;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		phone?: string | null;
 		fax?: string | null;
 		is_primary?: boolean;
@@ -67,7 +79,11 @@ export async function createTestPartyOffice(
 	const data = {
 		party_id: overrides.party_id,
 		office_name: overrides.office_name ?? `Office ${Date.now()}`,
-		address: overrides.address ?? null,
+		street_address: overrides.street_address ?? null,
+		city: overrides.city ?? null,
+		state: overrides.state ?? null,
+		postal_code: overrides.postal_code ?? null,
+		country: overrides.country ?? null,
 		phone: overrides.phone ?? null,
 		fax: overrides.fax ?? null,
 		is_primary: overrides.is_primary ?? false,

@@ -116,7 +116,11 @@ export async function createParty(
 		organization?: string;
 		email?: string;
 		phone?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		notes?: string;
 	}
 ) {
@@ -144,7 +148,11 @@ export async function updateParty(
 		organization?: string;
 		email?: string;
 		phone?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		notes?: string;
 	}
 ) {
@@ -359,13 +367,14 @@ export async function getAllPartyOffices(
 		query = query.where('party_office.deleted_at', 'is', null);
 	}
 
-	// Apply search filter if provided (search by party name, office name, or address)
+	// Apply search filter if provided (search by party name, office name, city, or state)
 	if (searchTerm) {
 		query = query.where((eb) =>
 			eb.or([
 				sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`,
 				sql<boolean>`party_office.office_name ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_office.address ILIKE ${`%${searchTerm}%`}`,
+				sql<boolean>`party_office.city ILIKE ${`%${searchTerm}%`}`,
+				sql<boolean>`party_office.state ILIKE ${`%${searchTerm}%`}`,
 			])
 		);
 	}
@@ -401,7 +410,11 @@ export async function createPartyOffice(
 	params: {
 		party_id: number;
 		office_name?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		phone?: string;
 		fax?: string;
 		is_primary?: boolean;
@@ -444,7 +457,11 @@ export async function updatePartyOffice(
 	id: number,
 	params: {
 		office_name?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		phone?: string;
 		fax?: string;
 		is_primary?: boolean;
@@ -625,7 +642,11 @@ export async function getAllPartyRepresentatives(
 			'party.organization as party_organization',
 			'party.deleted_at as party_deleted_at',
 			'party_office.office_name as office_name',
-			'party_office.address as office_address',
+			'party_office.street_address as office_street_address',
+			'party_office.city as office_city',
+			'party_office.state as office_state',
+			'party_office.postal_code as office_postal_code',
+			'party_office.country as office_country',
 			'party_office.deleted_at as office_deleted_at',
 		])
 		.where('party.client_id', '=', ctx.session.user.client_id)
@@ -936,7 +957,11 @@ export async function getClaimParties(
 			'party_representative.title as representative_title',
 			'party_office.id as office_id',
 			'party_office.office_name as office_name',
-			'party_office.address as office_address',
+			'party_office.street_address as office_street_address',
+			'party_office.city as office_city',
+			'party_office.state as office_state',
+			'party_office.postal_code as office_postal_code',
+			'party_office.country as office_country',
 			'party_office.phone as office_phone',
 		])
 		.where('claim.client_id', '=', ctx.session.user.client_id)
@@ -1038,7 +1063,11 @@ export async function getClaimParties(
 			? {
 					id: row.office_id,
 					office_name: row.office_name!,
-					address: row.office_address,
+					street_address: row.office_street_address,
+					city: row.office_city,
+					state: row.office_state,
+					postal_code: row.office_postal_code,
+					country: row.office_country,
 					phone: row.office_phone,
 				}
 			: null,

@@ -23,6 +23,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import { formatCityState } from '@/schemas/addressSchemas';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -81,7 +82,7 @@ const COLUMNS: GridColDef[] = [
 		renderCell: ({ row }) => (
 			<StackedHeaderCell
 				primary={row.office_name || 'No office'}
-				secondary={row.office_address || 'No address'}
+				secondary={formatCityState(row.office_city, row.office_state) || 'No location'}
 			/>
 		),
 		renderHeader: (params) => (

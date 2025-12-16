@@ -5,12 +5,14 @@ import Send from '@mui/icons-material/Send';
 import Business from '@mui/icons-material/Business';
 import SupportAgent from '@mui/icons-material/SupportAgent';
 import BasicDialog from '../common/BasicDialog';
+import AddressFields from '../common/AddressFields';
 import { Controller, useForm } from 'react-hook-form';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { trpc } from '@/lib/trpc';
 import { PartyType } from '@/config/enums';
 import type { Party } from '@/api/database/types';
+import type { CountryCode } from '@/config/addressConstants';
 import { useEffect, useState, useMemo } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { skipToken } from '@tanstack/react-query';
@@ -22,7 +24,11 @@ interface PartyFormInputs {
 	organization?: string;
 	email?: string;
 	phone?: string;
-	address?: string;
+	street_address?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postal_code?: string | null;
+	country?: string | null;
 	notes?: string;
 }
 
@@ -82,7 +88,11 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					organization: party.organization ?? '',
 					email: party.email ?? '',
 					phone: party.phone ?? '',
-					address: party.address ?? '',
+					street_address: party.street_address ?? '',
+					city: party.city ?? '',
+					state: party.state ?? '',
+					postal_code: party.postal_code ?? '',
+					country: party.country ?? '',
 					notes: party.notes ?? '',
 				}
 			: {
@@ -92,7 +102,11 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					organization: '',
 					email: '',
 					phone: '',
-					address: '',
+					street_address: '',
+					city: '',
+					state: '',
+					postal_code: '',
+					country: '',
 					notes: '',
 				},
 		mode: 'onChange',
@@ -187,7 +201,11 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 				if (dirtyFields.organization) updates.organization = data.organization || undefined;
 				if (dirtyFields.email) updates.email = data.email || undefined;
 				if (dirtyFields.phone) updates.phone = data.phone || undefined;
-				if (dirtyFields.address) updates.address = data.address || undefined;
+				if (dirtyFields.street_address) updates.street_address = data.street_address || null;
+				if (dirtyFields.city) updates.city = data.city || null;
+				if (dirtyFields.state) updates.state = data.state || null;
+				if (dirtyFields.postal_code) updates.postal_code = data.postal_code || null;
+				if (dirtyFields.country) updates.country = data.country || null;
 				if (dirtyFields.notes) updates.notes = data.notes || undefined;
 
 				await updateParty({
@@ -203,7 +221,11 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					organization: data.organization || undefined,
 					email: data.email || undefined,
 					phone: data.phone || undefined,
-					address: data.address || undefined,
+					street_address: data.street_address || null,
+					city: data.city || null,
+					state: data.state || null,
+					postal_code: data.postal_code || null,
+					country: (data.country as CountryCode) || null,
 					notes: data.notes || undefined,
 				})) as any;
 			}
@@ -376,23 +398,13 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					)}
 				/>
 
-				<Controller
-					name="address"
+				<AddressFields
 					control={control}
-					rules={{ maxLength: 500 }}
-					render={({ field }) => (
-						<TextField
-							label="Address (optional)"
-							variant="standard"
-							placeholder="Street address"
-							error={!!errors.address}
-							multiline
-							rows={2}
-							{...field}
-							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
-						/>
-					)}
+					errors={errors}
+					setValue={setValue}
+					disabled={isSubmitting}
+					variant="standard"
+					width={400}
 				/>
 
 				<Controller

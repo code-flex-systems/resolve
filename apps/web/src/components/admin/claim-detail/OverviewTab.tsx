@@ -8,6 +8,7 @@ import Highlight from '@/components/common/Highlight';
 import { formatMDY } from '@/lib/utils/utils';
 import { ClaimStatus } from '@/config/enums';
 import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
+import { formatCityState } from '@/schemas/addressSchemas';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -79,10 +80,10 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 						{claimDetail.date_of_loss && (
 							<Typography fontSize={14}>
 								Loss occurred on <Highlight>{formatMDY(claimDetail.date_of_loss)}</Highlight>
-								{claimDetail.loss_location && (
+								{(claimDetail.loss_city || claimDetail.loss_state) && (
 									<>
 										{' '}
-										in <Highlight>{claimDetail.loss_location}</Highlight>
+										in <Highlight>{formatCityState(claimDetail.loss_city, claimDetail.loss_state)}</Highlight>
 									</>
 								)}
 							</Typography>
@@ -168,7 +169,9 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 									Loss Location:
 								</Highlight>
 							</Typography>
-							<Typography fontSize={13}>{claimDetail.loss_location ?? 'N/A'}</Typography>
+							<Typography fontSize={13}>
+								{formatCityState(claimDetail.loss_city, claimDetail.loss_state) || 'N/A'}
+							</Typography>
 						</Box>
 						<Divider />
 						<Box display="flex" justifyContent="space-between">

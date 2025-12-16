@@ -1,19 +1,32 @@
 'use client';
 
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { Autocomplete, Switch, TextField, Typography } from '@mui/material';
+import { Autocomplete, Stack, Switch, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
+import AddressFields from '../common/AddressFields';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useState } from 'react';
-import { Party, PartyOffice } from '@/api/database/types';
+import { PartyOffice } from '@/api/database/types';
+import type { CountryCode } from '@/config/addressConstants';
 import useDebounce from '@/lib/utils/useDebounce';
+
+/** Type for party search results from tRPC */
+interface PartySearchResult {
+	id: number;
+	name: string;
+	organization: string | null;
+}
 
 interface OfficeFormData {
 	party_id: number | null;
 	office_name: string;
-	address: string;
+	street_address: string | null;
+	city: string | null;
+	state: string | null;
+	postal_code: string | null;
+	country: string | null;
 	phone: string;
 	fax: string;
 	is_primary: boolean;
@@ -33,7 +46,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 
 	const isEditMode = !!office;
 	const [partySearchTerm, setPartySearchTerm] = useState('');
-	const [selectedParty, setSelectedParty] = useState<Party | null>(null);
+	const [selectedParty, setSelectedParty] = useState<PartySearchResult | null>(null);
 
 	// Party search with debounce
 	const { data: partyMatches = [] } = partyTrpc.search(
@@ -47,12 +60,17 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 		control,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors, isSubmitting, isDirty },
 	} = useForm<OfficeFormData>({
 		defaultValues: {
 			party_id: office?.party_id || null,
 			office_name: office?.office_name || '',
-			address: office?.address || '',
+			street_address: office?.street_address || '',
+			city: office?.city || '',
+			state: office?.state || '',
+			postal_code: office?.postal_code || '',
+			country: office?.country || '',
 			phone: office?.phone || '',
 			fax: office?.fax || '',
 			is_primary: Boolean(office?.is_primary),
@@ -61,11 +79,12 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 	});
 
 	const office_name = watch('office_name');
-	const address = watch('address');
+	const street_address = watch('street_address');
+	const city = watch('city');
 	const phone = watch('phone');
 
-	// At least one of office_name, address, or phone is required
-	const hasRequiredField = office_name || address || phone;
+	// At least one of office_name, street_address, city, or phone is required
+	const hasRequiredField = office_name || street_address || city || phone;
 
 	const handleClose = () => {
 		if (onClose) {
@@ -88,7 +107,11 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 					id: +office.id,
 					params: {
 						office_name: data.office_name || undefined,
-						address: data.address || undefined,
+						street_address: data.street_address || null,
+						city: data.city || null,
+						state: data.state || null,
+						postal_code: data.postal_code || null,
+						country: (data.country as CountryCode) || null,
 						phone: data.phone || undefined,
 						fax: data.fax || undefined,
 						is_primary: data.is_primary,
@@ -100,7 +123,11 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 				await createOffice({
 					party_id: data.party_id!,
 					office_name: data.office_name || undefined,
-					address: data.address || undefined,
+					street_address: data.street_address || null,
+					city: data.city || null,
+					state: data.state || null,
+					postal_code: data.postal_code || null,
+					country: (data.country as CountryCode) || null,
 					phone: data.phone || undefined,
 					fax: data.fax || undefined,
 					is_primary: data.is_primary,
@@ -142,10 +169,10 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 						control={control}
 						rules={{ required: 'Party is required' }}
 						render={({ field }) => (
-							<Autocomplete
-								options={partyMatches}
-								getOptionLabel={(party: Party) => party.name}
-								onChange={(_, value: Party | null) => {
+							<Autocomplete<PartySearchResult>
+								options={partyMatches as PartySearchResult[]}
+								getOptionLabel={(party) => party.name}
+								onChange={(_, value) => {
 									setSelectedParty(value);
 									field.onChange(value?.id || null);
 								}}
@@ -153,7 +180,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 									debouncedPartySearch(value);
 								}}
 								value={selectedParty}
-								renderOption={(props, party: Party) => (
+								renderOption={(props, party) => (
 									<li {...props} key={party.id}>
 										<div>
 											<Typography variant="body2" fontWeight="bold">
@@ -197,22 +224,17 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 					)}
 				/>
 
-				{/* Address */}
-				<Controller
-					name="address"
-					control={control}
-					render={({ field }) => (
-						<TextField
-							{...field}
-							label="Address"
-							variant="standard"
-							fullWidth
-							multiline
-							rows={3}
-							placeholder="Street address, city, state, ZIP"
-						/>
-					)}
-				/>
+				{/* Address Fields */}
+				<Stack spacing={2}>
+					<AddressFields
+						control={control}
+						errors={errors}
+						setValue={setValue}
+						disabled={isSubmitting}
+						variant="standard"
+						width={552}
+					/>
+				</Stack>
 
 				{/* Phone */}
 				<Controller
@@ -246,7 +268,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 
 				{!hasRequiredField && (
 					<Typography variant="caption" color="error" fontStyle="italic">
-						* At least one of: Office Name, Address, or Phone is required
+						* At least one of: Office Name, City, Street Address, or Phone is required
 					</Typography>
 				)}
 			</form>

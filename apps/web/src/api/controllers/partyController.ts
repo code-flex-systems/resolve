@@ -51,7 +51,11 @@ export async function createParty(
 		organization?: string;
 		email?: string;
 		phone?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		notes?: string;
 	}
 ) {
@@ -93,7 +97,11 @@ export async function updateParty(
 			organization?: string;
 			email?: string;
 			phone?: string;
-			address?: string;
+			street_address?: string | null;
+			city?: string | null;
+			state?: string | null;
+			postal_code?: string | null;
+			country?: string | null;
 			notes?: string;
 		};
 	}
@@ -214,7 +222,11 @@ export async function createPartyOffice(
 	input: {
 		party_id: number;
 		office_name?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		phone?: string;
 		fax?: string;
 		is_primary?: boolean;
@@ -233,7 +245,8 @@ export async function createPartyOffice(
 			value: {
 				party_id: office.party_id,
 				office_name: office.office_name,
-				address: office.address,
+				city: office.city,
+				state: office.state,
 			},
 		});
 
@@ -255,7 +268,11 @@ export async function updatePartyOffice(
 		id: number;
 		params: {
 			office_name?: string;
-			address?: string;
+			street_address?: string | null;
+			city?: string | null;
+			state?: string | null;
+			postal_code?: string | null;
+			country?: string | null;
 			phone?: string;
 			fax?: string;
 			is_primary?: boolean;
@@ -303,7 +320,8 @@ export async function archivePartyOffice(ctx: ProtectedContext, { id }: { id: nu
 			value: {
 				party_id: office.party_id,
 				office_name: office.office_name,
-				address: office.address,
+				city: office.city,
+				state: office.state,
 			},
 		});
 
@@ -328,7 +346,8 @@ export async function restorePartyOffice(ctx: ProtectedContext, { id }: { id: nu
 				restored: true,
 				party_id: office.party_id,
 				office_name: office.office_name,
-				address: office.address,
+				city: office.city,
+				state: office.state,
 			},
 		});
 

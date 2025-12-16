@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PartyType } from '@/config/enums';
+import { addressSchema } from './addressSchemas';
 
 // ============================================================================
 // PARTY SCHEMAS
@@ -33,32 +34,34 @@ export const searchPartiesInput = z.object({
 /**
  * Create party input
  */
-export const createPartyInput = z.object({
-	party_type: z.nativeEnum(PartyType),
-	party_category: z.string().min(1), // Validated at application layer based on party_type
-	name: z.string().min(2).max(255),
-	organization: z.string().max(255).optional(),
-	email: z.string().email().optional().or(z.literal('')),
-	phone: z.string().max(50).optional(),
-	address: z.string().max(500).optional(),
-	notes: z.string().max(2000).optional(),
-});
+export const createPartyInput = z
+	.object({
+		party_type: z.nativeEnum(PartyType),
+		party_category: z.string().min(1), // Validated at application layer based on party_type
+		name: z.string().min(2).max(255),
+		organization: z.string().max(255).optional(),
+		email: z.string().email().optional().or(z.literal('')),
+		phone: z.string().max(50).optional(),
+		notes: z.string().max(2000).optional(),
+	})
+	.merge(addressSchema);
 
 /**
  * Update party input
  */
 export const updatePartyInput = z.object({
 	id: z.number().int().positive(),
-	params: z.object({
-		party_type: z.nativeEnum(PartyType).optional(),
-		party_category: z.string().min(1).optional(),
-		name: z.string().min(2).max(255).optional(),
-		organization: z.string().max(255).optional(),
-		email: z.string().email().optional().or(z.literal('')),
-		phone: z.string().max(50).optional(),
-		address: z.string().max(500).optional(),
-		notes: z.string().max(2000).optional(),
-	}),
+	params: z
+		.object({
+			party_type: z.nativeEnum(PartyType).optional(),
+			party_category: z.string().min(1).optional(),
+			name: z.string().min(2).max(255).optional(),
+			organization: z.string().max(255).optional(),
+			email: z.string().email().optional().or(z.literal('')),
+			phone: z.string().max(50).optional(),
+			notes: z.string().max(2000).optional(),
+		})
+		.merge(addressSchema),
 });
 
 /**
@@ -93,27 +96,29 @@ export const getAllPartyOfficesInput = z.object({
 /**
  * Create party office input
  */
-export const createPartyOfficeInput = z.object({
-	party_id: z.number().int().positive(),
-	office_name: z.string().max(255).optional(),
-	address: z.string().max(500).optional(),
-	phone: z.string().max(50).optional(),
-	fax: z.string().max(50).optional(),
-	is_primary: z.boolean().optional(),
-});
+export const createPartyOfficeInput = z
+	.object({
+		party_id: z.number().int().positive(),
+		office_name: z.string().max(255).optional(),
+		phone: z.string().max(50).optional(),
+		fax: z.string().max(50).optional(),
+		is_primary: z.boolean().optional(),
+	})
+	.merge(addressSchema);
 
 /**
  * Update party office input
  */
 export const updatePartyOfficeInput = z.object({
 	id: z.number().int().positive(),
-	params: z.object({
-		office_name: z.string().max(255).optional(),
-		address: z.string().max(500).optional(),
-		phone: z.string().max(50).optional(),
-		fax: z.string().max(50).optional(),
-		is_primary: z.boolean().optional(),
-	}),
+	params: z
+		.object({
+			office_name: z.string().max(255).optional(),
+			phone: z.string().max(50).optional(),
+			fax: z.string().max(50).optional(),
+			is_primary: z.boolean().optional(),
+		})
+		.merge(addressSchema),
 });
 
 /**

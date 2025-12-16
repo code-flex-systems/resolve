@@ -323,7 +323,11 @@ export async function updateClaim(
 		insured: string | null;
 		claim_amount: string | null;
 		date_of_loss: Date | null;
-		loss_location: string | null;
+		loss_street_address: string | null;
+		loss_city: string | null;
+		loss_state: string | null;
+		loss_postal_code: string | null;
+		loss_country: string | null;
 		recovery_status: string;
 		substatus: string;
 	}>
@@ -346,7 +350,11 @@ export async function updateClaim(
 			'claim_amount',
 			'actual_recovery',
 			'date_of_loss',
-			'loss_location',
+			'loss_street_address',
+			'loss_city',
+			'loss_state',
+			'loss_postal_code',
+			'loss_country',
 			'recovery_status',
 			'substatus',
 		])
@@ -374,7 +382,11 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				insured: c.insured,
 				claim_amount: c.claim_amount,
 				date_of_loss: c.date_of_loss,
-				loss_location: c.loss_location,
+				loss_street_address: c.loss_street_address,
+				loss_city: c.loss_city,
+				loss_state: c.loss_state,
+				loss_postal_code: c.loss_postal_code,
+				loss_country: c.loss_country,
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
 				client_id: ctx.session.user.client_id!,
@@ -388,7 +400,11 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				insured: eb.ref('excluded.insured'),
 				claim_amount: eb.ref('excluded.claim_amount'),
 				date_of_loss: eb.ref('excluded.date_of_loss'),
-				loss_location: eb.ref('excluded.loss_location'),
+				loss_street_address: eb.ref('excluded.loss_street_address'),
+				loss_city: eb.ref('excluded.loss_city'),
+				loss_state: eb.ref('excluded.loss_state'),
+				loss_postal_code: eb.ref('excluded.loss_postal_code'),
+				loss_country: eb.ref('excluded.loss_country'),
 				last_updated_by: eb.ref('excluded.last_updated_by'),
 				last_update: eb.ref('excluded.last_update'),
 			}))

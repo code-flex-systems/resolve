@@ -13,6 +13,7 @@ import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { ClaimPartyRoleValue, EntityCategoryValue } from '@/components/common/ReferenceDataSelect';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
+import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
@@ -351,7 +352,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 													{claimParty.office && (
 														<Typography fontSize={13} marginBottom={0.5}>
 															Office: <Highlight>{claimParty.office.office_name}</Highlight>
-															{claimParty.office.address && ` - ${claimParty.office.address}`}
+															{(claimParty.office.city || claimParty.office.state) &&
+																` - ${formatCityState(claimParty.office.city, claimParty.office.state)}`}
 														</Typography>
 													)}
 

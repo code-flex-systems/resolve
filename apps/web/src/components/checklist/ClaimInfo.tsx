@@ -9,6 +9,7 @@ import BasicButtonStyled from '../common/BasicButtonStyled';
 import { StackedRow } from '../common/StackedRow';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { formatCityState } from '@/schemas/addressSchemas';
 
 export default function ClaimInfo() {
 	const { data: session } = useClerkSession();
@@ -93,7 +94,7 @@ export default function ClaimInfo() {
 											primary="Date of Loss"
 											secondary={formatMDY(claim.date_of_loss?.toString() ?? '')}
 										/>
-										<StackedRow primary="Loss Location" secondary={claim.loss_location} />
+										<StackedRow primary="Loss Location" secondary={formatCityState(claim.loss_city, claim.loss_state) || undefined} />
 										<StackedRow
 											primary="Last Update By"
 											secondary={`${claim.last_updated_by} on ${formatMDY(claim.last_update?.toString() ?? '')}`}

@@ -155,7 +155,11 @@ export interface Claim {
   insured: string | null;
   last_update: Timestamp | null;
   last_updated_by: string | null;
-  loss_location: string | null;
+  loss_city: string | null;
+  loss_country: string | null;
+  loss_postal_code: string | null;
+  loss_state: string | null;
+  loss_street_address: string | null;
   /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
@@ -513,8 +517,9 @@ export interface PageInstanceStatus {
 }
 
 export interface Party {
-  address: string | null;
+  city: string | null;
   client_id: string;
+  country: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -539,12 +544,16 @@ export interface Party {
    */
   party_type: string;
   phone: string | null;
+  postal_code: string | null;
+  state: string | null;
+  street_address: string | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface PartyOffice {
-  address: string | null;
+  city: string | null;
+  country: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -561,6 +570,9 @@ export interface PartyOffice {
   office_name: string | null;
   party_id: number;
   phone: string | null;
+  postal_code: string | null;
+  state: string | null;
+  street_address: string | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }

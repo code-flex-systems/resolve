@@ -723,7 +723,7 @@ describe('partyQueries integration', () => {
 			expect(result.rows.some((o) => o.office_name === 'Office B')).toBe(true);
 		});
 
-		it('should search by party name, office name, or address', async () => {
+		it('should search by party name, office name, or city/state', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const party = await createTestParty(db, {
@@ -736,7 +736,8 @@ describe('partyQueries integration', () => {
 				party_id: party.id,
 				created_by: user.id,
 				office_name: 'Headquarters',
-				address: '123 Main St',
+				city: 'Denver',
+				state: 'CO',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -749,9 +750,13 @@ describe('partyQueries integration', () => {
 			const result2 = await getAllPartyOffices(ctx, 'Headquarters');
 			expect(result2.rows.some((o) => o.office_name === 'Headquarters')).toBe(true);
 
-			// Search by address
-			const result3 = await getAllPartyOffices(ctx, '123 Main');
+			// Search by city
+			const result3 = await getAllPartyOffices(ctx, 'Denver');
 			expect(result3.rows.some((o) => o.office_name === 'Headquarters')).toBe(true);
+
+			// Search by state
+			const result4 = await getAllPartyOffices(ctx, 'CO');
+			expect(result4.rows.some((o) => o.office_name === 'Headquarters')).toBe(true);
 		});
 
 		it('should handle pagination', async () => {
@@ -842,11 +847,15 @@ describe('partyQueries integration', () => {
 			const result = await createPartyOffice(ctx, {
 				party_id: party.id,
 				office_name: 'New Office',
-				address: '456 Office Way',
+				street_address: '456 Office Way',
+				city: 'Denver',
+				state: 'CO',
 			});
 
 			expect(result.office_name).toBe('New Office');
-			expect(result.address).toBe('456 Office Way');
+			expect(result.street_address).toBe('456 Office Way');
+			expect(result.city).toBe('Denver');
+			expect(result.state).toBe('CO');
 		});
 
 		it('should unset other primaries when creating a primary office', async () => {
@@ -1433,7 +1442,8 @@ describe('partyQueries integration', () => {
 				party_id: party.id,
 				created_by: user.id,
 				office_name: 'Primary Office',
-				address: '789 Main St',
+				city: 'Denver',
+				state: 'CO',
 				is_primary: true,
 			});
 

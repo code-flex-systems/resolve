@@ -22,6 +22,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import OfficeDialog from './OfficeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import { formatCityState } from '@/schemas/addressSchemas';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -49,7 +50,10 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Office',
 		field: 'office',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={row.office_name || 'Unnamed office'} secondary={row.address || 'No address'} />
+			<StackedHeaderCell
+				primary={row.office_name || 'Unnamed office'}
+				secondary={formatCityState(row.city, row.state) || 'No location'}
+			/>
 		),
 		renderHeader: (params) => (
 			<IconHeaderCell {...params} icon={<LocationOn style={{ color: BASE_COLOR_LIGHT }} />} />

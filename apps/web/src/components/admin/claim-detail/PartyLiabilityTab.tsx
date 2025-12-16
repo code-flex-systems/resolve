@@ -12,6 +12,7 @@ import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { LineOfBusinessValue, LossTypeValue, ClaimPartyRoleValue } from '@/components/common/ReferenceDataSelect';
+import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
@@ -386,8 +387,8 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 														<Typography fontSize={13} marginBottom={0.5}>
 															Office:{' '}
 															<Highlight>{claimParty.office.office_name}</Highlight>
-															{claimParty.office.address &&
-																` - ${claimParty.office.address}`}
+															{(claimParty.office.city || claimParty.office.state) &&
+																` - ${formatCityState(claimParty.office.city, claimParty.office.state)}`}
 														</Typography>
 													)}
 

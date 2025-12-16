@@ -13,6 +13,7 @@ import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import UserSearch from '../checklist/UserSearch';
 import { StackedRow } from '../common/StackedRow';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
+import { formatCityState } from '@/schemas/addressSchemas';
 
 export default function ClaimAssignmentDialog() {
 	const [progress, setProgress] = useState(0);
@@ -173,7 +174,7 @@ export default function ClaimAssignmentDialog() {
 											/>
 											<StackedRow
 												primary="Loss Location"
-												secondary={nextClaimData.claim.loss_location}
+												secondary={formatCityState(nextClaimData.claim.loss_city, nextClaimData.claim.loss_state) || undefined}
 											/>
 											<StackedRow
 												primary="Last Update By"
