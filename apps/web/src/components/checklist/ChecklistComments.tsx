@@ -7,6 +7,7 @@ import {
 	Divider,
 	IconButton,
 	InputAdornment,
+	Skeleton,
 	Stack,
 	TextField,
 	Typography,
@@ -19,7 +20,6 @@ import { useChecklistStore } from '@/stores/useChecklistStore';
 import Comments from '../common/Comments';
 import { useState } from 'react';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
-import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import config from '@/config/config';
@@ -159,8 +159,10 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				overflow="auto"
 			>
 				{isFetching ? (
-					<Stack width="100%" height="100%" display="flex" justifyContent="center" alignItems="center">
-						<WobbleLoadingIndicator hideMsg />
+					<Stack width="100%" spacing={1.5} p={1.5}>
+						{[1, 2, 3].map((i) => (
+							<Skeleton key={i} variant="rounded" height={50} />
+						))}
 					</Stack>
 				) : (
 					<Comments

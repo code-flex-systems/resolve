@@ -1,10 +1,7 @@
 'use client';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import BasicDialog from '../common/BasicDialog';
-import { Chip, Fade, Typography } from '@mui/material';
-import { LineWobble } from 'ldrs/react';
-import 'ldrs/react/LineWobble.css';
-import theme from '@/styles/theme';
+import { Chip, Fade, Skeleton, Typography } from '@mui/material';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import ArrowCircleRightOutlined from '@mui/icons-material/ArrowCircleRightOutlined';
 import Checklist from '@mui/icons-material/Checklist';
@@ -108,7 +105,7 @@ export default function ChecklistClaimDialog() {
 			</Fade>
 			<Fade in={searching}>
 				<div className="flex-row-center">
-					<LineWobble size="200" stroke="5" bgOpacity="0.1" speed="2.5" color={theme.palette.primary.main} />
+					<Skeleton variant="rounded" width={200} height={8} sx={{ borderRadius: 4 }} />
 				</div>
 			</Fade>
 		</BasicDialog>

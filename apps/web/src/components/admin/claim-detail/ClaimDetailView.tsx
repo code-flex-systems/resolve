@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Fade, Paper, Tab, Tabs } from '@mui/material';
+import PageTransitionWrapper from '../../common/PageTransitionWrapper';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ClaimHeader from './ClaimHeader';
@@ -38,7 +39,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 	}, [searchParams]);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claim details...">
 			<Paper
 				sx={{
 					display: 'flex',
@@ -81,6 +82,6 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 					</Box>
 				</Fade>
 			</Paper>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }

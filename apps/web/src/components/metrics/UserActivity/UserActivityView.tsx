@@ -135,7 +135,6 @@ const styles = {
 		height: '100%',
 		zIndex: 10,
 		padding: '24px',
-		borderRadius: 6,
 		marginTop: '20px',
 	},
 	table: {

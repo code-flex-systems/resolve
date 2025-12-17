@@ -228,8 +228,10 @@ const styles = {
 			fontSize: 18,
 		},
 		'& .MuiOutlinedInput-root': {
-			height: 70,
 			fontSize: 18,
+			'&:not(.MuiInputBase-multiline)': {
+				height: 70,
+			},
 		},
 	},
 };

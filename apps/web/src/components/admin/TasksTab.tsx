@@ -6,7 +6,6 @@ import {
 	Box,
 	Button,
 	Chip,
-	Fade,
 	FormControlLabel,
 	IconButton,
 	Paper,
@@ -16,6 +15,7 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { DataGridPro, GridColDef, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
@@ -380,7 +380,7 @@ export default function TasksTab() {
 	};
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading tasks...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -604,7 +604,7 @@ export default function TasksTab() {
 					</Box>
 				</Paper>
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

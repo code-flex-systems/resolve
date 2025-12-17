@@ -1,7 +1,7 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, Fade, Paper, Switch, Typography } from '@mui/material';
+import { Button, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AccountCircle from '@mui/icons-material/AccountCircle';
@@ -26,6 +26,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import SearchInput from '../common/SearchInput';
 import { TEXT_MUTED } from '@/styles/theme';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -142,7 +143,7 @@ export default function UsersTab() {
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading users...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
@@ -237,7 +238,7 @@ export default function UsersTab() {
 					</div>
 				</Paper>
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

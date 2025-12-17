@@ -1,7 +1,7 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Box, Button, Fade, Paper, Typography } from '@mui/material';
+import { Box, Button, Paper, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Assignment from '@mui/icons-material/Assignment';
@@ -21,6 +21,7 @@ import useDebounce from '@/lib/utils/useDebounce';
 import CustomPagination from '../common/CustomPagination';
 import DeskLocationTypeFilter from '../common/DeskLocationTypeFilter';
 import DeskLocationFilter from '../common/DeskLocationFilter';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 function NoUsersRows() {
 	return (
@@ -120,7 +121,7 @@ export default function DeskAssignmentTab() {
 	];
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
@@ -231,7 +232,7 @@ export default function DeskAssignmentTab() {
 					<EditUserDeskAssignmentsDialog userId={editingUserId} onClose={() => setEditingUserId(null)} />
 				)}
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

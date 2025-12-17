@@ -2,10 +2,9 @@
 
 import { LineChart } from '@mui/x-charts-pro';
 import theme from '@/styles/theme';
-import { Box, Typography } from '@mui/material';
+import { Box, Skeleton, Stack, Typography } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
-import WobbleLoadingIndicator from '@/components/common/WobbleLoadingIndicator';
 import dayjs from 'dayjs';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
 
@@ -42,9 +41,9 @@ export default function UserRecoveryMetricChart({ userId }: UserRecoveryMetricCh
 			</Box>
 
 			{isFetching && (
-				<Box width="100%" height={100} display="flex" justifyContent="center" alignItems="center">
-					<WobbleLoadingIndicator />
-				</Box>
+				<Stack width="100%" spacing={1}>
+					<Skeleton variant="rounded" width="100%" height={130} />
+				</Stack>
 			)}
 
 			{!isFetching && (

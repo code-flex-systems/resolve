@@ -11,13 +11,13 @@ import {
 	Box,
 	Button,
 	Collapse,
-	Fade,
 	Paper,
 	PopperProps,
 	Switch,
 	TextField,
 	Typography,
 } from '@mui/material';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import AddBox from '@mui/icons-material/AddBox';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import PersonSearch from '@mui/icons-material/PersonSearch';
@@ -398,7 +398,7 @@ export default function Claims() {
 		appliedClaimNumber;
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
 				<Paper sx={styles.paper} className="flex-col-start">
 					{/* Main Toolbar: Title and Actions */}
@@ -679,7 +679,7 @@ export default function Claims() {
 				</Paper>
 				<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

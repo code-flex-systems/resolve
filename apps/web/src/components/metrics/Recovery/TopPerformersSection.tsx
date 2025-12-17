@@ -1,11 +1,10 @@
 'use client';
 
-import { Box, Card, CardContent, Grid, Paper, Typography } from '@mui/material';
+import { Box, Card, CardContent, Grid, Paper, Skeleton, Typography } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateRange } from '@mui/x-date-pickers-pro';
-import WobbleLoadingIndicator from '@/components/common/WobbleLoadingIndicator';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import { containerStyles } from '@/styles/theme';
 
@@ -94,10 +93,16 @@ export default function TopPerformersSection({
 
 	if (isFetching) {
 		return (
-			<Paper elevation={0} sx={styles.paper}>
-				<Box width="100%" height={300} display="flex" justifyContent="center" alignItems="center">
-					<WobbleLoadingIndicator />
-				</Box>
+			<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
+				<Skeleton variant="text" width={150} height={32} sx={{ mb: 2 }} />
+				<Grid container spacing={3}>
+					<Grid size={6}>
+						<Skeleton variant="rounded" height={250} />
+					</Grid>
+					<Grid size={6}>
+						<Skeleton variant="rounded" height={250} />
+					</Grid>
+				</Grid>
 			</Paper>
 		);
 	}
@@ -110,7 +115,7 @@ export default function TopPerformersSection({
 
 			<Grid container spacing={3}>
 				{/* Top Claims by Recovery Amount */}
-				<Grid item xs={6}>
+				<Grid size={6}>
 					<Card variant="outlined">
 						<CardContent>
 							<Typography fontSize={14} fontWeight={600} mb={2}>
@@ -149,7 +154,7 @@ export default function TopPerformersSection({
 				</Grid>
 
 				{/* Top Sources by Recovery Amount */}
-				<Grid item xs={6}>
+				<Grid size={6}>
 					<Card variant="outlined">
 						<CardContent>
 							<Typography fontSize={14} fontWeight={600} mb={2}>
@@ -198,7 +203,6 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		width: '100%',
-		borderRadius: 3,
 		padding: '24px',
 	},
 };

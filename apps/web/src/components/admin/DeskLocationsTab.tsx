@@ -1,7 +1,7 @@
 'use client';
 
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { Button, Fade, Paper, Typography } from '@mui/material';
+import { Button, Paper, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Desk from '@mui/icons-material/Desk';
@@ -17,6 +17,7 @@ import DeskLocationTypeDialog from './DeskLocationTypeDialog';
 import DeskLocationDialog from './DeskLocationDialog';
 import DeskTypeActionsCell from './DeskTypeActionsCell';
 import DeskLocationActionsCell from './DeskLocationActionsCell';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const TYPE_COLUMNS: GridColDef[] = [
 	{
@@ -140,7 +141,7 @@ export default function DeskLocationsTab() {
 	);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk locations...">
 			<div style={styles.container}>
 				<div style={styles.panelContainer}>
 					{/* Left Panel: Desk Location Types */}
@@ -241,7 +242,7 @@ export default function DeskLocationsTab() {
 				{showNewDeskLocationTypeDialog && <DeskLocationTypeDialog />}
 				{showNewDeskLocationDialog && <DeskLocationDialog />}
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

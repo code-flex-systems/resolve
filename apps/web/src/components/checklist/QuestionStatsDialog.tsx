@@ -4,13 +4,11 @@ import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
-import { Collapse, Typography } from '@mui/material';
+import { Collapse, Skeleton, Stack, Typography } from '@mui/material';
 import Warning from '@mui/icons-material/Warning';
 import BasicButton from '../common/BasicButton';
 import { useRouter } from 'next/navigation';
-import { LineWobble } from 'ldrs/react';
-import 'ldrs/react/LineWobble.css';
-import theme, { OFFWHITE_COLOR } from '@/styles/theme';
+import { OFFWHITE_COLOR } from '@/styles/theme';
 import { IconChartDonutFilled } from '@tabler/icons-react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -53,12 +51,11 @@ export default function QuestionStatsDialog() {
 			maxHeight={600}
 		>
 			{loading && (
-				<div style={styles.loadingContainer} className="flex-col-center">
-					<Typography fontStyle="italic" color="primary">
-						Loading...
-					</Typography>
-					<LineWobble size="200" stroke="5" bgOpacity="0.1" speed="2" color={theme.palette.primary.main} />
-				</div>
+				<Stack spacing={2} p={2}>
+					{[1, 2, 3].map((i) => (
+						<Skeleton key={i} variant="rounded" height={60} />
+					))}
+				</Stack>
 			)}
 			<Collapse in={!loading}>
 				<div style={styles.row} className="flex-row-left">
@@ -85,10 +82,6 @@ export default function QuestionStatsDialog() {
 }
 
 const styles = {
-	loadingContainer: {
-		width: '100%',
-		height: 50,
-	},
 	row: {
 		padding: 10,
 	},

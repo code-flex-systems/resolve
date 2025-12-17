@@ -1,12 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Box, Fade, Paper, Stack, Typography } from '@mui/material';
+import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import Leaderboard from '@mui/icons-material/Leaderboard';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
 import { useSearchParams } from 'next/navigation';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
@@ -81,9 +80,11 @@ export default function BreakdownNavigation() {
 					<span>
 						<Paper elevation={0} sx={styles.contentPaper}>
 							{isLoading && (
-								<Box sx={styles.loadingContainer} className="flex-col-center">
-									<WobbleLoadingIndicator />
-								</Box>
+								<Stack spacing={2} width="100%" p={2}>
+									{[1, 2, 3, 4].map((i) => (
+										<Skeleton key={i} variant="rounded" height={60} />
+									))}
+								</Stack>
 							)}
 							{!isLoading && !questionStats.length && (
 								<Box sx={styles.loadingContainer} className="flex-col-center">

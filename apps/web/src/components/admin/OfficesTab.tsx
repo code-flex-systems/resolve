@@ -1,7 +1,7 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Fade, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
@@ -22,6 +22,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import OfficeDialog from './OfficeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { formatCityState } from '@/schemas/addressSchemas';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 interface OfficesTabProps {
 	isAdminContext?: boolean;
@@ -142,7 +143,7 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading offices...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
@@ -224,7 +225,7 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 					{showNewOfficeDialog && <OfficeDialog />}
 				</Paper>
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

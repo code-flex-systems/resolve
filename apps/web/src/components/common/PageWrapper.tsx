@@ -10,7 +10,7 @@ import Business from '@mui/icons-material/Business';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { Box, Fade } from '@mui/material';
+import { Box } from '@mui/material';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { BG_SECONDARY } from '@/styles/theme';
 
@@ -58,22 +58,20 @@ export default function PageWrapper({
 			}}
 		>
 			<Sidebar items={navItems} />
-			<Fade in={true} timeout={1000}>
-				<Box
-					sx={{
-						flex: 1,
-						minWidth: 0,
-						ml: '60px',
-						height: '100%',
-						display: 'flex',
-						flexDirection: 'column',
-						justifyContent: 'flex-start',
-						alignItems: 'flex-start',
-					}}
-				>
-					{children}
-				</Box>
-			</Fade>
+			<Box
+				sx={{
+					flex: 1,
+					minWidth: 0,
+					ml: '60px',
+					height: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+					justifyContent: 'flex-start',
+					alignItems: 'flex-start',
+				}}
+			>
+				{children}
+			</Box>
 		</Box>
 	);
 }

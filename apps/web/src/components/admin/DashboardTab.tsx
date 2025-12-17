@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Collapse, Fade, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Box, Collapse, Grid, Paper, Stack, Typography } from '@mui/material';
 import Checklist from '@mui/icons-material/Checklist';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import HorizontalSplit from '@mui/icons-material/HorizontalSplit';
@@ -28,6 +28,7 @@ import MetricAction from '../common/MetricAction';
 import { ClaimStatus } from '@/config/enums';
 import RecoveryMetricsChart from '../metrics/Recovery/RecoveryMetricsChart';
 import FQStepper from '../home/FQStepper';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const defaultClaimStats = {
 	[ClaimStatus.SUBMITTED]: 0,
@@ -68,7 +69,7 @@ export default function DashboardTab() {
 	};
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading dashboard...">
 			<Box
 				width="100%"
 				flex={1}
@@ -240,7 +241,7 @@ export default function DashboardTab() {
 					</Grid>
 				</Box>
 			</Box>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

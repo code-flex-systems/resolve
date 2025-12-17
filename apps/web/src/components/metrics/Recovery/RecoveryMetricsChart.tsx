@@ -1,10 +1,9 @@
 'use client';
 import { LineChart } from '@mui/x-charts-pro';
 import theme, { containerStyles } from '@/styles/theme';
-import { Box, Card, CardContent, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Grid, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
-import WobbleLoadingIndicator from '@/components/common/WobbleLoadingIndicator';
 import dayjs, { Dayjs } from 'dayjs';
 import BasicButtonStyled from '../../common/BasicButtonStyled';
 import Troubleshoot from '@mui/icons-material/Troubleshoot';
@@ -147,8 +146,13 @@ export default function RecoveryMetricsChart({
 				</Box>
 
 				{isLoading && (
-					<Stack width="100%" height={300} display="flex" justifyContent="center" alignItems="center">
-						<WobbleLoadingIndicator />
+					<Stack width="100%" spacing={2}>
+						<Stack direction="row" spacing={spacing}>
+							<Skeleton variant="rounded" width="33%" height={80} />
+							<Skeleton variant="rounded" width="33%" height={80} />
+							<Skeleton variant="rounded" width="33%" height={80} />
+						</Stack>
+						<Skeleton variant="rounded" width="100%" height={chartHeight} />
 					</Stack>
 				)}
 
@@ -313,7 +317,6 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		width: '100%',
-		borderRadius: 3,
 		padding: '24px',
 	},
 };

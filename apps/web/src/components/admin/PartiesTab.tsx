@@ -1,7 +1,7 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Fade, Paper, Switch, Typography } from '@mui/material';
+import { Button, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
@@ -21,6 +21,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { PartyCategoryValue } from '../common/ReferenceDataSelect';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 interface PartiesTabProps {
 	isAdminContext?: boolean;
@@ -130,7 +131,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading parties...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
@@ -217,7 +218,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 					{showNewPartyDialog && <PartyDialog />}
 				</Paper>
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 

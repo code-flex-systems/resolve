@@ -222,7 +222,6 @@ const styles = {
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
 		width: '100%',
-		borderRadius: 3,
 		padding: '24px',
 	},
 };
