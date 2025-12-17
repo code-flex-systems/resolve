@@ -404,6 +404,62 @@ export function ClaimPartyRoleSelect({
 	);
 }
 
+export function ClaimantPartyRoleSelect({
+	role,
+	setRole,
+	clearable = true,
+	height,
+	text = 'Select role',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
+	role: string | null;
+	setRole: (newRole: string | null) => void;
+}) {
+	return (
+		<ReferenceDataSelect
+			entity="claimant_party_role"
+			value={role}
+			onChange={setRole}
+			clearable={clearable}
+			height={height}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
+}
+
+export function AdversePartyRoleSelect({
+	role,
+	setRole,
+	clearable = true,
+	height,
+	text = 'Select role',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
+	role: string | null;
+	setRole: (newRole: string | null) => void;
+}) {
+	return (
+		<ReferenceDataSelect
+			entity="adverse_party_role"
+			value={role}
+			onChange={setRole}
+			clearable={clearable}
+			height={height}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
+}
+
 export function FacilitatorCategorySelect({
 	category,
 	setCategory,

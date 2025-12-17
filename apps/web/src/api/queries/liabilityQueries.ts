@@ -315,3 +315,21 @@ export async function findClaimLiabilityByExternalRef(
 		.where('claim_liability.external_reference', '=', externalReference)
 		.executeTakeFirst();
 }
+
+/**
+ * Archive all liabilities for a claim_party (soft delete)
+ * Used when archiving an entity or facilitator from a claim.
+ * Similar to archiveCoveragesByClaimParty in coverageQueries.ts.
+ */
+export async function archiveLiabilitiesByClaimParty(ctx: ProtectedContext, claimPartyId: number) {
+	await ctx.db
+		.updateTable('claim_liability')
+		.set({
+			deleted_at: new Date(),
+			deleted_by: ctx.session.user.id,
+		})
+		.where('claim_party_id', '=', claimPartyId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('deleted_at', 'is', null)
+		.execute();
+}

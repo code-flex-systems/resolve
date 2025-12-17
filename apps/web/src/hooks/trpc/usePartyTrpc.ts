@@ -253,9 +253,10 @@ export function usePartyTrpc() {
 		}),
 
 		/**
-		 * Unlink party from claim (invalidates claim party list after success)
+		 * Archive claim party (soft delete with cascade to facilitators, coverages, liabilities)
+		 * Invalidates claim party list and updates expected_recovery after success
 		 */
-		unlinkFromClaim: trpc.party.unlinkPartyFromClaim.useMutation({
+		archiveClaimParty: trpc.party.archiveClaimParty.useMutation({
 			onSuccess(data) {
 				utils.party.getClaimParties.invalidate({ claimId: data.claimId });
 				// Update cached claim detail with new expected_recovery

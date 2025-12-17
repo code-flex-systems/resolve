@@ -158,6 +158,7 @@ export async function createTestClaimParty(
 		notes?: string | null;
 		external_reference?: string | null;
 		liability_percentage?: string | null;
+		parent_claim_party_id?: number | null;
 		deleted_at?: Date | null;
 		deleted_by?: string | null;
 	}
@@ -171,6 +172,7 @@ export async function createTestClaimParty(
 		notes: overrides.notes ?? null,
 		external_reference: overrides.external_reference ?? null,
 		liability_percentage: overrides.liability_percentage ?? null,
+		parent_claim_party_id: overrides.parent_claim_party_id ?? null,
 		deleted_at: overrides.deleted_at ?? null,
 		deleted_by: overrides.deleted_by ?? null,
 		created_by: overrides.created_by,

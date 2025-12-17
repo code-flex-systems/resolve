@@ -29,7 +29,8 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 				workflow: 1,
 				recovery: 2,
 				'claimants-coverage': 3,
-				'facilitators-liability': 4,
+				'adverse-parties-liability': 4,
+				'facilitators-liability': 4, // Keep old URL for backwards compatibility
 			};
 			const tabIndex = tabMap[tabParam.toLowerCase()];
 			if (tabIndex !== undefined) {
@@ -63,7 +64,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 						<Tab label="Workflow & Assignment" />
 						<Tab label="Recovery" />
 						<Tab label="Claimants & Coverage" />
-						<Tab label="Facilitators & Liability" />
+						<Tab label="Adverse Parties & Liability" />
 					</Tabs>
 				</Paper>
 

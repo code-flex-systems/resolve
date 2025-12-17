@@ -342,12 +342,12 @@ export const partyRouter = router({
 		}),
 
 	/**
-	 * Unlink party from claim (Admin only)
+	 * Archive claim party (soft delete) with cascade to facilitators, coverages, and liabilities (Admin only)
 	 */
-	unlinkPartyFromClaim: protectedProcedure
+	archiveClaimParty: protectedProcedure
 		.input(unlinkPartyFromClaimInput)
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return partyController.unlinkPartyFromClaim(ctx, input);
+			return partyController.archiveClaimParty(ctx, input);
 		}),
 });

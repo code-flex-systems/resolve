@@ -211,6 +211,7 @@ export interface ClaimLiability {
   created_at: Generated<Timestamp>;
   created_by: string | null;
   deleted_at: Timestamp | null;
+  deleted_by: string | null;
   /**
    * External ID from source system (for upsert logic)
    */
@@ -255,6 +256,7 @@ export interface ClaimParty {
   is_primary: Generated<boolean>;
   liability_percentage: Numeric | null;
   notes: string | null;
+  parent_claim_party_id: number | null;
   party_id: number;
   /**
    * Specific representative from the party handling this claim (optional)

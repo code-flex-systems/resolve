@@ -159,7 +159,7 @@ vi.mock('@/api/controllers/partyController', () => ({
 	getClaimParties: vi.fn(),
 	linkPartyToClaim: vi.fn(),
 	updateClaimParty: vi.fn(),
-	unlinkPartyFromClaim: vi.fn(),
+	archiveClaimParty: vi.fn(),
 }));
 
 // Reusable mock user with all required fields
@@ -2857,7 +2857,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.unlinkPartyFromClaim({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.archiveClaimParty({ id: 1 })).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to unlink party from claim', async () => {
@@ -2868,10 +2868,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockPartyController = await import('@/api/controllers/partyController');
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					vi.mocked(mockPartyController.unlinkPartyFromClaim).mockResolvedValue({} as any);
+					vi.mocked(mockPartyController.archiveClaimParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.unlinkPartyFromClaim({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.archiveClaimParty({ id: 1 })).resolves.toBeDefined();
 				});
 			});
 

@@ -541,9 +541,13 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: 
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
-	{ claimId, partyType }: { claimId: number; partyType?: 'entity' | 'facilitator' }
+	{ claimId, partyType, roleListEntity }: {
+		claimId: number;
+		partyType?: 'entity' | 'facilitator';
+		roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
+	}
 ) {
-	return await partyQueries.getClaimParties(ctx, claimId, { partyType });
+	return await partyQueries.getClaimParties(ctx, claimId, { partyType, roleListEntity });
 }
 
 /**
@@ -560,6 +564,8 @@ export async function linkPartyToClaim(
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
+		liability_percentage?: number;
+		parent_claim_party_id?: number | null;
 	}
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
@@ -603,6 +609,7 @@ export async function updateClaimParty(
 			notes?: string;
 			external_reference?: string;
 			liability_percentage?: number | null;
+			parent_claim_party_id?: number | null;
 		};
 	}
 ) {
@@ -634,10 +641,11 @@ export async function updateClaimParty(
 }
 
 /**
- * Unlink party from claim with admin logging
+ * Archive (soft delete) claim party with admin logging
+ * Cascades to archive all nested facilitators, coverages, and liabilities
  * @returns expectedRecovery and claimId
  */
-export async function unlinkPartyFromClaim(
+export async function archiveClaimParty(
 	ctx: ProtectedContext,
 	{ id }: { id: number }
 ) {
@@ -647,7 +655,7 @@ export async function unlinkPartyFromClaim(
 			id
 		);
 
-		const { expectedRecovery, claimId } = await partyQueries.unlinkPartyFromClaim({ ...ctx, db: trx }, id);
+		const { expectedRecovery, claimId } = await partyQueries.archiveClaimParty({ ...ctx, db: trx }, id);
 
 		if (claimPartyForLog) {
 			await logAdminAction({ ...ctx, db: trx }, {

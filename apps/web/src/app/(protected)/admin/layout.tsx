@@ -86,11 +86,11 @@ const adminNavCategories: AdminNavCategory[] = [
 				route: '/admin/claims',
 				icon: <ContentPasteSearchIcon fontSize="small" />,
 			},
-			{
-				label: 'Coverages',
-				route: '/admin/claims/coverages',
-				icon: <ShieldIcon fontSize="small" />,
-			},
+			// {
+			// 	label: 'Coverages',
+			// 	route: '/admin/claims/coverages',
+			// 	icon: <ShieldIcon fontSize="small" />,
+			// },
 		],
 		defaultExpanded: false,
 	},

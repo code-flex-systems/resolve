@@ -18,3 +18,4 @@ export * from './page';
 export * from './recovery';
 export * from './doc';
 export * from './coverage';
+export * from './reference';

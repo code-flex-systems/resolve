@@ -219,6 +219,7 @@ export const deletePartyRepresentativeInput = archivePartyRepresentativeInput;
 export const getClaimPartiesInput = z.object({
 	claimId: z.number().int().positive(),
 	partyType: z.nativeEnum(PartyType).optional(),
+	roleListEntity: z.enum(['claimant_party_role', 'adverse_party_role']).optional(),
 });
 
 /**
@@ -234,6 +235,7 @@ export const linkPartyToClaimInput = z.object({
 	liability_percentage: z.number().min(0).max(100).optional(),
 	notes: z.string().max(2000).optional(),
 	external_reference: z.string().max(255).optional(),
+	parent_claim_party_id: z.number().int().positive().nullable().optional(),
 });
 
 /**
@@ -249,6 +251,7 @@ export const updateClaimPartyInput = z.object({
 		liability_percentage: z.number().min(0).max(100).nullable().optional(),
 		notes: z.string().max(2000).optional(),
 		external_reference: z.string().max(255).optional(),
+		parent_claim_party_id: z.number().int().positive().nullable().optional(),
 	}),
 });
 

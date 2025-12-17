@@ -226,7 +226,7 @@ export async function updateClaim(
 			const {
 				getClaimParties,
 				linkPartyToClaim,
-				unlinkPartyFromClaim,
+				archiveClaimParty,
 				updateClaimParty,
 			} = await import('@/api/queries/partyQueries');
 
@@ -236,16 +236,16 @@ export async function updateClaim(
 			const existingPrimary = existingParties.find((p) => p.is_primary);
 
 			if (party_id === null) {
-				// User wants to remove party - unlink the primary party
+				// User wants to remove party - archive the primary party
 				if (existingPrimary) {
-					await unlinkPartyFromClaim({ ...ctx, db: trx }, existingPrimary.id);
+					await archiveClaimParty({ ...ctx, db: trx }, existingPrimary.id);
 					await logAdminAction(
 						{ ...ctx, db: trx },
 						{
 							entityId: claimId,
 							entityName: EntityName.CLAIM,
 							action: AdminAction.UPDATE,
-							value: { action: 'unlinked_party', party_id: existingPrimary.party_id },
+							value: { action: 'archived_party', party_id: existingPrimary.party_id },
 						}
 					);
 				}
@@ -258,8 +258,8 @@ export async function updateClaim(
 				if (existingPrimary) {
 					// Update existing primary party
 					if (partyChanged || roleChanged) {
-						// Party or role changed - delete old and create new
-						await unlinkPartyFromClaim({ ...ctx, db: trx }, existingPrimary.id);
+						// Party or role changed - archive old and create new
+						await archiveClaimParty({ ...ctx, db: trx }, existingPrimary.id);
 						await linkPartyToClaim(
 							{ ...ctx, db: trx },
 							{

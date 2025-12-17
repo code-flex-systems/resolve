@@ -1,27 +1,27 @@
 'use client';
 
-import { Box, Button, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, Divider, IconButton, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Person from '@mui/icons-material/Person';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
-import { useState } from 'react';
+import UnfoldMore from '@mui/icons-material/UnfoldMore';
+import UnfoldLess from '@mui/icons-material/UnfoldLess';
+import { useState, useMemo, useCallback } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useCoverageTrpc } from '@/hooks/trpc/useCoverageTrpc';
-import Highlight from '@/components/common/Highlight';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
-import { ClaimPartyRoleChip, EntityCategoryChip } from '@/components/common/ReferenceDataSelect';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
-import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
 import CoverageFormDialog from '../../coverage/CoverageFormDialog';
+import PartyCard from './PartyCard';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { PartyType } from '@/config/enums';
 
 dayjs.extend(relativeTime);
 
@@ -36,24 +36,78 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const [editingCoverage, setEditingCoverage] = useState<any | null>(null);
 	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<number | null>(null);
 	const [archivingCoverage, setArchivingCoverage] = useState<{ id: number; coverageType: string | null } | null>(null);
+	const [archivingClaimParty, setArchivingClaimParty] = useState<any | null>(null);
+	const [isFacilitatorMode, setIsFacilitatorMode] = useState(false);
+	const [parentClaimPartyId, setParentClaimPartyId] = useState<number | null>(null);
+	const [allExpanded, setAllExpanded] = useState(true);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
 	const coverageTrpc = useCoverageTrpc();
 
-	// Only fetch Entity-type parties (claimants, responsible parties, witnesses, property owners)
+	// Fetch parties with claimant_party_role roles
 	const { data: claimParties = [], isLoading } = partyTrpc.listClaimParties(
-		{ claimId, partyType: PartyType.ENTITY },
+		{ claimId, roleListEntity: 'claimant_party_role' },
 		{ enabled: !!claimId }
 	);
 
+	// Group parties into entities (root) and facilitators (nested under parent)
+	const { entities, facilitatorsByParent } = useMemo(() => {
+		const entitiesArray: any[] = [];
+		const facilitatorsMap: Record<number, any[]> = {};
+
+		claimParties.forEach((cp) => {
+			if (cp.parent_claim_party_id) {
+				// This is a facilitator
+				if (!facilitatorsMap[cp.parent_claim_party_id]) {
+					facilitatorsMap[cp.parent_claim_party_id] = [];
+				}
+				facilitatorsMap[cp.parent_claim_party_id].push(cp);
+			} else if (cp.party?.party_type === 'entity') {
+				// This is a root-level entity
+				entitiesArray.push(cp);
+			} else {
+				// Legacy facilitator without parent - treat as entity for display
+				entitiesArray.push(cp);
+			}
+		});
+
+		return { entities: entitiesArray, facilitatorsByParent: facilitatorsMap };
+	}, [claimParties]);
+
 	const linkPartyMutation = partyTrpc.linkToClaim;
 	const updatePartyMutation = partyTrpc.updateClaimParty;
+	const archiveClaimPartyMutation = partyTrpc.archiveClaimParty;
 	const createCoverageMutation = coverageTrpc.create;
 	const updateCoverageMutation = coverageTrpc.update;
 	const archiveCoverageMutation = coverageTrpc.archive;
 
-	const handleOpenPartyDialog = (claimParty?: any) => {
+	// Compute archive preview from existing frontend data (no backend query needed)
+	const archivePreview = useMemo(() => {
+		if (!archivingClaimParty) return null;
+		const facilitatorCount = facilitatorsByParent[archivingClaimParty.id]?.length ?? 0;
+		const coverageCount = archivingClaimParty.coverages?.length ?? 0;
+		return {
+			facilitatorCount,
+			coverageCount,
+			hasNestedElements: facilitatorCount > 0 || coverageCount > 0,
+		};
+	}, [archivingClaimParty, facilitatorsByParent]);
+
+	const handleOpenEntityDialog = (claimParty?: any) => {
+		setIsFacilitatorMode(false);
+		setParentClaimPartyId(null);
+		if (claimParty) {
+			setEditingClaimParty(claimParty);
+		} else {
+			setEditingClaimParty(null);
+		}
+		setShowPartyDialog(true);
+	};
+
+	const handleOpenFacilitatorDialog = (parentId?: number | null, claimParty?: any) => {
+		setIsFacilitatorMode(true);
+		setParentClaimPartyId(parentId || null);
 		if (claimParty) {
 			setEditingClaimParty(claimParty);
 		} else {
@@ -65,6 +119,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const handleClosePartyDialog = () => {
 		setShowPartyDialog(false);
 		setEditingClaimParty(null);
+		setIsFacilitatorMode(false);
+		setParentClaimPartyId(null);
 	};
 
 	const handleOpenCoverageDialog = (claimPartyId: number, coverage?: any) => {
@@ -89,6 +145,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		representative_id?: number | null;
 		liability_percentage?: number | null;
 		notes?: string | null;
+		parent_claim_party_id?: number | null;
 	}) => {
 		try {
 			if (editingClaimParty) {
@@ -96,10 +153,11 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				await updatePartyMutation.mutateAsync({
 					id: editingClaimParty.id,
 					params: {
-						role: data.role as import('@/config/enums').ClaimPartyRole,
+						role: data.role,
 						representative_id: data.representative_id ?? undefined,
 						liability_percentage: data.liability_percentage ?? undefined,
 						notes: data.notes ?? undefined,
+						parent_claim_party_id: data.parent_claim_party_id ?? undefined,
 					},
 				});
 			} else {
@@ -107,10 +165,11 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				await linkPartyMutation.mutateAsync({
 					claim_id: claimId,
 					party_id: data.party_id,
-					role: data.role as import('@/config/enums').ClaimPartyRole,
+					role: data.role,
 					representative_id: data.representative_id ?? undefined,
 					liability_percentage: data.liability_percentage ?? undefined,
 					notes: data.notes ?? undefined,
+					parent_claim_party_id: data.parent_claim_party_id ?? undefined,
 				});
 			}
 			handleClosePartyDialog();
@@ -165,6 +224,21 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		}
 	};
 
+	const handleArchiveClaimParty = async () => {
+		if (!archivingClaimParty) return;
+
+		try {
+			await archiveClaimPartyMutation.mutateAsync({ id: archivingClaimParty.id });
+			const partyType = archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity';
+			showAlert(`${partyType} archived successfully`, 'success');
+			setArchivingClaimParty(null);
+		} catch (error: any) {
+			const message = error?.message || 'Failed to archive party';
+			showAlert(message, 'error');
+			setArchivingClaimParty(null);
+		}
+	};
+
 	// Calculate totals from coverages
 	const totalCoverageAmount = claimParties.reduce((sum, cp) => {
 		const partyCoverageSum = (cp.coverages || []).reduce((coverageSum: number, coverage: any) => {
@@ -181,6 +255,97 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		}, 0);
 		return sum + partyReservedSum;
 	}, 0);
+
+	// Render coverage content for a party
+	const renderCoverageContent = useCallback(
+		(claimParty: any) => (
+			<Box marginTop={2}>
+				<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={1}>
+					<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
+						Coverages ({(claimParty.coverages || []).length})
+					</Typography>
+					<Button
+						size="small"
+						startIcon={<AddBox />}
+						variant="outlined"
+						onClick={() => handleOpenCoverageDialog(claimParty.id)}
+					>
+						Add Coverage
+					</Button>
+				</Box>
+
+				{(claimParty.coverages || []).length === 0 && (
+					<Typography fontSize={12} color="text.secondary" fontStyle="italic" marginY={1}>
+						No coverages added yet
+					</Typography>
+				)}
+
+				{(claimParty.coverages || []).length > 0 && (
+					<Stack spacing={1.5} marginTop={1}>
+						{claimParty.coverages.map((coverage: any) => (
+							<Paper
+								key={coverage.id}
+								variant="outlined"
+								sx={{
+									padding: 2,
+									backgroundColor: 'background.default',
+									boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+								}}
+							>
+								<Box display="flex" justifyContent="space-between" alignItems="flex-start">
+									<Box flex={1}>
+										<Typography fontSize={14} fontWeight={600} marginBottom={1}>
+											{formatCoverageType(coverage.coverage_type)}
+										</Typography>
+										<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
+											{coverage.coverage_amount && (
+												<Chip
+													label={`Limit: ${formatCurrencyExact(parseFloat(coverage.coverage_amount.toString()))}`}
+													size="small"
+													color="primary"
+												/>
+											)}
+											{coverage.amount_reserved && (
+												<Chip
+													label={`Reserved: ${formatCurrencyExact(parseFloat(coverage.amount_reserved.toString()))}`}
+													size="small"
+													color="warning"
+													variant="outlined"
+												/>
+											)}
+										</Box>
+									</Box>
+									<Box display="flex" gap={0.5}>
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () => handleOpenCoverageDialog(claimParty.id, coverage),
+											}}
+											tooltipProps={{ title: 'Edit coverage' }}
+											icon={<Edit />}
+											compact
+										/>
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () =>
+													setArchivingCoverage({
+														id: coverage.id,
+														coverageType: coverage.coverage_type,
+													}),
+											}}
+											tooltipProps={{ title: 'Archive coverage' }}
+											icon={<Archive sx={{ color: 'error.main' }} />}
+											compact
+										/>
+									</Box>
+								</Box>
+							</Paper>
+						))}
+					</Stack>
+				)}
+			</Box>
+		),
+		[]
+	);
 
 	return (
 		<Box p={3}>
@@ -215,13 +380,13 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						</Box>
 						<Box>
 							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Linked Parties
+								Linked Entities
 							</Typography>
 							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
 								Claimants and other entities
 							</Typography>
 							<Typography variant="h6" fontSize={18} color="success.main">
-								{claimParties.length}
+								{entities.length}
 							</Typography>
 						</Box>
 					</Box>
@@ -231,16 +396,41 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
-							Claimants & Entities ({claimParties.length})
+							Claimants & Entities ({entities.length})
 						</Typography>
-						<Button
-							size="small"
-							startIcon={<AddBox />}
-							variant="contained"
-							onClick={() => handleOpenPartyDialog()}
-						>
-							Add Party
-						</Button>
+						<Box display="flex" gap={1} alignItems="center">
+							{entities.length > 0 && (
+								<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
+									<IconButton
+										size="small"
+										onClick={() => setAllExpanded(!allExpanded)}
+										sx={{ mr: 0.5 }}
+									>
+										{allExpanded ? (
+											<UnfoldLess sx={{ fontSize: 20 }} />
+										) : (
+											<UnfoldMore sx={{ fontSize: 20 }} />
+										)}
+									</IconButton>
+								</Tooltip>
+							)}
+							<Button
+								size="small"
+								startIcon={<PersonAdd />}
+								variant="outlined"
+								onClick={() => handleOpenFacilitatorDialog()}
+							>
+								Add Facilitator
+							</Button>
+							<Button
+								size="small"
+								startIcon={<AddBox />}
+								variant="contained"
+								onClick={() => handleOpenEntityDialog()}
+							>
+								Add Entity
+							</Button>
+						</Box>
 					</Box>
 
 					{isLoading && (
@@ -250,7 +440,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						</Stack>
 					)}
 
-					{!isLoading && claimParties.length === 0 && (
+					{!isLoading && entities.length === 0 && (
 						<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" padding={4}>
 							<Person sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
@@ -259,234 +449,23 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						</Box>
 					)}
 
-					{!isLoading && claimParties.length > 0 && (
+					{!isLoading && entities.length > 0 && (
 						<Stack spacing={2}>
-							{claimParties.map((claimParty, index) => (
+							{entities.map((claimParty, index) => (
 								<Box key={claimParty.id}>
-									<Box display="flex" gap={2}>
-										<Box
-											sx={{
-												width: 8,
-												height: 8,
-												borderRadius: '50%',
-												bgcolor: 'primary.main',
-												marginTop: '8px',
-												flexShrink: 0,
-											}}
-										/>
-										<Box flex={1}>
-											<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-												<Box flex={1}>
-													{/* Party Name and Role */}
-													<Box display="flex" alignItems="center" gap={1} marginBottom={0.5}>
-														<Typography fontSize={16} fontWeight={600}>
-															{claimParty.party?.name || 'Unknown Party'}
-														</Typography>
-														<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />
-														{claimParty.party?.party_category && (
-															<EntityCategoryChip
-																value={claimParty.party.party_category}
-																showEmoji={false}
-															/>
-														)}
-													</Box>
-
-													{/* Party Organization */}
-													{claimParty.party?.organization && (
-														<Typography fontSize={13} marginBottom={0.5} color="text.secondary">
-															Organization: <Highlight>{claimParty.party.organization}</Highlight>
-														</Typography>
-													)}
-
-													{/* Party Contact Info */}
-													{(claimParty.party?.email || claimParty.party?.phone) && (
-														<Box display="flex" gap={2} marginBottom={0.5}>
-															{claimParty.party?.email && (
-																<Typography fontSize={12} color="text.secondary">
-																	{claimParty.party.email}
-																</Typography>
-															)}
-															{claimParty.party?.phone && (
-																<Typography fontSize={12} color="text.secondary">
-																	{claimParty.party.phone}
-																</Typography>
-															)}
-														</Box>
-													)}
-
-													{/* Representative */}
-													{claimParty.representative && (
-														<Box marginBottom={0.5}>
-															<Typography fontSize={13} display="inline">
-																Representative:{' '}
-																<Highlight>
-																	{claimParty.representative.first_name}{' '}
-																	{claimParty.representative.last_name}
-																</Highlight>
-																{claimParty.representative.title &&
-																	` - ${claimParty.representative.title}`}
-															</Typography>
-														</Box>
-													)}
-
-													{/* Office */}
-													{claimParty.office && (
-														<Typography fontSize={13} marginBottom={0.5}>
-															Office: <Highlight>{claimParty.office.office_name}</Highlight>
-															{(claimParty.office.city || claimParty.office.state) &&
-																` - ${formatCityState(claimParty.office.city, claimParty.office.state)}`}
-														</Typography>
-													)}
-
-													{/* Coverages Section */}
-													<Box marginTop={2}>
-														<Box
-															display="flex"
-															justifyContent="space-between"
-															alignItems="center"
-															marginBottom={1}
-														>
-															<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
-																Coverages ({(claimParty.coverages || []).length})
-															</Typography>
-															<Button
-																size="small"
-																startIcon={<AddBox />}
-																variant="outlined"
-																onClick={() => handleOpenCoverageDialog(claimParty.id)}
-															>
-																Add Coverage
-															</Button>
-														</Box>
-
-														{(claimParty.coverages || []).length === 0 && (
-															<Typography
-																fontSize={12}
-																color="text.secondary"
-																fontStyle="italic"
-																marginY={1}
-															>
-																No coverages added yet
-															</Typography>
-														)}
-
-														{(claimParty.coverages || []).length > 0 && (
-															<Stack spacing={1.5} marginTop={1}>
-																{claimParty.coverages.map((coverage: any) => (
-																	<Paper
-																		key={coverage.id}
-																		variant="outlined"
-																		sx={{
-																			padding: 2,
-																			backgroundColor: 'background.default',
-																			boxShadow:
-																				'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
-																		}}
-																	>
-																		<Box
-																			display="flex"
-																			justifyContent="space-between"
-																			alignItems="flex-start"
-																		>
-																			<Box flex={1}>
-																				{/* Coverage Type */}
-																				<Typography
-																					fontSize={14}
-																					fontWeight={600}
-																					marginBottom={1}
-																				>
-																					{formatCoverageType(coverage.coverage_type)}
-																				</Typography>
-
-																				{/* Coverage Details */}
-																				<Box
-																					display="flex"
-																					gap={1}
-																					marginBottom={0.5}
-																					flexWrap="wrap"
-																				>
-																					{coverage.coverage_amount && (
-																						<Chip
-																							label={`Limit: ${formatCurrencyExact(parseFloat(coverage.coverage_amount.toString()))}`}
-																							size="small"
-																							color="primary"
-																						/>
-																					)}
-																					{coverage.amount_reserved && (
-																						<Chip
-																							label={`Reserved: ${formatCurrencyExact(parseFloat(coverage.amount_reserved.toString()))}`}
-																							size="small"
-																							color="warning"
-																							variant="outlined"
-																						/>
-																					)}
-																				</Box>
-																			</Box>
-
-																			{/* Coverage Actions */}
-																			<Box display="flex" gap={0.5}>
-																				<BasicButtonStyled
-																					buttonProps={{
-																						onClick: () =>
-																							handleOpenCoverageDialog(
-																								claimParty.id,
-																								coverage
-																							),
-																					}}
-																					tooltipProps={{
-																						title: 'Edit coverage',
-																					}}
-																					icon={<Edit />}
-																					compact
-																				/>
-																				<BasicButtonStyled
-																					buttonProps={{
-																						onClick: () =>
-																							setArchivingCoverage({
-																								id: coverage.id,
-																								coverageType: coverage.coverage_type,
-																							}),
-																					}}
-																					tooltipProps={{
-																						title: 'Archive coverage',
-																					}}
-																					icon={<Archive sx={{ color: 'error.main' }} />}
-																					compact
-																				/>
-																			</Box>
-																		</Box>
-																	</Paper>
-																))}
-															</Stack>
-														)}
-													</Box>
-
-													{/* Notes */}
-													{claimParty.notes && (
-														<Typography fontSize={13} color="text.secondary" marginTop={1}>
-															Notes: {claimParty.notes}
-														</Typography>
-													)}
-
-													{/* Metadata */}
-													<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginTop={1}>
-														Linked {dayjs(claimParty.created_at).format('MMM D, YYYY')} (
-														{dayjs(claimParty.created_at).fromNow()})
-													</Typography>
-												</Box>
-
-												{/* Edit Party Button */}
-												<BasicButtonStyled
-													buttonProps={{
-														onClick: () => handleOpenPartyDialog(claimParty),
-													}}
-													icon={<Edit />}
-													compact
-												/>
-											</Box>
-										</Box>
-									</Box>
-									{index < claimParties.length - 1 && <Divider sx={{ marginTop: 2 }} />}
+									<PartyCard
+										claimParty={claimParty}
+										isNested={false}
+										facilitators={facilitatorsByParent[claimParty.id] || []}
+										onEditParty={handleOpenEntityDialog}
+										onArchiveParty={setArchivingClaimParty}
+										onAddFacilitator={handleOpenFacilitatorDialog}
+										onEditFacilitator={handleOpenFacilitatorDialog}
+										onArchiveFacilitator={(_, facilitator) => setArchivingClaimParty(facilitator)}
+										renderTabContent={renderCoverageContent}
+										expanded={allExpanded}
+									/>
+									{index < entities.length - 1 && <Divider sx={{ marginTop: 2 }} />}
 								</Box>
 							))}
 						</Stack>
@@ -494,7 +473,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				</Paper>
 			</Stack>
 
-			{/* Party Dialog - filtered to Entity types only */}
+			{/* Party Dialog */}
 			<PartyLiabilityFormDialog
 				open={showPartyDialog}
 				onClose={handleClosePartyDialog}
@@ -502,7 +481,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				editingClaimParty={editingClaimParty}
 				currentClaimParties={claimParties}
 				isSubmitting={linkPartyMutation.isPending || updatePartyMutation.isPending}
-				partyTypeFilter={PartyType.ENTITY}
+				roleListEntity="claimant_party_role"
+				isFacilitatorMode={isFacilitatorMode}
+				parentClaimPartyId={parentClaimPartyId}
+				availableParentEntities={entities}
 			/>
 
 			{/* Coverage Dialog */}
@@ -516,7 +498,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				/>
 			)}
 
-			{/* Archive Confirmation Dialog */}
+			{/* Archive Coverage Confirmation Dialog */}
 			{archivingCoverage && (
 				<BasicDialog
 					title="Archive Coverage"
@@ -546,8 +528,70 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						</Box>
 					)}
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
-						The coverage will be archived and hidden from view, but the record will be preserved for
-						traceability.
+						The coverage will be archived and hidden from view, but the record will be preserved for traceability.
+					</Typography>
+				</BasicDialog>
+			)}
+
+			{/* Archive Entity/Facilitator Confirmation Dialog */}
+			{archivingClaimParty && archivePreview && (
+				<BasicDialog
+					title={`Archive ${archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity'}`}
+					primaryAction={{
+						label: archiveClaimPartyMutation.isPending ? 'Archiving...' : 'Archive',
+						onClick: handleArchiveClaimParty,
+						color: 'error',
+						disabled: archiveClaimPartyMutation.isPending,
+					}}
+					secondaryActions={[
+						{
+							label: 'Cancel',
+							onClick: () => setArchivingClaimParty(null),
+						},
+					]}
+					onClose={() => setArchivingClaimParty(null)}
+					width={500}
+				>
+					<Typography fontStyle="italic" fontWeight="bold" marginBottom={1}>
+						Are you sure you want to archive{' '}
+						<Typography component="span" fontWeight="bold" color="primary.main">
+							{archivingClaimParty.party?.name}
+						</Typography>
+						?
+					</Typography>
+
+					{archivePreview.hasNestedElements && (
+						<Paper
+							elevation={0}
+							sx={{
+								backgroundColor: 'rgba(237, 108, 2, 0.08)',
+								padding: 2,
+								marginY: 2,
+								borderLeft: '4px solid',
+								borderColor: 'warning.main',
+							}}
+						>
+							<Typography fontSize={13} fontWeight={600} color="warning.dark" marginBottom={1}>
+								This will also archive:
+							</Typography>
+							<Stack spacing={0.5}>
+								{archivePreview.facilitatorCount > 0 && (
+									<Typography fontSize={13} color="warning.dark">
+										• {archivePreview.facilitatorCount} facilitator{archivePreview.facilitatorCount > 1 ? 's' : ''}
+									</Typography>
+								)}
+								{archivePreview.coverageCount > 0 && (
+									<Typography fontSize={13} color="warning.dark">
+										• {archivePreview.coverageCount} coverage{archivePreview.coverageCount > 1 ? 's' : ''}
+									</Typography>
+								)}
+							</Stack>
+						</Paper>
+					)}
+
+					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
+						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be archived
+						and hidden from view, but all records will be preserved for traceability.
 					</Typography>
 				</BasicDialog>
 			)}

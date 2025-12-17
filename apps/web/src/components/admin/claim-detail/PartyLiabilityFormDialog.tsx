@@ -3,7 +3,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
-import { ClaimPartyRoleSelect } from '@/components/common/ReferenceDataSelect';
+import ReferenceDataSelect, {
+	ClaimantPartyRoleSelect,
+	AdversePartyRoleSelect,
+} from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { PartyType } from '@/config/enums';
 
@@ -13,6 +16,7 @@ interface PartyLiabilityFormData {
 	representative_id: number | null;
 	liability_percentage: string;
 	notes: string;
+	parent_claim_party_id: number | null;
 }
 
 interface PartyLiabilityFormDialogProps {
@@ -24,12 +28,19 @@ interface PartyLiabilityFormDialogProps {
 		representative_id?: number | null;
 		liability_percentage?: number | null;
 		notes?: string | null;
+		parent_claim_party_id?: number | null;
 	}) => Promise<void>;
 	editingClaimParty?: any | null;
 	currentClaimParties?: any[];
 	isSubmitting?: boolean;
-	/** Filter party search results to a specific party type */
-	partyTypeFilter?: PartyType;
+	/** Reference entity for role selection ('claimant_party_role' or 'adverse_party_role') */
+	roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
+	/** Parent claim_party ID when adding a facilitator under an entity */
+	parentClaimPartyId?: number | null;
+	/** Whether this dialog is for adding/editing a facilitator (requires parent entity) */
+	isFacilitatorMode?: boolean;
+	/** Available parent entities for facilitator selection (only used when isFacilitatorMode=true and no parentClaimPartyId) */
+	availableParentEntities?: any[];
 }
 
 export default function PartyLiabilityFormDialog({
@@ -39,7 +50,10 @@ export default function PartyLiabilityFormDialog({
 	editingClaimParty,
 	currentClaimParties = [],
 	isSubmitting = false,
-	partyTypeFilter,
+	roleListEntity = 'claimant_party_role',
+	parentClaimPartyId,
+	isFacilitatorMode = false,
+	availableParentEntities = [],
 }: PartyLiabilityFormDialogProps) {
 	const [formData, setFormData] = useState<PartyLiabilityFormData>({
 		role: null,
@@ -47,13 +61,18 @@ export default function PartyLiabilityFormDialog({
 		representative_id: null,
 		liability_percentage: '',
 		notes: '',
+		parent_claim_party_id: parentClaimPartyId || null,
 	});
 
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<any | null>(null);
 	const [selectedRepresentative, setSelectedRepresentative] = useState<any | null>(null);
+	const [selectedParentEntity, setSelectedParentEntity] = useState<any | null>(null);
 
 	const partyTrpc = usePartyTrpc();
+
+	// Determine party type filter based on mode
+	const partyTypeFilter = isFacilitatorMode ? PartyType.FACILITATOR : PartyType.ENTITY;
 
 	// Fetch parties based on search term
 	const { data: partySearchResults = [] } = partyTrpc.search(
@@ -80,6 +99,12 @@ export default function PartyLiabilityFormDialog({
 	// Prepare representative autocomplete options
 	const representativeAutocompleteOptions = useMemo(() => [...representatives], [representatives]);
 
+	// Prepare parent entity options for facilitator mode
+	const parentEntityOptions = useMemo(() => {
+		if (!isFacilitatorMode || parentClaimPartyId) return [];
+		return availableParentEntities.filter((cp) => cp.party?.party_type === 'entity');
+	}, [isFacilitatorMode, parentClaimPartyId, availableParentEntities]);
+
 	// Update form when editingClaimParty changes
 	useEffect(() => {
 		if (editingClaimParty) {
@@ -89,6 +114,7 @@ export default function PartyLiabilityFormDialog({
 				representative_id: editingClaimParty.representative_id,
 				liability_percentage: editingClaimParty.liability_percentage?.toString() || '',
 				notes: editingClaimParty.notes || '',
+				parent_claim_party_id: editingClaimParty.parent_claim_party_id || null,
 			});
 			// Set selected party and representative for autocompletes
 			if (editingClaimParty.party) {
@@ -96,6 +122,11 @@ export default function PartyLiabilityFormDialog({
 			}
 			if (editingClaimParty.representative) {
 				setSelectedRepresentative(editingClaimParty.representative);
+			}
+			// Set parent entity if editing a facilitator
+			if (editingClaimParty.parent_claim_party_id && availableParentEntities.length > 0) {
+				const parent = availableParentEntities.find((p) => p.id === editingClaimParty.parent_claim_party_id);
+				setSelectedParentEntity(parent || null);
 			}
 		} else {
 			// Reset form for new entry
@@ -105,12 +136,14 @@ export default function PartyLiabilityFormDialog({
 				representative_id: null,
 				liability_percentage: '',
 				notes: '',
+				parent_claim_party_id: parentClaimPartyId || null,
 			});
 			setSelectedParty(null);
 			setSelectedRepresentative(null);
+			setSelectedParentEntity(null);
 			setPartySearchTerm('');
 		}
-	}, [editingClaimParty, open]);
+	}, [editingClaimParty, open, parentClaimPartyId, availableParentEntities]);
 
 	// Handle party selection
 	const handlePartySelect = useCallback((party: any) => {
@@ -132,8 +165,20 @@ export default function PartyLiabilityFormDialog({
 		}));
 	}, []);
 
+	// Handle parent entity selection (for facilitator mode)
+	const handleParentEntitySelect = useCallback((parentEntity: any) => {
+		setSelectedParentEntity(parentEntity);
+		setFormData((prev) => ({
+			...prev,
+			parent_claim_party_id: parentEntity?.id || null,
+		}));
+	}, []);
+
 	const handleSubmit = async () => {
 		if (!formData.party_id || !formData.role) return;
+
+		// For facilitator mode, parent is required
+		if (isFacilitatorMode && !formData.parent_claim_party_id && !parentClaimPartyId) return;
 
 		await onSubmit({
 			role: formData.role,
@@ -141,6 +186,7 @@ export default function PartyLiabilityFormDialog({
 			representative_id: formData.representative_id || null,
 			liability_percentage: formData.liability_percentage ? parseFloat(formData.liability_percentage) : null,
 			notes: formData.notes || null,
+			parent_claim_party_id: formData.parent_claim_party_id || parentClaimPartyId || null,
 		});
 	};
 
@@ -150,15 +196,30 @@ export default function PartyLiabilityFormDialog({
 			parseFloat(formData.liability_percentage) >= 0 &&
 			parseFloat(formData.liability_percentage) <= 100);
 
+	// Determine if form is valid
+	const isFormValid =
+		formData.party_id &&
+		formData.role &&
+		isValidLiabilityPercentage &&
+		(!isFacilitatorMode || formData.parent_claim_party_id || parentClaimPartyId);
+
 	if (!open) return null;
+
+	// Determine dialog title based on mode
+	const getDialogTitle = () => {
+		if (editingClaimParty) {
+			return isFacilitatorMode ? 'Edit Facilitator' : 'Edit Entity';
+		}
+		return isFacilitatorMode ? 'Add Facilitator' : 'Add Entity';
+	};
 
 	return (
 		<BasicDialog
-			title={editingClaimParty ? 'Edit Party' : 'Add Party'}
+			title={getDialogTitle()}
 			primaryAction={{
 				label: editingClaimParty ? 'Update' : 'Add',
 				onClick: handleSubmit,
-				disabled: !formData.party_id || !formData.role || !isValidLiabilityPercentage || isSubmitting,
+				disabled: !isFormValid || isSubmitting,
 			}}
 			secondaryActions={[
 				{
@@ -170,14 +231,51 @@ export default function PartyLiabilityFormDialog({
 			width={600}
 		>
 			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
-				{/* Role Selection */}
-				<ClaimPartyRoleSelect
-					role={formData.role}
-					setRole={(role) => setFormData({ ...formData, role })}
-					clearable={false}
-					isFilter={false}
-					label="Party Role *"
-				/>
+				{/* Parent Entity Selection - only for facilitator mode when no fixed parent */}
+				{isFacilitatorMode && !parentClaimPartyId && (
+					<Autocomplete
+						options={parentEntityOptions}
+						value={selectedParentEntity}
+						onChange={(_, newValue) => handleParentEntitySelect(newValue)}
+						getOptionLabel={(option: any) => option.party?.name || ''}
+						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+						renderOption={(props, option: any) => (
+							<li {...props} key={option.id}>
+								<Box>
+									<Typography>{option.party?.name}</Typography>
+									{option.role && (
+										<Typography variant="caption" color="text.secondary">
+											{option.role}
+										</Typography>
+									)}
+								</Box>
+							</li>
+						)}
+						fullWidth
+						renderInput={(params) => (
+							<TextField {...params} label="Parent Entity *" placeholder="Select parent entity..." required />
+						)}
+					/>
+				)}
+
+				{/* Role Selection - use appropriate select based on roleListEntity */}
+				{roleListEntity === 'claimant_party_role' ? (
+					<ClaimantPartyRoleSelect
+						role={formData.role}
+						setRole={(role) => setFormData({ ...formData, role })}
+						clearable={false}
+						isFilter={false}
+						label="Party Role *"
+					/>
+				) : (
+					<AdversePartyRoleSelect
+						role={formData.role}
+						setRole={(role) => setFormData({ ...formData, role })}
+						clearable={false}
+						isFilter={false}
+						label="Party Role *"
+					/>
+				)}
 
 				{/* Party Selection */}
 				<Autocomplete
@@ -196,7 +294,12 @@ export default function PartyLiabilityFormDialog({
 					)}
 					fullWidth
 					renderInput={(params) => (
-						<TextField {...params} label="Party *" placeholder="Search parties..." required />
+						<TextField
+							{...params}
+							label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
+							placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
+							required
+						/>
 					)}
 				/>
 
@@ -219,13 +322,13 @@ export default function PartyLiabilityFormDialog({
 						<TextField
 							{...params}
 							label="Representative (Optional)"
-							placeholder={selectedParty ? 'Search representatives...' : 'Select party first'}
+							placeholder={selectedParty ? 'Search representatives...' : 'Select entity/facilitator first'}
 						/>
 					)}
 				/>
 
-				{/* Liability Percentage - only show for Facilitator parties */}
-				{partyTypeFilter !== PartyType.ENTITY && (
+				{/* Liability Percentage - only show on adverse parties tab */}
+				{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
 					<TextField
 						label="Liability Percentage"
 						type="number"
@@ -257,9 +360,11 @@ export default function PartyLiabilityFormDialog({
 					multiline
 					rows={3}
 					placeholder={
-						partyTypeFilter === PartyType.ENTITY
-							? "Notes about this party's coverage(s)..."
-							: "Additional notes about this party's liability..."
+						isFacilitatorMode
+							? 'Notes about this facilitator...'
+							: roleListEntity === 'claimant_party_role'
+								? "Notes about this entity's coverage(s)..."
+								: "Additional notes about this entity's liability..."
 					}
 				/>
 			</Box>

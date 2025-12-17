@@ -920,12 +920,13 @@ export async function deletePartyRepresentative(ctx: ProtectedContext, id: numbe
  * @param claimId - claim identifier
  * @param options - optional filters
  * @param options.partyType - filter by party type ('entity' or 'facilitator')
+ * @param options.roleListEntity - filter by role list entity ('claimant_party_role' or 'adverse_party_role')
  * @returns array of claim parties with nested party, representative, office, liabilities, and coverages
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
 	claimId: number,
-	options?: { partyType?: 'entity' | 'facilitator' }
+	options?: { partyType?: 'entity' | 'facilitator'; roleListEntity?: 'claimant_party_role' | 'adverse_party_role' }
 ) {
 	// Fetch claim parties with related data
 	let query = ctx.db
@@ -971,6 +972,23 @@ export async function getClaimParties(
 	// Apply party type filter if provided
 	if (options?.partyType) {
 		query = query.where('party.party_type', '=', options.partyType);
+	}
+
+	// Apply role list entity filter if provided (filter by roles in that reference list)
+	if (options?.roleListEntity) {
+		query = query.where(
+			'claim_party.role',
+			'in',
+			ctx.db
+				.selectFrom('reference_option')
+				.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
+				.select('reference_option.value')
+				.where('reference_list.entity', '=', options.roleListEntity)
+				.where('reference_list.client_id', '=', ctx.session.user.client_id)
+				.where('reference_list.deleted_at', 'is', null)
+				.where('reference_option.deleted_at', 'is', null)
+				.where('reference_option.is_active', '=', true)
+		);
 	}
 
 	const results = await query.execute();
@@ -1036,6 +1054,7 @@ export async function getClaimParties(
 		notes: row.notes,
 		external_reference: row.external_reference,
 		liability_percentage: row.liability_percentage,
+		parent_claim_party_id: row.parent_claim_party_id,
 		created_at: row.created_at,
 		created_by: row.created_by,
 		representative_id: row.representative_id,
@@ -1092,6 +1111,7 @@ export async function linkPartyToClaim(
 		notes?: string;
 		external_reference?: string;
 		liability_percentage?: number;
+		parent_claim_party_id?: number | null;
 	}
 ) {
 	const claimParty = await ctx.db
@@ -1105,6 +1125,7 @@ export async function linkPartyToClaim(
 			notes: params.notes,
 			external_reference: params.external_reference,
 			liability_percentage: params.liability_percentage?.toString(),
+			parent_claim_party_id: params.parent_claim_party_id,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
@@ -1132,6 +1153,7 @@ export async function updateClaimParty(
 		notes?: string;
 		external_reference?: string;
 		liability_percentage?: number | null;
+		parent_claim_party_id?: number | null;
 	}
 ) {
 	const claimParty = await ctx.db
@@ -1145,6 +1167,9 @@ export async function updateClaimParty(
 			...(params.liability_percentage !== undefined && {
 				liability_percentage:
 					params.liability_percentage === null ? null : params.liability_percentage?.toString(),
+			}),
+			...(params.parent_claim_party_id !== undefined && {
+				parent_claim_party_id: params.parent_claim_party_id,
 			}),
 		})
 		.where('claim_party.id', '=', id)
@@ -1184,14 +1209,14 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
 }
 
 /**
- * Unlink party from claim (delete claim_party relationship)
- * Also archives any coverages associated with this claim party
- * Recalculates expected_recovery and total_incurred after deletion
+ * Archive (soft delete) a claim party and all its children recursively
+ * Also archives any coverages and liabilities associated with this claim party and its children
+ * Recalculates expected_recovery and total_incurred after archiving
  *
  * @returns updated expectedRecovery, totalIncurred, and claimId
  */
-export async function unlinkPartyFromClaim(ctx: ProtectedContext, id: number) {
-	// Get claim_id before deletion for recalculation (with client check)
+export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
+	// Get claim_id before archiving for recalculation (with client check)
 	const claimParty = await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
@@ -1204,21 +1229,34 @@ export async function unlinkPartyFromClaim(ctx: ProtectedContext, id: number) {
 		throw new Error('Claim party not found');
 	}
 
+	// Get all claim_party IDs recursively (parent + children)
+	const allClaimPartyIds = await getClaimPartyIdsWithChildren(ctx, id);
+
 	// Import dynamically to avoid circular dependency
 	const { archiveCoveragesByClaimParty } = await import('./coverageQueries');
+	const { archiveLiabilitiesByClaimParty } = await import('./liabilityQueries');
 	const { recalculateTotalIncurred } = await import('./claimQueries');
 
-	// Archive any coverages associated with this claim party
-	await archiveCoveragesByClaimParty(ctx, id);
+	// Archive coverages and liabilities for all affected claim_parties
+	for (const claimPartyId of allClaimPartyIds) {
+		await archiveCoveragesByClaimParty(ctx, claimPartyId);
+		await archiveLiabilitiesByClaimParty(ctx, claimPartyId);
+	}
 
+	// Soft delete all claim_parties (parent + children)
 	await ctx.db
-		.deleteFrom('claim_party')
-		.where('claim_party.id', '=', id)
+		.updateTable('claim_party')
+		.set({
+			deleted_at: new Date(),
+			deleted_by: ctx.session.user.id,
+		})
+		.where('claim_party.id', 'in', allClaimPartyIds)
 		.where(
 			'claim_party.claim_id',
 			'in',
 			ctx.db.selectFrom('claim').select('claim.id').where('claim.client_id', '=', ctx.session.user.client_id)
 		)
+		.where('claim_party.deleted_at', 'is', null)
 		.execute();
 
 	// Recalculate expected_recovery and total_incurred
@@ -1226,6 +1264,28 @@ export async function unlinkPartyFromClaim(ctx: ProtectedContext, id: number) {
 	const totalIncurred = await recalculateTotalIncurred(ctx, claimParty.claim_id);
 
 	return { expectedRecovery, totalIncurred, claimId: claimParty.claim_id };
+}
+
+/**
+ * Get all claim_party IDs including children recursively
+ * Uses recursive CTE to find all nested facilitators
+ */
+async function getClaimPartyIdsWithChildren(ctx: ProtectedContext, rootId: number): Promise<number[]> {
+	const result = await sql<{ id: number }>`
+		WITH RECURSIVE claim_party_tree AS (
+			-- Base case: the root claim_party
+			SELECT id FROM claim_party WHERE id = ${rootId} AND deleted_at IS NULL
+			UNION ALL
+			-- Recursive case: children (facilitators) of current nodes
+			SELECT cp.id
+			FROM claim_party cp
+			INNER JOIN claim_party_tree cpt ON cp.parent_claim_party_id = cpt.id
+			WHERE cp.deleted_at IS NULL
+		)
+		SELECT id FROM claim_party_tree
+	`.execute(ctx.db);
+
+	return result.rows.map((row) => row.id);
 }
 
 /**
