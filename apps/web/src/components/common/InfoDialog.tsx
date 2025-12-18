@@ -26,7 +26,7 @@ export default function InfoDialog(props: {
 					flexDirection: 'column',
 					justifyContent: 'center',
 					alignItems: 'center',
-					border: '1px solid var(--color-primary)',
+					borderColor: 'primary.main',
 					p: '5px 20px 20px',
 					width,
 					height,

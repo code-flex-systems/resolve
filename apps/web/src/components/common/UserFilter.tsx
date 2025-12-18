@@ -79,7 +79,7 @@ export default function UserFilter({
 				{users.map((u) => (
 					<Chip
 						key={u.id}
-						label={`${u.last}, ${u.first}`}
+						label={`${u.first} ${u.last}`}
 						onDelete={() => {
 							const newUsers = users.filter((s) => s.email !== u.email);
 							setUsers(newUsers);
@@ -130,7 +130,7 @@ export default function UserFilter({
 								renderOption={(props, option) => (
 									<li {...props} key={option.id}>
 										<StackedRow
-											primary={`${option.last}, ${option.first}`}
+											primary={`${option.first} ${option.last}`}
 											secondary={option.email}
 											fontSize={14}
 										/>
@@ -154,9 +154,7 @@ const styles = {
 		margin: '5px 0px',
 	},
 	paper: {
-		outline: 1,
-		outlineColor: 'divider',
-		marginTop: '5px',
+		mt: 0.625,
 	},
 	textField: {
 		border: 'none',
@@ -165,7 +163,6 @@ const styles = {
 	},
 	textFieldOverrides: {
 		'& .MuiInputBase-root': {
-			borderRadius: 8,
 			padding: '0px 10px',
 		},
 		'& .MuiOutlinedInput-input': {

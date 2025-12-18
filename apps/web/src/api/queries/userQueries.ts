@@ -324,10 +324,11 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, in
 			];
 			if (searchTerm) {
 				andClause.push(
-					eb.or([
-						eb(sql`lower(${eb.ref('first')})`, 'like', `${searchTerm.toLowerCase()}%`),
-						eb(sql`lower(${eb.ref('last')})`, 'like', `${searchTerm.toLowerCase()}%`),
-					])
+					eb(
+						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
+						'like',
+						`%${searchTerm.toLowerCase()}%`
+					)
 				);
 			}
 			if (inactive === true) {

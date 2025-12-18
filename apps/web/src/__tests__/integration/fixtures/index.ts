@@ -16,4 +16,7 @@ export * from './deadline';
 export * from './feed';
 export * from './page';
 export * from './recovery';
+export * from './settlement';
 export * from './doc';
+export * from './coverage';
+export * from './reference';

@@ -119,7 +119,6 @@ const styles = {
 		alignItems: 'flex-start',
 		p: 1.25,
 		mt: 0.625,
-		borderRadius: 4,
 	},
 	row: {
 		width: '100%',

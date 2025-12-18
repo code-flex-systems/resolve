@@ -5,32 +5,31 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import ClaimAmountCell from './ClaimAmountCell';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import { formatCityState } from '@/schemas/addressSchemas';
 import {
 	Autocomplete,
 	Box,
 	Button,
 	Collapse,
-	Fade,
-	IconButton,
 	Paper,
 	PopperProps,
 	Switch,
 	TextField,
 	Typography,
 } from '@mui/material';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import AddBox from '@mui/icons-material/AddBox';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import PersonSearch from '@mui/icons-material/PersonSearch';
 import Upload from '@mui/icons-material/Upload';
-import Search from '@mui/icons-material/Search';
 import FilterList from '@mui/icons-material/FilterList';
-import Clear from '@mui/icons-material/Clear';
 import IconHeaderCell from '../common/IconHeaderCell';
+import SearchInput from '../common/SearchInput';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import theme, { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import Visibility from '@mui/icons-material/Visibility';
@@ -97,8 +96,9 @@ const COLUMNS: GridColDef[] = [
 	},
 	{
 		headerName: 'Loss Location',
-		field: 'loss_location',
+		field: 'loss_city',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueGetter: (_value: any, row: any) => formatCityState(row.loss_city, row.loss_state),
 		width: 150,
 	},
 	{
@@ -398,7 +398,7 @@ export default function Claims() {
 		appliedClaimNumber;
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
 				<Paper sx={styles.paper} className="flex-col-start">
 					{/* Main Toolbar: Title and Actions */}
@@ -434,25 +434,12 @@ export default function Claims() {
 					<Toolbar
 						left={
 							<Box display="flex" gap={1} alignItems="center">
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search sx={{ fontSize: 17, marginRight: '5px' }} />
-									<input
-										placeholder="Search by claim number..."
-										type="text"
-										style={styles.textField}
-										value={claimNumberSearch}
-										onChange={(e) => setClaimNumberSearch(e.target.value)}
-									/>
-									{claimNumberSearch && (
-										<IconButton
-											size="small"
-											onClick={() => setClaimNumberSearch('')}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
+								<SearchInput
+									value={claimNumberSearch}
+									onChange={(value) => setClaimNumberSearch(value)}
+									placeholder="Search by claim number..."
+									width={280}
+								/>
 								<BasicButtonStyled
 									buttonProps={{
 										onClick: handleOpenFilters,
@@ -692,7 +679,7 @@ export default function Claims() {
 				</Paper>
 				<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 
@@ -705,8 +692,6 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
-		border: 1,
-		borderColor: 'divider',
 		padding: '15px 15px 0px',
 	},
 	table: {
@@ -716,27 +701,8 @@ const styles = {
 	tableOverrides: {
 		border: 'none',
 	},
-	searchPaper: {
-		display: 'flex',
-		alignItems: 'center',
-		bgcolor: 'white',
-		border: `1px solid ${BORDER_COLOR}`,
-		borderRadius: 2,
-		padding: '5px 10px',
-		minWidth: 250,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-		width: '100%',
-		fontSize: 13,
-		fontFamily: 'Inter',
-	} as React.CSSProperties,
 	filtersPaper: {
-		outline: 1,
-		outlineColor: 'divider',
-		marginTop: '5px',
+		mt: 0.625,
 		padding: '15px',
 		minWidth: 300,
 		maxWidth: 400,

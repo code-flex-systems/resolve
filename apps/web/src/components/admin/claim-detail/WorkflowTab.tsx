@@ -3,13 +3,13 @@
 import { Box, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import { trpc } from '@/lib/trpc';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import Highlight from '@/components/common/Highlight';
 import { formatLabel } from '@/lib/utils/claimUtils';
 import { ClaimStatus } from '@/config/enums';
-import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
+import { ClaimSubstatusChip } from '@/components/common/ReferenceDataSelect';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -56,7 +56,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Workflow Status */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.gradientPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Workflow Status
 					</Typography>
@@ -78,7 +78,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 								<Highlight bold={false}>Substatus:</Highlight>
 							</Typography>
 							{claimDetail.substatus ? (
-								<Chip label={<ClaimSubstatusValue value={claimDetail.substatus} showEmoji={false} fontSize={12} />} size="small" color="secondary" />
+								<ClaimSubstatusChip value={claimDetail.substatus} showEmoji={false} />
 							) : (
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
 									N/A
@@ -90,7 +90,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 
 				{/* Current Assignment */}
 				{currentAssignment ? (
-					<Paper elevation={0} sx={styles.paper}>
+					<Paper elevation={0} sx={styles.beveledPaper}>
 						<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
 								Current Assignment
@@ -198,7 +198,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 						</Stack>
 					</Paper>
 				) : (
-					<Paper elevation={0} sx={styles.paper}>
+					<Paper elevation={0} sx={styles.beveledPaper}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 							Current Assignment
 						</Typography>
@@ -210,7 +210,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 
 				{/* Assignment History */}
 				{assignmentHistory.length > 0 && (
-					<Paper elevation={0} sx={styles.paper}>
+					<Paper elevation={0} sx={styles.beveledPaper}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 							Assignment History ({assignmentHistory.length} assignment
 							{assignmentHistory.length !== 1 ? 's' : ''})
@@ -271,7 +271,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 				)}
 
 				{/* Tasks */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Tasks
 					</Typography>
@@ -286,9 +286,12 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 }
 
 const styles = {
-	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		padding: '24px',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '24px',
 	},
 };

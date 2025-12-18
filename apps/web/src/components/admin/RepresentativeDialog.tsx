@@ -228,7 +228,7 @@ export default function RepresentativeDialog({
 									<TextField
 										{...params}
 										label="Party"
-										variant="standard"
+										
 										error={!!errors.party_id}
 										helperText={
 											lockParty && selectedParty
@@ -279,7 +279,7 @@ export default function RepresentativeDialog({
 									<TextField
 										{...params}
 										label="Office (Optional)"
-										variant="standard"
+										
 										placeholder={hasParty ? 'Select an office...' : 'Select a party first'}
 									/>
 								)}
@@ -297,7 +297,7 @@ export default function RepresentativeDialog({
 						<TextField
 							{...field}
 							label="First Name"
-							variant="standard"
+							
 							fullWidth
 							required
 							error={!!errors.first_name}
@@ -316,7 +316,7 @@ export default function RepresentativeDialog({
 						<TextField
 							{...field}
 							label="Last Name"
-							variant="standard"
+							
 							fullWidth
 							required
 							error={!!errors.last_name}
@@ -334,7 +334,7 @@ export default function RepresentativeDialog({
 						<TextField
 							{...field}
 							label="Title"
-							variant="standard"
+							
 							fullWidth
 							placeholder="e.g., Claims Adjuster, Attorney"
 						/>
@@ -355,7 +355,7 @@ export default function RepresentativeDialog({
 						<TextField
 							{...field}
 							label="Email"
-							variant="standard"
+							
 							fullWidth
 							error={!!errors.email}
 							helperText={errors.email?.message}
@@ -368,7 +368,7 @@ export default function RepresentativeDialog({
 				<Controller
 					name="phone"
 					control={control}
-					render={({ field }) => <TextField {...field} label="Phone" variant="standard" fullWidth placeholder="(555) 123-4567" />}
+					render={({ field }) => <TextField {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />}
 				/>
 
 				{/* Mobile Phone */}
@@ -376,7 +376,7 @@ export default function RepresentativeDialog({
 					name="mobile_phone"
 					control={control}
 					render={({ field }) => (
-						<TextField {...field} label="Mobile Phone" variant="standard" fullWidth placeholder="(555) 987-6543" />
+						<TextField {...field} label="Mobile Phone" fullWidth placeholder="(555) 987-6543" />
 					)}
 				/>
 
@@ -384,7 +384,7 @@ export default function RepresentativeDialog({
 				<Controller
 					name="fax"
 					control={control}
-					render={({ field }) => <TextField {...field} label="Fax" variant="standard" fullWidth placeholder="(555) 123-4567" />}
+					render={({ field }) => <TextField {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />}
 				/>
 
 				{/* Primary Representative */}

@@ -88,7 +88,7 @@ export default function TaskCancellationDialog({ task, onClose, onCancelled }: T
 						<TextField
 							{...field}
 							label="Cancellation Reason"
-							variant="standard"
+							
 							multiline
 							rows={3}
 							sx={{ width: 380 }}

@@ -1021,7 +1021,7 @@ describe('Client-Scoping Security Tests', () => {
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
 
 			// Verify second where clause filters by comment id
-			expect(mockWhere2).toHaveBeenCalledWith('id', '=', 1);
+			expect(mockWhere2).toHaveBeenCalledWith('comment.id', '=', 1);
 		});
 
 		it('should NOT return comments from other clients in getComment()', async () => {

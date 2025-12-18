@@ -106,7 +106,7 @@ export default function CoverageTab() {
 		setEditingCoverage(null);
 	};
 
-	const handleSubmit = async (data: { coverage_type: string; coverage_amount: string | null }) => {
+	const handleSubmit = async (data: { coverage_type: string; coverage_amount: string | null; amount_reserved: string | null }) => {
 		if (!selectedClaim?.id) return;
 
 		try {
@@ -114,14 +114,13 @@ export default function CoverageTab() {
 				await updateCoverage.mutateAsync({
 					id: editingCoverage.id,
 					coverage_type: data.coverage_type as any,
-					coverage_amount: data.coverage_amount,
+					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
+					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
 			} else {
-				await createCoverage.mutateAsync({
-					claim_id: selectedClaim.id,
-					coverage_type: data.coverage_type as any,
-					coverage_amount: data.coverage_amount,
-				});
+				// Note: Creating coverages requires claim_party_id which is not supported in this standalone tab.
+				// Coverage creation should be done through the ClaimantsCoverageTab in claim detail view.
+				console.warn('Coverage creation is disabled in standalone coverage tab - use ClaimantsCoverageTab instead');
 			}
 			handleCloseCoverageDialog();
 		} catch (error) {
@@ -257,9 +256,7 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
-		border: 1,
-		borderColor: 'divider',
-		padding: '15px 15px 0px',
+		padding: '24px 24px 0px',
 	},
 	table: {
 		width: '100%',

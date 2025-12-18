@@ -74,7 +74,7 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 									label={field.label}
 									{...controllerField}
 									value={controllerField.value || 'Unassigned'}
-									variant="standard"
+									
 									sx={{
 										width: 300,
 										marginTop: '5px',

@@ -155,7 +155,11 @@ export interface Claim {
   insured: string | null;
   last_update: Timestamp | null;
   last_updated_by: string | null;
-  loss_location: string | null;
+  loss_city: string | null;
+  loss_country: string | null;
+  loss_postal_code: string | null;
+  loss_state: string | null;
+  loss_street_address: string | null;
   /**
    * Current status of recovery efforts: pending, in_progress, recovered, closed_no_recovery
    */
@@ -183,6 +187,7 @@ export interface ClaimActivityLogs {
 export interface ClaimCoverage {
   amount_reserved: Numeric | null;
   claim_id: number;
+  claim_party_id: number | null;
   client_id: string;
   coverage_amount: Numeric | null;
   /**
@@ -191,6 +196,8 @@ export interface ClaimCoverage {
   coverage_type: string;
   created_at: Generated<Timestamp | null>;
   created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   id: Generated<number>;
   updated_at: Timestamp | null;
   updated_by: string | null;
@@ -204,6 +211,7 @@ export interface ClaimLiability {
   created_at: Generated<Timestamp>;
   created_by: string | null;
   deleted_at: Timestamp | null;
+  deleted_by: string | null;
   /**
    * External ID from source system (for upsert logic)
    */
@@ -248,6 +256,7 @@ export interface ClaimParty {
   is_primary: Generated<boolean>;
   liability_percentage: Numeric | null;
   notes: string | null;
+  parent_claim_party_id: number | null;
   party_id: number;
   /**
    * Specific representative from the party handling this claim (optional)
@@ -510,8 +519,9 @@ export interface PageInstanceStatus {
 }
 
 export interface Party {
-  address: string | null;
+  city: string | null;
   client_id: string;
+  country: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -536,12 +546,16 @@ export interface Party {
    */
   party_type: string;
   phone: string | null;
+  postal_code: string | null;
+  state: string | null;
+  street_address: string | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface PartyOffice {
-  address: string | null;
+  city: string | null;
+  country: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -558,6 +572,9 @@ export interface PartyOffice {
   office_name: string | null;
   party_id: number;
   phone: string | null;
+  postal_code: string | null;
+  state: string | null;
+  street_address: string | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -640,6 +657,7 @@ export interface RecoveryEvent {
   recovery_amount: Numeric;
   recovery_date: Timestamp;
   recovery_source: string | null;
+  settlement_id: number;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -738,6 +756,25 @@ export interface ResponseAuditLogs {
   question_text: string;
   response_id: number | null;
   user_id: string | null;
+}
+
+export interface Settlement {
+  agreed_liability_percentage: Numeric | null;
+  claim_id: number;
+  claim_party_id: number;
+  client_id: string;
+  coverage_id: number;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  demand_amount: Numeric;
+  demand_date: Timestamp;
+  id: Generated<number>;
+  notes: string | null;
+  settlement_amount: Numeric | null;
+  settlement_date: Timestamp | null;
+  status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface Task {
@@ -887,6 +924,7 @@ export interface DB {
   reference_list: ReferenceList;
   reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
+  settlement: Settlement;
   task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;

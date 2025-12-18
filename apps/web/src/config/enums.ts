@@ -155,6 +155,12 @@ export enum RecoveryStatus {
 	CLOSED_NO_RECOVERY = 'closed_no_recovery',
 }
 
+export enum SettlementStatus {
+	SENT = 'sent',
+	SETTLED = 'settled',
+	CLOSED = 'closed',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',
@@ -218,6 +224,28 @@ export enum ClaimPartyRole {
 	WITNESS = 'witness',
 	PROPERTY_OWNER = 'property_owner',
 	CLAIMANT = 'claimant',
+	OTHER = 'other',
+}
+
+/**
+ * Roles for parties on the Claimants & Coverage tab
+ */
+export enum ClaimantPartyRole {
+	CLAIMANT = 'claimant',
+	INSURED = 'insured',
+	PROPERTY_OWNER = 'property_owner',
+	WITNESS = 'witness',
+	OUR_ATTORNEY = 'our_attorney',
+}
+
+/**
+ * Roles for parties on the Adverse Parties & Liability tab
+ */
+export enum AdversePartyRole {
+	RESPONSIBLE_PARTY = 'responsible_party',
+	ADVERSE_CARRIER = 'adverse_carrier',
+	THEIR_ATTORNEY = 'their_attorney',
+	EXPERT = 'expert',
 	OTHER = 'other',
 }
 

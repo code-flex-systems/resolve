@@ -89,7 +89,7 @@ export async function getResponsesForAnswer(
 				.case()
 				.when('users.id', 'is', null)
 				.then(null)
-				.else(sql`concat(${eb.ref('users.last')}, ', ', ${eb.ref('users.first')})`)
+				.else(sql`concat(${eb.ref('users.first')}, ' ', ${eb.ref('users.last')})`)
 				.end()
 				.as('responder'),
 		])

@@ -92,7 +92,7 @@ export default function MyClaimsDeadlines() {
 
 const styles = {
 	container: {
-		padding: '16px',
+		padding: '24px',
 		border: `1px solid ${theme.palette.divider}`,
 		height: '100%',
 		minWidth: 280,

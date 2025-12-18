@@ -25,39 +25,22 @@ export default function BasicButtonStyled(
 		icon?: JSX.Element;
 		tooltipProps?: BasicTooltipProps;
 		wrapText?: boolean;
+		compact?: boolean;
 	} & PropsWithChildren
 ) {
-	const { buttonProps, icon, tooltipProps } = props;
+	const { buttonProps, icon, tooltipProps, compact } = props;
 	return (
 		<TooltipWrapper tooltipProps={tooltipProps}>
 			{icon ? (
-				<BasicIconButton {...buttonProps}>{icon}</BasicIconButton>
+				<BasicIconButton {...buttonProps} compact={compact}>{icon}</BasicIconButton>
 			) : (
 				<Button
 					{...buttonProps}
 					variant={buttonProps.variant ?? 'outlined'}
 					sx={{
-						bgcolor: 'white',
-						outline: '1px solid var(--color-border)',
-						border: 'none',
-						borderRadius: '8px',
-						boxShadow: 'none',
-						fontFamily: 'Inter',
-						fontWeight: 500,
 						minWidth: props.wrapText ? undefined : 'fit-content',
 						whiteSpace: props.wrapText === true ? undefined : 'nowrap',
-						'&:hover': {
-							bgcolor: 'var(--color-bg-hover)',
-							outline: '1px solid var(--color-border-hover)',
-						},
-						'&:disabled': {
-							border: 'none',
-							outline: '1px solid var(--color-border-light)',
-							bgcolor: 'var(--color-bg-tertiary)',
-							color: 'var(--color-text-muted)',
-						},
 						...buttonProps.sx,
-						color: buttonProps.color ?? 'var(--color-text-primary)',
 					}}
 				>
 					{props.children}

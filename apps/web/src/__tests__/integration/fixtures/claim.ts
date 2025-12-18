@@ -22,7 +22,11 @@ export async function createTestClaim(
 		claim_amount?: number | string | null;
 		total_incurred?: number | string | null;
 		date_of_loss?: Date | string | null;
-		loss_location?: string | null;
+		loss_street_address?: string | null;
+		loss_city?: string | null;
+		loss_state?: string | null;
+		loss_postal_code?: string | null;
+		loss_country?: string | null;
 		expected_recovery?: number | string | null;
 		actual_recovery?: number | string | null;
 		recovery_status?: string | null;
@@ -42,7 +46,11 @@ export async function createTestClaim(
 		claim_amount: overrides.claim_amount ?? null,
 		total_incurred: overrides.total_incurred ?? null,
 		date_of_loss: overrides.date_of_loss ?? null,
-		loss_location: overrides.loss_location ?? null,
+		loss_street_address: overrides.loss_street_address ?? null,
+		loss_city: overrides.loss_city ?? null,
+		loss_state: overrides.loss_state ?? null,
+		loss_postal_code: overrides.loss_postal_code ?? null,
+		loss_country: overrides.loss_country ?? null,
 		expected_recovery: overrides.expected_recovery ?? null,
 		actual_recovery: overrides.actual_recovery ?? null,
 		recovery_status: overrides.recovery_status ?? null,
@@ -59,37 +67,7 @@ export async function createTestClaim(
 		.executeTakeFirstOrThrow();
 }
 
-/**
- * Create a test claim-party association
- */
-export async function createTestClaimParty(
-	db: Kysely<DB>,
-	overrides: {
-		claim_id: number;
-		party_id: number;
-		role?: string;
-		is_primary?: boolean;
-		liability_percentage?: number | string | null;
-		notes?: string | null;
-		created_by?: string | null;
-	}
-) {
-	const data = {
-		claim_id: overrides.claim_id,
-		party_id: overrides.party_id,
-		role: overrides.role || 'adverse_carrier',
-		is_primary: overrides.is_primary ?? false,
-		liability_percentage: overrides.liability_percentage ?? null,
-		notes: overrides.notes ?? null,
-		created_by: overrides.created_by ?? null,
-	};
-
-	return db
-		.insertInto('claim_party')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
-}
+// NOTE: createTestClaimParty is defined in party.ts to avoid duplication
 
 /**
  * Create a test claim liability

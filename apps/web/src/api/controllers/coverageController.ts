@@ -15,7 +15,18 @@ export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId
 }
 
 /**
- * Create a new coverage for a claim.
+ * Get all coverages for a specific claim party.
+ *
+ * @param ctx - request context
+ * @param claimPartyId - claim party identifier
+ * @returns array of coverages
+ */
+export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPartyId }: { claimPartyId: number }) {
+	return await coverageQueries.getCoveragesByClaimParty(ctx, claimPartyId);
+}
+
+/**
+ * Create a new coverage for a claim party.
  *
  * @param ctx - request context
  * @param params - coverage data
@@ -35,6 +46,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
 				action: AdminAction.CREATE,
 				value: {
 					claim_id: coverage.claim_id,
+					claim_party_id: coverage.claim_party_id,
 					coverage_type: coverage.coverage_type,
 					coverage_amount: coverage.coverage_amount,
 				},
@@ -79,7 +91,36 @@ export async function updateCoverage(ctx: ProtectedContext, input: UpdateCoverag
 }
 
 /**
- * Delete a coverage.
+ * Archive (soft delete) a coverage.
+ *
+ * @param ctx - request context
+ * @param id - coverage identifier
+ * @returns claimId and updated totalIncurred
+ */
+export async function archiveCoverage(ctx: ProtectedContext, { id }: { id: number }) {
+	// Archive coverage and log admin action within transaction
+	const result = await ctx.db.transaction().execute(async (trx) => {
+		const { claimId, totalIncurred } = await coverageQueries.archiveCoverage({ ...ctx, db: trx }, id);
+
+		// Log admin action
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.CLAIM_COVERAGE,
+				action: AdminAction.DELETE,
+				value: { id, archived: true },
+			}
+		);
+
+		return { claimId, totalIncurred };
+	});
+
+	return result;
+}
+
+/**
+ * Hard delete a coverage (admin cleanup only).
  *
  * @param ctx - request context
  * @param id - coverage identifier

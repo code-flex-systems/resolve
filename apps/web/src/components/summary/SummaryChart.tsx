@@ -99,24 +99,24 @@ export default function SummaryChart() {
 	return (
 		<Paper elevation={0} sx={styles.paper}>
 			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-				<Typography fontSize={17}>Q/A Summary</Typography>
+				<Typography variant="h6">Q/A Summary</Typography>
 			</Box>
 			<Stack padding="20px 20px 0px">
 				<ExpandableTitle
-					icon={<Description sx={{ color: BASE_COLOR }} />}
+					icon={<Description />}
 					color="white"
 					title={`Pages (${data.maxPosition.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
 				<ExpandableTitle
-					icon={<Help sx={{ color: BASE_COLOR }} />}
+					icon={<Help />}
 					color="white"
 					title={`Questions (${checklistSummaryTotals.total_questions.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
 				<Collapse in={selectedSummarySegment === SummarySegment.ACTION_REQUIRED}>
 					<ExpandableTitle
-						icon={<HelpOutline sx={{ color: BASE_COLOR }} />}
+						icon={<HelpOutline />}
 						color="white"
 						title={`Unknowns (${checklistSummaryTotals.total_unknown})`}
 						padding="0px 0px 10px"
@@ -124,7 +124,7 @@ export default function SummaryChart() {
 				</Collapse>
 				<ExpandableTitle
 					key={selectedSummarySegment}
-					icon={<AdsClick sx={{ color: BASE_COLOR }} />}
+					icon={<AdsClick />}
 					color="white"
 					title={`Selected - ${capitalize(selectedSummarySegment)}`}
 					padding="0px 0px 10px"
@@ -167,10 +167,10 @@ const styles = {
 		alignItems: 'flex-start',
 		height: '100%',
 		borderRadius: 6,
-		padding: '20px',
+		padding: '30px',
 	},
 	row: {
 		width: '100%',
-		padding: 10,
+		padding: 12,
 	},
 };

@@ -128,7 +128,7 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 					render={({ field }) => (
 						<TextField
 							label="Value (key)"
-							variant="standard"
+							
 							placeholder="lowercase_value"
 							error={!!errors.value}
 							helperText={
@@ -153,7 +153,7 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 					render={({ field }) => (
 						<TextField
 							label="Display Label"
-							variant="standard"
+							
 							placeholder="Human-readable label"
 							error={!!errors.display_label}
 							helperText={errors.display_label?.message}
@@ -173,7 +173,7 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 					render={({ field }) => (
 						<TextField
 							label="Description"
-							variant="standard"
+							
 							placeholder="Optional description"
 							multiline
 							rows={2}
@@ -195,7 +195,7 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 					render={({ field }) => (
 						<TextField
 							label="Icon Emoji"
-							variant="standard"
+							
 							placeholder="Optional emoji icon"
 							error={!!errors.icon_emoji}
 							helperText={errors.icon_emoji?.message || 'Single emoji for visual display'}

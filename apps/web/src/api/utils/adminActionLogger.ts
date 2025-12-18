@@ -43,6 +43,7 @@ export enum EntityName {
 
 	// Recovery & deadline entities
 	RECOVERY_EVENT = 'recovery_event',
+	SETTLEMENT = 'settlement',
 	DEADLINE = 'deadline',
 
 	// Party management entities

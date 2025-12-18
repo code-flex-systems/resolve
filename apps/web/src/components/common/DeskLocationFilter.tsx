@@ -113,9 +113,7 @@ const styles = {
 		margin: '5px 0px',
 	},
 	paper: {
-		outline: 1,
-		outlineColor: 'divider',
-		marginTop: '5px',
+		mt: 0.625,
 		minWidth: 220,
 		maxHeight: 300,
 		overflowY: 'auto',

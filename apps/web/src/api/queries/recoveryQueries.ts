@@ -1,10 +1,13 @@
 import { sql, type CompiledQuery } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { RecoveryEventParams } from '@/schemas/recoverySchemas';
+import { RecoveryEventParams, RecoveryEventUpdateParams } from '@/schemas/recoverySchemas';
 import { DateRangeStrict } from '@/types/types';
 import { TRPCError } from '@trpc/server';
 import config from '@/config/config';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 // =====================================================================
 // RECOVERY EVENT QUERIES
@@ -15,7 +18,7 @@ import dayjs from 'dayjs';
  *
  * @param ctx - request context
  * @param claimId - claim identifier
- * @param params - recovery event parameters
+ * @param params - recovery event parameters (must include settlement_id)
  * @returns created recovery event
  */
 export async function createRecoveryEvent(
@@ -29,13 +32,15 @@ export async function createRecoveryEvent(
 	const isInTransaction = ctx.db.isTransaction;
 
 	const executeOperation = async (trx: any) => {
-		// Create recovery event
+		// Create recovery event (settlement_id is required)
 		const recoveryEvent = await trx
 			.insertInto('recovery_event')
 			.values({
 				claim_id: claimId,
 				client_id: clientId,
-				recovery_date: params.recovery_date,
+				settlement_id: params.settlement_id,
+				// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
+				recovery_date: dayjs.utc(params.recovery_date).format('YYYY-MM-DD'),
 				recovery_amount: params.recovery_amount.toString(),
 				created_by: ctx.session.user.id,
 				created_at: sql`now()`,
@@ -213,6 +218,75 @@ export async function deleteRecoveryEvent(ctx: ProtectedContext, recoveryEventId
 	await recalculateClaimRecovery(ctx.db, claimId, clientId);
 
 	return deleted;
+}
+
+/**
+ * Update a recovery event and recalculate the claim's actual_recovery.
+ *
+ * @param ctx - request context
+ * @param recoveryEventId - recovery event identifier
+ * @param params - fields to update
+ * @returns updated recovery event
+ */
+export async function updateRecoveryEvent(
+	ctx: ProtectedContext,
+	recoveryEventId: number,
+	params: RecoveryEventUpdateParams
+) {
+	const clientId = ctx.session.user.client_id!;
+
+	// First get the existing recovery event to find the claim_id
+	const existing = await ctx.db
+		.selectFrom('recovery_event')
+		.select(['id', 'claim_id'])
+		.where('recovery_event.id', '=', recoveryEventId)
+		.where('recovery_event.client_id', '=', clientId)
+		.executeTakeFirst();
+
+	if (!existing) {
+		throw new TRPCError({
+			code: 'NOT_FOUND',
+			message: 'Recovery event not found',
+		});
+	}
+
+	const updateValues: Record<string, any> = {
+		updated_by: ctx.session.user.id,
+		updated_at: sql`now()`,
+	};
+
+	if (params.settlement_id !== undefined) {
+		updateValues.settlement_id = params.settlement_id;
+	}
+	if (params.recovery_date !== undefined) {
+		// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
+		updateValues.recovery_date = dayjs.utc(params.recovery_date).format('YYYY-MM-DD');
+	}
+	if (params.recovery_amount !== undefined) {
+		updateValues.recovery_amount = params.recovery_amount.toString();
+	}
+	if (params.recovery_source !== undefined) {
+		updateValues.recovery_source = params.recovery_source;
+	}
+	if (params.notes !== undefined) {
+		updateValues.notes = params.notes;
+	}
+
+	// Update recovery event
+	const updated = await ctx.db
+		.updateTable('recovery_event')
+		.set(updateValues)
+		.where('recovery_event.id', '=', recoveryEventId)
+		.where('recovery_event.client_id', '=', clientId)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+
+	// Recalculate claim's actual_recovery if amount changed
+	if (params.recovery_amount !== undefined) {
+		await recalculateClaimRecovery(ctx.db, existing.claim_id, clientId);
+	}
+
+	return updated;
 }
 
 /**

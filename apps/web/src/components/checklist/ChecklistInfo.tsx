@@ -66,10 +66,6 @@ const styles = {
 		width: 'fit-content',
 		p: '0px 20px 10px',
 		height: 'fit-content',
-		borderTopRightRadius: 5,
-		borderBottomLeftRadius: 5,
-		borderBottomRightRadius: 5,
-		border: `1px solid ${theme.palette.divider}`,
 		mt: 0.625,
 	},
 };

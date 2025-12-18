@@ -19,6 +19,10 @@ import {
 	createTestRecoveryEvent,
 	createTestChecklist,
 	createTestChecklistClaim,
+	createTestParty,
+	createTestClaimParty,
+	createTestCoverage,
+	createTestSettlement,
 } from '@/__tests__/integration/fixtures';
 import {
 	createRecoveryEvent,
@@ -34,6 +38,52 @@ import {
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 
+/**
+ * Helper to create the full settlement chain needed for recovery events.
+ * Creates: party -> claim_party -> coverage -> settlement
+ */
+async function createSettlementChain(
+	db: Kysely<DB>,
+	{
+		client_id,
+		claim_id,
+		created_by,
+	}: {
+		client_id: string;
+		claim_id: number;
+		created_by: string;
+	}
+) {
+	const party = await createTestParty(db, {
+		client_id,
+		created_by,
+		party_type: 'facilitator',
+		party_category: 'adverse_carrier',
+	});
+	const claimParty = await createTestClaimParty(db, {
+		claim_id,
+		party_id: party.id,
+		created_by,
+		role: 'adverse_carrier',
+	});
+	const coverage = await createTestCoverage(db, {
+		client_id,
+		claim_id,
+		created_by,
+		coverage_type: 'liability',
+		coverage_amount: 100000,
+	});
+	const settlement = await createTestSettlement(db, {
+		client_id,
+		claim_id,
+		claim_party_id: claimParty.id,
+		coverage_id: coverage.id,
+		created_by,
+		demand_amount: 50000,
+	});
+	return { party, claimParty, coverage, settlement };
+}
+
 describe('recoveryQueries integration', () => {
 	let db: Kysely<DB>;
 
@@ -47,12 +97,18 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 			const recoveryDate = new Date().toISOString().split('T')[0];
 
 			// Act
 			const result = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
 				recovery_date: recoveryDate,
 				recovery_amount: 5000,
 				recovery_source: 'Insurance Payment',
@@ -63,6 +119,7 @@ describe('recoveryQueries integration', () => {
 			expect(result).toBeDefined();
 			expect(result.claim_id).toBe(claim.id);
 			expect(result.client_id).toBe(client.id);
+			expect(result.settlement_id).toBe(settlement.id);
 			expect(result.recovery_amount).toBe('5000');
 			expect(result.recovery_source).toBe('Insurance Payment');
 			expect(result.notes).toBe('Initial recovery payment');
@@ -74,16 +131,23 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 			const recoveryDate = new Date().toISOString().split('T')[0];
 
 			// Act - create two recovery events
 			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
 				recovery_date: recoveryDate,
 				recovery_amount: 3000,
 			});
 			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
 				recovery_date: recoveryDate,
 				recovery_amount: 2000,
 			});
@@ -103,11 +167,17 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
 			const result = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
 				recovery_date: new Date().toISOString().split('T')[0],
 				recovery_amount: 1000,
 			});
@@ -124,10 +194,16 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_amount: '1000',
 				recovery_source: 'Source A',
@@ -135,6 +211,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_amount: '2000',
 				recovery_source: 'Source B',
@@ -156,6 +233,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 			const yesterday = new Date(today);
@@ -167,6 +249,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: tomorrow,
 				notes: 'Third',
@@ -174,6 +257,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: yesterday,
 				notes: 'First',
@@ -181,6 +265,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				notes: 'Second',
@@ -205,10 +290,16 @@ describe('recoveryQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client1.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user1.id,
 			});
 
@@ -227,16 +318,28 @@ describe('recoveryQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				notes: 'Claim 1 Event',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				notes: 'Claim 2 Event',
 			});
@@ -265,6 +368,16 @@ describe('recoveryQueries integration', () => {
 				client_id: client.id,
 				recovery_status: 'closed_no_recovery',
 			});
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: inProgressClaim.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: closedClaim.id,
+				created_by: user.id,
+			});
 
 			const checklist = await createTestChecklist(db, {
 				client_id: client.id,
@@ -285,6 +398,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: inProgressClaim.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_source: 'Insurance Payment',
@@ -295,6 +409,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: closedClaim.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_source: 'Insurance Payment',
@@ -305,6 +420,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: inProgressClaim.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				recovery_date: lastMonth,
 				recovery_source: 'Insurance Payment',
@@ -315,6 +431,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: inProgressClaim.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_source: 'Legal Settlement',
@@ -350,10 +467,16 @@ describe('recoveryQueries integration', () => {
 				claim_number: 'CLM-RECOVERY-001',
 				insured: 'Test Insured',
 			});
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_amount: '5000',
 			});
@@ -376,6 +499,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 			const lastMonth = new Date(today);
@@ -386,6 +514,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: lastMonth,
 				notes: 'Last Month',
@@ -393,6 +522,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				notes: 'Today',
@@ -400,6 +530,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: nextMonth,
 				notes: 'Next Month',
@@ -430,10 +561,16 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_source: 'Insurance Payment',
 				notes: 'Insurance',
@@ -441,6 +578,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_source: 'Legal Settlement',
 				notes: 'Legal',
@@ -472,16 +610,28 @@ describe('recoveryQueries integration', () => {
 				client_id: client.id,
 				recovery_status: 'closed_no_recovery',
 			});
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: inProgressClaim.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: closedClaim.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: inProgressClaim.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				notes: 'In Progress Claim Event',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: closedClaim.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				notes: 'Closed Claim Event',
 			});
@@ -505,6 +655,16 @@ describe('recoveryQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+			});
 
 			const checklist1 = await createTestChecklist(db, {
 				client_id: client.id,
@@ -533,12 +693,14 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				notes: 'Checklist 1 Event',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				notes: 'Checklist 2 Event',
 			});
@@ -562,16 +724,23 @@ describe('recoveryQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user1.id,
 				notes: 'User 1 Event',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user2.id,
 				notes: 'User 2 Event',
 			});
@@ -594,6 +763,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			// Create 10 recovery events
 			for (let i = 0; i < 10; i++) {
@@ -602,6 +776,7 @@ describe('recoveryQueries integration', () => {
 				await createTestRecoveryEvent(db, {
 					client_id: client.id,
 					claim_id: claim.id,
+					settlement_id: settlement.id,
 					created_by: user.id,
 					recovery_date: date,
 					notes: `Event ${i}`,
@@ -630,6 +805,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 			const yesterday = new Date(today);
@@ -638,6 +818,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: yesterday,
 				notes: 'Yesterday',
@@ -645,6 +826,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				notes: 'Today',
@@ -669,16 +851,28 @@ describe('recoveryQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim1.id,
+				created_by: user1.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client2.id,
+				claim_id: claim2.id,
+				created_by: user2.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user1.id,
 				notes: 'Client 1 Event',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user2.id,
 				notes: 'Client 2 Event',
 			});
@@ -707,10 +901,16 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const event = await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_amount: '5000',
 				recovery_source: 'Test Source',
@@ -736,10 +936,16 @@ describe('recoveryQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client1.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
 
 			const event = await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user1.id,
 			});
 
@@ -773,10 +979,16 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const event = await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 			});
 
@@ -802,16 +1014,23 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const event1 = await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_amount: '3000',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_amount: '2000',
 			});
@@ -858,10 +1077,16 @@ describe('recoveryQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
 
 			const event = await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim1.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 			});
 
@@ -888,10 +1113,16 @@ describe('recoveryQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client1.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
 
 			const event = await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user1.id,
 			});
 
@@ -913,12 +1144,18 @@ describe('recoveryQueries integration', () => {
 				client_id: client.id,
 				claim_number: 'CLM-EXPORT-001',
 			});
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			// Create multiple events
 			for (let i = 0; i < 5; i++) {
 				await createTestRecoveryEvent(db, {
 					client_id: client.id,
 					claim_id: claim.id,
+					settlement_id: settlement.id,
 					created_by: user.id,
 					notes: `Export Event ${i}`,
 				});
@@ -944,10 +1181,16 @@ describe('recoveryQueries integration', () => {
 				insured: 'Export Insured',
 				recovery_status: 'in_progress',
 			});
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 			});
 
@@ -975,16 +1218,28 @@ describe('recoveryQueries integration', () => {
 				client_id: client.id,
 				recovery_status: 'closed_no_recovery',
 			});
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: inProgressClaim.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: closedClaim.id,
+				created_by: user.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: inProgressClaim.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				notes: 'In Progress Export',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: closedClaim.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				notes: 'Closed Export',
 			});
@@ -1006,16 +1261,23 @@ describe('recoveryQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user1.id,
 				notes: 'User 1 Export Event',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user2.id,
 				notes: 'User 2 Export Event',
 			});
@@ -1036,6 +1298,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 			const yesterday = new Date(today);
@@ -1044,6 +1311,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: yesterday,
 				notes: 'Yesterday Export',
@@ -1051,6 +1319,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				notes: 'Today Export',
@@ -1075,16 +1344,28 @@ describe('recoveryQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim1.id,
+				created_by: user1.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client2.id,
+				claim_id: claim2.id,
+				created_by: user2.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user1.id,
 				notes: 'Client 1 Export',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user2.id,
 				notes: 'Client 2 Export',
 			});
@@ -1107,6 +1388,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 			const lastMonth = new Date(today);
@@ -1116,6 +1402,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '1000',
@@ -1123,6 +1410,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '2000',
@@ -1131,6 +1419,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: lastMonth,
 				recovery_amount: '5000',
@@ -1161,12 +1450,18 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '1000',
@@ -1175,6 +1470,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '2000',
@@ -1211,12 +1507,23 @@ describe('recoveryQueries integration', () => {
 				client_id: client.id,
 				recovery_status: 'closed_no_recovery',
 			});
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: inProgressClaim.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: closedClaim.id,
+				created_by: user.id,
+			});
 
 			const today = new Date();
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: inProgressClaim.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '1000',
@@ -1224,6 +1531,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: closedClaim.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '5000',
@@ -1253,6 +1561,16 @@ describe('recoveryQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+			});
 
 			const checklist1 = await createTestChecklist(db, {
 				client_id: client.id,
@@ -1270,6 +1588,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '1000',
@@ -1277,6 +1596,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				recovery_date: today,
 				recovery_amount: '5000',
@@ -1308,12 +1628,23 @@ describe('recoveryQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim1.id,
+				created_by: user1.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client2.id,
+				claim_id: claim2.id,
+				created_by: user2.id,
+			});
 
 			const today = new Date();
 
 			await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user1.id,
 				recovery_date: today,
 				recovery_amount: '1000',
@@ -1321,6 +1652,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user2.id,
 				recovery_date: today,
 				recovery_amount: '5000',
@@ -1359,6 +1691,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			// Create events in different months
 			const jan = new Date('2024-01-15');
@@ -1368,6 +1705,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: jan,
 				recovery_amount: '1000',
@@ -1375,6 +1713,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: feb,
 				recovery_amount: '2000',
@@ -1382,6 +1721,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: mar,
 				recovery_amount: '3000',
@@ -1409,11 +1749,17 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			// Only create event in January
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: new Date('2024-01-15'),
 				recovery_amount: '1000',
@@ -1440,10 +1786,21 @@ describe('recoveryQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim1.id,
+				created_by: user1.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client2.id,
+				claim_id: claim2.id,
+				created_by: user2.id,
+			});
 
 			await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user1.id,
 				recovery_date: new Date('2024-01-15'),
 				recovery_amount: '1000',
@@ -1451,6 +1808,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user2.id,
 				recovery_date: new Date('2024-01-15'),
 				recovery_amount: '5000',
@@ -1475,6 +1833,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			// Using a fiscal year starting Jan 1, 2024
 			const fiscalYearStart = new Date('2024-01-01');
@@ -1483,6 +1846,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: new Date('2024-02-15'),
 				recovery_amount: '1000',
@@ -1492,6 +1856,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: new Date('2024-05-15'),
 				recovery_amount: '2000',
@@ -1501,6 +1866,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: new Date('2024-08-15'),
 				recovery_amount: '3000',
@@ -1510,6 +1876,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: new Date('2024-11-15'),
 				recovery_amount: '4000',
@@ -1532,6 +1899,11 @@ describe('recoveryQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
 
 			const fiscalYearStart = new Date('2024-01-01');
 
@@ -1539,6 +1911,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 				recovery_date: new Date('2024-02-15'),
 				recovery_amount: '1000',
@@ -1562,12 +1935,18 @@ describe('recoveryQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
 
 			const fiscalYearStart = new Date('2024-01-01');
 
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user1.id,
 				recovery_date: new Date('2024-02-15'),
 				recovery_amount: '1000',
@@ -1575,6 +1954,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user2.id,
 				recovery_date: new Date('2024-02-15'),
 				recovery_amount: '5000',
@@ -1600,12 +1980,23 @@ describe('recoveryQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim1.id,
+				created_by: user1.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client2.id,
+				claim_id: claim2.id,
+				created_by: user2.id,
+			});
 
 			const fiscalYearStart = new Date('2024-01-01');
 
 			await createTestRecoveryEvent(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user1.id,
 				recovery_date: new Date('2024-02-15'),
 				recovery_amount: '1000',
@@ -1613,6 +2004,7 @@ describe('recoveryQueries integration', () => {
 			await createTestRecoveryEvent(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user2.id,
 				recovery_date: new Date('2024-02-15'),
 				recovery_amount: '5000',

@@ -210,8 +210,7 @@ const styles = {
 		maxHeight: 400,
 		overflowY: 'auto' as const,
 		width: '100%',
-		borderRadius: 2,
-		marginTop: 1,
+		mt: 1,
 	},
 	switch: {
 		width: '100%',
@@ -222,9 +221,6 @@ const styles = {
 		'& .MuiInput-input': {
 			fontSize: 15,
 		},
-		'& .MuiOutlinedInput-root': {
-			borderRadius: 2,
-		},
 	},
 	textFieldHero: {
 		width: '100%',
@@ -232,9 +228,10 @@ const styles = {
 			fontSize: 18,
 		},
 		'& .MuiOutlinedInput-root': {
-			borderRadius: 3,
-			height: 64,
 			fontSize: 18,
+			'&:not(.MuiInputBase-multiline)': {
+				height: 70,
+			},
 		},
 	},
 };

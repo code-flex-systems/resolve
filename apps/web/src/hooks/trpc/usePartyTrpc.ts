@@ -98,6 +98,11 @@ export function usePartyTrpc() {
 		listAllOffices: trpc.party.getAllPartyOffices.useQuery,
 
 		/**
+		 * Get single party office by ID
+		 */
+		getOffice: trpc.party.getPartyOffice.useQuery,
+
+		/**
 		 * Create party office (invalidates office and representative lists)
 		 */
 		createOffice: trpc.party.createPartyOffice.useMutation({
@@ -168,6 +173,11 @@ export function usePartyTrpc() {
 		 * Get all party representatives (for standalone admin tab)
 		 */
 		listAllRepresentatives: trpc.party.getAllPartyRepresentatives.useQuery,
+
+		/**
+		 * Get single party representative by ID
+		 */
+		getRepresentative: trpc.party.getPartyRepresentative.useQuery,
 
 		/**
 		 * Create party representative (invalidates representative lists only)
@@ -253,9 +263,10 @@ export function usePartyTrpc() {
 		}),
 
 		/**
-		 * Unlink party from claim (invalidates claim party list after success)
+		 * Archive claim party (soft delete with cascade to facilitators, coverages, liabilities)
+		 * Invalidates claim party list and updates expected_recovery after success
 		 */
-		unlinkFromClaim: trpc.party.unlinkPartyFromClaim.useMutation({
+		archiveClaimParty: trpc.party.archiveClaimParty.useMutation({
 			onSuccess(data) {
 				utils.party.getClaimParties.invalidate({ claimId: data.claimId });
 				// Update cached claim detail with new expected_recovery

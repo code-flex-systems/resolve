@@ -86,7 +86,7 @@ export default function TaskCompletionDialog({
 						<TextField
 							{...field}
 							label="Completion Notes (optional)"
-							variant="standard"
+							
 							multiline
 							rows={3}
 							sx={{ width: 380 }}

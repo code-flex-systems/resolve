@@ -1,7 +1,7 @@
 'use client';
 
 import { FeedStatus } from '@/config/enums';
-import theme from '@/styles/theme';
+import theme, { BG_SECONDARY } from '@/styles/theme';
 import { Box, Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
@@ -46,7 +46,7 @@ export default function Feeds() {
 
 	return (
 		<Box sx={{ width: 'fit-content', height: '100%', mr: 2, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<Paper sx={{ minWidth: 325, height: '100%', p: 2, border: 1, borderColor: 'divider' }}>
+			<Paper sx={{ minWidth: 325, height: '100%', p: 2 }}>
 				<Toolbar
 					left={<Typography variant="h6">Feeds</Typography>}
 					right={
@@ -81,7 +81,7 @@ export default function Feeds() {
 								width: 300,
 								mt: 0.5,
 								...(selectedFeedId === f.id
-									? { border: '1px solid var(--color-primary)', borderBottom: 'none' }
+									? { border: '1px solid', borderColor: 'primary.main', borderBottom: 'none' }
 									: {}),
 							}}
 						>
@@ -111,9 +111,9 @@ export default function Feeds() {
 									alignItems: 'center',
 									height: 'fit-content',
 									p: '10px 15px',
-									bgcolor: 'var(--color-bg-secondary)',
+									bgcolor: BG_SECONDARY,
 									...(selectedFeedId === f.id
-										? { border: '1px solid var(--color-primary)', borderTop: 'none' }
+										? { border: '1px solid', borderColor: 'primary.main', borderTop: 'none' }
 										: {}),
 								}}
 							>

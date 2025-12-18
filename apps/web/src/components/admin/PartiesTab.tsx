@@ -1,18 +1,18 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Fade, IconButton, Paper, Switch, Typography } from '@mui/material';
+import { Button, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
 import Category from '@mui/icons-material/Category';
 import Email from '@mui/icons-material/Email';
-import Search from '@mui/icons-material/Search';
-import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
+import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PartyActionsCell from './PartyActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -22,8 +22,13 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { PartyCategoryValue } from '../common/ReferenceDataSelect';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
-const COLUMNS: GridColDef[] = [
+interface PartiesTabProps {
+	isAdminContext?: boolean;
+}
+
+const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party',
@@ -41,7 +46,14 @@ const COLUMNS: GridColDef[] = [
 		renderCell: ({ row }) => (
 			<StackedHeaderCell
 				primary={row.party_type}
-				secondary={<PartyCategoryValue value={row.party_category} partyType={row.party_type} showEmoji={false} fontSize={12} />}
+				secondary={
+					<PartyCategoryValue
+						value={row.party_category}
+						partyType={row.party_type}
+						showEmoji={false}
+						fontSize={12}
+					/>
+				}
 			/>
 		),
 		renderHeader: (params) => (
@@ -61,8 +73,8 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <PartyActionsCell {...params} />,
-		width: 100,
+		renderCell: (params) => <PartyActionsCell {...params} isAdminContext={isAdminContext} />,
+		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
 ];
@@ -76,23 +88,57 @@ function NoRows() {
 	);
 }
 
-export default function PartiesTab() {
+export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	const showNewPartyDialog = useAdminStore((state) => state.showNewPartyDialog);
 	const partyConstraints = useAdminStore((state) => state.partyConstraints);
 	const toggleNewPartyDialog = useAdminStore((state) => state.toggleNewPartyDialog);
 	const updatePartyConstraints = useAdminStore((state) => state.updatePartyConstraints);
+
+	// Deep linking: edit party via URL param
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const editPartyId = searchParams.get('edit');
+	const [editingPartyFromUrl, setEditingPartyFromUrl] = useState<any | null>(null);
+	const partyTrpc = usePartyTrpc();
 
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParam } = useUrlFilters();
 
 	// Filter states from URL params
 	const partySearchTerm = getParam('search') ?? '';
-	const showArchivedParties = getBoolParam('archived');
+	// Only allow archived filter in admin context
+	const showArchivedParties = isAdminContext ? getBoolParam('archived') : false;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
-	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().list({
+	// Query to fetch party by ID for deep linking (only when edit param is present)
+	const { data: partyToEdit } = partyTrpc.get(
+		{ id: editPartyId ? parseInt(editPartyId, 10) : 0 },
+		{ enabled: !!editPartyId && !editingPartyFromUrl }
+	);
+
+	// Effect to set editing state when party is fetched from URL param
+	useEffect(() => {
+		if (partyToEdit && editPartyId) {
+			setEditingPartyFromUrl(partyToEdit);
+		}
+	}, [partyToEdit, editPartyId]);
+
+	// Handler to close the edit dialog and clear URL param
+	const handleCloseEditDialog = () => {
+		setEditingPartyFromUrl(null);
+		// Clear the edit param from URL
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete('edit');
+		const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+		router.replace(newUrl, { scroll: false });
+	};
+
+	// Memoize columns based on isAdminContext
+	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+
+	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.list({
 		limit: partyConstraints.pageSize,
 		offset: partyConstraints.page * partyConstraints.pageSize,
 		searchTerm: partySearchTerm,
@@ -116,7 +162,7 @@ export default function PartiesTab() {
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading parties...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
@@ -125,51 +171,42 @@ export default function PartiesTab() {
 								<Typography variant="h6" marginRight="20px">
 									Parties
 								</Typography>
-								<Switch
-									size="small"
-									checked={showArchivedParties}
-									onChange={(_, checked) => setParam('archived', checked)}
-									color="warning"
-									sx={{ marginLeft: '10px' }}
-								/>
-								<Typography fontSize={14} fontStyle="italic">
-									Show Archived Only
-								</Typography>
+								{isAdminContext && (
+									<>
+										<Switch
+											size="small"
+											checked={showArchivedParties}
+											onChange={(_, checked) => setParam('archived', checked)}
+											color="warning"
+											sx={{ marginLeft: '10px' }}
+										/>
+										<Typography fontSize={14} fontStyle="italic">
+											Show Archived Only
+										</Typography>
+									</>
+								)}
 							</>
 						}
 						right={
 							<>
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search
-										sx={{
-											fontSize: 17,
-											marginRight: '5px',
-										}}
-									/>
-									<input
-										placeholder="Search"
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => {
-											setSearchTerm(e.target.value);
-											debouncedSearch(e.target.value);
-										}}
-									/>
-									{searchTerm && (
-										<IconButton
-											size="small"
-											onClick={() => {
-												setSearchTerm('');
-												setParam('search', '');
-											}}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewPartyDialog}>
+								<SearchInput
+									value={searchTerm}
+									onChange={(value) => {
+										setSearchTerm(value);
+										if (value === '') {
+											setParam('search', '');
+										} else {
+											debouncedSearch(value);
+										}
+									}}
+									placeholder="Search parties..."
+								/>
+								<Button
+									variant="contained"
+									startIcon={<AddBox />}
+									onClick={toggleNewPartyDialog}
+									sx={{ ml: 2 }}
+								>
 									Party
 								</Button>
 							</>
@@ -179,7 +216,7 @@ export default function PartiesTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{
@@ -210,9 +247,12 @@ export default function PartiesTab() {
 					</div>
 
 					{showNewPartyDialog && <PartyDialog />}
+					{editingPartyFromUrl && (
+						<PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />
+					)}
 				</Paper>
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 
@@ -226,21 +266,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		flex: 1,
-		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px 24px 0px',
 		minHeight: 0,
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 35,
-		marginRight: '20px',
 	},
 	table: {
 		width: '100%',
@@ -248,10 +275,5 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

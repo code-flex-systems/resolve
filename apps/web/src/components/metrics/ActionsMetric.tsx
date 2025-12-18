@@ -71,7 +71,7 @@ export default function ActionsMetric() {
 							display="flex"
 							justifyContent="space-between"
 							alignItems="center"
-							padding="0px 5px"
+							padding="5px"
 						>
 							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
 								Popular Actions

@@ -1,5 +1,5 @@
 'use client';
-import { Box, Dialog, DialogActions, DialogContent, Fade, IconButton, Paper, Typography } from '@mui/material';
+import { Box, Dialog, DialogActions, DialogContent, Divider, Fade, IconButton, Paper, Typography } from '@mui/material';
 import { JSX, PropsWithChildren } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '@/types/types';
@@ -55,11 +55,13 @@ export default function BasicDialog(
 				<Box
 					sx={{
 						width: '100%',
-						height: titleHeight,
+						minHeight: titleHeight,
 						display: 'flex',
 						justifyContent: 'space-between',
 						alignItems: 'center',
-						px: 2,
+						pt: 2,
+						px: 2.5,
+						pb: 1,
 						flexShrink: 0,
 					}}
 				>
@@ -74,20 +76,21 @@ export default function BasicDialog(
 						}}
 					>
 						{typeof title === 'string' ? (
-							<Paper
-								elevation={0}
-								sx={{
-									bgcolor: 'var(--color-bg-tertiary)',
-									py: 0.5,
-									px: 1,
-									maxWidth: '100%',
-								}}
-							>
-								<Typography fontSize={15} lineHeight={1.25} noWrap>
-									{title}
-								</Typography>
-							</Paper>
+							// <Paper
+							// 	elevation={0}
+							// 	sx={{
+							// 		bgcolor: 'var(--color-bg-tertiary)',
+							// 		py: 0.5,
+							// 		px: 1.5,
+							// 		borderRadius: 2,
+							// 		maxWidth: 'fit-content',
+							// 	}}
+							// >
+							<Typography variant="h6" noWrap>
+								{title}
+							</Typography>
 						) : (
+							// </Paper>
 							<>{title ?? <></>}</>
 						)}
 					</Box>
@@ -109,13 +112,14 @@ export default function BasicDialog(
 					</Box>
 				</Box>
 			)}
+			<Divider />
 
-			<DialogContent sx={{ overflow: showOverflow ? 'visible' : 'auto', height: 'calc(100% - 90px)' }}>
+			<DialogContent sx={{ overflow: showOverflow ? 'visible' : 'auto', height: 'calc(100% - 90px)', px: 2.5 }}>
 				{props.children}
 			</DialogContent>
 
 			{(primaryAction || secondaryActions.length > 0) && (
-				<DialogActions>
+				<DialogActions sx={{ px: 2.5, pb: 2, pt: 1 }}>
 					{secondaryActions.reverse().map((action) => (
 						<Fade key={action.label} in={action.hidden === undefined ? true : !action.hidden}>
 							<span>

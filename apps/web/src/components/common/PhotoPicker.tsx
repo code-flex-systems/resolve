@@ -2,6 +2,7 @@
 import CameraAlt from '@mui/icons-material/CameraAlt';
 import { Box, Collapse } from '@mui/material';
 import { useRef, useState } from 'react';
+import { BG_TERTIARY, HOVERED_COLOR } from '@/styles/theme';
 
 export default function PhotoPicker(props: {
 	image?: string;
@@ -40,7 +41,7 @@ export default function PhotoPicker(props: {
 					display: 'flex',
 					justifyContent: 'center',
 					alignItems: 'center',
-					bgcolor: hovered ? 'var(--color-bg-hover)' : 'var(--color-bg-tertiary)',
+					bgcolor: hovered ? HOVERED_COLOR : BG_TERTIARY,
 					transition: 'background-color 300ms ease',
 					cursor: disabled ? undefined : 'pointer',
 					mb: 1,

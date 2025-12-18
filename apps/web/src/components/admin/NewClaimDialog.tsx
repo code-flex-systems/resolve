@@ -1,12 +1,13 @@
 'use client';
 
-import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material';
+import { Box, Grid, InputAdornment, TextField, Typography, Stack } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import Info from '@mui/icons-material/Info';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import AddressFields from '../common/AddressFields';
 import type { ClaimData } from '@/schemas/claimSchemas';
 
 export default function NewClaimDialog() {
@@ -14,6 +15,8 @@ export default function NewClaimDialog() {
 	const {
 		register,
 		handleSubmit,
+		control,
+		setValue,
 		formState: { errors, isSubmitting },
 	} = useForm<ClaimData>();
 	const { mutateAsync: createClaims, isPending } = useClaimTrpc().createMany;
@@ -161,16 +164,19 @@ export default function NewClaimDialog() {
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
-							id="loss_location"
-							label="Loss Location"
-							placeholder="New York City, NY"
-							error={!!errors.loss_location}
-							sx={{
-								width: 200,
-							}}
-							{...register('loss_location', { required: true })}
-						/>
+						<Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+							Loss Location
+						</Typography>
+						<Stack spacing={1}>
+							<AddressFields
+								control={control}
+								errors={errors}
+								setValue={setValue}
+								disabled={isSubmitting || isPending}
+								variant="loss"
+								width={200}
+							/>
+						</Stack>
 					</Grid>
 					{/* Note: Total Incurred is now a calculated field from claim_coverage.amount_reserved */}
 				</Grid>

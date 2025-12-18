@@ -64,7 +64,7 @@ const styles = {
 		minWidth: 520,
 		height: 350,
 		minHeight: 0,
-		padding: '10px 20px',
+		padding: '12px 24px',
 		overflow: 'hidden',
 		borderRadius: 4,
 		margin: '15px',
@@ -79,7 +79,7 @@ const styles = {
 		marginRight: '5px',
 	},
 	link: {
-		padding: 10,
+		padding: 12,
 	},
 	menuItem: {
 		flex: 1,

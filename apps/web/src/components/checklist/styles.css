@@ -1,6 +1,6 @@
 .badge {
 	scale: 1;
-	transition: scale var(--transition-fast);
+	transition: scale 0.15s ease;
 }
 
 .comment:hover .go-icon {
@@ -11,7 +11,7 @@
 .go-icon {
 	visibility: hidden;
 	opacity: 0;
-	transition: opacity var(--transition-normal);
+	transition: opacity 0.25s ease;
 }
 
 .link:hover .badge {
@@ -19,12 +19,12 @@
 }
 
 .info {
-	color: var(--color-primary);
+	color: #21B5FF;
 }
 
 .info:hover {
-	color: var(--color-primary);
-	transition: color var(--transition-fast);
+	color: #21B5FF;
+	transition: color 0.15s ease;
 	cursor: pointer;
 }
 
@@ -38,50 +38,52 @@
 }
 
 .list-item-outer:hover .list-button-inner {
-	color: var(--color-primary);
-	transition: color var(--transition-fast);
+	color: #21B5FF;
+	transition: color 0.15s ease;
 }
 
 .node {
-	border-radius: var(--radius-md);
+	border-radius: 8px;
 }
 
 .node:hover {
-	background-color: var(--color-bg-hover);
-	transition: background-color var(--transition-fast);
+	background-color: rgba(33, 181, 255, 0.04);
+	transition: background-color 0.15s ease;
 	cursor: pointer;
 }
 
 .node-selected {
-	background-color: var(--color-primary);
-	transition: background-color var(--transition-fast);
+	background: linear-gradient(180deg, #21B5FF 0%, #1a9fd9 100%);
+	box-shadow: 0 1px 2px 0 rgba(33, 181, 255, 0.3);
+	transition: all 0.15s ease;
 	cursor: pointer;
 }
 
 .node-selected:hover {
-	background-color: var(--color-primary-hover);
-	transition: background-color var(--transition-fast);
+	background: linear-gradient(180deg, #1a9fd9 0%, #158abf 100%);
+	box-shadow: 0 2px 4px 0 rgba(33, 181, 255, 0.35);
+	transition: all 0.15s ease;
 	cursor: pointer;
 }
 
 .node-selected-inner {
-	color: var(--color-text-inverse);
+	color: #ffffff;
 }
 
 .node-text-selected-color {
-	color: var(--color-text-inverse);
+	color: #ffffff;
 }
 
 .node:hover .node-text-selected-color {
-	color: var(--color-text-primary);
+	color: #0f172a;
 }
 
 .node-a:hover {
-	color: var(--color-warning);
+	color: #f59e0b;
 }
 
 .node-q:hover {
-	color: var(--color-secondary);
+	color: #10b981;
 }
 
 .node-p:hover {
@@ -98,10 +100,10 @@
 }
 
 .text-hover:hover {
-	outline: 1px solid var(--color-primary);
-	border-radius: var(--radius-sm);
+	outline: 1px solid #21B5FF;
+	border-radius: 4px;
 }
 
 .text-hover {
-	padding: var(--space-1) var(--space-2);
+	padding: 4px 8px;
 }

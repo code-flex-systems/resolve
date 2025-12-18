@@ -2,7 +2,7 @@
 
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import { Button, Fade, Paper, Typography } from '@mui/material';
+import { Button, Paper, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Checklist from '@mui/icons-material/Checklist';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
@@ -16,6 +16,7 @@ import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const COLUMNS: GridColDef[] = [
 	{
@@ -76,7 +77,7 @@ export default function ChecklistsTab() {
 	const showNewChecklistDialog = useAdminStore((state) => state.showNewChecklistDialog);
 	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading checklists...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
@@ -121,7 +122,7 @@ export default function ChecklistsTab() {
 				</Paper>
 				{showNewChecklistDialog && <NewChecklistDialog />}
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 
@@ -135,9 +136,7 @@ const styles = {
 	paper: {
 		width: '100%',
 		flex: 1,
-		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px 24px 0px',
 		minHeight: 0,
 	},
 	table: {

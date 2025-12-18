@@ -323,7 +323,11 @@ export async function updateClaim(
 		insured: string | null;
 		claim_amount: string | null;
 		date_of_loss: Date | null;
-		loss_location: string | null;
+		loss_street_address: string | null;
+		loss_city: string | null;
+		loss_state: string | null;
+		loss_postal_code: string | null;
+		loss_country: string | null;
 		recovery_status: string;
 		substatus: string;
 	}>
@@ -346,7 +350,11 @@ export async function updateClaim(
 			'claim_amount',
 			'actual_recovery',
 			'date_of_loss',
-			'loss_location',
+			'loss_street_address',
+			'loss_city',
+			'loss_state',
+			'loss_postal_code',
+			'loss_country',
 			'recovery_status',
 			'substatus',
 		])
@@ -374,7 +382,11 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				insured: c.insured,
 				claim_amount: c.claim_amount,
 				date_of_loss: c.date_of_loss,
-				loss_location: c.loss_location,
+				loss_street_address: c.loss_street_address,
+				loss_city: c.loss_city,
+				loss_state: c.loss_state,
+				loss_postal_code: c.loss_postal_code,
+				loss_country: c.loss_country,
 				last_updated_by: c.last_updated_by,
 				last_update: c.last_update,
 				client_id: ctx.session.user.client_id!,
@@ -388,7 +400,11 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				insured: eb.ref('excluded.insured'),
 				claim_amount: eb.ref('excluded.claim_amount'),
 				date_of_loss: eb.ref('excluded.date_of_loss'),
-				loss_location: eb.ref('excluded.loss_location'),
+				loss_street_address: eb.ref('excluded.loss_street_address'),
+				loss_city: eb.ref('excluded.loss_city'),
+				loss_state: eb.ref('excluded.loss_state'),
+				loss_postal_code: eb.ref('excluded.loss_postal_code'),
+				loss_country: eb.ref('excluded.loss_country'),
 				last_updated_by: eb.ref('excluded.last_updated_by'),
 				last_update: eb.ref('excluded.last_update'),
 			}))
@@ -521,11 +537,12 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
  * @returns the new total_incurred value
  */
 export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: number) {
-	// Get sum of amount_reserved from all coverages for this claim
+	// Get sum of amount_reserved from all active (non-deleted) coverages for this claim
 	const result = await ctx.db
 		.selectFrom('claim_coverage')
 		.select(({ fn }) => [fn.sum<string>('amount_reserved').as('total_reserved')])
 		.where('claim_id', '=', claimId)
+		.where('deleted_at', 'is', null)
 		.executeTakeFirst();
 
 	const totalIncurred = result?.total_reserved ? parseFloat(result.total_reserved) : 0;
@@ -634,26 +651,41 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
 		.orderBy('checklist_claim.last_opened', 'desc');
 
-	// Get insured coverage summary (claim_coverage table)
+	// Get coverage summary with count of coverages and distinct Entity-type parties with coverages
+	// Coverages are linked to Entity parties via claim_party_id
 	const coverageSummaryQuery = ctx.db
 		.selectFrom('claim_coverage')
-		.select((eb) => [eb.fn.count('id').as('count'), eb.fn.sum('coverage_amount').as('total')])
-		.where('claim_id', '=', claimId)
-		.where('client_id', '=', ctx.session.user.client_id);
+		.innerJoin('claim_party', 'claim_coverage.claim_party_id', 'claim_party.id')
+		.innerJoin('party', 'claim_party.party_id', 'party.id')
+		.select((eb) => [
+			eb.fn.count('claim_coverage.id').as('count'),
+			eb.fn.sum('claim_coverage.coverage_amount').as('total'),
+			eb.fn.count(sql`DISTINCT claim_party.id`).as('partyCount'),
+		])
+		.where('claim_coverage.claim_id', '=', claimId)
+		.where('claim_coverage.client_id', '=', ctx.session.user.client_id)
+		.where('claim_coverage.deleted_at', 'is', null)
+		.where('claim_party.deleted_at', 'is', null)
+		.where('party.party_type', '=', 'entity');
 
-	// Get party count and liability summary
+	// Get Facilitator party count for liability summary
+	// Only Facilitator-type parties contribute to liability percentages
 	const partySummaryQuery = ctx.db
 		.selectFrom('claim_party')
+		.innerJoin('party', 'claim_party.party_id', 'party.id')
 		.select((eb) => [eb.fn.count('claim_party.id').as('count')])
 		.where('claim_party.claim_id', '=', claimId)
-		.where('claim_party.deleted_at', 'is', null);
+		.where('claim_party.deleted_at', 'is', null)
+		.where('party.party_type', '=', 'facilitator');
 
-	// Get total liability percentage from claim_party table (liability_percentage moved here from claim_liability)
+	// Get total liability percentage from Facilitator-type parties only
 	const liabilitySummaryQuery = ctx.db
 		.selectFrom('claim_party')
+		.innerJoin('party', 'claim_party.party_id', 'party.id')
 		.select((eb) => [eb.fn.sum('claim_party.liability_percentage').as('total_liability')])
 		.where('claim_party.claim_id', '=', claimId)
-		.where('claim_party.deleted_at', 'is', null);
+		.where('claim_party.deleted_at', 'is', null)
+		.where('party.party_type', '=', 'facilitator');
 
 
 	// Get task summary by status
@@ -695,6 +727,7 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		coverageSummary: {
 			count: Number(coverageSummary?.count || 0),
 			total: Number(coverageSummary?.total || 0),
+			partyCount: Number(coverageSummary?.partyCount || 0),
 		},
 		partySummary: {
 			count: Number(partySummary?.count || 0),

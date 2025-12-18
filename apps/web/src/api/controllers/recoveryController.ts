@@ -1,6 +1,6 @@
 import * as recoveryQueries from '@/api/queries/recoveryQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import type { RecoveryEventParams } from '@/schemas/recoverySchemas';
+import type { RecoveryEventParams, RecoveryEventUpdateParams } from '@/schemas/recoverySchemas';
 import { DateRangeStrict } from '@/types/types';
 import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
@@ -91,6 +91,41 @@ export async function deleteRecoveryEvent(
 			});
 		}
 	});
+}
+
+/**
+ * Update a recovery event.
+ *
+ * @param ctx - request context
+ * @param input - recovery event id and update parameters
+ * @returns updated recovery event
+ */
+export async function updateRecoveryEvent(
+	ctx: ProtectedContext,
+	{
+		recoveryEventId,
+		params,
+	}: {
+		recoveryEventId: number;
+		params: RecoveryEventUpdateParams;
+	}
+) {
+	// Update recovery event and log admin action within transaction
+	const updated = await ctx.db.transaction().execute(async (trx) => {
+		const event = await recoveryQueries.updateRecoveryEvent({ ...ctx, db: trx }, recoveryEventId, params);
+
+		// Log admin action
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: recoveryEventId,
+			entityName: EntityName.RECOVERY_EVENT,
+			action: AdminAction.UPDATE,
+			value: { recovery_amount: event.recovery_amount, recovery_date: event.recovery_date, recovery_source: event.recovery_source },
+		});
+
+		return event;
+	});
+
+	return updated;
 }
 
 /**

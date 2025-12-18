@@ -649,7 +649,11 @@ describe('claimController integration tests', () => {
 							insured: 'Jane Insured',
 							claim_amount: 100000,
 							date_of_loss: dateOfLoss,
-							loss_location: '123 Main St',
+							loss_street_address: '123 Main St',
+							loss_city: 'Springfield',
+							loss_state: 'IL',
+							loss_postal_code: '62701',
+							loss_country: 'US',
 							// Note: recovery_status and substatus are not part of ClaimData schema
 							// They can only be set via updateClaim
 						},
@@ -663,7 +667,9 @@ describe('claimController integration tests', () => {
 				expect(claim.client_adjuster).toBe('John Adjuster');
 				expect(claim.insured).toBe('Jane Insured');
 				expect(claim.claim_amount).toBe('100000');
-				expect(claim.loss_location).toBe('123 Main St');
+				expect(claim.loss_street_address).toBe('123 Main St');
+				expect(claim.loss_city).toBe('Springfield');
+				expect(claim.loss_state).toBe('IL');
 			});
 		});
 

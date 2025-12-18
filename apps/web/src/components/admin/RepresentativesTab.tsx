@@ -1,20 +1,20 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Fade, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
 import Person from '@mui/icons-material/Person';
 import LocationOn from '@mui/icons-material/LocationOn';
 import Phone from '@mui/icons-material/Phone';
-import Search from '@mui/icons-material/Search';
 import Warning from '@mui/icons-material/Warning';
-import Clear from '@mui/icons-material/Clear';
 import CustomPagination from '../common/CustomPagination';
+import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -23,8 +23,14 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import { formatCityState } from '@/schemas/addressSchemas';
+import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
-const COLUMNS: GridColDef[] = [
+interface RepresentativesTabProps {
+	isAdminContext?: boolean;
+}
+
+const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party',
@@ -50,7 +56,7 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Representative',
 		field: 'representative',
 		renderCell: ({ row }) => {
-			const name = `${row.last_name}, ${row.first_name}`;
+			const name = `${row.first_name} ${row.last_name}`;
 			const secondary = [row.title, row.email].filter(Boolean).join(' • ') || 'No title or email';
 			return (
 				<div
@@ -81,7 +87,7 @@ const COLUMNS: GridColDef[] = [
 		renderCell: ({ row }) => (
 			<StackedHeaderCell
 				primary={row.office_name || 'No office'}
-				secondary={row.office_address || 'No address'}
+				secondary={formatCityState(row.office_city, row.office_state) || 'No location'}
 			/>
 		),
 		renderHeader: (params) => (
@@ -111,8 +117,8 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <RepresentativeActionsCell {...params} />,
-		width: 100,
+		renderCell: (params) => <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} />,
+		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
 ];
@@ -126,23 +132,50 @@ function NoRows() {
 	);
 }
 
-export default function RepresentativesTab() {
+export default function RepresentativesTab({ isAdminContext = true }: RepresentativesTabProps) {
 	const showNewRepresentativeDialog = useAdminStore((state) => state.showNewRepresentativeDialog);
 	const representativeConstraints = useAdminStore((state) => state.representativeConstraints);
 	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
 	const updateRepresentativeConstraints = useAdminStore((state) => state.updateRepresentativeConstraints);
+
+	// Deep linking: edit representative via URL param
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const editRepresentativeId = searchParams.get('edit');
+	const [editingRepresentativeFromUrl, setEditingRepresentativeFromUrl] = useState<any | null>(null);
+	const partyTrpc = usePartyTrpc();
+
+	// Query to fetch representative by ID for deep linking (only when edit param is present)
+	const { data: representativeToEdit } = partyTrpc.getRepresentative(
+		{ id: editRepresentativeId ? parseInt(editRepresentativeId, 10) : 0 },
+		{ enabled: !!editRepresentativeId && !editingRepresentativeFromUrl }
+	);
 
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParam } = useUrlFilters();
 
 	// Filter states from URL params
 	const representativeSearchTerm = getParam('search') ?? '';
-	const showArchivedRepresentatives = getBoolParam('archived');
+	// Only allow archived filter in admin context
+	const showArchivedRepresentatives = isAdminContext ? getBoolParam('archived') : false;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
-	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllRepresentatives({
+	// Handler to close the edit dialog and clear URL param
+	const handleCloseEditDialog = () => {
+		setEditingRepresentativeFromUrl(null);
+		// Clear the edit param from URL
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete('edit');
+		const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+		router.replace(newUrl, { scroll: false });
+	};
+
+	// Memoize columns based on isAdminContext
+	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+
+	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
 		offset: representativeConstraints.page * representativeConstraints.pageSize,
 		searchTerm: representativeSearchTerm,
@@ -157,6 +190,13 @@ export default function RepresentativesTab() {
 		return rowCountRef.current;
 	}, [data.count]);
 
+	// Effect to set editing representative from dedicated query when data is loaded
+	useEffect(() => {
+		if (representativeToEdit && editRepresentativeId) {
+			setEditingRepresentativeFromUrl(representativeToEdit);
+		}
+	}, [representativeToEdit, editRepresentativeId]);
+
 	// Sync local search state with URL param changes
 	useEffect(() => {
 		setSearchTerm(representativeSearchTerm);
@@ -166,7 +206,7 @@ export default function RepresentativesTab() {
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading representatives...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
@@ -175,54 +215,41 @@ export default function RepresentativesTab() {
 								<Typography variant="h6" marginRight="20px">
 									Representatives
 								</Typography>
-								<Switch
-									size="small"
-									checked={showArchivedRepresentatives}
-									onChange={(_, checked) => setParam('archived', checked)}
-									color="warning"
-									sx={{ marginLeft: '10px' }}
-								/>
-								<Typography fontSize={14} fontStyle="italic">
-									Show Archived Only
-								</Typography>
+								{isAdminContext && (
+									<>
+										<Switch
+											size="small"
+											checked={showArchivedRepresentatives}
+											onChange={(_, checked) => setParam('archived', checked)}
+											color="warning"
+											sx={{ marginLeft: '10px' }}
+										/>
+										<Typography fontSize={14} fontStyle="italic">
+											Show Archived Only
+										</Typography>
+									</>
+								)}
 							</>
 						}
 						right={
 							<>
-								<Paper elevation={0} sx={styles.searchPaper}>
-									<Search
-										sx={{
-											fontSize: 17,
-											marginRight: '5px',
-										}}
-									/>
-									<input
-										placeholder="Search"
-										type="text"
-										style={styles.textField}
-										value={searchTerm}
-										onChange={(e) => {
-											setSearchTerm(e.target.value);
-											debouncedSearch(e.target.value);
-										}}
-									/>
-									{searchTerm && (
-										<IconButton
-											size="small"
-											onClick={() => {
-												setSearchTerm('');
-												setParam('search', '');
-											}}
-											sx={{ padding: '2px', marginLeft: '2px' }}
-										>
-											<Clear sx={{ fontSize: 16 }} />
-										</IconButton>
-									)}
-								</Paper>
+								<SearchInput
+									value={searchTerm}
+									onChange={(value) => {
+										setSearchTerm(value);
+										if (value === '') {
+											setParam('search', '');
+										} else {
+											debouncedSearch(value);
+										}
+									}}
+									placeholder="Search representatives..."
+								/>
 								<Button
 									variant="contained"
 									startIcon={<AddBox />}
 									onClick={toggleNewRepresentativeDialog}
+									sx={{ ml: 2 }}
 								>
 									Representative
 								</Button>
@@ -233,7 +260,7 @@ export default function RepresentativesTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{
@@ -264,9 +291,12 @@ export default function RepresentativesTab() {
 					</div>
 
 					{showNewRepresentativeDialog && <RepresentativeDialog />}
+					{editingRepresentativeFromUrl && (
+						<RepresentativeDialog representative={editingRepresentativeFromUrl} onClose={handleCloseEditDialog} />
+					)}
 				</Paper>
 			</div>
-		</Fade>
+		</PageTransitionWrapper>
 	);
 }
 
@@ -280,21 +310,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		flex: 1,
-		padding: '15px 15px 0px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px 24px 0px',
 		minHeight: 0,
-	},
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 35,
-		marginRight: '20px',
 	},
 	table: {
 		width: '100%',
@@ -302,10 +319,5 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
 	},
 };

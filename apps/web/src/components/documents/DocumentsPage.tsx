@@ -7,7 +7,6 @@ import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import DocumentNavigationTable from '../admin/DocumentNavigationTable';
 import DocumentPreviewDialog from '../admin/DocumentPreviewDialog';
 import Toolbar from '../common/Toolbar';
-import PageWrapper from '../common/PageWrapper';
 
 export default function DocumentsPage() {
 	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
@@ -75,36 +74,34 @@ export default function DocumentsPage() {
 	};
 
 	return (
-		<PageWrapper>
-			<Stack width="100%" flex={1} padding="20px">
-				<Paper sx={styles.container}>
-					<Toolbar
-						left={<Typography variant="h6">Shared Documents</Typography>}
-						height={50}
-						padding={'0px 10px'}
-					/>
+		<Stack width="100%" flex={1} padding="20px">
+			<Paper sx={styles.container}>
+				<Toolbar
+					left={<Typography variant="h6">Shared Documents</Typography>}
+					height={50}
+					padding={'0px 10px'}
+				/>
 
-					<DocumentNavigationTable
-						groups={filteredGroups}
-						docs={docs}
-						currentFolderId={currentFolderId}
-						onNavigate={handleNavigate}
-						onDocumentPreview={setPreviewDocument}
-						loading={isLoading}
-						showBreadcrumbs={true}
-						breadcrumbRootLabel="Documents"
-						adminMode={false}
-						emptyRootText="No shared documents available yet."
-						emptyFolderText="No documents in this folder yet."
-						hiddenBreadcrumbFolderId={sharedFolder?.id}
-					/>
+				<DocumentNavigationTable
+					groups={filteredGroups}
+					docs={docs}
+					currentFolderId={currentFolderId}
+					onNavigate={handleNavigate}
+					onDocumentPreview={setPreviewDocument}
+					loading={isLoading}
+					showBreadcrumbs={true}
+					breadcrumbRootLabel="Documents"
+					adminMode={false}
+					emptyRootText="No shared documents available yet."
+					emptyFolderText="No documents in this folder yet."
+					hiddenBreadcrumbFolderId={sharedFolder?.id}
+				/>
 
-					{previewDocument && (
-						<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
-					)}
-				</Paper>
-			</Stack>
-		</PageWrapper>
+				{previewDocument && (
+					<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
+				)}
+			</Paper>
+		</Stack>
 	);
 }
 
@@ -114,8 +111,6 @@ const styles = {
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+		padding: '24px',
 	},
 };

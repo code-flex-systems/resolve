@@ -16,6 +16,8 @@ export const KNOWN_REFERENCE_ENTITIES = [
 	'facilitator_category',
 	'entity_category',
 	'claim_party_role',
+	'claimant_party_role',
+	'adverse_party_role',
 ] as const;
 
 export type ReferenceEntity = (typeof KNOWN_REFERENCE_ENTITIES)[number];
@@ -178,5 +180,13 @@ export const REFERENCE_ENTITY_DISPLAY: Record<
 	claim_party_role: {
 		label: 'Claim Party Role',
 		description: 'Role of a party on a specific claim',
+	},
+	claimant_party_role: {
+		label: 'Claimant Party Role',
+		description: 'Roles for parties on the Claimants & Coverage tab',
+	},
+	adverse_party_role: {
+		label: 'Adverse Party Role',
+		description: 'Roles for parties on the Adverse Parties & Liability tab',
 	},
 };

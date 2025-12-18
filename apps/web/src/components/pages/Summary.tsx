@@ -1,5 +1,5 @@
 'use client';
-import { Box, Divider, Stack } from '@mui/material';
+import { Box, Divider, Stack, Typography } from '@mui/material';
 import { BG_TERTIARY } from '@/styles/theme';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
@@ -9,9 +9,14 @@ import ClaimInfo from '@/components/checklist/ClaimInfo';
 import SummaryDetails from '@/components/summary/SummaryDetails';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistInfo from '../checklist/ChecklistInfo';
+import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+import { useChecklistParams } from '@/hooks/useChecklistParams';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 
 export default function Summary() {
 	const router = useRouter();
+	const { checklistId } = useChecklistParams();
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 
 	return (
 		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start" padding="10px">
@@ -25,13 +30,16 @@ export default function Summary() {
 								tooltipProps={{ title: 'Back to checklist' }}
 							/>
 						</Box>
+						<ChecklistIcon />
+						<Typography variant="h6" ml={0.5} mr={1}>
+							{checklist?.name}
+						</Typography>
 						<ClaimInfo />
-						<ChecklistInfo />
 					</>
 				}
 				padding={0}
 			/>
-			<Box sx={styles.divider}>
+			<Box sx={styles.divider} mt={1}>
 				<Divider />
 			</Box>
 			<Box sx={styles.containerInner} className="flex-row-left">
@@ -54,7 +62,7 @@ const styles = {
 	},
 	containerInner: {
 		width: '100%',
-		height: 'calc(100vh - 60px)',
+		height: 'calc(100vh - 65px)',
 		bgcolor: BG_TERTIARY,
 		p: '20px',
 	},

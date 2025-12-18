@@ -1,0 +1,133 @@
+'use client';
+
+import {
+	Box,
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Select,
+	TextField,
+} from '@mui/material';
+import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import dayjs from 'dayjs';
+
+const capitalize = (str: string | null | undefined) => {
+	if (!str) return '';
+	return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export interface RecoveryFormData {
+	settlement_id: number | '';
+	recovery_date: string;
+	recovery_amount: string;
+	recovery_source: string;
+	notes: string;
+}
+
+interface SettlementOption {
+	id: number;
+	party_name: string;
+	coverage_type: string;
+	demand_amount: number | string;
+	demand_date: Date | string;
+}
+
+interface RecoveryFormDialogProps {
+	open: boolean;
+	onClose: () => void;
+	onSubmit: () => void;
+	formData: RecoveryFormData;
+	setFormData: (data: RecoveryFormData) => void;
+	settlements: SettlementOption[];
+	isEditing: boolean;
+	isSubmitting: boolean;
+}
+
+export default function RecoveryFormDialog({
+	open,
+	onClose,
+	onSubmit,
+	formData,
+	setFormData,
+	settlements,
+	isEditing,
+	isSubmitting,
+}: RecoveryFormDialogProps) {
+	const isValid =
+		formData.settlement_id !== '' && formData.recovery_amount && parseFloat(formData.recovery_amount) > 0;
+
+	return (
+		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+			<DialogTitle>{isEditing ? 'Edit Recovery Event' : 'Add Recovery Event'}</DialogTitle>
+			<DialogContent>
+				<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+					<FormControl fullWidth required>
+						<InputLabel>Settlement</InputLabel>
+						<Select
+							value={formData.settlement_id}
+							label="Settlement"
+							onChange={(e) => setFormData({ ...formData, settlement_id: e.target.value as number })}
+						>
+							{settlements.map((settlement) => (
+								<MenuItem key={settlement.id} value={settlement.id}>
+									{settlement.party_name} · {capitalize(settlement.coverage_type)} -{' '}
+									{formatCurrencyExact(Number(settlement.demand_amount))} (
+									{dayjs(settlement.demand_date).format('MMM D')})
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<TextField
+						label="Recovery Date"
+						type="date"
+						value={formData.recovery_date}
+						onChange={(e) => setFormData({ ...formData, recovery_date: e.target.value })}
+						fullWidth
+						slotProps={{
+							inputLabel: { shrink: true },
+						}}
+					/>
+					<TextField
+						label="Recovery Amount"
+						type="number"
+						value={formData.recovery_amount}
+						onChange={(e) => setFormData({ ...formData, recovery_amount: e.target.value })}
+						fullWidth
+						required
+						placeholder="0.00"
+						slotProps={{
+							htmlInput: { step: '0.01', min: '0' },
+						}}
+					/>
+					<TextField
+						label="Recovery Source"
+						value={formData.recovery_source}
+						onChange={(e) => setFormData({ ...formData, recovery_source: e.target.value })}
+						fullWidth
+						placeholder="e.g., Check, Wire Transfer, etc."
+					/>
+					<TextField
+						label="Notes"
+						value={formData.notes}
+						onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+						fullWidth
+						multiline
+						rows={3}
+						placeholder="Additional details about this recovery..."
+					/>
+				</Box>
+			</DialogContent>
+			<DialogActions>
+				<Button onClick={onClose}>Cancel</Button>
+				<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
+					{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
+}

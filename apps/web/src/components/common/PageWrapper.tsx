@@ -6,14 +6,16 @@ import Dashboard from '@mui/icons-material/Dashboard';
 import Search from '@mui/icons-material/Search';
 import Security from '@mui/icons-material/Security';
 import FolderOpen from '@mui/icons-material/FolderOpen';
+import Business from '@mui/icons-material/Business';
 import useIsAdmin from '@/hooks/useIsAdmin';
-import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { Box, Fade } from '@mui/material';
+import { Box } from '@mui/material';
+import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { BG_SECONDARY } from '@/styles/theme';
 
 export default function PageWrapper({
-	bgcolor = 'var(--color-bg-secondary)',
+	bgcolor = BG_SECONDARY,
 	children,
 }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
@@ -29,6 +31,7 @@ export default function PageWrapper({
 			{ label: 'Home', route: '/home', icon: <Search sx={{ fontSize: 23 }} /> },
 			{ label: 'Dashboard', route: '/dashboard', icon: <Dashboard sx={{ fontSize: 23 }} /> },
 			{ label: 'Documents', route: '/documents', icon: <FolderOpen sx={{ fontSize: 23 }} /> },
+			{ label: 'Parties', route: '/parties', icon: <Business sx={{ fontSize: 23 }} /> },
 		];
 		if (claim) {
 			items.push({
@@ -37,10 +40,8 @@ export default function PageWrapper({
 				icon: <ContentPasteSearch sx={{ fontSize: 23 }} />,
 			});
 		}
-		if (isAdmin || isSuperAdmin)
+		if (isAdmin || isSuperAdmin) {
 			items.push({ label: 'Admin', route: '/admin', icon: <Security sx={{ fontSize: 23 }} /> });
-		if (isSuperAdmin) {
-			items.push({ label: 'Super Admin', route: '/super-admin', icon: <Security sx={{ fontSize: 23 }} /> });
 		}
 		return items;
 	}, [isAdmin, isSuperAdmin, claim]);
@@ -57,22 +58,20 @@ export default function PageWrapper({
 			}}
 		>
 			<Sidebar items={navItems} />
-			<Fade in={true} timeout={1000}>
-				<Box
-					sx={{
-						flex: 1,
-						minWidth: 0,
-						ml: '60px',
-						height: '100%',
-						display: 'flex',
-						flexDirection: 'column',
-						justifyContent: 'flex-start',
-						alignItems: 'flex-start',
-					}}
-				>
-					{children}
-				</Box>
-			</Fade>
+			<Box
+				sx={{
+					flex: 1,
+					minWidth: 0,
+					ml: '60px',
+					height: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+					justifyContent: 'flex-start',
+					alignItems: 'flex-start',
+				}}
+			>
+				{children}
+			</Box>
 		</Box>
 	);
 }

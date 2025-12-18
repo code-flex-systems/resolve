@@ -203,7 +203,5 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
 	},
 };

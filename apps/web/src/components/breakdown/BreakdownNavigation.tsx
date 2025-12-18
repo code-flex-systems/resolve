@@ -1,16 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Box, Fade, Paper, Stack, Typography } from '@mui/material';
+import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import Leaderboard from '@mui/icons-material/Leaderboard';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import WobbleLoadingIndicator from '../common/WobbleLoadingIndicator';
 import { useSearchParams } from 'next/navigation';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
+import { TEXT_MUTED } from '@/styles/theme';
 
 export default function BreakdownNavigation() {
 	const searchParams = useSearchParams();
@@ -66,8 +66,8 @@ export default function BreakdownNavigation() {
 					pt={1.5}
 					pl={1.5}
 				>
-					<Leaderboard sx={{ color: 'var(--color-text-muted)', transform: 'rotate(90deg)' }} />
-					<Typography fontSize="var(--font-size-base)" color="var(--color-text-muted)" ml={1.5}>
+					<Leaderboard sx={{ color: TEXT_MUTED, transform: 'rotate(90deg)' }} />
+					<Typography fontSize={14} color={TEXT_MUTED} ml={1.5}>
 						{pageInstance
 							? `Breakdown for ${pageInstance.title}`
 							: isLoading
@@ -80,13 +80,15 @@ export default function BreakdownNavigation() {
 					<span>
 						<Paper elevation={0} sx={styles.contentPaper}>
 							{isLoading && (
-								<Box sx={styles.loadingContainer} className="flex-col-center">
-									<WobbleLoadingIndicator />
-								</Box>
+								<Stack spacing={2} width="100%" p={2}>
+									{[1, 2, 3, 4].map((i) => (
+										<Skeleton key={i} variant="rounded" height={60} />
+									))}
+								</Stack>
 							)}
 							{!isLoading && !questionStats.length && (
 								<Box sx={styles.loadingContainer} className="flex-col-center">
-									<Typography color="var(--color-text-muted)" fontSize="var(--font-size-lg)">
+									<Typography color={TEXT_MUTED} fontSize={18}>
 										No response data found
 									</Typography>
 								</Box>
@@ -121,7 +123,7 @@ const styles = {
 		width: 'fit-content',
 		minWidth: 500,
 		height: 'calc(100vh - 65px)',
-		bgcolor: 'var(--color-bg-tertiary)',
+		bgcolor: 'background.default',
 		p: 1.5,
 		overflow: 'hidden',
 		borderRadius: 0,
@@ -142,8 +144,6 @@ const styles = {
 		height: '100%',
 		zIndex: 10,
 		p: 2.5,
-		borderRadius: 'var(--radius-md)',
-		border: '1px solid var(--color-border)',
 		overflow: 'auto',
 	},
 };

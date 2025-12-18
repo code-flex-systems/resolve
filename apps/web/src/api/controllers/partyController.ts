@@ -34,9 +34,9 @@ export async function getParty(ctx: ProtectedContext, { id }: { id: number }) {
  */
 export async function searchParties(
 	ctx: ProtectedContext,
-	{ searchTerm }: { searchTerm: string }
+	{ searchTerm, partyType }: { searchTerm: string; partyType?: 'entity' | 'facilitator' }
 ) {
-	return await partyQueries.searchParties(ctx, searchTerm);
+	return await partyQueries.searchParties(ctx, searchTerm, { partyType });
 }
 
 /**
@@ -51,7 +51,11 @@ export async function createParty(
 		organization?: string;
 		email?: string;
 		phone?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		notes?: string;
 	}
 ) {
@@ -93,7 +97,11 @@ export async function updateParty(
 			organization?: string;
 			email?: string;
 			phone?: string;
-			address?: string;
+			street_address?: string | null;
+			city?: string | null;
+			state?: string | null;
+			postal_code?: string | null;
+			country?: string | null;
 			notes?: string;
 		};
 	}
@@ -207,6 +215,13 @@ export async function getAllPartyOffices(
 }
 
 /**
+ * Get single party office by ID
+ */
+export async function getPartyOffice(ctx: ProtectedContext, { id }: { id: number }) {
+	return await partyQueries.getPartyOffice(ctx, id);
+}
+
+/**
  * Create party office with admin logging
  */
 export async function createPartyOffice(
@@ -214,7 +229,11 @@ export async function createPartyOffice(
 	input: {
 		party_id: number;
 		office_name?: string;
-		address?: string;
+		street_address?: string | null;
+		city?: string | null;
+		state?: string | null;
+		postal_code?: string | null;
+		country?: string | null;
 		phone?: string;
 		fax?: string;
 		is_primary?: boolean;
@@ -233,7 +252,8 @@ export async function createPartyOffice(
 			value: {
 				party_id: office.party_id,
 				office_name: office.office_name,
-				address: office.address,
+				city: office.city,
+				state: office.state,
 			},
 		});
 
@@ -255,7 +275,11 @@ export async function updatePartyOffice(
 		id: number;
 		params: {
 			office_name?: string;
-			address?: string;
+			street_address?: string | null;
+			city?: string | null;
+			state?: string | null;
+			postal_code?: string | null;
+			country?: string | null;
 			phone?: string;
 			fax?: string;
 			is_primary?: boolean;
@@ -303,7 +327,8 @@ export async function archivePartyOffice(ctx: ProtectedContext, { id }: { id: nu
 			value: {
 				party_id: office.party_id,
 				office_name: office.office_name,
-				address: office.address,
+				city: office.city,
+				state: office.state,
 			},
 		});
 
@@ -328,7 +353,8 @@ export async function restorePartyOffice(ctx: ProtectedContext, { id }: { id: nu
 				restored: true,
 				party_id: office.party_id,
 				office_name: office.office_name,
-				address: office.address,
+				city: office.city,
+				state: office.state,
 			},
 		});
 
@@ -365,6 +391,13 @@ export async function getAllPartyRepresentatives(
 	}: { searchTerm?: string; limit?: number; offset?: number; showArchived?: boolean }
 ) {
 	return await partyQueries.getAllPartyRepresentatives(ctx, searchTerm, limit, offset, showArchived);
+}
+
+/**
+ * Get single party representative by ID
+ */
+export async function getPartyRepresentative(ctx: ProtectedContext, { id }: { id: number }) {
+	return await partyQueries.getPartyRepresentative(ctx, id);
 }
 
 /**
@@ -522,9 +555,13 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: 
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId, partyType, roleListEntity }: {
+		claimId: number;
+		partyType?: 'entity' | 'facilitator';
+		roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
+	}
 ) {
-	return await partyQueries.getClaimParties(ctx, claimId);
+	return await partyQueries.getClaimParties(ctx, claimId, { partyType, roleListEntity });
 }
 
 /**
@@ -541,6 +578,8 @@ export async function linkPartyToClaim(
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
+		liability_percentage?: number;
+		parent_claim_party_id?: number | null;
 	}
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
@@ -583,7 +622,8 @@ export async function updateClaimParty(
 			is_primary?: boolean;
 			notes?: string;
 			external_reference?: string;
-			liability_percentage?: number;
+			liability_percentage?: number | null;
+			parent_claim_party_id?: number | null;
 		};
 	}
 ) {
@@ -615,10 +655,11 @@ export async function updateClaimParty(
 }
 
 /**
- * Unlink party from claim with admin logging
+ * Archive (soft delete) claim party with admin logging
+ * Cascades to archive all nested facilitators, coverages, and liabilities
  * @returns expectedRecovery and claimId
  */
-export async function unlinkPartyFromClaim(
+export async function archiveClaimParty(
 	ctx: ProtectedContext,
 	{ id }: { id: number }
 ) {
@@ -628,7 +669,7 @@ export async function unlinkPartyFromClaim(
 			id
 		);
 
-		const { expectedRecovery, claimId } = await partyQueries.unlinkPartyFromClaim({ ...ctx, db: trx }, id);
+		const { expectedRecovery, claimId } = await partyQueries.archiveClaimParty({ ...ctx, db: trx }, id);
 
 		if (claimPartyForLog) {
 			await logAdminAction({ ...ctx, db: trx }, {

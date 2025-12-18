@@ -10,7 +10,7 @@ import Groups from '@mui/icons-material/Groups';
 import Task from '@mui/icons-material/Task';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Link from 'next/link';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
@@ -18,7 +18,8 @@ import Highlight from '@/components/common/Highlight';
 import { formatMDY } from '@/lib/utils/utils';
 import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import { useRouter } from 'next/navigation';
-import { LineOfBusinessValue, LossTypeValue } from '@/components/common/ReferenceDataSelect';
+import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
+import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -29,9 +30,10 @@ dayjs.extend(relativeTime);
 interface ClaimSummaryProps {
 	claimId: number;
 	onStartChecklist?: () => void;
+	showChecklistProgress?: boolean;
 }
 
-export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummaryProps) {
+export default function ClaimSummary({ claimId, onStartChecklist, showChecklistProgress = true }: ClaimSummaryProps) {
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
@@ -121,24 +123,12 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 							{claimDetail.aggregated_line_of_business &&
 								claimDetail.aggregated_line_of_business.length > 0 &&
 								claimDetail.aggregated_line_of_business.map((lob: string) => (
-									<Chip
-										key={lob}
-										label={<LineOfBusinessValue value={lob} fontSize={12} />}
-										size="small"
-										color="primary"
-										variant="outlined"
-									/>
+									<LineOfBusinessChip key={lob} value={lob} />
 								))}
 							{claimDetail.aggregated_loss_type &&
 								claimDetail.aggregated_loss_type.length > 0 &&
 								claimDetail.aggregated_loss_type.map((lt: string) => (
-									<Chip
-										key={lt}
-										label={<LossTypeValue value={lt} fontSize={12} />}
-										size="small"
-										color="secondary"
-										variant="outlined"
-									/>
+									<LossTypeChip key={lt} value={lt} />
 								))}
 							{claimDetail.recovery_status && (
 								<Chip
@@ -150,7 +140,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 						</Box>
 
 						{/* Key Metrics Card */}
-						<Paper elevation={0} style={{ height: 'fit-content' }} sx={styles.paper}>
+						<Paper elevation={0} sx={styles.gradientPaper}>
 							<Typography variant="h5" color="primary" marginBottom="10px">
 								{claimDetail.claim_number}
 							</Typography>
@@ -193,12 +183,12 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 						</Paper>
 
 						{/* Quick Summary: Coverage, Parties, Tasks */}
-						<Paper elevation={0} style={{ height: 'fit-content' }} sx={styles.paper}>
+						<Paper elevation={0} sx={styles.beveledPaper}>
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
 								Quick Summary
 							</Typography>
 							<Stack spacing={1.5}>
-								{/* Coverage Summary */}
+								{/* Coverage Summary - shows count of coverages and Entity parties */}
 								<Box display="flex" alignItems="center" gap={1}>
 									<Shield sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
 									<Typography fontSize={13}>
@@ -209,15 +199,16 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 											</Box>
 										) : (
 											<>
-												{formatCurrencyExact(claimDetail.coverageSummary.total)} from{' '}
 												{claimDetail.coverageSummary.count} coverage
-												{claimDetail.coverageSummary.count === 1 ? '' : 's'}
+												{claimDetail.coverageSummary.count === 1 ? '' : 's'} from{' '}
+												{claimDetail.coverageSummary.partyCount} part
+												{claimDetail.coverageSummary.partyCount === 1 ? 'y' : 'ies'}
 											</>
 										)}
 									</Typography>
 								</Box>
 
-								{/* Party/Liability Summary */}
+								{/* Liability Summary - shows liability % from Facilitator parties only */}
 								<Box display="flex" alignItems="center" gap={1}>
 									<Groups sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
 									<Typography fontSize={13} display="flex">
@@ -298,8 +289,8 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 						</Paper>
 
 						{/* Checklist Progress (if applicable) */}
-						{currentAssignment && (
-							<Paper elevation={0} style={{ height: 'fit-content' }} sx={styles.paper}>
+						{showChecklistProgress && currentAssignment && (
+							<Paper elevation={0} sx={styles.beveledPaper}>
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
 									Progress through {currentAssignment.checklist_name}
 								</Typography>
@@ -326,7 +317,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 						)}
 
 						{/* Contextual Info */}
-						<Paper elevation={0} style={{ height: 'fit-content' }} sx={styles.paper}>
+						<Paper elevation={0} sx={styles.beveledPaper}>
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
 								Information
 							</Typography>
@@ -379,7 +370,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 								</Typography>
 								<Typography fontSize={13}>
 									<Highlight bold={false}>Loss Location:</Highlight>{' '}
-									{claimDetail.loss_location ?? 'N/A'}
+									{formatCityState(claimDetail.loss_city, claimDetail.loss_state) || 'N/A'}
 								</Typography>
 								{claimDetail.feed_name && (
 									<>
@@ -396,7 +387,7 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 						</Paper>
 
 						{/* Recent Activity */}
-						<Paper elevation={0} style={{ height: 'fit-content' }} sx={styles.paper}>
+						<Paper elevation={0} sx={styles.beveledPaper}>
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
 								Recent Activity
 							</Typography>
@@ -476,10 +467,13 @@ export default function ClaimSummary({ claimId, onStartChecklist }: ClaimSummary
 }
 
 const styles = {
-	paper: {
-		padding: '15px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		height: 'fit-content',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '20px',
 		height: 'fit-content',
 	},
 };

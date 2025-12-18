@@ -27,6 +27,16 @@ export function useRecoveryTrpc() {
 
 		exportRecoveryEvents: trpc.recovery.exportRecoveryEvents.useQuery,
 
+		updateRecoveryEvent: trpc.recovery.updateRecoveryEvent.useMutation({
+			onSuccess() {
+				// Invalidate recovery events lists (caller should provide specific claimId if needed)
+				utils.recovery.listRecoveryEventsWithFilters.invalidate();
+				// Invalidate recovery metrics as they depend on recovery events
+				utils.recovery.getRecoveryMetricsSummary.invalidate();
+				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+			},
+		}),
+
 		deleteRecoveryEvent: trpc.recovery.deleteRecoveryEvent.useMutation({
 			onSuccess(_data, variables) {
 				// Invalidate recovery events list for this claim

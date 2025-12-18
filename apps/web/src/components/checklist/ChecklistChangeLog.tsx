@@ -1,6 +1,6 @@
-import { Box, Paper, Stack, Typography } from '@mui/material';
-import Search from '@mui/icons-material/Search';
+import { Box, Stack, Typography } from '@mui/material';
 import UserActivityTable from '../metrics/UserActivity/UserActivityTable';
+import SearchInput from '@/components/common/SearchInput';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useCallback, useState } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -31,24 +31,15 @@ export default function ChecklistChangeLog() {
 				padding="5px 10px"
 			>
 				<Typography fontSize={15}>Change Log</Typography>
-				<Paper elevation={0} sx={styles.searchPaper}>
-					<Search
-						sx={{
-							fontSize: 17,
-							marginRight: '5px',
-						}}
-					/>
-					<input
-						placeholder="Search by question"
-						type="text"
-						style={styles.textField}
-						value={searchTerm}
-						onChange={(e) => {
-							setSearchTerm(e.target.value);
-							debouncedSearch(e.target.value);
-						}}
-					/>
-				</Paper>
+				<SearchInput
+					value={searchTerm}
+					onChange={(value) => {
+						setSearchTerm(value);
+						debouncedSearch(value);
+					}}
+					placeholder="Search by question..."
+					width={200}
+				/>
 			</Box>
 			<Box width={480} height={360} padding="0px 5px">
 				<UserActivityTable
@@ -65,21 +56,3 @@ export default function ChecklistChangeLog() {
 		</Stack>
 	);
 }
-
-const styles = {
-	searchPaper: {
-		border: 1,
-		borderColor: 'divider',
-		borderRadius: 3,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: 200,
-		height: 30,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-	},
-};

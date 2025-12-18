@@ -38,7 +38,7 @@ export default function DeskLocationSelect({
 	return (
 		<TextField
 			label="Desk Location"
-			variant="standard"
+			
 			select
 			value={value ?? ''}
 			onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}

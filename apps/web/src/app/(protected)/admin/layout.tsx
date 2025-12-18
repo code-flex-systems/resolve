@@ -45,7 +45,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <DashboardIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 		hideHeader: true,
 	},
 	{
@@ -63,7 +63,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <GraphicEqIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	{
 		label: 'Data Sources',
@@ -75,7 +75,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <RssFeedIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	{
 		label: 'Claim Management',
@@ -86,13 +86,13 @@ const adminNavCategories: AdminNavCategory[] = [
 				route: '/admin/claims',
 				icon: <ContentPasteSearchIcon fontSize="small" />,
 			},
-			{
-				label: 'Coverages',
-				route: '/admin/claims/coverages',
-				icon: <ShieldIcon fontSize="small" />,
-			},
+			// {
+			// 	label: 'Coverages',
+			// 	route: '/admin/claims/coverages',
+			// 	icon: <ShieldIcon fontSize="small" />,
+			// },
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	{
 		label: 'Workflow Configuration',
@@ -123,7 +123,7 @@ const adminNavCategories: AdminNavCategory[] = [
 					]
 				: []),
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	{
 		label: 'Party Management',
@@ -145,7 +145,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <PersonIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	{
 		label: 'Financial',
@@ -157,7 +157,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <CurrencyExchangeIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	// {
 	// 	label: 'Litigation',
@@ -175,7 +175,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <DescriptionIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 	// {
 	// 	label: 'Automation',
@@ -198,7 +198,7 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <SettingsIcon fontSize="small" />,
 			},
 		],
-		defaultExpanded: true,
+		defaultExpanded: false,
 	},
 ];
 
@@ -213,7 +213,7 @@ export default function AdminLayout(props: PropsWithChildren) {
 	return (
 		<PageWrapper>
 			<Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
-				<AdminSidebar categories={adminNavCategories} />
+				<AdminSidebar title="Admin" categories={adminNavCategories} />
 				<Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>{props.children}</Box>
 			</Box>
 			{showNewUserDialog && <NewUserDialog />}

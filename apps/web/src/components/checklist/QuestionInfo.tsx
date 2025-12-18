@@ -80,7 +80,6 @@ const styles = {
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		outline: `1px solid ${theme.palette.primary.light}`,
 		p: 1.25,
 		mt: 0.625,
 	},

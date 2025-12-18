@@ -9,6 +9,7 @@ import { RecoveryStatus } from '@/config/enums';
 export const recoveryEventParams = z
 	.object({
 		claim_id: z.number().int(),
+		settlement_id: z.number().int(),
 		recovery_date: parseDate(),
 		recovery_amount: parseNumber(),
 		recovery_source: z.string().nullable().optional(),
@@ -28,6 +29,9 @@ export const createRecoveryEventInput = z.object({
 	claimId: z.number().int(),
 	params: recoveryEventParams.omit({ claim_id: true }),
 });
+
+// Settlement ID is required for recovery event creation
+// claim_id is derived from the settlement on the backend
 
 export const updateRecoveryEventInput = z.object({
 	recoveryEventId: z.number().int(),

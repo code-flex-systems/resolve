@@ -2,7 +2,7 @@
 import { Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
-import { Box, Divider, Fade, Typography } from '@mui/material';
+import { Box, Divider, Fade, Skeleton, Stack, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -11,8 +11,6 @@ import Description from '@mui/icons-material/Description';
 import Replay from '@mui/icons-material/Replay';
 import Save from '@mui/icons-material/Save';
 import TaskAlt from '@mui/icons-material/TaskAlt';
-import { LineWobble } from 'ldrs/react';
-import 'ldrs/react/LineWobble.css';
 import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -164,18 +162,15 @@ export default function Page() {
 				{(selectedPageInstance === -1 || loading) && (
 					<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
 						{loading ? (
-							<>
-								<Typography fontStyle="italic" color="primary">
-									Loading...
-								</Typography>
-								<LineWobble
-									size="200"
-									stroke="5"
-									bgOpacity="0.1"
-									speed="2"
-									color={theme.palette.primary.main}
-								/>
-							</>
+							<Stack spacing={2} width="100%" p={2}>
+								<Skeleton variant="text" width="60%" height={32} />
+								{[1, 2, 3, 4].map((i) => (
+									<Stack key={i} spacing={1}>
+										<Skeleton variant="text" width="40%" />
+										<Skeleton variant="rounded" height={48} />
+									</Stack>
+								))}
+							</Stack>
 						) : (
 							<Box width={200} display="flex" justifyContent="center" alignItems="center">
 								<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
@@ -193,7 +188,7 @@ export default function Page() {
 								<>
 									<ExpandableTitle
 										title={selectedPageInfo.title}
-										icon={<Description sx={{ color: BASE_COLOR }} />}
+										icon={<Description />}
 										color="white"
 									/>
 									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>

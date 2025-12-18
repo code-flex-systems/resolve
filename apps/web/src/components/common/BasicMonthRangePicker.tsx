@@ -368,8 +368,6 @@ const styles = {
 		margin: '5px 0px',
 	},
 	paper: {
-		outline: 1,
-		outlineColor: theme.palette.divider,
-		marginTop: '5px',
+		mt: 0.625,
 	},
 };

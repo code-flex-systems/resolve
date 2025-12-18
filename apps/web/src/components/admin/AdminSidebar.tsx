@@ -3,12 +3,27 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Collapse, Typography } from '@mui/material';
+import {
+	Box,
+	List,
+	ListItem,
+	ListItemButton,
+	ListItemIcon,
+	ListItemText,
+	Collapse,
+	Typography,
+	Stack,
+} from '@mui/material';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+import { TEXT_PRIMARY, TEXT_SECONDARY, BORDER_COLOR, BG_TERTIARY } from '@/styles/theme';
+
+const ACCENT_COLOR = '#21B5FF';
 
 export interface AdminNavItem {
 	label: string;
 	route: string;
-	icon: React.ReactNode;
+	icon?: React.ReactNode;
 }
 
 export interface AdminNavCategory {
@@ -21,46 +36,92 @@ export interface AdminNavCategory {
 }
 
 export interface AdminSidebarProps {
+	title?: string;
 	categories: AdminNavCategory[];
 	width?: number;
 }
 
-export default function AdminSidebar({ categories, width = 240 }: AdminSidebarProps) {
+export default function AdminSidebar({ title, categories, width = 240 }: AdminSidebarProps) {
 	const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
 		const initial: Record<string, boolean> = {};
 		categories.forEach((cat) => {
-			initial[cat.label] = cat.defaultExpanded ?? true;
+			initial[cat.label] = cat.defaultExpanded ?? false;
 		});
 		return initial;
 	});
 	const pathname = usePathname();
 
+	const toggleCategory = (label: string) => {
+		setExpandedCategories((prev) => ({
+			...prev,
+			[label]: !prev[label],
+		}));
+	};
+
+	// Check if any item in a category is selected
+	const isCategoryActive = (category: AdminNavCategory) => {
+		return category.items.some((item) => pathname === item.route || pathname.startsWith(item.route + '/'));
+	};
+
 	return (
-		<Box sx={styles.container} style={{ width }}>
-			{/* Categories */}
-			<List disablePadding sx={{ pt: 1.5 }}>
-				{categories.map((category, categoryIndex) => {
+		<Stack pt={2} sx={styles.container} style={{ width }}>
+			{!!title && (
+				<Box padding="5px 10px">
+					<Typography fontWeight="bold">{title}</Typography>
+				</Box>
+			)}
+			<List disablePadding sx={{ py: 0.5 }}>
+				{categories.map((category) => {
 					const isCategoryExpanded = expandedCategories[category.label];
+					const categoryActive = isCategoryActive(category);
+
+					// Auto-expand if a child is active
+					if (categoryActive && !isCategoryExpanded && !category.hideHeader) {
+						setExpandedCategories((prev) => ({ ...prev, [category.label]: true }));
+					}
 
 					return (
-						<Box key={category.label} sx={{ mb: 2 }}>
-							{/* Category Header */}
+						<Box key={category.label}>
+							{/* Category Header - Clickable to expand/collapse */}
 							{!category.hideHeader && (
-								<Box sx={styles.categoryHeader}>
-									<Typography sx={styles.categoryLabel}>{category.label}</Typography>
-								</Box>
+								<ListItem disablePadding sx={{ px: 0.75 }}>
+									<ListItemButton
+										onClick={() => toggleCategory(category.label)}
+										sx={styles.categoryHeader}
+									>
+										<ListItemIcon sx={styles.categoryIcon}>{category.icon}</ListItemIcon>
+										<ListItemText
+											primary={category.label}
+											slotProps={{
+												primary: {
+													sx: styles.categoryLabel,
+												},
+											}}
+										/>
+										{isCategoryExpanded ? (
+											<ExpandMore sx={styles.expandIcon} />
+										) : (
+											<ChevronRight sx={styles.expandIcon} />
+										)}
+									</ListItemButton>
+								</ListItem>
 							)}
 
 							{/* Category Items */}
 							<Collapse in={category.hideHeader || isCategoryExpanded} timeout="auto" unmountOnExit>
-								<List disablePadding>
-									{category.items.map((item) => {
+								<List disablePadding sx={{ position: 'relative' }}>
+									{/* Vertical dotted line */}
+									<Box sx={styles.verticalLine} />
+
+									{category.items.map((item, index) => {
 										const matchingRoute = category.items
 											.filter((i) => pathname === i.route || pathname.startsWith(i.route + '/'))
 											.sort((a, b) => b.route.length - a.route.length)[0];
 										const selected = matchingRoute?.route === item.route;
+										const isLast = index === category.items.length - 1;
+
 										return (
-											<ListItem key={item.route} disablePadding sx={{ px: 1.5, py: 0.25 }}>
+											<ListItem key={item.route} disablePadding sx={{ px: 0.75 }}>
 												<ListItemButton
 													component={Link}
 													href={item.route}
@@ -69,16 +130,9 @@ export default function AdminSidebar({ categories, width = 240 }: AdminSidebarPr
 														...(selected && styles.navItemSelected),
 													}}
 												>
-													<ListItemIcon
-														sx={{
-															...styles.navIcon,
-															color: selected
-																? 'var(--color-primary)'
-																: 'var(--color-text-secondary)',
-														}}
-													>
-														{item.icon}
-													</ListItemIcon>
+													{/* Accent bar for selected item */}
+													{selected && <Box sx={styles.selectedAccent} />}
+
 													<ListItemText
 														primary={item.label}
 														slotProps={{
@@ -86,10 +140,7 @@ export default function AdminSidebar({ categories, width = 240 }: AdminSidebarPr
 																sx: {
 																	fontSize: 13,
 																	fontWeight: selected ? 500 : 400,
-																	color: selected
-																		? 'var(--color-text-primary)'
-																		: 'var(--color-text-secondary)',
-																	whiteSpace: 'nowrap',
+																	color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
 																},
 															},
 														}}
@@ -104,52 +155,81 @@ export default function AdminSidebar({ categories, width = 240 }: AdminSidebarPr
 					);
 				})}
 			</List>
-		</Box>
+		</Stack>
 	);
 }
 
 const styles = {
 	container: {
 		height: '100vh',
-		bgcolor: 'var(--color-bg-primary)',
-		borderRight: '1px solid var(--color-border)',
+		bgcolor: '#ffffff',
+		// borderRight: `1px solid ${BORDER_COLOR}`,
 		overflowY: 'auto',
 		overflowX: 'hidden',
 		flexShrink: 0,
 	},
 	categoryHeader: {
-		px: 2,
-		py: 0.75,
-		mb: 0.5,
+		minHeight: 36,
+		px: 1.25,
+		py: 0.5,
+		borderRadius: 1.5,
+		transition: 'all 150ms ease',
+		'&:hover': {
+			bgcolor: BG_TERTIARY,
+		},
+	},
+	categoryIcon: {
+		minWidth: 0,
+		mr: 1.25,
+		'& .MuiSvgIcon-root': {
+			fontSize: 18,
+			color: TEXT_SECONDARY,
+		},
 	},
 	categoryLabel: {
-		fontSize: 11,
-		fontWeight: 600,
-		textTransform: 'uppercase',
-		color: 'var(--color-text-muted)',
-		letterSpacing: '0.5px',
+		fontSize: 13,
+		fontWeight: 500,
+		color: TEXT_PRIMARY,
+	},
+	expandIcon: {
+		fontSize: 18,
+		color: TEXT_SECONDARY,
+	},
+	verticalLine: {
+		position: 'absolute',
+		left: 22,
+		top: 0,
+		bottom: 8,
+		width: 0,
+		borderLeft: `1px dashed ${BORDER_COLOR}`,
 	},
 	navItem: {
 		minHeight: 32,
-		px: 1.5,
-		py: 0.5,
-		borderRadius: 'var(--radius-md)',
+		ml: 4,
+		pl: 1.5,
+		pr: 1,
+		py: 0.25,
+		borderRadius: 1.5,
+		position: 'relative',
 		transition: 'all 150ms ease',
 		'&:hover': {
-			bgcolor: 'var(--color-bg-hover)',
+			bgcolor: BG_TERTIARY,
 		},
 	},
 	navItemSelected: {
-		bgcolor: 'var(--color-primary-light)',
+		bgcolor: 'rgba(33, 181, 255, 0.08)',
 		'&:hover': {
-			bgcolor: 'var(--color-primary-light)',
+			bgcolor: 'rgba(33, 181, 255, 0.12)',
 		},
 	},
-	navIcon: {
-		minWidth: 0,
-		mr: 1.5,
-		'& .MuiSvgIcon-root': {
-			fontSize: 18,
-		},
+	selectedAccent: {
+		position: 'absolute',
+		left: 0,
+		top: '50%',
+		transform: 'translateY(-50%)',
+		width: 3,
+		height: 16,
+		bgcolor: ACCENT_COLOR,
+		borderRadius: 1,
 	},
 };

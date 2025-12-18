@@ -18,6 +18,7 @@ export default function Legend() {
 					onMouseLeave: () => setAnchorEl(null),
 				}}
 				icon={<Info />}
+				compact
 			/>
 			<Popper open={!!anchorEl} anchorEl={anchorEl} placement="bottom-start" sx={{ zIndex: 100 }} transition>
 				{({ TransitionProps }) => (
@@ -44,7 +45,7 @@ export default function Legend() {
 										<Typography fontSize={14}>The page has been changed</Typography>
 									</Box>
 									<Box display="flex" alignItems="center" padding="5px 2px 2px">
-										<Typography fontSize={14} color="error">
+										<Typography fontSize={14} color="error.light">
 											Unanswered questions show in red
 										</Typography>
 									</Box>
@@ -63,10 +64,6 @@ const styles = {
 		width: 'fit-content',
 		p: '10px 20px',
 		height: 'fit-content',
-		borderTopRightRadius: 5,
-		borderBottomLeftRadius: 5,
-		borderBottomRightRadius: 5,
-		border: `1px solid ${theme.palette.divider}`,
 		mt: 0.625,
 	},
 	icon: {

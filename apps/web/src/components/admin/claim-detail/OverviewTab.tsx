@@ -8,7 +8,8 @@ import Highlight from '@/components/common/Highlight';
 import { formatMDY } from '@/lib/utils/utils';
 import { ClaimStatus } from '@/config/enums';
 import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { formatCityState } from '@/schemas/addressSchemas';
+import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -51,7 +52,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 		<Box p={3}>
 			<Stack spacing={3} maxWidth={1000} mx="auto">
 				{/* Contextual Summary */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.gradientPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Summary
 					</Typography>
@@ -79,10 +80,10 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 						{claimDetail.date_of_loss && (
 							<Typography fontSize={14}>
 								Loss occurred on <Highlight>{formatMDY(claimDetail.date_of_loss)}</Highlight>
-								{claimDetail.loss_location && (
+								{(claimDetail.loss_city || claimDetail.loss_state) && (
 									<>
 										{' '}
-										in <Highlight>{claimDetail.loss_location}</Highlight>
+										in <Highlight>{formatCityState(claimDetail.loss_city, claimDetail.loss_state)}</Highlight>
 									</>
 								)}
 							</Typography>
@@ -111,7 +112,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 				</Paper>
 
 				{/* Claim Details */}
-				<Paper elevation={0} sx={styles.paper}>
+				<Paper elevation={0} sx={styles.beveledPaper}>
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Claim Details
 					</Typography>
@@ -168,7 +169,9 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 									Loss Location:
 								</Highlight>
 							</Typography>
-							<Typography fontSize={13}>{claimDetail.loss_location ?? 'N/A'}</Typography>
+							<Typography fontSize={13}>
+								{formatCityState(claimDetail.loss_city, claimDetail.loss_state) || 'N/A'}
+							</Typography>
 						</Box>
 						<Divider />
 						<Box display="flex" justifyContent="space-between">
@@ -207,59 +210,9 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 					</Stack>
 				</Paper>
 
-				{/* Activity Timeline */}
-				<Paper elevation={0} sx={styles.paper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
-						Activity Timeline
-					</Typography>
-					{logsLoading && (
-						<Stack spacing={1}>
-							<Skeleton variant="text" />
-							<Skeleton variant="text" />
-							<Skeleton variant="text" />
-						</Stack>
-					)}
-					{!logsLoading && adminLogs.length === 0 && (
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
-							No activity recorded yet
-						</Typography>
-					)}
-					{!logsLoading && adminLogs.length > 0 && (
-						<Stack spacing={2}>
-							{adminLogs.map((log) => (
-								<Box key={log.id} display="flex" gap={2}>
-									<Box
-										sx={{
-											width: 8,
-											height: 8,
-											borderRadius: '50%',
-											bgcolor: 'secondary.main',
-											marginTop: '6px',
-											flexShrink: 0,
-										}}
-									/>
-									<Box flex={1}>
-										<Typography fontSize={13}>
-											<Highlight color="secondary.main">
-												{log.first_name} {log.last_name}
-											</Highlight>{' '}
-											{log.action.toLowerCase()}d{' '}
-											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>
-										</Typography>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
-											{dayjs(log.created_at).format('MMM D, YYYY [at] h:mm A')} (
-											{dayjs(log.created_at).fromNow()})
-										</Typography>
-									</Box>
-								</Box>
-							))}
-						</Stack>
-					)}
-				</Paper>
-
 				{/* Checklist Progress (if assigned) */}
 				{currentAssignment && (
-					<Paper elevation={0} sx={styles.paper}>
+					<Paper elevation={0} sx={styles.beveledPaper}>
 						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 							Current Assignment
 						</Typography>
@@ -343,15 +296,68 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 						</Stack>
 					</Paper>
 				)}
+
+				{/* Activity Timeline */}
+				<Paper elevation={0} sx={styles.beveledPaper}>
+					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+						Activity Timeline
+					</Typography>
+					{logsLoading && (
+						<Stack spacing={1}>
+							<Skeleton variant="text" />
+							<Skeleton variant="text" />
+							<Skeleton variant="text" />
+						</Stack>
+					)}
+					{!logsLoading && adminLogs.length === 0 && (
+						<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+							No activity recorded yet
+						</Typography>
+					)}
+					{!logsLoading && adminLogs.length > 0 && (
+						<Stack spacing={2}>
+							{adminLogs.map((log) => (
+								<Box key={log.id} display="flex" gap={2}>
+									<Box
+										sx={{
+											width: 8,
+											height: 8,
+											borderRadius: '50%',
+											bgcolor: 'secondary.main',
+											marginTop: '6px',
+											flexShrink: 0,
+										}}
+									/>
+									<Box flex={1}>
+										<Typography fontSize={13}>
+											<Highlight color="secondary.main">
+												{log.first_name} {log.last_name}
+											</Highlight>{' '}
+											{log.action.toLowerCase()}d{' '}
+											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>
+										</Typography>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+											{dayjs(log.created_at).format('MMM D, YYYY [at] h:mm A')} (
+											{dayjs(log.created_at).fromNow()})
+										</Typography>
+									</Box>
+								</Box>
+							))}
+						</Stack>
+					)}
+				</Paper>
 			</Stack>
 		</Box>
 	);
 }
 
 const styles = {
-	paper: {
-		padding: '20px',
-		border: 1,
-		borderColor: 'divider',
+	gradientPaper: {
+		...containerStyles.gradientCard,
+		padding: '24px',
+	},
+	beveledPaper: {
+		...containerStyles.beveledCard,
+		padding: '24px',
 	},
 };

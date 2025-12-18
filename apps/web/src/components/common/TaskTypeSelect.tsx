@@ -20,7 +20,7 @@ export default function TaskTypeSelect({
 	width = 400,
 }: TaskTypeSelectProps) {
 	return (
-		<FormControl variant="standard" sx={{ width }} required={required}>
+		<FormControl sx={{ width }} required={required}>
 			<InputLabel>Task Type</InputLabel>
 			<Select
 				value={value ?? ''}
