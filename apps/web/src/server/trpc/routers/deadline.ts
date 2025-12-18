@@ -21,7 +21,8 @@ export const deadlineRouter = router({
 
 	createDeadline: protectedProcedure.input(createDeadlineInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return createDeadline(ctx, input);
+		const { claimId, ...params } = input;
+		return createDeadline(ctx, { claimId, params });
 	}),
 
 	listDeadlines: protectedProcedure.input(listDeadlinesInput).query(async ({ input, ctx }) => {

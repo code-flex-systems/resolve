@@ -8,6 +8,7 @@ import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
 import UnfoldMore from '@mui/icons-material/UnfoldMore';
 import UnfoldLess from '@mui/icons-material/UnfoldLess';
+import Settings from '@mui/icons-material/Settings';
 import { useState, useMemo, useCallback } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useLiabilityTrpc } from '@/hooks/trpc/useLiabilityTrpc';
@@ -42,6 +43,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 	const [parentClaimPartyId, setParentClaimPartyId] = useState<number | null>(null);
 	const [allExpanded, setAllExpanded] = useState(true);
 	const [viewingPartyDetails, setViewingPartyDetails] = useState<any | null>(null);
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
@@ -304,7 +306,8 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 								sx={{
 									padding: 2,
 									backgroundColor: 'background.default',
-									boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+									boxShadow:
+										'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 								}}
 							>
 								<Box display="flex" justifyContent="space-between" alignItems="flex-start">
@@ -312,7 +315,11 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 										{/* Loss Type */}
 										{liability.loss_type && (
 											<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
-												<LossTypeValue value={liability.loss_type} fontSize={14} sx={{ fontWeight: 600 }} />
+												<LossTypeValue
+													value={liability.loss_type}
+													fontSize={14}
+													sx={{ fontWeight: 600 }}
+												/>
 											</Box>
 										)}
 
@@ -326,7 +333,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 												/>
 											)}
 											{liability.line_of_business && (
-												<LineOfBusinessChip value={liability.line_of_business} showEmoji={false} />
+												<LineOfBusinessChip
+													value={liability.line_of_business}
+													showEmoji={false}
+												/>
 											)}
 											{liability.amount_paid && (
 												<Chip
@@ -346,29 +356,31 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 										)}
 									</Box>
 
-									{/* Liability Actions */}
-									<Box display="flex" gap={0.5}>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => handleOpenLiabilityDialog(claimParty.id, liability),
-											}}
-											tooltipProps={{ title: 'Edit liability' }}
-											icon={<Edit />}
-											compact
-										/>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () =>
-													setArchivingLiability({
-														id: liability.id,
-														lossType: liability.loss_type,
-													}),
-											}}
-											tooltipProps={{ title: 'Archive liability' }}
-											icon={<Archive sx={{ color: 'error.main' }} />}
-											compact
-										/>
-									</Box>
+									{/* Liability Actions - only visible in manage mode */}
+									{isManageMode && (
+										<Box display="flex" gap={0.5}>
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () => handleOpenLiabilityDialog(claimParty.id, liability),
+												}}
+												tooltipProps={{ title: 'Edit liability' }}
+												icon={<Edit />}
+												compact
+											/>
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () =>
+														setArchivingLiability({
+															id: liability.id,
+															lossType: liability.loss_type,
+														}),
+												}}
+												tooltipProps={{ title: 'Archive liability' }}
+												icon={<Archive sx={{ color: 'error.main' }} />}
+												compact
+											/>
+										</Box>
+									)}
 								</Box>
 							</Paper>
 						))}
@@ -376,7 +388,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				)}
 			</Box>
 		),
-		[]
+		[isManageMode]
 	);
 
 	return (
@@ -431,21 +443,6 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							Adverse Parties ({entities.length})
 						</Typography>
 						<Box display="flex" gap={1} alignItems="center">
-							{entities.length > 0 && (
-								<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
-									<IconButton
-										size="small"
-										onClick={() => setAllExpanded(!allExpanded)}
-										sx={{ mr: 0.5 }}
-									>
-										{allExpanded ? (
-											<UnfoldLess sx={{ fontSize: 20 }} />
-										) : (
-											<UnfoldMore sx={{ fontSize: 20 }} />
-										)}
-									</IconButton>
-								</Tooltip>
-							)}
 							<Button
 								size="small"
 								startIcon={<PersonAdd />}
@@ -462,6 +459,34 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							>
 								Add Entity
 							</Button>
+							{entities.length > 0 && (
+								<>
+									<Tooltip title="Manage">
+										<IconButton
+											size="small"
+											onClick={() => setIsManageMode(!isManageMode)}
+											sx={{
+												bgcolor: isManageMode ? 'action.selected' : undefined,
+											}}
+										>
+											<Settings sx={{ fontSize: 20 }} />
+										</IconButton>
+									</Tooltip>
+									<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
+										<IconButton
+											size="small"
+											onClick={() => setAllExpanded(!allExpanded)}
+											sx={{ mr: 0.5 }}
+										>
+											{allExpanded ? (
+												<UnfoldLess sx={{ fontSize: 20 }} />
+											) : (
+												<UnfoldMore sx={{ fontSize: 20 }} />
+											)}
+										</IconButton>
+									</Tooltip>
+								</>
+							)}
 						</Box>
 					</Box>
 
@@ -473,7 +498,13 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					)}
 
 					{!isLoading && entities.length === 0 && (
-						<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" padding={4}>
+						<Box
+							display="flex"
+							flexDirection="column"
+							alignItems="center"
+							justifyContent="center"
+							padding={4}
+						>
 							<Business sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
 								No adverse parties linked yet
@@ -498,6 +529,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 										renderTabContent={renderLiabilityContent}
 										showLiabilityPercentage={true}
 										expanded={allExpanded}
+										isManageMode={isManageMode}
 									/>
 									{index < entities.length - 1 && <Divider sx={{ marginTop: 2 }} />}
 								</Box>
@@ -618,12 +650,14 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							<Stack spacing={0.5}>
 								{archivePreview.facilitatorCount > 0 && (
 									<Typography fontSize={13} color="warning.dark">
-										• {archivePreview.facilitatorCount} facilitator{archivePreview.facilitatorCount > 1 ? 's' : ''}
+										• {archivePreview.facilitatorCount} facilitator
+										{archivePreview.facilitatorCount > 1 ? 's' : ''}
 									</Typography>
 								)}
 								{archivePreview.liabilityCount > 0 && (
 									<Typography fontSize={13} color="warning.dark">
-										• {archivePreview.liabilityCount} liabilit{archivePreview.liabilityCount > 1 ? 'ies' : 'y'}
+										• {archivePreview.liabilityCount} liabilit
+										{archivePreview.liabilityCount > 1 ? 'ies' : 'y'}
 									</Typography>
 								)}
 							</Stack>
@@ -631,8 +665,8 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					)}
 
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
-						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be archived
-						and hidden from view, but all records will be preserved for traceability.
+						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be
+						archived and hidden from view, but all records will be preserved for traceability.
 					</Typography>
 				</BasicDialog>
 			)}

@@ -8,6 +8,7 @@ import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
 import UnfoldMore from '@mui/icons-material/UnfoldMore';
 import UnfoldLess from '@mui/icons-material/UnfoldLess';
+import Settings from '@mui/icons-material/Settings';
 import { useState, useMemo, useCallback } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useCoverageTrpc } from '@/hooks/trpc/useCoverageTrpc';
@@ -36,12 +37,15 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const [showCoverageDialog, setShowCoverageDialog] = useState(false);
 	const [editingCoverage, setEditingCoverage] = useState<any | null>(null);
 	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<number | null>(null);
-	const [archivingCoverage, setArchivingCoverage] = useState<{ id: number; coverageType: string | null } | null>(null);
+	const [archivingCoverage, setArchivingCoverage] = useState<{ id: number; coverageType: string | null } | null>(
+		null
+	);
 	const [archivingClaimParty, setArchivingClaimParty] = useState<any | null>(null);
 	const [isFacilitatorMode, setIsFacilitatorMode] = useState(false);
 	const [parentClaimPartyId, setParentClaimPartyId] = useState<number | null>(null);
 	const [allExpanded, setAllExpanded] = useState(true);
 	const [viewingPartyDetails, setViewingPartyDetails] = useState<any | null>(null);
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
@@ -291,7 +295,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 								sx={{
 									padding: 2,
 									backgroundColor: 'background.default',
-									boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+									boxShadow:
+										'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 								}}
 							>
 								<Box display="flex" justifyContent="space-between" alignItems="flex-start">
@@ -317,28 +322,30 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 											)}
 										</Box>
 									</Box>
-									<Box display="flex" gap={0.5}>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => handleOpenCoverageDialog(claimParty.id, coverage),
-											}}
-											tooltipProps={{ title: 'Edit coverage' }}
-											icon={<Edit />}
-											compact
-										/>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () =>
-													setArchivingCoverage({
-														id: coverage.id,
-														coverageType: coverage.coverage_type,
-													}),
-											}}
-											tooltipProps={{ title: 'Archive coverage' }}
-											icon={<Archive sx={{ color: 'error.main' }} />}
-											compact
-										/>
-									</Box>
+									{isManageMode && (
+										<Box display="flex" gap={0.5}>
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () => handleOpenCoverageDialog(claimParty.id, coverage),
+												}}
+												tooltipProps={{ title: 'Edit coverage' }}
+												icon={<Edit />}
+												compact
+											/>
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () =>
+														setArchivingCoverage({
+															id: coverage.id,
+															coverageType: coverage.coverage_type,
+														}),
+												}}
+												tooltipProps={{ title: 'Archive coverage' }}
+												icon={<Archive sx={{ color: 'error.main' }} />}
+												compact
+											/>
+										</Box>
+									)}
 								</Box>
 							</Paper>
 						))}
@@ -346,7 +353,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				)}
 			</Box>
 		),
-		[]
+		[isManageMode]
 	);
 
 	return (
@@ -401,21 +408,6 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							Claimants & Entities ({entities.length})
 						</Typography>
 						<Box display="flex" gap={1} alignItems="center">
-							{entities.length > 0 && (
-								<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
-									<IconButton
-										size="small"
-										onClick={() => setAllExpanded(!allExpanded)}
-										sx={{ mr: 0.5 }}
-									>
-										{allExpanded ? (
-											<UnfoldLess sx={{ fontSize: 20 }} />
-										) : (
-											<UnfoldMore sx={{ fontSize: 20 }} />
-										)}
-									</IconButton>
-								</Tooltip>
-							)}
 							<Button
 								size="small"
 								startIcon={<PersonAdd />}
@@ -432,6 +424,34 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							>
 								Add Entity
 							</Button>
+							{entities.length > 0 && (
+								<>
+									<Tooltip title="Manage">
+										<IconButton
+											size="small"
+											onClick={() => setIsManageMode(!isManageMode)}
+											sx={{
+												bgcolor: isManageMode ? 'action.selected' : undefined,
+											}}
+										>
+											<Settings sx={{ fontSize: 20 }} />
+										</IconButton>
+									</Tooltip>
+									<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
+										<IconButton
+											size="small"
+											onClick={() => setAllExpanded(!allExpanded)}
+											sx={{ mr: 0.5 }}
+										>
+											{allExpanded ? (
+												<UnfoldLess sx={{ fontSize: 20 }} />
+											) : (
+												<UnfoldMore sx={{ fontSize: 20 }} />
+											)}
+										</IconButton>
+									</Tooltip>
+								</>
+							)}
 						</Box>
 					</Box>
 
@@ -443,7 +463,13 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					)}
 
 					{!isLoading && entities.length === 0 && (
-						<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" padding={4}>
+						<Box
+							display="flex"
+							flexDirection="column"
+							alignItems="center"
+							justifyContent="center"
+							padding={4}
+						>
 							<Person sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
 							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
 								No claimants or entities linked yet
@@ -467,6 +493,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 										onViewDetails={setViewingPartyDetails}
 										renderTabContent={renderCoverageContent}
 										expanded={allExpanded}
+										isManageMode={isManageMode}
 									/>
 									{index < entities.length - 1 && <Divider sx={{ marginTop: 2 }} />}
 								</Box>
@@ -531,7 +558,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						</Box>
 					)}
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
-						The coverage will be archived and hidden from view, but the record will be preserved for traceability.
+						The coverage will be archived and hidden from view, but the record will be preserved for
+						traceability.
 					</Typography>
 				</BasicDialog>
 			)}
@@ -580,12 +608,14 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							<Stack spacing={0.5}>
 								{archivePreview.facilitatorCount > 0 && (
 									<Typography fontSize={13} color="warning.dark">
-										• {archivePreview.facilitatorCount} facilitator{archivePreview.facilitatorCount > 1 ? 's' : ''}
+										• {archivePreview.facilitatorCount} facilitator
+										{archivePreview.facilitatorCount > 1 ? 's' : ''}
 									</Typography>
 								)}
 								{archivePreview.coverageCount > 0 && (
 									<Typography fontSize={13} color="warning.dark">
-										• {archivePreview.coverageCount} coverage{archivePreview.coverageCount > 1 ? 's' : ''}
+										• {archivePreview.coverageCount} coverage
+										{archivePreview.coverageCount > 1 ? 's' : ''}
 									</Typography>
 								)}
 							</Stack>
@@ -593,8 +623,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					)}
 
 					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
-						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be archived
-						and hidden from view, but all records will be preserved for traceability.
+						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be
+						archived and hidden from view, but all records will be preserved for traceability.
 					</Typography>
 				</BasicDialog>
 			)}

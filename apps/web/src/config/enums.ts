@@ -155,6 +155,12 @@ export enum RecoveryStatus {
 	CLOSED_NO_RECOVERY = 'closed_no_recovery',
 }
 
+export enum SettlementStatus {
+	SENT = 'sent',
+	SETTLED = 'settled',
+	CLOSED = 'closed',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',

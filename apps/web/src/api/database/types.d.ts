@@ -657,6 +657,7 @@ export interface RecoveryEvent {
   recovery_amount: Numeric;
   recovery_date: Timestamp;
   recovery_source: string | null;
+  settlement_id: number;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -755,6 +756,25 @@ export interface ResponseAuditLogs {
   question_text: string;
   response_id: number | null;
   user_id: string | null;
+}
+
+export interface Settlement {
+  agreed_liability_percentage: Numeric | null;
+  claim_id: number;
+  claim_party_id: number;
+  client_id: string;
+  coverage_id: number;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  demand_amount: Numeric;
+  demand_date: Timestamp;
+  id: Generated<number>;
+  notes: string | null;
+  settlement_amount: Numeric | null;
+  settlement_date: Timestamp | null;
+  status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface Task {
@@ -904,6 +924,7 @@ export interface DB {
   reference_list: ReferenceList;
   reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
+  settlement: Settlement;
   task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;

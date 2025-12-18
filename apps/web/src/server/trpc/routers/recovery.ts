@@ -3,6 +3,7 @@ import {
 	createRecoveryEvent,
 	listRecoveryEvents,
 	listRecoveryEventsWithFilters,
+	updateRecoveryEvent,
 	deleteRecoveryEvent,
 	exportRecoveryEvents,
 	getRecoveryMetricsSummary,
@@ -15,6 +16,7 @@ import {
 	createRecoveryEventInput,
 	listRecoveryEventsInput,
 	listRecoveryEventsWithFiltersInput,
+	updateRecoveryEventInput,
 	deleteRecoveryEventInput,
 	exportRecoveryEventsInput,
 	getRecoveryMetricsSummaryInput,
@@ -46,6 +48,13 @@ export const recoveryRouter = router({
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return listRecoveryEventsWithFilters(ctx, input);
+		}),
+
+	updateRecoveryEvent: protectedProcedure
+		.input(updateRecoveryEventInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return updateRecoveryEvent(ctx, input);
 		}),
 
 	deleteRecoveryEvent: protectedProcedure

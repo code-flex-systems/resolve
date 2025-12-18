@@ -8,7 +8,7 @@ import ClaimHeader from './ClaimHeader';
 import OverviewTab from './OverviewTab';
 import WorkflowTab from './WorkflowTab';
 import ClaimantsCoverageTab from './ClaimantsCoverageTab';
-import RecoveryTab from './RecoveryTab';
+import SettlementRecoveryTab from './SettlementRecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
 import { containerStyles } from '@/styles/theme';
 
@@ -28,6 +28,8 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 				overview: 0,
 				workflow: 1,
 				recovery: 2,
+				'settlement-recovery': 2, // New URL
+				settlement: 2, // Alias
 				'claimants-coverage': 3,
 				'adverse-parties-liability': 4,
 				'facilitators-liability': 4, // Keep old URL for backwards compatibility
@@ -62,7 +64,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 					>
 						<Tab label="Overview" />
 						<Tab label="Workflow & Assignment" />
-						<Tab label="Recovery" />
+						<Tab label="Settlement & Recovery" />
 						<Tab label="Claimants & Coverage" />
 						<Tab label="Adverse Parties & Liability" />
 					</Tabs>
@@ -75,7 +77,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 							<Box width="100%" maxWidth={1400}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
-								{currentTab === 2 && <RecoveryTab claimId={claimId} />}
+								{currentTab === 2 && <SettlementRecoveryTab claimId={claimId} />}
 								{currentTab === 3 && <ClaimantsCoverageTab claimId={claimId} />}
 								{currentTab === 4 && <PartyLiabilityTab claimId={claimId} />}
 							</Box>

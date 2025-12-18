@@ -3,7 +3,7 @@ import { TRPCError } from '@trpc/server';
 import type { Context } from '@/server/trpc/context';
 import config from '@/config/config';
 import { db } from '@/api/database/kysely';
-import { QuestionType } from '@/config/enums';
+import { QuestionType, PageInstanceStatus, ClaimStatus } from '@/config/enums';
 
 // Import all routers
 import { userRouter } from '../user';
@@ -297,10 +297,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(undefined);
+				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
 
 				const caller = createCaller(responseRouter, adminCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeUndefined();
+				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeDefined();
 			});
 
 			it('should allow owner to evaluate their claim', async () => {
@@ -320,10 +320,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(undefined);
+				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeUndefined();
+				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeDefined();
 			});
 
 			it('should allow assignee to evaluate their claim', async () => {
@@ -343,10 +343,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(undefined);
+				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeUndefined();
+				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeDefined();
 			});
 
 			it('should reject contributor evaluating unrelated claim', async () => {
@@ -384,10 +384,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockGetClaimCount = await import('@/api/controllers/claimController');
-				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue(42);
+				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue({ total: 42, fed: 30, manual: 12 });
 
 				const caller = createCaller(claimRouter, adminCtx);
-				await expect(caller.getClaimCount({})).resolves.toBe(42);
+				await expect(caller.getClaimCount({})).resolves.toEqual({ total: 42, fed: 30, manual: 12 });
 			});
 
 			it('should allow super admin to get claim count', async () => {
@@ -397,10 +397,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockGetClaimCount = await import('@/api/controllers/claimController');
-				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue(42);
+				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue({ total: 42, fed: 30, manual: 12 });
 
 				const caller = createCaller(claimRouter, superAdminCtx);
-				await expect(caller.getClaimCount({})).resolves.toBe(42);
+				await expect(caller.getClaimCount({})).resolves.toEqual({ total: 42, fed: 30, manual: 12 });
 			});
 
 			it('should reject contributor access', async () => {
@@ -497,16 +497,20 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				first: 'John',
 				last: 'Doe',
 				email: 'john@example.com',
-				phone: '+12125551234',
-				role: config.ROLES.CONTRIBUTOR,
-				client_id: 'client-abc',
+				phone: '+12125551234' as string | null,
+				role: config.ROLES.CONTRIBUTOR as string | null,
+				client_id: 'client-abc' as string | null,
 				disabled: false,
 				email_verified: true,
-				phone_verified: false,
+				phone_verified: null as Date | null,
 				must_change_password: false,
 				password_hash: 'hashed_password',
 				created_at: new Date(),
 				updated_at: new Date(),
+				created_by: null as string | null,
+				updated_by: null as string | null,
+				last_login: null as Date | null,
+				onboarding_email_sent: null as Date | null,
 			};
 
 			it('should return full profile to admins', async () => {
@@ -516,7 +520,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
-				vi.mocked(mockGetUser.getUser).mockResolvedValue(mockFullUser);
+				vi.mocked(mockGetUser.getUser).mockResolvedValue(mockFullUser as any);
 
 				const caller = createCaller(userRouter, adminCtx);
 				const result = await caller.getUser({ id: 'user-456' });
@@ -534,7 +538,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
-				vi.mocked(mockGetUser.getUser).mockResolvedValue(mockFullUser);
+				vi.mocked(mockGetUser.getUser).mockResolvedValue(mockFullUser as any);
 
 				const caller = createCaller(userRouter, userCtx);
 				const result = await caller.getUser({ id: 'user-456' });
@@ -550,7 +554,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
-				vi.mocked(mockGetUser.getUser).mockResolvedValue(mockFullUser);
+				vi.mocked(mockGetUser.getUser).mockResolvedValue(mockFullUser as any);
 
 				const caller = createCaller(userRouter, contributorCtx);
 				const result = await caller.getUser({ id: 'user-456' });
@@ -691,20 +695,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
 				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
-					id: 'user-456',
 					first: 'John',
 					last: 'Doe',
 					email: 'john@example.com',
 					phone: null,
-					role: config.ROLES.ADMIN,
-					client_id: 'client-abc',
-					disabled: false,
-					email_verified: true,
-					phone_verified: false,
-					must_change_password: false,
-					password_hash: 'hashed',
-					created_at: new Date(),
-					updated_at: new Date(),
 				});
 
 				const caller = createCaller(userRouter, adminCtx);
@@ -714,7 +708,6 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						params: {
 							role: config.ROLES.ADMIN,
 							disabled: true,
-							email_verified: '2025-01-01',
 						},
 					})
 				).resolves.toBeDefined();
@@ -728,20 +721,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
 				vi.mocked(mockUpdateUser.updateUser).mockResolvedValue({
-					id: 'user-123',
 					first: 'Test',
 					last: 'User',
 					email: 'updated@example.com',
 					phone: null,
-					role: config.ROLES.CONTRIBUTOR,
-					client_id: 'client-abc',
-					disabled: false,
-					email_verified: false,
-					phone_verified: false,
-					must_change_password: false,
-					password_hash: 'hashed',
-					created_at: new Date(),
-					updated_at: new Date(),
 				});
 
 				const caller = createCaller(userRouter, userCtx);
@@ -1082,7 +1065,6 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.mocked(mockGetChecklistSummary.getChecklistSummary).mockResolvedValue({
 					total_questions: 10,
 					total_answered: 5,
-					total_unanswered: 5,
 					total_action_required: 2,
 					total_unknown: 1,
 				});
@@ -1111,7 +1093,6 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.mocked(mockGetChecklistSummary.getChecklistSummary).mockResolvedValue({
 					total_questions: 10,
 					total_answered: 5,
-					total_unanswered: 5,
 					total_action_required: 2,
 					total_unknown: 1,
 				});
@@ -1588,7 +1569,12 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue(undefined);
+				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue({
+					updatedInstanceId: 50,
+					status: PageInstanceStatus.UNSTARTED,
+					claimStatus: ClaimStatus.UNWORKED,
+					visibleIds: [50],
+				});
 
 				const caller = createCaller(responseRouter, adminCtx);
 				await expect(
@@ -1603,7 +1589,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							},
 						],
 					})
-				).resolves.toBeUndefined();
+				).resolves.toBeDefined();
 			});
 
 			it('should allow assignee to upsert responses', async () => {
@@ -1622,7 +1608,12 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue(undefined);
+				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue({
+					updatedInstanceId: 50,
+					status: PageInstanceStatus.UNSTARTED,
+					claimStatus: ClaimStatus.UNWORKED,
+					visibleIds: [50],
+				});
 
 				const caller = createCaller(responseRouter, userCtx);
 				await expect(
@@ -1637,7 +1628,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							},
 						],
 					})
-				).resolves.toBeUndefined();
+				).resolves.toBeDefined();
 			});
 
 			it('should reject creator who is not assignee', async () => {
@@ -1875,14 +1866,13 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						question_id: 1,
 						text: 'Test answer',
 						position: 1,
-						value: null,
 						has_action: false,
 						calls_instance_id: null,
 						requires_additional_info: false,
 						client_id: 'client-abc',
 						created_at: new Date(),
 						updated_at: new Date(),
-					});
+					} as any);
 
 					const caller = createCaller(answerRouter, adminCtx);
 					await expect(
@@ -1931,11 +1921,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						text: 'Test question',
 						position: 1,
 						type: 'TEXT',
-						required: false,
 						client_id: 'client-abc',
 						created_at: new Date(),
 						updated_at: new Date(),
-					});
+					} as any);
 
 					const caller = createCaller(questionRouter, adminCtx);
 					await expect(
@@ -2011,12 +2000,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockCreatePage.createPage).mockResolvedValue({
 						id: 1,
 						title: 'Test Page',
-						description: null,
-						position: 1,
-						version: 1,
-						client_id: 'client-abc',
-						created_at: new Date(),
-						updated_at: new Date(),
+						instance_id: 1,
 					});
 
 					const caller = createCaller(pageRouter, adminCtx);
@@ -2061,10 +2045,13 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						id: 1,
 						page_id: 1,
 						checklist_id: 1,
-						parent_id: null,
+						parent_instance_id: null,
+						position: 1,
 						client_id: 'client-abc',
+						created_by: 'user-123',
 						created_at: new Date(),
 						updated_at: new Date(),
+						updated_by: null,
 					});
 
 					const caller = createCaller(pageRouter, adminCtx);
@@ -2257,14 +2244,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockModifyChecklistClaim = await import('@/api/controllers/checklistController');
-					vi.mocked(mockModifyChecklistClaim.modifyChecklistClaim).mockResolvedValue({
-						checklist_id: 1,
-						claim_id: 100,
-						assignee: 'other-user',
-						created_by: 'user-123',
-						created_at: new Date(),
-						updated_at: new Date(),
-					});
+					vi.mocked(mockModifyChecklistClaim.modifyChecklistClaim).mockResolvedValue(undefined);
 
 					const caller = createCaller(checklistRouter, adminCtx);
 					await expect(
@@ -2273,7 +2253,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							claimId: 100,
 							assignee: 'other-user',
 						})
-					).resolves.toBeDefined();
+					).resolves.toBeUndefined();
 				});
 
 				it('should allow assignee to update their checklist claim', async () => {
@@ -2292,14 +2272,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 					const mockModifyChecklistClaim = await import('@/api/controllers/checklistController');
-					vi.mocked(mockModifyChecklistClaim.modifyChecklistClaim).mockResolvedValue({
-						checklist_id: 1,
-						claim_id: 100,
-						assignee: 'user-123',
-						created_by: 'user-123',
-						created_at: new Date(),
-						updated_at: new Date(),
-					});
+					vi.mocked(mockModifyChecklistClaim.modifyChecklistClaim).mockResolvedValue(undefined);
 
 					const caller = createCaller(checklistRouter, userCtx);
 					await expect(
@@ -2307,7 +2280,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							checklistId: 1,
 							claimId: 100,
 						})
-					).resolves.toBeDefined();
+					).resolves.toBeUndefined();
 				});
 
 				it('should reject creator who is not assignee', async () => {
@@ -2342,15 +2315,21 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				db,
 					};
 
+					const mockResult = {
+						[ClaimStatus.SUBMITTED]: 0,
+						[ClaimStatus.IN_PROGRESS]: 0,
+						[ClaimStatus.BLOCKED]: 0,
+						[ClaimStatus.UNWORKED]: 0,
+					};
 					const mockGetChecklistClaimStats = await import('@/api/controllers/checklistController');
-					vi.mocked(mockGetChecklistClaimStats.getChecklistClaimStats).mockResolvedValue([]);
+					vi.mocked(mockGetChecklistClaimStats.getChecklistClaimStats).mockResolvedValue(mockResult);
 
 					const caller = createCaller(checklistRouter, userCtx);
 					await expect(
 						caller.getChecklistClaimStats({
 							users: ['user-123'],
 						})
-					).resolves.toEqual([]);
+					).resolves.toEqual(mockResult);
 				});
 
 				it('should require admin to view other users stats', async () => {
@@ -2407,10 +2386,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockGetInactiveUserCount = await import('@/api/controllers/userController');
-					vi.mocked(mockGetInactiveUserCount.getInactiveUserCount).mockResolvedValue(5);
+					vi.mocked(mockGetInactiveUserCount.getInactiveUserCount).mockResolvedValue({ count: 5 });
 
 					const caller = createCaller(userRouter, adminCtx);
-					await expect(caller.getInactiveUserCount()).resolves.toBe(5);
+					await expect(caller.getInactiveUserCount()).resolves.toEqual({ count: 5 });
 				});
 
 				it('should reject contributor getting inactive user count', async () => {
@@ -2455,10 +2434,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockGetUserCount = await import('@/api/controllers/userController');
-					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue(25);
+					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue({ total: 25, active: 20, inactive: 5 });
 
 					const caller = createCaller(userRouter, adminCtx);
-					await expect(caller.getUserCount({})).resolves.toBe(25);
+					await expect(caller.getUserCount({})).resolves.toEqual({ total: 25, active: 20, inactive: 5 });
 				});
 
 				it('should require super admin for client aliasing', async () => {
@@ -2479,10 +2458,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockGetUserCount = await import('@/api/controllers/userController');
-					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue(15);
+					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue({ total: 15, active: 12, inactive: 3 });
 
 					const caller = createCaller(userRouter, superAdminCtx);
-					await expect(caller.getUserCount({ clientId: 'other-client' })).resolves.toBe(15);
+					await expect(caller.getUserCount({ clientId: 'other-client' })).resolves.toEqual({ total: 15, active: 12, inactive: 3 });
 				});
 			});
 		});
@@ -2496,7 +2475,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockAssignClaim = await import('@/api/controllers/claimController');
-					vi.mocked(mockAssignClaim.assignClaim).mockResolvedValue(undefined);
+					vi.mocked(mockAssignClaim.assignClaim).mockResolvedValue({ insertId: BigInt(1), numInsertedOrUpdatedRows: BigInt(1) });
 
 					const caller = createCaller(claimRouter, adminCtx);
 					await expect(
@@ -2505,7 +2484,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 							claimId: 100,
 							assignee: 'user-456',
 						})
-					).resolves.toBeUndefined();
+					).resolves.toBeDefined();
 				});
 
 				it('should reject contributor assigning claim', async () => {
@@ -2531,10 +2510,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockGetNextClaimToAssign = await import('@/api/controllers/claimController');
-					vi.mocked(mockGetNextClaimToAssign.getNextClaimToAssign).mockResolvedValue(null);
+					vi.mocked(mockGetNextClaimToAssign.getNextClaimToAssign).mockResolvedValue({ claim: null, total: 0 });
 
 					const caller = createCaller(claimRouter, adminCtx);
-					await expect(caller.getNextClaimToAssign({ feedId: 1 })).resolves.toBeNull();
+					await expect(caller.getNextClaimToAssign({ feedId: 1 })).resolves.toEqual({ claim: null, total: 0 });
 				});
 
 				it('should reject contributor getting next claim to assign', async () => {

@@ -15,6 +15,10 @@ import {
 	createTestRecoveryEvent,
 	createTestChecklist,
 	createTestPageInstance,
+	createTestParty,
+	createTestClaimParty,
+	createTestCoverage,
+	createTestSettlement,
 } from '@/__tests__/integration/fixtures';
 import { DocType, DocStatus, DocGroupType } from '@/config/enums';
 import {
@@ -117,9 +121,40 @@ describe('docQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Create settlement chain for recovery event
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'facilitator',
+				party_category: 'adverse_carrier',
+			});
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				created_by: user.id,
+				role: 'adverse_carrier',
+			});
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				coverage_type: 'liability',
+				coverage_amount: 100000,
+			});
+			const settlement = await createTestSettlement(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				demand_amount: 50000,
+			});
+
 			const recoveryEvent = await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				settlement_id: settlement.id,
 				created_by: user.id,
 			});
 

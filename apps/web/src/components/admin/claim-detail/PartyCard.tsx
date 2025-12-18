@@ -36,6 +36,8 @@ interface PartyCardProps {
 	expanded?: boolean;
 	/** Default expanded state when uncontrolled */
 	defaultExpanded?: boolean;
+	/** Whether manage mode is active (shows edit/archive buttons) */
+	isManageMode?: boolean;
 }
 
 /**
@@ -56,6 +58,7 @@ export default function PartyCard({
 	showLiabilityPercentage = false,
 	expanded: controlledExpanded,
 	defaultExpanded = true,
+	isManageMode = true,
 }: PartyCardProps) {
 	// Internal expanded state - always used for actual display
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -264,6 +267,7 @@ export default function PartyCard({
 																	: onArchiveParty
 															}
 															onViewDetails={onViewDetails}
+															isManageMode={isManageMode}
 														/>
 													))}
 												</Stack>
@@ -287,25 +291,27 @@ export default function PartyCard({
 							</Typography>
 						</Box>
 
-						{/* Action Buttons */}
-						<Box display="flex" gap={0.5}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => onEditParty(claimParty),
-								}}
-								icon={<Edit />}
-								compact
-							/>
-							{onArchiveParty && (
+						{/* Action Buttons - only visible in manage mode */}
+						{isManageMode && (
+							<Box display="flex" gap={0.5}>
 								<BasicButtonStyled
 									buttonProps={{
-										onClick: () => onArchiveParty(claimParty),
+										onClick: () => onEditParty(claimParty),
 									}}
-									icon={<Archive />}
+									icon={<Edit />}
 									compact
 								/>
-							)}
-						</Box>
+								{onArchiveParty && (
+									<BasicButtonStyled
+										buttonProps={{
+											onClick: () => onArchiveParty(claimParty),
+										}}
+										icon={<Archive />}
+										compact
+									/>
+								)}
+							</Box>
+						)}
 					</Box>
 				</Box>
 			</Box>
