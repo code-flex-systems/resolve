@@ -402,6 +402,20 @@ export async function getAllPartyOffices(
 }
 
 /**
+ * Get single party office by ID
+ */
+export async function getPartyOffice(ctx: ProtectedContext, id: number) {
+	return await ctx.db
+		.selectFrom('party_office')
+		.innerJoin('party', 'party.id', 'party_office.party_id')
+		.selectAll('party_office')
+		.select(['party.name as party_name'])
+		.where('party.client_id', '=', ctx.session.user.client_id)
+		.where('party_office.id', '=', id)
+		.executeTakeFirst();
+}
+
+/**
  * Create party office
  * If is_primary is true, unsets all other primaries for this party first
  */
@@ -511,20 +525,6 @@ export async function updatePartyOffice(
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
-}
-
-/**
- * Get party office by ID (for operations that need full office data)
- */
-export async function getPartyOffice(ctx: ProtectedContext, id: number) {
-	return await ctx.db
-		.selectFrom('party_office')
-		.innerJoin('party', 'party.id', 'party_office.party_id')
-		.selectAll('party_office')
-		.select(['party.name as party_name'])
-		.where('party.client_id', '=', ctx.session.user.client_id)
-		.where('party_office.id', '=', id)
-		.executeTakeFirst();
 }
 
 /**

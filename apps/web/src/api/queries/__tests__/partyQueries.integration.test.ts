@@ -936,6 +936,45 @@ describe('partyQueries integration', () => {
 	});
 
 	describe('getPartyOffice', () => {
+		it('should return office with party name', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Test Party for Office',
+			});
+			const office = await createTestPartyOffice(db, {
+				party_id: party.id,
+				created_by: user.id,
+				office_name: 'Main Office',
+				city: 'New York',
+				state: 'NY',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPartyOffice(ctx, office.id);
+
+			expect(result).toBeDefined();
+			expect(result?.id).toBe(office.id);
+			expect(result?.office_name).toBe('Main Office');
+			expect(result?.party_name).toBe('Test Party for Office');
+			expect(result?.city).toBe('New York');
+			expect(result?.state).toBe('NY');
+		});
+
+		it('should return undefined for non-existent office', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPartyOffice(ctx, 999999);
+
+			expect(result).toBeUndefined();
+		});
+
 		it('should enforce tenant isolation', async () => {
 			const client1 = await createTestClient(db, { name: 'Client 1' });
 			const client2 = await createTestClient(db, { name: 'Client 2' });
@@ -1306,6 +1345,101 @@ describe('partyQueries integration', () => {
 			// Check rep1 is no longer primary
 			const updatedRep1 = await getPartyRepresentative(ctx, rep1.id);
 			expect(updatedRep1?.is_primary).toBe(false);
+		});
+	});
+
+	describe('getPartyRepresentative', () => {
+		it('should return representative with party and office names', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Test Party for Rep',
+			});
+			const office = await createTestPartyOffice(db, {
+				party_id: party.id,
+				created_by: user.id,
+				office_name: 'Rep Office',
+			});
+			const rep = await createTestPartyRepresentative(db, {
+				party_id: party.id,
+				office_id: office.id,
+				created_by: user.id,
+				first_name: 'John',
+				last_name: 'Smith',
+				title: 'Manager',
+				email: 'john.smith@test.com',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPartyRepresentative(ctx, rep.id);
+
+			expect(result).toBeDefined();
+			expect(result?.id).toBe(rep.id);
+			expect(result?.first_name).toBe('John');
+			expect(result?.last_name).toBe('Smith');
+			expect(result?.title).toBe('Manager');
+			expect(result?.email).toBe('john.smith@test.com');
+			expect(result?.party_name).toBe('Test Party for Rep');
+			expect(result?.office_name).toBe('Rep Office');
+		});
+
+		it('should return representative without office when no office assigned', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Test Party No Office',
+			});
+			const rep = await createTestPartyRepresentative(db, {
+				party_id: party.id,
+				created_by: user.id,
+				first_name: 'Jane',
+				last_name: 'Doe',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPartyRepresentative(ctx, rep.id);
+
+			expect(result).toBeDefined();
+			expect(result?.first_name).toBe('Jane');
+			expect(result?.party_name).toBe('Test Party No Office');
+			expect(result?.office_name).toBeNull();
+		});
+
+		it('should return undefined for non-existent representative', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPartyRepresentative(ctx, 999999);
+
+			expect(result).toBeUndefined();
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const party = await createTestParty(db, { client_id: client1.id, created_by: user1.id });
+			const rep = await createTestPartyRepresentative(db, {
+				party_id: party.id,
+				created_by: user1.id,
+				first_name: 'Private',
+				last_name: 'Rep',
+			});
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			const result = await getPartyRepresentative(ctx2, rep.id);
+
+			expect(result).toBeUndefined();
 		});
 	});
 

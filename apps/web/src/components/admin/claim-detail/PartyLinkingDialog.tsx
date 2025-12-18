@@ -9,8 +9,10 @@ import ReferenceDataSelect, {
 } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { PartyType } from '@/config/enums';
+import PartyDialog from '@/components/admin/PartyDialog';
+import type { Party } from '@/api/database/types';
 
-interface PartyLiabilityFormData {
+interface PartyLinkingFormData {
 	role: string | null;
 	party_id: number | null;
 	representative_id: number | null;
@@ -19,7 +21,7 @@ interface PartyLiabilityFormData {
 	parent_claim_party_id: number | null;
 }
 
-interface PartyLiabilityFormDialogProps {
+interface PartyLinkingDialogProps {
 	open: boolean;
 	onClose: () => void;
 	onSubmit: (data: {
@@ -43,7 +45,7 @@ interface PartyLiabilityFormDialogProps {
 	availableParentEntities?: any[];
 }
 
-export default function PartyLiabilityFormDialog({
+export default function PartyLinkingDialog({
 	open,
 	onClose,
 	onSubmit,
@@ -54,8 +56,8 @@ export default function PartyLiabilityFormDialog({
 	parentClaimPartyId,
 	isFacilitatorMode = false,
 	availableParentEntities = [],
-}: PartyLiabilityFormDialogProps) {
-	const [formData, setFormData] = useState<PartyLiabilityFormData>({
+}: PartyLinkingDialogProps) {
+	const [formData, setFormData] = useState<PartyLinkingFormData>({
 		role: null,
 		party_id: null,
 		representative_id: null,
@@ -68,6 +70,7 @@ export default function PartyLiabilityFormDialog({
 	const [selectedParty, setSelectedParty] = useState<any | null>(null);
 	const [selectedRepresentative, setSelectedRepresentative] = useState<any | null>(null);
 	const [selectedParentEntity, setSelectedParentEntity] = useState<any | null>(null);
+	const [showCreatePartyDialog, setShowCreatePartyDialog] = useState(false);
 
 	const partyTrpc = usePartyTrpc();
 
@@ -174,6 +177,19 @@ export default function PartyLiabilityFormDialog({
 		}));
 	}, []);
 
+	// Handle party creation from nested dialog
+	const handlePartyCreated = useCallback(
+		(createdParty?: Party) => {
+			setShowCreatePartyDialog(false);
+			if (createdParty) {
+				// Auto-select the newly created party
+				handlePartySelect(createdParty);
+				setPartySearchTerm(createdParty.name);
+			}
+		},
+		[handlePartySelect]
+	);
+
 	const handleSubmit = async () => {
 		if (!formData.party_id || !formData.role) return;
 
@@ -278,30 +294,45 @@ export default function PartyLiabilityFormDialog({
 				)}
 
 				{/* Party Selection */}
-				<Autocomplete
-					options={partyAutocompleteOptions}
-					value={selectedParty}
-					onChange={(_, newValue) => handlePartySelect(newValue)}
-					inputValue={partySearchTerm}
-					onInputChange={(_, newValue) => setPartySearchTerm(newValue)}
-					getOptionLabel={(option: any) => option.name || ''}
-					isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-					getOptionDisabled={(option: any) => option.id === -2}
-					renderOption={(props, option: any) => (
-						<li {...props} key={option.id}>
-							{option.id === -2 ? <em style={{ color: '#999' }}>{option.name}</em> : option.name}
-						</li>
-					)}
-					fullWidth
-					renderInput={(params) => (
-						<TextField
-							{...params}
-							label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
-							placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
-							required
-						/>
-					)}
-				/>
+				<Box>
+					<Autocomplete
+						options={partyAutocompleteOptions}
+						value={selectedParty}
+						onChange={(_, newValue) => handlePartySelect(newValue)}
+						inputValue={partySearchTerm}
+						onInputChange={(_, newValue) => setPartySearchTerm(newValue)}
+						getOptionLabel={(option: any) => option.name || ''}
+						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+						getOptionDisabled={(option: any) => option.id === -2}
+						renderOption={(props, option: any) => (
+							<li {...props} key={option.id}>
+								{option.id === -2 ? <em style={{ color: '#999' }}>{option.name}</em> : option.name}
+							</li>
+						)}
+						fullWidth
+						renderInput={(params) => (
+							<TextField
+								{...params}
+								label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
+								placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
+								required
+							/>
+						)}
+					/>
+					{/* Add New Party Link */}
+					<Typography
+						variant="body2"
+						sx={{
+							color: 'primary.main',
+							cursor: 'pointer',
+							'&:hover': { textDecoration: 'underline' },
+							mt: 0.5,
+						}}
+						onClick={() => setShowCreatePartyDialog(true)}
+					>
+						+ Add new {isFacilitatorMode ? 'facilitator' : 'entity'}
+					</Typography>
+				</Box>
 
 				{/* Representative Selection */}
 				<Autocomplete
@@ -368,6 +399,11 @@ export default function PartyLiabilityFormDialog({
 					}
 				/>
 			</Box>
+
+			{/* Nested Party Creation Dialog */}
+			{showCreatePartyDialog && (
+				<PartyDialog lockedType={isFacilitatorMode ? 'facilitator' : 'entity'} onClose={handlePartyCreated} />
+			)}
 		</BasicDialog>
 	);
 }

@@ -156,6 +156,20 @@ export const partyRouter = router({
 		}),
 
 	/**
+	 * Get single party office by ID (Admin + Contributor read access)
+	 */
+	getPartyOffice: protectedProcedure
+		.input(getPartyInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.getPartyOffice(ctx, input);
+		}),
+
+	/**
 	 * Create party office (Admin + Contributor)
 	 */
 	createPartyOffice: protectedProcedure
@@ -243,6 +257,20 @@ export const partyRouter = router({
 				config.ROLES.SUPER_ADMIN,
 			]);
 			return partyController.getAllPartyRepresentatives(ctx, input);
+		}),
+
+	/**
+	 * Get single party representative by ID (Admin + Contributor read access)
+	 */
+	getPartyRepresentative: protectedProcedure
+		.input(getPartyInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.getPartyRepresentative(ctx, input);
 		}),
 
 	/**

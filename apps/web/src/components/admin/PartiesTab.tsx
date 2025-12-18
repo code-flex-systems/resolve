@@ -12,6 +12,7 @@ import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PartyActionsCell from './PartyActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -93,6 +94,13 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	const toggleNewPartyDialog = useAdminStore((state) => state.toggleNewPartyDialog);
 	const updatePartyConstraints = useAdminStore((state) => state.updatePartyConstraints);
 
+	// Deep linking: edit party via URL param
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const editPartyId = searchParams.get('edit');
+	const [editingPartyFromUrl, setEditingPartyFromUrl] = useState<any | null>(null);
+	const partyTrpc = usePartyTrpc();
+
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParam } = useUrlFilters();
 
@@ -104,10 +112,33 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
+	// Query to fetch party by ID for deep linking (only when edit param is present)
+	const { data: partyToEdit } = partyTrpc.get(
+		{ id: editPartyId ? parseInt(editPartyId, 10) : 0 },
+		{ enabled: !!editPartyId && !editingPartyFromUrl }
+	);
+
+	// Effect to set editing state when party is fetched from URL param
+	useEffect(() => {
+		if (partyToEdit && editPartyId) {
+			setEditingPartyFromUrl(partyToEdit);
+		}
+	}, [partyToEdit, editPartyId]);
+
+	// Handler to close the edit dialog and clear URL param
+	const handleCloseEditDialog = () => {
+		setEditingPartyFromUrl(null);
+		// Clear the edit param from URL
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete('edit');
+		const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+		router.replace(newUrl, { scroll: false });
+	};
+
 	// Memoize columns based on isAdminContext
 	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
 
-	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().list({
+	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.list({
 		limit: partyConstraints.pageSize,
 		offset: partyConstraints.page * partyConstraints.pageSize,
 		searchTerm: partySearchTerm,
@@ -216,6 +247,9 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 					</div>
 
 					{showNewPartyDialog && <PartyDialog />}
+					{editingPartyFromUrl && (
+						<PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />
+					)}
 				</Paper>
 			</div>
 		</PageTransitionWrapper>

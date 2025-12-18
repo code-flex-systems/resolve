@@ -26,6 +26,8 @@ interface PartyCardProps {
 	onAddFacilitator?: (parentClaimPartyId: number) => void;
 	onEditFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
 	onArchiveFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
+	/** Callback when clicking the party name to view details */
+	onViewDetails?: (claimParty: any) => void;
 	/** Render function for tab-specific content (coverages or liabilities) */
 	renderTabContent?: (claimParty: any) => React.ReactNode;
 	/** Whether to show liability percentage chip (for adverse parties tab) */
@@ -49,6 +51,7 @@ export default function PartyCard({
 	onAddFacilitator,
 	onEditFacilitator,
 	onArchiveFacilitator,
+	onViewDetails,
 	renderTabContent,
 	showLiabilityPercentage = false,
 	expanded: controlledExpanded,
@@ -122,7 +125,19 @@ export default function PartyCard({
 										)}
 									</IconButton>
 								)}
-								<Typography fontSize={isNested ? 14 : 16} fontWeight={600}>
+								<Typography
+									fontSize={isNested ? 14 : 16}
+									fontWeight={600}
+									sx={
+										onViewDetails
+											? {
+													cursor: 'pointer',
+													'&:hover': { textDecoration: 'underline', color: 'primary.main' },
+												}
+											: undefined
+									}
+									onClick={onViewDetails ? () => onViewDetails(claimParty) : undefined}
+								>
 									{claimParty.party?.name || 'Unknown Party'}
 								</Typography>
 								<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />
@@ -248,6 +263,7 @@ export default function PartyCard({
 																	? (f) => onArchiveFacilitator(claimParty.id, f)
 																	: onArchiveParty
 															}
+															onViewDetails={onViewDetails}
 														/>
 													))}
 												</Stack>

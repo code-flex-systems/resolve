@@ -267,11 +267,11 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Type"
-							
+
 							select
 							error={!!errors.party_type}
 							{...field}
-							disabled={isSubmitting || hasLockedValues}
+							disabled={isSubmitting || !!lockedType}
 							sx={styles.textFieldOverrides}
 						>
 							<MenuItem value={PartyType.ENTITY}>

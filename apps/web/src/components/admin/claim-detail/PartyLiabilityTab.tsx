@@ -16,7 +16,8 @@ import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import { LineOfBusinessChip, LossTypeValue } from '@/components/common/ReferenceDataSelect';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
+import PartyLinkingDialog from './PartyLinkingDialog';
+import PartyDetailDialog from './PartyDetailDialog';
 import LiabilityFormDialog from './LiabilityFormDialog';
 import PartyCard from './PartyCard';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
@@ -40,6 +41,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 	const [isFacilitatorMode, setIsFacilitatorMode] = useState(false);
 	const [parentClaimPartyId, setParentClaimPartyId] = useState<number | null>(null);
 	const [allExpanded, setAllExpanded] = useState(true);
+	const [viewingPartyDetails, setViewingPartyDetails] = useState<any | null>(null);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
@@ -492,6 +494,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 										onAddFacilitator={handleOpenFacilitatorDialog}
 										onEditFacilitator={handleOpenFacilitatorDialog}
 										onArchiveFacilitator={(_, facilitator) => setArchivingClaimParty(facilitator)}
+										onViewDetails={setViewingPartyDetails}
 										renderTabContent={renderLiabilityContent}
 										showLiabilityPercentage={true}
 										expanded={allExpanded}
@@ -505,7 +508,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 			</Stack>
 
 			{/* Party Dialog */}
-			<PartyLiabilityFormDialog
+			<PartyLinkingDialog
 				open={showPartyDialog}
 				onClose={handleClosePartyDialog}
 				onSubmit={handlePartySubmit}
@@ -633,6 +636,13 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					</Typography>
 				</BasicDialog>
 			)}
+
+			{/* Party Details Dialog */}
+			<PartyDetailDialog
+				open={!!viewingPartyDetails}
+				onClose={() => setViewingPartyDetails(null)}
+				claimParty={viewingPartyDetails}
+			/>
 		</Box>
 	);
 }

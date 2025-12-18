@@ -16,7 +16,8 @@ import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import PartyLiabilityFormDialog from './PartyLiabilityFormDialog';
+import PartyLinkingDialog from './PartyLinkingDialog';
+import PartyDetailDialog from './PartyDetailDialog';
 import CoverageFormDialog from '../../coverage/CoverageFormDialog';
 import PartyCard from './PartyCard';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
@@ -40,6 +41,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const [isFacilitatorMode, setIsFacilitatorMode] = useState(false);
 	const [parentClaimPartyId, setParentClaimPartyId] = useState<number | null>(null);
 	const [allExpanded, setAllExpanded] = useState(true);
+	const [viewingPartyDetails, setViewingPartyDetails] = useState<any | null>(null);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
@@ -462,6 +464,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 										onAddFacilitator={handleOpenFacilitatorDialog}
 										onEditFacilitator={handleOpenFacilitatorDialog}
 										onArchiveFacilitator={(_, facilitator) => setArchivingClaimParty(facilitator)}
+										onViewDetails={setViewingPartyDetails}
 										renderTabContent={renderCoverageContent}
 										expanded={allExpanded}
 									/>
@@ -474,7 +477,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 			</Stack>
 
 			{/* Party Dialog */}
-			<PartyLiabilityFormDialog
+			<PartyLinkingDialog
 				open={showPartyDialog}
 				onClose={handleClosePartyDialog}
 				onSubmit={handlePartySubmit}
@@ -595,6 +598,13 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					</Typography>
 				</BasicDialog>
 			)}
+
+			{/* Party Details Dialog */}
+			<PartyDetailDialog
+				open={!!viewingPartyDetails}
+				onClose={() => setViewingPartyDetails(null)}
+				claimParty={viewingPartyDetails}
+			/>
 		</Box>
 	);
 }

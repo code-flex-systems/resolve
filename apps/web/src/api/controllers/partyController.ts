@@ -215,6 +215,13 @@ export async function getAllPartyOffices(
 }
 
 /**
+ * Get single party office by ID
+ */
+export async function getPartyOffice(ctx: ProtectedContext, { id }: { id: number }) {
+	return await partyQueries.getPartyOffice(ctx, id);
+}
+
+/**
  * Create party office with admin logging
  */
 export async function createPartyOffice(
@@ -384,6 +391,13 @@ export async function getAllPartyRepresentatives(
 	}: { searchTerm?: string; limit?: number; offset?: number; showArchived?: boolean }
 ) {
 	return await partyQueries.getAllPartyRepresentatives(ctx, searchTerm, limit, offset, showArchived);
+}
+
+/**
+ * Get single party representative by ID
+ */
+export async function getPartyRepresentative(ctx: ProtectedContext, { id }: { id: number }) {
+	return await partyQueries.getPartyRepresentative(ctx, id);
 }
 
 /**

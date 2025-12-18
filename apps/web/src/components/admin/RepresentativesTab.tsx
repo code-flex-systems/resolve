@@ -14,6 +14,7 @@ import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -137,6 +138,19 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
 	const updateRepresentativeConstraints = useAdminStore((state) => state.updateRepresentativeConstraints);
 
+	// Deep linking: edit representative via URL param
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const editRepresentativeId = searchParams.get('edit');
+	const [editingRepresentativeFromUrl, setEditingRepresentativeFromUrl] = useState<any | null>(null);
+	const partyTrpc = usePartyTrpc();
+
+	// Query to fetch representative by ID for deep linking (only when edit param is present)
+	const { data: representativeToEdit } = partyTrpc.getRepresentative(
+		{ id: editRepresentativeId ? parseInt(editRepresentativeId, 10) : 0 },
+		{ enabled: !!editRepresentativeId && !editingRepresentativeFromUrl }
+	);
+
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParam } = useUrlFilters();
 
@@ -148,10 +162,20 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
+	// Handler to close the edit dialog and clear URL param
+	const handleCloseEditDialog = () => {
+		setEditingRepresentativeFromUrl(null);
+		// Clear the edit param from URL
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete('edit');
+		const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+		router.replace(newUrl, { scroll: false });
+	};
+
 	// Memoize columns based on isAdminContext
 	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
 
-	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllRepresentatives({
+	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
 		offset: representativeConstraints.page * representativeConstraints.pageSize,
 		searchTerm: representativeSearchTerm,
@@ -165,6 +189,13 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		}
 		return rowCountRef.current;
 	}, [data.count]);
+
+	// Effect to set editing representative from dedicated query when data is loaded
+	useEffect(() => {
+		if (representativeToEdit && editRepresentativeId) {
+			setEditingRepresentativeFromUrl(representativeToEdit);
+		}
+	}, [representativeToEdit, editRepresentativeId]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -260,6 +291,9 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 					</div>
 
 					{showNewRepresentativeDialog && <RepresentativeDialog />}
+					{editingRepresentativeFromUrl && (
+						<RepresentativeDialog representative={editingRepresentativeFromUrl} onClose={handleCloseEditDialog} />
+					)}
 				</Paper>
 			</div>
 		</PageTransitionWrapper>

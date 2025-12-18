@@ -13,6 +13,7 @@ import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import OfficeActionsCell from './OfficeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -105,6 +106,19 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 	const toggleNewOfficeDialog = useAdminStore((state) => state.toggleNewOfficeDialog);
 	const updateOfficeConstraints = useAdminStore((state) => state.updateOfficeConstraints);
 
+	// Deep linking: edit office via URL param
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const editOfficeId = searchParams.get('edit');
+	const [editingOfficeFromUrl, setEditingOfficeFromUrl] = useState<any | null>(null);
+	const partyTrpc = usePartyTrpc();
+
+	// Query to fetch office by ID for deep linking (only when edit param is present)
+	const { data: officeToEdit } = partyTrpc.getOffice(
+		{ id: editOfficeId ? parseInt(editOfficeId, 10) : 0 },
+		{ enabled: !!editOfficeId && !editingOfficeFromUrl }
+	);
+
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParam } = useUrlFilters();
 
@@ -115,6 +129,16 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+
+	// Handler to close the edit dialog and clear URL param
+	const handleCloseEditDialog = () => {
+		setEditingOfficeFromUrl(null);
+		// Clear the edit param from URL
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete('edit');
+		const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+		router.replace(newUrl, { scroll: false });
+	};
 
 	// Memoize columns based on isAdminContext
 	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
@@ -133,6 +157,13 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 		}
 		return rowCountRef.current;
 	}, [data.count]);
+
+	// Effect to set editing office from dedicated query when data is loaded
+	useEffect(() => {
+		if (officeToEdit && editOfficeId) {
+			setEditingOfficeFromUrl(officeToEdit);
+		}
+	}, [officeToEdit, editOfficeId]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -223,6 +254,9 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 					</div>
 
 					{showNewOfficeDialog && <OfficeDialog />}
+					{editingOfficeFromUrl && (
+						<OfficeDialog office={editingOfficeFromUrl} onClose={handleCloseEditDialog} />
+					)}
 				</Paper>
 			</div>
 		</PageTransitionWrapper>
