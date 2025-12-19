@@ -9,7 +9,8 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import Highlight from '@/components/common/Highlight';
 import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
-import { ClaimPartyRoleChip, EntityCategoryChip, FacilitatorCategoryChip } from '@/components/common/ReferenceDataSelect';
+import { ClaimPartyRoleChip, EntityCategoryChip, FacilitatorCategoryChip, LossTypeValue } from '@/components/common/ReferenceDataSelect';
+import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -28,7 +29,7 @@ interface PartyCardProps {
 	onArchiveFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
 	/** Callback when clicking the party name to view details */
 	onViewDetails?: (claimParty: any) => void;
-	/** Render function for tab-specific content (coverages or liabilities) */
+	/** Render function for tab-specific content (e.g., coverages) */
 	renderTabContent?: (claimParty: any) => React.ReactNode;
 	/** Whether to show liability percentage chip (for adverse parties tab) */
 	showLiabilityPercentage?: boolean;
@@ -209,7 +210,22 @@ export default function PartyCard({
 								</Typography>
 							)}
 
-							{/* Collapsible secondary content (coverages/liabilities, facilitators) */}
+							{/* Facilitator-specific fields: Loss Type and Policy Limit */}
+							{isNested && (claimParty.loss_type || claimParty.policy_limit != null) && (
+								<Box display="flex" gap={2} marginTop={0.5} marginBottom={0.5}>
+									{claimParty.loss_type && <LossTypeValue value={claimParty.loss_type} />}
+									{claimParty.policy_limit != null && (
+										<Typography fontSize={13} color="text.secondary">
+											Policy Limit:{' '}
+											<Typography component="span" fontWeight={600}>
+												{formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}
+											</Typography>
+										</Typography>
+									)}
+								</Box>
+							)}
+
+							{/* Collapsible secondary content (coverages, facilitators) */}
 							{hasNestedContent && (
 								<Collapse in={isExpanded} timeout="auto">
 									{/* Liability Percentage (for adverse parties tab) - only for entities */}

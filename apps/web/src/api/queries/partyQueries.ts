@@ -921,7 +921,7 @@ export async function deletePartyRepresentative(ctx: ProtectedContext, id: numbe
  * @param options - optional filters
  * @param options.partyType - filter by party type ('entity' or 'facilitator')
  * @param options.roleListEntity - filter by role list entity ('claimant_party_role' or 'adverse_party_role')
- * @returns array of claim parties with nested party, representative, office, liabilities, and coverages
+ * @returns array of claim parties with nested party, representative, office, and coverages
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
@@ -998,29 +998,8 @@ export async function getClaimParties(
 		return [];
 	}
 
-	// Fetch all non-deleted liabilities for these claim parties
-	const claimPartyIds = results.map((r) => r.id);
-	const liabilities = await ctx.db
-		.selectFrom('claim_liability')
-		.selectAll()
-		.where('claim_liability.claim_party_id', 'in', claimPartyIds)
-		.where('claim_liability.deleted_at', 'is', null)
-		.orderBy('claim_liability.created_at', 'asc')
-		.execute();
-
-	// Group liabilities by claim_party_id
-	const liabilitiesByParty = liabilities.reduce(
-		(acc, liability) => {
-			if (!acc[liability.claim_party_id]) {
-				acc[liability.claim_party_id] = [];
-			}
-			acc[liability.claim_party_id].push(liability);
-			return acc;
-		},
-		{} as Record<number, typeof liabilities>
-	);
-
 	// Fetch all non-deleted coverages for these claim parties
+	const claimPartyIds = results.map((r) => r.id);
 	const coverages = await ctx.db
 		.selectFrom('claim_coverage')
 		.selectAll()
@@ -1044,7 +1023,7 @@ export async function getClaimParties(
 		{} as Record<number, typeof coverages>
 	);
 
-	// Transform results to nest party, representative, office, liabilities, and coverages data
+	// Transform results to nest party, representative, office, and coverages data
 	return results.map((row) => ({
 		id: row.id,
 		claim_id: row.claim_id,
@@ -1054,6 +1033,8 @@ export async function getClaimParties(
 		notes: row.notes,
 		external_reference: row.external_reference,
 		liability_percentage: row.liability_percentage,
+		loss_type: row.loss_type,
+		policy_limit: row.policy_limit,
 		parent_claim_party_id: row.parent_claim_party_id,
 		created_at: row.created_at,
 		created_by: row.created_by,
@@ -1089,7 +1070,6 @@ export async function getClaimParties(
 					phone: row.office_phone,
 				}
 			: null,
-		liabilities: liabilitiesByParty[row.id] || [],
 		coverages: coveragesByParty[row.id] || [],
 	}));
 }
@@ -1112,6 +1092,9 @@ export async function linkPartyToClaim(
 		external_reference?: string;
 		liability_percentage?: number;
 		parent_claim_party_id?: number | null;
+		// Facilitator-specific fields
+		loss_type?: string | null;
+		policy_limit?: number | null;
 	}
 ) {
 	const claimParty = await ctx.db
@@ -1126,6 +1109,8 @@ export async function linkPartyToClaim(
 			external_reference: params.external_reference,
 			liability_percentage: params.liability_percentage?.toString(),
 			parent_claim_party_id: params.parent_claim_party_id,
+			loss_type: params.loss_type,
+			policy_limit: params.policy_limit?.toString(),
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
@@ -1154,6 +1139,9 @@ export async function updateClaimParty(
 		external_reference?: string;
 		liability_percentage?: number | null;
 		parent_claim_party_id?: number | null;
+		// Facilitator-specific fields
+		loss_type?: string | null;
+		policy_limit?: number | null;
 	}
 ) {
 	const claimParty = await ctx.db
@@ -1170,6 +1158,10 @@ export async function updateClaimParty(
 			}),
 			...(params.parent_claim_party_id !== undefined && {
 				parent_claim_party_id: params.parent_claim_party_id,
+			}),
+			...(params.loss_type !== undefined && { loss_type: params.loss_type }),
+			...(params.policy_limit !== undefined && {
+				policy_limit: params.policy_limit === null ? null : params.policy_limit?.toString(),
 			}),
 		})
 		.where('claim_party.id', '=', id)
@@ -1210,7 +1202,7 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
 
 /**
  * Archive (soft delete) a claim party and all its children recursively
- * Also archives any coverages and liabilities associated with this claim party and its children
+ * Also archives any coverages associated with this claim party and its children
  * Recalculates expected_recovery and total_incurred after archiving
  *
  * @returns updated expectedRecovery, totalIncurred, and claimId
@@ -1234,13 +1226,11 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
 
 	// Import dynamically to avoid circular dependency
 	const { archiveCoveragesByClaimParty } = await import('./coverageQueries');
-	const { archiveLiabilitiesByClaimParty } = await import('./liabilityQueries');
 	const { recalculateTotalIncurred } = await import('./claimQueries');
 
-	// Archive coverages and liabilities for all affected claim_parties
+	// Archive coverages for all affected claim_parties
 	for (const claimPartyId of allClaimPartyIds) {
 		await archiveCoveragesByClaimParty(ctx, claimPartyId);
-		await archiveLiabilitiesByClaimParty(ctx, claimPartyId);
 	}
 
 	// Soft delete all claim_parties (parent + children)

@@ -6,6 +6,7 @@ import BasicDialog from '@/components/common/BasicDialog';
 import ReferenceDataSelect, {
 	ClaimantPartyRoleSelect,
 	AdversePartyRoleSelect,
+	LossTypeSelect,
 } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { PartyType } from '@/config/enums';
@@ -19,6 +20,9 @@ interface PartyLinkingFormData {
 	liability_percentage: string;
 	notes: string;
 	parent_claim_party_id: number | null;
+	// Facilitator-specific fields
+	loss_type: string | null;
+	policy_limit: string;
 }
 
 interface PartyLinkingDialogProps {
@@ -31,6 +35,9 @@ interface PartyLinkingDialogProps {
 		liability_percentage?: number | null;
 		notes?: string | null;
 		parent_claim_party_id?: number | null;
+		// Facilitator-specific fields
+		loss_type?: string | null;
+		policy_limit?: number | null;
 	}) => Promise<void>;
 	editingClaimParty?: any | null;
 	currentClaimParties?: any[];
@@ -64,6 +71,8 @@ export default function PartyLinkingDialog({
 		liability_percentage: '',
 		notes: '',
 		parent_claim_party_id: parentClaimPartyId || null,
+		loss_type: null,
+		policy_limit: '',
 	});
 
 	const [partySearchTerm, setPartySearchTerm] = useState('');
@@ -118,6 +127,8 @@ export default function PartyLinkingDialog({
 				liability_percentage: editingClaimParty.liability_percentage?.toString() || '',
 				notes: editingClaimParty.notes || '',
 				parent_claim_party_id: editingClaimParty.parent_claim_party_id || null,
+				loss_type: editingClaimParty.loss_type || null,
+				policy_limit: editingClaimParty.policy_limit?.toString() || '',
 			});
 			// Set selected party and representative for autocompletes
 			if (editingClaimParty.party) {
@@ -140,6 +151,8 @@ export default function PartyLinkingDialog({
 				liability_percentage: '',
 				notes: '',
 				parent_claim_party_id: parentClaimPartyId || null,
+				loss_type: null,
+				policy_limit: '',
 			});
 			setSelectedParty(null);
 			setSelectedRepresentative(null);
@@ -203,6 +216,9 @@ export default function PartyLinkingDialog({
 			liability_percentage: formData.liability_percentage ? parseFloat(formData.liability_percentage) : null,
 			notes: formData.notes || null,
 			parent_claim_party_id: formData.parent_claim_party_id || parentClaimPartyId || null,
+			// Facilitator-specific fields
+			loss_type: isFacilitatorMode ? formData.loss_type : null,
+			policy_limit: isFacilitatorMode && formData.policy_limit ? parseFloat(formData.policy_limit) : null,
 		});
 	};
 
@@ -358,7 +374,7 @@ export default function PartyLinkingDialog({
 					)}
 				/>
 
-				{/* Liability Percentage - only show on adverse parties tab */}
+				{/* Liability Percentage - only show on adverse parties tab for entities */}
 				{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
 					<TextField
 						label="Liability Percentage"
@@ -379,6 +395,36 @@ export default function PartyLinkingDialog({
 								? 'Must be between 0 and 100'
 								: "This party's percentage of liability for the claim"
 						}
+					/>
+				)}
+
+				{/* Loss Type - only show for facilitators */}
+				{isFacilitatorMode && (
+					<LossTypeSelect
+						lossType={formData.loss_type}
+						setLossType={(lossType) => setFormData({ ...formData, loss_type: lossType })}
+						clearable={true}
+						isFilter={false}
+						label="Loss Type"
+					/>
+				)}
+
+				{/* Policy Limit - only show for facilitators */}
+				{isFacilitatorMode && (
+					<TextField
+						label="Policy Limit"
+						type="number"
+						value={formData.policy_limit}
+						onChange={(e) => setFormData({ ...formData, policy_limit: e.target.value })}
+						fullWidth
+						placeholder="Enter maximum policy payout amount"
+						inputProps={{ step: '0.01', min: '0' }}
+						slotProps={{
+							input: {
+								startAdornment: <InputAdornment position="start">$</InputAdornment>,
+							},
+						}}
+						helperText="Maximum amount this carrier will pay (their policy limit)"
 					/>
 				)}
 

@@ -21,7 +21,6 @@ import {
 	createTestPartyOffice,
 	createTestPartyRepresentative,
 	createTestClaimParty,
-	createTestClaimLiability,
 	createTestCoverage,
 	createTestRoleList,
 } from '@/__tests__/integration/fixtures';
@@ -1620,88 +1619,6 @@ describe('partyQueries integration', () => {
 
 			expect(result).toHaveLength(0);
 		});
-
-		it('should include liabilities for each claim party', async () => {
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
-			const claimParty = await createTestClaimParty(db, {
-				claim_id: claim.id,
-				party_id: party.id,
-				created_by: user.id,
-			});
-
-			// Create liabilities for this claim party
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty.id,
-				created_by: user.id,
-				loss_type: 'property_damage',
-				amount_paid: '5000.00',
-			});
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty.id,
-				created_by: user.id,
-				loss_type: 'bodily_injury',
-				amount_paid: '10000.00',
-			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			const result = await getClaimParties(ctx, claim.id);
-
-			const foundClaimParty = result.find((cp) => cp.id === claimParty.id);
-			expect(foundClaimParty?.liabilities).toHaveLength(2);
-			expect(foundClaimParty?.liabilities.some((l) => l.loss_type === 'property_damage')).toBe(true);
-			expect(foundClaimParty?.liabilities.some((l) => l.loss_type === 'bodily_injury')).toBe(true);
-		});
-
-		it('should exclude deleted liabilities', async () => {
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
-			const claimParty = await createTestClaimParty(db, {
-				claim_id: claim.id,
-				party_id: party.id,
-				created_by: user.id,
-			});
-
-			// Create active liability
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty.id,
-				created_by: user.id,
-				loss_type: 'property_damage',
-				amount_paid: '1000.00',
-			});
-
-			// Create deleted liability
-			const deletedLiability = await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty.id,
-				created_by: user.id,
-				loss_type: 'bodily_injury',
-				amount_paid: '2000.00',
-			});
-
-			// Soft delete the liability
-			await db
-				.updateTable('claim_liability')
-				.set({ deleted_at: new Date() })
-				.where('id', '=', deletedLiability.id)
-				.execute();
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			const result = await getClaimParties(ctx, claim.id);
-
-			const foundClaimParty = result.find((cp) => cp.id === claimParty.id);
-			expect(foundClaimParty?.liabilities).toHaveLength(1);
-			expect(foundClaimParty?.liabilities[0].loss_type).toBe('property_damage');
-		});
 	});
 
 	describe('linkPartyToClaim', () => {
@@ -2290,66 +2207,6 @@ describe('partyQueries integration', () => {
 
 			// Should only have party 2's coverage (3000)
 			expect(result.totalIncurred).toBe(3000);
-		});
-	});
-
-	describe('archiveClaimParty with liability cascade', () => {
-		it('should archive liabilities when archiving a claim party', async () => {
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-
-			const party = await createTestParty(db, {
-				client_id: client.id,
-				created_by: user.id,
-				name: 'Party With Liabilities',
-				party_type: 'entity',
-			});
-
-			const claimParty = await createTestClaimParty(db, {
-				claim_id: claim.id,
-				party_id: party.id,
-				created_by: user.id,
-				liability_percentage: '30',
-			});
-
-			// Create liabilities for this claim party
-			const liability1 = await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty.id,
-				line_of_business: 'auto',
-				amount_paid: '1000',
-				created_by: user.id,
-			});
-			const liability2 = await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty.id,
-				line_of_business: 'property',
-				amount_paid: '2000',
-				created_by: user.id,
-			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			// Archive the party
-			await archiveClaimParty(ctx, claimParty.id);
-
-			// Verify liabilities are soft-deleted
-			const archived1 = await db
-				.selectFrom('claim_liability')
-				.selectAll()
-				.where('id', '=', liability1.id)
-				.executeTakeFirst();
-			const archived2 = await db
-				.selectFrom('claim_liability')
-				.selectAll()
-				.where('id', '=', liability2.id)
-				.executeTakeFirst();
-
-			expect(archived1?.deleted_at).not.toBeNull();
-			expect(archived1?.deleted_by).toBe(user.id);
-			expect(archived2?.deleted_at).not.toBeNull();
-			expect(archived2?.deleted_by).toBe(user.id);
 		});
 	});
 

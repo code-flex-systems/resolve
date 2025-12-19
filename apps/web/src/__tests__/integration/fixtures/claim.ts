@@ -70,38 +70,6 @@ export async function createTestClaim(
 // NOTE: createTestClaimParty is defined in party.ts to avoid duplication
 
 /**
- * Create a test claim liability
- */
-export async function createTestClaimLiability(
-	db: Kysely<DB>,
-	overrides: {
-		client_id: string;
-		claim_party_id: number;
-		line_of_business?: string | null;
-		loss_type?: string | null;
-		amount_paid?: number | string | null;
-		coverage_amount?: number | string | null;
-		created_by?: string | null;
-	}
-) {
-	const data = {
-		client_id: overrides.client_id,
-		claim_party_id: overrides.claim_party_id,
-		line_of_business: overrides.line_of_business ?? null,
-		loss_type: overrides.loss_type ?? null,
-		amount_paid: overrides.amount_paid ?? null,
-		coverage_amount: overrides.coverage_amount ?? null,
-		created_by: overrides.created_by ?? null,
-	};
-
-	return db
-		.insertInto('claim_liability')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
-}
-
-/**
  * Create a test claim coverage
  */
 export async function createTestClaimCoverage(

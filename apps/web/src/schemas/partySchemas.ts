@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { PartyType } from '@/config/enums';
+import { LossType, PartyType } from '@/config/enums';
 import { addressSchema } from './addressSchemas';
+import { parseNumber } from '@/lib/parsers/zodParsers';
 
 // ============================================================================
 // PARTY SCHEMAS
@@ -224,7 +225,8 @@ export const getClaimPartiesInput = z.object({
 
 /**
  * Link party to claim input
- * Note: liability_percentage is now on claim_party (moved from claim_liability)
+ * Note: liability_percentage is on claim_party for entities
+ * Note: loss_type and policy_limit are on claim_party for facilitators
  */
 export const linkPartyToClaimInput = z.object({
 	claim_id: z.number().int().positive(),
@@ -236,11 +238,15 @@ export const linkPartyToClaimInput = z.object({
 	notes: z.string().max(2000).optional(),
 	external_reference: z.string().max(255).optional(),
 	parent_claim_party_id: z.number().int().positive().nullable().optional(),
+	// Facilitator-specific fields
+	loss_type: z.nativeEnum(LossType).nullable().optional(),
+	policy_limit: parseNumber().nullable().optional(),
 });
 
 /**
  * Update claim party relationship input
- * Note: liability_percentage is now on claim_party (moved from claim_liability)
+ * Note: liability_percentage is on claim_party for entities
+ * Note: loss_type and policy_limit are on claim_party for facilitators
  */
 export const updateClaimPartyInput = z.object({
 	id: z.number().int().positive(),
@@ -252,6 +258,9 @@ export const updateClaimPartyInput = z.object({
 		notes: z.string().max(2000).optional(),
 		external_reference: z.string().max(255).optional(),
 		parent_claim_party_id: z.number().int().positive().nullable().optional(),
+		// Facilitator-specific fields
+		loss_type: z.nativeEnum(LossType).nullable().optional(),
+		policy_limit: parseNumber().nullable().optional(),
 	}),
 });
 

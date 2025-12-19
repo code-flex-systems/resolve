@@ -580,6 +580,9 @@ export async function linkPartyToClaim(
 		external_reference?: string;
 		liability_percentage?: number;
 		parent_claim_party_id?: number | null;
+		// Facilitator-specific fields
+		loss_type?: string | null;
+		policy_limit?: number | null;
 	}
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
@@ -624,6 +627,9 @@ export async function updateClaimParty(
 			external_reference?: string;
 			liability_percentage?: number | null;
 			parent_claim_party_id?: number | null;
+			// Facilitator-specific fields
+			loss_type?: string | null;
+			policy_limit?: number | null;
 		};
 	}
 ) {
@@ -656,7 +662,7 @@ export async function updateClaimParty(
 
 /**
  * Archive (soft delete) claim party with admin logging
- * Cascades to archive all nested facilitators, coverages, and liabilities
+ * Cascades to archive all nested facilitators and coverages
  * @returns expectedRecovery and claimId
  */
 export async function archiveClaimParty(
