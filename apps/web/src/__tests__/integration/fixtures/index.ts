@@ -15,6 +15,7 @@ export * from './task';
 export * from './deadline';
 export * from './feed';
 export * from './page';
+export * from './payment';
 export * from './recovery';
 export * from './settlement';
 export * from './doc';

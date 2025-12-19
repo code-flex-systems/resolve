@@ -1,0 +1,88 @@
+Claim Payments Page 
+Claim payments are the amounts an insurance company pays out on a claim. These payments may go to the insured, a vendor, a service provider, or another party involved in resolving the loss. For subrogation purposes, claim payments represent the financial amount we are trying to recover from the responsible (adverse) party.
+Claim payments can include:
+Indemnity payments – money paid to repair or replace damaged property, reimburse the insured, or cover their losses.
+Expense payments – costs the insurer pays to adjust, investigate, or manage the claim (e.g., inspection fees, vendor costs).
+Credits / Negative Payments - These reduce the overall claim cost and must be recorded as negative amounts in the system. The system must allow negative payment entries so these credits properly offset the total claim amount. Examples include:
+Salvage recovery
+Refunds or returned payments
+Overpayment corrections
+In the system, we track claim payments because they determine:
+The Claim Amount (sum of subrogable payments)
+Whether a payment is recoverable through subrogation
+The Expected Recovery value
+The system should automatically recalculate and update claim financial totals in real time whenever financial-related data changes, including but not limited to adding or modifying payments or updating the subrogation flag.
+Document Purpose
+This document explains the fields shown on the Claim Payment Page and what each field is meant to capture. It also outlines basic requirements so the developer understands how payment entries should work, how the data should be entered or received, and how the system should use that information.
+1. Payment Fields
+Each payment entry must include the following fields:
+1.1 Payment Date
+Purpose: Represents the date the payment was issued by the client.
+Requirement:
+Compulsory.
+Must accept data-feed values when provided.
+1.2 Payment Amount
+Purpose: The monetary amount of the payment.
+Requirement:
+Compulsory.
+Must support two decimals.
+Must support negative values for credits, such as salvage recovery or payment reversals.
+Must accept data-feed values when provided.
+1.3 Subrogable (Yes/No)
+Purpose: Indicates whether the payment is eligible for subrogation recovery.
+Requirements:
+Compulsory.
+For data-feed entries:
+Value may be system-derived based on mapping rules.
+Mapping logic must determine if the payment relates to a recoverable coverage or payment type.
+Mapping may rely on payment codes supplied by the client.
+1.4 Expense (Yes/No)
+Purpose: Identifies whether the payment is considered an expense rather than an indemnity.
+Requirements:
+Compulsory.
+For data-feed entries:
+Value may be system-derived based on mapping rules.
+Mapping may rely on payment codes supplied by the client.
+1.5 Loss Type
+Purpose: Identifies the loss type under which the payment was issued.
+Requirements:
+Compulsory.
+For manual entry: User selects from a list of loss types associated with the claim.
+For data-feed entries:
+Loss types are mapped using the client’s payment codes or coverage identifiers.
+Mapping logic must determine whether the coverage is recoverable.
+1.6 Coverage
+Purpose: Identifies the coverage under which the payment was issued.
+Requirements:
+Compulsory.
+For manual entry: User selects from list of coverages associated with the claim.
+For data-feed entries:
+Coverage is  mapped using the client’s payment codes or coverage identifiers.
+Mapping logic will determine whether the coverage is recoverable.
+1.7 Payee
+Purpose: Indicates the party to whom the payment was issued (e.g., insured, vendor, third party).
+Requirement:
+Optional.
+Must accept values from data feed when provided.
+1.8 Reason / Description
+Purpose: Provides context about why the payment was made (e.g., repair cost, mitigation services).
+Requirements:
+Optional.
+Must support text entry for manual users.
+Must accept data-feed values when provided.
+2. Functional Requirements for Payment Entry Module
+2.1 Add Payment
+User must be able to manually enter a new payment with all required fields.
+System validates required fields prior to saving.
+2.2 Edit Payment
+Authorized users must be able to modify existing payment entries.
+2.3 Delete Payment
+Authorized users must be able to delete a payment entry.
+Deletion must trigger recalculation of:
+Claim Amount
+Total Incurred
+Expected Recovery (if applicable)
+2.4 Data Feed Processing
+The system should automatically create or update payment entries based on incoming data.
+The system should apply mapping rules before saving entries.
+Any unmapped or ambiguous codes must be flagged for manual review.

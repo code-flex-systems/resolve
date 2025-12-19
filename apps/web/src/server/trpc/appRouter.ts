@@ -14,6 +14,7 @@ import { docRouter } from './routers/doc';
 import { feedRouter } from './routers/feed';
 import { pageRouter } from './routers/page';
 import { partyRouter } from './routers/party';
+import { paymentRouter } from './routers/payment';
 import { questionRouter } from './routers/question';
 import { recoveryRouter } from './routers/recovery';
 import { referenceDataRouter } from './routers/referenceData';
@@ -37,6 +38,7 @@ export const appRouter = router({
 	feed: feedRouter,
 	page: pageRouter,
 	party: partyRouter,
+	payment: paymentRouter,
 	question: questionRouter,
 	recovery: recoveryRouter,
 	referenceData: referenceDataRouter,

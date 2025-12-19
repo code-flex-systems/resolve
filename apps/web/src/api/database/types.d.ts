@@ -203,39 +203,6 @@ export interface ClaimCoverage {
   updated_by: string | null;
 }
 
-export interface ClaimLiability {
-  amount_paid: Numeric | null;
-  claim_party_id: number;
-  client_id: string;
-  coverage_amount: Numeric | null;
-  created_at: Generated<Timestamp>;
-  created_by: string | null;
-  deleted_at: Timestamp | null;
-  deleted_by: string | null;
-  /**
-   * External ID from source system (for upsert logic)
-   */
-  external_reference: string | null;
-  /**
-   * Which feed sourced this liability
-   */
-  feed_id: number | null;
-  id: Generated<number>;
-  /**
-   * When feed last updated this record
-   */
-  last_synced_at: Timestamp | null;
-  line_of_business: string | null;
-  loss_type: string | null;
-  /**
-   * User edited after feed sync - prevents feed overwrites
-   */
-  manually_overridden: Generated<boolean | null>;
-  notes: string | null;
-  updated_at: Timestamp | null;
-  updated_by: string | null;
-}
-
 export interface ClaimParty {
   claim_id: number;
   created_at: Generated<Timestamp>;
@@ -255,9 +222,17 @@ export interface ClaimParty {
   id: Generated<number>;
   is_primary: Generated<boolean>;
   liability_percentage: Numeric | null;
+  /**
+   * For facilitators: type of loss this carrier covers (bodily_injury, property_damage, etc.)
+   */
+  loss_type: string | null;
   notes: string | null;
   parent_claim_party_id: number | null;
   party_id: number;
+  /**
+   * For facilitators: maximum amount the adverse carrier will pay (policy limit)
+   */
+  policy_limit: Numeric | null;
   /**
    * Specific representative from the party handling this claim (optional)
    */
@@ -266,6 +241,29 @@ export interface ClaimParty {
    * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
    */
   role: string;
+}
+
+export interface ClaimPayment {
+  claim_id: number;
+  client_id: string;
+  coverage_id: number;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  description: string | null;
+  external_reference: string | null;
+  feed_id: string | null;
+  id: Generated<number>;
+  is_expense: Generated<boolean>;
+  is_subrogable: Generated<boolean>;
+  manually_overridden: Generated<boolean | null>;
+  payee_claim_party_id: number | null;
+  payment_amount: Numeric;
+  payment_code: string | null;
+  payment_date: Timestamp;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface Client {
@@ -899,8 +897,8 @@ export interface DB {
   claim: Claim;
   claim_activity_logs: ClaimActivityLogs;
   claim_coverage: ClaimCoverage;
-  claim_liability: ClaimLiability;
   claim_party: ClaimParty;
+  claim_payment: ClaimPayment;
   client: Client;
   comment: Comment;
   deadline: Deadline;
