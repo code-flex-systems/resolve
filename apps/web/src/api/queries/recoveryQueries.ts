@@ -3,7 +3,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import { RecoveryEventParams, RecoveryEventUpdateParams } from '@/schemas/recoverySchemas';
 import { DateRangeStrict } from '@/types/types';
 import { TRPCError } from '@trpc/server';
-import config from '@/config/config';
+import { getFiscalYearStart } from '@/config/config';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -579,7 +579,7 @@ export async function getQuarterlyRecoveryStats(
 	const clientId = ctx.session.user.client_id!;
 
 	// Use provided fiscal year start or default from config
-	const fiscalYearStart = params?.fiscalYearStart ? dayjs(params.fiscalYearStart) : config.FISCAL_YEAR_START_DATE;
+	const fiscalYearStart = params?.fiscalYearStart ? dayjs(params.fiscalYearStart) : getFiscalYearStart();
 
 	// Calculate quarter date ranges
 	const quarters = [

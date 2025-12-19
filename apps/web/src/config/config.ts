@@ -1,4 +1,13 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+
+/**
+ * Get the start of the current fiscal year.
+ * This is a function (not a constant) to avoid hydration mismatches
+ * between server and client due to timezone differences.
+ */
+export function getFiscalYearStart(): Dayjs {
+	return dayjs().startOf('year');
+}
 
 const config = {
 	APP_NAME: 'Manifest',
@@ -15,7 +24,6 @@ const config = {
 		{ key: 'last_update', label: 'Last Update' },
 		{ key: 'expected_recovery', label: 'Expected Recovery' },
 	],
-	FISCAL_YEAR_START_DATE: dayjs().startOf('year'),
 	MAX_COMMENT_SIZE: 500,
 	USER_FIELDS: [
 		{ key: 'first', label: 'First' },

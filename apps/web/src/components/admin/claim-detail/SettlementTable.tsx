@@ -205,7 +205,7 @@ export default function SettlementTable({
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (params.row.type === 'settlement' && params.row.status) {
 						return (
-							<Chip label={params.row.status} size="small" color={getStatusColor(params.row.status)} />
+							<Chip label={capitalize(params.row.status)} size="small" color={getStatusColor(params.row.status)} />
 						);
 					}
 					return null;

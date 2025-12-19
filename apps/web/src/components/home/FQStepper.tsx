@@ -11,7 +11,7 @@ import {
 	Skeleton,
 	Tooltip,
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import Check from '@mui/icons-material/Check';
 import Event from '@mui/icons-material/Event';
@@ -19,8 +19,7 @@ import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
-import config from '@/config/config';
-import dayjs from 'dayjs';
+import { getFiscalYearStart } from '@/config/config';
 
 const steps: { value: number; label: string }[] = [
 	{ value: 1, label: 'Q1' },
@@ -85,14 +84,19 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 }
 
 export default function FQStepper() {
-	const [active, setActive] = useState<number>(getCurrentFiscalQuarter());
+	// Initialize with 1 to avoid hydration mismatch, set actual quarter on client
+	const [active, setActive] = useState<number>(1);
+
+	useEffect(() => {
+		setActive(getCurrentFiscalQuarter());
+	}, []);
 
 	// Fetch quarterly recovery stats
 	const { data: quarterlyStats, isLoading } = useRecoveryTrpc().getQuarterlyRecoveryStats({}, { enabled: true });
 
 	// Helper to get date range for tooltip
 	const getQuarterDateRange = (quarterIndex: number) => {
-		const start = config.FISCAL_YEAR_START_DATE.add(quarterIndex * 3, 'months');
+		const start = getFiscalYearStart().add(quarterIndex * 3, 'months');
 		const end = start.add(3, 'months').subtract(1, 'day');
 		return `${start.format('MMM D')} - ${end.format('MMM D, YYYY')}`;
 	};

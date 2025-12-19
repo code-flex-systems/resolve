@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { LossType, PartyType } from '@/config/enums';
 import { addressSchema } from './addressSchemas';
-import { parseNumber } from '@/lib/parsers/zodParsers';
 
 // ============================================================================
 // PARTY SCHEMAS
@@ -240,7 +239,7 @@ export const linkPartyToClaimInput = z.object({
 	parent_claim_party_id: z.number().int().positive().nullable().optional(),
 	// Facilitator-specific fields
 	loss_type: z.nativeEnum(LossType).nullable().optional(),
-	policy_limit: parseNumber().nullable().optional(),
+	policy_limit: z.number().min(0).nullable().optional(),
 });
 
 /**
@@ -260,7 +259,7 @@ export const updateClaimPartyInput = z.object({
 		parent_claim_party_id: z.number().int().positive().nullable().optional(),
 		// Facilitator-specific fields
 		loss_type: z.nativeEnum(LossType).nullable().optional(),
-		policy_limit: parseNumber().nullable().optional(),
+		policy_limit: z.number().min(0).nullable().optional(),
 	}),
 });
 

@@ -109,7 +109,7 @@ export async function getReferenceOption(
 ) {
 	const referenceList = await getReferenceList(ctx, entity);
 	if (!referenceList) {
-		return undefined;
+		return null;
 	}
 
 	const { includeDeactivated = false } = options ?? {};
@@ -125,7 +125,8 @@ export async function getReferenceOption(
 		query = query.where('reference_option.deleted_at', 'is', null);
 	}
 
-	return await query.executeTakeFirst();
+	const result = await query.executeTakeFirst();
+	return result ?? null;
 }
 
 /**

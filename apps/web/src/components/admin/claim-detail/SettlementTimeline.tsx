@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import Highlight from '@/components/common/Highlight';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, BORDER_COLOR, containerStyles } from '@/styles/theme';
 import { SettlementStatus } from '@/config/enums';
 import dayjs from 'dayjs';
 
@@ -113,7 +113,14 @@ export default function SettlementTimeline({
 								}}
 							/>
 							{!isLastItem && (
-								<Box sx={{ width: 2, flex: 1, bgcolor: 'divider', minHeight: 16 }} />
+								<Box
+									sx={{
+										flex: 1,
+										minHeight: 16,
+										width: 0,
+										borderLeft: `1px dashed ${BORDER_COLOR}`,
+									}}
+								/>
 							)}
 						</Box>
 
@@ -171,7 +178,7 @@ export default function SettlementTimeline({
 											</Typography>
 										</Box>
 										{isSettlement && (
-											<Chip label={settlement.status} size="small" color={getStatusColor(settlement.status)} />
+											<Chip label={capitalize(settlement.status)} size="small" color={getStatusColor(settlement.status)} />
 										)}
 									</Box>
 								</Box>
