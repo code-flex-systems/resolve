@@ -1135,10 +1135,10 @@ export const dataGridStyles = {
 		alignItems: 'center',
 		borderBottom: `1px solid ${BORDER_LIGHT}`,
 	},
-	'& .MuiDataGrid-cell:focus': {
+	'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible': {
 		outline: 'none',
 	},
-	'& .MuiDataGrid-cell:focus-within': {
+	'& .MuiDataGrid-cell.MuiDataGrid-cell--editing:focus-within': {
 		outline: 'none',
 	},
 	'& .MuiDataGrid-columnHeader': {
