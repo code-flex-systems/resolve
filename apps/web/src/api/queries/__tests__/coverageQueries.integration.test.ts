@@ -57,7 +57,7 @@ describe('coverageQueries integration tests', () => {
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'dwelling',
+						loss_type: 'dwelling',
 						coverage_amount: '100000',
 						amount_reserved: '5000',
 						created_by: user.id,
@@ -65,7 +65,7 @@ describe('coverageQueries integration tests', () => {
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'personal_property',
+						loss_type: 'personal_property',
 						coverage_amount: '50000',
 						amount_reserved: '2500',
 						created_by: user.id,
@@ -76,8 +76,8 @@ describe('coverageQueries integration tests', () => {
 			const coverages = await getCoverages(ctx, claim.id);
 
 			expect(coverages).toHaveLength(2);
-			expect(coverages[0].coverage_type).toBe('dwelling');
-			expect(coverages[1].coverage_type).toBe('personal_property');
+			expect(coverages[0].loss_type).toBe('dwelling');
+			expect(coverages[1].loss_type).toBe('personal_property');
 		});
 
 		it('should return empty array for claim with no coverages', async () => {
@@ -104,7 +104,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					coverage_amount: '100000',
 					created_by: userB.id,
 				})
@@ -127,7 +127,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claim.id,
 					client_id: client.id,
-					coverage_type: 'collision',
+					loss_type: 'collision',
 					created_by: user.id,
 				})
 				.returningAll()
@@ -138,7 +138,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claim.id,
 					client_id: client.id,
-					coverage_type: 'comprehensive',
+					loss_type: 'comprehensive',
 					created_by: user.id,
 				})
 				.returningAll()
@@ -160,13 +160,13 @@ describe('coverageQueries integration tests', () => {
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 100000,
 				amount_reserved: 5000,
 			});
 
 			expect(result.coverage.claim_id).toBe(claim.id);
-			expect(result.coverage.coverage_type).toBe('dwelling');
+			expect(result.coverage.loss_type).toBe('dwelling');
 			expect(result.coverage.coverage_amount).toBe('100000.00');
 			expect(result.coverage.amount_reserved).toBe('5000.00');
 			expect(result.coverage.client_id).toBe(client.id);
@@ -186,7 +186,7 @@ describe('coverageQueries integration tests', () => {
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'liability',
+				loss_type: 'liability',
 			});
 
 			expect(result.coverage.coverage_amount).toBeNull();
@@ -202,13 +202,13 @@ describe('coverageQueries integration tests', () => {
 
 			await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				amount_reserved: 5000,
 			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				amount_reserved: 2500,
 			});
 
@@ -225,18 +225,18 @@ describe('coverageQueries integration tests', () => {
 
 			const { coverage } = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 100000,
 				amount_reserved: 5000,
 			});
 
 			const result = await updateCoverage(ctx, coverage.id, {
-				coverage_type: 'loss_of_use',
+				loss_type: 'loss_of_use',
 				coverage_amount: 150000,
 				amount_reserved: 7500,
 			});
 
-			expect(result.coverage.coverage_type).toBe('loss_of_use');
+			expect(result.coverage.loss_type).toBe('loss_of_use');
 			expect(result.coverage.coverage_amount).toBe('150000.00');
 			expect(result.coverage.amount_reserved).toBe('7500.00');
 			expect(result.coverage.updated_by).toBe(user.id);
@@ -257,7 +257,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					coverage_amount: '100000',
 					created_by: userB.id,
 				})
@@ -267,7 +267,7 @@ describe('coverageQueries integration tests', () => {
 			// Client A should not be able to update client B's coverage
 			await expect(
 				updateCoverage(ctxA, covB.id, {
-					coverage_type: 'other',
+					loss_type: 'other',
 					coverage_amount: 999999,
 					amount_reserved: 999999,
 				})
@@ -279,7 +279,7 @@ describe('coverageQueries integration tests', () => {
 				.selectAll()
 				.where('id', '=', covB.id)
 				.executeTakeFirstOrThrow();
-			expect(unchanged.coverage_type).toBe('dwelling');
+			expect(unchanged.loss_type).toBe('dwelling');
 		});
 	});
 
@@ -292,13 +292,13 @@ describe('coverageQueries integration tests', () => {
 
 			const { coverage: cov1 } = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				amount_reserved: 5000,
 			});
 
 			await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				amount_reserved: 2500,
 			});
 
@@ -310,7 +310,7 @@ describe('coverageQueries integration tests', () => {
 			// Verify coverage was deleted
 			const remaining = await getCoverages(ctx, claim.id);
 			expect(remaining).toHaveLength(1);
-			expect(remaining[0].coverage_type).toBe('personal_property');
+			expect(remaining[0].loss_type).toBe('personal_property');
 		});
 
 		it('should throw error when deleting non-existent coverage', async () => {
@@ -335,7 +335,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					coverage_amount: '100000',
 					created_by: userB.id,
 				})
@@ -368,14 +368,14 @@ describe('coverageQueries integration tests', () => {
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'dwelling',
+						loss_type: 'dwelling',
 						amount_reserved: '5000.50',
 						created_by: user.id,
 					},
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'personal_property',
+						loss_type: 'personal_property',
 						amount_reserved: '2500.25',
 						created_by: user.id,
 					},
@@ -407,7 +407,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claim.id,
 					client_id: client.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					amount_reserved: null,
 					created_by: user.id,
 				})
@@ -433,7 +433,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimA.id,
 					client_id: clientA.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					amount_reserved: '5000',
 					created_by: userA.id,
 				})
@@ -445,7 +445,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					amount_reserved: '10000',
 					created_by: userB.id,
 				})
@@ -501,7 +501,7 @@ describe('coverageQueries integration tests', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			// Create soft-deleted coverage
@@ -509,7 +509,7 @@ describe('coverageQueries integration tests', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				deleted_at: new Date(),
 				deleted_by: user.id,
 			});
@@ -517,7 +517,7 @@ describe('coverageQueries integration tests', () => {
 			const coverages = await getCoverages(ctx, claim.id);
 
 			expect(coverages).toHaveLength(1);
-			expect(coverages[0].coverage_type).toBe('dwelling');
+			expect(coverages[0].loss_type).toBe('dwelling');
 		});
 	});
 
@@ -540,7 +540,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: '100000',
 			});
 			await createTestCoverage(db, {
@@ -548,15 +548,15 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				coverage_amount: '50000',
 			});
 
 			const coverages = await getCoveragesByClaimParty(ctx, claimParty.id);
 
 			expect(coverages).toHaveLength(2);
-			expect(coverages.some((c) => c.coverage_type === 'dwelling')).toBe(true);
-			expect(coverages.some((c) => c.coverage_type === 'personal_property')).toBe(true);
+			expect(coverages.some((c) => c.loss_type === 'dwelling')).toBe(true);
+			expect(coverages.some((c) => c.loss_type === 'personal_property')).toBe(true);
 		});
 
 		it('should not return coverages from other claim parties', async () => {
@@ -583,7 +583,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty1.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			// Create coverage for party 2
@@ -592,13 +592,13 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty2.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 			});
 
 			const coverages = await getCoveragesByClaimParty(ctx, claimParty1.id);
 
 			expect(coverages).toHaveLength(1);
-			expect(coverages[0].coverage_type).toBe('dwelling');
+			expect(coverages[0].loss_type).toBe('dwelling');
 		});
 
 		it('should exclude soft-deleted coverages', async () => {
@@ -619,7 +619,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			// Create soft-deleted coverage
@@ -628,7 +628,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				deleted_at: new Date(),
 				deleted_by: user.id,
 			});
@@ -636,7 +636,7 @@ describe('coverageQueries integration tests', () => {
 			const coverages = await getCoveragesByClaimParty(ctx, claimParty.id);
 
 			expect(coverages).toHaveLength(1);
-			expect(coverages[0].coverage_type).toBe('dwelling');
+			expect(coverages[0].loss_type).toBe('dwelling');
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -683,7 +683,7 @@ describe('coverageQueries integration tests', () => {
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 100000,
 			});
 

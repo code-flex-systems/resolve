@@ -12,8 +12,8 @@ export type GetCoveragesByClaimPartyInput = z.infer<typeof getCoveragesByClaimPa
 
 export const createCoverageInput = z.object({
 	claim_id: z.number().int(),
-	claim_party_id: z.number().int(),
-	coverage_type: z.string(),
+	claim_party_id: z.number().int().optional(),
+	loss_type: z.string(),
 	coverage_amount: z.number().nullable().optional(),
 	amount_reserved: z.number().nullable().optional(),
 });
@@ -21,7 +21,7 @@ export type CreateCoverageInput = z.infer<typeof createCoverageInput>;
 
 export const updateCoverageInput = z.object({
 	id: z.number().int(),
-	coverage_type: z.string().optional(),
+	loss_type: z.string().optional(),
 	coverage_amount: z.number().nullable().optional(),
 	amount_reserved: z.number().nullable().optional(),
 });

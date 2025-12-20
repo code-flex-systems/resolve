@@ -146,7 +146,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	};
 
 	const handlePartySubmit = async (data: {
-		role: string;
+		role: string[];
 		party_id: number;
 		representative_id?: number | null;
 		liability_percentage?: number | null;
@@ -185,7 +185,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	};
 
 	const handleCoverageSubmit = async (data: {
-		coverage_type: string;
+		loss_type: string;
 		coverage_amount: string | null;
 		amount_reserved: string | null;
 	}) => {
@@ -196,7 +196,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				// Update existing coverage
 				await updateCoverageMutation.mutateAsync({
 					id: editingCoverage.id,
-					coverage_type: data.coverage_type,
+					loss_type: data.loss_type,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
 					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
@@ -205,7 +205,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				await createCoverageMutation.mutateAsync({
 					claim_id: claimId,
 					claim_party_id: selectedClaimPartyId,
-					coverage_type: data.coverage_type,
+					loss_type: data.loss_type,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
 					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
@@ -302,7 +302,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 								<Box display="flex" justifyContent="space-between" alignItems="flex-start">
 									<Box flex={1}>
 										<Typography fontSize={14} fontWeight={600} marginBottom={1}>
-											{formatCoverageType(coverage.coverage_type)}
+											{formatCoverageType(coverage.loss_type)}
 										</Typography>
 										<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
 											{coverage.coverage_amount && (
@@ -337,7 +337,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 													onClick: () =>
 														setArchivingCoverage({
 															id: coverage.id,
-															coverageType: coverage.coverage_type,
+															coverageType: coverage.loss_type,
 														}),
 												}}
 												tooltipProps={{ title: 'Archive coverage' }}

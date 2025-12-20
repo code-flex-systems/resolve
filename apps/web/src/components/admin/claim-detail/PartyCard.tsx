@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Button, Chip, Collapse, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, Collapse, IconButton, Stack, Typography } from '@mui/material';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
@@ -9,9 +9,9 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import Highlight from '@/components/common/Highlight';
 import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
-import { ClaimPartyRoleChip, EntityCategoryChip, FacilitatorCategoryChip, LossTypeValue } from '@/components/common/ReferenceDataSelect';
+import { capitalize } from '@/lib/utils/utils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { formatCityState } from '@/schemas/addressSchemas';
+import { formatAddressInline } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
@@ -144,12 +144,33 @@ export default function PartyCard({
 								>
 									{claimParty.party?.name || 'Unknown Party'}
 								</Typography>
-								<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />
-								{claimParty.party?.party_type === 'entity' && claimParty.party?.party_category && (
-									<EntityCategoryChip value={claimParty.party.party_category} showEmoji={false} />
+								{/* Display multiple roles as chips */}
+								{Array.isArray(claimParty.role) &&
+									claimParty.role.map((r: string) => (
+										<Chip
+											key={r}
+											label={capitalize(r.replace(/_/g, ' '))}
+											size="small"
+											color="primary"
+											sx={{ height: 20, fontSize: 11 }}
+										/>
+									))}
+								{/* For facilitators: show loss type and policy limit chips */}
+								{isNested && claimParty.loss_type && (
+									<Chip
+										label={capitalize(claimParty.loss_type.replace(/_/g, ' '))}
+										size="small"
+										color="secondary"
+										sx={{ height: 20, fontSize: 11 }}
+									/>
 								)}
-								{claimParty.party?.party_type === 'facilitator' && claimParty.party?.party_category && (
-									<FacilitatorCategoryChip value={claimParty.party.party_category} showEmoji={false} />
+								{isNested && claimParty.policy_limit != null && (
+									<Chip
+										label={`Policy Limit: ${formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}`}
+										size="small"
+										variant="outlined"
+										sx={{ height: 20, fontSize: 11 }}
+									/>
 								)}
 							</Box>
 
@@ -190,9 +211,15 @@ export default function PartyCard({
 												{' '}
 												<Typography component="span" fontSize={12} color="text.secondary">
 													(
-													{claimParty.representative.email && <>✉️ {claimParty.representative.email}</>}
-													{claimParty.representative.email && claimParty.representative.phone && ' • '}
-													{claimParty.representative.phone && <>📞 {claimParty.representative.phone}</>}
+													{claimParty.representative.email && (
+														<>✉️ {claimParty.representative.email}</>
+													)}
+													{claimParty.representative.email &&
+														claimParty.representative.phone &&
+														' • '}
+													{claimParty.representative.phone && (
+														<>📞 {claimParty.representative.phone}</>
+													)}
 													)
 												</Typography>
 											</>
@@ -201,28 +228,17 @@ export default function PartyCard({
 								</Box>
 							)}
 
-							{/* Office */}
-							{claimParty.office && (
-								<Typography fontSize={13} marginBottom={0.5}>
-									Office: <Highlight>{claimParty.office.office_name}</Highlight>
-									{(claimParty.office.city || claimParty.office.state) &&
-										` - ${formatCityState(claimParty.office.city, claimParty.office.state)}`}
-								</Typography>
-							)}
-
-							{/* Facilitator-specific fields: Loss Type and Policy Limit */}
-							{isNested && (claimParty.loss_type || claimParty.policy_limit != null) && (
-								<Box display="flex" gap={2} marginTop={0.5} marginBottom={0.5}>
-									{claimParty.loss_type && <LossTypeValue value={claimParty.loss_type} />}
-									{claimParty.policy_limit != null && (
-										<Typography fontSize={13} color="text.secondary">
-											Policy Limit:{' '}
-											<Typography component="span" fontWeight={600}>
-												{formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}
-											</Typography>
+							{/* Address */}
+							{claimParty.address && (
+								<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
+									📍{' '}
+									{claimParty.address.name && (
+										<Typography component="span" fontWeight={500}>
+											{claimParty.address.name}:{' '}
 										</Typography>
 									)}
-								</Box>
+									{formatAddressInline(claimParty.address)}
+								</Typography>
 							)}
 
 							{/* Collapsible secondary content (coverages, facilitators) */}
@@ -245,7 +261,12 @@ export default function PartyCard({
 									{/* Facilitators Section */}
 									{onAddFacilitator && (
 										<Box marginTop={2}>
-											<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={1}>
+											<Box
+												display="flex"
+												justifyContent="space-between"
+												alignItems="center"
+												marginBottom={1}
+											>
 												<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
 													Facilitators ({facilitators.length})
 												</Typography>
@@ -260,7 +281,12 @@ export default function PartyCard({
 											</Box>
 
 											{facilitators.length === 0 && (
-												<Typography fontSize={12} color="text.secondary" fontStyle="italic" marginY={1}>
+												<Typography
+													fontSize={12}
+													color="text.secondary"
+													fontStyle="italic"
+													marginY={1}
+												>
 													No facilitators linked yet
 												</Typography>
 											)}

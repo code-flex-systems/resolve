@@ -135,8 +135,8 @@ const adminNavCategories: AdminNavCategory[] = [
 				icon: <BusinessIcon fontSize="small" />,
 			},
 			{
-				label: 'Offices',
-				route: '/admin/party-management/offices',
+				label: 'Addresses',
+				route: '/admin/party-management/addresses',
 				icon: <LocationOnIcon fontSize="small" />,
 			},
 			{

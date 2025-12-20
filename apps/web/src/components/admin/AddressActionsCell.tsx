@@ -8,24 +8,24 @@ import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
-import OfficeDialog from './OfficeDialog';
+import AddressDialog from './AddressDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import theme from '@/styles/theme';
 
-interface OfficeActionsCellProps extends GridRenderCellParams {
+interface AddressActionsCellProps extends GridRenderCellParams {
 	isAdminContext?: boolean;
 }
 
-export default function OfficeActionsCell(params: OfficeActionsCellProps) {
+export default function AddressActionsCell(params: AddressActionsCellProps) {
 	const { isAdminContext = true } = params;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
-	const { mutateAsync: archiveOffice, isPending: archiving } = partyTrpc.archiveOffice;
-	const { mutateAsync: restoreOffice, isPending: restoring } = partyTrpc.restoreOffice;
+	const { mutateAsync: archiveAddress, isPending: archiving } = partyTrpc.archiveAddress;
+	const { mutateAsync: restoreAddress, isPending: restoring } = partyTrpc.restoreAddress;
 
 	const isArchived = !!row.deleted_at;
 	const isPartyArchived = !!row.party_deleted_at;
@@ -34,15 +34,15 @@ export default function OfficeActionsCell(params: OfficeActionsCellProps) {
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreOffice({ id: row.id as unknown as number });
-				showAlert('Office restored successfully', 'success');
+				await restoreAddress({ id: row.id as unknown as number });
+				showAlert('Address restored successfully', 'success');
 			} else {
-				await archiveOffice({ id: row.id as unknown as number });
-				showAlert('Office archived successfully', 'success');
+				await archiveAddress({ id: row.id as unknown as number });
+				showAlert('Address archived successfully', 'success');
 			}
 			setShowActionConfirm(false);
 		} catch (error: any) {
-			const message = error?.message || `Failed to ${isArchived ? 'restore' : 'archive'} office`;
+			const message = error?.message || `Failed to ${isArchived ? 'restore' : 'archive'} address`;
 			showAlert(message, 'error');
 			setShowActionConfirm(false);
 		}
@@ -50,11 +50,11 @@ export default function OfficeActionsCell(params: OfficeActionsCellProps) {
 
 	return (
 		<>
-			{editing && <OfficeDialog office={row} onClose={() => setEditing(false)} />}
+			{editing && <AddressDialog address={row} onClose={() => setEditing(false)} />}
 
 			{showActionConfirm && (
 				<BasicDialog
-					title={`${isArchived ? 'Restore' : 'Archive'} Office`}
+					title={`${isArchived ? 'Restore' : 'Archive'} Address`}
 					primaryAction={{
 						label: 'Confirm',
 						onClick: handleAction,
@@ -70,11 +70,11 @@ export default function OfficeActionsCell(params: OfficeActionsCellProps) {
 					width={500}
 				>
 					<Typography fontStyle="italic" fontWeight="bold">
-						Are you sure you want to {isArchived ? 'restore' : 'archive'} this office?
+						Are you sure you want to {isArchived ? 'restore' : 'archive'} this address?
 					</Typography>
-					{row.office_name && (
+					{row.name && (
 						<Typography paddingTop="10px" fontStyle="italic">
-							Office: {row.office_name}
+							Address: {row.name}
 						</Typography>
 					)}
 					{row.party_name && (
@@ -94,9 +94,9 @@ export default function OfficeActionsCell(params: OfficeActionsCellProps) {
 						}}
 						tooltipProps={{
 							title: isArchived
-								? 'Cannot edit archived office'
+								? 'Cannot edit archived address'
 								: isPartyArchived
-									? 'Cannot edit office - parent party is archived'
+									? 'Cannot edit address - parent party is archived'
 									: 'Make changes',
 						}}
 						icon={<Edit sx={{ fontSize: 15 }} />}
@@ -110,10 +110,10 @@ export default function OfficeActionsCell(params: OfficeActionsCellProps) {
 						}}
 						tooltipProps={{
 							title: isPartyArchived
-								? 'Cannot modify office - parent party is archived'
+								? 'Cannot modify address - parent party is archived'
 								: isArchived
-									? 'Restore office'
-									: 'Archive office',
+									? 'Restore address'
+									: 'Archive address',
 						}}
 						icon={
 							isArchived ? (

@@ -52,7 +52,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
 		.values({
 			claim_id: params.claim_id,
 			claim_party_id: params.claim_party_id,
-			coverage_type: params.coverage_type,
+			loss_type: params.loss_type,
 			coverage_amount: params.coverage_amount ?? null,
 			amount_reserved: params.amount_reserved ?? null,
 			client_id: ctx.session.user.client_id!,
@@ -80,7 +80,7 @@ export async function updateCoverage(ctx: ProtectedContext, id: number, params: 
 	const coverage = await ctx.db
 		.updateTable('claim_coverage')
 		.set({
-			coverage_type: params.coverage_type,
+			loss_type: params.loss_type,
 			coverage_amount: params.coverage_amount,
 			amount_reserved: params.amount_reserved,
 			updated_by: ctx.session.user.id,

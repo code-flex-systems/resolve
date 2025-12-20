@@ -73,8 +73,8 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 					</Typography>
 					<Typography paddingTop="10px" fontStyle="italic">
 						{isArchived
-							? 'The party and all associated offices and representatives will be restored.'
-							: 'The party and all associated offices and representatives will be archived.'}
+							? 'The party and all associated addresses and representatives will be restored.'
+							: 'The party and all associated addresses and representatives will be archived.'}
 					</Typography>
 				</BasicDialog>
 			)}

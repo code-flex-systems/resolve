@@ -7,15 +7,16 @@ import { z } from 'zod';
 /**
  * List of known reference entity types
  * Used for validation and type safety
+ *
+ * Note: Simple enums (address_status, phone_type, etc.) should NOT be here.
+ * Those use database CHECK constraints and TypeScript enums instead.
+ * This table is reserved for business-specific categories that clients
+ * may need to customize.
  */
 export const KNOWN_REFERENCE_ENTITIES = [
 	'line_of_business',
 	'loss_type',
-	'coverage_type',
 	'claim_substatus',
-	'facilitator_category',
-	'entity_category',
-	'claim_party_role',
 	'claimant_party_role',
 	'adverse_party_role',
 ] as const;
@@ -159,27 +160,11 @@ export const REFERENCE_ENTITY_DISPLAY: Record<
 	},
 	loss_type: {
 		label: 'Loss Type',
-		description: 'Type of loss or damage',
-	},
-	coverage_type: {
-		label: 'Coverage Type',
-		description: 'Type of insurance coverage',
+		description: 'Type of loss or damage (also used as coverage type)',
 	},
 	claim_substatus: {
 		label: 'Claim Substatus',
 		description: 'Detailed claim workflow status',
-	},
-	facilitator_category: {
-		label: 'Facilitator Category',
-		description: 'Category of facilitator parties',
-	},
-	entity_category: {
-		label: 'Entity Category',
-		description: 'Category of entity parties',
-	},
-	claim_party_role: {
-		label: 'Claim Party Role',
-		description: 'Role of a party on a specific claim',
 	},
 	claimant_party_role: {
 		label: 'Claimant Party Role',

@@ -1,45 +1,62 @@
 'use client';
 
-import { MenuItem, Stack, TextField, Typography, Box } from '@mui/material';
+import { MenuItem, Stack, TextField, Typography, Box, FormControlLabel, Switch } from '@mui/material';
 import Send from '@mui/icons-material/Send';
 import Business from '@mui/icons-material/Business';
+import Person from '@mui/icons-material/Person';
 import SupportAgent from '@mui/icons-material/SupportAgent';
 import BasicDialog from '../common/BasicDialog';
 import AddressFields from '../common/AddressFields';
 import { Controller, useForm } from 'react-hook-form';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
-import { trpc } from '@/lib/trpc';
 import { PartyType } from '@/config/enums';
 import type { Party } from '@/api/database/types';
 import type { CountryCode } from '@/config/addressConstants';
 import { useEffect, useState, useMemo } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { skipToken } from '@tanstack/react-query';
+import { computePartyDisplayName } from '@/schemas/partySchemas';
 
 interface PartyFormInputs {
 	party_type: PartyType;
-	party_category: string;
+	is_business: boolean;
+	// Business name (used when is_business=true)
 	name: string;
+	// Individual name fields (used when is_business=false)
+	first_name: string;
+	middle_name: string;
+	last_name: string;
+	suffix: string;
+	// Other party fields
 	organization?: string;
-	email?: string;
-	phone?: string;
-	street_address?: string | null;
-	city?: string | null;
-	state?: string | null;
-	postal_code?: string | null;
-	country?: string | null;
 	notes?: string;
+	// Inline contact data (creates records in separate tables)
+	contact_email?: string;
+	contact_phone?: string;
+	contact_street_address?: string | null;
+	contact_city?: string | null;
+	contact_state?: string | null;
+	contact_postal_code?: string | null;
+	contact_country?: string | null;
 }
 
 interface PartyDialogProps {
-	party?: Party;
+	party?: Party & {
+		// Primary contact info from LEFT JOINs
+		primary_email?: string | null;
+		primary_phone?: string | null;
+		primary_street_address?: string | null;
+		primary_city?: string | null;
+		primary_state?: string | null;
+		primary_postal_code?: string | null;
+		primary_country?: string | null;
+	};
 	lockedType?: 'entity' | 'facilitator';
-	lockedRole?: string;
 	onClose?: (createdParty?: Party) => void;
 }
 
-export default function PartyDialog({ party, lockedType, lockedRole, onClose }: PartyDialogProps) {
+export default function PartyDialog({ party, lockedType, onClose }: PartyDialogProps) {
 	const toggleNewPartyDialog = useAdminStore((state) => state.toggleNewPartyDialog);
 	const partyTrpc = usePartyTrpc();
 	const { mutateAsync: createParty, isPending: creating } = partyTrpc.create;
@@ -49,29 +66,9 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 
 	const isEditMode = !!party;
 	const isPending = creating || updating;
-	const hasLockedValues = !!lockedType && !!lockedRole;
-
-	// Fetch reference data for party categories
-	const { data: facilitatorCategories = [] } = trpc.referenceData.getReferenceOptions.useQuery(
-		{ entity: 'facilitator_category' },
-		{ staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
-	);
-	const { data: entityCategories = [] } = trpc.referenceData.getReferenceOptions.useQuery(
-		{ entity: 'entity_category' },
-		{ staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
-	);
 
 	// Search for duplicates (only when searchTerm is at least 2 chars)
 	const { data: searchResults } = partyTrpc.search(searchTerm.length >= 2 ? { searchTerm } : skipToken);
-
-	// Get default category based on type
-	const getDefaultCategory = (type: PartyType) => {
-		if (lockedRole) return lockedRole;
-		if (type === PartyType.FACILITATOR) {
-			return facilitatorCategories[0]?.value || '';
-		}
-		return entityCategories[0]?.value || '';
-	};
 
 	const {
 		control,
@@ -83,53 +80,64 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 		defaultValues: party
 			? {
 					party_type: party.party_type as PartyType,
-					party_category: party.party_category,
-					name: party.name,
+					is_business: Boolean(party.is_business ?? true),
+					name: party.name ?? '',
+					first_name: party.first_name ?? '',
+					middle_name: party.middle_name ?? '',
+					last_name: party.last_name ?? '',
+					suffix: party.suffix ?? '',
 					organization: party.organization ?? '',
-					email: party.email ?? '',
-					phone: party.phone ?? '',
-					street_address: party.street_address ?? '',
-					city: party.city ?? '',
-					state: party.state ?? '',
-					postal_code: party.postal_code ?? '',
-					country: party.country ?? '',
 					notes: party.notes ?? '',
+					// Contact info from LEFT JOINs
+					contact_email: party.primary_email ?? '',
+					contact_phone: party.primary_phone ?? '',
+					contact_street_address: party.primary_street_address ?? '',
+					contact_city: party.primary_city ?? '',
+					contact_state: party.primary_state ?? '',
+					contact_postal_code: party.primary_postal_code ?? '',
+					contact_country: party.primary_country ?? '',
 				}
 			: {
 					party_type: lockedType === 'facilitator' ? PartyType.FACILITATOR : PartyType.ENTITY,
-					party_category: lockedRole || '',
+					is_business: true,
 					name: '',
+					first_name: '',
+					middle_name: '',
+					last_name: '',
+					suffix: '',
 					organization: '',
-					email: '',
-					phone: '',
-					street_address: '',
-					city: '',
-					state: '',
-					postal_code: '',
-					country: '',
 					notes: '',
+					contact_email: '',
+					contact_phone: '',
+					contact_street_address: '',
+					contact_city: '',
+					contact_state: '',
+					contact_postal_code: '',
+					contact_country: '',
 				},
 		mode: 'onChange',
 	});
 
 	const partyType = watch('party_type');
-	const partyCategory = watch('party_category');
+	const isBusiness = watch('is_business');
 	const name = watch('name');
+	const firstName = watch('first_name');
+	const lastName = watch('last_name');
 
-	// Set default category when reference data loads (only for new parties without locked role)
-	useEffect(() => {
-		if (!isEditMode && !lockedRole && !partyCategory) {
-			const defaultCategory = getDefaultCategory(partyType);
-			if (defaultCategory) {
-				setValue('party_category', defaultCategory);
-			}
+	// Compute display name for duplicate checking
+	const displayName = useMemo(() => {
+		if (isBusiness) {
+			return name;
 		}
-	}, [isEditMode, lockedRole, partyCategory, partyType, facilitatorCategories, entityCategories, setValue]);
+		return computePartyDisplayName({
+			is_business: false,
+			first_name: firstName,
+			last_name: lastName,
+		});
+	}, [isBusiness, name, firstName, lastName]);
 
-	// Get available categories based on party type
-	const availableCategories = useMemo(() => {
-		return partyType === PartyType.FACILITATOR ? facilitatorCategories : entityCategories;
-	}, [partyType, facilitatorCategories, entityCategories]);
+	// Check if name requirement is met
+	const hasRequiredName = isBusiness ? name && name.length >= 2 : firstName && lastName;
 
 	// Icon mapping for party types
 	const getPartyTypeIcon = (type: PartyType) => {
@@ -149,15 +157,15 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 		setSearchTerm(value);
 	}, 500);
 
-	// Update search term when name changes
+	// Update search term when display name changes
 	useEffect(() => {
-		if (name && name.length >= 2) {
-			debouncedSetSearchTerm(name);
+		if (displayName && displayName.length >= 2) {
+			debouncedSetSearchTerm(displayName);
 		} else {
 			setSearchTerm('');
 			setDuplicateMatches([]);
 		}
-	}, [name]); // Only depend on name, not the debounced function
+	}, [displayName]);
 
 	// Filter search results to find exact matches
 	useEffect(() => {
@@ -177,7 +185,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 		} else {
 			setDuplicateMatches([]);
 		}
-	}, [searchResults, searchTerm, isEditMode, currentPartyId]); // Use memoized party ID
+	}, [searchResults, searchTerm, isEditMode, currentPartyId]);
 
 	const handleClose = () => {
 		if (onClose) {
@@ -191,42 +199,79 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 		try {
 			let createdParty: Party | undefined;
 
+			// Build contact object if any contact data is provided
+			const hasContactData =
+				data.contact_email ||
+				data.contact_phone ||
+				data.contact_street_address ||
+				data.contact_city ||
+				data.contact_state ||
+				data.contact_postal_code;
+
+			const contact = hasContactData
+				? {
+						email: data.contact_email || undefined,
+						phone: data.contact_phone || undefined,
+						address:
+							data.contact_street_address ||
+							data.contact_city ||
+							data.contact_state ||
+							data.contact_postal_code
+								? {
+										street_address: data.contact_street_address || null,
+										city: data.contact_city || null,
+										state: data.contact_state || null,
+										postal_code: data.contact_postal_code || null,
+										country: (data.contact_country as CountryCode) || null,
+									}
+								: undefined,
+					}
+				: undefined;
+
 			if (isEditMode) {
 				// Build update object using only dirty fields
 				const updates: any = {};
 
 				if (dirtyFields.party_type) updates.party_type = data.party_type;
-				if (dirtyFields.party_category) updates.party_category = data.party_category;
+				if (dirtyFields.is_business) updates.is_business = data.is_business;
 				if (dirtyFields.name) updates.name = data.name;
+				if (dirtyFields.first_name) updates.first_name = data.first_name;
+				if (dirtyFields.middle_name) updates.middle_name = data.middle_name;
+				if (dirtyFields.last_name) updates.last_name = data.last_name;
+				if (dirtyFields.suffix) updates.suffix = data.suffix;
 				if (dirtyFields.organization) updates.organization = data.organization || undefined;
-				if (dirtyFields.email) updates.email = data.email || undefined;
-				if (dirtyFields.phone) updates.phone = data.phone || undefined;
-				if (dirtyFields.street_address) updates.street_address = data.street_address || null;
-				if (dirtyFields.city) updates.city = data.city || null;
-				if (dirtyFields.state) updates.state = data.state || null;
-				if (dirtyFields.postal_code) updates.postal_code = data.postal_code || null;
-				if (dirtyFields.country) updates.country = data.country || null;
 				if (dirtyFields.notes) updates.notes = data.notes || undefined;
+
+				// Include contact if any contact fields changed
+				if (
+					dirtyFields.contact_email ||
+					dirtyFields.contact_phone ||
+					dirtyFields.contact_street_address ||
+					dirtyFields.contact_city ||
+					dirtyFields.contact_state ||
+					dirtyFields.contact_postal_code ||
+					dirtyFields.contact_country
+				) {
+					updates.contact = contact;
+				}
 
 				await updateParty({
 					id: party.id as unknown as number,
 					params: updates,
 				});
 			} else {
-				// Create new party
+				// Create new party with contact data
 				createdParty = (await createParty({
 					party_type: data.party_type,
-					party_category: data.party_category,
-					name: data.name,
+					is_business: data.is_business,
+					name: data.is_business ? data.name : undefined,
+					first_name: data.is_business ? undefined : data.first_name,
+					middle_name: data.is_business ? undefined : data.middle_name || undefined,
+					last_name: data.is_business ? undefined : data.last_name,
+					suffix: data.is_business ? undefined : data.suffix || undefined,
 					organization: data.organization || undefined,
-					email: data.email || undefined,
-					phone: data.phone || undefined,
-					street_address: data.street_address || null,
-					city: data.city || null,
-					state: data.state || null,
-					postal_code: data.postal_code || null,
-					country: (data.country as CountryCode) || null,
 					notes: data.notes || undefined,
+					contact,
 				})) as any;
 			}
 
@@ -249,7 +294,7 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 				onClick: onSubmit,
 				icon: isEditMode ? undefined : <Send />,
 				disabled:
-					!name ||
+					!hasRequiredName ||
 					isSubmitting ||
 					isPending ||
 					!isValid ||
@@ -267,7 +312,6 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Type"
-
 							select
 							error={!!errors.party_type}
 							{...field}
@@ -290,55 +334,140 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					)}
 				/>
 
+				{/* Business/Individual Toggle */}
 				<Controller
-					name="party_category"
+					name="is_business"
 					control={control}
-					rules={{ required: true }}
 					render={({ field }) => (
-						<TextField
-							label="Role"
-							
-							select
-							error={!!errors.party_category}
-							{...field}
-							disabled={isSubmitting || hasLockedValues}
-							sx={styles.textFieldOverrides}
+						<Box
+							sx={{
+								width: 400,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								px: 1,
+							}}
 						>
-							{availableCategories.map((category) => (
-								<MenuItem key={category.value} value={category.value}>
-									<Box display="flex" alignItems="center" gap={1}>
-										{category.icon_emoji && (
-											<Typography fontSize={14}>{category.icon_emoji}</Typography>
-										)}
-										<Typography fontSize={13}>{category.display_label}</Typography>
-									</Box>
-								</MenuItem>
-							))}
-						</TextField>
+							<Box display="flex" alignItems="center" gap={1}>
+								{field.value ? (
+									<Business sx={{ fontSize: 18, color: 'text.secondary' }} />
+								) : (
+									<Person sx={{ fontSize: 18, color: 'text.secondary' }} />
+								)}
+								<Typography variant="body2" color="text.secondary">
+									{field.value ? 'Business' : 'Individual'}
+								</Typography>
+							</Box>
+							<FormControlLabel
+								control={
+									<Switch
+										checked={field.value}
+										onChange={(e) => field.onChange(e.target.checked)}
+										disabled={isSubmitting}
+									/>
+								}
+								label=""
+							/>
+						</Box>
 					)}
 				/>
 
-				<Controller
-					name="name"
-					control={control}
-					rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
-					render={({ field }) => (
-						<TextField
-							label="Name"
-							
-							placeholder="Party name"
-							error={!!errors.name || duplicateMatches.length > 0}
-							helperText={
-								duplicateMatches.length > 0
-									? `A party named "${duplicateMatches[0].name}" already exists`
-									: errors.name?.message
-							}
-							{...field}
-							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
-						/>
-					)}
-				/>
+				{/* Conditional Name Fields */}
+				{isBusiness ? (
+					<Controller
+						name="name"
+						control={control}
+						rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
+						render={({ field }) => (
+							<TextField
+								label="Business Name"
+								placeholder="Business or organization name"
+								error={!!errors.name || duplicateMatches.length > 0}
+								helperText={
+									duplicateMatches.length > 0
+										? `A party named "${duplicateMatches[0].name}" already exists`
+										: errors.name?.message
+								}
+								{...field}
+								disabled={isSubmitting}
+								sx={styles.textFieldOverrides}
+							/>
+						)}
+					/>
+				) : (
+					<>
+						<Stack direction="row" spacing={1} width={400}>
+							<Controller
+								name="first_name"
+								control={control}
+								rules={{ required: 'First name is required', maxLength: 100 }}
+								render={({ field }) => (
+									<TextField
+										label="First Name"
+										placeholder="First name"
+										error={!!errors.first_name}
+										helperText={errors.first_name?.message}
+										{...field}
+										disabled={isSubmitting}
+										sx={{ flex: 1 }}
+									/>
+								)}
+							/>
+							<Controller
+								name="middle_name"
+								control={control}
+								rules={{ maxLength: 100 }}
+								render={({ field }) => (
+									<TextField
+										label="Middle"
+										placeholder="Middle"
+										error={!!errors.middle_name}
+										{...field}
+										disabled={isSubmitting}
+										sx={{ width: 100 }}
+									/>
+								)}
+							/>
+						</Stack>
+						<Stack direction="row" spacing={1} width={400}>
+							<Controller
+								name="last_name"
+								control={control}
+								rules={{ required: 'Last name is required', maxLength: 100 }}
+								render={({ field }) => (
+									<TextField
+										label="Last Name"
+										placeholder="Last name"
+										error={!!errors.last_name || duplicateMatches.length > 0}
+										helperText={
+											duplicateMatches.length > 0
+												? `A party named "${duplicateMatches[0].name}" already exists`
+												: errors.last_name?.message
+										}
+										{...field}
+										disabled={isSubmitting}
+										sx={{ flex: 1 }}
+									/>
+								)}
+							/>
+							<Controller
+								name="suffix"
+								control={control}
+								rules={{ maxLength: 20 }}
+								render={({ field }) => (
+									<TextField
+										label="Suffix"
+										placeholder="Jr., Sr."
+										error={!!errors.suffix}
+										{...field}
+										disabled={isSubmitting}
+										sx={{ width: 100 }}
+									/>
+								)}
+							/>
+						</Stack>
+					</>
+				)}
 
 				<Controller
 					name="organization"
@@ -347,7 +476,6 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Organization (optional)"
-							
 							placeholder="Organization name"
 							error={!!errors.organization}
 							{...field}
@@ -357,8 +485,13 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					)}
 				/>
 
+				{/* Contact Information Section */}
+				<Typography variant="caption" color="text.secondary" sx={{ width: 400, pt: 1 }}>
+					Contact Information (optional)
+				</Typography>
+
 				<Controller
-					name="email"
+					name="contact_email"
 					control={control}
 					rules={{
 						pattern: {
@@ -368,12 +501,11 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					}}
 					render={({ field }) => (
 						<TextField
-							label="Email (optional)"
-							
+							label="Email"
 							placeholder="email@example.com"
 							type="email"
-							error={!!errors.email}
-							helperText={errors.email?.message}
+							error={!!errors.contact_email}
+							helperText={errors.contact_email?.message}
 							{...field}
 							disabled={isSubmitting}
 							sx={styles.textFieldOverrides}
@@ -382,15 +514,14 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 				/>
 
 				<Controller
-					name="phone"
+					name="contact_phone"
 					control={control}
 					rules={{ maxLength: 50 }}
 					render={({ field }) => (
 						<TextField
-							label="Phone (optional)"
-							
+							label="Phone"
 							placeholder="Phone number"
-							error={!!errors.phone}
+							error={!!errors.contact_phone}
 							{...field}
 							disabled={isSubmitting}
 							sx={styles.textFieldOverrides}
@@ -403,8 +534,8 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					errors={errors}
 					setValue={setValue}
 					disabled={isSubmitting}
-					
 					width={400}
+					prefix="contact_"
 				/>
 
 				<Controller
@@ -414,7 +545,6 @@ export default function PartyDialog({ party, lockedType, lockedRole, onClose }: 
 					render={({ field }) => (
 						<TextField
 							label="Notes (optional)"
-							
 							placeholder="Additional notes"
 							error={!!errors.notes}
 							multiline

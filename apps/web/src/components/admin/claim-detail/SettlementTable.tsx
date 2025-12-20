@@ -31,7 +31,7 @@ interface TableRow {
 	hierarchy: string[];
 	type: 'settlement' | 'recovery';
 	party_name?: string;
-	coverage_type?: string;
+	loss_type?: string;
 	demand_amount?: number;
 	demand_date?: Date;
 	status?: string;
@@ -89,7 +89,7 @@ export default function SettlementTable({
 				hierarchy: [`${s.id}`],
 				type: 'settlement',
 				party_name: s.party_name,
-				coverage_type: s.coverage_type,
+				loss_type: s.loss_type,
 				demand_amount: demandAmount,
 				demand_date: s.demand_date,
 				status: s.status,
@@ -135,12 +135,12 @@ export default function SettlementTable({
 				},
 			},
 			{
-				field: 'coverage_type',
+				field: 'loss_type',
 				headerName: 'Coverage',
 				width: 120,
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
-					if (params.row.type === 'settlement' && params.row.coverage_type) {
-						return <Typography fontSize={13}>{capitalize(params.row.coverage_type)}</Typography>;
+					if (params.row.type === 'settlement' && params.row.loss_type) {
+						return <Typography fontSize={13}>{capitalize(params.row.loss_type)}</Typography>;
 					}
 					return null;
 				},

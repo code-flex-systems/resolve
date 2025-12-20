@@ -196,7 +196,7 @@ export interface ClaimCoverage {
   deleted_by: string | null;
   id: Generated<number>;
   /**
-   * Type of loss/coverage (uses loss_type reference list)
+   * Type of coverage (CoverageType enum enforced in TypeScript)
    */
   loss_type: string;
   updated_at: Timestamp | null;
@@ -237,10 +237,7 @@ export interface ClaimParty {
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
-  /**
-   * Role(s) this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
-   */
-  role: string[];
+  role: Generated<string[]>;
 }
 
 export interface ClaimPayment {

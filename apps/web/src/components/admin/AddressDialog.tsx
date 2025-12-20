@@ -1,16 +1,17 @@
 'use client';
 
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { Autocomplete, Stack, Switch, TextField, Typography } from '@mui/material';
+import { Autocomplete, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import AddressFields from '../common/AddressFields';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useState } from 'react';
-import { PartyOffice } from '@/api/database/types';
+import { PartyAddress } from '@/api/database/types';
 import type { CountryCode } from '@/config/addressConstants';
 import useDebounce from '@/lib/utils/useDebounce';
+import { AddressType, AddressStatus } from '@/schemas/partySchemas';
 
 /** Type for party search results from tRPC */
 interface PartySearchResult {
@@ -19,32 +20,31 @@ interface PartySearchResult {
 	organization: string | null;
 }
 
-interface OfficeFormData {
+interface AddressFormData {
 	party_id: number | null;
-	office_name: string;
+	name: string;
 	street_address: string | null;
 	city: string | null;
 	state: string | null;
 	postal_code: string | null;
 	country: string | null;
-	phone: string;
-	fax: string;
-	is_primary: boolean;
+	address_type: string;
+	address_status: string;
 }
 
-interface OfficeDialogProps {
-	office?: PartyOffice & { party_name?: string };
+interface AddressDialogProps {
+	address?: PartyAddress & { party_name?: string };
 	onClose?: () => void;
 }
 
-export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
-	const toggleNewOfficeDialog = useAdminStore((state) => state.toggleNewOfficeDialog);
+export default function AddressDialog({ address, onClose }: AddressDialogProps) {
+	const toggleNewAddressDialog = useAdminStore((state) => state.toggleNewAddressDialog);
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
-	const { mutateAsync: createOffice, isPending: creating } = partyTrpc.createOffice;
-	const { mutateAsync: updateOffice, isPending: updating } = partyTrpc.updateOffice;
+	const { mutateAsync: createAddress, isPending: creating } = partyTrpc.createAddress;
+	const { mutateAsync: updateAddress, isPending: updating } = partyTrpc.updateAddress;
 
-	const isEditMode = !!office;
+	const isEditMode = !!address;
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<PartySearchResult | null>(null);
 
@@ -62,81 +62,77 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 		watch,
 		setValue,
 		formState: { errors, isSubmitting, isDirty },
-	} = useForm<OfficeFormData>({
+	} = useForm<AddressFormData>({
 		defaultValues: {
-			party_id: office?.party_id || null,
-			office_name: office?.office_name || '',
-			street_address: office?.street_address || '',
-			city: office?.city || '',
-			state: office?.state || '',
-			postal_code: office?.postal_code || '',
-			country: office?.country || '',
-			phone: office?.phone || '',
-			fax: office?.fax || '',
-			is_primary: Boolean(office?.is_primary),
+			party_id: address?.party_id || null,
+			name: address?.name || '',
+			street_address: address?.street_address || '',
+			city: address?.city || '',
+			state: address?.state || '',
+			postal_code: address?.postal_code || '',
+			country: address?.country || '',
+			address_type: String(address?.address_type ?? AddressType.BUSINESS),
+			address_status: String(address?.address_status ?? AddressStatus.VALID),
 		},
 		mode: 'onChange',
 	});
 
-	const office_name = watch('office_name');
+	const name = watch('name');
 	const street_address = watch('street_address');
 	const city = watch('city');
-	const phone = watch('phone');
 
-	// At least one of office_name, street_address, city, or phone is required
-	const hasRequiredField = office_name || street_address || city || phone;
+	// At least one of name, street_address, or city is required
+	const hasRequiredField = name || street_address || city;
 
 	const handleClose = () => {
 		if (onClose) {
 			onClose();
 		} else {
-			toggleNewOfficeDialog();
+			toggleNewAddressDialog();
 		}
 	};
 
-	const onSubmit: SubmitHandler<OfficeFormData> = async (data) => {
+	const onSubmit: SubmitHandler<AddressFormData> = async (data) => {
 		try {
 			if (!data.party_id && !isEditMode) {
 				showAlert('Please select a party', 'error');
 				return;
 			}
 
-			if (isEditMode && office) {
-				// Update existing office
-				await updateOffice({
-					id: +office.id,
+			if (isEditMode && address) {
+				// Update existing address
+				await updateAddress({
+					id: +address.id,
 					params: {
-						office_name: data.office_name || undefined,
+						name: data.name || undefined,
 						street_address: data.street_address || null,
 						city: data.city || null,
 						state: data.state || null,
 						postal_code: data.postal_code || null,
 						country: (data.country as CountryCode) || null,
-						phone: data.phone || undefined,
-						fax: data.fax || undefined,
-						is_primary: data.is_primary,
+						address_type: data.address_type as 'home' | 'business',
+						address_status: data.address_status as 'valid' | 'mailing' | 'undeliverable' | 'unknown',
 					},
 				});
-				showAlert('Office updated successfully', 'success');
+				showAlert('Address updated successfully', 'success');
 			} else {
-				// Create new office
-				await createOffice({
+				// Create new address
+				await createAddress({
 					party_id: data.party_id!,
-					office_name: data.office_name || undefined,
+					name: data.name || undefined,
 					street_address: data.street_address || null,
 					city: data.city || null,
 					state: data.state || null,
 					postal_code: data.postal_code || null,
 					country: (data.country as CountryCode) || null,
-					phone: data.phone || undefined,
-					fax: data.fax || undefined,
-					is_primary: data.is_primary,
+					address_type: data.address_type as 'home' | 'business',
+					address_status: data.address_status as 'valid' | 'mailing' | 'undeliverable' | 'unknown',
 				});
-				showAlert('Office created successfully', 'success');
+				showAlert('Address created successfully', 'success');
 			}
 			handleClose();
 		} catch (error: any) {
-			showAlert(error?.message || 'Failed to save office', 'error');
+			showAlert(error?.message || 'Failed to save address', 'error');
 		}
 	};
 
@@ -146,7 +142,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 
 	return (
 		<BasicDialog
-			title={isEditMode ? `Edit Office${office?.party_name ? ` - ${office.party_name}` : ''}` : 'New Office'}
+			title={isEditMode ? `Edit Address${address?.party_name ? ` - ${address.party_name}` : ''}` : 'New Address'}
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: handleSubmit(onSubmit),
@@ -162,7 +158,7 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 			width={600}
 		>
 			<form style={styles.form}>
-				{/* Party Selection - Only shown when creating new office */}
+				{/* Party Selection - Only shown when creating new address */}
 				{!isEditMode && (
 					<Controller
 						name="party_id"
@@ -198,7 +194,6 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 									<TextField
 										{...params}
 										label="Party"
-										
 										error={!!errors.party_id}
 										helperText={errors.party_id?.message}
 										placeholder="Search for party..."
@@ -209,17 +204,16 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 					/>
 				)}
 
-				{/* Office Name */}
+				{/* Address Name (Label) */}
 				<Controller
-					name="office_name"
+					name="name"
 					control={control}
 					render={({ field }) => (
 						<TextField
 							{...field}
-							label="Office Name"
-							
+							label="Address Label"
 							fullWidth
-							placeholder="e.g., Main Office, Regional Branch"
+							placeholder="e.g., Home, Work, Headquarters"
 						/>
 					)}
 				/>
@@ -231,44 +225,50 @@ export default function OfficeDialog({ office, onClose }: OfficeDialogProps) {
 						errors={errors}
 						setValue={setValue}
 						disabled={isSubmitting}
-						
 						width={552}
 					/>
 				</Stack>
 
-				{/* Phone */}
-				<Controller
-					name="phone"
-					control={control}
-					render={({ field }) => (
-						<TextField {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />
-					)}
-				/>
-
-				{/* Fax */}
-				<Controller
-					name="fax"
-					control={control}
-					render={({ field }) => (
-						<TextField {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />
-					)}
-				/>
-
-				{/* Primary Office */}
-				<div style={styles.switchContainer}>
-					<Typography variant="body2">Primary Office</Typography>
+				{/* Address Type & Status Row */}
+				<Stack direction="row" spacing={2}>
 					<Controller
-						name="is_primary"
+						name="address_type"
 						control={control}
 						render={({ field }) => (
-							<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
+							<TextField
+								{...field}
+								select
+								label="Address Type"
+								fullWidth
+							>
+								<MenuItem value={AddressType.HOME}>Home</MenuItem>
+								<MenuItem value={AddressType.BUSINESS}>Business</MenuItem>
+							</TextField>
 						)}
 					/>
-				</div>
+
+					<Controller
+						name="address_status"
+						control={control}
+						render={({ field }) => (
+							<TextField
+								{...field}
+								select
+								label="Address Status"
+								fullWidth
+							>
+								<MenuItem value={AddressStatus.VALID}>Valid</MenuItem>
+								<MenuItem value={AddressStatus.MAILING}>Mailing</MenuItem>
+								<MenuItem value={AddressStatus.UNDELIVERABLE}>Undeliverable</MenuItem>
+								<MenuItem value={AddressStatus.UNKNOWN}>Unknown</MenuItem>
+							</TextField>
+						)}
+					/>
+				</Stack>
 
 				{!hasRequiredField && (
 					<Typography variant="caption" color="error" fontStyle="italic">
-						* At least one of: Office Name, City, Street Address, or Phone is required
+						* At least one of: Address Label, City, or Street Address is required
 					</Typography>
 				)}
 			</form>
@@ -282,10 +282,5 @@ const styles = {
 		flexDirection: 'column' as const,
 		gap: '20px',
 		paddingTop: '10px',
-	},
-	switchContainer: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'space-between',
 	},
 };

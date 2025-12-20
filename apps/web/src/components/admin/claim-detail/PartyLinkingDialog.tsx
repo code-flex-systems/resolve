@@ -1,20 +1,17 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, TextField, Autocomplete, Typography, InputAdornment } from '@mui/material';
+import { Box, TextField, Autocomplete, Typography, InputAdornment, Chip } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
-import ReferenceDataSelect, {
-	ClaimantPartyRoleSelect,
-	AdversePartyRoleSelect,
-	LossTypeSelect,
-} from '@/components/common/ReferenceDataSelect';
+import { LossTypeSelect } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { PartyType } from '@/config/enums';
 import PartyDialog from '@/components/admin/PartyDialog';
 import type { Party } from '@/api/database/types';
+import { trpc } from '@/lib/trpc';
 
 interface PartyLinkingFormData {
-	role: string | null;
+	role: string[]; // Array of selected roles
 	party_id: number | null;
 	representative_id: number | null;
 	liability_percentage: string;
@@ -29,7 +26,7 @@ interface PartyLinkingDialogProps {
 	open: boolean;
 	onClose: () => void;
 	onSubmit: (data: {
-		role: string;
+		role: string[]; // Array of roles
 		party_id: number;
 		representative_id?: number | null;
 		liability_percentage?: number | null;
@@ -65,7 +62,7 @@ export default function PartyLinkingDialog({
 	availableParentEntities = [],
 }: PartyLinkingDialogProps) {
 	const [formData, setFormData] = useState<PartyLinkingFormData>({
-		role: null,
+		role: [],
 		party_id: null,
 		representative_id: null,
 		liability_percentage: '',
@@ -82,6 +79,12 @@ export default function PartyLinkingDialog({
 	const [showCreatePartyDialog, setShowCreatePartyDialog] = useState(false);
 
 	const partyTrpc = usePartyTrpc();
+
+	// Fetch role options based on roleListEntity
+	const { data: roleOptions = [] } = trpc.referenceData.getReferenceOptions.useQuery(
+		{ entity: roleListEntity },
+		{ staleTime: 5 * 60 * 1000 }
+	);
 
 	// Determine party type filter based on mode
 	const partyTypeFilter = isFacilitatorMode ? PartyType.FACILITATOR : PartyType.ENTITY;
@@ -120,8 +123,14 @@ export default function PartyLinkingDialog({
 	// Update form when editingClaimParty changes
 	useEffect(() => {
 		if (editingClaimParty) {
+			// role is now an array - handle both array and legacy string formats
+			const roleArray = Array.isArray(editingClaimParty.role)
+				? editingClaimParty.role
+				: editingClaimParty.role
+					? [editingClaimParty.role]
+					: [];
 			setFormData({
-				role: editingClaimParty.role,
+				role: roleArray,
 				party_id: editingClaimParty.party_id,
 				representative_id: editingClaimParty.representative_id,
 				liability_percentage: editingClaimParty.liability_percentage?.toString() || '',
@@ -145,7 +154,7 @@ export default function PartyLinkingDialog({
 		} else {
 			// Reset form for new entry
 			setFormData({
-				role: null,
+				role: [],
 				party_id: null,
 				representative_id: null,
 				liability_percentage: '',
@@ -204,7 +213,7 @@ export default function PartyLinkingDialog({
 	);
 
 	const handleSubmit = async () => {
-		if (!formData.party_id || !formData.role) return;
+		if (!formData.party_id || formData.role.length === 0) return;
 
 		// For facilitator mode, parent is required
 		if (isFacilitatorMode && !formData.parent_claim_party_id && !parentClaimPartyId) return;
@@ -231,7 +240,7 @@ export default function PartyLinkingDialog({
 	// Determine if form is valid
 	const isFormValid =
 		formData.party_id &&
-		formData.role &&
+		formData.role.length > 0 &&
 		isValidLiabilityPercentage &&
 		(!isFacilitatorMode || formData.parent_claim_party_id || parentClaimPartyId);
 
@@ -290,24 +299,37 @@ export default function PartyLinkingDialog({
 					/>
 				)}
 
-				{/* Role Selection - use appropriate select based on roleListEntity */}
-				{roleListEntity === 'claimant_party_role' ? (
-					<ClaimantPartyRoleSelect
-						role={formData.role}
-						setRole={(role) => setFormData({ ...formData, role })}
-						clearable={false}
-						isFilter={false}
-						label="Party Role *"
-					/>
-				) : (
-					<AdversePartyRoleSelect
-						role={formData.role}
-						setRole={(role) => setFormData({ ...formData, role })}
-						clearable={false}
-						isFilter={false}
-						label="Party Role *"
-					/>
-				)}
+				{/* Role Selection - multiselect for roles */}
+				<Autocomplete
+					multiple
+					options={roleOptions}
+					value={roleOptions.filter((opt) => formData.role.includes(opt.value))}
+					onChange={(_, newValue) => setFormData({ ...formData, role: newValue.map((v) => v.value) })}
+					getOptionLabel={(option) => option.display_label}
+					isOptionEqualToValue={(option, value) => option.value === value.value}
+					renderTags={(value, getTagProps) =>
+						value.map((option, index) => {
+							const { key, ...tagProps } = getTagProps({ index });
+							return (
+								<Chip
+									key={key}
+									label={option.display_label}
+									size="small"
+									{...tagProps}
+								/>
+							);
+						})
+					}
+					renderInput={(params) => (
+						<TextField
+							{...params}
+							label="Roles *"
+							placeholder={formData.role.length === 0 ? 'Select one or more roles...' : ''}
+							required
+						/>
+					)}
+					fullWidth
+				/>
 
 				{/* Party Selection */}
 				<Box>

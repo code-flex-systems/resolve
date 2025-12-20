@@ -111,7 +111,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 	};
 
 	const handlePartySubmit = async (data: {
-		role: string;
+		role: string[];
 		party_id: number;
 		representative_id?: number | null;
 		liability_percentage?: number | null;

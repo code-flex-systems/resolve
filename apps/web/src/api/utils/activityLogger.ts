@@ -62,7 +62,7 @@ export enum EntityName {
 
 	// Party management entities
 	PARTY = 'party',
-	PARTY_OFFICE = 'party_office',
+	PARTY_ADDRESS = 'party_address',
 	PARTY_REPRESENTATIVE = 'party_representative',
 	CLAIM_PARTY = 'claim_party',
 	CLAIM_LIABILITY = 'claim_liability',
@@ -93,7 +93,7 @@ const CONFIG_ENTITIES: Set<EntityName> = new Set([
 	EntityName.DESK_LOCATION,
 	EntityName.USER_DESK_LOCATION,
 	EntityName.PARTY,
-	EntityName.PARTY_OFFICE,
+	EntityName.PARTY_ADDRESS,
 	EntityName.PARTY_REPRESENTATIVE,
 	EntityName.PAGE_INSTANCE,
 ]);

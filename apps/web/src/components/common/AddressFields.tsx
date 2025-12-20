@@ -19,19 +19,24 @@ interface AddressFieldsProps {
 	disabled?: boolean;
 	/**
 	 * Field name mapping for the form.
-	 * Use 'standard' for party/office addresses, 'loss' for claim loss location.
+	 * Use 'standard' for party addresses, 'loss' for claim loss location.
 	 */
 	variant?: 'standard' | 'loss';
 	/**
 	 * Width for text fields. Defaults to 400.
 	 */
 	width?: number;
+	/**
+	 * Optional prefix for field names.
+	 * e.g., prefix="contact_" results in field names like "contact_street_address"
+	 */
+	prefix?: string;
 }
 
 /**
  * Reusable address form fields component.
  * Renders street address, city, state/province dropdown, postal code, and country dropdown.
- * Supports both standard addresses (party, office) and loss addresses (claim loss location).
+ * Supports both standard addresses (party) and loss addresses (claim loss location).
  */
 export default function AddressFields({
 	control,
@@ -40,8 +45,9 @@ export default function AddressFields({
 	disabled = false,
 	variant = 'standard',
 	width = 400,
+	prefix = '',
 }: AddressFieldsProps) {
-	// Determine field names based on variant
+	// Determine field names based on variant and prefix
 	const fieldNames = useMemo(() => {
 		if (variant === 'loss') {
 			return {
@@ -53,13 +59,13 @@ export default function AddressFields({
 			};
 		}
 		return {
-			street_address: 'street_address',
-			city: 'city',
-			state: 'state',
-			postal_code: 'postal_code',
-			country: 'country',
+			street_address: `${prefix}street_address`,
+			city: `${prefix}city`,
+			state: `${prefix}state`,
+			postal_code: `${prefix}postal_code`,
+			country: `${prefix}country`,
 		};
-	}, [variant]);
+	}, [variant, prefix]);
 
 	// Watch country and state to filter state options and clear invalid selections
 	const countryValue = useWatch({ control, name: fieldNames.country });

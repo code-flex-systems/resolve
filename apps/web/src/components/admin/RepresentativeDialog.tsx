@@ -7,12 +7,12 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useState, useEffect } from 'react';
-import { Party, PartyRepresentative, PartyOffice } from '@/api/database/types';
+import { Party, PartyRepresentative, PartyAddress } from '@/api/database/types';
 import useDebounce from '@/lib/utils/useDebounce';
 
 interface RepresentativeFormData {
 	party_id: number | null;
-	office_id: number | null;
+	address_id: number | null;
 	first_name: string;
 	last_name: string;
 	title: string;
@@ -24,7 +24,7 @@ interface RepresentativeFormData {
 }
 
 interface RepresentativeDialogProps {
-	representative?: PartyRepresentative & { party_name?: string; office_name?: string };
+	representative?: PartyRepresentative & { party_name?: string; address_name?: string };
 	partyId?: number;
 	lockParty?: boolean;
 	onClose?: (createdRep?: PartyRepresentative) => void;
@@ -45,7 +45,7 @@ export default function RepresentativeDialog({
 	const isEditMode = !!representative;
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<Party | null>(null);
-	const [selectedOffice, setSelectedOffice] = useState<PartyOffice | null>(null);
+	const [selectedAddress, setSelectedAddress] = useState<PartyAddress | null>(null);
 
 	// Load party data if partyId is provided
 	const { data: initialParty } = partyTrpc.get(
@@ -63,9 +63,9 @@ export default function RepresentativeDialog({
 		}
 	);
 
-	// Get offices for the selected party (no search, just list all offices for this party)
+	// Get addresses for the selected party (no search, just list all addresses for this party)
 	const effectivePartyId = (selectedParty?.id || representative?.party_id || partyId || 0) as number;
-	const { data: partyOffices = [] } = partyTrpc.listOffices(
+	const { data: partyAddresses = [] } = partyTrpc.listAddresses(
 		{
 			partyId: effectivePartyId,
 			showArchived: false,
@@ -83,7 +83,7 @@ export default function RepresentativeDialog({
 	} = useForm<RepresentativeFormData>({
 		defaultValues: {
 			party_id: representative?.party_id || partyId || null,
-			office_id: representative?.office_id || null,
+			address_id: representative?.address_id || null,
 			first_name: representative?.first_name || '',
 			last_name: representative?.last_name || '',
 			title: representative?.title || '',
@@ -131,7 +131,7 @@ export default function RepresentativeDialog({
 				await updateRepresentative({
 					id: +representative.id,
 					params: {
-						office_id: data.office_id || undefined,
+						address_id: data.address_id || undefined,
 						first_name: data.first_name,
 						last_name: data.last_name,
 						title: data.title || undefined,
@@ -147,7 +147,7 @@ export default function RepresentativeDialog({
 				// Create new representative
 				createdRep = (await createRepresentative({
 					party_id: data.party_id!,
-					office_id: data.office_id || undefined,
+					address_id: data.address_id || undefined,
 					first_name: data.first_name,
 					last_name: data.last_name,
 					title: data.title || undefined,
@@ -243,33 +243,33 @@ export default function RepresentativeDialog({
 					/>
 				)}
 
-				{/* Office Selection - Optional, requires party selection first */}
+				{/* Address Selection - Optional, requires party selection first */}
 				<Controller
-					name="office_id"
+					name="address_id"
 					control={control}
 					render={({ field }) => {
 						const hasParty = !!(selectedParty?.id || representative?.party_id);
 						return (
 							<Autocomplete
-								options={partyOffices as any}
-								getOptionLabel={(office: any) =>
-									`${office.office_name || 'Unnamed'} - ${office.address || 'No address'}`
+								options={partyAddresses as any}
+								getOptionLabel={(address: any) =>
+									`${address.name || 'Unnamed'} - ${address.city || 'No address'}`
 								}
 								onChange={(_, value: any) => {
-									setSelectedOffice(value);
+									setSelectedAddress(value);
 									field.onChange(value?.id || null);
 								}}
-								value={selectedOffice}
+								value={selectedAddress}
 								disabled={!hasParty}
-								renderOption={(props, office: any) => (
-									<li {...props} key={String(office.id)}>
+								renderOption={(props, address: any) => (
+									<li {...props} key={String(address.id)}>
 										<div>
 											<Typography variant="body2" fontWeight="bold">
-												{office.office_name || 'Unnamed office'}
+												{address.name || 'Unnamed address'}
 											</Typography>
-											{office.address && (
+											{address.city && (
 												<Typography variant="caption" color="text.secondary">
-													{office.address}
+													{address.city}, {address.state}
 												</Typography>
 											)}
 										</div>
@@ -278,9 +278,9 @@ export default function RepresentativeDialog({
 								renderInput={(params) => (
 									<TextField
 										{...params}
-										label="Office (Optional)"
-										
-										placeholder={hasParty ? 'Select an office...' : 'Select a party first'}
+										label="Address (Optional)"
+
+										placeholder={hasParty ? 'Select an address...' : 'Select a party first'}
 									/>
 								)}
 							/>

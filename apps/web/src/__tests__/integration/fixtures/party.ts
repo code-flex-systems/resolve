@@ -15,15 +15,12 @@ export async function createTestParty(
 		created_by: string;
 		name?: string;
 		party_type?: string;
-		party_category?: string;
+		is_business?: boolean;
+		first_name?: string | null;
+		middle_name?: string | null;
+		last_name?: string | null;
+		suffix?: string | null;
 		organization?: string | null;
-		email?: string | null;
-		phone?: string | null;
-		street_address?: string | null;
-		city?: string | null;
-		state?: string | null;
-		postal_code?: string | null;
-		country?: string | null;
 		notes?: string | null;
 		deleted_at?: Date | null;
 		deleted_by?: string | null;
@@ -33,15 +30,12 @@ export async function createTestParty(
 		client_id: overrides.client_id,
 		name: overrides.name || `Test Party ${Date.now()}`,
 		party_type: overrides.party_type || 'facilitator',
-		party_category: overrides.party_category || 'adverse_carrier',
+		is_business: overrides.is_business ?? true,
+		first_name: overrides.first_name ?? null,
+		middle_name: overrides.middle_name ?? null,
+		last_name: overrides.last_name ?? null,
+		suffix: overrides.suffix ?? null,
 		organization: overrides.organization ?? null,
-		email: overrides.email ?? null,
-		phone: overrides.phone ?? null,
-		street_address: overrides.street_address ?? null,
-		city: overrides.city ?? null,
-		state: overrides.state ?? null,
-		postal_code: overrides.postal_code ?? null,
-		country: overrides.country ?? null,
 		notes: overrides.notes ?? null,
 		deleted_at: overrides.deleted_at ?? null,
 		deleted_by: overrides.deleted_by ?? null,
@@ -56,44 +50,114 @@ export async function createTestParty(
 }
 
 /**
- * Create a test party office
+ * Create a test party address
  */
-export async function createTestPartyOffice(
+export async function createTestPartyAddress(
 	db: Kysely<DB>,
 	overrides: {
 		party_id: number;
 		created_by: string;
-		office_name?: string | null;
+		name?: string | null;
 		street_address?: string | null;
 		city?: string | null;
 		state?: string | null;
 		postal_code?: string | null;
 		country?: string | null;
-		phone?: string | null;
-		fax?: string | null;
-		is_primary?: boolean;
+		address_type?: string;
+		address_status?: string;
 		deleted_at?: Date | null;
 		deleted_by?: string | null;
 	}
 ) {
 	const data = {
 		party_id: overrides.party_id,
-		office_name: overrides.office_name ?? `Office ${Date.now()}`,
+		name: overrides.name ?? `Address ${Date.now()}`,
 		street_address: overrides.street_address ?? null,
 		city: overrides.city ?? null,
 		state: overrides.state ?? null,
 		postal_code: overrides.postal_code ?? null,
 		country: overrides.country ?? null,
-		phone: overrides.phone ?? null,
-		fax: overrides.fax ?? null,
-		is_primary: overrides.is_primary ?? false,
+		address_type: overrides.address_type ?? 'business',
+		address_status: overrides.address_status ?? 'valid',
 		deleted_at: overrides.deleted_at ?? null,
 		deleted_by: overrides.deleted_by ?? null,
 		created_by: overrides.created_by,
 	};
 
 	return db
-		.insertInto('party_office')
+		.insertInto('party_address')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Create a test party phone
+ */
+export async function createTestPartyPhone(
+	db: Kysely<DB>,
+	overrides: {
+		party_id: number;
+		client_id: string;
+		created_by: string;
+		phone_number?: string;
+		country_code?: string | null;
+		area_code?: string | null;
+		extension?: string | null;
+		phone_type?: string;
+		phone_status?: string;
+		deleted_at?: Date | null;
+		deleted_by?: string | null;
+	}
+) {
+	const data = {
+		party_id: overrides.party_id,
+		client_id: overrides.client_id,
+		phone_number: overrides.phone_number ?? `555-${Date.now().toString().slice(-7)}`,
+		country_code: overrides.country_code ?? null,
+		area_code: overrides.area_code ?? null,
+		extension: overrides.extension ?? null,
+		phone_type: overrides.phone_type ?? 'work',
+		phone_status: overrides.phone_status ?? 'valid',
+		deleted_at: overrides.deleted_at ?? null,
+		deleted_by: overrides.deleted_by ?? null,
+		created_by: overrides.created_by,
+	};
+
+	return db
+		.insertInto('party_phone')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Create a test party email
+ */
+export async function createTestPartyEmail(
+	db: Kysely<DB>,
+	overrides: {
+		party_id: number;
+		client_id: string;
+		created_by: string;
+		email_address?: string;
+		email_type?: string;
+		deleted_at?: Date | null;
+		deleted_by?: string | null;
+	}
+) {
+	const data = {
+		party_id: overrides.party_id,
+		client_id: overrides.client_id,
+		email_address: overrides.email_address ?? `test-${Date.now()}@example.com`,
+		email_type: overrides.email_type ?? 'business',
+		deleted_at: overrides.deleted_at ?? null,
+		deleted_by: overrides.deleted_by ?? null,
+		created_by: overrides.created_by,
+	};
+
+	return db
+		.insertInto('party_email')
 		.values(data)
 		.returningAll()
 		.executeTakeFirstOrThrow();
@@ -107,7 +171,7 @@ export async function createTestPartyRepresentative(
 	overrides: {
 		party_id: number;
 		created_by: string;
-		office_id?: number | null;
+		address_id?: number | null;
 		first_name?: string;
 		last_name?: string;
 		title?: string | null;
@@ -122,7 +186,7 @@ export async function createTestPartyRepresentative(
 ) {
 	const data = {
 		party_id: overrides.party_id,
-		office_id: overrides.office_id ?? null,
+		address_id: overrides.address_id ?? null,
 		first_name: overrides.first_name || 'Test',
 		last_name: overrides.last_name || `Rep ${Date.now()}`,
 		title: overrides.title ?? null,
@@ -152,7 +216,7 @@ export async function createTestClaimParty(
 		claim_id: number;
 		party_id: number;
 		created_by: string;
-		role?: string;
+		role?: string[];
 		representative_id?: number | null;
 		is_primary?: boolean;
 		notes?: string | null;
@@ -168,7 +232,7 @@ export async function createTestClaimParty(
 	const data = {
 		claim_id: overrides.claim_id,
 		party_id: overrides.party_id,
-		role: overrides.role || 'adverse_carrier',
+		role: overrides.role || ['adverse_carrier'],
 		representative_id: overrides.representative_id ?? null,
 		is_primary: overrides.is_primary ?? false,
 		notes: overrides.notes ?? null,

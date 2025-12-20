@@ -7,7 +7,7 @@ import CoverageTypeSelect from '../common/CoverageTypeSelect';
 import BasicDialog from '../common/BasicDialog';
 
 interface CoverageFormData {
-	coverage_type: string;
+	loss_type: string;
 	coverage_amount: string;
 	amount_reserved: string;
 }
@@ -16,7 +16,7 @@ interface CoverageFormDialogProps {
 	open: boolean;
 	onClose: () => void;
 	onSubmit: (data: {
-		coverage_type: string;
+		loss_type: string;
 		coverage_amount: string | null;
 		amount_reserved: string | null;
 	}) => Promise<void>;
@@ -32,7 +32,7 @@ export default function CoverageFormDialog({
 	isSubmitting = false,
 }: CoverageFormDialogProps) {
 	const [formData, setFormData] = useState<CoverageFormData>({
-		coverage_type: '',
+		loss_type: '',
 		coverage_amount: '',
 		amount_reserved: '',
 	});
@@ -41,13 +41,13 @@ export default function CoverageFormDialog({
 	useEffect(() => {
 		if (editingCoverage) {
 			setFormData({
-				coverage_type: editingCoverage.coverage_type,
+				loss_type: editingCoverage.loss_type,
 				coverage_amount: editingCoverage.coverage_amount?.toString() || '',
 				amount_reserved: editingCoverage.amount_reserved?.toString() || '',
 			});
 		} else {
 			setFormData({
-				coverage_type: '',
+				loss_type: '',
 				coverage_amount: '',
 				amount_reserved: '',
 			});
@@ -56,7 +56,7 @@ export default function CoverageFormDialog({
 
 	const handleSubmit = async () => {
 		await onSubmit({
-			coverage_type: formData.coverage_type,
+			loss_type: formData.loss_type,
 			coverage_amount: formData.coverage_amount || null,
 			amount_reserved: formData.amount_reserved || null,
 		});
@@ -78,7 +78,7 @@ export default function CoverageFormDialog({
 			primaryAction={{
 				label: editingCoverage ? 'Update' : 'Create',
 				onClick: handleSubmit,
-				disabled: !formData.coverage_type || !isValidCoverageAmount || !isValidReservedAmount || isSubmitting,
+				disabled: !formData.loss_type || !isValidCoverageAmount || !isValidReservedAmount || isSubmitting,
 			}}
 			secondaryActions={[
 				{
@@ -91,8 +91,8 @@ export default function CoverageFormDialog({
 		>
 			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
 				<CoverageTypeSelect
-					value={formData.coverage_type}
-					onChange={(type) => setFormData({ ...formData, coverage_type: type })}
+					value={formData.loss_type}
+					onChange={(type) => setFormData({ ...formData, loss_type: type })}
 					fullWidth
 				/>
 				<TextField

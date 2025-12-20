@@ -32,7 +32,7 @@ export interface RecoveryFormData {
 interface SettlementOption {
 	id: number;
 	party_name: string;
-	coverage_type: string;
+	loss_type: string;
 	demand_amount: number | string;
 	demand_date: Date | string;
 }
@@ -75,7 +75,7 @@ export default function RecoveryFormDialog({
 						>
 							{settlements.map((settlement) => (
 								<MenuItem key={settlement.id} value={settlement.id}>
-									{settlement.party_name} · {capitalize(settlement.coverage_type)} -{' '}
+									{settlement.party_name} · {capitalize(settlement.loss_type)} -{' '}
 									{formatCurrencyExact(Number(settlement.demand_amount))} (
 									{dayjs(settlement.demand_date).format('MMM D')})
 								</MenuItem>

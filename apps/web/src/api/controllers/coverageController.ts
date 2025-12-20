@@ -47,7 +47,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
 				value: {
 					claim_id: coverage.claim_id,
 					claim_party_id: coverage.claim_party_id,
-					coverage_type: coverage.coverage_type,
+					loss_type: coverage.loss_type,
 					coverage_amount: coverage.coverage_amount,
 				},
 			}

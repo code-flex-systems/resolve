@@ -81,7 +81,7 @@ export async function getPayments(ctx: ProtectedContext, claimId: number) {
 			'claim_payment.created_at',
 			'claim_payment.updated_by',
 			'claim_payment.updated_at',
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 		])
 		.select((eb) => eb.ref('party.name').as('payee_name'))
 		.where('claim_payment.claim_id', '=', claimId)

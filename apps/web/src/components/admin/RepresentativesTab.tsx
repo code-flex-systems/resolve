@@ -4,27 +4,22 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
-import Business from '@mui/icons-material/Business';
 import Person from '@mui/icons-material/Person';
-import LocationOn from '@mui/icons-material/LocationOn';
-import Phone from '@mui/icons-material/Phone';
 import Warning from '@mui/icons-material/Warning';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
-import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
-import { formatCityState } from '@/schemas/addressSchemas';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import { formatPhoneDisplay } from '@/lib/utils/utils';
 
 interface RepresentativesTabProps {
 	isAdminContext?: boolean;
@@ -33,86 +28,69 @@ interface RepresentativesTabProps {
 const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
-		field: 'party',
+		field: 'party_name',
 		renderCell: ({ row }) => (
-			<div
-				style={{ height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}
-			>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
 					<Tooltip title="Party is archived" placement="right">
-						<Warning sx={{ fontSize: 18, color: 'warning.main' }} />
+						<Warning sx={{ fontSize: 16, color: 'warning.main' }} />
 					</Tooltip>
 				)}
-				<StackedHeaderCell primary={row.party_name} secondary={row.party_organization ?? 'No organization'} />
+				<span>{row.party_name}</span>
 			</div>
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Business style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
 		flex: 1,
-		minWidth: 200,
+		minWidth: 150,
 	},
 	{
-		headerName: 'Representative',
-		field: 'representative',
-		renderCell: ({ row }) => {
-			const name = `${row.first_name} ${row.last_name}`;
-			const secondary = [row.title, row.email].filter(Boolean).join(' • ') || 'No title or email';
-			return (
-				<div
-					style={{
-						height: '100%',
-						display: 'flex',
-						justifyContent: 'flex-start',
-						alignItems: 'center',
-						gap: 8,
-					}}
-				>
-					{row.office_deleted_at && (
-						<Tooltip title="Associated office is archived" placement="right">
-							<Warning sx={{ fontSize: 18, color: 'info.main' }} />
-						</Tooltip>
-					)}
-					<StackedHeaderCell primary={name} secondary={secondary} />
-				</div>
-			);
-		},
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Person style={{ color: BASE_COLOR_LIGHT }} />} />,
-		flex: 1,
-		minWidth: 200,
+		headerName: 'First Name',
+		field: 'first_name',
+		width: 120,
 	},
 	{
-		headerName: 'Office',
-		field: 'office',
+		headerName: 'Last Name',
+		field: 'last_name',
+		width: 120,
+	},
+	{
+		headerName: 'Title',
+		field: 'title',
+		renderCell: ({ row }) => row.title || '—',
+		width: 130,
+	},
+	{
+		headerName: 'Email',
+		field: 'email',
+		renderCell: ({ row }) => row.email || '—',
+		flex: 1,
+		minWidth: 180,
+	},
+	{
+		headerName: 'Phone',
+		field: 'phone',
+		renderCell: ({ row }) => formatPhoneDisplay(row.phone) || formatPhoneDisplay(row.mobile_phone) || '—',
+		width: 140,
+	},
+	{
+		headerName: 'Address',
+		field: 'address_name',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.office_name || 'No office'}
-				secondary={formatCityState(row.office_city, row.office_state) || 'No location'}
-			/>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+				{row.address_deleted_at && (
+					<Tooltip title="Address is archived" placement="right">
+						<Warning sx={{ fontSize: 16, color: 'info.main' }} />
+					</Tooltip>
+				)}
+				<span>{row.address_name || '—'}</span>
+			</div>
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<LocationOn style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
-		flex: 1,
-		minWidth: 200,
-	},
-	{
-		headerName: 'Contact',
-		field: 'contact',
-		renderCell: ({ row }) => {
-			const primary = row.phone || row.mobile_phone || 'No phone';
-			const secondary = [row.email, row.fax].filter(Boolean).join(' • ') || 'No email or fax';
-			return <StackedHeaderCell primary={primary} secondary={secondary} />;
-		},
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone style={{ color: BASE_COLOR_LIGHT }} />} />,
-		width: 200,
+		width: 140,
 	},
 	{
 		headerName: 'Primary',
 		field: 'is_primary',
 		renderCell: ({ row }) => (row.is_primary ? <Chip label="Primary" color="primary" size="small" /> : null),
-		width: 100,
-		align: 'center',
+		width: 90,
 	},
 	{
 		headerName: '',
@@ -276,7 +254,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 							}}
 							rows={data.rows}
 							rowCount={rowCount}
-							rowHeight={60}
+							rowHeight={45}
 							hideFooterSelectedRowCount
 							pageSizeOptions={[]}
 							pagination
@@ -286,7 +264,13 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
-							sx={styles.tableOverrides}
+							sx={{
+								...styles.tableOverrides,
+								'& .MuiDataGrid-cell': {
+									display: 'flex',
+									alignItems: 'center',
+								},
+							}}
 						/>
 					</div>
 
@@ -316,6 +300,7 @@ const styles = {
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
+		overflow: 'hidden',
 	},
 	tableOverrides: {
 		border: 'none',

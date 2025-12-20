@@ -155,14 +155,14 @@ export default function SettlementTimeline({
 											{isSettlement ? (
 												<Typography fontSize={12} color="text.secondary">
 													{settlement.party_name}
-													{settlement.coverage_type && <> · {capitalize(settlement.coverage_type)}</>}
+													{settlement.loss_type && <> · {capitalize(settlement.loss_type)}</>}
 												</Typography>
 											) : (
 												<Typography fontSize={12} color="text.secondary">
 													{recovery.recovery_source || 'No source'}
 													{relatedSettlement && (
 														<>
-															{' '}· {relatedSettlement.party_name} · {capitalize(relatedSettlement.coverage_type)}
+															{' '}· {relatedSettlement.party_name} · {capitalize(relatedSettlement.loss_type)}
 														</>
 													)}
 												</Typography>
@@ -239,7 +239,7 @@ function SettlementDetails({ settlement }: { settlement: any }) {
 				</Box>
 				<Box>
 					<Typography fontSize={11} color={BASE_COLOR_LIGHT}>Coverage</Typography>
-					<Typography fontSize={13}><Highlight>{capitalize(settlement.coverage_type)}</Highlight></Typography>
+					<Typography fontSize={13}><Highlight>{capitalize(settlement.loss_type)}</Highlight></Typography>
 				</Box>
 				<Box>
 					<Typography fontSize={11} color={BASE_COLOR_LIGHT}>Demand Amount</Typography>
@@ -309,7 +309,7 @@ function RecoveryDetails({ recovery, relatedSettlement }: { recovery: any; relat
 					<Box>
 						<Typography fontSize={11} color={BASE_COLOR_LIGHT}>Settlement</Typography>
 						<Typography fontSize={13}>
-							{relatedSettlement.party_name} · {capitalize(relatedSettlement.coverage_type)} ·{' '}
+							{relatedSettlement.party_name} · {capitalize(relatedSettlement.loss_type)} ·{' '}
 							{formatCurrencyExact(parseFloat(relatedSettlement.demand_amount.toString()))}
 						</Typography>
 					</Box>

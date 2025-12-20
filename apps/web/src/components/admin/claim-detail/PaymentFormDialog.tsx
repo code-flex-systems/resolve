@@ -31,7 +31,7 @@ export interface PaymentFormData {
 
 interface Coverage {
 	id: number;
-	coverage_type: string;
+	loss_type: string;
 	coverage_amount?: number | string | null;
 }
 
@@ -86,7 +86,7 @@ export default function PaymentFormDialog({
 						>
 							{coverages.map((coverage) => (
 								<MenuItem key={coverage.id} value={coverage.id}>
-									{capitalize(coverage.coverage_type)}
+									{capitalize(coverage.loss_type)}
 									{coverage.coverage_amount
 										? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}`
 										: ''}

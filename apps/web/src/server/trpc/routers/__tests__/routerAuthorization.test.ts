@@ -2549,7 +2549,6 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						caller.createParty({
 							name: 'Test Party',
 							party_type: 'entity',
-							party_category: 'insurer',
 						})
 					).resolves.toBeDefined();
 				});
@@ -2569,7 +2568,6 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						caller.createParty({
 							name: 'Test Party',
 							party_type: 'entity',
-							party_category: 'insurer',
 						})
 					).resolves.toBeDefined();
 				});
@@ -2642,8 +2640,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 			});
 
-			describe('Party Office CRUD - Contributor Access', () => {
-				it('should allow contributor to create party office', async () => {
+			describe('Party Address CRUD - Contributor Access', () => {
+				it('should allow contributor to create party address', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
 						db,
@@ -2651,18 +2649,18 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockPartyController = await import('@/api/controllers/partyController');
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					vi.mocked(mockPartyController.createPartyOffice).mockResolvedValue({} as any);
+					vi.mocked(mockPartyController.createPartyAddress).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
-						caller.createPartyOffice({
+						caller.createPartyAddress({
 							party_id: 1,
-							office_name: 'Test Office',
+							name: 'Test Address',
 						})
 					).resolves.toBeDefined();
 				});
 
-				it('should allow contributor to update party office', async () => {
+				it('should allow contributor to update party address', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
 						db,
@@ -2670,28 +2668,28 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockPartyController = await import('@/api/controllers/partyController');
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					vi.mocked(mockPartyController.updatePartyOffice).mockResolvedValue({} as any);
+					vi.mocked(mockPartyController.updatePartyAddress).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
-						caller.updatePartyOffice({
+						caller.updatePartyAddress({
 							id: 1,
-							params: { office_name: 'Updated Office' },
+							params: { name: 'Updated Address' },
 						})
 					).resolves.toBeDefined();
 				});
 
-				it('should reject contributor archiving party office', async () => {
+				it('should reject contributor archiving party address', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
 						db,
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archivePartyOffice({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.archivePartyAddress({ id: 1 })).rejects.toThrow(TRPCError);
 				});
 
-				it('should allow admin to archive party office', async () => {
+				it('should allow admin to archive party address', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
 						db,
@@ -2699,20 +2697,20 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockPartyController = await import('@/api/controllers/partyController');
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					vi.mocked(mockPartyController.archivePartyOffice).mockResolvedValue({} as any);
+					vi.mocked(mockPartyController.archivePartyAddress).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archivePartyOffice({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.archivePartyAddress({ id: 1 })).resolves.toBeDefined();
 				});
 
-				it('should reject contributor restoring party office', async () => {
+				it('should reject contributor restoring party address', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
 						db,
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restorePartyOffice({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.restorePartyAddress({ id: 1 })).rejects.toThrow(TRPCError);
 				});
 			});
 

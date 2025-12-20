@@ -109,7 +109,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		},
 	});
 
-	const adverseParties = claimParties.filter((cp) => cp.party?.party_category === 'adverse_carrier');
+	const adverseParties = claimParties.filter((cp) => cp.party?.party_type === 'facilitator');
 
 	const getRecoveryCountForSettlement = (settlementId: number) => {
 		return recoveryEvents.filter((r) => r.settlement_id === settlementId).length;
@@ -497,7 +497,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								{archivingSettlement.party_name}
 							</Typography>
 							<Typography fontSize={12} color="text.secondary">
-								{capitalize(archivingSettlement.coverage_type)} ·{' '}
+								{capitalize(archivingSettlement.loss_type)} ·{' '}
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
 							</Typography>
 						</Box>

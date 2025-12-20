@@ -1,11 +1,11 @@
 'use client';
 
-import { Box, Divider, Typography } from '@mui/material';
+import { Box, Chip, Divider, Typography } from '@mui/material';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import BasicDialog from '@/components/common/BasicDialog';
-import { ClaimPartyRoleChip, EntityCategoryChip, FacilitatorCategoryChip } from '@/components/common/ReferenceDataSelect';
 import { formatAddressInline } from '@/schemas/addressSchemas';
 import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
+import { capitalize } from '@/lib/utils/utils';
 
 interface PartyDetailDialogProps {
 	open: boolean;
@@ -20,12 +20,12 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 	if (!open || !claimParty) return null;
 
 	const party = claimParty.party;
-	const office = claimParty.office;
+	const address = claimParty.address;
 	const representative = claimParty.representative;
 
 	// Build admin URLs for deep linking
 	const partyEditUrl = party ? `/admin/party-management/parties?edit=${party.id}` : null;
-	const officeEditUrl = office ? `/admin/party-management/offices?edit=${office.id}` : null;
+	const addressEditUrl = address ? `/admin/party-management/addresses?edit=${address.id}` : null;
 	const representativeEditUrl = representative ? `/admin/party-management/representatives?edit=${representative.id}` : null;
 
 	const handleOpenInNewTab = (url: string) => {
@@ -54,16 +54,18 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 						/>
 						<DetailRow
 							label="Role"
-							value={<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />}
-						/>
-						<DetailRow
-							label="Category"
 							value={
-								party.party_type === 'entity' ? (
-									<EntityCategoryChip value={party.party_category} showEmoji />
-								) : (
-									<FacilitatorCategoryChip value={party.party_category} showEmoji />
-								)
+								<Box display="flex" gap={0.5} flexWrap="wrap">
+									{Array.isArray(claimParty.role) && claimParty.role.map((r: string) => (
+										<Chip
+											key={r}
+											label={capitalize(r.replace(/_/g, ' '))}
+											size="small"
+											color="primary"
+											sx={{ height: 20, fontSize: 11 }}
+										/>
+									))}
+								</Box>
 							}
 						/>
 						{party.organization && <DetailRow label="Organization" value={party.organization} />}
@@ -74,17 +76,15 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 					</Section>
 				)}
 
-				{/* Office Information Section */}
-				{office && (
+				{/* Address Information Section */}
+				{address && (
 					<Section
-						title="Office Information"
-						editLabel="Edit in Offices"
-						onEdit={officeEditUrl ? () => handleOpenInNewTab(officeEditUrl) : undefined}
+						title="Address Information"
+						editLabel="Edit in Addresses"
+						onEdit={addressEditUrl ? () => handleOpenInNewTab(addressEditUrl) : undefined}
 					>
-						<DetailRow label="Office Name" value={office.office_name || 'Unnamed'} />
-						{office.phone && <DetailRow label="Phone" value={office.phone} />}
-						{office.fax && <DetailRow label="Fax" value={office.fax} />}
-						{formatAddressInline(office) && <DetailRow label="Address" value={formatAddressInline(office)} />}
+						<DetailRow label="Label" value={address.name || 'Unnamed'} />
+						{formatAddressInline(address) && <DetailRow label="Address" value={formatAddressInline(address)} />}
 					</Section>
 				)}
 

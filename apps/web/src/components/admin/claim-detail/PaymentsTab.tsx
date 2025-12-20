@@ -41,7 +41,7 @@ interface PaymentRow {
 	payment_amount: string;
 	is_subrogable: boolean;
 	is_expense: boolean;
-	coverage_type: string;
+	loss_type: string;
 	payee_claim_party_id: number | null;
 	payee_name: string | null;
 	description: string | null;
@@ -202,7 +202,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				valueFormatter: (value) => (value ? dayjs(value).format('MMM D, YYYY') : ''),
 			},
 			{
-				field: 'coverage_type',
+				field: 'loss_type',
 				headerName: 'Coverage',
 				width: 120,
 				valueFormatter: (value) => (value ? capitalize(value) : ''),
@@ -462,7 +462,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 							</Typography>
 							<Typography fontSize={12} color="text.secondary">
 								{dayjs(archivingPayment.payment_date).format('MMM D, YYYY')} ·{' '}
-								{archivingPayment.coverage_type ? capitalize(archivingPayment.coverage_type) : ''}
+								{archivingPayment.loss_type ? capitalize(archivingPayment.loss_type) : ''}
 								{archivingPayment.payee_name && ` · ${archivingPayment.payee_name}`}
 							</Typography>
 						</Box>

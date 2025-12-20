@@ -63,7 +63,7 @@ export default function CoverageManager({
 	};
 
 	const handleSubmit = async (data: {
-		coverage_type: string;
+		loss_type: string;
 		coverage_amount: string | null;
 		amount_reserved: string | null;
 	}) => {
@@ -71,7 +71,7 @@ export default function CoverageManager({
 			if (editingCoverage) {
 				await updateCoverage.mutateAsync({
 					id: editingCoverage.id,
-					coverage_type: data.coverage_type as any,
+					loss_type: data.loss_type as any,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
 					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
 				});
@@ -89,7 +89,7 @@ export default function CoverageManager({
 	const COLUMNS: GridColDef[] = [
 		{
 			headerName: 'Coverage Type',
-			field: 'coverage_type',
+			field: 'loss_type',
 			renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: BASE_COLOR_LIGHT }} />} />,
 			valueFormatter: (value: string) => formatCoverageType(value),
 			flex: 1,

@@ -3,6 +3,74 @@ import { LossType, PartyType } from '@/config/enums';
 import { addressSchema } from './addressSchemas';
 
 // ============================================================================
+// ENUMS FOR TYPE/STATUS FIELDS
+// ============================================================================
+
+export const AddressType = {
+	HOME: 'home',
+	BUSINESS: 'business',
+} as const;
+
+export const AddressStatus = {
+	VALID: 'valid',
+	MAILING: 'mailing',
+	UNDELIVERABLE: 'undeliverable',
+	UNKNOWN: 'unknown',
+} as const;
+
+export const PhoneType = {
+	MOBILE: 'mobile',
+	HOME: 'home',
+	WORK: 'work',
+	FAX: 'fax',
+} as const;
+
+export const PhoneStatus = {
+	VALID: 'valid',
+	DISCONNECTED: 'disconnected',
+	UNKNOWN: 'unknown',
+} as const;
+
+export const EmailType = {
+	PERSONAL: 'personal',
+	BUSINESS: 'business',
+} as const;
+
+// Zod enum schemas
+export const addressTypeSchema = z.enum(['home', 'business']);
+export const addressStatusSchema = z.enum(['valid', 'mailing', 'undeliverable', 'unknown']);
+export const phoneTypeSchema = z.enum(['mobile', 'home', 'work', 'fax']);
+export const phoneStatusSchema = z.enum(['valid', 'disconnected', 'unknown']);
+export const emailTypeSchema = z.enum(['personal', 'business']);
+
+// ============================================================================
+// INLINE CONTACT SCHEMA (for party create/update with optional contact info)
+// ============================================================================
+
+/**
+ * Optional inline contact data for party creation/update.
+ * Creates records in separate tables (party_email, party_phone, party_address)
+ * within the same transaction.
+ */
+export const inlineContactSchema = z
+	.object({
+		// Optional primary email
+		email: z.string().email().optional().or(z.literal('')),
+		email_type: emailTypeSchema.optional().default('business'),
+
+		// Optional primary phone (simple string - controller can parse components)
+		phone: z.string().max(50).optional(),
+		phone_type: phoneTypeSchema.optional().default('work'),
+
+		// Optional primary address
+		address: addressSchema.optional(),
+		address_type: addressTypeSchema.optional().default('business'),
+	})
+	.optional();
+
+export type InlineContact = z.infer<typeof inlineContactSchema>;
+
+// ============================================================================
 // PARTY SCHEMAS
 // ============================================================================
 
@@ -33,36 +101,66 @@ export const searchPartiesInput = z.object({
 
 /**
  * Create party input
+ * - Business parties use `name` field
+ * - Individual parties use first_name, middle_name, last_name, suffix
+ * - Optional inline contact info (email, phone, address) creates records in separate tables
  */
 export const createPartyInput = z
 	.object({
 		party_type: z.nativeEnum(PartyType),
-		party_category: z.string().min(1), // Validated at application layer based on party_type
-		name: z.string().min(2).max(255),
+		is_business: z.boolean().default(true),
+		// Business name (used when is_business=true)
+		name: z.string().max(255).optional(),
+		// Individual name fields (used when is_business=false)
+		first_name: z.string().max(100).optional(),
+		middle_name: z.string().max(100).optional(),
+		last_name: z.string().max(100).optional(),
+		suffix: z.string().max(20).optional(),
+		// Other party fields
 		organization: z.string().max(255).optional(),
-		email: z.string().email().optional().or(z.literal('')),
-		phone: z.string().max(50).optional(),
 		notes: z.string().max(2000).optional(),
+		// Optional inline contact data (creates records in separate tables)
+		contact: inlineContactSchema,
 	})
-	.merge(addressSchema);
+	.refine(
+		(data) => {
+			if (data.is_business) {
+				return !!data.name && data.name.length >= 2;
+			} else {
+				return !!data.first_name && !!data.last_name;
+			}
+		},
+		{
+			message: 'Business parties require name (min 2 chars); individuals require first_name and last_name',
+		}
+	);
+
+export type CreatePartyInput = z.infer<typeof createPartyInput>;
 
 /**
  * Update party input
  */
 export const updatePartyInput = z.object({
 	id: z.number().int().positive(),
-	params: z
-		.object({
-			party_type: z.nativeEnum(PartyType).optional(),
-			party_category: z.string().min(1).optional(),
-			name: z.string().min(2).max(255).optional(),
-			organization: z.string().max(255).optional(),
-			email: z.string().email().optional().or(z.literal('')),
-			phone: z.string().max(50).optional(),
-			notes: z.string().max(2000).optional(),
-		})
-		.merge(addressSchema),
+	params: z.object({
+		party_type: z.nativeEnum(PartyType).optional(),
+		is_business: z.boolean().optional(),
+		// Business name
+		name: z.string().max(255).optional(),
+		// Individual name fields
+		first_name: z.string().max(100).optional(),
+		middle_name: z.string().max(100).optional(),
+		last_name: z.string().max(100).optional(),
+		suffix: z.string().max(20).optional(),
+		// Other party fields
+		organization: z.string().max(255).optional(),
+		notes: z.string().max(2000).optional(),
+		// Optional inline contact data (creates/updates records in separate tables)
+		contact: inlineContactSchema,
+	}),
 });
+
+export type UpdatePartyInput = z.infer<typeof updatePartyInput>;
 
 /**
  * Delete party input
@@ -72,21 +170,21 @@ export const deletePartyInput = z.object({
 });
 
 // ============================================================================
-// PARTY OFFICE SCHEMAS
+// PARTY ADDRESS SCHEMAS (renamed from PARTY OFFICE)
 // ============================================================================
 
 /**
- * Get party offices
+ * Get party addresses
  */
-export const getPartyOfficesInput = z.object({
+export const getPartyAddressesInput = z.object({
 	partyId: z.number().int().positive(),
 	showArchived: z.boolean().optional(),
 });
 
 /**
- * Get all party offices (for standalone admin tab)
+ * Get all party addresses (for standalone admin tab)
  */
-export const getAllPartyOfficesInput = z.object({
+export const getAllPartyAddressesInput = z.object({
 	searchTerm: z.string().optional(),
 	limit: z.number().int().positive().optional(),
 	offset: z.number().int().nonnegative().optional(),
@@ -94,44 +192,171 @@ export const getAllPartyOfficesInput = z.object({
 });
 
 /**
- * Create party office input
+ * Get single party address by ID
  */
-export const createPartyOfficeInput = z
+export const getPartyAddressInput = z.object({
+	id: z.number().int().positive(),
+});
+
+/**
+ * Create party address input
+ */
+export const createPartyAddressInput = z
 	.object({
 		party_id: z.number().int().positive(),
-		office_name: z.string().max(255).optional(),
-		phone: z.string().max(50).optional(),
-		fax: z.string().max(50).optional(),
-		is_primary: z.boolean().optional(),
+		name: z.string().max(255).optional(), // Label like "Home", "Work", "Headquarters"
+		address_type: addressTypeSchema.default('business'),
+		address_status: addressStatusSchema.default('valid'),
 	})
 	.merge(addressSchema);
 
+export type CreatePartyAddressInput = z.infer<typeof createPartyAddressInput>;
+
 /**
- * Update party office input
+ * Update party address input
  */
-export const updatePartyOfficeInput = z.object({
+export const updatePartyAddressInput = z.object({
 	id: z.number().int().positive(),
 	params: z
 		.object({
-			office_name: z.string().max(255).optional(),
-			phone: z.string().max(50).optional(),
-			fax: z.string().max(50).optional(),
-			is_primary: z.boolean().optional(),
+			name: z.string().max(255).optional(),
+			address_type: addressTypeSchema.optional(),
+			address_status: addressStatusSchema.optional(),
 		})
 		.merge(addressSchema),
 });
 
+export type UpdatePartyAddressInput = z.infer<typeof updatePartyAddressInput>;
+
 /**
- * Archive party office input (soft delete)
+ * Archive party address input (soft delete)
  */
-export const archivePartyOfficeInput = z.object({
+export const archivePartyAddressInput = z.object({
 	id: z.number().int().positive(),
 });
 
 /**
- * Delete party office input (for backwards compatibility - now archives)
+ * Restore party address input
  */
-export const deletePartyOfficeInput = archivePartyOfficeInput;
+export const restorePartyAddressInput = z.object({
+	id: z.number().int().positive(),
+});
+
+// Legacy aliases for backwards compatibility
+export const getPartyOfficesInput = getPartyAddressesInput;
+export const getAllPartyOfficesInput = getAllPartyAddressesInput;
+export const createPartyOfficeInput = createPartyAddressInput;
+export const updatePartyOfficeInput = updatePartyAddressInput;
+export const archivePartyOfficeInput = archivePartyAddressInput;
+export const deletePartyOfficeInput = archivePartyAddressInput;
+
+// ============================================================================
+// PARTY PHONE SCHEMAS
+// ============================================================================
+
+/**
+ * Get party phones
+ */
+export const getPartyPhonesInput = z.object({
+	partyId: z.number().int().positive(),
+	showArchived: z.boolean().optional(),
+});
+
+/**
+ * Create party phone input
+ */
+export const createPartyPhoneInput = z.object({
+	party_id: z.number().int().positive(),
+	country_code: z.string().max(5).optional(),
+	area_code: z.string().max(10).optional(),
+	phone_number: z.string().min(1).max(20),
+	extension: z.string().max(10).optional(),
+	phone_type: phoneTypeSchema,
+	phone_status: phoneStatusSchema.default('unknown'),
+});
+
+export type CreatePartyPhoneInput = z.infer<typeof createPartyPhoneInput>;
+
+/**
+ * Update party phone input
+ */
+export const updatePartyPhoneInput = z.object({
+	id: z.number().int().positive(),
+	params: z.object({
+		country_code: z.string().max(5).optional(),
+		area_code: z.string().max(10).optional(),
+		phone_number: z.string().min(1).max(20).optional(),
+		extension: z.string().max(10).optional(),
+		phone_type: phoneTypeSchema.optional(),
+		phone_status: phoneStatusSchema.optional(),
+	}),
+});
+
+export type UpdatePartyPhoneInput = z.infer<typeof updatePartyPhoneInput>;
+
+/**
+ * Archive party phone input
+ */
+export const archivePartyPhoneInput = z.object({
+	id: z.number().int().positive(),
+});
+
+/**
+ * Restore party phone input
+ */
+export const restorePartyPhoneInput = z.object({
+	id: z.number().int().positive(),
+});
+
+// ============================================================================
+// PARTY EMAIL SCHEMAS
+// ============================================================================
+
+/**
+ * Get party emails
+ */
+export const getPartyEmailsInput = z.object({
+	partyId: z.number().int().positive(),
+	showArchived: z.boolean().optional(),
+});
+
+/**
+ * Create party email input
+ */
+export const createPartyEmailInput = z.object({
+	party_id: z.number().int().positive(),
+	email_address: z.string().email(),
+	email_type: emailTypeSchema.default('business'),
+});
+
+export type CreatePartyEmailInput = z.infer<typeof createPartyEmailInput>;
+
+/**
+ * Update party email input
+ */
+export const updatePartyEmailInput = z.object({
+	id: z.number().int().positive(),
+	params: z.object({
+		email_address: z.string().email().optional(),
+		email_type: emailTypeSchema.optional(),
+	}),
+});
+
+export type UpdatePartyEmailInput = z.infer<typeof updatePartyEmailInput>;
+
+/**
+ * Archive party email input
+ */
+export const archivePartyEmailInput = z.object({
+	id: z.number().int().positive(),
+});
+
+/**
+ * Restore party email input
+ */
+export const restorePartyEmailInput = z.object({
+	id: z.number().int().positive(),
+});
 
 // ============================================================================
 // PARTY REPRESENTATIVE SCHEMAS
@@ -142,7 +367,7 @@ export const deletePartyOfficeInput = archivePartyOfficeInput;
  */
 export const getPartyRepresentativesInput = z.object({
 	partyId: z.number().int().positive(),
-	officeId: z.number().int().positive().optional(),
+	addressId: z.number().int().positive().optional(), // Renamed from officeId
 	showArchived: z.boolean().optional(),
 });
 
@@ -161,7 +386,7 @@ export const getAllPartyRepresentativesInput = z.object({
  */
 export const createPartyRepresentativeInput = z.object({
 	party_id: z.number().int().positive(),
-	office_id: z.number().int().positive().optional(),
+	address_id: z.number().int().positive().optional(), // Renamed from office_id
 	first_name: z.string().min(1).max(100),
 	last_name: z.string().min(1).max(100),
 	title: z.string().max(100).optional(),
@@ -178,7 +403,7 @@ export const createPartyRepresentativeInput = z.object({
 export const updatePartyRepresentativeInput = z.object({
 	id: z.number().int().positive(),
 	params: z.object({
-		office_id: z.number().int().positive().optional(),
+		address_id: z.number().int().positive().optional(), // Renamed from office_id
 		first_name: z.string().min(1).max(100).optional(),
 		last_name: z.string().min(1).max(100).optional(),
 		title: z.string().max(100).optional(),
@@ -230,7 +455,7 @@ export const getClaimPartiesInput = z.object({
 export const linkPartyToClaimInput = z.object({
 	claim_id: z.number().int().positive(),
 	party_id: z.number().int().positive(),
-	role: z.string(),
+	role: z.array(z.string()).min(1), // Array of roles for this party on this claim
 	representative_id: z.number().int().positive().nullable().optional(),
 	is_primary: z.boolean().optional(),
 	liability_percentage: z.number().min(0).max(100).optional(),
@@ -250,7 +475,7 @@ export const linkPartyToClaimInput = z.object({
 export const updateClaimPartyInput = z.object({
 	id: z.number().int().positive(),
 	params: z.object({
-		role: z.string().optional(),
+		role: z.array(z.string()).min(1).optional(),
 		representative_id: z.number().int().positive().nullable().optional(),
 		is_primary: z.boolean().optional(),
 		liability_percentage: z.number().min(0).max(100).nullable().optional(),
@@ -271,19 +496,30 @@ export const unlinkPartyFromClaimInput = z.object({
 });
 
 // ============================================================================
-// HELPER VALIDATORS
+// HELPER FUNCTIONS
 // ============================================================================
 
 /**
- * Validate party_category based on party_type
- * Note: This now just validates that the category is a non-empty string.
- * The actual valid values are managed in the reference_option table.
+ * Compute display name for a party based on is_business flag
  */
-export function validatePartyCategoryForType(
-	party_type: PartyType,
-	party_category: string
-): boolean {
-	// Basic validation - category must be a non-empty string
-	// The actual valid values are now database-driven (reference_option table)
-	return typeof party_category === 'string' && party_category.length > 0;
+export function computePartyDisplayName(party: {
+	is_business: boolean;
+	name?: string | null;
+	first_name?: string | null;
+	middle_name?: string | null;
+	last_name?: string | null;
+	suffix?: string | null;
+}): string {
+	if (party.is_business) {
+		return party.name || '';
+	}
+
+	const parts = [party.first_name, party.middle_name, party.last_name].filter(Boolean);
+	const fullName = parts.join(' ');
+
+	if (party.suffix) {
+		return `${fullName}, ${party.suffix}`;
+	}
+
+	return fullName;
 }

@@ -85,7 +85,7 @@ describe('claimController integration tests', () => {
 				await claimController.updateClaim(ctx, {
 					claimId: claim.id,
 					party_id: party.id,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				// Verify party was linked
@@ -97,7 +97,7 @@ describe('claimController integration tests', () => {
 
 				expect(claimParties).toHaveLength(1);
 				expect(claimParties[0].party_id).toBe(party.id);
-				expect(claimParties[0].role).toBe('adverse_carrier');
+				expect(claimParties[0].role).toEqual(['adverse_carrier']);
 				expect(claimParties[0].is_primary).toBe(true);
 			});
 
@@ -113,7 +113,7 @@ describe('claimController integration tests', () => {
 					claimId: claim.id,
 					party_id: party.id,
 					representative_id: rep.id,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				// Verify party and representative were linked
@@ -141,7 +141,7 @@ describe('claimController integration tests', () => {
 					claim_id: claim.id,
 					party_id: party.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -181,14 +181,14 @@ describe('claimController integration tests', () => {
 					claim_id: claim.id,
 					party_id: primaryParty.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: secondaryParty.id,
 					is_primary: false,
-					role: 'claimant',
+					role: ['claimant'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -232,7 +232,7 @@ describe('claimController integration tests', () => {
 					claim_id: claim.id,
 					party_id: oldParty.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -240,7 +240,7 @@ describe('claimController integration tests', () => {
 				await claimController.updateClaim(ctx, {
 					claimId: claim.id,
 					party_id: newParty.id,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				// Verify old party was unlinked and new party linked
@@ -266,7 +266,7 @@ describe('claimController integration tests', () => {
 					claim_id: claim.id,
 					party_id: party.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -274,7 +274,7 @@ describe('claimController integration tests', () => {
 				await claimController.updateClaim(ctx, {
 					claimId: claim.id,
 					party_id: party.id,
-					role: 'claimant', // Different role
+					role: ['claimant'], // Different role
 				});
 
 				// Verify party was replaced (delete + create) with new role
@@ -287,7 +287,7 @@ describe('claimController integration tests', () => {
 
 				expect(activeParties).toHaveLength(1);
 				expect(activeParties[0].party_id).toBe(party.id);
-				expect(activeParties[0].role).toBe('claimant');
+				expect(activeParties[0].role).toEqual(['claimant']);
 				expect(activeParties[0].is_primary).toBe(true);
 			});
 		});
@@ -314,7 +314,7 @@ describe('claimController integration tests', () => {
 					party_id: party.id,
 					representative_id: oldRep.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -323,7 +323,7 @@ describe('claimController integration tests', () => {
 					claimId: claim.id,
 					party_id: party.id,
 					representative_id: newRep.id,
-					role: 'adverse_carrier', // Same role, same party
+					role: ['adverse_carrier'], // Same role, same party
 				});
 
 				// Verify representative was updated in-place (same claim_party record)
@@ -350,7 +350,7 @@ describe('claimController integration tests', () => {
 					party_id: party.id,
 					representative_id: rep.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -359,7 +359,7 @@ describe('claimController integration tests', () => {
 					claimId: claim.id,
 					party_id: party.id,
 					representative_id: null,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				// Verify representative was removed
@@ -418,7 +418,7 @@ describe('claimController integration tests', () => {
 					claim_id: claim.id,
 					party_id: oldParty.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -454,7 +454,7 @@ describe('claimController integration tests', () => {
 					party_id: party.id,
 					representative_id: rep.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -463,7 +463,7 @@ describe('claimController integration tests', () => {
 					claimId: claim.id,
 					party_id: party.id,
 					representative_id: rep.id,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				// Verify the same record exists unchanged
@@ -476,7 +476,7 @@ describe('claimController integration tests', () => {
 				expect(unchangedParty).toBeDefined();
 				expect(unchangedParty!.party_id).toBe(party.id);
 				expect(unchangedParty!.representative_id).toBe(rep.id);
-				expect(unchangedParty!.role).toBe('adverse_carrier');
+				expect(unchangedParty!.role).toEqual(['adverse_carrier']);
 				expect(unchangedParty!.deleted_at).toBeNull();
 
 				// Should still only have 1 active claim_party
@@ -502,7 +502,7 @@ describe('claimController integration tests', () => {
 					claim_id: claim.id,
 					party_id: party.id,
 					is_primary: true,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 					created_by: user.id,
 				});
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
@@ -571,7 +571,7 @@ describe('claimController integration tests', () => {
 						claimId: claim.id,
 						insured: 'Should Be Rolled Back',
 						party_id: 999999, // Non-existent party
-						role: 'adverse_carrier',
+						role: ['adverse_carrier'],
 					});
 				} catch {
 					// Expected to fail
@@ -686,7 +686,7 @@ describe('claimController integration tests', () => {
 						{ claim_number: 'CLM-002', insured: 'Insured 2' },
 					],
 					party_id: party.id,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				expect(created).toHaveLength(2);
@@ -701,7 +701,7 @@ describe('claimController integration tests', () => {
 
 					expect(claimParties).toHaveLength(1);
 					expect(claimParties[0].party_id).toBe(party.id);
-					expect(claimParties[0].role).toBe('adverse_carrier');
+					expect(claimParties[0].role).toEqual(['adverse_carrier']);
 					expect(claimParties[0].is_primary).toBe(true);
 				}
 			});
@@ -720,7 +720,7 @@ describe('claimController integration tests', () => {
 					],
 					party_id: party.id,
 					representative_id: rep.id,
-					role: 'adverse_carrier',
+					role: ['adverse_carrier'],
 				});
 
 				expect(created).toHaveLength(2);

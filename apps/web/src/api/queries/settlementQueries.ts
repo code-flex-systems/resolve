@@ -86,8 +86,7 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
 			'settlement.updated_by',
 			'settlement.updated_at',
 			eb.ref('party.name').as('party_name'),
-			eb.ref('party.party_category').as('party_category'),
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 			'claim_coverage.coverage_amount',
 		])
 		.where('settlement.id', '=', settlementId)
@@ -125,8 +124,7 @@ export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: nu
 			'settlement.updated_by',
 			'settlement.updated_at',
 			eb.ref('party.name').as('party_name'),
-			eb.ref('party.party_category').as('party_category'),
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 			'claim_coverage.coverage_amount',
 		])
 		.where('settlement.claim_id', '=', claimId)
@@ -262,7 +260,7 @@ export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: 
 			'settlement.demand_date',
 			'settlement.status',
 			eb.ref('party.name').as('party_name'),
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 		])
 		.where('settlement.claim_id', '=', claimId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)

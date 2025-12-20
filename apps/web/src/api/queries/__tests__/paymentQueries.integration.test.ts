@@ -46,7 +46,7 @@ describe('paymentQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'liability',
+				loss_type: 'liability',
 				coverage_amount: 100000,
 			});
 
@@ -221,13 +221,12 @@ describe('paymentQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				party_category: 'claimant',
-			});
+				});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
-				role: 'claimant',
+				role: ['claimant'],
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -303,7 +302,7 @@ describe('paymentQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'liability',
+				loss_type: 'liability',
 			});
 
 			await createTestPayment(db, {
@@ -328,8 +327,8 @@ describe('paymentQueries integration', () => {
 
 			// Assert
 			expect(result).toHaveLength(2);
-			expect(result[0].coverage_type).toBe('liability');
-			expect(result[1].coverage_type).toBe('liability');
+			expect(result[0].loss_type).toBe('liability');
+			expect(result[1].loss_type).toBe('liability');
 		});
 
 		it('should return null payee_name when no payee is set', async () => {
@@ -375,14 +374,13 @@ describe('paymentQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				party_category: 'claimant',
-				name: 'John Doe',
+					name: 'John Doe',
 			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
-				role: 'claimant',
+				role: ['claimant'],
 			});
 
 			await createTestPayment(db, {

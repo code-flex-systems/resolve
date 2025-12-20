@@ -15,7 +15,7 @@ export default function CoverageTypeSelect({
 	...selectProps
 }: CoverageTypeSelectProps) {
 	const { data: options = [], isLoading } = trpc.referenceData.getReferenceOptions.useQuery(
-		{ entity: 'coverage_type' },
+		{ entity: 'loss_type' },
 		{
 			staleTime: 5 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,

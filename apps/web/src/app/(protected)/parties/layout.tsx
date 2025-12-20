@@ -22,8 +22,8 @@ const partyNavCategories: AdminNavCategory[] = [
 				icon: <BusinessIcon fontSize="small" />,
 			},
 			{
-				label: 'Offices',
-				route: '/parties/offices',
+				label: 'Addresses',
+				route: '/parties/addresses',
 				icon: <LocationOnIcon fontSize="small" />,
 			},
 			{

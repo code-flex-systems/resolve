@@ -108,7 +108,7 @@ export async function createClaims(
 		claims: ClaimData[];
 		party_id?: number | null;
 		representative_id?: number | null;
-		role?: string | null;
+		role?: string[] | null;
 	}
 ) {
 	// Create claims and log admin actions within transaction
@@ -183,7 +183,7 @@ export async function updateClaim(
 		substatus?: string;
 		party_id?: number | null;
 		representative_id?: number | null;
-		role?: string | null;
+		role?: string[] | null;
 	}
 ) {
 	const {
@@ -253,7 +253,12 @@ export async function updateClaim(
 				// User wants to set/update party (role is required for creating/updating)
 				const partyChanged = !existingPrimary || existingPrimary.party_id !== party_id;
 				const repChanged = !existingPrimary || existingPrimary.representative_id !== representative_id;
-				const roleChanged = !existingPrimary || existingPrimary.role !== role;
+				// Compare role arrays by value since arrays compare by reference
+				const existingRole = existingPrimary?.role ?? [];
+				const roleChanged =
+					!existingPrimary ||
+					existingRole.length !== role.length ||
+					!existingRole.every((r, i) => r === role[i]);
 
 				if (existingPrimary) {
 					// Update existing primary party

@@ -6,6 +6,16 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 // public methods
 
+/**
+ * Format a phone number for display.
+ * Returns formatted number like "(212) 555-1234" or the original string if parsing fails.
+ */
+export function formatPhoneDisplay(phone: string | null | undefined): string {
+	if (!phone) return '';
+	const parsed = parsePhoneNumberFromString(phone, 'US');
+	return parsed?.formatNational() ?? phone;
+}
+
 export function capitalize(word: string) {
 	return `${word[0].toUpperCase()}${word.slice(1)}`;
 }

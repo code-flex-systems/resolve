@@ -48,7 +48,7 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 						Are you sure you want to delete this coverage?
 					</Typography>
 					<Typography fontSize={14} color="text.secondary">
-						Coverage Type: <strong>{formatCoverageType(coverage.coverage_type)}</strong>
+						Coverage Type: <strong>{formatCoverageType(coverage.loss_type)}</strong>
 					</Typography>
 					<Typography fontSize={14} color="text.secondary">
 						Amount:{' '}

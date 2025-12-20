@@ -49,7 +49,9 @@ export enum EntityName {
 
 	// Party management entities
 	PARTY = 'party',
-	PARTY_OFFICE = 'party_office',
+	PARTY_ADDRESS = 'party_address',
+	PARTY_PHONE = 'party_phone',
+	PARTY_EMAIL = 'party_email',
 	PARTY_REPRESENTATIVE = 'party_representative',
 	CLAIM_PARTY = 'claim_party',
 

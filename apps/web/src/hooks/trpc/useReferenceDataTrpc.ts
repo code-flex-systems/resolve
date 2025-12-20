@@ -10,8 +10,8 @@ type ReferenceDataOutput = RouterOutput['referenceData'];
  * Provides convenience wrappers with automatic cache invalidation
  *
  * Reference data is used for configurable business enums like:
- * - line_of_business, loss_type, coverage_type
- * - claim_substatus, facilitator_category, entity_category, claim_party_role
+ * - line_of_business, loss_type
+ * - claim_substatus, claimant_party_role, adverse_party_role
  */
 export function useReferenceDataTrpc() {
 	const utils = trpc.useUtils();

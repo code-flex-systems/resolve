@@ -190,15 +190,15 @@ export interface ClaimCoverage {
   claim_party_id: number | null;
   client_id: string;
   coverage_amount: Numeric | null;
+  /**
+   * Type of coverage (CoverageType enum enforced in TypeScript)
+   */
+  coverage_type: string;
   created_at: Generated<Timestamp | null>;
   created_by: string | null;
   deleted_at: Timestamp | null;
   deleted_by: string | null;
   id: Generated<number>;
-  /**
-   * Type of loss/coverage (uses loss_type reference list)
-   */
-  loss_type: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -238,9 +238,9 @@ export interface ClaimParty {
    */
   representative_id: number | null;
   /**
-   * Role(s) this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
+   * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
    */
-  role: string[];
+  role: string;
 }
 
 export interface ClaimPayment {
@@ -536,6 +536,10 @@ export interface Party {
   name: string;
   notes: string | null;
   organization: string | null;
+  /**
+   * For facilitators: adverse_carrier, attorney, expert, vendor. For entities: responsible_party, claimant, witness, property_owner
+   */
+  party_category: string;
   /**
    * entity = directly involved in loss, facilitator = representative/service provider
    */

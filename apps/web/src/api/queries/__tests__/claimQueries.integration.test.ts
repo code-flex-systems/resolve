@@ -1158,19 +1158,19 @@ describe('claimQueries integration', () => {
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.DWELLING,
+				loss_type: CoverageType.DWELLING,
 				amount_reserved: 50000,
 			});
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.LIABILITY,
+				loss_type: CoverageType.LIABILITY,
 				amount_reserved: 25000,
 			});
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.MEDICAL_PAYMENTS,
+				loss_type: CoverageType.MEDICAL_PAYMENTS,
 				amount_reserved: 10000,
 			});
 
@@ -1239,7 +1239,7 @@ describe('claimQueries integration', () => {
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.DWELLING,
+				loss_type: CoverageType.DWELLING,
 				coverage_amount: 100000,
 			});
 

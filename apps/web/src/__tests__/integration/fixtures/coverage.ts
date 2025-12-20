@@ -15,7 +15,7 @@ export async function createTestCoverage(
 		claim_id: number;
 		created_by: string;
 		claim_party_id?: number | null;
-		coverage_type?: string;
+		loss_type?: string;
 		coverage_amount?: string | number | null;
 		amount_reserved?: string | number | null;
 		deleted_at?: Date | null;
@@ -27,7 +27,7 @@ export async function createTestCoverage(
 		claim_id: overrides.claim_id,
 		created_by: overrides.created_by,
 		claim_party_id: overrides.claim_party_id ?? null,
-		coverage_type: overrides.coverage_type || 'dwelling',
+		loss_type: overrides.loss_type || 'dwelling',
 		coverage_amount: overrides.coverage_amount?.toString() ?? null,
 		amount_reserved: overrides.amount_reserved?.toString() ?? null,
 		deleted_at: overrides.deleted_at ?? null,

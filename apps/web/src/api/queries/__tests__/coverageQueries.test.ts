@@ -85,8 +85,8 @@ describe('coverageQueries', () => {
 		it('should filter coverages by claim_id and client_id', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_id: 100, coverage_type: 'dwelling', coverage_amount: '50000', deleted_at: null },
-				{ id: 2, claim_id: 100, coverage_type: 'personal_property', coverage_amount: '25000', deleted_at: null },
+				{ id: 1, claim_id: 100, loss_type: 'dwelling', coverage_amount: '50000', deleted_at: null },
+				{ id: 2, claim_id: 100, loss_type: 'personal_property', coverage_amount: '25000', deleted_at: null },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -117,7 +117,7 @@ describe('coverageQueries', () => {
 		it('should filter coverages by claim_party_id and client_id', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_party_id: 50, coverage_type: 'dwelling', coverage_amount: '50000' },
+				{ id: 1, claim_party_id: 50, loss_type: 'dwelling', coverage_amount: '50000' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -139,7 +139,7 @@ describe('coverageQueries', () => {
 				id: 1,
 				claim_id: 100,
 				claim_party_id: 50,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 50000,
 				amount_reserved: null,
 				client_id: 'client-abc',
@@ -155,7 +155,7 @@ describe('coverageQueries', () => {
 			await createCoverage(mockAdminContext, {
 				claim_id: 100,
 				claim_party_id: 50,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 50000,
 			});
 
@@ -163,7 +163,7 @@ describe('coverageQueries', () => {
 			expect(mockChain.values).toHaveBeenCalledWith({
 				claim_id: 100,
 				claim_party_id: 50,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 50000,
 				amount_reserved: null,
 				client_id: 'client-abc',
@@ -183,7 +183,7 @@ describe('coverageQueries', () => {
 			await createCoverage(mockAdminContext, {
 				claim_id: 100,
 				claim_party_id: 50,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			const valuesCall = mockChain.values.mock.calls[0][0];
@@ -197,7 +197,7 @@ describe('coverageQueries', () => {
 			const mockCoverage = {
 				id: 1,
 				claim_id: 100,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 75000,
 			};
 			mockChain.executeTakeFirstOrThrow.mockResolvedValue(mockCoverage);
