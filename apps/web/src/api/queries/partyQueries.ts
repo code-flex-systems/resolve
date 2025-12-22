@@ -342,8 +342,10 @@ export async function getActiveClaimAssociations(ctx: ProtectedContext, partyId:
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
 		.select(['claim_party.id', 'claim.claim_number', 'claim.substatus'])
 		.where('claim_party.party_id', '=', partyId)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.deleted_at', 'is', null)
 		.where('claim.substatus', 'not in', ['Completed', 'Cancelled'])
+		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.execute();
 }
 
@@ -1429,6 +1431,7 @@ export async function getClaimParties(
 		])
 		.distinctOn('claim_party.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.deleted_at', 'is', null)
 		.orderBy('claim_party.id')
@@ -1583,6 +1586,7 @@ export async function getPrimaryClaimParty(
 			'claim_party.is_primary',
 		])
 		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.is_primary', '=', true)
 		.where('claim_party.deleted_at', 'is', null)
 		.where('claim.client_id', '=', ctx.session.user.client_id)
@@ -1641,6 +1645,7 @@ export async function linkPartyToClaim(
 			parent_claim_party_id: params.parent_claim_party_id,
 			loss_type: params.loss_type,
 			policy_limit: params.policy_limit?.toString(),
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
@@ -1706,6 +1711,7 @@ export async function updateClaimParty(
 			}),
 		})
 		.where('claim_party.id', '=', id)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where(
 			'claim_party.claim_id',
 			'in',
@@ -1735,6 +1741,7 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
 			'claim.claim_number as claim_number',
 		])
 		.where('claim_party.id', '=', id)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 }
@@ -1753,6 +1760,7 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
 		.select(['claim_party.claim_id'])
 		.where('claim_party.id', '=', id)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 
@@ -1777,6 +1785,7 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
 			deleted_by: ctx.session.user.id,
 		})
 		.where('claim_party.id', 'in', allClaimPartyIds)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where(
 			'claim_party.claim_id',
 			'in',
@@ -1821,6 +1830,7 @@ export async function getClaimLiabilityPercentageTotal(ctx: ProtectedContext, cl
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
 		.select(({ fn }) => fn.sum<string>('claim_party.liability_percentage').as('total_liability_percentage'))
 		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.deleted_at', 'is', null)
 		.executeTakeFirst();

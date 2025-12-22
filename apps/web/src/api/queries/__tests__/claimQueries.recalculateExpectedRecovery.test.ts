@@ -7,14 +7,14 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
  * Tests for recalculateClaimExpectedRecovery - Financial Calculation Logic
  *
  * This function is critical for:
- * 1. Calculating expected recovery from liability percentages and total_incurred
- * 2. Formula: expected_recovery = (100% - sum(entity liability %)) / 100 × total_incurred
+ * 1. Calculating expected recovery from liability percentages and claim_amount (actual payments)
+ * 2. Formula: expected_recovery = (100% - sum(entity liability %)) / 100 × claim_amount
  * 3. Caching the result on the claim table for performance
  *
  * Test Strategy:
  * - Mock database responses to test calculation logic
  * - Verify formula correctness with various inputs
- * - Test edge cases: no parties, no total_incurred, 100% liability, >100% liability
+ * - Test edge cases: no parties, no claim_amount, 100% liability, >100% liability
  * - Validate rounding and precision handling
  */
 
@@ -55,10 +55,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 
 	describe('Formula Verification', () => {
 		it('should calculate expected recovery correctly with standard inputs', async () => {
-			// Party liability: 30%, Total incurred: $10,000
+			// Party liability: 30%, Total paid: $10,000
 			// Our liability: 70%, Expected recovery: $7,000
 			const mockPartyResult = { total_liability_percentage: '30' };
-			const mockClaimResult = { total_incurred: '10000' };
+			const mockClaimResult = { claim_amount: '10000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -71,7 +71,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 						executeTakeFirst: vi.fn().mockResolvedValue(mockPartyResult),
 					} as any;
 				}
-				// Claim query (get total_incurred)
+				// Claim query (get claim_amount)
 				return {
 					select: vi.fn().mockReturnThis(),
 					where: vi.fn().mockReturnThis(),
@@ -94,10 +94,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 		});
 
 		it('should calculate 100% recovery when no other party liability', async () => {
-			// Party liability: 0%, Total incurred: $5,000
+			// Party liability: 0%, Total paid: $5,000
 			// Our liability: 100%, Expected recovery: $5,000
 			const mockPartyResult = { total_liability_percentage: '0' };
-			const mockClaimResult = { total_incurred: '5000' };
+			const mockClaimResult = { claim_amount: '5000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -129,10 +129,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 		});
 
 		it('should calculate 0% recovery when other parties have 100% liability', async () => {
-			// Party liability: 100%, Total incurred: $10,000
+			// Party liability: 100%, Total paid: $10,000
 			// Our liability: 0%, Expected recovery: $0
 			const mockPartyResult = { total_liability_percentage: '100' };
-			const mockClaimResult = { total_incurred: '10000' };
+			const mockClaimResult = { claim_amount: '10000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -164,10 +164,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 		});
 
 		it('should handle fractional percentages correctly', async () => {
-			// Party liability: 33.33%, Total incurred: $9,000
+			// Party liability: 33.33%, Total paid: $9,000
 			// Our liability: 66.67%, Expected recovery: $6,000.30
 			const mockPartyResult = { total_liability_percentage: '33.33' };
-			const mockClaimResult = { total_incurred: '9000' };
+			const mockClaimResult = { claim_amount: '9000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -200,10 +200,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 		});
 
 		it('should handle large amounts correctly', async () => {
-			// Party liability: 25%, Total incurred: $1,000,000
+			// Party liability: 25%, Total paid: $1,000,000
 			// Our liability: 75%, Expected recovery: $750,000
 			const mockPartyResult = { total_liability_percentage: '25' };
-			const mockClaimResult = { total_incurred: '1000000' };
+			const mockClaimResult = { claim_amount: '1000000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -238,7 +238,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 	describe('Edge Cases - No Data', () => {
 		it('should return 0 when no parties exist', async () => {
 			const mockPartyResult = { total_liability_percentage: null };
-			const mockClaimResult = { total_incurred: '10000' };
+			const mockClaimResult = { claim_amount: '10000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -272,7 +272,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 
 		it('should return 0 when no liabilities exist', async () => {
 			const mockPartyResult = { total_liability_percentage: '50' };
-			const mockClaimResult = { total_incurred: null };
+			const mockClaimResult = { claim_amount: null };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -306,7 +306,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 
 		it('should return 0 when both parties and liabilities are null', async () => {
 			const mockPartyResult = { total_liability_percentage: null };
-			const mockClaimResult = { total_incurred: null };
+			const mockClaimResult = { claim_amount: null };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -372,10 +372,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 
 	describe('Edge Cases - Liability Boundaries', () => {
 		it('should cap our liability at 0% when other parties exceed 100%', async () => {
-			// Party liability: 120% (data error), Total incurred: $10,000
+			// Party liability: 120% (data error), Total paid: $10,000
 			// Our liability should be capped at 0%, Expected recovery: $0
 			const mockPartyResult = { total_liability_percentage: '120' };
-			const mockClaimResult = { total_incurred: '10000' };
+			const mockClaimResult = { claim_amount: '10000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -408,10 +408,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 		});
 
 		it('should handle very small percentages', async () => {
-			// Party liability: 0.01%, Total incurred: $100,000
+			// Party liability: 0.01%, Total paid: $100,000
 			// Our liability: 99.99%, Expected recovery: $99,990
 			const mockPartyResult = { total_liability_percentage: '0.01' };
-			const mockClaimResult = { total_incurred: '100000' };
+			const mockClaimResult = { claim_amount: '100000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -444,10 +444,10 @@ describe('recalculateClaimExpectedRecovery', () => {
 		});
 
 		it('should handle very small amounts', async () => {
-			// Party liability: 50%, Total incurred: $0.01
+			// Party liability: 50%, Total paid: $0.01
 			// Our liability: 50%, Expected recovery: $0.005
 			const mockPartyResult = { total_liability_percentage: '50' };
-			const mockClaimResult = { total_incurred: '0.01' };
+			const mockClaimResult = { claim_amount: '0.01' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -482,7 +482,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 	describe('Database Update Verification', () => {
 		it('should update claim with formatted expected_recovery value', async () => {
 			const mockPartyResult = { total_liability_percentage: '30' };
-			const mockClaimResult = { total_incurred: '10000' };
+			const mockClaimResult = { claim_amount: '10000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -522,7 +522,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 		it('should format expected_recovery with 2 decimal places', async () => {
 			// Result should be 6000.33333... but stored as '6000.33'
 			const mockPartyResult = { total_liability_percentage: '33.333' };
-			const mockClaimResult = { total_incurred: '9000' };
+			const mockClaimResult = { claim_amount: '9000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -560,7 +560,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 	describe('Return Value', () => {
 		it('should return the calculated expected recovery as a number', async () => {
 			const mockPartyResult = { total_liability_percentage: '25' };
-			const mockClaimResult = { total_incurred: '8000' };
+			const mockClaimResult = { claim_amount: '8000' };
 
 			let selectFromCallCount = 0;
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {

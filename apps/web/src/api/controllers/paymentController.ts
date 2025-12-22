@@ -1,4 +1,5 @@
 import * as paymentQueries from '@/api/queries/paymentQueries';
+import { recalculateClaimExpectedRecovery } from '@/api/queries/claimQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { PaymentParams, PaymentUpdateParams } from '@/schemas/paymentSchemas';
 import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
@@ -9,6 +10,7 @@ import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminAction
 
 /**
  * Create a payment on a claim.
+ * Recalculates expected_recovery if payment is subrogable (affects claim_amount).
  *
  * @param ctx - request context
  * @param input - claim id and payment parameters
@@ -43,6 +45,11 @@ export async function createPayment(
 			},
 		});
 
+		// Recalculate expected_recovery if this is a subrogable payment (affects claim_amount)
+		if (params.is_subrogable) {
+			await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
+		}
+
 		return payment;
 	});
 
@@ -65,6 +72,7 @@ export async function listPayments(
 
 /**
  * Update a payment.
+ * Always recalculates expected_recovery since amount or is_subrogable flag may have changed.
  *
  * @param ctx - request context
  * @param input - payment id and update parameters
@@ -92,6 +100,11 @@ export async function updatePayment(
 			value: params,
 		});
 
+		// Only recalculate expected_recovery if payment_amount or is_subrogable changed
+		if (params.payment_amount !== undefined || params.is_subrogable !== undefined) {
+			await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, payment.claim_id);
+		}
+
 		return payment;
 	});
 
@@ -100,6 +113,7 @@ export async function updatePayment(
 
 /**
  * Archive (soft delete) a payment.
+ * Recalculates expected_recovery if payment was subrogable (affects claim_amount).
  *
  * @param ctx - request context
  * @param input - payment id and claim id
@@ -137,6 +151,11 @@ export async function archivePayment(
 					is_expense: payment.is_expense,
 				},
 			});
+
+			// Recalculate expected_recovery if this was a subrogable payment (affects claim_amount)
+			if (payment.is_subrogable) {
+				await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
+			}
 		}
 	});
 }

@@ -189,6 +189,62 @@ export default function MyPage() {
 - PageWrapper handles layout, Fade transitions, and navigation items based on user role
 - Do NOT wrap in PageWrapper: Dialog components, panels, or components that are already within a page
 
+## Performance Principles
+
+Follow these core principles when writing any database-related code. These are foundational rules that apply broadly, not just specific patterns.
+
+### Core Rule: Minimize Database Round-Trips
+
+**Every query to the database has overhead.** The #1 performance optimization is reducing the number of round-trips.
+
+**Apply these principles automatically:**
+
+1. **Use RETURNING instead of SELECT-after-mutation**
+   - After INSERT/UPDATE/DELETE, use `.returning()` to get the data you need
+   - Never fetch data you just wrote or can calculate from what you wrote
+   - Example: After updating `total_incurred` by delta, return it with `.returning('total_incurred')`
+
+2. **Return computed values from mutations**
+   - If a mutation calculates/updates a value, return it directly
+   - Caller should never need to re-query for data the mutation has
+   - Example: Coverage create returns `{ coverage, totalIncurred }` not just `coverage`
+
+3. **Calculate instead of query**
+   - If you know the old value and the delta, compute the new value
+   - Don't SELECT just to confirm what you already know
+   - Example: Incrementing a counter - you know the result is old + delta
+
+4. **Parallelize independent operations**
+   - Use `Promise.all()` for queries that don't depend on each other
+   - Don't make sequential queries when parallel is possible
+   - Safe within transactions (PostgreSQL READ COMMITTED isolation)
+
+5. **Batch over loops**
+   - Use `WHERE IN (...)` for multiple IDs instead of loops
+   - Single query with array is always faster than N queries
+   - Example: Archive multiple records with one UPDATE instead of a loop
+
+6. **Avoid existence checks before mutations**
+   - Use `.executeTakeFirstOrThrow()` instead of check-then-update
+   - Database will fail if the record doesn't exist (that's fine)
+   - Reduces queries by 50% and eliminates race conditions
+
+7. **Conditional expensive operations**
+   - Only recalculate when relevant fields change
+   - Check what changed before running expensive aggregations
+   - Example: Only recalculate liability totals if liability_percentage changed
+
+8. **Index-friendly search patterns**
+   - Use prefix search (`term%`) not full wildcard (`%term%`) when possible
+   - B-tree indexes can't be used with leading wildcards
+   - Trade-off: Prefix-only search is acceptable for most UIs
+
+**Before writing a query function, ask:**
+- Can I reduce round-trips? (RETURNING, batch operations, parallelize)
+- Can I calculate instead of query? (Derive from known values)
+- Can I return the data the caller needs? (Avoid re-fetching)
+- Will this pattern scale? (Avoid N+1, use indexes)
+
 ## Performance Patterns
 
 ### 1. Never Check-Before-Update (Anti-Pattern)

@@ -62,6 +62,7 @@ async function createSettlementChain(
 	const claimParty = await createTestClaimParty(db, {
 		claim_id,
 		party_id: party.id,
+		client_id,
 		created_by,
 		role: ['adverse_carrier'],
 	});

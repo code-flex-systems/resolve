@@ -20,13 +20,15 @@ import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
 import {
 	getCoverages,
 	getCoveragesByClaimParty,
+	getCoverageReservedTotal,
+	archiveCoveragesByClaimParty,
+} from '../coverageQueries';
+import {
 	createCoverage,
 	updateCoverage,
 	archiveCoverage,
 	deleteCoverage,
-	getCoverageReservedTotal,
-	archiveCoveragesByClaimParty,
-} from '../coverageQueries';
+} from '@/api/controllers/coverageController';
 import {
 	createTestClient,
 	createTestUser,
@@ -528,6 +530,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -563,14 +566,26 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party A',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party B',
+			});
 			const claimParty1 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party1.id,
 				created_by: user.id,
 			});
 			const claimParty2 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party2.id,
 				created_by: user.id,
@@ -607,6 +622,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -649,6 +665,7 @@ describe('coverageQueries integration tests', () => {
 			const claimPartyA = await createTestClaimParty(db, {
 				claim_id: claimA.id,
 				party_id: partyA.id,
+				client_id: clientA.id,
 				created_by: userA.id,
 			});
 			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
@@ -674,6 +691,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -782,6 +800,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -826,14 +845,26 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party 1',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party 2',
+			});
 			const claimParty1 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party1.id,
 				created_by: user.id,
 			});
 			const claimParty2 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party2.id,
 				created_by: user.id,
@@ -878,6 +909,7 @@ describe('coverageQueries integration tests', () => {
 			const claimPartyA = await createTestClaimParty(db, {
 				claim_id: claimA.id,
 				party_id: partyA.id,
+				client_id: clientA.id,
 				created_by: userA.id,
 			});
 			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });

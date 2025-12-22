@@ -225,6 +225,7 @@ describe('paymentQueries integration', () => {
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
+				client_id: client.id,
 				created_by: user.id,
 				role: ['claimant'],
 			});
@@ -379,6 +380,7 @@ describe('paymentQueries integration', () => {
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
+				client_id: client.id,
 				created_by: user.id,
 				role: ['claimant'],
 			});
@@ -678,14 +680,15 @@ describe('paymentQueries integration', () => {
 				});
 			});
 
-			// Assert - claim_amount should be null (no subrogable payments)
+			// Assert - claim_amount should be 0 (no subrogable payments)
 			const updatedClaim = await db
 				.selectFrom('claim')
 				.select(['claim_amount'])
 				.where('id', '=', claim.id)
 				.executeTakeFirst();
 
-			expect(updatedClaim?.claim_amount).toBeNull();
+			// PostgreSQL NUMERIC returns '0.00' to preserve scale
+		expect(updatedClaim?.claim_amount).toBe('0.00');
 		});
 
 		it('should throw error for non-existent payment', async () => {

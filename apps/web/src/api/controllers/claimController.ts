@@ -132,6 +132,7 @@ export async function createClaims(
 				role,
 				is_primary: true,
 				representative_id: representative_id ?? null,
+				client_id: ctx.session.user.client_id!,
 				created_by: ctx.session.user.id,
 			}));
 

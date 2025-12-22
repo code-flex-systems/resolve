@@ -426,6 +426,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -450,6 +451,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: completedClaim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -473,6 +475,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: cancelledClaim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -534,6 +537,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -1543,6 +1547,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				role: ['adverse_carrier'],
@@ -1600,6 +1605,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -1622,6 +1628,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client1.id,
 				party_id: party.id,
 				created_by: user1.id,
 			});
@@ -1689,6 +1696,7 @@ describe('partyQueries integration', () => {
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				liability_percentage: '10',
@@ -1714,6 +1722,7 @@ describe('partyQueries integration', () => {
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -1771,12 +1780,14 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party1.id,
 				created_by: user.id,
 				liability_percentage: '30',
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party2.id,
 				created_by: user.id,
 				liability_percentage: '20',
@@ -1820,6 +1831,7 @@ describe('partyQueries integration', () => {
 			// Create active claim party
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party1.id,
 				created_by: user.id,
 				liability_percentage: '40',
@@ -1828,6 +1840,7 @@ describe('partyQueries integration', () => {
 			// Create deleted claim party - note: create it first, then soft-delete it
 			const deletedClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party2.id,
 				created_by: user.id,
 				liability_percentage: '25',
@@ -1952,11 +1965,13 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entityParty.id,
 				created_by: user.id,
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitatorParty.id,
 				created_by: user.id,
 			});
@@ -1989,11 +2004,13 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entityParty.id,
 				created_by: user.id,
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitatorParty.id,
 				created_by: user.id,
 			});
@@ -2022,6 +2039,7 @@ describe('partyQueries integration', () => {
 
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -2069,6 +2087,7 @@ describe('partyQueries integration', () => {
 
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -2118,6 +2137,7 @@ describe('partyQueries integration', () => {
 
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
@@ -2184,11 +2204,13 @@ describe('partyQueries integration', () => {
 
 			const claimParty1 = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party1.id,
 				created_by: user.id,
 			});
 			const claimParty2 = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party2.id,
 				created_by: user.id,
 			});
@@ -2247,6 +2269,7 @@ describe('partyQueries integration', () => {
 			// Link entity to claim
 			const entityClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entityParty.id,
 				created_by: user.id,
 			});
@@ -2254,6 +2277,7 @@ describe('partyQueries integration', () => {
 			// Link facilitator to claim with entity as parent
 			const facilitatorClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitatorParty.id,
 				created_by: user.id,
 				parent_claim_party_id: entityClaimParty.id,
@@ -2328,6 +2352,7 @@ describe('partyQueries integration', () => {
 			// Link entity to claim
 			const entityClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entityParty.id,
 				created_by: user.id,
 			});
@@ -2335,6 +2360,7 @@ describe('partyQueries integration', () => {
 			// Link facilitator 1 under entity
 			const facilitator1ClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitator1Party.id,
 				created_by: user.id,
 				parent_claim_party_id: entityClaimParty.id,
@@ -2343,6 +2369,7 @@ describe('partyQueries integration', () => {
 			// Link facilitator 2 under facilitator 1
 			const facilitator2ClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitator2Party.id,
 				created_by: user.id,
 				parent_claim_party_id: facilitator1ClaimParty.id,
@@ -2397,11 +2424,13 @@ describe('partyQueries integration', () => {
 
 			const entity1ClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entity1Party.id,
 				created_by: user.id,
 			});
 			const entity2ClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entity2Party.id,
 				created_by: user.id,
 			});
@@ -2467,12 +2496,14 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: claimantParty.id,
 				created_by: user.id,
 				role: ['claimant'], // From claimant_party_role
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: adverseParty.id,
 				created_by: user.id,
 				role: ['responsible_party'], // From adverse_party_role
@@ -2521,12 +2552,14 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: claimantParty.id,
 				created_by: user.id,
 				role: ['insured'], // From claimant_party_role
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: adverseParty.id,
 				created_by: user.id,
 				role: ['adverse_carrier'], // From adverse_party_role
@@ -2569,6 +2602,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				role: ['responsible_party'],
@@ -2617,12 +2651,14 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party1.id,
 				created_by: user.id,
 				role: ['claimant'],
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party2.id,
 				created_by: user.id,
 				role: ['insured'], // This role is now inactive
@@ -2706,11 +2742,13 @@ describe('partyQueries integration', () => {
 			// Link both
 			const entityCP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entityParty.id,
 				created_by: user.id,
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitatorParty.id,
 				created_by: user.id,
 				parent_claim_party_id: entityCP.id,
@@ -2759,11 +2797,13 @@ describe('partyQueries integration', () => {
 			// Link entities
 			const entity1CP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entity1.id,
 				created_by: user.id,
 			});
 			const entity2CP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entity2.id,
 				created_by: user.id,
 			});
@@ -2771,6 +2811,7 @@ describe('partyQueries integration', () => {
 			// Link facilitator under entity 1
 			const facilitatorCP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitator.id,
 				created_by: user.id,
 				parent_claim_party_id: entity1CP.id,
@@ -2806,11 +2847,13 @@ describe('partyQueries integration', () => {
 
 			const entityCP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entity.id,
 				created_by: user.id,
 			});
 			const facilitatorCP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitator.id,
 				created_by: user.id,
 				parent_claim_party_id: entityCP.id,
@@ -2865,6 +2908,7 @@ describe('partyQueries integration', () => {
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				role: ['claimant', 'insured'],
@@ -2903,6 +2947,7 @@ describe('partyQueries integration', () => {
 			// Party has roles from both lists
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				role: ['claimant', 'adverse_carrier'], // One from each list
@@ -2932,6 +2977,7 @@ describe('partyQueries integration', () => {
 
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				role: ['adverse_carrier'],
@@ -2957,6 +3003,7 @@ describe('partyQueries integration', () => {
 
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: party.id,
 				created_by: user.id,
 				role: ['adverse_carrier'],
@@ -3307,12 +3354,14 @@ describe('partyQueries integration', () => {
 
 			const entityCP = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: entity.id,
 				created_by: user.id,
 				role: ['claimant'],
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitator.id,
 				created_by: user.id,
 				role: ['adverse_carrier'],
@@ -3346,6 +3395,7 @@ describe('partyQueries integration', () => {
 
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
+				client_id: client.id,
 				party_id: facilitator.id,
 				created_by: user.id,
 				role: ['adverse_carrier'],

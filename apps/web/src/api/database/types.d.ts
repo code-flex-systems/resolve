@@ -209,6 +209,7 @@ export interface ClaimParty {
    */
   address_id: number | null;
   claim_id: number;
+  client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**

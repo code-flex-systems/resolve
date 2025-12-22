@@ -1053,20 +1053,21 @@ describe('claimQueries integration', () => {
 	});
 
 	describe('recalculateClaimExpectedRecovery', () => {
-		it('should calculate expected_recovery from liability percentage and total_incurred', async () => {
+		it('should calculate expected_recovery from liability percentage and claim_amount', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			// Set total_incurred on the claim
-			await db.updateTable('claim').set({ total_incurred: '20000' }).where('id', '=', claim.id).execute();
+			// Set claim_amount on the claim (total paid)
+			await db.updateTable('claim').set({ claim_amount: '20000' }).where('id', '=', claim.id).execute();
 
 			// Create party with 40% liability
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
+				client_id: client.id,
 				created_by: user.id,
 				liability_percentage: '40',
 			});
@@ -1096,14 +1097,15 @@ describe('claimQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			// Set total_incurred on the claim
-			await db.updateTable('claim').set({ total_incurred: '25000' }).where('id', '=', claim.id).execute();
+			// Set claim_amount on the claim (total paid)
+			await db.updateTable('claim').set({ claim_amount: '25000' }).where('id', '=', claim.id).execute();
 
 			// Party 1: 25% liability
 			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id });
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party1.id,
+				client_id: client.id,
 				created_by: user.id,
 				liability_percentage: '25',
 			});
@@ -1113,6 +1115,7 @@ describe('claimQueries integration', () => {
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party2.id,
+				client_id: client.id,
 				created_by: user.id,
 				liability_percentage: '35',
 			});
@@ -1129,7 +1132,57 @@ describe('claimQueries integration', () => {
 			expect(result).toBe(10000);
 		});
 
-		it('should return 0 when no parties exist', async () => {
+		it('should expect 100% recovery when no liability is assigned (no parties)', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Set claim_amount (payments made)
+			await db.updateTable('claim').set({ claim_amount: '15000' }).where('id', '=', claim.id).execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - No parties exist
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert - No liability assigned = 100% our liability = expect full recovery
+			// Our liability = 100% - 0% = 100%
+			// Expected recovery = 100% × $15,000 = $15,000
+			expect(result).toBe(15000);
+		});
+
+		it('should expect 100% recovery when parties exist but have no liability', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Set claim_amount (payments made)
+			await db.updateTable('claim').set({ claim_amount: '8000' }).where('id', '=', claim.id).execute();
+
+			// Create party but don't assign liability (NULL liability_percentage)
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+				// No liability_percentage set (NULL)
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert - Parties exist but no liability = 100% our liability = expect full recovery
+			// Our liability = 100% - 0% = 100%
+			// Expected recovery = 100% × $8,000 = $8,000
+			expect(result).toBe(8000);
+		});
+
+		it('should return 0 when no parties exist and no claim_amount', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1140,7 +1193,7 @@ describe('claimQueries integration', () => {
 			// Act
 			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
 
-			// Assert - No total_incurred set, so expected recovery is 0
+			// Assert - No claim_amount set, so expected recovery is 0
 			expect(result).toBe(0);
 		});
 	});

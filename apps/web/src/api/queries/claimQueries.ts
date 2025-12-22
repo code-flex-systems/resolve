@@ -458,11 +458,14 @@ export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: nu
 /**
  * Recalculate and update the expected_recovery cached field on a claim.
  *
- * Formula: expected_recovery = (100% - sum(claim_party.liability_percentage)) / 100 × claim.total_incurred
+ * Formula: expected_recovery = (100% - sum(claim_party.liability_percentage)) / 100 × claim.claim_amount
+ *
+ * IMPORTANT: Uses claim_amount (actual subrogable payments made), NOT total_incurred (reserves).
+ * You can only expect to recover what you've actually paid out, not what you've reserved.
  *
  * Call this function transactionally when:
  * - claim_party.liability_percentage is created/updated/deleted
- * - claim.total_incurred is updated (via recalculateClaimTotalIncurred)
+ * - claim.claim_amount is updated (via payment create/update/archive)
  *
  * @param ctx - request context (can use transaction context)
  * @param claimId - claim identifier to recalculate
@@ -470,34 +473,41 @@ export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: nu
  */
 export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, claimId: number) {
 	// Get sum of liability percentages from entities only (entities have no parent_claim_party_id)
+	// Use COALESCE to handle NULL (no parties or all NULL liability_percentage)
 	const partyResult = await ctx.db
 		.selectFrom('claim_party')
-		.select(({ fn }) => [fn.sum<string>('liability_percentage').as('total_liability_percentage')])
+		.select(({ fn }) => [
+			fn.coalesce(fn.sum<string>('liability_percentage'), sql<string>`'0'`).as('total_liability_percentage'),
+		])
 		.where('claim_id', '=', claimId)
 		.where('deleted_at', 'is', null)
 		.where('parent_claim_party_id', 'is', null)
 		.executeTakeFirst();
 
-	// Get total_incurred from claim
+	// Get claim_amount from claim (sum of subrogable payments, NOT reserves)
 	const claimResult = await ctx.db
 		.selectFrom('claim')
-		.select(['total_incurred'])
+		.select(['claim_amount'])
 		.where('id', '=', claimId)
 		.where('client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 
+	// Parse values, defaulting to 0 if NULL
 	const totalLiabilityPercentage = partyResult?.total_liability_percentage
 		? parseFloat(partyResult.total_liability_percentage)
 		: 0;
-	const totalIncurred = claimResult?.total_incurred
-		? parseFloat(claimResult.total_incurred.toString())
-		: 0;
+	const claimAmount = claimResult?.claim_amount ? parseFloat(claimResult.claim_amount.toString()) : 0;
 
 	// Calculate our liability percentage (100% - total other parties' liability)
+	// Business logic: If no liability is assigned to other parties, we assume 100% liability on our side
+	// This means we expect to recover 100% of what we paid out
 	const ourLiabilityPercentage = Math.max(0, 100 - totalLiabilityPercentage);
 
-	// Calculate expected recovery: our liability % × total incurred
-	const expectedRecovery = (ourLiabilityPercentage / 100) * totalIncurred;
+	// Calculate expected recovery: our liability % × actual payments made
+	// Examples:
+	// - No parties/liability: 100% × $10,000 = $10,000 (we expect to recover everything)
+	// - 40% other liability: 60% × $10,000 = $6,000 (we expect to recover our share)
+	const expectedRecovery = (ourLiabilityPercentage / 100) * claimAmount;
 
 	// Update the claim's cached expected_recovery field
 	await ctx.db
@@ -511,13 +521,14 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
 }
 
 /**
- * Recalculate and update the total_incurred field on a claim.
- * total_incurred = sum of all amount_reserved from claim_coverage for this claim.
+ * Manually recalculate claim's total_incurred by summing all coverage amount_reserved.
+ * This is kept for data recovery/correction scenarios - normal operations use delta updates.
  *
- * This should be called whenever coverage amount_reserved changes:
- * - createClaimCoverage (if amount_reserved is set)
- * - updateClaimCoverage (if amount_reserved is changed)
- * - deleteClaimCoverage
+ * IMPORTANT: Normal coverage operations (create/update/delete) use delta increments for performance.
+ * Only use this function for:
+ * - Manual data correction
+ * - Data integrity verification
+ * - Recovery from corrupted state
  *
  * @param ctx - request context
  * @param claimId - claim to recalculate
@@ -726,7 +737,7 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		// Liability percentages (from entities only)
 		total_liability_percentage: partyAggregates.total_liability_percentage,
 		our_liability_percentage: partyAggregates.our_liability_percentage,
-		// expected_recovery is stored on the claim itself, calculated from liability %s and total_incurred
+		// expected_recovery is stored on the claim itself, calculated from liability %s and claim_amount (payments)
 	};
 }
 

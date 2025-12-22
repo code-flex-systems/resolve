@@ -215,6 +215,7 @@ export async function createTestClaimParty(
 	overrides: {
 		claim_id: number;
 		party_id: number;
+		client_id: string;
 		created_by: string;
 		role?: string[];
 		representative_id?: number | null;
@@ -232,6 +233,7 @@ export async function createTestClaimParty(
 	const data = {
 		claim_id: overrides.claim_id,
 		party_id: overrides.party_id,
+		client_id: overrides.client_id,
 		role: overrides.role || ['adverse_carrier'],
 		representative_id: overrides.representative_id ?? null,
 		is_primary: overrides.is_primary ?? false,

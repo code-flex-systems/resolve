@@ -83,6 +83,11 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		{ enabled: !!claimId }
 	);
 	const { data: claimParties = [] } = trpc.party.getClaimParties.useQuery({ claimId }, { enabled: !!claimId });
+	// Get only adverse parties (with roles from adverse_party_role reference list) for settlement creation
+	const { data: adverseParties = [] } = trpc.party.getClaimParties.useQuery(
+		{ claimId, roleListEntity: 'adverse_party_role' },
+		{ enabled: !!claimId }
+	);
 	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery({ claimId }, { enabled: !!claimId });
 
 	// Mutations
@@ -108,8 +113,6 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 			utils.recovery.listRecoveryEvents.invalidate({ claimId });
 		},
 	});
-
-	const adverseParties = claimParties.filter((cp) => cp.party?.party_type === 'facilitator');
 
 	const getRecoveryCountForSettlement = (settlementId: number) => {
 		return recoveryEvents.filter((r) => r.settlement_id === settlementId).length;

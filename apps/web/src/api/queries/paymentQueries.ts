@@ -12,7 +12,7 @@ dayjs.extend(utc);
 // =====================================================================
 
 /**
- * Create a payment for a claim and recalculate claim_amount.
+ * Create a payment for a claim and update claim_amount using delta increment.
  * NOTE: This function expects to be called within a transaction from the controller.
  *
  * @param ctx - request context (should have transaction as db)
@@ -44,8 +44,20 @@ export async function createPayment(ctx: ProtectedContext, claimId: number, para
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate claim_amount
-	await recalculateClaimAmount(ctx.db, claimId, clientId);
+	// Update claim.claim_amount using delta increment (only if is_subrogable)
+	if (params.is_subrogable) {
+		const amount = params.payment_amount;
+
+		await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting to preserve precision in PostgreSQL, avoiding JavaScript float arithmetic
+				claim_amount: sql`COALESCE(claim_amount::numeric, 0) + ${amount}::numeric`,
+			})
+			.where('id', '=', claimId)
+			.where('client_id', '=', clientId)
+			.execute();
+	}
 
 	return payment;
 }
@@ -158,15 +170,31 @@ export async function updatePayment(
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate claim_amount if amount or subrogable flag changed
-	const amountChanged =
-		params.payment_amount !== undefined &&
-		params.payment_amount.toString() !== existing.payment_amount?.toString();
-	const subrogableChanged =
-		params.is_subrogable !== undefined && params.is_subrogable !== existing.is_subrogable;
+	// Update claim.claim_amount using delta increment if amount or subrogable flag changed
+	const oldIsSubrogable = existing.is_subrogable;
+	const oldAmount = existing.payment_amount;
+	const newIsSubrogable = params.is_subrogable !== undefined ? params.is_subrogable : oldIsSubrogable;
+	const newAmount = params.payment_amount !== undefined ? params.payment_amount : oldAmount;
 
-	if (amountChanged || subrogableChanged) {
-		await recalculateClaimAmount(ctx.db, existing.claim_id, clientId);
+	// Check if contribution to claim_amount changed (only subrogable payments count)
+	// Need to check for changes to avoid unnecessary queries
+	const contributionChanged =
+		(oldIsSubrogable !== newIsSubrogable) ||
+		(newIsSubrogable && oldAmount !== newAmount);
+
+	if (contributionChanged) {
+		await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting and CASE to preserve precision in PostgreSQL, avoiding JavaScript float arithmetic
+				// Only subrogable payments contribute to claim_amount
+				claim_amount: sql`COALESCE(claim_amount::numeric, 0)
+					+ (CASE WHEN ${newIsSubrogable} THEN ${newAmount}::numeric ELSE 0 END)
+					- (CASE WHEN ${oldIsSubrogable} THEN ${oldAmount}::numeric ELSE 0 END)`,
+			})
+			.where('id', '=', existing.claim_id)
+			.where('client_id', '=', clientId)
+			.execute();
 	}
 
 	return updated;
@@ -199,7 +227,7 @@ export async function getPaymentForArchive(ctx: ProtectedContext, paymentId: num
 }
 
 /**
- * Soft delete (archive) a payment and recalculate claim_amount.
+ * Soft delete (archive) a payment and update claim_amount using delta decrement.
  * NOTE: This function expects to be called within a transaction from the controller.
  *
  * @param ctx - request context (should have transaction as db)
@@ -223,20 +251,39 @@ export async function archivePayment(ctx: ProtectedContext, paymentId: number, c
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate claim_amount
-	await recalculateClaimAmount(ctx.db, claimId, clientId);
+	// Update claim.claim_amount using delta decrement (only if was subrogable)
+	if (archived.is_subrogable) {
+		const amount = archived.payment_amount;
+
+		await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting to preserve precision in PostgreSQL, avoiding JavaScript float arithmetic
+				claim_amount: sql`COALESCE(claim_amount::numeric, 0) - ${amount}::numeric`,
+			})
+			.where('id', '=', claimId)
+			.where('client_id', '=', clientId)
+			.execute();
+	}
 
 	return archived;
 }
 
 /**
- * Recalculate claim_amount as the sum of subrogable payments.
+ * Manually recalculate claim's claim_amount by summing all subrogable payments.
+ * This is kept for data recovery/correction scenarios - normal operations use delta updates.
+ *
+ * IMPORTANT: Normal payment operations (create/update/archive) use delta increments for performance.
+ * Only use this function for:
+ * - Manual data correction
+ * - Data integrity verification
+ * - Recovery from corrupted state
  *
  * @param db - database connection or transaction
  * @param claimId - claim identifier
  * @param clientId - client identifier
  */
-async function recalculateClaimAmount(
+export async function recalculateClaimAmount(
 	db: ProtectedContext['db'] | Transaction<DB>,
 	claimId: number,
 	clientId: string
