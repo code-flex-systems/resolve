@@ -373,8 +373,10 @@ export function usePartyTrpc() {
 		linkToClaim: trpc.party.linkPartyToClaim.useMutation({
 			onSuccess(data) {
 				utils.party.getClaimParties.invalidate({ claimId: data.claimParty.claim_id });
-				// Update cached claim detail with new expected_recovery
-				updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				// Update cached claim detail with new expected_recovery (only if recalculated)
+				if (data.expectedRecovery !== null) {
+					updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				}
 			},
 		}),
 
@@ -384,8 +386,10 @@ export function usePartyTrpc() {
 		updateClaimParty: trpc.party.updateClaimParty.useMutation({
 			onSuccess(data) {
 				utils.party.getClaimParties.invalidate({ claimId: data.claimParty.claim_id });
-				// Update cached claim detail with new expected_recovery
-				updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				// Update cached claim detail with new expected_recovery (only if recalculated)
+				if (data.expectedRecovery !== null) {
+					updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				}
 			},
 		}),
 

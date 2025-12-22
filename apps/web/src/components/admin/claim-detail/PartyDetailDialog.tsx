@@ -1,11 +1,16 @@
 'use client';
 
 import { Box, Chip, Divider, Typography } from '@mui/material';
-import OpenInNew from '@mui/icons-material/OpenInNew';
 import BasicDialog from '@/components/common/BasicDialog';
 import { formatAddressInline } from '@/schemas/addressSchemas';
 import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import { capitalize } from '@/lib/utils/utils';
+import { useState, useMemo } from 'react';
+import PartyDialog from '../PartyDialog';
+import AddressDialog from '../AddressDialog';
+import RepresentativeDialog from '../RepresentativeDialog';
+import { trpc } from '@/lib/trpc';
+import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 
 interface PartyDetailDialogProps {
 	open: boolean;
@@ -14,22 +19,61 @@ interface PartyDetailDialogProps {
 }
 
 /**
- * Dialog that shows comprehensive party information with links to edit in admin pages.
+ * Dialog that shows comprehensive party information with inline editing via second-level dialogs.
+ * Subscribes to fresh query data to ensure updates are shown immediately after edits.
  */
 export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDetailDialogProps) {
+	const [editingParty, setEditingParty] = useState(false);
+	const [editingAddress, setEditingAddress] = useState(false);
+	const [editingRepresentative, setEditingRepresentative] = useState(false);
+	const utils = trpc.useUtils();
+	const partyTrpc = usePartyTrpc();
+
+	// Extract values before early return to avoid breaking hooks rules
+	const claimId = claimParty?.claim_id;
+	const claimPartyId = claimParty?.id;
+	const roleListEntity = claimParty?.role?.[0]?.includes('claimant') ? 'claimant_party_role' : 'adverse_party_role';
+
+	// Subscribe to the query to get fresh data after mutations
+	const { data: claimParties = [] } = partyTrpc.listClaimParties(
+		{ claimId: claimId!, roleListEntity },
+		{ enabled: !!claimId && open }
+	);
+
+	// Find the current claim party from fresh query data
+	const freshClaimParty = useMemo(() => {
+		return claimParties.find((cp: any) => cp.id === claimPartyId) || claimParty;
+	}, [claimParties, claimPartyId, claimParty]);
+
+	// Early return AFTER all hooks have been called
 	if (!open || !claimParty) return null;
 
-	const party = claimParty.party;
-	const address = claimParty.address;
-	const representative = claimParty.representative;
+	const party = freshClaimParty.party;
+	const address = freshClaimParty.address;
+	const representative = freshClaimParty.representative;
 
-	// Build admin URLs for deep linking
-	const partyEditUrl = party ? `/admin/party-management/parties?edit=${party.id}` : null;
-	const addressEditUrl = address ? `/admin/party-management/addresses?edit=${address.id}` : null;
-	const representativeEditUrl = representative ? `/admin/party-management/representatives?edit=${representative.id}` : null;
+	const handleClosePartyEdit = () => {
+		setEditingParty(false);
+		// Invalidate claim parties query to refresh the PartyDetailDialog data
+		if (claimId) {
+			utils.party.getClaimParties.invalidate({ claimId });
+		}
+	};
 
-	const handleOpenInNewTab = (url: string) => {
-		window.open(url, '_blank', 'noopener,noreferrer');
+	const handleCloseAddressEdit = () => {
+		setEditingAddress(false);
+		// Invalidate claim parties query to refresh the PartyDetailDialog data
+		if (claimId) {
+			utils.party.getClaimParties.invalidate({ claimId });
+		}
+	};
+
+	const handleCloseRepEdit = () => {
+		setEditingRepresentative(false);
+		// Invalidate claim parties query to refresh the PartyDetailDialog data
+		if (claimId) {
+			utils.party.getClaimParties.invalidate({ claimId });
+		}
 	};
 
 	return (
@@ -44,8 +88,8 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 				{party && (
 					<Section
 						title="Party Information"
-						editLabel="Edit in Parties"
-						onEdit={partyEditUrl ? () => handleOpenInNewTab(partyEditUrl) : undefined}
+						editLabel="Edit Party"
+						onEdit={() => setEditingParty(true)}
 					>
 						<DetailRow label="Name" value={party.name} />
 						<DetailRow
@@ -56,7 +100,7 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 							label="Role"
 							value={
 								<Box display="flex" gap={0.5} flexWrap="wrap">
-									{Array.isArray(claimParty.role) && claimParty.role.map((r: string) => (
+									{Array.isArray(freshClaimParty.role) && freshClaimParty.role.map((r: string) => (
 										<Chip
 											key={r}
 											label={capitalize(r.replace(/_/g, ' '))}
@@ -80,20 +124,20 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 				{address && (
 					<Section
 						title="Address Information"
-						editLabel="Edit in Addresses"
-						onEdit={addressEditUrl ? () => handleOpenInNewTab(addressEditUrl) : undefined}
+						editLabel="Edit Address"
+						onEdit={() => setEditingAddress(true)}
 					>
 						<DetailRow label="Label" value={address.name || 'Unnamed'} />
 						{formatAddressInline(address) && <DetailRow label="Address" value={formatAddressInline(address)} />}
 					</Section>
 				)}
 
-				{/* Representative Information Section */}
-				{representative && (
+				{/* Representative Information Section - Facilitators (structured) */}
+				{party.party_type === 'facilitator' && representative && (
 					<Section
 						title="Representative Information"
-						editLabel="Edit in Representatives"
-						onEdit={representativeEditUrl ? () => handleOpenInNewTab(representativeEditUrl) : undefined}
+						editLabel="Edit Representative"
+						onEdit={() => setEditingRepresentative(true)}
 					>
 						<DetailRow
 							label="Name"
@@ -109,15 +153,74 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 					</Section>
 				)}
 
+				{/* Representative Information Section - Entities (free-form) */}
+				{party.party_type === 'entity' && (freshClaimParty.representative_name ||
+					freshClaimParty.representative_title ||
+					freshClaimParty.representative_email ||
+					freshClaimParty.representative_phone) && (
+					<Section title="Representative Information">
+						{freshClaimParty.representative_name && (
+							<DetailRow label="Name" value={freshClaimParty.representative_name} />
+						)}
+						{freshClaimParty.representative_title && (
+							<DetailRow label="Title" value={freshClaimParty.representative_title} />
+						)}
+						{freshClaimParty.representative_email && (
+							<DetailRow label="Email" value={freshClaimParty.representative_email} />
+						)}
+						{freshClaimParty.representative_phone && (
+							<DetailRow label="Phone" value={freshClaimParty.representative_phone} />
+						)}
+					</Section>
+				)}
+
 				{/* Claim Party Notes */}
-				{claimParty.notes && (
+				{freshClaimParty.notes && (
 					<Section title="Linking Notes">
 						<Typography fontSize={13} color="text.secondary">
-							{claimParty.notes}
+							{freshClaimParty.notes}
 						</Typography>
 					</Section>
 				)}
 			</Box>
+
+			{/* Second-level Edit Dialogs */}
+			{editingParty && party && (
+				<PartyDialog
+					party={{
+						...party,
+						// Map contact fields to the format PartyDialog expects
+						primary_email: party.email,
+						primary_phone: party.phone,
+						primary_street_address: party.street_address,
+						primary_city: party.city,
+						primary_state: party.state,
+						primary_postal_code: party.postal_code,
+						primary_country: party.country,
+					}}
+					onClose={handleClosePartyEdit}
+				/>
+			)}
+
+			{editingAddress && address && (
+				<AddressDialog
+					address={{
+						...address,
+						party_name: party?.name,
+					}}
+					onClose={handleCloseAddressEdit}
+				/>
+			)}
+
+			{editingRepresentative && representative && (
+				<RepresentativeDialog
+					representative={{
+						...representative,
+						party_name: party?.name,
+					}}
+					onClose={handleCloseRepEdit}
+				/>
+			)}
 		</BasicDialog>
 	);
 }
@@ -142,15 +245,11 @@ function Section({ title, editLabel, onEdit, children }: SectionProps) {
 						sx={{
 							color: 'primary.main',
 							cursor: 'pointer',
-							display: 'flex',
-							alignItems: 'center',
-							gap: 0.5,
 							'&:hover': { textDecoration: 'underline' },
 						}}
 						onClick={onEdit}
 					>
 						{editLabel}
-						<OpenInNew sx={{ fontSize: 14 }} />
 					</Typography>
 				)}
 			</Box>

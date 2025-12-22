@@ -77,6 +77,7 @@ export async function createTestClaimCoverage(
 	overrides: {
 		client_id: string;
 		claim_id: number;
+		claim_party_id?: number | null;
 		loss_type: string;
 		coverage_amount?: number | string | null;
 		amount_reserved?: number | string | null;
@@ -86,6 +87,7 @@ export async function createTestClaimCoverage(
 	const data = {
 		client_id: overrides.client_id,
 		claim_id: overrides.claim_id,
+		claim_party_id: overrides.claim_party_id ?? null,
 		loss_type: overrides.loss_type,
 		coverage_amount: overrides.coverage_amount ?? null,
 		amount_reserved: overrides.amount_reserved ?? null,

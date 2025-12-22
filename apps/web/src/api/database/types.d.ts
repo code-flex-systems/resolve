@@ -196,7 +196,7 @@ export interface ClaimCoverage {
   deleted_by: string | null;
   id: Generated<number>;
   /**
-   * Type of loss/coverage (uses loss_type reference list)
+   * Type of coverage (CoverageType enum enforced in TypeScript)
    */
   loss_type: string;
   updated_at: Timestamp | null;
@@ -204,6 +204,10 @@ export interface ClaimCoverage {
 }
 
 export interface ClaimParty {
+  /**
+   * Office/address for facilitator representatives (required when representative_id is set for facilitators)
+   */
+  address_id: number | null;
   claim_id: number;
   created_at: Generated<Timestamp>;
   created_by: string | null;
@@ -234,13 +238,26 @@ export interface ClaimParty {
    */
   policy_limit: Numeric | null;
   /**
+   * Free-form representative email (entities only)
+   */
+  representative_email: string | null;
+  /**
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
   /**
-   * Role(s) this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
+   * Free-form representative name (entities only - for facilitators use representative_id)
    */
-  role: string[];
+  representative_name: string | null;
+  /**
+   * Free-form representative phone (entities only)
+   */
+  representative_phone: string | null;
+  /**
+   * Free-form representative title (entities only)
+   */
+  representative_title: string | null;
+  role: Generated<string[]>;
 }
 
 export interface ClaimPayment {

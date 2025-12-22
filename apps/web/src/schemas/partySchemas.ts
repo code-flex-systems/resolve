@@ -451,12 +451,21 @@ export const getClaimPartiesInput = z.object({
  * Link party to claim input
  * Note: liability_percentage is on claim_party for entities
  * Note: loss_type and policy_limit are on claim_party for facilitators
+ * Note: Free-form representative fields for entities, structured (representative_id + address_id) for facilitators
  */
 export const linkPartyToClaimInput = z.object({
 	claim_id: z.number().int().positive(),
 	party_id: z.number().int().positive(),
 	role: z.array(z.string()).min(1), // Array of roles for this party on this claim
+	// Structured representative (for facilitators)
 	representative_id: z.number().int().positive().nullable().optional(),
+	address_id: z.number().int().positive().nullable().optional(),
+	// Free-form representative fields (for entities)
+	representative_name: z.string().max(200).nullable().optional(),
+	representative_title: z.string().max(100).nullable().optional(),
+	representative_email: z.string().email().nullable().optional().or(z.literal('')),
+	representative_phone: z.string().max(50).nullable().optional(),
+	// Other fields
 	is_primary: z.boolean().optional(),
 	liability_percentage: z.number().min(0).max(100).optional(),
 	notes: z.string().max(2000).optional(),
@@ -471,12 +480,21 @@ export const linkPartyToClaimInput = z.object({
  * Update claim party relationship input
  * Note: liability_percentage is on claim_party for entities
  * Note: loss_type and policy_limit are on claim_party for facilitators
+ * Note: Free-form representative fields for entities, structured (representative_id + address_id) for facilitators
  */
 export const updateClaimPartyInput = z.object({
 	id: z.number().int().positive(),
 	params: z.object({
 		role: z.array(z.string()).min(1).optional(),
+		// Structured representative (for facilitators)
 		representative_id: z.number().int().positive().nullable().optional(),
+		address_id: z.number().int().positive().nullable().optional(),
+		// Free-form representative fields (for entities)
+		representative_name: z.string().max(200).nullable().optional(),
+		representative_title: z.string().max(100).nullable().optional(),
+		representative_email: z.string().email().nullable().optional().or(z.literal('')),
+		representative_phone: z.string().max(50).nullable().optional(),
+		// Other fields
 		is_primary: z.boolean().optional(),
 		liability_percentage: z.number().min(0).max(100).nullable().optional(),
 		notes: z.string().max(2000).optional(),

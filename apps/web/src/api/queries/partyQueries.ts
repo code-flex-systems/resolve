@@ -18,7 +18,7 @@ export async function getParties(
 	offset?: number,
 	showArchived?: boolean
 ) {
-	// Base query with client scoping
+	// Base query with client scoping (Phase 4.1: jsonb_agg for contacts + GROUP BY)
 	let query = ctx.db
 		.selectFrom('party')
 		.leftJoin('party_email', (join) =>
@@ -34,22 +34,47 @@ export async function getParties(
 		.leftJoin('party_address', (join) =>
 			join
 				.onRef('party_address.party_id', '=', 'party.id')
-				.on('party_address.address_status', '=', 'valid')
 				.on('party_address.deleted_at', 'is', null)
+				.on('party_address.address_status', '=', 'valid')
 		)
-		.selectAll('party')
-		.select([
-			'party_email.email_address as primary_email',
-			'party_phone.phone_number as primary_phone',
-			'party_address.street_address as primary_street_address',
-			'party_address.city as primary_city',
-			'party_address.state as primary_state',
-			'party_address.postal_code as primary_postal_code',
-			'party_address.country as primary_country',
+		.select((eb) => [
+			'party.id',
+			'party.name',
+			'party.party_type',
+			'party.client_id',
+			'party.created_at',
+			'party.created_by',
+			'party.updated_at',
+			'party.updated_by',
+			'party.deleted_at',
+			'party.deleted_by',
+			// Aggregate emails into jsonb array (ordered by created_at for deterministic primary)
+			sql`jsonb_agg(jsonb_build_object(
+				'email_address', ${eb.ref('party_email.email_address')},
+				'email_type', ${eb.ref('party_email.email_type')}
+			) ORDER BY ${eb.ref('party_email.created_at')} ASC) filter (where ${eb.ref('party_email.id')} is not null)`
+				.$castTo<any>()
+				.as('emails'),
+			// Aggregate phones into jsonb array (ordered by created_at for deterministic primary)
+			sql`jsonb_agg(jsonb_build_object(
+				'phone_number', ${eb.ref('party_phone.phone_number')},
+				'phone_type', ${eb.ref('party_phone.phone_type')}
+			) ORDER BY ${eb.ref('party_phone.created_at')} ASC) filter (where ${eb.ref('party_phone.id')} is not null)`
+				.$castTo<any>()
+				.as('phones'),
+			// Aggregate addresses into jsonb array (ordered by created_at for deterministic primary)
+			sql`jsonb_agg(jsonb_build_object(
+				'street_address', ${eb.ref('party_address.street_address')},
+				'city', ${eb.ref('party_address.city')},
+				'state', ${eb.ref('party_address.state')},
+				'postal_code', ${eb.ref('party_address.postal_code')},
+				'country', ${eb.ref('party_address.country')}
+			) ORDER BY ${eb.ref('party_address.created_at')} ASC) filter (where ${eb.ref('party_address.id')} is not null)`
+				.$castTo<any>()
+				.as('addresses'),
 		])
-		.distinctOn('party.id')
 		.where('party.client_id', '=', ctx.session.user.client_id)
-		.orderBy('party.id')
+		.groupBy('party.id')
 		.orderBy('party.name asc');
 
 	// Filter by archived status
@@ -61,9 +86,9 @@ export async function getParties(
 		query = query.where('party.deleted_at', 'is', null);
 	}
 
-	// Apply search filter if provided
+	// Apply search filter if provided (prefix search - Phase 3.1 optimization)
 	if (searchTerm) {
-		query = query.where(sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`);
+		query = query.where(sql<boolean>`party.name ILIKE ${`${searchTerm}%`}`);
 	}
 
 	// Count query (run in parallel with data query)
@@ -73,7 +98,7 @@ export async function getParties(
 		.where('party.client_id', '=', ctx.session.user.client_id)
 		.$if(!showArchived, (qb) => qb.where('party.deleted_at', 'is', null))
 		.$if(!!showArchived, (qb) => qb.where('party.deleted_at', 'is not', null))
-		.$if(!!searchTerm, (qb) => qb.where(sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`))
+		.$if(!!searchTerm, (qb) => qb.where(sql<boolean>`party.name ILIKE ${`${searchTerm}%`}`))
 		.executeTakeFirst();
 
 	// Data query with pagination
@@ -85,8 +110,25 @@ export async function getParties(
 	// Execute in parallel
 	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
 
+	// Transform results to extract primary contacts from arrays (Phase 4.1)
+	const transformedRows = rows.map((party) => ({
+		...party,
+		// Extract primary contact from arrays (first element)
+		primary_email: party.emails?.[0]?.email_address || null,
+		primary_phone: party.phones?.[0]?.phone_number || null,
+		primary_street_address: party.addresses?.[0]?.street_address || null,
+		primary_city: party.addresses?.[0]?.city || null,
+		primary_state: party.addresses?.[0]?.state || null,
+		primary_postal_code: party.addresses?.[0]?.postal_code || null,
+		primary_country: party.addresses?.[0]?.country || null,
+		// Keep full contact arrays for UI
+		all_emails: party.emails || [],
+		all_phones: party.phones || [],
+		all_addresses: party.addresses || [],
+	}));
+
 	return {
-		rows,
+		rows: transformedRows,
 		count: countResult?.count ? Number(countResult.count) : 0,
 	};
 }
@@ -95,7 +137,7 @@ export async function getParties(
  * Get single party by ID with primary contact info
  */
 export async function getParty(ctx: ProtectedContext, id: number) {
-	return await ctx.db
+	const result = await ctx.db
 		.selectFrom('party')
 		.leftJoin('party_email', (join) =>
 			join
@@ -114,18 +156,50 @@ export async function getParty(ctx: ProtectedContext, id: number) {
 				.on('party_address.deleted_at', 'is', null)
 		)
 		.selectAll('party')
-		.select([
-			'party_email.email_address as primary_email',
-			'party_phone.phone_number as primary_phone',
-			'party_address.street_address as primary_street_address',
-			'party_address.city as primary_city',
-			'party_address.state as primary_state',
-			'party_address.postal_code as primary_postal_code',
-			'party_address.country as primary_country',
+		.select((eb) => [
+			// Aggregate emails (ordered by created_at for deterministic primary)
+			sql`jsonb_agg(jsonb_build_object(
+				'email_address', ${eb.ref('party_email.email_address')},
+				'email_type', ${eb.ref('party_email.email_type')}
+			) ORDER BY ${eb.ref('party_email.created_at')} ASC) filter (where ${eb.ref('party_email.id')} is not null)`
+				.$castTo<any>()
+				.as('emails'),
+			// Aggregate phones (ordered by created_at for deterministic primary)
+			sql`jsonb_agg(jsonb_build_object(
+				'phone_number', ${eb.ref('party_phone.phone_number')},
+				'phone_type', ${eb.ref('party_phone.phone_type')}
+			) ORDER BY ${eb.ref('party_phone.created_at')} ASC) filter (where ${eb.ref('party_phone.id')} is not null)`
+				.$castTo<any>()
+				.as('phones'),
+			// Aggregate addresses (ordered by created_at for deterministic primary)
+			sql`jsonb_agg(jsonb_build_object(
+				'street_address', ${eb.ref('party_address.street_address')},
+				'city', ${eb.ref('party_address.city')},
+				'state', ${eb.ref('party_address.state')},
+				'postal_code', ${eb.ref('party_address.postal_code')},
+				'country', ${eb.ref('party_address.country')}
+			) ORDER BY ${eb.ref('party_address.created_at')} ASC) filter (where ${eb.ref('party_address.id')} is not null)`
+				.$castTo<any>()
+				.as('addresses'),
 		])
 		.where('party.client_id', '=', ctx.session.user.client_id)
 		.where('party.id', '=', id)
+		.groupBy('party.id')
 		.executeTakeFirst();
+
+	if (!result) return undefined;
+
+	// Extract primary contacts from arrays (first element, now deterministic)
+	return {
+		...result,
+		primary_email: result.emails?.[0]?.email_address || null,
+		primary_phone: result.phones?.[0]?.phone_number || null,
+		primary_street_address: result.addresses?.[0]?.street_address || null,
+		primary_city: result.addresses?.[0]?.city || null,
+		primary_state: result.addresses?.[0]?.state || null,
+		primary_postal_code: result.addresses?.[0]?.postal_code || null,
+		primary_country: result.addresses?.[0]?.country || null,
+	};
 }
 
 /**
@@ -148,7 +222,7 @@ export async function searchParties(
 		.selectAll()
 		.where('party.client_id', '=', ctx.session.user.client_id)
 		.where('party.deleted_at', 'is', null) // Exclude archived parties
-		.where(sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`)
+		.where(sql<boolean>`party.name ILIKE ${`${searchTerm}%`}`) // Prefix search - Phase 3.1
 		.orderBy('party.name asc')
 		.limit(10);
 
@@ -279,18 +353,7 @@ export async function getActiveClaimAssociations(ctx: ProtectedContext, partyId:
  * Prevents archiving if party has active claim associations
  */
 export async function archiveParty(ctx: ProtectedContext, id: number) {
-	const party = await ctx.db
-		.selectFrom('party')
-		.selectAll()
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (!party) {
-		throw new Error('Party not found');
-	}
-
-	// Check for active claim associations
+	// Check for active claim associations (business logic guard - Phase 5.1)
 	const activeClaims = await getActiveClaimAssociations(ctx, id);
 	if (activeClaims.length > 0) {
 		throw new Error(
@@ -302,13 +365,15 @@ export async function archiveParty(ctx: ProtectedContext, id: number) {
 	const deletedAt = new Date();
 	const deletedBy = ctx.session.user.email!;
 
-	// Archive party
-	await ctx.db
+	// Archive party (existence check implicit in executeTakeFirstOrThrow - Phase 5.1 optimization)
+	const party = await ctx.db
 		.updateTable('party')
 		.set({ deleted_at: deletedAt, deleted_by: deletedBy })
 		.where('party.id', '=', id)
 		.where('party.client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('party.deleted_at', 'is', null)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	// Cascade to party addresses
 	await ctx.db
@@ -350,24 +415,15 @@ export async function archiveParty(ctx: ProtectedContext, id: number) {
  * Cascades to party_address, party_phone, party_email, and party_representative
  */
 export async function restoreParty(ctx: ProtectedContext, id: number) {
+	// Restore party (existence check implicit in executeTakeFirstOrThrow - Phase 5.1 optimization)
 	const party = await ctx.db
-		.selectFrom('party')
-		.selectAll()
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (!party) {
-		throw new Error('Party not found');
-	}
-
-	// Restore party
-	await ctx.db
 		.updateTable('party')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party.id', '=', id)
 		.where('party.client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('party.deleted_at', 'is not', null)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	// Cascade to party addresses
 	await ctx.db
@@ -463,14 +519,14 @@ export async function getAllPartyAddresses(
 		query = query.where('party_address.deleted_at', 'is', null);
 	}
 
-	// Apply search filter if provided (search by party name, address name, city, or state)
+	// Apply search filter if provided (prefix search - Phase 3.1 optimization)
 	if (searchTerm) {
 		query = query.where((eb) =>
 			eb.or([
-				sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_address.name ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_address.city ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_address.state ILIKE ${`%${searchTerm}%`}`,
+				sql<boolean>`party.name ILIKE ${`${searchTerm}%`}`,
+				sql<boolean>`party_address.name ILIKE ${`${searchTerm}%`}`,
+				sql<boolean>`party_address.city ILIKE ${`${searchTerm}%`}`,
+				sql<boolean>`party_address.state ILIKE ${`${searchTerm}%`}`,
 			])
 		);
 	}
@@ -641,24 +697,22 @@ export async function updatePartyAddress(
  * Archive party address (soft delete)
  */
 export async function archivePartyAddress(ctx: ProtectedContext, id: number) {
-	const address = await getPartyAddress(ctx, id);
-	if (!address) {
-		throw new Error('Address not found');
-	}
-
 	const deletedAt = new Date();
 	const deletedBy = ctx.session.user.email!;
 
-	await ctx.db
+	// Archive address (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
+	const address = await ctx.db
 		.updateTable('party_address')
 		.set({ deleted_at: deletedAt, deleted_by: deletedBy })
 		.where('party_address.id', '=', id)
+		.where('party_address.deleted_at', 'is', null)
 		.where(
 			'party_address.party_id',
 			'in',
 			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
 		)
-		.execute();
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	return address;
 }
@@ -667,21 +721,19 @@ export async function archivePartyAddress(ctx: ProtectedContext, id: number) {
  * Restore party address (undo soft delete)
  */
 export async function restorePartyAddress(ctx: ProtectedContext, id: number) {
-	const address = await getPartyAddress(ctx, id);
-	if (!address) {
-		throw new Error('Address not found');
-	}
-
-	await ctx.db
+	// Restore address (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
+	const address = await ctx.db
 		.updateTable('party_address')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_address.id', '=', id)
+		.where('party_address.deleted_at', 'is not', null)
 		.where(
 			'party_address.party_id',
 			'in',
 			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
 		)
-		.execute();
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	return address;
 }
@@ -807,17 +859,15 @@ export async function updatePartyPhone(
  * Archive party phone (soft delete)
  */
 export async function archivePartyPhone(ctx: ProtectedContext, id: number) {
-	const phone = await getPartyPhone(ctx, id);
-	if (!phone) {
-		throw new Error('Phone not found');
-	}
-
-	await ctx.db
+	// Archive phone (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
+	const phone = await ctx.db
 		.updateTable('party_phone')
 		.set({ deleted_at: new Date(), deleted_by: ctx.session.user.email! })
 		.where('party_phone.id', '=', id)
 		.where('party_phone.client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('party_phone.deleted_at', 'is', null)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	return phone;
 }
@@ -826,17 +876,15 @@ export async function archivePartyPhone(ctx: ProtectedContext, id: number) {
  * Restore party phone (undo soft delete)
  */
 export async function restorePartyPhone(ctx: ProtectedContext, id: number) {
-	const phone = await getPartyPhone(ctx, id);
-	if (!phone) {
-		throw new Error('Phone not found');
-	}
-
-	await ctx.db
+	// Restore phone (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
+	const phone = await ctx.db
 		.updateTable('party_phone')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_phone.id', '=', id)
 		.where('party_phone.client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('party_phone.deleted_at', 'is not', null)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	return phone;
 }
@@ -946,17 +994,15 @@ export async function updatePartyEmail(
  * Archive party email (soft delete)
  */
 export async function archivePartyEmail(ctx: ProtectedContext, id: number) {
-	const email = await getPartyEmail(ctx, id);
-	if (!email) {
-		throw new Error('Email not found');
-	}
-
-	await ctx.db
+	// Archive email (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
+	const email = await ctx.db
 		.updateTable('party_email')
 		.set({ deleted_at: new Date(), deleted_by: ctx.session.user.email! })
 		.where('party_email.id', '=', id)
 		.where('party_email.client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('party_email.deleted_at', 'is', null)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	return email;
 }
@@ -965,17 +1011,15 @@ export async function archivePartyEmail(ctx: ProtectedContext, id: number) {
  * Restore party email (undo soft delete)
  */
 export async function restorePartyEmail(ctx: ProtectedContext, id: number) {
-	const email = await getPartyEmail(ctx, id);
-	if (!email) {
-		throw new Error('Email not found');
-	}
-
-	await ctx.db
+	// Restore email (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
+	const email = await ctx.db
 		.updateTable('party_email')
 		.set({ deleted_at: null, deleted_by: null })
 		.where('party_email.id', '=', id)
 		.where('party_email.client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('party_email.deleted_at', 'is not', null)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	return email;
 }
@@ -1064,14 +1108,14 @@ export async function getAllPartyRepresentatives(
 		query = query.where('party_representative.deleted_at', 'is', null);
 	}
 
-	// Apply search filter if provided
+	// Apply search filter if provided (prefix search - Phase 3.1 optimization)
 	if (searchTerm) {
 		query = query.where((eb) =>
 			eb.or([
-				sql<boolean>`party.name ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`concat(party_representative.first_name, ' ', party_representative.last_name) ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_representative.title ILIKE ${`%${searchTerm}%`}`,
-				sql<boolean>`party_representative.email ILIKE ${`%${searchTerm}%`}`,
+				sql<boolean>`party.name ILIKE ${`${searchTerm}%`}`,
+				sql<boolean>`concat(party_representative.first_name, ' ', party_representative.last_name) ILIKE ${`${searchTerm}%`}`,
+				sql<boolean>`party_representative.title ILIKE ${`${searchTerm}%`}`,
+				sql<boolean>`party_representative.email ILIKE ${`${searchTerm}%`}`,
 			])
 		);
 	}
@@ -1334,6 +1378,13 @@ export async function getClaimParties(
 		.innerJoin('party', 'party.id', 'claim_party.party_id')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
 		.leftJoin('party_representative', 'party_representative.id', 'claim_party.representative_id')
+		// Join to facilitator's selected office (from claim_party.address_id)
+		.leftJoin('party_address as selected_address', (join) =>
+			join
+				.onRef('selected_address.id', '=', 'claim_party.address_id')
+				.on('selected_address.deleted_at', 'is', null)
+		)
+		// Join to party's primary valid address (fallback for entities)
 		.leftJoin('party_address', (join) =>
 			join
 				.onRef('party_address.party_id', '=', 'party.id')
@@ -1355,7 +1406,7 @@ export async function getClaimParties(
 			'party.id as party_id',
 			'party.name as party_name',
 			'party.party_type as party_type',
-						'party.organization as party_organization',
+			'party.organization as party_organization',
 			'party.is_business as party_is_business',
 			'party.first_name as party_first_name',
 			'party.last_name as party_last_name',
@@ -1367,13 +1418,14 @@ export async function getClaimParties(
 			'party_representative.email as representative_email',
 			'party_representative.phone as representative_phone',
 			'party_representative.title as representative_title',
-			'party_address.id as address_id',
-			'party_address.name as address_name',
-			'party_address.street_address as address_street_address',
-			'party_address.city as address_city',
-			'party_address.state as address_state',
-			'party_address.postal_code as address_postal_code',
-			'party_address.country as address_country',
+			// For facilitators: use selected office, for entities: use party's primary address
+			sql<number | null>`COALESCE(selected_address.id, party_address.id)`.as('address_id'),
+			sql<string | null>`COALESCE(selected_address.name, party_address.name)`.as('address_name'),
+			sql<string | null>`COALESCE(selected_address.street_address, party_address.street_address)`.as('address_street_address'),
+			sql<string | null>`COALESCE(selected_address.city, party_address.city)`.as('address_city'),
+			sql<string | null>`COALESCE(selected_address.state, party_address.state)`.as('address_state'),
+			sql<string | null>`COALESCE(selected_address.postal_code, party_address.postal_code)`.as('address_postal_code'),
+			sql<string | null>`COALESCE(selected_address.country, party_address.country)`.as('address_country'),
 		])
 		.distinctOn('claim_party.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id)
@@ -1391,6 +1443,7 @@ export async function getClaimParties(
 	// Since role is now a TEXT[] array, we use the PostgreSQL overlap operator (&&)
 	// to check if any role in the claim_party.role array is in the reference list
 	if (options?.roleListEntity) {
+		const roleListEntity = options.roleListEntity; // Extract to ensure type narrowing
 		query = query.where((eb) =>
 			eb(
 				'claim_party.role',
@@ -1399,7 +1452,7 @@ export async function getClaimParties(
 					.selectFrom('reference_option')
 					.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
 					.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('values'))
-					.where('reference_list.entity', '=', options.roleListEntity)
+					.where('reference_list.entity', '=', roleListEntity)
 					.where('reference_list.client_id', '=', ctx.session.user.client_id)
 					.where('reference_list.deleted_at', 'is', null)
 					.where('reference_option.deleted_at', 'is', null)
@@ -1455,7 +1508,14 @@ export async function getClaimParties(
 		parent_claim_party_id: row.parent_claim_party_id,
 		created_at: row.created_at,
 		created_by: row.created_by,
+		// Structured representative (for facilitators)
 		representative_id: row.representative_id,
+		address_id: row.address_id,
+		// Free-form representative fields (for entities)
+		representative_name: row.representative_name,
+		representative_title: row.representative_title,
+		representative_email: row.representative_email,
+		representative_phone: row.representative_phone,
 		party: {
 			id: row.party_id,
 			name: row.party_name,
@@ -1493,6 +1553,45 @@ export async function getClaimParties(
 }
 
 /**
+ * Get the primary claim party for a claim (lightweight query)
+ * Returns only essential fields without JOINs for party contacts/coverages
+ *
+ * @param ctx - Protected context
+ * @param claimId - Claim ID
+ * @returns Primary claim party or null if none exists
+ */
+export async function getPrimaryClaimParty(
+	ctx: ProtectedContext,
+	claimId: number
+): Promise<{
+	id: number;
+	claim_id: number;
+	party_id: number;
+	role: string[];
+	representative_id: number | null;
+	is_primary: boolean;
+} | null> {
+	const result = await ctx.db
+		.selectFrom('claim_party')
+		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
+		.select([
+			'claim_party.id',
+			'claim_party.claim_id',
+			'claim_party.party_id',
+			'claim_party.role',
+			'claim_party.representative_id',
+			'claim_party.is_primary',
+		])
+		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.is_primary', '=', true)
+		.where('claim_party.deleted_at', 'is', null)
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+
+	return result ?? null;
+}
+
+/**
  * Link party to claim with role information
  * Recalculates expected_recovery after creation
  *
@@ -1504,7 +1603,15 @@ export async function linkPartyToClaim(
 		claim_id: number;
 		party_id: number;
 		role: string[];
+		// Structured representative (facilitators)
 		representative_id?: number | null;
+		address_id?: number | null;
+		// Free-form representative (entities)
+		representative_name?: string | null;
+		representative_title?: string | null;
+		representative_email?: string | null;
+		representative_phone?: string | null;
+		// Other fields
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
@@ -1522,6 +1629,11 @@ export async function linkPartyToClaim(
 			party_id: params.party_id,
 			role: params.role,
 			representative_id: params.representative_id,
+			address_id: params.address_id,
+			representative_name: params.representative_name,
+			representative_title: params.representative_title,
+			representative_email: params.representative_email,
+			representative_phone: params.representative_phone,
 			is_primary: params.is_primary,
 			notes: params.notes,
 			external_reference: params.external_reference,
@@ -1534,10 +1646,8 @@ export async function linkPartyToClaim(
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate expected_recovery and return the new value
-	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, params.claim_id);
-
-	return { claimParty, expectedRecovery };
+	// Controller is responsible for orchestrating recalculation if needed
+	return { claimParty };
 }
 
 /**
@@ -1551,7 +1661,15 @@ export async function updateClaimParty(
 	id: number,
 	params: {
 		role?: string[];
+		// Structured representative (facilitators)
 		representative_id?: number | null;
+		address_id?: number | null;
+		// Free-form representative (entities)
+		representative_name?: string | null;
+		representative_title?: string | null;
+		representative_email?: string | null;
+		representative_phone?: string | null;
+		// Other fields
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
@@ -1567,6 +1685,11 @@ export async function updateClaimParty(
 		.set({
 			...(params.role !== undefined && { role: params.role }),
 			...(params.representative_id !== undefined && { representative_id: params.representative_id }),
+			...(params.address_id !== undefined && { address_id: params.address_id }),
+			...(params.representative_name !== undefined && { representative_name: params.representative_name }),
+			...(params.representative_title !== undefined && { representative_title: params.representative_title }),
+			...(params.representative_email !== undefined && { representative_email: params.representative_email }),
+			...(params.representative_phone !== undefined && { representative_phone: params.representative_phone }),
 			...(params.is_primary !== undefined && { is_primary: params.is_primary }),
 			...(params.notes !== undefined && { notes: params.notes }),
 			...(params.external_reference !== undefined && { external_reference: params.external_reference }),
@@ -1591,10 +1714,8 @@ export async function updateClaimParty(
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate expected_recovery and return the new value
-	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
-
-	return { claimParty, expectedRecovery };
+	// Controller is responsible for orchestrating recalculation if needed
+	return { claimParty };
 }
 
 /**
@@ -1621,12 +1742,12 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
 /**
  * Archive (soft delete) a claim party and all its children recursively
  * Also archives any coverages associated with this claim party and its children
- * Recalculates expected_recovery and total_incurred after archiving
+ * Controller is responsible for recalculating expected_recovery and total_incurred
  *
- * @returns updated expectedRecovery, totalIncurred, and claimId
+ * @returns claimId for controller to orchestrate recalculation
  */
 export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
-	// Get claim_id before archiving for recalculation (with client check)
+	// Get claim_id before archiving (with client check)
 	const claimParty = await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
@@ -1643,13 +1764,10 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
 	const allClaimPartyIds = await getClaimPartyIdsWithChildren(ctx, id);
 
 	// Import dynamically to avoid circular dependency
-	const { archiveCoveragesByClaimParty } = await import('./coverageQueries');
-	const { recalculateTotalIncurred } = await import('./claimQueries');
+	const { archiveCoveragesByClaimPartyIds } = await import('./coverageQueries');
 
-	// Archive coverages for all affected claim_parties
-	for (const claimPartyId of allClaimPartyIds) {
-		await archiveCoveragesByClaimParty(ctx, claimPartyId);
-	}
+	// Archive coverages for all affected claim_parties in a single batch query (Phase 1.2 optimization)
+	await archiveCoveragesByClaimPartyIds(ctx, allClaimPartyIds);
 
 	// Soft delete all claim_parties (parent + children)
 	await ctx.db
@@ -1667,11 +1785,8 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
 		.where('claim_party.deleted_at', 'is', null)
 		.execute();
 
-	// Recalculate expected_recovery and total_incurred
-	const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
-	const totalIncurred = await recalculateTotalIncurred(ctx, claimParty.claim_id);
-
-	return { expectedRecovery, totalIncurred, claimId: claimParty.claim_id };
+	// Controller is responsible for orchestrating recalculation
+	return { claimId: claimParty.claim_id };
 }
 
 /**

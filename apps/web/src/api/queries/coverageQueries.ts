@@ -107,20 +107,8 @@ export async function updateCoverage(ctx: ProtectedContext, id: number, params: 
  * @returns claimId and updated total_incurred
  */
 export async function archiveCoverage(ctx: ProtectedContext, id: number) {
-	// Get the claim_id before soft-deleting so we can recalculate afterward
+	// Archive coverage and get claim_id in single query (Phase 5.1 optimization)
 	const coverage = await ctx.db
-		.selectFrom('claim_coverage')
-		.select(['claim_id'])
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.where('deleted_at', 'is', null)
-		.executeTakeFirst();
-
-	if (!coverage) {
-		throw new Error('Coverage not found');
-	}
-
-	await ctx.db
 		.updateTable('claim_coverage')
 		.set({
 			deleted_at: new Date(),
@@ -128,7 +116,9 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
 		})
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('deleted_at', 'is', null)
+		.returning(['claim_id'])
+		.executeTakeFirstOrThrow();
 
 	// Recalculate total_incurred and return the new value
 	const totalIncurred = await recalculateTotalIncurred(ctx, coverage.claim_id);
@@ -145,23 +135,13 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
  * @returns claimId and updated total_incurred
  */
 export async function deleteCoverage(ctx: ProtectedContext, id: number) {
-	// Get the claim_id before deleting so we can recalculate afterward
+	// Delete coverage and get claim_id in single query (Phase 5.1 optimization)
 	const coverage = await ctx.db
-		.selectFrom('claim_coverage')
-		.select(['claim_id'])
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (!coverage) {
-		throw new Error('Coverage not found');
-	}
-
-	await ctx.db
 		.deleteFrom('claim_coverage')
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.returning(['claim_id'])
+		.executeTakeFirstOrThrow();
 
 	// Recalculate total_incurred and return the new value
 	const totalIncurred = await recalculateTotalIncurred(ctx, coverage.claim_id);
@@ -206,6 +186,30 @@ export async function archiveCoveragesByClaimParty(ctx: ProtectedContext, claimP
 			claim_party_id: null, // Nullify FK to allow claim_party deletion
 		})
 		.where('claim_party_id', '=', claimPartyId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('deleted_at', 'is', null)
+		.execute();
+}
+
+/**
+ * Archive coverages for multiple claim parties in a single batch query (Phase 1.2 optimization)
+ * @param ctx - request context
+ * @param claimPartyIds - array of claim_party IDs to archive coverages for
+ */
+export async function archiveCoveragesByClaimPartyIds(
+	ctx: ProtectedContext,
+	claimPartyIds: number[]
+): Promise<void> {
+	if (claimPartyIds.length === 0) return;
+
+	await ctx.db
+		.updateTable('claim_coverage')
+		.set({
+			deleted_at: new Date(),
+			deleted_by: ctx.session.user.id,
+			claim_party_id: null, // Nullify FK to allow claim_party deletion
+		})
+		.where('claim_party_id', 'in', claimPartyIds) // WHERE IN for batch operation
 		.where('client_id', '=', ctx.session.user.client_id)
 		.where('deleted_at', 'is', null)
 		.execute();

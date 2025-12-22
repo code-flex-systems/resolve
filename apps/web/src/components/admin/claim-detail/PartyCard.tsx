@@ -197,8 +197,8 @@ export default function PartyCard({
 								</Box>
 							)}
 
-							{/* Representative */}
-							{claimParty.representative && (
+							{/* Representative - Facilitators (structured) */}
+							{claimParty.party?.party_type === 'facilitator' && claimParty.representative && (
 								<Box marginBottom={0.5}>
 									<Typography fontSize={13} display="inline">
 										Representative:{' '}
@@ -219,6 +219,35 @@ export default function PartyCard({
 														' • '}
 													{claimParty.representative.phone && (
 														<>📞 {claimParty.representative.phone}</>
+													)}
+													)
+												</Typography>
+											</>
+										)}
+									</Typography>
+								</Box>
+							)}
+
+							{/* Representative - Entities (free-form) */}
+							{claimParty.party?.party_type === 'entity' && claimParty.representative_name && (
+								<Box marginBottom={0.5}>
+									<Typography fontSize={13} display="inline">
+										Representative:{' '}
+										<Highlight>{claimParty.representative_name}</Highlight>
+										{claimParty.representative_title && ` - ${claimParty.representative_title}`}
+										{(claimParty.representative_email || claimParty.representative_phone) && (
+											<>
+												{' '}
+												<Typography component="span" fontSize={12} color="text.secondary">
+													(
+													{claimParty.representative_email && (
+														<>✉️ {claimParty.representative_email}</>
+													)}
+													{claimParty.representative_email &&
+														claimParty.representative_phone &&
+														' • '}
+													{claimParty.representative_phone && (
+														<>📞 {claimParty.representative_phone}</>
 													)}
 													)
 												</Typography>

@@ -443,12 +443,7 @@ export async function getDeskLocationClaimAssignments(
  * Also removes all user assignments to this desk location
  */
 export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
-	const deskLocation = await getDeskLocation(ctx, id);
-	if (!deskLocation) {
-		throw new Error('Desk location not found');
-	}
-
-	// Check for assigned claims
+	// Check for assigned claims (business logic guard - Phase 5.1 optimization)
 	const assignedClaims = await getDeskLocationClaimAssignments(ctx, id);
 	if (assignedClaims.length > 0) {
 		throw new Error(

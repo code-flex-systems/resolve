@@ -70,8 +70,8 @@ describe('claimQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act
-			const client1Claims = await getClaims(ctx1, { type: 'data' }) as Array<{ insured: string | null }>;
-			const client2Claims = await getClaims(ctx2, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: client1Claims } = await getClaims(ctx1, {});
+			const { rows: client2Claims } = await getClaims(ctx2, {});
 
 			// Assert
 			expect(client1Claims).toHaveLength(2);
@@ -95,7 +95,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
 
 			// Act
-			const count = await getClaims(ctx, { type: 'count' });
+			const { count } = await getClaims(ctx, {});
 
 			// Assert
 			expect(count).toBe(3);
@@ -117,7 +117,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: adminUser.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<unknown>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Admin sees all 3 claims
 			expect(claims).toHaveLength(3);
@@ -166,7 +166,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Contributor sees 3 claims (owned, assigned, unassigned)
 			const insureds = claims.map((c) => c.insured);
@@ -235,7 +235,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Contributor only sees claim at their desk
 			const insureds = claims.map((c) => c.insured);
@@ -282,7 +282,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Contributor should not see the claim (removed from desk)
 			const insureds = claims.map((c) => c.insured);
@@ -303,7 +303,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data', insured: 'john' }) as Array<unknown>;
+			const { rows: claims } = await getClaims(ctx, { insured: 'john' });
 
 			// Assert
 			expect(claims).toHaveLength(2); // John Smith and Bob Johnson
@@ -322,8 +322,8 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const pendingClaims = await getClaims(ctx, { type: 'data', recovery_status: RecoveryStatus.PENDING }) as Array<unknown>;
-			const inProgressClaims = await getClaims(ctx, { type: 'data', recovery_status: RecoveryStatus.IN_PROGRESS }) as Array<unknown>;
+			const { rows: pendingClaims } = await getClaims(ctx, { recovery_status: RecoveryStatus.PENDING });
+			const { rows: inProgressClaims } = await getClaims(ctx, { recovery_status: RecoveryStatus.IN_PROGRESS });
 
 			// Assert
 			expect(pendingClaims).toHaveLength(2);
@@ -346,9 +346,9 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const page1 = await getClaims(ctx, { type: 'data', limit: 3, offset: 0 }) as Array<{ claim_number: string | null }>;
-			const page2 = await getClaims(ctx, { type: 'data', limit: 3, offset: 3 }) as Array<{ claim_number: string | null }>;
-			const page3 = await getClaims(ctx, { type: 'data', limit: 3, offset: 6 }) as Array<{ claim_number: string | null }>;
+			const { rows: page1 } = await getClaims(ctx, { limit: 3, offset: 0 });
+			const { rows: page2 } = await getClaims(ctx, { limit: 3, offset: 3 });
+			const { rows: page3 } = await getClaims(ctx, { limit: 3, offset: 6 });
 
 			// Assert
 			expect(page1).toHaveLength(3);
@@ -389,8 +389,8 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const feed1Claims = await getClaims(ctx, { type: 'data', feedId: feed1.id }) as Array<{ feed_name: string | null; insured: string | null }>;
-			const manualClaims = await getClaims(ctx, { type: 'data', feedId: null }) as Array<{ insured: string | null }>;
+			const { rows: feed1Claims } = await getClaims(ctx, { feedId: feed1.id });
+			const { rows: manualClaims } = await getClaims(ctx, { feedId: null });
 
 			// Assert
 			expect(feed1Claims).toHaveLength(2);
@@ -424,7 +424,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - No feedId filter, should exclude inactive feed claims
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert
 			const insureds = claims.map((c) => c.insured);
@@ -723,10 +723,9 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = (await getClaims(ctx, {
-				type: 'data',
+			const { rows: claims } = await getClaims(ctx, {
 				searchTerm: { value: 'CLM', type: ClaimSearch.CLAIM_NUMBER },
-			})) as Array<{ claim_number: string | null }>;
+			});
 
 			// Assert
 			expect(claims).toHaveLength(2);
@@ -745,7 +744,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = (await getClaims(ctx, { type: 'data', client: 'acme' })) as Array<{ client: string | null }>;
+			const { rows: claims } = await getClaims(ctx, { client: 'acme' });
 
 			// Assert
 			expect(claims).toHaveLength(2);
@@ -781,9 +780,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = (await getClaims(ctx, { type: 'data', loss_type: LossType.FIRE })) as Array<{
-				insured: string | null;
-			}>;
+			const { rows: claims } = await getClaims(ctx, { loss_type: LossType.FIRE });
 
 			// Assert
 			expect(claims).toHaveLength(1);
@@ -1235,20 +1232,36 @@ describe('claimQueries integration', () => {
 				assignee: admin.id,
 			});
 
-			// Add coverage
+			// Add entity party and claim_party (coverage requires entity-type party)
+			const entityParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				party_type: 'entity',
+			});
+			const entityClaimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: entityParty.id,
+				liability_percentage: 30,
+			});
+
+			// Add coverage linked to entity claim_party
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
+				claim_party_id: entityClaimParty.id,
 				loss_type: CoverageType.DWELLING,
 				coverage_amount: 100000,
 			});
 
-			// Add party
-			const party = await createTestParty(db, { client_id: client.id, created_by: admin.id });
+			// Add facilitator party (for partySummary count)
+			const facilitatorParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				party_type: 'facilitator',
+			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
-				party_id: party.id,
-				liability_percentage: 30,
+				party_id: facilitatorParty.id,
 			});
 
 			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });

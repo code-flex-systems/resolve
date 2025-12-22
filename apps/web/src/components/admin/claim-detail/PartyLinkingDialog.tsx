@@ -7,13 +7,23 @@ import { LossTypeSelect } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { PartyType } from '@/config/enums';
 import PartyDialog from '@/components/admin/PartyDialog';
+import AddressDialog from '@/components/admin/AddressDialog';
+import RepresentativeDialog from '@/components/admin/RepresentativeDialog';
 import type { Party } from '@/api/database/types';
 import { trpc } from '@/lib/trpc';
 
 interface PartyLinkingFormData {
 	role: string[]; // Array of selected roles
 	party_id: number | null;
+	// Structured representative (facilitators)
 	representative_id: number | null;
+	address_id: number | null;
+	// Free-form representative (entities)
+	representative_name: string;
+	representative_title: string;
+	representative_email: string;
+	representative_phone: string;
+	// Other fields
 	liability_percentage: string;
 	notes: string;
 	parent_claim_party_id: number | null;
@@ -28,7 +38,15 @@ interface PartyLinkingDialogProps {
 	onSubmit: (data: {
 		role: string[]; // Array of roles
 		party_id: number;
+		// Structured representative (facilitators)
 		representative_id?: number | null;
+		address_id?: number | null;
+		// Free-form representative (entities)
+		representative_name?: string | null;
+		representative_title?: string | null;
+		representative_email?: string | null;
+		representative_phone?: string | null;
+		// Other fields
 		liability_percentage?: number | null;
 		notes?: string | null;
 		parent_claim_party_id?: number | null;
@@ -64,7 +82,15 @@ export default function PartyLinkingDialog({
 	const [formData, setFormData] = useState<PartyLinkingFormData>({
 		role: [],
 		party_id: null,
+		// Structured representative (facilitators)
 		representative_id: null,
+		address_id: null,
+		// Free-form representative (entities)
+		representative_name: '',
+		representative_title: '',
+		representative_email: '',
+		representative_phone: '',
+		// Other fields
 		liability_percentage: '',
 		notes: '',
 		parent_claim_party_id: parentClaimPartyId || null,
@@ -74,9 +100,13 @@ export default function PartyLinkingDialog({
 
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<any | null>(null);
+	const [selectedAddress, setSelectedAddress] = useState<any | null>(null);
 	const [selectedRepresentative, setSelectedRepresentative] = useState<any | null>(null);
 	const [selectedParentEntity, setSelectedParentEntity] = useState<any | null>(null);
+	// Inline creation dialogs
 	const [showCreatePartyDialog, setShowCreatePartyDialog] = useState(false);
+	const [showCreateAddressDialog, setShowCreateAddressDialog] = useState(false);
+	const [showCreateRepDialog, setShowCreateRepDialog] = useState(false);
 
 	const partyTrpc = usePartyTrpc();
 
@@ -95,10 +125,21 @@ export default function PartyLinkingDialog({
 		{ enabled: partySearchTerm.length >= 2 }
 	);
 
-	// Fetch representatives for selected party
-	const { data: representatives = [] } = partyTrpc.listRepresentatives(
+	// Fetch addresses for selected party (facilitators only)
+	const { data: addresses = [] } = partyTrpc.listAddresses(
 		{ partyId: selectedParty?.id! },
-		{ enabled: !!selectedParty }
+		{ enabled: !!selectedParty && isFacilitatorMode }
+	);
+
+	// Fetch representatives for selected party
+	// For facilitators: filter by selected address
+	// For entities: show all representatives (though we'll use free-form instead)
+	const { data: representatives = [] } = partyTrpc.listRepresentatives(
+		{
+			partyId: selectedParty?.id!,
+			addressId: isFacilitatorMode ? selectedAddress?.id : undefined
+		},
+		{ enabled: !!selectedParty && (isFacilitatorMode ? !!selectedAddress : true) }
 	);
 
 	// Prepare party autocomplete options
@@ -132,16 +173,27 @@ export default function PartyLinkingDialog({
 			setFormData({
 				role: roleArray,
 				party_id: editingClaimParty.party_id,
-				representative_id: editingClaimParty.representative_id,
+				// Structured representative (facilitators)
+				representative_id: editingClaimParty.representative_id || null,
+				address_id: editingClaimParty.address_id || null,
+				// Free-form representative (entities)
+				representative_name: editingClaimParty.representative_name || '',
+				representative_title: editingClaimParty.representative_title || '',
+				representative_email: editingClaimParty.representative_email || '',
+				representative_phone: editingClaimParty.representative_phone || '',
+				// Other fields
 				liability_percentage: editingClaimParty.liability_percentage?.toString() || '',
 				notes: editingClaimParty.notes || '',
 				parent_claim_party_id: editingClaimParty.parent_claim_party_id || null,
 				loss_type: editingClaimParty.loss_type || null,
 				policy_limit: editingClaimParty.policy_limit?.toString() || '',
 			});
-			// Set selected party and representative for autocompletes
+			// Set selected party, address, and representative for autocompletes
 			if (editingClaimParty.party) {
 				setSelectedParty(editingClaimParty.party);
+			}
+			if (editingClaimParty.address) {
+				setSelectedAddress(editingClaimParty.address);
 			}
 			if (editingClaimParty.representative) {
 				setSelectedRepresentative(editingClaimParty.representative);
@@ -156,7 +208,15 @@ export default function PartyLinkingDialog({
 			setFormData({
 				role: [],
 				party_id: null,
+				// Structured representative (facilitators)
 				representative_id: null,
+				address_id: null,
+				// Free-form representative (entities)
+				representative_name: '',
+				representative_title: '',
+				representative_email: '',
+				representative_phone: '',
+				// Other fields
 				liability_percentage: '',
 				notes: '',
 				parent_claim_party_id: parentClaimPartyId || null,
@@ -164,19 +224,33 @@ export default function PartyLinkingDialog({
 				policy_limit: '',
 			});
 			setSelectedParty(null);
+			setSelectedAddress(null);
 			setSelectedRepresentative(null);
 			setSelectedParentEntity(null);
 			setPartySearchTerm('');
 		}
 	}, [editingClaimParty, open, parentClaimPartyId, availableParentEntities]);
 
-	// Handle party selection
+	// Handle party selection (cascades to clear address and representative)
 	const handlePartySelect = useCallback((party: any) => {
 		setSelectedParty(party);
-		setSelectedRepresentative(null); // Clear representative when party changes
+		setSelectedAddress(null);
+		setSelectedRepresentative(null);
 		setFormData((prev) => ({
 			...prev,
 			party_id: party?.id || null,
+			address_id: null,
+			representative_id: null,
+		}));
+	}, []);
+
+	// Handle address selection (cascades to clear representative)
+	const handleAddressSelect = useCallback((address: any) => {
+		setSelectedAddress(address);
+		setSelectedRepresentative(null);
+		setFormData((prev) => ({
+			...prev,
+			address_id: address?.id || null,
 			representative_id: null,
 		}));
 	}, []);
@@ -212,16 +286,49 @@ export default function PartyLinkingDialog({
 		[handlePartySelect]
 	);
 
+	// Handle address creation from nested dialog
+	const handleAddressCreated = useCallback(
+		(createdAddress?: any) => {
+			setShowCreateAddressDialog(false);
+			if (createdAddress) {
+				// Auto-select the newly created address
+				handleAddressSelect(createdAddress);
+			}
+		},
+		[handleAddressSelect]
+	);
+
+	// Handle representative creation from nested dialog
+	const handleRepCreated = useCallback(
+		(createdRep?: any) => {
+			setShowCreateRepDialog(false);
+			if (createdRep) {
+				// Auto-select the newly created representative
+				handleRepresentativeSelect(createdRep);
+			}
+		},
+		[handleRepresentativeSelect]
+	);
+
 	const handleSubmit = async () => {
 		if (!formData.party_id || formData.role.length === 0) return;
 
-		// For facilitator mode, parent is required
+		// For facilitator mode, parent is required and all three levels (party, address, rep) required
 		if (isFacilitatorMode && !formData.parent_claim_party_id && !parentClaimPartyId) return;
+		if (isFacilitatorMode && (!formData.address_id || !formData.representative_id)) return;
 
 		await onSubmit({
 			role: formData.role,
 			party_id: formData.party_id,
-			representative_id: formData.representative_id || null,
+			// Structured representative (facilitators)
+			representative_id: isFacilitatorMode ? formData.representative_id : null,
+			address_id: isFacilitatorMode ? formData.address_id : null,
+			// Free-form representative (entities)
+			representative_name: !isFacilitatorMode && formData.representative_name ? formData.representative_name : null,
+			representative_title: !isFacilitatorMode && formData.representative_title ? formData.representative_title : null,
+			representative_email: !isFacilitatorMode && formData.representative_email ? formData.representative_email : null,
+			representative_phone: !isFacilitatorMode && formData.representative_phone ? formData.representative_phone : null,
+			// Other fields
 			liability_percentage: formData.liability_percentage ? parseFloat(formData.liability_percentage) : null,
 			notes: formData.notes || null,
 			parent_claim_party_id: formData.parent_claim_party_id || parentClaimPartyId || null,
@@ -242,7 +349,9 @@ export default function PartyLinkingDialog({
 		formData.party_id &&
 		formData.role.length > 0 &&
 		isValidLiabilityPercentage &&
-		(!isFacilitatorMode || formData.parent_claim_party_id || parentClaimPartyId);
+		(!isFacilitatorMode || formData.parent_claim_party_id || parentClaimPartyId) &&
+		// For facilitators: require address and representative
+		(!isFacilitatorMode || (formData.address_id && formData.representative_id));
 
 	if (!open) return null;
 
@@ -372,29 +481,125 @@ export default function PartyLinkingDialog({
 					</Typography>
 				</Box>
 
-				{/* Representative Selection */}
-				<Autocomplete
-					options={representativeAutocompleteOptions}
-					value={selectedRepresentative}
-					onChange={(_, newValue) => handleRepresentativeSelect(newValue)}
-					getOptionLabel={(option: any) => {
-						return `${option.first_name} ${option.last_name}`;
-					}}
-					renderOption={(props, option: any) => (
-						<li {...props} key={option.id}>
-							{`${option.first_name} ${option.last_name}`}
-						</li>
-					)}
-					disabled={!selectedParty}
-					fullWidth
-					renderInput={(params) => (
-						<TextField
-							{...params}
-							label="Representative (Optional)"
-							placeholder={selectedParty ? 'Search representatives...' : 'Select entity/facilitator first'}
+				{/* Facilitator: Address Selection (Office) */}
+				{isFacilitatorMode && (
+					<Box>
+						<Autocomplete
+							options={addresses}
+							value={selectedAddress}
+							onChange={(_, newValue) => handleAddressSelect(newValue)}
+							getOptionLabel={(option: any) => option.name || 'Unnamed Address'}
+							isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+							disabled={!selectedParty}
+							fullWidth
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									label="Office/Address *"
+									placeholder={selectedParty ? 'Select office...' : 'Select facilitator first'}
+									required
+								/>
+							)}
 						/>
-					)}
-				/>
+						{/* Add New Address Link */}
+						{selectedParty && (
+							<Typography
+								variant="body2"
+								sx={{
+									color: 'primary.main',
+									cursor: 'pointer',
+									'&:hover': { textDecoration: 'underline' },
+									mt: 0.5,
+								}}
+								onClick={() => setShowCreateAddressDialog(true)}
+							>
+								+ Add new office
+							</Typography>
+						)}
+					</Box>
+				)}
+
+				{/* Facilitator: Representative Selection (filtered by address) */}
+				{isFacilitatorMode && (
+					<Box>
+						<Autocomplete
+							options={representativeAutocompleteOptions}
+							value={selectedRepresentative}
+							onChange={(_, newValue) => handleRepresentativeSelect(newValue)}
+							getOptionLabel={(option: any) => `${option.first_name} ${option.last_name}`}
+							renderOption={(props, option: any) => (
+								<li {...props} key={option.id}>
+									{`${option.first_name} ${option.last_name}`}
+									{option.title && (
+										<Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+											({option.title})
+										</Typography>
+									)}
+								</li>
+							)}
+							disabled={!selectedAddress}
+							fullWidth
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									label="Representative *"
+									placeholder={selectedAddress ? 'Select representative...' : 'Select office first'}
+									required
+								/>
+							)}
+						/>
+						{/* Add New Representative Link */}
+						{selectedAddress && (
+							<Typography
+								variant="body2"
+								sx={{
+									color: 'primary.main',
+									cursor: 'pointer',
+									'&:hover': { textDecoration: 'underline' },
+									mt: 0.5,
+								}}
+								onClick={() => setShowCreateRepDialog(true)}
+							>
+								+ Add new representative
+							</Typography>
+						)}
+					</Box>
+				)}
+
+				{/* Entity: Free-form Representative Fields */}
+				{!isFacilitatorMode && (
+					<>
+						<TextField
+							label="Representative Name"
+							value={formData.representative_name}
+							onChange={(e) => setFormData({ ...formData, representative_name: e.target.value })}
+							fullWidth
+							placeholder="Enter representative name..."
+						/>
+						<TextField
+							label="Representative Title"
+							value={formData.representative_title}
+							onChange={(e) => setFormData({ ...formData, representative_title: e.target.value })}
+							fullWidth
+							placeholder="Enter representative title..."
+						/>
+						<TextField
+							label="Representative Email"
+							type="email"
+							value={formData.representative_email}
+							onChange={(e) => setFormData({ ...formData, representative_email: e.target.value })}
+							fullWidth
+							placeholder="Enter representative email..."
+						/>
+						<TextField
+							label="Representative Phone"
+							value={formData.representative_phone}
+							onChange={(e) => setFormData({ ...formData, representative_phone: e.target.value })}
+							fullWidth
+							placeholder="Enter representative phone..."
+						/>
+					</>
+				)}
 
 				{/* Liability Percentage - only show on adverse parties tab for entities */}
 				{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
@@ -471,6 +676,30 @@ export default function PartyLinkingDialog({
 			{/* Nested Party Creation Dialog */}
 			{showCreatePartyDialog && (
 				<PartyDialog lockedType={isFacilitatorMode ? 'facilitator' : 'entity'} onClose={handlePartyCreated} />
+			)}
+
+			{/* Nested Address Creation Dialog */}
+			{showCreateAddressDialog && selectedParty && (
+				<AddressDialog
+					address={{
+						party_id: selectedParty.id,
+						party_name: selectedParty.name,
+					} as any}
+					onClose={handleAddressCreated}
+				/>
+			)}
+
+			{/* Nested Representative Creation Dialog */}
+			{showCreateRepDialog && selectedParty && selectedAddress && (
+				<RepresentativeDialog
+					representative={{
+						party_id: selectedParty.id,
+						address_id: selectedAddress.id,
+						party_name: selectedParty.name,
+						address_name: selectedAddress.name,
+					} as any}
+					onClose={handleRepCreated}
+				/>
 			)}
 		</BasicDialog>
 	);

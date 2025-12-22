@@ -69,10 +69,7 @@ export async function getClaims(
 		offset?: number;
 	}
 ) {
-	const [rows, count] = await Promise.all([
-		claimQueries.getClaims(ctx, { ...params, type: 'data' }),
-		claimQueries.getClaims(ctx, { ...params, type: 'count' }),
-	]);
+	const { rows, count } = await claimQueries.getClaims(ctx, params);
 	return { rows, count };
 }
 
@@ -126,33 +123,29 @@ export async function createClaims(
 			}))
 		);
 
-		// Link party to claims if party_id and role provided
+		// Link party to claims if party_id and role provided (batch operation)
 		if (party_id && role && newClaims.length > 0) {
-			const { linkPartyToClaim } = await import('@/api/queries/partyQueries');
+			// Batch create all claim_party relationships in single INSERT
+			const claimPartyValues = newClaims.map((claim) => ({
+				claim_id: claim.id!,
+				party_id,
+				role,
+				is_primary: true,
+				representative_id: representative_id ?? null,
+				created_by: ctx.session.user.id,
+			}));
 
-			for (const claim of newClaims) {
-				await linkPartyToClaim(
-					{ ...ctx, db: trx },
-					{
-						claim_id: claim.id!,
-						party_id,
-						role,
-						is_primary: true,
-						representative_id: representative_id ?? null,
-					}
-				);
+			await trx.insertInto('claim_party').values(claimPartyValues).execute();
 
-				// Log party linking
-				await logAdminAction(
-					{ ...ctx, db: trx },
-					{
-						entityId: claim.id!,
-						entityName: EntityName.CLAIM,
-						action: AdminAction.UPDATE,
-						value: { party_id, representative_id, action: 'linked_party' },
-					}
-				);
-			}
+			// Batch log all admin actions in single INSERT
+			const adminLogActions = newClaims.map((claim) => ({
+				entityId: claim.id!,
+				entityName: EntityName.CLAIM,
+				action: AdminAction.UPDATE,
+				value: { party_id, representative_id, action: 'linked_party' },
+			}));
+
+			await logAdminActions({ ...ctx, db: trx }, adminLogActions);
 		}
 
 		return newClaims;
@@ -222,23 +215,25 @@ export async function updateClaim(
 		);
 
 		// Handle party linking/unlinking/updating if party_id is provided in the input
+		// Track whether we need to recalculate expected_recovery (controller orchestration)
+		let needsRecalculation = false;
+
 		if (party_id !== undefined) {
 			const {
-				getClaimParties,
+				getPrimaryClaimParty,
 				linkPartyToClaim,
 				archiveClaimParty,
 				updateClaimParty,
 			} = await import('@/api/queries/partyQueries');
 
-			// Get existing party relationships for this claim
-			const existingParties = await getClaimParties({ ...ctx, db: trx }, claimId);
-			// Find the primary party relationship (regardless of role)
-			const existingPrimary = existingParties.find((p) => p.is_primary);
+			// Get existing primary party for this claim (lightweight query)
+			const existingPrimary = await getPrimaryClaimParty({ ...ctx, db: trx }, claimId);
 
 			if (party_id === null) {
 				// User wants to remove party - archive the primary party
 				if (existingPrimary) {
 					await archiveClaimParty({ ...ctx, db: trx }, existingPrimary.id);
+					needsRecalculation = true; // Archiving affects expected_recovery and total_incurred
 					await logAdminAction(
 						{ ...ctx, db: trx },
 						{
@@ -275,6 +270,7 @@ export async function updateClaim(
 								representative_id: representative_id ?? null,
 							}
 						);
+						needsRecalculation = true; // Archiving + linking affects expected_recovery
 						await logAdminAction(
 							{ ...ctx, db: trx },
 							{
@@ -292,6 +288,7 @@ export async function updateClaim(
 						);
 					} else if (repChanged) {
 						// Only representative changed - update existing record
+						// Representative change doesn't affect expected_recovery, no recalc needed
 						await updateClaimParty({ ...ctx, db: trx }, existingPrimary.id, {
 							representative_id: representative_id ?? null,
 						});
@@ -318,6 +315,7 @@ export async function updateClaim(
 							representative_id: representative_id ?? null,
 						}
 					);
+					// No recalc needed when linking without liability_percentage
 					await logAdminAction(
 						{ ...ctx, db: trx },
 						{
@@ -329,6 +327,13 @@ export async function updateClaim(
 					);
 				}
 			}
+		}
+
+		// Orchestrate single recalculation if any party operations occurred (controller responsibility)
+		if (needsRecalculation) {
+			const { recalculateClaimExpectedRecovery, recalculateTotalIncurred } = await import('@/api/queries/claimQueries');
+			await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
+			await recalculateTotalIncurred({ ...ctx, db: trx }, claimId);
 		}
 
 		return updatedClaim;

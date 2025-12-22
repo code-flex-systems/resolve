@@ -218,12 +218,7 @@ export async function updateReferenceOption(
 		is_active?: boolean;
 	}
 ) {
-	// Check that the option exists and belongs to this client
-	const existing = await getReferenceOptionById(ctx, id);
-	if (!existing) {
-		throw new Error('Reference option not found');
-	}
-
+	// Update reference option (existence check implicit in executeTakeFirstOrThrow - Phase 5.1 optimization)
 	return await ctx.db
 		.updateTable('reference_option')
 		.set({

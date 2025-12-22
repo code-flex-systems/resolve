@@ -549,7 +549,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveParty(ctx, 999999)).rejects.toThrow('Party not found');
+			await expect(archiveParty(ctx, 999999)).rejects.toThrow('no result');
 		});
 	});
 
@@ -614,7 +614,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreParty(ctx, 999999)).rejects.toThrow('Party not found');
+			await expect(restoreParty(ctx, 999999)).rejects.toThrow('no result');
 		});
 	});
 
@@ -1037,7 +1037,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archivePartyAddress(ctx, 999999)).rejects.toThrow('Address not found');
+			await expect(archivePartyAddress(ctx, 999999)).rejects.toThrow('no result');
 		});
 
 		it('should throw error when restoring non-existent address', async () => {
@@ -1046,7 +1046,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restorePartyAddress(ctx, 999999)).rejects.toThrow('Address not found');
+			await expect(restorePartyAddress(ctx, 999999)).rejects.toThrow('no result');
 		});
 	});
 
@@ -1664,13 +1664,19 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const { expectedRecovery } = await linkPartyToClaim(ctx, {
+			const { claimParty } = await linkPartyToClaim(ctx, {
 				claim_id: claim.id,
 				party_id: party.id,
 				role: ['adverse_carrier'],
 				liability_percentage: 25,
 			});
 
+			// Query no longer returns expectedRecovery - controller orchestrates recalculation
+			expect(claimParty.claim_id).toBe(claim.id);
+
+			// Verify expected_recovery can be calculated separately (controller's responsibility)
+			const { recalculateClaimExpectedRecovery } = await import('@/api/queries/claimQueries');
+			const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claim.id);
 			expect(expectedRecovery).toBeDefined();
 		});
 	});
@@ -2208,8 +2214,13 @@ describe('partyQueries integration', () => {
 			// Archive party 1
 			const result = await archiveClaimParty(ctx, claimParty1.id);
 
-			// Should only have party 2's coverage (3000)
-			expect(result.totalIncurred).toBe(3000);
+			// Query no longer returns totalIncurred - controller orchestrates recalculation
+			expect(result.claimId).toBe(claim.id);
+
+			// Verify totalIncurred is updated by calling recalculate separately
+			const { recalculateTotalIncurred } = await import('@/api/queries/claimQueries');
+			const totalIncurred = await recalculateTotalIncurred(ctx, claim.id);
+			expect(totalIncurred).toBe(3000); // Should only have party 2's coverage
 		});
 	});
 
@@ -3245,11 +3256,13 @@ describe('partyQueries integration', () => {
 			const entity = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
+				name: 'Entity for Facilitator Fields Test 1',
 				party_type: 'entity',
 			});
 			const facilitator = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
+				name: 'Facilitator for Fields Test 1',
 				party_type: 'facilitator',
 			});
 
@@ -3282,11 +3295,13 @@ describe('partyQueries integration', () => {
 			const entity = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
+				name: 'Entity for Facilitator Fields Test 2',
 				party_type: 'entity',
 			});
 			const facilitator = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
+				name: 'Facilitator for Fields Test 2',
 				party_type: 'facilitator',
 			});
 
@@ -3325,6 +3340,7 @@ describe('partyQueries integration', () => {
 			const facilitator = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
+				name: 'Facilitator for Update Fields Test',
 				party_type: 'facilitator',
 			});
 

@@ -192,9 +192,15 @@ export async function updateParty(
 
 		// 2. Handle inline contact data updates
 		if (contact) {
+			// Parallelize all contact info reads (Phase 1.1 optimization)
+			const [existingEmails, existingPhones, existingAddresses] = await Promise.all([
+				partyQueries.getPartyEmails(txCtx, id),
+				partyQueries.getPartyPhones(txCtx, id),
+				partyQueries.getPartyAddresses(txCtx, id),
+			]);
+
 			// Handle email - find existing or create new
 			if (contact.email !== undefined) {
-				const existingEmails = await partyQueries.getPartyEmails(txCtx, id);
 				if (contact.email && contact.email.trim()) {
 					if (existingEmails.length > 0) {
 						// Update first email
@@ -215,7 +221,6 @@ export async function updateParty(
 
 			// Handle phone - find existing or create new
 			if (contact.phone !== undefined) {
-				const existingPhones = await partyQueries.getPartyPhones(txCtx, id);
 				if (contact.phone && contact.phone.trim()) {
 					if (existingPhones.length > 0) {
 						// Update first phone
@@ -237,7 +242,6 @@ export async function updateParty(
 
 			// Handle address - find existing valid address or create new
 			if (contact.address !== undefined) {
-				const existingAddresses = await partyQueries.getPartyAddresses(txCtx, id);
 				const validAddress = existingAddresses.find(a => a.address_status === 'valid');
 
 				if (hasAddressData(contact.address)) {
@@ -1044,7 +1048,7 @@ export async function linkPartyToClaim(
 	}
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { claimParty, expectedRecovery } = await partyQueries.linkPartyToClaim(
+		const { claimParty } = await partyQueries.linkPartyToClaim(
 			{ ...ctx, db: trx },
 			input
 		);
@@ -1059,6 +1063,13 @@ export async function linkPartyToClaim(
 				role: claimParty.role,
 			},
 		});
+
+		// Orchestrate recalculation if liability_percentage was provided
+		let expectedRecovery: number | null = null;
+		if (input.liability_percentage !== undefined) {
+			const { recalculateClaimExpectedRecovery } = await import('@/api/queries/claimQueries');
+			expectedRecovery = await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimParty.claim_id);
+		}
 
 		return { claimParty, expectedRecovery };
 	});
@@ -1099,7 +1110,7 @@ export async function updateClaimParty(
 	}
 
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { claimParty, expectedRecovery } = await partyQueries.updateClaimParty(
+		const { claimParty } = await partyQueries.updateClaimParty(
 			{ ...ctx, db: trx },
 			id,
 			params
@@ -1111,6 +1122,13 @@ export async function updateClaimParty(
 			action: AdminAction.UPDATE,
 			value: params,
 		});
+
+		// Orchestrate recalculation if liability_percentage was updated
+		let expectedRecovery: number | null = null;
+		if (params.liability_percentage !== undefined) {
+			const { recalculateClaimExpectedRecovery } = await import('@/api/queries/claimQueries');
+			expectedRecovery = await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimParty.claim_id);
+		}
 
 		return { claimParty, expectedRecovery };
 	});
@@ -1133,7 +1151,7 @@ export async function archiveClaimParty(
 			id
 		);
 
-		const { expectedRecovery, claimId } = await partyQueries.archiveClaimParty({ ...ctx, db: trx }, id);
+		const { claimId } = await partyQueries.archiveClaimParty({ ...ctx, db: trx }, id);
 
 		if (claimPartyForLog) {
 			await logAdminAction({ ...ctx, db: trx }, {
@@ -1149,7 +1167,12 @@ export async function archiveClaimParty(
 			});
 		}
 
-		return { expectedRecovery, claimId };
+		// Orchestrate recalculation - archiving always affects both expected_recovery and total_incurred
+		const { recalculateClaimExpectedRecovery, recalculateTotalIncurred } = await import('@/api/queries/claimQueries');
+		const expectedRecovery = await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
+		const totalIncurred = await recalculateTotalIncurred({ ...ctx, db: trx }, claimId);
+
+		return { expectedRecovery, totalIncurred, claimId };
 	});
 
 	return result;
