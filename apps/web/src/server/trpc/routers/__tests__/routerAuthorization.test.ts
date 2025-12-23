@@ -144,6 +144,13 @@ vi.mock('@/api/controllers/partyController', () => ({
 	updateParty: vi.fn(),
 	archiveParty: vi.fn(),
 	restoreParty: vi.fn(),
+	getPartyAddresses: vi.fn(),
+	getAllPartyAddresses: vi.fn(),
+	getPartyAddress: vi.fn(),
+	createPartyAddress: vi.fn(),
+	updatePartyAddress: vi.fn(),
+	archivePartyAddress: vi.fn(),
+	restorePartyAddress: vi.fn(),
 	getPartyOffices: vi.fn(),
 	getAllPartyOffices: vi.fn(),
 	createPartyOffice: vi.fn(),
@@ -2822,7 +2829,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						caller.linkPartyToClaim({
 							claim_id: 100,
 							party_id: 1,
-							role: 'Insured',
+							role: ['Insured'],
 						})
 					).resolves.toBeDefined();
 				});
@@ -2889,7 +2896,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const mockPartyController = await import('@/api/controllers/partyController');
-					vi.mocked(mockPartyController.getAllPartyOffices).mockResolvedValue({
+					vi.mocked(mockPartyController.getAllPartyAddresses).mockResolvedValue({
 						rows: [],
 						count: 0,
 					});

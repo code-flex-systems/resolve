@@ -18,6 +18,8 @@ import {
 	createTestClaimParty,
 	createTestCoverage,
 	createTestSettlement,
+	createTestReferenceList,
+	createTestReferenceOption,
 } from '@/__tests__/integration/fixtures';
 import {
 	createSettlement,
@@ -47,6 +49,31 @@ async function createSettlementDependencies(
 		created_by: string;
 	}
 ) {
+	// Create adverse_party_role reference list and option (if not already exists)
+	let referenceList = await db
+		.selectFrom('reference_list')
+		.selectAll()
+		.where('entity', '=', 'adverse_party_role')
+		.where('client_id', '=', client_id)
+		.where('deleted_at', 'is', null)
+		.executeTakeFirst();
+
+	if (!referenceList) {
+		referenceList = await createTestReferenceList(db, {
+			client_id,
+			created_by,
+			entity: 'adverse_party_role',
+			name: 'Adverse Party Roles',
+		});
+		await createTestReferenceOption(db, {
+			reference_list_id: referenceList.id,
+			client_id,
+			value: 'adverse_carrier',
+			display_label: 'Adverse Carrier',
+			is_active: true,
+		});
+	}
+
 	const party = await createTestParty(db, {
 		client_id,
 		created_by,
@@ -55,6 +82,7 @@ async function createSettlementDependencies(
 	const claimParty = await createTestClaimParty(db, {
 		claim_id,
 		party_id: party.id,
+		client_id,
 		created_by,
 		role: ['adverse_carrier'],
 	});

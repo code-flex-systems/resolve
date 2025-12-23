@@ -140,6 +140,7 @@ describe('claimController integration tests', () => {
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: party.id,
+				client_id: client.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
 					created_by: user.id,
@@ -180,6 +181,7 @@ describe('claimController integration tests', () => {
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: primaryParty.id,
+				client_id: client.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
 					created_by: user.id,
@@ -187,6 +189,7 @@ describe('claimController integration tests', () => {
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: secondaryParty.id,
+				client_id: client.id,
 					is_primary: false,
 					role: ['claimant'],
 					created_by: user.id,
@@ -231,6 +234,7 @@ describe('claimController integration tests', () => {
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: oldParty.id,
+				client_id: client.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
 					created_by: user.id,
@@ -265,6 +269,7 @@ describe('claimController integration tests', () => {
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: party.id,
+				client_id: client.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
 					created_by: user.id,
@@ -312,6 +317,7 @@ describe('claimController integration tests', () => {
 				const claimParty = await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: party.id,
+				client_id: client.id,
 					representative_id: oldRep.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
@@ -348,6 +354,7 @@ describe('claimController integration tests', () => {
 				const claimParty = await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: party.id,
+				client_id: client.id,
 					representative_id: rep.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
@@ -417,6 +424,7 @@ describe('claimController integration tests', () => {
 				const claimParty = await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: oldParty.id,
+				client_id: client.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
 					created_by: user.id,
@@ -452,6 +460,7 @@ describe('claimController integration tests', () => {
 				const claimParty = await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: party.id,
+				client_id: client.id,
 					representative_id: rep.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
@@ -501,6 +510,7 @@ describe('claimController integration tests', () => {
 				await createTestClaimParty(db, {
 					claim_id: claim.id,
 					party_id: party.id,
+				client_id: client.id,
 					is_primary: true,
 					role: ['adverse_carrier'],
 					created_by: user.id,
