@@ -7,6 +7,7 @@ import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useRouter } from 'next/navigation';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 type NewChecklistFormInputs = {
 	name: string;
@@ -18,6 +19,7 @@ export default function NewChecklistDialog() {
 	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
 	const { data: checklists = [], isPending: loadingChecklists } = useChecklistTrpc().list({});
 	const { mutateAsync: createChecklist, isPending } = useChecklistTrpc().create;
+	const { showSuccess, showError } = useCrudAlerts('checklist');
 	const {
 		register,
 		handleSubmit,
@@ -32,9 +34,10 @@ export default function NewChecklistDialog() {
 				name: data.name,
 				existingChecklistId: typeof data.from === 'number' ? data.from : undefined,
 			});
+			showSuccess('create', 'Checklist created');
 			router.push(`/checklist/${newChecklist.id}`);
 		} catch (e) {
-			console.error(e);
+			showError('create', e, 'Failed to create checklist');
 		}
 	});
 

@@ -17,6 +17,7 @@ import { useEffect, useState, useMemo } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { skipToken } from '@tanstack/react-query';
 import { computePartyDisplayName } from '@/schemas/partySchemas';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 interface PartyFormInputs {
 	party_type: PartyType;
@@ -63,6 +64,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	const { mutateAsync: updateParty, isPending: updating } = partyTrpc.update;
 	const [searchTerm, setSearchTerm] = useState('');
 	const [duplicateMatches, setDuplicateMatches] = useState<any[]>([]);
+	const { showSuccess, showError } = useCrudAlerts('party');
 
 	const isEditMode = !!party;
 	const isPending = creating || updating;
@@ -259,6 +261,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					id: party.id as unknown as number,
 					params: updates,
 				});
+				showSuccess('update', 'Party updated');
 			} else {
 				// Create new party with contact data
 				createdParty = (await createParty({
@@ -273,6 +276,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					notes: data.notes || undefined,
 					contact,
 				})) as any;
+				showSuccess('create', 'Party created');
 			}
 
 			// Pass created party back to caller
@@ -282,7 +286,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				toggleNewPartyDialog();
 			}
 		} catch (e) {
-			console.error(e);
+			showError(isEditMode ? 'update' : 'create', e, 'Failed to save party');
 		}
 	});
 

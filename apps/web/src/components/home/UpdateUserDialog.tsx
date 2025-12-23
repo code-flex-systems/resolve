@@ -26,6 +26,7 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { JSX, useState } from 'react';
 import RoleValue from '../admin/RoleValue';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 interface UserFormState {
 	first: string;
@@ -66,6 +67,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { mutateAsync: updateUser } = useUserTrpc().update;
+	const { showSuccess, showError } = useCrudAlerts('user');
 
 	// Filter role options based on user permissions
 	// Super Admin can set any role
@@ -125,9 +127,10 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 			});
 
 			// Clerk handles session updates automatically when user data changes
+			showSuccess('update', 'User details updated');
 			onClose();
 		} catch (e) {
-			console.error(e);
+			showError('update', e, 'Failed to update user');
 		}
 	};
 	const onSubmit = handleSubmit(modifyUser);

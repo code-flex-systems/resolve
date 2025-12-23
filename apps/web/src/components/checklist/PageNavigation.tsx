@@ -42,6 +42,7 @@ import { useChecklistDeepLink } from '@/hooks/useChecklistDeepLink';
 import { useEffect } from 'react';
 import Legend from './Legend';
 import ChecklistIcon from '@mui/icons-material/Checklist';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 const COMMENT_LIMIT = 30;
 
@@ -92,6 +93,7 @@ export default function PageNavigation() {
 	const commentOffset = useChecklistStore((state) => state.commentOffset);
 	const toggleComments = useChecklistStore((state) => state.toggleComments);
 	const toggleChangeLog = useChecklistStore((state) => state.toggleChangeLog);
+	const { showSuccess, showError } = useCrudAlerts('page');
 
 	const { data: checklist, isSuccess: isChSuccess } = useChecklistTrpc().get(
 		{ id: checklistId! },
@@ -161,9 +163,10 @@ export default function PageNavigation() {
 				if (freshData) {
 					useChecklistStore.getState().updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
 				}
+				showSuccess('create', 'Page created');
 			}
 		} catch (e) {
-			console.error(e);
+			showError('create', e, 'Failed to create page');
 		}
 	};
 

@@ -21,6 +21,7 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, containerStyles } from '@/styles/theme';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 import FormatQuote from '@mui/icons-material/FormatQuote';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 export default function PageEditor() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -61,6 +62,7 @@ export default function PageEditor() {
 
 	const answerCount = questions.reduce((prev, curr) => prev + (curr.answers?.length ?? 0), 0);
 	const inTransition = adding || copyingTemplate || copyingInstance || deleting || isFetching;
+	const { showSuccess, showError } = useCrudAlerts('page');
 
 	// Sync pageTitle state when selected page changes
 	useEffect(() => {
@@ -89,9 +91,10 @@ export default function PageEditor() {
 				if (freshData) {
 					updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
 				}
+				showSuccess('create', 'Page created');
 			}
 		} catch (e) {
-			console.error(e);
+			showError('create', e, 'Failed to create page');
 		}
 	};
 
@@ -112,6 +115,7 @@ export default function PageEditor() {
 					if (freshData) {
 						updateSelectedPageInfoSearch(newPage.instance_id, freshData.tree);
 					}
+					showSuccess('copy', 'Page copied');
 				}
 			} else {
 				const newInstance = await copyPageInstance({
@@ -128,10 +132,11 @@ export default function PageEditor() {
 					if (freshData) {
 						updateSelectedPageInfoSearch(newInstance.id, freshData.tree);
 					}
+					showSuccess('copy', 'Page copied');
 				}
 			}
 		} catch (e) {
-			console.error(e);
+			showError('copy', e, 'Failed to copy page');
 		}
 	};
 
@@ -141,8 +146,9 @@ export default function PageEditor() {
 			await refetchTree();
 			updateSelectedPage(null);
 			updateSelectedPageInfo(null);
+			showSuccess('delete', 'Page deleted');
 		} catch (e) {
-			console.error(e);
+			showError('delete', e, 'Failed to delete page');
 		}
 	};
 
@@ -157,9 +163,10 @@ export default function PageEditor() {
 				}
 				setShowUpdateMsg(true);
 				setTimeout(() => setShowUpdateMsg(false), 1000);
+				showSuccess('update', 'Page updated');
 			}
 		} catch (e) {
-			console.error(e);
+			showError('update', e, 'Failed to update page');
 		}
 	};
 

@@ -31,14 +31,14 @@ export default function AlertContainer() {
 			spacing={1}
 			sx={{
 				position: 'fixed',
-				top: 20,
-				right: 20,
+				bottom: 20,
+				left: 20,
 				zIndex: 9999,
 				maxWidth: 400,
 			}}
 		>
 			{alerts.map((alert) => (
-				<Slide key={alert.id} direction="left" in={true} mountOnEnter unmountOnExit>
+				<Slide key={alert.id} direction="up" in={true} mountOnEnter unmountOnExit>
 					<Alert
 						severity={alert.severity}
 						onClose={() => hideAlert(alert.id)}
