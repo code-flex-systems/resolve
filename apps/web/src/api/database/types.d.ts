@@ -192,6 +192,8 @@ export interface ClaimCoverage {
   coverage_amount: Numeric | null;
   created_at: Generated<Timestamp | null>;
   created_by: string | null;
+  deductible_amount: Numeric | null;
+  deductible_status: Generated<string>;
   deleted_at: Timestamp | null;
   deleted_by: string | null;
   id: Generated<number>;
@@ -199,6 +201,9 @@ export interface ClaimCoverage {
    * Type of coverage (CoverageType enum enforced in TypeScript)
    */
   loss_type: string;
+  statute_date: Timestamp | null;
+  statute_preserved: Generated<boolean>;
+  subro_applicable: Generated<boolean>;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }

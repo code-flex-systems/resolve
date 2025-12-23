@@ -37,6 +37,7 @@ import {
 	createTestClaimParty,
 	createTestCoverage,
 } from '@/__tests__/integration/fixtures';
+import { DeductibleStatus } from '@/config/enums';
 
 describe('coverageQueries integration tests', () => {
 	let db: Kysely<DB>;
@@ -931,6 +932,253 @@ describe('coverageQueries integration tests', () => {
 				.where('id', '=', coverage.id)
 				.executeTakeFirst();
 			expect(stillActive?.deleted_at).toBeNull();
+		});
+	});
+
+	describe('Deductible functionality', () => {
+		it('should create coverage with deductible and update claim total_incurred', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.APPLIES, // Should include in total_incurred
+			});
+
+			expect(result.coverage.deductible_amount).toBe('1000.00');
+			expect(result.coverage.deductible_status).toBe(DeductibleStatus.APPLIES);
+
+			// Claim total_incurred should increase by 1000
+			expect(result.totalIncurred).toBe(1000);
+
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.selectAll()
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(updatedClaim.total_incurred).toBe('1000.00');
+		});
+
+		it('should enforce deductible_amount = 0 when status is NO_DEDUCTIBLE', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			await expect(
+				createCoverage(ctx, {
+					claim_id: claim.id,
+					loss_type: 'dwelling',
+					deductible_amount: 500,
+					deductible_status: DeductibleStatus.NO_DEDUCTIBLE, // Conflict!
+				})
+			).rejects.toThrow('Deductible amount must be $0');
+		});
+
+		it('should not add deductible to total_incurred when status is WAIVED', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.WAIVED, // Should NOT include
+			});
+
+			expect(result.coverage.deductible_amount).toBe('1000.00');
+			expect(result.coverage.deductible_status).toBe(DeductibleStatus.WAIVED);
+			expect(result.totalIncurred).toBe(0); // Should be unchanged
+		});
+
+		it('should default subro_applicable to false using placeholder function', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'liability',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+			});
+
+			// Placeholder returns false
+			expect(result.coverage.subro_applicable).toBe(false);
+		});
+
+		it('should calculate statute_date using placeholder function', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const dateOfLoss = new Date('2022-03-10');
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				created_by: user.id,
+				date_of_loss: dateOfLoss,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'property_damage',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+			});
+
+			// Placeholder adds 4 years - verify year/month are correct
+			expect(result.coverage.statute_date).toBeTruthy();
+			const statuteDate = new Date(result.coverage.statute_date!);
+			expect(statuteDate.getUTCFullYear()).toBe(2026);
+			expect(statuteDate.getUTCMonth()).toBe(2); // March (0-indexed)
+			// Day might be off by 1 due to timezone, so just check it's close (9 or 10)
+			expect([9, 10]).toContain(statuteDate.getUTCDate());
+		});
+
+		it('should adjust total_incurred when deductible status changes from APPLIES to WAIVED', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create with APPLIES (included in total_incurred)
+			const { coverage } = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.APPLIES,
+			});
+
+			let claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('1000.00');
+
+			// Update to WAIVED (should remove from total_incurred)
+			const result = await updateCoverage(ctx, coverage.id, {
+				deductible_status: DeductibleStatus.WAIVED,
+			});
+
+			expect(result.totalIncurred).toBe(0); // Should decrease by 1000
+
+			claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('0.00');
+		});
+
+		it('should combine reserve and deductible impacts on total_incurred', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				amount_reserved: 5000,
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.APPLIES, // Deductible included
+			});
+
+			// Total impact = 5000 (reserve) + 1000 (deductible) = 6000
+			expect(result.totalIncurred).toBe(6000);
+
+			const claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('6000.00');
+		});
+
+		it('should remove deductible impact when archiving coverage', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '5000',
+				deductible_amount: '1000',
+				deductible_status: DeductibleStatus.APPLIES,
+			});
+
+			// Should have both impacts
+			let claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('6000.00');
+
+			// Archive coverage - should remove both impacts
+			const result = await archiveCoverage(ctx, coverage.id);
+			expect(result.totalIncurred).toBe(0);
+
+			claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('0.00');
+		});
+
+		it('should handle different deductible statuses correctly', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Test NOT_CONFIRMED (should include)
+			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result1 = await createCoverage(ctx, {
+				claim_id: claim1.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+			});
+			expect(result1.totalIncurred).toBe(1000);
+
+			// Test REIMBURSED_BY_CLIENT (should include)
+			const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result2 = await createCoverage(ctx, {
+				claim_id: claim2.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.REIMBURSED_BY_CLIENT,
+			});
+			expect(result2.totalIncurred).toBe(1000);
+
+			// Test REIMBURSED_BY_ADVERSE (should include)
+			const claim3 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result3 = await createCoverage(ctx, {
+				claim_id: claim3.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.REIMBURSED_BY_ADVERSE,
+			});
+			expect(result3.totalIncurred).toBe(1000);
+
+			// Test NO_DEDUCTIBLE (must have amount = 0)
+			const claim4 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result4 = await createCoverage(ctx, {
+				claim_id: claim4.id,
+				loss_type: 'dwelling',
+				deductible_amount: 0,
+				deductible_status: DeductibleStatus.NO_DEDUCTIBLE,
+			});
+			expect(result4.totalIncurred).toBe(0);
 		});
 	});
 });

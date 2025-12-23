@@ -172,19 +172,7 @@ manifest/
 **IMPORTANT - PageWrapper Requirement:**
 
 All protected page routes MUST wrap their main component in `<PageWrapper>`:
-```typescript
-// apps/web/src/app/(protected)/my-route/page.tsx
-import PageWrapper from '@/components/common/PageWrapper';
-import MyComponent from '@/components/my-domain/MyComponent';
-
-export default function MyPage() {
-  return (
-    <PageWrapper>
-      <MyComponent />
-    </PageWrapper>
-  );
-}
-```
+- Import PageWrapper and wrap your component in the page file
 - PageWrapper provides the main sidebar navigation visible on all protected pages
 - PageWrapper handles layout, Fade transitions, and navigation items based on user role
 - Do NOT wrap in PageWrapper: Dialog components, panels, or components that are already within a page
@@ -249,42 +237,11 @@ Follow these core principles when writing any database-related code. These are f
 
 ### 1. Never Check-Before-Update (Anti-Pattern)
 
-**❌ DON'T DO THIS:**
-```typescript
-// BAD: 2 queries - check existence then update
-const record = await ctx.db
-  .selectFrom('table')
-  .select(['id', 'needed_field'])
-  .where('id', '=', id)
-  .where('client_id', '=', ctx.session.user.client_id)
-  .executeTakeFirst();
+**Anti-Pattern:** Checking if a record exists with a SELECT query, then updating it in a separate query.
 
-if (!record) {
-  throw new Error('Record not found');
-}
+**Better Approach:** Use `.returning()` with `.executeTakeFirstOrThrow()` to update and retrieve data in a single query. Include all WHERE filters (id, client_id, deleted_at). Kysely will throw a clear error if the record doesn't exist.
 
-await ctx.db
-  .updateTable('table')
-  .set({ updated_at: new Date() })
-  .where('id', '=', id)
-  .where('client_id', '=', ctx.session.user.client_id)
-  .execute();
-```
-
-**✅ DO THIS INSTEAD:**
-```typescript
-// GOOD: 1 query - update with .returning() and .executeTakeFirstOrThrow()
-const record = await ctx.db
-  .updateTable('table')
-  .set({ updated_at: new Date() })
-  .where('id', '=', id)
-  .where('client_id', '=', ctx.session.user.client_id)
-  .where('deleted_at', 'is', null) // Add relevant filters
-  .returning(['id', 'needed_field'])
-  .executeTakeFirstOrThrow(); // Throws 'no result' if not found
-```
-
-**Why:** Reduces database round-trips by 50%, makes operation atomic (no race conditions), Kysely's error is clear enough.
+**Why:** Reduces database round-trips by 50%, makes operation atomic (no race conditions).
 
 **When NOT to use:** If you need the old values for business logic comparisons (e.g., comparing old vs new for conditional operations).
 
@@ -292,23 +249,9 @@ const record = await ctx.db
 
 ### 2. Parallelize Independent Queries
 
-**❌ DON'T DO THIS:**
-```typescript
-// BAD: Sequential queries that don't depend on each other
-const emails = await getPartyEmails(ctx, partyId);
-const phones = await getPartyPhones(ctx, partyId);
-const addresses = await getPartyAddresses(ctx, partyId);
-```
+**Anti-Pattern:** Executing queries sequentially when they don't depend on each other's results.
 
-**✅ DO THIS INSTEAD:**
-```typescript
-// GOOD: Parallel execution with Promise.all
-const [emails, phones, addresses] = await Promise.all([
-  getPartyEmails(ctx, partyId),
-  getPartyPhones(ctx, partyId),
-  getPartyAddresses(ctx, partyId),
-]);
-```
+**Better Approach:** Use `Promise.all()` to execute independent queries in parallel.
 
 **Why:** 2-3x faster for independent reads, especially within transactions.
 
@@ -318,28 +261,9 @@ const [emails, phones, addresses] = await Promise.all([
 
 ### 3. Batch Operations Over Loops
 
-**❌ DON'T DO THIS:**
-```typescript
-// BAD: N separate UPDATE queries
-for (const id of claimPartyIds) {
-  await archiveCoveragesByClaimParty(ctx, id); // 1 query per iteration
-}
-```
+**Anti-Pattern:** Looping over IDs and executing a separate query for each one.
 
-**✅ DO THIS INSTEAD:**
-```typescript
-// GOOD: Single batch query with WHERE IN
-await ctx.db
-  .updateTable('claim_coverage')
-  .set({
-    deleted_at: new Date(),
-    deleted_by: ctx.session.user.id,
-  })
-  .where('claim_party_id', 'in', claimPartyIds) // WHERE IN
-  .where('client_id', '=', ctx.session.user.client_id)
-  .where('deleted_at', 'is', null)
-  .execute();
-```
+**Better Approach:** Use `WHERE IN (array)` to perform the operation on all IDs in a single query.
 
 **Why:** 90% reduction in database round-trips for bulk operations.
 
@@ -349,42 +273,9 @@ await ctx.db
 
 ### 4. Conditional Expensive Operations
 
-**❌ DON'T DO THIS:**
-```typescript
-// BAD: Always recalculate even when unrelated fields change
-export async function updateClaimParty(ctx, id, params) {
-  const claimParty = await ctx.db.updateTable('claim_party')
-    .set({ ...params })
-    .where('id', '=', id)
-    .returningAll()
-    .executeTakeFirstOrThrow();
+**Anti-Pattern:** Always running expensive recalculations after every update, even when unrelated fields change.
 
-  // ALWAYS recalculates (3 queries), even for notes or representative changes
-  const expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
-
-  return { claimParty, expectedRecovery };
-}
-```
-
-**✅ DO THIS INSTEAD:**
-```typescript
-// GOOD: Only recalculate when relevant fields change
-export async function updateClaimParty(ctx, id, params) {
-  const claimParty = await ctx.db.updateTable('claim_party')
-    .set({ ...params })
-    .where('id', '=', id)
-    .returningAll()
-    .executeTakeFirstOrThrow();
-
-  // Only recalculate if liability_percentage changed
-  let expectedRecovery: number | null = null;
-  if (params.liability_percentage !== undefined) {
-    expectedRecovery = await recalculateClaimExpectedRecovery(ctx, claimParty.claim_id);
-  }
-
-  return { claimParty, expectedRecovery };
-}
-```
+**Better Approach:** Check which fields were updated and only run expensive operations when relevant fields changed. For example, only recalculate liability totals if liability_percentage was updated.
 
 **Why:** Avoids unnecessary expensive operations (30% fewer recalculations).
 
@@ -394,17 +285,9 @@ export async function updateClaimParty(ctx, id, params) {
 
 ### 5. Search Patterns - Enable Index Usage
 
-**❌ DON'T DO THIS:**
-```typescript
-// BAD: Leading wildcard prevents B-tree index usage
-.where('party.name', 'ilike', `%${searchTerm}%`)
-```
+**Anti-Pattern:** Using full wildcard search patterns like `%term%` that prevent index usage.
 
-**✅ DO THIS INSTEAD:**
-```typescript
-// GOOD: Prefix search allows B-tree index to be used
-.where('party.name', 'ilike', `${searchTerm}%`)
-```
+**Better Approach:** Use prefix search patterns like `term%` to enable B-tree index usage.
 
 **Why:** Enables PostgreSQL to use B-tree indexes on name/text columns, dramatically faster searches.
 
@@ -416,68 +299,9 @@ export async function updateClaimParty(ctx, id, params) {
 
 **Reference Pattern:** See `responseQueries.ts` for the canonical example.
 
-**❌ DON'T DO THIS:**
-```typescript
-// BAD: Multiple JOINs create Cartesian products, requiring expensive distinctOn
-let query = ctx.db
-  .selectFrom('party')
-  .leftJoin('party_email', 'party_email.party_id', 'party.id')
-  .leftJoin('party_phone', 'party_phone.party_id', 'party.id')
-  .leftJoin('party_address', 'party_address.party_id', 'party.id')
-  .selectAll('party')
-  .select([
-    'party_email.email_address as primary_email',
-    'party_phone.phone_number as primary_phone',
-    // ... address fields
-  ])
-  .distinctOn('party.id') // EXPENSIVE: requires sort on entire result set
-  .where(...)
-  .execute();
-```
+**Anti-Pattern:** Multiple JOINs creating Cartesian products, then using `.distinctOn()` to deduplicate (expensive sort operation).
 
-**✅ DO THIS INSTEAD:**
-```typescript
-// GOOD: Use jsonb_agg with GROUP BY for one-to-many relationships
-let query = ctx.db
-  .selectFrom('party')
-  .leftJoin('party_address', (join) =>
-    join
-      .onRef('party_address.party_id', '=', 'party.id')
-      .on('party_address.deleted_at', 'is', null)
-      .on('party_address.address_status', '=', 'valid') // Filters in JOIN
-  )
-  .select((eb) => [
-    'party.id',
-    'party.name',
-    // ... other party columns
-
-    // Aggregate emails into jsonb array
-    sql`jsonb_agg(distinct jsonb_build_object(
-      'email_address', ${eb.ref('party_email.email_address')},
-      'email_type', ${eb.ref('party_email.email_type')}
-    )) filter (where ${eb.ref('party_email.id')} is not null)`
-      .$castTo<any>()
-      .as('emails'),
-
-    // Same for phones
-    sql`jsonb_agg(distinct jsonb_build_object(
-      'phone_number', ${eb.ref('party_phone.phone_number')},
-      'phone_type', ${eb.ref('party_phone.phone_type')}
-    )) filter (where ${eb.ref('party_phone.id')} is not null)`
-      .$castTo<any>()
-      .as('phones'),
-  ])
-  .groupBy('party.id') // No distinctOn needed!
-  .where(...)
-  .execute();
-
-// Post-process to extract primary contact
-const results = rows.map(party => ({
-  ...party,
-  primary_email: party.emails?.[0]?.email_address || null,
-  primary_phone: party.phones?.[0]?.phone_number || null,
-}));
-```
+**Better Approach:** Use `jsonb_agg()` with `GROUP BY` to aggregate child records into arrays in a single query. Move filters into JOIN ON clauses. Post-process in TypeScript to extract primary values from arrays.
 
 **Why:**
 - Eliminates expensive `distinctOn` sort (20-40% faster)
@@ -606,10 +430,8 @@ Certain operations allow contributors to search/browse resources for the purpose
 
 ### Common Authorization Checks
 
-```typescript
-requireRole(ctx, [ROLES.ADMIN, ROLES.SUPER_ADMIN]); // Admin-only
-requireClaimAccess(ctx, claimId); // User must have access to claim
-```
+- Use `requireRole(ctx, [ROLES.ADMIN, ROLES.SUPER_ADMIN])` for admin-only operations
+- Use `requireClaimAccess(ctx, claimId)` to verify user has access to a specific claim
 
 ## Data Model Concepts
 
@@ -735,25 +557,16 @@ The desk hierarchy system manages workflow routing for claims through different 
 
 All schema changes should now use the Kysely migration system:
 
-1. **Create a new migration:**
-   ```bash
-   npm --workspace apps/web run db:migration:create add_new_field
-   ```
+1. **Create a new migration:** Run `npm --workspace apps/web run db:migration:create add_new_field`
 
 2. **Edit the generated file** in `apps/web/src/api/database/migrations/`:
    - Implement `up()` function for schema changes
    - Implement `down()` function for rollback
    - Use Kysely schema builder API (type-safe)
 
-3. **Run migrations:**
-   ```bash
-   npm --workspace apps/web run db:migrate
-   ```
+3. **Run migrations:** Run `npm --workspace apps/web run db:migrate`
 
-4. **Regenerate TypeScript types:**
-   ```bash
-   npm --workspace apps/web run db:types
-   ```
+4. **Regenerate TypeScript types:** Run `npm --workspace apps/web run db:types`
 
 5. **Commit the migration file** to git
 
@@ -783,22 +596,6 @@ Define enums in TypeScript, not SQL:
 - Use enum constants in query functions (e.g., `DocType.OTHER` instead of `'other'`)
 - SQL CHECK constraints can validate against enum values, but TypeScript is the source of truth
 - This prevents errors from hardcoded strings and ensures consistency across the codebase
-
-Example:
-```typescript
-// In apps/web/src/config/enums.ts
-export enum DocType {
-  POLICE_REPORT = 'police_report',
-  INVOICE = 'invoice',
-  OTHER = 'other',
-}
-
-// In apps/web/src/schemas/docSchemas.ts
-export const docTypeEnum = z.nativeEnum(DocType);
-
-// In apps/web/src/api/queries/docQueries.ts
-doc_type: params.doc_type || DocType.OTHER
-```
 
 ### Type Generation
 
@@ -879,25 +676,23 @@ See `project_files/TESTING_PROGRESS.md` for current coverage and detailed standa
 
 ## Development Commands
 
-```bash
-# Database
-npm --workspace apps/web run db:migrate              # Run migrations
-npm --workspace apps/web run db:migration:create <name>  # Create new migration
-npm --workspace apps/web run db:types                # Generate TypeScript types
+**Database:**
+- Run migrations: `npm --workspace apps/web run db:migrate`
+- Create new migration: `npm --workspace apps/web run db:migration:create <name>`
+- Generate TypeScript types: `npm --workspace apps/web run db:types`
 
-# Testing
-npm --workspace apps/web test -- --run               # Run all tests
-npm --workspace apps/web test -- <pattern> --run     # Run specific tests
-npm run typecheck                                    # Type checking
+**Testing:**
+- Run all tests: `npm --workspace apps/web test -- --run`
+- Run specific tests: `npm --workspace apps/web test -- <pattern> --run`
+- Type checking: `npm run typecheck`
 
-# Development
-npm run dev                                          # Start dev server
-npm run build                                        # Production build
-npm run lint                                         # Run ESLint
+**Development:**
+- Start dev server: `npm run dev`
+- Production build: `npm run build`
+- Run ESLint: `npm run lint`
 
-# Database connection (local)
-psql postgres://postgres:password@localhost/manifest
-```
+**Database connection (local):**
+- `psql postgres://postgres:password@localhost/manifest`
 
 ## Environment Configuration
 

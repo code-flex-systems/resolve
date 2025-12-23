@@ -393,7 +393,10 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 									onClick={() => setIsManageMode(!isManageMode)}
 									sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
 								>
-									<Settings fontSize="small" />
+									<Settings
+										fontSize="small"
+										sx={{ color: isManageMode ? 'primary.main' : undefined }}
+									/>
 								</IconButton>
 							</Tooltip>
 						</Box>

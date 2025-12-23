@@ -115,63 +115,95 @@ export default function PartyCard({
 					<Box display="flex" justifyContent="space-between" alignItems="flex-start">
 						<Box flex={1}>
 							{/* Party Name and Role */}
-							<Box display="flex" alignItems="center" gap={1} marginBottom={0.5}>
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="space-between"
+								height={20}
+								marginBottom={0.5}
+							>
 								{/* Expand/Collapse toggle for entities with nested content */}
-								{hasNestedContent && (
-									<IconButton
-										size="small"
-										onClick={handleToggleExpand}
-										sx={{ ml: -1, mr: -0.5, p: 0.25 }}
-									>
-										{isExpanded ? (
-											<ExpandLess sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
-										) : (
-											<ExpandMore sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
-										)}
-									</IconButton>
-								)}
-								<Typography
-									fontSize={isNested ? 14 : 16}
-									fontWeight={600}
-									sx={
-										onViewDetails
-											? {
-													cursor: 'pointer',
-													'&:hover': { textDecoration: 'underline', color: 'primary.main' },
-												}
-											: undefined
-									}
-									onClick={onViewDetails ? () => onViewDetails(claimParty) : undefined}
-								>
-									{claimParty.party?.name || 'Unknown Party'}
-								</Typography>
-								{/* Display multiple roles as chips */}
-								{Array.isArray(claimParty.role) &&
-									claimParty.role.map((r: string) => (
-										<Chip
-											key={r}
-											label={capitalize(r.replace(/_/g, ' '))}
+								<Box display="flex" alignItems="center" gap={1}>
+									{hasNestedContent && (
+										<IconButton
 											size="small"
-											color="primary"
+											onClick={handleToggleExpand}
+											sx={{ ml: -1, mr: -0.5, p: 0.25 }}
+										>
+											{isExpanded ? (
+												<ExpandLess sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+											) : (
+												<ExpandMore sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+											)}
+										</IconButton>
+									)}
+									<Typography
+										fontSize={isNested ? 14 : 16}
+										fontWeight={600}
+										sx={
+											onViewDetails
+												? {
+														cursor: 'pointer',
+														'&:hover': {
+															textDecoration: 'underline',
+															color: 'primary.main',
+														},
+													}
+												: undefined
+										}
+										onClick={onViewDetails ? () => onViewDetails(claimParty) : undefined}
+									>
+										{claimParty.party?.name || 'Unknown Party'}
+									</Typography>
+									{/* Display multiple roles as chips */}
+									{Array.isArray(claimParty.role) &&
+										claimParty.role.map((r: string) => (
+											<Chip
+												key={r}
+												label={capitalize(r.replace(/_/g, ' '))}
+												size="small"
+												color="primary"
+												sx={{ height: 20, fontSize: 11 }}
+											/>
+										))}
+									{/* For facilitators: show loss type and policy limit chips */}
+									{isNested && claimParty.loss_type && (
+										<Chip
+											label={formatCoverageType(claimParty.loss_type)}
+											size="small"
+											color="secondary"
 											sx={{ height: 20, fontSize: 11 }}
 										/>
-									))}
-								{/* For facilitators: show loss type and policy limit chips */}
-								{isNested && claimParty.loss_type && (
-									<Chip
-										label={formatCoverageType(claimParty.loss_type)}
-										size="small"
-										color="secondary"
-										sx={{ height: 20, fontSize: 11 }}
-									/>
-								)}
-								{isNested && claimParty.policy_limit != null && (
-									<Chip
-										label={`Policy Limit: ${formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}`}
-										size="small"
-										variant="outlined"
-										sx={{ height: 20, fontSize: 11 }}
-									/>
+									)}
+									{isNested && claimParty.policy_limit != null && (
+										<Chip
+											label={`Policy Limit: ${formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}`}
+											size="small"
+											variant="outlined"
+											sx={{ height: 20, fontSize: 11 }}
+										/>
+									)}
+								</Box>
+								{/* Action Buttons - only visible in manage mode */}
+								{isManageMode && (
+									<Box display="flex" alignItems="center" gap={0.5}>
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () => onEditParty(claimParty),
+											}}
+											icon={<Edit sx={{ fontSize: 20 }} />}
+											compact
+										/>
+										{onArchiveParty && (
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () => onArchiveParty(claimParty),
+												}}
+												icon={<Archive sx={{ fontSize: 20 }} />}
+												compact
+											/>
+										)}
+									</Box>
 								)}
 							</Box>
 
@@ -233,10 +265,7 @@ export default function PartyCard({
 							{claimParty.party?.party_type === 'entity' && claimParty.representative_name && (
 								<Box marginBottom={0.5}>
 									<Typography fontSize={13} display="inline">
-										Representative:{' '}
-										<Highlight>
-											{claimParty.representative_name}
-										</Highlight>
+										Representative: <Highlight>{claimParty.representative_name}</Highlight>
 										{claimParty.representative_title && ` - ${claimParty.representative_title}`}
 										{(claimParty.representative_email || claimParty.representative_phone) && (
 											<>
@@ -297,7 +326,7 @@ export default function PartyCard({
 												display="flex"
 												justifyContent="space-between"
 												alignItems="center"
-												marginBottom={1}
+												marginBottom={2}
 											>
 												<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
 													Facilitators ({facilitators.length})
@@ -364,28 +393,6 @@ export default function PartyCard({
 								{dayjs(claimParty.created_at).fromNow()})
 							</Typography>
 						</Box>
-
-						{/* Action Buttons - only visible in manage mode */}
-						{isManageMode && (
-							<Box display="flex" gap={0.5}>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => onEditParty(claimParty),
-									}}
-									icon={<Edit />}
-									compact
-								/>
-								{onArchiveParty && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: () => onArchiveParty(claimParty),
-										}}
-										icon={<Archive />}
-										compact
-									/>
-								)}
-							</Box>
-						)}
 					</Box>
 				</Box>
 			</Box>

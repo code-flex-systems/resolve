@@ -24,6 +24,10 @@ import PartyCard from './PartyCard';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { DeductibleStatus } from '@/config/enums';
+import { DEDUCTIBLE_STATUS_OPTIONS } from '../../coverage/DeductibleStatusSelect';
+import Highlight from '@/components/common/Highlight';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 dayjs.extend(relativeTime);
 
@@ -211,6 +215,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		loss_type: string;
 		coverage_amount: string | null;
 		amount_reserved: string | null;
+		deductible_amount: string | null;
+		deductible_status: DeductibleStatus;
+		subro_applicable: boolean;
+		statute_preserved: boolean;
 	}) => {
 		try {
 			if (!selectedClaimPartyId) return;
@@ -222,6 +230,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					loss_type: data.loss_type,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
 					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
+					deductible_amount: data.deductible_amount ? parseFloat(data.deductible_amount) : null,
+					deductible_status: data.deductible_status,
+					subro_applicable: data.subro_applicable,
+					statute_preserved: data.statute_preserved,
 				});
 			} else {
 				// Create new coverage
@@ -231,6 +243,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					loss_type: data.loss_type,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
 					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
+					deductible_amount: data.deductible_amount ? parseFloat(data.deductible_amount) : null,
+					deductible_status: data.deductible_status,
+					subro_applicable: data.subro_applicable,
+					statute_preserved: data.statute_preserved,
 				});
 			}
 			handleCloseCoverageDialog();
@@ -324,10 +340,16 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							>
 								<Box display="flex" justifyContent="space-between" alignItems="flex-start">
 									<Box flex={1}>
-										<Typography fontSize={14} fontWeight={600} marginBottom={1}>
+										<Typography fontSize={14} fontWeight={600} mb={1}>
 											{formatCoverageType(coverage.loss_type)}
 										</Typography>
-										<Box display="flex" gap={1} marginBottom={0.5} flexWrap="wrap">
+										<Box
+											display="flex"
+											gap={1}
+											marginBottom={1}
+											flexWrap="wrap"
+											alignItems="center"
+										>
 											{coverage.coverage_amount && (
 												<Chip
 													label={`Limit: ${formatCurrencyExact(parseFloat(coverage.coverage_amount.toString()))}`}
@@ -343,7 +365,37 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 													variant="outlined"
 												/>
 											)}
+											{coverage.deductible_amount &&
+												parseFloat(coverage.deductible_amount.toString()) > 0 && (
+													<Chip
+														label={`Deductible: ${formatCurrencyExact(parseFloat(coverage.deductible_amount.toString()))} (${DEDUCTIBLE_STATUS_OPTIONS.find((opt) => opt.value === coverage.deductible_status)?.abbrev || coverage.deductible_status})`}
+														size="small"
+														color="info"
+														variant="outlined"
+													/>
+												)}
 										</Box>
+										{coverage.subro_applicable && (
+											<Typography fontSize={13} marginBottom={0.5} color="text.secondary">
+												Subro: <Highlight>Yes</Highlight>
+											</Typography>
+										)}
+										{coverage.statute_date && (
+											<Typography fontSize={13} marginBottom={0.5} color="text.secondary">
+												Statute:{' '}
+												<Highlight>
+													{new Date(coverage.statute_date).toLocaleDateString()}
+												</Highlight>
+											</Typography>
+										)}
+										{coverage.statute_preserved && (
+											<Box display="flex" alignItems="center" marginBottom={0.5}>
+												<CheckCircleIcon sx={{ fontSize: 15, color: 'success.main' }} />
+												<Typography fontSize={13} color="text.secondary" ml={0.5}>
+													Statute Preserved
+												</Typography>
+											</Box>
+										)}
 									</Box>
 									{isManageMode && (
 										<Box display="flex" gap={0.5}>
@@ -457,7 +509,9 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 												bgcolor: isManageMode ? 'action.selected' : undefined,
 											}}
 										>
-											<Settings sx={{ fontSize: 20 }} />
+											<Settings
+												sx={{ fontSize: 20, color: isManageMode ? 'primary.main' : undefined }}
+											/>
 										</IconButton>
 									</Tooltip>
 									<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>

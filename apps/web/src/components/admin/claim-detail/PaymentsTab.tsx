@@ -17,6 +17,7 @@ import utc from 'dayjs/plugin/utc';
 import BasicIconButton from '@/components/common/BasicIconButton';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
+import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 
 dayjs.extend(utc);
 
@@ -58,18 +59,9 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	const showAlert = useAlertStore((state) => state.showAlert);
 
 	// Data queries
-	const { data: payments = [], isLoading } = trpc.payment.listPayments.useQuery(
-		{ claimId },
-		{ enabled: !!claimId }
-	);
-	const { data: claimParties = [] } = trpc.party.getClaimParties.useQuery(
-		{ claimId },
-		{ enabled: !!claimId }
-	);
-	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery(
-		{ claimId },
-		{ enabled: !!claimId }
-	);
+	const { data: payments = [], isLoading } = trpc.payment.listPayments.useQuery({ claimId }, { enabled: !!claimId });
+	const { data: claimParties = [] } = trpc.party.getClaimParties.useQuery({ claimId }, { enabled: !!claimId });
+	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery({ claimId }, { enabled: !!claimId });
 
 	// Mutations
 	const createPayment = trpc.payment.createPayment.useMutation({
@@ -157,8 +149,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				is_subrogable: paymentForm.is_subrogable,
 				is_expense: paymentForm.is_expense,
 				// Convert empty string to null for optional payee
-				payee_claim_party_id:
-					paymentForm.payee_claim_party_id === '' ? null : paymentForm.payee_claim_party_id,
+				payee_claim_party_id: paymentForm.payee_claim_party_id === '' ? null : paymentForm.payee_claim_party_id,
 				description: paymentForm.description || undefined,
 			};
 
@@ -214,10 +205,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
 					const amount = parseFloat(params.value?.toString() || '0');
 					return (
-						<Typography
-							fontSize={13}
-							color={amount < 0 ? 'error.main' : 'text.primary'}
-						>
+						<Typography fontSize={13} color={amount < 0 ? 'error.main' : 'text.primary'}>
 							{formatCurrencyExact(amount)}
 						</Typography>
 					);
@@ -231,9 +219,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 					const amount = parseFloat(params.row.payment_amount?.toString() || '0');
 					return (
 						<Box display="flex" gap={0.5}>
-							{amount < 0 && (
-								<Chip label="Credit" size="small" color="error" variant="outlined" />
-							)}
+							{amount < 0 && <Chip label="Credit" size="small" color="error" variant="outlined" />}
 							{params.row.is_subrogable && (
 								<Chip label="Subrogable" size="small" color="primary" variant="outlined" />
 							)}
@@ -266,20 +252,24 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 					if (!isManageMode) return null;
 					return (
 						<Box display="flex" gap={0.5}>
-							<BasicIconButton
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => setArchivingPayment(params.row),
+									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
+								}}
+								tooltipProps={{ title: 'Edit payment' }}
+								icon={<Edit />}
 								compact
-								onClick={() => handleOpenPaymentDialog(params.row)}
-								size="small"
-							>
-								<Edit fontSize="small" />
-							</BasicIconButton>
-							<BasicIconButton
+							/>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => setArchivingPayment(params.row),
+									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
+								}}
+								tooltipProps={{ title: 'Archive payment' }}
+								icon={<Archive sx={{ color: 'error.main' }} />}
 								compact
-								onClick={() => setArchivingPayment(params.row)}
-								size="small"
-							>
-								<Archive fontSize="small" />
-							</BasicIconButton>
+							/>
 						</Box>
 					);
 				},
@@ -372,7 +362,10 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 									onClick={() => setIsManageMode(!isManageMode)}
 									sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
 								>
-									<Settings fontSize="small" />
+									<Settings
+										fontSize="small"
+										sx={{ color: isManageMode ? 'primary.main' : undefined }}
+									/>
 								</IconButton>
 							</Tooltip>
 						</Box>

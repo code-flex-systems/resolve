@@ -12,6 +12,7 @@ import {
 	getCoverageReservedTotal,
 	archiveCoveragesByClaimParty,
 } from '../coverageQueries';
+import { DeductibleStatus } from '@/config/enums';
 
 // Mock the database
 vi.mock('@/api/database/kysely', () => ({
@@ -58,6 +59,7 @@ describe('coverageQueries', () => {
 			insertInto: vi.fn(),
 			values: vi.fn(),
 			returningAll: vi.fn(),
+			returning: vi.fn(),
 			updateTable: vi.fn(),
 			set: vi.fn(),
 			deleteFrom: vi.fn(),
@@ -135,55 +137,84 @@ describe('coverageQueries', () => {
 	describe('createCoverage', () => {
 		it('should insert coverage with claim_party_id and client_id', async () => {
 			const mockChain = createMockQueryBuilder();
+			const mockClaim = {
+				id: 100,
+				client_id: 'client-abc',
+				date_of_loss: new Date('2022-01-01'),
+			};
 			const mockCoverage = {
 				id: 1,
 				claim_id: 100,
 				claim_party_id: 50,
 				loss_type: 'dwelling',
-				coverage_amount: 50000,
+				coverage_amount: '50000.00',
 				amount_reserved: null,
+				deductible_amount: '0.00',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+				subro_applicable: false,
+				statute_date: new Date('2026-01-01'),
+				statute_preserved: false,
 				client_id: 'client-abc',
 				created_by: 'admin-123',
 			};
-			mockChain.executeTakeFirstOrThrow.mockResolvedValue(mockCoverage);
-			// Mock the selectFrom for recalculateTotalIncurred
-			mockChain.executeTakeFirst.mockResolvedValue({ total_reserved: '1000' });
 
-			vi.mocked(db.insertInto).mockReturnValue(mockChain as any);
+			// Mock first call (get claim) and second call (insert coverage) and third (update claim)
+			mockChain.executeTakeFirstOrThrow
+				.mockResolvedValueOnce(mockClaim) // First call: get claim
+				.mockResolvedValueOnce(mockCoverage) // Second call: insert coverage
+				.mockResolvedValueOnce({ total_incurred: '5000.00' }); // Third call: update claim
+
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			vi.mocked(db.insertInto).mockReturnValue(mockChain as any);
+			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
 
 			await createCoverage(mockAdminContext, {
 				claim_id: 100,
 				claim_party_id: 50,
 				loss_type: 'dwelling',
 				coverage_amount: 50000,
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 			});
 
+			expect(db.selectFrom).toHaveBeenCalledWith('claim');
 			expect(db.insertInto).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.values).toHaveBeenCalledWith({
+			expect(mockChain.values).toHaveBeenCalledWith(expect.objectContaining({
 				claim_id: 100,
 				claim_party_id: 50,
 				loss_type: 'dwelling',
 				coverage_amount: 50000,
 				amount_reserved: null,
+				deductible_amount: 0,
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+				subro_applicable: false,
+				statute_preserved: false,
 				client_id: 'client-abc',
 				created_by: 'admin-123',
-			});
+			}));
 		});
 
 		it('should require claim_party_id for new coverages', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirstOrThrow.mockResolvedValue({ id: 1, claim_id: 100 });
-			mockChain.executeTakeFirst.mockResolvedValue({ total_reserved: '0' });
+			const mockClaim = {
+				id: 100,
+				client_id: 'client-abc',
+				date_of_loss: new Date('2022-01-01'),
+			};
+			mockChain.executeTakeFirstOrThrow
+				.mockResolvedValueOnce(mockClaim)
+				.mockResolvedValueOnce({ id: 1, claim_id: 100, claim_party_id: 50 })
+				.mockResolvedValueOnce({ total_incurred: '0.00' });
 
-			vi.mocked(db.insertInto).mockReturnValue(mockChain as any);
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			vi.mocked(db.insertInto).mockReturnValue(mockChain as any);
+			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
 
 			// Verify claim_party_id is included in the values
 			await createCoverage(mockAdminContext, {
 				claim_id: 100,
 				claim_party_id: 50,
 				loss_type: 'dwelling',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 			});
 
 			const valuesCall = mockChain.values.mock.calls[0][0];
@@ -194,40 +225,60 @@ describe('coverageQueries', () => {
 	describe('updateCoverage', () => {
 		it('should update coverage and filter by client_id', async () => {
 			const mockChain = createMockQueryBuilder();
-			const mockCoverage = {
+			const oldCoverage = {
+				amount_reserved: '50000',
+				deductible_amount: '1000',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+				claim_id: 100,
+			};
+			const updatedCoverage = {
 				id: 1,
 				claim_id: 100,
 				loss_type: 'dwelling',
-				coverage_amount: 75000,
+				coverage_amount: '75000.00',
+				amount_reserved: '75000.00',
 			};
-			mockChain.executeTakeFirstOrThrow.mockResolvedValue(mockCoverage);
 
+			mockChain.executeTakeFirstOrThrow
+				.mockResolvedValueOnce(oldCoverage) // First call: get old coverage
+				.mockResolvedValueOnce(updatedCoverage) // Second call: update coverage
+				.mockResolvedValueOnce({ total_incurred: '75000.00' }); // Third call: update claim
+
+			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
 
 			const result = await updateCoverage(mockAdminContext, 1, {
 				coverage_amount: 75000,
 			});
 
+			expect(db.selectFrom).toHaveBeenCalledWith('claim_coverage');
 			expect(db.updateTable).toHaveBeenCalledWith('claim_coverage');
 			expect(mockChain.where).toHaveBeenCalledWith('id', '=', 1);
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
-			expect(result.coverage).toEqual(mockCoverage);
+			expect(result.coverage).toEqual(updatedCoverage);
 		});
 	});
 
 	describe('archiveCoverage', () => {
 		it('should soft delete coverage by setting deleted_at', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue({ claim_id: 100, total_reserved: '500' });
-			mockChain.execute.mockResolvedValue([]);
+			const archivedCoverage = {
+				claim_id: 100,
+				amount_reserved: '500',
+				deductible_amount: '100',
+				deductible_status: DeductibleStatus.APPLIES,
+			};
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			mockChain.executeTakeFirstOrThrow
+				.mockResolvedValueOnce(archivedCoverage) // Archive and return coverage
+				.mockResolvedValueOnce({ total_incurred: '0.00' }); // Update claim
+
 			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
+			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			const result = await archiveCoverage(mockAdminContext, 1);
 
-			expect(db.selectFrom).toHaveBeenCalledWith('claim_coverage');
 			expect(db.updateTable).toHaveBeenCalledWith('claim_coverage');
 			expect(mockChain.set).toHaveBeenCalledWith(expect.objectContaining({
 				deleted_at: expect.any(Date),
@@ -238,9 +289,9 @@ describe('coverageQueries', () => {
 
 		it('should throw error if coverage not found', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue(undefined);
+			mockChain.executeTakeFirstOrThrow.mockRejectedValue(new Error('Coverage not found'));
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
 
 			await expect(archiveCoverage(mockAdminContext, 999)).rejects.toThrow('Coverage not found');
 		});

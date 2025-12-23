@@ -260,7 +260,9 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 												bgcolor: isManageMode ? 'action.selected' : undefined,
 											}}
 										>
-											<Settings sx={{ fontSize: 20 }} />
+											<Settings
+												sx={{ fontSize: 20, color: isManageMode ? 'primary.main' : undefined }}
+											/>
 										</IconButton>
 									</Tooltip>
 									<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
@@ -343,7 +345,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				availableParentEntities={entities}
 			/>
 
-				{/* Archive Entity/Facilitator Confirmation Dialog */}
+			{/* Archive Entity/Facilitator Confirmation Dialog */}
 			{archivingClaimParty && archivePreview && (
 				<BasicDialog
 					title={`Archive ${archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity'}`}
