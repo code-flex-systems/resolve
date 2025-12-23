@@ -182,7 +182,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						liability_percentage: data.liability_percentage ?? undefined,
 						notes: data.notes ?? undefined,
 						parent_claim_party_id: data.parent_claim_party_id ?? undefined,
-						loss_type: data.loss_type ?? undefined,
+						loss_type: (data.loss_type ?? undefined) as any,
 						policy_limit: data.policy_limit ?? undefined,
 					},
 				});
@@ -201,7 +201,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					liability_percentage: data.liability_percentage ?? undefined,
 					notes: data.notes ?? undefined,
 					parent_claim_party_id: data.parent_claim_party_id ?? undefined,
-					loss_type: data.loss_type ?? undefined,
+					loss_type: (data.loss_type ?? undefined) as any,
 					policy_limit: data.policy_limit ?? undefined,
 				});
 			}

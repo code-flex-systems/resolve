@@ -83,7 +83,7 @@ export default function SettlementFormDialog({
 						<Select
 							value={formData.claim_party_id}
 							label="Adverse Party"
-							onChange={(e) => setFormData({ ...formData, claim_party_id: e.target.value as number })}
+							onChange={(e) => setFormData({ ...formData, claim_party_id: Number(e.target.value) })}
 						>
 							{adverseParties.map((cp) => (
 								<MenuItem key={cp.id} value={cp.id}>
@@ -97,7 +97,7 @@ export default function SettlementFormDialog({
 						<Select
 							value={formData.coverage_id}
 							label="Coverage"
-							onChange={(e) => setFormData({ ...formData, coverage_id: e.target.value as number })}
+							onChange={(e) => setFormData({ ...formData, coverage_id: Number(e.target.value) })}
 						>
 							{coverages.map((coverage) => (
 								<MenuItem key={coverage.id} value={coverage.id}>

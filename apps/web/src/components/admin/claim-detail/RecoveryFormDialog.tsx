@@ -71,7 +71,7 @@ export default function RecoveryFormDialog({
 						<Select
 							value={formData.settlement_id}
 							label="Settlement"
-							onChange={(e) => setFormData({ ...formData, settlement_id: e.target.value as number })}
+							onChange={(e) => setFormData({ ...formData, settlement_id: Number(e.target.value) })}
 						>
 							{settlements.map((settlement) => (
 								<MenuItem key={settlement.id} value={settlement.id}>

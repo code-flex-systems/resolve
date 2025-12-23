@@ -149,7 +149,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await updateRecoveryEvent.mutateAsync({
 					recoveryEventId: editingRecovery.id,
 					params: {
-						settlement_id: recoveryForm.settlement_id,
+						settlement_id: Number(recoveryForm.settlement_id),
 						recovery_date: recoveryForm.recovery_date,
 						recovery_amount: recoveryForm.recovery_amount,
 						recovery_source: recoveryForm.recovery_source || undefined,
@@ -163,7 +163,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await createRecoveryEvent.mutateAsync({
 					claimId,
 					params: {
-						settlement_id: recoveryForm.settlement_id,
+						settlement_id: Number(recoveryForm.settlement_id),
 						recovery_date: recoveryForm.recovery_date,
 						recovery_amount: recoveryForm.recovery_amount,
 						recovery_source: recoveryForm.recovery_source || undefined,
@@ -220,8 +220,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await updateSettlement.mutateAsync({
 					settlementId: editingSettlement.id,
 					params: {
-						claim_party_id: settlementForm.claim_party_id,
-						coverage_id: settlementForm.coverage_id,
+						claim_party_id: Number(settlementForm.claim_party_id),
+						coverage_id: Number(settlementForm.coverage_id),
 						demand_amount: settlementForm.demand_amount,
 						demand_date: settlementForm.demand_date,
 						status: settlementForm.status as SettlementStatus,
@@ -236,8 +236,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await createSettlement.mutateAsync({
 					claimId,
 					params: {
-						claim_party_id: settlementForm.claim_party_id,
-						coverage_id: settlementForm.coverage_id,
+						claim_party_id: Number(settlementForm.claim_party_id),
+						coverage_id: Number(settlementForm.coverage_id),
 						demand_amount: settlementForm.demand_amount,
 						demand_date: settlementForm.demand_date,
 						notes: settlementForm.notes || undefined,

@@ -143,13 +143,13 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 		try {
 			// Build params object (shared between create and update)
 			const params = {
-				coverage_id: paymentForm.coverage_id as number,
+				coverage_id: Number(paymentForm.coverage_id),
 				payment_date: paymentForm.payment_date,
 				payment_amount: paymentForm.payment_amount,
 				is_subrogable: paymentForm.is_subrogable,
 				is_expense: paymentForm.is_expense,
-				// Convert empty string to null for optional payee
-				payee_claim_party_id: paymentForm.payee_claim_party_id === '' ? null : paymentForm.payee_claim_party_id,
+				// Convert empty string to null for optional payee, otherwise convert to number
+				payee_claim_party_id: paymentForm.payee_claim_party_id === '' || paymentForm.payee_claim_party_id === null ? null : Number(paymentForm.payee_claim_party_id),
 				description: paymentForm.description || undefined,
 			};
 

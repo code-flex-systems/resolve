@@ -81,7 +81,7 @@ export default function PaymentFormDialog({
 							value={formData.coverage_id}
 							label="Coverage"
 							onChange={(e) =>
-								setFormData({ ...formData, coverage_id: e.target.value as number })
+								setFormData({ ...formData, coverage_id: Number(e.target.value) })
 							}
 						>
 							{coverages.map((coverage) => (
@@ -153,7 +153,7 @@ export default function PaymentFormDialog({
 							onChange={(e) =>
 								setFormData({
 									...formData,
-									payee_claim_party_id: e.target.value === '' ? null : (e.target.value as number),
+									payee_claim_party_id: e.target.value === '' ? null : Number(e.target.value),
 								})
 							}
 						>
