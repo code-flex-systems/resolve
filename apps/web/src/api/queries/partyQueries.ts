@@ -1417,9 +1417,9 @@ export async function getClaimParties(
 			'party_representative.id as representative_id',
 			'party_representative.first_name as representative_first_name',
 			'party_representative.last_name as representative_last_name',
-			'party_representative.email as representative_email',
-			'party_representative.phone as representative_phone',
-			'party_representative.title as representative_title',
+			'party_representative.email as rep_email',
+			'party_representative.phone as rep_phone',
+			'party_representative.title as rep_title',
 			// For facilitators: use selected office, for entities: use party's primary address
 			sql<number | null>`COALESCE(selected_address.id, party_address.id)`.as('address_id'),
 			sql<string | null>`COALESCE(selected_address.name, party_address.name)`.as('address_name'),
@@ -1535,9 +1535,9 @@ export async function getClaimParties(
 					id: row.representative_id,
 					first_name: row.representative_first_name!,
 					last_name: row.representative_last_name!,
-					email: row.representative_email,
-					phone: row.representative_phone,
-					title: row.representative_title,
+					email: row.rep_email,
+					phone: row.rep_phone,
+					title: row.rep_title,
 				}
 			: null,
 		address: row.address_id

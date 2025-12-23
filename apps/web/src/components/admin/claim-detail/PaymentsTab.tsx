@@ -9,7 +9,7 @@ import { trpc } from '@/lib/trpc';
 import BasicDialog from '@/components/common/BasicDialog';
 import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { capitalize } from '@/lib/utils/utils';
+import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
@@ -205,7 +205,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				field: 'loss_type',
 				headerName: 'Coverage',
 				width: 120,
-				valueFormatter: (value) => (value ? capitalize(value) : ''),
+				valueFormatter: (value) => (value ? formatCoverageType(value) : ''),
 			},
 			{
 				field: 'payment_amount',
@@ -462,7 +462,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 							</Typography>
 							<Typography fontSize={12} color="text.secondary">
 								{dayjs(archivingPayment.payment_date).format('MMM D, YYYY')} ·{' '}
-								{archivingPayment.loss_type ? capitalize(archivingPayment.loss_type) : ''}
+								{archivingPayment.loss_type ? formatCoverageType(archivingPayment.loss_type) : ''}
 								{archivingPayment.payee_name && ` · ${archivingPayment.payee_name}`}
 							</Typography>
 						</Box>

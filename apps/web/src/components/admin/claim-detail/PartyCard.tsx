@@ -10,6 +10,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import Highlight from '@/components/common/Highlight';
 import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import { capitalize } from '@/lib/utils/utils';
+import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatAddressInline } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
@@ -158,7 +159,7 @@ export default function PartyCard({
 								{/* For facilitators: show loss type and policy limit chips */}
 								{isNested && claimParty.loss_type && (
 									<Chip
-										label={capitalize(claimParty.loss_type.replace(/_/g, ' '))}
+										label={formatCoverageType(claimParty.loss_type)}
 										size="small"
 										color="secondary"
 										sx={{ height: 20, fontSize: 11 }}
@@ -233,7 +234,9 @@ export default function PartyCard({
 								<Box marginBottom={0.5}>
 									<Typography fontSize={13} display="inline">
 										Representative:{' '}
-										<Highlight>{claimParty.representative_name}</Highlight>
+										<Highlight>
+											{claimParty.representative_name}
+										</Highlight>
 										{claimParty.representative_title && ` - ${claimParty.representative_title}`}
 										{(claimParty.representative_email || claimParty.representative_phone) && (
 											<>

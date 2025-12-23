@@ -149,9 +149,18 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		role: string[];
 		party_id: number;
 		representative_id?: number | null;
+		address_id?: number | null;
+		// Free-form representative (entities)
+		representative_name?: string | null;
+		representative_title?: string | null;
+		representative_email?: string | null;
+		representative_phone?: string | null;
 		liability_percentage?: number | null;
 		notes?: string | null;
 		parent_claim_party_id?: number | null;
+		// Facilitator-specific fields
+		loss_type?: string | null;
+		policy_limit?: number | null;
 	}) => {
 		try {
 			if (editingClaimParty) {
@@ -161,9 +170,16 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					params: {
 						role: data.role,
 						representative_id: data.representative_id ?? undefined,
+						address_id: data.address_id ?? undefined,
+						representative_name: data.representative_name ?? undefined,
+						representative_title: data.representative_title ?? undefined,
+						representative_email: data.representative_email ?? undefined,
+						representative_phone: data.representative_phone ?? undefined,
 						liability_percentage: data.liability_percentage ?? undefined,
 						notes: data.notes ?? undefined,
 						parent_claim_party_id: data.parent_claim_party_id ?? undefined,
+						loss_type: data.loss_type ?? undefined,
+						policy_limit: data.policy_limit ?? undefined,
 					},
 				});
 			} else {
@@ -173,9 +189,16 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					party_id: data.party_id,
 					role: data.role,
 					representative_id: data.representative_id ?? undefined,
+					address_id: data.address_id ?? undefined,
+					representative_name: data.representative_name ?? undefined,
+					representative_title: data.representative_title ?? undefined,
+					representative_email: data.representative_email ?? undefined,
+					representative_phone: data.representative_phone ?? undefined,
 					liability_percentage: data.liability_percentage ?? undefined,
 					notes: data.notes ?? undefined,
 					parent_claim_party_id: data.parent_claim_party_id ?? undefined,
+					loss_type: data.loss_type ?? undefined,
+					policy_limit: data.policy_limit ?? undefined,
 				});
 			}
 			handleClosePartyDialog();

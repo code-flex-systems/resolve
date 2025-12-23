@@ -7,6 +7,7 @@ import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-
 import { useMemo } from 'react';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { SettlementStatus } from '@/config/enums';
 import dayjs from 'dayjs';
 
@@ -140,7 +141,7 @@ export default function SettlementTable({
 				width: 120,
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (params.row.type === 'settlement' && params.row.loss_type) {
-						return <Typography fontSize={13}>{capitalize(params.row.loss_type)}</Typography>;
+						return <Typography fontSize={13}>{formatCoverageType(params.row.loss_type)}</Typography>;
 					}
 					return null;
 				},

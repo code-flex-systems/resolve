@@ -14,6 +14,7 @@ import RecoveryFormDialog, { RecoveryFormData } from './RecoveryFormDialog';
 import SettlementTable from './SettlementTable';
 import SettlementTimeline from './SettlementTimeline';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import { SettlementStatus } from '@/config/enums';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -21,11 +22,6 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
-
-const capitalize = (str: string | null | undefined) => {
-	if (!str) return '';
-	return str.charAt(0).toUpperCase() + str.slice(1);
-};
 
 interface RecoveryTabProps {
 	claimId: number;
@@ -500,7 +496,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								{archivingSettlement.party_name}
 							</Typography>
 							<Typography fontSize={12} color="text.secondary">
-								{capitalize(archivingSettlement.loss_type)} ·{' '}
+								{formatCoverageType(archivingSettlement.loss_type)} ·{' '}
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
 							</Typography>
 						</Box>
