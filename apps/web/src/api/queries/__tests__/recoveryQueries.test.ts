@@ -30,6 +30,7 @@ vi.mock('@/api/database/kysely', () => ({
 vi.mock('@/config/config', async () => {
 	const dayjs = (await import('dayjs')).default;
 	return {
+		getFiscalYearStart: vi.fn(() => dayjs('2025-01-01')),
 		default: {
 			FISCAL_YEAR_START_DATE: dayjs('2025-01-01'),
 		},
@@ -65,12 +66,13 @@ describe('getQuarterlyRecoveryStats', () => {
 
 	describe('Fiscal Quarter Boundaries', () => {
 		it('should calculate Q1-Q4 boundaries from default fiscal year start', async () => {
-			// Mock 4 queries, one per quarter
-			const mockExecuteTakeFirst = vi.fn()
-				.mockResolvedValueOnce({ total: '10000' }) // Q1
-				.mockResolvedValueOnce({ total: '15000' }) // Q2
-				.mockResolvedValueOnce({ total: '12000' }) // Q3
-				.mockResolvedValueOnce({ total: '18000' }); // Q4
+			// Mock single query that returns all 4 quarters
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 10000,
+				q2: 15000,
+				q3: 12000,
+				q4: 18000,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -88,7 +90,12 @@ describe('getQuarterlyRecoveryStats', () => {
 
 		it('should use custom fiscal year start date when provided', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '5000' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 5000,
+				q2: 6000,
+				q3: 7000,
+				q4: 8000,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -100,16 +107,17 @@ describe('getQuarterlyRecoveryStats', () => {
 			const customStart = new Date('2024-07-01');
 			await getQuarterlyRecoveryStats(mockContext, { fiscalYearStart: customStart });
 
-			// Should query 4 times for 4 quarters
-			expect(mockExecuteTakeFirst).toHaveBeenCalledTimes(4);
+			// Should query once (single query returns all 4 quarters)
+			expect(mockExecuteTakeFirst).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return 0 for quarters with no recovery events', async () => {
-			const mockExecuteTakeFirst = vi.fn()
-				.mockResolvedValueOnce({ total: null }) // Q1 - no data
-				.mockResolvedValueOnce({ total: '5000' }) // Q2
-				.mockResolvedValueOnce(null) // Q3 - null result
-				.mockResolvedValueOnce({ total: undefined }); // Q4 - undefined total
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: null, // Q1 - no data
+				q2: 5000, // Q2 - has data
+				q3: undefined, // Q3 - undefined
+				q4: 0, // Q4 - explicit 0
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -129,7 +137,12 @@ describe('getQuarterlyRecoveryStats', () => {
 	describe('User Filtering', () => {
 		it('should filter by userId when provided', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '3000' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 3000,
+				q2: 2000,
+				q3: 1000,
+				q4: 4000,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -145,7 +158,12 @@ describe('getQuarterlyRecoveryStats', () => {
 
 		it('should not filter by userId when not provided', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '3000' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 3000,
+				q2: 2000,
+				q3: 1000,
+				q4: 4000,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -164,7 +182,12 @@ describe('getQuarterlyRecoveryStats', () => {
 	describe('Client Scoping', () => {
 		it('should filter by client_id', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '1000' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 1000,
+				q2: 1000,
+				q3: 1000,
+				q4: 1000,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -180,7 +203,12 @@ describe('getQuarterlyRecoveryStats', () => {
 
 	describe('Return Value Structure', () => {
 		it('should return object with q1, q2, q3, q4 string values', async () => {
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '1000' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 1000,
+				q2: 2000,
+				q3: 3000,
+				q4: 4000,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -201,11 +229,12 @@ describe('getQuarterlyRecoveryStats', () => {
 		});
 
 		it('should convert numeric totals to strings', async () => {
-			const mockExecuteTakeFirst = vi.fn()
-				.mockResolvedValueOnce({ total: 12345.67 })
-				.mockResolvedValueOnce({ total: '9999.99' })
-				.mockResolvedValueOnce({ total: 0 })
-				.mockResolvedValueOnce({ total: '0' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: 12345.67,
+				q2: '9999.99',
+				q3: 0,
+				q4: '0',
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -224,7 +253,12 @@ describe('getQuarterlyRecoveryStats', () => {
 
 	describe('Edge Cases', () => {
 		it('should handle large recovery amounts', async () => {
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '1000000000.00' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: '1000000000.00',
+				q2: 0,
+				q3: 0,
+				q4: 0,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),
@@ -238,7 +272,12 @@ describe('getQuarterlyRecoveryStats', () => {
 		});
 
 		it('should handle decimal precision', async () => {
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ total: '123.456789' });
+			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+				q1: '123.456789',
+				q2: 0,
+				q3: 0,
+				q4: 0,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
 				select: vi.fn().mockReturnThis(),

@@ -51,17 +51,10 @@ describe('listMyClaims - Metrics Transformation', () => {
 	});
 
 	it('should round avgDaysInQueue to 1 decimal place', async () => {
-		const mockQuery = {
-			innerJoin: vi.fn().mockReturnThis(),
-			leftJoin: vi.fn().mockReturnThis(),
-			where: vi.fn().mockReturnThis(),
-			distinctOn: vi.fn().mockReturnThis(),
+		// Mock for the metrics query
+		const mockMetricsQuery = {
 			select: vi.fn().mockReturnThis(),
-			orderBy: vi.fn().mockReturnThis(),
-			limit: vi.fn().mockReturnThis(),
-			offset: vi.fn().mockReturnThis(),
-			as: vi.fn().mockReturnThis(),
-			execute: vi.fn().mockResolvedValue([]),
+			where: vi.fn().mockReturnThis(),
 			executeTakeFirst: vi.fn().mockResolvedValue({
 				count: '10',
 				total_value: '500000',
@@ -69,7 +62,37 @@ describe('listMyClaims - Metrics Transformation', () => {
 			}),
 		};
 
-		vi.spyOn(db, 'selectFrom').mockReturnValue(mockQuery as any);
+		// Mock for the data query
+		const mockDataQuery = {
+			selectAll: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			orderBy: vi.fn().mockReturnThis(),
+			limit: vi.fn().mockReturnThis(),
+			offset: vi.fn().mockReturnThis(),
+			execute: vi.fn().mockResolvedValue([]),
+		};
+
+		// Mock for the base query (CTE)
+		const mockBaseQuery = {
+			innerJoin: vi.fn().mockReturnThis(),
+			leftJoin: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			select: vi.fn().mockReturnThis(),
+			as: vi.fn().mockReturnValue('ranked_claims_cte'), // Returns CTE alias
+		};
+
+		// Mock selectFrom to return different mocks based on call order
+		let selectFromCallCount = 0;
+		vi.spyOn(db, 'selectFrom').mockImplementation(() => {
+			selectFromCallCount++;
+			if (selectFromCallCount === 1) {
+				return mockBaseQuery as any;
+			} else if (selectFromCallCount === 2) {
+				return mockMetricsQuery as any;
+			} else {
+				return mockDataQuery as any;
+			}
+		});
 
 		const result = await listMyClaims(mockContext, {});
 
@@ -77,17 +100,10 @@ describe('listMyClaims - Metrics Transformation', () => {
 	});
 
 	it('should handle null/missing metrics gracefully', async () => {
-		const mockQuery = {
-			innerJoin: vi.fn().mockReturnThis(),
-			leftJoin: vi.fn().mockReturnThis(),
-			where: vi.fn().mockReturnThis(),
-			distinctOn: vi.fn().mockReturnThis(),
+		// Mock for the metrics query
+		const mockMetricsQuery = {
 			select: vi.fn().mockReturnThis(),
-			orderBy: vi.fn().mockReturnThis(),
-			limit: vi.fn().mockReturnThis(),
-			offset: vi.fn().mockReturnThis(),
-			as: vi.fn().mockReturnThis(),
-			execute: vi.fn().mockResolvedValue([]),
+			where: vi.fn().mockReturnThis(),
 			executeTakeFirst: vi.fn().mockResolvedValue({
 				count: null,
 				total_value: null,
@@ -95,7 +111,37 @@ describe('listMyClaims - Metrics Transformation', () => {
 			}),
 		};
 
-		vi.spyOn(db, 'selectFrom').mockReturnValue(mockQuery as any);
+		// Mock for the data query
+		const mockDataQuery = {
+			selectAll: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			orderBy: vi.fn().mockReturnThis(),
+			limit: vi.fn().mockReturnThis(),
+			offset: vi.fn().mockReturnThis(),
+			execute: vi.fn().mockResolvedValue([]),
+		};
+
+		// Mock for the base query (CTE)
+		const mockBaseQuery = {
+			innerJoin: vi.fn().mockReturnThis(),
+			leftJoin: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			select: vi.fn().mockReturnThis(),
+			as: vi.fn().mockReturnValue('ranked_claims_cte'), // Returns CTE alias
+		};
+
+		// Mock selectFrom to return different mocks based on call order
+		let selectFromCallCount = 0;
+		vi.spyOn(db, 'selectFrom').mockImplementation(() => {
+			selectFromCallCount++;
+			if (selectFromCallCount === 1) {
+				return mockBaseQuery as any;
+			} else if (selectFromCallCount === 2) {
+				return mockMetricsQuery as any;
+			} else {
+				return mockDataQuery as any;
+			}
+		});
 
 		const result = await listMyClaims(mockContext, {});
 
