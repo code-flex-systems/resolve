@@ -767,12 +767,14 @@ describe('claimQueries integration', () => {
 			await createTestClaimParty(db, {
 				claim_id: claim1.id,
 				party_id: party1.id,
+				client_id: client.id,
 				created_by: user.id,
 				loss_type: LossType.FIRE,
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim2.id,
 				party_id: party2.id,
+				client_id: client.id,
 				created_by: user.id,
 				loss_type: LossType.WATER_DAMAGE,
 			});
@@ -959,12 +961,14 @@ describe('claimQueries integration', () => {
 			const entityClaimParty1 = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: entityParty1.id,
+				client_id: client.id,
 				created_by: user.id,
 				liability_percentage: '30',
 			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: entityParty2.id,
+				client_id: client.id,
 				created_by: user.id,
 				liability_percentage: '20',
 			});
@@ -973,6 +977,7 @@ describe('claimQueries integration', () => {
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: facilitatorParty1.id,
+				client_id: client.id,
 				created_by: user.id,
 				parent_claim_party_id: entityClaimParty1.id,
 				loss_type: LossType.COLLISION,
@@ -980,6 +985,7 @@ describe('claimQueries integration', () => {
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: facilitatorParty2.id,
+				client_id: client.id,
 				created_by: user.id,
 				parent_claim_party_id: entityClaimParty1.id,
 				loss_type: LossType.FIRE,
@@ -1010,6 +1016,7 @@ describe('claimQueries integration', () => {
 			const entityClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: entityParty.id,
+				client_id: client.id,
 				created_by: user.id,
 				liability_percentage: '40',
 			});
@@ -1018,6 +1025,7 @@ describe('claimQueries integration', () => {
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: facilitatorParty.id,
+				client_id: client.id,
 				created_by: user.id,
 				parent_claim_party_id: entityClaimParty.id,
 				liability_percentage: '25', // This should NOT be counted
@@ -1294,6 +1302,8 @@ describe('claimQueries integration', () => {
 			const entityClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: entityParty.id,
+				client_id: client.id,
+				created_by: admin.id,
 				liability_percentage: 30,
 			});
 
@@ -1315,6 +1325,8 @@ describe('claimQueries integration', () => {
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: facilitatorParty.id,
+				client_id: client.id,
+				created_by: admin.id,
 			});
 
 			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });

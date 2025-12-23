@@ -54,8 +54,11 @@ describe('claimQueries.getClaims', () => {
 			orderBy: vi.fn(),
 			limit: vi.fn(),
 			offset: vi.fn(),
+			as: vi.fn(),
+			$if: vi.fn(),
 			execute: vi.fn(),
 			executeTakeFirst: vi.fn(),
+			groupBy: vi.fn(),
 		};
 
 		// Each method returns the chain for fluent API
@@ -67,6 +70,9 @@ describe('claimQueries.getClaims', () => {
 		mockChain.orderBy.mockReturnValue(mockChain);
 		mockChain.limit.mockReturnValue(mockChain);
 		mockChain.offset.mockReturnValue(mockChain);
+		mockChain.as.mockReturnValue(mockChain);
+		mockChain.groupBy.mockReturnValue(mockChain);
+		mockChain.$if.mockImplementation((condition, fn) => condition ? fn(mockChain) : mockChain);
 
 		return mockChain;
 	};
@@ -83,47 +89,39 @@ describe('claimQueries.getClaims', () => {
 		it('should allow admin to see all claims without visibility filtering', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', feed_name: 'Feed A' },
-				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', feed_name: 'Feed B' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', feed_name: 'Feed A', total_count: '2' },
+				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', feed_name: 'Feed B', total_count: '2' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockAdminContext, { type: 'data' });
+			const result = await getClaims(mockAdminContext, {});
 
 			// Verify no contributor visibility filters were applied
-			// Admin query should NOT have the cc (checklist_claim) join for visibility
-			const leftJoinCalls = mockChain.leftJoin.mock.calls;
-			const hasVisibilityJoin = leftJoinCalls.some(call =>
-				call[0] === 'checklist_claim as cc'
-			);
-
-			expect(hasVisibilityJoin).toBe(false);
-			expect(result).toHaveLength(2);
+			// Admin query should have only the feeds join, not visibility filtering
+			expect(mockChain.leftJoin).toHaveBeenCalledWith('feeds', 'claim.feed_id', 'feeds.id');
+			expect(result.rows).toHaveLength(2);
+			expect(result.count).toBe(2);
 		});
 
 		it('should filter claims for contributor - owned by them (bucket 1)', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data' });
+			await getClaims(mockContributorContext, {});
 
-			// Verify the visibility join was added
-			expect(mockChain.leftJoin).toHaveBeenCalledWith(
-				'checklist_claim as cc',
-				'claim.id',
-				'cc.claim_id'
-			);
+			// Verify the feeds join was added (visibility uses EXISTS subqueries, not joins)
+			expect(mockChain.leftJoin).toHaveBeenCalledWith('feeds', 'claim.feed_id', 'feeds.id');
 
-			// Verify where clause was called (contains the OR logic for visibility)
+			// Verify where clause was called (contains the OR logic for visibility via EXISTS)
 			expect(mockChain.where).toHaveBeenCalled();
 
-			// The where clause should contain logic for:
-			// cc.created_by = user.id OR cc.assignee = user.id OR cc.claim_id IS NULL
+			// The where clause should contain logic for visibility filtering (via EXISTS subqueries):
+			// EXISTS(created_by) OR EXISTS(assignee) OR NOT EXISTS(checklist_claim) OR EXISTS(desk access)
 			const whereCalls = mockChain.where.mock.calls;
 			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
@@ -134,19 +132,17 @@ describe('claimQueries.getClaims', () => {
 
 			// Simulate a claim that's assigned to the current user
 			mockChain.execute.mockResolvedValue([
-				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', date_of_loss: '2025-01-02', feed_name: 'Feed B' },
+				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', date_of_loss: '2025-01-02', feed_name: 'Feed B', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data' });
+			await getClaims(mockContributorContext, {});
 
-			// Verify visibility filtering is applied
-			expect(mockChain.leftJoin).toHaveBeenCalledWith(
-				'checklist_claim as cc',
-				'claim.id',
-				'cc.claim_id'
-			);
+			// Verify visibility filtering is applied via WHERE clause
+			const whereCalls = mockChain.where.mock.calls;
+			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			expect(hasVisibilityFilter).toBe(true);
 		});
 
 		it('should filter claims for contributor - unassigned/available claims (bucket 3)', async () => {
@@ -154,19 +150,17 @@ describe('claimQueries.getClaims', () => {
 
 			// Simulate claims with no checklist_claim entry (available to start)
 			mockChain.execute.mockResolvedValue([
-				{ id: 3, claim_number: 'CLM-003', insured: 'Bob Johnson', date_of_loss: '2025-01-03', feed_name: null },
+				{ id: 3, claim_number: 'CLM-003', insured: 'Bob Johnson', date_of_loss: '2025-01-03', feed_name: null, total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data' });
+			await getClaims(mockContributorContext, {});
 
-			// The OR condition should include: cc.claim_id IS NULL (unassigned)
-			expect(mockChain.leftJoin).toHaveBeenCalledWith(
-				'checklist_claim as cc',
-				'claim.id',
-				'cc.claim_id'
-			);
+			// The OR condition should include: NOT EXISTS(checklist_claim) for unassigned claims
+			const whereCalls = mockChain.where.mock.calls;
+			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			expect(hasVisibilityFilter).toBe(true);
 		});
 
 		it('should NOT show claims to contributors that are worked by others', async () => {
@@ -177,11 +171,12 @@ describe('claimQueries.getClaims', () => {
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockContributorContext, { type: 'data' });
+			const result = await getClaims(mockContributorContext, {});
 
 			// Verify filtering was applied
-			expect(mockChain.leftJoin).toHaveBeenCalled();
-			expect(result).toHaveLength(0);
+			expect(mockChain.where).toHaveBeenCalled();
+			expect(result.rows).toHaveLength(0);
+			expect(result.count).toBe(0);
 		});
 	});
 
@@ -211,12 +206,13 @@ describe('claimQueries.getClaims', () => {
 					created_at: '2025-01-01',
 					feed_id: 1,
 					feed_name: 'Feed A',
+					total_count: '1',
 				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockAdminContext, { type: 'data' });
+			await getClaims(mockAdminContext, {});
 
 			// Admin should get selectAll('claim')
 			expect(mockChain.selectAll).toHaveBeenCalledWith('claim');
@@ -232,12 +228,13 @@ describe('claimQueries.getClaims', () => {
 					insured: 'John Doe',
 					date_of_loss: '2025-01-01',
 					feed_name: 'Feed A',
+					total_count: '1',
 				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data' });
+			await getClaims(mockContributorContext, {});
 
 			// Contributor should only get specific columns
 			expect(mockChain.select).toHaveBeenCalledWith([
@@ -248,8 +245,11 @@ describe('claimQueries.getClaims', () => {
 				'feeds.name as feed_name',
 			]);
 
-			// selectAll should NOT be called for contributors
-			expect(mockChain.selectAll).not.toHaveBeenCalled();
+			// selectAll('claim') should NOT be called for contributors
+			// Note: selectAll() might be called on the CTE, but not selectAll('claim')
+			const selectAllCalls = mockChain.selectAll.mock.calls;
+			const hasClaimSelectAll = selectAllCalls.some(call => call[0] === 'claim');
+			expect(hasClaimSelectAll).toBe(false);
 		});
 
 		it('should NOT expose sensitive fields to contributors', async () => {
@@ -263,6 +263,7 @@ describe('claimQueries.getClaims', () => {
 					insured: 'John Doe',
 					date_of_loss: '2025-01-01',
 					feed_name: 'Feed A',
+					total_count: '1',
 					// Sensitive fields should NOT be included:
 					// client, client_adjuster, claim_amount, total_incurred,
 					// expected_recovery, last_updated_by, created_by, etc.
@@ -272,14 +273,14 @@ describe('claimQueries.getClaims', () => {
 			mockChain.execute.mockResolvedValue(contributorResult);
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockContributorContext, { type: 'data' }) as any[];
+			const result = await getClaims(mockContributorContext, {});
 
 			// Verify sensitive fields are not in the result
-			expect(result[0]).not.toHaveProperty('client');
-			expect(result[0]).not.toHaveProperty('client_adjuster');
-			expect(result[0]).not.toHaveProperty('claim_amount');
-			expect(result[0]).not.toHaveProperty('total_incurred');
-			expect(result[0]).not.toHaveProperty('expected_recovery');
+			expect(result.rows[0]).not.toHaveProperty('client');
+			expect(result.rows[0]).not.toHaveProperty('client_adjuster');
+			expect(result.rows[0]).not.toHaveProperty('claim_amount');
+			expect(result.rows[0]).not.toHaveProperty('total_incurred');
+			expect(result.rows[0]).not.toHaveProperty('expected_recovery');
 		});
 	});
 
@@ -290,7 +291,7 @@ describe('claimQueries.getClaims', () => {
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockAdminContext, { type: 'data' });
+			await getClaims(mockAdminContext, {});
 
 			// Verify client_id filtering was applied
 			expect(mockChain.where).toHaveBeenCalledWith(
@@ -306,7 +307,7 @@ describe('claimQueries.getClaims', () => {
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data' });
+			await getClaims(mockContributorContext, {});
 
 			// Verify client_id filtering was applied
 			expect(mockChain.where).toHaveBeenCalledWith(
@@ -321,12 +322,12 @@ describe('claimQueries.getClaims', () => {
 
 			// Result should only contain claims from client-abc, not other clients
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', client_id: 'client-abc', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', client_id: 'client-abc', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockContributorContext, { type: 'data' }) as any[];
+			const result = await getClaims(mockContributorContext, {});
 
 			// Verify client scoping was applied
 			expect(mockChain.where).toHaveBeenCalledWith(
@@ -336,7 +337,7 @@ describe('claimQueries.getClaims', () => {
 			);
 
 			// All results should belong to the user's client
-			expect(result.every((claim: any) => claim.client_id === 'client-abc')).toBe(true);
+			expect(result.rows.every((claim: any) => claim.client_id === 'client-abc')).toBe(true);
 		});
 	});
 
@@ -344,13 +345,12 @@ describe('claimQueries.getClaims', () => {
 		it('should apply search filter for admin', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			await getClaims(mockAdminContext, {
-				type: 'data',
 				searchTerm: { value: 'CLM-001', type: ClaimSearch.CLAIM_NUMBER },
 			});
 
@@ -363,23 +363,16 @@ describe('claimQueries.getClaims', () => {
 		it('should apply search filter AND visibility filter for contributor', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			await getClaims(mockContributorContext, {
-				type: 'data',
 				searchTerm: { value: 'john', type: ClaimSearch.INSURED },
 			});
 
-			// Should have both visibility join AND search filter
-			expect(mockChain.leftJoin).toHaveBeenCalledWith(
-				'checklist_claim as cc',
-				'claim.id',
-				'cc.claim_id'
-			);
-
+			// Should have visibility filtering via where clause
 			// Multiple where clauses: client_id, visibility, search
 			expect(mockChain.where.mock.calls.length).toBeGreaterThanOrEqual(2);
 		});
@@ -387,13 +380,12 @@ describe('claimQueries.getClaims', () => {
 		it('should search by claim number with case-insensitive matching', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			await getClaims(mockContributorContext, {
-				type: 'data',
 				searchTerm: { value: 'clm', type: ClaimSearch.CLAIM_NUMBER },
 			});
 
@@ -406,13 +398,12 @@ describe('claimQueries.getClaims', () => {
 		it('should apply limit and offset for admin data query', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			await getClaims(mockAdminContext, {
-				type: 'data',
 				limit: 10,
 				offset: 20,
 			});
@@ -424,13 +415,12 @@ describe('claimQueries.getClaims', () => {
 		it('should apply limit and offset for contributor data query', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			await getClaims(mockContributorContext, {
-				type: 'data',
 				limit: 5,
 				offset: 10,
 			});
@@ -439,83 +429,84 @@ describe('claimQueries.getClaims', () => {
 			expect(mockChain.offset).toHaveBeenCalledWith(10);
 		});
 
-		it('should NOT apply limit/offset for count queries', async () => {
+		it('should apply limit and offset when provided', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue({ count: '42' });
+			mockChain.execute.mockResolvedValue([
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
+			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
 			await getClaims(mockContributorContext, {
-				type: 'count',
 				limit: 10,
 				offset: 5,
 			});
 
-			// Count queries should not use limit/offset
-			expect(mockChain.limit).not.toHaveBeenCalled();
-			expect(mockChain.offset).not.toHaveBeenCalled();
+			// Limit and offset should be applied
+			expect(mockChain.limit).toHaveBeenCalledWith(10);
+			expect(mockChain.offset).toHaveBeenCalledWith(5);
 		});
 	});
 
-	describe('Count Queries with Visibility', () => {
-		it('should return count for admin without visibility filtering', async () => {
+	describe('Total Count Extraction', () => {
+		it('should extract count from total_count field for admin', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue({ count: '100' });
+			mockChain.execute.mockResolvedValue([
+				{ id: 1, claim_number: 'CLM-001', feed_name: 'Feed A', total_count: '100' },
+				{ id: 2, claim_number: 'CLM-002', feed_name: 'Feed B', total_count: '100' },
+			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockAdminContext, { type: 'count' });
+			const result = await getClaims(mockAdminContext, {});
 
 			// Should return parsed count
-			expect(result).toBe(100);
-
-			// Should NOT have visibility join for admin
-			const leftJoinCalls = mockChain.leftJoin.mock.calls;
-			const hasVisibilityJoin = leftJoinCalls.some(call =>
-				call[0] === 'checklist_claim as cc'
-			);
-			expect(hasVisibilityJoin).toBe(false);
+			expect(result.count).toBe(100);
+			expect(result.rows).toHaveLength(2);
 		});
 
-		it('should return count for contributor WITH visibility filtering', async () => {
+		it('should extract count from total_count field for contributor WITH visibility filtering', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue({ count: '25' });
+			mockChain.execute.mockResolvedValue([
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '25' },
+			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockContributorContext, { type: 'count' });
+			const result = await getClaims(mockContributorContext, {});
 
 			// Should return parsed count
-			expect(result).toBe(25);
+			expect(result.count).toBe(25);
+			expect(result.rows).toHaveLength(1);
 
-			// SHOULD have visibility join for contributor
-			expect(mockChain.leftJoin).toHaveBeenCalledWith(
-				'checklist_claim as cc',
-				'claim.id',
-				'cc.claim_id'
-			);
+			// SHOULD have visibility filtering via where clause
+			const whereCalls = mockChain.where.mock.calls;
+			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			expect(hasVisibilityFilter).toBe(true);
 		});
 
 		it('should handle zero count correctly', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue({ count: '0' });
+			mockChain.execute.mockResolvedValue([]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockContributorContext, { type: 'count' });
+			const result = await getClaims(mockContributorContext, {});
 
-			expect(result).toBe(0);
+			expect(result.count).toBe(0);
+			expect(result.rows).toHaveLength(0);
 		});
 
-		it('should handle null/undefined count gracefully', async () => {
+		it('should handle empty results gracefully', async () => {
 			const mockChain = createMockQueryBuilder();
-			mockChain.executeTakeFirst.mockResolvedValue(null);
+			mockChain.execute.mockResolvedValue([]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			const result = await getClaims(mockContributorContext, { type: 'count' });
+			const result = await getClaims(mockContributorContext, {});
 
-			expect(result).toBe(0);
+			expect(result.count).toBe(0);
+			expect(result.rows).toHaveLength(0);
 		});
 	});
 
@@ -523,12 +514,12 @@ describe('claimQueries.getClaims', () => {
 		it('should filter by feedId for admin', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', feed_id: 5, feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', feed_id: 5, feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockAdminContext, { type: 'data', feedId: 5 });
+			await getClaims(mockAdminContext, { feedId: 5 });
 
 			// Should filter by feed_id
 			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 5);
@@ -537,31 +528,29 @@ describe('claimQueries.getClaims', () => {
 		it('should filter by feedId for contributor with visibility', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_id: 5, feed_name: 'Feed A' },
+				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_id: 5, feed_name: 'Feed A', total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data', feedId: 5 });
+			await getClaims(mockContributorContext, { feedId: 5 });
 
-			// Should have both feed filter AND visibility filter
+			// Should have both feed filter AND visibility filter via where clause
 			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 5);
-			expect(mockChain.leftJoin).toHaveBeenCalledWith(
-				'checklist_claim as cc',
-				'claim.id',
-				'cc.claim_id'
-			);
+			const whereCalls = mockChain.where.mock.calls;
+			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			expect(hasVisibilityFilter).toBe(true);
 		});
 
 		it('should handle null feedId (manual claims)', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', date_of_loss: '2025-01-02', feed_id: null, feed_name: null },
+				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', date_of_loss: '2025-01-02', feed_id: null, feed_name: null, total_count: '1' },
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { type: 'data', feedId: null });
+			await getClaims(mockContributorContext, { feedId: null });
 
 			// Should filter for null feed_id
 			expect(mockChain.where).toHaveBeenCalledWith('feed_id', 'is', null);
