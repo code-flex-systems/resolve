@@ -126,7 +126,6 @@ export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: number
 export async function getClaims(
 	ctx: ProtectedContext,
 	{
-		type,
 		feedId,
 		searchTerm,
 		line_of_business,
@@ -137,7 +136,6 @@ export async function getClaims(
 		limit,
 		offset,
 	}: {
-		type: 'data' | 'count';
 		feedId?: number | null;
 		searchTerm?: { value: string; type: ClaimSearch };
 		line_of_business?: string;
@@ -148,10 +146,11 @@ export async function getClaims(
 		limit?: number;
 		offset?: number;
 	}
-) {
+): Promise<{ rows: any[]; count: number }> {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
-	let query = ctx.db
+	// Build base query with all filters
+	let baseQuery = ctx.db
 		.selectFrom('claim')
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id);
@@ -163,98 +162,108 @@ export async function getClaims(
 	// 3. Not assigned/worked (no entry in checklist_claim)
 	// 4. Assigned to a desk location they are assigned to (desk-based access via claim.desk_location_id)
 	if (!isAdmin) {
-		query = query
-			.leftJoin('checklist_claim as cc', 'claim.id', 'cc.claim_id')
-			.leftJoin('user_desk_location as udl', (join) =>
-				join
-					.onRef('claim.desk_location_id', '=', 'udl.desk_location_id')
-					.on('udl.user_id', '=', ctx.session.user.id)
-					.on('udl.removed_at', 'is', null)
-			)
-			.where((eb) =>
-				eb.or([
-					eb('cc.created_by', '=', ctx.session.user.id), // Owned by them
-					eb('cc.assignee', '=', ctx.session.user.id), // Assigned to them
-					eb('cc.claim_id', 'is', null), // Not in checklist_claim (available)
-					eb('udl.desk_location_id', 'is not', null), // Assigned to their desk location
-				])
-			);
+		baseQuery = baseQuery.where((eb) =>
+			eb.or([
+				// User created a checklist assignment for this claim
+				eb.exists(
+					eb
+						.selectFrom('checklist_claim')
+						.selectAll()
+						.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+						.where('checklist_claim.created_by', '=', ctx.session.user.id)
+				),
+				// User is assigned to a checklist for this claim
+				eb.exists(
+					eb
+						.selectFrom('checklist_claim')
+						.selectAll()
+						.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+						.where('checklist_claim.assignee', '=', ctx.session.user.id)
+				),
+				// Claim not in checklist_claim (available to all)
+				eb.not(
+					eb.exists(
+						eb
+							.selectFrom('checklist_claim')
+							.selectAll()
+							.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+					)
+				),
+				// User has desk access to this claim
+				eb.exists(
+					eb
+						.selectFrom('user_desk_location')
+						.selectAll()
+						.whereRef('user_desk_location.desk_location_id', '=', 'claim.desk_location_id')
+						.where('user_desk_location.user_id', '=', ctx.session.user.id)
+						.where('user_desk_location.removed_at', 'is', null)
+				),
+			])
+		);
 	}
 
-	query =
+	baseQuery =
 		feedId !== undefined
-			? query.where('feed_id', feedId === null ? 'is' : '=', feedId)
-			: query.where((eb) =>
+			? baseQuery.where('feed_id', feedId === null ? 'is' : '=', feedId)
+			: baseQuery.where((eb) =>
 					eb.or([eb('feeds.status', 'is', null), eb('feeds.status', '<>', FeedStatus.INACTIVE)])
 				);
 
 	if (searchTerm) {
-		query = query.where((eb) =>
-			eb(sql`lower(${eb.ref(searchTerm.type)})`, 'like', `${searchTerm.value.toLowerCase()}%`)
-		);
+		baseQuery = baseQuery.where((eb) => eb(searchTerm.type, 'ilike', `${searchTerm.value}%`));
 	}
 
-	// Join claim_liability if filtering by line_of_business or loss_type
-	if (line_of_business || loss_type) {
-		query = query
+	// Join claim_party if filtering by loss_type (now on claim_party for facilitators)
+	if (loss_type) {
+		baseQuery = baseQuery
 			.leftJoin('claim_party', 'claim_party.claim_id', 'claim.id')
-			.leftJoin('claim_liability', (join) =>
-				join
-					.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
-					.on('claim_liability.deleted_at', 'is', null)
-			)
 			.where('claim_party.deleted_at', 'is', null)
+			.where('claim_party.loss_type', '=', loss_type)
 			.groupBy('claim.id')
 			.groupBy('feeds.id');
-
-		if (line_of_business) {
-			query = query.where((eb) => eb(sql`claim_liability.line_of_business`, '=', line_of_business));
-		}
-
-		if (loss_type) {
-			query = query.where((eb) => eb(sql`claim_liability.loss_type`, '=', loss_type));
-		}
 	}
 
 	if (recovery_status) {
-		query = query.where('claim.recovery_status', '=', recovery_status);
+		baseQuery = baseQuery.where('claim.recovery_status', '=', recovery_status);
 	}
 
 	if (insured) {
-		query = query.where((eb) => eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${insured.toLowerCase()}%`));
+		baseQuery = baseQuery.where((eb) => eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${insured.toLowerCase()}%`));
 	}
 
 	if (client) {
-		query = query.where((eb) => eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${client.toLowerCase()}%`));
+		baseQuery = baseQuery.where((eb) => eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${client.toLowerCase()}%`));
 	}
 
-	if (type === 'data') {
-		if (limit != null) {
-			query = query.limit(limit);
-		}
-		if (offset != null) {
-			query = query.offset(offset);
-		}
-		// Column restrictions: Contributors only see columns needed for search UI
-		if (isAdmin) {
-			query = query.selectAll('claim').select(['feeds.name as feed_name']).orderBy('claim.claim_number');
-		} else {
-			query = query
-				.select([
-					'claim.id',
-					'claim.claim_number',
-					'claim.insured',
-					'claim.date_of_loss',
-					'feeds.name as feed_name',
-				])
-				.orderBy('claim.claim_number');
-		}
-		return await query.execute();
+	// Select columns based on admin status
+	if (isAdmin) {
+		baseQuery = baseQuery.selectAll('claim').select(['feeds.name as feed_name']);
 	} else {
-		query = query.select(({ fn }) => fn.countAll().as('count'));
-		const count = await query.executeTakeFirst();
-		return !!count && 'count' in count ? parseInt(count.count?.toString() ?? '0') : 0;
+		baseQuery = baseQuery.select([
+			'claim.id',
+			'claim.claim_number',
+			'claim.insured',
+			'claim.date_of_loss',
+			'feeds.name as feed_name',
+		]);
 	}
+
+	// Wrap in CTE
+	const filteredClaims = baseQuery.as('filtered_claims');
+
+	// Select data with COUNT(*) OVER() for total count
+	const results = await ctx.db
+		.selectFrom(filteredClaims)
+		.selectAll()
+		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
+		.orderBy(sql`claim_number`)
+		.$if(limit != null, (qb) => qb.limit(limit!))
+		.$if(offset != null, (qb) => qb.offset(offset!))
+		.execute();
+
+	// Parse count from string (PostgreSQL COUNT returns bigint as string)
+	const count = results.length > 0 ? parseInt(results[0].total_count, 10) : 0;
+	return { rows: results, count };
 }
 
 /**
@@ -311,7 +320,7 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
 
 /**
  * Update an existing claim
- * Note: loss_type is no longer on the claim table - it's aggregated from claim_liability
+ * Note: loss_type is on claim_party for facilitators, not on the claim table
  */
 export async function updateClaim(
 	ctx: ProtectedContext,
@@ -365,7 +374,7 @@ export async function updateClaim(
 
 /**
  * Bulk insert claim records.
- * Note: loss_type is no longer on the claim table - it's set per claim_liability
+ * Note: loss_type is on claim_party for facilitators, not on the claim table
  *
  * @param ctx - request context
  * @param claims - claim objects without ids
@@ -415,102 +424,90 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 }
 
 /**
- * Get aggregated liability data for a claim
- * Returns distinct LOBs, distinct loss types, summed amount_paid, and total liability percentage
- * Uses LEFT JOIN so claims without liabilities still return results
- * Note: liability_percentage is now on claim_party, amount_paid is on claim_liability
+ * Get aggregated party data for a claim
+ * Returns distinct loss types (from facilitators) and total liability percentage (from entities)
+ * Note: loss_type is on claim_party for facilitators, liability_percentage is on claim_party for entities
  */
 export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: number) {
 	const result = await ctx.db
 		.selectFrom('claim_party')
-		.leftJoin('claim_liability', (join) =>
-			join
-				.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
-				.on('claim_liability.deleted_at', 'is', null)
-		)
 		.select(({ fn }) => [
-			// Aggregate distinct LOBs as array (filtering out nulls in the aggregate)
-			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_liability.line_of_business`]).as('line_of_business_array'),
-			// Aggregate distinct loss types as array (filtering out nulls in the aggregate)
-			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_liability.loss_type`]).as('loss_type_array'),
-			// Sum amount paid from liabilities
-			fn.sum<string>('claim_liability.amount_paid').as('total_amount_paid'),
-			// Sum liability percentage from parties (need distinct to avoid double counting due to liability join)
-			sql<string>`SUM(DISTINCT claim_party.liability_percentage)`.as('total_liability_percentage'),
+			// Aggregate distinct loss types from facilitators (filtering out nulls)
+			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_party.loss_type`]).as('loss_type_array'),
+			// Sum liability percentage from entities only (entities have no parent)
+			sql<string>`SUM(CASE WHEN claim_party.parent_claim_party_id IS NULL THEN claim_party.liability_percentage ELSE 0 END)`.as('total_liability_percentage'),
 		])
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.deleted_at', 'is', null)
 		.executeTakeFirst();
 
-	// Filter out nulls from arrays
-	const lobs = result?.line_of_business_array?.filter((lob: string | null) => lob !== null) || [];
+	// Filter out nulls from loss_type array
 	const lossTypes = result?.loss_type_array?.filter((lt: string | null) => lt !== null) || [];
 	const totalLiabilityPercentage = result?.total_liability_percentage ? parseFloat(result.total_liability_percentage) : 0;
-	const totalAmountPaid = result?.total_amount_paid ? parseFloat(result.total_amount_paid) : 0;
 
 	// Calculate our liability percentage (100% - total other parties' liability)
 	const ourLiabilityPercentage = Math.max(0, 100 - totalLiabilityPercentage);
 
-	// Calculate expected recovery: our liability % × total amount paid
-	const expectedRecovery = (ourLiabilityPercentage / 100) * totalAmountPaid;
-
 	return {
-		line_of_business: lobs,
 		loss_type: lossTypes,
-		total_amount_paid: totalAmountPaid,
 		total_liability_percentage: totalLiabilityPercentage,
 		our_liability_percentage: ourLiabilityPercentage,
-		expected_recovery: expectedRecovery,
 	};
 }
 
 /**
  * Recalculate and update the expected_recovery cached field on a claim.
  *
- * Formula: expected_recovery = (100% - sum(claim_party.liability_percentage)) / 100 × sum(claim_liability.amount_paid)
+ * Formula: expected_recovery = (100% - sum(claim_party.liability_percentage)) / 100 × claim.claim_amount
+ *
+ * IMPORTANT: Uses claim_amount (actual subrogable payments made), NOT total_incurred (reserves).
+ * You can only expect to recover what you've actually paid out, not what you've reserved.
  *
  * Call this function transactionally when:
  * - claim_party.liability_percentage is created/updated/deleted
- * - claim_liability.amount_paid is created/updated/deleted
+ * - claim.claim_amount is updated (via payment create/update/archive)
  *
  * @param ctx - request context (can use transaction context)
  * @param claimId - claim identifier to recalculate
  * @returns the updated expected_recovery value
  */
 export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, claimId: number) {
-	// Get sum of liability percentages from parties
+	// Get sum of liability percentages from entities only (entities have no parent_claim_party_id)
+	// Use COALESCE to handle NULL (no parties or all NULL liability_percentage)
 	const partyResult = await ctx.db
 		.selectFrom('claim_party')
-		.select(({ fn }) => [fn.sum<string>('liability_percentage').as('total_liability_percentage')])
+		.select(({ fn }) => [
+			fn.coalesce(fn.sum<string>('liability_percentage'), sql<string>`'0'`).as('total_liability_percentage'),
+		])
 		.where('claim_id', '=', claimId)
 		.where('deleted_at', 'is', null)
+		.where('parent_claim_party_id', 'is', null)
 		.executeTakeFirst();
 
-	// Get sum of amount_paid from liabilities
-	const liabilityResult = await ctx.db
-		.selectFrom('claim_party')
-		.innerJoin('claim_liability', (join) =>
-			join
-				.onRef('claim_liability.claim_party_id', '=', 'claim_party.id')
-				.on('claim_liability.deleted_at', 'is', null)
-		)
-		.select(({ fn }) => [fn.sum<string>('claim_liability.amount_paid').as('total_amount_paid')])
-		.where('claim_party.claim_id', '=', claimId)
-		.where('claim_party.deleted_at', 'is', null)
+	// Get claim_amount from claim (sum of subrogable payments, NOT reserves)
+	const claimResult = await ctx.db
+		.selectFrom('claim')
+		.select(['claim_amount'])
+		.where('id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 
+	// Parse values, defaulting to 0 if NULL
 	const totalLiabilityPercentage = partyResult?.total_liability_percentage
 		? parseFloat(partyResult.total_liability_percentage)
 		: 0;
-	const totalAmountPaid = liabilityResult?.total_amount_paid
-		? parseFloat(liabilityResult.total_amount_paid)
-		: 0;
+	const claimAmount = claimResult?.claim_amount ? parseFloat(claimResult.claim_amount.toString()) : 0;
 
 	// Calculate our liability percentage (100% - total other parties' liability)
+	// Business logic: If no liability is assigned to other parties, we assume 100% liability on our side
+	// This means we expect to recover 100% of what we paid out
 	const ourLiabilityPercentage = Math.max(0, 100 - totalLiabilityPercentage);
 
-	// Calculate expected recovery: our liability % × total amount paid
-	const expectedRecovery = (ourLiabilityPercentage / 100) * totalAmountPaid;
+	// Calculate expected recovery: our liability % × actual payments made
+	// Examples:
+	// - No parties/liability: 100% × $10,000 = $10,000 (we expect to recover everything)
+	// - 40% other liability: 60% × $10,000 = $6,000 (we expect to recover our share)
+	const expectedRecovery = (ourLiabilityPercentage / 100) * claimAmount;
 
 	// Update the claim's cached expected_recovery field
 	await ctx.db
@@ -524,13 +521,14 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
 }
 
 /**
- * Recalculate and update the total_incurred field on a claim.
- * total_incurred = sum of all amount_reserved from claim_coverage for this claim.
+ * Manually recalculate claim's total_incurred by summing all coverage amount_reserved.
+ * This is kept for data recovery/correction scenarios - normal operations use delta updates.
  *
- * This should be called whenever coverage amount_reserved changes:
- * - createClaimCoverage (if amount_reserved is set)
- * - updateClaimCoverage (if amount_reserved is changed)
- * - deleteClaimCoverage
+ * IMPORTANT: Normal coverage operations (create/update/delete) use delta increments for performance.
+ * Only use this function for:
+ * - Manual data correction
+ * - Data integrity verification
+ * - Recovery from corrupted state
  *
  * @param ctx - request context
  * @param claimId - claim to recalculate
@@ -734,17 +732,12 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 			totalLiability: Number(liabilitySummary?.total_liability || 0),
 		},
 		taskSummary: taskCounts,
-		// Aggregated values from parties and liabilities
-		aggregated_line_of_business: partyAggregates.line_of_business,
+		// Aggregated values from parties (loss types from facilitators)
 		aggregated_loss_type: partyAggregates.loss_type,
-		aggregated_amount_paid: partyAggregates.total_amount_paid,
-		// Liability percentages
+		// Liability percentages (from entities only)
 		total_liability_percentage: partyAggregates.total_liability_percentage,
 		our_liability_percentage: partyAggregates.our_liability_percentage,
-		// Cached calculated values (updated transactionally when related data changes)
-		// total_incurred: sum of amount_reserved from claim_coverage (included in ...claim)
-		// expected_recovery: calculated from party liability percentages and liability amount_paid (included in ...claim)
-		expected_recovery: partyAggregates.expected_recovery,
+		// expected_recovery is stored on the claim itself, calculated from liability %s and claim_amount (payments)
 	};
 }
 
@@ -775,64 +768,13 @@ export async function listMyClaims(
 		sortOrder?: 'asc' | 'desc';
 	}
 ) {
-	// Base query: get claims where user is the assignee
-	let query = ctx.db
+	// Build base query with ROW_NUMBER() window function to eliminate DISTINCT ON
+	let baseQuery = ctx.db
 		.selectFrom('claim')
 		.innerJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.leftJoin('users as assignee_user', 'checklist_claim.assignee', 'assignee_user.id')
-		.where('claim.client_id', '=', ctx.session.user.client_id)
-		.where('checklist_claim.assignee', '=', ctx.session.user.id);
-
-	// Apply filters
-	if (searchTerm && searchTerm.length > 0) {
-		query = query.where((eb) =>
-			eb.or([
-				eb(sql`lower(${eb.ref('claim.claim_number')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-				eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-				eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-			])
-		);
-	}
-
-	if (claimStatus) {
-		query = query.where('checklist_claim.status', '=', claimStatus);
-	}
-
-	if (recoveryStatus) {
-		query = query.where('claim.recovery_status', '=', recoveryStatus);
-	}
-
-	// Get total count and metrics from distinct claims to avoid duplicates
-	// First get distinct claim IDs with their most recent assignment, then aggregate
-	const distinctClaimsSubquery = query
-		.distinctOn('claim.id')
-		.select(['claim.id', 'claim.claim_amount', 'checklist_claim.created_at as assignment_created_at'])
-		.orderBy('claim.id')
-		.orderBy('checklist_claim.created_at', 'desc')
-		.as('distinct_claims');
-
-	const metricsQuery = await ctx.db
-		.selectFrom(distinctClaimsSubquery)
-		.select(({ fn }) => [
-			fn.countAll().as('count'),
-			fn.sum('distinct_claims.claim_amount').as('total_value'),
-			fn
-				.avg(sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`)
-				.as('avg_days_in_queue'),
-		])
-		.executeTakeFirst();
-
-	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
-	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
-	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
-
-	// Get data (with optional pagination)
-	// Use DISTINCT ON to ensure each claim appears only once (take most recent assignment)
-	const sortDirection = sortOrder === 'asc' ? 'asc' : 'desc';
-	const rows = await query
-		.distinctOn('claim.id')
 		.select([
 			'claim.id',
 			'claim.claim_number',
@@ -853,10 +795,63 @@ export async function listMyClaims(
 			'assignee_user.first as assignee_first',
 			'assignee_user.last as assignee_last',
 			'assignee_user.email as assignee_email',
+			// Window function to rank rows per claim (most recent assignment first)
+			sql<number>`ROW_NUMBER() OVER (
+				PARTITION BY claim.id
+				ORDER BY checklist_claim.created_at DESC
+			)`.as('row_num'),
 		])
-		.orderBy('claim.id')
-		.orderBy('checklist_claim.created_at', 'desc') // Most recent assignment first
-		.orderBy(sortField as any, sortDirection)
+		.where('claim.client_id', '=', ctx.session.user.client_id)
+		.where('checklist_claim.assignee', '=', ctx.session.user.id);
+
+	// Apply filters (using ILIKE with prefix search for B-tree index usage)
+	if (searchTerm && searchTerm.length > 0) {
+		baseQuery = baseQuery.where((eb) =>
+			eb.or([
+				eb('claim.claim_number', 'ilike', `${searchTerm}%`),
+				eb('claim.insured', 'ilike', `${searchTerm}%`),
+				eb('claim.client', 'ilike', `${searchTerm}%`),
+			])
+		);
+	}
+
+	if (claimStatus) {
+		baseQuery = baseQuery.where('checklist_claim.status', '=', claimStatus);
+	}
+
+	if (recoveryStatus) {
+		baseQuery = baseQuery.where('claim.recovery_status', '=', recoveryStatus);
+	}
+
+	// Wrap in CTE
+	const rankedClaims = baseQuery.as('ranked_claims');
+
+	// Get metrics from CTE (only counting distinct claims where row_num = 1)
+	const metricsQuery = await ctx.db
+		.selectFrom(rankedClaims)
+		.select(({ fn }) => [
+			fn.countAll().as('count'),
+			fn.sum('ranked_claims.claim_amount').as('total_value'),
+			fn
+				.avg(sql`EXTRACT(epoch FROM (NOW() - ranked_claims.assigned_at)) / 86400`)
+				.as('avg_days_in_queue'),
+		])
+		.where('ranked_claims.row_num', '=', 1)
+		.executeTakeFirst();
+
+	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
+	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
+	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
+
+	// Get data with pagination (filter to row_num = 1 for distinct claims)
+	const sortDirection = sortOrder === 'asc' ? 'asc' : 'desc';
+	// Remove table prefix from sortField since we're selecting from CTE
+	const sortColumn = sortField.includes('.') ? sortField.split('.')[1] : sortField;
+	const rows = await ctx.db
+		.selectFrom(rankedClaims)
+		.selectAll()
+		.where('ranked_claims.row_num', '=', 1)
+		.orderBy(sortColumn as any, sortDirection)
 		.limit(limit)
 		.offset(offset)
 		.execute();
@@ -891,9 +886,8 @@ export async function listMyDeskClaims(
 		offset?: number;
 	}
 ) {
-	// Base query: get claims assigned to desk locations where user is assigned
-	// desk_location_id is now on claim table, not checklist_claim
-	let query = ctx.db
+	// Build base query with ROW_NUMBER() window function to eliminate DISTINCT ON
+	let baseQuery = ctx.db
 		.selectFrom('user_desk_location')
 		.innerJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
 		.innerJoin('claim', 'desk_location.id', 'claim.desk_location_id')
@@ -901,59 +895,6 @@ export async function listMyDeskClaims(
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.leftJoin('users as assignee_user', 'checklist_claim.assignee', 'assignee_user.id')
-		.where('user_desk_location.user_id', '=', ctx.session.user.id)
-		.where('user_desk_location.removed_at', 'is', null)
-		.where('desk_location.deleted_at', 'is', null)
-		.where('claim.client_id', '=', ctx.session.user.client_id);
-
-	// Apply filters
-	if (searchTerm && searchTerm.length > 0) {
-		query = query.where((eb) =>
-			eb.or([
-				eb(sql`lower(${eb.ref('claim.claim_number')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-				eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-				eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-			])
-		);
-	}
-
-	if (claimStatus) {
-		query = query.where('checklist_claim.status', '=', claimStatus);
-	}
-
-	if (recoveryStatus) {
-		query = query.where('claim.recovery_status', '=', recoveryStatus);
-	}
-
-	// Get total count and metrics from distinct claims to avoid duplicates
-	// First get distinct claim IDs with their highest priority desk assignment, then aggregate
-	const distinctClaimsSubquery = query
-		.distinctOn('claim.id')
-		.select(['claim.id', 'claim.claim_amount', 'checklist_claim.created_at as assignment_created_at'])
-		.orderBy('claim.id')
-		.orderBy('user_desk_location.priority', 'asc')
-		.orderBy('checklist_claim.created_at', 'desc')
-		.as('distinct_claims');
-
-	const metricsQuery = await ctx.db
-		.selectFrom(distinctClaimsSubquery)
-		.select(({ fn }) => [
-			fn.countAll().as('count'),
-			fn.sum('distinct_claims.claim_amount').as('total_value'),
-			fn
-				.avg(sql`EXTRACT(epoch FROM (NOW() - distinct_claims.assignment_created_at)) / 86400`)
-				.as('avg_days_in_queue'),
-		])
-		.executeTakeFirst();
-
-	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
-	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
-	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
-
-	// Get data (ordered by desk priority, then by last update)
-	// Use DISTINCT ON to ensure each claim appears only once (take highest priority desk assignment)
-	const rows = await query
-		.distinctOn('claim.id')
 		.select([
 			'claim.id',
 			'claim.claim_number',
@@ -977,11 +918,63 @@ export async function listMyDeskClaims(
 			'assignee_user.email as assignee_email',
 			'user_desk_location.priority as desk_priority',
 			'desk_location.name as desk_location_name',
+			// Window function to rank rows per claim (highest priority desk, then most recent assignment)
+			sql<number>`ROW_NUMBER() OVER (
+				PARTITION BY claim.id
+				ORDER BY user_desk_location.priority ASC, checklist_claim.created_at DESC
+			)`.as('row_num'),
 		])
-		.orderBy('claim.id')
-		.orderBy('user_desk_location.priority asc') // Higher priority desks first (1, 2, 3...)
-		.orderBy('checklist_claim.created_at desc') // Most recent assignment first
-		.orderBy('claim.last_update desc') // Then by last update
+		.where('user_desk_location.user_id', '=', ctx.session.user.id)
+		.where('user_desk_location.removed_at', 'is', null)
+		.where('desk_location.deleted_at', 'is', null)
+		.where('claim.client_id', '=', ctx.session.user.client_id);
+
+	// Apply filters (using ILIKE with prefix search for B-tree index usage)
+	if (searchTerm && searchTerm.length > 0) {
+		baseQuery = baseQuery.where((eb) =>
+			eb.or([
+				eb('claim.claim_number', 'ilike', `${searchTerm}%`),
+				eb('claim.insured', 'ilike', `${searchTerm}%`),
+				eb('claim.client', 'ilike', `${searchTerm}%`),
+			])
+		);
+	}
+
+	if (claimStatus) {
+		baseQuery = baseQuery.where('checklist_claim.status', '=', claimStatus);
+	}
+
+	if (recoveryStatus) {
+		baseQuery = baseQuery.where('claim.recovery_status', '=', recoveryStatus);
+	}
+
+	// Wrap in CTE
+	const rankedClaims = baseQuery.as('ranked_claims');
+
+	// Get metrics from CTE (only counting distinct claims where row_num = 1)
+	const metricsQuery = await ctx.db
+		.selectFrom(rankedClaims)
+		.select(({ fn }) => [
+			fn.countAll().as('count'),
+			fn.sum('ranked_claims.claim_amount').as('total_value'),
+			fn
+				.avg(sql`EXTRACT(epoch FROM (NOW() - ranked_claims.assigned_at)) / 86400`)
+				.as('avg_days_in_queue'),
+		])
+		.where('ranked_claims.row_num', '=', 1)
+		.executeTakeFirst();
+
+	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
+	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
+	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
+
+	// Get data with pagination (filter to row_num = 1 for distinct claims, ordered by desk priority)
+	const rows = await ctx.db
+		.selectFrom(rankedClaims)
+		.selectAll()
+		.where('ranked_claims.row_num', '=', 1)
+		.orderBy('ranked_claims.desk_priority', 'asc')
+		.orderBy('ranked_claims.last_update', 'desc')
 		.limit(limit)
 		.offset(offset)
 		.execute();

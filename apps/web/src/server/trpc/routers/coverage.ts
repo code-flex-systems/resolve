@@ -34,16 +34,17 @@ export const coverageRouter = router({
 
 	updateCoverage: protectedProcedure.input(updateCoverageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return updateCoverage(ctx, input);
+		const { id, ...params } = input;
+		return updateCoverage(ctx, id, params);
 	}),
 
 	archiveCoverage: protectedProcedure.input(archiveCoverageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return archiveCoverage(ctx, input);
+		return archiveCoverage(ctx, input.id);
 	}),
 
 	deleteCoverage: protectedProcedure.input(deleteCoverageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return deleteCoverage(ctx, input);
+		return deleteCoverage(ctx, input.id);
 	}),
 });

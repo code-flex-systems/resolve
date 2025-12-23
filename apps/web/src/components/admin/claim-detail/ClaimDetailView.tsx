@@ -10,6 +10,7 @@ import WorkflowTab from './WorkflowTab';
 import ClaimantsCoverageTab from './ClaimantsCoverageTab';
 import SettlementRecoveryTab from './SettlementRecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
+import PaymentsTab from './PaymentsTab';
 import { containerStyles } from '@/styles/theme';
 
 /**
@@ -33,6 +34,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 				'claimants-coverage': 3,
 				'adverse-parties-liability': 4,
 				'facilitators-liability': 4, // Keep old URL for backwards compatibility
+				payments: 5,
 			};
 			const tabIndex = tabMap[tabParam.toLowerCase()];
 			if (tabIndex !== undefined) {
@@ -67,6 +69,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 						<Tab label="Settlement & Recovery" />
 						<Tab label="Claimants & Coverage" />
 						<Tab label="Adverse Parties & Liability" />
+						<Tab label="Payments" />
 					</Tabs>
 				</Paper>
 
@@ -80,6 +83,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 								{currentTab === 2 && <SettlementRecoveryTab claimId={claimId} />}
 								{currentTab === 3 && <ClaimantsCoverageTab claimId={claimId} />}
 								{currentTab === 4 && <PartyLiabilityTab claimId={claimId} />}
+								{currentTab === 5 && <PaymentsTab claimId={claimId} />}
 							</Box>
 						</Box>
 					</Box>

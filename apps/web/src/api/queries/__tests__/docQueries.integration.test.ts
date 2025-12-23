@@ -127,8 +127,7 @@ describe('docQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'facilitator',
-				party_category: 'adverse_carrier',
-			});
+					});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
@@ -139,7 +138,7 @@ describe('docQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'liability',
+				loss_type: 'liability',
 				coverage_amount: 100000,
 			});
 			const settlement = await createTestSettlement(db, {

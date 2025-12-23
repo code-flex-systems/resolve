@@ -20,13 +20,15 @@ import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
 import {
 	getCoverages,
 	getCoveragesByClaimParty,
+	getCoverageReservedTotal,
+	archiveCoveragesByClaimParty,
+} from '../coverageQueries';
+import {
 	createCoverage,
 	updateCoverage,
 	archiveCoverage,
 	deleteCoverage,
-	getCoverageReservedTotal,
-	archiveCoveragesByClaimParty,
-} from '../coverageQueries';
+} from '@/api/controllers/coverageController';
 import {
 	createTestClient,
 	createTestUser,
@@ -35,6 +37,7 @@ import {
 	createTestClaimParty,
 	createTestCoverage,
 } from '@/__tests__/integration/fixtures';
+import { DeductibleStatus } from '@/config/enums';
 
 describe('coverageQueries integration tests', () => {
 	let db: Kysely<DB>;
@@ -57,7 +60,7 @@ describe('coverageQueries integration tests', () => {
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'dwelling',
+						loss_type: 'dwelling',
 						coverage_amount: '100000',
 						amount_reserved: '5000',
 						created_by: user.id,
@@ -65,7 +68,7 @@ describe('coverageQueries integration tests', () => {
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'personal_property',
+						loss_type: 'personal_property',
 						coverage_amount: '50000',
 						amount_reserved: '2500',
 						created_by: user.id,
@@ -76,8 +79,8 @@ describe('coverageQueries integration tests', () => {
 			const coverages = await getCoverages(ctx, claim.id);
 
 			expect(coverages).toHaveLength(2);
-			expect(coverages[0].coverage_type).toBe('dwelling');
-			expect(coverages[1].coverage_type).toBe('personal_property');
+			expect(coverages[0].loss_type).toBe('dwelling');
+			expect(coverages[1].loss_type).toBe('personal_property');
 		});
 
 		it('should return empty array for claim with no coverages', async () => {
@@ -104,7 +107,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					coverage_amount: '100000',
 					created_by: userB.id,
 				})
@@ -127,7 +130,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claim.id,
 					client_id: client.id,
-					coverage_type: 'collision',
+					loss_type: 'collision',
 					created_by: user.id,
 				})
 				.returningAll()
@@ -138,7 +141,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claim.id,
 					client_id: client.id,
-					coverage_type: 'comprehensive',
+					loss_type: 'comprehensive',
 					created_by: user.id,
 				})
 				.returningAll()
@@ -160,13 +163,13 @@ describe('coverageQueries integration tests', () => {
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 100000,
 				amount_reserved: 5000,
 			});
 
 			expect(result.coverage.claim_id).toBe(claim.id);
-			expect(result.coverage.coverage_type).toBe('dwelling');
+			expect(result.coverage.loss_type).toBe('dwelling');
 			expect(result.coverage.coverage_amount).toBe('100000.00');
 			expect(result.coverage.amount_reserved).toBe('5000.00');
 			expect(result.coverage.client_id).toBe(client.id);
@@ -186,7 +189,7 @@ describe('coverageQueries integration tests', () => {
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'liability',
+				loss_type: 'liability',
 			});
 
 			expect(result.coverage.coverage_amount).toBeNull();
@@ -202,13 +205,13 @@ describe('coverageQueries integration tests', () => {
 
 			await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				amount_reserved: 5000,
 			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				amount_reserved: 2500,
 			});
 
@@ -225,18 +228,18 @@ describe('coverageQueries integration tests', () => {
 
 			const { coverage } = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 100000,
 				amount_reserved: 5000,
 			});
 
 			const result = await updateCoverage(ctx, coverage.id, {
-				coverage_type: 'loss_of_use',
+				loss_type: 'loss_of_use',
 				coverage_amount: 150000,
 				amount_reserved: 7500,
 			});
 
-			expect(result.coverage.coverage_type).toBe('loss_of_use');
+			expect(result.coverage.loss_type).toBe('loss_of_use');
 			expect(result.coverage.coverage_amount).toBe('150000.00');
 			expect(result.coverage.amount_reserved).toBe('7500.00');
 			expect(result.coverage.updated_by).toBe(user.id);
@@ -257,7 +260,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					coverage_amount: '100000',
 					created_by: userB.id,
 				})
@@ -267,7 +270,7 @@ describe('coverageQueries integration tests', () => {
 			// Client A should not be able to update client B's coverage
 			await expect(
 				updateCoverage(ctxA, covB.id, {
-					coverage_type: 'other',
+					loss_type: 'other',
 					coverage_amount: 999999,
 					amount_reserved: 999999,
 				})
@@ -279,7 +282,7 @@ describe('coverageQueries integration tests', () => {
 				.selectAll()
 				.where('id', '=', covB.id)
 				.executeTakeFirstOrThrow();
-			expect(unchanged.coverage_type).toBe('dwelling');
+			expect(unchanged.loss_type).toBe('dwelling');
 		});
 	});
 
@@ -292,13 +295,13 @@ describe('coverageQueries integration tests', () => {
 
 			const { coverage: cov1 } = await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				amount_reserved: 5000,
 			});
 
 			await createCoverage(ctx, {
 				claim_id: claim.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				amount_reserved: 2500,
 			});
 
@@ -310,7 +313,7 @@ describe('coverageQueries integration tests', () => {
 			// Verify coverage was deleted
 			const remaining = await getCoverages(ctx, claim.id);
 			expect(remaining).toHaveLength(1);
-			expect(remaining[0].coverage_type).toBe('personal_property');
+			expect(remaining[0].loss_type).toBe('personal_property');
 		});
 
 		it('should throw error when deleting non-existent coverage', async () => {
@@ -335,7 +338,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					coverage_amount: '100000',
 					created_by: userB.id,
 				})
@@ -368,14 +371,14 @@ describe('coverageQueries integration tests', () => {
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'dwelling',
+						loss_type: 'dwelling',
 						amount_reserved: '5000.50',
 						created_by: user.id,
 					},
 					{
 						claim_id: claim.id,
 						client_id: client.id,
-						coverage_type: 'personal_property',
+						loss_type: 'personal_property',
 						amount_reserved: '2500.25',
 						created_by: user.id,
 					},
@@ -407,7 +410,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claim.id,
 					client_id: client.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					amount_reserved: null,
 					created_by: user.id,
 				})
@@ -433,7 +436,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimA.id,
 					client_id: clientA.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					amount_reserved: '5000',
 					created_by: userA.id,
 				})
@@ -445,7 +448,7 @@ describe('coverageQueries integration tests', () => {
 				.values({
 					claim_id: claimB.id,
 					client_id: clientB.id,
-					coverage_type: 'dwelling',
+					loss_type: 'dwelling',
 					amount_reserved: '10000',
 					created_by: userB.id,
 				})
@@ -501,7 +504,7 @@ describe('coverageQueries integration tests', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			// Create soft-deleted coverage
@@ -509,7 +512,7 @@ describe('coverageQueries integration tests', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				deleted_at: new Date(),
 				deleted_by: user.id,
 			});
@@ -517,7 +520,7 @@ describe('coverageQueries integration tests', () => {
 			const coverages = await getCoverages(ctx, claim.id);
 
 			expect(coverages).toHaveLength(1);
-			expect(coverages[0].coverage_type).toBe('dwelling');
+			expect(coverages[0].loss_type).toBe('dwelling');
 		});
 	});
 
@@ -528,6 +531,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -540,7 +544,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: '100000',
 			});
 			await createTestCoverage(db, {
@@ -548,29 +552,41 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				coverage_amount: '50000',
 			});
 
 			const coverages = await getCoveragesByClaimParty(ctx, claimParty.id);
 
 			expect(coverages).toHaveLength(2);
-			expect(coverages.some((c) => c.coverage_type === 'dwelling')).toBe(true);
-			expect(coverages.some((c) => c.coverage_type === 'personal_property')).toBe(true);
+			expect(coverages.some((c) => c.loss_type === 'dwelling')).toBe(true);
+			expect(coverages.some((c) => c.loss_type === 'personal_property')).toBe(true);
 		});
 
 		it('should not return coverages from other claim parties', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party A',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party B',
+			});
 			const claimParty1 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party1.id,
 				created_by: user.id,
 			});
 			const claimParty2 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party2.id,
 				created_by: user.id,
@@ -583,7 +599,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty1.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			// Create coverage for party 2
@@ -592,13 +608,13 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty2.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 			});
 
 			const coverages = await getCoveragesByClaimParty(ctx, claimParty1.id);
 
 			expect(coverages).toHaveLength(1);
-			expect(coverages[0].coverage_type).toBe('dwelling');
+			expect(coverages[0].loss_type).toBe('dwelling');
 		});
 
 		it('should exclude soft-deleted coverages', async () => {
@@ -607,6 +623,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -619,7 +636,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 			});
 
 			// Create soft-deleted coverage
@@ -628,7 +645,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				created_by: user.id,
-				coverage_type: 'personal_property',
+				loss_type: 'personal_property',
 				deleted_at: new Date(),
 				deleted_by: user.id,
 			});
@@ -636,7 +653,7 @@ describe('coverageQueries integration tests', () => {
 			const coverages = await getCoveragesByClaimParty(ctx, claimParty.id);
 
 			expect(coverages).toHaveLength(1);
-			expect(coverages[0].coverage_type).toBe('dwelling');
+			expect(coverages[0].loss_type).toBe('dwelling');
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -649,6 +666,7 @@ describe('coverageQueries integration tests', () => {
 			const claimPartyA = await createTestClaimParty(db, {
 				claim_id: claimA.id,
 				party_id: partyA.id,
+				client_id: clientA.id,
 				created_by: userA.id,
 			});
 			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
@@ -674,6 +692,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -683,7 +702,7 @@ describe('coverageQueries integration tests', () => {
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
-				coverage_type: 'dwelling',
+				loss_type: 'dwelling',
 				coverage_amount: 100000,
 			});
 
@@ -782,6 +801,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
 			const claimParty = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
@@ -826,14 +846,26 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party 1',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				party_name: 'Test Party 2',
+			});
 			const claimParty1 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party1.id,
 				created_by: user.id,
 			});
 			const claimParty2 = await createTestClaimParty(db, {
+				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party2.id,
 				created_by: user.id,
@@ -878,6 +910,7 @@ describe('coverageQueries integration tests', () => {
 			const claimPartyA = await createTestClaimParty(db, {
 				claim_id: claimA.id,
 				party_id: partyA.id,
+				client_id: clientA.id,
 				created_by: userA.id,
 			});
 			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
@@ -899,6 +932,253 @@ describe('coverageQueries integration tests', () => {
 				.where('id', '=', coverage.id)
 				.executeTakeFirst();
 			expect(stillActive?.deleted_at).toBeNull();
+		});
+	});
+
+	describe('Deductible functionality', () => {
+		it('should create coverage with deductible and update claim total_incurred', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.APPLIES, // Should include in total_incurred
+			});
+
+			expect(result.coverage.deductible_amount).toBe('1000.00');
+			expect(result.coverage.deductible_status).toBe(DeductibleStatus.APPLIES);
+
+			// Claim total_incurred should increase by 1000
+			expect(result.totalIncurred).toBe(1000);
+
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.selectAll()
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(updatedClaim.total_incurred).toBe('1000.00');
+		});
+
+		it('should enforce deductible_amount = 0 when status is NO_DEDUCTIBLE', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			await expect(
+				createCoverage(ctx, {
+					claim_id: claim.id,
+					loss_type: 'dwelling',
+					deductible_amount: 500,
+					deductible_status: DeductibleStatus.NO_DEDUCTIBLE, // Conflict!
+				})
+			).rejects.toThrow('Deductible amount must be $0');
+		});
+
+		it('should not add deductible to total_incurred when status is WAIVED', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.WAIVED, // Should NOT include
+			});
+
+			expect(result.coverage.deductible_amount).toBe('1000.00');
+			expect(result.coverage.deductible_status).toBe(DeductibleStatus.WAIVED);
+			expect(result.totalIncurred).toBe(0); // Should be unchanged
+		});
+
+		it('should default subro_applicable to false using placeholder function', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'liability',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+			});
+
+			// Placeholder returns false
+			expect(result.coverage.subro_applicable).toBe(false);
+		});
+
+		it('should calculate statute_date using placeholder function', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const dateOfLoss = new Date('2022-03-10');
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				created_by: user.id,
+				date_of_loss: dateOfLoss,
+			});
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'property_damage',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+			});
+
+			// Placeholder adds 4 years - verify year/month are correct
+			expect(result.coverage.statute_date).toBeTruthy();
+			const statuteDate = new Date(result.coverage.statute_date!);
+			expect(statuteDate.getUTCFullYear()).toBe(2026);
+			expect(statuteDate.getUTCMonth()).toBe(2); // March (0-indexed)
+			// Day might be off by 1 due to timezone, so just check it's close (9 or 10)
+			expect([9, 10]).toContain(statuteDate.getUTCDate());
+		});
+
+		it('should adjust total_incurred when deductible status changes from APPLIES to WAIVED', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Create with APPLIES (included in total_incurred)
+			const { coverage } = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.APPLIES,
+			});
+
+			let claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('1000.00');
+
+			// Update to WAIVED (should remove from total_incurred)
+			const result = await updateCoverage(ctx, coverage.id, {
+				deductible_status: DeductibleStatus.WAIVED,
+			});
+
+			expect(result.totalIncurred).toBe(0); // Should decrease by 1000
+
+			claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('0.00');
+		});
+
+		it('should combine reserve and deductible impacts on total_incurred', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const result = await createCoverage(ctx, {
+				claim_id: claim.id,
+				loss_type: 'dwelling',
+				amount_reserved: 5000,
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.APPLIES, // Deductible included
+			});
+
+			// Total impact = 5000 (reserve) + 1000 (deductible) = 6000
+			expect(result.totalIncurred).toBe(6000);
+
+			const claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('6000.00');
+		});
+
+		it('should remove deductible impact when archiving coverage', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				amount_reserved: '5000',
+				deductible_amount: '1000',
+				deductible_status: DeductibleStatus.APPLIES,
+			});
+
+			// Should have both impacts
+			let claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('6000.00');
+
+			// Archive coverage - should remove both impacts
+			const result = await archiveCoverage(ctx, coverage.id);
+			expect(result.totalIncurred).toBe(0);
+
+			claimData = await db
+				.selectFrom('claim')
+				.select('total_incurred')
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
+			expect(claimData.total_incurred).toBe('0.00');
+		});
+
+		it('should handle different deductible statuses correctly', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			// Test NOT_CONFIRMED (should include)
+			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result1 = await createCoverage(ctx, {
+				claim_id: claim1.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
+			});
+			expect(result1.totalIncurred).toBe(1000);
+
+			// Test REIMBURSED_BY_CLIENT (should include)
+			const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result2 = await createCoverage(ctx, {
+				claim_id: claim2.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.REIMBURSED_BY_CLIENT,
+			});
+			expect(result2.totalIncurred).toBe(1000);
+
+			// Test REIMBURSED_BY_ADVERSE (should include)
+			const claim3 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result3 = await createCoverage(ctx, {
+				claim_id: claim3.id,
+				loss_type: 'dwelling',
+				deductible_amount: 1000,
+				deductible_status: DeductibleStatus.REIMBURSED_BY_ADVERSE,
+			});
+			expect(result3.totalIncurred).toBe(1000);
+
+			// Test NO_DEDUCTIBLE (must have amount = 0)
+			const claim4 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const result4 = await createCoverage(ctx, {
+				claim_id: claim4.id,
+				loss_type: 'dwelling',
+				deductible_amount: 0,
+				deductible_status: DeductibleStatus.NO_DEDUCTIBLE,
+			});
+			expect(result4.totalIncurred).toBe(0);
 		});
 	});
 });

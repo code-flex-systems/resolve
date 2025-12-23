@@ -11,7 +11,7 @@ interface AdminState {
 		page: number;
 		pageSize: number;
 	};
-	officeConstraints: {
+	addressConstraints: {
 		page: number;
 		pageSize: number;
 	};
@@ -36,7 +36,7 @@ interface AdminState {
 	showNewClaimDialog: boolean;
 	showNewDeskLocationDialog: boolean;
 	showNewDeskLocationTypeDialog: boolean;
-	showNewOfficeDialog: boolean;
+	showNewAddressDialog: boolean;
 	showNewPartyDialog: boolean;
 	showNewReferenceOptionDialog: boolean;
 	showNewRepresentativeDialog: boolean;
@@ -61,14 +61,14 @@ interface AdminActions {
 	toggleNewClaimDialog: () => void;
 	toggleNewDeskLocationDialog: () => void;
 	toggleNewDeskLocationTypeDialog: () => void;
-	toggleNewOfficeDialog: () => void;
+	toggleNewAddressDialog: () => void;
 	toggleNewPartyDialog: () => void;
 	toggleNewReferenceOptionDialog: () => void;
 	toggleNewRepresentativeDialog: () => void;
 	toggleNewUserDialog: () => void;
 	updateClaimConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateDeskLocationTypeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
-	updateOfficeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
+	updateAddressConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updatePartyConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateRepresentativeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateUserConstraints: (newConstraints: { page: number; pageSize: number }) => void;
@@ -86,7 +86,7 @@ const initialState: AdminState = {
 		pageSize: 10,
 		page: 0,
 	},
-	officeConstraints: {
+	addressConstraints: {
 		pageSize: 10,
 		page: 0,
 	},
@@ -111,7 +111,7 @@ const initialState: AdminState = {
 	showNewClaimDialog: false,
 	showNewDeskLocationDialog: false,
 	showNewDeskLocationTypeDialog: false,
-	showNewOfficeDialog: false,
+	showNewAddressDialog: false,
 	showNewPartyDialog: false,
 	showNewReferenceOptionDialog: false,
 	showNewRepresentativeDialog: false,
@@ -192,9 +192,9 @@ export const useAdminStore = create<AdminStore>()(
 				state.showNewDeskLocationTypeDialog = !state.showNewDeskLocationTypeDialog;
 			}),
 
-		toggleNewOfficeDialog: () =>
+		toggleNewAddressDialog: () =>
 			set((state) => {
-				state.showNewOfficeDialog = !state.showNewOfficeDialog;
+				state.showNewAddressDialog = !state.showNewAddressDialog;
 			}),
 
 		toggleNewPartyDialog: () =>
@@ -227,9 +227,9 @@ export const useAdminStore = create<AdminStore>()(
 				state.deskLocationTypeConstraints = newConstraints;
 			}),
 
-		updateOfficeConstraints: (newConstraints) =>
+		updateAddressConstraints: (newConstraints) =>
 			set((state) => {
-				state.officeConstraints = newConstraints;
+				state.addressConstraints = newConstraints;
 			}),
 
 		updatePartyConstraints: (newConstraints) =>

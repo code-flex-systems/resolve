@@ -5,6 +5,8 @@ import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { Box, Button, Paper, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Shield from '@mui/icons-material/Shield';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { useCoverageTrpc, CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
@@ -14,6 +16,9 @@ import Toolbar from '../common/Toolbar';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import CoverageActionsCell from './CoverageActionsCell';
 import CoverageFormDialog from './CoverageFormDialog';
+import { DEDUCTIBLE_STATUS_OPTIONS } from './DeductibleStatusSelect';
+import { shouldIncludeDeductibleInClaimAmount } from '@/api/utils/deductibleUtils';
+import { DeductibleStatus } from '@/config/enums';
 
 function NoRows() {
 	return (
@@ -52,6 +57,12 @@ export default function CoverageManager({
 		0
 	);
 
+	const totalDeductible = coverages.reduce((sum, c) => {
+		// Only include deductible if status says to include in claim amount
+		const shouldInclude = shouldIncludeDeductibleInClaimAmount(c.deductible_status);
+		return sum + (shouldInclude && c.deductible_amount ? parseFloat(c.deductible_amount.toString()) : 0);
+	}, 0);
+
 	const handleOpenDialog = (coverage?: CoverageListItem) => {
 		setEditingCoverage(coverage || null);
 		setShowDialog(true);
@@ -63,17 +74,25 @@ export default function CoverageManager({
 	};
 
 	const handleSubmit = async (data: {
-		coverage_type: string;
+		loss_type: string;
 		coverage_amount: string | null;
 		amount_reserved: string | null;
+		deductible_amount: string | null;
+		deductible_status: DeductibleStatus;
+		subro_applicable: boolean;
+		statute_preserved: boolean;
 	}) => {
 		try {
 			if (editingCoverage) {
 				await updateCoverage.mutateAsync({
 					id: editingCoverage.id,
-					coverage_type: data.coverage_type as any,
+					loss_type: data.loss_type as any,
 					coverage_amount: data.coverage_amount ? parseFloat(data.coverage_amount) : null,
 					amount_reserved: data.amount_reserved ? parseFloat(data.amount_reserved) : null,
+					deductible_amount: data.deductible_amount ? parseFloat(data.deductible_amount) : null,
+					deductible_status: data.deductible_status,
+					subro_applicable: data.subro_applicable,
+					statute_preserved: data.statute_preserved,
 				});
 			} else {
 				// Note: Creating coverages requires claim_party_id which is not supported in this component.
@@ -89,7 +108,7 @@ export default function CoverageManager({
 	const COLUMNS: GridColDef[] = [
 		{
 			headerName: 'Coverage Type',
-			field: 'coverage_type',
+			field: 'loss_type',
 			renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: BASE_COLOR_LIGHT }} />} />,
 			valueFormatter: (value: string) => formatCoverageType(value),
 			flex: 1,
@@ -110,6 +129,57 @@ export default function CoverageManager({
 			valueFormatter: (value: string) => (value ? formatCurrencyExact(parseFloat(value)) : '-'),
 			flex: 1,
 			minWidth: 150,
+		},
+		{
+			headerName: 'Deductible',
+			field: 'deductible_amount',
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			valueFormatter: (value: string) => (value ? formatCurrencyExact(parseFloat(value)) : '$0'),
+			flex: 1,
+			minWidth: 120,
+		},
+		{
+			headerName: 'Ded. Status',
+			field: 'deductible_status',
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			valueGetter: (value: DeductibleStatus) => {
+				const option = DEDUCTIBLE_STATUS_OPTIONS.find((o) => o.value === value);
+				return option?.abbrev ?? value;
+			},
+			flex: 1,
+			minWidth: 100,
+		},
+		{
+			headerName: 'Subro',
+			field: 'subro_applicable',
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			renderCell: (params) =>
+				params.row.subro_applicable ? (
+					<CheckIcon sx={{ color: 'success.main' }} />
+				) : (
+					<CloseIcon sx={{ color: 'text.disabled' }} />
+				),
+			width: 80,
+		},
+		{
+			headerName: 'Statute Date',
+			field: 'statute_date',
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			valueFormatter: (value: string) => (value ? new Date(value).toLocaleDateString() : 'N/A'),
+			flex: 1,
+			minWidth: 120,
+		},
+		{
+			headerName: 'Preserved',
+			field: 'statute_preserved',
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			renderCell: (params) =>
+				params.row.statute_preserved ? (
+					<CheckIcon sx={{ color: 'success.main' }} />
+				) : (
+					<CloseIcon sx={{ color: 'text.disabled' }} />
+				),
+			width: 100,
 		},
 		{
 			field: 'actions',
@@ -134,6 +204,9 @@ export default function CoverageManager({
 								</Typography>
 								<Typography fontSize={14} marginLeft="15px" color="text.secondary">
 									Total Reserved: {formatCurrencyExact(totalReserved)}
+								</Typography>
+								<Typography fontSize={14} marginLeft="15px" color="text.secondary">
+									Total Deductible: {formatCurrencyExact(totalDeductible)}
 								</Typography>
 							</>
 						}

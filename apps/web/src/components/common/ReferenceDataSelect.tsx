@@ -376,33 +376,7 @@ export function ClaimSubstatusSelect({
 	);
 }
 
-export function ClaimPartyRoleSelect({
-	role,
-	setRole,
-	clearable = true,
-	height,
-	text = 'Select role',
-	disabled = false,
-	isFilter = true,
-	label,
-}: CommonSelectProps & {
-	role: string | null;
-	setRole: (newRole: string | null) => void;
-}) {
-	return (
-		<ReferenceDataSelect
-			entity="claim_party_role"
-			value={role}
-			onChange={setRole}
-			clearable={clearable}
-			height={height}
-			placeholder={text}
-			disabled={disabled}
-			isFilter={isFilter}
-			label={label}
-		/>
-	);
-}
+// ClaimPartyRoleSelect was removed - use ClaimantPartyRoleSelect or AdversePartyRoleSelect instead
 
 export function ClaimantPartyRoleSelect({
 	role,
@@ -450,62 +424,6 @@ export function AdversePartyRoleSelect({
 			entity="adverse_party_role"
 			value={role}
 			onChange={setRole}
-			clearable={clearable}
-			height={height}
-			placeholder={text}
-			disabled={disabled}
-			isFilter={isFilter}
-			label={label}
-		/>
-	);
-}
-
-export function FacilitatorCategorySelect({
-	category,
-	setCategory,
-	clearable = true,
-	height,
-	text = 'Select category',
-	disabled = false,
-	isFilter = true,
-	label,
-}: CommonSelectProps & {
-	category: string | null;
-	setCategory: (newCategory: string | null) => void;
-}) {
-	return (
-		<ReferenceDataSelect
-			entity="facilitator_category"
-			value={category}
-			onChange={setCategory}
-			clearable={clearable}
-			height={height}
-			placeholder={text}
-			disabled={disabled}
-			isFilter={isFilter}
-			label={label}
-		/>
-	);
-}
-
-export function EntityCategorySelect({
-	category,
-	setCategory,
-	clearable = true,
-	height,
-	text = 'Select category',
-	disabled = false,
-	isFilter = true,
-	label,
-}: CommonSelectProps & {
-	category: string | null;
-	setCategory: (newCategory: string | null) => void;
-}) {
-	return (
-		<ReferenceDataSelect
-			entity="entity_category"
-			value={category}
-			onChange={setCategory}
 			clearable={clearable}
 			height={height}
 			placeholder={text}
@@ -673,87 +591,7 @@ export function ClaimSubstatusValue({
 	);
 }
 
-export function ClaimPartyRoleValue({
-	value,
-	showEmoji = true,
-	fallback,
-	fontSize,
-	sx,
-}: Omit<ReferenceDataValueProps, 'entity'>) {
-	return (
-		<ReferenceDataValue
-			entity="claim_party_role"
-			value={value}
-			showEmoji={showEmoji}
-			fallback={fallback}
-			fontSize={fontSize}
-			sx={sx}
-		/>
-	);
-}
-
-export function FacilitatorCategoryValue({
-	value,
-	showEmoji = true,
-	fallback,
-	fontSize,
-	sx,
-}: Omit<ReferenceDataValueProps, 'entity'>) {
-	return (
-		<ReferenceDataValue
-			entity="facilitator_category"
-			value={value}
-			showEmoji={showEmoji}
-			fallback={fallback}
-			fontSize={fontSize}
-			sx={sx}
-		/>
-	);
-}
-
-export function EntityCategoryValue({
-	value,
-	showEmoji = true,
-	fallback,
-	fontSize,
-	sx,
-}: Omit<ReferenceDataValueProps, 'entity'>) {
-	return (
-		<ReferenceDataValue
-			entity="entity_category"
-			value={value}
-			showEmoji={showEmoji}
-			fallback={fallback}
-			fontSize={fontSize}
-			sx={sx}
-		/>
-	);
-}
-
-/**
- * Party category value component that automatically selects the right entity
- * based on party_type (entity or facilitator)
- */
-export function PartyCategoryValue({
-	value,
-	partyType,
-	showEmoji = true,
-	fallback,
-	fontSize,
-	sx,
-}: Omit<ReferenceDataValueProps, 'entity'> & { partyType: string }) {
-	const entity = partyType === 'facilitator' ? 'facilitator_category' : 'entity_category';
-	return (
-		<ReferenceDataValue
-			entity={entity as ReferenceEntity}
-			value={value}
-			showEmoji={showEmoji}
-			fallback={fallback}
-			fontSize={fontSize}
-			sx={sx}
-		/>
-	);
-}
+// ClaimPartyRoleValue was removed - use ClaimantPartyRoleValue or AdversePartyRoleValue instead
 
 // ============================================================================
 // REFERENCE DATA CHIP COMPONENT
@@ -865,14 +703,5 @@ export function ClaimSubstatusChip(props: Omit<ReferenceDataChipProps, 'entity'>
 	return <ReferenceDataChip entity="claim_substatus" color="secondary" {...props} />;
 }
 
-export function ClaimPartyRoleChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
-	return <ReferenceDataChip entity="claim_party_role" color="primary" {...props} />;
-}
+// ClaimPartyRoleChip was removed - roles are now arrays displayed with inline Chip components
 
-export function EntityCategoryChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
-	return <ReferenceDataChip entity="entity_category" color="secondary" {...props} />;
-}
-
-export function FacilitatorCategoryChip(props: Omit<ReferenceDataChipProps, 'entity'>) {
-	return <ReferenceDataChip entity="facilitator_category" color="secondary" {...props} />;
-}

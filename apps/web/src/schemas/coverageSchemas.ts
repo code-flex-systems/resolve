@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DeductibleStatus } from '@/config/enums';
 
 export const getCoveragesInput = z.object({
 	claimId: z.number().int(),
@@ -12,18 +13,30 @@ export type GetCoveragesByClaimPartyInput = z.infer<typeof getCoveragesByClaimPa
 
 export const createCoverageInput = z.object({
 	claim_id: z.number().int(),
-	claim_party_id: z.number().int(),
-	coverage_type: z.string(),
+	claim_party_id: z.number().int().optional(),
+	loss_type: z.string(),
 	coverage_amount: z.number().nullable().optional(),
 	amount_reserved: z.number().nullable().optional(),
+	// Deductible fields
+	deductible_amount: z.number().min(0).nullable().optional(),
+	deductible_status: z.nativeEnum(DeductibleStatus),
+	// Subrogation and statute fields
+	subro_applicable: z.boolean().optional(), // Will default via placeholder function
+	statute_preserved: z.boolean().optional(), // Defaults to false
 });
 export type CreateCoverageInput = z.infer<typeof createCoverageInput>;
 
 export const updateCoverageInput = z.object({
 	id: z.number().int(),
-	coverage_type: z.string().optional(),
+	loss_type: z.string().optional(),
 	coverage_amount: z.number().nullable().optional(),
 	amount_reserved: z.number().nullable().optional(),
+	// Deductible fields
+	deductible_amount: z.number().min(0).nullable().optional(),
+	deductible_status: z.nativeEnum(DeductibleStatus).optional(),
+	// Subrogation and statute fields
+	subro_applicable: z.boolean().optional(),
+	statute_preserved: z.boolean().optional(),
 });
 export type UpdateCoverageInput = z.infer<typeof updateCoverageInput>;
 

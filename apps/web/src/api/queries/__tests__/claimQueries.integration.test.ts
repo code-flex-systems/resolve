@@ -22,7 +22,6 @@ import {
 	createTestUserDeskLocation,
 	createTestParty,
 	createTestClaimParty,
-	createTestClaimLiability,
 	createTestClaimCoverage,
 } from '@/__tests__/integration/fixtures';
 import {
@@ -71,8 +70,8 @@ describe('claimQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act
-			const client1Claims = await getClaims(ctx1, { type: 'data' }) as Array<{ insured: string | null }>;
-			const client2Claims = await getClaims(ctx2, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: client1Claims } = await getClaims(ctx1, {});
+			const { rows: client2Claims } = await getClaims(ctx2, {});
 
 			// Assert
 			expect(client1Claims).toHaveLength(2);
@@ -96,7 +95,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
 
 			// Act
-			const count = await getClaims(ctx, { type: 'count' });
+			const { count } = await getClaims(ctx, {});
 
 			// Assert
 			expect(count).toBe(3);
@@ -118,7 +117,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: adminUser.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<unknown>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Admin sees all 3 claims
 			expect(claims).toHaveLength(3);
@@ -167,7 +166,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Contributor sees 3 claims (owned, assigned, unassigned)
 			const insureds = claims.map((c) => c.insured);
@@ -236,7 +235,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Contributor only sees claim at their desk
 			const insureds = claims.map((c) => c.insured);
@@ -283,7 +282,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert - Contributor should not see the claim (removed from desk)
 			const insureds = claims.map((c) => c.insured);
@@ -304,7 +303,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = await getClaims(ctx, { type: 'data', insured: 'john' }) as Array<unknown>;
+			const { rows: claims } = await getClaims(ctx, { insured: 'john' });
 
 			// Assert
 			expect(claims).toHaveLength(2); // John Smith and Bob Johnson
@@ -323,8 +322,8 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const pendingClaims = await getClaims(ctx, { type: 'data', recovery_status: RecoveryStatus.PENDING }) as Array<unknown>;
-			const inProgressClaims = await getClaims(ctx, { type: 'data', recovery_status: RecoveryStatus.IN_PROGRESS }) as Array<unknown>;
+			const { rows: pendingClaims } = await getClaims(ctx, { recovery_status: RecoveryStatus.PENDING });
+			const { rows: inProgressClaims } = await getClaims(ctx, { recovery_status: RecoveryStatus.IN_PROGRESS });
 
 			// Assert
 			expect(pendingClaims).toHaveLength(2);
@@ -347,9 +346,9 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const page1 = await getClaims(ctx, { type: 'data', limit: 3, offset: 0 }) as Array<{ claim_number: string | null }>;
-			const page2 = await getClaims(ctx, { type: 'data', limit: 3, offset: 3 }) as Array<{ claim_number: string | null }>;
-			const page3 = await getClaims(ctx, { type: 'data', limit: 3, offset: 6 }) as Array<{ claim_number: string | null }>;
+			const { rows: page1 } = await getClaims(ctx, { limit: 3, offset: 0 });
+			const { rows: page2 } = await getClaims(ctx, { limit: 3, offset: 3 });
+			const { rows: page3 } = await getClaims(ctx, { limit: 3, offset: 6 });
 
 			// Assert
 			expect(page1).toHaveLength(3);
@@ -390,8 +389,8 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const feed1Claims = await getClaims(ctx, { type: 'data', feedId: feed1.id }) as Array<{ feed_name: string | null; insured: string | null }>;
-			const manualClaims = await getClaims(ctx, { type: 'data', feedId: null }) as Array<{ insured: string | null }>;
+			const { rows: feed1Claims } = await getClaims(ctx, { feedId: feed1.id });
+			const { rows: manualClaims } = await getClaims(ctx, { feedId: null });
 
 			// Assert
 			expect(feed1Claims).toHaveLength(2);
@@ -425,7 +424,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - No feedId filter, should exclude inactive feed claims
-			const claims = await getClaims(ctx, { type: 'data' }) as Array<{ insured: string | null }>;
+			const { rows: claims } = await getClaims(ctx, {});
 
 			// Assert
 			const insureds = claims.map((c) => c.insured);
@@ -724,10 +723,9 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = (await getClaims(ctx, {
-				type: 'data',
+			const { rows: claims } = await getClaims(ctx, {
 				searchTerm: { value: 'CLM', type: ClaimSearch.CLAIM_NUMBER },
-			})) as Array<{ claim_number: string | null }>;
+			});
 
 			// Assert
 			expect(claims).toHaveLength(2);
@@ -746,53 +744,14 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = (await getClaims(ctx, { type: 'data', client: 'acme' })) as Array<{ client: string | null }>;
+			const { rows: claims } = await getClaims(ctx, { client: 'acme' });
 
 			// Assert
 			expect(claims).toHaveLength(2);
 			expect(claims.every((c) => c.client?.toLowerCase().includes('acme'))).toBe(true);
 		});
 
-		it('should filter by line_of_business via claim_liability', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-
-			const claim1 = await createTestClaim(db, { client_id: client.id, insured: 'Auto Claim' });
-			const claim2 = await createTestClaim(db, { client_id: client.id, insured: 'Property Claim' });
-			await createTestClaim(db, { client_id: client.id, insured: 'No LOB Claim' });
-
-			// Create parties with unique names and liabilities
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'LOB Party 1' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'LOB Party 2' });
-
-			const claimParty1 = await createTestClaimParty(db, { claim_id: claim1.id, party_id: party1.id });
-			const claimParty2 = await createTestClaimParty(db, { claim_id: claim2.id, party_id: party2.id });
-
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty1.id,
-				line_of_business: LineOfBusiness.AUTO,
-			});
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty2.id,
-				line_of_business: LineOfBusiness.PROPERTY,
-			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const claims = (await getClaims(ctx, { type: 'data', line_of_business: LineOfBusiness.AUTO })) as Array<{
-				insured: string | null;
-			}>;
-
-			// Assert
-			expect(claims).toHaveLength(1);
-			expect(claims[0].insured).toBe('Auto Claim');
-		});
-
-		it('should filter by loss_type via claim_liability', async () => {
+		it('should filter by loss_type via claim_party', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -804,26 +763,24 @@ describe('claimQueries integration', () => {
 			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Type Party 1' });
 			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Type Party 2' });
 
-			const claimParty1 = await createTestClaimParty(db, { claim_id: claim1.id, party_id: party1.id });
-			const claimParty2 = await createTestClaimParty(db, { claim_id: claim2.id, party_id: party2.id });
-
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty1.id,
+			// Create claim parties with loss_type (facilitator field)
+			await createTestClaimParty(db, {
+				claim_id: claim1.id,
+				party_id: party1.id,
+				created_by: user.id,
 				loss_type: LossType.FIRE,
 			});
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty2.id,
+			await createTestClaimParty(db, {
+				claim_id: claim2.id,
+				party_id: party2.id,
+				created_by: user.id,
 				loss_type: LossType.WATER_DAMAGE,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const claims = (await getClaims(ctx, { type: 'data', loss_type: LossType.FIRE })) as Array<{
-				insured: string | null;
-			}>;
+			const { rows: claims } = await getClaims(ctx, { loss_type: LossType.FIRE });
 
 			// Assert
 			expect(claims).toHaveLength(1);
@@ -984,40 +941,48 @@ describe('claimQueries integration', () => {
 	});
 
 	describe('getClaimPartyAggregates', () => {
-		it('should aggregate liability data from parties', async () => {
+		it('should aggregate liability from entities and loss types from facilitators', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			// Create two parties with liabilities
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Aggregate Party 1' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Aggregate Party 2' });
+			// Create entity parties (have liability_percentage, no parent)
+			const entityParty1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Entity 1' });
+			const entityParty2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Entity 2' });
 
-			const claimParty1 = await createTestClaimParty(db, {
+			// Create facilitator parties (have loss_type, linked to entities)
+			const facilitatorParty1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Facilitator 1' });
+			const facilitatorParty2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Facilitator 2' });
+
+			// Create entity claim parties with liability_percentage
+			const entityClaimParty1 = await createTestClaimParty(db, {
 				claim_id: claim.id,
-				party_id: party1.id,
-				liability_percentage: 30,
+				party_id: entityParty1.id,
+				created_by: user.id,
+				liability_percentage: '30',
 			});
-			const claimParty2 = await createTestClaimParty(db, {
+			await createTestClaimParty(db, {
 				claim_id: claim.id,
-				party_id: party2.id,
-				liability_percentage: 20,
+				party_id: entityParty2.id,
+				created_by: user.id,
+				liability_percentage: '20',
 			});
 
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty1.id,
-				line_of_business: LineOfBusiness.AUTO,
+			// Create facilitator claim parties with loss_type (nested under entity)
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: facilitatorParty1.id,
+				created_by: user.id,
+				parent_claim_party_id: entityClaimParty1.id,
 				loss_type: LossType.COLLISION,
-				amount_paid: 10000,
 			});
-			await createTestClaimLiability(db, {
-				client_id: client.id,
-				claim_party_id: claimParty2.id,
-				line_of_business: LineOfBusiness.PROPERTY,
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: facilitatorParty2.id,
+				created_by: user.id,
+				parent_claim_party_id: entityClaimParty1.id,
 				loss_type: LossType.FIRE,
-				amount_paid: 5000,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1026,14 +991,47 @@ describe('claimQueries integration', () => {
 			const result = await getClaimPartyAggregates(ctx, claim.id);
 
 			// Assert
-			expect(result.line_of_business).toContain(LineOfBusiness.AUTO);
-			expect(result.line_of_business).toContain(LineOfBusiness.PROPERTY);
 			expect(result.loss_type).toContain(LossType.COLLISION);
 			expect(result.loss_type).toContain(LossType.FIRE);
-			expect(result.total_amount_paid).toBe(15000);
-			expect(result.total_liability_percentage).toBe(50); // 30 + 20
+			expect(result.total_liability_percentage).toBe(50); // 30 + 20 from entities only
 			expect(result.our_liability_percentage).toBe(50); // 100 - 50
-			expect(result.expected_recovery).toBe(7500); // 50% of 15000
+		});
+
+		it('should only count liability from entities, not facilitators', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Create entity with 40% liability
+			const entityParty = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Entity' });
+			const facilitatorParty = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Facilitator' });
+
+			const entityClaimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: entityParty.id,
+				created_by: user.id,
+				liability_percentage: '40',
+			});
+
+			// Create facilitator with liability_percentage (should be ignored in calculation)
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: facilitatorParty.id,
+				created_by: user.id,
+				parent_claim_party_id: entityClaimParty.id,
+				liability_percentage: '25', // This should NOT be counted
+				loss_type: LossType.BODILY_INJURY,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getClaimPartyAggregates(ctx, claim.id);
+
+			// Assert - only entity's 40% should be counted, not facilitator's 25%
+			expect(result.total_liability_percentage).toBe(40);
+			expect(result.our_liability_percentage).toBe(60);
 		});
 
 		it('should return zeros for claims without parties', async () => {
@@ -1048,33 +1046,30 @@ describe('claimQueries integration', () => {
 			const result = await getClaimPartyAggregates(ctx, claim.id);
 
 			// Assert
-			expect(result.line_of_business).toEqual([]);
 			expect(result.loss_type).toEqual([]);
-			expect(result.total_amount_paid).toBe(0);
 			expect(result.total_liability_percentage).toBe(0);
 			expect(result.our_liability_percentage).toBe(100);
-			expect(result.expected_recovery).toBe(0);
 		});
 	});
 
 	describe('recalculateClaimExpectedRecovery', () => {
-		it('should calculate and update expected_recovery correctly', async () => {
+		it('should calculate expected_recovery from liability percentage and claim_amount', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			// Create party with 40% liability and $20,000 amount_paid
+			// Set claim_amount on the claim (total paid)
+			await db.updateTable('claim').set({ claim_amount: '20000' }).where('id', '=', claim.id).execute();
+
+			// Create party with 40% liability
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
-			const claimParty = await createTestClaimParty(db, {
+			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
-				liability_percentage: 40,
-			});
-			await createTestClaimLiability(db, {
 				client_id: client.id,
-				claim_party_id: claimParty.id,
-				amount_paid: 20000,
+				created_by: user.id,
+				liability_percentage: '40',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1102,30 +1097,27 @@ describe('claimQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			// Party 1: 25% liability, $10,000 paid
+			// Set claim_amount on the claim (total paid)
+			await db.updateTable('claim').set({ claim_amount: '25000' }).where('id', '=', claim.id).execute();
+
+			// Party 1: 25% liability
 			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id });
-			const claimParty1 = await createTestClaimParty(db, {
+			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party1.id,
-				liability_percentage: 25,
-			});
-			await createTestClaimLiability(db, {
 				client_id: client.id,
-				claim_party_id: claimParty1.id,
-				amount_paid: 10000,
+				created_by: user.id,
+				liability_percentage: '25',
 			});
 
-			// Party 2: 35% liability, $15,000 paid
+			// Party 2: 35% liability
 			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id });
-			const claimParty2 = await createTestClaimParty(db, {
+			await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party2.id,
-				liability_percentage: 35,
-			});
-			await createTestClaimLiability(db, {
 				client_id: client.id,
-				claim_party_id: claimParty2.id,
-				amount_paid: 15000,
+				created_by: user.id,
+				liability_percentage: '35',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1136,12 +1128,61 @@ describe('claimQueries integration', () => {
 			// Assert
 			// Total liability = 25% + 35% = 60%
 			// Our liability = 100% - 60% = 40%
-			// Total amount paid = $10,000 + $15,000 = $25,000
 			// Expected recovery = 40% × $25,000 = $10,000
 			expect(result).toBe(10000);
 		});
 
-		it('should return 0 when no parties exist', async () => {
+		it('should expect 100% recovery when no liability is assigned (no parties)', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Set claim_amount (payments made)
+			await db.updateTable('claim').set({ claim_amount: '15000' }).where('id', '=', claim.id).execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - No parties exist
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert - No liability assigned = 100% our liability = expect full recovery
+			// Our liability = 100% - 0% = 100%
+			// Expected recovery = 100% × $15,000 = $15,000
+			expect(result).toBe(15000);
+		});
+
+		it('should expect 100% recovery when parties exist but have no liability', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Set claim_amount (payments made)
+			await db.updateTable('claim').set({ claim_amount: '8000' }).where('id', '=', claim.id).execute();
+
+			// Create party but don't assign liability (NULL liability_percentage)
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+				// No liability_percentage set (NULL)
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
+
+			// Assert - Parties exist but no liability = 100% our liability = expect full recovery
+			// Our liability = 100% - 0% = 100%
+			// Expected recovery = 100% × $8,000 = $8,000
+			expect(result).toBe(8000);
+		});
+
+		it('should return 0 when no parties exist and no claim_amount', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1152,7 +1193,7 @@ describe('claimQueries integration', () => {
 			// Act
 			const result = await recalculateClaimExpectedRecovery(ctx, claim.id);
 
-			// Assert - No amount paid, so expected recovery is 0
+			// Assert - No claim_amount set, so expected recovery is 0
 			expect(result).toBe(0);
 		});
 	});
@@ -1167,19 +1208,19 @@ describe('claimQueries integration', () => {
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.DWELLING,
+				loss_type: CoverageType.DWELLING,
 				amount_reserved: 50000,
 			});
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.LIABILITY,
+				loss_type: CoverageType.LIABILITY,
 				amount_reserved: 25000,
 			});
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.MEDICAL_PAYMENTS,
+				loss_type: CoverageType.MEDICAL_PAYMENTS,
 				amount_reserved: 10000,
 			});
 
@@ -1244,20 +1285,36 @@ describe('claimQueries integration', () => {
 				assignee: admin.id,
 			});
 
-			// Add coverage
+			// Add entity party and claim_party (coverage requires entity-type party)
+			const entityParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				party_type: 'entity',
+			});
+			const entityClaimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: entityParty.id,
+				liability_percentage: 30,
+			});
+
+			// Add coverage linked to entity claim_party
 			await createTestClaimCoverage(db, {
 				client_id: client.id,
 				claim_id: claim.id,
-				coverage_type: CoverageType.DWELLING,
+				claim_party_id: entityClaimParty.id,
+				loss_type: CoverageType.DWELLING,
 				coverage_amount: 100000,
 			});
 
-			// Add party
-			const party = await createTestParty(db, { client_id: client.id, created_by: admin.id });
+			// Add facilitator party (for partySummary count)
+			const facilitatorParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				party_type: 'facilitator',
+			});
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
-				party_id: party.id,
-				liability_percentage: 30,
+				party_id: facilitatorParty.id,
 			});
 
 			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });

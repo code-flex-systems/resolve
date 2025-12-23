@@ -27,6 +27,7 @@ export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPar
 
 /**
  * Create a new coverage for a claim party.
+ * Query layer handles delta increment for total_incurred.
  *
  * @param ctx - request context
  * @param params - coverage data
@@ -47,7 +48,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
 				value: {
 					claim_id: coverage.claim_id,
 					claim_party_id: coverage.claim_party_id,
-					coverage_type: coverage.coverage_type,
+					loss_type: coverage.loss_type,
 					coverage_amount: coverage.coverage_amount,
 				},
 			}
@@ -61,14 +62,18 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
 
 /**
  * Update an existing coverage.
+ * Query layer handles delta increment for total_incurred.
  *
  * @param ctx - request context
- * @param input - coverage id and fields to update
+ * @param id - coverage identifier
+ * @param params - fields to update
  * @returns updated coverage and updated totalIncurred
  */
-export async function updateCoverage(ctx: ProtectedContext, input: UpdateCoverageInput) {
-	const { id, ...params } = input;
-
+export async function updateCoverage(
+	ctx: ProtectedContext,
+	id: number,
+	params: Omit<UpdateCoverageInput, 'id'>
+) {
 	// Update coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
 		const { coverage, totalIncurred } = await coverageQueries.updateCoverage({ ...ctx, db: trx }, id, params);
@@ -92,15 +97,28 @@ export async function updateCoverage(ctx: ProtectedContext, input: UpdateCoverag
 
 /**
  * Archive (soft delete) a coverage.
+ * Query layer handles delta decrement for total_incurred.
  *
  * @param ctx - request context
  * @param id - coverage identifier
  * @returns claimId and updated totalIncurred
  */
-export async function archiveCoverage(ctx: ProtectedContext, { id }: { id: number }) {
+export async function archiveCoverage(ctx: ProtectedContext, id: number) {
 	// Archive coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { claimId, totalIncurred } = await coverageQueries.archiveCoverage({ ...ctx, db: trx }, id);
+		let claimId: number;
+		let totalIncurred: number;
+
+		try {
+			const archived = await coverageQueries.archiveCoverage({ ...ctx, db: trx }, id);
+			claimId = archived.claimId;
+			totalIncurred = archived.totalIncurred;
+		} catch (error: any) {
+			if (error.message?.includes('no result')) {
+				throw new Error('Coverage not found or you do not have permission to access it');
+			}
+			throw error;
+		}
 
 		// Log admin action
 		await logAdminAction(
@@ -121,15 +139,28 @@ export async function archiveCoverage(ctx: ProtectedContext, { id }: { id: numbe
 
 /**
  * Hard delete a coverage (admin cleanup only).
+ * Query layer handles delta decrement for total_incurred.
  *
  * @param ctx - request context
  * @param id - coverage identifier
  * @returns claimId and updated totalIncurred
  */
-export async function deleteCoverage(ctx: ProtectedContext, { id }: { id: number }) {
+export async function deleteCoverage(ctx: ProtectedContext, id: number) {
 	// Delete coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { claimId, totalIncurred } = await coverageQueries.deleteCoverage({ ...ctx, db: trx }, id);
+		let claimId: number;
+		let totalIncurred: number;
+
+		try {
+			const deleted = await coverageQueries.deleteCoverage({ ...ctx, db: trx }, id);
+			claimId = deleted.claimId;
+			totalIncurred = deleted.totalIncurred;
+		} catch (error: any) {
+			if (error.message?.includes('no result')) {
+				throw new Error('Coverage not found or you do not have permission to access it');
+			}
+			throw error;
+		}
 
 		// Log admin action
 		await logAdminAction(

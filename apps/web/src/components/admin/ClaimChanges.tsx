@@ -26,7 +26,9 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { RecoveryStatus } from '@/config/enums';
 import { formatLabel } from '@/lib/utils/claimUtils';
 import { formatRecoveryStatus, RECOVERY_STATUS_ICONS } from '@/lib/utils/recoveryUtils';
-import { ClaimSubstatusSelect, ClaimPartyRoleSelect } from '../common/ReferenceDataSelect';
+import { ClaimSubstatusSelect } from '../common/ReferenceDataSelect';
+import { trpc } from '@/lib/trpc';
+import { capitalize } from '@/lib/utils/utils';
 import AddressFields from '../common/AddressFields';
 import PartyDialog from './PartyDialog';
 import RepresentativeDialog from './RepresentativeDialog';
@@ -61,7 +63,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 	// Party and representative state
 	const [selectedParty, setSelectedParty] = useState<Party | null>(null);
 	const [selectedRepresentative, setSelectedRepresentative] = useState<PartyRepresentative | null>(null);
-	const [selectedRole, setSelectedRole] = useState<string | null>(null);
+	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [showPartyDialog, setShowPartyDialog] = useState(false);
 	const [showRepresentativeDialog, setShowRepresentativeDialog] = useState(false);
@@ -100,6 +102,21 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 
 	// Party tRPC hooks
 	const partyTrpc = usePartyTrpc();
+
+	// Fetch party role options (combine claimant and adverse roles)
+	const { data: claimantRoles = [] } = trpc.referenceData.getReferenceOptions.useQuery(
+		{ entity: 'claimant_party_role' },
+		{ staleTime: 5 * 60 * 1000 }
+	);
+	const { data: adverseRoles = [] } = trpc.referenceData.getReferenceOptions.useQuery(
+		{ entity: 'adverse_party_role' },
+		{ staleTime: 5 * 60 * 1000 }
+	);
+	const availableRoles = useMemo(() => {
+		const allRoles = [...claimantRoles, ...adverseRoles];
+		// Remove duplicates by value
+		return Array.from(new Map(allRoles.map(r => [r.value, r])).values());
+	}, [claimantRoles, adverseRoles]);
 	const { data: partySearchResults = [] } = partyTrpc.search(
 		{ searchTerm: partySearchTerm },
 		{ enabled: partySearchTerm.length >= 2 }
@@ -141,9 +158,9 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 			if (linkedParty.party) {
 				setSelectedParty(linkedParty.party as any);
 			}
-			// Also set the role if one was saved
-			if (linkedParty.role) {
-				setSelectedRole(linkedParty.role);
+			// Also set the roles if any were saved
+			if (linkedParty.role && Array.isArray(linkedParty.role)) {
+				setSelectedRoles(linkedParty.role);
 			}
 			// Also set the representative if one was saved
 			if (linkedParty.representative) {
@@ -177,7 +194,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 				// Party was cleared - clear the client field, role, and adjuster
 				setValue('client', '');
 				setValue('client_adjuster', '');
-				setSelectedRole(null);
+				setSelectedRoles([]);
 			}
 		},
 		[setValue]
@@ -241,7 +258,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					substatus: data.substatus ?? undefined,
 					party_id: selectedParty?.id ? Number(selectedParty.id) : null,
 					representative_id: selectedRepresentative?.id ? Number(selectedRepresentative.id) : null,
-					role: selectedRole,
+					role: selectedRoles.length > 0 ? selectedRoles : null,
 				});
 
 				router.push('/admin/claims');
@@ -268,7 +285,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					],
 					party_id: selectedParty?.id ? Number(selectedParty.id) : null,
 					representative_id: selectedRepresentative?.id ? Number(selectedRepresentative.id) : null,
-					role: selectedRole,
+					role: selectedRoles.length > 0 ? selectedRoles : null,
 				});
 
 				router.push('/admin/claims');
@@ -468,12 +485,21 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							/>
 
 							{selectedParty && (
-								<ClaimPartyRoleSelect
-									role={selectedRole}
-									setRole={setSelectedRole}
-									clearable={false}
-									isFilter={false}
-									label="Party Role"
+								<Autocomplete
+									multiple
+									size="small"
+									options={availableRoles}
+									value={availableRoles.filter(r => selectedRoles.includes(r.value))}
+									onChange={(_, newValue) => setSelectedRoles(newValue.map(r => r.value))}
+									getOptionLabel={(option) => option.display_label || capitalize(option.value.replace(/_/g, ' '))}
+									renderInput={(params) => (
+										<TextField
+											{...params}
+											label="Party Role(s)"
+											placeholder="Select roles..."
+										/>
+									)}
+									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 								/>
 							)}
 
@@ -582,7 +608,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 
 			{/* Party Dialog */}
 			{showPartyDialog && (
-				<PartyDialog lockedType="facilitator" lockedRole="adverse_carrier" onClose={handlePartyDialogClose} />
+				<PartyDialog lockedType="facilitator" onClose={handlePartyDialogClose} />
 			)}
 
 			{/* Representative Dialog */}

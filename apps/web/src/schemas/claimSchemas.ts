@@ -66,7 +66,7 @@ export const createClaimInput = z.object({
 	claims: z.array(claimDataSchema),
 	party_id: z.number().int().nullable().optional(),
 	representative_id: z.number().int().nullable().optional(),
-	role: z.string().nullable().optional(),
+	role: z.array(z.string()).nullable().optional(),
 });
 export type CreateClaimInput = z.infer<typeof createClaimInput>;
 
@@ -86,7 +86,7 @@ export const updateClaimInput = z
 		substatus: z.string().optional(),
 		party_id: z.number().int().nullable().optional(),
 		representative_id: z.number().int().nullable().optional(),
-		role: z.string().nullable().optional(),
+		role: z.array(z.string()).nullable().optional(),
 	})
 	.merge(lossAddressSchema);
 export type UpdateClaimInput = z.infer<typeof updateClaimInput>;

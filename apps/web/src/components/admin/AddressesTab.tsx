@@ -4,88 +4,109 @@ import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
-import Business from '@mui/icons-material/Business';
 import LocationOn from '@mui/icons-material/LocationOn';
-import Phone from '@mui/icons-material/Phone';
 import Warning from '@mui/icons-material/Warning';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import OfficeActionsCell from './OfficeActionsCell';
+import AddressActionsCell from './AddressActionsCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
-import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import OfficeDialog from './OfficeDialog';
+import AddressDialog from './AddressDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
-import { formatCityState } from '@/schemas/addressSchemas';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import { AddressStatus } from '@/schemas/partySchemas';
 
-interface OfficesTabProps {
+interface AddressesTabProps {
 	isAdminContext?: boolean;
 }
+
+const getStatusChip = (status: string) => {
+	switch (status) {
+		case AddressStatus.VALID:
+			return <Chip label="Valid" color="success" size="small" />;
+		case AddressStatus.MAILING:
+			return <Chip label="Mailing" color="primary" size="small" />;
+		case AddressStatus.UNDELIVERABLE:
+			return <Chip label="Undeliverable" color="error" size="small" />;
+		case AddressStatus.UNKNOWN:
+		default:
+			return <Chip label="Unknown" color="default" size="small" />;
+	}
+};
 
 const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
-		field: 'party',
+		field: 'party_name',
 		renderCell: ({ row }) => (
-			<div
-				style={{ height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}
-			>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
 					<Tooltip title="Party is archived" placement="right">
-						<Warning sx={{ fontSize: 18, color: 'warning.main' }} />
+						<Warning sx={{ fontSize: 16, color: 'warning.main' }} />
 					</Tooltip>
 				)}
-				<StackedHeaderCell primary={row.party_name} secondary={row.party_organization ?? 'No organization'} />
+				<span>{row.party_name}</span>
 			</div>
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Business style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
 		flex: 1,
-		minWidth: 200,
+		minWidth: 160,
 	},
 	{
-		headerName: 'Office',
-		field: 'office',
-		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.office_name || 'Unnamed office'}
-				secondary={formatCityState(row.city, row.state) || 'No location'}
-			/>
-		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<LocationOn style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
+		headerName: 'Label',
+		field: 'name',
+		renderCell: ({ row }) => row.name || '—',
+		width: 140,
+	},
+	{
+		headerName: 'Street',
+		field: 'street_address',
+		renderCell: ({ row }) => row.street_address || '—',
 		flex: 1,
-		minWidth: 200,
+		minWidth: 180,
 	},
 	{
-		headerName: 'Contact',
-		field: 'contact',
+		headerName: 'City',
+		field: 'city',
+		renderCell: ({ row }) => row.city || '—',
+		width: 120,
+	},
+	{
+		headerName: 'State',
+		field: 'state',
+		renderCell: ({ row }) => row.state || '—',
+		width: 70,
+	},
+	{
+		headerName: 'Postal',
+		field: 'postal_code',
+		renderCell: ({ row }) => row.postal_code || '—',
+		width: 90,
+	},
+	{
+		headerName: 'Type',
+		field: 'address_type',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={row.phone ?? 'No phone'} secondary={row.fax ?? 'No fax'} />
+			<Typography variant="body2" textTransform="capitalize" fontSize={13}>
+				{row.address_type || 'business'}
+			</Typography>
 		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone style={{ color: BASE_COLOR_LIGHT }} />} />,
-		width: 200,
+		width: 90,
 	},
 	{
-		headerName: 'Primary',
-		field: 'is_primary',
-		renderCell: ({ row }) => (row.is_primary ? <Chip label="Primary" color="primary" size="small" /> : null),
-		width: 100,
-		align: 'center',
+		headerName: 'Status',
+		field: 'address_status',
+		renderCell: ({ row }) => getStatusChip(row.address_status),
+		width: 115,
 	},
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <OfficeActionsCell {...params} isAdminContext={isAdminContext} />,
+		renderCell: (params) => <AddressActionsCell {...params} isAdminContext={isAdminContext} />,
 		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
@@ -94,45 +115,45 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 function NoRows() {
 	return (
 		<CustomNoRowsOverlay
-			text="No offices found"
+			text="No addresses found"
 			icon={<LocationOn sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
 		/>
 	);
 }
 
-export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
-	const showNewOfficeDialog = useAdminStore((state) => state.showNewOfficeDialog);
-	const officeConstraints = useAdminStore((state) => state.officeConstraints);
-	const toggleNewOfficeDialog = useAdminStore((state) => state.toggleNewOfficeDialog);
-	const updateOfficeConstraints = useAdminStore((state) => state.updateOfficeConstraints);
+export default function AddressesTab({ isAdminContext = true }: AddressesTabProps) {
+	const showNewAddressDialog = useAdminStore((state) => state.showNewAddressDialog);
+	const addressConstraints = useAdminStore((state) => state.addressConstraints);
+	const toggleNewAddressDialog = useAdminStore((state) => state.toggleNewAddressDialog);
+	const updateAddressConstraints = useAdminStore((state) => state.updateAddressConstraints);
 
-	// Deep linking: edit office via URL param
+	// Deep linking: edit address via URL param
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const editOfficeId = searchParams.get('edit');
-	const [editingOfficeFromUrl, setEditingOfficeFromUrl] = useState<any | null>(null);
+	const editAddressId = searchParams.get('edit');
+	const [editingAddressFromUrl, setEditingAddressFromUrl] = useState<any | null>(null);
 	const partyTrpc = usePartyTrpc();
 
-	// Query to fetch office by ID for deep linking (only when edit param is present)
-	const { data: officeToEdit } = partyTrpc.getOffice(
-		{ id: editOfficeId ? parseInt(editOfficeId, 10) : 0 },
-		{ enabled: !!editOfficeId && !editingOfficeFromUrl }
+	// Query to fetch address by ID for deep linking (only when edit param is present)
+	const { data: addressToEdit } = partyTrpc.getAddress(
+		{ id: editAddressId ? parseInt(editAddressId, 10) : 0 },
+		{ enabled: !!editAddressId && !editingAddressFromUrl }
 	);
 
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParam } = useUrlFilters();
 
 	// Filter states from URL params
-	const officeSearchTerm = getParam('search') ?? '';
+	const addressSearchTerm = getParam('search') ?? '';
 	// Only allow archived filter in admin context
-	const showArchivedOffices = isAdminContext ? getBoolParam('archived') : false;
+	const showArchivedAddresses = isAdminContext ? getBoolParam('archived') : false;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
 	// Handler to close the edit dialog and clear URL param
 	const handleCloseEditDialog = () => {
-		setEditingOfficeFromUrl(null);
+		setEditingAddressFromUrl(null);
 		// Clear the edit param from URL
 		const params = new URLSearchParams(searchParams.toString());
 		params.delete('edit');
@@ -143,11 +164,11 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 	// Memoize columns based on isAdminContext
 	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
 
-	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllOffices({
-		limit: officeConstraints.pageSize,
-		offset: officeConstraints.page * officeConstraints.pageSize,
-		searchTerm: officeSearchTerm,
-		showArchived: showArchivedOffices,
+	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllAddresses({
+		limit: addressConstraints.pageSize,
+		offset: addressConstraints.page * addressConstraints.pageSize,
+		searchTerm: addressSearchTerm,
+		showArchived: showArchivedAddresses,
 	});
 	const rowCountRef = useRef(data.count ?? 0);
 
@@ -158,36 +179,36 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 		return rowCountRef.current;
 	}, [data.count]);
 
-	// Effect to set editing office from dedicated query when data is loaded
+	// Effect to set editing address from dedicated query when data is loaded
 	useEffect(() => {
-		if (officeToEdit && editOfficeId) {
-			setEditingOfficeFromUrl(officeToEdit);
+		if (addressToEdit && editAddressId) {
+			setEditingAddressFromUrl(addressToEdit);
 		}
-	}, [officeToEdit, editOfficeId]);
+	}, [addressToEdit, editAddressId]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
-		setSearchTerm(officeSearchTerm);
-	}, [officeSearchTerm]);
+		setSearchTerm(addressSearchTerm);
+	}, [addressSearchTerm]);
 
 	// Debounce search input to URL param
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	return (
-		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading offices...">
+		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading addresses...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
 						left={
 							<>
 								<Typography variant="h6" marginRight="20px">
-									Offices
+									Addresses
 								</Typography>
 								{isAdminContext && (
 									<>
 										<Switch
 											size="small"
-											checked={showArchivedOffices}
+											checked={showArchivedAddresses}
 											onChange={(_, checked) => setParam('archived', checked)}
 											color="warning"
 											sx={{ marginLeft: '10px' }}
@@ -211,10 +232,10 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 											debouncedSearch(value);
 										}
 									}}
-									placeholder="Search offices..."
+									placeholder="Search addresses..."
 								/>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewOfficeDialog} sx={{ ml: 2 }}>
-									Office
+								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewAddressDialog} sx={{ ml: 2 }}>
+									Address
 								</Button>
 							</>
 						}
@@ -239,23 +260,29 @@ export default function OfficesTab({ isAdminContext = true }: OfficesTabProps) {
 							}}
 							rows={data.rows}
 							rowCount={rowCount}
-							rowHeight={60}
+							rowHeight={45}
 							hideFooterSelectedRowCount
 							pageSizeOptions={[]}
 							pagination
 							paginationMode="server"
-							paginationModel={officeConstraints}
-							onPaginationModelChange={updateOfficeConstraints}
+							paginationModel={addressConstraints}
+							onPaginationModelChange={updateAddressConstraints}
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
-							sx={styles.tableOverrides}
+							sx={{
+								...styles.tableOverrides,
+								'& .MuiDataGrid-cell': {
+									display: 'flex',
+									alignItems: 'center',
+								},
+							}}
 						/>
 					</div>
 
-					{showNewOfficeDialog && <OfficeDialog />}
-					{editingOfficeFromUrl && (
-						<OfficeDialog office={editingOfficeFromUrl} onClose={handleCloseEditDialog} />
+					{showNewAddressDialog && <AddressDialog />}
+					{editingAddressFromUrl && (
+						<AddressDialog address={editingAddressFromUrl} onClose={handleCloseEditDialog} />
 					)}
 				</Paper>
 			</div>
@@ -279,6 +306,7 @@ const styles = {
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
+		overflow: 'hidden',
 	},
 	tableOverrides: {
 		border: 'none',

@@ -13,7 +13,7 @@ export function usePartyTrpc() {
 		if (currentData) {
 			utils.claim.getClaimDetail.setData({ claimId }, {
 				...currentData,
-				expected_recovery: expectedRecovery,
+				expected_recovery: expectedRecovery.toString(),
 			});
 		}
 	};
@@ -39,124 +39,251 @@ export function usePartyTrpc() {
 		search: trpc.party.searchParties.useQuery,
 
 		/**
-		 * Create party (invalidates party, office, and representative lists)
+		 * Create party (invalidates party, address, phone, email, and representative lists)
 		 */
 		create: trpc.party.createParty.useMutation({
 			onSuccess() {
 				utils.party.getParties.invalidate();
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 			},
 		}),
 
 		/**
-		 * Update party (invalidates party, office, and representative lists)
+		 * Update party (invalidates party, address, phone, email, and representative lists)
 		 */
 		update: trpc.party.updateParty.useMutation({
 			onSuccess({ id }) {
 				utils.party.getParties.invalidate();
 				utils.party.getParty.invalidate({ id });
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getPartyAddresses.invalidate({ partyId: id });
+				utils.party.getPartyPhones.invalidate({ partyId: id });
+				utils.party.getPartyEmails.invalidate({ partyId: id });
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 			},
 		}),
 
 		/**
-		 * Archive party (invalidates party, office, and representative lists)
+		 * Archive party (invalidates party, address, and representative lists)
 		 */
 		archive: trpc.party.archiveParty.useMutation({
 			onSuccess() {
 				utils.party.getParties.invalidate();
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 			},
 		}),
 
 		/**
-		 * Restore party (invalidates party, office, and representative lists)
+		 * Restore party (invalidates party, address, and representative lists)
 		 */
 		restore: trpc.party.restoreParty.useMutation({
 			onSuccess() {
 				utils.party.getParties.invalidate();
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 			},
 		}),
 
 		// ====================================================================
-		// PARTY OFFICE OPERATIONS
+		// PARTY ADDRESS OPERATIONS (renamed from PARTY OFFICE)
 		// ====================================================================
 
 		/**
-		 * Get offices for a party
+		 * Get addresses for a party
 		 */
-		listOffices: trpc.party.getPartyOffices.useQuery,
+		listAddresses: trpc.party.getPartyAddresses.useQuery,
 
 		/**
-		 * Get all party offices (for standalone admin tab)
+		 * Get all party addresses (for standalone admin tab)
 		 */
-		listAllOffices: trpc.party.getAllPartyOffices.useQuery,
+		listAllAddresses: trpc.party.getAllPartyAddresses.useQuery,
 
 		/**
-		 * Get single party office by ID
+		 * Get single party address by ID
 		 */
-		getOffice: trpc.party.getPartyOffice.useQuery,
+		getAddress: trpc.party.getPartyAddress.useQuery,
 
 		/**
-		 * Create party office (invalidates office and representative lists)
+		 * Create party address (invalidates address and representative lists)
 		 */
-		createOffice: trpc.party.createPartyOffice.useMutation({
+		createAddress: trpc.party.createPartyAddress.useMutation({
 			onSuccess({ party_id }) {
-				utils.party.getPartyOffices.invalidate({ partyId: party_id });
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getPartyAddresses.invalidate({ partyId: party_id });
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 				utils.party.getParty.invalidate({ id: party_id });
 			},
 		}),
 
 		/**
-		 * Update party office (invalidates office and representative lists)
+		 * Update party address (invalidates address and representative lists)
 		 */
-		updateOffice: trpc.party.updatePartyOffice.useMutation({
-			onSuccess(office) {
-				utils.party.getPartyOffices.invalidate({ partyId: office.party_id });
-				utils.party.getAllPartyOffices.invalidate();
+		updateAddress: trpc.party.updatePartyAddress.useMutation({
+			onSuccess(address) {
+				utils.party.getPartyAddresses.invalidate({ partyId: address.party_id });
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
-				utils.party.getParty.invalidate({ id: office.party_id });
+				utils.party.getParty.invalidate({ id: address.party_id });
 			},
 		}),
 
 		/**
-		 * Archive party office (invalidates office and representative lists)
+		 * Archive party address (invalidates address and representative lists)
 		 */
-		archiveOffice: trpc.party.archivePartyOffice.useMutation({
+		archiveAddress: trpc.party.archivePartyAddress.useMutation({
 			onSuccess() {
-				utils.party.getPartyOffices.invalidate();
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getPartyAddresses.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 			},
 		}),
 
 		/**
-		 * Restore party office (invalidates office and representative lists)
+		 * Restore party address (invalidates address and representative lists)
 		 */
-		restoreOffice: trpc.party.restorePartyOffice.useMutation({
+		restoreAddress: trpc.party.restorePartyAddress.useMutation({
 			onSuccess() {
-				utils.party.getPartyOffices.invalidate();
-				utils.party.getAllPartyOffices.invalidate();
+				utils.party.getPartyAddresses.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
 			},
 		}),
 
-		/**
-		 * Delete party office (invalidates office and representative lists) - Deprecated: use archiveOffice
-		 */
-		removeOffice: trpc.party.deletePartyOffice.useMutation({
-			onSuccess(_, variables) {
-				// Need to invalidate all office lists since we don't know party_id from delete response
-				utils.party.getPartyOffices.invalidate();
-				utils.party.getAllPartyOffices.invalidate();
+		// Legacy aliases for backwards compatibility (Office -> Address)
+		listOffices: trpc.party.getPartyOffices.useQuery,
+		listAllOffices: trpc.party.getAllPartyOffices.useQuery,
+		createOffice: trpc.party.createPartyAddress.useMutation({
+			onSuccess({ party_id }) {
+				utils.party.getPartyAddresses.invalidate({ partyId: party_id });
+				utils.party.getAllPartyAddresses.invalidate();
 				utils.party.getAllPartyRepresentatives.invalidate();
+				utils.party.getParty.invalidate({ id: party_id });
+			},
+		}),
+		updateOffice: trpc.party.updatePartyAddress.useMutation({
+			onSuccess(address) {
+				utils.party.getPartyAddresses.invalidate({ partyId: address.party_id });
+				utils.party.getAllPartyAddresses.invalidate();
+				utils.party.getAllPartyRepresentatives.invalidate();
+				utils.party.getParty.invalidate({ id: address.party_id });
+			},
+		}),
+		archiveOffice: trpc.party.archivePartyAddress.useMutation({
+			onSuccess() {
+				utils.party.getPartyAddresses.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
+				utils.party.getAllPartyRepresentatives.invalidate();
+			},
+		}),
+		restoreOffice: trpc.party.restorePartyAddress.useMutation({
+			onSuccess() {
+				utils.party.getPartyAddresses.invalidate();
+				utils.party.getAllPartyAddresses.invalidate();
+				utils.party.getAllPartyRepresentatives.invalidate();
+			},
+		}),
+
+		// ====================================================================
+		// PARTY PHONE OPERATIONS
+		// ====================================================================
+
+		/**
+		 * Get phones for a party
+		 */
+		listPhones: trpc.party.getPartyPhones.useQuery,
+
+		/**
+		 * Create party phone (invalidates phone lists and party)
+		 */
+		createPhone: trpc.party.createPartyPhone.useMutation({
+			onSuccess({ party_id }) {
+				utils.party.getPartyPhones.invalidate({ partyId: party_id });
+				utils.party.getParty.invalidate({ id: party_id });
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		/**
+		 * Update party phone (invalidates phone lists and party)
+		 */
+		updatePhone: trpc.party.updatePartyPhone.useMutation({
+			onSuccess(phone) {
+				utils.party.getPartyPhones.invalidate({ partyId: phone.party_id });
+				utils.party.getParty.invalidate({ id: phone.party_id });
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		/**
+		 * Archive party phone (invalidates phone lists)
+		 */
+		archivePhone: trpc.party.archivePartyPhone.useMutation({
+			onSuccess() {
+				utils.party.getPartyPhones.invalidate();
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		/**
+		 * Restore party phone (invalidates phone lists)
+		 */
+		restorePhone: trpc.party.restorePartyPhone.useMutation({
+			onSuccess() {
+				utils.party.getPartyPhones.invalidate();
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		// ====================================================================
+		// PARTY EMAIL OPERATIONS
+		// ====================================================================
+
+		/**
+		 * Get emails for a party
+		 */
+		listEmails: trpc.party.getPartyEmails.useQuery,
+
+		/**
+		 * Create party email (invalidates email lists and party)
+		 */
+		createEmail: trpc.party.createPartyEmail.useMutation({
+			onSuccess({ party_id }) {
+				utils.party.getPartyEmails.invalidate({ partyId: party_id });
+				utils.party.getParty.invalidate({ id: party_id });
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		/**
+		 * Update party email (invalidates email lists and party)
+		 */
+		updateEmail: trpc.party.updatePartyEmail.useMutation({
+			onSuccess(email) {
+				utils.party.getPartyEmails.invalidate({ partyId: email.party_id });
+				utils.party.getParty.invalidate({ id: email.party_id });
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		/**
+		 * Archive party email (invalidates email lists)
+		 */
+		archiveEmail: trpc.party.archivePartyEmail.useMutation({
+			onSuccess() {
+				utils.party.getPartyEmails.invalidate();
+				utils.party.getParties.invalidate();
+			},
+		}),
+
+		/**
+		 * Restore party email (invalidates email lists)
+		 */
+		restoreEmail: trpc.party.restorePartyEmail.useMutation({
+			onSuccess() {
+				utils.party.getPartyEmails.invalidate();
+				utils.party.getParties.invalidate();
 			},
 		}),
 
@@ -246,8 +373,10 @@ export function usePartyTrpc() {
 		linkToClaim: trpc.party.linkPartyToClaim.useMutation({
 			onSuccess(data) {
 				utils.party.getClaimParties.invalidate({ claimId: data.claimParty.claim_id });
-				// Update cached claim detail with new expected_recovery
-				updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				// Update cached claim detail with new expected_recovery (only if recalculated)
+				if (data.expectedRecovery !== null) {
+					updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				}
 			},
 		}),
 
@@ -257,8 +386,10 @@ export function usePartyTrpc() {
 		updateClaimParty: trpc.party.updateClaimParty.useMutation({
 			onSuccess(data) {
 				utils.party.getClaimParties.invalidate({ claimId: data.claimParty.claim_id });
-				// Update cached claim detail with new expected_recovery
-				updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				// Update cached claim detail with new expected_recovery (only if recalculated)
+				if (data.expectedRecovery !== null) {
+					updateClaimExpectedRecovery(data.claimParty.claim_id, data.expectedRecovery);
+				}
 			},
 		}),
 

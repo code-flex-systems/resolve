@@ -86,8 +86,7 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
 			'settlement.updated_by',
 			'settlement.updated_at',
 			eb.ref('party.name').as('party_name'),
-			eb.ref('party.party_category').as('party_category'),
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 			'claim_coverage.coverage_amount',
 		])
 		.where('settlement.id', '=', settlementId)
@@ -97,10 +96,11 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
 
 /**
  * List settlements for a claim with party and coverage info.
+ * Only returns settlements linked to adverse parties (parties with roles from adverse_party_role).
  *
  * @param ctx - request context
  * @param claimId - claim identifier
- * @returns list of settlements with party and coverage details
+ * @returns list of settlements with party and coverage details, filtered to adverse parties only
  */
 export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: number) {
 	return await ctx.db
@@ -125,12 +125,27 @@ export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: nu
 			'settlement.updated_by',
 			'settlement.updated_at',
 			eb.ref('party.name').as('party_name'),
-			eb.ref('party.party_category').as('party_category'),
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 			'claim_coverage.coverage_amount',
 		])
 		.where('settlement.claim_id', '=', claimId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		// Filter to only adverse parties: check if claim_party.role array overlaps with adverse_party_role values
+		.where((eb) =>
+			eb(
+				'claim_party.role',
+				'&&',
+				eb
+					.selectFrom('reference_option')
+					.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
+					.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('values'))
+					.where('reference_list.entity', '=', 'adverse_party_role')
+					.where('reference_list.client_id', '=', ctx.session.user.client_id)
+					.where('reference_list.deleted_at', 'is', null)
+					.where('reference_option.deleted_at', 'is', null)
+					.where('reference_option.is_active', '=', true)
+			)
+		)
 		.orderBy('settlement.demand_date', 'desc')
 		.orderBy('settlement.created_at', 'desc')
 		.execute();
@@ -245,10 +260,11 @@ export async function deleteSettlement(
 
 /**
  * Get settlements for a dropdown (simplified list for forms).
+ * Only returns settlements linked to adverse parties (parties with roles from adverse_party_role).
  *
  * @param ctx - request context
  * @param claimId - claim identifier
- * @returns list of settlements with minimal info for dropdown
+ * @returns list of settlements with minimal info for dropdown, filtered to adverse parties only
  */
 export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: number) {
 	return await ctx.db
@@ -262,10 +278,26 @@ export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: 
 			'settlement.demand_date',
 			'settlement.status',
 			eb.ref('party.name').as('party_name'),
-			'claim_coverage.coverage_type',
+			'claim_coverage.loss_type',
 		])
 		.where('settlement.claim_id', '=', claimId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		// Filter to only adverse parties: check if claim_party.role array overlaps with adverse_party_role values
+		.where((eb) =>
+			eb(
+				'claim_party.role',
+				'&&',
+				eb
+					.selectFrom('reference_option')
+					.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
+					.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('values'))
+					.where('reference_list.entity', '=', 'adverse_party_role')
+					.where('reference_list.client_id', '=', ctx.session.user.client_id)
+					.where('reference_list.deleted_at', 'is', null)
+					.where('reference_option.deleted_at', 'is', null)
+					.where('reference_option.is_active', '=', true)
+			)
+		)
 		.orderBy('settlement.demand_date', 'desc')
 		.execute();
 }

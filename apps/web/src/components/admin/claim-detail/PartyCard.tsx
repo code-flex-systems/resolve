@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Button, Chip, Collapse, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, Collapse, IconButton, Stack, Typography } from '@mui/material';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
@@ -9,8 +9,10 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import Highlight from '@/components/common/Highlight';
 import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
-import { ClaimPartyRoleChip, EntityCategoryChip, FacilitatorCategoryChip } from '@/components/common/ReferenceDataSelect';
-import { formatCityState } from '@/schemas/addressSchemas';
+import { capitalize } from '@/lib/utils/utils';
+import { formatCoverageType } from '@/lib/utils/claimUtils';
+import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import { formatAddressInline } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
@@ -28,7 +30,7 @@ interface PartyCardProps {
 	onArchiveFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
 	/** Callback when clicking the party name to view details */
 	onViewDetails?: (claimParty: any) => void;
-	/** Render function for tab-specific content (coverages or liabilities) */
+	/** Render function for tab-specific content (e.g., coverages) */
 	renderTabContent?: (claimParty: any) => React.ReactNode;
 	/** Whether to show liability percentage chip (for adverse parties tab) */
 	showLiabilityPercentage?: boolean;
@@ -113,42 +115,95 @@ export default function PartyCard({
 					<Box display="flex" justifyContent="space-between" alignItems="flex-start">
 						<Box flex={1}>
 							{/* Party Name and Role */}
-							<Box display="flex" alignItems="center" gap={1} marginBottom={0.5}>
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="space-between"
+								height={20}
+								marginBottom={0.5}
+							>
 								{/* Expand/Collapse toggle for entities with nested content */}
-								{hasNestedContent && (
-									<IconButton
-										size="small"
-										onClick={handleToggleExpand}
-										sx={{ ml: -1, mr: -0.5, p: 0.25 }}
+								<Box display="flex" alignItems="center" gap={1}>
+									{hasNestedContent && (
+										<IconButton
+											size="small"
+											onClick={handleToggleExpand}
+											sx={{ ml: -1, mr: -0.5, p: 0.25 }}
+										>
+											{isExpanded ? (
+												<ExpandLess sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+											) : (
+												<ExpandMore sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+											)}
+										</IconButton>
+									)}
+									<Typography
+										fontSize={isNested ? 14 : 16}
+										fontWeight={600}
+										sx={
+											onViewDetails
+												? {
+														cursor: 'pointer',
+														'&:hover': {
+															textDecoration: 'underline',
+															color: 'primary.main',
+														},
+													}
+												: undefined
+										}
+										onClick={onViewDetails ? () => onViewDetails(claimParty) : undefined}
 									>
-										{isExpanded ? (
-											<ExpandLess sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
-										) : (
-											<ExpandMore sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+										{claimParty.party?.name || 'Unknown Party'}
+									</Typography>
+									{/* Display multiple roles as chips */}
+									{Array.isArray(claimParty.role) &&
+										claimParty.role.map((r: string) => (
+											<Chip
+												key={r}
+												label={capitalize(r.replace(/_/g, ' '))}
+												size="small"
+												color="primary"
+												sx={{ height: 20, fontSize: 11 }}
+											/>
+										))}
+									{/* For facilitators: show loss type and policy limit chips */}
+									{isNested && claimParty.loss_type && (
+										<Chip
+											label={formatCoverageType(claimParty.loss_type)}
+											size="small"
+											color="secondary"
+											sx={{ height: 20, fontSize: 11 }}
+										/>
+									)}
+									{isNested && claimParty.policy_limit != null && (
+										<Chip
+											label={`Policy Limit: ${formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}`}
+											size="small"
+											variant="outlined"
+											sx={{ height: 20, fontSize: 11 }}
+										/>
+									)}
+								</Box>
+								{/* Action Buttons - only visible in manage mode */}
+								{isManageMode && (
+									<Box display="flex" alignItems="center" gap={0.5}>
+										<BasicButtonStyled
+											buttonProps={{
+												onClick: () => onEditParty(claimParty),
+											}}
+											icon={<Edit sx={{ fontSize: 20 }} />}
+											compact
+										/>
+										{onArchiveParty && (
+											<BasicButtonStyled
+												buttonProps={{
+													onClick: () => onArchiveParty(claimParty),
+												}}
+												icon={<Archive sx={{ fontSize: 20 }} />}
+												compact
+											/>
 										)}
-									</IconButton>
-								)}
-								<Typography
-									fontSize={isNested ? 14 : 16}
-									fontWeight={600}
-									sx={
-										onViewDetails
-											? {
-													cursor: 'pointer',
-													'&:hover': { textDecoration: 'underline', color: 'primary.main' },
-												}
-											: undefined
-									}
-									onClick={onViewDetails ? () => onViewDetails(claimParty) : undefined}
-								>
-									{claimParty.party?.name || 'Unknown Party'}
-								</Typography>
-								<ClaimPartyRoleChip value={claimParty.role} showEmoji={false} />
-								{claimParty.party?.party_type === 'entity' && claimParty.party?.party_category && (
-									<EntityCategoryChip value={claimParty.party.party_category} showEmoji={false} />
-								)}
-								{claimParty.party?.party_type === 'facilitator' && claimParty.party?.party_category && (
-									<FacilitatorCategoryChip value={claimParty.party.party_category} showEmoji={false} />
+									</Box>
 								)}
 							</Box>
 
@@ -175,8 +230,8 @@ export default function PartyCard({
 								</Box>
 							)}
 
-							{/* Representative */}
-							{claimParty.representative && (
+							{/* Representative - Facilitators (structured) */}
+							{claimParty.party?.party_type === 'facilitator' && claimParty.representative && (
 								<Box marginBottom={0.5}>
 									<Typography fontSize={13} display="inline">
 										Representative:{' '}
@@ -189,9 +244,15 @@ export default function PartyCard({
 												{' '}
 												<Typography component="span" fontSize={12} color="text.secondary">
 													(
-													{claimParty.representative.email && <>✉️ {claimParty.representative.email}</>}
-													{claimParty.representative.email && claimParty.representative.phone && ' • '}
-													{claimParty.representative.phone && <>📞 {claimParty.representative.phone}</>}
+													{claimParty.representative.email && (
+														<>✉️ {claimParty.representative.email}</>
+													)}
+													{claimParty.representative.email &&
+														claimParty.representative.phone &&
+														' • '}
+													{claimParty.representative.phone && (
+														<>📞 {claimParty.representative.phone}</>
+													)}
 													)
 												</Typography>
 											</>
@@ -200,16 +261,48 @@ export default function PartyCard({
 								</Box>
 							)}
 
-							{/* Office */}
-							{claimParty.office && (
-								<Typography fontSize={13} marginBottom={0.5}>
-									Office: <Highlight>{claimParty.office.office_name}</Highlight>
-									{(claimParty.office.city || claimParty.office.state) &&
-										` - ${formatCityState(claimParty.office.city, claimParty.office.state)}`}
+							{/* Representative - Entities (free-form) */}
+							{claimParty.party?.party_type === 'entity' && claimParty.representative_name && (
+								<Box marginBottom={0.5}>
+									<Typography fontSize={13} display="inline">
+										Representative: <Highlight>{claimParty.representative_name}</Highlight>
+										{claimParty.representative_title && ` - ${claimParty.representative_title}`}
+										{(claimParty.representative_email || claimParty.representative_phone) && (
+											<>
+												{' '}
+												<Typography component="span" fontSize={12} color="text.secondary">
+													(
+													{claimParty.representative_email && (
+														<>✉️ {claimParty.representative_email}</>
+													)}
+													{claimParty.representative_email &&
+														claimParty.representative_phone &&
+														' • '}
+													{claimParty.representative_phone && (
+														<>📞 {claimParty.representative_phone}</>
+													)}
+													)
+												</Typography>
+											</>
+										)}
+									</Typography>
+								</Box>
+							)}
+
+							{/* Address */}
+							{claimParty.address && (
+								<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
+									📍{' '}
+									{claimParty.address.name && (
+										<Typography component="span" fontWeight={500}>
+											{claimParty.address.name}:{' '}
+										</Typography>
+									)}
+									{formatAddressInline(claimParty.address)}
 								</Typography>
 							)}
 
-							{/* Collapsible secondary content (coverages/liabilities, facilitators) */}
+							{/* Collapsible secondary content (coverages, facilitators) */}
 							{hasNestedContent && (
 								<Collapse in={isExpanded} timeout="auto">
 									{/* Liability Percentage (for adverse parties tab) - only for entities */}
@@ -229,7 +322,12 @@ export default function PartyCard({
 									{/* Facilitators Section */}
 									{onAddFacilitator && (
 										<Box marginTop={2}>
-											<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={1}>
+											<Box
+												display="flex"
+												justifyContent="space-between"
+												alignItems="center"
+												marginBottom={2}
+											>
 												<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
 													Facilitators ({facilitators.length})
 												</Typography>
@@ -244,7 +342,12 @@ export default function PartyCard({
 											</Box>
 
 											{facilitators.length === 0 && (
-												<Typography fontSize={12} color="text.secondary" fontStyle="italic" marginY={1}>
+												<Typography
+													fontSize={12}
+													color="text.secondary"
+													fontStyle="italic"
+													marginY={1}
+												>
 													No facilitators linked yet
 												</Typography>
 											)}
@@ -290,28 +393,6 @@ export default function PartyCard({
 								{dayjs(claimParty.created_at).fromNow()})
 							</Typography>
 						</Box>
-
-						{/* Action Buttons - only visible in manage mode */}
-						{isManageMode && (
-							<Box display="flex" gap={0.5}>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => onEditParty(claimParty),
-									}}
-									icon={<Edit />}
-									compact
-								/>
-								{onArchiveParty && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: () => onArchiveParty(claimParty),
-										}}
-										icon={<Archive />}
-										compact
-									/>
-								)}
-							</Box>
-						)}
 					</Box>
 				</Box>
 			</Box>

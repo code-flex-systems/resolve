@@ -9,16 +9,20 @@ import theme from '@/styles/theme';
 import DailyEventsList from './DailyEventsList';
 
 export default function Calendar() {
-	const [currentMonth, setCurrentMonth] = useState<Dayjs>(dayjs());
-	const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs()); // Default to today
+	// Initialize with null to avoid hydration mismatch, set actual date on client
+	const [currentMonth, setCurrentMonth] = useState<Dayjs | null>(null);
+	const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
-	// Set today as selected date on mount
+	// Set today as selected date on mount (client-side only)
 	useEffect(() => {
-		setSelectedDate(dayjs());
+		const today = dayjs();
+		setCurrentMonth(today);
+		setSelectedDate(today);
 	}, []);
 
 	// Fetch deadlines for the current month range
 	const dateRange = useMemo(() => {
+		if (!currentMonth) return null;
 		const start = currentMonth.startOf('month').toISOString();
 		const end = currentMonth.endOf('month').toISOString();
 		return [start, end] as [string, string];
@@ -26,11 +30,11 @@ export default function Calendar() {
 
 	const { data = { rows: [], count: 0 } } = useDeadlineTrpc().listDeadlines(
 		{
-			dateRange,
+			dateRange: dateRange!,
 			personalOnly: true, // Only show deadlines for claims the user is assigned to
 			// Show all deadline statuses
 		},
-		{ enabled: true }
+		{ enabled: !!dateRange }
 	);
 
 	// Group deadlines by day

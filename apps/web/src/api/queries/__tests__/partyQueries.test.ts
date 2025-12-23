@@ -8,9 +8,9 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
  *
  * This function has meaningful transformation logic:
  * 1. Groups liabilities by claim_party_id using reduce
- * 2. Transforms flat DB results into nested objects with party, representative, office, liabilities
+ * 2. Transforms flat DB results into nested objects with party, representative, address, liabilities
  * 3. Returns empty array for parties with no liabilities
- * 4. Handles null representative/office gracefully
+ * 4. Handles null representative/address gracefully
  */
 
 vi.mock('@/api/database/kysely', () => ({
@@ -47,208 +47,6 @@ describe('getClaimParties', () => {
 		vi.restoreAllMocks();
 	});
 
-	describe('Liability Grouping', () => {
-		it('should group liabilities correctly by claim_party_id', async () => {
-			// First query returns claim parties
-			const mockClaimParties = [
-				{
-					id: 1,
-					claim_id: 100,
-					party_id: 10,
-					role: 'Defendant',
-					is_primary: true,
-					notes: null,
-					external_reference: null,
-					liability_percentage: '50',
-					parent_claim_party_id: null,
-					created_at: new Date(),
-					created_by: 'user-1',
-					party_name: 'Party A',
-					party_type: 'Individual',
-					party_category: 'Defendant',
-					party_organization: null,
-					party_email: 'a@test.com',
-					party_phone: '555-0001',
-					representative_id: null,
-					representative_first_name: null,
-					representative_last_name: null,
-					representative_email: null,
-					representative_phone: null,
-					representative_title: null,
-					office_id: null,
-					office_name: null,
-					office_street_address: null,
-					office_city: null,
-					office_state: null,
-					office_postal_code: null,
-					office_country: null,
-					office_phone: null,
-				},
-				{
-					id: 2,
-					claim_id: 100,
-					party_id: 20,
-					role: 'Witness',
-					is_primary: false,
-					notes: null,
-					external_reference: null,
-					liability_percentage: '30',
-					parent_claim_party_id: null,
-					created_at: new Date(),
-					created_by: 'user-1',
-					party_name: 'Party B',
-					party_type: 'Organization',
-					party_category: 'Witness',
-					party_organization: 'Org B',
-					party_email: 'b@test.com',
-					party_phone: '555-0002',
-					representative_id: null,
-					representative_first_name: null,
-					representative_last_name: null,
-					representative_email: null,
-					representative_phone: null,
-					representative_title: null,
-					office_id: null,
-					office_name: null,
-					office_street_address: null,
-					office_city: null,
-					office_state: null,
-					office_postal_code: null,
-					office_country: null,
-					office_phone: null,
-				},
-			];
-
-			// Second query returns liabilities - 2 for party 1, 1 for party 2
-			const mockLiabilities = [
-				{
-					id: 101,
-					claim_party_id: 1,
-					amount: '5000.00',
-					liability_type: 'Property Damage',
-					deleted_at: null,
-					created_at: new Date('2025-01-01'),
-				},
-				{
-					id: 102,
-					claim_party_id: 1,
-					amount: '3000.00',
-					liability_type: 'Medical',
-					deleted_at: null,
-					created_at: new Date('2025-01-02'),
-				},
-				{
-					id: 103,
-					claim_party_id: 2,
-					amount: '1000.00',
-					liability_type: 'Property Damage',
-					deleted_at: null,
-					created_at: new Date('2025-01-03'),
-				},
-			];
-
-			let selectFromCallCount = 0;
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
-				selectFromCallCount++;
-				if (selectFromCallCount === 1) {
-					// First call: claim parties
-					return {
-						innerJoin: vi.fn().mockReturnThis(),
-						leftJoin: vi.fn().mockReturnThis(),
-						selectAll: vi.fn().mockReturnThis(),
-						select: vi.fn().mockReturnThis(),
-						where: vi.fn().mockReturnThis(),
-						orderBy: vi.fn().mockReturnThis(),
-						execute: vi.fn().mockResolvedValue(mockClaimParties),
-					} as any;
-				}
-				// Second call: liabilities
-				return {
-					selectAll: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					orderBy: vi.fn().mockReturnThis(),
-					execute: vi.fn().mockResolvedValue(mockLiabilities),
-				} as any;
-			});
-
-			const result = await getClaimParties(mockContext, 100);
-
-			// Party 1 should have 2 liabilities
-			expect(result[0].liabilities).toHaveLength(2);
-			expect(result[0].liabilities[0].id).toBe(101);
-			expect(result[0].liabilities[1].id).toBe(102);
-
-			// Party 2 should have 1 liability
-			expect(result[1].liabilities).toHaveLength(1);
-			expect(result[1].liabilities[0].id).toBe(103);
-		});
-
-		it('should return empty array for parties with no liabilities', async () => {
-			const mockClaimParties = [
-				{
-					id: 1,
-					claim_id: 100,
-					party_id: 10,
-					role: 'Defendant',
-					is_primary: true,
-					notes: null,
-					external_reference: null,
-					liability_percentage: '50',
-					parent_claim_party_id: null,
-					created_at: new Date(),
-					created_by: 'user-1',
-					party_name: 'Party A',
-					party_type: 'Individual',
-					party_category: 'Defendant',
-					party_organization: null,
-					party_email: 'a@test.com',
-					party_phone: '555-0001',
-					representative_id: null,
-					representative_first_name: null,
-					representative_last_name: null,
-					representative_email: null,
-					representative_phone: null,
-					representative_title: null,
-					office_id: null,
-					office_name: null,
-					office_street_address: null,
-					office_city: null,
-					office_state: null,
-					office_postal_code: null,
-					office_country: null,
-					office_phone: null,
-				},
-			];
-
-			let selectFromCallCount = 0;
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
-				selectFromCallCount++;
-				if (selectFromCallCount === 1) {
-					return {
-						innerJoin: vi.fn().mockReturnThis(),
-						leftJoin: vi.fn().mockReturnThis(),
-						selectAll: vi.fn().mockReturnThis(),
-						select: vi.fn().mockReturnThis(),
-						where: vi.fn().mockReturnThis(),
-						orderBy: vi.fn().mockReturnThis(),
-						execute: vi.fn().mockResolvedValue(mockClaimParties),
-					} as any;
-				}
-				// No liabilities
-				return {
-					selectAll: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					orderBy: vi.fn().mockReturnThis(),
-					execute: vi.fn().mockResolvedValue([]),
-				} as any;
-			});
-
-			const result = await getClaimParties(mockContext, 100);
-
-			expect(result[0].liabilities).toEqual([]);
-		});
-	});
-
 	describe('Data Transformation', () => {
 		it('should transform representative data correctly when present', async () => {
 			const mockClaimParties = [
@@ -266,7 +64,6 @@ describe('getClaimParties', () => {
 					created_by: 'user-1',
 					party_name: 'Party A',
 					party_type: 'Individual',
-					party_category: 'Defendant',
 					party_organization: null,
 					party_email: 'a@test.com',
 					party_phone: '555-0001',
@@ -337,7 +134,6 @@ describe('getClaimParties', () => {
 					created_by: 'user-1',
 					party_name: 'Party A',
 					party_type: 'Individual',
-					party_category: 'Defendant',
 					party_organization: null,
 					party_email: 'a@test.com',
 					party_phone: '555-0001',
@@ -385,7 +181,7 @@ describe('getClaimParties', () => {
 			expect(result[0].representative).toBeNull();
 		});
 
-		it('should transform office data correctly when present', async () => {
+		it('should return address data correctly when present', async () => {
 			const mockClaimParties = [
 				{
 					id: 1,
@@ -401,8 +197,10 @@ describe('getClaimParties', () => {
 					created_by: 'user-1',
 					party_name: 'Party A',
 					party_type: 'Organization',
-					party_category: 'Defendant',
 					party_organization: 'Org A',
+					party_is_business: true,
+					party_first_name: null,
+					party_last_name: null,
 					party_email: 'a@test.com',
 					party_phone: '555-0001',
 					representative_id: null,
@@ -411,14 +209,13 @@ describe('getClaimParties', () => {
 					representative_email: null,
 					representative_phone: null,
 					representative_title: null,
-					office_id: 60,
-					office_name: 'Main Office',
-					office_street_address: '123 Main St',
-					office_city: 'Springfield',
-					office_state: 'IL',
-					office_postal_code: '62701',
-					office_country: 'US',
-					office_phone: '555-MAIN',
+					address_id: 60,
+					address_name: 'Main Office',
+					address_street_address: '123 Main St',
+					address_city: 'Springfield',
+					address_state: 'IL',
+					address_postal_code: '62701',
+					address_country: 'US',
 				},
 			];
 
@@ -431,6 +228,7 @@ describe('getClaimParties', () => {
 						leftJoin: vi.fn().mockReturnThis(),
 						selectAll: vi.fn().mockReturnThis(),
 						select: vi.fn().mockReturnThis(),
+						distinctOn: vi.fn().mockReturnThis(),
 						where: vi.fn().mockReturnThis(),
 						orderBy: vi.fn().mockReturnThis(),
 						execute: vi.fn().mockResolvedValue(mockClaimParties),
@@ -446,19 +244,13 @@ describe('getClaimParties', () => {
 
 			const result = await getClaimParties(mockContext, 100);
 
-			expect(result[0].office).toEqual({
-				id: 60,
-				office_name: 'Main Office',
-				street_address: '123 Main St',
-				city: 'Springfield',
-				state: 'IL',
-				postal_code: '62701',
-				country: 'US',
-				phone: '555-MAIN',
-			});
+			expect(result[0].address?.id).toBe(60);
+			expect(result[0].address?.name).toBe('Main Office');
+			expect(result[0].address?.city).toBe('Springfield');
+			expect(result[0].address?.state).toBe('IL');
 		});
 
-		it('should return null for office when not present', async () => {
+		it('should return null for address fields when not present', async () => {
 			const mockClaimParties = [
 				{
 					id: 1,
@@ -474,8 +266,10 @@ describe('getClaimParties', () => {
 					created_by: 'user-1',
 					party_name: 'Party A',
 					party_type: 'Individual',
-					party_category: 'Defendant',
 					party_organization: null,
+					party_is_business: false,
+					party_first_name: 'John',
+					party_last_name: 'Doe',
 					party_email: 'a@test.com',
 					party_phone: '555-0001',
 					representative_id: null,
@@ -484,14 +278,13 @@ describe('getClaimParties', () => {
 					representative_email: null,
 					representative_phone: null,
 					representative_title: null,
-					office_id: null,
-					office_name: null,
-					office_street_address: null,
-					office_city: null,
-					office_state: null,
-					office_postal_code: null,
-					office_country: null,
-					office_phone: null,
+					address_id: null,
+					address_name: null,
+					address_street_address: null,
+					address_city: null,
+					address_state: null,
+					address_postal_code: null,
+					address_country: null,
 				},
 			];
 
@@ -504,6 +297,7 @@ describe('getClaimParties', () => {
 						leftJoin: vi.fn().mockReturnThis(),
 						selectAll: vi.fn().mockReturnThis(),
 						select: vi.fn().mockReturnThis(),
+						distinctOn: vi.fn().mockReturnThis(),
 						where: vi.fn().mockReturnThis(),
 						orderBy: vi.fn().mockReturnThis(),
 						execute: vi.fn().mockResolvedValue(mockClaimParties),
@@ -519,7 +313,7 @@ describe('getClaimParties', () => {
 
 			const result = await getClaimParties(mockContext, 100);
 
-			expect(result[0].office).toBeNull();
+			expect(result[0].address).toBeNull();
 		});
 	});
 
@@ -556,7 +350,6 @@ describe('getClaimParties', () => {
 					created_by: 'user-1',
 					party_name: 'Test Party',
 					party_type: 'Individual',
-					party_category: 'Defendant',
 					party_organization: 'Test Org',
 					party_email: 'test@test.com',
 					party_phone: '555-TEST',
@@ -605,7 +398,6 @@ describe('getClaimParties', () => {
 				id: 10,
 				name: 'Test Party',
 				party_type: 'Individual',
-				party_category: 'Defendant',
 				organization: 'Test Org',
 				email: 'test@test.com',
 				phone: '555-TEST',

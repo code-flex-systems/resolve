@@ -119,6 +119,19 @@ export enum DeadlineStatus {
 	CANCELLED = 'cancelled',
 }
 
+/**
+ * Deductible status for coverage
+ * Indicates how the insured's deductible should be treated in claim calculations
+ */
+export enum DeductibleStatus {
+	NOT_CONFIRMED = 'not_confirmed', // NC - Calculated in claim amount
+	APPLIES = 'applies', // A - Calculated in claim amount
+	WAIVED = 'waived', // W - NOT calculated in claim amount
+	REIMBURSED_BY_CLIENT = 'reimbursed_by_client', // RMBC - Calculated in claim amount
+	REIMBURSED_BY_ADVERSE = 'reimbursed_by_adverse', // RMBA - Calculated in claim amount
+	NO_DEDUCTIBLE = 'no_deductible', // ND - Deductible amount must = $0
+}
+
 export enum DocType {
 	POLICE_REPORT = 'police_report',
 	MEDICAL_RECORD = 'medical_record',

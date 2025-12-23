@@ -11,7 +11,7 @@ import { Kysely, sql } from 'kysely';
  * 4. Adds amount_reserved to claim_coverage
  *
  * Note: Both expected_recovery and total_incurred are kept as cached calculated fields on claim:
- * - expected_recovery: updated when party liability_percentage or liability amount_paid changes
+ * - expected_recovery: updated when party liability_percentage or claim_amount (subrogable payments) changes
  * - total_incurred: updated when coverage amount_reserved changes (sum of all coverage reserves)
  */
 

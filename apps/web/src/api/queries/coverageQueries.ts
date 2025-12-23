@@ -1,6 +1,12 @@
+import { sql } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { CreateCoverageInput, UpdateCoverageInput } from '@/schemas/coverageSchemas';
-import { recalculateTotalIncurred } from './claimQueries';
+import { determineSubroApplicable } from '@/api/utils/subroUtils';
+import { calculateStatuteDate } from '@/api/utils/statuteUtils';
+import {
+	shouldIncludeDeductibleInClaimAmount,
+	validateDeductibleAmount,
+} from '@/api/utils/deductibleUtils';
 
 /**
  * Get all coverages for a specific claim (active only, excludes soft-deleted).
@@ -40,87 +46,212 @@ export async function getCoveragesByClaimParty(ctx: ProtectedContext, claimParty
 
 /**
  * Create a new coverage for a claim party.
- * Recalculates total_incurred on the claim if amount_reserved is set.
+ * Updates claim.total_incurred using delta increment if amount_reserved is set.
+ * Calculates statute_date, determines subro_applicable, and handles deductible impact.
  *
  * @param ctx - request context
  * @param params - coverage data including claim_party_id
  * @returns created coverage and updated total_incurred
  */
 export async function createCoverage(ctx: ProtectedContext, params: CreateCoverageInput) {
+	// Get claim record for statute calculation and subro determination
+	const claim = await ctx.db
+		.selectFrom('claim')
+		.selectAll()
+		.where('id', '=', params.claim_id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirstOrThrow();
+
+	// Calculate statute_date using placeholder function
+	const statuteDate = calculateStatuteDate(claim);
+
+	// Determine subro_applicable if not provided by user
+	const subroApplicable = params.subro_applicable ?? determineSubroApplicable(claim);
+
+	// Default deductible_amount to 0 if not provided
+	const deductibleAmount = params.deductible_amount ?? 0;
+
+	// Validate deductible amount matches status
+	validateDeductibleAmount(deductibleAmount, params.deductible_status);
+
+	// Calculate deltas for both reserves and deductible
+	const reserveDelta = params.amount_reserved ?? 0;
+	const deductibleIncluded = shouldIncludeDeductibleInClaimAmount(params.deductible_status);
+	const deductibleDelta = deductibleIncluded ? deductibleAmount : 0;
+	const totalDelta = reserveDelta + deductibleDelta;
+
+	// Insert coverage with all new fields
 	const coverage = await ctx.db
 		.insertInto('claim_coverage')
 		.values({
 			claim_id: params.claim_id,
 			claim_party_id: params.claim_party_id,
-			coverage_type: params.coverage_type,
+			loss_type: params.loss_type,
 			coverage_amount: params.coverage_amount ?? null,
 			amount_reserved: params.amount_reserved ?? null,
+			// New fields
+			deductible_amount: deductibleAmount,
+			deductible_status: params.deductible_status,
+			subro_applicable: subroApplicable,
+			statute_date: statuteDate,
+			statute_preserved: params.statute_preserved ?? false,
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate total_incurred and return the new value
-	const totalIncurred = await recalculateTotalIncurred(ctx, params.claim_id);
+	// Update claim.total_incurred using delta increment with combined delta
+	let totalIncurred = 0;
+	if (totalDelta !== 0) {
+		const updated = await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting to preserve precision in PostgreSQL
+				total_incurred: sql`COALESCE(total_incurred::numeric, 0) + ${totalDelta}::numeric`,
+			})
+			.where('id', '=', params.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id!)
+			.returning('total_incurred')
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
+	} else {
+		// No delta, fetch current total_incurred
+		const currentClaim = await ctx.db
+			.selectFrom('claim')
+			.select('total_incurred')
+			.where('id', '=', params.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id!)
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = currentClaim.total_incurred ? parseFloat(currentClaim.total_incurred) : 0;
+	}
 
 	return { coverage, totalIncurred };
 }
 
 /**
  * Update an existing coverage.
- * Recalculates total_incurred on the claim if amount_reserved is changed.
+ * Updates claim.total_incurred using delta increment if amount_reserved or deductible changed.
  *
  * @param ctx - request context
  * @param id - coverage identifier
  * @param params - fields to update
  * @returns updated coverage and updated total_incurred
  */
-export async function updateCoverage(ctx: ProtectedContext, id: number, params: Omit<UpdateCoverageInput, 'id'>) {
+export async function updateCoverage(
+	ctx: ProtectedContext,
+	id: number,
+	params: Omit<UpdateCoverageInput, 'id'>
+) {
+	// Get old coverage values for delta calculation
+	const oldCoverage = await ctx.db
+		.selectFrom('claim_coverage')
+		.select(['amount_reserved', 'deductible_amount', 'deductible_status', 'claim_id'])
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('deleted_at', 'is', null)
+		.executeTakeFirstOrThrow();
+
+	// Calculate reserve delta
+	const oldReserve = oldCoverage.amount_reserved ?? 0;
+	const newReserve =
+		params.amount_reserved !== undefined ? (params.amount_reserved ?? 0) : oldReserve;
+	const reserveDelta = Number(newReserve) - Number(oldReserve);
+
+	// Calculate deductible delta
+	const oldDeductibleAmount = oldCoverage.deductible_amount ?? 0;
+	const newDeductibleAmount =
+		params.deductible_amount !== undefined ? (params.deductible_amount ?? 0) : oldDeductibleAmount;
+
+	const oldDeductibleStatus = oldCoverage.deductible_status;
+	const newDeductibleStatus = params.deductible_status ?? oldDeductibleStatus;
+
+	// Validate new deductible if status is NO_DEDUCTIBLE
+	if (params.deductible_status || params.deductible_amount !== undefined) {
+		validateDeductibleAmount(newDeductibleAmount, newDeductibleStatus);
+	}
+
+	// Calculate old and new deductible impacts on total_incurred
+	const oldDeductibleIncluded = shouldIncludeDeductibleInClaimAmount(oldDeductibleStatus);
+	const newDeductibleIncluded = shouldIncludeDeductibleInClaimAmount(newDeductibleStatus);
+
+	const oldDeductibleImpact = oldDeductibleIncluded ? Number(oldDeductibleAmount) : 0;
+	const newDeductibleImpact = newDeductibleIncluded ? Number(newDeductibleAmount) : 0;
+	const deductibleDelta = newDeductibleImpact - oldDeductibleImpact;
+
+	// Build update set object dynamically to only update changed fields
+	const updateSet: any = {
+		updated_by: ctx.session.user.id,
+		updated_at: new Date(),
+	};
+
+	if (params.loss_type !== undefined) updateSet.loss_type = params.loss_type;
+	if (params.coverage_amount !== undefined) updateSet.coverage_amount = params.coverage_amount;
+	if (params.amount_reserved !== undefined) updateSet.amount_reserved = params.amount_reserved;
+	if (params.deductible_amount !== undefined)
+		updateSet.deductible_amount = params.deductible_amount;
+	if (params.deductible_status !== undefined)
+		updateSet.deductible_status = params.deductible_status;
+	if (params.subro_applicable !== undefined)
+		updateSet.subro_applicable = params.subro_applicable;
+	if (params.statute_preserved !== undefined)
+		updateSet.statute_preserved = params.statute_preserved;
+
+	// Update coverage with new values
 	const coverage = await ctx.db
 		.updateTable('claim_coverage')
-		.set({
-			coverage_type: params.coverage_type,
-			coverage_amount: params.coverage_amount,
-			amount_reserved: params.amount_reserved,
-			updated_by: ctx.session.user.id,
-			updated_at: new Date(),
-		})
+		.set(updateSet)
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
 		.where('deleted_at', 'is', null)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Recalculate total_incurred and return the new value
-	const totalIncurred = await recalculateTotalIncurred(ctx, coverage.claim_id);
+	// Update claim.total_incurred only if deltas are non-zero
+	const totalDelta = reserveDelta + deductibleDelta;
+
+	let totalIncurred = 0;
+	if (totalDelta !== 0) {
+		const updated = await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting to preserve precision in PostgreSQL
+				total_incurred: sql`COALESCE(total_incurred::numeric, 0) + ${totalDelta}::numeric`,
+			})
+			.where('id', '=', oldCoverage.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.returning('total_incurred')
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
+	} else {
+		// No delta, fetch current total_incurred
+		const claim = await ctx.db
+			.selectFrom('claim')
+			.select('total_incurred')
+			.where('id', '=', oldCoverage.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = claim.total_incurred ? parseFloat(claim.total_incurred) : 0;
+	}
 
 	return { coverage, totalIncurred };
 }
 
 /**
  * Soft delete a coverage (archive).
- * Recalculates total_incurred on the claim after archiving.
+ * Updates claim.total_incurred using delta decrement for both amount_reserved and deductible.
  *
  * @param ctx - request context
  * @param id - coverage identifier
  * @returns claimId and updated total_incurred
  */
 export async function archiveCoverage(ctx: ProtectedContext, id: number) {
-	// Get the claim_id before soft-deleting so we can recalculate afterward
+	// Archive coverage and get needed fields via RETURNING
 	const coverage = await ctx.db
-		.selectFrom('claim_coverage')
-		.select(['claim_id'])
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.where('deleted_at', 'is', null)
-		.executeTakeFirst();
-
-	if (!coverage) {
-		throw new Error('Coverage not found');
-	}
-
-	await ctx.db
 		.updateTable('claim_coverage')
 		.set({
 			deleted_at: new Date(),
@@ -128,43 +259,97 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
 		})
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('deleted_at', 'is', null)
+		.returning(['claim_id', 'amount_reserved', 'deductible_amount', 'deductible_status'])
+		.executeTakeFirstOrThrow();
 
-	// Recalculate total_incurred and return the new value
-	const totalIncurred = await recalculateTotalIncurred(ctx, coverage.claim_id);
+	// Calculate total impact to reverse (reserve + deductible if included)
+	const reserveImpact = coverage.amount_reserved ?? 0;
+	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status)
+		? (coverage.deductible_amount ?? 0)
+		: 0;
+	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);
+
+	// Update claim.total_incurred by removing both impacts
+	let totalIncurred = 0;
+	if (totalImpact !== 0) {
+		const updated = await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting to preserve precision in PostgreSQL
+				total_incurred: sql`COALESCE(total_incurred::numeric, 0) - ${totalImpact}::numeric`,
+			})
+			.where('id', '=', coverage.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.returning('total_incurred')
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
+	} else {
+		// No impact, fetch current total_incurred
+		const claim = await ctx.db
+			.selectFrom('claim')
+			.select('total_incurred')
+			.where('id', '=', coverage.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = claim.total_incurred ? parseFloat(claim.total_incurred) : 0;
+	}
 
 	return { claimId: coverage.claim_id, totalIncurred };
 }
 
 /**
  * Hard delete a coverage (for admin cleanup only).
- * Recalculates total_incurred on the claim after deletion.
+ * Updates claim.total_incurred using delta decrement for both amount_reserved and deductible.
  *
  * @param ctx - request context
  * @param id - coverage identifier
  * @returns claimId and updated total_incurred
  */
 export async function deleteCoverage(ctx: ProtectedContext, id: number) {
-	// Get the claim_id before deleting so we can recalculate afterward
+	// Delete coverage and get needed fields via RETURNING
 	const coverage = await ctx.db
-		.selectFrom('claim_coverage')
-		.select(['claim_id'])
-		.where('id', '=', id)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (!coverage) {
-		throw new Error('Coverage not found');
-	}
-
-	await ctx.db
 		.deleteFrom('claim_coverage')
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.returning(['claim_id', 'amount_reserved', 'deductible_amount', 'deductible_status'])
+		.executeTakeFirstOrThrow();
 
-	// Recalculate total_incurred and return the new value
-	const totalIncurred = await recalculateTotalIncurred(ctx, coverage.claim_id);
+	// Calculate total impact to reverse (reserve + deductible if included)
+	const reserveImpact = coverage.amount_reserved ?? 0;
+	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status)
+		? (coverage.deductible_amount ?? 0)
+		: 0;
+	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);
+
+	// Update claim.total_incurred by removing both impacts
+	let totalIncurred = 0;
+	if (totalImpact !== 0) {
+		const updated = await ctx.db
+			.updateTable('claim')
+			.set({
+				// Use ::numeric casting to preserve precision in PostgreSQL
+				total_incurred: sql`COALESCE(total_incurred::numeric, 0) - ${totalImpact}::numeric`,
+			})
+			.where('id', '=', coverage.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.returning('total_incurred')
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
+	} else {
+		// No impact, fetch current total_incurred
+		const claim = await ctx.db
+			.selectFrom('claim')
+			.select('total_incurred')
+			.where('id', '=', coverage.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.executeTakeFirstOrThrow();
+
+		totalIncurred = claim.total_incurred ? parseFloat(claim.total_incurred) : 0;
+	}
 
 	return { claimId: coverage.claim_id, totalIncurred };
 }
@@ -206,6 +391,30 @@ export async function archiveCoveragesByClaimParty(ctx: ProtectedContext, claimP
 			claim_party_id: null, // Nullify FK to allow claim_party deletion
 		})
 		.where('claim_party_id', '=', claimPartyId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('deleted_at', 'is', null)
+		.execute();
+}
+
+/**
+ * Archive coverages for multiple claim parties in a single batch query (Phase 1.2 optimization)
+ * @param ctx - request context
+ * @param claimPartyIds - array of claim_party IDs to archive coverages for
+ */
+export async function archiveCoveragesByClaimPartyIds(
+	ctx: ProtectedContext,
+	claimPartyIds: number[]
+): Promise<void> {
+	if (claimPartyIds.length === 0) return;
+
+	await ctx.db
+		.updateTable('claim_coverage')
+		.set({
+			deleted_at: new Date(),
+			deleted_by: ctx.session.user.id,
+			claim_party_id: null, // Nullify FK to allow claim_party deletion
+		})
+		.where('claim_party_id', 'in', claimPartyIds) // WHERE IN for batch operation
 		.where('client_id', '=', ctx.session.user.client_id)
 		.where('deleted_at', 'is', null)
 		.execute();

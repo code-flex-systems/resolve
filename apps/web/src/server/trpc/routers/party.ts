@@ -9,12 +9,27 @@ import {
 	createPartyInput,
 	updatePartyInput,
 	deletePartyInput,
-	getPartyOfficesInput,
-	getAllPartyOfficesInput,
-	createPartyOfficeInput,
-	updatePartyOfficeInput,
-	archivePartyOfficeInput,
-	deletePartyOfficeInput,
+	// Address schemas (renamed from Office)
+	getPartyAddressesInput,
+	getAllPartyAddressesInput,
+	getPartyAddressInput,
+	createPartyAddressInput,
+	updatePartyAddressInput,
+	archivePartyAddressInput,
+	restorePartyAddressInput,
+	// Phone schemas
+	getPartyPhonesInput,
+	createPartyPhoneInput,
+	updatePartyPhoneInput,
+	archivePartyPhoneInput,
+	restorePartyPhoneInput,
+	// Email schemas
+	getPartyEmailsInput,
+	createPartyEmailInput,
+	updatePartyEmailInput,
+	archivePartyEmailInput,
+	restorePartyEmailInput,
+	// Representative schemas
 	getPartyRepresentativesInput,
 	getAllPartyRepresentativesInput,
 	createPartyRepresentativeInput,
@@ -22,6 +37,7 @@ import {
 	archivePartyRepresentativeInput,
 	restorePartyRepresentativeInput,
 	deletePartyRepresentativeInput,
+	// Claim party schemas
 	getClaimPartiesInput,
 	linkPartyToClaimInput,
 	updateClaimPartyInput,
@@ -124,107 +140,252 @@ export const partyRouter = router({
 		}),
 
 	// ========================================================================
-	// PARTY OFFICE CRUD OPERATIONS
+	// PARTY ADDRESS CRUD OPERATIONS (renamed from PARTY OFFICE)
 	// ========================================================================
 
 	/**
-	 * Get offices for a party (Admin + Contributor read access)
+	 * Get addresses for a party (Admin + Contributor read access)
 	 */
+	getPartyAddresses: protectedProcedure
+		.input(getPartyAddressesInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.getPartyAddresses(ctx, input);
+		}),
+
+	/**
+	 * Get all party addresses (Admin + Contributor read access)
+	 */
+	getAllPartyAddresses: protectedProcedure
+		.input(getAllPartyAddressesInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.getAllPartyAddresses(ctx, input);
+		}),
+
+	/**
+	 * Get single party address by ID (Admin + Contributor read access)
+	 */
+	getPartyAddress: protectedProcedure
+		.input(getPartyAddressInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.getPartyAddress(ctx, input);
+		}),
+
+	/**
+	 * Create party address (Admin + Contributor)
+	 */
+	createPartyAddress: protectedProcedure
+		.input(createPartyAddressInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.createPartyAddress(ctx, input);
+		}),
+
+	/**
+	 * Update party address (Admin + Contributor)
+	 */
+	updatePartyAddress: protectedProcedure
+		.input(updatePartyAddressInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.updatePartyAddress(ctx, input);
+		}),
+
+	/**
+	 * Archive party address (Admin only)
+	 */
+	archivePartyAddress: protectedProcedure
+		.input(archivePartyAddressInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return partyController.archivePartyAddress(ctx, input);
+		}),
+
+	/**
+	 * Restore party address (Admin only)
+	 */
+	restorePartyAddress: protectedProcedure
+		.input(restorePartyAddressInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return partyController.restorePartyAddress(ctx, input);
+		}),
+
+	// Legacy aliases for backwards compatibility (Office -> Address)
 	getPartyOffices: protectedProcedure
-		.input(getPartyOfficesInput)
+		.input(getPartyAddressesInput)
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [
 				config.ROLES.CONTRIBUTOR,
 				config.ROLES.ADMIN,
 				config.ROLES.SUPER_ADMIN,
 			]);
-			return partyController.getPartyOffices(ctx, input);
+			return partyController.getPartyAddresses(ctx, input);
 		}),
 
-	/**
-	 * Get all party offices (Admin + Contributor read access)
-	 */
 	getAllPartyOffices: protectedProcedure
-		.input(getAllPartyOfficesInput)
+		.input(getAllPartyAddressesInput)
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [
 				config.ROLES.CONTRIBUTOR,
 				config.ROLES.ADMIN,
 				config.ROLES.SUPER_ADMIN,
 			]);
-			return partyController.getAllPartyOffices(ctx, input);
+			return partyController.getAllPartyAddresses(ctx, input);
 		}),
 
+	// ========================================================================
+	// PARTY PHONE CRUD OPERATIONS
+	// ========================================================================
+
 	/**
-	 * Get single party office by ID (Admin + Contributor read access)
+	 * Get phones for a party (Admin + Contributor read access)
 	 */
-	getPartyOffice: protectedProcedure
-		.input(getPartyInput)
+	getPartyPhones: protectedProcedure
+		.input(getPartyPhonesInput)
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [
 				config.ROLES.CONTRIBUTOR,
 				config.ROLES.ADMIN,
 				config.ROLES.SUPER_ADMIN,
 			]);
-			return partyController.getPartyOffice(ctx, input);
+			return partyController.getPartyPhones(ctx, input);
 		}),
 
 	/**
-	 * Create party office (Admin + Contributor)
+	 * Create party phone (Admin + Contributor)
 	 */
-	createPartyOffice: protectedProcedure
-		.input(createPartyOfficeInput)
+	createPartyPhone: protectedProcedure
+		.input(createPartyPhoneInput)
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [
 				config.ROLES.CONTRIBUTOR,
 				config.ROLES.ADMIN,
 				config.ROLES.SUPER_ADMIN,
 			]);
-			return partyController.createPartyOffice(ctx, input);
+			return partyController.createPartyPhone(ctx, input);
 		}),
 
 	/**
-	 * Update party office (Admin + Contributor)
+	 * Update party phone (Admin + Contributor)
 	 */
-	updatePartyOffice: protectedProcedure
-		.input(updatePartyOfficeInput)
+	updatePartyPhone: protectedProcedure
+		.input(updatePartyPhoneInput)
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [
 				config.ROLES.CONTRIBUTOR,
 				config.ROLES.ADMIN,
 				config.ROLES.SUPER_ADMIN,
 			]);
-			return partyController.updatePartyOffice(ctx, input);
+			return partyController.updatePartyPhone(ctx, input);
 		}),
 
 	/**
-	 * Archive party office (Admin only)
+	 * Archive party phone (Admin only)
 	 */
-	archivePartyOffice: protectedProcedure
-		.input(archivePartyOfficeInput)
+	archivePartyPhone: protectedProcedure
+		.input(archivePartyPhoneInput)
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return partyController.archivePartyOffice(ctx, input);
+			return partyController.archivePartyPhone(ctx, input);
 		}),
 
 	/**
-	 * Restore party office (Admin only)
+	 * Restore party phone (Admin only)
 	 */
-	restorePartyOffice: protectedProcedure
-		.input(archivePartyOfficeInput)
+	restorePartyPhone: protectedProcedure
+		.input(restorePartyPhoneInput)
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return partyController.restorePartyOffice(ctx, input);
+			return partyController.restorePartyPhone(ctx, input);
+		}),
+
+	// ========================================================================
+	// PARTY EMAIL CRUD OPERATIONS
+	// ========================================================================
+
+	/**
+	 * Get emails for a party (Admin + Contributor read access)
+	 */
+	getPartyEmails: protectedProcedure
+		.input(getPartyEmailsInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.getPartyEmails(ctx, input);
 		}),
 
 	/**
-	 * Delete party office (Admin only) - Deprecated: use archivePartyOffice
+	 * Create party email (Admin + Contributor)
 	 */
-	deletePartyOffice: protectedProcedure
-		.input(deletePartyOfficeInput)
+	createPartyEmail: protectedProcedure
+		.input(createPartyEmailInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.createPartyEmail(ctx, input);
+		}),
+
+	/**
+	 * Update party email (Admin + Contributor)
+	 */
+	updatePartyEmail: protectedProcedure
+		.input(updatePartyEmailInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [
+				config.ROLES.CONTRIBUTOR,
+				config.ROLES.ADMIN,
+				config.ROLES.SUPER_ADMIN,
+			]);
+			return partyController.updatePartyEmail(ctx, input);
+		}),
+
+	/**
+	 * Archive party email (Admin only)
+	 */
+	archivePartyEmail: protectedProcedure
+		.input(archivePartyEmailInput)
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return partyController.archivePartyOffice(ctx, input);
+			return partyController.archivePartyEmail(ctx, input);
+		}),
+
+	/**
+	 * Restore party email (Admin only)
+	 */
+	restorePartyEmail: protectedProcedure
+		.input(restorePartyEmailInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return partyController.restorePartyEmail(ctx, input);
 		}),
 
 	// ========================================================================

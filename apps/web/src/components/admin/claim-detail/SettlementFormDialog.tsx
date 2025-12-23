@@ -40,7 +40,7 @@ interface AdverseParty {
 
 interface Coverage {
 	id: number;
-	coverage_type: string;
+	loss_type: string;
 	coverage_amount?: number | string | null;
 }
 
@@ -83,7 +83,7 @@ export default function SettlementFormDialog({
 						<Select
 							value={formData.claim_party_id}
 							label="Adverse Party"
-							onChange={(e) => setFormData({ ...formData, claim_party_id: e.target.value as number })}
+							onChange={(e) => setFormData({ ...formData, claim_party_id: Number(e.target.value) })}
 						>
 							{adverseParties.map((cp) => (
 								<MenuItem key={cp.id} value={cp.id}>
@@ -97,11 +97,11 @@ export default function SettlementFormDialog({
 						<Select
 							value={formData.coverage_id}
 							label="Coverage"
-							onChange={(e) => setFormData({ ...formData, coverage_id: e.target.value as number })}
+							onChange={(e) => setFormData({ ...formData, coverage_id: Number(e.target.value) })}
 						>
 							{coverages.map((coverage) => (
 								<MenuItem key={coverage.id} value={coverage.id}>
-									{capitalize(coverage.coverage_type)}
+									{capitalize(coverage.loss_type)}
 									{coverage.coverage_amount
 										? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}`
 										: ''}

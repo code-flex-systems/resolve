@@ -1,10 +1,20 @@
-import config from '@/config/config';
+import config, { getFiscalYearStart } from '@/config/config';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { InstanceListItem, TreeNode } from '@/types/types';
 import dayjs from 'dayjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 // public methods
+
+/**
+ * Format a phone number for display.
+ * Returns formatted number like "(212) 555-1234" or the original string if parsing fails.
+ */
+export function formatPhoneDisplay(phone: string | null | undefined): string {
+	if (!phone) return '';
+	const parsed = parsePhoneNumberFromString(phone, 'US');
+	return parsed?.formatNational() ?? phone;
+}
 
 export function capitalize(word: string) {
 	return `${word[0].toUpperCase()}${word.slice(1)}`;
@@ -17,9 +27,10 @@ export function getInitials(name: string | null | undefined) {
 }
 
 export function getCurrentFiscalQuarter() {
-	const q1End = config.FISCAL_YEAR_START_DATE.add(3, 'months');
-	const q2End = config.FISCAL_YEAR_START_DATE.add(6, 'months');
-	const q3End = config.FISCAL_YEAR_START_DATE.add(9, 'months');
+	const fiscalYearStart = getFiscalYearStart();
+	const q1End = fiscalYearStart.add(3, 'months');
+	const q2End = fiscalYearStart.add(6, 'months');
+	const q3End = fiscalYearStart.add(9, 'months');
 	const today = dayjs();
 	if (today.isBefore(q1End)) return 1;
 	if (today.isBefore(q2End)) return 2;
@@ -29,13 +40,13 @@ export function getCurrentFiscalQuarter() {
 
 export function getCurrentFiscalQuarterStart() {
 	const currentQ = getCurrentFiscalQuarter();
-	const qEnd = config.FISCAL_YEAR_START_DATE.add(currentQ * 3, 'months');
+	const qEnd = getFiscalYearStart().add(currentQ * 3, 'months');
 	return qEnd.subtract(3, 'months');
 }
 
 export function getDaysToEndOfFiscalQuarter() {
 	const currentQ = getCurrentFiscalQuarter();
-	const qEnd = config.FISCAL_YEAR_START_DATE.add(currentQ * 3, 'months');
+	const qEnd = getFiscalYearStart().add(currentQ * 3, 'months');
 	return qEnd.diff(dayjs(), 'days');
 }
 
@@ -94,16 +105,12 @@ export function formatMetric(
 
 export function formatMD(date?: string) {
 	if (!date) return '';
-	const parsedDate = dayjs(date);
-	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
-	return parsedDate.format('MMM D');
+	return dayjs(date).format('MMM D');
 }
 
 export function formatMDY(date?: string) {
 	if (!date) return '';
-	const parsedDate = dayjs(date);
-	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
-	return parsedDate.format('MMMM D, YYYY');
+	return dayjs(date).format('MMMM D, YYYY');
 }
 
 export function formatDateForSentence(date: string) {
@@ -112,9 +119,7 @@ export function formatDateForSentence(date: string) {
 
 export function formatMDYAbv(date?: string) {
 	if (!date) return '';
-	const parsedDate = dayjs(date);
-	if (parsedDate.isSame(new Date(), 'day')) return 'Today';
-	return parsedDate.format('MM/DD/YY');
+	return dayjs(date).format('MM/DD/YY');
 }
 
 export function formatUser<T extends GetUserOutput | undefined>(user: T, me?: string) {

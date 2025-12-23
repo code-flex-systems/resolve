@@ -1,28 +1,24 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Paper, Switch, Typography } from '@mui/material';
+import { Button, Chip, Paper, Switch, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
-import Category from '@mui/icons-material/Category';
-import Email from '@mui/icons-material/Email';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PartyActionsCell from './PartyActionsCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
-import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
-import { PartyCategoryValue } from '../common/ReferenceDataSelect';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { formatPhoneDisplay } from '@/lib/utils/utils';
 
 interface PartiesTabProps {
 	isAdminContext?: boolean;
@@ -30,45 +26,53 @@ interface PartiesTabProps {
 
 const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
-		headerName: 'Party',
-		field: 'party',
-		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={row.name} secondary={row.organization ?? 'No organization'} />
-		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Business style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
+		headerName: 'Name',
+		field: 'name',
 		flex: 1,
+		minWidth: 180,
 	},
 	{
 		headerName: 'Type',
 		field: 'party_type',
 		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.party_type}
-				secondary={
-					<PartyCategoryValue
-						value={row.party_category}
-						partyType={row.party_type}
-						showEmoji={false}
-						fontSize={12}
-					/>
-				}
+			<Chip
+				label={row.party_type === 'entity' ? 'Entity' : 'Facilitator'}
+				size="small"
+				color={row.party_type === 'entity' ? 'primary' : 'secondary'}
+				variant="outlined"
 			/>
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Category style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
+		width: 110,
+	},
+	{
+		headerName: 'Organization',
+		field: 'organization',
+		renderCell: ({ row }) => row.organization || '—',
+		width: 160,
+	},
+	{
+		headerName: 'Email',
+		field: 'primary_email',
+		renderCell: ({ row }) => row.primary_email || '—',
 		width: 200,
 	},
 	{
-		headerName: 'Contact',
-		field: 'contact',
-		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={row.email ?? 'No email'} secondary={row.phone ?? 'No phone'} />
-		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Email style={{ color: BASE_COLOR_LIGHT }} />} />,
-		width: 250,
+		headerName: 'Phone',
+		field: 'primary_phone',
+		renderCell: ({ row }) => formatPhoneDisplay(row.primary_phone) || '—',
+		width: 140,
+	},
+	{
+		headerName: 'City',
+		field: 'primary_city',
+		renderCell: ({ row }) => row.primary_city || '—',
+		width: 120,
+	},
+	{
+		headerName: 'State',
+		field: 'primary_state',
+		renderCell: ({ row }) => row.primary_state || '—',
+		width: 80,
 	},
 	{
 		headerName: '',
@@ -232,7 +236,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 							}}
 							rows={data.rows}
 							rowCount={rowCount}
-							rowHeight={60}
+							rowHeight={45}
 							hideFooterSelectedRowCount
 							pageSizeOptions={[]}
 							pagination
@@ -242,7 +246,13 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
-							sx={styles.tableOverrides}
+							sx={{
+								...styles.tableOverrides,
+								'& .MuiDataGrid-cell': {
+									display: 'flex',
+									alignItems: 'center',
+								},
+							}}
 						/>
 					</div>
 
@@ -272,6 +282,7 @@ const styles = {
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
+		overflow: 'hidden',
 	},
 	tableOverrides: {
 		border: 'none',

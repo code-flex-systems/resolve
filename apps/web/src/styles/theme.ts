@@ -835,30 +835,8 @@ const theme = createTheme({
 		},
 		MuiSwitch: {
 			styleOverrides: {
-				root: {
-					width: 44,
-					height: 24,
-					padding: 0,
-				},
-				switchBase: {
-					padding: 2,
-					'&.Mui-checked': {
-						transform: 'translateX(20px)',
-						'& + .MuiSwitch-track': {
-							backgroundColor: '#21B5FF',
-							opacity: 1,
-						},
-					},
-				},
 				thumb: {
-					width: 20,
-					height: 20,
 					boxShadow: SHADOW_SM,
-				},
-				track: {
-					borderRadius: 12,
-					backgroundColor: BORDER_COLOR,
-					opacity: 1,
 				},
 			},
 		},
@@ -1135,10 +1113,10 @@ export const dataGridStyles = {
 		alignItems: 'center',
 		borderBottom: `1px solid ${BORDER_LIGHT}`,
 	},
-	'& .MuiDataGrid-cell:focus': {
+	'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible': {
 		outline: 'none',
 	},
-	'& .MuiDataGrid-cell:focus-within': {
+	'& .MuiDataGrid-cell.MuiDataGrid-cell--editing:focus-within': {
 		outline: 'none',
 	},
 	'& .MuiDataGrid-columnHeader': {

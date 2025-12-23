@@ -190,54 +190,31 @@ export interface ClaimCoverage {
   claim_party_id: number | null;
   client_id: string;
   coverage_amount: Numeric | null;
+  created_at: Generated<Timestamp | null>;
+  created_by: string | null;
+  deductible_amount: Numeric | null;
+  deductible_status: Generated<string>;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  id: Generated<number>;
   /**
    * Type of coverage (CoverageType enum enforced in TypeScript)
    */
-  coverage_type: string;
-  created_at: Generated<Timestamp | null>;
-  created_by: string | null;
-  deleted_at: Timestamp | null;
-  deleted_by: string | null;
-  id: Generated<number>;
-  updated_at: Timestamp | null;
-  updated_by: string | null;
-}
-
-export interface ClaimLiability {
-  amount_paid: Numeric | null;
-  claim_party_id: number;
-  client_id: string;
-  coverage_amount: Numeric | null;
-  created_at: Generated<Timestamp>;
-  created_by: string | null;
-  deleted_at: Timestamp | null;
-  deleted_by: string | null;
-  /**
-   * External ID from source system (for upsert logic)
-   */
-  external_reference: string | null;
-  /**
-   * Which feed sourced this liability
-   */
-  feed_id: number | null;
-  id: Generated<number>;
-  /**
-   * When feed last updated this record
-   */
-  last_synced_at: Timestamp | null;
-  line_of_business: string | null;
-  loss_type: string | null;
-  /**
-   * User edited after feed sync - prevents feed overwrites
-   */
-  manually_overridden: Generated<boolean | null>;
-  notes: string | null;
+  loss_type: string;
+  statute_date: Timestamp | null;
+  statute_preserved: Generated<boolean>;
+  subro_applicable: Generated<boolean>;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface ClaimParty {
+  /**
+   * Office/address for facilitator representatives (required when representative_id is set for facilitators)
+   */
+  address_id: number | null;
   claim_id: number;
+  client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -255,17 +232,61 @@ export interface ClaimParty {
   id: Generated<number>;
   is_primary: Generated<boolean>;
   liability_percentage: Numeric | null;
+  /**
+   * For facilitators: type of loss this carrier covers (bodily_injury, property_damage, etc.)
+   */
+  loss_type: string | null;
   notes: string | null;
   parent_claim_party_id: number | null;
   party_id: number;
+  /**
+   * For facilitators: maximum amount the adverse carrier will pay (policy limit)
+   */
+  policy_limit: Numeric | null;
+  /**
+   * Free-form representative email (entities only)
+   */
+  representative_email: string | null;
   /**
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
   /**
-   * Role this party plays on this specific claim (e.g., adverse_carrier, our_attorney, responsible_party)
+   * Free-form representative name (entities only - for facilitators use representative_id)
    */
-  role: string;
+  representative_name: string | null;
+  /**
+   * Free-form representative phone (entities only)
+   */
+  representative_phone: string | null;
+  /**
+   * Free-form representative title (entities only)
+   */
+  representative_title: string | null;
+  role: Generated<string[]>;
+}
+
+export interface ClaimPayment {
+  claim_id: number;
+  client_id: string;
+  coverage_id: number;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  description: string | null;
+  external_reference: string | null;
+  feed_id: string | null;
+  id: Generated<number>;
+  is_expense: Generated<boolean>;
+  is_subrogable: Generated<boolean>;
+  manually_overridden: Generated<boolean | null>;
+  payee_claim_party_id: number | null;
+  payment_amount: Numeric;
+  payment_code: string | null;
+  payment_date: Timestamp;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
 }
 
 export interface Client {
@@ -519,9 +540,7 @@ export interface PageInstanceStatus {
 }
 
 export interface Party {
-  city: string | null;
   client_id: string;
-  country: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -532,28 +551,26 @@ export interface Party {
    * Email of user who archived this party
    */
   deleted_by: string | null;
-  email: string | null;
+  first_name: string | null;
   id: Generated<number>;
+  is_business: Generated<boolean>;
+  last_name: string | null;
+  middle_name: string | null;
   name: string;
   notes: string | null;
   organization: string | null;
   /**
-   * For facilitators: adverse_carrier, attorney, expert, vendor. For entities: responsible_party, claimant, witness, property_owner
-   */
-  party_category: string;
-  /**
    * entity = directly involved in loss, facilitator = representative/service provider
    */
   party_type: string;
-  phone: string | null;
-  postal_code: string | null;
-  state: string | null;
-  street_address: string | null;
+  suffix: string | null;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
-export interface PartyOffice {
+export interface PartyAddress {
+  address_status: Generated<string>;
+  address_type: Generated<string>;
   city: string | null;
   country: string | null;
   created_at: Generated<Timestamp>;
@@ -566,12 +583,9 @@ export interface PartyOffice {
    * Email of user who archived this office
    */
   deleted_by: string | null;
-  fax: string | null;
   id: Generated<number>;
-  is_primary: Generated<boolean>;
-  office_name: string | null;
+  name: string | null;
   party_id: number;
-  phone: string | null;
   postal_code: string | null;
   state: string | null;
   street_address: string | null;
@@ -579,7 +593,44 @@ export interface PartyOffice {
   updated_by: string | null;
 }
 
+export interface PartyEmail {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  email_address: string;
+  email_type: Generated<string>;
+  external_reference: string | null;
+  feed_id: string | null;
+  id: Generated<number>;
+  party_id: number;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface PartyPhone {
+  area_code: string | null;
+  client_id: string;
+  country_code: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  extension: string | null;
+  external_reference: string | null;
+  feed_id: string | null;
+  id: Generated<number>;
+  party_id: number;
+  phone_number: string;
+  phone_status: Generated<string>;
+  phone_type: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
 export interface PartyRepresentative {
+  address_id: number | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -597,7 +648,6 @@ export interface PartyRepresentative {
   is_primary: Generated<boolean>;
   last_name: string;
   mobile_phone: string | null;
-  office_id: number | null;
   party_id: number;
   phone: string | null;
   title: string | null;
@@ -899,8 +949,8 @@ export interface DB {
   claim: Claim;
   claim_activity_logs: ClaimActivityLogs;
   claim_coverage: ClaimCoverage;
-  claim_liability: ClaimLiability;
   claim_party: ClaimParty;
+  claim_payment: ClaimPayment;
   client: Client;
   comment: Comment;
   deadline: Deadline;
@@ -915,7 +965,9 @@ export interface DB {
   page_instance: PageInstance;
   page_instance_status: PageInstanceStatus;
   party: Party;
-  party_office: PartyOffice;
+  party_address: PartyAddress;
+  party_email: PartyEmail;
+  party_phone: PartyPhone;
   party_representative: PartyRepresentative;
   question: Question;
   question_response: QuestionResponse;

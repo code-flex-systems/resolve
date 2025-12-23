@@ -51,19 +51,18 @@ async function createSettlementDependencies(
 		client_id,
 		created_by,
 		party_type: 'facilitator',
-		party_category: 'adverse_carrier',
 	});
 	const claimParty = await createTestClaimParty(db, {
 		claim_id,
 		party_id: party.id,
 		created_by,
-		role: 'adverse_carrier',
+		role: ['adverse_carrier'],
 	});
 	const coverage = await createTestCoverage(db, {
 		client_id,
 		claim_id,
 		created_by,
-		coverage_type: 'liability',
+		loss_type: 'liability',
 		coverage_amount: 100000,
 	});
 	return { party, claimParty, coverage };
@@ -202,7 +201,7 @@ describe('settlementQueries integration', () => {
 			expect(result).toBeDefined();
 			expect(result?.id).toBe(settlement.id);
 			expect(result?.party_name).toBe(party.name);
-			expect(result?.coverage_type).toBe(coverage.coverage_type);
+			expect(result?.loss_type).toBe(coverage.loss_type);
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -645,7 +644,7 @@ describe('settlementQueries integration', () => {
 			// Assert
 			expect(result).toHaveLength(1);
 			expect(result[0].party_name).toBe(party.name);
-			expect(result[0].coverage_type).toBe(coverage.coverage_type);
+			expect(result[0].loss_type).toBe(coverage.loss_type);
 			expect(parseFloat(result[0].demand_amount as string)).toBe(50000);
 			expect(result[0].status).toBe(SettlementStatus.SENT);
 		});

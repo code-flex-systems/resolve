@@ -58,19 +58,19 @@ async function createSettlementChain(
 		client_id,
 		created_by,
 		party_type: 'facilitator',
-		party_category: 'adverse_carrier',
 	});
 	const claimParty = await createTestClaimParty(db, {
 		claim_id,
 		party_id: party.id,
+		client_id,
 		created_by,
-		role: 'adverse_carrier',
+		role: ['adverse_carrier'],
 	});
 	const coverage = await createTestCoverage(db, {
 		client_id,
 		claim_id,
 		created_by,
-		coverage_type: 'liability',
+		loss_type: 'liability',
 		coverage_amount: 100000,
 	});
 	const settlement = await createTestSettlement(db, {
