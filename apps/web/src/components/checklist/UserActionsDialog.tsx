@@ -17,6 +17,7 @@ import BasicAutocomplete from '../common/BasicAutocomplete';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ActionInput } from '@/schemas/actionSchemas';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 const actionTypeOptions: { icon: JSX.Element; value: ActionType }[] = [
 	{
@@ -63,6 +64,7 @@ export default function UserActionsDialog() {
 	const toggleActionDialog = useChecklistStore((state) => state.toggleActionDialog);
 	const { data: existingAction } = useActionTrpc().get({ answerId: selectedAnswer });
 	const { mutateAsync: upsertAction, isPending: isCreating } = useActionTrpc().create;
+	const { showSuccess, showError } = useCrudAlerts('action');
 	const {
 		control,
 		handleSubmit,
@@ -92,9 +94,10 @@ export default function UserActionsDialog() {
 					recipients: data.recipients.map((r) => r.email),
 				},
 			});
+			showSuccess('update', 'Action saved');
 			toggleActionDialog();
 		} catch (e) {
-			console.error(e);
+			showError('update', e, 'Failed to save action');
 		}
 	});
 

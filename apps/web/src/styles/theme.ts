@@ -789,28 +789,24 @@ const theme = createTheme({
 					fontWeight: 500,
 				},
 				standardSuccess: {
-					backgroundColor: 'rgba(34, 197, 94, 0.1)',
 					color: '#15803d',
 					'& .MuiAlert-icon': {
 						color: '#22c55e',
 					},
 				},
 				standardError: {
-					backgroundColor: 'rgba(239, 68, 68, 0.1)',
 					color: '#b91c1c',
 					'& .MuiAlert-icon': {
 						color: '#ef4444',
 					},
 				},
 				standardWarning: {
-					backgroundColor: 'rgba(245, 158, 11, 0.1)',
 					color: '#b45309',
 					'& .MuiAlert-icon': {
 						color: '#f59e0b',
 					},
 				},
 				standardInfo: {
-					backgroundColor: 'rgba(33, 181, 255, 0.1)',
 					color: '#0369a1',
 					'& .MuiAlert-icon': {
 						color: '#21B5FF',

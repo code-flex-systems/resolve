@@ -17,6 +17,7 @@ import { useMemo, useState } from 'react';
 import { DialogAction } from '@/types/types';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import ChecklistProgress from './ChecklistProgress';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
@@ -24,6 +25,7 @@ export default function ChecklistProgressDialog() {
 	const toggleChecklistHandoffDialog = useChecklistStore((state) => state.toggleChecklistHandoffDialog);
 	const toggleChecklistProgressDialog = useChecklistStore((state) => state.toggleChecklistProgressDialog);
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { showSuccess, showError } = useCrudAlerts('checklist status');
 	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
 		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: checklistId !== -1 && claimId !== -1 });
 	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
@@ -42,9 +44,15 @@ export default function ChecklistProgressDialog() {
 				onClick: async () => {
 					try {
 						await updateChecklistClaim({ status: confirmingStatus, checklistId, claimId });
+						if (confirmingStatus) {
+							showSuccess(
+								'update',
+								`Checklist marked as ${confirmingStatus.replace('_', ' ').toLowerCase()}`
+							);
+						}
 						toggleChecklistProgressDialog(false);
 					} catch (e) {
-						console.error(e);
+						showError('update', e, 'Failed to update checklist status');
 					}
 				},
 			};
