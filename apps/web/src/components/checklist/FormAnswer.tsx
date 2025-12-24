@@ -45,6 +45,7 @@ import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import { getAllowedExtensions } from '@/config/allowedFileTypes';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -78,6 +79,7 @@ export default function FormAnswer() {
 	const [copiedField, setCopiedField] = useState<string | null>(null);
 	const [showDocSelector, setShowDocSelector] = useState(false);
 	const [attachedDoc, setAttachedDoc] = useState<DocListItem | null>(null);
+	const { showSuccess, showError } = useCrudAlerts('answer');
 
 	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
 		{ answerId: selectedAnswerData.id },
@@ -204,8 +206,9 @@ export default function FormAnswer() {
 			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
+			showSuccess(selectedAnswerData.id === -1 ? 'create' : 'update');
 		} catch (e) {
-			console.error(e);
+			showError(selectedAnswerData.id === -1 ? 'create' : 'update', e, 'Failed to save answer');
 		}
 	});
 
@@ -216,9 +219,12 @@ export default function FormAnswer() {
 				answerId: selectedAnswerData.id,
 				pageId: selectedPageInfo.pageId,
 			});
-			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
+			if (newAnswer) {
+				updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
+				showSuccess('copy');
+			}
 		} catch (e) {
-			console.error(e);
+			showError('copy', e, 'Failed to copy answer');
 		}
 	};
 
@@ -226,8 +232,9 @@ export default function FormAnswer() {
 		try {
 			await deleteAnswer({ answerId: selectedAnswerData.id, pageId: selectedPageInfo.pageId });
 			updateSelectedAnswer(selectedQuestion, null); // TODO
+			showSuccess('delete', 'Answer deleted');
 		} catch (e) {
-			console.error(e);
+			showError('delete', e, 'Failed to delete answer');
 		}
 	};
 
@@ -263,9 +270,9 @@ export default function FormAnswer() {
 				params: { answer_id: null },
 			});
 			setAttachedDoc(null);
+			showSuccess('update', 'Attachment removed from answer');
 		} catch (e) {
-			console.error(e);
-			alert('Failed to remove image attachment');
+			showError('update', e, 'Failed to remove image attachment');
 		}
 	};
 

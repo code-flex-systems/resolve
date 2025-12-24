@@ -132,7 +132,8 @@ describe('docQueries integration', () => {
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
-				role: 'adverse_carrier',
+				client_id: client.id,
+				role: ['adverse_carrier'],
 			});
 			const coverage = await createTestCoverage(db, {
 				client_id: client.id,

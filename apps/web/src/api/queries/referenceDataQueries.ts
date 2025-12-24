@@ -219,7 +219,7 @@ export async function updateReferenceOption(
 	}
 ) {
 	// Update reference option (existence check implicit in executeTakeFirstOrThrow - Phase 5.1 optimization)
-	return await ctx.db
+	const result = await ctx.db
 		.updateTable('reference_option')
 		.set({
 			...params,
@@ -229,7 +229,13 @@ export async function updateReferenceOption(
 		.where('reference_option.id', '=', id)
 		.where('reference_option.client_id', '=', ctx.session.user.client_id)
 		.returningAll()
-		.executeTakeFirstOrThrow();
+		.executeTakeFirst();
+
+	if (!result) {
+		throw new Error('Reference option not found');
+	}
+
+	return result;
 }
 
 /**

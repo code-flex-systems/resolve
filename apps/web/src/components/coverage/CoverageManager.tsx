@@ -19,6 +19,7 @@ import CoverageFormDialog from './CoverageFormDialog';
 import { DEDUCTIBLE_STATUS_OPTIONS } from './DeductibleStatusSelect';
 import { shouldIncludeDeductibleInClaimAmount } from '@/api/utils/deductibleUtils';
 import { DeductibleStatus } from '@/config/enums';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 function NoRows() {
 	return (
@@ -42,6 +43,7 @@ export default function CoverageManager({
 }: CoverageManagerProps) {
 	const [showDialog, setShowDialog] = useState(false);
 	const [editingCoverage, setEditingCoverage] = useState<CoverageListItem | null>(null);
+	const { showSuccess, showError } = useCrudAlerts('coverage');
 
 	const { data: coverages = [], isFetching } = useCoverageTrpc().list({ claimId });
 	const createCoverage = useCoverageTrpc().create;
@@ -94,6 +96,7 @@ export default function CoverageManager({
 					subro_applicable: data.subro_applicable,
 					statute_preserved: data.statute_preserved,
 				});
+				showSuccess('update', 'Coverage updated');
 			} else {
 				// Note: Creating coverages requires claim_party_id which is not supported in this component.
 				// Coverage creation should be done through the ClaimantsCoverageTab in claim detail view.
@@ -101,7 +104,7 @@ export default function CoverageManager({
 			}
 			handleCloseDialog();
 		} catch (error) {
-			console.error('Failed to save coverage:', error);
+			showError('update', error, 'Failed to save coverage');
 		}
 	};
 

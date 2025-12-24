@@ -12,12 +12,14 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 export default function ChecklistActionsCell(params: GridRenderCellParams) {
 	const router = useRouter();
 	const [updating, setUpdating] = useState(false);
 	const { mutate: updateChecklist, isPending } = useChecklistTrpc().update;
 	const published = params.row.published;
+	const { showSuccess, showError } = useCrudAlerts('checklist');
 
 	return (
 		<>
@@ -68,7 +70,15 @@ export default function ChecklistActionsCell(params: GridRenderCellParams) {
 					primaryAction={{
 						label: 'Confirm',
 						onClick: () => {
-							updateChecklist({ id: params.row.id, params: { published: !published } });
+							updateChecklist(
+								{ id: params.row.id, params: { published: !published } },
+								{
+									onSuccess: () =>
+										showSuccess('update', published ? 'Checklist unpublished' : 'Checklist published'),
+									onError: (error) =>
+										showError('update', error, 'Failed to update checklist visibility'),
+								}
+							);
 							setUpdating(false);
 						},
 						color: published ? 'error' : 'success',

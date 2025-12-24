@@ -340,14 +340,14 @@ describe('referenceDataQueries integration tests', () => {
 			expect(result!.id).toBe(opt.id);
 		});
 
-		it('should return undefined if list does not exist', async () => {
+		it('should return null if list does not exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
 			const result = await getReferenceOption(ctx, 'nonexistent', 'value');
 
-			expect(result).toBeUndefined();
+			expect(result).toBeNull();
 		});
 
 		it('should not return deleted option by default', async () => {
@@ -366,7 +366,7 @@ describe('referenceDataQueries integration tests', () => {
 
 			const result = await getReferenceOption(ctx, entity, 'deleted_val');
 
-			expect(result).toBeUndefined();
+			expect(result).toBeNull();
 		});
 
 		it('should return deleted option when includeDeactivated is true', async () => {

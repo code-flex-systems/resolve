@@ -571,13 +571,13 @@ describe('coverageQueries integration tests', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				party_name: 'Test Party A',
+				name: 'Test Party A',
 			});
 			const party2 = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				party_name: 'Test Party B',
+				name: 'Test Party B',
 			});
 			const claimParty1 = await createTestClaimParty(db, {
 				client_id: client.id,
@@ -850,13 +850,13 @@ describe('coverageQueries integration tests', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				party_name: 'Test Party 1',
+				name: 'Test Party 1',
 			});
 			const party2 = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				party_name: 'Test Party 2',
+				name: 'Test Party 2',
 			});
 			const claimParty1 = await createTestClaimParty(db, {
 				client_id: client.id,

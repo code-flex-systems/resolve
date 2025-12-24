@@ -9,12 +9,14 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import Handshake from '@mui/icons-material/Handshake';
 import Warning from '@mui/icons-material/Warning';
 import theme, { BASE_COLOR } from '@/styles/theme';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 export default function ChecklistHandoffDialog() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 	const selectedAssignee = useChecklistStore((state) => state.selectedAssignee);
 	const formattedAssignee = `${selectedAssignee?.first ?? ''} ${selectedAssignee?.last ?? ''}`.trim();
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
+	const { showSuccess, showError } = useCrudAlerts('checklist');
 
 	const onClose = () => {
 		useChecklistStore.getState().toggleChecklistHandoffDialog();
@@ -30,8 +32,12 @@ export default function ChecklistHandoffDialog() {
 				onClick: async () => {
 					try {
 						await updateChecklistClaim({ assignee: selectedAssignee?.email, checklistId, claimId });
+						showSuccess(
+							'assign',
+							`Checklist handed off to ${formattedAssignee || selectedAssignee?.email ?? 'new assignee'}`
+						);
 					} catch (e) {
-						console.error(e);
+						showError('assign', e, 'Failed to hand off checklist');
 					}
 					useChecklistStore.getState().toggleChecklistHandoffDialog();
 					useChecklistStore.getState().toggleChecklistProgressDialog(false);

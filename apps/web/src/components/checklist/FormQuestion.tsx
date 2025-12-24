@@ -40,6 +40,7 @@ import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
+import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -56,6 +57,7 @@ export default function FormQuestion() {
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
 	const { data: pageTemplates = [] } = usePageTrpc().listTemplates();
+	const { showSuccess, showError } = useCrudAlerts('question');
 
 	const { create, copy, list, remove, update } = useQuestionTrpc();
 	const { isPending: adding, mutateAsync: addQuestion } = create;
@@ -121,8 +123,9 @@ export default function FormQuestion() {
 			}
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
+			showSuccess(selectedQuestionData.id === -1 ? 'create' : 'update');
 		} catch (e) {
-			console.error(e);
+			showError(selectedQuestionData.id === -1 ? 'create' : 'update', e, 'Failed to save question');
 		}
 	});
 
@@ -133,8 +136,9 @@ export default function FormQuestion() {
 				pageId: selectedPageInfo.pageId,
 			});
 			updateSelectedQuestion(newQuestion.id);
+			showSuccess('copy');
 		} catch (e) {
-			console.error(e);
+			showError('copy', e, 'Failed to copy question');
 		}
 	};
 
@@ -145,8 +149,9 @@ export default function FormQuestion() {
 				pageId: selectedPageInfo.pageId,
 			});
 			updateSelectedQuestion(null);
+			showSuccess('delete', 'Question deleted');
 		} catch (e) {
-			console.error(e);
+			showError('delete', e, 'Failed to delete question');
 		}
 	};
 
@@ -182,9 +187,9 @@ export default function FormQuestion() {
 				params: { question_id: null },
 			});
 			setAttachedDoc(null);
+			showSuccess('update', 'Attachment removed from question');
 		} catch (e) {
-			console.error(e);
-			alert('Failed to remove document attachment');
+			showError('update', e, 'Failed to remove document attachment');
 		}
 	};
 
