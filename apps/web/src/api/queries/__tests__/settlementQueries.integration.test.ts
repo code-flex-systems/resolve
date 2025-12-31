@@ -26,9 +26,8 @@ import {
 	getSettlement,
 	getSettlementsByClaimId,
 	updateSettlement,
-	deleteSettlement,
+	archiveSettlement,
 	getSettlementsForDropdown,
-	getSettlementForDeletion,
 } from '../settlementQueries';
 import { SettlementStatus } from '@/config/enums';
 import type { Kysely } from 'kysely';
@@ -543,7 +542,7 @@ describe('settlementQueries integration', () => {
 		});
 	});
 
-	describe('deleteSettlement', () => {
+	describe('archiveSettlement', () => {
 		it('should delete a settlement', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -566,7 +565,7 @@ describe('settlementQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await deleteSettlement(ctx, settlement.id, claim.id);
+			const result = await archiveSettlement(ctx, settlement.id, claim.id);
 
 			// Assert
 			expect(result.id).toBe(settlement.id);
@@ -603,7 +602,7 @@ describe('settlementQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert - Wrong claim ID should fail
-			await expect(deleteSettlement(ctx, settlement.id, claim2.id)).rejects.toThrow();
+			await expect(archiveSettlement(ctx, settlement.id, claim2.id)).rejects.toThrow();
 
 			// Verify settlement still exists
 			const stillExists = await db
@@ -638,7 +637,7 @@ describe('settlementQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act & Assert - Other client should not be able to delete
-			await expect(deleteSettlement(ctx2, settlement.id, claim.id)).rejects.toThrow();
+			await expect(archiveSettlement(ctx2, settlement.id, claim.id)).rejects.toThrow();
 		});
 	});
 
@@ -750,86 +749,6 @@ describe('settlementQueries integration', () => {
 
 			// Assert - Other client should not see settlements
 			expect(result).toHaveLength(0);
-		});
-	});
-
-	describe('getSettlementForDeletion', () => {
-		it('should return settlement fields for logging', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const { claimParty, coverage } = await createSettlementDependencies(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				created_by: user.id,
-			});
-
-			const settlement = await createTestSettlement(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				claim_party_id: claimParty.id,
-				coverage_id: coverage.id,
-				created_by: user.id,
-				demand_amount: 50000,
-				status: SettlementStatus.SENT,
-			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await getSettlementForDeletion(ctx, settlement.id);
-
-			// Assert
-			expect(result).toBeDefined();
-			expect(result?.id).toBe(settlement.id);
-			expect(result?.claim_id).toBe(claim.id);
-			expect(parseFloat(result?.demand_amount as string)).toBe(50000);
-			expect(result?.status).toBe(SettlementStatus.SENT);
-		});
-
-		it('should enforce tenant isolation', async () => {
-			// Arrange
-			const client1 = await createTestClient(db, { name: 'Client 1' });
-			const client2 = await createTestClient(db, { name: 'Client 2' });
-			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client1.id });
-			const { claimParty, coverage } = await createSettlementDependencies(db, {
-				client_id: client1.id,
-				claim_id: claim.id,
-				created_by: user1.id,
-			});
-
-			const settlement = await createTestSettlement(db, {
-				client_id: client1.id,
-				claim_id: claim.id,
-				claim_party_id: claimParty.id,
-				coverage_id: coverage.id,
-				created_by: user1.id,
-			});
-
-			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
-
-			// Act
-			const result = await getSettlementForDeletion(ctx2, settlement.id);
-
-			// Assert
-			expect(result).toBeUndefined();
-		});
-
-		it('should return undefined for non-existent settlement', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await getSettlementForDeletion(ctx, 999999);
-
-			// Assert
-			expect(result).toBeUndefined();
 		});
 	});
 });

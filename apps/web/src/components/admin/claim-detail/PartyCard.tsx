@@ -266,25 +266,6 @@ export default function PartyCard({
 								<Box marginBottom={0.5}>
 									<Typography fontSize={13} display="inline">
 										Representative: <Highlight>{claimParty.representative_name}</Highlight>
-										{claimParty.representative_title && ` - ${claimParty.representative_title}`}
-										{(claimParty.representative_email || claimParty.representative_phone) && (
-											<>
-												{' '}
-												<Typography component="span" fontSize={12} color="text.secondary">
-													(
-													{claimParty.representative_email && (
-														<>✉️ {claimParty.representative_email}</>
-													)}
-													{claimParty.representative_email &&
-														claimParty.representative_phone &&
-														' • '}
-													{claimParty.representative_phone && (
-														<>📞 {claimParty.representative_phone}</>
-													)}
-													)
-												</Typography>
-											</>
-										)}
 									</Typography>
 								</Box>
 							)}

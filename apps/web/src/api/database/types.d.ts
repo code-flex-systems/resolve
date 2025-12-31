@@ -244,10 +244,6 @@ export interface ClaimParty {
    */
   policy_limit: Numeric | null;
   /**
-   * Free-form representative email (entities only)
-   */
-  representative_email: string | null;
-  /**
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
@@ -255,14 +251,6 @@ export interface ClaimParty {
    * Free-form representative name (entities only - for facilitators use representative_id)
    */
   representative_name: string | null;
-  /**
-   * Free-form representative phone (entities only)
-   */
-  representative_phone: string | null;
-  /**
-   * Free-form representative title (entities only)
-   */
-  representative_title: string | null;
   role: Generated<string[]>;
 }
 
@@ -702,6 +690,8 @@ export interface RecoveryEvent {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   id: Generated<number>;
   notes: string | null;
   recovery_amount: Numeric;
@@ -816,6 +806,8 @@ export interface Settlement {
   coverage_id: number;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   demand_amount: Numeric;
   demand_date: Timestamp;
   id: Generated<number>;
@@ -823,6 +815,22 @@ export interface Settlement {
   settlement_amount: Numeric | null;
   settlement_date: Timestamp | null;
   status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface StatuteRule {
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  id: Generated<number>;
+  /**
+   * JSONB mapping tort_type_value to {default_years, rules[]}
+   */
+  rules: Generated<Json>;
+  /**
+   * US state/territory abbreviation (e.g., AL, DC, VI, PR)
+   */
+  state_code: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -977,6 +985,7 @@ export interface DB {
   reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
   settlement: Settlement;
+  statute_rule: StatuteRule;
   task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;

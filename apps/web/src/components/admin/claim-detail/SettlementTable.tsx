@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
+import { numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
 import { SettlementStatus } from '@/config/enums';
 import dayjs from 'dayjs';
 
@@ -134,6 +135,13 @@ export default function SettlementTable({
 						</Typography>
 					);
 				},
+				sortComparator: (v1, v2, param1, param2) => {
+					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
+					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
+					const a = row1?.type === 'settlement' ? (row1?.party_name || '') : (row1?.recovery_source || '');
+					const b = row2?.type === 'settlement' ? (row2?.party_name || '') : (row2?.recovery_source || '');
+					return a.toLowerCase().localeCompare(b.toLowerCase());
+				},
 			},
 			{
 				field: 'loss_type',
@@ -145,6 +153,7 @@ export default function SettlementTable({
 					}
 					return null;
 				},
+				sortComparator: stringSortComparator,
 			},
 			{
 				field: 'demand_amount',
@@ -158,6 +167,7 @@ export default function SettlementTable({
 					}
 					return null;
 				},
+				sortComparator: numericSortComparator,
 			},
 			{
 				field: 'total_recovered',
@@ -177,6 +187,13 @@ export default function SettlementTable({
 						return <Typography fontSize={13}>{formatCurrencyExact(params.row.recovery_amount)}</Typography>;
 					}
 					return null;
+				},
+				sortComparator: (v1, v2, param1, param2) => {
+					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
+					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
+					const a = row1?.type === 'settlement' ? (row1?.total_recovered || 0) : (row1?.recovery_amount || 0);
+					const b = row2?.type === 'settlement' ? (row2?.total_recovered || 0) : (row2?.recovery_amount || 0);
+					return a - b;
 				},
 			},
 			{
@@ -198,6 +215,7 @@ export default function SettlementTable({
 					}
 					return null;
 				},
+				sortComparator: numericSortComparator,
 			},
 			{
 				field: 'status',
@@ -211,6 +229,7 @@ export default function SettlementTable({
 					}
 					return null;
 				},
+				sortComparator: stringSortComparator,
 			},
 			{
 				field: 'date',
@@ -222,6 +241,16 @@ export default function SettlementTable({
 						return <Typography fontSize={13}>{dayjs(date).format('MMM D, YYYY')}</Typography>;
 					}
 					return null;
+				},
+				sortComparator: (v1, v2, param1, param2) => {
+					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
+					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
+					const date1 = row1?.type === 'settlement' ? row1?.demand_date : row1?.recovery_date;
+					const date2 = row2?.type === 'settlement' ? row2?.demand_date : row2?.recovery_date;
+					if (!date1 && !date2) return 0;
+					if (!date1) return 1;
+					if (!date2) return -1;
+					return new Date(date1).getTime() - new Date(date2).getTime();
 				},
 			},
 			{

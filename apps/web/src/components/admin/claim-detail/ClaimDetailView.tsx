@@ -28,13 +28,10 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 			const tabMap: Record<string, number> = {
 				overview: 0,
 				workflow: 1,
-				recovery: 2,
-				'settlement-recovery': 2, // New URL
-				settlement: 2, // Alias
-				'claimants-coverage': 3,
-				'adverse-parties-liability': 4,
-				'facilitators-liability': 4, // Keep old URL for backwards compatibility
-				payments: 5,
+				'claimants-coverage': 2,
+				'adverse-parties-liability': 3,
+				payments: 4,
+				'settlement-recovery': 5,
 			};
 			const tabIndex = tabMap[tabParam.toLowerCase()];
 			if (tabIndex !== undefined) {
@@ -66,10 +63,10 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 					>
 						<Tab label="Overview" />
 						<Tab label="Workflow & Assignment" />
-						<Tab label="Settlement & Recovery" />
 						<Tab label="Claimants & Coverage" />
 						<Tab label="Adverse Parties & Liability" />
 						<Tab label="Payments" />
+						<Tab label="Settlement & Recovery" />
 					</Tabs>
 				</Paper>
 
@@ -80,10 +77,10 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 							<Box width="100%" maxWidth={1400}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
-								{currentTab === 2 && <SettlementRecoveryTab claimId={claimId} />}
-								{currentTab === 3 && <ClaimantsCoverageTab claimId={claimId} />}
-								{currentTab === 4 && <PartyLiabilityTab claimId={claimId} />}
-								{currentTab === 5 && <PaymentsTab claimId={claimId} />}
+								{currentTab === 2 && <ClaimantsCoverageTab claimId={claimId} />}
+								{currentTab === 3 && <PartyLiabilityTab claimId={claimId} />}
+								{currentTab === 4 && <PaymentsTab claimId={claimId} />}
+								{currentTab === 5 && <SettlementRecoveryTab claimId={claimId} />}
 							</Box>
 						</Box>
 					</Box>

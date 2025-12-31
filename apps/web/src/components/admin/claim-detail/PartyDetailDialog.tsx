@@ -154,23 +154,9 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 				)}
 
 				{/* Representative Information Section - Entities (free-form) */}
-				{party.party_type === 'entity' && (freshClaimParty.representative_name ||
-					freshClaimParty.representative_title ||
-					freshClaimParty.representative_email ||
-					freshClaimParty.representative_phone) && (
+				{party.party_type === 'entity' && freshClaimParty.representative_name && (
 					<Section title="Representative Information">
-						{freshClaimParty.representative_name && (
-							<DetailRow label="Name" value={freshClaimParty.representative_name} />
-						)}
-						{freshClaimParty.representative_title && (
-							<DetailRow label="Title" value={freshClaimParty.representative_title} />
-						)}
-						{freshClaimParty.representative_email && (
-							<DetailRow label="Email" value={freshClaimParty.representative_email} />
-						)}
-						{freshClaimParty.representative_phone && (
-							<DetailRow label="Phone" value={freshClaimParty.representative_phone} />
-						)}
+						<DetailRow label="Representative" value={freshClaimParty.representative_name} />
 					</Section>
 				)}
 

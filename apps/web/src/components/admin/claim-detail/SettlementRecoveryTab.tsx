@@ -13,6 +13,7 @@ import SettlementFormDialog, { SettlementFormData } from './SettlementFormDialog
 import RecoveryFormDialog, { RecoveryFormData } from './RecoveryFormDialog';
 import SettlementTable from './SettlementTable';
 import SettlementTimeline from './SettlementTimeline';
+import RecoverySummaryTable from './RecoverySummaryTable';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
@@ -85,6 +86,10 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		{ enabled: !!claimId }
 	);
 	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery({ claimId }, { enabled: !!claimId });
+	const { data: recoverySummary = [], isLoading: isLoadingSummary } = useRecoveryTrpc().getRecoverySummaryByCoverage(
+		{ claimId },
+		{ enabled: !!claimId }
+	);
 
 	// Mutations
 	const createRecoveryEvent = useRecoveryTrpc().createRecoveryEvent;
@@ -104,9 +109,18 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 	});
 	const deleteSettlement = trpc.settlement.deleteSettlement.useMutation({
 		onSuccess: () => {
+			// Invalidate settlement queries
 			utils.settlement.listSettlements.invalidate({ claimId });
 			utils.settlement.getSettlementsForDropdown.invalidate({ claimId });
+			// Invalidate recovery queries (cascade deletes recovery events)
 			utils.recovery.listRecoveryEvents.invalidate({ claimId });
+			utils.recovery.getRecoverySummaryByCoverage.invalidate({ claimId });
+			utils.recovery.listRecoveryEventsWithFilters.invalidate();
+			// Invalidate recovery metrics
+			utils.recovery.getRecoveryMetricsSummary.invalidate();
+			utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+			// Invalidate claim detail to update actual_recovery totals
+			utils.claim.getClaimDetail.invalidate({ claimId });
 		},
 	});
 
@@ -148,6 +162,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 			if (editingRecovery) {
 				await updateRecoveryEvent.mutateAsync({
 					recoveryEventId: editingRecovery.id,
+					claimId,
 					params: {
 						settlement_id: Number(recoveryForm.settlement_id),
 						recovery_date: recoveryForm.recovery_date,
@@ -156,8 +171,6 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						notes: recoveryForm.notes || undefined,
 					},
 				});
-				utils.recovery.listRecoveryEvents.invalidate({ claimId });
-				utils.claim.getClaimDetail.invalidate({ claimId });
 				showAlert('Recovery event updated successfully', 'success');
 			} else {
 				await createRecoveryEvent.mutateAsync({
@@ -274,11 +287,6 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		}
 	};
 
-	const totalDemanded = settlements.reduce(
-		(sum, s) => sum + (s.demand_amount ? parseFloat(s.demand_amount.toString()) : 0),
-		0
-	);
-
 	const isLoading = isLoadingRecovery || isLoadingSettlements;
 
 	return (
@@ -289,58 +297,11 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Settlement & Recovery Summary
 					</Typography>
-					<Box
-						display="grid"
-						gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }}
-						gap={3}
-					>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Total Demanded
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of all settlement demands
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="warning.main">
-								{formatCurrencyExact(totalDemanded)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Expected Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Team's forecasted recovery
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="primary.main">
-								{formatCurrencyExact(Number(claimDetail?.expected_recovery) || 0)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Actual Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Payments received
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="success.main">
-								{formatCurrencyExact(Number(claimDetail?.actual_recovery) || 0)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Recovery Rate
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Actual vs Expected
-							</Typography>
-							<Typography variant="h6" fontSize={18}>
-								{claimDetail?.expected_recovery && Number(claimDetail.expected_recovery) > 0
-									? `${Math.round((Number(claimDetail.actual_recovery || 0) / Number(claimDetail.expected_recovery)) * 100)}%`
-									: 'N/A'}
-							</Typography>
-						</Box>
-					</Box>
+					<RecoverySummaryTable
+						data={recoverySummary}
+						ourLiabilityPercentage={claimDetail?.our_liability_percentage ?? 0}
+						isLoading={isLoadingSummary}
+					/>
 				</Paper>
 
 				{/* Settlements & Recoveries */}

@@ -34,7 +34,7 @@ interface AddressFormData {
 
 interface AddressDialogProps {
 	address?: PartyAddress & { party_name?: string };
-	onClose?: () => void;
+	onClose?: (createdAddress?: PartyAddress) => void;
 }
 
 export default function AddressDialog({ address, onClose }: AddressDialogProps) {
@@ -44,7 +44,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 	const { mutateAsync: createAddress, isPending: creating } = partyTrpc.createAddress;
 	const { mutateAsync: updateAddress, isPending: updating } = partyTrpc.updateAddress;
 
-	const isEditMode = !!address;
+	const isEditMode = !!address?.id;
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<PartySearchResult | null>(null);
 
@@ -84,9 +84,9 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 	// At least one of name, street_address, or city is required
 	const hasRequiredField = name || street_address || city;
 
-	const handleClose = () => {
+	const handleClose = (createdAddress?: PartyAddress) => {
 		if (onClose) {
-			onClose();
+			onClose(createdAddress);
 		} else {
 			toggleNewAddressDialog();
 		}
@@ -117,7 +117,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 				showAlert('Address updated successfully', 'success');
 			} else {
 				// Create new address
-				await createAddress({
+				const createdAddress = await createAddress({
 					party_id: data.party_id!,
 					name: data.name || undefined,
 					street_address: data.street_address || null,
@@ -129,6 +129,8 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 					address_status: data.address_status as 'valid' | 'mailing' | 'undeliverable' | 'unknown',
 				});
 				showAlert('Address created successfully', 'success');
+				handleClose(createdAddress as unknown as PartyAddress);
+				return;
 			}
 			handleClose();
 		} catch (error: any) {
@@ -142,7 +144,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 
 	return (
 		<BasicDialog
-			title={isEditMode ? `Edit Address${address?.party_name ? ` - ${address.party_name}` : ''}` : 'New Address'}
+			title={isEditMode ? `Edit Address${address?.party_name ? ` - ${address.party_name}` : ''}` : `New Address${address?.party_name ? ` - ${address.party_name}` : ''}`}
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: handleSubmit(onSubmit),
@@ -158,8 +160,8 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 			width={600}
 		>
 			<form style={styles.form}>
-				{/* Party Selection - Only shown when creating new address */}
-				{!isEditMode && (
+				{/* Party Selection - Only shown when creating new address without a pre-selected party */}
+				{!isEditMode && !address?.party_id && (
 					<Controller
 						name="party_id"
 						control={control}

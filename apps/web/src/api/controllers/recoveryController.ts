@@ -58,7 +58,7 @@ export async function listRecoveryEvents(
 }
 
 /**
- * Delete a recovery event and recalculate claim's actual_recovery.
+ * Archive (soft delete) a recovery event and recalculate claim's actual_recovery.
  *
  * @param ctx - request context
  * @param input - recovery event id and claim id
@@ -73,23 +73,23 @@ export async function deleteRecoveryEvent(
 		claimId: number;
 	}
 ) {
-	// Delete recovery event and log admin action within transaction
+	// Archive recovery event and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch recovery event data BEFORE deletion for logging
-		const event = await recoveryQueries.getRecoveryEventForDeletion({ ...ctx, db: trx }, recoveryEventId);
+		// Archive returns all fields needed for logging - no separate fetch required
+		const archived = await recoveryQueries.archiveRecoveryEvent({ ...ctx, db: trx }, recoveryEventId, claimId);
 
-		// Delete the recovery event
-		await recoveryQueries.deleteRecoveryEvent({ ...ctx, db: trx }, recoveryEventId, claimId);
-
-		// Log admin action for recovery event deletion
-		if (event) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: recoveryEventId,
-				entityName: EntityName.RECOVERY_EVENT,
-				action: AdminAction.DELETE,
-				value: { claimId: event.claim_id, recovery_amount: event.recovery_amount, recovery_date: event.recovery_date, recovery_source: event.recovery_source },
-			});
-		}
+		// Log admin action using returned data
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: archived.id,
+			entityName: EntityName.RECOVERY_EVENT,
+			action: AdminAction.DELETE,
+			value: {
+				claimId: archived.claim_id,
+				recovery_amount: archived.recovery_amount,
+				recovery_date: archived.recovery_date,
+				recovery_source: archived.recovery_source,
+			},
+		});
 	});
 }
 
@@ -177,6 +177,24 @@ export async function exportRecoveryEvents(
 	}
 ) {
 	return await recoveryQueries.exportRecoveryEvents(ctx, input.filters);
+}
+
+// =====================================================================
+// RECOVERY SUMMARY BY COVERAGE
+// =====================================================================
+
+/**
+ * Get recovery summary aggregated by coverage type.
+ *
+ * @param ctx - request context
+ * @param input - claim id
+ * @returns array of coverage summaries with subrogable amounts and actual recoveries
+ */
+export async function getRecoverySummaryByCoverage(
+	ctx: ProtectedContext,
+	{ claimId }: { claimId: number }
+) {
+	return await recoveryQueries.getRecoverySummaryByCoverage(ctx, claimId);
 }
 
 // =====================================================================

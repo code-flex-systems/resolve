@@ -13,6 +13,8 @@ export function useRecoveryTrpc() {
 				// Invalidate recovery events list for this claim
 				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
 				utils.recovery.listRecoveryEventsWithFilters.invalidate();
+				// Invalidate recovery summary by coverage
+				utils.recovery.getRecoverySummaryByCoverage.invalidate({ claimId: variables.claimId });
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
@@ -28,12 +30,17 @@ export function useRecoveryTrpc() {
 		exportRecoveryEvents: trpc.recovery.exportRecoveryEvents.useQuery,
 
 		updateRecoveryEvent: trpc.recovery.updateRecoveryEvent.useMutation({
-			onSuccess() {
-				// Invalidate recovery events lists (caller should provide specific claimId if needed)
+			onSuccess(_data, variables) {
+				// Invalidate recovery events lists for this claim
+				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
 				utils.recovery.listRecoveryEventsWithFilters.invalidate();
+				// Invalidate recovery summary by coverage
+				utils.recovery.getRecoverySummaryByCoverage.invalidate({ claimId: variables.claimId });
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+				// Invalidate claim detail to update actual_recovery totals
+				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
 			},
 		}),
 
@@ -42,6 +49,8 @@ export function useRecoveryTrpc() {
 				// Invalidate recovery events list for this claim
 				utils.recovery.listRecoveryEvents.invalidate({ claimId: variables.claimId });
 				utils.recovery.listRecoveryEventsWithFilters.invalidate();
+				// Invalidate recovery summary by coverage
+				utils.recovery.getRecoverySummaryByCoverage.invalidate({ claimId: variables.claimId });
 				// Invalidate recovery metrics as they depend on recovery events
 				utils.recovery.getRecoveryMetricsSummary.invalidate();
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
@@ -49,6 +58,9 @@ export function useRecoveryTrpc() {
 				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
 			},
 		}),
+
+		// Recovery Summary by Coverage hook
+		getRecoverySummaryByCoverage: trpc.recovery.getRecoverySummaryByCoverage.useQuery,
 
 		// Recovery Metrics hooks
 		getRecoveryMetricsSummary: trpc.recovery.getRecoveryMetricsSummary.useQuery,
@@ -62,6 +74,7 @@ export function useRecoveryTrpc() {
 // Export types for use in components
 export type RecoveryEvent = RecoveryOutput['listRecoveryEvents'][number];
 export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFilters']['rows'][number];
+export type RecoverySummaryByCoverage = RecoveryOutput['getRecoverySummaryByCoverage'][number];
 export type RecoveryMetricsSummary = RecoveryOutput['getRecoveryMetricsSummary'];
 export type RecoveryMetricsTimeSeries = RecoveryOutput['getRecoveryMetricsTimeSeries'];
 export type QuarterlyRecoveryStats = RecoveryOutput['getQuarterlyRecoveryStats'];

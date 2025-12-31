@@ -1038,11 +1038,8 @@ export async function linkPartyToClaim(
 		role: string[];
 		representative_id?: number | null;
 		address_id?: number | null;
-		// Free-form representative fields (for entities)
+		// Free-form representative field (for entities)
 		representative_name?: string | null;
-		representative_title?: string | null;
-		representative_email?: string | null;
-		representative_phone?: string | null;
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
@@ -1098,11 +1095,8 @@ export async function updateClaimParty(
 			role?: string[];
 			representative_id?: number | null;
 			address_id?: number | null;
-			// Free-form representative fields (for entities)
+			// Free-form representative field (for entities)
 			representative_name?: string | null;
-			representative_title?: string | null;
-			representative_email?: string | null;
-			representative_phone?: string | null;
 			is_primary?: boolean;
 			notes?: string;
 			external_reference?: string;

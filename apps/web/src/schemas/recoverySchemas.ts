@@ -35,6 +35,7 @@ export const createRecoveryEventInput = z.object({
 
 export const updateRecoveryEventInput = z.object({
 	recoveryEventId: z.number().int(),
+	claimId: z.number().int(),
 	params: recoveryEventUpdateParams,
 });
 
@@ -67,6 +68,14 @@ export const exportRecoveryEventsInput = z.object({
 		checklistId: z.number().int().optional(),
 		userId: z.string().uuid().optional(),
 	}),
+});
+
+// =====================================================================
+// RECOVERY SUMMARY BY COVERAGE
+// =====================================================================
+
+export const getRecoverySummaryByCoverageInput = z.object({
+	claimId: z.number().int(),
 });
 
 // =====================================================================

@@ -6,6 +6,7 @@ import {
 	updateRecoveryEvent,
 	deleteRecoveryEvent,
 	exportRecoveryEvents,
+	getRecoverySummaryByCoverage,
 	getRecoveryMetricsSummary,
 	getRecoveryMetricsTimeSeries,
 	getQuarterlyRecoveryStats,
@@ -19,6 +20,7 @@ import {
 	updateRecoveryEventInput,
 	deleteRecoveryEventInput,
 	exportRecoveryEventsInput,
+	getRecoverySummaryByCoverageInput,
 	getRecoveryMetricsSummaryInput,
 	getRecoveryMetricsTimeSeriesInput,
 	getQuarterlyRecoveryStatsInput,
@@ -69,6 +71,17 @@ export const recoveryRouter = router({
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return exportRecoveryEvents(ctx, input);
+		}),
+
+	// =====================================================================
+	// RECOVERY SUMMARY BY COVERAGE
+	// =====================================================================
+
+	getRecoverySummaryByCoverage: protectedProcedure
+		.input(getRecoverySummaryByCoverageInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return getRecoverySummaryByCoverage(ctx, input);
 		}),
 
 	// =====================================================================

@@ -28,8 +28,8 @@ import {
 	createRecoveryEvent,
 	getRecoveryEvents,
 	listRecoveryEventsWithFilters,
-	getRecoveryEventForDeletion,
-	deleteRecoveryEvent,
+	archiveRecoveryEvent,
+	archiveRecoveryEventsForSettlement,
 	exportRecoveryEvents,
 	getRecoveryMetricsSummary,
 	getRecoveryMetricsTimeSeries,
@@ -895,85 +895,7 @@ describe('recoveryQueries integration', () => {
 		});
 	});
 
-	describe('getRecoveryEventForDeletion', () => {
-		it('should return recovery event fields for logging', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const { settlement } = await createSettlementChain(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				created_by: user.id,
-			});
-
-			const event = await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user.id,
-				recovery_amount: '5000',
-				recovery_source: 'Test Source',
-			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await getRecoveryEventForDeletion(ctx, event.id);
-
-			// Assert
-			expect(result).toBeDefined();
-			expect(result?.id).toBe(event.id);
-			expect(result?.claim_id).toBe(claim.id);
-			expect(result?.recovery_amount).toBe('5000');
-			expect(result?.recovery_source).toBe('Test Source');
-		});
-
-		it('should enforce tenant isolation', async () => {
-			// Arrange
-			const client1 = await createTestClient(db, { name: 'Client 1' });
-			const client2 = await createTestClient(db, { name: 'Client 2' });
-			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client1.id });
-			const { settlement } = await createSettlementChain(db, {
-				client_id: client1.id,
-				claim_id: claim.id,
-				created_by: user1.id,
-			});
-
-			const event = await createTestRecoveryEvent(db, {
-				client_id: client1.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user1.id,
-			});
-
-			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
-
-			// Act
-			const result = await getRecoveryEventForDeletion(ctx2, event.id);
-
-			// Assert
-			expect(result).toBeUndefined();
-		});
-
-		it('should return undefined for non-existent event', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await getRecoveryEventForDeletion(ctx, 999999);
-
-			// Assert
-			expect(result).toBeUndefined();
-		});
-	});
-
-	describe('deleteRecoveryEvent', () => {
+	describe('archiveRecoveryEvent', () => {
 		it('should delete a recovery event', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -995,7 +917,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await deleteRecoveryEvent(ctx, event.id, claim.id);
+			const result = await archiveRecoveryEvent(ctx, event.id, claim.id);
 
 			// Assert
 			expect(result.id).toBe(event.id);
@@ -1045,7 +967,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - delete the first event
-			await deleteRecoveryEvent(ctx, event1.id, claim.id);
+			await archiveRecoveryEvent(ctx, event1.id, claim.id);
 
 			// Assert - claim should now have only 2000
 			const updatedClaim = await db
@@ -1066,7 +988,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert
-			await expect(deleteRecoveryEvent(ctx, 999999, claim.id)).rejects.toThrow(
+			await expect(archiveRecoveryEvent(ctx, 999999, claim.id)).rejects.toThrow(
 				'Recovery event not found'
 			);
 		});
@@ -1093,7 +1015,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert - Wrong claim ID should fail
-			await expect(deleteRecoveryEvent(ctx, event.id, claim2.id)).rejects.toThrow(
+			await expect(archiveRecoveryEvent(ctx, event.id, claim2.id)).rejects.toThrow(
 				'Recovery event not found'
 			);
 
@@ -1129,7 +1051,7 @@ describe('recoveryQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act & Assert - Other client should not be able to delete
-			await expect(deleteRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow(
+			await expect(archiveRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow(
 				'Recovery event not found'
 			);
 		});

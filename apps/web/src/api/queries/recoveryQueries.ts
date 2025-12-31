@@ -84,6 +84,7 @@ export async function getRecoveryEvents(ctx: ProtectedContext, claimId: number) 
 		.selectAll()
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
 		.where('recovery_event.claim_id', '=', claimId)
+		.where('recovery_event.deleted_at', 'is', null)
 		.orderBy('recovery_date asc')
 		.orderBy('created_at asc')
 		.execute();
@@ -132,7 +133,8 @@ export async function listRecoveryEventsWithFilters(
 			'claim.recovery_status',
 			'claim.actual_recovery', // Team's meaningful payments (calculated from recovery events)
 		])
-		.where('recovery_event.client_id', '=', ctx.session.user.client_id);
+		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
+		.where('recovery_event.deleted_at', 'is', null);
 
 	// Filter by date range
 	if (filters.range) {
@@ -184,55 +186,100 @@ export async function listRecoveryEventsWithFilters(
 }
 
 /**
- * Delete a recovery event and recalculate the claim's actual_recovery.
+ * Soft delete (archive) a recovery event and update claim's actual_recovery.
+ * Returns all fields needed for logging - no separate fetch required.
  *
  * @param ctx - request context
  * @param recoveryEventId - recovery event identifier
- * @param claimId - claim identifier for recalculation
+ * @param claimId - claim identifier for verification and recalculation
+ * @returns archived recovery event with all fields needed for logging
  */
-/**
- * Fetch a recovery event for logging before deletion.
- */
-export async function getRecoveryEventForDeletion(ctx: ProtectedContext, recoveryEventId: number) {
-	return await ctx.db
-		.selectFrom('recovery_event')
-		.select(['id', 'claim_id', 'recovery_amount', 'recovery_date', 'recovery_source'])
-		.where('id', '=', recoveryEventId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-}
-
-export async function deleteRecoveryEvent(ctx: ProtectedContext, recoveryEventId: number, claimId: number) {
+export async function archiveRecoveryEvent(ctx: ProtectedContext, recoveryEventId: number, claimId: number) {
 	const clientId = ctx.session.user.client_id!;
 
-	// Delete recovery event and get the amount via RETURNING
-	const deleted = await ctx.db
-		.deleteFrom('recovery_event')
+	// Soft delete and return all fields needed for logging via RETURNING
+	const archived = await ctx.db
+		.updateTable('recovery_event')
+		.set({
+			deleted_at: sql`now()`,
+			deleted_by: ctx.session.user.id,
+		})
 		.where('recovery_event.id', '=', recoveryEventId)
 		.where('recovery_event.client_id', '=', clientId)
 		.where('recovery_event.claim_id', '=', claimId)
-		.returning(['id', 'recovery_amount'])
+		.where('recovery_event.deleted_at', 'is', null)
+		.returning(['id', 'claim_id', 'recovery_amount', 'recovery_date', 'recovery_source'])
 		.executeTakeFirst();
 
-	if (!deleted) {
+	if (!archived) {
 		throw new TRPCError({
 			code: 'NOT_FOUND',
 			message: 'Recovery event not found',
 		});
 	}
 
-	// Decrement claim's actual_recovery by the deleted amount (delta approach)
-	const deletedAmount = parseFloat(deleted.recovery_amount);
+	// Decrement claim's actual_recovery by the archived amount (delta approach)
+	const archivedAmount = parseFloat(archived.recovery_amount);
 	await ctx.db
 		.updateTable('claim')
 		.set({
-			actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${deletedAmount}`,
+			actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${archivedAmount}`,
 		})
 		.where('claim.id', '=', claimId)
 		.where('claim.client_id', '=', clientId)
 		.execute();
 
-	return deleted;
+	return archived;
+}
+
+/**
+ * Bulk soft delete recovery events for a settlement.
+ * Used when archiving a settlement to cascade the delete.
+ * Returns all archived events for bulk logging - no separate fetch or loop required.
+ *
+ * @param ctx - request context
+ * @param settlementId - settlement identifier
+ * @param claimId - claim identifier for actual_recovery update
+ * @returns array of archived recovery events with fields needed for logging
+ */
+export async function archiveRecoveryEventsForSettlement(
+	ctx: ProtectedContext,
+	settlementId: number,
+	claimId: number
+) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Bulk soft delete and return all fields needed for logging via RETURNING
+	const archived = await ctx.db
+		.updateTable('recovery_event')
+		.set({
+			deleted_at: sql`now()`,
+			deleted_by: ctx.session.user.id,
+		})
+		.where('recovery_event.settlement_id', '=', settlementId)
+		.where('recovery_event.client_id', '=', clientId)
+		.where('recovery_event.deleted_at', 'is', null)
+		.returning(['id', 'claim_id', 'recovery_amount', 'recovery_date', 'recovery_source'])
+		.execute();
+
+	if (archived.length > 0) {
+		// Calculate total and decrement claim's actual_recovery in one operation
+		const totalAmount = archived.reduce(
+			(sum, event) => sum + parseFloat(event.recovery_amount),
+			0
+		);
+
+		await ctx.db
+			.updateTable('claim')
+			.set({
+				actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${totalAmount}`,
+			})
+			.where('claim.id', '=', claimId)
+			.where('claim.client_id', '=', clientId)
+			.execute();
+	}
+
+	return archived;
 }
 
 /**
@@ -256,6 +303,7 @@ export async function updateRecoveryEvent(
 		.select(['id', 'claim_id', 'recovery_amount'])
 		.where('recovery_event.id', '=', recoveryEventId)
 		.where('recovery_event.client_id', '=', clientId)
+		.where('recovery_event.deleted_at', 'is', null)
 		.executeTakeFirst();
 
 	if (!existing) {
@@ -293,6 +341,7 @@ export async function updateRecoveryEvent(
 		.set(updateValues)
 		.where('recovery_event.id', '=', recoveryEventId)
 		.where('recovery_event.client_id', '=', clientId)
+		.where('recovery_event.deleted_at', 'is', null)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
@@ -354,7 +403,8 @@ export async function exportRecoveryEvents(
 			'recovery_event.created_at',
 			'recovery_event.created_by',
 		])
-		.where('recovery_event.client_id', '=', ctx.session.user.client_id);
+		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
+		.where('recovery_event.deleted_at', 'is', null);
 
 	// Apply filters (same logic as listRecoveryEventsWithFilters)
 	if (filters.range) {
@@ -395,12 +445,13 @@ export async function exportRecoveryEvents(
  * @param clientId - client identifier
  */
 export async function recalculateClaimRecovery(trx: any, claimId: number, clientId: string) {
-	// Sum all recovery events for this claim
+	// Sum all non-deleted recovery events for this claim
 	const result = await trx
 		.selectFrom('recovery_event')
 		.select(({ fn }: { fn: any }) => fn.sum('recovery_amount').as('total'))
 		.where('recovery_event.claim_id', '=', claimId)
 		.where('recovery_event.client_id', '=', clientId)
+		.where('recovery_event.deleted_at', 'is', null)
 		.executeTakeFirst();
 
 	const totalRecovery = result?.total ? result.total.toString() : null;
@@ -414,6 +465,82 @@ export async function recalculateClaimRecovery(trx: any, claimId: number, client
 		.where('claim.id', '=', claimId)
 		.where('claim.client_id', '=', clientId)
 		.execute();
+}
+
+// =====================================================================
+// RECOVERY SUMMARY BY COVERAGE
+// =====================================================================
+
+/**
+ * Get recovery summary aggregated by coverage type.
+ * Used for the Settlement & Recovery tab's financial summary table.
+ *
+ * Returns per coverage:
+ * - coverage_id, loss_type
+ * - subrogable_amount: sum of payments where is_subrogable = true
+ * - actual_recovery: sum of recovery_event amounts (via settlements linked to this coverage)
+ *
+ * The expected_recovery and balance are calculated client-side using the claim's
+ * our_liability_percentage (already available from getClaimDetail).
+ *
+ * @param ctx - request context
+ * @param claimId - claim identifier
+ * @returns array of coverage summaries
+ */
+export async function getRecoverySummaryByCoverage(ctx: ProtectedContext, claimId: number) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Use subqueries for aggregation to avoid Cartesian products
+	// when joining payments and recovery events to coverages
+	// Each subquery is scoped by client_id and claim_id for security and efficiency
+	const result = await ctx.db
+		.selectFrom('claim_coverage as cc')
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('claim_payment')
+					.select([
+						'coverage_id',
+						sql<string>`COALESCE(SUM(payment_amount), 0)`.as('total_payments'),
+					])
+					.where('client_id', '=', clientId)
+					.where('claim_id', '=', claimId)
+					.where('is_subrogable', '=', true)
+					.where('deleted_at', 'is', null)
+					.groupBy('coverage_id')
+					.as('payments'),
+			(join) => join.onRef('payments.coverage_id', '=', 'cc.id')
+		)
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('settlement as s')
+					.innerJoin('recovery_event as re', 're.settlement_id', 's.id')
+					.select([
+						's.coverage_id',
+						sql<string>`COALESCE(SUM(re.recovery_amount), 0)`.as('total_recovery'),
+					])
+					.where('s.client_id', '=', clientId)
+					.where('s.claim_id', '=', claimId)
+					.where(sql`s.deleted_at`, 'is', null)
+					.where(sql`re.deleted_at`, 'is', null)
+					.groupBy('s.coverage_id')
+					.as('recoveries'),
+			(join) => join.onRef('recoveries.coverage_id', '=', 'cc.id')
+		)
+		.select([
+			'cc.id as coverage_id',
+			'cc.loss_type',
+			sql<string>`COALESCE(payments.total_payments, '0')`.as('subrogable_amount'),
+			sql<string>`COALESCE(recoveries.total_recovery, '0')`.as('actual_recovery'),
+		])
+		.where('cc.claim_id', '=', claimId)
+		.where('cc.client_id', '=', clientId)
+		.where('cc.deleted_at', 'is', null)
+		.orderBy('cc.loss_type')
+		.execute();
+
+	return result;
 }
 
 // =====================================================================
@@ -465,6 +592,7 @@ export async function getRecoveryMetricsSummary(
 		)
 		.select(({ fn }) => fn.sum('recovery_amount').as('total_actual'))
 		.where('recovery_event.client_id', '=', ctx.session.user.client_id)
+		.where('recovery_event.deleted_at', 'is', null)
 		.where('recovery_event.recovery_date', '>=', range[0])
 		.where('recovery_event.recovery_date', '<=', range[1])
 		.$if(!!filters?.recoverySource, (qb) =>
@@ -556,6 +684,7 @@ export async function getRecoveryMetricsTimeSeries(
 			sql<number>`COALESCE(SUM(re.recovery_amount), 0)::numeric`.as('total_actual'),
 		])
 		.where('re.client_id', '=', ctx.session.user.client_id)
+		.where('re.deleted_at', 'is', null)
 		.where('re.recovery_date', '>=', range[0])
 		.where('re.recovery_date', '<=', range[1]);
 
@@ -668,6 +797,7 @@ export async function getQuarterlyRecoveryStats(
 				.as('q4'),
 		])
 		.where('client_id', '=', clientId)
+		.where('deleted_at', 'is', null)
 		.where('recovery_date', '>=', quarters[0].start)
 		.where('recovery_date', '<=', quarters[3].end);
 

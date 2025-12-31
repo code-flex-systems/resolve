@@ -91,6 +91,7 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
 		])
 		.where('settlement.id', '=', settlementId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.deleted_at', 'is', null)
 		.executeTakeFirst();
 }
 
@@ -130,6 +131,7 @@ export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: nu
 		])
 		.where('settlement.claim_id', '=', claimId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.deleted_at', 'is', null)
 		// Filter to only adverse parties: check if claim_party.role array overlaps with adverse_party_role values
 		.where((eb) =>
 			eb(
@@ -207,53 +209,35 @@ export async function updateSettlement(
 		.set(updateValues)
 		.where('settlement.id', '=', settlementId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.deleted_at', 'is', null)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
 
 /**
- * Get settlement for deletion (for logging purposes).
- *
- * @param ctx - request context
- * @param settlementId - settlement identifier
- * @returns settlement fields for logging
- */
-export async function getSettlementForDeletion(ctx: ProtectedContext, settlementId: number) {
-	return await ctx.db
-		.selectFrom('settlement')
-		.select([
-			'id',
-			'claim_id',
-			'claim_party_id',
-			'coverage_id',
-			'demand_amount',
-			'demand_date',
-			'settlement_amount',
-			'status',
-		])
-		.where('settlement.id', '=', settlementId)
-		.where('settlement.client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-}
-
-/**
- * Delete a settlement (and cascade to its recovery events).
+ * Soft delete (archive) a settlement.
+ * Recovery events linked to this settlement should be handled by the controller.
  *
  * @param ctx - request context
  * @param settlementId - settlement identifier
  * @param claimId - claim identifier (for verification)
- * @returns deleted settlement
+ * @returns archived settlement
  */
-export async function deleteSettlement(
+export async function archiveSettlement(
 	ctx: ProtectedContext,
 	settlementId: number,
 	claimId: number
 ) {
 	return await ctx.db
-		.deleteFrom('settlement')
+		.updateTable('settlement')
+		.set({
+			deleted_at: sql`now()`,
+			deleted_by: ctx.session.user.id,
+		})
 		.where('settlement.id', '=', settlementId)
 		.where('settlement.claim_id', '=', claimId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.deleted_at', 'is', null)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
@@ -282,6 +266,7 @@ export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: 
 		])
 		.where('settlement.claim_id', '=', claimId)
 		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.deleted_at', 'is', null)
 		// Filter to only adverse parties: check if claim_party.role array overlaps with adverse_party_role values
 		.where((eb) =>
 			eb(

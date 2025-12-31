@@ -42,7 +42,7 @@ export default function RepresentativeDialog({
 	const { mutateAsync: createRepresentative, isPending: creating } = partyTrpc.createRepresentative;
 	const { mutateAsync: updateRepresentative, isPending: updating } = partyTrpc.updateRepresentative;
 
-	const isEditMode = !!representative;
+	const isEditMode = !!representative?.id;
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<Party | null>(null);
 	const [selectedAddress, setSelectedAddress] = useState<PartyAddress | null>(null);
@@ -174,7 +174,7 @@ export default function RepresentativeDialog({
 			title={
 				isEditMode
 					? `Edit Representative${representative?.party_name ? ` - ${representative.party_name}` : ''}`
-					: 'New Representative'
+					: `New Representative${representative?.party_name ? ` - ${representative.party_name}` : ''}`
 			}
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
@@ -191,8 +191,8 @@ export default function RepresentativeDialog({
 			width={600}
 		>
 			<form style={styles.form}>
-				{/* Party Selection - Only shown when creating new representative */}
-				{!isEditMode && (
+				{/* Party Selection - Only shown when creating new representative without a pre-selected party */}
+				{!isEditMode && !representative?.party_id && !partyId && (
 					<Controller
 						name="party_id"
 						control={control}
