@@ -1,6 +1,5 @@
 import { Claim } from '@/hooks/trpc/useClaimTrpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { PageInstance } from '@/types/types';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
 import { create } from 'zustand';
@@ -10,7 +9,6 @@ interface BreakdownState {
 	breakdownClaim: Claim | null;
 	breakdownRange: DateRange<Dayjs>;
 	breakdownUsers: GetUserOutput[];
-	pageInstance: PageInstance | null;
 	selectedAnswerId: number | null;
 	selectedQuestionId: number | null;
 }
@@ -19,7 +17,6 @@ interface BreakdownActions {
 	updateBreakdownClaim: (newClaim: Claim | null) => void;
 	updateBreakdownRange: (newRange: DateRange<Dayjs>) => void;
 	updateBreakdownUsers: (newUser: GetUserOutput[]) => void;
-	updatePageInstance: (newInstance: PageInstance) => void;
 	updateSelectedAnswerId: (newId: number | null) => void;
 	updateSelectedQuestionId: (newId: number | null) => void;
 	reset: (partialState?: Partial<BreakdownState>) => void;
@@ -31,7 +28,6 @@ const initialState: BreakdownState = {
 	breakdownClaim: null,
 	breakdownRange: [dayjs().startOf('month'), dayjs().endOf('month')],
 	breakdownUsers: [],
-	pageInstance: null,
 	selectedAnswerId: null,
 	selectedQuestionId: null,
 };
@@ -53,11 +49,6 @@ export const useBreakdownStore = create<BreakdownStore>()(
 		updateBreakdownUsers: (newUsers: GetUserOutput[]) =>
 			set((state) => {
 				state.breakdownUsers = newUsers;
-			}),
-
-		updatePageInstance: (newInstance) =>
-			set((state) => {
-				state.pageInstance = newInstance;
 			}),
 
 		updateSelectedAnswerId: (newId) =>

@@ -31,7 +31,6 @@ interface AdminState {
 	selectedTab: number;
 	showClaimAssignmentDialog: boolean;
 	showImportClaimsDialog: boolean;
-	showImportUsersDialog: boolean;
 	showNewChecklistDialog: boolean;
 	showNewClaimDialog: boolean;
 	showNewDeskLocationDialog: boolean;
@@ -56,7 +55,6 @@ interface AdminActions {
 	setTab: (newTab: number) => void;
 	toggleClaimAssignmentDialog: () => void;
 	toggleImportClaimsDialog: () => void;
-	toggleImportUsersDialog: () => void;
 	toggleNewChecklistDialog: () => void;
 	toggleNewClaimDialog: () => void;
 	toggleNewDeskLocationDialog: () => void;
@@ -106,7 +104,6 @@ const initialState: AdminState = {
 	selectedTab: 1,
 	showClaimAssignmentDialog: false,
 	showImportClaimsDialog: false,
-	showImportUsersDialog: false,
 	showNewChecklistDialog: false,
 	showNewClaimDialog: false,
 	showNewDeskLocationDialog: false,
@@ -165,11 +162,6 @@ export const useAdminStore = create<AdminStore>()(
 		toggleImportClaimsDialog: () =>
 			set((state) => {
 				state.showImportClaimsDialog = !state.showImportClaimsDialog;
-			}),
-
-		toggleImportUsersDialog: () =>
-			set((state) => {
-				state.showImportUsersDialog = !state.showImportUsersDialog;
 			}),
 
 		toggleNewChecklistDialog: () =>

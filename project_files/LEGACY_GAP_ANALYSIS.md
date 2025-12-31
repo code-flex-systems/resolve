@@ -162,7 +162,7 @@ The current Manifest system successfully implements the **core workflow engine**
 **UI Components:**
 - ✅ LineOfBusinessSelect - Dropdown with icons for LOB selection
 - ✅ LossTypeSelect - Dropdown with icons for loss type selection
-- ✅ CoverageTab - Full coverage management UI with CRUD operations
+- ✅ ClaimantsCoverageTab - Full coverage management UI with CRUD operations
 - ✅ CoverageTypeSelect - Dropdown with icons for coverage types
 - ✅ ClaimChanges component - Integrated party/representative linking with autocomplete
 - ✅ ClaimDetailPanel - Comprehensive claim detail view with all metadata
@@ -191,7 +191,7 @@ The current Manifest system successfully implements the **core workflow engine**
    - ✅ Created `claim_coverage` table with client scoping
    - ✅ Enum: `CoverageType` with 10 coverage types
    - ✅ Full tRPC API: queries, controller, router
-   - ✅ Complete UI: `CoverageTab`, `CoverageFormDialog`, `CoverageTypeSelect`
+   - ✅ Complete UI: `ClaimantsCoverageTab`, `CoverageFormDialog`, `CoverageTypeSelect`
    - ✅ CRUD operations with optimistic updates and cache invalidation
    - ✅ Database constraints: FK to claim with CASCADE delete
 
@@ -808,7 +808,7 @@ All critical infrastructure now in place:
    - ✅ Created LineOfBusiness and LossType enums
    - ✅ Added substatus field with ClaimSubstatus enum
    - ✅ Built claim_coverage table with full CRUD
-   - ✅ UI components: LineOfBusinessSelect, LossTypeSelect, CoverageTab, RecoveryStatusSelect
+   - ✅ UI components: LineOfBusinessSelect, LossTypeSelect, ClaimantsCoverageTab, RecoveryStatusSelect
    - ✅ Regenerated Kysely types
 
 4. ✅ **Party-Claim Linking** (COMPLETED November 2025)

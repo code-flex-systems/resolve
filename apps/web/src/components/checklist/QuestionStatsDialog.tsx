@@ -1,6 +1,5 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
-import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
@@ -18,7 +17,6 @@ export default function QuestionStatsDialog() {
 	const { checklistId = -1 } = useChecklistParams();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const toggleStatsDialog = useChecklistStore((state) => state.toggleStatsDialog);
-	const updatePageInstance = useBreakdownStore((state) => state.updatePageInstance);
 	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({ pageId: selectedPageInfo.pageId });
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 	return (
@@ -28,13 +26,6 @@ export default function QuestionStatsDialog() {
 				<BasicButton
 					buttonProps={{
 						onClick: () => {
-							// Update breakdown state with pre-loaded data
-							updatePageInstance({
-								id: selectedPageInfo.pageId,
-								parent_id: selectedPageInfo.parentInstanceId,
-								instance_id: selectedPageInfo.instanceId,
-								title: selectedPageInfo.title,
-							});
 							router.push(
 								`/checklist/${checklistId}/pages/${selectedPageInfo.pageId}/page-instances/${selectedPageInfo.instanceId}`
 							);
