@@ -42,6 +42,17 @@ export default function DocumentsTab() {
 		return 2;
 	}, [currentFolderId, groups]);
 
+	// Pre-compute doc counts by folder to avoid O(N) filtering per folder
+	const docCountsByFolder = useMemo(() => {
+		const map = new Map<number, number>();
+		allDocs.forEach((d) => {
+			if (d.doc_group_id) {
+				map.set(d.doc_group_id, (map.get(d.doc_group_id) ?? 0) + 1);
+			}
+		});
+		return map;
+	}, [allDocs]);
+
 	const handleAddFolder = () => {
 		setShowCreateFolderDialog(true);
 	};
@@ -96,11 +107,10 @@ export default function DocumentsTab() {
 			}
 		});
 
-		// Count docs in selected folders using all docs
+		// Count docs in selected folders using pre-computed counts
 		let docsInFolders = 0;
 		folders.forEach((folder) => {
-			const folderDocs = allDocs.filter((d) => d.doc_group_id === folder.data.id);
-			docsInFolders += folderDocs.length;
+			docsInFolders += docCountsByFolder.get(folder.data.id) ?? 0;
 		});
 
 		return {
@@ -109,7 +119,7 @@ export default function DocumentsTab() {
 			docsInFolders,
 			totalDocs: documents.length + docsInFolders,
 		};
-	}, [selectedRows, groups, docs, allDocs]);
+	}, [selectedRows, groups, docs, docCountsByFolder]);
 
 	return (
 		<Paper sx={styles.container}>

@@ -5,7 +5,7 @@ import AttachMoney from '@mui/icons-material/AttachMoney';
 import Gavel from '@mui/icons-material/Gavel';
 import Settings from '@mui/icons-material/Settings';
 import Warning from '@mui/icons-material/Warning';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import BasicDialog from '@/components/common/BasicDialog';
@@ -124,9 +124,16 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		},
 	});
 
-	const getRecoveryCountForSettlement = (settlementId: number) => {
-		return recoveryEvents.filter((r) => r.settlement_id === settlementId).length;
-	};
+	// Pre-compute recovery counts by settlement to avoid O(N) filtering per call
+	const recoveryCounts = useMemo(() => {
+		const map = new Map<number, number>();
+		recoveryEvents.forEach((r) => {
+			if (r.settlement_id) {
+				map.set(r.settlement_id, (map.get(r.settlement_id) ?? 0) + 1);
+			}
+		});
+		return map;
+	}, [recoveryEvents]);
 
 	// Recovery Dialog handlers
 	const handleOpenRecoveryDialog = (recovery?: any) => {
@@ -464,7 +471,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
 							</Typography>
 						</Box>
-						{getRecoveryCountForSettlement(archivingSettlement.id) > 0 && (
+						{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 0 && (
 							<Box
 								bgcolor="#fff3e0"
 								padding={2}
@@ -480,8 +487,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 										This will also archive:
 									</Typography>
 									<Typography fontSize={13} color="warning.dark">
-										• {getRecoveryCountForSettlement(archivingSettlement.id)} recovery event
-										{getRecoveryCountForSettlement(archivingSettlement.id) > 1 ? 's' : ''}
+										• {recoveryCounts.get(archivingSettlement.id) ?? 0} recovery event
+										{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 1 ? 's' : ''}
 									</Typography>
 								</Box>
 							</Box>

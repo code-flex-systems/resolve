@@ -53,6 +53,12 @@ export default function SettlementTimeline({
 }: SettlementTimelineProps) {
 	const [activeSettlementId, setActiveSettlementId] = useState<number | null>(null);
 
+	// Pre-compute settlement lookup to avoid O(N) find per recovery item
+	const settlementMap = useMemo(
+		() => new Map(settlements.map((s) => [s.id, s])),
+		[settlements]
+	);
+
 	const timeline = useMemo<TimelineItem[]>(() => {
 		const items: TimelineItem[] = [
 			...settlements.map((s) => ({
@@ -75,10 +81,6 @@ export default function SettlementTimeline({
 		});
 	}, [settlements, recoveryEvents]);
 
-	const getSettlementForRecovery = (settlementId: number) => {
-		return settlements.find((s) => s.id === settlementId);
-	};
-
 	const handleItemClick = (settlementId: number) => {
 		setActiveSettlementId((prev) => (prev === settlementId ? null : settlementId));
 	};
@@ -93,7 +95,7 @@ export default function SettlementTimeline({
 				const isSettlement = item.type === 'settlement';
 				const settlement = isSettlement ? item.data : null;
 				const recovery = !isSettlement ? item.data : null;
-				const relatedSettlement = !isSettlement ? getSettlementForRecovery(item.settlementId) : null;
+				const relatedSettlement = !isSettlement ? settlementMap.get(item.settlementId) : null;
 				const isActive = isItemActive(item);
 				const isGrayedOut = activeSettlementId !== null && !isActive;
 				const isLastItem = index === timeline.length - 1;

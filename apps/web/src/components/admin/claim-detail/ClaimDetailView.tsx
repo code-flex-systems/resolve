@@ -71,7 +71,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 				</Paper>
 
 				{/* Tab Content */}
-				<Fade key={currentTab} in={true} timeout={1000}>
+				<Fade in={true} timeout={1000}>
 					<Box flex={1} overflow="auto">
 						<Box display="flex" justifyContent="center" width="100%">
 							<Box width="100%" maxWidth={1400}>

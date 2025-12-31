@@ -5,7 +5,6 @@ import BasicDialog from '../common/BasicDialog';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { formatMDY } from '@/lib/utils/utils';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
-import { useMemo } from 'react';
 import { HOVERED_COLOR } from '@/styles/theme';
 
 interface DocumentPreviewDialogProps {
@@ -15,15 +14,10 @@ interface DocumentPreviewDialogProps {
 
 export default function DocumentPreviewDialog({ onClose, document }: DocumentPreviewDialogProps) {
 	const previewUrl = `/api/download?docId=${document.id}`;
-
-	// Determine if file can be previewed
-	const canPreview = useMemo(() => {
-		const mimeType = document.mime_type || '';
-		return mimeType.startsWith('image/') || mimeType === 'application/pdf' || mimeType === 'text/plain';
-	}, [document.mime_type]);
-
-	const isImage = document.mime_type?.startsWith('image/');
-	const isPdf = document.mime_type === 'application/pdf';
+	const mimeType = document.mime_type || '';
+	const isImage = mimeType.startsWith('image/');
+	const isPdf = mimeType === 'application/pdf';
+	const canPreview = isImage || isPdf || mimeType === 'text/plain';
 
 	const handleDownload = () => {
 		// Trigger download by opening in new tab with download disposition

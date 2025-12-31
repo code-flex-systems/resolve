@@ -9,7 +9,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
@@ -59,6 +59,17 @@ export default function DocumentNavigationTable({
 		if (!currentFolder?.parent_group_id) return null;
 		return groups.find((g) => g.id === currentFolder.parent_group_id) || null;
 	}, [currentFolder, groups]);
+
+	// Memoized overlay to avoid remounting on every render
+	const noRowsOverlay = useCallback(
+		() => (
+			<CustomNoRowsOverlay
+				text={currentFolderId === null ? emptyRootText : emptyFolderText}
+				icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
+			/>
+		),
+		[currentFolderId, emptyRootText, emptyFolderText]
+	);
 
 	// Build rows: show child folders + documents
 	const rows: GridRow[] = useMemo(() => {
@@ -272,12 +283,7 @@ export default function DocumentNavigationTable({
 				rowSelectionModel={selectedRows}
 				onRowSelectionModelChange={onRowSelectionChange}
 				slots={{
-					noRowsOverlay: () => (
-						<CustomNoRowsOverlay
-							text={currentFolderId === null ? emptyRootText : emptyFolderText}
-							icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
-						/>
-					),
+					noRowsOverlay,
 				}}
 				sx={styles.dataGrid}
 				hideFooter

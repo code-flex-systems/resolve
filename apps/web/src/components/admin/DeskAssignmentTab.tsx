@@ -78,47 +78,51 @@ export default function DeskAssignmentTab() {
 	// Debounce search input to URL param
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
-	const COLUMNS: GridColDef[] = [
-		{
-			headerName: 'User',
-			field: 'user',
-			renderCell: ({ row }) => (
-				<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
-			),
-			renderHeader: (params) => (
-				<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />
-			),
-			flex: 1,
-		},
-		{
-			headerName: 'Desk Assignments',
-			field: 'desk_assignments',
-			renderCell: ({ row }) => {
-				const count = row.assignment_count || 0;
-				return count === 1 ? '1 desk' : `${count} desks`;
+	// Memoized columns - setEditingUserId is stable (useState setter)
+	const columns: GridColDef[] = useMemo(
+		() => [
+			{
+				headerName: 'User',
+				field: 'user',
+				renderCell: ({ row }) => (
+					<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
+				),
+				renderHeader: (params) => (
+					<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />
+				),
+				flex: 1,
 			},
-			width: 150,
-		},
-		{
-			headerName: 'Actions',
-			field: 'actions',
-			renderCell: ({ row }) => (
-				<div style={styles.actionsContainer}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditingUserId(row.id),
-						}}
-						tooltipProps={{ title: 'Edit desk assignments' }}
-						icon={<Edit sx={{ fontSize: 15 }} />}
-					/>
-				</div>
-			),
-			width: 100,
-			sortable: false,
-			filterable: false,
-			disableColumnMenu: true,
-		},
-	];
+			{
+				headerName: 'Desk Assignments',
+				field: 'desk_assignments',
+				renderCell: ({ row }) => {
+					const count = row.assignment_count || 0;
+					return count === 1 ? '1 desk' : `${count} desks`;
+				},
+				width: 150,
+			},
+			{
+				headerName: 'Actions',
+				field: 'actions',
+				renderCell: ({ row }) => (
+					<div style={styles.actionsContainer}>
+						<BasicButtonStyled
+							buttonProps={{
+								onClick: () => setEditingUserId(row.id),
+							}}
+							tooltipProps={{ title: 'Edit desk assignments' }}
+							icon={<Edit sx={{ fontSize: 15 }} />}
+						/>
+					</div>
+				),
+				width: 100,
+				sortable: false,
+				filterable: false,
+				disableColumnMenu: true,
+			},
+		],
+		[]
+	);
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
@@ -183,7 +187,7 @@ export default function DeskAssignmentTab() {
 					</Box>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={usersFetching}
 							slots={{

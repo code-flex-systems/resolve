@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import { DocType, DocStatus } from '@/config/enums';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { IMAGE_EXTENSIONS, IMAGE_MIME_TYPES, getAllowedExtensions, validateFileType } from '@/config/allowedFileTypes';
 
 type UploadDocumentFormInputs = {
@@ -41,11 +41,10 @@ export default function UploadDocumentDialog({ onClose, currentFolderId = null }
 	const docType = watch('doc_type');
 
 	// Check if selected file is an image
-	const isFileImage = useMemo(() => {
-		if (!selectedFile) return false;
-		const fileExtension = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
-		return IMAGE_EXTENSIONS.includes(fileExtension) || IMAGE_MIME_TYPES.includes(selectedFile.type);
-	}, [selectedFile]);
+	const isFileImage = selectedFile
+		? IMAGE_EXTENSIONS.includes('.' + selectedFile.name.split('.').pop()?.toLowerCase()) ||
+			IMAGE_MIME_TYPES.includes(selectedFile.type)
+		: false;
 
 	// Determine file accept attribute based on doc type
 	const fileAccept = docType === DocType.PHOTO ? IMAGE_EXTENSIONS.join(',') : undefined;

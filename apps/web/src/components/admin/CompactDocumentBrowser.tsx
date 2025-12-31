@@ -8,7 +8,7 @@ import IconHeaderCell from '../common/IconHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 
@@ -69,6 +69,24 @@ export default function CompactDocumentBrowser({
 
 		return trail;
 	}, [currentFolderId, groups]);
+
+	// Memoized overlay to avoid remounting on every render
+	const noRowsOverlay = useCallback(() => {
+		const text =
+			currentFolderId === null
+				? filterByType === 'image'
+					? 'No images found. Upload images to select from the library.'
+					: 'No documents found. Upload documents to select from the library.'
+				: filterByType === 'image'
+					? 'No images in this folder.'
+					: 'No documents in this folder.';
+		return (
+			<CustomNoRowsOverlay
+				text={text}
+				icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
+			/>
+		);
+	}, [currentFolderId, filterByType]);
 
 	// Build rows: folders (at root only) + documents
 	const rows: GridRow[] = useMemo(() => {
@@ -173,20 +191,7 @@ export default function CompactDocumentBrowser({
 				getRowId={(row) => `${row.type}-${row.data.id}`}
 				onRowDoubleClick={handleRowDoubleClick}
 				slots={{
-					noRowsOverlay: () => (
-						<CustomNoRowsOverlay
-							text={
-								currentFolderId === null
-									? filterByType === 'image'
-										? 'No images found. Upload images to select from the library.'
-										: 'No documents found. Upload documents to select from the library.'
-									: filterByType === 'image'
-										? 'No images in this folder.'
-										: 'No documents in this folder.'
-							}
-							icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
-						/>
-					),
+					noRowsOverlay,
 				}}
 				sx={styles.dataGrid}
 				hideFooter

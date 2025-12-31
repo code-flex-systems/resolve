@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useMemo } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { Button, Paper, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
@@ -140,6 +141,12 @@ export default function DeskLocationsTab() {
 		}
 	);
 
+	// Memoized overlay for right panel
+	const locationsOverlay = useCallback(
+		() => <LocationsOverlay selectedTypeId={selectedDeskLocationTypeId} />,
+		[selectedDeskLocationTypeId]
+	);
+
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk locations...">
 			<div style={styles.container}>
@@ -218,8 +225,8 @@ export default function DeskLocationsTab() {
 								columnHeaderHeight={45}
 								loading={locationsFetching}
 								slots={{
-									noRowsOverlay: () => <LocationsOverlay selectedTypeId={selectedDeskLocationTypeId} />,
-									noResultsOverlay: () => <LocationsOverlay selectedTypeId={selectedDeskLocationTypeId} />,
+									noRowsOverlay: locationsOverlay,
+									noResultsOverlay: locationsOverlay,
 								}}
 								slotProps={{
 									loadingOverlay: {

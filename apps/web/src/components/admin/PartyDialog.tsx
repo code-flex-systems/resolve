@@ -155,8 +155,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 		}
 	};
 
-	// Memoize current party ID to prevent reference changes
-	const currentPartyId = useMemo(() => (party ? (party.id as unknown as number) : null), [party]);
+	const currentPartyId = party ? (party.id as unknown as number) : null;
 
 	// Create stable debounced function
 	const debouncedSetSearchTerm = useDebounce((value: string) => {
