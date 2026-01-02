@@ -1,6 +1,5 @@
 import * as answerQueries from '@/api/queries/answerQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { TRPCError } from '@trpc/server';
 import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
 import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
@@ -43,7 +42,7 @@ export async function createAnswer(
 }
 
 /**
- * Copy an existing answer to a target question.
+ * Copy an existing answer to a target question using INSERT...SELECT.
  *
  * @param ctx - request context
  * @param input - page id, question id and answer id
@@ -60,30 +59,9 @@ export async function copyAnswer(
 		answerId: number;
 	}
 ) {
-	const existingAnswer = await answerQueries.getAnswer(ctx, answerId);
-	if (!existingAnswer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Answer does not exist' });
-
-	// Extract only AnswerParams fields from the database object
-	// Database numeric fields (grade, additional_info_num_lines) are returned as strings
-	// and need to be converted to numbers for the AnswerParams type
-	const answerParams: AnswerParams = {
-		text: existingAnswer.text,
-		position: existingAnswer.position,
-		grade: existingAnswer.grade ? Number(existingAnswer.grade) : null,
-		description_text: existingAnswer.description_text,
-		description_image_url: existingAnswer.description_image_url,
-		has_additional_info: existingAnswer.has_additional_info,
-		additional_info_placeholder: existingAnswer.additional_info_placeholder,
-		additional_info_num_lines: existingAnswer.additional_info_num_lines ? Number(existingAnswer.additional_info_num_lines) : null,
-		calls_instance_id: existingAnswer.calls_instance_id,
-		hidden: existingAnswer.hidden,
-		requires_upload: existingAnswer.requires_upload,
-		allowed_extensions: existingAnswer.allowed_extensions,
-	};
-
 	// Copy answer and log admin action within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const newAnswer = await answerQueries.createAnswer({ ...ctx, db: trx }, pageId, questionId, answerParams);
+		const newAnswer = await answerQueries.copyAnswer({ ...ctx, db: trx }, pageId, questionId, answerId);
 
 		// Log answer creation (copied from source)
 		await logAdminAction({ ...ctx, db: trx }, {

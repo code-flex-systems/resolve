@@ -36,9 +36,10 @@ export default function CompactDocumentBrowser({
 	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
 
 	const { data: groups = [], isFetching: isFetchingGroups } = useDocTrpc().listDocGroups();
-	const { data: docs = [], isFetching: isFetchingDocs } = useDocTrpc().listDocs({
+	const { data: docsResult, isFetching: isFetchingDocs } = useDocTrpc().listDocs({
 		filters: { doc_group_id: currentFolderId },
 	});
+	const docs = docsResult?.rows ?? [];
 	const isLoading = isFetchingGroups || isFetchingDocs;
 
 	// Auto-navigate to user's folder when in userFilteredMode

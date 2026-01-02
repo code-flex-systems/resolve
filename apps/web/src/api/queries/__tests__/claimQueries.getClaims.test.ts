@@ -538,7 +538,8 @@ describe('claimQueries.getClaims', () => {
 			// Should have both feed filter AND visibility filter via where clause
 			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 5);
 			const whereCalls = mockChain.where.mock.calls;
-			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			// Visibility filter is a callback function passed to where()
+			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
 		});
 

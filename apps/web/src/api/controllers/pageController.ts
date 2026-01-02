@@ -208,21 +208,38 @@ export async function getPageInstanceTree(
 		(claimId
 			? await pageQueries.getPageInstancesForClaim(ctx, checklistId, claimId)
 			: await pageQueries.getPageInstances(ctx, checklistId)) ?? [];
-	const tree: TreeNode[] = results
-		.filter((row) => !row.parent_instance_id)
-		.map((row) => ({
-			instanceId: row.instance_id,
+
+	// Build adjacency map for O(1) child lookups instead of O(n) filter per node
+	const childrenByParent = new Map<number | null, typeof results>();
+	for (const row of results) {
+		const parentId = row.parent_instance_id;
+		if (!childrenByParent.has(parentId)) {
+			childrenByParent.set(parentId, []);
+		}
+		childrenByParent.get(parentId)!.push(row);
+	}
+
+	// Recursively build tree node using O(1) lookups
+	function buildNode(row: (typeof results)[0]): TreeNode {
+		// instance_id is already a number from the DB, use it directly as map key
+		const instanceId = row.instance_id;
+		const children = childrenByParent.get(instanceId) ?? [];
+		return {
+			instanceId,
 			parentInstanceId: row.parent_instance_id,
 			pageId: row.id,
 			position: row.position,
 			title: row.title,
 			status: row.status,
 			template_version: row.template_version,
-		}));
-	// Recursively attach child nodes to build the tree
-	for (const node of tree) {
-		addChildrenToTree(node, results);
+			children: children.length ? children.map(buildNode) : undefined,
+		};
 	}
+
+	// Build tree starting from root nodes (null parent)
+	const roots = childrenByParent.get(null) ?? [];
+	const tree = roots.map(buildNode);
+
 	return { tree, maxPosition: results.length };
 }
 
@@ -268,30 +285,3 @@ export async function modifyPage(
 	return results;
 }
 
-// private methods
-
-/**
- * Recursively add children to a tree node.
- *
- * @param node - parent tree node
- * @param results - flat list of instances
- */
-function addChildrenToTree(node: TreeNode, results: Awaited<ReturnType<typeof pageQueries.getPageInstances>> = []) {
-	const children: TreeNode[] = results
-		.filter((row) => row.parent_instance_id === +node.instanceId)
-		.map((row) => ({
-			instanceId: row.instance_id,
-			pageId: row.id,
-			parentInstanceId: row.parent_instance_id,
-			position: row.position,
-			title: row.title,
-			status: row.status,
-			template_version: row.template_version,
-		}));
-	node.children = children.length ? children : undefined;
-	if (node.children) {
-		for (const c of node.children) {
-			addChildrenToTree(c, results);
-		}
-	}
-}

@@ -12,7 +12,7 @@ export function useResponseTrpc() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
 
 	return {
-		list: trpc.response.getResponsesForChecklist.useQuery,
+		list: trpc.response.getResponsesForPageInstance.useQuery,
 
 		listForAnswer: trpc.response.getResponsesForAnswer.useQuery,
 
@@ -26,7 +26,7 @@ export function useResponseTrpc() {
 
 		createUpdateMany: trpc.response.upsertQuestionResponses.useMutation({
 			onSuccess({ updatedInstanceId, status, claimStatus, visibleIds }) {
-				trpcUtils.response.getResponsesForChecklist.invalidate({
+				trpcUtils.response.getResponsesForPageInstance.invalidate({
 					checklistId,
 					claimId,
 					instanceId: updatedInstanceId,
@@ -64,4 +64,4 @@ export function useResponseTrpc() {
 }
 
 export type UpsertResponseInput = ResponseInput['upsertQuestionResponses'];
-export type Response = ResponseOutput['getResponsesForChecklist'][number];
+export type Response = ResponseOutput['getResponsesForPageInstance'][number];

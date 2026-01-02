@@ -200,33 +200,6 @@ export default function Claims() {
 	const [debouncedInsuredSearch, setDebouncedInsuredSearch] = useState('');
 	const [debouncedClientSearch, setDebouncedClientSearch] = useState('');
 
-	// Derive unique insureds/clients once (sorted)
-	const uniqueInsureds = useMemo(
-		() => [...new Set(data.rows.map((r: any) => r.insured).filter(Boolean))].sort() as string[],
-		[data.rows]
-	);
-	const uniqueClients = useMemo(
-		() => [...new Set(data.rows.map((r: any) => r.client).filter(Boolean))].sort() as string[],
-		[data.rows]
-	);
-
-	// Autocomplete options - derived from unique lists and search terms
-	const insuredOptions = useMemo(() => {
-		if (uniqueInsureds.length <= 20) return uniqueInsureds;
-		if (!debouncedInsuredSearch) return [];
-		return uniqueInsureds
-			.filter((ins) => ins.toLowerCase().includes(debouncedInsuredSearch.toLowerCase()))
-			.slice(0, 20);
-	}, [uniqueInsureds, debouncedInsuredSearch]);
-
-	const clientOptions = useMemo(() => {
-		if (uniqueClients.length <= 20) return uniqueClients;
-		if (!debouncedClientSearch) return [];
-		return uniqueClients
-			.filter((cl) => cl.toLowerCase().includes(debouncedClientSearch.toLowerCase()))
-			.slice(0, 20);
-	}, [uniqueClients, debouncedClientSearch]);
-
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
 
@@ -255,6 +228,33 @@ export default function Claims() {
 		}
 		return rowCountRef.current;
 	}, [data.count]);
+
+	// Derive unique insureds/clients once (sorted)
+	const uniqueInsureds = useMemo(
+		() => [...new Set(data.rows.map((r: any) => r.insured).filter(Boolean))].sort() as string[],
+		[data.rows]
+	);
+	const uniqueClients = useMemo(
+		() => [...new Set(data.rows.map((r: any) => r.client).filter(Boolean))].sort() as string[],
+		[data.rows]
+	);
+
+	// Autocomplete options - derived from unique lists and search terms
+	const insuredOptions = useMemo(() => {
+		if (uniqueInsureds.length <= 20) return uniqueInsureds;
+		if (!debouncedInsuredSearch) return [];
+		return uniqueInsureds
+			.filter((ins) => ins.toLowerCase().includes(debouncedInsuredSearch.toLowerCase()))
+			.slice(0, 20);
+	}, [uniqueInsureds, debouncedInsuredSearch]);
+
+	const clientOptions = useMemo(() => {
+		if (uniqueClients.length <= 20) return uniqueClients;
+		if (!debouncedClientSearch) return [];
+		return uniqueClients
+			.filter((cl) => cl.toLowerCase().includes(debouncedClientSearch.toLowerCase()))
+			.slice(0, 20);
+	}, [uniqueClients, debouncedClientSearch]);
 
 	const selectedFeed = useMemo(() => {
 		if (!selectedFeedId) return;

@@ -26,13 +26,21 @@ export default function DocumentsTab() {
 	const [previewDocument, setPreviewDocument] = useState<DocListItem | null>(null);
 
 	const { data: groups = [], isFetching: isFetchingGroups } = useDocTrpc().listDocGroups();
-	const { data: docs = [], isFetching: isFetchingDocs } = useDocTrpc().listDocs({
+	const { data: docsResult, isFetching: isFetchingDocs } = useDocTrpc().listDocs({
 		filters: { doc_group_id: currentFolderId },
 	});
-	const { data: allDocs = [], isFetching: isFetchingAllDocs } = useDocTrpc().listDocs({}); // Fetch all docs for counting
+	const docs = docsResult?.rows ?? [];
+
+	// Get all group IDs for batch count query
+	const groupIds = useMemo(() => groups.map((g) => g.id), [groups]);
+	const { data: docCounts = [], isFetching: isFetchingCounts } = useDocTrpc().getDocCountsByGroupIds(
+		{ groupIds },
+		{ enabled: groupIds.length > 0 }
+	);
+
 	const { mutateAsync: deleteDoc } = useDocTrpc().deleteDoc;
 	const { mutateAsync: deleteDocGroup } = useDocTrpc().deleteDocGroup;
-	const isInTransition = isFetchingAllDocs || isFetchingDocs || isFetchingGroups;
+	const isInTransition = isFetchingCounts || isFetchingDocs || isFetchingGroups;
 
 	// Calculate depth of current folder (0 = root, 1 = level 1, 2 = level 2)
 	const currentDepth = useMemo(() => {
@@ -42,16 +50,16 @@ export default function DocumentsTab() {
 		return 2;
 	}, [currentFolderId, groups]);
 
-	// Pre-compute doc counts by folder to avoid O(N) filtering per folder
+	// Build doc counts map from server-side batch query
 	const docCountsByFolder = useMemo(() => {
 		const map = new Map<number, number>();
-		allDocs.forEach((d) => {
-			if (d.doc_group_id) {
-				map.set(d.doc_group_id, (map.get(d.doc_group_id) ?? 0) + 1);
+		docCounts.forEach((r) => {
+			if (r.doc_group_id !== null) {
+				map.set(r.doc_group_id, Number(r.count));
 			}
 		});
 		return map;
-	}, [allDocs]);
+	}, [docCounts]);
 
 	const handleAddFolder = () => {
 		setShowCreateFolderDialog(true);

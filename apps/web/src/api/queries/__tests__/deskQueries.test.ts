@@ -14,7 +14,9 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
  * - Wrapped in transaction for atomicity
  *
  * bulkAssignUsersToDeskLocation:
- * - Same logic as single assign but for multiple users
+ * - Same logic as single assign but batched for multiple users
+ * - Uses WHERE IN for batch soft-deletes instead of per-user queries
+ * - Uses single insertInto().values([...]) for all users
  * - All assignments in single transaction (all-or-nothing)
  * - Returns array of created assignments
  */
@@ -388,7 +390,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 	});
 
 	describe('Bulk Assignment Logic', () => {
-		it('should assign multiple users to same desk location', async () => {
+		it('should assign multiple users to same desk location using batch insert', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = ['user-1', 'user-2', 'user-3'];
 
@@ -405,17 +407,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			let insertCount = 0;
+			// Batched implementation uses single insert with array of values
+			let insertCallCount = 0;
 			vi.spyOn(db, 'insertInto').mockImplementation(() => {
-				insertCount++;
+				insertCallCount++;
 				return {
 					values: vi.fn().mockReturnThis(),
 					returningAll: vi.fn().mockReturnThis(),
-					executeTakeFirstOrThrow: vi.fn().mockResolvedValue(
-						createMockAssignment({
-							id: insertCount,
-							user_id: userIds[insertCount - 1],
-						})
+					execute: vi.fn().mockResolvedValue(
+						userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
 					),
 				} as any;
 			});
@@ -433,10 +433,11 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			});
 
 			expect(result).toHaveLength(3);
-			expect(insertCount).toBe(3);
+			// Batched: should only have 1 insert call (not 3)
+			expect(insertCallCount).toBe(1);
 		});
 
-		it('should use same priority for all users', async () => {
+		it('should use same priority for all users in batch insert', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
@@ -452,15 +453,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			const createdAssignments: any[] = [];
+			let capturedValues: any[] = [];
 			vi.spyOn(db, 'insertInto').mockImplementation(() => {
 				return {
 					values: vi.fn().mockImplementation((values) => {
-						createdAssignments.push(values);
+						capturedValues = values;
 						return {
 							returningAll: vi.fn().mockReturnThis(),
-							executeTakeFirstOrThrow: vi.fn().mockResolvedValue(
-								createMockAssignment({ priority: values.priority })
+							execute: vi.fn().mockResolvedValue(
+								values.map((v: any, idx: number) => createMockAssignment({ id: idx + 1, ...v }))
 							),
 						};
 					}),
@@ -480,7 +481,8 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			});
 
 			// All assignments should have priority 5
-			createdAssignments.forEach((assignment) => {
+			expect(capturedValues).toHaveLength(2);
+			capturedValues.forEach((assignment) => {
 				expect(assignment.priority).toBe(5);
 			});
 		});
@@ -506,7 +508,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
 				values: vi.fn().mockReturnThis(),
 				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
+				execute: vi.fn().mockResolvedValue([createMockAssignment()]),
 			}) as any);
 
 			const mockTransaction = vi.spyOn(db, 'transaction').mockImplementation(() => ({
@@ -527,7 +529,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 	});
 
 	describe('Soft Delete Existing', () => {
-		it('should soft-delete existing assignments for each user', async () => {
+		it('should batch soft-delete existing assignments using WHERE IN', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = ['user-1', 'user-2'];
 
@@ -551,7 +553,9 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
 				values: vi.fn().mockReturnThis(),
 				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
+				execute: vi.fn().mockResolvedValue(
+					userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
+				),
 			}) as any);
 
 			vi.spyOn(db, 'transaction').mockImplementation(() => ({
@@ -566,13 +570,13 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				priority: 1,
 			});
 
-			// 2 updates per user (priority + user-desk combo) = 4 updates
-			expect(updateCount).toBe(4);
+			// Batched: 2 batch updates (priority + user-desk combo) using WHERE IN, not 4 individual
+			expect(updateCount).toBe(2);
 		});
 	});
 
 	describe('Return Value', () => {
-		it('should return array of created assignments', async () => {
+		it('should return array of created assignments from batch insert', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = ['user-a', 'user-b'];
 
@@ -589,17 +593,12 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			let idx = 0;
 			vi.spyOn(db, 'insertInto').mockImplementation(() => {
-				idx++;
 				return {
 					values: vi.fn().mockReturnThis(),
 					returningAll: vi.fn().mockReturnThis(),
-					executeTakeFirstOrThrow: vi.fn().mockResolvedValue(
-						createMockAssignment({
-							id: idx,
-							user_id: userIds[idx - 1],
-						})
+					execute: vi.fn().mockResolvedValue(
+						userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
 					),
 				} as any;
 			});
@@ -624,21 +623,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 	describe('Edge Cases', () => {
 		it('should handle empty userIds array', async () => {
-			const mockDeskLocation = createMockDeskLocation();
-
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
-
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
-
+			// With empty array, should return early without validating desk location
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: [],
 				deskLocationId: 10,
@@ -648,7 +633,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			expect(result).toHaveLength(0);
 		});
 
-		it('should handle large number of users', async () => {
+		it('should handle large number of users with single batch insert', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = Array.from({ length: 50 }, (_, i) => `user-${i + 1}`);
 
@@ -665,14 +650,14 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			let insertCount = 0;
+			let insertCallCount = 0;
 			vi.spyOn(db, 'insertInto').mockImplementation(() => {
-				insertCount++;
+				insertCallCount++;
 				return {
 					values: vi.fn().mockReturnThis(),
 					returningAll: vi.fn().mockReturnThis(),
-					executeTakeFirstOrThrow: vi.fn().mockResolvedValue(
-						createMockAssignment({ id: insertCount })
+					execute: vi.fn().mockResolvedValue(
+						userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
 					),
 				} as any;
 			});
@@ -690,7 +675,8 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			});
 
 			expect(result).toHaveLength(50);
-			expect(insertCount).toBe(50);
+			// Batched: only 1 insert call for all 50 users
+			expect(insertCallCount).toBe(1);
 		});
 	});
 });

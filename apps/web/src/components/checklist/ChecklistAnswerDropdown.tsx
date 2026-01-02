@@ -10,12 +10,13 @@ function DropdownAnswerItem(props: { answer: any }) {
 	const { answer: a } = props;
 
 	// Fetch attached image for this answer
-	const { data: attachedImages = [] } = useDocTrpc().listDocs(
+	const { data: attachedImagesResult } = useDocTrpc().listDocs(
 		{
 			filters: { answer_id: a.id },
 		},
 		{ enabled: a.id !== -1 }
 	);
+	const attachedImages = attachedImagesResult?.rows ?? [];
 
 	const attachedImage = attachedImages.length > 0 ? attachedImages[0] : null;
 

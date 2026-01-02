@@ -10,6 +10,7 @@ import { SUGGESTED_DESK_LOCATIONS } from '@/schemas/deskSchemas';
  * Get paginated list of desk location types with optional search filter
  * Returns { rows, count } for server-side pagination
  * Includes location_count for each type
+ * Uses COUNT(*) OVER() to get total count in a single query
  */
 export async function getDeskLocationTypes(
 	ctx: ProtectedContext,
@@ -59,36 +60,27 @@ export async function getDeskLocationTypes(
 		query = query.where('desk_location_type.deleted_at', 'is', null);
 	}
 
-	// Apply search filter if provided
+	// Apply search filter if provided (prefix search for index usage)
 	if (searchTerm) {
 		query = query.where(
-			sql<boolean>`desk_location_type.name ILIKE ${`%${searchTerm}%`}`
+			sql<boolean>`desk_location_type.name ILIKE ${`${searchTerm}%`}`
 		);
 	}
 
-	// Count query (run in parallel with data query)
-	const countQuery = query
-		.clearSelect()
-		.clearOrderBy()
-		.select(({ fn }) => fn.countAll().as('count'))
-		.executeTakeFirst();
-
-	// Data query with pagination
-	const rowsQuery = query
+	// Single query with COUNT(*) OVER() for total count
+	const rowsWithCount = await query
+		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();
 
-	// Execute in parallel
-	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
+	const rows = rowsWithCount.map(({ total_count, ...row }) => ({
+		...row,
+		location_count: Number(row.location_count),
+	}));
 
-	return {
-		rows: rows.map((row) => ({
-			...row,
-			location_count: Number(row.location_count),
-		})),
-		count: countResult?.count ? Number(countResult.count) : 0,
-	};
+	return { rows, count };
 }
 
 /**
@@ -245,6 +237,7 @@ export async function restoreDeskLocationType(
 /**
  * Get paginated list of desk locations with optional filters
  * Returns { rows, count } for server-side pagination
+ * Uses COUNT(*) OVER() for both total count and user counts (avoiding derived table)
  */
 export async function getDeskLocations(
 	ctx: ProtectedContext,
@@ -256,6 +249,7 @@ export async function getDeskLocations(
 	showInactive?: boolean
 ) {
 	// Base query with client scoping
+	// Uses window function for user_count to avoid expensive derived table join
 	let query = ctx.db
 		.selectFrom('desk_location')
 		.leftJoin(
@@ -263,15 +257,10 @@ export async function getDeskLocations(
 			'desk_location.desk_location_type_id',
 			'desk_location_type.id'
 		)
-		.leftJoin(
-			(eb) =>
-				eb
-					.selectFrom('user_desk_location')
-					.select(['user_desk_location.desk_location_id', eb.fn.countAll<number>().as('user_count')])
-					.where('user_desk_location.removed_at', 'is', null)
-					.groupBy('user_desk_location.desk_location_id')
-					.as('user_counts'),
-			(join) => join.onRef('user_counts.desk_location_id', '=', 'desk_location.id')
+		.leftJoin('user_desk_location', (join) =>
+			join
+				.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
+				.on('user_desk_location.removed_at', 'is', null)
 		)
 		.select([
 			'desk_location.id',
@@ -285,8 +274,10 @@ export async function getDeskLocations(
 			'desk_location.updated_by',
 			'desk_location.deleted_at',
 			'desk_location_type.name as desk_location_type_name',
-			sql<number>`COALESCE(user_counts.user_count, 0)`.as('user_count'),
 		])
+		.select(
+			sql<number>`COUNT(user_desk_location.id) OVER (PARTITION BY desk_location.id)`.as('user_count')
+		)
 		.where('desk_location.client_id', '=', ctx.session.user.client_id)
 		.orderBy('desk_location_type.name asc')
 		.orderBy('desk_location.name asc');
@@ -314,33 +305,29 @@ export async function getDeskLocations(
 		query = query.where('desk_location.is_active', '=', true);
 	}
 
-	// Apply search filter if provided
+	// Apply search filter if provided (prefix search for index usage)
 	if (searchTerm) {
 		query = query.where(
-			sql<boolean>`desk_location.name ILIKE ${`%${searchTerm}%`}`
+			sql<boolean>`desk_location.name ILIKE ${`${searchTerm}%`}`
 		);
 	}
 
-	// Count query (run in parallel with data query)
-	const countQuery = query
-		.clearSelect()
-		.clearOrderBy()
-		.select(({ fn }) => fn.countAll().as('count'))
-		.executeTakeFirst();
-
-	// Data query with pagination
-	const rowsQuery = query
+	// Single query with COUNT(*) OVER() for total count
+	// Use DISTINCT ON to dedupe rows expanded by the user_desk_location join
+	const rowsWithCount = await ctx.db
+		.selectFrom(query.as('filtered'))
+		.distinctOn(['filtered.id'])
+		.selectAll('filtered')
+		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
+		.orderBy('filtered.id')
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();
 
-	// Execute in parallel
-	const [countResult, rows] = await Promise.all([countQuery, rowsQuery]);
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
+	const rows = rowsWithCount.map(({ total_count, ...row }) => row);
 
-	return {
-		rows,
-		count: countResult?.count ? Number(countResult.count) : 0,
-	};
+	return { rows, count };
 }
 
 /**
@@ -685,6 +672,7 @@ export async function assignUserToDeskLocation(
 /**
  * Bulk assign multiple users to the same desk location with the same priority
  * All assignments happen in a single transaction (all-or-nothing)
+ * Uses batched operations to minimize database round-trips
  */
 export async function bulkAssignUsersToDeskLocation(
 	ctx: ProtectedContext,
@@ -694,67 +682,61 @@ export async function bulkAssignUsersToDeskLocation(
 		priority: number;
 	}
 ) {
+	if (params.userIds.length === 0) {
+		return [];
+	}
+
 	// Validate the desk location exists and belongs to the client
 	const deskLocation = await getDeskLocation(ctx, params.deskLocationId);
 	if (!deskLocation) {
 		throw new Error('Desk location not found');
 	}
 
-	// Helper function to perform the bulk assignments
+	// Helper function to perform the bulk assignments using batched queries
 	const performBulkAssignment = async (db: typeof ctx.db) => {
-		const results = [];
+		// Batch soft-delete any existing assignments at this priority for these users
+		await db
+			.updateTable('user_desk_location')
+			.set({
+				removed_at: sql`now()`,
+				removed_by: ctx.session.user.id,
+			})
+			.where('user_desk_location.user_id', 'in', params.userIds)
+			.where('user_desk_location.priority', '=', params.priority)
+			.where('user_desk_location.removed_at', 'is', null)
+			.execute();
 
-		for (const userId of params.userIds) {
-			// First, soft-delete any existing assignment at this priority for this user
-			// (to make room for the new assignment at this priority slot)
-			await db
-				.updateTable('user_desk_location')
-				.set({
-					removed_at: sql`now()`,
-					removed_by: ctx.session.user.id,
-				})
-				.where('user_desk_location.user_id', '=', userId)
-				.where('user_desk_location.priority', '=', params.priority)
-				.where('user_desk_location.removed_at', 'is', null)
-				.execute();
+		// Batch soft-delete any existing assignments for these users at this desk location
+		await db
+			.updateTable('user_desk_location')
+			.set({
+				removed_at: sql`now()`,
+				removed_by: ctx.session.user.id,
+			})
+			.where('user_desk_location.user_id', 'in', params.userIds)
+			.where('user_desk_location.desk_location_id', '=', params.deskLocationId)
+			.where('user_desk_location.removed_at', 'is', null)
+			.execute();
 
-			// Also soft-delete any existing assignment for this user-desk combo at ANY priority
-			// (to allow reassigning the same desk at a different priority)
-			await db
-				.updateTable('user_desk_location')
-				.set({
-					removed_at: sql`now()`,
-					removed_by: ctx.session.user.id,
-				})
-				.where('user_desk_location.user_id', '=', userId)
-				.where('user_desk_location.desk_location_id', '=', params.deskLocationId)
-				.where('user_desk_location.removed_at', 'is', null)
-				.execute();
+		// Batch insert all new assignments
+		const insertValues = params.userIds.map((userId) => ({
+			user_id: userId,
+			desk_location_id: params.deskLocationId,
+			priority: params.priority,
+			assigned_by: ctx.session.user.id,
+		}));
 
-			// Then insert the new assignment
-			const result = await db
-				.insertInto('user_desk_location')
-				.values({
-					user_id: userId,
-					desk_location_id: params.deskLocationId,
-					priority: params.priority,
-					assigned_by: ctx.session.user.id,
-				})
-				.returningAll()
-				.executeTakeFirstOrThrow();
-
-			results.push(result);
-		}
-
-		return results;
+		return await db
+			.insertInto('user_desk_location')
+			.values(insertValues)
+			.returningAll()
+			.execute();
 	};
 
 	// Check if we're already in a transaction
 	if (ctx.db.isTransaction) {
-		// Already in a transaction, use the existing transaction
 		return await performBulkAssignment(ctx.db);
 	} else {
-		// Not in a transaction, create one
 		return await ctx.db.transaction().execute(async (trx) => {
 			return await performBulkAssignment(trx);
 		});
@@ -846,6 +828,7 @@ export async function removeUserFromDeskLocation(
  * Update multiple user desk location priorities at once
  * Used for drag-and-drop reordering
  * Soft-deletes existing records and re-inserts with new priorities to avoid constraint conflicts
+ * Uses batched operations to minimize database round-trips
  */
 export async function updateUserDeskLocationPriorities(
 	ctx: ProtectedContext,
@@ -856,6 +839,7 @@ export async function updateUserDeskLocationPriorities(
 	}
 
 	const ids = updates.map((u) => u.id);
+	const priorityMap = new Map(updates.map((u) => [u.id, u.priority]));
 
 	// Helper function to perform the priority updates
 	const performPriorityUpdates = async (db: typeof ctx.db) => {
@@ -867,7 +851,7 @@ export async function updateUserDeskLocationPriorities(
 			.where('user_desk_location.removed_at', 'is', null)
 			.execute();
 
-		// Soft-delete the existing records
+		// Soft-delete the existing records (batched)
 		await db
 			.updateTable('user_desk_location')
 			.set({
@@ -878,34 +862,32 @@ export async function updateUserDeskLocationPriorities(
 			.where('user_desk_location.removed_at', 'is', null)
 			.execute();
 
-		// Re-insert with new priorities
-		const newRecords = [];
-		for (const update of updates) {
-			const existing = existingRecords.find((r) => r.id === update.id);
-			if (existing) {
-				const newRecord = await db
-					.insertInto('user_desk_location')
-					.values({
-						user_id: existing.user_id,
-						desk_location_id: existing.desk_location_id,
-						priority: update.priority,
-						assigned_by: ctx.session.user.id,
-					})
-					.returningAll()
-					.executeTakeFirstOrThrow();
-				newRecords.push(newRecord);
-			}
+		// Build batch insert values with new priorities
+		const insertValues = existingRecords
+			.filter((r) => priorityMap.has(r.id))
+			.map((existing) => ({
+				user_id: existing.user_id,
+				desk_location_id: existing.desk_location_id,
+				priority: priorityMap.get(existing.id)!,
+				assigned_by: ctx.session.user.id,
+			}));
+
+		if (insertValues.length === 0) {
+			return [];
 		}
 
-		return newRecords;
+		// Batch insert all new records
+		return await db
+			.insertInto('user_desk_location')
+			.values(insertValues)
+			.returningAll()
+			.execute();
 	};
 
 	// Check if we're already in a transaction
 	if (ctx.db.isTransaction) {
-		// Already in a transaction, use the existing transaction
 		return await performPriorityUpdates(ctx.db);
 	} else {
-		// Not in a transaction, create one
 		return await ctx.db.transaction().execute(async (trx) => {
 			return await performPriorityUpdates(trx);
 		});
@@ -915,7 +897,7 @@ export async function updateUserDeskLocationPriorities(
 /**
  * Update desk assignments for multiple users at once
  * Handles both individual user editing and bulk assignment
- * Uses a simple soft-delete-all then insert-all approach to avoid unique constraint issues
+ * Uses batched soft-delete-all then batch insert approach to minimize round-trips
  * NOTE: This function expects to be called within a transaction from the controller
  */
 export async function updateUsersDeskAssignments(
@@ -925,35 +907,50 @@ export async function updateUsersDeskAssignments(
 		assignments: Array<{ deskLocationId: number; priority: number }>;
 	}>
 ) {
-	const results = [];
-
-	for (const { userId, assignments: desiredAssignments } of updates) {
-		// Step 1: Soft-delete ALL existing assignments for this user
-		await ctx.db
-			.updateTable('user_desk_location')
-			.set({
-				removed_at: sql`now()`,
-				removed_by: ctx.session.user.id,
-			})
-			.where('user_desk_location.user_id', '=', userId)
-			.where('user_desk_location.removed_at', 'is', null)
-			.execute();
-
-		// Step 2: Insert all desired assignments fresh
-		for (const desired of desiredAssignments) {
-			await ctx.db
-				.insertInto('user_desk_location')
-				.values({
-					user_id: userId,
-					desk_location_id: desired.deskLocationId,
-					priority: desired.priority,
-					assigned_by: ctx.session.user.id,
-				})
-				.execute();
-		}
-
-		results.push({ userId, assignmentsUpdated: desiredAssignments.length });
+	if (updates.length === 0) {
+		return [];
 	}
 
-	return results;
+	// Collect all user IDs for batch soft-delete
+	const userIds = updates.map((u) => u.userId);
+
+	// Batch soft-delete ALL existing assignments for all users at once
+	await ctx.db
+		.updateTable('user_desk_location')
+		.set({
+			removed_at: sql`now()`,
+			removed_by: ctx.session.user.id,
+		})
+		.where('user_desk_location.user_id', 'in', userIds)
+		.where('user_desk_location.removed_at', 'is', null)
+		.execute();
+
+	// Collect all insert values for batch insert
+	const insertValues: Array<{
+		user_id: string;
+		desk_location_id: number;
+		priority: number;
+		assigned_by: string;
+	}> = [];
+
+	for (const { userId, assignments } of updates) {
+		for (const { deskLocationId, priority } of assignments) {
+			insertValues.push({
+				user_id: userId,
+				desk_location_id: deskLocationId,
+				priority,
+				assigned_by: ctx.session.user.id,
+			});
+		}
+	}
+
+	// Batch insert all new assignments
+	if (insertValues.length > 0) {
+		await ctx.db.insertInto('user_desk_location').values(insertValues).execute();
+	}
+
+	return updates.map(({ userId, assignments }) => ({
+		userId,
+		assignmentsUpdated: assignments.length,
+	}));
 }

@@ -249,7 +249,18 @@ export async function archiveRecoveryEventsForSettlement(
 ) {
 	const clientId = ctx.session.user.client_id!;
 
-	// Bulk soft delete and return all fields needed for logging via RETURNING
+	// Compute sum FIRST (before any rows are soft-deleted) to ensure accurate total
+	const sumResult = await ctx.db
+		.selectFrom('recovery_event')
+		.select(({ fn }) => fn.sum<string>('recovery_amount').as('total'))
+		.where('recovery_event.settlement_id', '=', settlementId)
+		.where('recovery_event.client_id', '=', clientId)
+		.where('recovery_event.deleted_at', 'is', null)
+		.executeTakeFirst();
+
+	const totalAmount = sumResult?.total; // Keep as string for exact numeric precision
+
+	// THEN bulk soft delete and return fields needed for logging via RETURNING
 	const archived = await ctx.db
 		.updateTable('recovery_event')
 		.set({
@@ -262,17 +273,12 @@ export async function archiveRecoveryEventsForSettlement(
 		.returning(['id', 'claim_id', 'recovery_amount', 'recovery_date', 'recovery_source'])
 		.execute();
 
-	if (archived.length > 0) {
-		// Calculate total and decrement claim's actual_recovery in one operation
-		const totalAmount = archived.reduce(
-			(sum, event) => sum + parseFloat(event.recovery_amount),
-			0
-		);
-
+	// Update claim's actual_recovery using SQL arithmetic with exact numeric types
+	if (totalAmount) {
 		await ctx.db
 			.updateTable('claim')
 			.set({
-				actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${totalAmount}`,
+				actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${totalAmount}::numeric`,
 			})
 			.where('claim.id', '=', claimId)
 			.where('claim.client_id', '=', clientId)

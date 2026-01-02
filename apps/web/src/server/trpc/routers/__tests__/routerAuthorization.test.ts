@@ -54,7 +54,7 @@ vi.mock('@/api/controllers/commentController', () => ({
 vi.mock('@/api/controllers/responseController', () => ({
 	evaluateResponses: vi.fn(),
 	getResponsesForAnswer: vi.fn(),
-	getResponsesForClaimChecklist: vi.fn(),
+	getResponsesForPageInstance: vi.fn(),
 	getResponseAuditLogs: vi.fn(),
 	getResponseAuditLogStats: vi.fn(),
 	upsertQuestionResponses: vi.fn(),
@@ -1214,24 +1214,26 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			});
 		});
 
-		describe('getResponsesForChecklist - Ownership Required', () => {
-			it('should allow admin to get responses for any checklist', async () => {
+		describe('getResponsesForPageInstance - Ownership Required', () => {
+			it('should allow admin to get responses for any page instance', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
-				const mockGetResponsesForChecklist = await import('@/api/controllers/responseController');
-				vi.mocked(mockGetResponsesForChecklist.getResponsesForClaimChecklist).mockResolvedValue([]);
+				const mockGetResponsesForPageInstance = await import('@/api/controllers/responseController');
+				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue({});
 
 				const caller = createCaller(responseRouter, adminCtx);
-				await expect(caller.getResponsesForChecklist({ checklistId: 1, claimId: 100 })).resolves.toEqual([]);
+				await expect(
+					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+				).resolves.toEqual({});
 			});
 
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1244,17 +1246,19 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
-				const mockGetResponsesForChecklist = await import('@/api/controllers/responseController');
-				vi.mocked(mockGetResponsesForChecklist.getResponsesForClaimChecklist).mockResolvedValue([]);
+				const mockGetResponsesForPageInstance = await import('@/api/controllers/responseController');
+				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue({});
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.getResponsesForChecklist({ checklistId: 1, claimId: 100 })).resolves.toEqual([]);
+				await expect(
+					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+				).resolves.toEqual({});
 			});
 
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1268,7 +1272,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.getResponsesForChecklist({ checklistId: 1, claimId: 100 })).rejects.toThrow(TRPCError);
+				await expect(
+					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+				).rejects.toThrow(TRPCError);
 			});
 		});
 

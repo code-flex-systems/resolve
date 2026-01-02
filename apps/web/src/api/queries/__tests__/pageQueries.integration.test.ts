@@ -17,6 +17,7 @@ import {
 	modifyPage,
 	modifyPageInstanceStatus,
 } from '../pageQueries';
+import { getPageInstanceTree } from '@/api/controllers/pageController';
 import {
 	createTestClient,
 	createTestUser,
@@ -28,6 +29,7 @@ import {
 	createTestClaim,
 	createTestQuestionResponse,
 	createTestQuestionResponseAnswer,
+	createTestAnswerCallEdge,
 } from '@/__tests__/integration/fixtures';
 import { PageInstanceStatus } from '@/config/enums';
 
@@ -150,6 +152,147 @@ describe('pageQueries integration', () => {
 			await expect(
 				copyPageTemplate(ctx2, checklist.id, page.id, { parentId: -1, position: 0 })
 			).rejects.toThrow();
+		});
+
+		it('should create answer_call_edges for answers that reference instances (bulk INSERT)', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			// Create multiple target page instances that will be referenced by answers
+			const targetPage1 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target1' });
+			const targetPage2 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target2' });
+			const targetInstance1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: targetPage1.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+			const targetInstance2 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: targetPage2.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Create source page with MULTIPLE questions, each with answers that call different instances
+			// This tests the bulk INSERT with VALUES-based mapping
+			const sourcePage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Source' });
+
+			// Question 1 with 2 answers (1 with calls_instance_id)
+			const question1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: sourcePage.id,
+				created_by: user.id,
+				text: 'Q1',
+				position: 0,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question1.id,
+				created_by: user.id,
+				text: 'Q1-A1 - calls target1',
+				calls_instance_id: targetInstance1.id,
+				position: 0,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question1.id,
+				created_by: user.id,
+				text: 'Q1-A2 - no call',
+				position: 1,
+			});
+
+			// Question 2 with 2 answers (both with calls_instance_id to different targets)
+			const question2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: sourcePage.id,
+				created_by: user.id,
+				text: 'Q2',
+				position: 1,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question2.id,
+				created_by: user.id,
+				text: 'Q2-A1 - calls target1',
+				calls_instance_id: targetInstance1.id,
+				position: 0,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question2.id,
+				created_by: user.id,
+				text: 'Q2-A2 - calls target2',
+				calls_instance_id: targetInstance2.id,
+				position: 1,
+			});
+
+			// Question 3 with 1 answer (no calls_instance_id)
+			const question3 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: sourcePage.id,
+				created_by: user.id,
+				text: 'Q3',
+				position: 2,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question3.id,
+				created_by: user.id,
+				text: 'Q3-A1 - no call',
+				position: 0,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Copy the page template - this should use the bulk INSERT with VALUES mapping
+			const result = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: -1, position: 0 });
+
+			// Verify all questions were copied
+			const copiedQuestions = await db
+				.selectFrom('question')
+				.selectAll()
+				.where('page_id', '=', result.id)
+				.orderBy('position')
+				.execute();
+			expect(copiedQuestions.length).toBe(3);
+			expect(copiedQuestions[0].text).toBe('Q1');
+			expect(copiedQuestions[1].text).toBe('Q2');
+			expect(copiedQuestions[2].text).toBe('Q3');
+
+			// Verify all answers were copied with correct calls_instance_id preserved
+			const allCopiedAnswers = await db
+				.selectFrom('answer')
+				.selectAll()
+				.where(
+					'question_id',
+					'in',
+					copiedQuestions.map((q) => q.id)
+				)
+				.execute();
+			expect(allCopiedAnswers.length).toBe(5); // 2 + 2 + 1
+
+			// Count answers with calls_instance_id
+			const answersWithCalls = allCopiedAnswers.filter((a) => a.calls_instance_id !== null);
+			expect(answersWithCalls.length).toBe(3); // Q1-A1, Q2-A1, Q2-A2
+
+			// Verify answer_call_edges were created for ALL copied answers with calls_instance_id
+			const edges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('from_instance_id', '=', result.instance_id)
+				.execute();
+
+			expect(edges.length).toBe(3); // One edge per answer with calls_instance_id
+
+			// Verify edge targets
+			const edgeTargets = edges.map((e) => e.to_instance_id).sort();
+			expect(edgeTargets).toEqual([targetInstance1.id, targetInstance1.id, targetInstance2.id].sort());
+
+			// Verify all edges have correct checklist_id and client_id
+			expect(edges.every((e) => e.checklist_id === checklist.id)).toBe(true);
+			expect(edges.every((e) => e.client_id === client.id)).toBe(true);
 		});
 	});
 
@@ -328,6 +471,59 @@ describe('pageQueries integration', () => {
 				.executeTakeFirst();
 
 			expect(updated?.position).toBe(1);
+		});
+
+		it('should create answer_call_edges for existing page with calls_instance_id answers', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			// Create a target page instance that will be referenced by an answer
+			const targetPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target' });
+			const targetInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: targetPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Create a page with a question and answer that references the target instance
+			const sourcePage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Source' });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: sourcePage.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A1 - calls target',
+				calls_instance_id: targetInstance.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create a new instance of the source page (this should create answer_call_edges)
+			const newInstance = await createPageInstance(ctx, {
+				checklistId: checklist.id,
+				pageId: sourcePage.id,
+				parentId: -1,
+				position: 0,
+			});
+
+			// Verify answer_call_edges were created for the new instance
+			const edges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('from_instance_id', '=', newInstance.id)
+				.execute();
+
+			expect(edges.length).toBe(1);
+			expect(edges[0].answer_id).toBe(answer.id);
+			expect(edges[0].to_instance_id).toBe(targetInstance.id);
+			expect(edges[0].checklist_id).toBe(checklist.id);
 		});
 	});
 
@@ -867,6 +1063,15 @@ describe('pageQueries integration', () => {
 				calls_instance_id: childInstance.id,
 			});
 
+			// Create the answer_call_edge (materialized edge for visibility checks)
+			await createTestAnswerCallEdge(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				from_instance_id: rootInstance.id,
+				to_instance_id: childInstance.id,
+				answer_id: answer.id,
+			});
+
 			// Create response that selects this answer
 			const response = await createTestQuestionResponse(db, {
 				client_id: client.id,
@@ -1024,6 +1229,314 @@ describe('pageQueries integration', () => {
 
 			expect(statuses.length).toBe(2);
 			expect(statuses.every((s) => s.status === PageInstanceStatus.COMPLETE)).toBe(true);
+		});
+	});
+
+	// =====================================================================
+	// TREE BUILDING (Controller)
+	// =====================================================================
+
+	describe('getPageInstanceTree', () => {
+		it('should return correct hierarchical structure with adjacency map', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			// Create a 3-level hierarchy:
+			// Root1 (position 0)
+			//   ├── Child1 (position 0)
+			//   │   └── Grandchild1 (position 0)
+			//   └── Child2 (position 1)
+			// Root2 (position 1)
+
+			const root1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root1' });
+			const root2Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root2' });
+			const child1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child1' });
+			const child2Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child2' });
+			const grandchild1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Grandchild1' });
+
+			const root1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: root1Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: null,
+				position: 0,
+			});
+
+			const root2 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: root2Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: null,
+				position: 1,
+			});
+
+			const child1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: child1Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: root1.id,
+				position: 0,
+			});
+
+			const child2 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: child2Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: root1.id,
+				position: 1,
+			});
+
+			const grandchild1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: grandchild1Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: child1.id,
+				position: 0,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id });
+
+			// Verify structure
+			expect(result.tree.length).toBe(2); // 2 roots
+			expect(result.maxPosition).toBe(5); // 5 total instances
+
+			// Find Root1 and Root2 in the tree
+			const root1Node = result.tree.find((n) => n.instanceId === root1.id);
+			const root2Node = result.tree.find((n) => n.instanceId === root2.id);
+
+			expect(root1Node).toBeDefined();
+			expect(root2Node).toBeDefined();
+
+			// Root1 should have 2 children
+			expect(root1Node?.title).toBe('Root1');
+			expect(root1Node?.children?.length).toBe(2);
+
+			// Root2 should have no children
+			expect(root2Node?.title).toBe('Root2');
+			expect(root2Node?.children).toBeUndefined();
+
+			// Verify Child1 and Child2 under Root1
+			const child1Node = root1Node?.children?.find((n) => n.instanceId === child1.id);
+			const child2Node = root1Node?.children?.find((n) => n.instanceId === child2.id);
+
+			expect(child1Node).toBeDefined();
+			expect(child1Node?.title).toBe('Child1');
+			expect(child2Node).toBeDefined();
+			expect(child2Node?.title).toBe('Child2');
+
+			// Child1 should have 1 grandchild
+			expect(child1Node?.children?.length).toBe(1);
+			expect(child1Node?.children?.[0].instanceId).toBe(grandchild1.id);
+			expect(child1Node?.children?.[0].title).toBe('Grandchild1');
+
+			// Child2 should have no children
+			expect(child2Node?.children).toBeUndefined();
+
+			// Verify parent references are correct
+			expect(root1Node?.parentInstanceId).toBeNull();
+			expect(child1Node?.parentInstanceId).toBe(root1.id);
+			expect(child1Node?.children?.[0].parentInstanceId).toBe(child1.id);
+		});
+
+		it('should return empty tree for checklist with no instances', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id });
+
+			expect(result.tree).toEqual([]);
+			expect(result.maxPosition).toBe(0);
+		});
+
+		it('should include status when claimId is provided', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Test' });
+
+			const instance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: null,
+			});
+
+			// Create status for this instance
+			await db
+				.insertInto('page_instance_status')
+				.values({
+					claim_id: claim.id,
+					page_instance_id: instance.id,
+					status: PageInstanceStatus.COMPLETE,
+					template_version: page.version,
+					client_id: client.id,
+				})
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id, claimId: claim.id });
+
+			expect(result.tree.length).toBe(1);
+			expect(result.tree[0].status).toBe(PageInstanceStatus.COMPLETE);
+		});
+
+		it('should return children in position order', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			// Create parent and multiple children with specific positions
+			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Parent' });
+			const childAPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'ChildA' });
+			const childBPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'ChildB' });
+			const childCPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'ChildC' });
+
+			const parent = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: null,
+				position: 0,
+			});
+
+			// Create children in non-sequential order to verify ordering works
+			const childC = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: childCPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: parent.id,
+				position: 2,
+			});
+			const childA = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: childAPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: parent.id,
+				position: 0,
+			});
+			const childB = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: childBPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: parent.id,
+				position: 1,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id });
+
+			expect(result.tree.length).toBe(1);
+			const parentNode = result.tree[0];
+			expect(parentNode.children?.length).toBe(3);
+
+			// Verify children are in position order regardless of insertion order
+			expect(parentNode.children?.[0].instanceId).toBe(childA.id);
+			expect(parentNode.children?.[0].title).toBe('ChildA');
+			expect(parentNode.children?.[0].position).toBe(0);
+
+			expect(parentNode.children?.[1].instanceId).toBe(childB.id);
+			expect(parentNode.children?.[1].title).toBe('ChildB');
+			expect(parentNode.children?.[1].position).toBe(1);
+
+			expect(parentNode.children?.[2].instanceId).toBe(childC.id);
+			expect(parentNode.children?.[2].title).toBe('ChildC');
+			expect(parentNode.children?.[2].position).toBe(2);
+		});
+
+		it('should return different statuses per instance with claim-filtered path', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+
+			// Create parent with 2 children, each with different status
+			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Parent' });
+			const child1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child1' });
+			const child2Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child2' });
+
+			const parent = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: null,
+				position: 0,
+			});
+			const child1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: child1Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: parent.id,
+				position: 0,
+			});
+			const child2 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: child2Page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				parent_instance_id: parent.id,
+				position: 1,
+			});
+
+			// Set different statuses for each instance
+			await db
+				.insertInto('page_instance_status')
+				.values([
+					{
+						claim_id: claim.id,
+						page_instance_id: parent.id,
+						status: PageInstanceStatus.COMPLETE,
+						template_version: parentPage.version,
+						client_id: client.id,
+					},
+					{
+						claim_id: claim.id,
+						page_instance_id: child1.id,
+						status: PageInstanceStatus.IN_PROGRESS,
+						template_version: child1Page.version,
+						client_id: client.id,
+					},
+					// child2 has no status - should be UNSTARTED
+				])
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id, claimId: claim.id });
+
+			expect(result.tree.length).toBe(1);
+			const parentNode = result.tree[0];
+
+			// Parent should be COMPLETE
+			expect(parentNode.status).toBe(PageInstanceStatus.COMPLETE);
+
+			// Child1 should be IN_PROGRESS
+			const child1Node = parentNode.children?.find((c) => c.instanceId === child1.id);
+			expect(child1Node?.status).toBe(PageInstanceStatus.IN_PROGRESS);
+
+			// Child2 should be UNSTARTED (no status record)
+			const child2Node = parentNode.children?.find((c) => c.instanceId === child2.id);
+			expect(child2Node?.status).toBe(PageInstanceStatus.UNSTARTED);
 		});
 	});
 });

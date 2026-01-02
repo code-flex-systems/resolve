@@ -27,150 +27,53 @@ const createMockContext = (client_id: string = 'client-abc'): ProtectedContext =
 	db,
 });
 
+// Helper to create mock query chain
+const createMockQueryChain = (rows: unknown[] = []) => {
+	const mockWhere = vi.fn().mockReturnThis();
+	const mockInnerJoin = vi.fn().mockReturnThis();
+	const mockLeftJoin = vi.fn().mockReturnThis();
+	const mockSelect = vi.fn().mockReturnThis();
+	const mockGroupBy = vi.fn().mockReturnThis();
+	const mockOrderBy = vi.fn().mockReturnThis();
+	const mockLimit = vi.fn().mockReturnThis();
+	const mockOffset = vi.fn().mockReturnThis();
+	const mockExecute = vi.fn().mockResolvedValue(rows);
+
+	const chain = {
+		innerJoin: mockInnerJoin,
+		leftJoin: mockLeftJoin,
+		where: mockWhere,
+		select: mockSelect,
+		groupBy: mockGroupBy,
+		orderBy: mockOrderBy,
+		limit: mockLimit,
+		offset: mockOffset,
+		execute: mockExecute,
+	};
+
+	vi.spyOn(db, 'selectFrom').mockReturnValue(chain as any);
+
+	return {
+		...chain,
+		mockWhere,
+		mockInnerJoin,
+		mockLeftJoin,
+		mockSelect,
+		mockGroupBy,
+		mockOrderBy,
+		mockLimit,
+		mockOffset,
+		mockExecute,
+	};
+};
+
 describe('getChecklistSummaryDetail()', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
-	describe('Client scoping', () => {
-		it('should filter by client_id from context', async () => {
-			const ctx = createMockContext('client-xyz');
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
-
-			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
-				segment: SummarySegment.ANSWERED,
-				mode: 'count',
-			});
-
-			// Verify client_id was used in where clause
-			expect(mockWhere).toHaveBeenCalledWith('page_instance.client_id', '=', 'client-xyz');
-		});
-
-		it('should filter by checklistId', async () => {
-			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
-
-			await getChecklistSummaryDetail(ctx, {
-				checklistId: 42,
-				claimId: 100,
-				segment: SummarySegment.ANSWERED,
-				mode: 'count',
-			});
-
-			// Verify checklistId was used in where clause
-			expect(mockWhere).toHaveBeenCalledWith('page_instance.checklist_id', '=', 42);
-		});
-	});
-
-	describe('Mode: count', () => {
-		it('should return count as number for ANSWERED segment', async () => {
-			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '12' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
-
-			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
-				segment: SummarySegment.ANSWERED,
-				mode: 'count',
-			});
-
-			expect(result).toBe(12);
-			expect(typeof result).toBe('number');
-		});
-
-		it('should return 0 when count is null', async () => {
-			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: null });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
-
-			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
-				segment: SummarySegment.UNANSWERED,
-				mode: 'count',
-			});
-
-			expect(result).toBe(0);
-		});
-
-		it('should return 0 when result is undefined', async () => {
-			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue(undefined);
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
-
-			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
-				segment: SummarySegment.ACTION_REQUIRED,
-				mode: 'count',
-			});
-
-			expect(result).toBe(0);
-		});
-	});
-
-	describe('Mode: rows', () => {
-		it('should return rows array for ANSWERED segment', async () => {
+	describe('Return structure', () => {
+		it('should always return { rows, count } object', async () => {
 			const ctx = createMockContext();
 			const mockRows = [
 				{
@@ -180,6 +83,7 @@ describe('getChecklistSummaryDetail()', () => {
 					question_text: 'What is your name?',
 					response_text: 'John Doe',
 					answer_texts: null,
+					total_count: 2,
 				},
 				{
 					page_id: 1,
@@ -187,73 +91,96 @@ describe('getChecklistSummaryDetail()', () => {
 					question_id: 6,
 					question_text: 'What is your age?',
 					response_text: null,
-					answer_texts: '18-24, Male',
+					answer_texts: '18-24',
+					total_count: 2,
 				},
 			];
 
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockGroupBy = vi.fn().mockReturnThis();
-			const mockOrderBy = vi.fn().mockReturnThis();
-			const mockLimit = vi.fn().mockReturnThis();
-			const mockOffset = vi.fn().mockReturnThis();
-			const mockExecute = vi.fn().mockResolvedValue(mockRows);
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				groupBy: mockGroupBy,
-				orderBy: mockOrderBy,
-				limit: mockLimit,
-				offset: mockOffset,
-				execute: mockExecute,
-			} as any);
+			createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ANSWERED,
-				mode: 'rows',
 			});
 
-			expect(result).toEqual(mockRows);
-			expect(Array.isArray(result)).toBe(true);
-			expect(result).toHaveLength(2);
+			expect(result).toHaveProperty('rows');
+			expect(result).toHaveProperty('count');
+			expect(Array.isArray(result.rows)).toBe(true);
+			expect(typeof result.count).toBe('number');
 		});
 
-		it('should use default limit of 50 when not provided', async () => {
+		it('should extract count from first row total_count', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockGroupBy = vi.fn().mockReturnThis();
-			const mockOrderBy = vi.fn().mockReturnThis();
-			const mockLimit = vi.fn().mockReturnThis();
-			const mockOffset = vi.fn().mockReturnThis();
-			const mockExecute = vi.fn().mockResolvedValue([]);
+			const mockRows = [
+				{ page_id: 1, question_id: 1, total_count: 15 },
+				{ page_id: 1, question_id: 2, total_count: 15 },
+			];
 
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				groupBy: mockGroupBy,
-				orderBy: mockOrderBy,
-				limit: mockLimit,
-				offset: mockOffset,
-				execute: mockExecute,
-			} as any);
+			createMockQueryChain(mockRows);
+
+			const result = await getChecklistSummaryDetail(ctx, {
+				checklistId: 1,
+				claimId: 100,
+				segment: SummarySegment.ANSWERED,
+			});
+
+			expect(result.count).toBe(15);
+			expect(result.rows).toHaveLength(2);
+		});
+
+		it('should return count of 0 when rows is empty', async () => {
+			const ctx = createMockContext();
+			createMockQueryChain([]);
+
+			const result = await getChecklistSummaryDetail(ctx, {
+				checklistId: 1,
+				claimId: 100,
+				segment: SummarySegment.UNANSWERED,
+			});
+
+			expect(result.count).toBe(0);
+			expect(result.rows).toHaveLength(0);
+		});
+	});
+
+	describe('Client scoping', () => {
+		it('should filter by client_id from context', async () => {
+			const ctx = createMockContext('client-xyz');
+			const { mockWhere } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ANSWERED,
-				mode: 'rows',
+			});
+
+			expect(mockWhere).toHaveBeenCalledWith('page_instance.client_id', '=', 'client-xyz');
+		});
+
+		it('should filter by checklistId', async () => {
+			const ctx = createMockContext();
+			const { mockWhere } = createMockQueryChain([]);
+
+			await getChecklistSummaryDetail(ctx, {
+				checklistId: 42,
+				claimId: 100,
+				segment: SummarySegment.ANSWERED,
+			});
+
+			expect(mockWhere).toHaveBeenCalledWith('page_instance.checklist_id', '=', 42);
+		});
+	});
+
+	describe('Pagination', () => {
+		it('should use default limit of 50 when not provided', async () => {
+			const ctx = createMockContext();
+			const { mockLimit } = createMockQueryChain([]);
+
+			await getChecklistSummaryDetail(ctx, {
+				checklistId: 1,
+				claimId: 100,
+				segment: SummarySegment.ANSWERED,
 			});
 
 			expect(mockLimit).toHaveBeenCalledWith(50);
@@ -261,33 +188,12 @@ describe('getChecklistSummaryDetail()', () => {
 
 		it('should use default offset of 0 when not provided', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockGroupBy = vi.fn().mockReturnThis();
-			const mockOrderBy = vi.fn().mockReturnThis();
-			const mockLimit = vi.fn().mockReturnThis();
-			const mockOffset = vi.fn().mockReturnThis();
-			const mockExecute = vi.fn().mockResolvedValue([]);
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				groupBy: mockGroupBy,
-				orderBy: mockOrderBy,
-				limit: mockLimit,
-				offset: mockOffset,
-				execute: mockExecute,
-			} as any);
+			const { mockOffset } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ANSWERED,
-				mode: 'rows',
 			});
 
 			expect(mockOffset).toHaveBeenCalledWith(0);
@@ -295,33 +201,12 @@ describe('getChecklistSummaryDetail()', () => {
 
 		it('should use custom limit and offset when provided', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockGroupBy = vi.fn().mockReturnThis();
-			const mockOrderBy = vi.fn().mockReturnThis();
-			const mockLimit = vi.fn().mockReturnThis();
-			const mockOffset = vi.fn().mockReturnThis();
-			const mockExecute = vi.fn().mockResolvedValue([]);
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				groupBy: mockGroupBy,
-				orderBy: mockOrderBy,
-				limit: mockLimit,
-				offset: mockOffset,
-				execute: mockExecute,
-			} as any);
+			const { mockLimit, mockOffset } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ANSWERED,
-				mode: 'rows',
 				limit: 100,
 				offset: 200,
 			});
@@ -331,31 +216,17 @@ describe('getChecklistSummaryDetail()', () => {
 		});
 	});
 
-	describe('Segment filtering', () => {
+	describe('Segment filtering - answer table joins', () => {
 		it('should join answer tables for ANSWERED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ANSWERED,
-				mode: 'count',
 			});
 
-			// Should join answer tables for ANSWERED segment
 			expect(mockLeftJoin).toHaveBeenCalledWith(
 				'question_response_answer',
 				'question_response_answer.response_id',
@@ -366,28 +237,14 @@ describe('getChecklistSummaryDetail()', () => {
 
 		it('should NOT join answer tables for UNANSWERED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.UNANSWERED,
-				mode: 'count',
 			});
 
-			// Should NOT join question_response_answer or answer for UNANSWERED
 			expect(mockLeftJoin).not.toHaveBeenCalledWith(
 				'question_response_answer',
 				'question_response_answer.response_id',
@@ -396,248 +253,136 @@ describe('getChecklistSummaryDetail()', () => {
 			expect(mockLeftJoin).not.toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
 		});
 
-		it('should join answer tables for ACTION_REQUIRED segment', async () => {
+		it('should join answer and action tables for ACTION_REQUIRED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ACTION_REQUIRED,
-				mode: 'count',
 			});
 
-			// Should join answer tables for ACTION_REQUIRED segment
 			expect(mockLeftJoin).toHaveBeenCalledWith(
 				'question_response_answer',
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
-			// Should join action table with client_id filtering (callback-based join)
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 
-		it('should join answer tables for NO_ACTION_REQUIRED segment', async () => {
+		it('should join answer and action tables for NO_ACTION_REQUIRED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.NO_ACTION_REQUIRED,
-				mode: 'count',
 			});
 
-			// Should join answer tables for NO_ACTION_REQUIRED segment
 			expect(mockLeftJoin).toHaveBeenCalledWith(
 				'question_response_answer',
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
-			// Should join action table with client_id filtering (callback-based join)
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 
-		it('should join answer tables for UNKNOWN segment', async () => {
+		it('should join answer and action tables for UNKNOWN segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.UNKNOWN,
-				mode: 'count',
 			});
 
-			// Should join answer tables for UNKNOWN segment
 			expect(mockLeftJoin).toHaveBeenCalledWith(
 				'question_response_answer',
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
-			// Should join action table with client_id filtering (callback-based join)
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 	});
 
-	describe('Integration - different segments', () => {
-		it('should handle ANSWERED segment correctly', async () => {
+	describe('Segment-specific where clauses', () => {
+		it('should filter for null question_response for UNANSWERED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '10' });
+			const { mockWhere } = createMockQueryChain([]);
 
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			await getChecklistSummaryDetail(ctx, {
+				checklistId: 1,
+				claimId: 100,
+				segment: SummarySegment.UNANSWERED,
+			});
+
+			expect(mockWhere).toHaveBeenCalledWith('question_response.id', 'is', null);
+		});
+
+		it('should apply complex where clause for ANSWERED segment', async () => {
+			const ctx = createMockContext();
+			const mockRows = [{ page_id: 1, question_id: 1, total_count: 10 }];
+			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ANSWERED,
-				mode: 'count',
 			});
 
-			// Should apply where clause for ANSWERED (response_text OR answer exists)
 			expect(mockWhere).toHaveBeenCalled();
-			expect(result).toBe(10);
+			expect(result.count).toBe(10);
 		});
 
-		it('should handle UNANSWERED segment correctly', async () => {
+		it('should apply where clause for ACTION_REQUIRED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '3' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
-
-			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
-				segment: SummarySegment.UNANSWERED,
-				mode: 'count',
-			});
-
-			// Should filter for null question_response
-			expect(mockWhere).toHaveBeenCalledWith('question_response.id', 'is', null);
-			expect(result).toBe(3);
-		});
-
-		it('should handle ACTION_REQUIRED segment correctly', async () => {
-			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '5' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const mockRows = [{ page_id: 1, question_id: 1, total_count: 5 }];
+			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.ACTION_REQUIRED,
-				mode: 'count',
 			});
 
-			// Should apply complex where clause for ACTION_REQUIRED (has_action OR unknown OR missing additional_info)
 			expect(mockWhere).toHaveBeenCalled();
-			expect(result).toBe(5);
+			expect(result.count).toBe(5);
 		});
 
-		it('should handle NO_ACTION_REQUIRED segment correctly', async () => {
+		it('should apply where clause for NO_ACTION_REQUIRED segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '7' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const mockRows = [{ page_id: 1, question_id: 1, total_count: 7 }];
+			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.NO_ACTION_REQUIRED,
-				mode: 'count',
 			});
 
-			// Should apply complex where clause for NO_ACTION_REQUIRED (inverse of action required)
 			expect(mockWhere).toHaveBeenCalled();
-			expect(result).toBe(7);
+			expect(result.count).toBe(7);
 		});
 
-		it('should handle UNKNOWN segment correctly', async () => {
+		it('should apply where clause for UNKNOWN segment', async () => {
 			const ctx = createMockContext();
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockInnerJoin = vi.fn().mockReturnThis();
-			const mockLeftJoin = vi.fn().mockReturnThis();
-			const mockSelect = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({ count: '2' });
-
-			vi.spyOn(db, 'selectFrom').mockReturnValue({
-				innerJoin: mockInnerJoin,
-				leftJoin: mockLeftJoin,
-				where: mockWhere,
-				select: mockSelect,
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-			} as any);
+			const mockRows = [{ page_id: 1, question_id: 1, total_count: 2 }];
+			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
 				checklistId: 1,
 				claimId: 100,
 				segment: SummarySegment.UNKNOWN,
-				mode: 'count',
 			});
 
-			// Should filter for answer.text containing 'unknown'
 			expect(mockWhere).toHaveBeenCalled();
-			expect(result).toBe(2);
+			expect(result.count).toBe(2);
 		});
 	});
 });

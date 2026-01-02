@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { db } from '@/api/database/kysely';
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { getUser, deleteUser } from '../userQueries';
-import { getResponsesForClaimChecklist } from '../responseQueries';
+import { getResponsesForPageInstance } from '../responseQueries';
 import { assignClaim } from '../claimQueries';
 import { getNextClaimToAssign } from '../claimQueries';
 import { getUserActivity } from '../userQueries';
@@ -146,7 +146,7 @@ describe('Client-Scoping Security Tests', () => {
 
 	describe('Pattern 2: Complex JOIN with client_id', () => {
 		/**
-		 * Test: getResponsesForClaimChecklist() from responseQueries.ts
+		 * Test: getResponsesForPageInstance() from responseQueries.ts
 		 * Pattern: Multiple INNER/LEFT JOINs with .where('question_response.client_id', '=', ctx.session.user.client_id)
 		 */
 
@@ -160,84 +160,68 @@ describe('Client-Scoping Security Tests', () => {
 				},
 			]);
 
-                        const mockOrderBy = vi.fn().mockReturnValue({
-                                execute: mockExecute,
-                        });
+			const mockOrderBy = vi.fn().mockReturnValue({
+				execute: mockExecute,
+			});
 
-                        const mockGroupBy = vi.fn().mockReturnValue({
-                                orderBy: mockOrderBy,
-                        });
+			const mockGroupBy = vi.fn().mockReturnValue({
+				orderBy: mockOrderBy,
+			});
 
-                        const mockSecondWhere = vi.fn().mockReturnValue({
-                                groupBy: mockGroupBy,
-                        });
+			const mockFourthWhere = vi.fn().mockReturnValue({
+				groupBy: mockGroupBy,
+			});
 
-                        const mockFirstWhere = vi.fn().mockReturnValue({
-                                where: mockSecondWhere,
-                        });
+			const mockThirdWhere = vi.fn().mockReturnValue({
+				where: mockFourthWhere,
+			});
 
-                        const mockSelect = vi.fn().mockReturnValue({
-                                where: mockFirstWhere,
-                        });
+			const mockSecondWhere = vi.fn().mockReturnValue({
+				where: mockThirdWhere,
+			});
 
-                        const mockLeftJoin = vi.fn().mockReturnValue({
-                                select: mockSelect,
-                        });
+			const mockFirstWhere = vi.fn().mockReturnValue({
+				where: mockSecondWhere,
+			});
 
-                        const mockInnerJoin = vi.fn().mockReturnValue({
-                                leftJoin: mockLeftJoin,
-                        });
+			const mockSelect = vi.fn().mockReturnValue({
+				where: mockFirstWhere,
+			});
+
+			const mockLeftJoin = vi.fn().mockReturnValue({
+				select: mockSelect,
+			});
+
+			const mockInnerJoin = vi.fn().mockReturnValue({
+				leftJoin: mockLeftJoin,
+			});
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				innerJoin: mockInnerJoin,
 			} as any); // Mock type incompatible with Kysely's SelectQueryBuilder
 
-			await getResponsesForClaimChecklist(mockContext, 1, 100);
+			await getResponsesForPageInstance(mockContext, 1, 100, 1);
 
 			// Verify the query chain was built
 			expect(db.selectFrom).toHaveBeenCalledWith('question_response');
 			expect(mockInnerJoin).toHaveBeenCalled();
-                        expect(mockFirstWhere).toHaveBeenCalled();
-                        expect(mockSecondWhere).toHaveBeenCalled();
+			expect(mockFirstWhere).toHaveBeenCalled();
 
-                        // Verify first where call includes client_id
-                        const firstWhereArgs = mockFirstWhere.mock.calls[0];
-                        expect(firstWhereArgs[0]).toBe('question_response.client_id');
-                        expect(firstWhereArgs[1]).toBe('=');
-                        expect(firstWhereArgs[2]).toBe('client-abc');
+			// Verify first where call includes client_id
+			const firstWhereArgs = mockFirstWhere.mock.calls[0];
+			expect(firstWhereArgs[0]).toBe('question_response.client_id');
+			expect(firstWhereArgs[1]).toBe('=');
+			expect(firstWhereArgs[2]).toBe('client-abc');
 		});
 
 		it('should return empty map when no responses exist for client', async () => {
-                        const mockExecute = vi.fn().mockResolvedValue([]);
-                        const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
-                        const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
-                        const mockSecondWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
-                        const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
-
-                        vi.spyOn(db, 'selectFrom').mockReturnValue({
-                                innerJoin: vi.fn().mockReturnValue({
-                                        leftJoin: vi.fn().mockReturnValue({
-                                                select: vi.fn().mockReturnValue({
-                                                        where: mockFirstWhere,
-                                                }),
-                                        }),
-                                }),
-                        } as any);
-
-			const result = await getResponsesForClaimChecklist(mockContext, 999, 999);
-
-			expect(result).toEqual({});
-		});
-
-		it('should filter responses by both checklist/claim AND client_id', async () => {
-			const mockExecute = vi
-				.fn()
-				.mockResolvedValue([{ id: 1, question_id: 5, response_text: 'Answer', selected_answers: [] }]);
-
-                        const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
-                        const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
-                        const mockSecondWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
-                        const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
+			const mockExecute = vi.fn().mockResolvedValue([]);
+			const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
+			const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
+			const mockFourthWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
+			const mockThirdWhere = vi.fn().mockReturnValue({ where: mockFourthWhere });
+			const mockSecondWhere = vi.fn().mockReturnValue({ where: mockThirdWhere });
+			const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				innerJoin: vi.fn().mockReturnValue({
@@ -249,14 +233,41 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			await getResponsesForClaimChecklist(mockContext, 42, 100);
+			const result = await getResponsesForPageInstance(mockContext, 999, 999, 1);
+
+			expect(result).toEqual({});
+		});
+
+		it('should filter responses by both checklist/claim AND client_id', async () => {
+			const mockExecute = vi
+				.fn()
+				.mockResolvedValue([{ id: 1, question_id: 5, response_text: 'Answer', selected_answers: [] }]);
+
+			const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
+			const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
+			const mockFourthWhere = vi.fn().mockReturnValue({ groupBy: mockGroupBy });
+			const mockThirdWhere = vi.fn().mockReturnValue({ where: mockFourthWhere });
+			const mockSecondWhere = vi.fn().mockReturnValue({ where: mockThirdWhere });
+			const mockFirstWhere = vi.fn().mockReturnValue({ where: mockSecondWhere });
+
+			vi.spyOn(db, 'selectFrom').mockReturnValue({
+				innerJoin: vi.fn().mockReturnValue({
+					leftJoin: vi.fn().mockReturnValue({
+						select: vi.fn().mockReturnValue({
+							where: mockFirstWhere,
+						}),
+					}),
+				}),
+			} as any);
+
+			await getResponsesForPageInstance(mockContext, 42, 100, 1);
 
 			// Verify client_id filter was applied first
-                        expect(mockFirstWhere).toHaveBeenCalledWith('question_response.client_id', '=', 'client-abc');
+			expect(mockFirstWhere).toHaveBeenCalledWith('question_response.client_id', '=', 'client-abc');
 
-                        // Verify second where (checklist/claim) was also called
-                        expect(mockSecondWhere).toHaveBeenCalled();
-                });
+			// Verify other where clauses (checklist/claim/instance) were also called
+			expect(mockSecondWhere).toHaveBeenCalled();
+		});
 	});
 
 	describe('Pattern 3: Raw SQL with client_id (SECURITY CRITICAL)', () => {

@@ -69,12 +69,12 @@ export async function getResponsesForAnswer(
 }
 
 /**
- * Fetch responses for a claim on a checklist.
+ * Fetch responses for a specific page instance.
  *
  * @param ctx - request context
- * @param input - checklist, claim and optional instance id
+ * @param input - checklist, claim and instance id
  */
-export async function getResponsesForClaimChecklist(
+export async function getResponsesForPageInstance(
 	ctx: ProtectedContext,
 	{
 		checklistId,
@@ -83,10 +83,10 @@ export async function getResponsesForClaimChecklist(
 	}: {
 		checklistId: number;
 		claimId: number;
-		instanceId?: number;
+		instanceId: number;
 	}
 ) {
-	const results = await responseQueries.getResponsesForClaimChecklist(ctx, checklistId, claimId, instanceId);
+	const results = await responseQueries.getResponsesForPageInstance(ctx, checklistId, claimId, instanceId);
 	return results;
 }
 
@@ -190,12 +190,15 @@ export async function upsertQuestionResponses(
 		sampleResponse.claim_id
 	);
 
-	// Kick off related actions asynchronously
-	let answerIds: number[] = [];
+	// Kick off related actions asynchronously (dedupe to avoid redundant work)
+	const answerIds: number[] = [];
 	parsedResponses.forEach((r) => {
-		answerIds = answerIds.concat(r.selected_answers.map((sa) => sa.answer_id));
+		answerIds.push(...r.selected_answers.map((sa) => sa.answer_id));
 	});
-	executeActions(ctx, { answerIds }).catch(console.error);
+	const uniqueAnswerIds = [...new Set(answerIds)];
+	if (uniqueAnswerIds.length > 0) {
+		executeActions(ctx, { answerIds: uniqueAnswerIds }).catch(console.error);
+	}
 
 	return {
 		updatedInstanceId: sampleResponse.instance_id,

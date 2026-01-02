@@ -83,6 +83,9 @@ export async function getDeadlinesByEntity(
 /**
  * List deadlines with optional filters and pagination
  *
+ * Uses single query with COUNT(*) OVER() for both count and data (avoids duplicate query execution).
+ * Uses EXISTS for personal access check (avoids duplicate rows from LEFT JOINs).
+ *
  * @param ctx - request context
  * @param filters - optional filters including claim ID, entity type, status, date range, personalOnly flag
  * @param limit - pagination limit
@@ -105,84 +108,76 @@ export async function getDeadlines(
 
 	// Filter by personal assignments if personalOnly flag is true, or if user is a Contributor
 	const shouldFilterPersonal = filters.personalOnly || !isAdmin;
+	const userId = ctx.session.user.id;
 
-	const query = ctx.db
+	// Build base query with all filters applied once
+	let baseQuery = ctx.db
 		.selectFrom('deadline')
 		.innerJoin('claim', 'deadline.claim_id', 'claim.id')
-		.$if(shouldFilterPersonal, (qb) =>
-			qb
-				.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
-				.leftJoin('user_desk_location', (join) =>
-					join
-						.onRef('claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
-						.on('user_desk_location.user_id', '=', ctx.session.user.id)
-						.on('user_desk_location.removed_at', 'is', null)
-				)
-				.where((eb) =>
-					eb.or([
-						eb('checklist_claim.created_by', '=', ctx.session.user.id),
-						eb('checklist_claim.assignee', '=', ctx.session.user.id),
-						eb('user_desk_location.desk_location_id', 'is not', null), // Assigned to their desk location
-					])
-				)
-		)
+		.where('deadline.client_id', '=', ctx.session.user.client_id);
+
+	// Use EXISTS for personal access check (avoids duplicate rows from LEFT JOINs)
+	if (shouldFilterPersonal) {
+		baseQuery = baseQuery.where((eb) =>
+			eb.exists(
+				eb
+					.selectFrom('claim as c_access')
+					.leftJoin('checklist_claim', 'checklist_claim.claim_id', 'c_access.id')
+					.leftJoin('user_desk_location', (join) =>
+						join
+							.onRef('user_desk_location.desk_location_id', '=', 'c_access.desk_location_id')
+							.on('user_desk_location.user_id', '=', userId)
+							.on('user_desk_location.removed_at', 'is', null)
+					)
+					.select(sql`1`.as('one'))
+					.whereRef('c_access.id', '=', 'claim.id')
+					.where((eb2) =>
+						eb2.or([
+							eb2('checklist_claim.created_by', '=', userId),
+							eb2('checklist_claim.assignee', '=', userId),
+							eb2('user_desk_location.id', 'is not', null),
+						])
+					)
+			)
+		);
+	}
+
+	// Apply filters (single location - no duplication)
+	if (filters.claimId !== undefined) {
+		baseQuery = baseQuery.where('deadline.claim_id', '=', filters.claimId);
+	}
+	if (filters.entityType !== undefined) {
+		baseQuery = baseQuery.where('deadline.entity_type', '=', filters.entityType);
+	}
+	if (filters.status !== undefined) {
+		baseQuery = baseQuery.where('deadline.status', '=', filters.status);
+	}
+	if (filters.dateRange !== undefined) {
+		baseQuery = baseQuery
+			.where('deadline.deadline_date', '>=', filters.dateRange[0])
+			.where('deadline.deadline_date', '<=', filters.dateRange[1]);
+	}
+
+	// Select columns and add COUNT(*) OVER() for total count in single query
+	const rowsWithCount = await baseQuery
 		.selectAll('deadline')
 		.select('claim.claim_number')
-		.where('deadline.client_id', '=', ctx.session.user.client_id)
-		.$if(filters.claimId !== undefined, (qb) => qb.where('deadline.claim_id', '=', filters.claimId!))
-		.$if(filters.entityType !== undefined, (qb) => qb.where('deadline.entity_type', '=', filters.entityType!))
-		.$if(filters.status !== undefined, (qb) => qb.where('deadline.status', '=', filters.status!))
-		.$if(filters.dateRange !== undefined, (qb) =>
-			qb
-				.where('deadline.deadline_date', '>=', filters.dateRange![0])
-				.where('deadline.deadline_date', '<=', filters.dateRange![1])
-		);
-
-	// Count query
-	const countQuery = ctx.db
-		.selectFrom('deadline')
-		.innerJoin('claim', 'deadline.claim_id', 'claim.id')
-		.$if(shouldFilterPersonal, (qb) =>
-			qb
-				.leftJoin('checklist_claim', 'claim.id', 'checklist_claim.claim_id')
-				.leftJoin('user_desk_location', (join) =>
-					join
-						.onRef('claim.desk_location_id', '=', 'user_desk_location.desk_location_id')
-						.on('user_desk_location.user_id', '=', ctx.session.user.id)
-						.on('user_desk_location.removed_at', 'is', null)
-				)
-				.where((eb) =>
-					eb.or([
-						eb('checklist_claim.created_by', '=', ctx.session.user.id),
-						eb('checklist_claim.assignee', '=', ctx.session.user.id),
-						eb('user_desk_location.desk_location_id', 'is not', null),
-					])
-				)
-		)
-		.select(({ fn }) => fn.countAll().as('count'))
-		.where('deadline.client_id', '=', ctx.session.user.client_id)
-		.$if(filters.claimId !== undefined, (qb) => qb.where('deadline.claim_id', '=', filters.claimId!))
-		.$if(filters.entityType !== undefined, (qb) => qb.where('deadline.entity_type', '=', filters.entityType!))
-		.$if(filters.status !== undefined, (qb) => qb.where('deadline.status', '=', filters.status!))
-		.$if(filters.dateRange !== undefined, (qb) =>
-			qb
-				.where('deadline.deadline_date', '>=', filters.dateRange![0])
-				.where('deadline.deadline_date', '<=', filters.dateRange![1])
-		);
-
-	// Data query with ordering and pagination
-	const rowsQuery = query
+		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
 		.orderBy('deadline.deadline_date asc')
 		.orderBy('deadline.created_at desc')
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();
 
-	const [countResult, rows] = await Promise.all([countQuery.executeTakeFirst(), rowsQuery]);
+	// Extract count from first row (or default to 0 if empty)
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
+
+	// Strip the total_count column from results
+	const rows = rowsWithCount.map(({ total_count, ...rest }) => rest);
 
 	return {
 		rows,
-		count: countResult?.count ? Number(countResult.count) : 0,
+		count,
 	};
 }
 

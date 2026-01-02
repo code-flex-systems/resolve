@@ -306,7 +306,11 @@ describe('getTasksForUser', () => {
 
 	describe('Pagination', () => {
 		it('should return rows and count for server-side pagination', async () => {
-			const mockTasks = [createMockTask(), createMockTask({ id: 2 })];
+			// Mock rows with total_count for window function pattern
+			const mockTasks = [
+				{ ...createMockTask(), total_count: '50' },
+				{ ...createMockTask({ id: 2 }), total_count: '50' },
+			];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -316,7 +320,6 @@ describe('getTasksForUser', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue(mockTasks),
-					executeTakeFirst: vi.fn().mockResolvedValue({ count: '50' }),
 				} as any;
 			});
 
@@ -327,7 +330,10 @@ describe('getTasksForUser', () => {
 		});
 
 		it('should handle offset for pagination', async () => {
-			const mockTasks = [createMockTask({ id: 11 }), createMockTask({ id: 12 })];
+			const mockTasks = [
+				{ ...createMockTask({ id: 11 }), total_count: '50' },
+				{ ...createMockTask({ id: 12 }), total_count: '50' },
+			];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -337,7 +343,6 @@ describe('getTasksForUser', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue(mockTasks),
-					executeTakeFirst: vi.fn().mockResolvedValue({ count: '50' }),
 				} as any;
 			});
 
@@ -347,6 +352,7 @@ describe('getTasksForUser', () => {
 		});
 
 		it('should handle null count result gracefully', async () => {
+			// With window function approach, empty result means count = 0
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
 					leftJoin: vi.fn().mockReturnThis(),
@@ -355,7 +361,6 @@ describe('getTasksForUser', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue([]),
-					executeTakeFirst: vi.fn().mockResolvedValue(null),
 				} as any;
 			});
 

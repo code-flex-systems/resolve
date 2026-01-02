@@ -104,7 +104,21 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
  * @returns list of settlements with party and coverage details, filtered to adverse parties only
  */
 export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: number) {
+	const clientId = ctx.session.user.client_id;
+
+	// Use CTE to fetch adverse roles once per request instead of per row
 	return await ctx.db
+		.with('adverse_roles', (db) =>
+			db
+				.selectFrom('reference_option')
+				.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
+				.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('roles'))
+				.where('reference_list.entity', '=', 'adverse_party_role')
+				.where('reference_list.client_id', '=', clientId)
+				.where('reference_list.deleted_at', 'is', null)
+				.where('reference_option.deleted_at', 'is', null)
+				.where('reference_option.is_active', '=', true)
+		)
 		.selectFrom('settlement')
 		.innerJoin('claim_party', 'settlement.claim_party_id', 'claim_party.id')
 		.innerJoin('party', 'claim_party.party_id', 'party.id')
@@ -130,24 +144,10 @@ export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: nu
 			'claim_coverage.coverage_amount',
 		])
 		.where('settlement.claim_id', '=', claimId)
-		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.client_id', '=', clientId)
 		.where('settlement.deleted_at', 'is', null)
 		// Filter to only adverse parties: check if claim_party.role array overlaps with adverse_party_role values
-		.where((eb) =>
-			eb(
-				'claim_party.role',
-				'&&',
-				eb
-					.selectFrom('reference_option')
-					.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
-					.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('values'))
-					.where('reference_list.entity', '=', 'adverse_party_role')
-					.where('reference_list.client_id', '=', ctx.session.user.client_id)
-					.where('reference_list.deleted_at', 'is', null)
-					.where('reference_option.deleted_at', 'is', null)
-					.where('reference_option.is_active', '=', true)
-			)
-		)
+		.where(sql`claim_party.role && (SELECT roles FROM adverse_roles)`)
 		.orderBy('settlement.demand_date', 'desc')
 		.orderBy('settlement.created_at', 'desc')
 		.execute();
@@ -251,7 +251,21 @@ export async function archiveSettlement(
  * @returns list of settlements with minimal info for dropdown, filtered to adverse parties only
  */
 export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: number) {
+	const clientId = ctx.session.user.client_id;
+
+	// Use CTE to fetch adverse roles once per request instead of per row
 	return await ctx.db
+		.with('adverse_roles', (db) =>
+			db
+				.selectFrom('reference_option')
+				.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
+				.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('roles'))
+				.where('reference_list.entity', '=', 'adverse_party_role')
+				.where('reference_list.client_id', '=', clientId)
+				.where('reference_list.deleted_at', 'is', null)
+				.where('reference_option.deleted_at', 'is', null)
+				.where('reference_option.is_active', '=', true)
+		)
 		.selectFrom('settlement')
 		.innerJoin('claim_party', 'settlement.claim_party_id', 'claim_party.id')
 		.innerJoin('party', 'claim_party.party_id', 'party.id')
@@ -265,24 +279,10 @@ export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: 
 			'claim_coverage.loss_type',
 		])
 		.where('settlement.claim_id', '=', claimId)
-		.where('settlement.client_id', '=', ctx.session.user.client_id)
+		.where('settlement.client_id', '=', clientId)
 		.where('settlement.deleted_at', 'is', null)
 		// Filter to only adverse parties: check if claim_party.role array overlaps with adverse_party_role values
-		.where((eb) =>
-			eb(
-				'claim_party.role',
-				'&&',
-				eb
-					.selectFrom('reference_option')
-					.innerJoin('reference_list', 'reference_list.id', 'reference_option.reference_list_id')
-					.select((eb) => eb.fn.agg<string[]>('array_agg', ['reference_option.value']).as('values'))
-					.where('reference_list.entity', '=', 'adverse_party_role')
-					.where('reference_list.client_id', '=', ctx.session.user.client_id)
-					.where('reference_list.deleted_at', 'is', null)
-					.where('reference_option.deleted_at', 'is', null)
-					.where('reference_option.is_active', '=', true)
-			)
-		)
+		.where(sql`claim_party.role && (SELECT roles FROM adverse_roles)`)
 		.orderBy('settlement.demand_date', 'desc')
 		.execute();
 }

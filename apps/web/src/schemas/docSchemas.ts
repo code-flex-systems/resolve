@@ -104,6 +104,11 @@ export const getDocCountByGroupIdInput = z.object({
 });
 export type GetDocCountByGroupIdInput = z.infer<typeof getDocCountByGroupIdInput>;
 
+export const getDocCountsByGroupIdsInput = z.object({
+	groupIds: z.array(z.number().int().positive()),
+});
+export type GetDocCountsByGroupIdsInput = z.infer<typeof getDocCountsByGroupIdsInput>;
+
 // =====================================================================
 // DOC GROUP SCHEMAS
 // =====================================================================

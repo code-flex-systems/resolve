@@ -58,6 +58,86 @@ const createMockResponse = (overrides: Partial<QuestionResponse> = {}): Question
 	...overrides,
 });
 
+// Helper to create a mock query builder that supports the batched query patterns
+function createMockQueryBuilder(options: {
+	existingResponses?: Array<{
+		id: number;
+		question_id: number;
+		response_text: string | null;
+		response_doc_id: number | null;
+		created_by: string;
+		updated_by: string | null;
+	}>;
+	existingAnswers?: Array<{
+		response_id: number;
+		answer_id: number;
+		label: string;
+		additional_info: string | null;
+	}>;
+	questionInfo?: {
+		total_question_count: string;
+		answered_count: string;
+		version: number;
+		question_text?: string;
+		page_label?: string;
+	};
+}) {
+	const { existingResponses = [], existingAnswers = [], questionInfo } = options;
+
+	return (table: string) => {
+		// Batch fetch existing responses (question_response)
+		if (table === 'question_response') {
+			return {
+				select: vi.fn().mockReturnThis(),
+				where: vi.fn().mockReturnThis(),
+				execute: vi.fn().mockResolvedValue(existingResponses),
+			} as any;
+		}
+		// Batch fetch existing answers (question_response_answer with join)
+		if (table === 'question_response_answer') {
+			return {
+				innerJoin: vi.fn().mockReturnThis(),
+				select: vi.fn().mockReturnThis(),
+				where: vi.fn().mockReturnThis(),
+				execute: vi.fn().mockResolvedValue(existingAnswers),
+			} as any;
+		}
+		// Status query (page_instance) or question info
+		if (table === 'page_instance' || table === 'question') {
+			return {
+				innerJoin: vi.fn().mockReturnThis(),
+				leftJoin: vi.fn().mockReturnThis(),
+				select: vi.fn().mockReturnThis(),
+				where: vi.fn().mockReturnThis(),
+				groupBy: vi.fn().mockReturnThis(),
+				execute: vi.fn().mockResolvedValue(
+					questionInfo
+						? [
+								{
+									question_id: 50,
+									question_text: questionInfo.question_text || 'Sample question?',
+									page_label: questionInfo.page_label || 'Page 1',
+								},
+							]
+						: []
+				),
+				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(
+					questionInfo || {
+						total_question_count: '10',
+						answered_count: '5',
+						version: 1,
+					}
+				),
+			} as any;
+		}
+		return {
+			select: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			execute: vi.fn().mockResolvedValue([]),
+		} as any;
+	};
+}
+
 describe('upsertQuestionResponses', () => {
 	let mockContext: ProtectedContext;
 
@@ -80,45 +160,25 @@ describe('upsertQuestionResponses', () => {
 			// Existing response with same content
 			const existingResponse = {
 				id: 1,
+				question_id: 50,
 				response_text: 'Same answer',
 				response_doc_id: null,
 				created_by: 'user-123',
 				updated_by: null,
 			};
 
-			// Mock selectFrom to return existing response with matching content
-			let selectFromCallCount = 0;
-			vi.spyOn(db, 'selectFrom').mockImplementation((table) => {
-				selectFromCallCount++;
-				if (table === 'question_response' && selectFromCallCount === 1) {
-					return {
-						select: vi.fn().mockReturnThis(),
-						where: vi.fn().mockReturnThis(),
-						executeTakeFirst: vi.fn().mockResolvedValue(existingResponse),
-					} as any;
-				}
-				if (table === 'question_response_answer') {
-					return {
-						innerJoin: vi.fn().mockReturnThis(),
-						select: vi.fn().mockReturnThis(),
-						where: vi.fn().mockReturnThis(),
-						execute: vi.fn().mockResolvedValue([]), // No existing answers
-					} as any;
-				}
-				// Status query
-				return {
-					innerJoin: vi.fn().mockReturnThis(),
-					leftJoin: vi.fn().mockReturnThis(),
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					groupBy: vi.fn().mockReturnThis(),
-					executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+			// Mock selectFrom with batched query support
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				createMockQueryBuilder({
+					existingResponses: [existingResponse],
+					existingAnswers: [],
+					questionInfo: {
 						total_question_count: '10',
 						answered_count: '5',
 						version: 1,
-					}),
-				} as any;
-			});
+					},
+				})
+			);
 
 			const mockInsertInto = vi.spyOn(db, 'insertInto').mockImplementation(
 				() =>
@@ -147,44 +207,26 @@ describe('upsertQuestionResponses', () => {
 
 			const existingResponse = {
 				id: 1,
+				question_id: 50,
 				response_text: 'Original answer',
 				response_doc_id: null,
 				created_by: 'user-123',
 				updated_by: null,
 			};
 
-			vi.spyOn(db, 'selectFrom').mockImplementation((table) => {
-				if (table === 'question_response') {
-					return {
-						select: vi.fn().mockReturnThis(),
-						where: vi.fn().mockReturnThis(),
-						executeTakeFirst: vi.fn().mockResolvedValue(existingResponse),
-					} as any;
-				}
-				if (table === 'question_response_answer') {
-					return {
-						innerJoin: vi.fn().mockReturnThis(),
-						select: vi.fn().mockReturnThis(),
-						where: vi.fn().mockReturnThis(),
-						execute: vi.fn().mockResolvedValue([]),
-					} as any;
-				}
-				// Status query
-				return {
-					innerJoin: vi.fn().mockReturnThis(),
-					leftJoin: vi.fn().mockReturnThis(),
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					groupBy: vi.fn().mockReturnThis(),
-					executeTakeFirstOrThrow: vi.fn().mockResolvedValue({
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				createMockQueryBuilder({
+					existingResponses: [existingResponse],
+					existingAnswers: [],
+					questionInfo: {
 						total_question_count: '10',
 						answered_count: '4',
 						version: 1,
 						question_text: 'Sample question?',
 						page_label: 'Page 1',
-					}),
-				} as any;
-			});
+					},
+				})
+			);
 
 			vi.spyOn(db, 'insertInto').mockImplementation(
 				() =>

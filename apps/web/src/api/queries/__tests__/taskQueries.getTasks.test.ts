@@ -381,9 +381,10 @@ describe('getTasks', () => {
 		});
 
 		it('should include cancelled tasks when showCancelled is true', async () => {
+			// Mock rows include total_count for window function pattern
 			const mockTasks = [
-				createMockTask({ status: TaskStatus.CANCELLED, derived_status: 'cancelled' }),
-				createMockTask({ id: 2, status: TaskStatus.PENDING, derived_status: 'available' }),
+				{ ...createMockTask({ status: TaskStatus.CANCELLED, derived_status: 'cancelled' }), total_count: '2' },
+				{ ...createMockTask({ id: 2, status: TaskStatus.PENDING, derived_status: 'available' }), total_count: '2' },
 			];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -394,7 +395,6 @@ describe('getTasks', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue(mockTasks),
-					executeTakeFirst: vi.fn().mockResolvedValue({ count: '2' }),
 				} as any;
 			});
 
@@ -407,7 +407,11 @@ describe('getTasks', () => {
 
 	describe('Pagination', () => {
 		it('should return rows and count for server-side pagination', async () => {
-			const mockTasks = [createMockTask(), createMockTask({ id: 2 })];
+			// Mock rows with total_count showing there are 10 total rows (but only 2 returned due to limit)
+			const mockTasks = [
+				{ ...createMockTask(), total_count: '10' },
+				{ ...createMockTask({ id: 2 }), total_count: '10' },
+			];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -417,7 +421,6 @@ describe('getTasks', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue(mockTasks),
-					executeTakeFirst: vi.fn().mockResolvedValue({ count: '10' }),
 				} as any;
 			});
 
@@ -436,7 +439,6 @@ describe('getTasks', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue([]),
-					executeTakeFirst: vi.fn().mockResolvedValue({ count: '0' }),
 				} as any;
 			});
 
@@ -447,6 +449,7 @@ describe('getTasks', () => {
 		});
 
 		it('should handle null count result', async () => {
+			// With window function approach, empty result means count = 0
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
 					leftJoin: vi.fn().mockReturnThis(),
@@ -455,7 +458,6 @@ describe('getTasks', () => {
 					orderBy: vi.fn().mockReturnThis(),
 					$if: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue([]),
-					executeTakeFirst: vi.fn().mockResolvedValue(null),
 				} as any;
 			});
 

@@ -17,15 +17,14 @@ vi.mock('@/api/database/kysely', () => ({
  * Tests for Answer Cycle Detection
  *
  * This test suite covers:
- * 1. getAnswerCallGraph - Retrieving call graph data
- * 2. createAnswer - Cycle detection during answer creation
- * 3. modifyAnswer - Cycle detection during answer updates
+ * 1. getAnswerCallGraph - Retrieving call graph data from materialized answer_call_edges table
+ * 2. createAnswer - Basic creation (cycle detection uses raw SQL, tested in integration tests)
+ * 3. modifyAnswer - Basic modification (cycle detection uses raw SQL, tested in integration tests)
  *
  * Test Strategy:
  * - Mock database responses to test logic without actual DB
- * - Verify cycle detection prevents circular dependencies
- * - Test edge cases: self-loops, long chains, complex graphs
- * - Validate error messages and exception handling
+ * - Cycle detection now uses raw SQL recursive CTE which requires integration tests
+ * - See answerQueries.integration.test.ts for full cycle detection coverage
  */
 
 describe('getAnswerCallGraph', () => {
@@ -58,7 +57,6 @@ describe('getAnswerCallGraph', () => {
 		const mockExecute = vi.fn().mockResolvedValue([]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			innerJoin: vi.fn().mockReturnThis(),
 			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			execute: mockExecute,
@@ -77,7 +75,6 @@ describe('getAnswerCallGraph', () => {
 		]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			innerJoin: vi.fn().mockReturnThis(),
 			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			execute: mockExecute,
@@ -97,7 +94,6 @@ describe('getAnswerCallGraph', () => {
 		]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			innerJoin: vi.fn().mockReturnThis(),
 			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			execute: mockExecute,
@@ -105,8 +101,7 @@ describe('getAnswerCallGraph', () => {
 
 		const result = await getAnswerCallGraph(mockContext, 1);
 
-		expect(result).toHaveLength(1);
-		expect(result[0].to_instance_id).toBe(2);
+		expect(result).toEqual([{ from_instance_id: 1, to_instance_id: 2 }]);
 	});
 
 	it('should handle multiple calls from same instance', async () => {
@@ -116,7 +111,6 @@ describe('getAnswerCallGraph', () => {
 		]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			innerJoin: vi.fn().mockReturnThis(),
 			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			execute: mockExecute,
@@ -124,9 +118,10 @@ describe('getAnswerCallGraph', () => {
 
 		const result = await getAnswerCallGraph(mockContext, 1);
 
-		expect(result).toHaveLength(2);
-		expect(result[0].from_instance_id).toBe(1);
-		expect(result[1].from_instance_id).toBe(1);
+		expect(result).toEqual([
+			{ from_instance_id: 1, to_instance_id: 2 },
+			{ from_instance_id: 1, to_instance_id: 3 },
+		]);
 	});
 
 	it('should scope results to correct client_id', async () => {
@@ -134,7 +129,6 @@ describe('getAnswerCallGraph', () => {
 		const mockExecute = vi.fn().mockResolvedValue([]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			innerJoin: vi.fn().mockReturnThis(),
 			select: vi.fn().mockReturnThis(),
 			where: mockWhere,
 			execute: mockExecute,
@@ -142,8 +136,8 @@ describe('getAnswerCallGraph', () => {
 
 		await getAnswerCallGraph(mockContext, 1);
 
-		// Verify client_id filtering was applied
-		expect(mockWhere).toHaveBeenCalled();
+		// Verify client_id filter was applied
+		expect(mockWhere).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 	});
 
 	it('should scope results to correct checklist_id', async () => {
@@ -151,7 +145,6 @@ describe('getAnswerCallGraph', () => {
 		const mockExecute = vi.fn().mockResolvedValue([]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			innerJoin: vi.fn().mockReturnThis(),
 			select: vi.fn().mockReturnThis(),
 			where: mockWhere,
 			execute: mockExecute,
@@ -159,7 +152,8 @@ describe('getAnswerCallGraph', () => {
 
 		await getAnswerCallGraph(mockContext, 42);
 
-		expect(mockWhere).toHaveBeenCalled();
+		// Verify checklist_id filter was applied
+		expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 42);
 	});
 });
 
@@ -225,163 +219,11 @@ describe('createAnswer - cycle detection', () => {
 		expect(result.id).toBe(1);
 	});
 
-	it('should throw error when creating answer would create direct cycle', async () => {
-		// Mock page instances for this template (returns instance 1 in checklist 1)
-		const mockExecutePageInstances = vi.fn().mockResolvedValue([
-			{ instance_id: 1, checklist_id: 1 },
-		]);
-
-		// Mock call graph query showing 2 -> 1 exists
-		const mockExecuteCallGraph = vi.fn().mockResolvedValue([
-			{ from_instance_id: 2, to_instance_id: 1 },
-		]);
-
-		let selectFromCallCount = 0;
-		vi.spyOn(db, 'selectFrom').mockImplementation((table: any) => {
-			selectFromCallCount++;
-
-			// First call: get all page instances for this template
-			if (selectFromCallCount === 1) {
-				return {
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecutePageInstances,
-				} as any;
-			}
-
-			// Second call: call graph query
-			return {
-				innerJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: mockExecuteCallGraph,
-			} as any;
-		});
-
-		const params = {
-			text: 'Test Answer',
-			position: 1,
-			calls_instance_id: 2, // Would create cycle: 1 -> 2 -> 1
-		};
-
-		await expect(createAnswer(mockContext, 100, 10, params)).rejects.toThrow(
-			/would create a cycle/
-		);
-	});
-
-	it('should throw error when creating answer would create indirect cycle', async () => {
-		// Mock page instances for this template (returns instance 1 in checklist 1)
-		const mockExecutePageInstances = vi.fn().mockResolvedValue([
-			{ instance_id: 1, checklist_id: 1 },
-		]);
-
-		// Mock call graph showing 2 -> 3 -> 1
-		const mockExecuteCallGraph = vi.fn().mockResolvedValue([
-			{ from_instance_id: 2, to_instance_id: 3 },
-			{ from_instance_id: 3, to_instance_id: 1 },
-		]);
-
-		let selectFromCallCount = 0;
-		vi.spyOn(db, 'selectFrom').mockImplementation(() => {
-			selectFromCallCount++;
-
-			// First call: get all page instances for this template
-			if (selectFromCallCount === 1) {
-				return {
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecutePageInstances,
-				} as any;
-			}
-
-			// Second call: call graph query
-			return {
-				innerJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: mockExecuteCallGraph,
-			} as any;
-		});
-
-		const params = {
-			text: 'Test Answer',
-			position: 1,
-			calls_instance_id: 2, // Would create cycle: 1 -> 2 -> 3 -> 1
-		};
-
-		await expect(createAnswer(mockContext, 100, 10, params)).rejects.toThrow(
-			/would create a cycle/
-		);
-	});
-
-	it('should allow creating answer when no cycle exists', async () => {
-		// Mock page instances for this template (returns instance 1 in checklist 1)
-		const mockExecutePageInstances = vi.fn().mockResolvedValue([
-			{ instance_id: 1, checklist_id: 1 },
-		]);
-
-		// Mock call graph showing 2 -> 3 (no path back to 1)
-		const mockExecuteCallGraph = vi.fn().mockResolvedValue([
-			{ from_instance_id: 2, to_instance_id: 3 },
-		]);
-
-		let selectFromCallCount = 0;
-		vi.spyOn(db, 'selectFrom').mockImplementation(() => {
-			selectFromCallCount++;
-
-			// First call: get all page instances for this template
-			if (selectFromCallCount === 1) {
-				return {
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecutePageInstances,
-				} as any;
-			}
-
-			// Second call: call graph query
-			return {
-				innerJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: mockExecuteCallGraph,
-			} as any;
-		});
-
-		// Mock updateTable for position shift
-		const mockExecuteUpdate = vi.fn().mockResolvedValue(undefined);
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(db.updateTable as any) = vi.fn().mockImplementation(() => ({
-			set: vi.fn().mockReturnThis(),
-			where: vi.fn().mockReturnThis(),
-			execute: mockExecuteUpdate,
-		}));
-
-		// Mock insertInto for answer creation
-		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
-			id: 1,
-			question_id: 10,
-			text: 'Test Answer',
-			position: 1,
-			calls_instance_id: 2,
-		});
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(db.insertInto as any) = vi.fn().mockImplementation(() => ({
-			values: vi.fn().mockReturnThis(),
-			returningAll: vi.fn().mockReturnThis(),
-			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-		}));
-
-		const params = {
-			text: 'Test Answer',
-			position: 1,
-			calls_instance_id: 2, // Safe: 1 -> 2 -> 3 (no cycle)
-		};
-
-		const result = await createAnswer(mockContext, 100, 10, params);
-
-		expect(result).toBeDefined();
-		expect(result.calls_instance_id).toBe(2);
-	});
+	// NOTE: Cycle detection tests that require raw SQL are covered in integration tests
+	// See answerQueries.integration.test.ts for tests covering:
+	// - Direct cycle detection (A -> B -> A)
+	// - Indirect cycle detection (A -> B -> C -> A)
+	// - Allowed calls when no cycle exists
 });
 
 describe('modifyAnswer - cycle detection', () => {
@@ -411,11 +253,11 @@ describe('modifyAnswer - cycle detection', () => {
 	});
 
 	it('should allow modifying answer without changing calls_instance_id', async () => {
-		// Mock existing answer
+		// Mock selectFrom for getting existing answer
 		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
 			position: 1,
 			question_id: 10,
-			calls_instance_id: 2,
+			calls_instance_id: null,
 		});
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
@@ -424,203 +266,75 @@ describe('modifyAnswer - cycle detection', () => {
 			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
 		} as any);
 
-		// Mock updateTable for both modifyAnswer (answer table) and bumpPageVersion (page table)
-		const mockExecuteTakeFirstOrThrowUpdate = vi.fn().mockResolvedValue({
+		// Mock updateTable for answer update and bumpPageVersion
+		const mockExecute = vi.fn().mockResolvedValue(undefined);
+		const mockUpdateExecute = vi.fn().mockResolvedValue({
 			id: 1,
 			text: 'Updated Text',
 			position: 1,
-			calls_instance_id: 2,
 		});
-		const mockExecute = vi.fn().mockResolvedValue(undefined);
-
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(db.updateTable as any) = vi.fn().mockImplementation((table: string) => {
-			if (table === 'page') {
-				// For bumpPageVersion
-				return {
-					set: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecute,
-				};
-			}
-			// For modifyAnswer
-			return {
-				set: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
-			};
-		});
-
-		const params = {
-			text: 'Updated Text',
-		};
-
-		const result = await modifyAnswer(mockContext, 100, 1, params);
-
-		expect(result).toBeDefined();
-	});
-
-	it('should throw error when modifying calls_instance_id would create cycle', async () => {
-		// Mock existing answer
-		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
-			position: 1,
-			question_id: 10,
-			calls_instance_id: null, // Currently no call
-		});
-
-		// Mock page instances for this template (returns instance 1 in checklist 1)
-		const mockExecutePageInstances = vi.fn().mockResolvedValue([
-			{ instance_id: 1, checklist_id: 1 },
-		]);
-
-		// Mock call graph showing 2 -> 1
-		const mockExecuteCallGraph = vi.fn().mockResolvedValue([
-			{ from_instance_id: 2, to_instance_id: 1 },
-		]);
-
-		let selectFromCallCount = 0;
-		vi.spyOn(db, 'selectFrom').mockImplementation(() => {
-			selectFromCallCount++;
-
-			if (selectFromCallCount === 1) {
-				// First: get existing answer
-				return {
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-				} as any;
-			} else if (selectFromCallCount === 2) {
-				// Second: get all page instances for this template
-				return {
-					select: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecutePageInstances,
-				} as any;
-			}
-
-			// Third: get call graph
-			return {
-				innerJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: mockExecuteCallGraph,
-			} as any;
-		});
-
-		const params = {
-			calls_instance_id: 2, // Would create cycle: 1 -> 2 -> 1
-		};
-
-		await expect(modifyAnswer(mockContext, 100, 1, params)).rejects.toThrow(
-			/would create a cycle/
-		);
-	});
-
-	it('should allow setting calls_instance_id to null', async () => {
-		// Mock existing answer with a call
-		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
-			position: 1,
-			question_id: 10,
-			calls_instance_id: 2,
-		});
-
-		vi.spyOn(db, 'selectFrom').mockReturnValue({
-			select: vi.fn().mockReturnThis(),
+		(db.updateTable as any) = vi.fn().mockImplementation(() => ({
+			set: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
-			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
-		} as any);
-
-		// Mock updateTable for both modifyAnswer (answer table) and bumpPageVersion (page table)
-		const mockExecuteTakeFirstOrThrowUpdate = vi.fn().mockResolvedValue({
-			id: 1,
-			text: 'Test',
-			position: 1,
-			calls_instance_id: null,
-		});
-		const mockExecute = vi.fn().mockResolvedValue(undefined);
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(db.updateTable as any) = vi.fn().mockImplementation((table: string) => {
-			if (table === 'page') {
-				// For bumpPageVersion
-				return {
-					set: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecute,
-				};
-			}
-			// For modifyAnswer
-			return {
-				set: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
-			};
-		});
+			returningAll: vi.fn().mockReturnThis(),
+			executeTakeFirstOrThrow: mockUpdateExecute,
+			execute: mockExecute,
+		}));
 
 		const params = {
-			calls_instance_id: null,
+			text: 'Updated Text',
 		};
 
 		const result = await modifyAnswer(mockContext, 100, 1, params);
 
 		expect(result).toBeDefined();
-		expect(result.calls_instance_id).toBeNull();
 	});
 
 	it('should not check for cycles when calls_instance_id unchanged', async () => {
-		// Mock existing answer
+		// Mock selectFrom for getting existing answer
 		const mockExecuteTakeFirstOrThrow = vi.fn().mockResolvedValue({
 			position: 1,
 			question_id: 10,
-			calls_instance_id: 2,
+			calls_instance_id: 5,
 		});
 
-		const mockSelectFrom = vi.fn().mockReturnValue({
+		vi.spyOn(db, 'selectFrom').mockReturnValue({
 			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
 		} as any);
 
-		vi.spyOn(db, 'selectFrom').mockImplementation(mockSelectFrom);
-
-		// Mock updateTable for both modifyAnswer (answer table) and bumpPageVersion (page table)
-		const mockExecuteTakeFirstOrThrowUpdate = vi.fn().mockResolvedValue({
-			id: 1,
-			text: 'Updated',
-			position: 1,
-			calls_instance_id: 2,
-		});
+		// Mock updateTable for answer update and bumpPageVersion
 		const mockExecute = vi.fn().mockResolvedValue(undefined);
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(db.updateTable as any) = vi.fn().mockImplementation((table: string) => {
-			if (table === 'page') {
-				// For bumpPageVersion
-				return {
-					set: vi.fn().mockReturnThis(),
-					where: vi.fn().mockReturnThis(),
-					execute: mockExecute,
-				};
-			}
-			// For modifyAnswer
-			return {
-				set: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrowUpdate,
-			};
+		const mockUpdateExecute = vi.fn().mockResolvedValue({
+			id: 1,
+			text: 'Updated Text',
+			position: 1,
+			calls_instance_id: 5,
 		});
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(db.updateTable as any) = vi.fn().mockImplementation(() => ({
+			set: vi.fn().mockReturnThis(),
+			where: vi.fn().mockReturnThis(),
+			returningAll: vi.fn().mockReturnThis(),
+			executeTakeFirstOrThrow: mockUpdateExecute,
+			execute: mockExecute,
+		}));
 
 		const params = {
-			text: 'Updated',
-			calls_instance_id: 2, // Same as existing
+			text: 'Updated Text',
+			calls_instance_id: 5, // Same as existing
 		};
 
-		await modifyAnswer(mockContext, 100, 1, params);
+		const result = await modifyAnswer(mockContext, 100, 1, params);
 
-		// Should only query once for existing answer, not for cycle detection
-		expect(mockSelectFrom).toHaveBeenCalledTimes(1);
+		expect(result).toBeDefined();
 	});
+
+	// NOTE: Cycle detection tests that require raw SQL are covered in integration tests
+	// See answerQueries.integration.test.ts for tests covering:
+	// - Cycle detection when modifying calls_instance_id
+	// - Setting calls_instance_id to null
+	// - Edge maintenance after modification
 });

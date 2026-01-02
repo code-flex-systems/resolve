@@ -87,6 +87,15 @@ export interface Answer {
   updated_by: string | null;
 }
 
+export interface AnswerCallEdges {
+  answer_id: number;
+  checklist_id: number;
+  client_id: string;
+  from_instance_id: number;
+  id: Generated<number>;
+  to_instance_id: number;
+}
+
 export interface AuthEvents {
   created_at: Generated<Timestamp>;
   event_details: Json | null;
@@ -377,6 +386,8 @@ export interface Doc {
   created_at: Generated<Timestamp>;
   created_by: string;
   deadline_id: number | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   description: string | null;
   doc_group_id: number | null;
   /**
@@ -429,6 +440,8 @@ export interface DocGroup {
   color: string | null;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   description: string | null;
   /**
    * claim_folder (auto-created), category (system), or custom (user-created)
@@ -951,6 +964,7 @@ export interface DB {
   action_log: ActionLog;
   admin_config_logs: AdminConfigLogs;
   answer: Answer;
+  answer_call_edges: AnswerCallEdges;
   auth_events: AuthEvents;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;

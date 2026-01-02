@@ -291,7 +291,7 @@ describe('claimQueries integration', () => {
 	});
 
 	describe('getClaims - Search and Filtering', () => {
-		it('should filter by insured name (case-insensitive)', async () => {
+		it('should filter by insured name (case-insensitive prefix search)', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -302,11 +302,12 @@ describe('claimQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			// Act
+			// Act - prefix search matches "John Smith" but not "Bob Johnson"
 			const { rows: claims } = await getClaims(ctx, { insured: 'john' });
 
-			// Assert
-			expect(claims).toHaveLength(2); // John Smith and Bob Johnson
+			// Assert - only prefix matches (uses term% not %term%)
+			expect(claims).toHaveLength(1);
+			expect(claims[0].insured).toBe('John Smith');
 		});
 
 		it('should filter by recovery status', async () => {

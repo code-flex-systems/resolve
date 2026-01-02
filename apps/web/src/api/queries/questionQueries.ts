@@ -5,6 +5,7 @@ import { Answer, DateRangeStrict } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSchemas';
 import { QuestionType } from '@/config/enums';
+import { insertCallEdgesBulk } from './answerQueries';
 
 /**
  * Insert a new question and bump the page version.
@@ -54,13 +55,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
  * @returns new question
  */
 export async function copyQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
-	const maxPosition = await ctx.db
-		.selectFrom('question')
-		.select(({ fn }) => fn.max('position').as('max_position'))
-		.where('question.client_id', '=', ctx.session.user.client_id)
-		.where('page_id', '=', pageId)
-		.executeTakeFirstOrThrow();
-
+	// Insert with position computed inline via COALESCE subquery (single query)
 	const newQuestion = await ctx.db
 		.insertInto('question')
 		.columns([
@@ -77,29 +72,30 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 		])
 		.expression((eb) =>
 			eb
-				.selectFrom('question')
-				.select((eb) => [
-					'page_id',
-					'description_text',
-					'description_image_url',
-					'text',
-					'type',
-					'placeholder',
-					'hidden',
-					'client_id',
-					eb
-						.val(+maxPosition.max_position.toString() + 1)
-						.$castTo<number>()
-						.as('position'),
+				.selectFrom('question as source')
+				.select([
+					'source.page_id',
+					'source.description_text',
+					'source.description_image_url',
+					'source.text',
+					'source.type',
+					'source.placeholder',
+					'source.hidden',
+					'source.client_id',
+					sql<number>`COALESCE((
+						SELECT MAX(position) FROM question
+						WHERE client_id = ${ctx.session.user.client_id}
+						AND page_id = ${pageId}
+					), 0) + 1`.as('position'),
 					eb.val(ctx.session.user.id).as('created_by'),
 				])
-				.where('question.client_id', '=', ctx.session.user.client_id)
-				.where('id', '=', questionId)
+				.where('source.client_id', '=', ctx.session.user.client_id)
+				.where('source.id', '=', questionId)
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow(() => new Error('Question does not exist'));
 
-	await ctx.db
+	const copiedAnswers = await ctx.db
 		.insertInto('answer')
 		.columns([
 			'additional_info_num_lines',
@@ -145,8 +141,18 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 						.where('answer.client_id', '=', ctx.session.user.client_id)
 				)
 		)
-		.returning('id')
+		.returning(['id', 'calls_instance_id'])
 		.execute();
+
+	// Bulk insert call edges for all copied answers that have calls_instance_id
+	// Uses single INSERT...SELECT instead of N separate queries
+	const answersWithCalls = copiedAnswers
+		.filter((a): a is { id: number; calls_instance_id: number } => a.calls_instance_id !== null)
+		.map((a) => ({ id: a.id, calls_instance_id: a.calls_instance_id }));
+
+	if (answersWithCalls.length > 0) {
+		await insertCallEdgesBulk(ctx, pageId, answersWithCalls);
+	}
 
 	await bumpPageVersion(ctx, pageId);
 
@@ -237,12 +243,10 @@ export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
  */
 export async function getQuestions(ctx: ProtectedContext, pageId: number) {
 	// Pull questions with their aggregated answers for the given page
+	// Use EXISTS subquery for has_action instead of joining action table
 	const results = await ctx.db
 		.selectFrom('question')
 		.leftJoin('answer', 'answer.question_id', 'question.id')
-		.leftJoin('action', (join) =>
-			join.onRef('action.answer_id', '=', 'answer.id').on('action.client_id', '=', ctx.session.user.client_id)
-		)
 		.selectAll('question')
 		.select((eb) => [
 			sql`array_agg(
@@ -250,7 +254,6 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
                         'id', ${eb.ref('answer.id')},
                         'description_text', ${eb.ref('answer.description_text')},
                         'text', ${eb.ref('answer.text')},
-                        'description_text', ${eb.ref('answer.description_text')},
                         'description_image_url', ${eb.ref('answer.description_image_url')},
                         'position', ${eb.ref('answer.position')},
                         'grade', ${eb.ref('answer.grade')},
@@ -260,7 +263,11 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
                         'calls_instance_id', ${eb.ref('answer.calls_instance_id')},
                         'requires_upload', ${eb.ref('answer.requires_upload')},
                         'allowed_extensions', ${eb.ref('answer.allowed_extensions')},
-                        'has_action', ${eb.case().when('action.id', 'is', null).then(false).else(true).end()}
+                        'has_action', EXISTS(
+                            SELECT 1 FROM action
+                            WHERE action.answer_id = ${eb.ref('answer.id')}
+                            AND action.client_id = ${ctx.session.user.client_id}
+                        )
                     ) ORDER BY ${eb.ref('answer.position')}
                 ) filter (where ${eb.ref('answer.id')} is not null)`
 				.$castTo<Answer[]>()
@@ -288,49 +295,43 @@ export async function getQuestionStats(
 	filters: { claimId?: number; range: DateRangeStrict; users?: string[] }
 ) {
 	// Collect answer counts for each question over the specified interval
+	// Join once with simple FK relationship, apply filters in conditional COUNT
+
+	// Build CASE WHEN condition for counting only matching responses
+	// This preserves all answers in results while filtering what gets counted
+	let countCondition = sql`question_response.id IS NOT NULL`;
+
+	if (filters.claimId) {
+		countCondition = sql`${countCondition} AND question_response.claim_id = ${filters.claimId}`;
+	}
+
+	if (filters.users?.length) {
+		countCondition = sql`${countCondition} AND question_response.created_by = ANY(${filters.users})`;
+	}
+
+	if (filters.range && filters.range.some((d) => !!d)) {
+		if (filters.range[0]) {
+			countCondition = sql`${countCondition} AND question_response.created_at >= ${filters.range[0]}`;
+		}
+		if (filters.range[1]) {
+			countCondition = sql`${countCondition} AND question_response.created_at <= ${filters.range[1]}`;
+		}
+	} else {
+		// Default to last 30 days if no range provided
+		countCondition = sql`${countCondition} AND question_response.created_at >= CURRENT_DATE - INTERVAL '30 days'`;
+	}
+
 	const results = await ctx.db
 		.selectFrom('question')
 		.innerJoin('answer', 'question.id', 'answer.question_id')
 		.leftJoin('question_response_answer', 'answer.id', 'question_response_answer.answer_id')
-		.leftJoin('question_response', (join) => {
-			// Start with the basic join condition
-			let joinBuilder = join.onRef('question_response_answer.response_id', '=', 'question_response.id');
-
-			// Apply claim filter to the join
-			if (filters.claimId) {
-				joinBuilder = joinBuilder.on('question_response.claim_id', '=', filters.claimId);
-			}
-
-			// Apply user filter to the join
-			if (filters.users?.length) {
-				joinBuilder = joinBuilder.on('question_response.created_by', 'in', filters.users);
-			}
-
-			// Apply date range filter to the join
-			if (filters.range && filters.range.some((d) => !!d)) {
-				if (filters.range[0]) {
-					joinBuilder = joinBuilder.on('question_response.created_at', '>=', filters.range[0]);
-				}
-				if (filters.range[1]) {
-					joinBuilder = joinBuilder.on('question_response.created_at', '<=', filters.range[1]);
-				}
-			} else {
-				// Default to last 30 days if no range provided
-				joinBuilder = joinBuilder.on(
-					'question_response.created_at',
-					'>=',
-					sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()
-				);
-			}
-
-			return joinBuilder;
-		})
-		.select(({ fn }) => [
+		.leftJoin('question_response', 'question_response_answer.response_id', 'question_response.id')
+		.select([
 			'question.text as question_text',
 			'answer.question_id',
 			'answer.id as answer_id',
 			'answer.text as answer_text',
-			fn.count('question_response.id').$castTo<string>().as('answer_count'),
+			sql<string>`COUNT(CASE WHEN ${countCondition} THEN question_response.id END)`.as('answer_count'),
 		])
 		.where('question.client_id', '=', ctx.session.user.client_id)
 		.where('question.page_id', '=', pageId)
@@ -392,28 +393,32 @@ export async function modifyQuestion(
 			.execute();
 	}
 
+	// Use ROW_NUMBER() CTE to recalculate positions in a single query
+	// Subtract 1 from ROW_NUMBER() since positions are 0-based
 	if (updates.position) {
-		if (updates.position < existingQuestion.position) {
-			// Shift down: move questions [newPosition, currentPosition - 1] up by 1
-			await ctx.db
-				.updateTable('question')
-				.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
-				.where('client_id', '=', ctx.session.user.client_id)
-				.where('page_id', '=', pageId)
-				.where('position', '>=', updates.position)
-				.where('position', '<', existingQuestion.position)
-				.execute();
-		} else {
-			// Shift up: move questions [currentPosition + 1, newPosition] down by 1
-			await ctx.db
-				.updateTable('question')
-				.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
-				.where('client_id', '=', ctx.session.user.client_id)
-				.where('page_id', '=', pageId)
-				.where('position', '>', existingQuestion.position)
-				.where('position', '<=', updates.position)
-				.execute();
-		}
+		await sql`
+			WITH reordered AS (
+				SELECT id,
+					ROW_NUMBER() OVER (
+						ORDER BY
+							CASE
+								WHEN id = ${questionId} THEN ${updates.position}
+								WHEN position >= ${updates.position} AND position < ${existingQuestion.position} THEN position + 1
+								WHEN position > ${existingQuestion.position} AND position <= ${updates.position} THEN position - 1
+								ELSE position
+							END,
+							id
+					) - 1 as new_position
+				FROM question
+				WHERE client_id = ${ctx.session.user.client_id}
+					AND page_id = ${pageId}
+			)
+			UPDATE question
+			SET position = reordered.new_position
+			FROM reordered
+			WHERE question.id = reordered.id
+				AND question.position != reordered.new_position
+		`.execute(ctx.db);
 	}
 
 	const newQuestion = await ctx.db

@@ -14,6 +14,7 @@ import {
 	deleteDocGroup,
 	getDocCountByClaimId,
 	getDocCountByGroupId,
+	getDocCountsByGroupIds,
 } from '@/api/controllers/docController';
 import {
 	createDocInput,
@@ -28,6 +29,7 @@ import {
 	deleteDocGroupInput,
 	getDocCountByClaimIdInput,
 	getDocCountByGroupIdInput,
+	getDocCountsByGroupIdsInput,
 } from '@/schemas/docSchemas';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -109,5 +111,11 @@ export const docRouter = router({
 		.input(getDocCountByGroupIdInput)
 		.query(async ({ input, ctx }) => {
 			return getDocCountByGroupId(ctx, input);
+		}),
+
+	getDocCountsByGroupIds: protectedProcedure
+		.input(getDocCountsByGroupIdsInput)
+		.query(async ({ input, ctx }) => {
+			return getDocCountsByGroupIds(ctx, input);
 		}),
 });
