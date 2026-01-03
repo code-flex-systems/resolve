@@ -462,6 +462,35 @@ describe('claimQueries integration', () => {
 			expect(counts.fed).toBe(3);
 			expect(counts.manual).toBe(2);
 		});
+
+		it('should count claims with feed_id null vs non-null', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const otherClient = await createTestClient(db, { name: 'Other Client' });
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			// feed claims (non-null feed_id)
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
+
+			// manual claims (null feed_id)
+			await createTestClaim(db, { client_id: client.id });
+
+			// other client claim should not be counted
+			await createTestClaim(db, { client_id: otherClient.id, feed_id: feed.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const counts = await getClaimCount(ctx, client.id);
+
+			// Assert
+			expect(counts.total).toBe(3);
+			expect(counts.fed).toBe(2);
+			expect(counts.manual).toBe(1);
+		});
 	});
 
 	describe('getClaim', () => {
