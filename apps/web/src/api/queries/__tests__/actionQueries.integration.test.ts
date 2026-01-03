@@ -7,6 +7,7 @@
  * - getActions: Get actions for multiple answers
  * - getAction: Get single action by answer ID
  * - logAction: Log an action execution
+ * - logActions: Batch log action executions
  * - updateAction: Update action type/definition
  * - Tenant isolation on all operations
  */
@@ -21,6 +22,7 @@ import {
 	getActions,
 	getAction,
 	logAction,
+	logActions,
 	updateAction,
 	getActionStats,
 	getActionStatsDetail,
@@ -557,6 +559,95 @@ describe('actionQueries integration tests', () => {
 		});
 	});
 
+	describe('logActions', () => {
+		it('should no-op when no logs provided', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const question = await db
+				.insertInto('question')
+				.values({
+					page_id: page.id,
+					client_id: client.id,
+					text: 'Test Question',
+					type: 'multi',
+					position: 0,
+					created_by: user.id,
+				})
+				.returning('id')
+				.executeTakeFirstOrThrow();
+			const answer = await db
+				.insertInto('answer')
+				.values({
+					question_id: question.id,
+					client_id: client.id,
+					text: 'Answer 1',
+					position: 0,
+					created_by: user.id,
+				})
+				.returning('id')
+				.executeTakeFirstOrThrow();
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
+
+			await logActions(ctx, []);
+
+			const logs = await db
+				.selectFrom('action_log')
+				.selectAll()
+				.where('action_id', '=', action.id)
+				.execute();
+
+			expect(logs).toHaveLength(0);
+		});
+
+		it('should create action log entries in bulk', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const question = await db
+				.insertInto('question')
+				.values({
+					page_id: page.id,
+					client_id: client.id,
+					text: 'Test Question',
+					type: 'multi',
+					position: 0,
+					created_by: user.id,
+				})
+				.returning('id')
+				.executeTakeFirstOrThrow();
+			const answer = await db
+				.insertInto('answer')
+				.values({
+					question_id: question.id,
+					client_id: client.id,
+					text: 'Answer 1',
+					position: 0,
+					created_by: user.id,
+				})
+				.returning('id')
+				.executeTakeFirstOrThrow();
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
+
+			await logActions(ctx, [
+				{ actionId: action.id, status: ActionLogStatus.SUCCESS },
+				{ actionId: action.id, status: ActionLogStatus.FAILURE },
+			]);
+
+			const logs = await db
+				.selectFrom('action_log')
+				.selectAll()
+				.where('action_id', '=', action.id)
+				.execute();
+
+			expect(logs).toHaveLength(2);
+		});
+	});
+
 	describe('updateAction', () => {
 		it('should update action type', async () => {
 			const client = await createTestClient(db);
@@ -665,7 +756,7 @@ describe('actionQueries integration tests', () => {
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
-			await expect(updateAction(ctx, action.id, {})).rejects.toThrow('No updates');
+			await expect(updateAction(ctx, action.id, {})).rejects.toMatchObject({ code: 'BAD_REQUEST' });
 		});
 
 		it('should not update action from different client (tenant isolation)', async () => {
