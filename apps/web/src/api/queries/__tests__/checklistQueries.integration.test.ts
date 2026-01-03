@@ -69,6 +69,13 @@ describe('checklistQueries integration', () => {
 			expect(result.client_id).toBe(client.id);
 			expect(result.created_by).toBe(user.id);
 			expect(result.published).toBe(false);
+
+			const storedChecklist = await db
+				.selectFrom('checklist')
+				.selectAll()
+				.where('id', '=', result.id)
+				.executeTakeFirstOrThrow();
+			expect(storedChecklist.name).toBe('My New Checklist');
 		});
 
 		it('should copy page instances from existing checklist', async () => {
@@ -361,6 +368,27 @@ describe('checklistQueries integration', () => {
 
 			// Act & Assert
 			await expect(getChecklist(ctx, unpublishedChecklist.id)).rejects.toThrow();
+		});
+
+		it('should return published checklist for contributor users', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const publishedChecklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				name: 'Published For Contributor',
+				published: true,
+			});
+			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+
+			// Act
+			const result = await getChecklist(ctx, publishedChecklist.id);
+
+			// Assert
+			expect(result.id).toBe(publishedChecklist.id);
+			expect(result.name).toBe('Published For Contributor');
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -948,6 +976,8 @@ describe('checklistQueries integration', () => {
 			// Assert
 			expect(result.rows).toHaveLength(3);
 			expect(result.count).toBe(5);
+			expect(result.rows[0].checklist_name).toBe('Paginated Checklist');
+			expect(result.rows[0].claim_number).toContain('PAGED-');
 		});
 
 		it('should filter by date range', async () => {
@@ -1112,6 +1142,10 @@ describe('checklistQueries integration', () => {
 
 			// Assert
 			expect(result).toHaveLength(10);
+			const exportRow = result.find((row) => row.claim_number === 'EXPORT-5');
+			expect(exportRow).toBeDefined();
+			expect(exportRow?.checklist_name).toBe('Export Checklist');
+			expect(exportRow?.assignee_email).toBe(user.email);
 		});
 	});
 
@@ -1144,6 +1178,7 @@ describe('checklistQueries integration', () => {
 			const found = result.find((r) => r.claim_number === 'RECENT-001');
 			expect(found).toBeDefined();
 			expect(found?.checklist_name).toBe('Recent Checklist');
+			expect(found?.status).toBe(ClaimStatus.IN_PROGRESS);
 		});
 
 		it('should include claims at user desk location', async () => {
@@ -1214,6 +1249,13 @@ describe('checklistQueries integration', () => {
 			expect(result.published).toBe(true);
 			expect(result.description).toBe('New description');
 			expect(result.updated_by).toBe(user.id);
+
+			const storedChecklist = await db
+				.selectFrom('checklist')
+				.selectAll()
+				.where('id', '=', checklist.id)
+				.executeTakeFirstOrThrow();
+			expect(storedChecklist.name).toBe('Updated Name');
 		});
 
 		it('should only update provided fields', async () => {
