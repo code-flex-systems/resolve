@@ -57,6 +57,8 @@ import {
 	getClaimPartyForDeletion,
 	archiveClaimParty,
 	getClaimLiabilityPercentageTotal,
+	getPrimaryClaimParty,
+	getTotalLiabilityForClaim,
 	getPartyPhones,
 	getPartyPhone,
 	createPartyPhone,
@@ -1759,6 +1761,103 @@ describe('partyQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			await expect(archiveClaimParty(ctx, 999999)).rejects.toThrow('Claim party not found');
+		});
+	});
+
+	describe('getPrimaryClaimParty', () => {
+		it('should ignore deleted primaries and return the active primary', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const activeParty = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const deletedParty = await createTestParty(db, { client_id: client.id, created_by: user.id });
+
+			const activeClaimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				client_id: client.id,
+				party_id: activeParty.id,
+				created_by: user.id,
+				is_primary: true,
+			});
+
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				client_id: client.id,
+				party_id: deletedParty.id,
+				created_by: user.id,
+				is_primary: true,
+				deleted_at: new Date(),
+				deleted_by: user.email!,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const primary = await getPrimaryClaimParty(ctx, claim.id);
+
+			expect(primary?.id).toBe(activeClaimParty.id);
+			expect(primary?.party_id).toBe(activeParty.id);
+			expect(primary?.is_primary).toBe(true);
+		});
+	});
+
+	describe('getTotalLiabilityForClaim', () => {
+		it('should sum entity liability and ignore deleted or non-entity parties', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const entityParty1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
+			const entityParty2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
+			const facilitatorParty = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const deletedEntityParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
+
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				client_id: client.id,
+				party_id: entityParty1.id,
+				created_by: user.id,
+				liability_percentage: '25',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				client_id: client.id,
+				party_id: entityParty2.id,
+				created_by: user.id,
+				liability_percentage: '35',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				client_id: client.id,
+				party_id: facilitatorParty.id,
+				created_by: user.id,
+				liability_percentage: '50',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				client_id: client.id,
+				party_id: deletedEntityParty.id,
+				created_by: user.id,
+				liability_percentage: '10',
+				deleted_at: new Date(),
+				deleted_by: user.email!,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const total = await getTotalLiabilityForClaim(ctx, claim.id);
+
+			expect(total).toBe(60);
 		});
 	});
 
