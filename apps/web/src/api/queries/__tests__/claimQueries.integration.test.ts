@@ -43,6 +43,7 @@ import {
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 import { ClaimSearch, RecoveryStatus, LineOfBusiness, LossType, CoverageType } from '@/config/enums';
+import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 
 describe('claimQueries integration', () => {
 	let db: Kysely<DB>;
@@ -882,19 +883,68 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const currentFqStart = getCurrentFiscalQuarterStart();
+			const beforeStart = currentFqStart.subtract(1, 'day').toDate();
+			const afterStart = currentFqStart.add(1, 'day').toDate();
 
-			// This test is time-sensitive. We'll create claims with old dates.
-			// Current fiscal quarter start varies, so we just verify the query runs.
-			await createTestClaim(db, { client_id: client.id });
+			const claimWithoutChecklistOld = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: beforeStart })
+				.where('id', '=', claimWithoutChecklistOld.id)
+				.execute();
+
+			const claimWithoutChecklistNew = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: afterStart })
+				.where('id', '=', claimWithoutChecklistNew.id)
+				.execute();
+
+			const claimWithOldChecklist = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: afterStart })
+				.where('id', '=', claimWithOldChecklist.id)
+				.execute();
+			const oldChecklistClaim = await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claimWithOldChecklist.id,
+				created_by: user.id,
+			});
+			await db
+				.updateTable('checklist_claim')
+				.set({ created_at: beforeStart })
+				.where('id', '=', oldChecklistClaim.id)
+				.execute();
+
+			const claimWithNewChecklist = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: beforeStart })
+				.where('id', '=', claimWithNewChecklist.id)
+				.execute();
+			const newChecklistClaim = await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claimWithNewChecklist.id,
+				created_by: user.id,
+			});
+			await db
+				.updateTable('checklist_claim')
+				.set({ created_at: afterStart })
+				.where('id', '=', newChecklistClaim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
 			const result = await getRolloverClaimCount(ctx);
 
-			// Assert - Just verify structure, actual count depends on current date
-			expect(result).toHaveProperty('count');
-			expect(typeof result.count).toBe('number');
+			// Assert
+			expect(result).toEqual({ count: 2 });
 		});
 	});
 
