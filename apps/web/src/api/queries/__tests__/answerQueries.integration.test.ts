@@ -766,6 +766,31 @@ describe('answerQueries integration', () => {
 			expect(answers.find((a) => a.id === a1.id)?.position).toBe(2);
 		});
 
+		it('should reorder sibling answers when position changes', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+
+			const a1 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A1', position: 0 });
+			const a2 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A2', position: 1 });
+			const a3 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A3', position: 2 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await modifyAnswer(ctx, page.id, a2.id, { position: 0 });
+
+			const answers = await db
+				.selectFrom('answer')
+				.select(['id', 'text', 'position'])
+				.where('question_id', '=', question.id)
+				.orderBy('position')
+				.execute();
+
+			expect(answers.map((answer) => answer.text)).toEqual(['A2', 'A1', 'A3']);
+			expect(answers.map((answer) => answer.position)).toEqual([0, 1, 2]);
+		});
+
 		it('should bump page version', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -830,6 +855,116 @@ describe('answerQueries integration', () => {
 			// Try to update answerB to call instanceA (would create cycle: A->B->A)
 			await expect(
 				modifyAnswer(ctx, pageB.id, answerB.id, { calls_instance_id: instanceA.id })
+			).rejects.toThrow(/would create a cycle/);
+		});
+
+		it('should insert and delete call edges when updating calls_instance_id', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const targetPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			const targetInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: targetPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				calls_instance_id: null,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await modifyAnswer(ctx, page.id, answer.id, { calls_instance_id: targetInstance.id });
+
+			const insertedEdges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('answer_id', '=', answer.id)
+				.execute();
+
+			expect(insertedEdges).toHaveLength(1);
+			expect(insertedEdges[0].from_instance_id).toBe(pageInstance.id);
+			expect(insertedEdges[0].to_instance_id).toBe(targetInstance.id);
+
+			await modifyAnswer(ctx, page.id, answer.id, { calls_instance_id: null });
+
+			const remainingEdges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('answer_id', '=', answer.id)
+				.execute();
+
+			expect(remainingEdges).toHaveLength(0);
+		});
+
+		it('should detect cycles across multiple checklists when updating calls_instance_id', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklistA = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklistB = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			const pageA = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const pageB = await createTestPage(db, { client_id: client.id, created_by: user.id });
+
+			const instanceA1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageA.id,
+				checklist_id: checklistA.id,
+				created_by: user.id,
+			});
+			const instanceB1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageB.id,
+				checklist_id: checklistA.id,
+				created_by: user.id,
+			});
+			await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageA.id,
+				checklist_id: checklistB.id,
+				created_by: user.id,
+			});
+			await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageB.id,
+				checklist_id: checklistB.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const questionOnPageB = await createTestQuestion(db, { client_id: client.id, page_id: pageB.id, created_by: user.id });
+			await createAnswer(ctx, pageB.id, questionOnPageB.id, {
+				text: 'Back to A',
+				position: 0,
+				calls_instance_id: instanceA1.id,
+			});
+
+			const questionOnPageA = await createTestQuestion(db, { client_id: client.id, page_id: pageA.id, created_by: user.id });
+			const answerOnPageA = await createAnswer(ctx, pageA.id, questionOnPageA.id, {
+				text: 'No call yet',
+				position: 0,
+				calls_instance_id: null,
+			});
+
+			await expect(
+				modifyAnswer(ctx, pageA.id, answerOnPageA.id, { calls_instance_id: instanceB1.id })
 			).rejects.toThrow(/would create a cycle/);
 		});
 
