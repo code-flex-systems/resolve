@@ -528,6 +528,40 @@ describe('responseQueries integration tests', () => {
 			expect(result.count).toBeGreaterThanOrEqual(3);
 		});
 
+		it('should return inserted audit logs scoped to the client', async () => {
+			const clientA = await createTestClient(db);
+			const clientB = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id });
+			const userB = await createTestUser(db, { client_id: clientB.id });
+			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
+			const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
+			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const uniqueText = `ScopedAudit_${Date.now()}`;
+
+			const logA = await createTestResponseAuditLog(clientA.id, userA.id, {
+				claim_id: claimA.id,
+				checklist_id: checklistA.id,
+				question_text: uniqueText,
+			});
+			await createTestResponseAuditLog(clientB.id, userB.id, { question_text: uniqueText });
+
+			const result = await getResponseAuditLogs(ctxA, { searchTerm: uniqueText }, 10, 0);
+
+			expect(result.rows.length).toBe(1);
+			const row = result.rows[0];
+			expect(row.id).toBe(logA.id);
+			expect(row.client_id).toBe(clientA.id);
+			expect(row.user_id).toBe(userA.id);
+			expect(row.claim_id).toBe(claimA.id);
+			expect(row.checklist_id).toBe(checklistA.id);
+			expect(row.question_text).toBe(uniqueText);
+			expect(row.page_label).toBe('Test Page');
+			expect(row.action).toBe('insert');
+			expect(row.email).toBe(userA.email);
+			expect(row.first).toBe(userA.first);
+			expect(row.last).toBe(userA.last);
+		});
+
 		it('should filter by claimId', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
