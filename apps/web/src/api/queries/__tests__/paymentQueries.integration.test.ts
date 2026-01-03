@@ -25,6 +25,7 @@ import {
 	updatePayment,
 	archivePayment,
 	getPaymentForArchive,
+	recalculateClaimAmount,
 } from '../paymentQueries';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
@@ -1035,6 +1036,96 @@ describe('paymentQueries integration', () => {
 					return archivePayment({ ...ctx2, db: trx }, payment.id, claim.id);
 				})
 			).rejects.toThrow();
+		});
+	});
+
+	describe('recalculateClaimAmount', () => {
+		it('should recalculate claim_amount from subrogable payments', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '1500',
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '500',
+				is_subrogable: false,
+			});
+
+			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(1500);
+		});
+
+		it('should exclude archived payments from recalculation', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '2000',
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '1000',
+				is_subrogable: true,
+				deleted_at: new Date(),
+				deleted_by: user.id,
+			});
+
+			await db.updateTable('claim').set({ claim_amount: '0' }).where('id', '=', claim.id).execute();
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(2000);
 		});
 	});
 });
