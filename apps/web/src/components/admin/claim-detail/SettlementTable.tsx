@@ -1,5 +1,6 @@
 'use client';
 
+import { dataGridFocusStyles } from '@/styles/theme';
 import { Box, Chip, Typography } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
@@ -319,12 +320,7 @@ export default function SettlementTable({
 					display: 'flex',
 					alignItems: 'center',
 				},
-				'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible': {
-					outline: 'none',
-				},
-				'& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
-					outline: 'none',
-				},
+				...dataGridFocusStyles,
 			}}
 		/>
 	);

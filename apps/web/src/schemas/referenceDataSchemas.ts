@@ -19,6 +19,7 @@ export const KNOWN_REFERENCE_ENTITIES = [
 	'claim_substatus',
 	'claimant_party_role',
 	'adverse_party_role',
+	'tort_type',
 ] as const;
 
 export type ReferenceEntity = (typeof KNOWN_REFERENCE_ENTITIES)[number];
@@ -173,5 +174,9 @@ export const REFERENCE_ENTITY_DISPLAY: Record<
 	adverse_party_role: {
 		label: 'Adverse Party Role',
 		description: 'Roles for parties on the Adverse Parties & Liability tab',
+	},
+	tort_type: {
+		label: 'Tort Type',
+		description: 'Categories of legal claims for statute of limitations',
 	},
 };

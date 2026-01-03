@@ -74,6 +74,9 @@ export enum EntityName {
 
 	// Workflow management entities
 	TASK = 'task',
+
+	// Statute rules (global config entity)
+	STATUTE_RULE = 'statute_rule',
 }
 
 /**
@@ -96,6 +99,7 @@ const CONFIG_ENTITIES: Set<EntityName> = new Set([
 	EntityName.PARTY_ADDRESS,
 	EntityName.PARTY_REPRESENTATIVE,
 	EntityName.PAGE_INSTANCE,
+	EntityName.STATUTE_RULE,
 ]);
 
 /**

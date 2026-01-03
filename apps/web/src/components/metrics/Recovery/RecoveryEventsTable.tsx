@@ -12,7 +12,7 @@ import IconHeaderCell from '@/components/common/IconHeaderCell';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
-import { containerStyles } from '@/styles/theme';
+import { containerStyles, dataGridFocusStyles } from '@/styles/theme';
 
 const columns: GridColDef<RecoveryEventWithDetails>[] = [
 	{
@@ -206,6 +206,7 @@ export default function RecoveryEventsTable({
 							fontSize: 13,
 							fontWeight: 600,
 						},
+						...dataGridFocusStyles,
 					}}
 					disableColumnSelector
 					disableColumnMenu

@@ -29,7 +29,7 @@ import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import Visibility from '@mui/icons-material/Visibility';
@@ -655,6 +655,7 @@ export default function Claims() {
 							disableColumnMenu
 							sx={{
 								...styles.tableOverrides,
+								...dataGridFocusStyles,
 								'& .MuiDataGrid-row': {
 									cursor: 'pointer',
 								},

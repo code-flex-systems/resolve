@@ -1,4 +1,5 @@
 'use client';
+import { dataGridFocusStyles } from '@/styles/theme';
 import { Paper } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { useChecklistStore } from '@/stores/useChecklistStore';
@@ -119,5 +120,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

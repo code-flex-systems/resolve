@@ -34,7 +34,7 @@ import TaskBulkCancellationDialog from './TaskBulkCancellationDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 
 // Status display config
 const STATUS_COLORS: Record<TaskStatus, 'default' | 'primary' | 'success' | 'error'> = {
@@ -589,6 +589,7 @@ export default function TasksTab() {
 									'& .MuiDataGrid-columnSeparator': {
 										display: 'none',
 									},
+									...dataGridFocusStyles,
 								}}
 							/>
 						</Box>
