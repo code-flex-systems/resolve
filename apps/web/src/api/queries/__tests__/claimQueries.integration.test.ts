@@ -662,6 +662,63 @@ describe('claimQueries integration', () => {
 			expect(result.claim?.id).toBe(claim1.id); // First created (oldest)
 		});
 
+		it('should return the expected claim for a given offset', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			const claim1 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
+			const claim3 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Third' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const offsetOneResult = await getNextClaimToAssign(ctx, feed.id, 1);
+			const offsetTwoResult = await getNextClaimToAssign(ctx, feed.id, 2);
+
+			// Assert
+			expect(offsetOneResult.claim?.id).toBe(claim2.id);
+			expect(offsetTwoResult.claim?.id).toBe(claim3.id);
+			expect(offsetOneResult.claim?.id).not.toBe(claim1.id);
+		});
+
+		it('should return total_unassigned count excluding assigned claims', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Unassigned 1' });
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Unassigned 2' });
+			const assignedClaim = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Assigned',
+			});
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: assignedClaim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getNextClaimToAssign(ctx, feed.id);
+
+			// Assert
+			expect(result.total).toBe(2);
+		});
+
 		it('should support offset for pagination', async () => {
 			// Arrange
 			const client = await createTestClient(db);
