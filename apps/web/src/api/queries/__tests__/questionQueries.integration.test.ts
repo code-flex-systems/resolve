@@ -638,6 +638,32 @@ describe('questionQueries integration', () => {
 			expect(result.type).toBe(QuestionType.MULTI);
 		});
 
+		it('should remove all answers when converting non-freeform to freeform', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				type: QuestionType.SINGLE,
+			});
+			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Answer A', position: 0 });
+			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Answer B', position: 1 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await modifyQuestion(ctx, page.id, question.id, { type: QuestionType.FREEFORM });
+
+			const remainingAnswers = await db
+				.selectFrom('answer')
+				.selectAll()
+				.where('question_id', '=', question.id)
+				.execute();
+
+			expect(remainingAnswers).toHaveLength(0);
+		});
+
 		it('should delete answers when converting to freeform', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -661,6 +687,33 @@ describe('questionQueries integration', () => {
 				.execute();
 
 			expect(answers.length).toBe(0);
+		});
+
+		it('should reorder siblings when moving to a new position', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+
+			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1', position: 0 });
+			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2', position: 1 });
+			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q3', position: 2 });
+			const q4 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q4', position: 3 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await modifyQuestion(ctx, page.id, q2.id, { position: 3 });
+
+			const questions = await db
+				.selectFrom('question')
+				.select(['id', 'position'])
+				.where('page_id', '=', page.id)
+				.orderBy('position')
+				.execute();
+
+			expect(questions.find((q) => q.id === q1.id)?.position).toBe(0);
+			expect(questions.find((q) => q.id === q3.id)?.position).toBe(1);
+			expect(questions.find((q) => q.id === q4.id)?.position).toBe(2);
+			expect(questions.find((q) => q.id === q2.id)?.position).toBe(3);
 		});
 
 		it('should reorder when position changes (moving up)', async () => {
@@ -752,9 +805,11 @@ describe('questionQueries integration', () => {
 
 			const updatedPage1 = await db.selectFrom('page').select('version').where('id', '=', page1.id).executeTakeFirst();
 			const updatedPage2 = await db.selectFrom('page').select('version').where('id', '=', page2.id).executeTakeFirst();
+			const updatedQuestion = await db.selectFrom('question').select('page_id').where('id', '=', question.id).executeTakeFirst();
 
 			expect(updatedPage1?.version).toBe(originalVersion1 + 1);
 			expect(updatedPage2?.version).toBe(originalVersion2 + 1);
+			expect(updatedQuestion?.page_id).toBe(page2.id);
 		});
 	});
 });
