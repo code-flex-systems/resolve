@@ -1788,6 +1788,135 @@ describe('taskQueries integration', () => {
 			expect(result.isAtCapacity).toBe(false);
 		});
 
+		it('should calculate usage from active tasks only', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Capacity Desk',
+				daily_work_units: 10,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const targetDate = new Date().toISOString().split('T')[0];
+			const assignedAt = new Date(`${targetDate}T10:00:00Z`);
+
+			const pendingTask = await db
+				.insertInto('task')
+				.values({
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk.id,
+					assigned_by: user.id,
+					title: 'Pending task',
+					status: TaskStatus.PENDING,
+					work_units: 4,
+					assigned_at: assignedAt,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+
+			const inProgressTask = await db
+				.insertInto('task')
+				.values({
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk.id,
+					assigned_by: user.id,
+					claimed_by: user.id,
+					title: 'In progress task',
+					status: TaskStatus.IN_PROGRESS,
+					work_units: 2,
+					assigned_at: assignedAt,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+
+			await db
+				.insertInto('task')
+				.values({
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk.id,
+					assigned_by: user.id,
+					title: 'Completed task',
+					status: TaskStatus.COMPLETED,
+					work_units: 5,
+					completed_at: new Date(),
+					assigned_at: assignedAt,
+				})
+				.execute();
+
+			const cancelledDeadlineTask = await db
+				.insertInto('task')
+				.values({
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk.id,
+					assigned_by: user.id,
+					title: 'Cancelled deadline task',
+					status: TaskStatus.PENDING,
+					work_units: 6,
+					assigned_at: assignedAt,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+
+			const previousDay = new Date(assignedAt);
+			previousDay.setDate(previousDay.getDate() - 1);
+			await db
+				.insertInto('task')
+				.values({
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk.id,
+					assigned_by: user.id,
+					title: 'Previous day task',
+					status: TaskStatus.PENDING,
+					work_units: 8,
+					assigned_at: previousDay,
+				})
+				.execute();
+
+			await createTestDeadline(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				entity_type: DeadlineEntityType.TASK,
+				entity_id: pendingTask.id,
+				status: DeadlineStatus.PENDING,
+			});
+			await createTestDeadline(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				entity_type: DeadlineEntityType.TASK,
+				entity_id: inProgressTask.id,
+				status: DeadlineStatus.PENDING,
+			});
+			await createTestDeadline(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				entity_type: DeadlineEntityType.TASK,
+				entity_id: cancelledDeadlineTask.id,
+				status: DeadlineStatus.CANCELLED,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getDeskCapacity(ctx, desk.id, targetDate);
+
+			// Assert
+			expect(result.usedWorkUnits).toBe(6);
+			expect(result.dailyWorkUnitsLimit).toBe(10);
+			expect(result.isAtCapacity).toBe(false);
+		});
+
 		it('should report at capacity when limit reached', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -2104,6 +2233,91 @@ describe('taskQueries integration', () => {
 			expect(result.rows[0].title).toBe('Task in range');
 		});
 
+		it('should include tasks at week boundaries and keep deadline order', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const today = new Date();
+			const weekStart = new Date(today);
+			weekStart.setDate(today.getDate() - today.getDay());
+			const weekEnd = new Date(weekStart);
+			weekEnd.setDate(weekStart.getDate() + 6);
+
+			const startTask = await createTestTask(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				desk_location_id: desk.id,
+				assigned_by: user.id,
+				title: 'Week start task',
+			});
+			const midTask = await createTestTask(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				desk_location_id: desk.id,
+				assigned_by: user.id,
+				title: 'Midweek task',
+			});
+			const endTask = await createTestTask(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				desk_location_id: desk.id,
+				assigned_by: user.id,
+				title: 'Week end task',
+			});
+			await createTestDeadline(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				entity_type: DeadlineEntityType.TASK,
+				entity_id: startTask.id,
+				deadline_date: weekStart,
+				status: DeadlineStatus.PENDING,
+			});
+			const midWeek = new Date(weekStart);
+			midWeek.setDate(weekStart.getDate() + 3);
+			await createTestDeadline(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				entity_type: DeadlineEntityType.TASK,
+				entity_id: midTask.id,
+				deadline_date: midWeek,
+				status: DeadlineStatus.PENDING,
+			});
+			await createTestDeadline(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				entity_type: DeadlineEntityType.TASK,
+				entity_id: endTask.id,
+				deadline_date: weekEnd,
+				status: DeadlineStatus.PENDING,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getTasksByDueDateWeek(ctx, {
+				weekStart: weekStart.toISOString().split('T')[0],
+				weekEnd: weekEnd.toISOString().split('T')[0],
+			});
+
+			// Assert
+			expect(result.rows).toHaveLength(3);
+			expect(result.rows.map((row) => row.title)).toEqual([
+				'Week start task',
+				'Midweek task',
+				'Week end task',
+			]);
+		});
+
 		it('should enforce tenant isolation', async () => {
 			// Arrange
 			const client1 = await createTestClient(db, { name: 'Client 1' });
@@ -2237,6 +2451,8 @@ describe('taskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
+			const beforeCancel = new Date();
+
 			// Act
 			const result = await bulkCancelTasks(ctx, {
 				ids: [task1.id, task2.id],
@@ -2249,20 +2465,31 @@ describe('taskQueries integration', () => {
 			// Verify tasks are cancelled
 			const tasks = await db
 				.selectFrom('task')
-				.select(['status'])
+				.select(['status', 'updated_at'])
 				.where('id', 'in', [task1.id, task2.id])
 				.execute();
 			expect(tasks.every((t) => t.status === TaskStatus.CANCELLED)).toBe(true);
+			expect(
+				tasks.every(
+					(t) => t.updated_at && new Date(t.updated_at).getTime() >= beforeCancel.getTime()
+				)
+			).toBe(true);
 
 			// Verify deadlines are cancelled
 			const deadlines = await db
 				.selectFrom('deadline')
-				.select(['status', 'cancellation_reason'])
+				.select(['status', 'cancellation_reason', 'cancelled_at', 'cancelled_by'])
 				.where('entity_type', '=', DeadlineEntityType.TASK)
 				.where('entity_id', 'in', [task1.id, task2.id])
 				.execute();
 			expect(deadlines.every((d) => d.status === DeadlineStatus.CANCELLED)).toBe(true);
 			expect(deadlines.every((d) => d.cancellation_reason === 'Bulk cancellation')).toBe(true);
+			expect(
+				deadlines.every(
+					(d) => d.cancelled_at && new Date(d.cancelled_at).getTime() >= beforeCancel.getTime()
+				)
+			).toBe(true);
+			expect(deadlines.every((d) => d.cancelled_by === user.id)).toBe(true);
 		});
 
 		it('should skip already cancelled tasks', async () => {
