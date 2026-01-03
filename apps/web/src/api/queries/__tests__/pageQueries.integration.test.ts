@@ -688,6 +688,94 @@ describe('pageQueries integration', () => {
 
 			expect(updatedAnswer?.calls_instance_id).toBeNull();
 		});
+
+		it('should clear answer calls, delete instance comments, and reorder siblings', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 1' });
+			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 2' });
+			const page3 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 3' });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page1.id,
+				created_by: user.id,
+			});
+
+			const inst1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page1.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				position: 0,
+			});
+			const inst2 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page2.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				position: 1,
+			});
+			const inst3 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page3.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+				position: 2,
+			});
+
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Answer referencing instance',
+				calls_instance_id: inst2.id,
+			});
+
+			const comment = await db
+				.insertInto('comment')
+				.values({
+					checklist_id: checklist.id,
+					claim_id: claim.id,
+					instance_id: inst2.id,
+					body: 'Instance comment',
+					client_id: client.id,
+					created_by: user.id,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await deletePageInstance(ctx, inst2.id);
+
+			const updatedAnswer = await db
+				.selectFrom('answer')
+				.select('calls_instance_id')
+				.where('id', '=', answer.id)
+				.executeTakeFirst();
+			expect(updatedAnswer?.calls_instance_id).toBeNull();
+
+			const deletedComment = await db
+				.selectFrom('comment')
+				.selectAll()
+				.where('id', '=', comment.id)
+				.executeTakeFirst();
+			expect(deletedComment).toBeUndefined();
+
+			const remaining = await db
+				.selectFrom('page_instance')
+				.select(['id', 'position'])
+				.where('id', 'in', [inst1.id, inst3.id])
+				.orderBy('position')
+				.execute();
+
+			expect(remaining[0].id).toBe(inst1.id);
+			expect(remaining[0].position).toBe(0);
+			expect(remaining[1].id).toBe(inst3.id);
+			expect(remaining[1].position).toBe(1);
+		});
 	});
 
 	describe('getPageInstance', () => {
