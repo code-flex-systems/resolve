@@ -28,6 +28,7 @@ import {
 	createTestUser,
 	createTestClaim,
 	createTestChecklist,
+	createTestChecklistClaim,
 	createTestPage,
 	createTestPageInstance,
 } from '@/__tests__/integration/fixtures';
@@ -464,6 +465,55 @@ describe('commentQueries integration tests', () => {
 			expect(count).toBe(1);
 		});
 
+		it('should filter by checklist, claim, instance, and question together', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const instance = await createTestPageInstance(db, {
+				client_id: client.id,
+				created_by: user.id,
+				checklist_id: checklist.id,
+				page_id: page.id,
+			});
+			const question = await db
+				.insertInto('question')
+				.values({
+					page_id: page.id,
+					client_id: client.id,
+					text: 'Question filter combo',
+					type: 'freeform',
+					position: 0,
+					created_by: user.id,
+				})
+				.returning('id')
+				.executeTakeFirstOrThrow();
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+
+			await createComment(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				instanceId: instance.id,
+				questionId: question.id,
+				body: 'Filtered comment',
+			});
+			await createComment(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				instanceId: instance.id,
+				body: 'Non-matching comment',
+			});
+
+			const count = await getCommentCount(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				instanceId: instance.id,
+				questionId: question.id,
+			});
+			expect(count).toBe(1);
+		});
+
 		it('should not count comments from different client (tenant isolation)', async () => {
 			const clientA = await createTestClient(db);
 			const clientB = await createTestClient(db);
@@ -570,6 +620,7 @@ describe('commentQueries integration tests', () => {
 			expect(result.rows[0].first).toBe(user.first);
 			expect(result.rows[0].last).toBe(user.last);
 			expect(result.rows[0].email).toBe(user.email);
+			expect(result.count).toBe(0);
 		});
 
 		it('should filter by multiple criteria', async () => {
@@ -621,6 +672,73 @@ describe('commentQueries integration tests', () => {
 
 			expect(result.rows).toHaveLength(1);
 			expect(result.rows[0].body).toBe('Matching comment');
+		});
+
+		it('should filter by user ownership on checklist claims', async () => {
+			const client = await createTestClient(db);
+			const owner = await createTestUser(db, { client_id: client.id });
+			const assignee = await createTestUser(db, { client_id: client.id });
+			const other = await createTestUser(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client.id, created_by: owner.id });
+			const otherClaim = await createTestClaim(db, { client_id: client.id, created_by: other.id });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: owner.id });
+			const otherChecklist = await createTestChecklist(db, { client_id: client.id, created_by: other.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: owner.id });
+			const otherPage = await createTestPage(db, { client_id: client.id, created_by: other.id });
+			const instance = await createTestPageInstance(db, {
+				client_id: client.id,
+				created_by: owner.id,
+				checklist_id: checklist.id,
+				page_id: page.id,
+			});
+			const otherInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				created_by: other.id,
+				checklist_id: otherChecklist.id,
+				page_id: otherPage.id,
+			});
+			const ctx = createTestContext(db, {
+				id: owner.id,
+				client_id: client.id,
+				email: owner.email,
+				role: 'user',
+			});
+
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claim.id,
+				created_by: owner.id,
+				assignee: assignee.id,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: otherChecklist.id,
+				claim_id: otherClaim.id,
+				created_by: other.id,
+				assignee: other.id,
+			});
+
+			await createComment(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				instanceId: instance.id,
+				body: 'Owned by owner',
+			});
+			await createComment(ctx, {
+				checklistId: otherChecklist.id,
+				claimId: otherClaim.id,
+				instanceId: otherInstance.id,
+				body: 'Owned by someone else',
+			});
+
+			const ownerResult = await getComments(ctx, { userId: owner.id });
+			expect(ownerResult.rows).toHaveLength(1);
+			expect(ownerResult.rows[0].body).toBe('Owned by owner');
+
+			const assigneeResult = await getComments(ctx, { userId: assignee.id });
+			expect(assigneeResult.rows).toHaveLength(1);
+			expect(assigneeResult.rows[0].body).toBe('Owned by owner');
 		});
 
 		it('should not return comments from different client (tenant isolation)', async () => {
