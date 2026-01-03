@@ -1482,20 +1482,33 @@ describe('deskQueries integration', () => {
 			const ts = Date.now();
 			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
 			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
+			const loc3 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc3 ${ts}` });
 
 			const assignment1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
 			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc2.id, priority: 2 });
+			const assignment3 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc3.id, priority: 3 });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			// Update assignment1 to priority 2 (should remove assignment2)
-			await updateUserDeskLocationPriority(ctx, assignment1.id, 2);
+			// Update assignment3 to priority 1 (should remove assignment1)
+			await updateUserDeskLocationPriority(ctx, assignment3.id, 1);
 
 			const assignments = await getUserDeskLocations(ctx, user.id);
 
-			expect(assignments.length).toBe(1);
-			expect(assignments[0].desk_location_id).toBe(loc1.id);
-			expect(assignments[0].priority).toBe(2);
+			const assignment1Row = await db
+				.selectFrom('user_desk_location')
+				.select(['removed_at', 'removed_by'])
+				.where('id', '=', assignment1.id)
+				.executeTakeFirstOrThrow();
+
+			expect(assignment1Row.removed_at).not.toBeNull();
+			expect(assignment1Row.removed_by).toBe(user.id);
+
+			expect(assignments.length).toBe(2);
+			expect(assignments[0].priority).toBe(1);
+			expect(assignments[0].desk_location_id).toBe(loc3.id);
+			expect(assignments[1].priority).toBe(2);
+			expect(assignments[1].desk_location_id).toBe(loc2.id);
 		});
 	});
 
@@ -1511,9 +1524,18 @@ describe('deskQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			const result = await removeUserFromDeskLocation(ctx, assignment.id);
+			const assignmentRow = await db
+				.selectFrom('user_desk_location')
+				.select(['removed_at', 'removed_by'])
+				.where('id', '=', assignment.id)
+				.executeTakeFirstOrThrow();
+			const assignments = await getUserDeskLocations(ctx, user.id);
 
 			expect(result.removed_at).not.toBeNull();
 			expect(result.removed_by).toBe(user.id);
+			expect(assignmentRow.removed_at).not.toBeNull();
+			expect(assignmentRow.removed_by).toBe(user.id);
+			expect(assignments.length).toBe(0);
 		});
 
 		it('should throw if assignment not found or already removed', async () => {
@@ -1578,6 +1600,36 @@ describe('deskQueries integration', () => {
 			const result = await updateUserDeskLocationPriorities(ctx, []);
 
 			expect(result).toEqual([]);
+		});
+
+		it('should keep priorities contiguous after bulk updates', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const ts = Date.now();
+			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
+			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
+			const loc3 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc3 ${ts}` });
+
+			const a1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
+			const a2 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc2.id, priority: 2 });
+			const a3 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc3.id, priority: 3 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await updateUserDeskLocationPriorities(ctx, [
+				{ id: a1.id, priority: 2 },
+				{ id: a2.id, priority: 3 },
+				{ id: a3.id, priority: 1 },
+			]);
+
+			const assignments = await getUserDeskLocations(ctx, user.id);
+			const priorities = assignments.map((assignment) => assignment.priority);
+
+			expect(priorities).toEqual([1, 2, 3]);
+			expect(assignments[0].desk_location_id).toBe(loc3.id);
+			expect(assignments[1].desk_location_id).toBe(loc1.id);
+			expect(assignments[2].desk_location_id).toBe(loc2.id);
 		});
 	});
 
