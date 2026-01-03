@@ -23,6 +23,7 @@ import {
 	createTestClaimParty,
 	createTestCoverage,
 	createTestSettlement,
+	createTestPayment,
 } from '@/__tests__/integration/fixtures';
 import {
 	createRecoveryEvent,
@@ -31,6 +32,9 @@ import {
 	archiveRecoveryEvent,
 	archiveRecoveryEventsForSettlement,
 	exportRecoveryEvents,
+	updateRecoveryEvent,
+	recalculateClaimRecovery,
+	getRecoverySummaryByCoverage,
 	getRecoveryMetricsSummary,
 	getRecoveryMetricsTimeSeries,
 	getQuarterlyRecoveryStats,
@@ -1054,6 +1058,219 @@ describe('recoveryQueries integration', () => {
 			await expect(archiveRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow(
 				'Recovery event not found'
 			);
+		});
+	});
+
+	describe('updateRecoveryEvent', () => {
+		it('should update the recovery amount and recalculate claim totals', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const recoveryDate = new Date().toISOString().split('T')[0];
+
+			const event1 = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: recoveryDate,
+				recovery_amount: 1000,
+			});
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: recoveryDate,
+				recovery_amount: 2000,
+			});
+
+			// Act
+			const updated = await updateRecoveryEvent(ctx, event1.id, {
+				recovery_amount: 1500,
+				notes: 'Adjusted',
+			});
+
+			// Assert - updated event and recalculated claim totals
+			expect(updated.recovery_amount).toBe('1500');
+			expect(updated.notes).toBe('Adjusted');
+
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(updatedClaim?.actual_recovery).toBe('3500');
+		});
+	});
+
+	describe('recalculateClaimRecovery', () => {
+		it('should use recovery_event sums to update claim actual_recovery', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				recovery_amount: '1000',
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				recovery_amount: '2500',
+			});
+
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '0' })
+				.where('id', '=', claim.id)
+				.execute();
+
+			// Act
+			await db.transaction().execute(async (trx) => {
+				await recalculateClaimRecovery(trx, claim.id, client.id);
+			});
+
+			// Assert
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(updatedClaim?.actual_recovery).toBe('3500');
+		});
+	});
+
+	describe('getRecoverySummaryByCoverage', () => {
+		it('should return per-coverage aggregates', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'facilitator',
+			});
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+				role: ['adverse_carrier'],
+			});
+
+			const coverage1 = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				loss_type: 'dwelling',
+			});
+			const coverage2 = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				loss_type: 'personal_property',
+			});
+
+			const settlement1 = await createTestSettlement(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				coverage_id: coverage1.id,
+				created_by: user.id,
+				demand_amount: 10000,
+			});
+			const settlement2 = await createTestSettlement(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				coverage_id: coverage2.id,
+				created_by: user.id,
+				demand_amount: 20000,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage1.id,
+				created_by: user.id,
+				payment_amount: 3000,
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage1.id,
+				created_by: user.id,
+				payment_amount: 1200,
+				is_subrogable: false,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage2.id,
+				created_by: user.id,
+				payment_amount: 1500,
+				is_subrogable: true,
+			});
+
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement1.id,
+				created_by: user.id,
+				recovery_amount: '1000',
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement1.id,
+				created_by: user.id,
+				recovery_amount: '500',
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement2.id,
+				created_by: user.id,
+				recovery_amount: '2000',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getRecoverySummaryByCoverage(ctx, claim.id);
+
+			// Assert
+			expect(result).toHaveLength(2);
+			const byCoverage = new Map(result.map((item) => [item.coverage_id, item]));
+
+			const coverage1Summary = byCoverage.get(coverage1.id);
+			const coverage2Summary = byCoverage.get(coverage2.id);
+
+			expect(coverage1Summary?.loss_type).toBe('dwelling');
+			expect(coverage1Summary?.subrogable_amount).toBe('3000');
+			expect(coverage1Summary?.actual_recovery).toBe('1500');
+
+			expect(coverage2Summary?.loss_type).toBe('personal_property');
+			expect(coverage2Summary?.subrogable_amount).toBe('1500');
+			expect(coverage2Summary?.actual_recovery).toBe('2000');
 		});
 	});
 
