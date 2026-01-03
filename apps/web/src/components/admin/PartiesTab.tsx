@@ -17,7 +17,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
 
 interface PartiesTabProps {
@@ -248,6 +248,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 							disableColumnMenu
 							sx={{
 								...styles.tableOverrides,
+								...dataGridFocusStyles,
 								'& .MuiDataGrid-cell': {
 									display: 'flex',
 									alignItems: 'center',

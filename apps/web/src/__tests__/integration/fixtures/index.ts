@@ -21,3 +21,4 @@ export * from './settlement';
 export * from './doc';
 export * from './coverage';
 export * from './reference';
+export * from './statute';

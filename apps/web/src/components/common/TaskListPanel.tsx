@@ -16,7 +16,7 @@ import BasicButtonStyled from './BasicButtonStyled';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskCompletionDialog from './TaskCompletionDialog';
 import TaskCancellationDialog from './TaskCancellationDialog';
-import theme from '@/styles/theme';
+import theme, { dataGridFocusStyles } from '@/styles/theme';
 
 interface TaskListPanelProps {
 	claimId: number;
@@ -238,6 +238,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 							display: 'flex',
 							alignItems: 'center',
 						},
+						...dataGridFocusStyles,
 					}}
 				/>
 			)}

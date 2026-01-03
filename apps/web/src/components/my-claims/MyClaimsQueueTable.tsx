@@ -18,7 +18,7 @@ import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import { ClaimStatus, RecoveryStatus } from '@/config/enums';
@@ -408,6 +408,7 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 	filtersPaper: {
 		mt: 0.625,

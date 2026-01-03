@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CustomPagination from '../common/CustomPagination';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
 
 function NoRows() {
@@ -156,5 +156,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

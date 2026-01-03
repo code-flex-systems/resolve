@@ -7,7 +7,7 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useMemo, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -303,5 +303,6 @@ const styles = {
 			display: 'flex',
 			alignItems: 'center',
 		},
+		...dataGridFocusStyles,
 	},
 };

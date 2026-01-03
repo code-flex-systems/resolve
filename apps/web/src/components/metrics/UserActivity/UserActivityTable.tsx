@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Chip, Stack, Typography } from '@mui/material';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import React, { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DataGridPro, GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
@@ -403,9 +403,10 @@ const styles = {
 		'& .MuiDataGrid-row:hover': {
 			backgroundColor: 'transparent !important',
 		},
-		// (optional) remove the hover “pointer” cursor too
+		// (optional) remove the hover "pointer" cursor too
 		'& .MuiDataGrid-row': {
 			cursor: 'default',
 		},
+		...dataGridFocusStyles,
 	},
 };

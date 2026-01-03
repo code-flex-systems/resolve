@@ -11,7 +11,7 @@ import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { dateSortComparator, numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, containerStyles, dataGridFocusStyles } from '@/styles/theme';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -422,13 +422,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 									display: 'flex',
 									alignItems: 'center',
 								},
-								'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible':
-									{
-										outline: 'none',
-									},
-								'& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
-									outline: 'none',
-								},
+								...dataGridFocusStyles,
 							}}
 						/>
 					)}

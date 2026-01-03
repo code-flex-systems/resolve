@@ -28,6 +28,7 @@ interface AdminState {
 	selectedFeedId: number | null | undefined;
 	selectedReferenceEntity: ReferenceEntity | null;
 	selectedReferenceOptionId: number | null;
+	selectedStatuteStateCode: string | null;
 	selectedTab: number;
 	showClaimAssignmentDialog: boolean;
 	showImportClaimsDialog: boolean;
@@ -40,6 +41,7 @@ interface AdminState {
 	showNewReferenceOptionDialog: boolean;
 	showNewRepresentativeDialog: boolean;
 	showNewUserDialog: boolean;
+	showStatuteRuleDialog: boolean;
 	userConstraints: {
 		page: number;
 		pageSize: number;
@@ -52,6 +54,7 @@ interface AdminActions {
 	setFeedId: (newId: number | null | undefined) => void;
 	setReferenceEntity: (entity: ReferenceEntity | null) => void;
 	setReferenceOptionId: (id: number | null) => void;
+	setStatuteStateCode: (code: string | null) => void;
 	setTab: (newTab: number) => void;
 	toggleClaimAssignmentDialog: () => void;
 	toggleImportClaimsDialog: () => void;
@@ -64,6 +67,7 @@ interface AdminActions {
 	toggleNewReferenceOptionDialog: () => void;
 	toggleNewRepresentativeDialog: () => void;
 	toggleNewUserDialog: () => void;
+	toggleStatuteRuleDialog: () => void;
 	updateClaimConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateDeskLocationTypeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateAddressConstraints: (newConstraints: { page: number; pageSize: number }) => void;
@@ -101,6 +105,7 @@ const initialState: AdminState = {
 	selectedFeedId: undefined,
 	selectedReferenceEntity: null,
 	selectedReferenceOptionId: null,
+	selectedStatuteStateCode: null,
 	selectedTab: 1,
 	showClaimAssignmentDialog: false,
 	showImportClaimsDialog: false,
@@ -113,6 +118,7 @@ const initialState: AdminState = {
 	showNewReferenceOptionDialog: false,
 	showNewRepresentativeDialog: false,
 	showNewUserDialog: false,
+	showStatuteRuleDialog: false,
 	userConstraints: {
 		pageSize: 10,
 		page: 0,
@@ -147,6 +153,11 @@ export const useAdminStore = create<AdminStore>()(
 		setReferenceOptionId: (id) =>
 			set((state) => {
 				state.selectedReferenceOptionId = id;
+			}),
+
+		setStatuteStateCode: (code) =>
+			set((state) => {
+				state.selectedStatuteStateCode = code;
 			}),
 
 		setTab: (newTab) =>
@@ -207,6 +218,11 @@ export const useAdminStore = create<AdminStore>()(
 		toggleNewUserDialog: () =>
 			set((state) => {
 				state.showNewUserDialog = !state.showNewUserDialog;
+			}),
+
+		toggleStatuteRuleDialog: () =>
+			set((state) => {
+				state.showStatuteRuleDialog = !state.showStatuteRuleDialog;
 			}),
 
 		updateClaimConstraints: (newConstraints) =>

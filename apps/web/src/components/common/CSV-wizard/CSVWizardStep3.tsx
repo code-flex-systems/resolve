@@ -4,6 +4,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'rea
 import { Typography, LinearProgress, Box, Alert, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { dataGridFocusStyles } from '@/styles/theme';
 
 type ParsedRow = Record<string, string>;
 
@@ -98,6 +99,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 						disableColumnMenu
 						disableColumnSorting
 						hideFooter
+						sx={dataGridFocusStyles}
 					/>
 				</Box>
 

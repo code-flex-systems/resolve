@@ -9,7 +9,7 @@ import Desk from '@mui/icons-material/Desk';
 import LocationOn from '@mui/icons-material/LocationOn';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -287,5 +287,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

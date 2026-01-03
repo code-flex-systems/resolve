@@ -837,6 +837,18 @@ export interface StatuteRule {
   created_by: string | null;
   id: Generated<number>;
   /**
+   * Percentage at which recovery is barred (1, 50, 51, 100, or null for slight)
+   */
+  negligence_bar_percent: number | null;
+  /**
+   * Additional notes about negligence law (e.g., date-based changes, special rules)
+   */
+  negligence_notes: string | null;
+  /**
+   * Negligence law type: contributory, pure_comparative, comparative_49, comparative_50, slight
+   */
+  negligence_type: string | null;
+  /**
    * JSONB mapping tort_type_value to {default_years, rules[]}
    */
   rules: Generated<Json>;

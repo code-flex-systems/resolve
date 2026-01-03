@@ -25,7 +25,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import SearchInput from '../common/SearchInput';
-import { TEXT_MUTED } from '@/styles/theme';
+import { TEXT_MUTED, dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const COLUMNS: GridColDef[] = [
@@ -261,5 +261,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

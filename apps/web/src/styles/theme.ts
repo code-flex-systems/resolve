@@ -5,6 +5,7 @@ import '@fontsource/inter/500.css'; // Medium
 import '@fontsource/inter/600.css'; // Semi-bold
 import '@fontsource/inter/700.css'; // Bold
 import { buttonClasses } from '@mui/material';
+import { gridClasses } from '@mui/x-data-grid-pro';
 
 // Modern neutral palette
 export const BASE_COLOR = '#41414a';
@@ -678,6 +679,9 @@ const theme = createTheme({
 			},
 		},
 		MuiInputLabel: {
+			defaultProps: {
+				shrink: true,
+			},
 			styleOverrides: {
 				root: {
 					fontSize: 14,
@@ -858,14 +862,9 @@ const theme = createTheme({
 		MuiAccordion: {
 			styleOverrides: {
 				root: {
-					borderRadius: 12,
-					border: `1px solid ${BORDER_COLOR}`,
-					boxShadow: 'none',
+					...containerStyles,
 					'&:before': {
 						display: 'none',
-					},
-					'&.Mui-expanded': {
-						margin: 0,
 					},
 				},
 			},
@@ -1083,10 +1082,27 @@ const theme = createTheme({
 	],
 });
 
+// DataGrid focus outline removal - use gridClasses for specificity
+export const dataGridFocusStyles = {
+	[`& .${gridClasses.cell}:focus`]: {
+		outline: 'none',
+	},
+	[`& .${gridClasses.cell}:focus-within`]: {
+		outline: 'none',
+	},
+	[`& .${gridClasses.columnHeader}:focus`]: {
+		outline: 'none',
+	},
+	[`& .${gridClasses.columnHeader}:focus-within`]: {
+		outline: 'none',
+	},
+};
+
 // DataGrid styles - apply via sx prop on DataGrid components
 export const dataGridStyles = {
 	fontSize: 13,
 	border: 'none',
+	...dataGridFocusStyles,
 	'& .MuiDataGrid-row': {
 		transition: 'background-color 0.15s ease',
 		minHeight: '48px !important',
@@ -1109,12 +1125,6 @@ export const dataGridStyles = {
 		alignItems: 'center',
 		borderBottom: `1px solid ${BORDER_LIGHT}`,
 	},
-	'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible': {
-		outline: 'none',
-	},
-	'& .MuiDataGrid-cell.MuiDataGrid-cell--editing:focus-within': {
-		outline: 'none',
-	},
 	'& .MuiDataGrid-columnHeader': {
 		fontSize: 12,
 		fontWeight: 600,
@@ -1122,12 +1132,6 @@ export const dataGridStyles = {
 		textTransform: 'uppercase',
 		letterSpacing: '0.05em',
 		backgroundColor: BG_TERTIARY,
-	},
-	'& .MuiDataGrid-columnHeader:focus': {
-		outline: 'none',
-	},
-	'& .MuiDataGrid-columnHeader:focus-within': {
-		outline: 'none',
 	},
 	'& .MuiDataGrid-columnHeaders': {
 		borderBottom: `1px solid ${BORDER_COLOR}`,
