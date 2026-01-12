@@ -135,81 +135,87 @@ export default function StatuteRulesTab() {
 	}, [statuteRules]);
 
 	// Build rows - combine jurisdictions with rules (O(1) lookup via map)
-	const rows = US_JURISDICTIONS.map((jurisdiction) => {
-		const rule = rulesByState.get(jurisdiction.code);
-		return {
-			id: jurisdiction.code,
-			state_code: jurisdiction.code,
-			state_name: jurisdiction.name,
-			rules: (rule?.rules as StatuteRules) ?? {},
-			negligence_type: (rule?.negligence_type as NegligenceType | null) ?? null,
-			negligence_bar_percent: rule?.negligence_bar_percent ?? null,
-			negligence_notes: rule?.negligence_notes ?? null,
-		};
-	});
+	const rows = useMemo(
+		() =>
+			US_JURISDICTIONS.map((jurisdiction) => {
+				const rule = rulesByState.get(jurisdiction.code);
+				return {
+					id: jurisdiction.code,
+					state_code: jurisdiction.code,
+					state_name: jurisdiction.name,
+					rules: (rule?.rules as StatuteRules) ?? {},
+					negligence_type: (rule?.negligence_type as NegligenceType | null) ?? null,
+					negligence_bar_percent: rule?.negligence_bar_percent ?? null,
+					negligence_notes: rule?.negligence_notes ?? null,
+				};
+			}),
+		[rulesByState]
+	);
 
 	// Build dynamic columns for each tort type (using hardcoded config)
-	const tortColumns: GridColDef[] = STATUTE_TORT_TYPES.map((tort) => ({
-		headerName: tort.label,
-		field: tort.value,
-		width: 130,
-		renderCell: ({ row }: GridRenderCellParams) => (
-			<Box display="flex" alignItems="center" height="100%">
-				{renderTortCell(row.rules, tort.value)}
-			</Box>
-		),
-		sortable: false,
-	}));
-
-	const columns: GridColDef[] = [
-		{
-			headerName: 'State',
-			field: 'state_name',
-			width: 200,
-			renderHeader: (params) => (
-				<IconHeaderCell {...params} icon={<GavelIcon style={{ color: BASE_COLOR_LIGHT }} />} />
-			),
-		},
-		{
-			headerName: 'Code',
-			field: 'state_code',
-			width: 70,
-		},
-		...tortColumns,
-		{
-			headerName: 'Negligence Law',
-			field: 'negligence',
-			width: 220,
-			sortable: false,
+	const columns = useMemo<GridColDef[]>(() => {
+		const tortColumns: GridColDef[] = STATUTE_TORT_TYPES.map((tort) => ({
+			headerName: tort.label,
+			field: tort.value,
+			width: 130,
 			renderCell: ({ row }: GridRenderCellParams) => (
 				<Box display="flex" alignItems="center" height="100%">
-					{renderNegligenceCell(row.negligence_type, row.negligence_bar_percent, row.negligence_notes)}
+					{renderTortCell(row.rules, tort.value)}
 				</Box>
 			),
-		},
-		{
-			headerName: '',
-			field: 'actions',
-			width: 60,
 			sortable: false,
-			filterable: false,
-			disableColumnMenu: true,
-			renderCell: ({ row }: GridRenderCellParams) => (
-				<Box display="flex" alignItems="center" justifyContent="center" width="100%" height="100%">
-					<IconButton
-						size="small"
-						onClick={(e) => {
-							e.stopPropagation();
-							setStatuteStateCode(row.state_code);
-							toggleStatuteRuleDialog();
-						}}
-					>
-						<SettingsIcon fontSize="small" />
-					</IconButton>
-				</Box>
-			),
-		},
-	];
+		}));
+
+		return [
+			{
+				headerName: 'State',
+				field: 'state_name',
+				width: 200,
+				renderHeader: (params) => (
+					<IconHeaderCell {...params} icon={<GavelIcon style={{ color: BASE_COLOR_LIGHT }} />} />
+				),
+			},
+			{
+				headerName: 'Code',
+				field: 'state_code',
+				width: 70,
+			},
+			...tortColumns,
+			{
+				headerName: 'Negligence Law',
+				field: 'negligence',
+				width: 220,
+				sortable: false,
+				renderCell: ({ row }: GridRenderCellParams) => (
+					<Box display="flex" alignItems="center" height="100%">
+						{renderNegligenceCell(row.negligence_type, row.negligence_bar_percent, row.negligence_notes)}
+					</Box>
+				),
+			},
+			{
+				headerName: '',
+				field: 'actions',
+				width: 60,
+				sortable: false,
+				filterable: false,
+				disableColumnMenu: true,
+				renderCell: ({ row }: GridRenderCellParams) => (
+					<Box display="flex" alignItems="center" justifyContent="center" width="100%" height="100%">
+						<IconButton
+							size="small"
+							onClick={(e) => {
+								e.stopPropagation();
+								setStatuteStateCode(row.state_code);
+								toggleStatuteRuleDialog();
+							}}
+						>
+							<SettingsIcon fontSize="small" />
+						</IconButton>
+					</Box>
+				),
+			},
+		];
+	}, [setStatuteStateCode, toggleStatuteRuleDialog]);
 
 	return (
 		<Fade in={true} timeout={1000}>
