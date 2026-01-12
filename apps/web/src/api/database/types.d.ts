@@ -812,6 +812,7 @@ export interface ResponseAuditLogs {
 }
 
 export interface Settlement {
+  adverse_party_reference: string | null;
   agreed_liability_percentage: Numeric | null;
   claim_id: number;
   claim_party_id: number;
@@ -824,9 +825,14 @@ export interface Settlement {
   demand_amount: Numeric;
   demand_date: Timestamp;
   id: Generated<number>;
+  is_drop_check: Generated<boolean | null>;
   notes: string | null;
+  payment_amount: Numeric | null;
+  payment_frequency: string | null;
+  settled_by: string | null;
   settlement_amount: Numeric | null;
   settlement_date: Timestamp | null;
+  settlement_structure: Generated<string | null>;
   status: Generated<string>;
   updated_at: Timestamp | null;
   updated_by: string | null;

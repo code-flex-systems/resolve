@@ -19,8 +19,8 @@ import {
 	getClerkUserIdByEmail,
 } from '@/lib/clerk/clerk-admin';
 
-export async function getUsers(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
-	const results = await userQueries.getUsers(ctx, searchTerm);
+export async function getUsers(ctx: ProtectedContext, { searchTerm, role }: { searchTerm?: string; role?: string }) {
+	const results = await userQueries.getUsers(ctx, searchTerm, role);
 	return results;
 }
 

@@ -174,6 +174,24 @@ export enum SettlementStatus {
 	CLOSED = 'closed',
 }
 
+/**
+ * Settlement structure - how the settlement is paid
+ */
+export enum SettlementStructure {
+	LUMP_SUM = 'lump_sum',
+	PAYMENT_PLAN = 'payment_plan',
+}
+
+/**
+ * Payment frequency for payment plan settlements
+ */
+export enum PaymentFrequency {
+	WEEKLY = 'weekly',
+	BI_WEEKLY = 'bi_weekly',
+	MONTHLY = 'monthly',
+	QUARTERLY = 'quarterly',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',

@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 export const getUsersInput = z.object({
 	searchTerm: z.string().optional(),
+	role: z.string().optional(),
 });
 export const getUsersPaginatedInput = z.object({
 	disabled: z.boolean().optional(),
