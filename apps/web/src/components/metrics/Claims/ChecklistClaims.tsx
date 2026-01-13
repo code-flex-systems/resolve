@@ -1,5 +1,6 @@
 'use client';
 
+import { dataGridFocusStyles } from '@/styles/theme';
 import {
 	DataGridPro,
 	GridColDef,
@@ -297,5 +298,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

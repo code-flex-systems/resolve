@@ -1,5 +1,6 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
+import { TRPCError } from '@trpc/server';
 import { recalculateClaimExpectedRecovery } from './claimQueries';
 
 // ============================================================================
@@ -219,7 +220,24 @@ export async function searchParties(
 ) {
 	let query = ctx.db
 		.selectFrom('party')
-		.selectAll()
+		// Join on the valid address (only one valid address per party is allowed)
+		.leftJoin('party_address as valid_addr', (join) =>
+			join
+				.onRef('valid_addr.party_id', '=', 'party.id')
+				.on('valid_addr.address_status', '=', 'valid')
+				.on('valid_addr.deleted_at', 'is', null)
+		)
+		.select([
+			'party.id',
+			'party.name',
+			'party.organization',
+			'party.party_type',
+			'party.is_business',
+			'party.first_name',
+			'party.last_name',
+			'valid_addr.city as address_city',
+			'valid_addr.state as address_state',
+		])
 		.where('party.client_id', '=', ctx.session.user.client_id)
 		.where('party.deleted_at', 'is', null) // Exclude archived parties
 		.where(sql<boolean>`party.name ILIKE ${`${searchTerm}%`}`) // Prefix search - Phase 3.1
@@ -1514,11 +1532,8 @@ export async function getClaimParties(
 		// Structured representative (for facilitators)
 		representative_id: row.representative_id,
 		address_id: row.address_id,
-		// Free-form representative fields (for entities)
+		// Free-form representative field (for entities)
 		representative_name: row.representative_name,
-		representative_title: row.representative_title,
-		representative_email: row.representative_email,
-		representative_phone: row.representative_phone,
 		party: {
 			id: row.party_id,
 			name: row.party_name,
@@ -1596,6 +1611,33 @@ export async function getPrimaryClaimParty(
 }
 
 /**
+ * Calculate total liability percentage for a claim (from entities only)
+ * @param excludeClaimPartyId - Optional claim_party ID to exclude (for update validation)
+ */
+export async function getTotalLiabilityForClaim(
+	ctx: ProtectedContext,
+	claimId: number,
+	excludeClaimPartyId?: number
+): Promise<number> {
+	let query = ctx.db
+		.selectFrom('claim_party')
+		.innerJoin('party', 'party.id', 'claim_party.party_id')
+		.select(sql<string>`COALESCE(SUM(CAST(claim_party.liability_percentage AS DECIMAL)), 0)`.as('total'))
+		.where('claim_party.claim_id', '=', claimId)
+		.where('claim_party.client_id', '=', ctx.session.user.client_id)
+		.where('claim_party.deleted_at', 'is', null)
+		.where('party.party_type', '=', 'entity') // Only entities have liability
+		.where('claim_party.liability_percentage', 'is not', null);
+
+	if (excludeClaimPartyId) {
+		query = query.where('claim_party.id', '!=', excludeClaimPartyId);
+	}
+
+	const result = await query.executeTakeFirst();
+	return parseFloat(result?.total || '0');
+}
+
+/**
  * Link party to claim with role information
  * Recalculates expected_recovery after creation
  *
@@ -1612,9 +1654,6 @@ export async function linkPartyToClaim(
 		address_id?: number | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
-		representative_title?: string | null;
-		representative_email?: string | null;
-		representative_phone?: string | null;
 		// Other fields
 		is_primary?: boolean;
 		notes?: string;
@@ -1626,6 +1665,18 @@ export async function linkPartyToClaim(
 		policy_limit?: number | null;
 	}
 ) {
+	// Validate combined liability doesn't exceed 100%
+	if (params.liability_percentage != null) {
+		const currentTotal = await getTotalLiabilityForClaim(ctx, params.claim_id);
+		const projectedTotal = currentTotal + params.liability_percentage;
+		if (projectedTotal > 100) {
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: `Combined liability cannot exceed 100%. Current total is ${currentTotal.toFixed(1)}%, adding ${params.liability_percentage}% would result in ${projectedTotal.toFixed(1)}%.`,
+			});
+		}
+	}
+
 	const claimParty = await ctx.db
 		.insertInto('claim_party')
 		.values({
@@ -1635,9 +1686,6 @@ export async function linkPartyToClaim(
 			representative_id: params.representative_id,
 			address_id: params.address_id,
 			representative_name: params.representative_name,
-			representative_title: params.representative_title,
-			representative_email: params.representative_email,
-			representative_phone: params.representative_phone,
 			is_primary: params.is_primary,
 			notes: params.notes,
 			external_reference: params.external_reference,
@@ -1671,9 +1719,6 @@ export async function updateClaimParty(
 		address_id?: number | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
-		representative_title?: string | null;
-		representative_email?: string | null;
-		representative_phone?: string | null;
 		// Other fields
 		is_primary?: boolean;
 		notes?: string;
@@ -1685,6 +1730,26 @@ export async function updateClaimParty(
 		policy_limit?: number | null;
 	}
 ) {
+	// Validate combined liability doesn't exceed 100% (if updating liability_percentage to a non-null value)
+	if (params.liability_percentage != null) {
+		// Get the claim_id for this claim_party
+		const existing = await ctx.db
+			.selectFrom('claim_party')
+			.select('claim_id')
+			.where('claim_party.id', '=', id)
+			.where('claim_party.client_id', '=', ctx.session.user.client_id)
+			.executeTakeFirstOrThrow();
+
+		const currentTotal = await getTotalLiabilityForClaim(ctx, existing.claim_id, id);
+		const projectedTotal = currentTotal + params.liability_percentage;
+		if (projectedTotal > 100) {
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: `Combined liability cannot exceed 100%. Current total from other parties is ${currentTotal.toFixed(1)}%, setting this to ${params.liability_percentage}% would result in ${projectedTotal.toFixed(1)}%.`,
+			});
+		}
+	}
+
 	const claimParty = await ctx.db
 		.updateTable('claim_party')
 		.set({
@@ -1692,9 +1757,6 @@ export async function updateClaimParty(
 			...(params.representative_id !== undefined && { representative_id: params.representative_id }),
 			...(params.address_id !== undefined && { address_id: params.address_id }),
 			...(params.representative_name !== undefined && { representative_name: params.representative_name }),
-			...(params.representative_title !== undefined && { representative_title: params.representative_title }),
-			...(params.representative_email !== undefined && { representative_email: params.representative_email }),
-			...(params.representative_phone !== undefined && { representative_phone: params.representative_phone }),
 			...(params.is_primary !== undefined && { is_primary: params.is_primary }),
 			...(params.notes !== undefined && { notes: params.notes }),
 			...(params.external_reference !== undefined && { external_reference: params.external_reference }),

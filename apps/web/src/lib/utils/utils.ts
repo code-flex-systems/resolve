@@ -257,6 +257,42 @@ export function validatePhoneNumber(phoneRaw: string) {
 	return phone && phone.isValid() ? undefined : 'Invalid phone number';
 }
 
+/**
+ * DataGrid sort comparators for consistent sorting across the application.
+ * Use these with the `sortComparator` prop on DataGrid columns.
+ */
+
+/**
+ * Sort comparator for string values. Case-insensitive, nulls sort to end.
+ */
+export const stringSortComparator = (v1: unknown, v2: unknown): number => {
+	const a = (v1 || '').toString().toLowerCase();
+	const b = (v2 || '').toString().toLowerCase();
+	if (!v1 && !v2) return 0;
+	if (!v1) return 1;
+	if (!v2) return -1;
+	return a.localeCompare(b);
+};
+
+/**
+ * Sort comparator for numeric values. Parses strings to numbers, defaults to 0.
+ */
+export const numericSortComparator = (v1: unknown, v2: unknown): number => {
+	const a = parseFloat(v1?.toString() || '0');
+	const b = parseFloat(v2?.toString() || '0');
+	return a - b;
+};
+
+/**
+ * Sort comparator for date values. Nulls sort to end.
+ */
+export const dateSortComparator = (v1: unknown, v2: unknown): number => {
+	if (!v1 && !v2) return 0;
+	if (!v1) return 1;
+	if (!v2) return -1;
+	return new Date(v1 as string | Date).getTime() - new Date(v2 as string | Date).getTime();
+};
+
 // private methods
 
 function getInstances(tree: TreeNode[], currentInstanceId: number, instances: InstanceListItem[]) {

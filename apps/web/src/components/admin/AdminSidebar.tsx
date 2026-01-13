@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -51,16 +51,31 @@ export default function AdminSidebar({ title, categories, width = 240 }: AdminSi
 	});
 	const pathname = usePathname();
 
+	// Check if any item in a category is selected
+	const isCategoryActive = (category: AdminNavCategory) => {
+		return category.items.some((item) => pathname === item.route || pathname.startsWith(item.route + '/'));
+	};
+
+	// Auto-expand categories when a child route is active
+	useEffect(() => {
+		const newExpanded: Record<string, boolean> = {};
+		let hasChanges = false;
+		categories.forEach((cat) => {
+			if (!cat.hideHeader && isCategoryActive(cat) && !expandedCategories[cat.label]) {
+				newExpanded[cat.label] = true;
+				hasChanges = true;
+			}
+		});
+		if (hasChanges) {
+			setExpandedCategories((prev) => ({ ...prev, ...newExpanded }));
+		}
+	}, [pathname, categories]);
+
 	const toggleCategory = (label: string) => {
 		setExpandedCategories((prev) => ({
 			...prev,
 			[label]: !prev[label],
 		}));
-	};
-
-	// Check if any item in a category is selected
-	const isCategoryActive = (category: AdminNavCategory) => {
-		return category.items.some((item) => pathname === item.route || pathname.startsWith(item.route + '/'));
 	};
 
 	return (
@@ -73,12 +88,6 @@ export default function AdminSidebar({ title, categories, width = 240 }: AdminSi
 			<List disablePadding sx={{ py: 0.5 }}>
 				{categories.map((category) => {
 					const isCategoryExpanded = expandedCategories[category.label];
-					const categoryActive = isCategoryActive(category);
-
-					// Auto-expand if a child is active
-					if (categoryActive && !isCategoryExpanded && !category.hideHeader) {
-						setExpandedCategories((prev) => ({ ...prev, [category.label]: true }));
-					}
 
 					return (
 						<Box key={category.label}>

@@ -1,32 +1,49 @@
 'use client';
 
-import { Box, Chip, Collapse, Paper, Typography } from '@mui/material';
+import { Box, Collapse, Paper, Tooltip, Typography } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
+import Payments from '@mui/icons-material/Payments';
+import EventRepeat from '@mui/icons-material/EventRepeat';
 import { useMemo, useState } from 'react';
 import Highlight from '@/components/common/Highlight';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT, BORDER_COLOR, containerStyles } from '@/styles/theme';
-import { SettlementStatus } from '@/config/enums';
+import { SettlementStructure, PaymentFrequency } from '@/config/enums';
 import dayjs from 'dayjs';
 
-const capitalize = (str: string | null | undefined) => {
-	if (!str) return '';
-	return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-const getStatusColor = (status: string) => {
-	switch (status) {
-		case SettlementStatus.SETTLED:
-			return 'success';
-		case SettlementStatus.CLOSED:
-			return 'default';
+// Helper to format payment frequency for display
+const formatPaymentFrequency = (frequency: string | null | undefined) => {
+	switch (frequency) {
+		case PaymentFrequency.WEEKLY:
+			return 'Weekly';
+		case PaymentFrequency.BI_WEEKLY:
+			return 'Bi-Weekly';
+		case PaymentFrequency.MONTHLY:
+			return 'Monthly';
+		case PaymentFrequency.QUARTERLY:
+			return 'Quarterly';
 		default:
-			return 'warning';
+			return frequency || '';
 	}
 };
+
+// Settlement structure icon component
+function SettlementStructureIcon({ structure, size = 'small' }: { structure: string | null | undefined; size?: 'small' | 'inherit' }) {
+	if (!structure) return null;
+	const isPaymentPlan = structure === SettlementStructure.PAYMENT_PLAN;
+	return (
+		<Tooltip title={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'} arrow>
+			{isPaymentPlan ? (
+				<EventRepeat fontSize={size} sx={{ color: 'info.main' }} />
+			) : (
+				<Payments fontSize={size} sx={{ color: 'text.secondary' }} />
+			)}
+		</Tooltip>
+	);
+}
 
 type TimelineItem =
 	| { type: 'settlement'; date: Date; data: any; settlementId: number }
@@ -53,6 +70,12 @@ export default function SettlementTimeline({
 }: SettlementTimelineProps) {
 	const [activeSettlementId, setActiveSettlementId] = useState<number | null>(null);
 
+	// Pre-compute settlement lookup to avoid O(N) find per recovery item
+	const settlementMap = useMemo(
+		() => new Map(settlements.map((s) => [s.id, s])),
+		[settlements]
+	);
+
 	const timeline = useMemo<TimelineItem[]>(() => {
 		const items: TimelineItem[] = [
 			...settlements.map((s) => ({
@@ -75,10 +98,6 @@ export default function SettlementTimeline({
 		});
 	}, [settlements, recoveryEvents]);
 
-	const getSettlementForRecovery = (settlementId: number) => {
-		return settlements.find((s) => s.id === settlementId);
-	};
-
 	const handleItemClick = (settlementId: number) => {
 		setActiveSettlementId((prev) => (prev === settlementId ? null : settlementId));
 	};
@@ -93,7 +112,7 @@ export default function SettlementTimeline({
 				const isSettlement = item.type === 'settlement';
 				const settlement = isSettlement ? item.data : null;
 				const recovery = !isSettlement ? item.data : null;
-				const relatedSettlement = !isSettlement ? getSettlementForRecovery(item.settlementId) : null;
+				const relatedSettlement = !isSettlement ? settlementMap.get(item.settlementId) : null;
 				const isActive = isItemActive(item);
 				const isGrayedOut = activeSettlementId !== null && !isActive;
 				const isLastItem = index === timeline.length - 1;
@@ -179,7 +198,7 @@ export default function SettlementTimeline({
 											</Typography>
 										</Box>
 										{isSettlement && (
-											<Chip label={capitalize(settlement.status)} size="small" color={getStatusColor(settlement.status)} />
+											<SettlementStructureIcon structure={settlement.settlement_structure} />
 										)}
 									</Box>
 								</Box>
@@ -272,6 +291,26 @@ function SettlementDetails({ settlement }: { settlement: any }) {
 						<Typography fontSize={13}>{dayjs(settlement.settlement_date).format('MMM D, YYYY')}</Typography>
 					</Box>
 				)}
+				{settlement.settlement_structure && (
+					<Box>
+						<Typography fontSize={11} color={BASE_COLOR_LIGHT}>Structure</Typography>
+						<Box display="flex" alignItems="center" gap={0.5}>
+							<SettlementStructureIcon structure={settlement.settlement_structure} size="inherit" />
+							<Typography fontSize={13}>
+								{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
+							</Typography>
+						</Box>
+					</Box>
+				)}
+				{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN && settlement.payment_amount && (
+					<Box>
+						<Typography fontSize={11} color={BASE_COLOR_LIGHT}>Payment Amount</Typography>
+						<Typography fontSize={13}>
+							{formatCurrencyExact(parseFloat(settlement.payment_amount.toString()))}
+							{settlement.payment_frequency && ` / ${formatPaymentFrequency(settlement.payment_frequency)}`}
+						</Typography>
+					</Box>
+				)}
 			</Box>
 			{settlement.notes && (
 				<Box mt={2}>
@@ -313,6 +352,17 @@ function RecoveryDetails({ recovery, relatedSettlement }: { recovery: any; relat
 							{relatedSettlement.party_name} · {formatCoverageType(relatedSettlement.loss_type)} ·{' '}
 							{formatCurrencyExact(parseFloat(relatedSettlement.demand_amount.toString()))}
 						</Typography>
+					</Box>
+				)}
+				{relatedSettlement?.settlement_structure && (
+					<Box>
+						<Typography fontSize={11} color={BASE_COLOR_LIGHT}>Structure</Typography>
+						<Box display="flex" alignItems="center" gap={0.5}>
+							<SettlementStructureIcon structure={relatedSettlement.settlement_structure} size="inherit" />
+							<Typography fontSize={13}>
+								{relatedSettlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
+							</Typography>
+						</Box>
 					</Box>
 				)}
 			</Box>

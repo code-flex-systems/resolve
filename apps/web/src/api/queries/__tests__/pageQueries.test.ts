@@ -11,7 +11,7 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
  * 2. Empty result handling for getPageInstancesForClaim
  *
  * Note: Passthrough tests (mock results, expect same results) were removed.
- * Integration tests will verify the recursive CTE logic, CASE expressions,
+ * Integration tests will verify the EXISTS subquery logic, CASE expressions,
  * and status calculation with real database.
  */
 
@@ -19,7 +19,6 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
 vi.mock('@/api/database/kysely', () => ({
 	db: {
 		selectFrom: vi.fn(),
-		withRecursive: vi.fn(),
 	},
 }));
 
@@ -52,12 +51,12 @@ describe('getVisiblePageInstances', () => {
 	});
 
 	it('should return empty array when no pages exist', async () => {
-		vi.spyOn(db, 'withRecursive').mockImplementation(
+		vi.spyOn(db, 'selectFrom').mockImplementation(
 			() =>
 				({
-					selectFrom: vi.fn().mockReturnThis(),
 					select: vi.fn().mockReturnThis(),
 					distinct: vi.fn().mockReturnThis(),
+					where: vi.fn().mockReturnThis(),
 					execute: vi.fn().mockResolvedValue([]),
 				}) as any
 		);

@@ -51,25 +51,23 @@ describe('listMyClaims - Metrics Transformation', () => {
 	});
 
 	it('should round avgDaysInQueue to 1 decimal place', async () => {
-		// Mock for the metrics query
-		const mockMetricsQuery = {
-			select: vi.fn().mockReturnThis(),
-			where: vi.fn().mockReturnThis(),
-			executeTakeFirst: vi.fn().mockResolvedValue({
-				count: '10',
-				total_value: '500000',
-				avg_days_in_queue: '7.3456789',
-			}),
-		};
-
-		// Mock for the data query
-		const mockDataQuery = {
+		// Mock for the combined data+metrics query (uses window functions)
+		const mockCombinedQuery = {
 			selectAll: vi.fn().mockReturnThis(),
+			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			orderBy: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockReturnThis(),
 			offset: vi.fn().mockReturnThis(),
-			execute: vi.fn().mockResolvedValue([]),
+			execute: vi.fn().mockResolvedValue([
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					total_count: '10',
+					total_value: '500000',
+					avg_days_in_queue: '7.3456789',
+				},
+			]),
 		};
 
 		// Mock for the base query (CTE)
@@ -82,15 +80,15 @@ describe('listMyClaims - Metrics Transformation', () => {
 		};
 
 		// Mock selectFrom to return different mocks based on call order
+		// 1st call: base query (for building the CTE)
+		// 2nd call: combined data+metrics query (from the CTE)
 		let selectFromCallCount = 0;
 		vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 			selectFromCallCount++;
 			if (selectFromCallCount === 1) {
 				return mockBaseQuery as any;
-			} else if (selectFromCallCount === 2) {
-				return mockMetricsQuery as any;
 			} else {
-				return mockDataQuery as any;
+				return mockCombinedQuery as any;
 			}
 		});
 
@@ -100,25 +98,15 @@ describe('listMyClaims - Metrics Transformation', () => {
 	});
 
 	it('should handle null/missing metrics gracefully', async () => {
-		// Mock for the metrics query
-		const mockMetricsQuery = {
-			select: vi.fn().mockReturnThis(),
-			where: vi.fn().mockReturnThis(),
-			executeTakeFirst: vi.fn().mockResolvedValue({
-				count: null,
-				total_value: null,
-				avg_days_in_queue: null,
-			}),
-		};
-
-		// Mock for the data query
-		const mockDataQuery = {
+		// Mock for the combined data+metrics query returning empty results
+		const mockCombinedQuery = {
 			selectAll: vi.fn().mockReturnThis(),
+			select: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			orderBy: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockReturnThis(),
 			offset: vi.fn().mockReturnThis(),
-			execute: vi.fn().mockResolvedValue([]),
+			execute: vi.fn().mockResolvedValue([]), // Empty result set
 		};
 
 		// Mock for the base query (CTE)
@@ -136,10 +124,8 @@ describe('listMyClaims - Metrics Transformation', () => {
 			selectFromCallCount++;
 			if (selectFromCallCount === 1) {
 				return mockBaseQuery as any;
-			} else if (selectFromCallCount === 2) {
-				return mockMetricsQuery as any;
 			} else {
-				return mockDataQuery as any;
+				return mockCombinedQuery as any;
 			}
 		});
 

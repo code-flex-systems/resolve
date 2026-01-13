@@ -4,7 +4,7 @@
 
 import { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
-import { SettlementStatus } from '@/config/enums';
+import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/config/enums';
 
 /**
  * Create a test settlement
@@ -24,6 +24,13 @@ export async function createTestSettlement(
 		settlement_date?: Date | string | null;
 		status?: SettlementStatus;
 		notes?: string | null;
+		// New fields
+		adverse_party_reference?: string | null;
+		settlement_structure?: SettlementStructure;
+		payment_amount?: string | number | null;
+		payment_frequency?: PaymentFrequency | null;
+		settled_by?: string | null;
+		is_drop_check?: boolean;
 	}
 ) {
 	const data = {
@@ -45,6 +52,25 @@ export async function createTestSettlement(
 			settlement_date: overrides.settlement_date,
 		}),
 		...(overrides.notes !== undefined && { notes: overrides.notes }),
+		// New fields
+		...(overrides.adverse_party_reference !== undefined && {
+			adverse_party_reference: overrides.adverse_party_reference,
+		}),
+		...(overrides.settlement_structure !== undefined && {
+			settlement_structure: overrides.settlement_structure,
+		}),
+		...(overrides.payment_amount !== undefined && {
+			payment_amount: overrides.payment_amount?.toString() ?? null,
+		}),
+		...(overrides.payment_frequency !== undefined && {
+			payment_frequency: overrides.payment_frequency,
+		}),
+		...(overrides.settled_by !== undefined && {
+			settled_by: overrides.settled_by,
+		}),
+		...(overrides.is_drop_check !== undefined && {
+			is_drop_check: overrides.is_drop_check,
+		}),
 	};
 
 	return db

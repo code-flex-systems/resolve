@@ -5,7 +5,7 @@ import {
 	getResponseAuditLogs,
 	getResponseAuditLogStats,
 	getResponsesForAnswer,
-	getResponsesForClaimChecklist,
+	getResponsesForPageInstance,
 	upsertQuestionResponses,
 } from '@/api/controllers/responseController';
 import config from '@/config/config';
@@ -19,7 +19,7 @@ import {
 	getResponseAuditLogsInput,
 	getResponseAuditLogStatsInput,
 	getResponsesForAnswerInput,
-	getResponsesForClaimChecklistInput,
+	getResponsesForPageInstanceInput,
 	upsertQuestionResponsesInput,
 } from '@/schemas/responseSchemas';
 import { TRPCError } from '@trpc/server';
@@ -37,13 +37,13 @@ export const responseRouter = router({
 		return getResponsesForAnswer(ctx, input);
 	}),
 
-	getResponsesForChecklist: protectedProcedure
-		.input(getResponsesForClaimChecklistInput)
+	getResponsesForPageInstance: protectedProcedure
+		.input(getResponsesForPageInstanceInput)
 		.query(async ({ input, ctx }) => {
 			if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
 				await requireOwnership(ctx, input.checklistId, input.claimId);
 			}
-			return getResponsesForClaimChecklist(ctx, input);
+			return getResponsesForPageInstance(ctx, input);
 		}),
 
 	getResponseAuditLogs: protectedProcedure.input(getResponseAuditLogsInput).query(async ({ input, ctx }) => {

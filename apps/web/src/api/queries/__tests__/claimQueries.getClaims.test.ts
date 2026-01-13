@@ -1,9 +1,20 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi, afterEach } from 'vitest';
 import { getClaims } from '../claimQueries';
 import { db } from '@/api/database/kysely';
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import config from '@/config/config';
-import { ClaimSearch } from '@/config/enums';
+import { ClaimSearch, LossType, RecoveryStatus } from '@/config/enums';
+import { closeTestDb, createTestContext, getTestDb, truncateAllTables } from '@/__tests__/integration/testDb';
+import {
+	createTestClaim,
+	createTestClient,
+	createTestFeed,
+	createTestParty,
+	createTestClaimParty,
+	createTestUser,
+} from '@/__tests__/integration/fixtures';
+import type { Kysely } from 'kysely';
+import type { DB } from '@/api/database/types';
 
 // Mock the database
 vi.mock('@/api/database/kysely', () => ({
@@ -538,7 +549,8 @@ describe('claimQueries.getClaims', () => {
 			// Should have both feed filter AND visibility filter via where clause
 			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 5);
 			const whereCalls = mockChain.where.mock.calls;
-			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			// Visibility filter is a callback function passed to where()
+			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
 		});
 
@@ -554,6 +566,197 @@ describe('claimQueries.getClaims', () => {
 
 			// Should filter for null feed_id
 			expect(mockChain.where).toHaveBeenCalledWith('feed_id', 'is', null);
+		});
+	});
+
+	describe('Integration - getClaims filters', () => {
+		let integrationDb: Kysely<DB>;
+
+		beforeAll(() => {
+			integrationDb = getTestDb();
+		});
+
+		beforeEach(async () => {
+			await integrationDb.executeQuery({
+				sql: 'SET search_path TO test, public',
+				parameters: [],
+				query: { kind: 'RawNode' } as any,
+			});
+			await truncateAllTables(integrationDb);
+		});
+
+		afterAll(async () => {
+			await closeTestDb();
+		});
+
+		it('should exclude inactive feeds when feedId is undefined and return only manual claims when feedId is null', async () => {
+			const client = await createTestClient(integrationDb, { name: 'Feed Filter Client' });
+			const user = await createTestUser(integrationDb, { client_id: client.id, role: 'Admin' });
+			const activeFeed = await createTestFeed(integrationDb, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Active Feed',
+				status: 'Online',
+			});
+			const inactiveFeed = await createTestFeed(integrationDb, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Inactive Feed',
+				status: 'Inactive',
+			});
+
+			await createTestClaim(integrationDb, { client_id: client.id, feed_id: activeFeed.id, insured: 'Active Claim' });
+			await createTestClaim(integrationDb, { client_id: client.id, feed_id: inactiveFeed.id, insured: 'Inactive Claim' });
+			await createTestClaim(integrationDb, { client_id: client.id, insured: 'Manual Claim' });
+
+			const ctx = createTestContext(integrationDb, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const defaultResult = await getClaims(ctx, {});
+			const manualResult = await getClaims(ctx, { feedId: null });
+
+			const defaultInsureds = defaultResult.rows.map((claim) => claim.insured);
+			expect(defaultResult.count).toBe(2);
+			expect(defaultInsureds).toContain('Active Claim');
+			expect(defaultInsureds).toContain('Manual Claim');
+			expect(defaultInsureds).not.toContain('Inactive Claim');
+
+			expect(manualResult.count).toBe(1);
+			expect(manualResult.rows).toHaveLength(1);
+			expect(manualResult.rows[0].insured).toBe('Manual Claim');
+		});
+
+		it('should apply prefix matching for claim number searchTerm', async () => {
+			const client = await createTestClient(integrationDb, { name: 'Claim Number Search Client' });
+			const user = await createTestUser(integrationDb, { client_id: client.id, role: 'Admin' });
+			await createTestClaim(integrationDb, { client_id: client.id, claim_number: 'ABC-001' });
+			await createTestClaim(integrationDb, { client_id: client.id, claim_number: 'ABC-002' });
+			await createTestClaim(integrationDb, { client_id: client.id, claim_number: 'XABC-003' });
+
+			const ctx = createTestContext(integrationDb, { id: user.id, client_id: client.id, role: 'Admin' });
+			const result = await getClaims(ctx, {
+				searchTerm: { value: 'ABC', type: ClaimSearch.CLAIM_NUMBER },
+			});
+
+			const claimNumbers = result.rows.map((claim) => claim.claim_number);
+			expect(result.count).toBe(2);
+			expect(claimNumbers).toEqual(['ABC-001', 'ABC-002']);
+		});
+
+		it('should apply prefix matching for insured searchTerm', async () => {
+			const client = await createTestClient(integrationDb, { name: 'Insured Search Client' });
+			const user = await createTestUser(integrationDb, { client_id: client.id, role: 'Admin' });
+			await createTestClaim(integrationDb, { client_id: client.id, insured: 'John Smith' });
+			await createTestClaim(integrationDb, { client_id: client.id, insured: 'Joanna Ray' });
+			await createTestClaim(integrationDb, { client_id: client.id, insured: 'Alice Johnson' });
+
+			const ctx = createTestContext(integrationDb, { id: user.id, client_id: client.id, role: 'Admin' });
+			const result = await getClaims(ctx, {
+				searchTerm: { value: 'Jo', type: ClaimSearch.INSURED },
+			});
+
+			const insureds = result.rows.map((claim) => claim.insured);
+			expect(result.count).toBe(2);
+			expect(insureds).toContain('John Smith');
+			expect(insureds).toContain('Joanna Ray');
+			expect(insureds).not.toContain('Alice Johnson');
+		});
+
+		it('should filter by loss_type using claim_party exists', async () => {
+			const client = await createTestClient(integrationDb, { name: 'Loss Type Client' });
+			const user = await createTestUser(integrationDb, { client_id: client.id, role: 'Admin' });
+			const party = await createTestParty(integrationDb, { client_id: client.id, created_by: user.id, name: 'Loss Party' });
+
+			const collisionClaim = await createTestClaim(integrationDb, {
+				client_id: client.id,
+				claim_number: 'LOSS-001',
+			});
+			const fireClaim = await createTestClaim(integrationDb, {
+				client_id: client.id,
+				claim_number: 'LOSS-002',
+			});
+
+			await createTestClaimParty(integrationDb, {
+				client_id: client.id,
+				claim_id: collisionClaim.id,
+				party_id: party.id,
+				created_by: user.id,
+				loss_type: LossType.COLLISION,
+			});
+			await createTestClaimParty(integrationDb, {
+				client_id: client.id,
+				claim_id: fireClaim.id,
+				party_id: party.id,
+				created_by: user.id,
+				loss_type: LossType.FIRE,
+			});
+
+			const ctx = createTestContext(integrationDb, { id: user.id, client_id: client.id, role: 'Admin' });
+			const result = await getClaims(ctx, { loss_type: LossType.COLLISION });
+
+			expect(result.count).toBe(1);
+			expect(result.rows).toHaveLength(1);
+			expect(result.rows[0].claim_number).toBe('LOSS-001');
+		});
+
+		it('should filter by recovery_status, insured prefix, and client prefix', async () => {
+			const client = await createTestClient(integrationDb, { name: 'Recovery Filters Client' });
+			const user = await createTestUser(integrationDb, { client_id: client.id, role: 'Admin' });
+
+			await createTestClaim(integrationDb, {
+				client_id: client.id,
+				recovery_status: RecoveryStatus.PENDING,
+				insured: 'Alpha Insured',
+				client: 'Acme Corp',
+				claim_number: 'REC-001',
+			});
+			await createTestClaim(integrationDb, {
+				client_id: client.id,
+				recovery_status: RecoveryStatus.PENDING,
+				insured: 'Beta Insured',
+				client: 'Beta LLC',
+				claim_number: 'REC-002',
+			});
+			await createTestClaim(integrationDb, {
+				client_id: client.id,
+				recovery_status: RecoveryStatus.RECOVERED,
+				insured: 'Alpha Secondary',
+				client: 'Acme Holdings',
+				claim_number: 'REC-003',
+			});
+
+			const ctx = createTestContext(integrationDb, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const recoveryResult = await getClaims(ctx, { recovery_status: RecoveryStatus.PENDING });
+			const insuredResult = await getClaims(ctx, { insured: 'Alpha' });
+			const clientResult = await getClaims(ctx, { client: 'Acme' });
+
+			expect(recoveryResult.count).toBe(2);
+			expect(recoveryResult.rows.map((claim) => claim.claim_number)).toEqual(['REC-001', 'REC-002']);
+
+			expect(insuredResult.count).toBe(2);
+			expect(insuredResult.rows.map((claim) => claim.claim_number)).toEqual(['REC-001', 'REC-003']);
+
+			expect(clientResult.count).toBe(2);
+			expect(clientResult.rows.map((claim) => claim.claim_number)).toEqual(['REC-001', 'REC-003']);
+		});
+
+		it('should apply limit/offset pagination and parse COUNT(*) OVER() into count', async () => {
+			const client = await createTestClient(integrationDb, { name: 'Pagination Client' });
+			const user = await createTestUser(integrationDb, { client_id: client.id, role: 'Admin' });
+
+			for (let i = 1; i <= 5; i++) {
+				await createTestClaim(integrationDb, {
+					client_id: client.id,
+					claim_number: `CLM-00${i}`,
+				});
+			}
+
+			const ctx = createTestContext(integrationDb, { id: user.id, client_id: client.id, role: 'Admin' });
+			const result = await getClaims(ctx, { limit: 2, offset: 1 });
+
+			expect(result.count).toBe(5);
+			expect(result.rows).toHaveLength(2);
+			expect(result.rows.map((claim) => claim.claim_number)).toEqual(['CLM-002', 'CLM-003']);
 		});
 	});
 });

@@ -6,6 +6,7 @@ import { PageInstanceStatus } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TRPCError } from '@trpc/server';
 import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas/pageSchemas';
+import { insertCallEdgesBulk, insertCallEdgesForInstance } from './answerQueries';
 
 /**
  * Insert a new page template and instance as a single transaction.
@@ -55,6 +56,15 @@ export async function copyPageTemplate(
 	pageId: number,
 	params: { parentId: number; position: number }
 ) {
+	// First, get original question IDs to build the mapping after insert
+	const originalQuestions = await ctx.db
+		.selectFrom('question')
+		.select(['id', 'position'])
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('page_id', '=', pageId)
+		.orderBy('position')
+		.execute();
+
 	// Copy the page template
 	const newPage = await ctx.db
 		.insertInto('page')
@@ -69,8 +79,8 @@ export async function copyPageTemplate(
 		.returningAll()
 		.executeTakeFirstOrThrow(() => new Error('Page template does not exist'));
 
-	// Copy all questions for the page
-	const questions = await ctx.db
+	// Copy all questions for the page (ordered by position to match originalQuestions)
+	const newQuestions = await ctx.db
 		.insertInto('question')
 		.columns(['page_id', 'description_text', 'text', 'type', 'position', 'client_id', 'created_by'])
 		.expression((eb) =>
@@ -92,57 +102,87 @@ export async function copyPageTemplate(
 		.returning(['id', 'position'])
 		.execute();
 
-	// Copy all answers for each question
-	for (const question of questions) {
-		await ctx.db
-			.insertInto('answer')
-			.columns([
-				'additional_info_num_lines',
-				'additional_info_placeholder',
-				'position',
-				'grade',
-				'text',
-				'description_text',
-				'description_image_url',
-				'has_additional_info',
-				'question_id',
-				'calls_instance_id',
-				'client_id',
-				'created_by',
-			])
-			.expression((eb) =>
-				eb
-					.selectFrom('answer')
-					.innerJoin('question', 'question.id', 'answer.question_id')
-					.select((eb) => [
-						'answer.additional_info_num_lines',
-						'answer.additional_info_placeholder',
-						'answer.position',
-						'answer.grade',
-						'answer.text',
-						'answer.description_text',
-						'answer.description_image_url',
-						'answer.has_additional_info',
-						eb.val(question.id).$castTo<number>().as('question_id'),
-						'answer.calls_instance_id',
-						'answer.client_id',
-						eb.val(ctx.session.user.id).as('created_by'),
-					])
-					.where('answer.client_id', '=', ctx.session.user.client_id)
-					.where('question.client_id', '=', ctx.session.user.client_id)
-					.where('question.page_id', '=', pageId)
-					.where('question.position', '=', question.position)
-			)
-			.execute();
-	}
-
-	// Create an instance of the new page template
+	// Create an instance of the new page template first (needed for answer_call_edges)
 	const newInstance = await createPageInstancePrivate(ctx, {
 		checklistId,
 		pageId: newPage.id,
 		parentId: params.parentId,
 		position: params.position,
 	});
+
+	// Build mapping of old question ID -> new question ID using position as join key
+	if (newQuestions.length > 0) {
+		const positionToNewId = new Map(newQuestions.map((q) => [q.position, q.id]));
+		const questionIdMapping: Array<{ oldId: number; newId: number }> = [];
+		for (const orig of originalQuestions) {
+			const newId = positionToNewId.get(orig.position);
+			if (newId !== undefined) {
+				questionIdMapping.push({ oldId: orig.id, newId });
+			}
+		}
+
+		// Single bulk INSERT for all answers using VALUES-based mapping
+		// This is O(1) queries instead of O(N) queries
+		if (questionIdMapping.length > 0) {
+			const copiedAnswers = await ctx.db
+				.insertInto('answer')
+				.columns([
+					'additional_info_num_lines',
+					'additional_info_placeholder',
+					'position',
+					'grade',
+					'text',
+					'description_text',
+					'description_image_url',
+					'has_additional_info',
+					'hidden',
+					'question_id',
+					'calls_instance_id',
+					'requires_upload',
+					'allowed_extensions',
+					'client_id',
+					'created_by',
+				])
+				.expression(
+					sql`
+						SELECT
+							answer.additional_info_num_lines,
+							answer.additional_info_placeholder,
+							answer.position,
+							answer.grade,
+							answer.text,
+							answer.description_text,
+							answer.description_image_url,
+							answer.has_additional_info,
+							answer.hidden,
+							qmap.new_question_id AS question_id,
+							answer.calls_instance_id,
+							answer.requires_upload,
+							answer.allowed_extensions,
+							answer.client_id,
+							${ctx.session.user.id} AS created_by
+						FROM answer
+						INNER JOIN (VALUES ${sql.join(
+							questionIdMapping.map((m) => sql`(${m.oldId}::int, ${m.newId}::int)`),
+							sql`, `
+						)}) AS qmap(old_question_id, new_question_id)
+						ON answer.question_id = qmap.old_question_id
+						WHERE answer.client_id = ${ctx.session.user.client_id}
+					`
+				)
+				.returning(['id', 'calls_instance_id'])
+				.execute();
+
+			// Populate answer_call_edges for copied answers with calls_instance_id
+			const answersWithCalls = copiedAnswers
+				.filter((a): a is { id: number; calls_instance_id: number } => a.calls_instance_id !== null)
+				.map((a) => ({ id: a.id, calls_instance_id: a.calls_instance_id }));
+
+			if (answersWithCalls.length > 0) {
+				await insertCallEdgesBulk(ctx, newPage.id, answersWithCalls);
+			}
+		}
+	}
 
 	return {
 		id: newPage.id,
@@ -212,8 +252,10 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
 		.deleteFrom('page_instance')
 		.where('id', '=', instanceId)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.returning('position')
+		.returning(['position', 'checklist_id', 'parent_instance_id'])
 		.executeTakeFirstOrThrow();
+
+	// Update positions for sibling page instances after the deleted position
 	await ctx.db
 		.updateTable('page_instance')
 		.set((eb) => ({
@@ -221,8 +263,14 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
 			updated_by: ctx.session.user.id,
 			updated_at: sql`now()`,
 		}))
-		.where('position', '>', deletedRow.position)
 		.where('client_id', '=', ctx.session.user.client_id)
+		.where('checklist_id', '=', deletedRow.checklist_id)
+		.where((eb) =>
+			deletedRow.parent_instance_id !== null
+				? eb('parent_instance_id', '=', deletedRow.parent_instance_id)
+				: eb('parent_instance_id', 'is', null)
+		)
+		.where('position', '>', deletedRow.position)
 		.execute();
 }
 
@@ -369,7 +417,8 @@ export async function getPageInstancesForClaim(
 }
 
 /**
- * Resolve visible page instance ids for a claim using a recursive CTE.
+ * Resolve visible page instance ids for a claim.
+ * Uses answer_call_edges table for efficient lookups instead of walking answer tables.
  *
  * @param ctx - request context
  * @param checklistId - checklist identifier
@@ -377,32 +426,33 @@ export async function getPageInstancesForClaim(
  * @returns list of visible instance ids
  */
 export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
-	// Use a recursive CTE to resolve all visible page instance ids
+	// Page instances are visible if:
+	// 1. They are root instances (no parent)
+	// 2. OR an answer that unlocks them was selected in a question response
 	const results = await ctx.db
-		.withRecursive('visible_pages', (eb) =>
-			eb
-				.selectFrom('page_instance')
-				.select(['page_instance.id as id', 'page_instance.checklist_id'])
-				.where('page_instance.client_id', '=', ctx.session.user.client_id)
-				.where('page_instance.checklist_id', '=', checklistId)
-				.where('page_instance.parent_instance_id', 'is', null)
-				.unionAll(
-					eb
-						.selectFrom('answer')
-						.innerJoin('question_response_answer', 'question_response_answer.answer_id', 'answer.id')
-						.innerJoin('question_response', 'question_response.id', 'question_response_answer.response_id')
-						.select(['answer.calls_instance_id as id', 'question_response.checklist_id'])
-						.$castTo<{ id: number; checklist_id: number }>()
-						.where('answer.client_id', '=', ctx.session.user.client_id)
-						.where('question_response.client_id', '=', ctx.session.user.client_id)
-						.where('question_response.checklist_id', '=', checklistId)
-						.where('question_response.claim_id', '=', claimId)
-						.where('answer.calls_instance_id', 'is not', null)
-				)
-		)
-		.selectFrom('visible_pages')
-		.select('id')
+		.selectFrom('page_instance')
+		.select('page_instance.id')
 		.distinct()
+		.where('page_instance.client_id', '=', ctx.session.user.client_id)
+		.where('page_instance.checklist_id', '=', checklistId)
+		.where((eb) =>
+			eb.or([
+				// Root instances are always visible
+				eb('page_instance.parent_instance_id', 'is', null),
+				// Non-root instances are visible if unlocked via answer selection
+				eb.exists(
+					eb
+						.selectFrom('answer_call_edges as ace')
+						.innerJoin('question_response_answer as qra', 'qra.answer_id', 'ace.answer_id')
+						.innerJoin('question_response as qr', 'qr.id', 'qra.response_id')
+						.whereRef('ace.to_instance_id', '=', 'page_instance.id')
+						.where('ace.checklist_id', '=', checklistId)
+						.where('ace.client_id', '=', ctx.session.user.client_id)
+						.where('qr.claim_id', '=', claimId)
+						.where('qr.client_id', '=', ctx.session.user.client_id)
+				),
+			])
+		)
 		.execute();
 	return results.map((row) => row.id);
 }
@@ -488,7 +538,10 @@ async function createPageInstancePrivate(
 		position,
 	}: { checklistId: number; pageId: number } & PageInstanceParams
 ) {
-	// Update positions for all page instances below the one we're inserting
+	// Normalize parentId: -1 means root level (null parent)
+	const normalizedParentId = parentId === -1 ? null : parentId;
+
+	// Update positions for sibling page instances at or below the insert position
 	await ctx.db
 		.updateTable('page_instance')
 		.set((eb) => ({
@@ -496,6 +549,13 @@ async function createPageInstancePrivate(
 			updated_by: ctx.session.user.id,
 			updated_at: sql`now()`,
 		}))
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('checklist_id', '=', checklistId)
+		.where((eb) =>
+			normalizedParentId !== null
+				? eb('parent_instance_id', '=', normalizedParentId)
+				: eb('parent_instance_id', 'is', null)
+		)
 		.where('position', '>=', position)
 		.execute();
 	const newInstance = await ctx.db
@@ -503,12 +563,16 @@ async function createPageInstancePrivate(
 		.values({
 			checklist_id: checklistId,
 			page_id: pageId,
-			parent_instance_id: parentId === -1 ? null : parentId,
+			parent_instance_id: normalizedParentId,
 			position,
 			client_id: ctx.session.user.client_id,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();
+
+	// Create edges for any answers on this page that have calls_instance_id
+	await insertCallEdgesForInstance(ctx, newInstance.id, checklistId, pageId);
+
 	return newInstance;
 }

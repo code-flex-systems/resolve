@@ -17,6 +17,7 @@ import { questionRouter } from '../question';
 import { pageRouter } from '../page';
 import { answerRouter } from '../answer';
 import { partyRouter } from '../party';
+import { statuteRouter } from '../statute';
 
 // Mock the database
 vi.mock('@/api/database/kysely', () => ({
@@ -54,7 +55,7 @@ vi.mock('@/api/controllers/commentController', () => ({
 vi.mock('@/api/controllers/responseController', () => ({
 	evaluateResponses: vi.fn(),
 	getResponsesForAnswer: vi.fn(),
-	getResponsesForClaimChecklist: vi.fn(),
+	getResponsesForPageInstance: vi.fn(),
 	getResponseAuditLogs: vi.fn(),
 	getResponseAuditLogStats: vi.fn(),
 	upsertQuestionResponses: vi.fn(),
@@ -169,6 +170,13 @@ vi.mock('@/api/controllers/partyController', () => ({
 	archiveClaimParty: vi.fn(),
 }));
 
+vi.mock('@/api/controllers/statuteController', () => ({
+	getStatuteRules: vi.fn(),
+	getStatuteRule: vi.fn(),
+	updateStatuteRule: vi.fn(),
+	calculateStatuteLimit: vi.fn(),
+}));
+
 // Reusable mock user with all required fields
 const createMockUser = (overrides?: Partial<NonNullable<Context['session']>['user']>) => ({
 	id: 'user-123',
@@ -195,6 +203,10 @@ const createCaller = (router: any, ctx: Context) => {
 describe('Router Authorization - Comprehensive Security Tests', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
 	});
 
 	/**
@@ -1214,24 +1226,26 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			});
 		});
 
-		describe('getResponsesForChecklist - Ownership Required', () => {
-			it('should allow admin to get responses for any checklist', async () => {
+		describe('getResponsesForPageInstance - Ownership Required', () => {
+			it('should allow admin to get responses for any page instance', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
-				const mockGetResponsesForChecklist = await import('@/api/controllers/responseController');
-				vi.mocked(mockGetResponsesForChecklist.getResponsesForClaimChecklist).mockResolvedValue([]);
+				const mockGetResponsesForPageInstance = await import('@/api/controllers/responseController');
+				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue({});
 
 				const caller = createCaller(responseRouter, adminCtx);
-				await expect(caller.getResponsesForChecklist({ checklistId: 1, claimId: 100 })).resolves.toEqual([]);
+				await expect(
+					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+				).resolves.toEqual({});
 			});
 
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1244,17 +1258,19 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
-				const mockGetResponsesForChecklist = await import('@/api/controllers/responseController');
-				vi.mocked(mockGetResponsesForChecklist.getResponsesForClaimChecklist).mockResolvedValue([]);
+				const mockGetResponsesForPageInstance = await import('@/api/controllers/responseController');
+				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue({});
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.getResponsesForChecklist({ checklistId: 1, claimId: 100 })).resolves.toEqual([]);
+				await expect(
+					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+				).resolves.toEqual({});
 			});
 
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1268,7 +1284,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.getResponsesForChecklist({ checklistId: 1, claimId: 100 })).rejects.toThrow(TRPCError);
+				await expect(
+					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+				).rejects.toThrow(TRPCError);
 			});
 		});
 
@@ -2919,6 +2937,137 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(caller.getAllPartyRepresentatives({})).resolves.toBeDefined();
+				});
+			});
+		});
+
+		/**
+		 * Statute Router Authorization Tests
+		 *
+		 * The statute router provides access to statute of limitations rules.
+		 * READ operations are available to all authenticated users (global reference data).
+		 * WRITE operations (updateStatuteRule) are admin-only.
+		 */
+		describe('Statute Router', () => {
+			describe('updateStatuteRule - Admin Only', () => {
+				it('should allow admin to update statute rule', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockStatuteController = await import('@/api/controllers/statuteController');
+					vi.mocked(mockStatuteController.updateStatuteRule).mockResolvedValue({
+						state_code: 'CA',
+						rules: { personal_injury: { default_years: 2, rules: [] } },
+						negligence_type: 'pure_comparative',
+						negligence_bar_percent: null,
+						negligence_notes: null,
+					});
+
+					const caller = createCaller(statuteRouter, adminCtx);
+					await expect(
+						caller.updateStatuteRule({
+							stateCode: 'CA',
+							rules: { personal_injury: { default_years: 2, rules: [] } },
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should allow super admin to update statute rule', async () => {
+					const superAdminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
+						db,
+					};
+
+					const mockStatuteController = await import('@/api/controllers/statuteController');
+					vi.mocked(mockStatuteController.updateStatuteRule).mockResolvedValue({
+						state_code: 'TX',
+						rules: { personal_injury: { default_years: 2, rules: [] } },
+						negligence_type: 'modified_comparative',
+						negligence_bar_percent: 51,
+						negligence_notes: null,
+					});
+
+					const caller = createCaller(statuteRouter, superAdminCtx);
+					await expect(
+						caller.updateStatuteRule({
+							stateCode: 'TX',
+							rules: { personal_injury: { default_years: 2, rules: [] } },
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should reject contributor from updating statute rule', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(statuteRouter, contributorCtx);
+					await expect(
+						caller.updateStatuteRule({
+							stateCode: 'CA',
+							rules: { personal_injury: { default_years: 2, rules: [] } },
+						})
+					).rejects.toThrow(TRPCError);
+				});
+			});
+
+			describe('Read Operations - All Authenticated Users', () => {
+				it('should allow contributor to get statute rules', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockStatuteController = await import('@/api/controllers/statuteController');
+					vi.mocked(mockStatuteController.getStatuteRules).mockResolvedValue([]);
+
+					const caller = createCaller(statuteRouter, contributorCtx);
+					await expect(caller.getStatuteRules({})).resolves.toEqual([]);
+				});
+
+				it('should allow contributor to get single statute rule', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockStatuteController = await import('@/api/controllers/statuteController');
+					vi.mocked(mockStatuteController.getStatuteRule).mockResolvedValue({
+						state_code: 'CA',
+						rules: {},
+						negligence_type: null,
+						negligence_bar_percent: null,
+						negligence_notes: null,
+					});
+
+					const caller = createCaller(statuteRouter, contributorCtx);
+					await expect(caller.getStatuteRule({ stateCode: 'CA' })).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to calculate statute limit', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockStatuteController = await import('@/api/controllers/statuteController');
+					vi.mocked(mockStatuteController.calculateStatuteLimit).mockResolvedValue({
+						stateLimitYears: 2,
+						stateLimitDate: new Date('2026-01-01'),
+						source: 'default',
+					});
+
+					const caller = createCaller(statuteRouter, contributorCtx);
+					await expect(
+						caller.calculateStatuteLimit({
+							stateCode: 'CA',
+							tortType: 'personal_injury',
+							dateOfLoss: '2024-01-01',
+						})
+					).resolves.toBeDefined();
 				});
 			});
 		});

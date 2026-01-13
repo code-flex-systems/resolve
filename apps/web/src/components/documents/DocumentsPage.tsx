@@ -52,7 +52,7 @@ export default function DocumentsPage() {
 	}, [allGroups, sharedFolder]);
 
 	// Fetch documents for the current folder
-	const { data: docs = [], isFetching: isFetchingDocs } = useDocTrpc().listDocs(
+	const { data: docsResult, isFetching: isFetchingDocs } = useDocTrpc().listDocs(
 		{
 			filters: { doc_group_id: currentFolderId },
 		},
@@ -60,6 +60,7 @@ export default function DocumentsPage() {
 			enabled: currentFolderId !== null,
 		}
 	);
+	const docs = docsResult?.rows ?? [];
 
 	const isLoading = isFetchingGroups || isFetchingDocs;
 

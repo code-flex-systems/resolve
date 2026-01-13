@@ -43,6 +43,7 @@ import {
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 import { ClaimSearch, RecoveryStatus, LineOfBusiness, LossType, CoverageType } from '@/config/enums';
+import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 
 describe('claimQueries integration', () => {
 	let db: Kysely<DB>;
@@ -291,7 +292,7 @@ describe('claimQueries integration', () => {
 	});
 
 	describe('getClaims - Search and Filtering', () => {
-		it('should filter by insured name (case-insensitive)', async () => {
+		it('should filter by insured name (case-insensitive prefix search)', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -302,11 +303,12 @@ describe('claimQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			// Act
+			// Act - prefix search matches "John Smith" but not "Bob Johnson"
 			const { rows: claims } = await getClaims(ctx, { insured: 'john' });
 
-			// Assert
-			expect(claims).toHaveLength(2); // John Smith and Bob Johnson
+			// Assert - only prefix matches (uses term% not %term%)
+			expect(claims).toHaveLength(1);
+			expect(claims[0].insured).toBe('John Smith');
 		});
 
 		it('should filter by recovery status', async () => {
@@ -460,6 +462,35 @@ describe('claimQueries integration', () => {
 			expect(counts.total).toBe(5);
 			expect(counts.fed).toBe(3);
 			expect(counts.manual).toBe(2);
+		});
+
+		it('should count claims with feed_id null vs non-null', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const otherClient = await createTestClient(db, { name: 'Other Client' });
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			// feed claims (non-null feed_id)
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
+
+			// manual claims (null feed_id)
+			await createTestClaim(db, { client_id: client.id });
+
+			// other client claim should not be counted
+			await createTestClaim(db, { client_id: otherClient.id, feed_id: feed.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const counts = await getClaimCount(ctx, client.id);
+
+			// Assert
+			expect(counts.total).toBe(3);
+			expect(counts.fed).toBe(2);
+			expect(counts.manual).toBe(1);
 		});
 	});
 
@@ -661,6 +692,63 @@ describe('claimQueries integration', () => {
 			expect(result.claim?.id).toBe(claim1.id); // First created (oldest)
 		});
 
+		it('should return the expected claim for a given offset', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			const claim1 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
+			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
+			const claim3 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Third' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const offsetOneResult = await getNextClaimToAssign(ctx, feed.id, 1);
+			const offsetTwoResult = await getNextClaimToAssign(ctx, feed.id, 2);
+
+			// Assert
+			expect(offsetOneResult.claim?.id).toBe(claim2.id);
+			expect(offsetTwoResult.claim?.id).toBe(claim3.id);
+			expect(offsetOneResult.claim?.id).not.toBe(claim1.id);
+		});
+
+		it('should return total_unassigned count excluding assigned claims', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Unassigned 1' });
+			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Unassigned 2' });
+			const assignedClaim = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Assigned',
+			});
+
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: assignedClaim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getNextClaimToAssign(ctx, feed.id);
+
+			// Assert
+			expect(result.total).toBe(2);
+		});
+
 		it('should support offset for pagination', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -795,19 +883,70 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const currentFqStart = getCurrentFiscalQuarterStart();
+			const beforeStart = currentFqStart.subtract(1, 'day').toDate();
+			const afterStart = currentFqStart.add(1, 'day').toDate();
 
-			// This test is time-sensitive. We'll create claims with old dates.
-			// Current fiscal quarter start varies, so we just verify the query runs.
-			await createTestClaim(db, { client_id: client.id });
+			const claimWithoutChecklistOld = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: beforeStart })
+				.where('id', '=', claimWithoutChecklistOld.id)
+				.execute();
+
+			const claimWithoutChecklistNew = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: afterStart })
+				.where('id', '=', claimWithoutChecklistNew.id)
+				.execute();
+
+			const claimWithOldChecklist = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: afterStart })
+				.where('id', '=', claimWithOldChecklist.id)
+				.execute();
+			const oldChecklistClaim = await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claimWithOldChecklist.id,
+				created_by: user.id,
+			});
+			await db
+				.updateTable('checklist_claim')
+				.set({ created_at: beforeStart })
+				.where('claim_id', '=', oldChecklistClaim.claim_id)
+				.where('checklist_id', '=', oldChecklistClaim.checklist_id)
+				.execute();
+
+			const claimWithNewChecklist = await createTestClaim(db, { client_id: client.id });
+			await db
+				.updateTable('claim')
+				.set({ created_at: beforeStart })
+				.where('id', '=', claimWithNewChecklist.id)
+				.execute();
+			const newChecklistClaim = await createTestChecklistClaim(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				claim_id: claimWithNewChecklist.id,
+				created_by: user.id,
+			});
+			await db
+				.updateTable('checklist_claim')
+				.set({ created_at: afterStart })
+				.where('claim_id', '=', newChecklistClaim.claim_id)
+				.where('checklist_id', '=', newChecklistClaim.checklist_id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
 			const result = await getRolloverClaimCount(ctx);
 
-			// Assert - Just verify structure, actual count depends on current date
-			expect(result).toHaveProperty('count');
-			expect(typeof result.count).toBe('number');
+			// Assert
+			expect(result).toEqual({ count: 2 });
 		});
 	});
 
@@ -899,9 +1038,9 @@ describe('claimQueries integration', () => {
 
 			// Act
 			const result = await createClaims(ctx, [
-				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1' },
-				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2' },
-				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3' },
+				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
 			]);
 
 			// Assert
@@ -926,7 +1065,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - Insert with same claim_number should update
-			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured' }]);
+			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null }]);
 
 			// Assert
 			expect(result).toHaveLength(1);
@@ -1304,7 +1443,7 @@ describe('claimQueries integration', () => {
 				party_id: entityParty.id,
 				client_id: client.id,
 				created_by: admin.id,
-				liability_percentage: 30,
+				liability_percentage: '30',
 			});
 
 			// Add coverage linked to entity claim_party

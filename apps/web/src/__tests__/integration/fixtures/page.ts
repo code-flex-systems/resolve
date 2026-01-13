@@ -168,3 +168,27 @@ export async function createTestQuestionResponseAnswer(
 
 	return db.insertInto('question_response_answer').values(data).returningAll().executeTakeFirstOrThrow();
 }
+
+/**
+ * Create a test answer_call_edge (links an answer to a page instance it unlocks)
+ */
+export async function createTestAnswerCallEdge(
+	db: Kysely<DB>,
+	overrides: {
+		client_id: string;
+		checklist_id: number;
+		from_instance_id: number;
+		to_instance_id: number;
+		answer_id: number;
+	}
+) {
+	const data = {
+		client_id: overrides.client_id,
+		checklist_id: overrides.checklist_id,
+		from_instance_id: overrides.from_instance_id,
+		to_instance_id: overrides.to_instance_id,
+		answer_id: overrides.answer_id,
+	};
+
+	return db.insertInto('answer_call_edges').values(data).returningAll().executeTakeFirstOrThrow();
+}

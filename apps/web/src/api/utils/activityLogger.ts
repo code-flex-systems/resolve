@@ -74,6 +74,9 @@ export enum EntityName {
 
 	// Workflow management entities
 	TASK = 'task',
+
+	// Statute rules (global config entity)
+	STATUTE_RULE = 'statute_rule',
 }
 
 /**
@@ -96,6 +99,7 @@ const CONFIG_ENTITIES: Set<EntityName> = new Set([
 	EntityName.PARTY_ADDRESS,
 	EntityName.PARTY_REPRESENTATIVE,
 	EntityName.PAGE_INSTANCE,
+	EntityName.STATUTE_RULE,
 ]);
 
 /**
@@ -390,9 +394,63 @@ export async function logActions(
 	ctx: ProtectedContext,
 	logs: LogActionParams[]
 ): Promise<void> {
-	for (const log of logs) {
-		await logAction(ctx, log);
+	if (logs.length === 0) return;
+
+	const allConfig = logs.every((log) => isConfigEntity(log.entityName));
+	const allClaim = logs.every((log) => isClaimEntity(log.entityName));
+
+	// If logs contain mixed entity types, fall back to sequential logging
+	if (!allConfig && !allClaim) {
+		for (const log of logs) {
+			await logAction(ctx, log);
+		}
+		return;
 	}
+
+	if (allConfig) {
+		await ctx.db
+			.insertInto('admin_config_logs')
+			.values(
+				logs.map((log) => ({
+					client_id: ctx.session.user.client_id as string,
+					user_id: ctx.session.user.id,
+					entity_id: log.entityId.toString(),
+					entity_name: log.entityName,
+					action: log.action,
+					value: log.value ? JSON.parse(JSON.stringify(log.value)) : null,
+				}))
+			)
+			.execute();
+		return;
+	}
+
+	// Claim entity logs
+	const rows = await Promise.all(
+		logs.map(async (log) => {
+			const claimId = log.claimId ?? (await deriveClaimId(ctx, log.entityName, log.entityId));
+			if (claimId === null) {
+				console.warn(`Could not derive claim_id for ${log.entityName} ${log.entityId}. Skipping log.`);
+				return null;
+			}
+
+			const actorType = log.actorType ?? detectActorType(log.action);
+			return {
+				client_id: ctx.session.user.client_id as string,
+				user_id: ctx.session.user.id,
+				claim_id: claimId,
+				entity_id: log.entityId.toString(),
+				entity_name: log.entityName,
+				action: log.action,
+				actor_type: actorType,
+				value: log.value ? JSON.parse(JSON.stringify(log.value)) : null,
+			};
+		})
+	);
+
+	const validRows = rows.filter((row): row is NonNullable<typeof row> => row !== null);
+	if (validRows.length === 0) return;
+
+	await ctx.db.insertInto('claim_activity_logs').values(validRows).execute();
 }
 
 // Re-export for backwards compatibility

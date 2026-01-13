@@ -1,31 +1,19 @@
 'use client';
 
-import { Box, Chip, Typography } from '@mui/material';
+import { dataGridFocusStyles } from '@/styles/theme';
+import { Box, Tooltip, Typography } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
+import Payments from '@mui/icons-material/Payments';
+import EventRepeat from '@mui/icons-material/EventRepeat';
 import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useMemo } from 'react';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
-import { SettlementStatus } from '@/config/enums';
+import { numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
+import { SettlementStructure } from '@/config/enums';
 import dayjs from 'dayjs';
-
-const capitalize = (str: string | null | undefined) => {
-	if (!str) return '';
-	return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-const getStatusColor = (status: string) => {
-	switch (status) {
-		case SettlementStatus.SETTLED:
-			return 'success';
-		case SettlementStatus.CLOSED:
-			return 'default';
-		default:
-			return 'warning';
-	}
-};
 
 interface TableRow {
 	id: string;
@@ -35,7 +23,7 @@ interface TableRow {
 	loss_type?: string;
 	demand_amount?: number;
 	demand_date?: Date;
-	status?: string;
+	settlement_structure?: string;
 	recovery_amount?: number;
 	recovery_date?: Date;
 	recovery_source?: string;
@@ -93,7 +81,7 @@ export default function SettlementTable({
 				loss_type: s.loss_type,
 				demand_amount: demandAmount,
 				demand_date: s.demand_date,
-				status: s.status,
+				settlement_structure: s.settlement_structure,
 				total_recovered: totalRecovered,
 				remaining_balance: remainingBalance,
 				originalData: s,
@@ -105,6 +93,7 @@ export default function SettlementTable({
 					id: `recovery-${r.id}`,
 					hierarchy: [`${s.id}`, `recovery-${r.id}`],
 					type: 'recovery',
+					settlement_structure: s.settlement_structure, // Inherit from parent settlement
 					recovery_amount: r.recovery_amount ? parseFloat(r.recovery_amount.toString()) : 0,
 					recovery_date: r.recovery_date,
 					recovery_source: r.recovery_source ?? undefined,
@@ -134,6 +123,13 @@ export default function SettlementTable({
 						</Typography>
 					);
 				},
+				sortComparator: (v1, v2, param1, param2) => {
+					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
+					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
+					const a = row1?.type === 'settlement' ? (row1?.party_name || '') : (row1?.recovery_source || '');
+					const b = row2?.type === 'settlement' ? (row2?.party_name || '') : (row2?.recovery_source || '');
+					return a.toLowerCase().localeCompare(b.toLowerCase());
+				},
 			},
 			{
 				field: 'loss_type',
@@ -145,6 +141,32 @@ export default function SettlementTable({
 					}
 					return null;
 				},
+				sortComparator: stringSortComparator,
+			},
+			{
+				field: 'settlement_structure',
+				headerName: 'Type',
+				width: 60,
+				align: 'center',
+				headerAlign: 'center',
+				renderCell: (params: GridRenderCellParams<TableRow>) => {
+					const structure = params.row.settlement_structure;
+					if (!structure) return null;
+					const isPaymentPlan = structure === SettlementStructure.PAYMENT_PLAN;
+					return (
+						<Tooltip
+							title={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'}
+							arrow
+						>
+							{isPaymentPlan ? (
+								<EventRepeat fontSize="small" sx={{ color: 'info.main' }} />
+							) : (
+								<Payments fontSize="small" sx={{ color: 'text.secondary' }} />
+							)}
+						</Tooltip>
+					);
+				},
+				sortComparator: stringSortComparator,
 			},
 			{
 				field: 'demand_amount',
@@ -158,6 +180,7 @@ export default function SettlementTable({
 					}
 					return null;
 				},
+				sortComparator: numericSortComparator,
 			},
 			{
 				field: 'total_recovered',
@@ -177,6 +200,13 @@ export default function SettlementTable({
 						return <Typography fontSize={13}>{formatCurrencyExact(params.row.recovery_amount)}</Typography>;
 					}
 					return null;
+				},
+				sortComparator: (v1, v2, param1, param2) => {
+					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
+					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
+					const a = row1?.type === 'settlement' ? (row1?.total_recovered || 0) : (row1?.recovery_amount || 0);
+					const b = row2?.type === 'settlement' ? (row2?.total_recovered || 0) : (row2?.recovery_amount || 0);
+					return a - b;
 				},
 			},
 			{
@@ -198,19 +228,7 @@ export default function SettlementTable({
 					}
 					return null;
 				},
-			},
-			{
-				field: 'status',
-				headerName: 'Status',
-				width: 100,
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
-					if (params.row.type === 'settlement' && params.row.status) {
-						return (
-							<Chip label={capitalize(params.row.status)} size="small" color={getStatusColor(params.row.status)} />
-						);
-					}
-					return null;
-				},
+				sortComparator: numericSortComparator,
 			},
 			{
 				field: 'date',
@@ -222,6 +240,16 @@ export default function SettlementTable({
 						return <Typography fontSize={13}>{dayjs(date).format('MMM D, YYYY')}</Typography>;
 					}
 					return null;
+				},
+				sortComparator: (v1, v2, param1, param2) => {
+					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
+					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
+					const date1 = row1?.type === 'settlement' ? row1?.demand_date : row1?.recovery_date;
+					const date2 = row2?.type === 'settlement' ? row2?.demand_date : row2?.recovery_date;
+					if (!date1 && !date2) return 0;
+					if (!date1) return 1;
+					if (!date2) return -1;
+					return new Date(date1).getTime() - new Date(date2).getTime();
 				},
 			},
 			{
@@ -284,18 +312,14 @@ export default function SettlementTable({
 			disableColumnSelector
 			disableRowSelectionOnClick
 			disableColumnMenu
+			pinnedColumns={{ right: isManageMode ? ['actions'] : [] }}
 			sx={{
 				border: 'none',
 				'& .MuiDataGrid-cell': {
 					display: 'flex',
 					alignItems: 'center',
 				},
-				'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible': {
-					outline: 'none',
-				},
-				'& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
-					outline: 'none',
-				},
+				...dataGridFocusStyles,
 			}}
 		/>
 	);

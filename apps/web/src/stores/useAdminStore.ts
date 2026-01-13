@@ -28,10 +28,10 @@ interface AdminState {
 	selectedFeedId: number | null | undefined;
 	selectedReferenceEntity: ReferenceEntity | null;
 	selectedReferenceOptionId: number | null;
+	selectedStatuteStateCode: string | null;
 	selectedTab: number;
 	showClaimAssignmentDialog: boolean;
 	showImportClaimsDialog: boolean;
-	showImportUsersDialog: boolean;
 	showNewChecklistDialog: boolean;
 	showNewClaimDialog: boolean;
 	showNewDeskLocationDialog: boolean;
@@ -41,6 +41,7 @@ interface AdminState {
 	showNewReferenceOptionDialog: boolean;
 	showNewRepresentativeDialog: boolean;
 	showNewUserDialog: boolean;
+	showStatuteRuleDialog: boolean;
 	userConstraints: {
 		page: number;
 		pageSize: number;
@@ -53,10 +54,10 @@ interface AdminActions {
 	setFeedId: (newId: number | null | undefined) => void;
 	setReferenceEntity: (entity: ReferenceEntity | null) => void;
 	setReferenceOptionId: (id: number | null) => void;
+	setStatuteStateCode: (code: string | null) => void;
 	setTab: (newTab: number) => void;
 	toggleClaimAssignmentDialog: () => void;
 	toggleImportClaimsDialog: () => void;
-	toggleImportUsersDialog: () => void;
 	toggleNewChecklistDialog: () => void;
 	toggleNewClaimDialog: () => void;
 	toggleNewDeskLocationDialog: () => void;
@@ -66,6 +67,7 @@ interface AdminActions {
 	toggleNewReferenceOptionDialog: () => void;
 	toggleNewRepresentativeDialog: () => void;
 	toggleNewUserDialog: () => void;
+	toggleStatuteRuleDialog: () => void;
 	updateClaimConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateDeskLocationTypeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateAddressConstraints: (newConstraints: { page: number; pageSize: number }) => void;
@@ -103,10 +105,10 @@ const initialState: AdminState = {
 	selectedFeedId: undefined,
 	selectedReferenceEntity: null,
 	selectedReferenceOptionId: null,
+	selectedStatuteStateCode: null,
 	selectedTab: 1,
 	showClaimAssignmentDialog: false,
 	showImportClaimsDialog: false,
-	showImportUsersDialog: false,
 	showNewChecklistDialog: false,
 	showNewClaimDialog: false,
 	showNewDeskLocationDialog: false,
@@ -116,6 +118,7 @@ const initialState: AdminState = {
 	showNewReferenceOptionDialog: false,
 	showNewRepresentativeDialog: false,
 	showNewUserDialog: false,
+	showStatuteRuleDialog: false,
 	userConstraints: {
 		pageSize: 10,
 		page: 0,
@@ -152,6 +155,11 @@ export const useAdminStore = create<AdminStore>()(
 				state.selectedReferenceOptionId = id;
 			}),
 
+		setStatuteStateCode: (code) =>
+			set((state) => {
+				state.selectedStatuteStateCode = code;
+			}),
+
 		setTab: (newTab) =>
 			set((state) => {
 				state.selectedTab = newTab;
@@ -165,11 +173,6 @@ export const useAdminStore = create<AdminStore>()(
 		toggleImportClaimsDialog: () =>
 			set((state) => {
 				state.showImportClaimsDialog = !state.showImportClaimsDialog;
-			}),
-
-		toggleImportUsersDialog: () =>
-			set((state) => {
-				state.showImportUsersDialog = !state.showImportUsersDialog;
 			}),
 
 		toggleNewChecklistDialog: () =>
@@ -215,6 +218,11 @@ export const useAdminStore = create<AdminStore>()(
 		toggleNewUserDialog: () =>
 			set((state) => {
 				state.showNewUserDialog = !state.showNewUserDialog;
+			}),
+
+		toggleStatuteRuleDialog: () =>
+			set((state) => {
+				state.showStatuteRuleDialog = !state.showStatuteRuleDialog;
 			}),
 
 		updateClaimConstraints: (newConstraints) =>

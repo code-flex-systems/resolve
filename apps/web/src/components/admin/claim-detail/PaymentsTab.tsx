@@ -3,14 +3,15 @@
 import { Box, Button, Chip, IconButton, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import AttachMoney from '@mui/icons-material/AttachMoney';
 import Settings from '@mui/icons-material/Settings';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { trpc } from '@/lib/trpc';
 import BasicDialog from '@/components/common/BasicDialog';
 import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { dateSortComparator, numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
+import { BASE_COLOR_LIGHT, containerStyles, dataGridFocusStyles } from '@/styles/theme';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -109,7 +110,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	}, [payments]);
 
 	// Dialog handlers
-	const handleOpenPaymentDialog = (payment?: any) => {
+	const handleOpenPaymentDialog = useCallback((payment?: any) => {
 		if (payment) {
 			setEditingPayment(payment);
 			setPaymentForm({
@@ -130,7 +131,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 			});
 		}
 		setShowPaymentDialog(true);
-	};
+	}, [coverages]);
 
 	const handleClosePaymentDialog = () => {
 		setShowPaymentDialog(false);
@@ -191,12 +192,18 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				headerName: 'Date',
 				width: 100,
 				valueFormatter: (value) => (value ? dayjs(value).format('MMM D, YYYY') : ''),
+				sortComparator: dateSortComparator,
 			},
 			{
 				field: 'loss_type',
 				headerName: 'Coverage',
 				width: 120,
 				valueFormatter: (value) => (value ? formatCoverageType(value) : ''),
+				sortComparator: (v1, v2) => {
+					const a = v1 ? formatCoverageType(v1).toLowerCase() : '';
+					const b = v2 ? formatCoverageType(v2).toLowerCase() : '';
+					return a.localeCompare(b);
+				},
 			},
 			{
 				field: 'payment_amount',
@@ -210,11 +217,18 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 						</Typography>
 					);
 				},
+				sortComparator: numericSortComparator,
 			},
 			{
 				field: 'type',
 				headerName: 'Type',
 				width: 180,
+				valueGetter: (value, row) => {
+					const isCredit = parseFloat(row.payment_amount?.toString() || '0') < 0;
+					// Create a consistent sortable key from the three boolean flags
+					return `${isCredit ? '1' : '0'}-${row.is_subrogable ? '1' : '0'}-${row.is_expense ? '1' : '0'}`;
+				},
+				sortComparator: stringSortComparator,
 				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
 					const amount = parseFloat(params.row.payment_amount?.toString() || '0');
 					return (
@@ -235,6 +249,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				headerName: 'Payee',
 				width: 150,
 				valueFormatter: (value) => value || '—',
+				sortComparator: stringSortComparator,
 			},
 			{
 				field: 'description',
@@ -242,6 +257,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				flex: 1,
 				minWidth: 150,
 				valueFormatter: (value) => value || '—',
+				sortComparator: stringSortComparator,
 			},
 			{
 				field: 'actions',
@@ -254,7 +270,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 						<Box display="flex" gap={0.5}>
 							<BasicButtonStyled
 								buttonProps={{
-									onClick: () => setArchivingPayment(params.row),
+									onClick: () => handleOpenPaymentDialog(params.row),
 									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
 								}}
 								tooltipProps={{ title: 'Edit payment' }}
@@ -275,7 +291,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				},
 			},
 		],
-		[isManageMode]
+		[isManageMode, handleOpenPaymentDialog]
 	);
 
 	return (
@@ -406,13 +422,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 									display: 'flex',
 									alignItems: 'center',
 								},
-								'& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus-visible':
-									{
-										outline: 'none',
-									},
-								'& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
-									outline: 'none',
-								},
+								...dataGridFocusStyles,
 							}}
 						/>
 					)}

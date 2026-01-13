@@ -153,8 +153,16 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	let query = ctx.db
 		.selectFrom('checklist')
-		.leftJoin('page_instance', 'page_instance.checklist_id', 'checklist.id')
 		.leftJoin('users', 'checklist.created_by', 'users.id')
+		.leftJoinLateral(
+			(eb) =>
+				eb
+					.selectFrom('page_instance')
+					.select((eb) => eb.fn.count('id').as('page_count'))
+					.whereRef('page_instance.checklist_id', '=', 'checklist.id')
+					.as('pi'),
+			(join) => join.onTrue()
+		)
 		.selectAll('checklist')
 		.select((eb) => [
 			eb
@@ -164,16 +172,13 @@ export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { sea
 				.else(sql`concat(${eb.ref('users.first')}, ' ', ${eb.ref('users.last')})`)
 				.end()
 				.as('creator'),
+			sql<number>`coalesce(${eb.ref('pi.page_count')}, 0)`.as('page_count'),
 		])
-		.select(({ eb, fn }) =>
-			fn.sum(eb.case().when('page_instance.id', 'is', null).then(0).else(1).end()).as('page_count')
-		)
 		.where('checklist.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => (isAdmin ? eb.lit(true) : eb('checklist.published', '=', true)))
-		.groupBy(['checklist.id', 'users.id'])
 		.orderBy('checklist.name');
 	if (searchTerm) {
-		query = query.where((eb) => eb(sql`lower(${eb.ref('name')})`, 'like', `${searchTerm.toLowerCase()}%`));
+		query = query.where((eb) => eb(sql`lower(${eb.ref('checklist.name')})`, 'like', `${searchTerm.toLowerCase()}%`));
 	}
 	return await query.execute();
 }
@@ -426,15 +431,16 @@ export async function getChecklistSummary(ctx: ProtectedContext, checklistId: nu
 }
 
 /**
- * Fetch paginated rows summarizing answers for a claim or just the count.
+ * Fetch paginated rows summarizing answers for a claim with total count.
+ * Uses count(*) over() window function to get count and rows in a single query.
  *
  * @param ctx - request context
  * @param checklistId - checklist to inspect
  * @param claimId - claim being summarized
  * @param segment - which portion of answers to return
- * @param mode - whether to return row data or just a count
  * @param limit - pagination size
  * @param offset - pagination offset
+ * @returns object with rows array and total count
  */
 export async function getChecklistSummaryDetail(
 	ctx: ProtectedContext,
@@ -442,18 +448,27 @@ export async function getChecklistSummaryDetail(
 		checklistId,
 		claimId,
 		segment,
-		mode,
 		limit,
 		offset,
 	}: {
 		checklistId: number;
 		claimId: number;
 		segment: SummarySegment;
-		mode: 'rows' | 'count';
 		limit?: number;
 		offset?: number;
 	}
-) {
+): Promise<{
+	rows: Array<{
+		page_id: unknown;
+		page_title: unknown;
+		question_id: unknown;
+		question_text: unknown;
+		response_text?: unknown;
+		answer_texts?: string;
+		total_count: number;
+	}>;
+	count: number;
+}> {
 	// Build the base query for pulling questions, answers and responses
 	let query = ctx.db
 		.selectFrom('page_instance')
@@ -563,55 +578,47 @@ export async function getChecklistSummaryDetail(
 			break;
 	}
 
-	if (mode === 'count') {
-		const result = await query
-			.select(sql<number>`count(distinct question.id)`.as('count'))
-			.executeTakeFirstOrThrow();
-		return Number(result?.count ?? 0);
+	// Use window function to get count in single query
+	if (segment === SummarySegment.UNANSWERED) {
+		const rows = await query
+			.select([
+				sql`page_instance.id`.as('page_id'),
+				sql`page.title`.as('page_title'),
+				sql`question.id`.as('question_id'),
+				sql`question.text`.as('question_text'),
+				sql<number>`count(*) over()`.as('total_count'),
+			])
+			.groupBy(['page_instance.id', 'page.title', 'question.id', 'question.text', 'question_response.response_text'])
+			.orderBy('page_instance.id')
+			.limit(limit ?? 50)
+			.offset(offset ?? 0)
+			.execute();
+		const count = rows.length > 0 ? Number(rows[0].total_count) : 0;
+		return { rows, count };
 	} else {
-		if (segment === SummarySegment.UNANSWERED) {
-			const rows = await query
-				.select([
-					sql`page_instance.id`.as('page_id'),
-					sql`page.title`.as('page_title'),
-					sql`question.id`.as('question_id'),
-					sql`question.text`.as('question_text'),
-				])
-				.groupBy([
-					'page_instance.id',
-					'page.title',
-					'question.id',
-					'question.text',
-					'question_response.response_text',
-				])
-				.orderBy('page_instance.id')
-				.limit(limit ?? 50)
-				.offset(offset ?? 0)
-				.execute();
-			return rows;
-		} else {
-			const rows = await query
-				.select([
-					sql`page_instance.id`.as('page_id'),
-					sql`page.title`.as('page_title'),
-					sql`question.id`.as('question_id'),
-					sql`question.text`.as('question_text'),
-					sql`question_response.response_text`.as('response_text'),
-					sql<string>`string_agg(distinct answer.text, ', ')`.as('answer_texts'),
-				])
-				.groupBy([
-					'page_instance.id',
-					'page.title',
-					'question.id',
-					'question.text',
-					'question_response.response_text',
-				])
-				.orderBy('page_instance.id')
-				.limit(limit ?? 50)
-				.offset(offset ?? 0)
-				.execute();
-			return rows;
-		}
+		const rows = await query
+			.select([
+				sql`page_instance.id`.as('page_id'),
+				sql`page.title`.as('page_title'),
+				sql`question.id`.as('question_id'),
+				sql`question.text`.as('question_text'),
+				sql`question_response.response_text`.as('response_text'),
+				sql<string>`string_agg(distinct answer.text, ', ')`.as('answer_texts'),
+				sql<number>`count(*) over()`.as('total_count'),
+			])
+			.groupBy([
+				'page_instance.id',
+				'page.title',
+				'question.id',
+				'question.text',
+				'question_response.response_text',
+			])
+			.orderBy('page_instance.id')
+			.limit(limit ?? 50)
+			.offset(offset ?? 0)
+			.execute();
+		const count = rows.length > 0 ? Number(rows[0].total_count) : 0;
+		return { rows, count };
 	}
 }
 

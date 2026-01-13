@@ -28,7 +28,7 @@ import Person from '@mui/icons-material/Person';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import { ClaimStatus, RecoveryStatus } from '@/config/enums';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import useDebounce from '@/lib/utils/useDebounce';

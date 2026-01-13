@@ -17,7 +17,6 @@ interface AlertState {
 interface AlertActions {
 	showAlert: (message: string, severity: AlertSeverity) => void;
 	hideAlert: (id: string) => void;
-	clearAllAlerts: () => void;
 }
 
 type AlertStore = AlertState & AlertActions;
@@ -45,11 +44,6 @@ export const useAlertStore = create<AlertStore>()(
 		hideAlert: (id) =>
 			set((state) => {
 				state.alerts = state.alerts.filter((alert) => alert.id !== id);
-			}),
-
-		clearAllAlerts: () =>
-			set((state) => {
-				state.alerts = [];
 			}),
 	}))
 );

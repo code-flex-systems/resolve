@@ -17,9 +17,10 @@ export default function QuestionInfo(props: {
 	const ref = useRef(null);
 
 	// Fetch attached document for this question
-	const { data: attachedDocs = [] } = useDocTrpc().listDocs({
+	const { data: attachedDocsResult } = useDocTrpc().listDocs({
 		filters: { question_id: questionId },
 	}, { enabled: questionId !== -1 });
+	const attachedDocs = attachedDocsResult?.rows ?? [];
 
 	const attachedDoc = attachedDocs.length > 0 ? attachedDocs[0] : null;
 

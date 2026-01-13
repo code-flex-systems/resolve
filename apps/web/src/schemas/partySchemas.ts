@@ -460,11 +460,8 @@ export const linkPartyToClaimInput = z.object({
 	// Structured representative (for facilitators)
 	representative_id: z.number().int().positive().nullable().optional(),
 	address_id: z.number().int().positive().nullable().optional(),
-	// Free-form representative fields (for entities)
+	// Free-form representative field (for entities)
 	representative_name: z.string().max(200).nullable().optional(),
-	representative_title: z.string().max(100).nullable().optional(),
-	representative_email: z.string().email().nullable().optional().or(z.literal('')),
-	representative_phone: z.string().max(50).nullable().optional(),
 	// Other fields
 	is_primary: z.boolean().optional(),
 	liability_percentage: z.number().min(0).max(100).optional(),
@@ -489,11 +486,8 @@ export const updateClaimPartyInput = z.object({
 		// Structured representative (for facilitators)
 		representative_id: z.number().int().positive().nullable().optional(),
 		address_id: z.number().int().positive().nullable().optional(),
-		// Free-form representative fields (for entities)
+		// Free-form representative field (for entities)
 		representative_name: z.string().max(200).nullable().optional(),
-		representative_title: z.string().max(100).nullable().optional(),
-		representative_email: z.string().email().nullable().optional().or(z.literal('')),
-		representative_phone: z.string().max(50).nullable().optional(),
 		// Other fields
 		is_primary: z.boolean().optional(),
 		liability_percentage: z.number().min(0).max(100).nullable().optional(),

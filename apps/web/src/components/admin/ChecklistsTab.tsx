@@ -15,7 +15,7 @@ import NewChecklistDialog from './NewChecklistDialog';
 import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const COLUMNS: GridColDef[] = [
@@ -152,5 +152,6 @@ const styles = {
 		'& .MuiDataGrid-columnHeader:hover .MuiDataGrid-iconSeparator': {
 			opacity: 0,
 		},
+		...dataGridFocusStyles,
 	},
 };

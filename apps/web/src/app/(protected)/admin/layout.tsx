@@ -33,6 +33,7 @@ import DeskIcon from '@mui/icons-material/Desk';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import TaskIcon from '@mui/icons-material/Task';
 import ListIcon from '@mui/icons-material/List';
+import GavelIcon from '@mui/icons-material/Gavel';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -191,6 +192,11 @@ const adminNavCategories: AdminNavCategory[] = [
 				label: 'Reference Data',
 				route: '/admin/system/reference-data',
 				icon: <ListIcon fontSize="small" />,
+			},
+			{
+				label: 'Statute Rules',
+				route: '/admin/system/statute-rules',
+				icon: <GavelIcon fontSize="small" />,
 			},
 			{
 				label: 'Settings',

@@ -40,10 +40,14 @@ export async function deleteAction(ctx: ProtectedContext, actionId: number) {
 		.execute();
 }
 
+/**
+ * Get actions for given answer IDs
+ * Only selects columns needed by executeActions to reduce payload
+ */
 export async function getActions(ctx: ProtectedContext, answerIds: number[]) {
 	return await ctx.db
 		.selectFrom('action')
-		.selectAll()
+		.select(['id', 'type', 'definition'])
 		.where('action.client_id', '=', ctx.session.user.client_id)
 		.where('answer_id', 'in', answerIds)
 		.execute();
@@ -58,29 +62,32 @@ export async function getAction(ctx: ProtectedContext, answerId: number) {
 		.executeTakeFirstOrThrow();
 }
 
+/**
+ * Get action execution statistics
+ * Casts count to integer in SQL to avoid JS post-processing
+ */
 export async function getActionStats(ctx: ProtectedContext) {
-	const results = await ctx.db
+	return await ctx.db
 		.selectFrom('action_log')
 		.innerJoin('action', 'action_log.action_id', 'action.id')
 		.selectAll('action')
-		.select(({ fn }) => fn.countAll().as('count'))
+		.select(sql<number>`COUNT(*)::integer`.as('count'))
 		.where('action_log.client_id', '=', ctx.session.user.client_id)
 		.groupBy('action.id')
 		.orderBy('count desc')
 		.limit(10)
 		.execute();
-	return results.map((row) => ({
-		...row,
-		definition: JSON.parse(JSON.stringify(row.definition ?? '{}')),
-		count: parseInt(row.count?.toString() ?? '0'),
-	}));
 }
 
+/**
+ * Get detailed action execution statistics with filters
+ * Casts count to integer in SQL to avoid JS post-processing
+ */
 export async function getActionStatsDetail(
 	ctx: ProtectedContext,
 	filters: { checklistId?: number; claimId?: number; users?: string[]; range?: DateRange; searchTerm?: string }
 ) {
-	const results = await ctx.db
+	return await ctx.db
 		.selectFrom('action_log')
 		.innerJoin('action', 'action_log.action_id', 'action.id')
 		.innerJoin('answer', 'action.answer_id', 'answer.id')
@@ -96,13 +103,13 @@ export async function getActionStatsDetail(
 				.onRef('question_response.instance_id', '=', 'page_instance.id')
 		)
 		.selectAll('action')
-		.select(({ eb, fn }) => [
+		.select(({ eb }) => [
 			'answer.text as answer_text',
 			'question.text as question_text',
 			sql`concat('p(', ${eb.ref('page.id')}, ').i(', ${eb.ref('page_instance.id')}, ')')`
 				.$castTo<string>()
 				.as('page'),
-			fn.countAll().as('count'),
+			sql<number>`COUNT(*)::integer`.as('count'),
 		])
 		.where('action_log.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
@@ -129,7 +136,6 @@ export async function getActionStatsDetail(
 		])
 		.orderBy('count desc')
 		.execute();
-	return results.map((row) => ({ ...row, count: parseInt(row.count?.toString() ?? '0') }));
 }
 
 export async function logAction(ctx: ProtectedContext, actionId: number, status: ActionLogStatus) {
@@ -137,6 +143,26 @@ export async function logAction(ctx: ProtectedContext, actionId: number, status:
 		.insertInto('action_log')
 		.values({ client_id: ctx.session.user.client_id, action_id: actionId, status, created_by: ctx.session.user.id })
 		.execute();
+}
+
+/**
+ * Batch insert action logs in a single query
+ * Used by executeActions to reduce DB chatter after collecting all results
+ */
+export async function logActions(
+	ctx: ProtectedContext,
+	logs: Array<{ actionId: number; status: ActionLogStatus }>
+) {
+	if (logs.length === 0) return;
+
+	const values = logs.map((log) => ({
+		client_id: ctx.session.user.client_id!,
+		action_id: log.actionId,
+		status: log.status,
+		created_by: ctx.session.user.id,
+	}));
+
+	await ctx.db.insertInto('action_log').values(values).execute();
 }
 
 export async function updateAction(

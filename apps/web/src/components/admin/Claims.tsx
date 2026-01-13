@@ -29,7 +29,7 @@ import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import Visibility from '@mui/icons-material/Visibility';
@@ -200,10 +200,6 @@ export default function Claims() {
 	const [debouncedInsuredSearch, setDebouncedInsuredSearch] = useState('');
 	const [debouncedClientSearch, setDebouncedClientSearch] = useState('');
 
-	// Autocomplete options
-	const [insuredOptions, setInsuredOptions] = useState<string[]>([]);
-	const [clientOptions, setClientOptions] = useState<string[]>([]);
-
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
 
@@ -232,6 +228,33 @@ export default function Claims() {
 		}
 		return rowCountRef.current;
 	}, [data.count]);
+
+	// Derive unique insureds/clients once (sorted)
+	const uniqueInsureds = useMemo(
+		() => [...new Set(data.rows.map((r: any) => r.insured).filter(Boolean))].sort() as string[],
+		[data.rows]
+	);
+	const uniqueClients = useMemo(
+		() => [...new Set(data.rows.map((r: any) => r.client).filter(Boolean))].sort() as string[],
+		[data.rows]
+	);
+
+	// Autocomplete options - derived from unique lists and search terms
+	const insuredOptions = useMemo(() => {
+		if (uniqueInsureds.length <= 20) return uniqueInsureds;
+		if (!debouncedInsuredSearch) return [];
+		return uniqueInsureds
+			.filter((ins) => ins.toLowerCase().includes(debouncedInsuredSearch.toLowerCase()))
+			.slice(0, 20);
+	}, [uniqueInsureds, debouncedInsuredSearch]);
+
+	const clientOptions = useMemo(() => {
+		if (uniqueClients.length <= 20) return uniqueClients;
+		if (!debouncedClientSearch) return [];
+		return uniqueClients
+			.filter((cl) => cl.toLowerCase().includes(debouncedClientSearch.toLowerCase()))
+			.slice(0, 20);
+	}, [uniqueClients, debouncedClientSearch]);
 
 	const selectedFeed = useMemo(() => {
 		if (!selectedFeedId) return;
@@ -264,44 +287,6 @@ export default function Claims() {
 	useEffect(() => {
 		debouncedClientSearchCallback(clientSearchTerm);
 	}, [clientSearchTerm, debouncedClientSearchCallback]);
-
-	// Fetch insured options (initial 20, then search-based)
-	useEffect(() => {
-		if (data.rows && Array.isArray(data.rows)) {
-			const insureds = [...new Set(data.rows.map((r: any) => r.insured).filter(Boolean))].sort() as string[];
-
-			// If we have 20 or fewer unique insureds, show them all
-			// Otherwise, only show results when user types
-			if (insureds.length <= 20) {
-				setInsuredOptions(insureds);
-			} else if (debouncedInsuredSearch) {
-				const filtered = insureds.filter((ins) =>
-					ins.toLowerCase().includes(debouncedInsuredSearch.toLowerCase())
-				);
-				setInsuredOptions(filtered.slice(0, 20));
-			} else {
-				setInsuredOptions([]);
-			}
-		}
-	}, [data.rows, debouncedInsuredSearch]);
-
-	// Fetch client options (initial 20, then search-based)
-	useEffect(() => {
-		if (data.rows && Array.isArray(data.rows)) {
-			const clients = [...new Set(data.rows.map((r: any) => r.client).filter(Boolean))].sort() as string[];
-
-			// If we have 20 or fewer unique clients, show them all
-			// Otherwise, only show results when user types
-			if (clients.length <= 20) {
-				setClientOptions(clients);
-			} else if (debouncedClientSearch) {
-				const filtered = clients.filter((cl) => cl.toLowerCase().includes(debouncedClientSearch.toLowerCase()));
-				setClientOptions(filtered.slice(0, 20));
-			} else {
-				setClientOptions([]);
-			}
-		}
-	}, [data.rows, debouncedClientSearch]);
 
 	// Sync selectedClaimId with URL query param
 	useEffect(() => {
@@ -670,6 +655,7 @@ export default function Claims() {
 							disableColumnMenu
 							sx={{
 								...styles.tableOverrides,
+								...dataGridFocusStyles,
 								'& .MuiDataGrid-row': {
 									cursor: 'pointer',
 								},

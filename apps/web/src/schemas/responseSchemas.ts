@@ -26,12 +26,12 @@ export const getResponsesForAnswerInput = z.object({
 });
 export type GetResponsesForAnswerInput = z.infer<typeof getResponsesForAnswerInput>;
 
-export const getResponsesForClaimChecklistInput = z.object({
+export const getResponsesForPageInstanceInput = z.object({
 	checklistId: z.number().int(),
 	claimId: z.number().int(),
-	instanceId: z.number().int().optional(),
+	instanceId: z.number().int(), // Required - this function is for fetching responses for a specific page instance
 });
-export type GetResponsesForClaimChecklistInput = z.infer<typeof getResponsesForClaimChecklistInput>;
+export type GetResponsesForPageInstanceInput = z.infer<typeof getResponsesForPageInstanceInput>;
 
 export const getResponseAuditLogsInput = z.object({
 	filters: z.object({

@@ -20,6 +20,7 @@ import { recoveryRouter } from './routers/recovery';
 import { referenceDataRouter } from './routers/referenceData';
 import { settlementRouter } from './routers/settlement';
 import { responseRouter } from './routers/response';
+import { statuteRouter } from './routers/statute';
 import { taskRouter } from './routers/task';
 import { userRouter } from './routers/user';
 
@@ -44,6 +45,7 @@ export const appRouter = router({
 	referenceData: referenceDataRouter,
 	response: responseRouter,
 	settlement: settlementRouter,
+	statute: statuteRouter,
 	task: taskRouter,
 	user: userRouter,
 });

@@ -2,7 +2,7 @@ import * as docQueries from '@/api/queries/docQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { DocParams, UpdateDocParams, DocGroupParams, UpdateDocGroupParams } from '@/schemas/docSchemas';
 import * as blobStorage from '@/lib/azure/blobStorage';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 import { TRPCError } from '@trpc/server';
 
 // =====================================================================
@@ -76,10 +76,11 @@ export async function getDoc(
 
 /**
  * List documents with optional filtering and pagination.
+ * Returns paginated results with total count.
  *
  * @param ctx - request context
  * @param input - filters and pagination parameters
- * @returns array of documents
+ * @returns object with rows array and total count
  */
 export async function listDocs(
 	ctx: ProtectedContext,
@@ -97,7 +98,7 @@ export async function listDocs(
 		offset?: number;
 	}
 ) {
-	return await docQueries.getDocs(ctx, input.filters, input.limit, input.offset);
+	return await docQueries.listDocsWithCount(ctx, input.filters, input.limit, input.offset);
 }
 
 /**
@@ -136,7 +137,8 @@ export async function updateDoc(
 }
 
 /**
- * Delete a document record and its Azure blob.
+ * Archive (soft delete) a document record.
+ * Azure blob is preserved for audit trail.
  *
  * @param ctx - request context
  * @param input - document id
@@ -145,41 +147,30 @@ export async function deleteDoc(
 	ctx: ProtectedContext,
 	{ docId }: { docId: number }
 ) {
-	// Delete document and log admin action within transaction
+	// Archive document and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch document data BEFORE deletion for logging and Azure cleanup
-		const doc = await docQueries.getDocForDeletion({ ...ctx, db: trx }, docId);
+		const trxCtx = { ...ctx, db: trx };
 
-		if (!doc) {
+		// Soft delete the document (returns archived doc for logging)
+		const archived = await docQueries.archiveDoc(trxCtx, docId);
+
+		if (!archived) {
 			throw new TRPCError({
 				code: 'NOT_FOUND',
 				message: 'Document not found',
 			});
 		}
 
-		// Delete from Azure Blob Storage first
-		try {
-			await blobStorage.deleteDocument(doc.storage_key);
-		} catch (error) {
-			console.error('Failed to delete document from Azure:', error);
-			// Continue with DB deletion even if Azure deletion fails
-			// The blob will be orphaned but won't affect functionality
-		}
-
-		// Delete the document record from database
-		await docQueries.deleteDoc({ ...ctx, db: trx }, docId);
-
 		// Log admin action for document deletion
-		await logAdminAction({ ...ctx, db: trx }, {
+		await logAdminAction(trxCtx, {
 			entityId: docId,
 			entityName: EntityName.DOCUMENT,
 			action: AdminAction.DELETE,
 			value: {
-				filename: doc.filename,
-				alias: doc.alias,
-				doc_type: doc.doc_type,
-				claim_id: doc.claim_id,
-				storage_key: doc.storage_key,
+				filename: archived.filename,
+				alias: archived.alias,
+				doc_type: archived.doc_type,
+				claim_id: archived.claim_id,
 			},
 		});
 	});
@@ -317,8 +308,9 @@ export async function updateDocGroup(
 }
 
 /**
- * Delete a document group and all documents within it.
- * IMPORTANT: This also deletes all documents in the group from both DB and Azure Blob Storage.
+ * Archive (soft delete) a document group and all documents within it.
+ * Uses batch operations for efficiency - single UPDATE for all docs, single UPDATE for all groups.
+ * Azure blobs are preserved for audit trail.
  *
  * @param ctx - request context
  * @param input - group id
@@ -327,10 +319,12 @@ export async function deleteDocGroup(
 	ctx: ProtectedContext,
 	{ groupId }: { groupId: number }
 ) {
-	// Delete doc group and log admin action within transaction
+	// Archive doc group and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch group data BEFORE deletion for logging
-		const group = await docQueries.getDocGroupForDeletion({ ...ctx, db: trx }, groupId);
+		const trxCtx = { ...ctx, db: trx };
+
+		// Fetch group data BEFORE archiving for logging and system folder check
+		const group = await docQueries.getDocGroupForDeletion(trxCtx, groupId);
 
 		if (!group) {
 			throw new TRPCError({
@@ -339,41 +333,39 @@ export async function deleteDocGroup(
 			});
 		}
 
-		// CRITICAL: Get all documents in this group (recursively including subgroups)
-		// Since doc_group has ON DELETE CASCADE for child groups, and doc has ON DELETE SET NULL,
-		// we need to manually delete all documents to clean up Azure storage
-		const docsInGroup = await docQueries.getDocsInGroupRecursive({ ...ctx, db: trx }, groupId);
-
-		// Delete all documents in the group (this cleans up Azure storage)
-		for (const doc of docsInGroup) {
-			try {
-				await blobStorage.deleteDocument(doc.storage_key);
-			} catch (error) {
-				console.error(`Failed to delete document ${doc.id} from Azure:`, error);
-				// Continue with other deletions even if one fails
-			}
-
-			// Delete from database
-			await docQueries.deleteDoc({ ...ctx, db: trx }, doc.id);
-
-			// Log individual document deletion
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: doc.id,
-				entityName: EntityName.DOCUMENT,
-				action: AdminAction.DELETE,
-				value: {
-					filename: doc.filename,
-					alias: doc.alias,
-					deleted_with_group: group.name,
-				},
+		// System folders cannot be deleted
+		if (group.system) {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: 'Cannot delete system folders',
 			});
 		}
 
-		// Now delete the doc group (CASCADE will handle child groups)
-		await docQueries.deleteDocGroup({ ...ctx, db: trx }, groupId);
+		// Batch soft delete all documents in the group (single UPDATE with RETURNING)
+		const archivedDocs = await docQueries.archiveDocsInGroupRecursive(trxCtx, groupId);
 
-		// Log admin action for doc group deletion
-		await logAdminAction({ ...ctx, db: trx }, {
+		// Batch soft delete all groups (single UPDATE with RETURNING)
+		const archivedGroups = await docQueries.archiveDocGroupRecursive(trxCtx, groupId);
+
+		// Bulk log document deletions (single INSERT)
+		if (archivedDocs.length > 0) {
+			await logAdminActions(
+				trxCtx,
+				archivedDocs.map((doc) => ({
+					entityId: doc.id,
+					entityName: EntityName.DOCUMENT,
+					action: AdminAction.DELETE,
+					value: {
+						filename: doc.filename,
+						alias: doc.alias,
+						deleted_with_group: group.name,
+					},
+				}))
+			);
+		}
+
+		// Log group deletion (includes count of archived docs and groups)
+		await logAdminAction(trxCtx, {
 			entityId: groupId,
 			entityName: EntityName.DOC_GROUP,
 			action: AdminAction.DELETE,
@@ -381,7 +373,8 @@ export async function deleteDocGroup(
 				name: group.name,
 				group_type: group.group_type,
 				parent_group_id: group.parent_group_id,
-				documents_deleted: docsInGroup.length,
+				documents_archived: archivedDocs.length,
+				groups_archived: archivedGroups.length,
 			},
 		});
 	});
@@ -417,4 +410,18 @@ export async function getDocCountByGroupId(
 	{ groupId }: { groupId: number }
 ) {
 	return await docQueries.getDocCountByGroupId(ctx, groupId);
+}
+
+/**
+ * Get document counts for multiple groups in a single query.
+ *
+ * @param ctx - request context
+ * @param input - array of group ids
+ * @returns array of {doc_group_id, count} objects
+ */
+export async function getDocCountsByGroupIds(
+	ctx: ProtectedContext,
+	{ groupIds }: { groupIds: number[] }
+) {
+	return await docQueries.getDocCountsByGroupIds(ctx, groupIds);
 }

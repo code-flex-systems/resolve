@@ -31,6 +31,8 @@ export enum AuthEventType {
 	MfaVerified = 'mfa_verified',
 	MissingCredentials = 'missing_credentials',
 	AccountCreated = 'account_created',
+	ClerkWebhookSuccess = 'clerk_webhook_success',
+	ClerkWebhookFailure = 'clerk_webhook_failure',
 }
 
 export enum ChecklistMode {
@@ -172,6 +174,24 @@ export enum SettlementStatus {
 	SENT = 'sent',
 	SETTLED = 'settled',
 	CLOSED = 'closed',
+}
+
+/**
+ * Settlement structure - how the settlement is paid
+ */
+export enum SettlementStructure {
+	LUMP_SUM = 'lump_sum',
+	PAYMENT_PLAN = 'payment_plan',
+}
+
+/**
+ * Payment frequency for payment plan settlements
+ */
+export enum PaymentFrequency {
+	WEEKLY = 'weekly',
+	BI_WEEKLY = 'bi_weekly',
+	MONTHLY = 'monthly',
+	QUARTERLY = 'quarterly',
 }
 
 export enum FeedStatus {

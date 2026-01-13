@@ -5,18 +5,20 @@ import AttachMoney from '@mui/icons-material/AttachMoney';
 import Gavel from '@mui/icons-material/Gavel';
 import Settings from '@mui/icons-material/Settings';
 import Warning from '@mui/icons-material/Warning';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import BasicDialog from '@/components/common/BasicDialog';
-import SettlementFormDialog, { SettlementFormData } from './SettlementFormDialog';
+import SettlementFormDialog, { SettlementFormData, DROP_CHECK_VALUE } from './SettlementFormDialog';
 import RecoveryFormDialog, { RecoveryFormData } from './RecoveryFormDialog';
+import config from '@/config/config';
 import SettlementTable from './SettlementTable';
 import SettlementTimeline from './SettlementTimeline';
+import RecoverySummaryTable from './RecoverySummaryTable';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
-import { SettlementStatus } from '@/config/enums';
+import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/config/enums';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -45,6 +47,12 @@ const initialSettlementForm: SettlementFormData = {
 	settlement_amount: '',
 	settlement_date: '',
 	notes: '',
+	// New fields
+	adverse_party_reference: '',
+	settlement_structure: '',
+	payment_amount: '',
+	payment_frequency: '',
+	settled_by: '',
 };
 
 type ViewMode = 'table' | 'timeline';
@@ -85,6 +93,15 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		{ enabled: !!claimId }
 	);
 	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery({ claimId }, { enabled: !!claimId });
+	// Fetch admin users for settled_by dropdown (filtered to Admin role for now)
+	const { data: adminUsers = [] } = trpc.user.getUsers.useQuery(
+		{ role: config.ROLES.ADMIN },
+		{ enabled: !!claimId }
+	);
+	const { data: recoverySummary = [], isLoading: isLoadingSummary } = useRecoveryTrpc().getRecoverySummaryByCoverage(
+		{ claimId },
+		{ enabled: !!claimId }
+	);
 
 	// Mutations
 	const createRecoveryEvent = useRecoveryTrpc().createRecoveryEvent;
@@ -104,15 +121,31 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 	});
 	const deleteSettlement = trpc.settlement.deleteSettlement.useMutation({
 		onSuccess: () => {
+			// Invalidate settlement queries
 			utils.settlement.listSettlements.invalidate({ claimId });
 			utils.settlement.getSettlementsForDropdown.invalidate({ claimId });
+			// Invalidate recovery queries (cascade deletes recovery events)
 			utils.recovery.listRecoveryEvents.invalidate({ claimId });
+			utils.recovery.getRecoverySummaryByCoverage.invalidate({ claimId });
+			utils.recovery.listRecoveryEventsWithFilters.invalidate();
+			// Invalidate recovery metrics
+			utils.recovery.getRecoveryMetricsSummary.invalidate();
+			utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
+			// Invalidate claim detail to update actual_recovery totals
+			utils.claim.getClaimDetail.invalidate({ claimId });
 		},
 	});
 
-	const getRecoveryCountForSettlement = (settlementId: number) => {
-		return recoveryEvents.filter((r) => r.settlement_id === settlementId).length;
-	};
+	// Pre-compute recovery counts by settlement to avoid O(N) filtering per call
+	const recoveryCounts = useMemo(() => {
+		const map = new Map<number, number>();
+		recoveryEvents.forEach((r) => {
+			if (r.settlement_id) {
+				map.set(r.settlement_id, (map.get(r.settlement_id) ?? 0) + 1);
+			}
+		});
+		return map;
+	}, [recoveryEvents]);
 
 	// Recovery Dialog handlers
 	const handleOpenRecoveryDialog = (recovery?: any) => {
@@ -148,6 +181,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 			if (editingRecovery) {
 				await updateRecoveryEvent.mutateAsync({
 					recoveryEventId: editingRecovery.id,
+					claimId,
 					params: {
 						settlement_id: Number(recoveryForm.settlement_id),
 						recovery_date: recoveryForm.recovery_date,
@@ -156,8 +190,6 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						notes: recoveryForm.notes || undefined,
 					},
 				});
-				utils.recovery.listRecoveryEvents.invalidate({ claimId });
-				utils.claim.getClaimDetail.invalidate({ claimId });
 				showAlert('Recovery event updated successfully', 'success');
 			} else {
 				await createRecoveryEvent.mutateAsync({
@@ -182,6 +214,10 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 	const handleOpenSettlementDialog = (settlement?: any) => {
 		if (settlement) {
 			setEditingSettlement(settlement);
+			// Map is_drop_check to the DROP_CHECK_VALUE for display
+			const settledByValue = settlement.is_drop_check
+				? DROP_CHECK_VALUE
+				: settlement.settled_by || '';
 			setSettlementForm({
 				claim_party_id: settlement.claim_party_id,
 				coverage_id: settlement.coverage_id,
@@ -194,6 +230,12 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					? dayjs.utc(settlement.settlement_date).format('YYYY-MM-DD')
 					: '',
 				notes: settlement.notes || '',
+				// New fields
+				adverse_party_reference: settlement.adverse_party_reference || '',
+				settlement_structure: settlement.settlement_structure || '',
+				payment_amount: settlement.payment_amount?.toString() || '',
+				payment_frequency: settlement.payment_frequency || '',
+				settled_by: settledByValue,
 			});
 		} else {
 			setEditingSettlement(null);
@@ -215,6 +257,18 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 
 	const handleSubmitSettlement = async () => {
 		if (settlementForm.claim_party_id === '' || settlementForm.coverage_id === '') return;
+
+		// Map settled_by dropdown value to backend fields
+		const isDropCheck = settlementForm.settled_by === DROP_CHECK_VALUE;
+		const settledByUserId = isDropCheck ? null : settlementForm.settled_by || null;
+
+		// Determine payment fields - send null if not a payment plan or if fields are empty
+		const isPaymentPlan = settlementForm.settlement_structure === SettlementStructure.PAYMENT_PLAN;
+		const paymentAmount = isPaymentPlan && settlementForm.payment_amount ? settlementForm.payment_amount : null;
+		const paymentFrequency = isPaymentPlan && settlementForm.payment_frequency
+			? (settlementForm.payment_frequency as PaymentFrequency)
+			: null;
+
 		try {
 			if (editingSettlement) {
 				await updateSettlement.mutateAsync({
@@ -225,10 +279,17 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						demand_amount: settlementForm.demand_amount,
 						demand_date: settlementForm.demand_date,
 						status: settlementForm.status as SettlementStatus,
-						agreed_liability_percentage: settlementForm.agreed_liability_percentage || undefined,
-						settlement_amount: settlementForm.settlement_amount || undefined,
-						settlement_date: settlementForm.settlement_date || undefined,
-						notes: settlementForm.notes || undefined,
+						agreed_liability_percentage: settlementForm.agreed_liability_percentage || null,
+						settlement_amount: settlementForm.settlement_amount || null,
+						settlement_date: settlementForm.settlement_date || null,
+						notes: settlementForm.notes || null,
+						// New fields
+						adverse_party_reference: settlementForm.adverse_party_reference || null,
+						settlement_structure: (settlementForm.settlement_structure as SettlementStructure) || SettlementStructure.LUMP_SUM,
+						payment_amount: paymentAmount,
+						payment_frequency: paymentFrequency,
+						settled_by: settledByUserId,
+						is_drop_check: isDropCheck,
 					},
 				});
 				showAlert('Settlement updated successfully', 'success');
@@ -241,6 +302,13 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						demand_amount: settlementForm.demand_amount,
 						demand_date: settlementForm.demand_date,
 						notes: settlementForm.notes || undefined,
+						// New fields
+						adverse_party_reference: settlementForm.adverse_party_reference || undefined,
+						settlement_structure: (settlementForm.settlement_structure as SettlementStructure) || undefined,
+						payment_amount: paymentAmount || undefined,
+						payment_frequency: paymentFrequency || undefined,
+						settled_by: settledByUserId || undefined,
+						is_drop_check: isDropCheck || undefined,
 					},
 				});
 				showAlert('Settlement created successfully', 'success');
@@ -274,11 +342,6 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		}
 	};
 
-	const totalDemanded = settlements.reduce(
-		(sum, s) => sum + (s.demand_amount ? parseFloat(s.demand_amount.toString()) : 0),
-		0
-	);
-
 	const isLoading = isLoadingRecovery || isLoadingSettlements;
 
 	return (
@@ -289,58 +352,11 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
 						Settlement & Recovery Summary
 					</Typography>
-					<Box
-						display="grid"
-						gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }}
-						gap={3}
-					>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Total Demanded
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Sum of all settlement demands
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="warning.main">
-								{formatCurrencyExact(totalDemanded)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Expected Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Team's forecasted recovery
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="primary.main">
-								{formatCurrencyExact(Number(claimDetail?.expected_recovery) || 0)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Actual Recovery
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Payments received
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="success.main">
-								{formatCurrencyExact(Number(claimDetail?.actual_recovery) || 0)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
-								Recovery Rate
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
-								Actual vs Expected
-							</Typography>
-							<Typography variant="h6" fontSize={18}>
-								{claimDetail?.expected_recovery && Number(claimDetail.expected_recovery) > 0
-									? `${Math.round((Number(claimDetail.actual_recovery || 0) / Number(claimDetail.expected_recovery)) * 100)}%`
-									: 'N/A'}
-							</Typography>
-						</Box>
-					</Box>
+					<RecoverySummaryTable
+						data={recoverySummary}
+						ourLiabilityPercentage={claimDetail?.our_liability_percentage ?? 0}
+						isLoading={isLoadingSummary}
+					/>
 				</Paper>
 
 				{/* Settlements & Recoveries */}
@@ -462,6 +478,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				setFormData={setSettlementForm}
 				adverseParties={adverseParties}
 				coverages={coverages}
+				adminUsers={adminUsers}
 				isEditing={!!editingSettlement}
 				isSubmitting={createSettlement.isPending || updateSettlement.isPending}
 			/>
@@ -503,7 +520,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
 							</Typography>
 						</Box>
-						{getRecoveryCountForSettlement(archivingSettlement.id) > 0 && (
+						{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 0 && (
 							<Box
 								bgcolor="#fff3e0"
 								padding={2}
@@ -519,8 +536,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 										This will also archive:
 									</Typography>
 									<Typography fontSize={13} color="warning.dark">
-										• {getRecoveryCountForSettlement(archivingSettlement.id)} recovery event
-										{getRecoveryCountForSettlement(archivingSettlement.id) > 1 ? 's' : ''}
+										• {recoveryCounts.get(archivingSettlement.id) ?? 0} recovery event
+										{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 1 ? 's' : ''}
 									</Typography>
 								</Box>
 							</Box>

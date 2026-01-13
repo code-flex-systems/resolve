@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useMemo } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { Button, Paper, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
@@ -8,7 +9,7 @@ import Desk from '@mui/icons-material/Desk';
 import LocationOn from '@mui/icons-material/LocationOn';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -140,6 +141,12 @@ export default function DeskLocationsTab() {
 		}
 	);
 
+	// Memoized overlay for right panel
+	const locationsOverlay = useCallback(
+		() => <LocationsOverlay selectedTypeId={selectedDeskLocationTypeId} />,
+		[selectedDeskLocationTypeId]
+	);
+
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk locations...">
 			<div style={styles.container}>
@@ -218,8 +225,8 @@ export default function DeskLocationsTab() {
 								columnHeaderHeight={45}
 								loading={locationsFetching}
 								slots={{
-									noRowsOverlay: () => <LocationsOverlay selectedTypeId={selectedDeskLocationTypeId} />,
-									noResultsOverlay: () => <LocationsOverlay selectedTypeId={selectedDeskLocationTypeId} />,
+									noRowsOverlay: locationsOverlay,
+									noResultsOverlay: locationsOverlay,
 								}}
 								slotProps={{
 									loadingOverlay: {
@@ -280,5 +287,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

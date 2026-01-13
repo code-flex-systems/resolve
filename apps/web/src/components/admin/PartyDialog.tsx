@@ -35,11 +35,13 @@ interface PartyFormInputs {
 	// Inline contact data (creates records in separate tables)
 	contact_email?: string;
 	contact_phone?: string;
+	contact_phone_type?: string;
 	contact_street_address?: string | null;
 	contact_city?: string | null;
 	contact_state?: string | null;
 	contact_postal_code?: string | null;
 	contact_country?: string | null;
+	contact_address_type?: string;
 }
 
 interface PartyDialogProps {
@@ -111,11 +113,13 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					notes: '',
 					contact_email: '',
 					contact_phone: '',
+					contact_phone_type: 'work',
 					contact_street_address: '',
 					contact_city: '',
 					contact_state: '',
 					contact_postal_code: '',
 					contact_country: '',
+					contact_address_type: 'business',
 				},
 		mode: 'onChange',
 	});
@@ -151,8 +155,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 		}
 	};
 
-	// Memoize current party ID to prevent reference changes
-	const currentPartyId = useMemo(() => (party ? (party.id as unknown as number) : null), [party]);
+	const currentPartyId = party ? (party.id as unknown as number) : null;
 
 	// Create stable debounced function
 	const debouncedSetSearchTerm = useDebounce((value: string) => {
@@ -214,6 +217,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				? {
 						email: data.contact_email || undefined,
 						phone: data.contact_phone || undefined,
+						phone_type: data.contact_phone ? (data.contact_phone_type as 'mobile' | 'home' | 'work' | 'fax') : undefined,
 						address:
 							data.contact_street_address ||
 							data.contact_city ||
@@ -227,6 +231,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 										country: (data.contact_country as CountryCode) || null,
 									}
 								: undefined,
+						address_type: (data.contact_street_address || data.contact_city || data.contact_state || data.contact_postal_code)
+							? (data.contact_address_type as 'home' | 'business')
+							: undefined,
 					}
 				: undefined;
 
@@ -517,21 +524,41 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					)}
 				/>
 
-				<Controller
-					name="contact_phone"
-					control={control}
-					rules={{ maxLength: 50 }}
-					render={({ field }) => (
-						<TextField
-							label="Phone"
-							placeholder="Phone number"
-							error={!!errors.contact_phone}
-							{...field}
-							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
-						/>
-					)}
-				/>
+				<Stack direction="row" spacing={1} width={400}>
+					<Controller
+						name="contact_phone"
+						control={control}
+						rules={{ maxLength: 50 }}
+						render={({ field }) => (
+							<TextField
+								label="Phone"
+								placeholder="Phone number"
+								error={!!errors.contact_phone}
+								{...field}
+								disabled={isSubmitting}
+								sx={{ flex: 1 }}
+							/>
+						)}
+					/>
+					<Controller
+						name="contact_phone_type"
+						control={control}
+						render={({ field }) => (
+							<TextField
+								label="Type"
+								select
+								{...field}
+								disabled={isSubmitting}
+								sx={{ width: 120 }}
+							>
+								<MenuItem value="work">Work</MenuItem>
+								<MenuItem value="mobile">Mobile</MenuItem>
+								<MenuItem value="home">Home</MenuItem>
+								<MenuItem value="fax">Fax</MenuItem>
+							</TextField>
+						)}
+					/>
+				</Stack>
 
 				<AddressFields
 					control={control}
@@ -540,6 +567,23 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					disabled={isSubmitting}
 					width={400}
 					prefix="contact_"
+				/>
+
+				<Controller
+					name="contact_address_type"
+					control={control}
+					render={({ field }) => (
+						<TextField
+							label="Address Type"
+							select
+							{...field}
+							disabled={isSubmitting}
+							sx={styles.textFieldOverrides}
+						>
+							<MenuItem value="business">Business</MenuItem>
+							<MenuItem value="home">Home</MenuItem>
+						</TextField>
+					)}
 				/>
 
 				<Controller

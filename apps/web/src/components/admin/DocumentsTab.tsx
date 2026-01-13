@@ -26,13 +26,21 @@ export default function DocumentsTab() {
 	const [previewDocument, setPreviewDocument] = useState<DocListItem | null>(null);
 
 	const { data: groups = [], isFetching: isFetchingGroups } = useDocTrpc().listDocGroups();
-	const { data: docs = [], isFetching: isFetchingDocs } = useDocTrpc().listDocs({
+	const { data: docsResult, isFetching: isFetchingDocs } = useDocTrpc().listDocs({
 		filters: { doc_group_id: currentFolderId },
 	});
-	const { data: allDocs = [], isFetching: isFetchingAllDocs } = useDocTrpc().listDocs({}); // Fetch all docs for counting
+	const docs = docsResult?.rows ?? [];
+
+	// Get all group IDs for batch count query
+	const groupIds = useMemo(() => groups.map((g) => g.id), [groups]);
+	const { data: docCounts = [], isFetching: isFetchingCounts } = useDocTrpc().getDocCountsByGroupIds(
+		{ groupIds },
+		{ enabled: groupIds.length > 0 }
+	);
+
 	const { mutateAsync: deleteDoc } = useDocTrpc().deleteDoc;
 	const { mutateAsync: deleteDocGroup } = useDocTrpc().deleteDocGroup;
-	const isInTransition = isFetchingAllDocs || isFetchingDocs || isFetchingGroups;
+	const isInTransition = isFetchingCounts || isFetchingDocs || isFetchingGroups;
 
 	// Calculate depth of current folder (0 = root, 1 = level 1, 2 = level 2)
 	const currentDepth = useMemo(() => {
@@ -41,6 +49,17 @@ export default function DocumentsTab() {
 		if (!currentFolder.parent_group_id) return 1;
 		return 2;
 	}, [currentFolderId, groups]);
+
+	// Build doc counts map from server-side batch query
+	const docCountsByFolder = useMemo(() => {
+		const map = new Map<number, number>();
+		docCounts.forEach((r) => {
+			if (r.doc_group_id !== null) {
+				map.set(r.doc_group_id, Number(r.count));
+			}
+		});
+		return map;
+	}, [docCounts]);
 
 	const handleAddFolder = () => {
 		setShowCreateFolderDialog(true);
@@ -96,11 +115,10 @@ export default function DocumentsTab() {
 			}
 		});
 
-		// Count docs in selected folders using all docs
+		// Count docs in selected folders using pre-computed counts
 		let docsInFolders = 0;
 		folders.forEach((folder) => {
-			const folderDocs = allDocs.filter((d) => d.doc_group_id === folder.data.id);
-			docsInFolders += folderDocs.length;
+			docsInFolders += docCountsByFolder.get(folder.data.id) ?? 0;
 		});
 
 		return {
@@ -109,7 +127,7 @@ export default function DocumentsTab() {
 			docsInFolders,
 			totalDocs: documents.length + docsInFolders,
 		};
-	}, [selectedRows, groups, docs, allDocs]);
+	}, [selectedRows, groups, docs, docCountsByFolder]);
 
 	return (
 		<Paper sx={styles.container}>

@@ -353,7 +353,7 @@ When developing features, avoid duplicating code across components. Follow these
    - Use `IconHeaderCell` for consistent DataGrid headers
    - Share filter components across breakdown pages (e.g., `RecoveryStatusSelect`, `UserFilter`)
    - **CRITICAL**: If you find yourself copying dialog/form code between files, create a reusable component
-   - Example: `CoverageFormDialog` is used by both `CoverageManager` and `CoverageTab` instead of duplicating the form logic
+   - Example: `SettlementFormDialog` and `RecoveryFormDialog` are reusable dialogs in the Settlement & Recovery tab
 
 4. **Centralized Select Options with Icons:**
    - For finite option lists (enums), create centralized configuration objects with icons and labels

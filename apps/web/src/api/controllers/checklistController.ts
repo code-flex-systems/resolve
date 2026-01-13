@@ -162,6 +162,7 @@ export async function getChecklistSummary(
 
 /**
  * Get detailed summary rows and counts for a claim.
+ * Query uses window function to return rows and count in a single query.
  *
  * @param ctx - request context
  * @param input - options including pagination and segment
@@ -177,11 +178,7 @@ export async function getChecklistSummaryDetail(
 		offset?: number;
 	}
 ) {
-	const [data = [], count = 0] = await Promise.all([
-		checklistQueries.getChecklistSummaryDetail(ctx, { ...input, mode: 'rows' }),
-		checklistQueries.getChecklistSummaryDetail(ctx, { ...input, mode: 'count' }),
-	]);
-	return { rows: data, count: count };
+	return await checklistQueries.getChecklistSummaryDetail(ctx, input);
 }
 
 export async function getChecklistClaims(

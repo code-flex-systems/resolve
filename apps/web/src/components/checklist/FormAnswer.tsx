@@ -100,12 +100,13 @@ export default function FormAnswer() {
 	const { data: callGraphData = [] } = getCallGraph({ checklistId }, { enabled: checklistId !== -1 });
 
 	// Fetch attached image for current answer
-	const { data: attachedImages = [] } = useDocTrpc().listDocs(
+	const { data: attachedImagesResult } = useDocTrpc().listDocs(
 		{
 			filters: { answer_id: selectedAnswerData.id },
 		},
 		{ enabled: selectedAnswerData.id !== -1 }
 	);
+	const attachedImages = attachedImagesResult?.rows ?? [];
 
 	const { mutateAsync: updateDoc } = useDocTrpc().updateDoc;
 

@@ -30,7 +30,8 @@ export const deadlineRouter = router({
 		if (!input.personalOnly) {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
-		return listDeadlines(ctx, input);
+		const { limit, offset, ...filters } = input;
+		return listDeadlines(ctx, filters, limit, offset);
 	}),
 
 	updateDeadlineStatus: protectedProcedure

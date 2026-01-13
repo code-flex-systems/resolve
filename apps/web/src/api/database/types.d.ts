@@ -87,6 +87,15 @@ export interface Answer {
   updated_by: string | null;
 }
 
+export interface AnswerCallEdges {
+  answer_id: number;
+  checklist_id: number;
+  client_id: string;
+  from_instance_id: number;
+  id: Generated<number>;
+  to_instance_id: number;
+}
+
 export interface AuthEvents {
   created_at: Generated<Timestamp>;
   event_details: Json | null;
@@ -244,10 +253,6 @@ export interface ClaimParty {
    */
   policy_limit: Numeric | null;
   /**
-   * Free-form representative email (entities only)
-   */
-  representative_email: string | null;
-  /**
    * Specific representative from the party handling this claim (optional)
    */
   representative_id: number | null;
@@ -255,14 +260,6 @@ export interface ClaimParty {
    * Free-form representative name (entities only - for facilitators use representative_id)
    */
   representative_name: string | null;
-  /**
-   * Free-form representative phone (entities only)
-   */
-  representative_phone: string | null;
-  /**
-   * Free-form representative title (entities only)
-   */
-  representative_title: string | null;
   role: Generated<string[]>;
 }
 
@@ -389,6 +386,8 @@ export interface Doc {
   created_at: Generated<Timestamp>;
   created_by: string;
   deadline_id: number | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   description: string | null;
   doc_group_id: number | null;
   /**
@@ -441,6 +440,8 @@ export interface DocGroup {
   color: string | null;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   description: string | null;
   /**
    * claim_folder (auto-created), category (system), or custom (user-created)
@@ -702,6 +703,8 @@ export interface RecoveryEvent {
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   id: Generated<number>;
   notes: string | null;
   recovery_amount: Numeric;
@@ -809,6 +812,7 @@ export interface ResponseAuditLogs {
 }
 
 export interface Settlement {
+  adverse_party_reference: string | null;
   agreed_liability_percentage: Numeric | null;
   claim_id: number;
   claim_party_id: number;
@@ -816,13 +820,48 @@ export interface Settlement {
   coverage_id: number;
   created_at: Generated<Timestamp>;
   created_by: string;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
   demand_amount: Numeric;
   demand_date: Timestamp;
   id: Generated<number>;
+  is_drop_check: Generated<boolean | null>;
   notes: string | null;
+  payment_amount: Numeric | null;
+  payment_frequency: string | null;
+  settled_by: string | null;
   settlement_amount: Numeric | null;
   settlement_date: Timestamp | null;
+  settlement_structure: Generated<string | null>;
   status: Generated<string>;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface StatuteRule {
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  id: Generated<number>;
+  /**
+   * Percentage at which recovery is barred (1, 50, 51, 100, or null for slight)
+   */
+  negligence_bar_percent: number | null;
+  /**
+   * Additional notes about negligence law (e.g., date-based changes, special rules)
+   */
+  negligence_notes: string | null;
+  /**
+   * Negligence law type: contributory, pure_comparative, comparative_49, comparative_50, slight
+   */
+  negligence_type: string | null;
+  /**
+   * JSONB mapping tort_type_value to {default_years, rules[]}
+   */
+  rules: Generated<Json>;
+  /**
+   * US state/territory abbreviation (e.g., AL, DC, VI, PR)
+   */
+  state_code: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -943,6 +982,7 @@ export interface DB {
   action_log: ActionLog;
   admin_config_logs: AdminConfigLogs;
   answer: Answer;
+  answer_call_edges: AnswerCallEdges;
   auth_events: AuthEvents;
   checklist: Checklist;
   checklist_claim: ChecklistClaim;
@@ -977,6 +1017,7 @@ export interface DB {
   reference_option: ReferenceOption;
   response_audit_logs: ResponseAuditLogs;
   settlement: Settlement;
+  statute_rule: StatuteRule;
   task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;

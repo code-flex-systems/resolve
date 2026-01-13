@@ -155,50 +155,32 @@ export async function getClaims(
 		.leftJoin('feeds', 'claim.feed_id', 'feeds.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id);
 
-	// Claim visibility filtering for contributors:
-	// Contributors can only see claims that are:
-	// 1. Owned by them (created_by in checklist_claim)
-	// 2. Assigned to them (assignee in checklist_claim)
-	// 3. Not assigned/worked (no entry in checklist_claim)
-	// 4. Assigned to a desk location they are assigned to (desk-based access via claim.desk_location_id)
+	// For non-admins, use single EXISTS with joined tables to check access once per claim
+	// This evaluates checklist_claim and user_desk_location once per candidate row (not 3x)
 	if (!isAdmin) {
 		baseQuery = baseQuery.where((eb) =>
-			eb.or([
-				// User created a checklist assignment for this claim
-				eb.exists(
-					eb
-						.selectFrom('checklist_claim')
-						.selectAll()
-						.whereRef('checklist_claim.claim_id', '=', 'claim.id')
-						.where('checklist_claim.created_by', '=', ctx.session.user.id)
-				),
-				// User is assigned to a checklist for this claim
-				eb.exists(
-					eb
-						.selectFrom('checklist_claim')
-						.selectAll()
-						.whereRef('checklist_claim.claim_id', '=', 'claim.id')
-						.where('checklist_claim.assignee', '=', ctx.session.user.id)
-				),
-				// Claim not in checklist_claim (available to all)
-				eb.not(
-					eb.exists(
-						eb
-							.selectFrom('checklist_claim')
-							.selectAll()
-							.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+			eb.exists(
+				eb
+					.selectFrom('claim as c_access')
+					.leftJoin('checklist_claim', 'checklist_claim.claim_id', 'c_access.id')
+					.leftJoin('user_desk_location', (join) =>
+						join
+							.onRef('user_desk_location.desk_location_id', '=', 'c_access.desk_location_id')
+							.on('user_desk_location.user_id', '=', ctx.session.user.id)
+							.on('user_desk_location.removed_at', 'is', null)
 					)
-				),
-				// User has desk access to this claim
-				eb.exists(
-					eb
-						.selectFrom('user_desk_location')
-						.selectAll()
-						.whereRef('user_desk_location.desk_location_id', '=', 'claim.desk_location_id')
-						.where('user_desk_location.user_id', '=', ctx.session.user.id)
-						.where('user_desk_location.removed_at', 'is', null)
-				),
-			])
+					.select(sql`1`.as('one'))
+					.whereRef('c_access.id', '=', 'claim.id')
+					.where((eb2) =>
+						eb2.or([
+							eb2('checklist_claim.created_by', '=', ctx.session.user.id),
+							eb2('checklist_claim.assignee', '=', ctx.session.user.id),
+							// checklist_claim has no 'id' column - use claim_id to detect no match from LEFT JOIN
+							eb2('checklist_claim.claim_id', 'is', null),
+							eb2('user_desk_location.id', 'is not', null),
+						])
+					)
+			)
 		);
 	}
 
@@ -213,14 +195,18 @@ export async function getClaims(
 		baseQuery = baseQuery.where((eb) => eb(searchTerm.type, 'ilike', `${searchTerm.value}%`));
 	}
 
-	// Join claim_party if filtering by loss_type (now on claim_party for facilitators)
+	// Filter by loss_type using EXISTS (avoids join + group by)
 	if (loss_type) {
-		baseQuery = baseQuery
-			.leftJoin('claim_party', 'claim_party.claim_id', 'claim.id')
-			.where('claim_party.deleted_at', 'is', null)
-			.where('claim_party.loss_type', '=', loss_type)
-			.groupBy('claim.id')
-			.groupBy('feeds.id');
+		baseQuery = baseQuery.where((eb) =>
+			eb.exists(
+				eb
+					.selectFrom('claim_party')
+					.select(sql`1`.as('one'))
+					.whereRef('claim_party.claim_id', '=', 'claim.id')
+					.where('claim_party.deleted_at', 'is', null)
+					.where('claim_party.loss_type', '=', loss_type)
+			)
+		);
 	}
 
 	if (recovery_status) {
@@ -228,11 +214,11 @@ export async function getClaims(
 	}
 
 	if (insured) {
-		baseQuery = baseQuery.where((eb) => eb(sql`lower(${eb.ref('claim.insured')})`, 'like', `%${insured.toLowerCase()}%`));
+		baseQuery = baseQuery.where('claim.insured', 'ilike', `${insured}%`);
 	}
 
 	if (client) {
-		baseQuery = baseQuery.where((eb) => eb(sql`lower(${eb.ref('claim.client')})`, 'like', `%${client.toLowerCase()}%`));
+		baseQuery = baseQuery.where('claim.client', 'ilike', `${client}%`);
 	}
 
 	// Select columns based on admin status
@@ -666,24 +652,23 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where('claim_party.deleted_at', 'is', null)
 		.where('party.party_type', '=', 'entity');
 
-	// Get Facilitator party count for liability summary
-	// Only Facilitator-type parties contribute to liability percentages
-	const partySummaryQuery = ctx.db
+	// Combined party aggregates: facilitator count, liability sums, and loss types
+	// This combines partySummaryQuery, liabilitySummaryQuery, and getClaimPartyAggregates into one query
+	const partyAggregatesQuery = ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('party', 'claim_party.party_id', 'party.id')
-		.select((eb) => [eb.fn.count('claim_party.id').as('count')])
+		.select(({ fn }) => [
+			// Facilitator party count
+			sql<string>`COUNT(DISTINCT CASE WHEN party.party_type = 'facilitator' THEN claim_party.id END)`.as('facilitator_count'),
+			// Facilitator liability sum (used for partySummary.totalLiability)
+			sql<string>`SUM(CASE WHEN party.party_type = 'facilitator' THEN claim_party.liability_percentage ELSE 0 END)`.as('facilitator_liability'),
+			// Entity liability sum for parent parties (used for expected recovery calculation)
+			sql<string>`SUM(CASE WHEN claim_party.parent_claim_party_id IS NULL THEN claim_party.liability_percentage ELSE 0 END)`.as('entity_liability'),
+			// Aggregated loss types (all distinct non-null values)
+			fn.agg<string[]>('array_agg', [sql`DISTINCT claim_party.loss_type`]).as('loss_type_array'),
+		])
 		.where('claim_party.claim_id', '=', claimId)
-		.where('claim_party.deleted_at', 'is', null)
-		.where('party.party_type', '=', 'facilitator');
-
-	// Get total liability percentage from Facilitator-type parties only
-	const liabilitySummaryQuery = ctx.db
-		.selectFrom('claim_party')
-		.innerJoin('party', 'claim_party.party_id', 'party.id')
-		.select((eb) => [eb.fn.sum('claim_party.liability_percentage').as('total_liability')])
-		.where('claim_party.claim_id', '=', claimId)
-		.where('claim_party.deleted_at', 'is', null)
-		.where('party.party_type', '=', 'facilitator');
+		.where('claim_party.deleted_at', 'is', null);
 
 
 	// Get task summary by status
@@ -695,15 +680,12 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		.where('task.client_id', '=', ctx.session.user.client_id)
 		.groupBy('deadline.status');
 
-	const [checklistAssignments, coverageSummary, partySummary, liabilitySummary, taskSummary, partyAggregates] =
-		await Promise.all([
-			checklistAssignmentsQuery.execute(),
-			coverageSummaryQuery.executeTakeFirst(),
-			partySummaryQuery.executeTakeFirst(),
-			liabilitySummaryQuery.executeTakeFirst(),
-			taskSummaryQuery.execute(),
-			getClaimPartyAggregates(ctx, claimId),
-		]);
+	const [checklistAssignments, coverageSummary, partyAggregates, taskSummary] = await Promise.all([
+		checklistAssignmentsQuery.execute(),
+		coverageSummaryQuery.executeTakeFirst(),
+		partyAggregatesQuery.executeTakeFirst(),
+		taskSummaryQuery.execute(),
+	]);
 
 	// Transform task summary into object
 	const taskCounts = {
@@ -719,6 +701,14 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 		}
 	});
 
+	// Extract party aggregate values
+	const facilitatorCount = partyAggregates?.facilitator_count ? parseInt(partyAggregates.facilitator_count) : 0;
+	const facilitatorLiability = partyAggregates?.facilitator_liability
+		? parseFloat(partyAggregates.facilitator_liability)
+		: 0;
+	const entityLiability = partyAggregates?.entity_liability ? parseFloat(partyAggregates.entity_liability) : 0;
+	const lossTypes = partyAggregates?.loss_type_array?.filter((lt: string | null) => lt !== null) || [];
+
 	return {
 		...claim,
 		checklistAssignments,
@@ -728,15 +718,15 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
 			partyCount: Number(coverageSummary?.partyCount || 0),
 		},
 		partySummary: {
-			count: Number(partySummary?.count || 0),
-			totalLiability: Number(liabilitySummary?.total_liability || 0),
+			count: facilitatorCount,
+			totalLiability: facilitatorLiability,
 		},
 		taskSummary: taskCounts,
 		// Aggregated values from parties (loss types from facilitators)
-		aggregated_loss_type: partyAggregates.loss_type,
+		aggregated_loss_type: lossTypes,
 		// Liability percentages (from entities only)
-		total_liability_percentage: partyAggregates.total_liability_percentage,
-		our_liability_percentage: partyAggregates.our_liability_percentage,
+		total_liability_percentage: entityLiability,
+		our_liability_percentage: Math.max(0, 100 - entityLiability),
 		// expected_recovery is stored on the claim itself, calculated from liability %s and claim_amount (payments)
 	};
 }
@@ -826,35 +816,31 @@ export async function listMyClaims(
 	// Wrap in CTE
 	const rankedClaims = baseQuery.as('ranked_claims');
 
-	// Get metrics from CTE (only counting distinct claims where row_num = 1)
-	const metricsQuery = await ctx.db
-		.selectFrom(rankedClaims)
-		.select(({ fn }) => [
-			fn.countAll().as('count'),
-			fn.sum('ranked_claims.claim_amount').as('total_value'),
-			fn
-				.avg(sql`EXTRACT(epoch FROM (NOW() - ranked_claims.assigned_at)) / 86400`)
-				.as('avg_days_in_queue'),
-		])
-		.where('ranked_claims.row_num', '=', 1)
-		.executeTakeFirst();
-
-	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
-	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
-	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
-
-	// Get data with pagination (filter to row_num = 1 for distinct claims)
+	// Get data with pagination and metrics via window functions (single CTE scan)
 	const sortDirection = sortOrder === 'asc' ? 'asc' : 'desc';
 	// Remove table prefix from sortField since we're selecting from CTE
 	const sortColumn = sortField.includes('.') ? sortField.split('.')[1] : sortField;
-	const rows = await ctx.db
+	const rowsWithMetrics = await ctx.db
 		.selectFrom(rankedClaims)
 		.selectAll()
+		.select([
+			sql<string>`COUNT(*) OVER()`.as('total_count'),
+			sql<string>`SUM(claim_amount) OVER()`.as('total_value'),
+			sql<string>`AVG(EXTRACT(EPOCH FROM (NOW() - assigned_at)) / 86400) OVER()`.as('avg_days_in_queue'),
+		])
 		.where('ranked_claims.row_num', '=', 1)
 		.orderBy(sortColumn as any, sortDirection)
 		.limit(limit)
 		.offset(offset)
 		.execute();
+
+	// Extract metrics from first row (or defaults if empty)
+	const count = rowsWithMetrics.length > 0 ? parseInt(rowsWithMetrics[0].total_count ?? '0') : 0;
+	const totalValue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].total_value ?? '0') : 0;
+	const avgDaysInQueue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].avg_days_in_queue ?? '0') : 0;
+
+	// Strip window columns from result
+	const rows = rowsWithMetrics.map(({ total_count, total_value, avg_days_in_queue, ...rest }) => rest);
 
 	return {
 		rows,
@@ -951,33 +937,29 @@ export async function listMyDeskClaims(
 	// Wrap in CTE
 	const rankedClaims = baseQuery.as('ranked_claims');
 
-	// Get metrics from CTE (only counting distinct claims where row_num = 1)
-	const metricsQuery = await ctx.db
-		.selectFrom(rankedClaims)
-		.select(({ fn }) => [
-			fn.countAll().as('count'),
-			fn.sum('ranked_claims.claim_amount').as('total_value'),
-			fn
-				.avg(sql`EXTRACT(epoch FROM (NOW() - ranked_claims.assigned_at)) / 86400`)
-				.as('avg_days_in_queue'),
-		])
-		.where('ranked_claims.row_num', '=', 1)
-		.executeTakeFirst();
-
-	const count = parseInt(metricsQuery?.count?.toString() ?? '0');
-	const totalValue = parseFloat(metricsQuery?.total_value?.toString() ?? '0');
-	const avgDaysInQueue = parseFloat(metricsQuery?.avg_days_in_queue?.toString() ?? '0');
-
-	// Get data with pagination (filter to row_num = 1 for distinct claims, ordered by desk priority)
-	const rows = await ctx.db
+	// Get data with pagination and metrics via window functions (single CTE scan)
+	const rowsWithMetrics = await ctx.db
 		.selectFrom(rankedClaims)
 		.selectAll()
+		.select([
+			sql<string>`COUNT(*) OVER()`.as('total_count'),
+			sql<string>`SUM(claim_amount) OVER()`.as('total_value'),
+			sql<string>`AVG(EXTRACT(EPOCH FROM (NOW() - assigned_at)) / 86400) OVER()`.as('avg_days_in_queue'),
+		])
 		.where('ranked_claims.row_num', '=', 1)
 		.orderBy('ranked_claims.desk_priority', 'asc')
 		.orderBy('ranked_claims.last_update', 'desc')
 		.limit(limit)
 		.offset(offset)
 		.execute();
+
+	// Extract metrics from first row (or defaults if empty)
+	const count = rowsWithMetrics.length > 0 ? parseInt(rowsWithMetrics[0].total_count ?? '0') : 0;
+	const totalValue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].total_value ?? '0') : 0;
+	const avgDaysInQueue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].avg_days_in_queue ?? '0') : 0;
+
+	// Strip window columns from result
+	const rows = rowsWithMetrics.map(({ total_count, total_value, avg_days_in_queue, ...rest }) => rest);
 
 	return {
 		rows,

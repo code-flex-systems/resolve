@@ -712,7 +712,7 @@ describe('deadlineQueries integration', () => {
 
 			// Act
 			const result = await getDeadlines(ctx, {
-				dateRange: [rangeStart.toISOString().split('T')[0], rangeEnd.toISOString().split('T')[0]],
+				dateRange: [rangeStart, rangeEnd],
 			});
 
 			// Assert
@@ -840,17 +840,15 @@ describe('deadlineQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const rangeStart = today.toISOString().split('T')[0];
-			const rangeEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-				.toISOString()
-				.split('T')[0];
+			const rangeStartDate = new Date(today);
+			const rangeEndDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
 			// Act - combine all filters
 			const result = await getDeadlines(ctx, {
 				claimId: claim1.id,
 				entityType: DeadlineEntityType.TASK,
 				status: DeadlineStatus.PENDING,
-				dateRange: [rangeStart, rangeEnd],
+				dateRange: [rangeStartDate, rangeEndDate],
 			});
 
 			// Assert - only the target deadline should match all filters

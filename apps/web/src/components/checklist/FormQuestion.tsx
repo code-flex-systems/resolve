@@ -67,12 +67,13 @@ export default function FormQuestion() {
 	const { data: questions, isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
 
 	// Fetch attached document for current question
-	const { data: attachedDocs = [] } = useDocTrpc().listDocs(
+	const { data: attachedDocsResult } = useDocTrpc().listDocs(
 		{
 			filters: { question_id: selectedQuestionData.id },
 		},
 		{ enabled: selectedQuestionData.id !== -1 }
 	);
+	const attachedDocs = attachedDocsResult?.rows ?? [];
 
 	const { mutateAsync: updateDoc } = useDocTrpc().updateDoc;
 

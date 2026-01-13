@@ -9,6 +9,56 @@ import {
 } from '@/config/enums';
 
 // ============================================================================
+// SHARED SQL HELPERS
+// ============================================================================
+
+/**
+ * Derived status expression based on task.status column
+ * Used for queries that select task.status directly (getTasks)
+ *
+ * Logic:
+ * - task.status = 'cancelled' → cancelled
+ * - task.status = 'completed' AND deadline.status = 'met' → completed_on_time
+ * - task.status = 'completed' AND deadline.status = 'missed' → completed_late
+ * - task.status = 'completed' (no deadline or pending) → completed_on_time
+ * - task.status = 'in_progress' → in_progress
+ * - task.status = 'pending' → available
+ */
+const derivedStatusFromTaskStatus = sql<string>`
+	CASE
+		WHEN task.status = 'cancelled' THEN 'cancelled'
+		WHEN task.status = 'completed' AND deadline.status = 'met' THEN 'completed_on_time'
+		WHEN task.status = 'completed' AND deadline.status = 'missed' THEN 'completed_late'
+		WHEN task.status = 'completed' THEN 'completed_on_time'
+		WHEN task.status = 'in_progress' THEN 'in_progress'
+		WHEN task.status = 'pending' THEN 'available'
+		ELSE 'available'
+	END
+`;
+
+/**
+ * Derived status expression based on deadline.status and task columns
+ * Used for queries that derive status from deadline state (getTask, getTasksForUser, etc.)
+ *
+ * Logic:
+ * - deadline.status = 'cancelled' → cancelled
+ * - task.completed_at IS NOT NULL AND deadline.status = 'met' → completed_on_time
+ * - task.completed_at IS NOT NULL AND deadline.status = 'missed' → completed_late
+ * - task.claimed_by IS NOT NULL AND deadline.status = 'pending' → in_progress
+ * - task.claimed_by IS NULL AND deadline.status = 'pending' → available
+ */
+const derivedStatusFromDeadline = sql<string>`
+	CASE
+		WHEN deadline.status = 'cancelled' THEN 'cancelled'
+		WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
+		WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
+		WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
+		WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
+		ELSE 'available'
+	END
+`;
+
+// ============================================================================
 // TASK CRUD OPERATIONS
 // ============================================================================
 
@@ -16,12 +66,8 @@ import {
  * Get paginated list of tasks with optional filters
  * Returns { rows, count } for server-side pagination
  *
- * Derived task status combines task.status with deadline info for display:
- * - task.status = 'cancelled' → cancelled
- * - task.status = 'completed' AND deadline.status = 'met' → completed_on_time
- * - task.status = 'completed' AND deadline.status = 'missed' → completed_late
- * - task.status = 'in_progress' → in_progress
- * - task.status = 'pending' → available
+ * Uses single query with COUNT(*) OVER() for both data and count (avoids duplicate query).
+ * Uses prefix search (term%) for index usage on task.title.
  */
 export async function getTasks(
 	ctx: ProtectedContext,
@@ -38,21 +84,8 @@ export async function getTasks(
 		showCancelled?: boolean;
 	}
 ) {
-	// SQL expression for derived status (combines task.status with deadline timing)
-	const derivedStatusExpr = sql<string>`
-		CASE
-			WHEN task.status = 'cancelled' THEN 'cancelled'
-			WHEN task.status = 'completed' AND deadline.status = 'met' THEN 'completed_on_time'
-			WHEN task.status = 'completed' AND deadline.status = 'missed' THEN 'completed_late'
-			WHEN task.status = 'completed' THEN 'completed_on_time'
-			WHEN task.status = 'in_progress' THEN 'in_progress'
-			WHEN task.status = 'pending' THEN 'available'
-			ELSE 'available'
-		END
-	`;
-
 	// Base query with client scoping and deadline join
-	let query = ctx.db
+	let baseQuery = ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
 		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
@@ -63,6 +96,39 @@ export async function getTasks(
 				.onRef('deadline.entity_id', '=', 'task.id')
 				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
 		)
+		.where('task.client_id', '=', ctx.session.user.client_id);
+
+	// Filter by cancelled status
+	if (!params.showCancelled) {
+		baseQuery = baseQuery.where('task.status', '!=', TaskStatus.CANCELLED);
+	}
+
+	// Apply filters
+	if (params.deskLocationId !== undefined) {
+		baseQuery = baseQuery.where('task.desk_location_id', '=', params.deskLocationId);
+	}
+	if (params.claimId !== undefined) {
+		baseQuery = baseQuery.where('task.claim_id', '=', params.claimId);
+	}
+	if (params.status !== undefined) {
+		baseQuery = baseQuery.where('task.status', '=', params.status);
+	}
+	if (params.taskType !== undefined) {
+		baseQuery = baseQuery.where('task.task_type', '=', params.taskType);
+	}
+	if (params.assignedBy !== undefined) {
+		baseQuery = baseQuery.where('task.assigned_by', '=', params.assignedBy);
+	}
+	if (params.claimedBy !== undefined) {
+		baseQuery = baseQuery.where('task.claimed_by', '=', params.claimedBy);
+	}
+	// Prefix search for index usage (term% instead of %term%)
+	if (params.searchTerm !== undefined) {
+		baseQuery = baseQuery.where(sql<boolean>`task.title ILIKE ${`${params.searchTerm}%`}`);
+	}
+
+	// Single query with COUNT(*) OVER() for total count
+	const rowsWithCount = await baseQuery
 		.select([
 			'task.id',
 			'task.client_id',
@@ -94,113 +160,30 @@ export async function getTasks(
 			'deadline.deadline_type',
 			'deadline.description as deadline_description',
 			'deadline.status as deadline_status',
-			// Derived status
-			derivedStatusExpr.as('derived_status'),
+			// Derived status using shared helper
+			derivedStatusFromTaskStatus.as('derived_status'),
+			// Window function for total count
+			sql<string>`COUNT(*) OVER()`.as('total_count'),
 		])
-		.where('task.client_id', '=', ctx.session.user.client_id);
-
-	// Filter by cancelled status
-	if (!params.showCancelled) {
-		query = query.where('task.status', '!=', TaskStatus.CANCELLED);
-	}
-
-	// Apply filters
-	if (params.deskLocationId) {
-		query = query.where('task.desk_location_id', '=', params.deskLocationId);
-	}
-
-	if (params.claimId) {
-		query = query.where('task.claim_id', '=', params.claimId);
-	}
-
-	if (params.status) {
-		// Filter by task status
-		query = query.where('task.status', '=', params.status);
-	}
-
-	if (params.taskType) {
-		query = query.where('task.task_type', '=', params.taskType);
-	}
-
-	if (params.assignedBy) {
-		query = query.where('task.assigned_by', '=', params.assignedBy);
-	}
-
-	if (params.claimedBy) {
-		query = query.where('task.claimed_by', '=', params.claimedBy);
-	}
-
-	if (params.searchTerm) {
-		query = query.where(sql<boolean>`task.title ILIKE ${`%${params.searchTerm}%`}`);
-	}
-
-	// Order by deadline date (urgent first), then created date
-	query = query
 		.orderBy(sql`deadline.deadline_date asc nulls last`)
-		.orderBy('task.created_at asc');
-
-	// Build count query with same filters
-	let countQuery = ctx.db
-		.selectFrom('task')
-		.leftJoin('deadline', (join) =>
-			join
-				.onRef('deadline.entity_id', '=', 'task.id')
-				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
-		)
-		.select(({ fn }) => fn.countAll().as('count'))
-		.where('task.client_id', '=', ctx.session.user.client_id);
-
-	if (!params.showCancelled) {
-		countQuery = countQuery.where('task.status', '!=', TaskStatus.CANCELLED);
-	}
-
-	countQuery = countQuery
-		.$if(params.deskLocationId !== undefined, (qb) =>
-			qb.where('task.desk_location_id', '=', params.deskLocationId!)
-		)
-		.$if(params.claimId !== undefined, (qb) => qb.where('task.claim_id', '=', params.claimId!))
-		.$if(params.status !== undefined, (qb) => qb.where('task.status', '=', params.status!))
-		.$if(params.taskType !== undefined, (qb) => qb.where('task.task_type', '=', params.taskType!))
-		.$if(params.assignedBy !== undefined, (qb) =>
-			qb.where('task.assigned_by', '=', params.assignedBy!)
-		)
-		.$if(params.claimedBy !== undefined, (qb) =>
-			qb.where('task.claimed_by', '=', params.claimedBy!)
-		)
-		.$if(params.searchTerm !== undefined, (qb) =>
-			qb.where(sql<boolean>`task.title ILIKE ${`%${params.searchTerm}%`}`)
-		);
-
-	// Data query with pagination
-	const rowsQuery = query
+		.orderBy('task.created_at asc')
 		.$if(params.limit !== undefined, (qb) => qb.limit(params.limit!))
 		.$if(params.offset !== undefined, (qb) => qb.offset(params.offset!))
 		.execute();
 
-	// Execute in parallel
-	const [countResult, rows] = await Promise.all([countQuery.executeTakeFirst(), rowsQuery]);
+	// Extract count from first row (or default to 0 if empty)
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
 
-	return {
-		rows,
-		count: countResult?.count ? Number(countResult.count) : 0,
-	};
+	// Strip the total_count column from results
+	const rows = rowsWithCount.map(({ total_count, ...rest }) => rest);
+
+	return { rows, count };
 }
 
 /**
  * Get single task by ID
  */
 export async function getTask(ctx: ProtectedContext, id: number) {
-	const derivedStatusExpr = sql<string>`
-		CASE
-			WHEN deadline.status = 'cancelled' THEN 'cancelled'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
-			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
-			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
-			ELSE 'available'
-		END
-	`;
-
 	return await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
@@ -243,8 +226,8 @@ export async function getTask(ctx: ProtectedContext, id: number) {
 			'deadline.deadline_type',
 			'deadline.description as deadline_description',
 			'deadline.status as deadline_status',
-			// Derived status
-			derivedStatusExpr.as('derived_status'),
+			// Derived status using shared helper
+			derivedStatusFromDeadline.as('derived_status'),
 		])
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
@@ -286,7 +269,10 @@ export async function getTasksByDeskLocation(
 
 /**
  * Get tasks visible to a specific user (via their desk location assignments)
- * Optimized to use single query with subquery for desk location filtering
+ *
+ * Uses EXISTS for desk location access check (avoids duplicate rows).
+ * Uses single query with COUNT(*) OVER() for both data and count.
+ * Keeps LEFT JOIN on user_desk_location for priority ordering only.
  */
 export async function getTasksForUser(
 	ctx: ProtectedContext,
@@ -299,19 +285,8 @@ export async function getTasksForUser(
 ) {
 	const userId = params?.userId || ctx.session.user.id;
 
-	const derivedStatusExpr = sql<string>`
-		CASE
-			WHEN deadline.status = 'cancelled' THEN 'cancelled'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
-			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
-			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
-			ELSE 'available'
-		END
-	`;
-
-	// Build base query with subquery for desk location filtering (single query, no N+1)
-	let query = ctx.db
+	// Base query with EXISTS for desk location access check
+	let baseQuery = ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
 		.leftJoin('user_desk_location', (join) =>
@@ -326,6 +301,26 @@ export async function getTasksForUser(
 				.onRef('deadline.entity_id', '=', 'task.id')
 				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
 		)
+		.where('task.client_id', '=', ctx.session.user.client_id)
+		.where('task.status', '!=', TaskStatus.CANCELLED)
+		// Use EXISTS for access check (replaces IN subquery, avoids duplicates)
+		.where((eb) =>
+			eb.exists(
+				eb
+					.selectFrom('user_desk_location as udl_access')
+					.select(sql`1`.as('one'))
+					.whereRef('udl_access.desk_location_id', '=', 'task.desk_location_id')
+					.where('udl_access.user_id', '=', userId)
+					.where('udl_access.removed_at', 'is', null)
+			)
+		);
+
+	if (params?.status !== undefined) {
+		baseQuery = baseQuery.where('task.status', '=', params.status);
+	}
+
+	// Single query with COUNT(*) OVER() for total count
+	const rowsWithCount = await baseQuery
 		.select([
 			'task.id',
 			'task.client_id',
@@ -349,64 +344,25 @@ export async function getTasksForUser(
 			'deadline.deadline_type',
 			'deadline.description as deadline_description',
 			'deadline.status as deadline_status',
-			// Derived status
-			derivedStatusExpr.as('derived_status'),
+			// Derived status using shared helper
+			derivedStatusFromDeadline.as('derived_status'),
+			// Window function for total count
+			sql<string>`COUNT(*) OVER()`.as('total_count'),
 		])
-		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.status', '!=', TaskStatus.CANCELLED)
-		.where('task.desk_location_id', 'in', (eb) =>
-			eb
-				.selectFrom('user_desk_location')
-				.select('desk_location_id')
-				.where('user_id', '=', userId)
-				.where('removed_at', 'is', null)
-		);
-
-	if (params?.status) {
-		query = query.where('task.status', '=', params.status);
-	}
-
-	// Order by user priority, then deadline date, then created date
-	query = query
 		.orderBy('user_desk_location.priority asc')
 		.orderBy(sql`deadline.deadline_date asc nulls last`)
-		.orderBy('task.created_at asc');
-
-	// Count query using same subquery pattern
-	let countQuery = ctx.db
-		.selectFrom('task')
-		.leftJoin('deadline', (join) =>
-			join
-				.onRef('deadline.entity_id', '=', 'task.id')
-				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
-		)
-		.select(({ fn }) => fn.countAll().as('count'))
-		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.status', '!=', TaskStatus.CANCELLED)
-		.where('task.desk_location_id', 'in', (eb) =>
-			eb
-				.selectFrom('user_desk_location')
-				.select('desk_location_id')
-				.where('user_id', '=', userId)
-				.where('removed_at', 'is', null)
-		);
-
-	if (params?.status) {
-		countQuery = countQuery.where('task.status', '=', params.status);
-	}
-
-	// Data query with pagination
-	const rowsQuery = query
+		.orderBy('task.created_at asc')
 		.$if(params?.limit !== undefined, (qb) => qb.limit(params!.limit!))
 		.$if(params?.offset !== undefined, (qb) => qb.offset(params!.offset!))
 		.execute();
 
-	const [countResult, rows] = await Promise.all([countQuery.executeTakeFirst(), rowsQuery]);
+	// Extract count from first row (or default to 0 if empty)
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
 
-	return {
-		rows,
-		count: countResult?.count ? Number(countResult.count) : 0,
-	};
+	// Strip the total_count column from results
+	const rows = rowsWithCount.map(({ total_count, ...rest }) => rest);
+
+	return { rows, count };
 }
 
 /**
@@ -748,17 +704,6 @@ export async function getDeskCapacity(
  * Get task counts by derived status for a desk location
  */
 export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationId: number) {
-	const derivedStatusExpr = sql<string>`
-		CASE
-			WHEN deadline.status = 'cancelled' THEN 'cancelled'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
-			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
-			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
-			ELSE 'available'
-		END
-	`;
-
 	const result = await ctx.db
 		.selectFrom('task')
 		.leftJoin('deadline', (join) =>
@@ -766,7 +711,7 @@ export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationI
 				.onRef('deadline.entity_id', '=', 'task.id')
 				.on('deadline.entity_type', '=', DeadlineEntityType.TASK)
 		)
-		.select([derivedStatusExpr.as('derived_status'), ({ fn }) => fn.countAll().as('count')])
+		.select([derivedStatusFromDeadline.as('derived_status'), ({ fn }) => fn.countAll().as('count')])
 		.where('task.desk_location_id', '=', deskLocationId)
 		.where('task.client_id', '=', ctx.session.user.client_id)
 		.where((eb) =>
@@ -775,7 +720,7 @@ export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationI
 				eb('deadline.status', 'is', null),
 			])
 		)
-		.groupBy(derivedStatusExpr)
+		.groupBy(derivedStatusFromDeadline)
 		.execute();
 
 	return {
@@ -807,17 +752,6 @@ export async function getTasksByDueDateWeek(
 		weekEnd: string; // ISO date string (YYYY-MM-DD)
 	}
 ) {
-	const derivedStatusExpr = sql<string>`
-		CASE
-			WHEN deadline.status = 'cancelled' THEN 'cancelled'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
-			WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
-			WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
-			WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
-			ELSE 'available'
-		END
-	`;
-
 	const rows = await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
@@ -860,8 +794,8 @@ export async function getTasksByDueDateWeek(
 			'deadline.deadline_type',
 			'deadline.description as deadline_description',
 			'deadline.status as deadline_status',
-			// Derived status
-			derivedStatusExpr.as('derived_status'),
+			// Derived status using shared helper
+			derivedStatusFromDeadline.as('derived_status'),
 		])
 		.where('task.client_id', '=', ctx.session.user.client_id)
 		.where('deadline.deadline_date', '>=', sql<Date>`${params.weekStart}::date`)

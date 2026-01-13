@@ -55,11 +55,13 @@ export async function createDeadline(
 }
 
 /**
- * List deadlines with optional filters.
+ * List deadlines with optional filters and pagination.
  *
  * @param ctx - request context
  * @param filters - optional claim id, status, and date range
- * @returns list of deadlines
+ * @param limit - pagination limit (default 100, max 1000)
+ * @param offset - pagination offset (default 0)
+ * @returns list of deadlines with count
  */
 export async function listDeadlines(
 	ctx: ProtectedContext,
@@ -68,9 +70,13 @@ export async function listDeadlines(
 		status?: DeadlineStatus;
 		dateRange?: DateRangeStrict;
 		personalOnly?: boolean;
-	}
+	},
+	limit: number = 100,
+	offset: number = 0
 ) {
-	return await deadlineQueries.getDeadlines(ctx, filters);
+	// Enforce max limit to prevent unbounded queries
+	const safeLimit = Math.min(limit, 1000);
+	return await deadlineQueries.getDeadlines(ctx, filters, safeLimit, offset);
 }
 
 /**

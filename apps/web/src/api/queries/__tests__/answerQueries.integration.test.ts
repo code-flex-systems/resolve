@@ -21,6 +21,7 @@ import {
 	createTestQuestion,
 	createTestAnswer,
 } from '@/__tests__/integration/fixtures';
+import { copyPageTemplate } from '../pageQueries';
 
 describe('answerQueries integration', () => {
 	let db: Kysely<DB>;
@@ -186,19 +187,18 @@ describe('answerQueries integration', () => {
 				created_by: user.id,
 			});
 
-			// Create question on pageA that calls instanceB
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create question on pageA that calls instanceB - use createAnswer to insert edges
 			const questionA = await createTestQuestion(db, { client_id: client.id, page_id: pageA.id, created_by: user.id });
-			await createTestAnswer(db, {
-				client_id: client.id,
-				question_id: questionA.id,
-				created_by: user.id,
+			await createAnswer(ctx, pageA.id, questionA.id, {
+				text: 'Call to B',
+				position: 0,
 				calls_instance_id: instanceB.id,
 			});
 
 			// Create question on pageB
 			const questionB = await createTestQuestion(db, { client_id: client.id, page_id: pageB.id, created_by: user.id });
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Try to create answer on pageB that calls instanceA (would create cycle: A->B->A)
 			await expect(
@@ -206,6 +206,68 @@ describe('answerQueries integration', () => {
 					text: 'Back to A',
 					position: 0,
 					calls_instance_id: instanceA.id,
+				})
+			).rejects.toThrow(/would create a cycle/);
+		});
+
+		it('should detect cycles after copying a page template with calls_instance_id', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			// Create target page instance that will be called
+			const targetPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target' });
+			const targetInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: targetPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Create source page with a question and answer that calls target
+			const sourcePage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Source' });
+			const questionOnSource = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: sourcePage.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: questionOnSource.id,
+				created_by: user.id,
+				text: 'Calls Target',
+				calls_instance_id: targetInstance.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Copy the source page template - this should create answer_call_edges for the copied answer
+			const copiedPage = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: -1, position: 0 });
+
+			// Verify answer_call_edges were created for the copied page's instance
+			const edges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('from_instance_id', '=', copiedPage.instance_id)
+				.execute();
+			expect(edges.length).toBe(1);
+			expect(edges[0].to_instance_id).toBe(targetInstance.id);
+
+			// Now try to create an answer on the TARGET page that calls back to the COPIED page's instance
+			// This should detect a cycle: copiedPage -> targetPage -> copiedPage
+			const questionOnTarget = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: targetPage.id,
+				created_by: user.id,
+				text: 'Q on Target',
+			});
+
+			await expect(
+				createAnswer(ctx, targetPage.id, questionOnTarget.id, {
+					text: 'Back to Copied',
+					position: 0,
+					calls_instance_id: copiedPage.instance_id,
 				})
 			).rejects.toThrow(/would create a cycle/);
 		});
@@ -512,15 +574,14 @@ describe('answerQueries integration', () => {
 				created_by: user.id,
 			});
 
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
 			const questionA = await createTestQuestion(db, { client_id: client.id, page_id: pageA.id, created_by: user.id });
-			await createTestAnswer(db, {
-				client_id: client.id,
-				question_id: questionA.id,
-				created_by: user.id,
+			await createAnswer(ctx, pageA.id, questionA.id, {
+				text: 'Call to B',
+				position: 0,
 				calls_instance_id: instanceB.id,
 			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			const result = await getAnswerCallGraph(ctx, checklist.id);
 
@@ -581,11 +642,12 @@ describe('answerQueries integration', () => {
 				created_by: user1.id,
 			});
 
+			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
+
 			const questionA = await createTestQuestion(db, { client_id: client1.id, page_id: pageA.id, created_by: user1.id });
-			await createTestAnswer(db, {
-				client_id: client1.id,
-				question_id: questionA.id,
-				created_by: user1.id,
+			await createAnswer(ctx1, pageA.id, questionA.id, {
+				text: 'Call to B',
+				position: 0,
 				calls_instance_id: instanceB.id,
 			});
 
@@ -704,6 +766,31 @@ describe('answerQueries integration', () => {
 			expect(answers.find((a) => a.id === a1.id)?.position).toBe(2);
 		});
 
+		it('should reorder sibling answers when position changes', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+
+			const a1 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A1', position: 0 });
+			const a2 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A2', position: 1 });
+			const a3 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A3', position: 2 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await modifyAnswer(ctx, page.id, a2.id, { position: 0 });
+
+			const answers = await db
+				.selectFrom('answer')
+				.select(['id', 'text', 'position'])
+				.where('question_id', '=', question.id)
+				.orderBy('position')
+				.execute();
+
+			expect(answers.map((answer) => answer.text)).toEqual(['A2', 'A1', 'A3']);
+			expect(answers.map((answer) => answer.position)).toEqual([0, 1, 2]);
+		});
+
 		it('should bump page version', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -747,29 +834,137 @@ describe('answerQueries integration', () => {
 				created_by: user.id,
 			});
 
-			// Create question on pageA that calls instanceB
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create question on pageA that calls instanceB - use createAnswer to insert edges
 			const questionA = await createTestQuestion(db, { client_id: client.id, page_id: pageA.id, created_by: user.id });
-			await createTestAnswer(db, {
-				client_id: client.id,
-				question_id: questionA.id,
-				created_by: user.id,
+			await createAnswer(ctx, pageA.id, questionA.id, {
+				text: 'Call to B',
+				position: 0,
 				calls_instance_id: instanceB.id,
 			});
 
 			// Create question on pageB with no call
 			const questionB = await createTestQuestion(db, { client_id: client.id, page_id: pageB.id, created_by: user.id });
-			const answerB = await createTestAnswer(db, {
+			const answerB = await createAnswer(ctx, pageB.id, questionB.id, {
+				text: 'No call yet',
+				position: 0,
+				calls_instance_id: null,
+			});
+
+			// Try to update answerB to call instanceA (would create cycle: A->B->A)
+			await expect(
+				modifyAnswer(ctx, pageB.id, answerB.id, { calls_instance_id: instanceA.id })
+			).rejects.toThrow(/would create a cycle/);
+		});
+
+		it('should insert and delete call edges when updating calls_instance_id', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const targetPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+
+			const pageInstance = await createTestPageInstance(db, {
 				client_id: client.id,
-				question_id: questionB.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			const targetInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: targetPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
 				created_by: user.id,
 				calls_instance_id: null,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			// Try to update answerB to call instanceA (would create cycle: A->B->A)
+			await modifyAnswer(ctx, page.id, answer.id, { calls_instance_id: targetInstance.id });
+
+			const insertedEdges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('answer_id', '=', answer.id)
+				.execute();
+
+			expect(insertedEdges).toHaveLength(1);
+			expect(insertedEdges[0].from_instance_id).toBe(pageInstance.id);
+			expect(insertedEdges[0].to_instance_id).toBe(targetInstance.id);
+
+			await modifyAnswer(ctx, page.id, answer.id, { calls_instance_id: null });
+
+			const remainingEdges = await db
+				.selectFrom('answer_call_edges')
+				.selectAll()
+				.where('answer_id', '=', answer.id)
+				.execute();
+
+			expect(remainingEdges).toHaveLength(0);
+		});
+
+		it('should detect cycles across multiple checklists when updating calls_instance_id', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklistA = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklistB = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+
+			const pageA = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const pageB = await createTestPage(db, { client_id: client.id, created_by: user.id });
+
+			const instanceA1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageA.id,
+				checklist_id: checklistA.id,
+				created_by: user.id,
+			});
+			const instanceB1 = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageB.id,
+				checklist_id: checklistA.id,
+				created_by: user.id,
+			});
+			await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageA.id,
+				checklist_id: checklistB.id,
+				created_by: user.id,
+			});
+			await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageB.id,
+				checklist_id: checklistB.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const questionOnPageB = await createTestQuestion(db, { client_id: client.id, page_id: pageB.id, created_by: user.id });
+			await createAnswer(ctx, pageB.id, questionOnPageB.id, {
+				text: 'Back to A',
+				position: 0,
+				calls_instance_id: instanceA1.id,
+			});
+
+			const questionOnPageA = await createTestQuestion(db, { client_id: client.id, page_id: pageA.id, created_by: user.id });
+			const answerOnPageA = await createAnswer(ctx, pageA.id, questionOnPageA.id, {
+				text: 'No call yet',
+				position: 0,
+				calls_instance_id: null,
+			});
+
 			await expect(
-				modifyAnswer(ctx, pageB.id, answerB.id, { calls_instance_id: instanceA.id })
+				modifyAnswer(ctx, pageA.id, answerOnPageA.id, { calls_instance_id: instanceB1.id })
 			).rejects.toThrow(/would create a cycle/);
 		});
 
@@ -795,15 +990,14 @@ describe('answerQueries integration', () => {
 				created_by: user.id,
 			});
 
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
 			const questionA = await createTestQuestion(db, { client_id: client.id, page_id: pageA.id, created_by: user.id });
-			const answer = await createTestAnswer(db, {
-				client_id: client.id,
-				question_id: questionA.id,
-				created_by: user.id,
+			const answer = await createAnswer(ctx, pageA.id, questionA.id, {
+				text: 'Call to B',
+				position: 0,
 				calls_instance_id: instanceB.id,
 			});
-
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			const result = await modifyAnswer(ctx, pageA.id, answer.id, { calls_instance_id: null });
 

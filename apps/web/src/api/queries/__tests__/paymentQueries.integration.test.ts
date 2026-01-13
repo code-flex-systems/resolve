@@ -25,6 +25,7 @@ import {
 	updatePayment,
 	archivePayment,
 	getPaymentForArchive,
+	recalculateClaimAmount,
 } from '../paymentQueries';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
@@ -51,14 +52,14 @@ describe('paymentQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const paymentDate = new Date().toISOString().split('T')[0];
+			const paymentDate = new Date();
 
 			// Act - wrap in transaction as controller would
 			const result = await db.transaction().execute(async (trx) => {
 				return createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '5000',
+					payment_amount: 5000,
 					is_subrogable: true,
 					is_expense: false,
 				});
@@ -87,14 +88,14 @@ describe('paymentQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const paymentDate = new Date().toISOString().split('T')[0];
+			const paymentDate = new Date();
 
 			// Act - create two subrogable payments
 			await db.transaction().execute(async (trx) => {
 				await createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '3000',
+					payment_amount: 3000,
 					is_subrogable: true,
 					is_expense: false,
 				});
@@ -103,7 +104,7 @@ describe('paymentQueries integration', () => {
 				await createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '2000',
+					payment_amount: 2000,
 					is_subrogable: true,
 					is_expense: false,
 				});
@@ -131,14 +132,14 @@ describe('paymentQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const paymentDate = new Date().toISOString().split('T')[0];
+			const paymentDate = new Date();
 
 			// Act - create one subrogable, one non-subrogable
 			await db.transaction().execute(async (trx) => {
 				await createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '3000',
+					payment_amount: 3000,
 					is_subrogable: true,
 					is_expense: false,
 				});
@@ -147,7 +148,7 @@ describe('paymentQueries integration', () => {
 				await createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '2000',
+					payment_amount: 2000,
 					is_subrogable: false, // Not subrogable
 					is_expense: true,
 				});
@@ -175,14 +176,14 @@ describe('paymentQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const paymentDate = new Date().toISOString().split('T')[0];
+			const paymentDate = new Date();
 
 			// Act - create a payment and a credit (negative)
 			await db.transaction().execute(async (trx) => {
 				await createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '5000',
+					payment_amount: 5000,
 					is_subrogable: true,
 					is_expense: false,
 				});
@@ -191,7 +192,7 @@ describe('paymentQueries integration', () => {
 				await createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
 					payment_date: paymentDate,
-					payment_amount: '-1000', // Credit
+					payment_amount: -1000, // Credit
 					is_subrogable: true,
 					is_expense: false,
 				});
@@ -236,8 +237,8 @@ describe('paymentQueries integration', () => {
 			const result = await db.transaction().execute(async (trx) => {
 				return createPayment({ ...ctx, db: trx }, claim.id, {
 					coverage_id: coverage.id,
-					payment_date: new Date().toISOString().split('T')[0],
-					payment_amount: '1000',
+					payment_date: new Date(),
+					payment_amount: 1000,
 					is_subrogable: true,
 					is_expense: false,
 					payee_claim_party_id: claimParty.id,
@@ -550,7 +551,7 @@ describe('paymentQueries integration', () => {
 			// Act
 			const result = await db.transaction().execute(async (trx) => {
 				return updatePayment({ ...ctx, db: trx }, payment.id, {
-					payment_amount: '2000',
+					payment_amount: 2000,
 					description: 'Updated',
 				});
 			});
@@ -635,7 +636,7 @@ describe('paymentQueries integration', () => {
 			// Act
 			await db.transaction().execute(async (trx) => {
 				return updatePayment({ ...ctx, db: trx }, payment.id, {
-					payment_amount: '2500',
+					payment_amount: 2500,
 				});
 			});
 
@@ -701,7 +702,7 @@ describe('paymentQueries integration', () => {
 			// Act & Assert
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return updatePayment({ ...ctx, db: trx }, 999999, { payment_amount: '1000' });
+					return updatePayment({ ...ctx, db: trx }, 999999, { payment_amount: 1000 });
 				})
 			).rejects.toThrow('Payment not found');
 		});
@@ -730,7 +731,7 @@ describe('paymentQueries integration', () => {
 			// Act & Assert - Cannot update deleted payment
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return updatePayment({ ...ctx, db: trx }, payment.id, { payment_amount: '9999' });
+					return updatePayment({ ...ctx, db: trx }, payment.id, { payment_amount: 9999 });
 				})
 			).rejects.toThrow('Payment not found');
 		});
@@ -759,7 +760,7 @@ describe('paymentQueries integration', () => {
 			// Act & Assert - Other client should not be able to update
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return updatePayment({ ...ctx2, db: trx }, payment.id, { payment_amount: '9999' });
+					return updatePayment({ ...ctx2, db: trx }, payment.id, { payment_amount: 9999 });
 				})
 			).rejects.toThrow('Payment not found');
 		});
@@ -1035,6 +1036,96 @@ describe('paymentQueries integration', () => {
 					return archivePayment({ ...ctx2, db: trx }, payment.id, claim.id);
 				})
 			).rejects.toThrow();
+		});
+	});
+
+	describe('recalculateClaimAmount', () => {
+		it('should recalculate claim_amount from subrogable payments', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '1500',
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '500',
+				is_subrogable: false,
+			});
+
+			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(1500);
+		});
+
+		it('should exclude archived payments from recalculation', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '2000',
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '1000',
+				is_subrogable: true,
+				deleted_at: new Date(),
+				deleted_by: user.id,
+			});
+
+			await db.updateTable('claim').set({ claim_amount: '0' }).where('id', '=', claim.id).execute();
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(2000);
 		});
 	});
 });

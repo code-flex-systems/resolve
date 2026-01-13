@@ -120,22 +120,22 @@ export async function getResponsesForAnswer(
 }
 
 /**
- * Gather all responses for a claim on a checklist keyed by question id.
+ * Gather all responses for a specific page instance keyed by question id.
  *
  * @param ctx - request context
  * @param checklistId - checklist identifier
  * @param claimId - claim identifier
- * @param instanceId - optional instance filter
+ * @param instanceId - page instance id (required)
  * @returns map of question id to response
  */
-export async function getResponsesForClaimChecklist(
+export async function getResponsesForPageInstance(
 	ctx: ProtectedContext,
 	checklistId: number,
 	claimId: number,
-	instanceId?: number
+	instanceId: number
 ) {
-	// Fetch all responses for the given claim and checklist
-	const responses: QuestionResponse[] = await ctx.db
+	// Fetch all responses for the given page instance
+	const responses = await ctx.db
 		.selectFrom('question_response')
 		.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
 		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
@@ -157,20 +157,19 @@ export async function getResponsesForClaimChecklist(
 				.as('selected_answers'),
 		])
 		.where('question_response.client_id', '=', ctx.session.user.client_id)
-		.where((eb) => {
-			const andClause = [
-				eb('question_response.checklist_id', '=', checklistId),
-				eb('question_response.claim_id', '=', claimId),
-			];
-			if (instanceId) andClause.push(eb('question_response.instance_id', '=', instanceId));
-			return eb.and(andClause);
-		})
+		.where('question_response.checklist_id', '=', checklistId)
+		.where('question_response.claim_id', '=', claimId)
+		.where('question_response.instance_id', '=', instanceId)
 		.groupBy('question_response.id')
 		.orderBy('question_response.instance_id')
 		.execute();
-	const responseMap: Record<number, QuestionResponse> = {};
+	// Build map keyed by question_id, excluding nulls
+	type ResponseWithNonNullQuestionId = Omit<(typeof responses)[0], 'question_id'> & { question_id: number };
+	const responseMap: Record<number, ResponseWithNonNullQuestionId> = {};
 	responses.forEach((r) => {
-		responseMap[r.question_id] = r;
+		if (r.question_id !== null) {
+			responseMap[r.question_id] = r as ResponseWithNonNullQuestionId;
+		}
 	});
 	return responseMap;
 }
@@ -181,7 +180,8 @@ export async function getResponseAuditLogs(
 	limit: number,
 	offset: number
 ) {
-	const baseQuery = ctx.db
+	// Use COUNT(*) OVER() window function for single-query count+data
+	const rowsWithCount = await ctx.db
 		.selectFrom('response_audit_logs')
 		.leftJoin('users', 'response_audit_logs.user_id', 'users.id')
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
@@ -200,19 +200,24 @@ export async function getResponseAuditLogs(
 			}
 			if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
 			return eb.and(whereClause);
-		});
-	const dataQuery = baseQuery
+		})
 		.selectAll('response_audit_logs')
-		.select(['users.first', 'users.last', 'users.email'])
+		.select([
+			'users.first',
+			'users.last',
+			'users.email',
+			sql<string>`COUNT(*) OVER()`.as('total_count'),
+		])
 		.orderBy('created_at desc')
 		.limit(limit)
-		.offset(offset);
-	const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));
-	const [data, count] = await Promise.all([dataQuery.execute(), countQuery.executeTakeFirst()]);
-	return {
-		rows: data,
-		count: parseInt(count?.count?.toString() ?? '0'),
-	};
+		.offset(offset)
+		.execute();
+
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
+	// Strip total_count from rows before returning
+	const rows = rowsWithCount.map(({ total_count, ...rest }) => rest);
+
+	return { rows, count };
 }
 
 export async function getResponseAuditLogStats(
@@ -284,56 +289,92 @@ export async function exportResponseAuditLogs(
 
 /**
  * Insert or update multiple question responses and their selected answers.
+ * Uses batched operations to minimize database round-trips.
  *
  * @param ctx - request context
  * @param responses - array of responses to upsert
  * @returns updated status for the associated page instance
  */
-export async function upsertQuestionResponses(
-	ctx: ProtectedContext,
-	responses: QuestionResponse[]
-) {
-	for (const response of responses) {
-		// Fetch existing response if any
-		const oldRow = await ctx.db
-			.selectFrom('question_response')
-			.select(['id', 'response_text', 'response_doc_id', 'created_by', 'updated_by'])
-			.where('question_response.client_id', '=', ctx.session.user.client_id)
-			.where('checklist_id', '=', response.checklist_id)
-			.where('instance_id', '=', response.instance_id)
-			.where('claim_id', '=', response.claim_id)
-			.where('question_id', '=', response.question_id)
-			.executeTakeFirst();
+export async function upsertQuestionResponses(ctx: ProtectedContext, responses: QuestionResponse[]) {
+	const sample = responses[0];
+	const clientId = ctx.session.user.client_id;
+	const userId = ctx.session.user.id;
 
-		// Gather snapshots for logging
-		const oldAnswers = oldRow
+	// 1. Batch fetch all existing responses
+	const questionIds = responses.map((r) => r.question_id);
+	const existingResponses = await ctx.db
+		.selectFrom('question_response')
+		.select(['id', 'question_id', 'response_text', 'response_doc_id', 'created_by', 'updated_by'])
+		.where('question_response.client_id', '=', clientId)
+		.where('checklist_id', '=', sample.checklist_id)
+		.where('instance_id', '=', sample.instance_id)
+		.where('claim_id', '=', sample.claim_id)
+		.where('question_id', 'in', questionIds)
+		.execute();
+
+	// Create lookup map by question_id
+	const existingByQuestionId = new Map(existingResponses.map((r) => [r.question_id, r]));
+	const existingResponseIds = existingResponses.map((r) => r.id);
+
+	// 2. Batch fetch all existing answers for those responses
+	const existingAnswers =
+		existingResponseIds.length > 0
 			? await ctx.db
 					.selectFrom('question_response_answer')
 					.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
 					.select([
+						'question_response_answer.response_id',
 						'answer.id as answer_id',
 						'answer.text as label',
 						'question_response_answer.additional_info',
 					])
-					.where('question_response_answer.response_id', '=', oldRow.id)
+					.where('question_response_answer.response_id', 'in', existingResponseIds)
 					.execute()
 			: [];
 
-		// 3) build the "new" shape for comparison
+	// Group answers by response_id
+	const answersByResponseId = new Map<number, typeof existingAnswers>();
+	for (const ans of existingAnswers) {
+		if (!answersByResponseId.has(ans.response_id)) {
+			answersByResponseId.set(ans.response_id, []);
+		}
+		answersByResponseId.get(ans.response_id)!.push(ans);
+	}
+
+	// 3. Categorize responses into: unchanged (skip), deletes, upserts
+	type DeleteInfo = {
+		response: QuestionResponse;
+		oldRow: (typeof existingResponses)[0];
+		oldAnswerSnapshots: AuditAnswerSnapshot[];
+	};
+	type UpsertInfo = {
+		response: QuestionResponse;
+		oldRow: (typeof existingResponses)[0] | undefined;
+		oldAnswerSnapshots: AuditAnswerSnapshot[];
+		oldDocId: number | null;
+		newDocId: number | null;
+	};
+
+	const toDelete: DeleteInfo[] = [];
+	const toUpsert: UpsertInfo[] = [];
+	const docsToUnlink: number[] = [];
+	const docsToLink: { docId: number; questionId: number }[] = [];
+
+	for (const response of responses) {
+		const oldRow = existingByQuestionId.get(response.question_id);
+		const oldAnswers = oldRow ? answersByResponseId.get(oldRow.id) ?? [] : [];
+
 		const newText = response.response_text ?? null;
 		const oldText = oldRow?.response_text ?? null;
 		const newDocId = response.response_doc_id ?? null;
 		const oldDocId = oldRow?.response_doc_id ?? null;
 
-		// 4) if nothing changed, skip the rest
+		// Check if unchanged
 		if (
 			oldText === newText &&
 			oldDocId === newDocId &&
 			isEqual(
-				oldAnswers.map((r) => ({
-					answer_id: r.answer_id,
-					additional_info: r.additional_info ?? null,
-				})),
+				oldAnswers.map((r) => ({ answer_id: r.answer_id, additional_info: r.additional_info ?? null })),
 				(response.selected_answers ?? []).map((r) => ({
 					answer_id: r.answer_id,
 					additional_info: r.additional_info ?? null,
@@ -354,119 +395,231 @@ export async function upsertQuestionResponses(
 			(!response.selected_answers || response.selected_answers.length === 0);
 
 		if (shouldClear && oldRow) {
-			// Log the delete action (no new data)
-			await insertResponseAuditLog(ctx.db, {
-				responseId: oldRow.id,
-				clientId: ctx.session.user.client_id,
-				userId: oldRow.updated_by ?? oldRow.created_by,
-				checklistId: response.checklist_id,
-				instanceId: response.instance_id,
-				claimId: response.claim_id,
-				questionId: response.question_id,
-				action: 'delete',
-				oldResponseText: oldRow.response_text,
-				newResponseText: null,
-				oldAnswers: oldAnswerSnapshots,
-				newAnswers: [],
-			});
-
-			// Remove the response and its answers
-			await ctx.db
-				.deleteFrom('question_response')
-				.where('id', '=', oldRow.id)
-				.where('client_id', '=', ctx.session.user.client_id)
-				.execute();
-			continue;
+			toDelete.push({ response, oldRow, oldAnswerSnapshots });
+		} else {
+			toUpsert.push({ response, oldRow, oldAnswerSnapshots, oldDocId, newDocId });
+			// Track doc changes
+			if (oldDocId && oldDocId !== newDocId) {
+				docsToUnlink.push(oldDocId);
+			}
+			if (newDocId && newDocId !== oldDocId) {
+				docsToLink.push({ docId: newDocId, questionId: response.question_id });
+			}
 		}
+	}
 
-		// Perform insert or update
-		const [saved] = await ctx.db
+	// 4. Batch delete responses that need clearing
+	if (toDelete.length > 0) {
+		const deleteIds = toDelete.map((d) => d.oldRow.id);
+		await ctx.db
+			.deleteFrom('question_response')
+			.where('id', 'in', deleteIds)
+			.where('client_id', '=', clientId)
+			.execute();
+	}
+
+	// 5. Batch upsert responses
+	let savedResponses: {
+		id: number;
+		question_id: number | null;
+		checklist_id: number;
+		instance_id: number;
+		claim_id: number;
+		response_text: string | null;
+		response_doc_id: number | null;
+		created_by: string;
+		updated_by: string | null;
+		client_id: string;
+		created_at: Date;
+		updated_at: Date;
+	}[] = [];
+	if (toUpsert.length > 0) {
+		const insertValues = toUpsert.map((u) => ({
+			checklist_id: u.response.checklist_id,
+			instance_id: u.response.instance_id,
+			claim_id: u.response.claim_id,
+			question_id: u.response.question_id,
+			response_text: u.response.response_text ?? null,
+			response_doc_id: u.response.response_doc_id ?? null,
+			client_id: clientId as string,
+			created_by: userId as string,
+		}));
+		savedResponses = (await ctx.db
 			.insertInto('question_response')
-			.values({
-				checklist_id: response.checklist_id,
-				instance_id: response.instance_id,
-				claim_id: response.claim_id,
-				question_id: response.question_id,
-				response_text: response.response_text ?? null,
-				response_doc_id: response.response_doc_id ?? null,
-				client_id: ctx.session.user.client_id,
-				created_by: ctx.session.user.id,
-			})
+			.values(insertValues)
 			.onConflict((oc) =>
 				oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
-					response_text: response.response_text ?? null,
-					response_doc_id: response.response_doc_id ?? null,
-					updated_by: ctx.session.user.id,
+					response_text: sql`excluded.response_text`,
+					response_doc_id: sql`excluded.response_doc_id`,
+					updated_by: userId,
 					updated_at: new Date(),
 				})
 			)
 			.returningAll()
+			.execute()) as typeof savedResponses;
+	}
+
+	// Create lookup for saved responses by question_id
+	const savedByQuestionId = new Map(savedResponses.map((s) => [s.question_id, s]));
+
+	// 6. Batch delete old answers for upserted responses
+	const upsertResponseIds = savedResponses.map((s) => s.id);
+	if (upsertResponseIds.length > 0) {
+		await ctx.db.deleteFrom('question_response_answer').where('response_id', 'in', upsertResponseIds).execute();
+	}
+
+	// 7. Batch insert new answers
+	const allNewAnswers: { response_id: number; answer_id: number; additional_info: string | null }[] = [];
+	for (const u of toUpsert) {
+		const saved = savedByQuestionId.get(u.response.question_id);
+		if (saved && u.response.selected_answers?.length) {
+			for (const a of u.response.selected_answers) {
+				allNewAnswers.push({
+					response_id: saved.id,
+					answer_id: a.answer_id,
+					additional_info: a.additional_info ?? null,
+				});
+			}
+		}
+	}
+	if (allNewAnswers.length > 0) {
+		await ctx.db.insertInto('question_response_answer').values(allNewAnswers).execute();
+	}
+
+	// 8. Batch unlink old docs
+	if (docsToUnlink.length > 0) {
+		await ctx.db
+			.updateTable('doc')
+			.set({ response_doc_id: null })
+			.where('id', 'in', docsToUnlink)
+			.where('client_id', '=', clientId)
 			.execute();
+	}
 
-		// Delete existing answers
-		await ctx.db.deleteFrom('question_response_answer').where('response_id', '=', saved.id).execute();
-
-		// Insert new answers if provided
-		if (response?.selected_answers?.length) {
-			await ctx.db
-				.insertInto('question_response_answer')
-				.values(
-					response.selected_answers.map((a) => ({
-						response_id: saved.id,
-						answer_id: a.answer_id,
-						additional_info: a.additional_info ?? null,
-					}))
-				)
-				.execute();
-		}
-
-		// Handle document linking/unlinking
-		if (oldDocId && oldDocId !== newDocId) {
-			// Unlink the old document
-			await ctx.db
-				.updateTable('doc')
-				.set({ response_doc_id: null })
-				.where('id', '=', oldDocId)
-				.where('client_id', '=', ctx.session.user.client_id)
-				.execute();
-		}
-		if (newDocId && newDocId !== oldDocId) {
-			// Link the new document
+	// 9. Batch link new docs (each doc links to its response)
+	for (const { docId, questionId } of docsToLink) {
+		const saved = savedByQuestionId.get(questionId);
+		if (saved) {
 			await ctx.db
 				.updateTable('doc')
 				.set({ response_doc_id: saved.id })
-				.where('id', '=', newDocId)
-				.where('client_id', '=', ctx.session.user.client_id)
+				.where('id', '=', docId)
+				.where('client_id', '=', clientId)
 				.execute();
 		}
+	}
 
-		const newAnswerSnapshots: AuditAnswerSnapshot[] = await ctx.db
-			.selectFrom('question_response_answer')
-			.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
-			.select(['answer.text as label', 'question_response_answer.additional_info'])
-			.where('question_response_answer.response_id', '=', saved.id)
-			.execute();
+	// 10. Fetch question/page info for audit logs (batch)
+	const allQuestionIds = [
+		...toDelete.map((d) => d.response.question_id),
+		...toUpsert.map((u) => u.response.question_id),
+	];
+	const questionPageInfo =
+		allQuestionIds.length > 0
+			? await ctx.db
+					.selectFrom('question')
+					.innerJoin('page', 'page.id', 'question.page_id')
+					.select(['question.id as question_id', 'question.text as question_text', 'page.title as page_label'])
+					.where('question.id', 'in', allQuestionIds)
+					.execute()
+			: [];
+	const questionInfoMap = new Map(questionPageInfo.map((q) => [q.question_id, q]));
 
-		// Log the change
-		await insertResponseAuditLog(ctx.db, {
-			responseId: saved.id,
-			clientId: ctx.session.user.client_id,
-			userId: saved.updated_by ?? saved.created_by,
-			checklistId: saved.checklist_id,
-			instanceId: saved.instance_id,
-			claimId: saved.claim_id,
-			questionId: saved.question_id,
-			action: oldRow ? 'update' : 'insert',
-			oldResponseText: oldRow?.response_text ?? null,
-			newResponseText: saved.response_text,
-			oldAnswers: oldAnswerSnapshots,
-			newAnswers: newAnswerSnapshots,
+	// 11. Fetch new answer labels for audit logs (batch)
+	const newAnswerLabels =
+		allNewAnswers.length > 0
+			? await ctx.db
+					.selectFrom('question_response_answer')
+					.innerJoin('answer', 'answer.id', 'question_response_answer.answer_id')
+					.select([
+						'question_response_answer.response_id',
+						'answer.text as label',
+						'question_response_answer.additional_info',
+					])
+					.where('question_response_answer.response_id', 'in', upsertResponseIds)
+					.execute()
+			: [];
+	const newAnswerLabelsByResponseId = new Map<number, AuditAnswerSnapshot[]>();
+	for (const ans of newAnswerLabels) {
+		if (!newAnswerLabelsByResponseId.has(ans.response_id)) {
+			newAnswerLabelsByResponseId.set(ans.response_id, []);
+		}
+		newAnswerLabelsByResponseId.get(ans.response_id)!.push({
+			label: ans.label,
+			additional_info: ans.additional_info,
 		});
 	}
 
-	// Update page instance status based on ALL responses for this page instance
-	const sample = responses[0];
+	// 12. Batch insert audit logs
+	const auditEntries: {
+		client_id: string;
+		user_id: string;
+		checklist_id: number;
+		instance_id: number;
+		claim_id: number;
+		response_id: number;
+		question_id: number;
+		question_text: string;
+		page_label: string;
+		action: 'insert' | 'update' | 'delete';
+		old_response_text: string | null;
+		new_response_text: string | null;
+		old_answers: string;
+		new_answers: string;
+	}[] = [];
 
+	// Add delete audit entries
+	for (const d of toDelete) {
+		const qInfo = questionInfoMap.get(d.response.question_id);
+		const deleteUserId = (d.oldRow.updated_by ?? d.oldRow.created_by ?? userId) as string;
+		auditEntries.push({
+			client_id: clientId as string,
+			user_id: deleteUserId,
+			checklist_id: d.response.checklist_id,
+			instance_id: d.response.instance_id,
+			claim_id: d.response.claim_id,
+			response_id: d.oldRow.id,
+			question_id: d.response.question_id,
+			question_text: qInfo?.question_text ?? '',
+			page_label: qInfo?.page_label ?? '',
+			action: 'delete',
+			old_response_text: d.oldRow.response_text,
+			new_response_text: null,
+			old_answers: JSON.stringify(d.oldAnswerSnapshots),
+			new_answers: JSON.stringify([]),
+		});
+	}
+
+	// Add upsert audit entries
+	for (const u of toUpsert) {
+		const saved = savedByQuestionId.get(u.response.question_id);
+		if (!saved) continue;
+		const qInfo = questionInfoMap.get(u.response.question_id);
+		const newSnapshots = newAnswerLabelsByResponseId.get(saved.id) ?? [];
+		const upsertUserId = (saved.updated_by ?? saved.created_by ?? userId) as string;
+		auditEntries.push({
+			client_id: clientId as string,
+			user_id: upsertUserId,
+			checklist_id: saved.checklist_id,
+			instance_id: saved.instance_id,
+			claim_id: saved.claim_id,
+			response_id: saved.id,
+			question_id: u.response.question_id,
+			question_text: qInfo?.question_text ?? '',
+			page_label: qInfo?.page_label ?? '',
+			action: u.oldRow ? 'update' : 'insert',
+			old_response_text: u.oldRow?.response_text ?? null,
+			new_response_text: saved.response_text,
+			old_answers: JSON.stringify(u.oldAnswerSnapshots),
+			new_answers: JSON.stringify(newSnapshots),
+		});
+	}
+
+	if (auditEntries.length > 0) {
+		await ctx.db.insertInto('response_audit_logs').values(auditEntries).execute();
+	}
+
+	// Update page instance status based on ALL responses for this page instance
 	// Get total question count and answered count for this page instance
 	const statusResult = await ctx.db
 		.selectFrom('question')

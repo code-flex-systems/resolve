@@ -1,7 +1,8 @@
 import * as settlementQueries from '@/api/queries/settlementQueries';
+import * as recoveryQueries from '@/api/queries/recoveryQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { SettlementParams, SettlementUpdateParams } from '@/schemas/settlementSchemas';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
 
 // =====================================================================
 // SETTLEMENT CONTROLLERS
@@ -127,7 +128,8 @@ export async function updateSettlement(
 }
 
 /**
- * Delete a settlement and its associated recovery events.
+ * Archive (soft delete) a settlement and its associated recovery events.
+ * Uses bulk operations and bulk logging - no loops.
  *
  * @param ctx - request context
  * @param input - settlement id and claim id
@@ -142,29 +144,53 @@ export async function deleteSettlement(
 		claimId: number;
 	}
 ) {
-	// Delete settlement and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch settlement data BEFORE deletion for logging
-		const settlement = await settlementQueries.getSettlementForDeletion({ ...ctx, db: trx }, settlementId);
+		const trxCtx = { ...ctx, db: trx };
 
-		// Delete the settlement (cascades to recovery events)
-		await settlementQueries.deleteSettlement({ ...ctx, db: trx }, settlementId, claimId);
+		// Bulk archive recovery events - returns all archived data via RETURNING, updates claim.actual_recovery
+		const archivedEvents = await recoveryQueries.archiveRecoveryEventsForSettlement(trxCtx, settlementId, claimId);
 
-		// Log admin action for settlement deletion
-		if (settlement) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: settlementId,
-				entityName: EntityName.SETTLEMENT,
+		// Archive settlement - returns all fields via RETURNING
+		const archivedSettlement = await settlementQueries.archiveSettlement(trxCtx, settlementId, claimId);
+
+		// Calculate total for settlement log
+		const totalRecoveryDeducted = archivedEvents.reduce(
+			(sum, event) => sum + parseFloat(event.recovery_amount),
+			0
+		);
+
+		// Bulk log recovery event deletions (if any)
+		if (archivedEvents.length > 0) {
+			await logAdminActions(trxCtx, archivedEvents.map(event => ({
+				entityId: event.id,
+				entityName: EntityName.RECOVERY_EVENT,
 				action: AdminAction.DELETE,
 				value: {
-					claimId: settlement.claim_id,
-					claim_party_id: settlement.claim_party_id,
-					coverage_id: settlement.coverage_id,
-					demand_amount: settlement.demand_amount,
-					demand_date: settlement.demand_date,
-					status: settlement.status,
+					claimId: event.claim_id,
+					settlementId,
+					recovery_amount: event.recovery_amount,
+					recovery_date: event.recovery_date,
+					recovery_source: event.recovery_source,
+					reason: 'Cascade from settlement archive',
 				},
-			});
+			})));
 		}
+
+		// Log settlement archive
+		await logAdminAction(trxCtx, {
+			entityId: archivedSettlement.id,
+			entityName: EntityName.SETTLEMENT,
+			action: AdminAction.DELETE,
+			value: {
+				claimId: archivedSettlement.claim_id,
+				claim_party_id: archivedSettlement.claim_party_id,
+				coverage_id: archivedSettlement.coverage_id,
+				demand_amount: archivedSettlement.demand_amount,
+				demand_date: archivedSettlement.demand_date,
+				status: archivedSettlement.status,
+				cascaded_recovery_events: archivedEvents.length,
+				total_recovery_deducted: totalRecoveryDeducted,
+			},
+		});
 	});
 }

@@ -12,7 +12,7 @@ import Toolbar from '../common/Toolbar';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AddressActionsCell from './AddressActionsCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -272,6 +272,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 							disableColumnMenu
 							sx={{
 								...styles.tableOverrides,
+								...dataGridFocusStyles,
 								'& .MuiDataGrid-cell': {
 									display: 'flex',
 									alignItems: 'center',

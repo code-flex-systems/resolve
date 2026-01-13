@@ -25,6 +25,7 @@ import {
 	createDoc,
 	getDoc,
 	getDocs,
+	listDocsWithCount,
 	getDocsByClaimId,
 	updateDoc,
 	getDocForDeletion,
@@ -37,8 +38,12 @@ import {
 	getDocGroupForDeletion,
 	deleteDocGroup,
 	getDocsInGroupRecursive,
+	archiveDocsInGroupRecursive,
+	archiveDocGroupRecursive,
+	archiveDoc,
 	getDocCountByClaimId,
 	getDocCountByGroupId,
+	getDocCountsByGroupIds,
 	docExists,
 	getOrCreateUsersFolder,
 	getOrCreateUserFolder,
@@ -106,6 +111,8 @@ describe('docQueries integration', () => {
 			const params = {
 				filename: 'default-doc.pdf',
 				alias: 'default-alias',
+				doc_type: DocType.OTHER,
+				doc_status: DocStatus.APPROVED,
 				file_size: 1024,
 				mime_type: 'application/pdf',
 			};
@@ -477,6 +484,68 @@ describe('docQueries integration', () => {
 			const result = await getDocs(ctx2);
 
 			expect(result.every((d) => d.client_id === client2.id)).toBe(true);
+		});
+
+		it('should exclude soft-deleted docs from results', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const activeDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'active-doc.pdf',
+			});
+			const deletedDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'deleted-doc.pdf',
+			});
+
+			// Soft-delete one doc
+			await db
+				.updateTable('doc')
+				.set({
+					deleted_at: new Date(),
+					deleted_by: user.id,
+				})
+				.where('id', '=', deletedDoc.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getDocs(ctx, { claim_id: claim.id });
+
+			// Assert - only the non-deleted doc should be returned
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(activeDoc.id);
+			expect(result[0].filename).toBe('active-doc.pdf');
+		});
+	});
+
+	describe('listDocsWithCount', () => {
+		it('should return paginated rows with accurate total count', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			await createTestDoc(db, { client_id: client.id, created_by: user.id, claim_id: claim.id, filename: 'count-1.pdf' });
+			await createTestDoc(db, { client_id: client.id, created_by: user.id, claim_id: claim.id, filename: 'count-2.pdf' });
+			await createTestDoc(db, { client_id: client.id, created_by: user.id, claim_id: claim.id, filename: 'count-3.pdf' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const page1 = await listDocsWithCount(ctx, { claim_id: claim.id }, 2, 0);
+			const page2 = await listDocsWithCount(ctx, { claim_id: claim.id }, 2, 2);
+
+			expect(page1.count).toBe(3);
+			expect(page2.count).toBe(3);
+			expect(page1.rows.length).toBe(2);
+			expect(page2.rows.length).toBe(1);
+			expect(page1.rows[0].id).not.toBe(page2.rows[0].id);
 		});
 	});
 
@@ -1044,6 +1113,62 @@ describe('docQueries integration', () => {
 		});
 	});
 
+	describe('archiveDocsInGroupRecursive', () => {
+		it('should archive documents and groups recursively', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const parent = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Archive Parent ${Date.now()}` });
+			const child = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Archive Child ${Date.now()}`,
+				parent_group_id: parent.id,
+			});
+			const grandchild = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Archive Grandchild ${Date.now()}`,
+				parent_group_id: child.id,
+			});
+
+			const docInParent = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: parent.id });
+			const docInChild = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: child.id });
+			const docInGrandchild = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: grandchild.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const archivedDocs = await archiveDocsInGroupRecursive(ctx, parent.id);
+			const archivedGroups = await archiveDocGroupRecursive(ctx, parent.id);
+
+			expect(archivedDocs.map((doc) => doc.id)).toEqual(
+				expect.arrayContaining([docInParent.id, docInChild.id, docInGrandchild.id])
+			);
+			expect(archivedGroups.map((group) => group.id)).toEqual(
+				expect.arrayContaining([parent.id, child.id, grandchild.id])
+			);
+
+			const remainingDocs = await getDocsInGroupRecursive(ctx, parent.id);
+			expect(remainingDocs.length).toBe(0);
+			await expect(getDocGroup(ctx, parent.id)).rejects.toThrow();
+		});
+	});
+
+	describe('archiveDoc', () => {
+		it('should archive a single document', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const doc = await createTestDoc(db, { client_id: client.id, created_by: user.id, filename: 'archive-me.pdf' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const archived = await archiveDoc(ctx, doc.id);
+
+			expect(archived?.id).toBe(doc.id);
+			await expect(getDoc(ctx, doc.id)).rejects.toThrow();
+		});
+	});
+
 	// =====================================================================
 	// HELPER QUERIES
 	// =====================================================================
@@ -1127,6 +1252,29 @@ describe('docQueries integration', () => {
 			const count = await getDocCountByGroupId(ctx2, group.id);
 
 			expect(count).toBe(0);
+		});
+	});
+
+	describe('getDocCountsByGroupIds', () => {
+		it('should return correct counts per group', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const groupA = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count A ${Date.now()}` });
+			const groupB = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count B ${Date.now()}` });
+			const groupC = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count C ${Date.now()}` });
+
+			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: groupA.id });
+			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: groupA.id });
+			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: groupB.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const counts = await getDocCountsByGroupIds(ctx, [groupA.id, groupB.id, groupC.id]);
+			const countMap = new Map(counts.map((entry) => [entry.doc_group_id, entry.count]));
+
+			expect(countMap.get(groupA.id)).toBe(2);
+			expect(countMap.get(groupB.id)).toBe(1);
+			expect(countMap.get(groupC.id)).toBeUndefined();
 		});
 	});
 

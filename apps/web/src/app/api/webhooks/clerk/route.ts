@@ -5,6 +5,8 @@ import { db } from '@/api/database/kysely';
 import { upsertUserFromClerk } from '@/api/queries/userQueries';
 import { getClientByClerkOrgId } from '@/api/queries/clientQueries';
 import { getClerkClient, mapClerkRoleToAppRole } from '@/lib/clerk/clerk-utils';
+import { logAuthEvent } from '@/lib/logs/logAuthEvents';
+import { AuthEventType } from '@/config/enums';
 
 /**
  * Clerk Webhook Handler
@@ -36,9 +38,8 @@ export async function POST(req: Request) {
 		return new Response('Missing svix headers', { status: 400 });
 	}
 
-	// Get the body
-	const payload = await req.json();
-	const body = JSON.stringify(payload);
+	// Get the raw body for verification
+	const body = await req.text();
 
 	// Create a new Svix instance with your secret
 	const wh = new Webhook(WEBHOOK_SECRET);
@@ -54,53 +55,72 @@ export async function POST(req: Request) {
 		}) as WebhookEvent;
 	} catch (err) {
 		console.error('Error verifying webhook:', err);
+		await logAuthEvent(null, AuthEventType.ClerkWebhookFailure, {
+			details: {
+				error: (err as Error).message,
+				svixId: svix_id,
+				step: 'verification',
+			},
+		});
 		return new Response('Error verifying webhook', { status: 400 });
 	}
 
-	// Handle the event
-	const eventType = evt.type;
-
 	try {
-		switch (eventType) {
-			case 'user.created':
-			case 'user.updated':
-				await handleUserSync(evt.data);
-				break;
-
-			case 'user.deleted':
-				await handleUserDeleted(evt.data);
-				break;
-
-			case 'organizationMembership.created':
-			case 'organizationMembership.updated':
-				await handleMembershipSync(evt.data);
-				break;
-
-			case 'organizationMembership.deleted':
-				await handleMembershipDeleted(evt.data);
-				break;
-
-			case 'organization.created':
-				await handleOrganizationCreated(evt.data);
-				break;
-
-			case 'organization.updated':
-				await handleOrganizationUpdated(evt.data);
-				break;
-
-			case 'session.created':
-				await handleSessionCreated(evt.data);
-				break;
-
-			default:
-				console.log(`Unhandled webhook event type: ${eventType}`);
-		}
+		await processClerkEvent(evt);
+		await logAuthEvent(null, AuthEventType.ClerkWebhookSuccess, {
+			details: { svixId: svix_id, eventType: evt.type },
+		});
+		return new Response('Webhook processed', { status: 200 });
 	} catch (error) {
-		console.error(`Error handling webhook ${eventType}:`, error);
+		console.error(`Error handling webhook ${evt.type}:`, error);
+		await logAuthEvent(null, AuthEventType.ClerkWebhookFailure, {
+			details: {
+				error: (error as Error).message,
+				svixId: svix_id,
+				eventType: evt.type,
+			},
+		});
 		return new Response('Error processing webhook', { status: 500 });
 	}
+}
 
-	return new Response('Webhook processed', { status: 200 });
+async function processClerkEvent(evt: WebhookEvent) {
+	const eventType = evt.type;
+
+	switch (eventType) {
+		case 'user.created':
+		case 'user.updated':
+			await handleUserSync(evt.data);
+			break;
+
+		case 'user.deleted':
+			await handleUserDeleted(evt.data);
+			break;
+
+		case 'organizationMembership.created':
+		case 'organizationMembership.updated':
+			await handleMembershipSync(evt.data);
+			break;
+
+		case 'organizationMembership.deleted':
+			await handleMembershipDeleted(evt.data);
+			break;
+
+		case 'organization.created':
+			await handleOrganizationCreated(evt.data);
+			break;
+
+		case 'organization.updated':
+			await handleOrganizationUpdated(evt.data);
+			break;
+
+		case 'session.created':
+			await handleSessionCreated(evt.data);
+			break;
+
+		default:
+			console.log(`Unhandled webhook event type: ${eventType}`);
+	}
 }
 
 /**

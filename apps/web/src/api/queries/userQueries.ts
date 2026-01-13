@@ -223,7 +223,7 @@ export async function getUsersWithDeskAssignments(
 	};
 }
 
-export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
+export async function getUsers(ctx: ProtectedContext, searchTerm?: string, role?: string) {
 	let query = ctx.db
 		.selectFrom('users')
 		.select(['id', 'first', 'last', 'email', 'phone'])
@@ -237,6 +237,9 @@ export async function getUsers(ctx: ProtectedContext, searchTerm?: string) {
 						`${searchTerm.toLowerCase()}%`
 					)
 				);
+			}
+			if (role) {
+				andClause.push(eb('role', '=', role));
 			}
 			return eb.and(andClause);
 		})

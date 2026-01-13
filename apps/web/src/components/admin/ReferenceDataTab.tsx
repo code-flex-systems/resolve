@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useCallback } from 'react';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
 import { Button, Chip, Fade, Paper, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
@@ -8,7 +9,7 @@ import Category from '@mui/icons-material/Category';
 import Label from '@mui/icons-material/Label';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -149,18 +150,26 @@ export default function ReferenceDataTab() {
 		}
 	);
 
-	// Build entity rows from known entities with display info
-	const entityRows = KNOWN_REFERENCE_ENTITIES.map((entity) => {
-		const listInfo = listsData.find((l) => l.entity === entity);
-		const displayInfo = REFERENCE_ENTITY_DISPLAY[entity];
-		return {
-			id: entity,
-			entity,
-			display_name: displayInfo.label,
-			description: displayInfo.description,
-			option_count: listInfo ? optionsData.length : 0,
-		};
-	});
+	// Build entity rows from known entities with display info (memoized)
+	const entityRows = useMemo(
+		() =>
+			KNOWN_REFERENCE_ENTITIES.map((entity) => {
+				const displayInfo = REFERENCE_ENTITY_DISPLAY[entity];
+				return {
+					id: entity,
+					entity,
+					display_name: displayInfo.label,
+					description: displayInfo.description,
+				};
+			}),
+		[] // KNOWN_REFERENCE_ENTITIES and REFERENCE_ENTITY_DISPLAY are constants
+	);
+
+	// Memoized overlay for right panel
+	const optionsOverlay = useCallback(
+		() => <OptionsOverlay selectedEntity={selectedReferenceEntity} />,
+		[selectedReferenceEntity]
+	);
 
 	return (
 		<Fade in={true} timeout={1000}>
@@ -233,8 +242,8 @@ export default function ReferenceDataTab() {
 								columnHeaderHeight={45}
 								loading={optionsFetching}
 								slots={{
-									noRowsOverlay: () => <OptionsOverlay selectedEntity={selectedReferenceEntity} />,
-									noResultsOverlay: () => <OptionsOverlay selectedEntity={selectedReferenceEntity} />,
+									noRowsOverlay: optionsOverlay,
+									noResultsOverlay: optionsOverlay,
 								}}
 								slotProps={{
 									loadingOverlay: {
@@ -294,5 +303,6 @@ const styles = {
 	},
 	tableOverrides: {
 		border: 'none',
+		...dataGridFocusStyles,
 	},
 };

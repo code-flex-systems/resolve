@@ -66,6 +66,9 @@ export enum EntityName {
 	// Reference data management entities
 	REFERENCE_LIST = 'reference_list',
 	REFERENCE_OPTION = 'reference_option',
+
+	// Statute rules (global config entity)
+	STATUTE_RULE = 'statute_rule',
 }
 
 export interface AdminActionLogParams {

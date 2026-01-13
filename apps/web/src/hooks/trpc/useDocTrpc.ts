@@ -90,12 +90,15 @@ export function useDocTrpc() {
 		getDocCountByClaimId: trpc.doc.getDocCountByClaimId.useQuery,
 
 		getDocCountByGroupId: trpc.doc.getDocCountByGroupId.useQuery,
+
+		getDocCountsByGroupIds: trpc.doc.getDocCountsByGroupIds.useQuery,
 	};
 }
 
 // Export types for use in components
 export type Doc = DocOutput['getDoc'];
-export type DocListItem = DocOutput['listDocs'][number];
+export type DocListResult = DocOutput['listDocs'];
+export type DocListItem = DocOutput['listDocs']['rows'][number];
 export type DocGroup = DocOutput['getDocGroup'];
 export type DocGroupListItem = DocOutput['listDocGroups'][number];
 export type DocGroupHierarchy = DocOutput['getDocGroupHierarchy'];
