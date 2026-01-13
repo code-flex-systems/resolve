@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SaveIcon from '@mui/icons-material/Save';
 import BasicDialog from '../common/BasicDialog';
+import DateField from '../common/DateField';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { STATUTE_TORT_TYPES, STATUTE_LOB_TYPES } from '@/config/statuteConfig';
@@ -273,34 +274,24 @@ export default function StatuteRuleDialog() {
 														))}
 													</Select>
 												</FormControl>
-												<TextField
+												<DateField
 													label="From Date"
-													type="date"
-													size="small"
-													value={rule.date_from ?? ''}
-													onChange={(e) =>
+													value={rule.date_from ?? null}
+													onChange={(val) =>
 														updateConditionalRule(tort.value, idx, {
-															date_from: e.target.value || undefined,
+															date_from: val || undefined,
 														})
 													}
-													slotProps={{
-														inputLabel: { shrink: true },
-													}}
 													sx={{ width: 150 }}
 												/>
-												<TextField
+												<DateField
 													label="To Date"
-													type="date"
-													size="small"
-													value={rule.date_to ?? ''}
-													onChange={(e) =>
+													value={rule.date_to ?? null}
+													onChange={(val) =>
 														updateConditionalRule(tort.value, idx, {
-															date_to: e.target.value || undefined,
+															date_to: val || undefined,
 														})
 													}
-													slotProps={{
-														inputLabel: { shrink: true },
-													}}
 													sx={{ width: 150 }}
 												/>
 												<TextField

@@ -14,6 +14,7 @@ import {
 	TextField,
 } from '@mui/material';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import DateField from '@/components/common/DateField';
 import dayjs from 'dayjs';
 
 const capitalize = (str: string | null | undefined) => {
@@ -82,15 +83,11 @@ export default function RecoveryFormDialog({
 							))}
 						</Select>
 					</FormControl>
-					<TextField
+					<DateField
 						label="Recovery Date"
-						type="date"
-						value={formData.recovery_date}
-						onChange={(e) => setFormData({ ...formData, recovery_date: e.target.value })}
+						value={formData.recovery_date || null}
+						onChange={(val) => setFormData({ ...formData, recovery_date: val ?? '' })}
 						fullWidth
-						slotProps={{
-							inputLabel: { shrink: true },
-						}}
 					/>
 					<TextField
 						label="Recovery Amount"

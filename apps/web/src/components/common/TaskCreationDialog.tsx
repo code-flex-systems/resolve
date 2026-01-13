@@ -1,9 +1,9 @@
 'use client';
 
 import { Stack, TextField, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import AddTask from '@mui/icons-material/AddTask';
 import BasicDialog from './BasicDialog';
+import DateField from './DateField';
 import { Controller, useForm } from 'react-hook-form';
 import { useTaskTrpc } from '@/hooks/trpc/useTaskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -11,7 +11,6 @@ import DeskLocationTypeSelect from './DeskLocationTypeSelect';
 import DeskLocationSelect from './DeskLocationSelect';
 import TaskTypeSelect from './TaskTypeSelect';
 import { TaskType } from '@/config/enums';
-import dayjs, { Dayjs } from 'dayjs';
 
 interface TaskFormInputs {
 	title: string;
@@ -19,7 +18,7 @@ interface TaskFormInputs {
 	taskType: TaskType;
 	deskLocationTypeId: number | null;
 	deskLocationId: number | null;
-	dueDate: Dayjs | null;
+	dueDate: string | null;
 	workUnits: number;
 }
 
@@ -75,7 +74,7 @@ export default function TaskCreationDialog({
 				taskType: data.taskType,
 				title: data.title,
 				description: data.description || undefined,
-				deadlineDate: data.dueDate ? data.dueDate.format('YYYY-MM-DD') : undefined,
+				deadlineDate: data.dueDate || undefined,
 				workUnits: data.workUnits,
 			});
 
@@ -174,17 +173,12 @@ export default function TaskCreationDialog({
 					name="dueDate"
 					control={control}
 					render={({ field }) => (
-						<DatePicker
+						<DateField
 							label="Due Date (optional)"
 							value={field.value}
-							onChange={(newValue) => field.onChange(newValue)}
+							onChange={field.onChange}
 							disabled={isPending}
-							slotProps={{
-								textField: {
-									variant: 'standard',
-									sx: { width: 400 },
-								},
-							}}
+							sx={{ width: 400 }}
 						/>
 					)}
 				/>
