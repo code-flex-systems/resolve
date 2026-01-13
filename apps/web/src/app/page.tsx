@@ -1,4 +1,3 @@
-'use client';
 import '@fontsource/inter';
 
 import { redirect } from 'next/navigation';
