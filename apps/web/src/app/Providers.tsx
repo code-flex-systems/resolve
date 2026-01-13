@@ -11,6 +11,7 @@ import theme from '@/styles/theme';
 import { ClerkProvider } from '@clerk/nextjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 export function Providers({ children, state }: { children: React.ReactNode; state?: DehydratedState }) {
 	// 1) Create one QueryClient, with your defaults
@@ -51,6 +52,7 @@ export function Providers({ children, state }: { children: React.ReactNode; stat
 						</LocalizationProvider>
 					</HydrationBoundary>
 				</trpc.Provider>
+				{process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
 			</QueryClientProvider>
 		</ClerkProvider>
 	);
