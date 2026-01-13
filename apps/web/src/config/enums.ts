@@ -31,6 +31,8 @@ export enum AuthEventType {
 	MfaVerified = 'mfa_verified',
 	MissingCredentials = 'missing_credentials',
 	AccountCreated = 'account_created',
+	ClerkWebhookSuccess = 'clerk_webhook_success',
+	ClerkWebhookFailure = 'clerk_webhook_failure',
 }
 
 export enum ChecklistMode {

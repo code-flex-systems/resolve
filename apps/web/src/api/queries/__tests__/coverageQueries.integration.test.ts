@@ -164,6 +164,7 @@ describe('coverageQueries integration tests', () => {
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'dwelling',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				coverage_amount: 100000,
 				amount_reserved: 5000,
 			});
@@ -190,6 +191,7 @@ describe('coverageQueries integration tests', () => {
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'liability',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 			});
 
 			expect(result.coverage.coverage_amount).toBeNull();
@@ -206,12 +208,14 @@ describe('coverageQueries integration tests', () => {
 			await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'dwelling',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				amount_reserved: 5000,
 			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'personal_property',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				amount_reserved: 2500,
 			});
 
@@ -229,6 +233,7 @@ describe('coverageQueries integration tests', () => {
 			const { coverage } = await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'dwelling',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				coverage_amount: 100000,
 				amount_reserved: 5000,
 			});
@@ -296,12 +301,14 @@ describe('coverageQueries integration tests', () => {
 			const { coverage: cov1 } = await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'dwelling',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				amount_reserved: 5000,
 			});
 
 			await createCoverage(ctx, {
 				claim_id: claim.id,
 				loss_type: 'personal_property',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				amount_reserved: 2500,
 			});
 
@@ -703,6 +710,7 @@ describe('coverageQueries integration tests', () => {
 				claim_id: claim.id,
 				claim_party_id: claimParty.id,
 				loss_type: 'dwelling',
+				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 				coverage_amount: 100000,
 			});
 

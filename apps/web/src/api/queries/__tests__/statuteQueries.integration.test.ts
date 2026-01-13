@@ -10,7 +10,7 @@
  * Tests use specific state codes and reset them after each test.
  */
 
-import { describe, it, expect, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
@@ -37,7 +37,8 @@ const SEED_JURISDICTIONS = [
 
 /**
  * Seed the statute_rule table with test data.
- * Called before each test since global beforeEach truncates tables.
+ * Called before each test to ensure consistent baseline state.
+ * Uses doUpdateSet() to restore baseline values if rows were modified by previous tests.
  */
 async function seedStatuteData(db: Kysely<DB>) {
 	await db
@@ -50,7 +51,14 @@ async function seedStatuteData(db: Kysely<DB>) {
 				negligence_bar_percent: j.negligence_bar_percent,
 			}))
 		)
-		.onConflict((oc) => oc.column('state_code').doNothing())
+		.onConflict((oc) =>
+			oc.column('state_code').doUpdateSet((eb) => ({
+				rules: eb.ref('excluded.rules'),
+				negligence_type: eb.ref('excluded.negligence_type'),
+				negligence_bar_percent: eb.ref('excluded.negligence_bar_percent'),
+				negligence_notes: null,
+			}))
+		)
 		.execute();
 }
 

@@ -142,9 +142,11 @@ describe('userQueries integration tests', () => {
 		it('should filter by inactive status (no recent login)', async () => {
 			const client = await createTestClient(db);
 			// Create admin user that won't match inactive filter
-			const adminUser = await createTestUser(db, { client_id: client.id, last_login: new Date() });
-			// Create inactive user (never logged in)
-			const inactiveUser = await createTestUser(db, { client_id: client.id, last_login: null, disabled: false });
+			const adminUser = await createTestUser(db, { client_id: client.id });
+			// Manually update last_login to be recent for adminUser
+			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', adminUser.id).execute();
+			// Create inactive user (never logged in - last_login is null by default)
+			const inactiveUser = await createTestUser(db, { client_id: client.id, disabled: false });
 			// Create active user (logged in recently)
 			const activeUser = await createTestUser(db, { client_id: client.id, disabled: false });
 			// Manually update last_login to be recent for activeUser
@@ -318,9 +320,12 @@ describe('userQueries integration tests', () => {
 	describe('getInactiveUserCount', () => {
 		it('should count users with no login', async () => {
 			const client = await createTestClient(db);
-			await createTestUser(db, { client_id: client.id, last_login: null });
-			await createTestUser(db, { client_id: client.id, last_login: null });
-			const activeUser = await createTestUser(db, { client_id: client.id, last_login: new Date() });
+			// Create users with no login (last_login is null by default)
+			await createTestUser(db, { client_id: client.id });
+			await createTestUser(db, { client_id: client.id });
+			const activeUser = await createTestUser(db, { client_id: client.id });
+			// Manually update last_login to be recent for activeUser
+			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', activeUser.id).execute();
 			const ctx = createTestContext(db, { id: activeUser.id, client_id: client.id, email: activeUser.email, role: 'Admin' });
 
 			const result = await getInactiveUserCount(ctx);
@@ -334,7 +339,8 @@ describe('userQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			// Update userA to have recent login (making them active)
 			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', userA.id).execute();
-			await createTestUser(db, { client_id: clientB.id, last_login: null });
+			// Create user in client B with no login (last_login is null by default)
+			await createTestUser(db, { client_id: clientB.id });
 			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
 
 			const result = await getInactiveUserCount(ctxA);
@@ -435,8 +441,11 @@ describe('userQueries integration tests', () => {
 
 		it('should filter by inactive status', async () => {
 			const client = await createTestClient(db);
-			await createTestUser(db, { client_id: client.id, last_login: null });
-			const activeUser = await createTestUser(db, { client_id: client.id, last_login: new Date() });
+			// Create user with no login (last_login is null by default)
+			await createTestUser(db, { client_id: client.id });
+			const activeUser = await createTestUser(db, { client_id: client.id });
+			// Manually update last_login to be recent for activeUser
+			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', activeUser.id).execute();
 			const ctx = createTestContext(db, { id: activeUser.id, client_id: client.id, email: activeUser.email, role: 'Admin' });
 
 			const inactiveCount = await getUserCount(ctx, false, true);
@@ -639,8 +648,9 @@ describe('userQueries integration tests', () => {
 			const verifiedDate = new Date('2024-01-01');
 			const existingUser = await createTestUser(db, {
 				client_id: client.id,
-				email_verified: verifiedDate,
 			});
+			// Manually set email_verified since it's not part of createTestUser params
+			await db.updateTable('users').set({ email_verified: verifiedDate }).where('id', '=', existingUser.id).execute();
 
 			const result = await upsertUserFromClerk(db, {
 				first: 'Updated',

@@ -108,7 +108,7 @@ describe('recoveryQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const recoveryDate = new Date().toISOString().split('T')[0];
+			const recoveryDate = new Date();
 
 			// Act
 			const result = await createRecoveryEvent(ctx, claim.id, {
@@ -142,7 +142,7 @@ describe('recoveryQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const recoveryDate = new Date().toISOString().split('T')[0];
+			const recoveryDate = new Date();
 
 			// Act - create two recovery events
 			await createRecoveryEvent(ctx, claim.id, {
@@ -182,7 +182,7 @@ describe('recoveryQueries integration', () => {
 			// Act
 			const result = await createRecoveryEvent(ctx, claim.id, {
 				settlement_id: settlement.id,
-				recovery_date: new Date().toISOString().split('T')[0],
+				recovery_date: new Date(),
 				recovery_amount: 1000,
 			});
 
@@ -357,6 +357,53 @@ describe('recoveryQueries integration', () => {
 			expect(result).toHaveLength(1);
 			expect(result[0].notes).toBe('Claim 1 Event');
 		});
+
+		it('should exclude soft-deleted recovery events from results', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const activeEvent = await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				notes: 'Active Event',
+			});
+			const deletedEvent = await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				notes: 'Deleted Event',
+			});
+
+			// Soft-delete one recovery event
+			await db
+				.updateTable('recovery_event')
+				.set({
+					deleted_at: new Date(),
+					deleted_by: user.id,
+				})
+				.where('id', '=', deletedEvent.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getRecoveryEvents(ctx, claim.id);
+
+			// Assert - only the non-deleted recovery event should be returned
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(activeEvent.id);
+			expect(result[0].notes).toBe('Active Event');
+		});
 	});
 
 	describe('listRecoveryEventsWithFilters', () => {
@@ -451,7 +498,7 @@ describe('recoveryQueries integration', () => {
 
 			// Act - combine all filters
 			const result = await listRecoveryEventsWithFilters(ctx, {
-				range: [rangeStart.toISOString().split('T')[0], rangeEnd.toISOString().split('T')[0]],
+				range: [rangeStart, rangeEnd],
 				recoveryStatus: 'in_progress',
 				checklistId: checklist.id,
 				recoverySource: 'Insurance',
@@ -550,7 +597,7 @@ describe('recoveryQueries integration', () => {
 
 			// Act
 			const result = await listRecoveryEventsWithFilters(ctx, {
-				range: [rangeStart.toISOString().split('T')[0], rangeEnd.toISOString().split('T')[0]],
+				range: [rangeStart, rangeEnd],
 			});
 
 			// Assert
@@ -1074,7 +1121,7 @@ describe('recoveryQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const recoveryDate = new Date().toISOString().split('T')[0];
+			const recoveryDate = new Date();
 
 			const event1 = await createRecoveryEvent(ctx, claim.id, {
 				settlement_id: settlement.id,
@@ -1572,10 +1619,7 @@ describe('recoveryQueries integration', () => {
 			rangeEnd.setDate(today.getDate() + 1);
 
 			// Act
-			const result = await getRecoveryMetricsSummary(ctx, [
-				rangeStart.toISOString().split('T')[0],
-				rangeEnd.toISOString().split('T')[0],
-			]);
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd]);
 
 			// Assert
 			expect(result.total_actual).toBe(3000); // 1000 + 2000, not including 5000
@@ -1626,7 +1670,7 @@ describe('recoveryQueries integration', () => {
 			// Act
 			const result = await getRecoveryMetricsSummary(
 				ctx,
-				[rangeStart.toISOString().split('T')[0], rangeEnd.toISOString().split('T')[0]],
+				[rangeStart, rangeEnd],
 				{ recoverySource: 'insurance' }
 			);
 
@@ -1686,7 +1730,7 @@ describe('recoveryQueries integration', () => {
 			// Act
 			const result = await getRecoveryMetricsSummary(
 				ctx,
-				[rangeStart.toISOString().split('T')[0], rangeEnd.toISOString().split('T')[0]],
+				[rangeStart, rangeEnd],
 				{ recoveryStatus: 'in_progress' }
 			);
 
@@ -1751,7 +1795,7 @@ describe('recoveryQueries integration', () => {
 			// Act
 			const result = await getRecoveryMetricsSummary(
 				ctx,
-				[rangeStart.toISOString().split('T')[0], rangeEnd.toISOString().split('T')[0]],
+				[rangeStart, rangeEnd],
 				{ checklistId: checklist1.id }
 			);
 
@@ -1806,14 +1850,8 @@ describe('recoveryQueries integration', () => {
 			rangeEnd.setDate(today.getDate() + 1);
 
 			// Act
-			const result1 = await getRecoveryMetricsSummary(ctx1, [
-				rangeStart.toISOString().split('T')[0],
-				rangeEnd.toISOString().split('T')[0],
-			]);
-			const result2 = await getRecoveryMetricsSummary(ctx2, [
-				rangeStart.toISOString().split('T')[0],
-				rangeEnd.toISOString().split('T')[0],
-			]);
+			const result1 = await getRecoveryMetricsSummary(ctx1, [rangeStart, rangeEnd]);
+			const result2 = await getRecoveryMetricsSummary(ctx2, [rangeStart, rangeEnd]);
 
 			// Assert
 			expect(result1.total_actual).toBe(1000);
@@ -1869,7 +1907,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await getRecoveryMetricsTimeSeries(ctx, ['2024-01-01', '2024-03-31']);
+			const result = await getRecoveryMetricsTimeSeries(ctx, [new Date('2024-01-01'), new Date('2024-03-31')]);
 
 			// Assert - should have 3 months
 			expect(result.length).toBe(3);
@@ -1907,7 +1945,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await getRecoveryMetricsTimeSeries(ctx, ['2024-01-01', '2024-03-31']);
+			const result = await getRecoveryMetricsTimeSeries(ctx, [new Date('2024-01-01'), new Date('2024-03-31')]);
 
 			// Assert
 			const febData = result.find((r) => r.month_start === '2024-02-01');
@@ -1957,8 +1995,8 @@ describe('recoveryQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act
-			const result1 = await getRecoveryMetricsTimeSeries(ctx1, ['2024-01-01', '2024-01-31']);
-			const result2 = await getRecoveryMetricsTimeSeries(ctx2, ['2024-01-01', '2024-01-31']);
+			const result1 = await getRecoveryMetricsTimeSeries(ctx1, [new Date('2024-01-01'), new Date('2024-01-31')]);
+			const result2 = await getRecoveryMetricsTimeSeries(ctx2, [new Date('2024-01-01'), new Date('2024-01-31')]);
 
 			// Assert
 			expect(result1[0]?.actual_recovery).toBe(1000);

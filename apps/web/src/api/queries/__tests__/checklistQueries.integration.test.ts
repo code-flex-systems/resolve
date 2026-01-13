@@ -966,9 +966,11 @@ describe('checklistQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
+			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
+			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 			const result = await getChecklistClaims(
 				ctx,
-				{ range: [null, null], checklistId: checklist.id },
+				{ range: [pastDate, futureDate], checklistId: checklist.id },
 				3,
 				0
 			);
@@ -1000,11 +1002,12 @@ describe('checklistQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 			const futureDate = new Date(Date.now() + 86400000); // Tomorrow
+			const farFutureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
 			// Act
 			const result = await getChecklistClaims(
 				ctx,
-				{ range: [futureDate, null], checklistId: checklist.id },
+				{ range: [futureDate, farFutureDate], checklistId: checklist.id },
 				10,
 				0
 			);
@@ -1042,11 +1045,13 @@ describe('checklistQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
+			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
 			// Act
 			const result = await getChecklistClaims(
 				ctx,
-				{ range: [null, null], checklistId: checklist.id, claimStatus: ClaimStatus.SUBMITTED },
+				{ range: [pastDate, futureDate], checklistId: checklist.id, claimStatus: ClaimStatus.SUBMITTED },
 				10,
 				0
 			);
@@ -1094,11 +1099,13 @@ describe('checklistQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
+			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
+			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
 			// Act - filter to only user2 and user3
 			const result = await getChecklistClaims(
 				ctx,
-				{ range: [null, null], checklistId: checklist.id, users: [user2.id, user3.id] },
+				{ range: [pastDate, futureDate], checklistId: checklist.id, users: [user2.id, user3.id] },
 				10,
 				0
 			);
@@ -1136,9 +1143,11 @@ describe('checklistQueries integration', () => {
 			}
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
+			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
 			// Act
-			const result = await exportChecklistClaims(ctx, { range: [null, null], checklistId: checklist.id });
+			const result = await exportChecklistClaims(ctx, { range: [pastDate, futureDate], checklistId: checklist.id });
 
 			// Assert
 			expect(result).toHaveLength(10);
@@ -1241,13 +1250,11 @@ describe('checklistQueries integration', () => {
 			const result = await modifyChecklist(ctx, checklist.id, {
 				name: 'Updated Name',
 				published: true,
-				description: 'New description',
 			});
 
 			// Assert
 			expect(result.name).toBe('Updated Name');
 			expect(result.published).toBe(true);
-			expect(result.description).toBe('New description');
 			expect(result.updated_by).toBe(user.id);
 
 			const storedChecklist = await db

@@ -19,6 +19,7 @@ import {
 	createTestDocGroup,
 } from '@/__tests__/integration/fixtures';
 import * as docController from '../docController';
+import { DocType, DocStatus } from '@/config/enums';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 
@@ -283,8 +284,8 @@ describe('docController integration tests', () => {
 				params: {
 					filename: 'test-doc.pdf',
 					alias: 'test-alias',
-					doc_type: 'other',
-					doc_status: 'approved',
+					doc_type: DocType.OTHER,
+					doc_status: DocStatus.APPROVED,
 					claim_id: claim.id,
 				},
 				storageKey: 'test-storage-key-123',
@@ -307,8 +308,8 @@ describe('docController integration tests', () => {
 				params: {
 					filename: 'auto-organized.pdf',
 					alias: 'auto-alias',
-					doc_type: 'other',
-					doc_status: 'approved',
+					doc_type: DocType.OTHER,
+					doc_status: DocStatus.APPROVED,
 					claim_id: claim.id,
 				},
 				storageKey: 'storage-key-auto',
@@ -342,8 +343,8 @@ describe('docController integration tests', () => {
 				params: {
 					filename: 'first.pdf',
 					alias: 'first-alias',
-					doc_type: 'other',
-					doc_status: 'approved',
+					doc_type: DocType.OTHER,
+					doc_status: DocStatus.APPROVED,
 					claim_id: claim.id,
 				},
 				storageKey: 'storage-key-1',
@@ -355,8 +356,8 @@ describe('docController integration tests', () => {
 				params: {
 					filename: 'second.pdf',
 					alias: 'second-alias',
-					doc_type: 'other',
-					doc_status: 'approved',
+					doc_type: DocType.OTHER,
+					doc_status: DocStatus.APPROVED,
 					claim_id: claim.id,
 				},
 				storageKey: 'storage-key-2',

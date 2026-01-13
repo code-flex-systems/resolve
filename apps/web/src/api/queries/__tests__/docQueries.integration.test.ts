@@ -111,6 +111,8 @@ describe('docQueries integration', () => {
 			const params = {
 				filename: 'default-doc.pdf',
 				alias: 'default-alias',
+				doc_type: DocType.OTHER,
+				doc_status: DocStatus.APPROVED,
 				file_size: 1024,
 				mime_type: 'application/pdf',
 			};
@@ -482,6 +484,45 @@ describe('docQueries integration', () => {
 			const result = await getDocs(ctx2);
 
 			expect(result.every((d) => d.client_id === client2.id)).toBe(true);
+		});
+
+		it('should exclude soft-deleted docs from results', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const activeDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'active-doc.pdf',
+			});
+			const deletedDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'deleted-doc.pdf',
+			});
+
+			// Soft-delete one doc
+			await db
+				.updateTable('doc')
+				.set({
+					deleted_at: new Date(),
+					deleted_by: user.id,
+				})
+				.where('id', '=', deletedDoc.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getDocs(ctx, { claim_id: claim.id });
+
+			// Assert - only the non-deleted doc should be returned
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(activeDoc.id);
+			expect(result[0].filename).toBe('active-doc.pdf');
 		});
 	});
 

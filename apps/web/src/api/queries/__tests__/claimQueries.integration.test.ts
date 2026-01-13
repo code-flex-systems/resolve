@@ -917,7 +917,8 @@ describe('claimQueries integration', () => {
 			await db
 				.updateTable('checklist_claim')
 				.set({ created_at: beforeStart })
-				.where('id', '=', oldChecklistClaim.id)
+				.where('claim_id', '=', oldChecklistClaim.claim_id)
+				.where('checklist_id', '=', oldChecklistClaim.checklist_id)
 				.execute();
 
 			const claimWithNewChecklist = await createTestClaim(db, { client_id: client.id });
@@ -935,7 +936,8 @@ describe('claimQueries integration', () => {
 			await db
 				.updateTable('checklist_claim')
 				.set({ created_at: afterStart })
-				.where('id', '=', newChecklistClaim.id)
+				.where('claim_id', '=', newChecklistClaim.claim_id)
+				.where('checklist_id', '=', newChecklistClaim.checklist_id)
 				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1036,9 +1038,9 @@ describe('claimQueries integration', () => {
 
 			// Act
 			const result = await createClaims(ctx, [
-				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1' },
-				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2' },
-				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3' },
+				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
 			]);
 
 			// Assert
@@ -1063,7 +1065,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - Insert with same claim_number should update
-			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured' }]);
+			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null }]);
 
 			// Assert
 			expect(result).toHaveLength(1);
@@ -1441,7 +1443,7 @@ describe('claimQueries integration', () => {
 				party_id: entityParty.id,
 				client_id: client.id,
 				created_by: admin.id,
-				liability_percentage: 30,
+				liability_percentage: '30',
 			});
 
 			// Add coverage linked to entity claim_party

@@ -434,6 +434,55 @@ describe('settlementQueries integration', () => {
 			// Assert - Other client should not see settlements
 			expect(result).toHaveLength(0);
 		});
+
+		it('should exclude soft-deleted settlements from results', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { claimParty, coverage } = await createSettlementDependencies(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const activeSettlement = await createTestSettlement(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				notes: 'Active Settlement',
+			});
+			const deletedSettlement = await createTestSettlement(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				claim_party_id: claimParty.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				notes: 'Deleted Settlement',
+			});
+
+			// Soft-delete one settlement
+			await db
+				.updateTable('settlement')
+				.set({
+					deleted_at: new Date(),
+					deleted_by: user.id,
+				})
+				.where('id', '=', deletedSettlement.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getSettlementsByClaimId(ctx, claim.id);
+
+			// Assert - only the non-deleted settlement should be returned
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(activeSettlement.id);
+			expect(result[0].notes).toBe('Active Settlement');
+		});
 	});
 
 	describe('updateSettlement', () => {

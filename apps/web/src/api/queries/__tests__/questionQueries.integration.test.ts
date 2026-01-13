@@ -510,8 +510,10 @@ describe('questionQueries integration', () => {
 			await createTestQuestionResponseAnswer(db, { response_id: response.id, answer_id: answer.id });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
+			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
-			const result = await getQuestionStats(ctx, page.id, { range: [null, null] });
+			const result = await getQuestionStats(ctx, page.id, { range: [pastDate, futureDate] });
 
 			expect(result.length).toBeGreaterThan(0);
 			const stat = result.find((r) => r.answer_id === answer.id);
@@ -558,8 +560,10 @@ describe('questionQueries integration', () => {
 			await createTestQuestionResponseAnswer(db, { response_id: response2.id, answer_id: answer.id });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
+			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
-			const result = await getQuestionStats(ctx, page.id, { claimId: claim1.id, range: [null, null] });
+			const result = await getQuestionStats(ctx, page.id, { claimId: claim1.id, range: [pastDate, futureDate] });
 
 			const stat = result.find((r) => r.answer_id === answer.id);
 			expect(Number(stat?.answer_count)).toBe(1);
@@ -599,7 +603,7 @@ describe('questionQueries integration', () => {
 			const futureEnd = new Date();
 			futureEnd.setFullYear(futureEnd.getFullYear() + 2);
 
-			const result = await getQuestionStats(ctx, page.id, { range: [futureStart.toISOString(), futureEnd.toISOString()] });
+			const result = await getQuestionStats(ctx, page.id, { range: [futureStart, futureEnd] });
 
 			const stat = result.find((r) => r.answer_id === answer.id);
 			expect(stat?.answer_count).toBe('0');
