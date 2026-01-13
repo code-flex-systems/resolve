@@ -39,7 +39,7 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
 		.values({
 			checklist_id: checklistId,
 			claim_id: claimId,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 			status: ClaimStatus.UNWORKED,
 			assignee,
@@ -63,7 +63,7 @@ export async function getClaim(ctx: ProtectedContext, claimId: number, checklist
 			.values({
 				checklist_id: checklistId,
 				claim_id: claimId,
-				client_id: ctx.session.user.client_id,
+				client_id: ctx.session.user.client_id!,
 				created_by: ctx.session.user.id,
 				status: ClaimStatus.UNWORKED,
 				assignee: ctx.session.user.id,

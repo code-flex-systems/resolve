@@ -670,7 +670,8 @@ export async function getRecoveryMetricsTimeSeries(
 
 	// Build the actual_by_month CTE with conditional joins and parameterized filters
 	// Start with base query
-	let actualQuery = ctx.db.selectFrom('recovery_event as re');
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let actualQuery: any = ctx.db.selectFrom('recovery_event as re');
 
 	// Add conditional joins based on filters
 	const needsClaimJoin = filters?.recoveryStatus || filters?.checklistId || filters?.userId;
@@ -684,7 +685,8 @@ export async function getRecoveryMetricsTimeSeries(
 	}
 
 	// Add selections and base filters
-	let baseQuery = actualQuery
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let baseQuery: any = actualQuery
 		.select([
 			sql<string>`date_trunc('month', re.recovery_date)::date`.as('month_start'),
 			sql<number>`COALESCE(SUM(re.recovery_amount), 0)::numeric`.as('total_actual'),
@@ -711,9 +713,10 @@ export async function getRecoveryMetricsTimeSeries(
 	const actualByMonth = baseQuery.groupBy(sql`date_trunc('month', re.recovery_date)`).as('actual_by_month');
 
 	// Join monthly_series with actual_by_month and return results
-	const results = await ctx.db
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const results = await (ctx.db
 		.selectFrom(monthlySeries)
-		.leftJoin(actualByMonth, 'actual_by_month.month_start', 'monthly_series.month_start')
+		.leftJoin(actualByMonth, 'actual_by_month.month_start', 'monthly_series.month_start') as any)
 		.select([
 			sql<string>`monthly_series.month_start::text`.as('month_start'),
 			sql<number>`0::float`.as('expected_recovery'),

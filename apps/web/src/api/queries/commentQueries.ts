@@ -12,7 +12,7 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 			instance_id: comment.instanceId,
 			question_id: comment.questionId,
 			body: comment.body,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()

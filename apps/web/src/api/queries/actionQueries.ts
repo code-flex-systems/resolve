@@ -14,7 +14,7 @@ export async function upsertAction(
 	return await ctx.db
 		.insertInto('action')
 		.values({
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			answer_id: answerId,
 			type,
 			definition: JSON.stringify(definition),
@@ -141,7 +141,7 @@ export async function getActionStatsDetail(
 export async function logAction(ctx: ProtectedContext, actionId: number, status: ActionLogStatus) {
 	await ctx.db
 		.insertInto('action_log')
-		.values({ client_id: ctx.session.user.client_id, action_id: actionId, status, created_by: ctx.session.user.id })
+		.values({ client_id: ctx.session.user.client_id!, action_id: actionId, status, created_by: ctx.session.user.id })
 		.execute();
 }
 

@@ -21,7 +21,7 @@ export function calculateStatuteDate(claim: Claim): Date | null {
 	// TODO: Look up statute period based on state/loss_type/cause_of_action
 	const DEFAULT_STATUTE_YEARS = 4;
 
-	const statuteDate = new Date(claim.date_of_loss);
+	const statuteDate = new Date(claim.date_of_loss as unknown as Date | string);
 	statuteDate.setFullYear(statuteDate.getFullYear() + DEFAULT_STATUTE_YEARS);
 
 	return statuteDate;

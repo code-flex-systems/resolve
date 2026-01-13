@@ -7,6 +7,8 @@ import {
 	shouldIncludeDeductibleInClaimAmount,
 	validateDeductibleAmount,
 } from '@/api/utils/deductibleUtils';
+import type { Claim } from '@/api/database/types';
+import { DeductibleStatus } from '@/config/enums';
 
 /**
  * Get all coverages for a specific claim (active only, excludes soft-deleted).
@@ -55,12 +57,12 @@ export async function getCoveragesByClaimParty(ctx: ProtectedContext, claimParty
  */
 export async function createCoverage(ctx: ProtectedContext, params: CreateCoverageInput) {
 	// Get claim record for statute calculation and subro determination
-	const claim = await ctx.db
+	const claim = (await ctx.db
 		.selectFrom('claim')
 		.selectAll()
 		.where('id', '=', params.claim_id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirstOrThrow();
+		.executeTakeFirstOrThrow()) as unknown as Claim;
 
 	// Calculate statute_date using placeholder function
 	const statuteDate = calculateStatuteDate(claim);
@@ -161,11 +163,11 @@ export async function updateCoverage(
 	const reserveDelta = Number(newReserve) - Number(oldReserve);
 
 	// Calculate deductible delta
-	const oldDeductibleAmount = oldCoverage.deductible_amount ?? 0;
+	const oldDeductibleAmount = Number(oldCoverage.deductible_amount ?? 0);
 	const newDeductibleAmount =
 		params.deductible_amount !== undefined ? (params.deductible_amount ?? 0) : oldDeductibleAmount;
 
-	const oldDeductibleStatus = oldCoverage.deductible_status;
+	const oldDeductibleStatus = oldCoverage.deductible_status as DeductibleStatus;
 	const newDeductibleStatus = params.deductible_status ?? oldDeductibleStatus;
 
 	// Validate new deductible if status is NO_DEDUCTIBLE
@@ -265,7 +267,7 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
 
 	// Calculate total impact to reverse (reserve + deductible if included)
 	const reserveImpact = coverage.amount_reserved ?? 0;
-	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status)
+	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status as DeductibleStatus)
 		? (coverage.deductible_amount ?? 0)
 		: 0;
 	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);
@@ -319,7 +321,7 @@ export async function deleteCoverage(ctx: ProtectedContext, id: number) {
 
 	// Calculate total impact to reverse (reserve + deductible if included)
 	const reserveImpact = coverage.amount_reserved ?? 0;
-	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status)
+	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status as DeductibleStatus)
 		? (coverage.deductible_amount ?? 0)
 		: 0;
 	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);

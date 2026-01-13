@@ -35,7 +35,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
 			placeholder: params.placeholder,
 			hidden: params.hidden ?? undefined,
 			position: params.position,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
