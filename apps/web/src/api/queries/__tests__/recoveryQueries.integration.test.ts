@@ -1912,9 +1912,9 @@ describe('recoveryQueries integration', () => {
 			// Assert - should have 3 months
 			expect(result.length).toBe(3);
 
-			const janData = result.find((r) => r.month_start === '2024-01-01');
-			const febData = result.find((r) => r.month_start === '2024-02-01');
-			const marData = result.find((r) => r.month_start === '2024-03-01');
+			const janData = result.find((r: { month_start: string }) => r.month_start === '2024-01-01');
+			const febData = result.find((r: { month_start: string }) => r.month_start === '2024-02-01');
+			const marData = result.find((r: { month_start: string }) => r.month_start === '2024-03-01');
 
 			expect(janData?.actual_recovery).toBe(1000);
 			expect(febData?.actual_recovery).toBe(2000);
@@ -1948,8 +1948,8 @@ describe('recoveryQueries integration', () => {
 			const result = await getRecoveryMetricsTimeSeries(ctx, [new Date('2024-01-01'), new Date('2024-03-31')]);
 
 			// Assert
-			const febData = result.find((r) => r.month_start === '2024-02-01');
-			const marData = result.find((r) => r.month_start === '2024-03-01');
+			const febData = result.find((r: { month_start: string }) => r.month_start === '2024-02-01');
+			const marData = result.find((r: { month_start: string }) => r.month_start === '2024-03-01');
 
 			expect(febData?.actual_recovery).toBe(0);
 			expect(marData?.actual_recovery).toBe(0);

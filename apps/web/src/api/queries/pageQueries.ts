@@ -21,7 +21,7 @@ export async function createPage(ctx: ProtectedContext, checklistId: number, par
 		.insertInto('page')
 		.values({
 			title: params.title,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
@@ -507,7 +507,7 @@ export async function modifyPageInstanceStatus(
 				status: params.newStatus,
 				template_version: params.templateVersion,
 				updated_at: sql`now()`,
-				client_id: ctx.session.user.client_id,
+				client_id: ctx.session.user.client_id!,
 			})
 			.onConflict((oc) =>
 				oc.columns(['claim_id', 'page_instance_id']).doUpdateSet({
@@ -565,7 +565,7 @@ async function createPageInstancePrivate(
 			page_id: pageId,
 			parent_instance_id: normalizedParentId,
 			position,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()

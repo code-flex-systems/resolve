@@ -38,7 +38,7 @@ export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
                 .where('feeds.client_id', '=', ctx.session.user.client_id)
                 .where('status', '<>', FeedStatus.INACTIVE)
                 .orderBy('name')
-                .execute();
+                .execute() as Feed[];
 }
 
 export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
@@ -73,7 +73,7 @@ export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed |
                 .selectAll()
                 .where('feeds.client_id', '=', ctx.session.user.client_id)
                 .where('id', '=', id)
-                .executeTakeFirst();
+                .executeTakeFirst() as Feed | undefined;
 }
 
 export async function getLastSyncedFeed(ctx: ProtectedContext) {
@@ -131,12 +131,12 @@ export async function createFeed(ctx: ProtectedContext, params: NewFeedParams): 
 			connection_options: params.connection_options,
 			status: params.status ?? 'inactive',
 			last_synced_at: params.last_synced_at ?? null,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
 		.execute();
-	return feed;
+	return feed as Feed;
 }
 
 /**
@@ -164,7 +164,7 @@ export async function updateFeed(ctx: ProtectedContext, id: number, params: Upda
 		.where('client_id', '=', ctx.session.user.client_id)
 		.returningAll()
 		.execute();
-	return feed;
+	return feed as Feed;
 }
 
 /**

@@ -177,7 +177,7 @@ describe('upsertQuestionResponses', () => {
 						answered_count: '5',
 						version: 1,
 					},
-				})
+				}) as any
 			);
 
 			const mockInsertInto = vi.spyOn(db, 'insertInto').mockImplementation(
@@ -225,7 +225,7 @@ describe('upsertQuestionResponses', () => {
 						question_text: 'Sample question?',
 						page_label: 'Page 1',
 					},
-				})
+				}) as any
 			);
 
 			vi.spyOn(db, 'insertInto').mockImplementation(

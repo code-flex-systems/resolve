@@ -24,7 +24,7 @@ export async function createChecklist(ctx: ProtectedContext, name: string, exist
 		.values({
 			name,
 			created_by: ctx.session.user.id,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 		})
 		.returningAll()
 		.executeTakeFirstOrThrow();

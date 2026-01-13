@@ -65,7 +65,6 @@ export enum EntityName {
 	PARTY_ADDRESS = 'party_address',
 	PARTY_REPRESENTATIVE = 'party_representative',
 	CLAIM_PARTY = 'claim_party',
-	CLAIM_LIABILITY = 'claim_liability',
 
 	// Desk management entities
 	DESK_LOCATION_TYPE = 'desk_location_type',
@@ -112,7 +111,6 @@ const CLAIM_ENTITIES: Set<EntityName> = new Set([
 	EntityName.RECOVERY_EVENT,
 	EntityName.CLAIM_COVERAGE,
 	EntityName.CLAIM_PARTY,
-	EntityName.CLAIM_LIABILITY,
 	EntityName.DOCUMENT,
 	EntityName.CHECKLIST_CLAIM,
 	EntityName.COMMENT,
@@ -203,17 +201,6 @@ async function deriveClaimId(
 			.where('id', '=', Number(entityId))
 			.executeTakeFirst();
 		return claimParty?.claim_id ?? null;
-	}
-
-	// Claim liability -> claim_id (via claim_party)
-	if (entityName === EntityName.CLAIM_LIABILITY) {
-		const claimLiability = await ctx.db
-			.selectFrom('claim_liability')
-			.innerJoin('claim_party', 'claim_party.id', 'claim_liability.claim_party_id')
-			.select('claim_party.claim_id')
-			.where('claim_liability.id', '=', Number(entityId))
-			.executeTakeFirst();
-		return claimLiability?.claim_id ?? null;
 	}
 
 	// Document -> claim_id

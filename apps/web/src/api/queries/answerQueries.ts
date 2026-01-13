@@ -518,7 +518,7 @@ async function createAnswerPrivate(
 			hidden: params.hidden ?? undefined,
 			requires_upload: params.requires_upload ?? undefined,
 			allowed_extensions: params.allowed_extensions ?? undefined,
-			client_id: ctx.session.user.client_id,
+			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()

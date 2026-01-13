@@ -91,7 +91,7 @@ describe('coverageQueries', () => {
 				{ id: 2, claim_id: 100, loss_type: 'personal_property', coverage_amount: '25000', deleted_at: null },
 			]);
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			const result = await getCoverages(mockAdminContext, 100);
 
@@ -106,7 +106,7 @@ describe('coverageQueries', () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([]);
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			await getCoverages(mockAdminContext, 100);
 
@@ -122,7 +122,7 @@ describe('coverageQueries', () => {
 				{ id: 1, claim_party_id: 50, loss_type: 'dwelling', coverage_amount: '50000' },
 			]);
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			const result = await getCoveragesByClaimParty(mockAdminContext, 50);
 
@@ -164,9 +164,9 @@ describe('coverageQueries', () => {
 				.mockResolvedValueOnce(mockCoverage) // Second call: insert coverage
 				.mockResolvedValueOnce({ total_incurred: '5000.00' }); // Third call: update claim
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
-			vi.mocked(db.insertInto).mockReturnValue(mockChain as any);
-			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
+			(db.insertInto as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
+			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			await createCoverage(mockAdminContext, {
 				claim_id: 100,
@@ -205,9 +205,9 @@ describe('coverageQueries', () => {
 				.mockResolvedValueOnce({ id: 1, claim_id: 100, claim_party_id: 50 })
 				.mockResolvedValueOnce({ total_incurred: '0.00' });
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
-			vi.mocked(db.insertInto).mockReturnValue(mockChain as any);
-			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
+			(db.insertInto as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
+			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			// Verify claim_party_id is included in the values
 			await createCoverage(mockAdminContext, {
@@ -244,8 +244,8 @@ describe('coverageQueries', () => {
 				.mockResolvedValueOnce(updatedCoverage) // Second call: update coverage
 				.mockResolvedValueOnce({ total_incurred: '75000.00' }); // Third call: update claim
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
-			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
+			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			const result = await updateCoverage(mockAdminContext, 1, {
 				coverage_amount: 75000,
@@ -274,8 +274,8 @@ describe('coverageQueries', () => {
 				.mockResolvedValueOnce(archivedCoverage) // Archive and return coverage
 				.mockResolvedValueOnce({ total_incurred: '0.00' }); // Update claim
 
-			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			const result = await archiveCoverage(mockAdminContext, 1);
 
@@ -291,7 +291,7 @@ describe('coverageQueries', () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.executeTakeFirstOrThrow.mockRejectedValue(new Error('Coverage not found'));
 
-			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
+			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			await expect(archiveCoverage(mockAdminContext, 999)).rejects.toThrow('Coverage not found');
 		});
@@ -302,7 +302,7 @@ describe('coverageQueries', () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.executeTakeFirst.mockResolvedValue({ total_reserved: '15000' });
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			const result = await getCoverageReservedTotal(mockAdminContext, 100);
 
@@ -317,7 +317,7 @@ describe('coverageQueries', () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.executeTakeFirst.mockResolvedValue({ total_reserved: null });
 
-			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
+			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			const result = await getCoverageReservedTotal(mockAdminContext, 100);
 
@@ -330,7 +330,7 @@ describe('coverageQueries', () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([]);
 
-			vi.mocked(db.updateTable).mockReturnValue(mockChain as any);
+			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			await archiveCoveragesByClaimParty(mockAdminContext, 50);
 
