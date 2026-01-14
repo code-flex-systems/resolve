@@ -189,6 +189,11 @@ const adminNavCategories: AdminNavCategory[] = [
 		icon: <SettingsIcon fontSize="small" color="secondary" />,
 		items: [
 			{
+				label: 'Logs',
+				route: '/admin/system/logs',
+				icon: <ContentPasteSearchIcon fontSize="small" />,
+			},
+			{
 				label: 'Reference Data',
 				route: '/admin/system/reference-data',
 				icon: <ListIcon fontSize="small" />,
