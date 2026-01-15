@@ -8,11 +8,12 @@ import Archive from '@mui/icons-material/Archive';
 import Print from '@mui/icons-material/Print';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
-import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
+import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
+import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 
 export default function ClaimHeader({ claimId }: { claimId: number }) {
 	const router = useRouter();
@@ -105,13 +106,10 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 						claimDetail.aggregated_loss_type.map((lt: string) => (
 							<LossTypeChip key={lt} value={lt} />
 						))}
-					{claimDetail.recovery_status && (
-						<Chip
-							label={`Recovery: ${formatRecoveryStatus(claimDetail.recovery_status)}`}
-							size="small"
-							variant="outlined"
-						/>
-					)}
+					<ClaimStatusChip
+						recoveryStatus={claimDetail.recovery_status}
+						substatus={claimDetail.substatus}
+					/>
 					{claimDetail.feed_name && (
 						<Chip label={`Feed: ${claimDetail.feed_name}`} size="small" variant="outlined" />
 					)}

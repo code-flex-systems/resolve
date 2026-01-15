@@ -4,9 +4,11 @@
 
 import dayjs from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+import utc from 'dayjs/plugin/utc';
 import { RecoveryStatus } from '@/config/enums';
 
 dayjs.extend(quarterOfYear);
+dayjs.extend(utc);
 
 /**
  * Format large numbers with friendly abbreviations (K, M)
@@ -64,12 +66,15 @@ export const RECOVERY_STATUS_ICONS: Record<RecoveryStatus, string> = {
 };
 
 /**
- * Calculate the start and end dates for a quarter as ISO strings
+ * Calculate the start and end dates for a quarter as ISO strings.
+ * Uses UTC mode to avoid timezone issues where local endOf('month') could
+ * shift to the next month when converted to UTC.
  */
 export function getQuarterDates(quarter: number, year: number): [string, string] {
 	const startMonth = (quarter - 1) * 3;
-	const start = dayjs().year(year).month(startMonth).startOf('month').toISOString();
-	const end = dayjs()
+	const start = dayjs.utc().year(year).month(startMonth).startOf('month').toISOString();
+	const end = dayjs
+		.utc()
 		.year(year)
 		.month(startMonth + 2)
 		.endOf('month')

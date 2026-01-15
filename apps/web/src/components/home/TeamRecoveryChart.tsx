@@ -8,20 +8,13 @@ import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
 
-interface UserRecoveryMetricChartProps {
-	userId?: string;
-}
-
-export default function UserRecoveryMetricChart({ userId }: UserRecoveryMetricChartProps) {
+export default function TeamRecoveryChart() {
 	const quarters = useMemo(() => getQuarterRanges(), []);
 
-	// Fetch time series data for current quarter filtered by user
+	// Fetch team-wide time series data for current quarter
 	const { data: timeSeriesData = [], isFetching } = useRecoveryTrpc().getRecoveryMetricsTimeSeries(
-		{
-			range: quarters.current,
-			...(userId && { userId }),
-		},
-		{ enabled: !!userId }
+		{ range: quarters.current },
+		{ enabled: true }
 	);
 
 	// Format data for chart
@@ -33,7 +26,7 @@ export default function UserRecoveryMetricChart({ userId }: UserRecoveryMetricCh
 		<Box width="100%" height="100%">
 			<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
 				<Typography variant="subtitle1" fontSize={14} fontWeight={600} marginBottom={1}>
-					My Recovery
+					Team Recovery
 				</Typography>
 				<Typography variant="caption" fontSize={13} color="#d9d9d9" marginRight="15px">
 					Q{quarters.currentQuarter}

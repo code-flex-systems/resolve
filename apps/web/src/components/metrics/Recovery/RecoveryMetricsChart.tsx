@@ -17,14 +17,12 @@ export default function RecoveryMetricsChart({
 	recoveryStatus,
 	recoverySource,
 	checklistId,
-	userId,
 }: {
 	range?: DateRange<Dayjs>;
 	isBreakdown?: boolean;
 	recoveryStatus?: string | null;
 	recoverySource?: string;
 	checklistId?: number;
-	userId?: string;
 }) {
 	const router = useRouter();
 	const quarters = useMemo(() => getQuarterRanges(), []);
@@ -45,9 +43,8 @@ export default function RecoveryMetricsChart({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		}),
-		[rangeISO, recoverySource, recoveryStatus, checklistId, userId]
+		[rangeISO, recoverySource, recoveryStatus, checklistId]
 	);
 
 	// Fetch time series data for selected range
@@ -67,7 +64,6 @@ export default function RecoveryMetricsChart({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		},
 		{ enabled: true }
 	);

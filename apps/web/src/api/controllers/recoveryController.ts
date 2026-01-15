@@ -143,7 +143,6 @@ export async function listRecoveryEventsWithFilters(
 			recoverySource?: string;
 			recoveryStatus?: string;
 			checklistId?: number;
-			userId?: string;
 		};
 		limit?: number;
 		offset?: number;
@@ -172,7 +171,6 @@ export async function exportRecoveryEvents(
 			recoverySource?: string;
 			recoveryStatus?: string;
 			checklistId?: number;
-			userId?: string;
 		};
 	}
 ) {
@@ -215,7 +213,6 @@ export async function getRecoveryMetricsSummary(
 		recoverySource?: string;
 		recoveryStatus?: string;
 		checklistId?: number;
-		userId?: string;
 	}
 ) {
 	const { range, ...filters } = input;
@@ -236,7 +233,6 @@ export async function getRecoveryMetricsTimeSeries(
 		recoverySource?: string;
 		recoveryStatus?: string;
 		checklistId?: number;
-		userId?: string;
 	}
 ) {
 	const { range, ...filters } = input;
@@ -254,7 +250,6 @@ export async function getQuarterlyRecoveryStats(
 	ctx: ProtectedContext,
 	input?: {
 		fiscalYearStart?: Date;
-		userId?: string;
 	}
 ) {
 	return await recoveryQueries.getQuarterlyRecoveryStats(ctx, input);

@@ -54,7 +54,6 @@ export const listRecoveryEventsWithFiltersInput = z.object({
 		recoverySource: z.string().optional(),
 		recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
 		checklistId: z.number().int().optional(),
-		userId: z.string().uuid().optional(),
 	}),
 	limit: z.number().int().positive().optional(),
 	offset: z.number().int().nonnegative().optional(),
@@ -66,7 +65,6 @@ export const exportRecoveryEventsInput = z.object({
 		recoverySource: z.string().optional(),
 		recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
 		checklistId: z.number().int().optional(),
-		userId: z.string().uuid().optional(),
 	}),
 });
 
@@ -87,7 +85,6 @@ const recoveryMetricsFilters = z.object({
 	recoverySource: z.string().optional(),
 	recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
 	checklistId: z.number().int().optional(),
-	userId: z.string().uuid().optional(),
 });
 
 export const getRecoveryMetricsSummaryInput = recoveryMetricsFilters;
@@ -96,5 +93,4 @@ export const getRecoveryMetricsTimeSeriesInput = recoveryMetricsFilters;
 
 export const getQuarterlyRecoveryStatsInput = z.object({
 	fiscalYearStart: parseDate().optional(),
-	userId: z.string().uuid().optional(),
 });

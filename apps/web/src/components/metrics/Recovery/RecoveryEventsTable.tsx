@@ -68,13 +68,11 @@ export default function RecoveryEventsTable({
 	recoveryStatus,
 	recoverySource,
 	checklistId,
-	userId,
 }: {
 	range: DateRange<Dayjs>;
 	recoveryStatus: string | null;
 	recoverySource: string;
 	checklistId?: number;
-	userId?: string;
 }) {
 	const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
 	const trpcUtils = trpc.useUtils();
@@ -92,9 +90,8 @@ export default function RecoveryEventsTable({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		}),
-		[rangeISO, recoverySource, recoveryStatus, checklistId, userId]
+		[rangeISO, recoverySource, recoveryStatus, checklistId]
 	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = useRecoveryTrpc().listRecoveryEventsWithFilters(

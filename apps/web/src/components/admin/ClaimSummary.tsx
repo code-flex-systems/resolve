@@ -16,7 +16,8 @@ import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
 import Highlight from '@/components/common/Highlight';
 import { formatMDY } from '@/lib/utils/utils';
-import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
+import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 import { useRouter } from 'next/navigation';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
 import { formatCityState } from '@/schemas/addressSchemas';
@@ -130,13 +131,10 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 								claimDetail.aggregated_loss_type.map((lt: string) => (
 									<LossTypeChip key={lt} value={lt} />
 								))}
-							{claimDetail.recovery_status && (
-								<Chip
-									label={`Recovery - ${formatRecoveryStatus(claimDetail.recovery_status)}`}
-									size="small"
-									variant="outlined"
-								/>
-							)}
+							<ClaimStatusChip
+								recoveryStatus={claimDetail.recovery_status}
+								substatus={claimDetail.substatus}
+							/>
 						</Box>
 
 						{/* Key Metrics Card */}
@@ -208,7 +206,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									</Typography>
 								</Box>
 
-								{/* Liability Summary - shows liability % from Facilitator parties only */}
+								{/* Liability Summary - shows total liability % from entity parties */}
 								<Box display="flex" alignItems="center" gap={1}>
 									<Groups sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
 									<Typography fontSize={13} display="flex">
@@ -362,7 +360,9 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 								</Typography>
 								<Typography fontSize={13}>
 									<Highlight bold={false}>Client Adjuster:</Highlight>{' '}
-									{claimDetail.client_adjuster ?? 'N/A'}
+									{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
+										? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
+										: claimDetail.client_adjuster ?? 'N/A'}
 								</Typography>
 								<Typography fontSize={13}>
 									<Highlight bold={false}>Date of Loss:</Highlight>{' '}

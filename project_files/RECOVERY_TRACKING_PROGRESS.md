@@ -186,22 +186,24 @@
 
 **Solution:**
 - All filters apply to both expected and actual queries
-- **recoverySource:** Uses EXISTS subquery to avoid duplicate counts when claims have multiple events
+- **recoverySource:** Uses prefix search (`term%`) for index efficiency; EXISTS subquery avoids duplicate counts when claims have multiple events
 - **recoveryStatus:** Direct filter on claim table
-- **checklistId/userId:** Joins checklist_claim once, filters by assignment
+- **checklistId:** Joins checklist_claim once, filters by checklist assignment
 
 **Query Pattern:**
 ```typescript
-// Expected (with recoverySource filter)
+// Expected (with recoverySource filter - prefix search for index usage)
 WHERE EXISTS (
   SELECT 1 FROM recovery_event
   WHERE recovery_event.claim_id = claim.id
-  AND recovery_event.recovery_source ILIKE '%search%'
+  AND recovery_event.recovery_source ILIKE 'searchTerm%'
 )
 
-// Actual (with recoverySource filter)
-WHERE recovery_event.recovery_source ILIKE '%search%'
+// Actual (with recoverySource filter - prefix search)
+WHERE recovery_event.recovery_source ILIKE 'searchTerm%'
 ```
+
+**Note:** The recoverySource filter uses prefix search (`term%`) rather than full wildcard (`%term%`) to enable B-tree index usage. Users should type the beginning of the source name (e.g., "Sub" for "Subrogation").
 
 ### Month-Based Date Ranges
 

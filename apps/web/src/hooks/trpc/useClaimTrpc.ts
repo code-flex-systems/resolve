@@ -55,3 +55,4 @@ export function useClaimTrpc() {
 export type Claim = ClaimOutput['getClaim'];
 export type MyClaimListItem = ClaimOutput['listMyClaims']['rows'][number];
 export type MyClaimsMetrics = ClaimOutput['listMyClaims']['metrics'];
+export type MyDeskClaimListItem = ClaimOutput['listMyDeskClaims']['rows'][number];

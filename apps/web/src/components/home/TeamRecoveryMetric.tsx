@@ -1,16 +1,13 @@
 'use client';
 
 import { Paper } from '@mui/material';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import UserRecoveryMetricChart from './UserRecoveryMetricChart';
+import TeamRecoveryChart from './TeamRecoveryChart';
 import theme from '@/styles/theme';
 
-export default function MyRecoveryMetric() {
-	const { data: session } = useClerkSession();
-
+export default function TeamRecoveryMetric() {
 	return (
 		<Paper elevation={0} sx={styles.container}>
-			<UserRecoveryMetricChart userId={session?.user?.id} />
+			<TeamRecoveryChart />
 		</Paper>
 	);
 }

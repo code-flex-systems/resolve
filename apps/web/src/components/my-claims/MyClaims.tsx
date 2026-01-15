@@ -1,42 +1,18 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, Paper, IconButton, PopperProps, Typography, Button, Tabs, Tab } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { useState, useEffect, useCallback } from 'react';
+import { Box, Paper, PopperProps, Typography } from '@mui/material';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ClaimDetailPanel from '@/components/admin/ClaimDetailPanel';
-import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
-import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import MyClaimsMetrics from './MyClaimsMetrics';
 import MyClaimsDeadlines from './MyClaimsDeadlines';
 import MyClaimsQueueTable, { type MyClaimListItem } from './MyClaimsQueueTable';
-import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
-import IconHeaderCell from '@/components/common/IconHeaderCell';
-import StackedHeaderCell from '@/components/common/StackedHeaderCell';
-import ClaimStatusCell from '@/components/metrics/Claims/ClaimStatusCell';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
-import BasicPopper from '@/components/common/BasicPopper';
-import Toolbar from '@/components/common/Toolbar';
-import Search from '@mui/icons-material/Search';
-import FileDownload from '@mui/icons-material/FileDownload';
-import FilterList from '@mui/icons-material/FilterList';
-import Clear from '@mui/icons-material/Clear';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Desk from '@mui/icons-material/Desk';
-import Person from '@mui/icons-material/Person';
-import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
-import dayjs from 'dayjs';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
-import { ClaimStatus, RecoveryStatus } from '@/config/enums';
+import { ClaimSubstatus, RecoveryStatus } from '@/config/enums';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import useDebounce from '@/lib/utils/useDebounce';
-import config from '@/config/config';
 
 export default function MyClaims() {
-	const showDeskHierarchy = config.FEATURES.DESK_HIERARCHY;
-	const [activeTab, setActiveTab] = useState(showDeskHierarchy ? 0 : 1); // 0 = Desk Queue, 1 = Direct Assignments
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -46,12 +22,12 @@ export default function MyClaims() {
 	const { getParam, setParams, clearParams, setParam } = useUrlFilters();
 
 	// Applied filter states (read from URL params)
-	const appliedClaimStatus = getParam('status');
+	const appliedSubstatus = getParam('substatus');
 	const appliedRecoveryStatus = getParam('recovery_status');
 	const appliedSearch = getParam('search') ?? '';
 
 	// Draft filter states (in the popper, not yet applied)
-	const [draftClaimStatus, setDraftClaimStatus] = useState<string | null>(null);
+	const [draftSubstatus, setDraftSubstatus] = useState<string | null>(null);
 	const [draftRecoveryStatus, setDraftRecoveryStatus] = useState<string | null>(null);
 
 	// Search state - synced with URL param
@@ -89,11 +65,11 @@ export default function MyClaims() {
 		}
 	}, [searchParams]);
 
-	// Fetch direct assignment claims
-	const { data: directData, isFetching: directFetching } = claimTrpc.listMyClaims(
+	// Fetch claims from desk queue
+	const { data, isFetching } = claimTrpc.listMyDeskClaims(
 		{
 			searchTerm: appliedSearch || undefined,
-			claimStatus: (appliedClaimStatus as ClaimStatus) || undefined,
+			substatus: (appliedSubstatus as ClaimSubstatus) || undefined,
 			recoveryStatus: (appliedRecoveryStatus as RecoveryStatus) || undefined,
 		},
 		{
@@ -103,27 +79,9 @@ export default function MyClaims() {
 		}
 	);
 
-	// Fetch desk queue claims (only if feature enabled)
-	const { data: deskData, isFetching: deskFetching } = claimTrpc.listMyDeskClaims(
-		{
-			searchTerm: appliedSearch || undefined,
-			claimStatus: (appliedClaimStatus as ClaimStatus) || undefined,
-			recoveryStatus: (appliedRecoveryStatus as RecoveryStatus) || undefined,
-		},
-		{
-			enabled: showDeskHierarchy,
-			refetchOnMount: 'always',
-			refetchOnWindowFocus: true,
-			staleTime: 0,
-		}
-	);
-
-	// Use data from active tab
-	const activeData = activeTab === 0 ? deskData : directData;
-	const rows = activeData?.rows ?? [];
-	const count = activeData?.count ?? 0;
-	const metrics = activeData?.metrics ?? { totalValue: 0, avgDaysInQueue: 0 };
-	const isFetching = activeTab === 0 ? deskFetching : directFetching;
+	const rows = (data?.rows ?? []) as MyClaimListItem[];
+	const count = data?.count ?? 0;
+	const metrics = data?.metrics ?? { totalValue: 0, avgDaysInQueue: 0 };
 
 	// Handle panel close - clear selected claim from URL
 	const handleClosePanel = () => {
@@ -134,7 +92,7 @@ export default function MyClaims() {
 
 	// Handle opening filters popper - sync draft states with applied states
 	const handleOpenFilters = (e: React.MouseEvent) => {
-		setDraftClaimStatus(appliedClaimStatus);
+		setDraftSubstatus(appliedSubstatus);
 		setDraftRecoveryStatus(appliedRecoveryStatus);
 		setFiltersAnchorEl(e.currentTarget);
 	};
@@ -142,7 +100,7 @@ export default function MyClaims() {
 	// Apply filters from draft to URL params
 	const handleApplyFilters = () => {
 		setParams({
-			status: draftClaimStatus,
+			substatus: draftSubstatus,
 			recovery_status: draftRecoveryStatus,
 		});
 		setFiltersAnchorEl(null);
@@ -151,7 +109,7 @@ export default function MyClaims() {
 	// Clear all filters from URL params
 	const handleClearAllFilters = () => {
 		clearParams(['selected']);
-		setDraftClaimStatus(null);
+		setDraftSubstatus(null);
 		setDraftRecoveryStatus(null);
 		setSearchTerm('');
 	};
@@ -161,7 +119,7 @@ export default function MyClaims() {
 		setFiltersAnchorEl(null);
 	}, []);
 
-	const hasActiveFilters = appliedClaimStatus || appliedRecoveryStatus || appliedSearch;
+	const hasActiveFilters = appliedSubstatus || appliedRecoveryStatus || appliedSearch;
 
 	return (
 		<Box display="flex" gap={2} width="100%" height="100%" padding="20px">
@@ -208,16 +166,6 @@ export default function MyClaims() {
 						</Box>
 					</Box>
 
-					{/* Tabs (only show if desk hierarchy enabled) */}
-					{showDeskHierarchy && (
-						<Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
-							<Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-								<Tab icon={<Desk sx={{ fontSize: 18 }} />} iconPosition="start" label="Desk Queue" />
-								<Tab icon={<Person sx={{ fontSize: 18 }} />} iconPosition="start" label="Direct Assignments" />
-							</Tabs>
-						</Box>
-					)}
-
 					{/* Queue Table */}
 					<MyClaimsQueueTable
 						rows={rows}
@@ -225,20 +173,20 @@ export default function MyClaims() {
 						isFetching={isFetching}
 						searchTerm={searchTerm}
 						setSearchTerm={setSearchTerm}
-						appliedClaimStatus={appliedClaimStatus}
+						appliedSubstatus={appliedSubstatus}
 						appliedRecoveryStatus={appliedRecoveryStatus}
 						appliedSearch={appliedSearch}
-						hasActiveFilters={hasActiveFilters}
+						hasActiveFilters={!!hasActiveFilters}
 						filtersAnchorEl={filtersAnchorEl}
 						handleOpenFilters={handleOpenFilters}
 						handleCloseFilters={handleCloseFilters}
 						handleClearAllFilters={handleClearAllFilters}
-						draftClaimStatus={draftClaimStatus}
-						setDraftClaimStatus={setDraftClaimStatus}
+						draftSubstatus={draftSubstatus}
+						setDraftSubstatus={setDraftSubstatus}
 						draftRecoveryStatus={draftRecoveryStatus}
 						setDraftRecoveryStatus={setDraftRecoveryStatus}
 						handleApplyFilters={handleApplyFilters}
-						showDeskColumn={activeTab === 0}
+						showDeskColumn={true}
 					/>
 				</Paper>
 			</Box>

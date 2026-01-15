@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ClaimSearch, ClaimStatus, RecoveryStatus } from '@/config/enums';
+import { ClaimSearch, ClaimStatus, ClaimSubstatus, RecoveryStatus } from '@/config/enums';
 import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 import { lossAddressSchema } from './addressSchemas';
 
@@ -113,7 +113,7 @@ export type ListMyClaimsInput = z.infer<typeof listMyClaimsInput>;
 // My Desk Claims list (desk hierarchy feature)
 export const listMyDeskClaimsInput = z.object({
 	searchTerm: z.string().optional(),
-	claimStatus: z.nativeEnum(ClaimStatus).optional(),
+	substatus: z.nativeEnum(ClaimSubstatus).optional(),
 	recoveryStatus: z.nativeEnum(RecoveryStatus).optional(),
 	limit: z.number().int().positive().optional(),
 	offset: z.number().int().nonnegative().optional(),

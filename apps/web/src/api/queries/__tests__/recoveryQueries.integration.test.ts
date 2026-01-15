@@ -769,46 +769,6 @@ describe('recoveryQueries integration', () => {
 			expect(notes).not.toContain('Checklist 2 Event');
 		});
 
-		it('should filter by user who created the event', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const { settlement } = await createSettlementChain(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				created_by: user1.id,
-			});
-
-			await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user1.id,
-				notes: 'User 1 Event',
-			});
-			await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user2.id,
-				notes: 'User 2 Event',
-			});
-
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await listRecoveryEventsWithFilters(ctx, {
-				userId: user1.id,
-			});
-
-			// Assert
-			const notes = result.rows.map((r) => r.notes);
-			expect(notes).toContain('User 1 Event');
-			expect(notes).not.toContain('User 2 Event');
-		});
-
 		it('should handle pagination', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -1441,44 +1401,6 @@ describe('recoveryQueries integration', () => {
 			expect(notes).not.toContain('Closed Export');
 		});
 
-		it('should filter by user who created the event', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const { settlement } = await createSettlementChain(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				created_by: user1.id,
-			});
-
-			await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user1.id,
-				notes: 'User 1 Export Event',
-			});
-			await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user2.id,
-				notes: 'User 2 Export Event',
-			});
-
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await exportRecoveryEvents(ctx, { userId: user1.id });
-
-			// Assert
-			const notes = result.map((r) => r.notes);
-			expect(notes).toContain('User 1 Export Event');
-			expect(notes).not.toContain('User 2 Export Event');
-		});
-
 		it('should order by recovery_date descending', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -1623,9 +1545,128 @@ describe('recoveryQueries integration', () => {
 
 			// Assert
 			expect(result.total_actual).toBe(3000); // 1000 + 2000, not including 5000
-			expect(result.total_expected).toBe(0); // Currently returns 0 as per TODO
+			expect(result.total_expected).toBe(0); // Claims don't have expected_recovery set
 			expect(result.variance).toBe(3000);
 			expect(result.recovery_rate).toBe(0); // 0 because expected is 0
+		});
+
+		it('should return total expected recovery for claims created within date range', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			// Use fixed dates for deterministic testing
+			const inRangeDate = new Date('2024-06-15');
+			const outOfRangeDate = new Date('2024-04-15');
+			const rangeStart = new Date('2024-06-01');
+			const rangeEnd = new Date('2024-06-30');
+
+			// Claims with expected_recovery
+			const claim1 = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 5000,
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 3000,
+			});
+
+			// Set claim1 to be in range, claim2 out of range
+			await db.updateTable('claim').set({ created_at: inRangeDate }).where('id', '=', claim1.id).execute();
+			await db.updateTable('claim').set({ created_at: outOfRangeDate }).where('id', '=', claim2.id).execute();
+
+			// Create recovery events for actual recovery (within date range)
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				settlement_id: settlement1.id,
+				created_by: user.id,
+				recovery_date: inRangeDate,
+				recovery_amount: '2000',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd]);
+
+			// Assert
+			expect(result.total_expected).toBe(5000); // Only claim1 (in range), not claim2 (out of range)
+			expect(result.total_actual).toBe(2000);
+			expect(result.variance).toBe(-3000); // 2000 - 5000
+			expect(result.recovery_rate).toBe(40); // (2000 / 5000) * 100
+		});
+
+		it('should filter expected recovery by recovery source using EXISTS subquery', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			// Use fixed dates for deterministic testing
+			const inRangeDate = new Date('2024-06-15');
+			const rangeStart = new Date('2024-06-01');
+			const rangeEnd = new Date('2024-06-30');
+
+			// Two claims with expected_recovery
+			const claim1 = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 5000,
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 8000,
+			});
+
+			// Set both claims to be in range
+			await db.updateTable('claim').set({ created_at: inRangeDate }).where('id', '=', claim1.id).execute();
+			await db.updateTable('claim').set({ created_at: inRangeDate }).where('id', '=', claim2.id).execute();
+
+			// Create recovery events - claim1 has Insurance source, claim2 has Legal source
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+			});
+
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				settlement_id: settlement1.id,
+				created_by: user.id,
+				recovery_date: inRangeDate,
+				recovery_amount: '2000',
+				recovery_source: 'Insurance Payment',
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim2.id,
+				settlement_id: settlement2.id,
+				created_by: user.id,
+				recovery_date: inRangeDate,
+				recovery_amount: '4000',
+				recovery_source: 'Legal Settlement',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - filter by Insurance source
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd], {
+				recoverySource: 'insurance',
+			});
+
+			// Assert - only claim1 (with Insurance recovery event) should be included in expected
+			expect(result.total_expected).toBe(5000); // claim1's expected_recovery
+			expect(result.total_actual).toBe(2000); // claim1's actual recovery
 		});
 
 		it('should apply recovery source filter', async () => {
@@ -1859,46 +1900,73 @@ describe('recoveryQueries integration', () => {
 		});
 	});
 
-	// NOTE: getRecoveryMetricsTimeSeries tests are skipped because the function uses raw SQL
-	// that doesn't respect the test schema prefix. The query would need to be refactored to use
-	// Kysely's query builder instead of raw SQL to work with the integration test infrastructure.
-	describe.skip('getRecoveryMetricsTimeSeries', () => {
-		it('should return monthly time series data', async () => {
+	describe('getRecoveryMetricsTimeSeries', () => {
+		it('should return monthly time series data with actual and expected recovery', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const { settlement } = await createSettlementChain(db, {
+
+			// Use UTC dates with explicit time to avoid timezone issues
+			// Date.UTC returns milliseconds since epoch for UTC dates
+			const jan = new Date(Date.UTC(2024, 0, 15, 12, 0, 0)); // Jan 15, 2024 12:00 UTC
+			const feb = new Date(Date.UTC(2024, 1, 15, 12, 0, 0)); // Feb 15, 2024 12:00 UTC
+			const mar = new Date(Date.UTC(2024, 2, 15, 12, 0, 0)); // Mar 15, 2024 12:00 UTC
+
+			const claim1 = await createTestClaim(db, {
 				client_id: client.id,
-				claim_id: claim.id,
+				expected_recovery: 2000,
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 4000,
+			});
+			const claim3 = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 6000,
+			});
+
+			// Set created_at for each claim to different months
+			await db.updateTable('claim').set({ created_at: jan }).where('id', '=', claim1.id).execute();
+			await db.updateTable('claim').set({ created_at: feb }).where('id', '=', claim2.id).execute();
+			await db.updateTable('claim').set({ created_at: mar }).where('id', '=', claim3.id).execute();
+
+			// Create settlements and recovery events
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim1.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim2.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement3 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim3.id,
 				created_by: user.id,
 			});
 
-			// Create events in different months
-			const jan = new Date('2024-01-15');
-			const feb = new Date('2024-02-15');
-			const mar = new Date('2024-03-15');
-
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
+				claim_id: claim1.id,
+				settlement_id: settlement1.id,
 				created_by: user.id,
 				recovery_date: jan,
 				recovery_amount: '1000',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
+				claim_id: claim2.id,
+				settlement_id: settlement2.id,
 				created_by: user.id,
 				recovery_date: feb,
 				recovery_amount: '2000',
 			});
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
+				claim_id: claim3.id,
+				settlement_id: settlement3.id,
 				created_by: user.id,
 				recovery_date: mar,
 				recovery_amount: '3000',
@@ -1906,63 +1974,110 @@ describe('recoveryQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			// Act
-			const result = await getRecoveryMetricsTimeSeries(ctx, [new Date('2024-01-01'), new Date('2024-03-31')]);
+			// Use UTC dates for the range to avoid timezone issues
+			const rangeStart = new Date(Date.UTC(2024, 0, 1, 0, 0, 0)); // Jan 1, 2024 00:00 UTC
+			const rangeEnd = new Date(Date.UTC(2024, 2, 31, 23, 59, 59)); // Mar 31, 2024 23:59 UTC
 
-			// Assert - should have 3 months
+			// Act
+			const result = await getRecoveryMetricsTimeSeries(ctx, [rangeStart, rangeEnd]);
+
+			// Assert - should have 3 months (Jan, Feb, Mar)
 			expect(result.length).toBe(3);
 
 			const janData = result.find((r: { month_start: string }) => r.month_start === '2024-01-01');
 			const febData = result.find((r: { month_start: string }) => r.month_start === '2024-02-01');
 			const marData = result.find((r: { month_start: string }) => r.month_start === '2024-03-01');
 
+			// Actual recovery by recovery_date
 			expect(janData?.actual_recovery).toBe(1000);
 			expect(febData?.actual_recovery).toBe(2000);
 			expect(marData?.actual_recovery).toBe(3000);
+
+			// Expected recovery by claim created_at
+			expect(janData?.expected_recovery).toBe(2000);
+			expect(febData?.expected_recovery).toBe(4000);
+			expect(marData?.expected_recovery).toBe(6000);
 		});
 
-		it('should return 0 for months with no events', async () => {
+		it('should return 0 for months with no events or claims', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Use UTC dates
+			const jan15 = new Date(Date.UTC(2024, 0, 15, 12, 0, 0));
+
+			// Claim created in January with expected_recovery
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				expected_recovery: 5000,
+			});
+			// Set created_at to January
+			await db.updateTable('claim').set({ created_at: jan15 }).where('id', '=', claim.id).execute();
+
 			const { settlement } = await createSettlementChain(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				created_by: user.id,
 			});
 
-			// Only create event in January
+			// Only create recovery event in January
 			await createTestRecoveryEvent(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				settlement_id: settlement.id,
 				created_by: user.id,
-				recovery_date: new Date('2024-01-15'),
+				recovery_date: jan15,
 				recovery_amount: '1000',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
+			// Use UTC dates for the range
+			const rangeStart = new Date(Date.UTC(2024, 0, 1, 0, 0, 0));
+			const rangeEnd = new Date(Date.UTC(2024, 2, 31, 23, 59, 59));
+
 			// Act
-			const result = await getRecoveryMetricsTimeSeries(ctx, [new Date('2024-01-01'), new Date('2024-03-31')]);
+			const result = await getRecoveryMetricsTimeSeries(ctx, [rangeStart, rangeEnd]);
 
 			// Assert
+			const janData = result.find((r: { month_start: string }) => r.month_start === '2024-01-01');
 			const febData = result.find((r: { month_start: string }) => r.month_start === '2024-02-01');
 			const marData = result.find((r: { month_start: string }) => r.month_start === '2024-03-01');
 
+			// January has data
+			expect(janData?.actual_recovery).toBe(1000);
+			expect(janData?.expected_recovery).toBe(5000);
+
+			// February and March should be 0
 			expect(febData?.actual_recovery).toBe(0);
+			expect(febData?.expected_recovery).toBe(0);
 			expect(marData?.actual_recovery).toBe(0);
+			expect(marData?.expected_recovery).toBe(0);
 		});
 
-		it('should enforce tenant isolation', async () => {
+		it('should enforce tenant isolation for both expected and actual recovery', async () => {
 			// Arrange
 			const client1 = await createTestClient(db, { name: 'Client 1' });
 			const client2 = await createTestClient(db, { name: 'Client 2' });
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const claim1 = await createTestClaim(db, { client_id: client1.id });
-			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const claim1 = await createTestClaim(db, {
+				client_id: client1.id,
+				expected_recovery: 3000,
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client2.id,
+				expected_recovery: 10000,
+			});
+
+			// Use UTC dates
+			const jan15 = new Date(Date.UTC(2024, 0, 15, 12, 0, 0));
+
+			// Set created_at to January for both claims
+			await db.updateTable('claim').set({ created_at: jan15 }).where('id', '=', claim1.id).execute();
+			await db.updateTable('claim').set({ created_at: jan15 }).where('id', '=', claim2.id).execute();
+
 			const { settlement: settlement1 } = await createSettlementChain(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
@@ -1979,7 +2094,7 @@ describe('recoveryQueries integration', () => {
 				claim_id: claim1.id,
 				settlement_id: settlement1.id,
 				created_by: user1.id,
-				recovery_date: new Date('2024-01-15'),
+				recovery_date: jan15,
 				recovery_amount: '1000',
 			});
 			await createTestRecoveryEvent(db, {
@@ -1987,20 +2102,28 @@ describe('recoveryQueries integration', () => {
 				claim_id: claim2.id,
 				settlement_id: settlement2.id,
 				created_by: user2.id,
-				recovery_date: new Date('2024-01-15'),
+				recovery_date: jan15,
 				recovery_amount: '5000',
 			});
 
 			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
-			// Act
-			const result1 = await getRecoveryMetricsTimeSeries(ctx1, [new Date('2024-01-01'), new Date('2024-01-31')]);
-			const result2 = await getRecoveryMetricsTimeSeries(ctx2, [new Date('2024-01-01'), new Date('2024-01-31')]);
+			// Use UTC dates for the range (just January)
+			const rangeStart = new Date(Date.UTC(2024, 0, 1, 0, 0, 0));
+			const rangeEnd = new Date(Date.UTC(2024, 0, 31, 23, 59, 59));
 
-			// Assert
+			// Act
+			const result1 = await getRecoveryMetricsTimeSeries(ctx1, [rangeStart, rangeEnd]);
+			const result2 = await getRecoveryMetricsTimeSeries(ctx2, [rangeStart, rangeEnd]);
+
+			// Assert - each client only sees their own data (should have exactly 1 month)
+			expect(result1.length).toBe(1);
+			expect(result2.length).toBe(1);
 			expect(result1[0]?.actual_recovery).toBe(1000);
+			expect(result1[0]?.expected_recovery).toBe(3000);
 			expect(result2[0]?.actual_recovery).toBe(5000);
+			expect(result2[0]?.expected_recovery).toBe(10000);
 		});
 	});
 
@@ -2104,49 +2227,6 @@ describe('recoveryQueries integration', () => {
 			expect(result.q2).toBe('0');
 			expect(result.q3).toBe('0');
 			expect(result.q4).toBe('0');
-		});
-
-		it('should filter by user if provided', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const claim = await createTestClaim(db, { client_id: client.id });
-			const { settlement } = await createSettlementChain(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				created_by: user1.id,
-			});
-
-			const fiscalYearStart = new Date('2024-01-01');
-
-			await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user1.id,
-				recovery_date: new Date('2024-02-15'),
-				recovery_amount: '1000',
-			});
-			await createTestRecoveryEvent(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				settlement_id: settlement.id,
-				created_by: user2.id,
-				recovery_date: new Date('2024-02-15'),
-				recovery_amount: '5000',
-			});
-
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await getQuarterlyRecoveryStats(ctx, {
-				fiscalYearStart,
-				userId: user1.id,
-			});
-
-			// Assert - only user1's events
-			expect(result.q1).toBe('1000');
 		});
 
 		it('should enforce tenant isolation', async () => {

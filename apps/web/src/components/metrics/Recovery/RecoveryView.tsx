@@ -3,16 +3,15 @@
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import PageWrapper from '@/components/common/PageWrapper';
-import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useMemo, useState } from 'react';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+import utc from 'dayjs/plugin/utc';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import ChecklistSelect from '@/components/common/ChecklistSelect';
 import BasicMonthRangePicker from '@/components/common/BasicMonthRangePicker';
-import UserFilter from '@/components/common/UserFilter';
 import { GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import RecoverySourceFilter from '@/components/common/RecoverySourceFilter';
@@ -21,9 +20,12 @@ import RecoveryEventsTable from './RecoveryEventsTable';
 import TopPerformersSection from './TopPerformersSection';
 
 dayjs.extend(quarterOfYear);
+dayjs.extend(utc);
 
 /**
- * Get current quarter start and end dates
+ * Get current quarter start and end dates.
+ * Uses UTC mode to avoid timezone issues where endOf('month') could
+ * shift to the next month when converted to ISO string.
  */
 function getCurrentQuarterRange(): [Dayjs, Dayjs] {
 	const now = dayjs();
@@ -31,8 +33,9 @@ function getCurrentQuarterRange(): [Dayjs, Dayjs] {
 	const currentYear = now.year();
 	const startMonth = (currentQuarter - 1) * 3;
 
-	const start = dayjs().year(currentYear).month(startMonth).startOf('month');
-	const end = dayjs()
+	const start = dayjs.utc().year(currentYear).month(startMonth).startOf('month');
+	const end = dayjs
+		.utc()
 		.year(currentYear)
 		.month(startMonth + 2)
 		.endOf('month');
@@ -44,7 +47,6 @@ export default function RecoveryView() {
 	const router = useRouter();
 	const defaultRange = useMemo(() => getCurrentQuarterRange(), []);
 	const [range, setRange] = useState<DateRange<Dayjs>>(defaultRange);
-	const [users, setUsers] = useState<GetUserOutput[]>([]);
 	const [checklist, setChecklist] = useState<GetChecklistOutput | null>(null);
 	const [recoveryStatus, setRecoveryStatus] = useState<string | null>(null);
 	const [recoverySource, setRecoverySource] = useState<string>('');
@@ -64,13 +66,6 @@ export default function RecoveryView() {
 				<Box marginRight="5px">
 					<ChecklistSelect checklist={checklist} setChecklist={setChecklist} />
 				</Box>
-				<UserFilter
-					users={users}
-					setUsers={setUsers}
-					width="100%"
-					text="Filter by recovery creator"
-					multi={false}
-				/>
 			</Box>
 			<Box sx={styles.divider}>
 				<Divider />
@@ -92,21 +87,18 @@ export default function RecoveryView() {
 						recoveryStatus={recoveryStatus}
 						recoverySource={recoverySource}
 						checklistId={checklist?.id}
-						userId={users[0]?.id}
 					/>
 					<TopPerformersSection
 						range={range}
 						recoveryStatus={recoveryStatus}
 						recoverySource={recoverySource}
 						checklistId={checklist?.id}
-						userId={users[0]?.id}
 					/>
 					<RecoveryEventsTable
 						range={range}
 						recoveryStatus={recoveryStatus}
 						recoverySource={recoverySource}
 						checklistId={checklist?.id}
-						userId={users[0]?.id}
 					/>
 				</Stack>
 			</Box>

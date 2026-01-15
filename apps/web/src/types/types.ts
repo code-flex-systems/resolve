@@ -71,6 +71,8 @@ export interface Claim {
 	actual_recovery: number | null; // Team's meaningful payments (calculated from recovery events)
 	line_of_business: string | null;
 	loss_type: string | null;
+	recovery_status: string | null;
+	substatus: string | null;
 }
 
 export interface Checklist {

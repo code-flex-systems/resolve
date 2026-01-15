@@ -8,7 +8,7 @@ import ProfileAvatar from '../home/ProfileAvatar';
 import RecentComments from '../home/RecentComments';
 import MyClaimsMetric from '../home/MyClaimsMetric';
 import MyDeadlinesMetric from '../home/MyDeadlinesMetric';
-import MyRecoveryMetric from '../home/MyRecoveryMetric';
+import TeamRecoveryMetric from '../home/TeamRecoveryMetric';
 import Calendar from '../home/Calendar';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { BG_TERTIARY } from '@/styles/theme';
@@ -57,7 +57,7 @@ export default function Home() {
 							<MyDeadlinesMetric />
 						</Grid>
 						<Grid>
-							<MyRecoveryMetric />
+							<TeamRecoveryMetric />
 						</Grid>
 					</Grid>
 					<Grid container>

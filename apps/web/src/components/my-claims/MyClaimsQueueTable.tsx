@@ -7,7 +7,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import StackedHeaderCell from '@/components/common/StackedHeaderCell';
-import ClaimStatusCell from '@/components/metrics/Claims/ClaimStatusCell';
+import { formatClaimStatus } from '@/lib/utils/claimUtils';
+import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicPopper from '@/components/common/BasicPopper';
 import Toolbar from '@/components/common/Toolbar';
@@ -19,33 +20,36 @@ import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
 import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
-import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
+import SubstatusSelect from '@/components/common/SubstatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
-import { ClaimStatus, RecoveryStatus } from '@/config/enums';
+import { ClaimSubstatus, RecoveryStatus } from '@/config/enums';
 
 export interface MyClaimListItem {
 	id: number;
 	claim_number: string | null;
 	client: string | null;
 	insured: string | null;
-	claim_amount: number | null;
+	claim_amount: string | number | null;
 	date_of_loss: Date | null;
 	last_update: string | null;
-	actual_recovery: number | null;
-	expected_recovery: number | null;
-	recovery_status: RecoveryStatus | null;
+	actual_recovery: string | number | null;
+	expected_recovery: string | number | null;
+	recovery_status: string | null;
+	substatus?: string | null;
 	created_at: Date | null;
-	claim_status: ClaimStatus;
-	checklist_id: number;
-	assignee: string | null;
+	// Desk queue fields (listMyDeskClaims)
 	desk_location_id?: number | null;
-	assigned_at: Date | null;
-	checklist_name: string | null;
-	assignee_first: string | null;
-	assignee_last: string | null;
-	assignee_email: string | null;
 	desk_priority?: number;
 	desk_location_name?: string | null;
+	// Checklist-based fields (listMyClaims) - optional for compatibility
+	claim_status?: string;
+	checklist_id?: number;
+	checklist_name?: string | null;
+	assignee?: string | null;
+	assigned_at?: Date | null;
+	assignee_first?: string | null;
+	assignee_last?: string | null;
+	assignee_email?: string | null;
 }
 
 interface MyClaimsQueueTableProps {
@@ -54,7 +58,7 @@ interface MyClaimsQueueTableProps {
 	isFetching: boolean;
 	searchTerm: string;
 	setSearchTerm: (value: string) => void;
-	appliedClaimStatus: string | null;
+	appliedSubstatus: string | null;
 	appliedRecoveryStatus: string | null;
 	appliedSearch: string;
 	hasActiveFilters: boolean;
@@ -62,8 +66,8 @@ interface MyClaimsQueueTableProps {
 	handleOpenFilters: (e: React.MouseEvent) => void;
 	handleCloseFilters: () => void;
 	handleClearAllFilters: () => void;
-	draftClaimStatus: string | null;
-	setDraftClaimStatus: (value: string | null) => void;
+	draftSubstatus: string | null;
+	setDraftSubstatus: (value: string | null) => void;
 	draftRecoveryStatus: string | null;
 	setDraftRecoveryStatus: (value: string | null) => void;
 	handleApplyFilters: () => void;
@@ -76,7 +80,7 @@ export default function MyClaimsQueueTable({
 	isFetching,
 	searchTerm,
 	setSearchTerm,
-	appliedClaimStatus,
+	appliedSubstatus,
 	appliedRecoveryStatus,
 	appliedSearch,
 	hasActiveFilters,
@@ -84,8 +88,8 @@ export default function MyClaimsQueueTable({
 	handleOpenFilters,
 	handleCloseFilters,
 	handleClearAllFilters,
-	draftClaimStatus,
-	setDraftClaimStatus,
+	draftSubstatus,
+	setDraftSubstatus,
 	draftRecoveryStatus,
 	setDraftRecoveryStatus,
 	handleApplyFilters,
@@ -108,29 +112,11 @@ export default function MyClaimsQueueTable({
 		if (!rows || rows.length === 0) return;
 
 		const headers = showDeskColumn
-			? [
-					'Claim Number',
-					'Checklist',
-					'Desk',
-					'Insured',
-					'Expected Recovery',
-					'Actual Recovery',
-					'Status',
-					'Last Update',
-				]
-			: [
-					'Claim Number',
-					'Checklist',
-					'Insured',
-					'Expected Recovery',
-					'Actual Recovery',
-					'Status',
-					'Assignee',
-					'Last Update',
-				];
+			? ['Claim Number', 'Desk', 'Insured', 'Expected Recovery', 'Actual Recovery', 'Status', 'Last Update']
+			: ['Claim Number', 'Insured', 'Expected Recovery', 'Actual Recovery', 'Status', 'Last Update'];
 
 		const csvRows = rows.map((row: MyClaimListItem) => {
-			const baseRow = [row.claim_number || '', row.checklist_name || ''];
+			const baseRow = [row.claim_number || ''];
 
 			if (showDeskColumn) {
 				baseRow.push(row.desk_location_name || '');
@@ -140,12 +126,8 @@ export default function MyClaimsQueueTable({
 				row.insured || '',
 				row.expected_recovery?.toString() || '',
 				row.actual_recovery?.toString() || '',
-				row.claim_status || ''
+				formatClaimStatus(row.recovery_status, row.substatus)
 			);
-
-			if (!showDeskColumn) {
-				baseRow.push(row.assignee ? `${row.assignee_first} ${row.assignee_last}` : '');
-			}
 
 			baseRow.push(row.last_update ? dayjs(row.last_update).format('MM/DD/YYYY') : '');
 
@@ -179,24 +161,25 @@ export default function MyClaimsQueueTable({
 	const columns: GridColDef<MyClaimListItem>[] = useMemo(() => {
 		const baseColumns: GridColDef<MyClaimListItem>[] = [
 			{
-				field: 'claim_status',
+				field: 'status',
 				headerName: 'Status',
 				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => <ClaimStatusCell {...params} row={{ status: params.row.claim_status }} />,
-				width: 150,
-				align: 'right',
+				renderCell: (params) => (
+					<ClaimStatusChip
+						recoveryStatus={params.row.recovery_status}
+						substatus={params.row.substatus}
+					/>
+				),
+				width: 200,
 			},
 			{
 				field: 'claim_number',
-				headerName: 'Claim / Checklist',
+				headerName: 'Claim',
 				renderHeader: (params) => (
 					<IconHeaderCell
 						{...(params as any)}
 						icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />}
 					/>
-				),
-				renderCell: (params) => (
-					<StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />
 				),
 				cellClassName: 'cell-bold',
 				width: 220,
@@ -236,25 +219,6 @@ export default function MyClaimsQueueTable({
 				width: 130,
 			}
 		);
-
-		if (!showDeskColumn) {
-			baseColumns.push({
-				field: 'assignee',
-				headerName: 'Assignee',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => {
-					const user = formatUser({
-						id: params.value,
-						first: params.row.assignee_first,
-						last: params.row.assignee_last,
-						email: params.row.assignee_email,
-						phone: null,
-					});
-					return <StackedHeaderCell primary={user} secondary={params.row.assignee_email} />;
-				},
-				width: 250,
-			});
-		}
 
 		baseColumns.push({
 			field: 'last_update',
@@ -309,7 +273,7 @@ export default function MyClaimsQueueTable({
 										fontWeight: 600,
 									}}
 								>
-									{[appliedClaimStatus, appliedRecoveryStatus, appliedSearch].filter(Boolean).length}
+									{[appliedSubstatus, appliedRecoveryStatus, appliedSearch].filter(Boolean).length}
 								</Box>
 							)}
 						</BasicButtonStyled>
@@ -347,9 +311,9 @@ export default function MyClaimsQueueTable({
 							Filter Claims
 						</Typography>
 						<Box display="flex" flexDirection="column" gap={2}>
-							<ClaimStatusSelect
-								claimStatus={draftClaimStatus as ClaimStatus | null}
-								setClaimStatus={(status) => setDraftClaimStatus(status as string | null)}
+							<SubstatusSelect
+								substatus={draftSubstatus as ClaimSubstatus | null}
+								setSubstatus={(status) => setDraftSubstatus(status as string | null)}
 								text="Status"
 							/>
 							<RecoveryStatusSelect

@@ -754,6 +754,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 			'claim.client',
 			'claim.insured',
 			'claim.recovery_status',
+			'claim.substatus',
 			'checklist_claim.status',
 		])
 		.where('checklist.client_id', '=', ctx.session.user.client_id)

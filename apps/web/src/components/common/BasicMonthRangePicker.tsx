@@ -8,8 +8,10 @@ import WatchLater from '@mui/icons-material/WatchLater';
 import theme, { BASE_COLOR } from '@/styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(quarterOfYear);
+dayjs.extend(utc);
 
 const MONTHS = [
 	'January',
@@ -26,6 +28,8 @@ const MONTHS = [
 	'December',
 ];
 
+// Use dayjs.utc() to avoid timezone issues where endOf('month') could
+// shift to the next month when converted to ISO string
 const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 	{
 		label: 'Last Quarter',
@@ -38,8 +42,8 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 				year = year - 1;
 			}
 			const startMonth = (quarter - 1) * 3;
-			const start = dayjs().year(year).month(startMonth).startOf('month');
-			const end = dayjs().year(year).month(startMonth + 2).endOf('month');
+			const start = dayjs.utc().year(year).month(startMonth).startOf('month');
+			const end = dayjs.utc().year(year).month(startMonth + 2).endOf('month');
 			return [start, end];
 		},
 	},
@@ -49,36 +53,36 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 			const now = dayjs();
 			const quarter = now.quarter();
 			const startMonth = (quarter - 1) * 3;
-			const start = dayjs().month(startMonth).startOf('month');
-			const end = dayjs().month(startMonth + 2).endOf('month');
+			const start = dayjs.utc().month(startMonth).startOf('month');
+			const end = dayjs.utc().month(startMonth + 2).endOf('month');
 			return [start, end];
 		},
 	},
 	{
 		label: 'Last 3 Months',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.subtract(3, 'month').startOf('month'), today.endOf('month')];
 		},
 	},
 	{
 		label: 'Last 6 Months',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.subtract(6, 'month').startOf('month'), today.endOf('month')];
 		},
 	},
 	{
 		label: 'This Month',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.startOf('month'), today.endOf('month')];
 		},
 	},
 	{
 		label: 'This Year',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.startOf('year'), today.endOf('year')];
 		},
 	},
@@ -148,9 +152,10 @@ export default function BasicMonthRangePicker({
 	}, [range]);
 
 	// Update range when dropdowns change
+	// Use dayjs.utc() to avoid timezone issues
 	useEffect(() => {
-		const start = dayjs().year(startYear).month(startMonth).startOf('month');
-		const end = dayjs().year(endYear).month(endMonth).endOf('month');
+		const start = dayjs.utc().year(startYear).month(startMonth).startOf('month');
+		const end = dayjs.utc().year(endYear).month(endMonth).endOf('month');
 		setRange([start, end]);
 		setLabel(formatMonthLabel([start, end]));
 	}, [startMonth, startYear, endMonth, endYear]);

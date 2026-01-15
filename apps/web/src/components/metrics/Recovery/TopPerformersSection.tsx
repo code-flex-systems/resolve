@@ -13,13 +13,11 @@ export default function TopPerformersSection({
 	recoveryStatus,
 	recoverySource,
 	checklistId,
-	userId,
 }: {
 	range: DateRange<Dayjs>;
 	recoveryStatus: string | null;
 	recoverySource: string;
 	checklistId?: number;
-	userId?: string;
 }) {
 	// Convert DateRange to ISO strings for tRPC
 	const rangeISO = useMemo(
@@ -34,9 +32,8 @@ export default function TopPerformersSection({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		}),
-		[rangeISO, recoverySource, recoveryStatus, checklistId, userId]
+		[rangeISO, recoverySource, recoveryStatus, checklistId]
 	);
 
 	// Fetch all events for top performers calculation (not paginated for this component)

@@ -66,7 +66,12 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 							<Typography fontSize={14}>
 								{claimDetail.client_adjuster && (
 									<>
-										Representation by <Highlight>{claimDetail.client_adjuster}</Highlight>
+										Representation by{' '}
+										<Highlight>
+											{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
+												? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
+												: claimDetail.client_adjuster}
+										</Highlight>
 									</>
 								)}
 								{claimDetail.client && (
@@ -150,7 +155,11 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 									Client Adjuster:
 								</Highlight>
 							</Typography>
-							<Typography fontSize={13}>{claimDetail.client_adjuster ?? 'N/A'}</Typography>
+							<Typography fontSize={13}>
+								{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
+									? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
+									: claimDetail.client_adjuster ?? 'N/A'}
+							</Typography>
 						</Box>
 						<Divider />
 						<Box display="flex" justifyContent="space-between">

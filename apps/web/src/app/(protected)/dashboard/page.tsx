@@ -14,7 +14,7 @@ export default async function DashboardPage() {
 		helpers.checklist.getChecklistClaimStats.prefetch({ users: [userId] }),
 		helpers.checklist.getRecentChecklistClaims.prefetch(),
 		helpers.deadline.listDeadlines.prefetch({ personalOnly: true }),
-		helpers.recovery.getRecoveryMetricsTimeSeries.prefetch({ range: current, userId }),
+		helpers.recovery.getRecoveryMetricsTimeSeries.prefetch({ range: current }),
 		helpers.comment.getComments.prefetch({ filters: { userId } }),
 	]);
 
