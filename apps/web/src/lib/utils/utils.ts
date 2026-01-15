@@ -122,6 +122,15 @@ export function formatMDYAbv(date?: string) {
 	return dayjs(date).format('MM/DD/YY');
 }
 
+/**
+ * Format a Date object to ISO date string (YYYY-MM-DD).
+ * Useful for form submissions where the API expects ISO date strings.
+ */
+export function formatDateToISO(date: Date | null | undefined): string | null {
+	if (!date) return null;
+	return date.toISOString().split('T')[0];
+}
+
 export function formatUser<T extends GetUserOutput | undefined>(user: T, me?: string) {
 	if (!user) return '';
 	return user.email === me ? 'You' : `${user.first} ${user.last}`;

@@ -17,10 +17,9 @@ import {
 	InputLabel,
 	Autocomplete,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Save from '@mui/icons-material/Save';
 import Cancel from '@mui/icons-material/Cancel';
-import dayjs, { Dayjs } from 'dayjs';
+import DateField from '../common/DateField';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { RecoveryStatus } from '@/config/enums';
@@ -46,7 +45,7 @@ interface ClaimFormData {
 	client_adjuster: string;
 	insured: string;
 	claim_amount: string;
-	date_of_loss: Dayjs | null;
+	date_of_loss: string | null;
 	loss_street_address: string | null;
 	loss_city: string | null;
 	loss_state: string | null;
@@ -133,13 +132,17 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 	// Populate form when editing existing claim
 	useEffect(() => {
 		if (existingClaim && isEditMode) {
+			// Convert Date to ISO string for DateField component
+			const dateOfLossStr = existingClaim.date_of_loss
+				? new Date(existingClaim.date_of_loss).toISOString().split('T')[0]
+				: null;
 			reset({
 				claim_number: existingClaim.claim_number || '',
 				client: existingClaim.client || '',
 				client_adjuster: existingClaim.client_adjuster || '',
 				insured: existingClaim.insured || '',
 				claim_amount: existingClaim.claim_amount?.toString() || '',
-				date_of_loss: existingClaim.date_of_loss ? dayjs(existingClaim.date_of_loss) : null,
+				date_of_loss: dateOfLossStr,
 				loss_street_address: existingClaim.loss_street_address || '',
 				loss_city: existingClaim.loss_city || '',
 				loss_state: existingClaim.loss_state || '',
@@ -248,7 +251,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 					client_adjuster: data.client_adjuster || null,
 					insured: data.insured || null,
 					claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
-					date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
+					date_of_loss: data.date_of_loss || null,
 					loss_street_address: data.loss_street_address || null,
 					loss_city: data.loss_city || null,
 					loss_state: data.loss_state || null,
@@ -273,7 +276,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							client_adjuster: data.client_adjuster || null,
 							insured: data.insured || null,
 							claim_amount: data.claim_amount ? parseFloat(data.claim_amount) : null,
-							date_of_loss: data.date_of_loss ? data.date_of_loss.format('YYYY-MM-DD') : null,
+							date_of_loss: data.date_of_loss || null,
 							loss_street_address: data.loss_street_address || null,
 							loss_city: data.loss_city || null,
 							loss_state: data.loss_state || null,
@@ -412,17 +415,12 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 								control={control}
 								rules={{ required: true }}
 								render={({ field }) => (
-									<DatePicker
+									<DateField
 										label="Date of Loss"
 										value={field.value}
-										onChange={(newValue) => field.onChange(newValue)}
-										slotProps={{
-											textField: {
-												error: !!errors.date_of_loss,
-												size: 'small',
-												sx: { minWidth: 200, flex: 1, maxWidth: 300 },
-											},
-										}}
+										onChange={field.onChange}
+										error={!!errors.date_of_loss}
+										sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 									/>
 								)}
 							/>

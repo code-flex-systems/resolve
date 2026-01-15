@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { capitalize } from '@/lib/utils/utils';
+import DateField from '@/components/common/DateField';
 
 export interface PaymentFormData {
 	coverage_id: number | '';
@@ -94,16 +95,12 @@ export default function PaymentFormDialog({
 							))}
 						</Select>
 					</FormControl>
-					<TextField
+					<DateField
 						label="Payment Date"
-						type="date"
-						value={formData.payment_date}
-						onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+						value={formData.payment_date || null}
+						onChange={(val) => setFormData({ ...formData, payment_date: val ?? '' })}
 						fullWidth
 						required
-						slotProps={{
-							inputLabel: { shrink: true },
-						}}
 					/>
 					<TextField
 						label="Payment Amount"

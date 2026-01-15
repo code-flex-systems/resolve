@@ -1,7 +1,6 @@
-import config from '@/config/config';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSessionContext } from '@/app/(protected)/SessionProvider';
 
 export default function useIsAdmin() {
-	const { data: session } = useClerkSession();
-	return session?.user?.role === config.ROLES.ADMIN;
+	const { isAdmin } = useSessionContext();
+	return isAdmin;
 }

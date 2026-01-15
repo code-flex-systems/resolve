@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/config/enums';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import DateField from '@/components/common/DateField';
 
 const capitalize = (str: string | null | undefined) => {
 	if (!str) return '';
@@ -171,15 +172,11 @@ export default function SettlementFormDialog({
 							htmlInput: { step: '0.01', min: '0' },
 						}}
 					/>
-					<TextField
+					<DateField
 						label="Demand Date"
-						type="date"
-						value={formData.demand_date}
-						onChange={(e) => setFormData({ ...formData, demand_date: e.target.value })}
+						value={formData.demand_date || null}
+						onChange={(val) => setFormData({ ...formData, demand_date: val ?? '' })}
 						fullWidth
-						slotProps={{
-							inputLabel: { shrink: true },
-						}}
 					/>
 					{/* Edit-only fields: Status, Agreed Liability, Settlement Amount, Settlement Date */}
 					{isEditing && (
@@ -223,15 +220,11 @@ export default function SettlementFormDialog({
 									htmlInput: { step: '0.01', min: '0' },
 								}}
 							/>
-							<TextField
+							<DateField
 								label="Settlement Date"
-								type="date"
-								value={formData.settlement_date}
-								onChange={(e) => setFormData({ ...formData, settlement_date: e.target.value })}
+								value={formData.settlement_date || null}
+								onChange={(val) => setFormData({ ...formData, settlement_date: val ?? '' })}
 								fullWidth
-								slotProps={{
-									inputLabel: { shrink: true },
-								}}
 							/>
 						</>
 					)}

@@ -2,11 +2,13 @@
 
 import { Box, Grid, InputAdornment, TextField, Typography, Stack } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import { useForm } from 'react-hook-form';
+import DateField from '../common/DateField';
+import { useForm, Controller } from 'react-hook-form';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import Info from '@mui/icons-material/Info';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import { formatDateToISO } from '@/lib/utils/utils';
 import AddressFields from '../common/AddressFields';
 import type { ClaimData } from '@/schemas/claimSchemas';
 
@@ -29,8 +31,8 @@ export default function NewClaimDialog() {
 					{
 						...data,
 						claim_amount: data.claim_amount?.toString() ?? null,
-						date_of_loss: data.date_of_loss?.toString() ?? null,
-						last_update: data.last_update?.toString() ?? null,
+						date_of_loss: formatDateToISO(data.date_of_loss),
+						last_update: formatDateToISO(data.last_update),
 					},
 				],
 			});
@@ -116,15 +118,19 @@ export default function NewClaimDialog() {
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
-							id="date_of_loss"
-							label="Date of Loss"
-							error={!!errors.date_of_loss}
-							type="date"
-							sx={{
-								width: 200,
-							}}
-							{...register('date_of_loss', { required: true })}
+						<Controller
+							name="date_of_loss"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<DateField
+									label="Date of Loss"
+									value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+									onChange={(val) => field.onChange(val ? new Date(val) : null)}
+									error={!!errors.date_of_loss}
+									sx={{ width: 200 }}
+								/>
+							)}
 						/>
 					</Grid>
 					<Grid style={styles.row}>
@@ -140,15 +146,19 @@ export default function NewClaimDialog() {
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
-							id="last_update"
-							label="Last Update"
-							error={!!errors.last_update}
-							type="date"
-							sx={{
-								width: 200,
-							}}
-							{...register('last_update', { required: true })}
+						<Controller
+							name="last_update"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<DateField
+									label="Last Update"
+									value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+									onChange={(val) => field.onChange(val ? new Date(val) : null)}
+									error={!!errors.last_update}
+									sx={{ width: 200 }}
+								/>
+							)}
 						/>
 					</Grid>
 					<Grid style={styles.row}>

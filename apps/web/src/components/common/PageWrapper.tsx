@@ -7,6 +7,7 @@ import Search from '@mui/icons-material/Search';
 import Security from '@mui/icons-material/Security';
 import FolderOpen from '@mui/icons-material/FolderOpen';
 import Business from '@mui/icons-material/Business';
+import ClaimsStackIcon from './ClaimsStackIcon';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -30,6 +31,7 @@ export default function PageWrapper({
 		const items: NavItem[] = [
 			{ label: 'Home', route: '/home', icon: <Search sx={{ fontSize: 23 }} /> },
 			{ label: 'Dashboard', route: '/dashboard', icon: <Dashboard sx={{ fontSize: 23 }} /> },
+			{ label: 'My Claims', route: '/my-claims', icon: <ClaimsStackIcon /> },
 			{ label: 'Documents', route: '/documents', icon: <FolderOpen sx={{ fontSize: 23 }} /> },
 			{ label: 'Parties', route: '/parties', icon: <Business sx={{ fontSize: 23 }} /> },
 		];

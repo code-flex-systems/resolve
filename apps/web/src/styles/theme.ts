@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, Components, Theme } from '@mui/material/styles';
 import '@fontsource/inter/300.css'; // Light (regular weight)
 import '@fontsource/inter/400.css'; // Normal
 import '@fontsource/inter/500.css'; // Medium
@@ -6,6 +6,17 @@ import '@fontsource/inter/600.css'; // Semi-bold
 import '@fontsource/inter/700.css'; // Bold
 import { buttonClasses } from '@mui/material';
 import { gridClasses } from '@mui/x-data-grid-pro';
+
+// Extend MUI theme types to include DatePicker components
+declare module '@mui/material/styles' {
+	interface Components {
+		MuiPickersTextField?: object;
+		MuiPickersPopper?: object;
+		MuiPickersDay?: object;
+		MuiPickersCalendarHeader?: object;
+		MuiYearCalendar?: object;
+	}
+}
 
 // Modern neutral palette
 export const BASE_COLOR = '#41414a';
@@ -411,6 +422,14 @@ const theme = createTheme({
 					},
 				},
 			},
+			styleOverrides: {
+				root: {
+					// Ensure notched outline shows gap for shrunk label
+					'& .MuiOutlinedInput-notchedOutline legend': {
+						maxWidth: '100%',
+					},
+				},
+			},
 		},
 		MuiFormControl: {
 			defaultProps: {
@@ -633,6 +652,73 @@ const theme = createTheme({
 					transition: 'all 0.2s ease',
 					'& legend': {
 						paddingRight: 8,
+					},
+				},
+			},
+		},
+		// DatePicker theme overrides - match TextField styling
+		MuiPickersTextField: {
+			defaultProps: {
+				variant: 'outlined',
+				size: 'small',
+				slotProps: {
+					inputLabel: {
+						shrink: true,
+					},
+				},
+			},
+			styleOverrides: {
+				root: {
+					// Ensure notched outline shows gap for shrunk label
+					'& .MuiOutlinedInput-notchedOutline legend': {
+						maxWidth: '100%',
+					},
+				},
+			},
+		},
+		MuiPickersPopper: {
+			styleOverrides: {
+				paper: {
+					borderRadius: 12,
+					boxShadow: SHADOW_LG,
+					border: `1px solid ${BORDER_COLOR}`,
+					marginTop: 4,
+				},
+			},
+		},
+		MuiPickersDay: {
+			styleOverrides: {
+				root: {
+					fontSize: 13,
+					borderRadius: 8,
+					'&.Mui-selected': {
+						backgroundColor: '#21B5FF',
+						'&:hover': {
+							backgroundColor: '#158abf',
+						},
+					},
+					'&:hover': {
+						backgroundColor: 'rgba(33, 181, 255, 0.08)',
+					},
+				},
+			},
+		},
+		MuiPickersCalendarHeader: {
+			styleOverrides: {
+				label: {
+					fontSize: 14,
+					fontWeight: 600,
+				},
+			},
+		},
+		MuiYearCalendar: {
+			styleOverrides: {
+				root: {
+					'& .MuiPickersYear-yearButton': {
+						fontSize: 13,
+						'&.Mui-selected': {
+							backgroundColor: '#21B5FF',
+						},
 					},
 				},
 			},

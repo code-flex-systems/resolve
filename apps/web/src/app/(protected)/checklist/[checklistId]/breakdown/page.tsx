@@ -1,4 +1,3 @@
-'use client';
 import ChecklistPageBreakdown from '@/components/pages/ChecklistPageBreakdown';
 
 export default function ChecklistPageBreakdownPage() {
