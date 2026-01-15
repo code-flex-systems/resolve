@@ -1,6 +1,6 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { EntityName } from '@/api/utils/adminActionLogger';
-import { sql } from 'kysely';
+import type { ListAdminConfigLogsInput } from '@/schemas/adminLogSchemas';
 
 /**
  * Get admin action logs for a specific claim.
@@ -120,4 +120,79 @@ export async function getAdminLogsByEntity(
 			.limit(limit)
 			.execute();
 	}
+}
+
+export async function listAdminConfigLogs(ctx: ProtectedContext, input: ListAdminConfigLogsInput) {
+	const { limit, cursor, startDate, endDate, entityName, userId } = input;
+
+	let query = ctx.db
+		.selectFrom('admin_config_logs')
+		.innerJoin('users', 'admin_config_logs.user_id', 'users.id')
+		.select([
+			'admin_config_logs.id',
+			'admin_config_logs.entity_id',
+			'admin_config_logs.entity_name',
+			'admin_config_logs.action',
+			'admin_config_logs.created_at',
+			'admin_config_logs.value',
+			'users.id as user_id',
+			'users.first as first_name',
+			'users.last as last_name',
+			'users.email as user_email',
+		])
+		.where('admin_config_logs.client_id', '=', ctx.session.user.client_id);
+
+	if (entityName) {
+		query = query.where('admin_config_logs.entity_name', '=', entityName);
+	}
+
+	if (userId) {
+		query = query.where('admin_config_logs.user_id', '=', userId);
+	}
+
+	if (startDate) {
+		query = query.where('admin_config_logs.created_at', '>=', new Date(startDate));
+	}
+
+	if (endDate) {
+		query = query.where('admin_config_logs.created_at', '<=', new Date(endDate));
+	}
+
+	if (cursor) {
+		const cursorDate = new Date(cursor.createdAt);
+		query = query.where((eb) =>
+			eb.or([
+				eb('admin_config_logs.created_at', '<', cursorDate),
+				eb.and([
+					eb('admin_config_logs.created_at', '=', cursorDate),
+					eb('admin_config_logs.id', '<', cursor.id),
+				]),
+			])
+		);
+	}
+
+	const rows = await query
+		.orderBy('admin_config_logs.created_at', 'desc')
+		.orderBy('admin_config_logs.id', 'desc')
+		.limit(limit + 1)
+		.execute();
+
+	const hasNextPage = rows.length > limit;
+	const trimmedRows = hasNextPage ? rows.slice(0, limit) : rows;
+	const lastRow = trimmedRows[trimmedRows.length - 1];
+	const nextCursor = hasNextPage && lastRow
+		? {
+				createdAt:
+					lastRow.created_at instanceof Date
+						? lastRow.created_at.toISOString()
+						: new Date(lastRow.created_at).toISOString(),
+				id: lastRow.id,
+			}
+		: null;
+
+	return {
+		rows: trimmedRows,
+		nextCursor,
+		hasNextPage,
+	};
 }

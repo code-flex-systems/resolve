@@ -13,3 +13,18 @@ export const getAdminLogsByEntityInput = z.object({
 	limit: z.number().int().min(1).max(100).optional().default(10),
 });
 export type GetAdminLogsByEntityInput = z.infer<typeof getAdminLogsByEntityInput>;
+
+export const listAdminConfigLogsInput = z.object({
+	limit: z.number().int().min(1).max(100).optional().default(25),
+	cursor: z
+		.object({
+			createdAt: z.string().datetime(),
+			id: z.number().int(),
+		})
+		.optional(),
+	startDate: z.string().datetime().optional(),
+	endDate: z.string().datetime().optional(),
+	entityName: z.nativeEnum(EntityName).optional(),
+	userId: z.string().optional(),
+});
+export type ListAdminConfigLogsInput = z.infer<typeof listAdminConfigLogsInput>;
