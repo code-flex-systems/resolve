@@ -28,3 +28,20 @@ export const listAdminConfigLogsInput = z.object({
 	userId: z.string().optional(),
 });
 export type ListAdminConfigLogsInput = z.infer<typeof listAdminConfigLogsInput>;
+
+export const listClaimActivityLogsInput = z.object({
+	limit: z.number().int().min(1).max(100).optional().default(25),
+	cursor: z
+		.object({
+			createdAt: z.string().datetime(),
+			id: z.number().int(),
+		})
+		.optional(),
+	startDate: z.string().datetime().optional(),
+	endDate: z.string().datetime().optional(),
+	entityName: z.nativeEnum(EntityName).optional(),
+	userId: z.string().optional(),
+	claimId: z.number().int().optional(),
+	actorType: z.enum(['admin', 'user']).optional(),
+});
+export type ListClaimActivityLogsInput = z.infer<typeof listClaimActivityLogsInput>;
