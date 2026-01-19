@@ -216,6 +216,107 @@ export async function getEntityConfigLogs(
 		.execute();
 }
 
+export async function listClaimActivityLogs(
+	ctx: ProtectedContext,
+	input: {
+		limit: number;
+		cursor?: { createdAt: string; id: number };
+		startDate?: string;
+		endDate?: string;
+		entityName?: string;
+		userId?: string;
+		claimId?: number;
+		actorType?: 'admin' | 'user';
+	}
+) {
+	const { limit, cursor, startDate, endDate, entityName, userId, claimId, actorType } = input;
+
+	let query = ctx.db
+		.selectFrom('claim_activity_logs')
+		.innerJoin('users', 'claim_activity_logs.user_id', 'users.id')
+		.innerJoin('claim', 'claim.id', 'claim_activity_logs.claim_id')
+		.select([
+			'claim_activity_logs.id',
+			'claim_activity_logs.claim_id',
+			'claim_activity_logs.entity_id',
+			'claim_activity_logs.entity_name',
+			'claim_activity_logs.action',
+			'claim_activity_logs.actor_type',
+			'claim_activity_logs.created_at',
+			'claim_activity_logs.value',
+			'users.id as user_id',
+			'users.first as first_name',
+			'users.last as last_name',
+			'users.email as user_email',
+			'claim.claim_number as claim_number',
+			'claim.insured as claim_insured',
+		])
+		.where('claim_activity_logs.client_id', '=', ctx.session.user.client_id)
+		.where('claim.client_id', '=', ctx.session.user.client_id);
+
+	if (entityName) {
+		query = query.where('claim_activity_logs.entity_name', '=', entityName);
+	}
+
+	if (userId) {
+		query = query.where('claim_activity_logs.user_id', '=', userId);
+	}
+
+	if (claimId) {
+		query = query.where('claim_activity_logs.claim_id', '=', claimId);
+	}
+
+	if (actorType) {
+		query = query.where('claim_activity_logs.actor_type', '=', actorType);
+	}
+
+	if (startDate) {
+		query = query.where('claim_activity_logs.created_at', '>=', new Date(startDate));
+	}
+
+	if (endDate) {
+		query = query.where('claim_activity_logs.created_at', '<=', new Date(endDate));
+	}
+
+	if (cursor) {
+		const cursorDate = new Date(cursor.createdAt);
+		query = query.where((eb) =>
+			eb.or([
+				eb('claim_activity_logs.created_at', '<', cursorDate),
+				eb.and([
+					eb('claim_activity_logs.created_at', '=', cursorDate),
+					eb('claim_activity_logs.id', '<', cursor.id),
+				]),
+			])
+		);
+	}
+
+	const rows = await query
+		.orderBy('claim_activity_logs.created_at', 'desc')
+		.orderBy('claim_activity_logs.id', 'desc')
+		.limit(limit + 1)
+		.execute();
+
+	const hasNextPage = rows.length > limit;
+	const trimmedRows = hasNextPage ? rows.slice(0, limit) : rows;
+	const lastRow = trimmedRows[trimmedRows.length - 1];
+	const nextCursor = hasNextPage && lastRow
+		? {
+				createdAt:
+					lastRow.created_at instanceof Date
+						? lastRow.created_at.toISOString()
+						: new Date(lastRow.created_at).toISOString(),
+				id: lastRow.id,
+			}
+		: null;
+
+	return {
+		rows: trimmedRows,
+		nextCursor,
+		hasNextPage,
+	};
+}
+
 /**
  * Get recent admin config logs (all entities)
  *

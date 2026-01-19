@@ -31,6 +31,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import TaskIcon from '@mui/icons-material/Task';
 import ListIcon from '@mui/icons-material/List';
 import GavelIcon from '@mui/icons-material/Gavel';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -189,6 +190,11 @@ const adminNavCategories: AdminNavCategory[] = [
 				label: 'Logs',
 				route: '/admin/system/logs',
 				icon: <ContentPasteSearchIcon fontSize="small" />,
+			},
+			{
+				label: 'Claim Activity Logs',
+				route: '/admin/system/claim-activity-logs',
+				icon: <AssignmentTurnedInIcon fontSize="small" />,
 			},
 			{
 				label: 'Reference Data',
