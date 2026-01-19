@@ -954,3 +954,42 @@ export async function updateUsersDeskAssignments(
 		assignmentsUpdated: assignments.length,
 	}));
 }
+
+/**
+ * Get current user's desk assignments with claim counts per desk location
+ * Used for the My Desk Assignments dashboard metric
+ */
+export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext) {
+	return await ctx.db
+		.selectFrom('user_desk_location')
+		.leftJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
+		.leftJoin('desk_location_type', 'desk_location.desk_location_type_id', 'desk_location_type.id')
+		.leftJoin('claim', (join) =>
+			join
+				.onRef('claim.desk_location_id', '=', 'desk_location.id')
+				.on('claim.client_id', '=', ctx.session.user.client_id)
+		)
+		.select([
+			'user_desk_location.id',
+			'user_desk_location.desk_location_id',
+			'user_desk_location.priority',
+			'user_desk_location.assigned_at',
+			'desk_location.name as desk_location_name',
+			'desk_location_type.name as desk_location_type_name',
+		])
+		.select((eb) => eb.fn.count('claim.id').as('claim_count'))
+		.where('user_desk_location.user_id', '=', ctx.session.user.id)
+		.where('user_desk_location.removed_at', 'is', null)
+		.where('desk_location.deleted_at', 'is', null)
+		.where('desk_location.client_id', '=', ctx.session.user.client_id)
+		.groupBy([
+			'user_desk_location.id',
+			'user_desk_location.desk_location_id',
+			'user_desk_location.priority',
+			'user_desk_location.assigned_at',
+			'desk_location.name',
+			'desk_location_type.name',
+		])
+		.orderBy('user_desk_location.priority asc')
+		.execute();
+}

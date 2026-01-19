@@ -638,3 +638,11 @@ export async function updateUsersDeskAssignments(
 
 	return updated;
 }
+
+/**
+ * Get current user's desk assignments with claim counts
+ * Used for the My Desk Assignments dashboard metric
+ */
+export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext) {
+	return await deskQueries.getMyDeskAssignmentsWithClaimCounts(ctx);
+}

@@ -253,4 +253,13 @@ export const deskRouter = router({
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return deskController.updateUsersDeskAssignments(ctx, input);
 		}),
+
+	/**
+	 * Get current user's desk assignments with claim counts
+	 * Used for the My Desk Assignments dashboard metric
+	 * No admin role required - users can view their own assignments
+	 */
+	getMyDeskAssignments: protectedProcedure.query(async ({ ctx }) => {
+		return deskController.getMyDeskAssignmentsWithClaimCounts(ctx);
+	}),
 });

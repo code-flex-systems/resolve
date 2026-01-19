@@ -10,27 +10,27 @@ import DeadlineListItem from '@/components/common/DeadlineListItem';
 interface DailyEventsListProps {
 	deadlines: Deadline[];
 	selectedDate: Dayjs | null;
+	flexGrow?: boolean;
 }
 
 /**
  * Displays a scrollable list of deadlines for the selected day
  */
-export default function DailyEventsList({ deadlines, selectedDate }: DailyEventsListProps) {
+export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: DailyEventsListProps) {
 	const router = useRouter();
 
 	const handleClaimClick = (claimId: number) => {
-		// Navigate to claim detail (could also open in a dialog/panel)
 		router.push(`/claims/${claimId}`);
 	};
 
 	return (
-		<Box sx={styles.container}>
+		<Box sx={{ ...styles.container, ...(flexGrow && styles.flexContainer) }}>
 			<Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1.5}>
 				{selectedDate ? selectedDate.format('MMMM D, YYYY') : 'Select a date'}
 			</Typography>
 
 			<Fade key={selectedDate?.toString() ?? 'empty'} in={true} timeout={1000}>
-				<Box sx={styles.scrollContainer}>
+				<Box sx={{ ...styles.scrollContainer, ...(flexGrow && styles.flexScrollContainer) }}>
 					{deadlines.length === 0 ? (
 						<Box sx={styles.emptyState}>
 							<Typography variant="body2" color="text.secondary" textAlign="center">
@@ -62,6 +62,13 @@ const styles = {
 		paddingTop: 2,
 		marginTop: 1,
 	},
+	flexContainer: {
+		flex: 1,
+		display: 'flex',
+		flexDirection: 'column',
+		minHeight: 0,
+		overflow: 'hidden',
+	},
 	scrollContainer: {
 		maxHeight: 220,
 		overflowY: 'auto',
@@ -81,6 +88,10 @@ const styles = {
 				background: theme.palette.action.disabled,
 			},
 		},
+	},
+	flexScrollContainer: {
+		flex: 1,
+		maxHeight: 'none',
 	},
 	emptyState: {
 		padding: 4,

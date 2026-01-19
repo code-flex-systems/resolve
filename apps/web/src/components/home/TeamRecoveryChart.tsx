@@ -2,7 +2,7 @@
 
 import { LineChart } from '@mui/x-charts-pro';
 import theme from '@/styles/theme';
-import { Box, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Skeleton, Stack } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
@@ -24,15 +24,6 @@ export default function TeamRecoveryChart() {
 
 	return (
 		<Box width="100%" height="100%">
-			<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
-				<Typography variant="subtitle1" fontSize={14} fontWeight={600} marginBottom={1}>
-					Team Recovery
-				</Typography>
-				<Typography variant="caption" fontSize={13} color="#d9d9d9" marginRight="15px">
-					Q{quarters.currentQuarter}
-				</Typography>
-			</Box>
-
 			{isFetching && (
 				<Stack width="100%" spacing={1}>
 					<Skeleton variant="rounded" width="100%" height={130} />

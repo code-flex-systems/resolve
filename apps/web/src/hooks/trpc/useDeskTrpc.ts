@@ -231,6 +231,16 @@ export function useDeskTrpc() {
 				utils.user.getUsersWithDeskAssignments.invalidate();
 			},
 		}),
+
+		// ====================================================================
+		// DASHBOARD METRIC OPERATIONS
+		// ====================================================================
+
+		/**
+		 * Get current user's desk assignments with claim counts
+		 * Used for the My Desk Assignments dashboard metric
+		 */
+		getMyDeskAssignments: trpc.desk.getMyDeskAssignments.useQuery,
 	};
 }
 

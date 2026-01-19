@@ -163,7 +163,7 @@ export async function getDeadlines(
 		.selectAll('deadline')
 		.select('claim.claim_number')
 		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
-		.orderBy('deadline.deadline_date asc')
+		.orderBy('deadline.deadline_date desc')
 		.orderBy('deadline.created_at desc')
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))

@@ -1,16 +1,20 @@
 'use client';
 
-import { Box, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
+import { useState, useMemo } from 'react';
+import { Box, FormControl, MenuItem, Select, SelectChangeEvent, Skeleton, Stack, Typography } from '@mui/material';
+import { useDeadlineTrpc, Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 import { useRouter } from 'next/navigation';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import theme, { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
-import WarningAmber from '@mui/icons-material/WarningAmber';
-import AccessTime from '@mui/icons-material/AccessTime';
+import { DeadlineStatus } from '@/config/enums';
+import { CalendarIcon } from '@mui/x-date-pickers-pro';
+
+type DeadlineFilter = 'all' | 'pending' | 'completed' | 'overdue';
 
 export default function MyClaimsDeadlines() {
 	const router = useRouter();
+	const [filter, setFilter] = useState<DeadlineFilter>('all');
 	const { data = { rows: [], count: 0 }, isLoading } = useDeadlineTrpc().listDeadlines(
 		{ personalOnly: true },
 		{ refetchOnMount: 'always' }
@@ -21,81 +25,115 @@ export default function MyClaimsDeadlines() {
 		router.push(`/claims/${claimId}`);
 	};
 
-	// Calculate overdue and upcoming
-	const now = dayjs();
-	const overdue = deadlines.filter((d) => dayjs(d.deadline_date).isBefore(now));
-	const upcoming = deadlines.filter(
-		(d) => dayjs(d.deadline_date).isAfter(now) && dayjs(d.deadline_date).isBefore(now.add(7, 'days'))
-	);
+	const handleFilterChange = (event: SelectChangeEvent<DeadlineFilter>) => {
+		setFilter(event.target.value as DeadlineFilter);
+	};
+
+	// Calculate counts and filter deadlines
+	const { counts, filteredDeadlines } = useMemo(() => {
+		const now = dayjs();
+
+		const isOverdue = (d: Deadline) => d.status === DeadlineStatus.PENDING && dayjs(d.deadline_date).isBefore(now);
+		const isPending = (d: Deadline) => d.status === DeadlineStatus.PENDING && !dayjs(d.deadline_date).isBefore(now);
+		const isCompleted = (d: Deadline) => d.status === DeadlineStatus.MET || d.status === DeadlineStatus.MISSED;
+
+		const overdueList = deadlines.filter(isOverdue);
+		const pendingList = deadlines.filter(isPending);
+		const completedList = deadlines.filter(isCompleted);
+
+		const counts = {
+			all: deadlines.length,
+			pending: pendingList.length,
+			completed: completedList.length,
+			overdue: overdueList.length,
+		};
+
+		let filtered: Deadline[];
+		switch (filter) {
+			case 'overdue':
+				filtered = overdueList;
+				break;
+			case 'pending':
+				filtered = pendingList;
+				break;
+			case 'completed':
+				filtered = completedList;
+				break;
+			default:
+				filtered = deadlines;
+		}
+
+		return { counts, filteredDeadlines: filtered };
+	}, [deadlines, filter]);
 
 	return (
-		<Paper sx={styles.container}>
-			<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT} marginBottom={1.5}>
+		<Box sx={{ ...containerStyles.section, ...styles.container }}>
+			<Typography sx={containerStyles.sectionTitle}>
+				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
 				Related Deadlines
 			</Typography>
+			<Box sx={containerStyles.sectionContent}>
+				{isLoading ? (
+					<Stack spacing={1}>
+						<Skeleton variant="rectangular" height={40} />
+						<Skeleton variant="rectangular" height={60} />
+						<Skeleton variant="rectangular" height={60} />
+					</Stack>
+				) : (
+					<>
+						{/* Filter Dropdown */}
+						<FormControl size="small" sx={{ marginBottom: 2, minWidth: 180 }}>
+							<Select value={filter} onChange={handleFilterChange} sx={{ fontSize: 13 }}>
+								<MenuItem value="all">All ({counts.all})</MenuItem>
+								<MenuItem value="pending">Upcoming ({counts.pending})</MenuItem>
+								<MenuItem value="overdue">Overdue ({counts.overdue})</MenuItem>
+								<MenuItem value="completed">Completed ({counts.completed})</MenuItem>
+							</Select>
+						</FormControl>
 
-			{isLoading ? (
-				<Stack spacing={1}>
-					<Skeleton variant="rectangular" height={40} />
-					<Skeleton variant="rectangular" height={60} />
-					<Skeleton variant="rectangular" height={60} />
-				</Stack>
-			) : (
-				<>
-					{/* Deadline Counts */}
-					<Box display="flex" gap={2} marginBottom={2}>
-						<Box display="flex" alignItems="center" gap={0.5}>
-							<WarningAmber sx={{ fontSize: 16, color: theme.palette.error.main }} />
-							<Typography fontSize={12} color="text.secondary">
-								<strong>{overdue.length}</strong> Overdue
-							</Typography>
+						{/* Deadline List */}
+						<Box sx={styles.scrollContainer}>
+							{filteredDeadlines.length === 0 ? (
+								<Box sx={styles.emptyState}>
+									<Typography
+										fontSize={13}
+										color="text.secondary"
+										textAlign="center"
+										fontStyle="italic"
+									>
+										{filter === 'all' ? 'No deadlines for your claims' : `No ${filter} deadlines`}
+									</Typography>
+								</Box>
+							) : (
+								<Stack spacing={1}>
+									{filteredDeadlines.slice(0, 10).map((deadline) => (
+										<DeadlineListItem
+											key={deadline.id}
+											deadline={deadline}
+											onClaimClick={handleClaimClick}
+											showTime={false}
+											showDate={true}
+										/>
+									))}
+								</Stack>
+							)}
 						</Box>
-						<Box display="flex" alignItems="center" gap={0.5}>
-							<AccessTime sx={{ fontSize: 16, color: theme.palette.warning.main }} />
-							<Typography fontSize={12} color="text.secondary">
-								<strong>{upcoming.length}</strong> Upcoming
+						{filteredDeadlines.length > 10 && (
+							<Typography fontSize={11} color="text.secondary" textAlign="center" marginTop={1}>
+								Showing 10 of {filteredDeadlines.length} deadlines
 							</Typography>
-						</Box>
-					</Box>
-
-					{/* Deadline List */}
-					<Box sx={styles.scrollContainer}>
-						{deadlines.length === 0 ? (
-							<Box sx={styles.emptyState}>
-								<Typography fontSize={13} color="text.secondary" textAlign="center" fontStyle="italic">
-									No deadlines for your claims
-								</Typography>
-							</Box>
-						) : (
-							<Stack spacing={1}>
-								{deadlines.slice(0, 10).map((deadline) => (
-									<DeadlineListItem
-										key={deadline.id}
-										deadline={deadline}
-										onClaimClick={handleClaimClick}
-										showTime={false}
-									/>
-								))}
-							</Stack>
 						)}
-					</Box>
-					{data.count > 10 && (
-						<Typography fontSize={11} color="text.secondary" textAlign="center" marginTop={1}>
-							Showing 10 of {data.count} deadlines
-						</Typography>
-					)}
-				</>
-			)}
-		</Paper>
+					</>
+				)}
+			</Box>
+		</Box>
 	);
 }
 
 const styles = {
 	container: {
-		padding: '24px',
-		border: `1px solid ${theme.palette.divider}`,
 		height: '100%',
-		minWidth: 280,
+		width: 300,
 	},
 	scrollContainer: {
 		height: 'calc(100% - 90px)',

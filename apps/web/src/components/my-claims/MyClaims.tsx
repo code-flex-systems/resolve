@@ -129,7 +129,7 @@ export default function MyClaims() {
 			<Box flex={1} minWidth={0} height="100%">
 				<Paper sx={styles.paper} className="flex-col-start">
 					{/* Title */}
-					<Box width="100%" padding="10px">
+					<Box width="100%" padding="10px 10px 0px" mb={3}>
 						<Typography variant="h6">My Queue</Typography>
 					</Box>
 

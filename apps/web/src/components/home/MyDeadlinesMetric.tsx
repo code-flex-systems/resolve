@@ -1,37 +1,79 @@
 'use client';
 
-import { Box, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
+import { Badge, Box, Skeleton, Typography } from '@mui/material';
+import { CalendarIcon, DateCalendar, PickersDay, PickersDayProps } from '@mui/x-date-pickers-pro';
+import { Deadline, useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { DeadlineStatus } from '@/config/enums';
-import theme from '@/styles/theme';
-import { useMemo } from 'react';
+import theme, { containerStyles } from '@/styles/theme';
+import { useMemo, useState, useEffect } from 'react';
 import AccessTime from '@mui/icons-material/AccessTime';
 import Warning from '@mui/icons-material/Warning';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import DailyEventsList from './DailyEventsList';
 
 export default function MyDeadlinesMetric() {
-	const { data = { rows: [], count: 0 }, isLoading } = useDeadlineTrpc().listDeadlines(
-		{ personalOnly: true },
-		{ enabled: true }
-	);
+	// Calendar state
+	const [currentMonth, setCurrentMonth] = useState<Dayjs | null>(null);
+	const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
-	// Calculate overdue and upcoming counts
-	const { overdueCount, upcomingCount } = useMemo(() => {
+	// Set today as selected date on mount (client-side only)
+	useEffect(() => {
+		const today = dayjs();
+		setCurrentMonth(today);
+		setSelectedDate(today);
+	}, []);
+
+	// Fetch deadlines for the current month range (for calendar badges and daily list)
+	const monthDateRange = useMemo(() => {
+		if (!currentMonth) return null;
+		const start = currentMonth.startOf('month').toISOString();
+		const end = currentMonth.endOf('month').toISOString();
+		return [start, end] as [string, string];
+	}, [currentMonth]);
+
+	const { data: monthData = { rows: [], count: 0 }, isLoading: monthLoading } =
+		useDeadlineTrpc().listDeadlines(
+			{
+				dateRange: monthDateRange!,
+				personalOnly: true,
+			},
+			{ enabled: !!monthDateRange }
+		);
+
+	// Separate query for overdue deadlines (unbounded by month)
+	// Fetches all pending deadlines from the past to ensure overdue items remain visible
+	const overdueDateRange = useMemo(() => {
+		// Query from a year ago to yesterday (captures all overdue)
+		const start = dayjs().subtract(1, 'year').startOf('day').toISOString();
+		const end = dayjs().subtract(1, 'day').endOf('day').toISOString();
+		return [start, end] as [string, string];
+	}, []);
+
+	const { data: overdueData = { rows: [], count: 0 }, isLoading: overdueLoading } =
+		useDeadlineTrpc().listDeadlines(
+			{
+				dateRange: overdueDateRange,
+				personalOnly: true,
+				status: DeadlineStatus.PENDING,
+			},
+			{ enabled: true }
+		);
+
+	const isLoading = monthLoading || overdueLoading;
+
+	// Calculate overdue count from dedicated overdue query
+	const overdueCount = overdueData.rows.length;
+
+	// Calculate upcoming count from month data (next 7 days from today)
+	const upcomingCount = useMemo(() => {
 		const today = dayjs().startOf('day');
 		const nextWeek = today.add(7, 'days');
 
-		let overdue = 0;
 		let upcoming = 0;
 
-		data.rows.forEach((deadline) => {
+		monthData.rows.forEach((deadline) => {
 			const deadlineDate = dayjs(deadline.deadline_date).startOf('day');
 
-			// Overdue: past due date and not met
-			if (deadlineDate.valueOf() < today.valueOf() && deadline.status !== DeadlineStatus.MET) {
-				overdue++;
-			}
-
-			// Upcoming: within next 7 days and status is pending
 			if (
 				deadlineDate.valueOf() >= today.valueOf() &&
 				deadlineDate.valueOf() < nextWeek.valueOf() &&
@@ -41,94 +83,185 @@ export default function MyDeadlinesMetric() {
 			}
 		});
 
-		return { overdueCount: overdue, upcomingCount: upcoming };
-	}, [data]);
+		return upcoming;
+	}, [monthData]);
+
+	// Group deadlines by day for calendar badges
+	const deadlinesByDay = useMemo(() => {
+		const grouped = new Map<string, Deadline[]>();
+		monthData.rows.forEach((deadline) => {
+			const dateKey = dayjs(deadline.deadline_date).format('YYYY-MM-DD');
+			if (!grouped.has(dateKey)) {
+				grouped.set(dateKey, []);
+			}
+			grouped.get(dateKey)!.push(deadline);
+		});
+		return grouped;
+	}, [monthData]);
+
+	// Custom day renderer with badge
+	function CustomDay(props: PickersDayProps) {
+		const { day, ...other } = props;
+		const dateKey = day.format('YYYY-MM-DD');
+		const dayDeadlines = deadlinesByDay.get(dateKey);
+		const hasDeadlines = dayDeadlines && dayDeadlines.length > 0;
+		const isSelected = selectedDate && day.isSame(selectedDate, 'day');
+
+		return (
+			<Badge
+				key={day.toString()}
+				overlap="circular"
+				badgeContent={hasDeadlines ? dayDeadlines.length : undefined}
+				sx={{
+					bottom: -10,
+					'& .MuiBadge-badge': {
+						fontSize: 10,
+						height: 16,
+						minWidth: 16,
+						backgroundColor: theme.palette.error.light,
+						color: 'white',
+					},
+				}}
+			>
+				<PickersDay
+					{...other}
+					day={day}
+					selected={Boolean(isSelected)}
+					onClick={(e) => {
+						e.stopPropagation();
+						e.preventDefault();
+						setSelectedDate(day);
+					}}
+					sx={{
+						cursor: 'pointer',
+						'&:hover': {
+							backgroundColor: theme.palette.action.hover,
+						},
+					}}
+				/>
+			</Badge>
+		);
+	}
+
+	// Get deadlines for selected date
+	const selectedDeadlines = useMemo(() => {
+		if (!selectedDate) return [];
+		const dateKey = selectedDate.format('YYYY-MM-DD');
+		return deadlinesByDay.get(dateKey) || [];
+	}, [selectedDate, deadlinesByDay]);
 
 	return (
-		<Paper elevation={0} sx={styles.container}>
-			{isLoading ? (
-				<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 4 }} />
-			) : (
-				<Stack width="100%" height="100%" spacing={2}>
-					{/* Header */}
-					<Box>
-						<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
-							My Deadlines
-						</Typography>
-					</Box>
-
-					{/* Deadline Counts */}
-					<Box display="flex" gap={3} alignItems="center">
-						{/* Overdue */}
-						<Box display="flex" alignItems="center" gap={1}>
-							<Box
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
-								width={48}
-								height={48}
-								borderRadius="50%"
-								bgcolor={theme.palette.error.light}
-							>
-								<Warning sx={{ color: 'white', fontSize: 28 }} />
+		<Box sx={{ ...containerStyles.section, ...styles.container }}>
+			<Typography sx={containerStyles.sectionTitle}>
+				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+				My Deadlines
+			</Typography>
+			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+				{isLoading ? (
+					<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 1 }} />
+				) : (
+					<>
+						{/* Overdue/Upcoming Stats */}
+						<Box sx={{ ...styles.statsContainer, ...containerStyles.beveledCard }}>
+							{/* Overdue */}
+							<Box display="flex" alignItems="center" gap={1}>
+								<Box
+									display="flex"
+									alignItems="center"
+									justifyContent="center"
+									width={40}
+									height={40}
+									borderRadius="50%"
+									bgcolor={theme.palette.error.light}
+								>
+									<Warning sx={{ color: 'white', fontSize: 22 }} />
+								</Box>
+								<Box>
+									<Typography variant="h5" fontSize={24} fontWeight={700} color="error">
+										{overdueCount}
+									</Typography>
+									<Typography variant="caption" fontSize={11}>
+										Overdue
+									</Typography>
+								</Box>
 							</Box>
-							<Box>
-								<Typography variant="h4" fontSize={32} fontWeight={700} color="error">
-									{overdueCount}
-								</Typography>
-								<Typography variant="caption" color="text.secondary">
-									Overdue
-								</Typography>
+
+							{/* Upcoming */}
+							<Box display="flex" alignItems="center" gap={1}>
+								<Box
+									display="flex"
+									alignItems="center"
+									justifyContent="center"
+									width={40}
+									height={40}
+									borderRadius="50%"
+									bgcolor={theme.palette.warning.light}
+								>
+									<AccessTime sx={{ color: 'white', fontSize: 22 }} />
+								</Box>
+								<Box>
+									<Typography variant="h5" fontSize={24} fontWeight={700} color="warning.main">
+										{upcomingCount}
+									</Typography>
+									<Typography variant="caption" color="text.secondary" fontSize={11}>
+										Next 7 Days
+									</Typography>
+								</Box>
 							</Box>
 						</Box>
 
-						{/* Upcoming */}
-						<Box display="flex" alignItems="center" gap={1}>
-							<Box
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
-								width={48}
-								height={48}
-								borderRadius="50%"
-								bgcolor={theme.palette.warning.light}
-							>
-								<AccessTime sx={{ color: 'white', fontSize: 28 }} />
-							</Box>
-							<Box>
-								<Typography variant="h4" fontSize={32} fontWeight={700} color="warning.dark">
-									{upcomingCount}
-								</Typography>
-								<Typography variant="caption" color="text.secondary">
-									Next 7 Days
-								</Typography>
-							</Box>
-						</Box>
-					</Box>
+						{/* Calendar */}
+						<DateCalendar
+							value={selectedDate || currentMonth}
+							onChange={(newValue) => {
+								if (newValue) {
+									setCurrentMonth(newValue);
+									setSelectedDate(newValue);
+								}
+							}}
+							onMonthChange={(newMonth) => {
+								setCurrentMonth(newMonth);
+							}}
+							sx={{
+								'& .MuiDayCalendar-monthContainer': {
+									overflow: 'unset',
+								},
+							}}
+							slots={{
+								day: CustomDay,
+							}}
+						/>
 
-					{/* Summary */}
-					<Box>
-						<Typography variant="body2" color="text.secondary" fontSize={12}>
-							{overdueCount === 0 && upcomingCount === 0
-								? 'No pending deadlines'
-								: `Stay on top of your deadlines`}
-						</Typography>
-					</Box>
-				</Stack>
-			)}
-		</Paper>
+						{/* Daily Events List - fills remaining space */}
+						<DailyEventsList deadlines={selectedDeadlines} selectedDate={selectedDate} flexGrow />
+					</>
+				)}
+			</Box>
+		</Box>
 	);
 }
 
 const styles = {
 	container: {
-		width: 400,
-		minWidth: 400,
-		height: 180,
-		padding: '24px',
-		borderRadius: 4,
+		width: 450,
+		minWidth: 450,
+		height: 'calc(100vh - 140px)',
 		margin: '15px',
+	},
+	contentContainer: {
+		display: 'flex',
+		flexDirection: 'column',
+		height: 'calc(100% - 45px)',
+		overflow: 'hidden',
+	},
+	statsContainer: {
+		display: 'flex',
+		gap: 3,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 1.5,
 		background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.03) 0%, rgba(255, 255, 255, 1) 100%)',
-		border: `1px solid ${theme.palette.primary.main}`,
+		borderRadius: 1,
+		marginBottom: 1,
 	},
 };

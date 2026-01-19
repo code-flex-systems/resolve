@@ -165,10 +165,7 @@ export default function MyClaimsQueueTable({
 				headerName: 'Status',
 				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
 				renderCell: (params) => (
-					<ClaimStatusChip
-						recoveryStatus={params.row.recovery_status}
-						substatus={params.row.substatus}
-					/>
+					<ClaimStatusChip recoveryStatus={params.row.recovery_status} substatus={params.row.substatus} />
 				),
 				width: 200,
 			},
@@ -299,7 +296,7 @@ export default function MyClaimsQueueTable({
 						Export
 					</Button>
 				}
-				height={45}
+				height={55}
 				padding={'0px 10px'}
 			/>
 

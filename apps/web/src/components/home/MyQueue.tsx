@@ -1,11 +1,12 @@
 'use client';
 
-import { Box, Link, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { Box, Link, Skeleton, Stack, Typography } from '@mui/material';
+import { containerStyles } from '@/styles/theme';
 import { useClaimTrpc, type MyDeskClaimListItem } from '@/hooks/trpc/useClaimTrpc';
 import ClaimDetailPanel from '../admin/ClaimDetailPanel';
 import { useState } from 'react';
 import ClaimListItem, { ClaimListItemData } from '@/components/common/ClaimListItem';
+import ListAlt from '@mui/icons-material/ListAlt';
 
 export default function MyQueue() {
 	const { data, isFetching } = useClaimTrpc().listMyDeskClaims(
@@ -48,73 +49,72 @@ export default function MyQueue() {
 
 	return (
 		<>
-			<Paper elevation={0} sx={styles.container}>
-				{isFetching ? (
-					<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 4 }} />
-				) : (
-					<Stack width="100%" height="100%" spacing={1}>
-						{/* Header */}
-						<Box width="100%" height={40} display="flex" justifyContent="space-between" alignItems="center">
-							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
-								My Queue
-							</Typography>
-							{claims.length > 0 && (
-								<Typography variant="caption" color="text.secondary">
-									{claims.length} {claims.length === 1 ? 'claim' : 'claims'}
-								</Typography>
-							)}
-						</Box>
-
-						{/* Claims List */}
-						<Box sx={styles.listContainer}>
-							{claims.length === 0 ? (
-								<Box
-									width="100%"
-									height="100%"
-									display="flex"
-									justifyContent="center"
-									alignItems="center"
-								>
-									<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
-										No claims in queue
-									</Typography>
-								</Box>
-							) : (
-								<Stack width="100%" spacing={0}>
-									{claims.map((claim, index) => (
-										<ClaimListItem
-											key={claim.id}
-											claim={mapToClaimListItemData(claim)}
-											onClick={() => handleRowClick(claim.id)}
-											showStatusChip={true}
-											showAmount={false}
-											showLastUpdate={true}
-											showDeskLocation={true}
-											variant="listRow"
-											index={index}
-										/>
-									))}
-								</Stack>
-							)}
-						</Box>
-
-						{/* Footer */}
-						{claims.length > 0 && (
-							<Box width="100%" display="flex" justifyContent="center" paddingTop={1}>
-								<Link
-									href="/my-claims"
-									underline="hover"
-									fontSize={12}
-									color="primary"
-									sx={{ cursor: 'pointer' }}
-								>
-									View All My Claims
-								</Link>
+			<Box sx={{ ...containerStyles.section, ...styles.container }}>
+				<Typography sx={containerStyles.sectionTitle}>
+					<ListAlt sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+					My Queue
+					{claims.length > 0 && (
+						<Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+							({claims.length})
+						</Typography>
+					)}
+				</Typography>
+				<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+					{isFetching ? (
+						<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 1 }} />
+					) : (
+						<Stack width="100%" height="100%" spacing={1}>
+							{/* Claims List */}
+							<Box sx={styles.listContainer}>
+								{claims.length === 0 ? (
+									<Box
+										width="100%"
+										height="100%"
+										display="flex"
+										justifyContent="center"
+										alignItems="center"
+									>
+										<Typography fontSize={13} color="text.secondary" fontStyle="italic">
+											No claims in queue
+										</Typography>
+									</Box>
+								) : (
+									<Stack width="100%" spacing={0}>
+										{claims.map((claim, index) => (
+											<ClaimListItem
+												key={claim.id}
+												claim={mapToClaimListItemData(claim)}
+												onClick={() => handleRowClick(claim.id)}
+												showStatusChip={true}
+												showAmount={false}
+												showLastUpdate={true}
+												showDeskLocation={true}
+												variant="listRow"
+												index={index}
+											/>
+										))}
+									</Stack>
+								)}
 							</Box>
-						)}
-					</Stack>
-				)}
-			</Paper>
+
+							{/* Footer */}
+							{claims.length > 0 && (
+								<Box width="100%" display="flex" justifyContent="center" paddingTop={1}>
+									<Link
+										href="/my-claims"
+										underline="hover"
+										fontSize={12}
+										color="primary"
+										sx={{ cursor: 'pointer' }}
+									>
+										View All My Claims
+									</Link>
+								</Box>
+							)}
+						</Stack>
+					)}
+				</Box>
+			</Box>
 
 			{/* Claim Detail Panel */}
 			<ClaimDetailPanel claimId={selectedClaimId} open={panelOpen} onClose={handlePanelClose} />
@@ -126,14 +126,16 @@ const styles = {
 	container: {
 		width: 550,
 		minWidth: 550,
-		height: 'calc(100vh - 320px)',
-		padding: '24px',
-		overflow: 'hidden',
-		borderRadius: 4,
+		height: 'calc(100vh - 140px)',
 		margin: '15px',
+	},
+	contentContainer: {
+		height: 'calc(100% - 45px)',
+		overflow: 'hidden',
 	},
 	listContainer: {
 		width: '100%',
+		height: '100%',
 		overflowY: 'auto',
 		overflowX: 'hidden',
 		'&::-webkit-scrollbar': {
