@@ -1,32 +1,48 @@
-FROM node:20-alpine
-
-# Install dependencies needed for native modules
-RUN apk add --no-cache python3 make g++ postgresql-dev
-
+# ---------- deps ----------
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package files
+# Native build tooling for any node-gyp modules during npm ci
+RUN apk add --no-cache python3 make g++ postgresql-dev
+
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
 
-# Install dependencies
 RUN npm ci
 
-# Copy application code
+# ---------- builder ----------
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build args for Next.js public env vars (must be available at build time)
+# Build-time public env var (safe to bake into client bundle)
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
-# Build the Next.js application
-RUN npm run build
+# Build Next.js (will produce standalone output)
+RUN npm --workspace apps/web run build
 
-# Expose port 8080
+# ---------- runtime ----------
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Non-root user
+RUN addgroup -S app && adduser -S app -G app
+
+# Copy standalone server + minimal node_modules produced by Next
+# Standalone output includes a server.js and required node_modules.
+COPY --from=builder /app/apps/web/.next/standalone ./
+
+# Copy static assets (must be in the expected path)
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
+
+USER app
 EXPOSE 8080
 
-# Set environment variables
-ENV NODE_ENV=production
-
-# Start the application with PORT explicitly set
-CMD PORT=8080 npm --workspace apps/web run start
+CMD ["node", "apps/web/server.js"]

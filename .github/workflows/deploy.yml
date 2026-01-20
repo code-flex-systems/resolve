@@ -1,0 +1,198 @@
+name: Build and Deploy (staging auto, prod manual)
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    deploy-staging:
+        name: Deploy Staging
+        if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        environment: staging
+        permissions:
+            id-token: write
+            contents: read
+        concurrency:
+            group: deploy-${{ github.ref }}
+            cancel-in-progress: true
+
+        env:
+            RG: Manifest
+            ACR_NAME: manifestcontainerapp
+            IMAGE_REPO: manifest-container-app
+            IMAGE_TAG: ${{ github.sha }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Azure Login (OIDC)
+              uses: azure/login@v2
+              with:
+                  client-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_CLIENT_ID }}
+                  tenant-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_TENANT_ID }}
+                  subscription-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_SUBSCRIPTION_ID }}
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run unit tests
+              run: npm --workspace apps/web test -- --run
+
+            # - name: Run database migrations
+            #   env:
+            #       NODE_ENV: production
+            #       DB_HOST: ${{ secrets.DB_HOST }}
+            #       DB_PORT: ${{ secrets.DB_PORT }}
+            #       DB_USER: ${{ secrets.DB_USER }}
+            #       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+            #       DB_DATABASE: ${{ secrets.DB_DATABASE }}
+            #       DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
+            #   run: |
+            #       echo "Running database migrations..."
+            #       npm --workspace apps/web run db:migrate
+            #       echo "Migrations complete!"
+
+            - name: Build image in ACR
+              run: |
+                  az acr build \
+                    --registry $ACR_NAME \
+                    --image $IMAGE_REPO:$IMAGE_TAG \
+                    --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+                    .
+
+            - name: Deploy Container App (staging)
+              run: |
+                  az containerapp update \
+                    --name app-staging \
+                    --resource-group $RG \
+                    --image ${ACR_NAME}.azurecr.io/${IMAGE_REPO}:${IMAGE_TAG} \
+                    --set-env-vars \
+                      PORT=8080 \
+                      NODE_ENV=production \
+                      AUTH_SECRET="${{ secrets.AUTH_SECRET }}" \
+                      NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
+                      BASE_URL="${{ secrets.BASE_URL }}" \
+                      DB_HOST="${{ secrets.DB_HOST }}" \
+                      DB_PORT="${{ secrets.DB_PORT }}" \
+                      DB_USER="${{ secrets.DB_USER }}" \
+                      DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+                      DB_DATABASE="${{ secrets.DB_DATABASE }}" \
+                      DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
+                      RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
+                      EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
+                      MUI_KEY="${{ secrets.MUI_KEY }}" \
+                      AZURE_STORAGE_CONNECTION_STRING="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+                      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+                      CLERK_SECRET_KEY="${{ secrets.CLERK_SECRET_KEY }}" \
+                      CLERK_WEBHOOK_SECRET="${{ secrets.CLERK_WEBHOOK_SECRET }}" \
+                      NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}"
+
+            - name: Show active revision image (sanity)
+              run: |
+                  az containerapp revision list \
+                    --name app-staging \
+                    --resource-group $RG \
+                    --query "[?properties.active==\`true\`].[name,properties.template.containers[0].image]" \
+                    -o table
+
+    deploy-prod:
+        name: Deploy Production
+        if: github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+        environment: prod
+        permissions:
+            id-token: write
+            contents: read
+
+        env:
+            RG: Manifest
+            ACR_NAME: manifestcontainerapp
+            IMAGE_REPO: manifest-container-app
+            IMAGE_TAG: ${{ github.sha }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Azure Login (OIDC)
+              uses: azure/login@v2
+              with:
+                  client-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_CLIENT_ID }}
+                  tenant-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_TENANT_ID }}
+                  subscription-id: ${{ secrets.MANIFESTCONTAINERAPP_AZURE_SUBSCRIPTION_ID }}
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run unit tests
+              run: npm --workspace apps/web test -- --run
+
+            - name: Run database migrations
+              env:
+                  NODE_ENV: production
+                  DB_HOST: ${{ secrets.DB_HOST }}
+                  DB_PORT: ${{ secrets.DB_PORT }}
+                  DB_USER: ${{ secrets.DB_USER }}
+                  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+                  DB_DATABASE: ${{ secrets.DB_DATABASE }}
+                  DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
+              run: |
+                  echo "Running database migrations..."
+                  npm --workspace apps/web run db:migrate
+                  echo "Migrations complete!"
+
+            - name: Build image in ACR
+              run: |
+                  az acr build \
+                    --registry $ACR_NAME \
+                    --image $IMAGE_REPO:$IMAGE_TAG \
+                    --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+                    .
+
+            - name: Deploy Container App (prod)
+              run: |
+                  az containerapp update \
+                    --name app-prod \
+                    --resource-group $RG \
+                    --image ${ACR_NAME}.azurecr.io/${IMAGE_REPO}:${IMAGE_TAG} \
+                    --set-env-vars \
+                      PORT=8080 \
+                      NODE_ENV=production \
+                      AUTH_SECRET="${{ secrets.AUTH_SECRET }}" \
+                      NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
+                      BASE_URL="${{ secrets.BASE_URL }}" \
+                      DB_HOST="${{ secrets.DB_HOST }}" \
+                      DB_PORT="${{ secrets.DB_PORT }}" \
+                      DB_USER="${{ secrets.DB_USER }}" \
+                      DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+                      DB_DATABASE="${{ secrets.DB_DATABASE }}" \
+                      DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
+                      RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
+                      EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
+                      MUI_KEY="${{ secrets.MUI_KEY }}" \
+                      AZURE_STORAGE_CONNECTION_STRING="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+                      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+                      CLERK_SECRET_KEY="${{ secrets.CLERK_SECRET_KEY }}" \
+                      CLERK_WEBHOOK_SECRET="${{ secrets.CLERK_WEBHOOK_SECRET }}" \
+                      NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}"
+
+            - name: Show active revision image (sanity)
+              run: |
+                  az containerapp revision list \
+                    --name app-prod \
+                    --resource-group $RG \
+                    --query "[?properties.active==\`true\`].[name,properties.template.containers[0].image]" \
+                    -o table
