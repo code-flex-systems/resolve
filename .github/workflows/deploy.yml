@@ -20,7 +20,7 @@ jobs:
 
         env:
             RG: Manifest
-            ACR_NAME: manifestcontainerapp
+            ACR_NAME: ca735b7ce9aeacr
             IMAGE_REPO: manifest-container-app
             IMAGE_TAG: ${{ github.sha }}
 
@@ -114,7 +114,7 @@ jobs:
 
         env:
             RG: Manifest
-            ACR_NAME: manifestcontainerapp
+            ACR_NAME: ca735b7ce9aeacr
             IMAGE_REPO: manifest-container-app
             IMAGE_TAG: ${{ github.sha }}
 
