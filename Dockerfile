@@ -44,7 +44,6 @@ COPY --from=builder /app/apps/web/.next/standalone ./
 
 # Copy static assets (must be in the expected path)
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder /app/apps/web/public ./apps/web/public
 
 USER app
 EXPOSE 8080
