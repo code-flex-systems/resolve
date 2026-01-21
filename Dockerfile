@@ -21,6 +21,10 @@ COPY . .
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
+RUN echo "=== /app/apps/web ===" && ls -la /app/apps/web && \
+    echo "=== /app/apps/web/.next ===" && ls -la /app/apps/web/.next || true && \
+    echo "=== find standalone ===" && find /app -maxdepth 5 -type d -name standalone -print
+
 # Build Next.js (will produce standalone output)
 RUN npm --workspace apps/web run build
 
