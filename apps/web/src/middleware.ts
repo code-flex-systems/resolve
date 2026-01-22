@@ -2,10 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 // Public routes that don't require authentication
 // Note: sign-up is intentionally excluded - this is an invite-only application
-const isPublicRoute = createRouteMatcher([
-	'/login(.*)',
-	'/api/webhooks(.*)',
-]);
+const isPublicRoute = createRouteMatcher(['/login(.*)', '/api/webhooks(.*)']);
 
 export default clerkMiddleware(async (auth, request) => {
 	if (!isPublicRoute(request)) {
@@ -16,7 +13,7 @@ export default clerkMiddleware(async (auth, request) => {
 export const config = {
 	matcher: [
 		// Skip Next.js internals and static files
-		'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+		'/((?!api/health|_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
 		// Always run for API routes
 		'/(api|trpc)(.*)',
 	],
