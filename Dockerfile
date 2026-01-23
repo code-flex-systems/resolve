@@ -45,6 +45,10 @@ COPY --from=builder /app/apps/web/.next/standalone ./
 # Copy static assets (must be in the expected path)
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
 
+# Copy migrations for ACA job
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/dist/scripts/runMigrations.js ./runMigrations.js
+
 USER app
 EXPOSE 8080
 

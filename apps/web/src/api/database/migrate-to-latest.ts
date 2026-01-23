@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { migrator } from './migrator';
 import { db } from './kysely';
+import { sql } from 'kysely';
 
 /**
  * Migrate to the latest schema version.
@@ -13,30 +14,35 @@ import { db } from './kysely';
  * Or via npm: npm run db:migrate
  */
 async function migrateToLatest() {
-	const { error, results } = await migrator.migrateToLatest();
+	const lockKey = 91502411;
+	await sql`select pg_advisory_lock(${lockKey})`.execute(db);
 
-	results?.forEach((it) => {
-		if (it.status === 'Success') {
-			console.log(`✓ Migration "${it.migrationName}" was executed successfully`);
-		} else if (it.status === 'Error') {
-			console.error(`✗ Failed to execute migration "${it.migrationName}"`);
+	try {
+		const { error, results } = await migrator.migrateToLatest();
+
+		results?.forEach((it) => {
+			if (it.status === 'Success') {
+				console.log(`✓ Migration "${it.migrationName}" was executed successfully`);
+			} else if (it.status === 'Error') {
+				console.error(`✗ Failed to execute migration "${it.migrationName}"`);
+			}
+		});
+
+		if (error) {
+			console.error('❌ Migration failed');
+			console.error(error);
+			throw error;
 		}
-	});
 
-	if (error) {
-		console.error('❌ Migration failed');
-		console.error(error);
+		if (!results || results.length === 0) {
+			console.log('✓ No pending migrations - database is up to date');
+		} else {
+			console.log(`\n✓ Successfully executed ${results.length} migration(s)`);
+		}
+	} finally {
+		await sql`select pg_advisory_unlock(${lockKey})`.execute(db);
 		await db.destroy();
-		process.exit(1);
 	}
-
-	if (!results || results.length === 0) {
-		console.log('✓ No pending migrations - database is up to date');
-	} else {
-		console.log(`\n✓ Successfully executed ${results.length} migration(s)`);
-	}
-
-	await db.destroy();
 }
 
 migrateToLatest();
