@@ -172,7 +172,7 @@ jobs:
 
                   # Get the latest execution name by startTime
                   EXEC_NAME=$(az containerapp job execution list \
-                  --job-execution-name "$JOB" \
+                  --name "$JOB" \
                   --resource-group "$RG" \
                   --query "sort_by([].{name:name,start:properties.startTime}, &start)[-1].name" \
                   -o tsv)
@@ -188,9 +188,9 @@ jobs:
                   # Poll until terminal state
                   for i in {1..120}; do
                   STATUS=$(az containerapp job execution show \
-                      --job-execution-name "$JOB" \
+                      --name "$JOB" \
                       --resource-group "$RG" \
-                      --execution "$EXEC_NAME" \
+                      --job-execution-name "$EXEC_NAME" \
                       --query "properties.status" \
                       -o tsv)
 
@@ -205,9 +205,9 @@ jobs:
                       echo "ERROR: Migration job failed."
                       echo "Fetching execution details..."
                       az containerapp job execution show \
-                          --job-execution-name "$JOB" \
+                          --name "$JOB" \
                           --resource-group "$RG" \
-                          --execution "$EXEC_NAME" \
+                          --job-execution-name "$EXEC_NAME" \
                           -o json
                       exit 1
                       ;;
