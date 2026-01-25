@@ -2,7 +2,7 @@
 
 import { PopperProps } from '@mui/material';
 import { Dayjs } from 'dayjs';
-import type { EntityName } from '@/api/utils/adminActionLogger';
+import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import LogsFiltersPopperBase from '@/components/admin/LogsFiltersPopperBase';
 

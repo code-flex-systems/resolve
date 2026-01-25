@@ -4,7 +4,7 @@ import { Box, MenuItem, PopperProps, TextField, Typography } from '@mui/material
 import { Dayjs } from 'dayjs';
 import ClaimFilter from '@/components/common/ClaimFilter';
 import { TEXT_MUTED } from '@/styles/theme';
-import type { EntityName } from '@/api/utils/adminActionLogger';
+import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import type { Claim } from '@/hooks/trpc/useClaimTrpc';
 import LogsFiltersPopperBase from '@/components/admin/LogsFiltersPopperBase';

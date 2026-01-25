@@ -11,7 +11,7 @@ import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
 import { useAdminLogsTrpc, ClaimActivityLogCursor } from '@/hooks/trpc/useAdminLogsTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
-import type { EntityName } from '@/api/utils/adminActionLogger';
+import type { EntityName } from '@/api/utils/activityLogger';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import CustomPagination from '@/components/common/CustomPagination';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
@@ -29,8 +29,7 @@ import useCursorPagination from '@/hooks/useCursorPagination';
 
 const ACTOR_TYPE_VALUES = new Set(['admin', 'user']);
 
-const isActorType = (value: string | null): value is 'admin' | 'user' =>
-	value !== null && ACTOR_TYPE_VALUES.has(value);
+const isActorType = (value: string | null): value is 'admin' | 'user' => value !== null && ACTOR_TYPE_VALUES.has(value);
 
 function formatTimestamp(value?: string) {
 	if (!value) return '';
@@ -69,7 +68,8 @@ export default function AdminClaimActivityLogsTab() {
 	const normalizedClaimId = Number.isFinite(appliedClaimId) ? appliedClaimId : null;
 
 	const appliedRange = useMemo(
-		() => [appliedStart ? dayjs(appliedStart) : null, appliedEnd ? dayjs(appliedEnd) : null] as [
+		() =>
+			[appliedStart ? dayjs(appliedStart) : null, appliedEnd ? dayjs(appliedEnd) : null] as [
 				Dayjs | null,
 				Dayjs | null,
 			],
@@ -96,7 +96,7 @@ export default function AdminClaimActivityLogsTab() {
 			first: appliedUser.first,
 			last: appliedUser.last,
 			email: appliedUser.email,
-			phone: 'phone' in appliedUser ? appliedUser.phone ?? null : null,
+			phone: 'phone' in appliedUser ? (appliedUser.phone ?? null) : null,
 		};
 	}, [appliedUser]);
 
@@ -114,8 +114,9 @@ export default function AdminClaimActivityLogsTab() {
 		normalizedClaimId ?? '',
 	].join('|');
 
-	const { paginationModel, setPaginationModel, cursorByPageRef, cursor } = useCursorPagination<ClaimActivityLogCursor>(
-		filtersKey
+	const { paginationModel, setPaginationModel, cursor, registerCursor } = useCursorPagination<ClaimActivityLogCursor>(
+		filtersKey,
+		25
 	);
 
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
@@ -153,10 +154,10 @@ export default function AdminClaimActivityLogsTab() {
 	});
 
 	useEffect(() => {
-		if (data?.nextCursor) {
-			cursorByPageRef.current.set(paginationModel.page + 1, data.nextCursor);
+		if (data?.nextCursor != null) {
+			registerCursor(data.nextCursor);
 		}
-	}, [data?.nextCursor, paginationModel.page]);
+	}, [data?.nextCursor, registerCursor]);
 
 	const columns = useMemo<GridColDef[]>(
 		() => [
@@ -236,7 +237,9 @@ export default function AdminClaimActivityLogsTab() {
 			{
 				headerName: 'Action',
 				field: 'action',
-				renderHeader: (params) => <IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: TEXT_MUTED }} />} />,
+				renderHeader: (params) => (
+					<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: TEXT_MUTED }} />} />
+				),
 				minWidth: 140,
 				flex: 0.5,
 			},
@@ -305,12 +308,7 @@ export default function AdminClaimActivityLogsTab() {
 	}, []);
 
 	const hasActiveFilters = Boolean(
-		appliedEntity ||
-			appliedUserId ||
-			appliedStart ||
-			appliedEnd ||
-			appliedActorType ||
-			normalizedClaimId
+		appliedEntity || appliedUserId || appliedStart || appliedEnd || appliedActorType || normalizedClaimId
 	);
 
 	const rows = data?.rows ?? [];
@@ -339,8 +337,16 @@ export default function AdminClaimActivityLogsTab() {
 									Filters...
 									{hasActiveFilters && (
 										<Box component="span" sx={styles.filterCountBadge}>
-											{[appliedEntity, appliedUserId, appliedStart, appliedEnd, appliedActorType, normalizedClaimId].filter(Boolean)
-												.length}
+											{
+												[
+													appliedEntity,
+													appliedUserId,
+													appliedStart,
+													appliedEnd,
+													appliedActorType,
+													normalizedClaimId,
+												].filter(Boolean).length
+											}
 										</Box>
 									)}
 								</BasicButtonStyled>
@@ -400,7 +406,7 @@ export default function AdminClaimActivityLogsTab() {
 							paginationMeta={{ hasNextPage }}
 							rowHeight={60}
 							hideFooterSelectedRowCount
-							pageSizeOptions={[25, 50, 100]}
+							pageSizeOptions={[25]}
 							pagination
 							paginationMode="server"
 							paginationModel={paginationModel}

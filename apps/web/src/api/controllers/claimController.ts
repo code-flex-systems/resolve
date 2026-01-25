@@ -2,7 +2,8 @@ import * as claimQueries from '@/api/queries/claimQueries';
 import { ClaimSearch } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Claim } from '@/types/types';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateClaimInput, ClaimData } from '@/schemas/claimSchemas';
 
 export async function assignClaim(

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EntityName } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 export const getAdminLogsByClaimInput = z.object({
 	claimId: z.number().int(),

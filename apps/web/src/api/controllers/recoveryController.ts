@@ -2,7 +2,8 @@ import * as recoveryQueries from '@/api/queries/recoveryQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { RecoveryEventParams, RecoveryEventUpdateParams } from '@/schemas/recoverySchemas';
 import { DateRangeStrict } from '@/types/types';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 // =====================================================================
 // RECOVERY EVENT CONTROLLERS

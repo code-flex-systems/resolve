@@ -1,4 +1,5 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
+import config from '@/config/config';
 
 /**
  * Action types that can be logged across both admin and user workflows
@@ -58,21 +59,29 @@ export enum EntityName {
 
 	// Recovery & deadline entities
 	RECOVERY_EVENT = 'recovery_event',
+	SETTLEMENT = 'settlement',
+	CLAIM_PAYMENT = 'claim_payment',
 	DEADLINE = 'deadline',
 
 	// Party management entities
 	PARTY = 'party',
 	PARTY_ADDRESS = 'party_address',
+	PARTY_PHONE = 'party_phone',
+	PARTY_EMAIL = 'party_email',
 	PARTY_REPRESENTATIVE = 'party_representative',
 	CLAIM_PARTY = 'claim_party',
 
-	// Desk management entities
+	// Desk management entities (Phase 1+2)
 	DESK_LOCATION_TYPE = 'desk_location_type',
 	DESK_LOCATION = 'desk_location',
 	USER_DESK_LOCATION = 'user_desk_location',
 
-	// Workflow management entities
+	// Workflow management entities (Phase 3)
 	TASK = 'task',
+
+	// Reference data management entities
+	REFERENCE_LIST = 'reference_list',
+	REFERENCE_OPTION = 'reference_option',
 
 	// Statute rules (global config entity)
 	STATUTE_RULE = 'statute_rule',
@@ -96,9 +105,13 @@ const CONFIG_ENTITIES: Set<EntityName> = new Set([
 	EntityName.USER_DESK_LOCATION,
 	EntityName.PARTY,
 	EntityName.PARTY_ADDRESS,
+	EntityName.PARTY_PHONE,
+	EntityName.PARTY_EMAIL,
 	EntityName.PARTY_REPRESENTATIVE,
 	EntityName.PAGE_INSTANCE,
 	EntityName.STATUTE_RULE,
+	EntityName.REFERENCE_LIST,
+	EntityName.REFERENCE_OPTION,
 ]);
 
 /**
@@ -109,8 +122,10 @@ const CLAIM_ENTITIES: Set<EntityName> = new Set([
 	EntityName.TASK,
 	EntityName.DEADLINE,
 	EntityName.RECOVERY_EVENT,
+	EntityName.SETTLEMENT,
 	EntityName.CLAIM_COVERAGE,
 	EntityName.CLAIM_PARTY,
+	EntityName.CLAIM_PAYMENT,
 	EntityName.DOCUMENT,
 	EntityName.CHECKLIST_CLAIM,
 	EntityName.COMMENT,
@@ -183,6 +198,26 @@ async function deriveClaimId(
 		return recoveryEvent?.claim_id ?? null;
 	}
 
+	// Settlement -> claim_id
+	if (entityName === EntityName.SETTLEMENT) {
+		const settlement = await ctx.db
+			.selectFrom('settlement')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return settlement?.claim_id ?? null;
+	}
+
+	// Claim payment -> claim_id
+	if (entityName === EntityName.CLAIM_PAYMENT) {
+		const payment = await ctx.db
+			.selectFrom('claim_payment')
+			.select('claim_id')
+			.where('id', '=', Number(entityId))
+			.executeTakeFirst();
+		return payment?.claim_id ?? null;
+	}
+
 	// Claim coverage -> claim_id
 	if (entityName === EntityName.CLAIM_COVERAGE) {
 		const claimCoverage = await ctx.db
@@ -223,18 +258,13 @@ async function deriveClaimId(
 }
 
 /**
- * Detect actor type based on action
- * User workflow actions are always 'user', CRUD actions are always 'admin'
+ * Detect actor type based on user's role
+ * Admin and Super Admin users are logged as 'admin', all others as 'user'
  */
-function detectActorType(action: LogAction): ActorType {
-	const userActions = new Set([
-		LogAction.CLAIM,
-		LogAction.UNCLAIM,
-		LogAction.COMPLETE,
-		LogAction.CANCEL,
-	]);
-
-	return userActions.has(action) ? ActorType.USER : ActorType.ADMIN;
+function detectActorType(ctx: ProtectedContext): ActorType {
+	const role = ctx.session.user.role;
+	const isAdmin = role === config.ROLES.ADMIN || role === config.ROLES.SUPER_ADMIN;
+	return isAdmin ? ActorType.ADMIN : ActorType.USER;
 }
 
 export interface LogActionParams {
@@ -275,14 +305,11 @@ export interface LogActionParams {
  *   });
  * });
  */
-export async function logAction(
-	ctx: ProtectedContext,
-	params: LogActionParams
-): Promise<void> {
+export async function logAction(ctx: ProtectedContext, params: LogActionParams): Promise<void> {
 	const { entityId, entityName, action, value } = params;
 
-	// Auto-detect actor type if not provided
-	const actorType = params.actorType ?? detectActorType(action);
+	// Auto-detect actor type if not provided (based on user's role)
+	const actorType = params.actorType ?? detectActorType(ctx);
 
 	// Route to appropriate table
 	if (isConfigEntity(entityName)) {
@@ -300,13 +327,10 @@ export async function logAction(
 			.execute();
 	} else if (isClaimEntity(entityName)) {
 		// Derive claim_id if not provided
-		const claimId =
-			params.claimId ?? (await deriveClaimId(ctx, entityName, entityId));
+		const claimId = params.claimId ?? (await deriveClaimId(ctx, entityName, entityId));
 
 		if (claimId === null) {
-			console.warn(
-				`Could not derive claim_id for ${entityName} ${entityId}. Skipping log.`
-			);
+			console.warn(`Could not derive claim_id for ${entityName} ${entityId}. Skipping log.`);
 			return;
 		}
 
@@ -366,7 +390,6 @@ export async function logUserWorkflowAction(
 		entityName,
 		action,
 		claimId: params.claimId,
-		actorType: ActorType.USER,
 		value: params.value,
 	});
 }
@@ -377,10 +400,7 @@ export async function logUserWorkflowAction(
  * @param ctx - The protected context containing user, client info, and db (with transaction if applicable)
  * @param logs - Array of log parameters
  */
-export async function logActions(
-	ctx: ProtectedContext,
-	logs: LogActionParams[]
-): Promise<void> {
+export async function logActions(ctx: ProtectedContext, logs: LogActionParams[]): Promise<void> {
 	if (logs.length === 0) return;
 
 	const allConfig = logs.every((log) => isConfigEntity(log.entityName));
@@ -420,7 +440,7 @@ export async function logActions(
 				return null;
 			}
 
-			const actorType = log.actorType ?? detectActorType(log.action);
+			const actorType = log.actorType ?? detectActorType(ctx);
 			return {
 				client_id: ctx.session.user.client_id as string,
 				user_id: ctx.session.user.id,

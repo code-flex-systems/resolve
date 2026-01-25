@@ -1,7 +1,8 @@
 import * as feedQueries from '@/api/queries/feedQueries';
 import { FeedStatus, FeedType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Retrieve all feeds for the current client.

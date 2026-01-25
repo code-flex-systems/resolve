@@ -2,7 +2,8 @@ import * as pageQueries from '@/api/queries/pageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TreeNode } from '@/types/types';
 import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas/pageSchemas';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Create a page template and attach an instance.

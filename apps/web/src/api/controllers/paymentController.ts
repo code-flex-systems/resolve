@@ -2,7 +2,8 @@ import * as paymentQueries from '@/api/queries/paymentQueries';
 import { recalculateClaimExpectedRecovery } from '@/api/queries/claimQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { PaymentParams, PaymentUpdateParams } from '@/schemas/paymentSchemas';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '../utils/activityLogger';
 
 // =====================================================================
 // CLAIM PAYMENT CONTROLLERS
@@ -31,19 +32,22 @@ export async function createPayment(
 		const payment = await paymentQueries.createPayment({ ...ctx, db: trx }, claimId, params);
 
 		// Log payment creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: payment.id,
-			entityName: EntityName.CLAIM_PAYMENT,
-			action: AdminAction.CREATE,
-			value: {
-				claimId,
-				coverage_id: payment.coverage_id,
-				payment_date: payment.payment_date,
-				payment_amount: payment.payment_amount,
-				is_subrogable: payment.is_subrogable,
-				is_expense: payment.is_expense,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: payment.id,
+				entityName: EntityName.CLAIM_PAYMENT,
+				action: AdminAction.CREATE,
+				value: {
+					claimId,
+					coverage_id: payment.coverage_id,
+					payment_date: payment.payment_date,
+					payment_amount: payment.payment_amount,
+					is_subrogable: payment.is_subrogable,
+					is_expense: payment.is_expense,
+				},
+			}
+		);
 
 		// Recalculate expected_recovery if this is a subrogable payment (affects claim_amount)
 		if (params.is_subrogable) {
@@ -63,10 +67,7 @@ export async function createPayment(
  * @param input - claim id
  * @returns list of payments with coverage and payee details
  */
-export async function listPayments(
-	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
-) {
+export async function listPayments(ctx: ProtectedContext, { claimId }: { claimId: number }) {
 	return await paymentQueries.getPayments(ctx, claimId);
 }
 
@@ -93,12 +94,15 @@ export async function updatePayment(
 		const payment = await paymentQueries.updatePayment({ ...ctx, db: trx }, paymentId, params);
 
 		// Log payment update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: payment.id,
-			entityName: EntityName.CLAIM_PAYMENT,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: payment.id,
+				entityName: EntityName.CLAIM_PAYMENT,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		// Only recalculate expected_recovery if payment_amount or is_subrogable changed
 		if (params.payment_amount !== undefined || params.is_subrogable !== undefined) {
@@ -138,19 +142,22 @@ export async function archivePayment(
 
 		// Log admin action for payment archive
 		if (payment) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: paymentId,
-				entityName: EntityName.CLAIM_PAYMENT,
-				action: AdminAction.DELETE,
-				value: {
-					claimId: payment.claim_id,
-					coverage_id: payment.coverage_id,
-					payment_date: payment.payment_date,
-					payment_amount: payment.payment_amount,
-					is_subrogable: payment.is_subrogable,
-					is_expense: payment.is_expense,
-				},
-			});
+			await logAdminAction(
+				{ ...ctx, db: trx },
+				{
+					entityId: paymentId,
+					entityName: EntityName.CLAIM_PAYMENT,
+					action: AdminAction.DELETE,
+					value: {
+						claimId: payment.claim_id,
+						coverage_id: payment.coverage_id,
+						payment_date: payment.payment_date,
+						payment_amount: payment.payment_amount,
+						is_subrogable: payment.is_subrogable,
+						is_expense: payment.is_expense,
+					},
+				}
+			);
 
 			// Recalculate expected_recovery if this was a subrogable payment (affects claim_amount)
 			if (payment.is_subrogable) {

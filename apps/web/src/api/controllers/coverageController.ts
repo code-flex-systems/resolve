@@ -1,6 +1,7 @@
 import * as coverageQueries from '@/api/queries/coverageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateCoverageInput, UpdateCoverageInput } from '@/schemas/coverageSchemas';
 
 /**

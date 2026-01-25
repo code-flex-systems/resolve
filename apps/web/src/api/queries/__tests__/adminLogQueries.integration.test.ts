@@ -12,7 +12,7 @@ import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
 import { getAdminLogsByClaim, getAdminLogsByEntity } from '../adminLogQueries';
-import { EntityName } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import { createTestClient, createTestUser, createTestClaim } from '@/__tests__/integration/fixtures';
 
 describe('adminLogQueries integration tests', () => {

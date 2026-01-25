@@ -2,7 +2,8 @@ import * as docQueries from '@/api/queries/docQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { DocParams, UpdateDocParams, DocGroupParams, UpdateDocGroupParams } from '@/schemas/docSchemas';
 import * as blobStorage from '@/lib/azure/blobStorage';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import { TRPCError } from '@trpc/server';
 
 // =====================================================================

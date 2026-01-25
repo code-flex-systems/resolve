@@ -2,7 +2,8 @@ import * as questionQueries from '@/api/queries/questionQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { AnswerStat, DateRangeStrict, QuestionStat } from '@/types/types';
 import type { QuestionParams, QuestionUpdateParams } from '@/schemas/questionSchemas';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Insert a question onto a page.

@@ -10,7 +10,7 @@ import Person from '@mui/icons-material/Person';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import { useAdminLogsTrpc, AdminConfigLogCursor } from '@/hooks/trpc/useAdminLogsTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
-import type { EntityName } from '@/api/utils/adminActionLogger';
+import type { EntityName } from '@/api/utils/activityLogger';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import CustomPagination from '@/components/common/CustomPagination';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
@@ -56,7 +56,8 @@ export default function AdminLogsTab() {
 	const appliedEnd = getParam('end_date');
 
 	const appliedRange = useMemo(
-		() => [appliedStart ? dayjs(appliedStart) : null, appliedEnd ? dayjs(appliedEnd) : null] as [
+		() =>
+			[appliedStart ? dayjs(appliedStart) : null, appliedEnd ? dayjs(appliedEnd) : null] as [
 				Dayjs | null,
 				Dayjs | null,
 			],
@@ -76,19 +77,15 @@ export default function AdminLogsTab() {
 			first: appliedUser.first,
 			last: appliedUser.last,
 			email: appliedUser.email,
-			phone: 'phone' in appliedUser ? appliedUser.phone ?? null : null,
+			phone: 'phone' in appliedUser ? (appliedUser.phone ?? null) : null,
 		};
 	}, [appliedUser]);
 
-	const filtersKey = [
-		appliedEntity ?? '',
-		appliedUserId ?? '',
-		appliedStart ?? '',
-		appliedEnd ?? '',
-	].join('|');
+	const filtersKey = [appliedEntity ?? '', appliedUserId ?? '', appliedStart ?? '', appliedEnd ?? ''].join('|');
 
-	const { paginationModel, setPaginationModel, cursorByPageRef, cursor } = useCursorPagination<AdminConfigLogCursor>(
-		filtersKey
+	const { paginationModel, setPaginationModel, cursor, registerCursor } = useCursorPagination<AdminConfigLogCursor>(
+		filtersKey,
+		25
 	);
 
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
@@ -120,10 +117,10 @@ export default function AdminLogsTab() {
 	});
 
 	useEffect(() => {
-		if (data?.nextCursor) {
-			cursorByPageRef.current.set(paginationModel.page + 1, data.nextCursor);
+		if (data?.nextCursor != null) {
+			registerCursor(data.nextCursor);
 		}
-	}, [data?.nextCursor, paginationModel.page]);
+	}, [data?.nextCursor, registerCursor]);
 
 	const columns = useMemo<GridColDef[]>(
 		() => [
@@ -168,7 +165,9 @@ export default function AdminLogsTab() {
 			{
 				headerName: 'Action',
 				field: 'action',
-				renderHeader: (params) => <IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: TEXT_MUTED }} />} />,
+				renderHeader: (params) => (
+					<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: TEXT_MUTED }} />} />
+				),
 				minWidth: 140,
 				flex: 0.5,
 			},
@@ -189,12 +188,12 @@ export default function AdminLogsTab() {
 							variant="outlined"
 							sx={{ cursor: 'pointer' }}
 							onClick={(event) => {
-									event.stopPropagation();
-									setSelectedValue({
-										entityLabel: formatEntityLabelForDisplay(row.entity_name),
-										value: row.value,
-									});
-								}}
+								event.stopPropagation();
+								setSelectedValue({
+									entityLabel: formatEntityLabelForDisplay(row.entity_name),
+									value: row.value,
+								});
+							}}
 						/>
 					);
 				},
@@ -241,7 +240,12 @@ export default function AdminLogsTab() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading logs...">
 			<div style={styles.container}>
 				<Paper sx={styles.paper} className="flex-col-start">
-					<Toolbar left={<Typography variant="h6">Admin Logs</Typography>} right={<></>} height={50} padding={'0px 10px'} />
+					<Toolbar
+						left={<Typography variant="h6">Admin Logs</Typography>}
+						right={<></>}
+						height={50}
+						padding={'0px 10px'}
+					/>
 
 					<Toolbar
 						left={
@@ -254,11 +258,11 @@ export default function AdminLogsTab() {
 								>
 									Filters...
 									{hasActiveFilters && (
-										<Box
-											component="span"
-											sx={styles.filterCountBadge}
-										>
-											{[appliedEntity, appliedUserId, appliedStart, appliedEnd].filter(Boolean).length}
+										<Box component="span" sx={styles.filterCountBadge}>
+											{
+												[appliedEntity, appliedUserId, appliedStart, appliedEnd].filter(Boolean)
+													.length
+											}
 										</Box>
 									)}
 								</BasicButtonStyled>
@@ -314,7 +318,7 @@ export default function AdminLogsTab() {
 							paginationMeta={{ hasNextPage }}
 							rowHeight={60}
 							hideFooterSelectedRowCount
-							pageSizeOptions={[25, 50, 100]}
+							pageSizeOptions={[25]}
 							pagination
 							paginationMode="server"
 							paginationModel={paginationModel}

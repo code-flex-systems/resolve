@@ -4,7 +4,7 @@ import { Chip, MenuItem, Paper, PopperProps, TextField, Typography } from '@mui/
 import { useState } from 'react';
 import AccountTree from '@mui/icons-material/AccountTree';
 import BasicPopper from '@/components/common/BasicPopper';
-import { EntityName } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import { TEXT_MUTED } from '@/styles/theme';
 
 const ENTITY_OPTIONS = Object.values(EntityName);

@@ -1,10 +1,7 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as referenceDataQueries from '@/api/queries/referenceDataQueries';
-import {
-	logAdminAction,
-	AdminAction,
-	EntityName,
-} from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import { TRPCError } from '@trpc/server';
 
 // ============================================================================

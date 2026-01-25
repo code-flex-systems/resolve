@@ -4,7 +4,8 @@ import * as actionQueries from '../queries/actionQueries';
 import { sendEmail } from '@/lib/email/sendEmail';
 import { ActionDefinition, DateRange } from '@/types/types';
 import { TRPCError } from '@trpc/server';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Validate action definition based on action type

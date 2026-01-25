@@ -2,7 +2,8 @@ import * as settlementQueries from '@/api/queries/settlementQueries';
 import * as recoveryQueries from '@/api/queries/recoveryQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { SettlementParams, SettlementUpdateParams } from '@/schemas/settlementSchemas';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 // =====================================================================
 // SETTLEMENT CONTROLLERS

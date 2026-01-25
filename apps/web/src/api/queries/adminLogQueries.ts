@@ -1,5 +1,5 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { EntityName } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import type { ListAdminConfigLogsInput } from '@/schemas/adminLogSchemas';
 
 /**

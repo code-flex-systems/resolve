@@ -8,7 +8,7 @@ import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDateRangePicker from '@/components/common/BasicDateRangePicker';
 import UserFilter from '@/components/common/UserFilter';
 import { TEXT_MUTED } from '@/styles/theme';
-import type { EntityName } from '@/api/utils/adminActionLogger';
+import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import AdminLogsEntityFilter from '@/components/admin/AdminLogsEntityFilter';
 

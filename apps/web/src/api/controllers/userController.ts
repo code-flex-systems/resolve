@@ -8,7 +8,8 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import config from '@/config/config';
 import { DateRangeStrict } from '@/types/types';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import {
 	updateClerkUser,
 	updateUserRole,
