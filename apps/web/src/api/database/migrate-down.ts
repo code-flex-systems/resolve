@@ -11,8 +11,12 @@ import { db } from './kysely';
  * Usage: tsx src/api/database/migrate-down.ts
  * Or via npm: npm run db:migrate:down
  */
-async function migrateDown() {
-	const { error, results } = await migrator.migrateDown();
+async function migrateDown(targetMigrationName?: string) {
+	if (!targetMigrationName) {
+		throw new Error('Missing target migration. Usage: migrate-down --to <migration_name>');
+	}
+
+	const { error, results } = await migrator.migrateTo(targetMigrationName);
 
 	results?.forEach((it) => {
 		if (it.status === 'Success') {
@@ -36,4 +40,21 @@ async function migrateDown() {
 	await db.destroy();
 }
 
-migrateDown();
+function parseArgs() {
+	const args = process.argv.slice(2);
+
+	// Example: node migrate-down.js --to 20260126_add_table
+	const toIndex = args.indexOf('--to');
+	if (toIndex === -1 || !args[toIndex + 1]) {
+		return { to: undefined };
+	}
+
+	return { to: args[toIndex + 1] };
+}
+
+const { to } = parseArgs();
+
+migrateDown(to).catch((err) => {
+	console.error(err);
+	process.exit(1);
+});

@@ -14,7 +14,8 @@
 		"test:coverage": "vitest --coverage",
 		"azurite": "azurite-blob --silent --location ./azurite-data --blobPort 10000",
 		"typecheck": "tsc --noEmit",
-		"db:migrate": "tsx src/api/database/migrate-to-latest.ts",
+		"db:migrate:build": "tsup",
+		"db:migrate:run": "node dist-migrator/migrate-to-latest.js",
 		"db:migrate:down": "tsx src/api/database/migrate-down.ts",
 		"db:migration:create": "tsx src/api/database/create-migration.ts",
 		"db:types": "kysely-codegen --out-file=src/api/database/types.d.ts --dialect=postgres"
@@ -38,6 +39,7 @@
 		"kysely-codegen": "^0.17.0",
 		"pdf-parse": "^1.1.1",
 		"tailwindcss": "^4",
+		"tsup": "8.5.1",
 		"tsx": "^4.19.3",
 		"typescript": "^5",
 		"vitest": "3.2.4"
