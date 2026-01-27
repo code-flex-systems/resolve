@@ -201,16 +201,19 @@ const theme = createTheme({
 				},
 				outlined: {
 					borderColor: BORDER_COLOR,
-					backgroundColor: '#ffffff',
+					background: 'linear-gradient(180deg, #ffffff 0%, #f7f7f8 100%)',
+					boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(0, 0, 0, 0.05)',
 					'& .MuiSvgIcon-root': {
 						color: 'inherit',
 					},
 					'&:hover': {
 						borderColor: '#21B5FF',
-						backgroundColor: 'rgba(33, 181, 255, 0.04)',
+						background: 'linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%)',
+						boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(33, 181, 255, 0.1)',
 					},
 					'&.Mui-disabled': {
-						backgroundColor: BG_TERTIARY,
+						background: BG_TERTIARY,
+						boxShadow: 'none',
 						borderColor: BORDER_LIGHT,
 						color: TEXT_MUTED,
 						'& .MuiSvgIcon-root': {
@@ -1171,7 +1174,7 @@ const theme = createTheme({
 	],
 });
 
-// DataGrid focus outline removal - use gridClasses for specificity
+// DataGrid focus outline removal and consistent styling - use gridClasses for specificity
 export const dataGridFocusStyles = {
 	[`& .${gridClasses.cell}:focus`]: {
 		outline: 'none',
@@ -1185,9 +1188,49 @@ export const dataGridFocusStyles = {
 	[`& .${gridClasses.columnHeader}:focus-within`]: {
 		outline: 'none',
 	},
+	// Header styling - vertical alignment for icon headers
+	[`& .${gridClasses.columnHeader}`]: {
+		display: 'flex',
+		alignItems: 'center',
+	},
+	// Pinned column container styling
+	[`& .${gridClasses.pinnedColumns}`]: {
+		backgroundColor: '#ffffff',
+		boxShadow: '2px 0 4px -2px rgba(0, 0, 0, 0.15)',
+	},
+	// Pinned LEFT cells - use the actual MUI class names
+	[`& .${gridClasses['cell--pinnedLeft']}`]: {
+		backgroundColor: '#ffffff',
+		borderRight: '1px solid #e2e8f0',
+	},
+	// Pinned LEFT headers
+	[`& .${gridClasses['columnHeader--pinnedLeft']}`]: {
+		borderRight: '1px solid #cbd5e1',
+		display: 'flex',
+		alignItems: 'center',
+	},
+	// Pinned RIGHT cells (typically action columns - don't clip content)
+	[`& .${gridClasses['cell--pinnedRight']}`]: {
+		backgroundColor: '#ffffff',
+		borderLeft: '1px solid #e2e8f0',
+		overflow: 'visible',
+	},
+	// Pinned RIGHT headers
+	[`& .${gridClasses['columnHeader--pinnedRight']}`]: {
+		borderLeft: '1px solid #cbd5e1',
+		display: 'flex',
+		alignItems: 'center',
+	},
+	// Ensure striped rows maintain their color even when pinned
+	'& .striped': {
+		[`& .${gridClasses['cell--pinnedLeft']}, & .${gridClasses['cell--pinnedRight']}`]: {
+			backgroundColor: '#f8fafc',
+		},
+	},
 };
 
 // DataGrid styles - apply via sx prop on DataGrid components
+// Note: Header and pinned column styles are already included via dataGridFocusStyles spread
 export const dataGridStyles = {
 	fontSize: 13,
 	border: 'none',
@@ -1208,19 +1251,13 @@ export const dataGridStyles = {
 	'& .MuiDataGrid-row.Mui-selected:hover': {
 		backgroundColor: 'rgba(33, 181, 255, 0.12)',
 	},
-	'& .MuiDataGrid-cell': {
-		padding: '12px 16px',
-		display: 'flex',
-		alignItems: 'center',
-		borderBottom: `1px solid ${BORDER_LIGHT}`,
-	},
+	// Note: Cell overflow styles are in dataGridFocusStyles. Only add non-conflicting cell styles here.
 	'& .MuiDataGrid-columnHeader': {
 		fontSize: 12,
 		fontWeight: 600,
 		color: TEXT_SECONDARY,
 		textTransform: 'uppercase',
 		letterSpacing: '0.05em',
-		backgroundColor: BG_TERTIARY,
 	},
 	'& .MuiDataGrid-columnHeaders': {
 		borderBottom: `1px solid ${BORDER_COLOR}`,

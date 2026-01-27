@@ -1,11 +1,12 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Box, Button, Paper, Typography } from '@mui/material';
-import { DataGridPro, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid-pro';
+import { Box, Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Assignment from '@mui/icons-material/Assignment';
 import Edit from '@mui/icons-material/Edit';
+import Settings from '@mui/icons-material/Settings';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -51,6 +52,7 @@ export default function DeskAssignmentTab() {
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	// Fetch users with desk assignments
 	const { data: usersData = { rows: [], count: undefined }, isFetching: usersFetching } =
@@ -78,6 +80,8 @@ export default function DeskAssignmentTab() {
 	// Debounce search input to URL param
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
+
 	// Memoized columns - setEditingUserId is stable (useState setter)
 	const columns: GridColDef[] = useMemo(
 		() => [
@@ -104,24 +108,27 @@ export default function DeskAssignmentTab() {
 			{
 				headerName: 'Actions',
 				field: 'actions',
-				renderCell: ({ row }) => (
-					<div style={styles.actionsContainer}>
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: () => setEditingUserId(row.id),
-							}}
-							tooltipProps={{ title: 'Edit desk assignments' }}
-							icon={<Edit sx={{ fontSize: 15 }} />}
-						/>
-					</div>
-				),
+				renderCell: ({ row }) => {
+					if (!isManageMode) return null;
+					return (
+						<div style={styles.actionsContainer}>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => setEditingUserId(row.id),
+								}}
+								tooltipProps={{ title: 'Edit desk assignments' }}
+								icon={<Edit sx={{ fontSize: 15 }} />}
+							/>
+						</div>
+					);
+				},
 				width: 100,
 				sortable: false,
 				filterable: false,
 				disableColumnMenu: true,
 			},
 		],
-		[]
+		[isManageMode]
 	);
 
 	return (
@@ -144,6 +151,15 @@ export default function DeskAssignmentTab() {
 							>
 								Assign to Desk ({selectedUserIds.length})
 							</Button>
+							<Tooltip title="Manage">
+								<IconButton
+									size="small"
+									onClick={() => setIsManageMode(!isManageMode)}
+									sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+								>
+									<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</IconButton>
+							</Tooltip>
 						</Box>
 					</Box>
 					<Box
@@ -217,6 +233,7 @@ export default function DeskAssignmentTab() {
 							onPaginationModelChange={updateUserConstraints}
 							disableColumnSelector
 							disableColumnMenu
+							pinnedColumns={pinnedColumns}
 							sx={styles.tableOverrides}
 						/>
 					</div>

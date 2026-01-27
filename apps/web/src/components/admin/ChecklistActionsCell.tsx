@@ -14,7 +14,13 @@ import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
-export default function ChecklistActionsCell(params: GridRenderCellParams) {
+interface ChecklistActionsCellProps extends GridRenderCellParams {
+	isManageMode?: boolean;
+}
+
+export default function ChecklistActionsCell(params: ChecklistActionsCellProps) {
+	const { isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const router = useRouter();
 	const [updating, setUpdating] = useState(false);
 	const { mutate: updateChecklist, isPending } = useChecklistTrpc().update;

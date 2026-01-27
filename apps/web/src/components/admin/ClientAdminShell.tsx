@@ -13,7 +13,6 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
-import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import BusinessIcon from '@mui/icons-material/Business';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonIcon from '@mui/icons-material/Person';
@@ -65,18 +64,6 @@ const adminNavCategories: AdminNavCategory[] = [
 		defaultExpanded: false,
 	},
 	{
-		label: 'Data Sources',
-		icon: <CloudSyncIcon fontSize="small" color="secondary" />,
-		items: [
-			{
-				label: 'Feeds',
-				route: '/admin/data-sources/feeds',
-				icon: <RssFeedIcon fontSize="small" />,
-			},
-		],
-		defaultExpanded: false,
-	},
-	{
 		label: 'Claim Management',
 		icon: <ContentPasteSearchIcon fontSize="small" color="secondary" />,
 		items: [
@@ -85,11 +72,11 @@ const adminNavCategories: AdminNavCategory[] = [
 				route: '/admin/claims',
 				icon: <ContentPasteSearchIcon fontSize="small" />,
 			},
-			// {
-			// 	label: 'Coverages',
-			// 	route: '/admin/claims/coverages',
-			// 	icon: <ShieldIcon fontSize="small" />,
-			// },
+			{
+				label: 'Feeds',
+				route: '/admin/claims/feeds',
+				icon: <RssFeedIcon fontSize="small" />,
+			},
 		],
 		defaultExpanded: false,
 	},

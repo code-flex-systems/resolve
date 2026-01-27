@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Grid, InputAdornment, TextField, Typography, Stack } from '@mui/material';
+import { Box, Grid, TextField, Typography, Stack } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import DateField from '../common/DateField';
 import { useForm, Controller } from 'react-hook-form';
@@ -25,14 +25,13 @@ export default function NewClaimDialog() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			// Note: total_incurred is now a calculated field
 			await createClaims({
 				claims: [
 					{
 						...data,
-						claim_amount: data.claim_amount?.toString() ?? null,
 						date_of_loss: formatDateToISO(data.date_of_loss),
 						last_update: formatDateToISO(data.last_update),
+						line_of_business: null,
 					},
 				],
 			});
@@ -73,24 +72,6 @@ export default function NewClaimDialog() {
 								width: 200,
 							}}
 							{...register('claim_number', { required: true })}
-						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="claim_amount"
-							label="Claim Amount"
-							placeholder="75496.66"
-							error={!!errors.claim_amount}
-							type="number"
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">$</InputAdornment>,
-								},
-							}}
-							sx={{
-								width: 200,
-							}}
-							{...register('claim_amount', { required: true })}
 						/>
 					</Grid>
 					<Grid style={styles.row}>

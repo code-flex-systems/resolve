@@ -41,15 +41,12 @@ export default function DashboardTab() {
 	const router = useRouter();
 	const [selected, setSelected] = useState<string | null>(null);
 	const selectedChecklistId = useAdminStore((state) => state.selectedChecklistId);
-	const setFeedId = useAdminStore((state) => state.setFeedId);
 	const setShowInactiveUsers = useAdminStore((state) => state.setShowInactiveUsers);
-	const toggleClaimAssignmentDialog = useAdminStore((state) => state.toggleClaimAssignmentDialog);
 	const setClaimStatus = useMetricsStore((state) => state.setClaimStatus);
 	const { data: userCounts, isFetching: isFetchingUsers } = useUserTrpc().count({});
 	const { data: checklistCounts, isFetching: isFetchingChecklists } = useChecklistTrpc().count({});
 	const { data: claimCounts, isFetching: isFetchingClaims } = useClaimTrpc().count({});
 	const { data: feedCounts, isFetching: isFetchingFeedCounts } = useFeedTrpc().count({});
-	const { data: lastSyncedFeed, isFetching: isFetchingLastSynced } = useFeedTrpc().getLastSynced();
 	const { data: claimStats = defaultClaimStats, isFetching: isFetchingClaimStats } = useChecklistTrpc().stats({});
 	const { data: rolloverCount = { count: 0 }, isFetching: isFetchingRolloverCount } = useClaimTrpc().countRollover();
 	const { data: inactiveUserCount = { count: 0 }, isFetching: isFetchingInactiveUserCount } =
@@ -60,7 +57,6 @@ export default function DashboardTab() {
 		!isFetchingClaimStats &&
 		!isFetchingRolloverCount &&
 		!isFetchingInactiveUserCount &&
-		!lastSyncedFeed &&
 		claimStats.Submitted === 0 &&
 		inactiveUserCount.count === 0;
 
@@ -95,7 +91,7 @@ export default function DashboardTab() {
 						/>
 						<SimpleMetric
 							title="claims"
-							onClick={() => router.push('/admin/data-sources/feeds-and-claims')}
+							onClick={() => router.push('/admin/claims')}
 							onSelect={() => onSelect('claims')}
 							icon={<ContentPasteSearch sx={styles.simpleMetricIcon} />}
 							color={theme.palette.secondary.main}
@@ -115,7 +111,7 @@ export default function DashboardTab() {
 						/>
 						<SimpleMetric
 							title="feeds"
-							onClick={() => router.push('/admin/data-sources/feeds-and-claims')}
+							onClick={() => router.push('/admin/claims/feeds')}
 							onSelect={() => onSelect('feeds')}
 							icon={<RssFeed sx={styles.simpleMetricIcon} />}
 							color={PURPLE}
@@ -142,19 +138,6 @@ export default function DashboardTab() {
 											You're all caught up!
 										</Typography>
 									)}
-									<Collapse in={!!lastSyncedFeed && !isFetchingLastSynced} orientation="horizontal">
-										<MetricAction
-											action={() => {
-												setFeedId(lastSyncedFeed?.id);
-												toggleClaimAssignmentDialog();
-												router.push('/admin/data-sources/feeds-and-claims');
-											}}
-											actionText={`Assign claims in ${lastSyncedFeed?.name ?? ''}`}
-											actionValue={`${parseInt(lastSyncedFeed?.count_unassigned?.toString() ?? '0').toLocaleString()} in queue`}
-											color="primary.main"
-											loading={isFetchingLastSynced}
-										/>
-									</Collapse>
 									<Collapse
 										in={claimStats.Submitted > 0 && !isFetchingClaimStats}
 										orientation="horizontal"

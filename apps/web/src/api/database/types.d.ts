@@ -164,6 +164,10 @@ export interface Claim {
   insured: string | null;
   last_update: Timestamp | null;
   last_updated_by: string | null;
+  /**
+   * Line of business for this claim (values managed via reference_data)
+   */
+  line_of_business: string | null;
   loss_city: string | null;
   loss_country: string | null;
   loss_postal_code: string | null;

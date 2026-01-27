@@ -1,25 +1,40 @@
-import { MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import Desk from '@mui/icons-material/Desk';
 
 interface DeskLocationTypeSelectProps extends Omit<TextFieldProps, 'children' | 'select' | 'onChange' | 'value'> {
 	value: number | null;
 	onChange: (value: number | null) => void;
+	placeholder?: string;
 }
 
-export default function DeskLocationTypeSelect({ value, onChange, ...textFieldProps }: DeskLocationTypeSelectProps) {
+export default function DeskLocationTypeSelect({
+	value,
+	onChange,
+	placeholder = 'Select a desk type...',
+	...textFieldProps
+}: DeskLocationTypeSelectProps) {
 	const { data = { rows: [], count: 0 }, isFetching } = useDeskTrpc().listTypes({});
 
 	return (
 		<TextField
 			label="Desk Location Type"
-			
 			select
 			value={value ?? ''}
 			onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
 			disabled={isFetching}
 			InputProps={{
 				startAdornment: <Desk sx={{ fontSize: 18, mr: 1, color: 'text.secondary' }} />,
+			}}
+			SelectProps={{
+				displayEmpty: true,
+				renderValue: (selected) => {
+					if (!selected) {
+						return <Typography color="text.secondary">{placeholder}</Typography>;
+					}
+					const option = data.rows.find((t) => t.id === selected);
+					return option?.name || selected;
+				},
 			}}
 			{...textFieldProps}
 			sx={styles.textFieldOverrides}

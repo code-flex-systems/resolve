@@ -15,10 +15,12 @@ import theme from '@/styles/theme';
 
 interface PartyActionsCellProps extends GridRenderCellParams {
 	isAdminContext?: boolean;
+	isManageMode?: boolean;
 }
 
 export default function PartyActionsCell(params: PartyActionsCellProps) {
-	const { isAdminContext = true } = params;
+	const { isAdminContext = true, isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);

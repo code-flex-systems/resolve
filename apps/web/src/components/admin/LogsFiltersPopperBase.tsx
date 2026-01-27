@@ -47,9 +47,9 @@ export default function LogsFiltersPopperBase({
 				<Typography fontSize={14} fontWeight={600} marginBottom={2}>
 					{title}
 				</Typography>
-				<Box display="flex" flexDirection="column" gap={2}>
+				<Box display="flex" flexDirection="column" gap={1}>
 					<Box>
-						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={1}>
+						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
 							Date Range
 						</Typography>
 						<BasicDateRangePicker
@@ -62,13 +62,13 @@ export default function LogsFiltersPopperBase({
 						/>
 					</Box>
 					<Box>
-						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={1}>
+						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
 							Entity
 						</Typography>
 						<AdminLogsEntityFilter value={draftEntity} onChange={setDraftEntity} height={32} />
 					</Box>
 					<Box>
-						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={1}>
+						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
 							User
 						</Typography>
 						<UserFilter

@@ -290,6 +290,7 @@ interface CommonSelectProps {
 	disabled?: boolean;
 	isFilter?: boolean;
 	label?: string;
+	sx?: object;
 }
 
 export function LossTypeSelect({
@@ -329,6 +330,7 @@ export function LineOfBusinessSelect({
 	disabled = false,
 	isFilter = true,
 	label,
+	sx,
 }: CommonSelectProps & {
 	lineOfBusiness: string | null;
 	setLineOfBusiness: (newType: string | null) => void;
@@ -344,6 +346,7 @@ export function LineOfBusinessSelect({
 			disabled={disabled}
 			isFilter={isFilter}
 			label={label}
+			sx={sx}
 		/>
 	);
 }
@@ -357,6 +360,7 @@ export function ClaimSubstatusSelect({
 	disabled = false,
 	isFilter = true,
 	label,
+	sx,
 }: CommonSelectProps & {
 	substatus: string | null;
 	setSubstatus: (newType: string | null) => void;
@@ -372,6 +376,7 @@ export function ClaimSubstatusSelect({
 			disabled={disabled}
 			isFilter={isFilter}
 			label={label}
+			sx={sx}
 		/>
 	);
 }

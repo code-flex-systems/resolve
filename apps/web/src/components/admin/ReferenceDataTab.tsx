@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
-import { Button, Chip, Fade, Paper, Typography } from '@mui/material';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { Button, Chip, Fade, IconButton, Paper, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Category from '@mui/icons-material/Category';
 import Label from '@mui/icons-material/Label';
+import Settings from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
@@ -38,7 +39,7 @@ const ENTITY_COLUMNS: GridColDef[] = [
 	},
 ];
 
-const OPTION_COLUMNS: GridColDef[] = [
+const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'Option',
 		field: 'display_label',
@@ -93,7 +94,7 @@ const OPTION_COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Actions',
 		field: 'actions',
-		renderCell: ReferenceOptionActionsCell,
+		renderCell: (params) => <ReferenceOptionActionsCell {...params} isManageMode={isManageMode} />,
 		width: 100,
 		sortable: false,
 		filterable: false,
@@ -132,6 +133,11 @@ export default function ReferenceDataTab() {
 	const selectedReferenceEntity = useAdminStore((state) => state.selectedReferenceEntity);
 	const toggleNewReferenceOptionDialog = useAdminStore((state) => state.toggleNewReferenceOptionDialog);
 	const setReferenceEntity = useAdminStore((state) => state.setReferenceEntity);
+
+	const [isManageMode, setIsManageMode] = useState(false);
+
+	const optionColumns = useMemo(() => getOptionColumns(isManageMode), [isManageMode]);
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const { lists, options } = useReferenceDataTrpc();
 
@@ -224,21 +230,32 @@ export default function ReferenceDataTab() {
 								</Typography>
 							}
 							right={
-								<Button
-									variant="contained"
-									startIcon={<AddBox />}
-									onClick={toggleNewReferenceOptionDialog}
-									disabled={selectedReferenceEntity === null}
-								>
-									Option
-								</Button>
+								<>
+									<Button
+										variant="contained"
+										startIcon={<AddBox />}
+										onClick={toggleNewReferenceOptionDialog}
+										disabled={selectedReferenceEntity === null}
+									>
+										Option
+									</Button>
+									<Tooltip title="Manage">
+										<IconButton
+											size="small"
+											onClick={() => setIsManageMode(!isManageMode)}
+											sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										>
+											<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+										</IconButton>
+									</Tooltip>
+								</>
 							}
 							height={50}
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
 							<DataGridPro
-								columns={OPTION_COLUMNS}
+								columns={optionColumns}
 								columnHeaderHeight={45}
 								loading={optionsFetching}
 								slots={{
@@ -257,6 +274,7 @@ export default function ReferenceDataTab() {
 								disableColumnSelector
 								disableRowSelectionOnClick
 								disableColumnMenu
+								pinnedColumns={pinnedColumns}
 								sx={styles.tableOverrides}
 							/>
 						</div>

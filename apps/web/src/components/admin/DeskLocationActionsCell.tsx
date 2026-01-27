@@ -13,7 +13,13 @@ import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import theme from '@/styles/theme';
 
-export default function DeskLocationActionsCell(params: GridRenderCellParams) {
+interface DeskLocationActionsCellProps extends GridRenderCellParams {
+	isManageMode?: boolean;
+}
+
+export default function DeskLocationActionsCell(params: DeskLocationActionsCellProps) {
+	const { isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);

@@ -2,11 +2,13 @@
 
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import { Button, Paper, Typography } from '@mui/material';
+import { Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import AddBox from '@mui/icons-material/AddBox';
 import Checklist from '@mui/icons-material/Checklist';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import Settings from '@mui/icons-material/Settings';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
+import { useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import ChecklistActionsCell from './ChecklistActionsCell';
@@ -18,7 +20,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
-const COLUMNS: GridColDef[] = [
+const getColumns = (isManageMode: boolean): GridColDef[] => [
 	{
 		field: 'name',
 		headerName: '',
@@ -59,7 +61,7 @@ const COLUMNS: GridColDef[] = [
 		sortable: false,
 		filterable: false,
 		disableColumnMenu: true,
-		renderCell: (params) => <ChecklistActionsCell {...params} />,
+		renderCell: (params) => <ChecklistActionsCell {...params} isManageMode={isManageMode} />,
 	},
 ];
 
@@ -76,6 +78,11 @@ export default function ChecklistsTab() {
 	const { data: checklists = [], isFetching } = useChecklistTrpc().list({});
 	const showNewChecklistDialog = useAdminStore((state) => state.showNewChecklistDialog);
 	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
+	const [isManageMode, setIsManageMode] = useState(false);
+
+	const columns = useMemo(() => getColumns(isManageMode), [isManageMode]);
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
+
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading checklists...">
 			<div style={styles.container}>
@@ -87,6 +94,15 @@ export default function ChecklistsTab() {
 								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewChecklistDialog}>
 									Checklist
 								</Button>
+								<Tooltip title="Manage">
+									<IconButton
+										size="small"
+										onClick={() => setIsManageMode(!isManageMode)}
+										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									>
+										<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</IconButton>
+								</Tooltip>
 							</>
 						}
 						height={50}
@@ -94,7 +110,7 @@ export default function ChecklistsTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{
@@ -114,6 +130,7 @@ export default function ChecklistsTab() {
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
+							pinnedColumns={pinnedColumns}
 							sx={styles.tableOverrides}
 							hideFooter
 							showColumnVerticalBorder={false}

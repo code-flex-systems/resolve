@@ -131,6 +131,7 @@ export async function getClaims(
 		line_of_business,
 		loss_type,
 		recovery_status,
+		substatus,
 		insured,
 		client,
 		limit,
@@ -141,6 +142,7 @@ export async function getClaims(
 		line_of_business?: string;
 		loss_type?: string;
 		recovery_status?: RecoveryStatus;
+		substatus?: string;
 		insured?: string;
 		client?: string;
 		limit?: number;
@@ -213,6 +215,10 @@ export async function getClaims(
 		baseQuery = baseQuery.where('claim.recovery_status', '=', recovery_status);
 	}
 
+	if (substatus) {
+		baseQuery = baseQuery.where('claim.substatus', '=', substatus);
+	}
+
 	if (insured) {
 		baseQuery = baseQuery.where('claim.insured', 'ilike', `${insured}%`);
 	}
@@ -221,9 +227,26 @@ export async function getClaims(
 		baseQuery = baseQuery.where('claim.client', 'ilike', `${client}%`);
 	}
 
-	// Select columns based on admin status
+	// Select columns needed for display (excluding last_update/last_updated_by)
 	if (isAdmin) {
-		baseQuery = baseQuery.selectAll('claim').select(['feeds.name as feed_name']);
+		baseQuery = baseQuery.select([
+			'claim.id',
+			'claim.claim_number',
+			'claim.client',
+			'claim.client_adjuster',
+			'claim.insured',
+			'claim.claim_amount',
+			'claim.total_incurred',
+			'claim.date_of_loss',
+			'claim.loss_city',
+			'claim.loss_state',
+			'claim.line_of_business',
+			'claim.recovery_status',
+			'claim.substatus',
+			'claim.expected_recovery',
+			'claim.actual_recovery',
+			'feeds.name as feed_name',
+		]);
 	} else {
 		baseQuery = baseQuery.select([
 			'claim.id',
@@ -320,7 +343,7 @@ export async function updateClaim(
 		client: string | null;
 		client_adjuster: string | null;
 		insured: string | null;
-		claim_amount: string | null;
+		line_of_business: string | null;
 		date_of_loss: Date | null;
 		loss_street_address: string | null;
 		loss_city: string | null;
@@ -347,6 +370,7 @@ export async function updateClaim(
 			'client_adjuster',
 			'insured',
 			'claim_amount',
+			'line_of_business',
 			'actual_recovery',
 			'date_of_loss',
 			'loss_street_address',
@@ -379,8 +403,8 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				client: c.client,
 				client_adjuster: c.client_adjuster,
 				insured: c.insured,
-				claim_amount: c.claim_amount,
 				date_of_loss: c.date_of_loss,
+				line_of_business: c.line_of_business,
 				loss_street_address: c.loss_street_address,
 				loss_city: c.loss_city,
 				loss_state: c.loss_state,
@@ -397,8 +421,8 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
 				client: eb.ref('excluded.client'),
 				client_adjuster: eb.ref('excluded.client_adjuster'),
 				insured: eb.ref('excluded.insured'),
-				claim_amount: eb.ref('excluded.claim_amount'),
 				date_of_loss: eb.ref('excluded.date_of_loss'),
+				line_of_business: eb.ref('excluded.line_of_business'),
 				loss_street_address: eb.ref('excluded.loss_street_address'),
 				loss_city: eb.ref('excluded.loss_city'),
 				loss_state: eb.ref('excluded.loss_state'),

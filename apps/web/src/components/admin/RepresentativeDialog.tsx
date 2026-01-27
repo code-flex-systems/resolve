@@ -9,6 +9,22 @@ import { useAlertStore } from '@/stores/useAlertStore';
 import { useState, useEffect } from 'react';
 import { Party, PartyRepresentative, PartyAddress } from '@/api/database/types';
 import useDebounce from '@/lib/utils/useDebounce';
+import { formatAddressInline } from '@/schemas/addressSchemas';
+
+// Helper to format address for display in autocomplete
+function formatAddressOption(address: PartyAddress): string {
+	const inline = formatAddressInline({
+		street_address: address.street_address ?? undefined,
+		city: address.city ?? undefined,
+		state: address.state ?? undefined,
+		postal_code: address.postal_code ?? undefined,
+		country: address.country ?? undefined,
+	});
+	if (address.name && inline) {
+		return `${address.name} - ${inline}`;
+	}
+	return inline || address.name || 'Unnamed address';
+}
 
 interface RepresentativeFormData {
 	party_id: number | null;
@@ -108,6 +124,16 @@ export default function RepresentativeDialog({
 			setSelectedParty(initialParty as any);
 		}
 	}, [initialParty, selectedParty]);
+
+	// Initialize selectedAddress when editing and addresses are loaded
+	useEffect(() => {
+		if (representative?.address_id && partyAddresses.length > 0 && !selectedAddress) {
+			const existingAddress = partyAddresses.find((addr) => addr.id === representative.address_id);
+			if (existingAddress) {
+				setSelectedAddress(existingAddress as any);
+			}
+		}
+	}, [representative?.address_id, partyAddresses, selectedAddress]);
 
 	const handleClose = (createdRep?: PartyRepresentative) => {
 		if (onClose) {
@@ -252,34 +278,41 @@ export default function RepresentativeDialog({
 						return (
 							<Autocomplete
 								options={partyAddresses as any}
-								getOptionLabel={(address: any) =>
-									`${address.name || 'Unnamed'} - ${address.city || 'No address'}`
-								}
+								getOptionLabel={(address: any) => formatAddressOption(address)}
 								onChange={(_, value: any) => {
 									setSelectedAddress(value);
 									field.onChange(value?.id || null);
 								}}
 								value={selectedAddress}
 								disabled={!hasParty}
-								renderOption={(props, address: any) => (
-									<li {...props} key={String(address.id)}>
-										<div>
-											<Typography variant="body2" fontWeight="bold">
-												{address.name || 'Unnamed address'}
-											</Typography>
-											{address.city && (
-												<Typography variant="caption" color="text.secondary">
-													{address.city}, {address.state}
+								isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
+								renderOption={(props, address: any) => {
+									const addressLine = formatAddressInline({
+										street_address: address.street_address ?? undefined,
+										city: address.city ?? undefined,
+										state: address.state ?? undefined,
+										postal_code: address.postal_code ?? undefined,
+										country: address.country ?? undefined,
+									});
+									return (
+										<li {...props} key={String(address.id)}>
+											<div>
+												<Typography variant="body2" fontWeight="bold">
+													{address.name || 'Unnamed address'}
 												</Typography>
-											)}
-										</div>
-									</li>
-								)}
+												{addressLine && (
+													<Typography variant="caption" color="text.secondary">
+														{addressLine}
+													</Typography>
+												)}
+											</div>
+										</li>
+									);
+								}}
 								renderInput={(params) => (
 									<TextField
 										{...params}
 										label="Address (Optional)"
-
 										placeholder={hasParty ? 'Select an address...' : 'Select a party first'}
 									/>
 								)}

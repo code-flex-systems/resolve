@@ -1,12 +1,12 @@
 'use client';
 
-import { Box, Chip, Icon, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Chip, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import Edit from '@mui/icons-material/Edit';
 import Assignment from '@mui/icons-material/Assignment';
 import Archive from '@mui/icons-material/Archive';
 import Print from '@mui/icons-material/Print';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -17,10 +17,20 @@ import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 
 export default function ClaimHeader({ claimId }: { claimId: number }) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const canEditClaim = isAdmin || isSuperAdmin;
 	const { data: claimDetail, isLoading } = trpc.claim.getClaimDetail.useQuery({ claimId });
+
+	const handleEditClaim = () => {
+		if (claimId) {
+			router.push(
+				pathname.startsWith('/admin') && (isAdmin || isSuperAdmin)
+					? `/admin/claims/edit/${claimId}`
+					: `/my-claims/edit/${claimId}`
+			);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -96,40 +106,33 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 			{/* Action Toolbar */}
 			<Box display="flex" justifyContent="space-between" gap={1} marginTop={2}>
 				<Box display="flex" flexWrap="wrap" gap={1} justifyContent="flex-start" alignItems="center">
-					{claimDetail.aggregated_line_of_business &&
-						claimDetail.aggregated_line_of_business.length > 0 &&
-						claimDetail.aggregated_line_of_business.map((lob: string) => (
-							<LineOfBusinessChip key={lob} value={lob} />
-						))}
+					{claimDetail.line_of_business && (
+						<LineOfBusinessChip value={claimDetail.line_of_business} />
+					)}
 					{claimDetail.aggregated_loss_type &&
 						claimDetail.aggregated_loss_type.length > 0 &&
 						claimDetail.aggregated_loss_type.map((lt: string) => (
 							<LossTypeChip key={lt} value={lt} />
 						))}
-					<ClaimStatusChip
-						recoveryStatus={claimDetail.recovery_status}
-						substatus={claimDetail.substatus}
-					/>
+					<ClaimStatusChip recoveryStatus={claimDetail.recovery_status} substatus={claimDetail.substatus} />
 					{claimDetail.feed_name && (
 						<Chip label={`Feed: ${claimDetail.feed_name}`} size="small" variant="outlined" />
 					)}
 				</Box>
 				<Box display="flex" gap={1} justifyContent="flex-end" alignItems="center">
-					{canEditClaim && (
-						<IconButton
-							size="small"
-							title="Edit Claim"
-							onClick={() => router.push(`/admin/claims/edit/${claimId}`)}
-						>
-							<Edit />
-						</IconButton>
+					<IconButton size="small" title="Edit Claim" onClick={handleEditClaim}>
+						<Edit />
+					</IconButton>
+					{(isAdmin || isSuperAdmin) && (
+						<>
+							<IconButton size="small" title="Assign Claim" disabled>
+								<Assignment />
+							</IconButton>
+							<IconButton size="small" title="Archive Claim" disabled>
+								<Archive />
+							</IconButton>
+						</>
 					)}
-					<IconButton size="small" title="Assign Claim" disabled>
-						<Assignment />
-					</IconButton>
-					<IconButton size="small" title="Archive Claim" disabled>
-						<Archive />
-					</IconButton>
 					<IconButton size="small" title="Print" disabled>
 						<Print />
 					</IconButton>

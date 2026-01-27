@@ -6,7 +6,7 @@ import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
 import Payments from '@mui/icons-material/Payments';
 import EventRepeat from '@mui/icons-material/EventRepeat';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useMemo } from 'react';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
@@ -52,6 +52,8 @@ export default function SettlementTable({
 	onArchiveSettlement,
 	onArchiveRecovery,
 }: SettlementTableProps) {
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
+
 	const tableRows = useMemo<TableRow[]>(() => {
 		const rows: TableRow[] = [];
 
@@ -312,7 +314,7 @@ export default function SettlementTable({
 			disableColumnSelector
 			disableRowSelectionOnClick
 			disableColumnMenu
-			pinnedColumns={{ right: isManageMode ? ['actions'] : [] }}
+			pinnedColumns={pinnedColumns}
 			sx={{
 				border: 'none',
 				'& .MuiDataGrid-cell': {

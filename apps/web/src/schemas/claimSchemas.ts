@@ -36,6 +36,7 @@ export const getClaimsInput = z.object({
 	line_of_business: z.string().optional(),
 	loss_type: z.string().optional(),
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
+	substatus: z.nativeEnum(ClaimSubstatus).optional(),
 	insured: z.string().optional(),
 	client: z.string().optional(),
 	limit: z.number().optional(),
@@ -47,15 +48,15 @@ export const getClaimCountInput = z.object({ clientId: z.string().optional() });
 
 // Schema for individual claim data when creating
 // Note: loss_type is no longer on the claim table - it's set per claim_liability
-// Note: total_incurred is now calculated from claim_coverage.amount_reserved
+// Note: claim_amount, total_incurred and expected_recovery are calculated fields (not set during creation)
 export const claimDataSchema = z
 	.object({
 		claim_number: z.string().nullable(),
 		client: z.string().nullable(),
 		client_adjuster: z.string().nullable(),
 		insured: z.string().nullable(),
-		claim_amount: z.union([parseNumber(), z.number()]).nullable(),
 		date_of_loss: parseDate().nullable(),
+		line_of_business: z.string().nullable(),
 		last_updated_by: z.string().nullable(),
 		last_update: parseDate().nullable(),
 	})
@@ -64,15 +65,11 @@ export type ClaimData = z.infer<typeof claimDataSchema>;
 
 export const createClaimInput = z.object({
 	claims: z.array(claimDataSchema),
-	party_id: z.number().int().nullable().optional(),
-	representative_id: z.number().int().nullable().optional(),
-	role: z.array(z.string()).nullable().optional(),
 });
 export type CreateClaimInput = z.infer<typeof createClaimInput>;
 
 // Note: loss_type is no longer on the claim table - it's set per claim_liability
-// Note: total_incurred is calculated from claim_coverage.amount_reserved
-// Note: expected_recovery is calculated from liability percentages and amount_paid
+// Note: All amount fields (claim_amount, total_incurred, expected_recovery) are now calculated
 export const updateClaimInput = z
 	.object({
 		claimId: z.number().int(),
@@ -80,13 +77,10 @@ export const updateClaimInput = z
 		client: z.string().nullable().optional(),
 		client_adjuster: z.string().nullable().optional(),
 		insured: z.string().nullable().optional(),
-		claim_amount: z.number().nullable().optional(),
 		date_of_loss: parseDate().nullable().optional(),
+		line_of_business: z.string().nullable().optional(),
 		recovery_status: z.nativeEnum(RecoveryStatus).optional(),
 		substatus: z.string().optional(),
-		party_id: z.number().int().nullable().optional(),
-		representative_id: z.number().int().nullable().optional(),
-		role: z.array(z.string()).nullable().optional(),
 	})
 	.merge(lossAddressSchema);
 export type UpdateClaimInput = z.infer<typeof updateClaimInput>;

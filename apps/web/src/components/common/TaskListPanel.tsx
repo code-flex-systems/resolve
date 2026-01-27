@@ -1,13 +1,14 @@
 'use client';
 
-import { Box, Typography, Chip, Stack, Button, CircularProgress } from '@mui/material';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { Box, Typography, Chip, Stack, Button, CircularProgress, Tooltip, IconButton } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, gridClasses } from '@mui/x-data-grid-pro';
 import AddTask from '@mui/icons-material/AddTask';
 import PlayArrow from '@mui/icons-material/PlayArrow';
+import Settings from '@mui/icons-material/Settings';
 import Stop from '@mui/icons-material/Stop';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Cancel from '@mui/icons-material/Cancel';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
 import { TaskStatus, TaskType } from '@/config/enums';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -42,6 +43,9 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [completingTask, setCompletingTask] = useState<Task | null>(null);
 	const [cancellingTask, setCancellingTask] = useState<Task | null>(null);
+	const [isManageMode, setIsManageMode] = useState(false);
+
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 
@@ -72,13 +76,14 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 		}
 	};
 
-	const columns: GridColDef[] = [
-		{
-			field: 'title',
-			headerName: 'Title',
-			flex: 1,
-			minWidth: 200,
-		},
+	const columns: GridColDef[] = useMemo(() => {
+		const baseColumns: GridColDef[] = [
+			{
+				field: 'title',
+				headerName: 'Title',
+				flex: 1,
+				minWidth: 200,
+			},
 		{
 			field: 'task_type',
 			headerName: 'Type',
@@ -136,13 +141,17 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 			valueGetter: (value, row) =>
 				row.claimed_by_first && row.claimed_by_last ? `${row.claimed_by_first} ${row.claimed_by_last}` : '-',
 		},
-		{
-			field: 'actions',
-			headerName: '',
-			width: 120,
-			sortable: false,
-			renderCell: (params: GridRenderCellParams) => {
-				const task = params.row;
+		];
+
+		// Only include actions column when in manage mode
+		if (isManageMode) {
+			baseColumns.push({
+				field: 'actions',
+				headerName: '',
+				width: 120,
+				sortable: false,
+				renderCell: (params: GridRenderCellParams) => {
+					const task = params.row;
 				const status = task.status as TaskStatus;
 
 				return (
@@ -194,9 +203,12 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 						)}
 					</Stack>
 				);
-			},
-		},
-	];
+				},
+			});
+		}
+
+		return baseColumns;
+	}, [isManageMode, claiming, unclaiming]);
 
 	if (isLoading) {
 		return (
@@ -212,11 +224,22 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 				<Typography variant="subtitle1" fontWeight={500}>
 					Tasks ({tasks.length})
 				</Typography>
-				{showCreateButton && (
-					<Button startIcon={<AddTask />} size="small" onClick={() => setShowCreateDialog(true)}>
-						Create Task
-					</Button>
-				)}
+				<Stack direction="row" spacing={1} alignItems="center">
+					{showCreateButton && (
+						<Button startIcon={<AddTask />} size="small" onClick={() => setShowCreateDialog(true)}>
+							Create Task
+						</Button>
+					)}
+					<Tooltip title="Manage">
+						<IconButton
+							size="small"
+							onClick={() => setIsManageMode(!isManageMode)}
+							sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
+						>
+							<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+						</IconButton>
+					</Tooltip>
+				</Stack>
 			</Stack>
 
 			{tasks.length === 0 ? (
@@ -231,14 +254,12 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 					hideFooter
 					disableColumnMenu
 					disableRowSelectionOnClick
-					pinnedColumns={{ right: ['actions'] }}
+					pinnedColumns={pinnedColumns}
 					sx={{
-						'& .MuiDataGrid-cell': {
-							py: 1,
-							display: 'flex',
-							alignItems: 'center',
-						},
 						...dataGridFocusStyles,
+						[`& .${gridClasses.cell}`]: {
+							py: 1,
+						},
 					}}
 				/>
 			)}

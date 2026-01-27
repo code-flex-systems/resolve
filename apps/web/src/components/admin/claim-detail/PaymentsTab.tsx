@@ -4,7 +4,7 @@ import { Box, Button, Chip, IconButton, Paper, Skeleton, Stack, Tooltip, Typogra
 import AttachMoney from '@mui/icons-material/AttachMoney';
 import Settings from '@mui/icons-material/Settings';
 import { useCallback, useMemo, useState } from 'react';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { trpc } from '@/lib/trpc';
 import BasicDialog from '@/components/common/BasicDialog';
 import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
@@ -55,6 +55,8 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	const [isManageMode, setIsManageMode] = useState(false);
 	const [editingPayment, setEditingPayment] = useState<PaymentRow | null>(null);
 	const [archivingPayment, setArchivingPayment] = useState<PaymentRow | null>(null);
+
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const utils = trpc.useUtils();
 	const showAlert = useAlertStore((state) => state.showAlert);
@@ -416,6 +418,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 							autoHeight
 							hideFooter
 							disableRowSelectionOnClick
+							pinnedColumns={pinnedColumns}
 							sx={{
 								border: 'none',
 								'& .MuiDataGrid-cell': {

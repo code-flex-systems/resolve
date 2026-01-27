@@ -1,10 +1,11 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Paper, Switch, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { Button, Chip, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Business from '@mui/icons-material/Business';
+import Settings from '@mui/icons-material/Settings';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
@@ -24,7 +25,7 @@ interface PartiesTabProps {
 	isAdminContext?: boolean;
 }
 
-const getColumns = (isAdminContext: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'Name',
 		field: 'name',
@@ -77,7 +78,9 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <PartyActionsCell {...params} isAdminContext={isAdminContext} />,
+		renderCell: (params) => (
+			<PartyActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
+		),
 		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
@@ -115,6 +118,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	// Query to fetch party by ID for deep linking (only when edit param is present)
 	const { data: partyToEdit } = partyTrpc.get(
@@ -139,8 +143,12 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 		router.replace(newUrl, { scroll: false });
 	};
 
-	// Memoize columns based on isAdminContext
-	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+	// Memoize columns based on isAdminContext and isManageMode
+	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(
+		() => (isManageMode ? { right: ['actions'] } : {}),
+		[isManageMode]
+	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.list({
 		limit: partyConstraints.pageSize,
@@ -209,10 +217,22 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 									variant="contained"
 									startIcon={<AddBox />}
 									onClick={toggleNewPartyDialog}
-									sx={{ ml: 2 }}
+									sx={{ ml: 1.5 }}
 								>
 									Party
 								</Button>
+								<Tooltip title="Manage">
+									<IconButton
+										size="small"
+										onClick={() => setIsManageMode(!isManageMode)}
+										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									>
+										<Settings
+											fontSize="small"
+											sx={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
+									</IconButton>
+								</Tooltip>
 							</>
 						}
 						height={50}
@@ -246,21 +266,16 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
+							pinnedColumns={pinnedColumns}
 							sx={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
-								'& .MuiDataGrid-cell': {
-									display: 'flex',
-									alignItems: 'center',
-								},
 							}}
 						/>
 					</div>
 
 					{showNewPartyDialog && <PartyDialog />}
-					{editingPartyFromUrl && (
-						<PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />
-					)}
+					{editingPartyFromUrl && <PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />}
 				</Paper>
 			</div>
 		</PageTransitionWrapper>

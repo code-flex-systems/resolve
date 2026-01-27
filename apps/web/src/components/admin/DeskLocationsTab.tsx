@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { Button, Paper, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Desk from '@mui/icons-material/Desk';
 import LocationOn from '@mui/icons-material/LocationOn';
+import Settings from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
@@ -20,7 +21,7 @@ import DeskTypeActionsCell from './DeskTypeActionsCell';
 import DeskLocationActionsCell from './DeskLocationActionsCell';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
-const TYPE_COLUMNS: GridColDef[] = [
+const getTypeColumns = (isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'Desk Location Type',
 		field: 'name',
@@ -44,7 +45,7 @@ const TYPE_COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Actions',
 		field: 'actions',
-		renderCell: DeskTypeActionsCell,
+		renderCell: (params) => <DeskTypeActionsCell {...params} isManageMode={isManageMode} />,
 		width: 100,
 		sortable: false,
 		filterable: false,
@@ -52,7 +53,7 @@ const TYPE_COLUMNS: GridColDef[] = [
 	},
 ];
 
-const LOCATION_COLUMNS: GridColDef[] = [
+const getLocationColumns = (isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'Desk Location',
 		field: 'name',
@@ -85,7 +86,7 @@ const LOCATION_COLUMNS: GridColDef[] = [
 	{
 		headerName: 'Actions',
 		field: 'actions',
-		renderCell: DeskLocationActionsCell,
+		renderCell: (params) => <DeskLocationActionsCell {...params} isManageMode={isManageMode} />,
 		width: 100,
 		sortable: false,
 		filterable: false,
@@ -127,6 +128,12 @@ export default function DeskLocationsTab() {
 	const toggleNewDeskLocationDialog = useAdminStore((state) => state.toggleNewDeskLocationDialog);
 	const setDeskLocationTypeId = useAdminStore((state) => state.setDeskLocationTypeId);
 
+	const [isManageMode, setIsManageMode] = useState(false);
+
+	const typeColumns = useMemo(() => getTypeColumns(isManageMode), [isManageMode]);
+	const locationColumns = useMemo(() => getLocationColumns(isManageMode), [isManageMode]);
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
+
 	// Fetch all desk location types (no pagination)
 	const { data: typesData = { rows: [], count: undefined }, isFetching: typesFetching } = useDeskTrpc().listTypes({});
 
@@ -158,20 +165,31 @@ export default function DeskLocationsTab() {
 								<Typography variant="h6">Desk Location Types</Typography>
 							}
 							right={
-								<Button
-									variant="contained"
-									startIcon={<AddBox />}
-									onClick={toggleNewDeskLocationTypeDialog}
-								>
-									Type
-								</Button>
+								<>
+									<Button
+										variant="contained"
+										startIcon={<AddBox />}
+										onClick={toggleNewDeskLocationTypeDialog}
+									>
+										Type
+									</Button>
+									<Tooltip title="Manage">
+										<IconButton
+											size="small"
+											onClick={() => setIsManageMode(!isManageMode)}
+											sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										>
+											<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+										</IconButton>
+									</Tooltip>
+								</>
 							}
 							height={50}
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
 							<DataGridPro
-								columns={TYPE_COLUMNS}
+								columns={typeColumns}
 								columnHeaderHeight={45}
 								loading={typesFetching}
 								slots={{
@@ -195,6 +213,7 @@ export default function DeskLocationsTab() {
 								disableColumnSelector
 								disableRowSelectionOnClick
 								disableColumnMenu
+								pinnedColumns={pinnedColumns}
 								sx={styles.tableOverrides}
 							/>
 						</div>
@@ -221,7 +240,7 @@ export default function DeskLocationsTab() {
 						/>
 						<div style={styles.table}>
 							<DataGridPro
-								columns={LOCATION_COLUMNS}
+								columns={locationColumns}
 								columnHeaderHeight={45}
 								loading={locationsFetching}
 								slots={{
@@ -240,6 +259,7 @@ export default function DeskLocationsTab() {
 								disableColumnSelector
 								disableRowSelectionOnClick
 								disableColumnMenu
+								pinnedColumns={pinnedColumns}
 								sx={styles.tableOverrides}
 							/>
 						</div>

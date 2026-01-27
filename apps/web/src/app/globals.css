@@ -213,7 +213,7 @@ body {
 }
 
 .striped {
-	background-color: var(--color-bg-secondary);
+	background-color: #f8fafc;
 }
 
 .user-row {

@@ -1,22 +1,27 @@
 'use client';
 
 import { FeedStatus } from '@/config/enums';
-import theme, { BG_SECONDARY } from '@/styles/theme';
-import { Box, Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
+import theme, { TEXT_MUTED, dataGridFocusStyles } from '@/styles/theme';
+import { Box, IconButton, Paper, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
+import Settings from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import NetworkCheck from '@mui/icons-material/NetworkCheck';
 import Notifications from '@mui/icons-material/Notifications';
 import NotificationsOff from '@mui/icons-material/NotificationsOff';
 import Power from '@mui/icons-material/Power';
 import PowerOff from '@mui/icons-material/PowerOff';
+import RssFeed from '@mui/icons-material/RssFeed';
+import Schedule from '@mui/icons-material/Schedule';
+import Sync from '@mui/icons-material/Sync';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
-import { useAdminStore } from '@/stores/useAdminStore';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import ClaimAssignmentDialog from './ClaimAssignmentDialog';
+import IconHeaderCell from '../common/IconHeaderCell';
+import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
@@ -29,14 +34,107 @@ const getStatusColor = (status: FeedStatus) => {
 	}
 };
 
+const formatStatus = (status: FeedStatus) => {
+	switch (status) {
+		case FeedStatus.OFFLINE:
+			return 'Offline';
+		case FeedStatus.ONLINE:
+			return 'Online';
+		case FeedStatus.MUTED:
+			return 'Muted';
+	}
+};
+
+function NoRows() {
+	return <CustomNoRowsOverlay text="No feeds found" icon={<RssFeed sx={{ fontSize: 35, color: TEXT_MUTED }} />} />;
+}
+
+interface FeedActionsCellProps {
+	row: {
+		id: number;
+		status: FeedStatus;
+	};
+	mutate: (params: { id: number; params: { status: FeedStatus } }) => void;
+	isPending: boolean;
+	isManageMode: boolean;
+}
+
+function FeedActionsCell({ row, mutate, isPending, isManageMode }: FeedActionsCellProps) {
+	if (!isManageMode) return null;
+	return (
+		<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+			<Tooltip
+				title={row.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
+				enterDelay={500}
+				arrow
+			>
+				<span>
+					<IconButton disabled={row.status === FeedStatus.OFFLINE || isPending} size="small">
+						<NetworkCheck fontSize="small" />
+					</IconButton>
+				</span>
+			</Tooltip>
+			<Tooltip
+				title={
+					row.status === FeedStatus.OFFLINE
+						? 'Feed is offline'
+						: row.status === FeedStatus.MUTED
+							? 'Unmute'
+							: 'Mute'
+				}
+				enterDelay={500}
+				arrow
+			>
+				<span>
+					<IconButton
+						onClick={() =>
+							mutate({
+								id: row.id,
+								params: {
+									status: row.status === FeedStatus.MUTED ? FeedStatus.ONLINE : FeedStatus.MUTED,
+								},
+							})
+						}
+						disabled={row.status === FeedStatus.OFFLINE || isPending}
+						size="small"
+					>
+						{row.status === FeedStatus.MUTED ? (
+							<Notifications fontSize="small" />
+						) : (
+							<NotificationsOff fontSize="small" />
+						)}
+					</IconButton>
+				</span>
+			</Tooltip>
+			<Tooltip title={row.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'} enterDelay={500} arrow>
+				<span>
+					<IconButton
+						onClick={() =>
+							mutate({
+								id: row.id,
+								params: {
+									status: row.status === FeedStatus.OFFLINE ? FeedStatus.ONLINE : FeedStatus.OFFLINE,
+								},
+							})
+						}
+						disabled={isPending}
+						size="small"
+					>
+						{row.status === FeedStatus.OFFLINE ? <Power fontSize="small" /> : <PowerOff fontSize="small" />}
+					</IconButton>
+				</span>
+			</Tooltip>
+		</Box>
+	);
+}
+
 export default function Feeds() {
 	const [testing, setTesting] = useState(false);
-	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
-	const showClaimAssignmentDialog = useAdminStore((state) => state.showClaimAssignmentDialog);
-	const setFeedId = useAdminStore((state) => state.setFeedId);
-	const toggleClaimAssignmentDialog = useAdminStore((state) => state.toggleClaimAssignmentDialog);
+	const [isManageMode, setIsManageMode] = useState(false);
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
+
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	// Fake tester
 	const onTest = () => {
@@ -44,195 +142,117 @@ export default function Feeds() {
 		setTimeout(() => setTesting(false), 5000);
 	};
 
+	const columns: GridColDef[] = [
+		{
+			headerName: 'Name',
+			field: 'name',
+			flex: 1,
+			minWidth: 200,
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+		},
+		{
+			headerName: 'Status',
+			field: 'status',
+			width: 130,
+			renderHeader: (params) => <IconHeaderCell {...params} />,
+			renderCell: ({ row }: GridRenderCellParams) => (
+				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+					{testing ? (
+						<Ping size="20" speed="2" color={getStatusColor(row.status)} />
+					) : (
+						<Box
+							sx={{
+								width: 10,
+								height: 10,
+								borderRadius: '50%',
+								bgcolor: getStatusColor(row.status),
+							}}
+						/>
+					)}
+					<Typography fontSize={13}>{formatStatus(row.status)}</Typography>
+				</Box>
+			),
+		},
+		{
+			headerName: 'Schedule',
+			field: 'schedule',
+			width: 150,
+			renderHeader: (params) => <IconHeaderCell {...params} icon={<Schedule sx={{ color: TEXT_MUTED }} />} />,
+			renderCell: ({ row }: GridRenderCellParams) => (
+				<Typography fontSize={13}>
+					{formatHour(row.schedule)} {row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
+				</Typography>
+			),
+		},
+		{
+			headerName: 'Last Synced',
+			field: 'last_synced_at',
+			width: 150,
+			renderHeader: (params) => <IconHeaderCell {...params} icon={<Sync sx={{ color: TEXT_MUTED }} />} />,
+			renderCell: ({ row }: GridRenderCellParams) => (
+				<Typography fontSize={13}>{formatMDYAbv(row.last_synced_at?.toString())}</Typography>
+			),
+		},
+		{
+			headerName: '',
+			field: 'actions',
+			width: 130,
+			sortable: false,
+			filterable: false,
+			disableColumnMenu: true,
+			renderCell: ({ row }: GridRenderCellParams) => (
+				<FeedActionsCell row={row} mutate={mutate} isPending={isPending} isManageMode={isManageMode} />
+			),
+		},
+	];
+
 	return (
-		<Box sx={{ width: 'fit-content', height: '100%', mr: 2, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<Paper sx={{ minWidth: 325, height: '100%', p: 2 }}>
+		<Box sx={{ width: '100%', height: '100%' }}>
+			<Paper sx={{ width: '100%', height: '100%', p: 2 }}>
 				<Toolbar
 					left={<Typography variant="h6">Feeds</Typography>}
 					right={
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: onTest,
-								disabled: testing || !feeds.length,
-							}}
-							icon={<NetworkCheck />}
-							tooltipProps={{ title: 'Test connection' }}
-						/>
+						<>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: onTest,
+									disabled: testing || !feeds.length,
+								}}
+								icon={<NetworkCheck />}
+								tooltipProps={{ title: 'Test all connections' }}
+							/>
+							<Tooltip title="Manage">
+								<IconButton
+									size="small"
+									onClick={() => setIsManageMode(!isManageMode)}
+									sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+								>
+									<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</IconButton>
+							</Tooltip>
+						</>
 					}
 					height={50}
 					padding={0}
 				/>
-				<Divider />
-				<List disablePadding sx={{ pt: 0.5 }}>
-					{!feeds.length && !isFetching && (
-						<Box sx={{ width: 300, mt: 0.5 }}>
-							<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontStyle="italic" fontSize={13}>
-								No feeds found
-							</Typography>
-						</Box>
-					)}
-					{feeds.map((f) => [
-						<MenuItem
-							key={f.id}
-							selected={selectedFeedId === f.id}
-							onClick={() => setFeedId(selectedFeedId === f.id ? undefined : f.id)}
-							disableRipple
-							sx={{
-								width: 300,
-								mt: 0.5,
-								...(selectedFeedId === f.id
-									? { border: '1px solid', borderColor: 'primary.main', borderBottom: 'none' }
-									: {}),
-							}}
-						>
-							<Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-								<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-									<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontSize={13}>
-										{f.name}
-									</Typography>
-								</Box>
-
-								{testing ? (
-									<Ping size="30" speed="2" color={getStatusColor(f.status)} />
-								) : (
-									<Box sx={{ width: 30, height: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-										<Box sx={{ width: 10, height: 10, borderRadius: 5, bgcolor: getStatusColor(f.status) }} />
-									</Box>
-								)}
-							</Box>
-						</MenuItem>,
-						<Collapse key={`${f.id}-content`} in={selectedFeedId === f.id} unmountOnExit>
-							<Box
-								sx={{
-									width: '100%',
-									display: 'flex',
-									flexDirection: 'column',
-									justifyContent: 'flex-start',
-									alignItems: 'center',
-									height: 'fit-content',
-									p: '10px 15px',
-									bgcolor: BG_SECONDARY,
-									...(selectedFeedId === f.id
-										? { border: '1px solid', borderColor: 'primary.main', borderTop: 'none' }
-										: {}),
-								}}
-							>
-								<Box sx={{ width: '100%', pb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
-										Status
-									</Typography>
-									<Typography fontStyle="italic" fontSize={13}>
-										{f.status}
-									</Typography>
-								</Box>
-								<Box sx={{ width: '100%', pb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
-										Schedule
-									</Typography>
-									<Typography fontStyle="italic" fontSize={13}>
-										{formatHour(f.schedule)}{' '}
-										{f.schedule < 5 || f.schedule >= 19 ? '(nightly)' : '(daily)'}
-									</Typography>
-								</Box>
-								<Box sx={{ width: '100%', pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
-										Last published
-									</Typography>
-									<Typography fontStyle="italic" fontSize={13}>
-										{formatMDYAbv(f.last_synced_at?.toString())}
-									</Typography>
-								</Box>
-								<Box sx={{ width: '100%', pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Button
-										onClick={() => toggleClaimAssignmentDialog()}
-										variant="contained"
-										color="primary"
-										sx={{ width: '100%' }}
-									>
-										Assign claims
-									</Button>
-								</Box>
-								<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-									<Tooltip
-										title={f.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
-										enterDelay={500}
-										arrow
-									>
-										<span>
-											<IconButton
-												disabled={f.status === FeedStatus.OFFLINE || isPending}
-												sx={{ mr: 0.5 }}
-											>
-												<NetworkCheck />
-											</IconButton>
-										</span>
-									</Tooltip>
-									<Tooltip
-										title={
-											f.status === FeedStatus.OFFLINE
-												? 'Feed is offline'
-												: f.status === FeedStatus.MUTED
-													? 'Unmute'
-													: 'Mute'
-										}
-										enterDelay={500}
-										arrow
-									>
-										<span>
-											<IconButton
-												onClick={() =>
-													mutate({
-														id: f.id,
-														params: {
-															status:
-																f.status === FeedStatus.MUTED
-																	? FeedStatus.ONLINE
-																	: FeedStatus.MUTED,
-														},
-													})
-												}
-												disabled={f.status === FeedStatus.OFFLINE || isPending}
-												sx={{ mr: 0.5 }}
-											>
-												{f.status === FeedStatus.MUTED ? (
-													<Notifications />
-												) : (
-													<NotificationsOff />
-												)}
-											</IconButton>
-										</span>
-									</Tooltip>
-									<Tooltip
-										title={f.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'}
-										enterDelay={500}
-										arrow
-									>
-										<span>
-											<IconButton
-												onClick={() =>
-													mutate({
-														id: f.id,
-														params: {
-															status:
-																f.status === FeedStatus.OFFLINE
-																	? FeedStatus.ONLINE
-																	: FeedStatus.OFFLINE,
-														},
-													})
-												}
-												disabled={isPending}
-											>
-												{f.status === FeedStatus.OFFLINE ? <Power /> : <PowerOff />}
-											</IconButton>
-										</span>
-									</Tooltip>
-								</Box>
-							</Box>
-						</Collapse>,
-					])}
-				</List>
+				<Box sx={{ height: 'calc(100% - 60px)', width: '100%' }}>
+					<DataGridPro
+						rows={feeds}
+						columns={columns}
+						loading={isFetching}
+						disableRowSelectionOnClick
+						hideFooter
+						pinnedColumns={pinnedColumns}
+						slots={{
+							noRowsOverlay: NoRows,
+						}}
+						sx={{
+							border: 'none',
+							...dataGridFocusStyles,
+						}}
+					/>
+				</Box>
 			</Paper>
-			{showClaimAssignmentDialog && <ClaimAssignmentDialog />}
 		</Box>
 	);
 }

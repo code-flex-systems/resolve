@@ -1,22 +1,12 @@
 'use client';
 
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import { useAdminStore } from '@/stores/useAdminStore';
-import { formatMDYAbv } from '@/lib/utils/utils';
-import ClaimAmountCell from './ClaimAmountCell';
+import { formatAmount, formatMDYAbv } from '@/lib/utils/utils';
+import { formatLineOfBusiness, formatLabel } from '@/lib/utils/claimUtils';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { formatCityState } from '@/schemas/addressSchemas';
-import {
-	Autocomplete,
-	Box,
-	Button,
-	Collapse,
-	Paper,
-	PopperProps,
-	Switch,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Autocomplete, Box, Button, Collapse, Paper, PopperProps, Switch, TextField, Typography } from '@mui/material';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import AddBox from '@mui/icons-material/AddBox';
 import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
@@ -33,11 +23,12 @@ import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import Visibility from '@mui/icons-material/Visibility';
-import { LineOfBusinessSelect, LossTypeSelect, LineOfBusinessValue, LossTypeValue } from '../common/ReferenceDataSelect';
+import { LineOfBusinessSelect } from '../common/ReferenceDataSelect';
 import RecoveryStatusSelect from '../common/RecoveryStatusSelect';
+import SubstatusSelect from '../common/SubstatusSelect';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
-import { RecoveryStatus, ClaimSearch } from '@/config/enums';
+import { RecoveryStatus, ClaimSearch, ClaimSubstatus } from '@/config/enums';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ClaimDetailPanel from './ClaimDetailPanel';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -73,20 +64,6 @@ const COLUMNS: GridColDef[] = [
 		width: 150,
 	},
 	{
-		headerName: 'Claim Amount',
-		field: 'claim_amount',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
-	},
-	{
-		headerName: 'Total Incurred',
-		field: 'total_incurred',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
-	},
-	{
 		headerName: 'Date of Loss',
 		field: 'date_of_loss',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
@@ -102,45 +79,10 @@ const COLUMNS: GridColDef[] = [
 		width: 150,
 	},
 	{
-		headerName: 'Last Updated By',
-		field: 'last_updated_by',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
-	},
-	{
-		headerName: 'Last Update',
-		field: 'last_update',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => formatMDYAbv(value),
-		align: 'right',
-		width: 150,
-	},
-	{
-		headerName: 'Expected Recovery',
-		field: 'expected_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
-	},
-	{
-		headerName: 'Actual Recovery',
-		field: 'actual_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
-	},
-	{
 		headerName: 'Line of Business',
 		field: 'line_of_business',
 		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <LineOfBusinessValue value={params.value} showEmoji={false} />,
-		width: 150,
-	},
-	{
-		headerName: 'Loss Type',
-		field: 'loss_type',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <LossTypeValue value={params.value} showEmoji={false} />,
+		valueFormatter: (v) => formatLineOfBusiness(v),
 		width: 150,
 	},
 	{
@@ -150,7 +92,51 @@ const COLUMNS: GridColDef[] = [
 		valueFormatter: (v) => formatRecoveryStatus(v),
 		width: 150,
 	},
+	{
+		headerName: 'Substatus',
+		field: 'substatus',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueFormatter: (v) => formatLabel(v),
+		width: 150,
+	},
+	// Amount fields grouped at end (ClaimHeader order)
+	{
+		headerName: 'Claim Amount',
+		field: 'claim_amount',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
+		align: 'right',
+		width: 130,
+	},
+	{
+		headerName: 'Total Incurred',
+		field: 'total_incurred',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
+		align: 'right',
+		width: 130,
+	},
+	{
+		headerName: 'Expected Recovery',
+		field: 'expected_recovery',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
+		align: 'right',
+		width: 140,
+	},
+	{
+		headerName: 'Actual Recovery',
+		field: 'actual_recovery',
+		renderHeader: (params) => <IconHeaderCell {...params} />,
+		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
+		align: 'right',
+		width: 130,
+	},
 ];
+
+const PINNED_COLUMNS: GridPinnedColumnFields = {
+	left: ['claim_number'],
+};
 
 function NoRows() {
 	return (
@@ -176,16 +162,16 @@ export default function Claims() {
 
 	// Applied filter states (read from URL params)
 	const appliedLob = getParam('lob');
-	const appliedLossType = getParam('loss_type');
 	const appliedRecoveryStatus = getParam('recovery_status');
+	const appliedSubstatus = getParam('substatus');
 	const appliedInsured = getParam('insured');
 	const appliedClient = getParam('client');
 	const appliedManualOnly = getBoolParam('manual_only');
 
 	// Draft filter states (in the popper, not yet applied)
 	const [draftLob, setDraftLob] = useState<string | null>(null);
-	const [draftLossType, setDraftLossType] = useState<string | null>(null);
 	const [draftRecoveryStatus, setDraftRecoveryStatus] = useState<string | null>(null);
+	const [draftSubstatus, setDraftSubstatus] = useState<ClaimSubstatus | null>(null);
 	const [draftInsured, setDraftInsured] = useState<string | null>(null);
 	const [draftClient, setDraftClient] = useState<string | null>(null);
 	const [draftManualOnly, setDraftManualOnly] = useState(false);
@@ -213,8 +199,8 @@ export default function Claims() {
 		feedId: effectiveFeedId,
 		searchTerm: appliedClaimNumber ? { value: appliedClaimNumber, type: ClaimSearch.CLAIM_NUMBER } : undefined,
 		line_of_business: appliedLob ?? undefined,
-		loss_type: appliedLossType ?? undefined,
 		recovery_status: (appliedRecoveryStatus as RecoveryStatus) ?? undefined,
+		substatus: (appliedSubstatus as ClaimSubstatus) ?? undefined,
 		insured: appliedInsured ?? undefined,
 		client: appliedClient ?? undefined,
 		limit: claimConstraints.pageSize,
@@ -319,8 +305,8 @@ export default function Claims() {
 	// Handle opening filters popper - sync draft states with applied states
 	const handleOpenFilters = (e: React.MouseEvent) => {
 		setDraftLob(appliedLob);
-		setDraftLossType(appliedLossType);
 		setDraftRecoveryStatus(appliedRecoveryStatus);
+		setDraftSubstatus((appliedSubstatus as ClaimSubstatus) ?? null);
 		setDraftInsured(appliedInsured);
 		setDraftClient(appliedClient);
 		setDraftManualOnly(appliedManualOnly);
@@ -334,8 +320,8 @@ export default function Claims() {
 	const handleApplyFilters = () => {
 		setParams({
 			lob: draftLob,
-			loss_type: draftLossType,
 			recovery_status: draftRecoveryStatus,
+			substatus: draftSubstatus,
 			insured: draftInsured,
 			client: draftClient,
 			manual_only: draftManualOnly,
@@ -355,8 +341,8 @@ export default function Claims() {
 		clearParams(['selected']);
 		// Reset draft states
 		setDraftLob(null);
-		setDraftLossType(null);
 		setDraftRecoveryStatus(null);
+		setDraftSubstatus(null);
 		setDraftInsured(null);
 		setDraftClient(null);
 		setDraftManualOnly(false);
@@ -375,8 +361,8 @@ export default function Claims() {
 
 	const hasActiveFilters =
 		appliedLob ||
-		appliedLossType ||
 		appliedRecoveryStatus ||
+		appliedSubstatus ||
 		appliedInsured ||
 		appliedClient ||
 		appliedManualOnly ||
@@ -388,7 +374,7 @@ export default function Claims() {
 				<Paper sx={styles.paper} className="flex-col-start">
 					{/* Main Toolbar: Title and Actions */}
 					<Toolbar
-						left={<Typography variant="h6">Claims</Typography>}
+						left={<Typography variant="h6">All Claims</Typography>}
 						right={
 							<>
 								<Button
@@ -411,7 +397,7 @@ export default function Claims() {
 						}
 						leftWidth="70%"
 						rightWidth="30%"
-						height={50}
+						height={40}
 						padding={'0px 10px'}
 					/>
 
@@ -452,8 +438,8 @@ export default function Claims() {
 											{
 												[
 													appliedLob,
-													appliedLossType,
 													appliedRecoveryStatus,
+													appliedSubstatus,
 													appliedInsured,
 													appliedClient,
 													appliedManualOnly,
@@ -488,8 +474,8 @@ export default function Claims() {
 						}
 						leftWidth="100%"
 						rightWidth="0%"
-						height={45}
-						padding={'0px 10px'}
+						height={55}
+						padding="0px"
 					/>
 
 					{/* Filters Popper */}
@@ -503,7 +489,7 @@ export default function Claims() {
 								<Typography fontSize={14} fontWeight={600} marginBottom={2}>
 									Filter Claims
 								</Typography>
-								<Box display="flex" flexDirection="column" gap={2}>
+								<Box display="flex" flexDirection="column" gap={1}>
 									<Box display="flex" alignItems="center" gap={1}>
 										<Switch
 											size="small"
@@ -513,7 +499,7 @@ export default function Claims() {
 										<Typography fontSize={13}>Only Manual Claims</Typography>
 									</Box>
 									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 											Line of Business
 										</Typography>
 										<LineOfBusinessSelect
@@ -524,18 +510,7 @@ export default function Claims() {
 										/>
 									</Box>
 									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
-											Loss Type
-										</Typography>
-										<LossTypeSelect
-											lossType={draftLossType}
-											setLossType={setDraftLossType}
-											clearable={true}
-											height={32}
-										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 											Recovery Status
 										</Typography>
 										<RecoveryStatusSelect
@@ -546,7 +521,18 @@ export default function Claims() {
 										/>
 									</Box>
 									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+											Substatus
+										</Typography>
+										<SubstatusSelect
+											substatus={draftSubstatus}
+											setSubstatus={setDraftSubstatus}
+											clearable={true}
+											height={32}
+										/>
+									</Box>
+									<Box>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 											Insured
 										</Typography>
 										<Autocomplete
@@ -576,7 +562,7 @@ export default function Claims() {
 										/>
 									</Box>
 									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
 											Client
 										</Typography>
 										<Autocomplete
@@ -624,6 +610,7 @@ export default function Claims() {
 					<div style={styles.table}>
 						<DataGridPro
 							columns={COLUMNS}
+							pinnedColumns={PINNED_COLUMNS}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{

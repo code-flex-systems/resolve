@@ -16,7 +16,7 @@ import {
 	Typography,
 } from '@mui/material';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { DataGridPro, GridColDef, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import Refresh from '@mui/icons-material/Refresh';
@@ -78,6 +78,8 @@ export default function TasksTab() {
 	// Manage mode state
 	const [manageMode, setManageMode] = useState(false);
 	const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (manageMode ? { right: ['actions'] } : {}), [manageMode]);
 
 	// Bulk cancellation dialog state
 	const [showBulkCancel, setShowBulkCancel] = useState(false);
@@ -563,7 +565,7 @@ export default function TasksTab() {
 								}
 								disableColumnMenu
 								disableRowSelectionOnClick
-								pinnedColumns={{ right: ['actions'] }}
+								pinnedColumns={pinnedColumns}
 								pageSizeOptions={[25, 50, 100]}
 								initialState={{
 									pagination: { paginationModel: { pageSize: 25 } },

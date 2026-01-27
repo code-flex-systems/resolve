@@ -1,14 +1,15 @@
 'use client';
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, Paper, Switch, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { Button, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Phone from '@mui/icons-material/Phone';
 import Shield from '@mui/icons-material/Shield';
 import Person from '@mui/icons-material/Person';
+import Settings from '@mui/icons-material/Settings';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -28,7 +29,7 @@ import SearchInput from '../common/SearchInput';
 import { TEXT_MUTED, dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
-const COLUMNS: GridColDef[] = [
+const getColumns = (isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'User',
 		field: 'user',
@@ -89,7 +90,7 @@ const COLUMNS: GridColDef[] = [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <UserActionsCell {...params} />,
+		renderCell: (params) => <UserActionsCell {...params} isManageMode={isManageMode} />,
 		width: 120,
 		resizable: false,
 	},
@@ -117,6 +118,10 @@ export default function UsersTab() {
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
+
+	const columns = useMemo(() => getColumns(isManageMode), [isManageMode]);
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
@@ -196,6 +201,15 @@ export default function UsersTab() {
 								>
 									Invite User
 								</Button>
+								<Tooltip title="Manage">
+									<IconButton
+										size="small"
+										onClick={() => setIsManageMode(!isManageMode)}
+										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									>
+										<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</IconButton>
+								</Tooltip>
 							</>
 						}
 						height={50}
@@ -203,7 +217,7 @@ export default function UsersTab() {
 					/>
 					<div style={styles.table}>
 						<DataGridPro
-							columns={COLUMNS}
+							columns={columns}
 							columnHeaderHeight={45}
 							loading={isFetching}
 							slots={{
@@ -233,6 +247,7 @@ export default function UsersTab() {
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
+							pinnedColumns={pinnedColumns}
 							sx={styles.tableOverrides}
 						/>
 					</div>

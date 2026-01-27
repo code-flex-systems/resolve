@@ -20,7 +20,7 @@ export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: D
 	const router = useRouter();
 
 	const handleClaimClick = (claimId: number) => {
-		router.push(`/claims/${claimId}`);
+		router.push(`/my-claims/${claimId}`);
 	};
 
 	return (

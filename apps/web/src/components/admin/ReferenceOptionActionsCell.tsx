@@ -13,7 +13,13 @@ import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import theme from '@/styles/theme';
 
-export default function ReferenceOptionActionsCell(params: GridRenderCellParams) {
+interface ReferenceOptionActionsCellProps extends GridRenderCellParams {
+	isManageMode?: boolean;
+}
+
+export default function ReferenceOptionActionsCell(params: ReferenceOptionActionsCellProps) {
+	const { isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

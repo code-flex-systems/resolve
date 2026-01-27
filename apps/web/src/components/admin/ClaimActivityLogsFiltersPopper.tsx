@@ -59,13 +59,13 @@ export default function ClaimActivityLogsFiltersPopper({
 			onApply={onApply}
 		>
 			<Box>
-				<Typography fontSize={12} color={TEXT_MUTED} marginBottom={1}>
+				<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
 					Claim
 				</Typography>
 				<ClaimFilter claim={draftClaim} setClaim={setDraftClaim} height={32} zIndex={1500} />
 			</Box>
 			<Box>
-				<Typography fontSize={12} color={TEXT_MUTED} marginBottom={1}>
+				<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
 					Actor Type
 				</Typography>
 				<TextField

@@ -18,7 +18,7 @@ import Highlight from '@/components/common/Highlight';
 import { formatMDY } from '@/lib/utils/utils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
 import { formatCityState } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
@@ -36,6 +36,7 @@ interface ClaimSummaryProps {
 
 export default function ClaimSummary({ claimId, onStartChecklist, showChecklistProgress = true }: ClaimSummaryProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const canEditClaim = isAdmin || isSuperAdmin;
@@ -46,11 +47,14 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 	const { listByClaim } = useAdminLogsTrpc();
 	const { data: adminLogs = [], isLoading: logsLoading } = listByClaim({ claimId, limit: 5 }, { enabled: !!claimId });
 
+	const getViewRoute = () => {
+		return pathname.startsWith('/admin') && (isAdmin || isSuperAdmin)
+			? `/admin/claims/${claimId}`
+			: `/my-claims/${claimId}`;
+	};
+
 	const handleViewFullDetails = () => {
-		if (claimId) {
-			// Navigate to standalone claim details page (not admin-only)
-			router.push(`/claims/${claimId}`);
-		}
+		if (claimId) router.push(getViewRoute());
 	};
 
 	const handleOpenInChecklist = () => {
@@ -62,14 +66,11 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 
 	const handleEditClaim = () => {
 		if (claimId) {
-			router.push(`/admin/claims/edit/${claimId}`);
-		}
-	};
-
-	const handleAddCoverage = () => {
-		if (claimId) {
-			// Navigate to standalone page with coverage tab
-			router.push(`/claims/${claimId}?tab=coverage`);
+			router.push(
+				pathname.startsWith('/admin') && (isAdmin || isSuperAdmin)
+					? `/admin/claims/edit/${claimId}`
+					: `/my-claims/edit/${claimId}`
+			);
 		}
 	};
 
@@ -121,11 +122,9 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 					<Stack spacing={2} mr={1}>
 						{/* Header with status badges */}
 						<Box display="flex" flexWrap="wrap" gap={1}>
-							{claimDetail.aggregated_line_of_business &&
-								claimDetail.aggregated_line_of_business.length > 0 &&
-								claimDetail.aggregated_line_of_business.map((lob: string) => (
-									<LineOfBusinessChip key={lob} value={lob} />
-								))}
+							{claimDetail.line_of_business && (
+								<LineOfBusinessChip value={claimDetail.line_of_business} />
+							)}
 							{claimDetail.aggregated_loss_type &&
 								claimDetail.aggregated_loss_type.length > 0 &&
 								claimDetail.aggregated_loss_type.map((lt: string) => (
@@ -249,7 +248,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 												</Box>
 											) : (
 												<Link
-													href={`/claims/${claimId}?tab=workflow`}
+													href={`${getViewRoute()}?tab=workflow`}
 													style={{ textDecoration: 'none' }}
 												>
 													<Box
@@ -362,11 +361,11 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									<Highlight bold={false}>Client Adjuster:</Highlight>{' '}
 									{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
 										? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
-										: claimDetail.client_adjuster ?? 'N/A'}
+										: (claimDetail.client_adjuster ?? 'N/A')}
 								</Typography>
 								<Typography fontSize={13}>
 									<Highlight bold={false}>Date of Loss:</Highlight>{' '}
-									{claimDetail.date_of_loss ? formatMDY(claimDetail.date_of_loss) : 'N/A'}
+									{claimDetail.date_of_loss ? formatMDY(claimDetail.date_of_loss?.toString()) : 'N/A'}
 								</Typography>
 								<Typography fontSize={13}>
 									<Highlight bold={false}>Loss Location:</Highlight>{' '}
@@ -437,28 +436,15 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 						<Button variant="contained" startIcon={<OpenInNew />} onClick={handleViewFullDetails} fullWidth>
 							View Full Details
 						</Button>
-						{canEditClaim && (
-							<Box display="flex" gap={1}>
-								<Button
-									variant="outlined"
-									size="small"
-									startIcon={<Edit />}
-									onClick={handleEditClaim}
-									fullWidth
-								>
-									Edit
-								</Button>
-								<Button
-									variant="outlined"
-									size="small"
-									startIcon={<Shield />}
-									onClick={handleAddCoverage}
-									fullWidth
-								>
-									Add Coverage
-								</Button>
-							</Box>
-						)}
+						<Button
+							variant="outlined"
+							size="small"
+							startIcon={<Edit />}
+							onClick={handleEditClaim}
+							fullWidth
+						>
+							Edit
+						</Button>
 					</Stack>
 				</Box>
 			</Box>

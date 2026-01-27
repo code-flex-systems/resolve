@@ -15,10 +15,14 @@ import theme from '@/styles/theme';
 
 interface RepresentativeActionsCellProps extends GridRenderCellParams {
 	isAdminContext?: boolean;
+	isManageMode?: boolean;
 }
 
 export default function RepresentativeActionsCell(params: RepresentativeActionsCellProps) {
-	const { isAdminContext = true } = params;
+	const { isAdminContext = true, isManageMode = true } = params;
+
+	// Hide actions when not in manage mode
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);

@@ -1,14 +1,9 @@
 import { HydrationBoundary } from '@tanstack/react-query';
 import ClaimDetailView from '@/components/admin/claim-detail/ClaimDetailView';
-import PageWrapper from '@/components/common/PageWrapper';
-import { Stack } from '@mui/material';
 import { createServerHelpers } from '@/server/trpc/createServerHelpers';
+import { Box } from '@mui/material';
 
-/**
- * Standalone claim detail page accessible to all authenticated users
- * This route is outside of the admin area
- */
-export default async function StandaloneClaimDetailPage({ params }: { params: { claimId: string } }) {
+export default async function ClaimDetailPage({ params }: { params: { claimId: string } }) {
 	const claimId = Number(params.claimId);
 	const helpers = await createServerHelpers();
 
@@ -17,11 +12,18 @@ export default async function StandaloneClaimDetailPage({ params }: { params: { 
 
 	return (
 		<HydrationBoundary state={dehydratedState}>
-			<PageWrapper>
-				<Stack width="100%" flex={1} padding="20px">
-					<ClaimDetailView claimId={claimId} />
-				</Stack>
-			</PageWrapper>
+			<Box sx={styles.container}>
+				<ClaimDetailView claimId={claimId} />
+			</Box>
 		</HydrationBoundary>
 	);
 }
+
+const styles = {
+	container: {
+		padding: '24px',
+		width: '100%',
+		height: '100%',
+		margin: '0 auto',
+	},
+};

@@ -1,10 +1,11 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { Button, Chip, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import LocationOn from '@mui/icons-material/LocationOn';
+import Settings from '@mui/icons-material/Settings';
 import Warning from '@mui/icons-material/Warning';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
@@ -39,7 +40,7 @@ const getStatusChip = (status: string) => {
 	}
 };
 
-const getColumns = (isAdminContext: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party_name',
@@ -106,7 +107,9 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <AddressActionsCell {...params} isAdminContext={isAdminContext} />,
+		renderCell: (params) => (
+			<AddressActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
+		),
 		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
@@ -150,6 +153,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	// Handler to close the edit dialog and clear URL param
 	const handleCloseEditDialog = () => {
@@ -161,8 +165,12 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 		router.replace(newUrl, { scroll: false });
 	};
 
-	// Memoize columns based on isAdminContext
-	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+	// Memoize columns based on isAdminContext and isManageMode
+	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(
+		() => (isManageMode ? { right: ['actions'] } : {}),
+		[isManageMode]
+	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = usePartyTrpc().listAllAddresses({
 		limit: addressConstraints.pageSize,
@@ -234,9 +242,26 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 									}}
 									placeholder="Search addresses..."
 								/>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewAddressDialog} sx={{ ml: 2 }}>
+								<Button
+									variant="contained"
+									startIcon={<AddBox />}
+									onClick={toggleNewAddressDialog}
+									sx={{ ml: 2 }}
+								>
 									Address
 								</Button>
+								<Tooltip title="Manage">
+									<IconButton
+										size="small"
+										onClick={() => setIsManageMode(!isManageMode)}
+										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									>
+										<Settings
+											fontSize="small"
+											sx={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
+									</IconButton>
+								</Tooltip>
 							</>
 						}
 						height={50}
@@ -270,13 +295,10 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
+							pinnedColumns={pinnedColumns}
 							sx={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
-								'& .MuiDataGrid-cell': {
-									display: 'flex',
-									alignItems: 'center',
-								},
 							}}
 						/>
 					</div>

@@ -208,7 +208,7 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 
 					return (
 						<Box key={assignment.priority}>
-							<Stack spacing={1}>
+							<Stack spacing={2}>
 								<Box display="flex" alignItems="center" justifyContent="space-between">
 									<Typography variant="subtitle2" color="primary">
 										Priority {assignment.priority}

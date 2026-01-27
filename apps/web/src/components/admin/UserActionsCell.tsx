@@ -12,8 +12,13 @@ import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from '../home/UpdateUserDialog';
 
-export default function UserActionsCell(params: GridRenderCellParams) {
-	const { row } = params;
+interface UserActionsCellProps extends GridRenderCellParams {
+	isManageMode?: boolean;
+}
+
+export default function UserActionsCell(params: UserActionsCellProps) {
+	const { row, isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { mutate, isPending } = useUserTrpc().update;
 	const { data: session } = useClerkSession();
 	const [onOffboarding, setOnOffboarding] = useState(false);

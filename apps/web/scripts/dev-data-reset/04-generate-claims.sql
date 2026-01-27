@@ -34,7 +34,7 @@ BEGIN
             client_id, claim_number, claim_amount, client, client_adjuster,
             date_of_loss, insured, last_update, last_updated_by,
             loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-            recovery_status, substatus, created_by, created_at
+            recovery_status, substatus, line_of_business, created_by, created_at
         ) VALUES (
             v_client_id,
             'PROP-2024-' || LPAD(i::TEXT, 5, '0'),
@@ -63,6 +63,7 @@ BEGIN
             'USA',
             'pending',
             'investigation',
+            'property',
             v_user_id,
             ('2025-12-01'::DATE + (i * 3 + 1) * INTERVAL '1 day')::TIMESTAMP  -- created shortly after loss
         );
@@ -77,7 +78,7 @@ BEGIN
             client_id, claim_number, claim_amount, client, client_adjuster,
             date_of_loss, insured, last_update, last_updated_by,
             loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-            recovery_status, substatus, created_by, created_at
+            recovery_status, substatus, line_of_business, created_by, created_at
         ) VALUES (
             v_client_id,
             'GL-2024-' || LPAD(i::TEXT, 5, '0'),
@@ -101,6 +102,7 @@ BEGIN
             'USA',
             'in_progress',
             CASE (i % 3) WHEN 0 THEN 'demand_sent' WHEN 1 THEN 'negotiation' ELSE 'settlement_reached' END,
+            'general_liability',
             v_user_id,
             ('2025-11-01'::DATE + ((i - 11) * 2 + 1) * INTERVAL '1 day')::TIMESTAMP  -- created shortly after loss
         );
@@ -115,7 +117,7 @@ BEGIN
             client_id, claim_number, claim_amount, client, client_adjuster,
             date_of_loss, insured, last_update, last_updated_by,
             loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-            recovery_status, substatus, expected_recovery, created_by, created_at
+            recovery_status, substatus, expected_recovery, line_of_business, created_by, created_at
         ) VALUES (
             v_client_id,
             'WC-2024-' || LPAD(i::TEXT, 5, '0'),
@@ -138,6 +140,7 @@ BEGIN
             'in_progress',
             'settlement_reached',
             (15000 + i * 1500)::NUMERIC,
+            'workers_comp',
             v_user_id,
             ('2025-10-05'::DATE + ((i - 26) * 3 + 1) * INTERVAL '1 day')::TIMESTAMP  -- created shortly after loss
         );
@@ -152,7 +155,7 @@ BEGIN
             client_id, claim_number, claim_amount, client, client_adjuster,
             date_of_loss, insured, last_update, last_updated_by,
             loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-            recovery_status, substatus, created_by, created_at
+            recovery_status, substatus, line_of_business, created_by, created_at
         ) VALUES (
             v_client_id,
             'PL-2024-' || LPAD(i::TEXT, 5, '0'),
@@ -176,6 +179,7 @@ BEGIN
             'USA',
             CASE (i % 3) WHEN 0 THEN 'pending' WHEN 1 THEN 'in_progress' ELSE 'recovered' END,
             CASE (i % 4) WHEN 0 THEN 'investigation' WHEN 1 THEN 'demand_sent' WHEN 2 THEN 'negotiation' ELSE 'closed_recovered' END,
+            'professional_liability',
             v_user_id,
             ('2025-10-15'::DATE + ((i - 36) * 4 + 1) * INTERVAL '1 day')::TIMESTAMP  -- created shortly after loss
         );
@@ -190,21 +194,21 @@ BEGIN
         client_id, claim_number, claim_amount, client, client_adjuster,
         date_of_loss, insured, last_update, last_updated_by,
         loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-        recovery_status, substatus, expected_recovery, created_by, created_at
+        recovery_status, substatus, expected_recovery, line_of_business, created_by, created_at
     ) VALUES (
         v_client_id, 'PROP-2024-00046', 150000.00, 'Berkshire Hathaway', v_users[1],
         '2025-10-15', 'Metro Transit Authority', '2026-01-08', v_users[1],
         '1000 Executive Plaza', 'New York', 'NY', '10001', 'USA',
-        'in_progress', 'litigation', 125000.00, v_user_id, '2025-10-16'::TIMESTAMP
+        'in_progress', 'litigation', 125000.00, 'property', v_user_id, '2025-10-16'::TIMESTAMP
     );
 
     -- Claim 47: Minimal data claim (Property) - Recent (Jan 2026)
     INSERT INTO claim (
         client_id, claim_number, claim_amount, client, date_of_loss, insured,
-        recovery_status, substatus, created_by, created_at
+        recovery_status, substatus, line_of_business, created_by, created_at
     ) VALUES (
         v_client_id, 'PROP-2024-00047', 500.00, 'Self-Insured', '2026-01-05', 'David Chen',
-        'pending', 'investigation', v_user_id, '2026-01-06'::TIMESTAMP
+        'pending', 'investigation', 'property', v_user_id, '2026-01-06'::TIMESTAMP
     );
 
     -- Claim 48: Closed with full recovery (General Liability) - Oct 2025 loss, Dec 2025 closed
@@ -212,12 +216,12 @@ BEGIN
         client_id, claim_number, claim_amount, client, client_adjuster,
         date_of_loss, insured, last_update, last_updated_by,
         loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-        recovery_status, substatus, expected_recovery, actual_recovery, created_by, created_at
+        recovery_status, substatus, expected_recovery, actual_recovery, line_of_business, created_by, created_at
     ) VALUES (
         v_client_id, 'GL-2024-00048', 45000.00, 'Liberty Mutual', v_users[1],
         '2025-10-05', 'Sarah Martinez', '2025-12-20', v_users[1],
         '555 Success Lane', 'Boston', 'MA', '02101', 'USA',
-        'recovered', 'closed_recovered', 45000.00, 45000.00, v_user_id, '2025-10-06'::TIMESTAMP
+        'recovered', 'closed_recovered', 45000.00, 45000.00, 'general_liability', v_user_id, '2025-10-06'::TIMESTAMP
     );
 
     -- Claim 49: Closed no recovery (Workers Comp) - Oct 2025 loss, Dec 2025 closed
@@ -225,12 +229,12 @@ BEGIN
         client_id, claim_number, claim_amount, client, client_adjuster,
         date_of_loss, insured, last_update, last_updated_by,
         loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-        recovery_status, substatus, created_by, created_at
+        recovery_status, substatus, line_of_business, created_by, created_at
     ) VALUES (
         v_client_id, 'WC-2024-00049', 8500.00, 'Hartford', v_users[1],
         '2025-10-20', 'James Wilson', '2025-12-15', v_users[1],
         '789 Industrial Park', 'Miami', 'FL', '33101', 'USA',
-        'closed_no_recovery', 'closed_no_recovery', v_user_id, '2025-10-21'::TIMESTAMP
+        'closed_no_recovery', 'closed_no_recovery', 'workers_comp', v_user_id, '2025-10-21'::TIMESTAMP
     );
 
     -- Claim 50: Complex multi-party claim (Professional Liability) - Nov 2025 loss, Jan 2026 update
@@ -238,12 +242,12 @@ BEGIN
         client_id, claim_number, claim_amount, client, client_adjuster,
         date_of_loss, insured, last_update, last_updated_by,
         loss_street_address, loss_city, loss_state, loss_postal_code, loss_country,
-        recovery_status, substatus, expected_recovery, created_by, created_at
+        recovery_status, substatus, expected_recovery, line_of_business, created_by, created_at
     ) VALUES (
         v_client_id, 'PL-2024-00050', 85000.00, 'Nationwide', v_users[1],
         '2025-11-01', 'Sterling Legal Partners', '2026-01-10', v_users[1],
         '1234 Corporate Center', 'San Jose', 'CA', '95101', 'USA',
-        'in_progress', 'negotiation', 70000.00, v_user_id, '2025-11-02'::TIMESTAMP
+        'in_progress', 'negotiation', 70000.00, 'professional_liability', v_user_id, '2025-11-02'::TIMESTAMP
     );
 
 END $$;

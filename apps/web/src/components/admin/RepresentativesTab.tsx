@@ -1,11 +1,12 @@
 'use client';
 
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { Button, Chip, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
+import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import AddBox from '@mui/icons-material/AddBox';
 import Person from '@mui/icons-material/Person';
 import Warning from '@mui/icons-material/Warning';
+import Settings from '@mui/icons-material/Settings';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
@@ -20,12 +21,13 @@ import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
+import { formatAddressInline } from '@/schemas/addressSchemas';
 
 interface RepresentativesTabProps {
 	isAdminContext?: boolean;
 }
 
-const getColumns = (isAdminContext: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[] => [
 	{
 		headerName: 'Party',
 		field: 'party_name',
@@ -73,18 +75,27 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	},
 	{
 		headerName: 'Address',
-		field: 'address_name',
-		renderCell: ({ row }) => (
-			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-				{row.address_deleted_at && (
-					<Tooltip title="Address is archived" placement="right">
-						<Warning sx={{ fontSize: 16, color: 'info.main' }} />
-					</Tooltip>
-				)}
-				<span>{row.address_name || '—'}</span>
-			</div>
-		),
-		width: 140,
+		field: 'address_city',
+		renderCell: ({ row }) => {
+			const formattedAddress = formatAddressInline({
+				street_address: row.address_street_address,
+				city: row.address_city,
+				state: row.address_state,
+				postal_code: row.address_postal_code,
+				country: row.address_country,
+			});
+			return (
+				<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+					{row.address_deleted_at && (
+						<Tooltip title="Address is archived" placement="right">
+							<Warning sx={{ fontSize: 16, color: 'info.main' }} />
+						</Tooltip>
+					)}
+					<span>{formattedAddress || '—'}</span>
+				</div>
+			);
+		},
+		width: 220,
 	},
 	{
 		headerName: 'Primary',
@@ -95,7 +106,7 @@ const getColumns = (isAdminContext: boolean): GridColDef[] => [
 	{
 		headerName: '',
 		field: 'actions',
-		renderCell: (params) => <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} />,
+		renderCell: (params) => <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />,
 		width: isAdminContext ? 100 : 50,
 		resizable: false,
 	},
@@ -140,6 +151,9 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
+	// Manage mode state for showing/hiding action buttons
+	const [isManageMode, setIsManageMode] = useState(false);
+
 	// Handler to close the edit dialog and clear URL param
 	const handleCloseEditDialog = () => {
 		setEditingRepresentativeFromUrl(null);
@@ -150,8 +164,14 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		router.replace(newUrl, { scroll: false });
 	};
 
-	// Memoize columns based on isAdminContext
-	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+	// Memoize columns based on isAdminContext and isManageMode
+	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+
+	// Pinned columns - pin actions to right when in manage mode
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(
+		() => (isManageMode ? { right: ['actions'] } : {}),
+		[isManageMode]
+	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
@@ -231,6 +251,18 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 								>
 									Representative
 								</Button>
+								<Tooltip title="Manage">
+									<IconButton
+										size="small"
+										onClick={() => setIsManageMode(!isManageMode)}
+										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									>
+										<Settings
+											fontSize="small"
+											sx={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
+									</IconButton>
+								</Tooltip>
 							</>
 						}
 						height={50}
@@ -261,16 +293,13 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 							paginationMode="server"
 							paginationModel={representativeConstraints}
 							onPaginationModelChange={updateRepresentativeConstraints}
+							pinnedColumns={pinnedColumns}
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
 							sx={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
-								'& .MuiDataGrid-cell': {
-									display: 'flex',
-									alignItems: 'center',
-								},
 							}}
 						/>
 					</div>

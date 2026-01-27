@@ -64,11 +64,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 				{label}
 			</Typography>
 			<Box textAlign="right" flex={1}>
-				{typeof value === 'string' ? (
-					<Typography fontSize={13}>{value}</Typography>
-				) : (
-					value
-				)}
+				{typeof value === 'string' ? <Typography fontSize={13}>{value}</Typography> : value}
 			</Box>
 		</Box>
 	);
@@ -87,7 +83,7 @@ function ClaimLink({ claimId, claimNumber }: { claimId: number; claimNumber: str
 					textDecoration: 'underline',
 				},
 			}}
-			onClick={() => router.push(`/claims/${claimId}`)}
+			onClick={() => router.push(`/my-claims/${claimId}`)}
 		>
 			{claimNumber || `Claim #${claimId}`}
 		</Typography>
@@ -105,10 +101,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 	const taskId = isTaskDeadline ? deadline.entity_id : null;
 
 	// Fetch task details if this deadline is linked to a task
-	const { data: task, isLoading: taskLoading } = useTaskTrpc().get(
-		{ id: taskId! },
-		{ enabled: !!taskId }
-	);
+	const { data: task, isLoading: taskLoading } = useTaskTrpc().get({ id: taskId! }, { enabled: !!taskId });
 
 	const { mutateAsync: claimTask, isPending: isClaiming } = useTaskTrpc().claim;
 	const { mutateAsync: unclaimTask, isPending: isUnclaiming } = useTaskTrpc().unclaim;
@@ -223,14 +216,17 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 									</Typography>
 								}
 							/>
-							{task.description && (
-								<DetailRow label="Description" value={task.description} />
-							)}
+							{task.description && <DetailRow label="Description" value={task.description} />}
 							{task.claimed_by_first && task.claimed_by_last && (
 								<DetailRow
 									label="Assigned To"
 									value={
-										<Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
+										<Stack
+											direction="row"
+											spacing={0.5}
+											alignItems="center"
+											justifyContent="flex-end"
+										>
 											<Person sx={{ fontSize: 14, color: BASE_COLOR_LIGHT }} />
 											<Typography fontSize={13}>
 												{task.claimed_by_first} {task.claimed_by_last}
@@ -343,9 +339,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 					<DetailRow
 						label="Due Date"
 						value={
-							<Typography fontSize={13}>
-								{dayjs(deadline.deadline_date).format('MMM D, YYYY')}
-							</Typography>
+							<Typography fontSize={13}>{dayjs(deadline.deadline_date).format('MMM D, YYYY')}</Typography>
 						}
 					/>
 					<DetailRow
@@ -358,9 +352,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							/>
 						}
 					/>
-					{deadline.description && (
-						<DetailRow label="Description" value={deadline.description} />
-					)}
+					{deadline.description && <DetailRow label="Description" value={deadline.description} />}
 					<DetailRow
 						label="Claim"
 						value={<ClaimLink claimId={deadline.claim_id} claimNumber={deadline.claim_number} />}

@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 
 import {
@@ -73,7 +74,21 @@ export const claimRouter = router({
 	}),
 
 	updateClaim: protectedProcedure.input(updateClaimInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+
+		// Restricted fields that only admins can update
+		const hasRestrictedFields =
+			input.claim_number !== undefined ||
+			input.recovery_status !== undefined ||
+			input.substatus !== undefined;
+
+		if (hasRestrictedFields && !isAdmin) {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: 'Only admins can update claim_number, recovery_status, or substatus',
+			});
+		}
+
 		return updateClaim(ctx, input);
 	}),
 

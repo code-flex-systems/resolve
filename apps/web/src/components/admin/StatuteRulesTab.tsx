@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { STATUTE_TORT_TYPES } from '@/config/statuteConfig';
 import { Chip, Fade, Paper, Tooltip, Typography, Box, IconButton } from '@mui/material';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import GavelIcon from '@mui/icons-material/Gavel';
-import SettingsIcon from '@mui/icons-material/Settings';
+import Settings from '@mui/icons-material/Settings';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -120,6 +120,8 @@ export default function StatuteRulesTab() {
 	const setStatuteStateCode = useAdminStore((state) => state.setStatuteStateCode);
 	const toggleStatuteRuleDialog = useAdminStore((state) => state.toggleStatuteRuleDialog);
 
+	const [isManageMode, setIsManageMode] = useState(false);
+
 	const { list } = useStatuteTrpc();
 
 	// Fetch all statute rules
@@ -151,6 +153,8 @@ export default function StatuteRulesTab() {
 			}),
 		[rulesByState]
 	);
+
+	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	// Build dynamic columns for each tort type (using hardcoded config)
 	const columns = useMemo<GridColDef[]>(() => {
@@ -199,23 +203,26 @@ export default function StatuteRulesTab() {
 				sortable: false,
 				filterable: false,
 				disableColumnMenu: true,
-				renderCell: ({ row }: GridRenderCellParams) => (
-					<Box display="flex" alignItems="center" justifyContent="center" width="100%" height="100%">
-						<IconButton
-							size="small"
-							onClick={(e) => {
-								e.stopPropagation();
-								setStatuteStateCode(row.state_code);
-								toggleStatuteRuleDialog();
-							}}
-						>
-							<SettingsIcon fontSize="small" />
-						</IconButton>
-					</Box>
-				),
+				renderCell: ({ row }: GridRenderCellParams) => {
+					if (!isManageMode) return null;
+					return (
+						<Box display="flex" alignItems="center" justifyContent="center" width="100%" height="100%">
+							<IconButton
+								size="small"
+								onClick={(e) => {
+									e.stopPropagation();
+									setStatuteStateCode(row.state_code);
+									toggleStatuteRuleDialog();
+								}}
+							>
+								<Settings fontSize="small" />
+							</IconButton>
+						</Box>
+					);
+				},
 			},
 		];
-	}, [setStatuteStateCode, toggleStatuteRuleDialog]);
+	}, [isManageMode, setStatuteStateCode, toggleStatuteRuleDialog]);
 
 	return (
 		<Fade in={true} timeout={1000}>
@@ -223,6 +230,17 @@ export default function StatuteRulesTab() {
 				<Paper sx={styles.paper} className="flex-col-start">
 					<Toolbar
 						left={<Typography variant="h6">Statute of Limitations Rules</Typography>}
+						right={
+							<Tooltip title="Manage">
+								<IconButton
+									size="small"
+									onClick={() => setIsManageMode(!isManageMode)}
+									sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+								>
+									<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</IconButton>
+							</Tooltip>
+						}
 						height={50}
 						padding={'0px 10px'}
 					/>
@@ -247,7 +265,7 @@ export default function StatuteRulesTab() {
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
-							pinnedColumns={{ right: ['actions'] }}
+							pinnedColumns={pinnedColumns}
 							sx={styles.tableOverrides}
 						/>
 					</div>

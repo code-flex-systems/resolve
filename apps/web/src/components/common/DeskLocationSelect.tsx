@@ -1,4 +1,4 @@
-import { MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import LocationOn from '@mui/icons-material/LocationOn';
 
@@ -8,6 +8,7 @@ interface DeskLocationSelectProps extends Omit<TextFieldProps, 'children' | 'sel
 	deskLocationTypeId?: number | null;
 	showInactive?: boolean;
 	excludedLocationIds?: number[];
+	placeholder?: string;
 }
 
 export default function DeskLocationSelect({
@@ -16,6 +17,7 @@ export default function DeskLocationSelect({
 	deskLocationTypeId,
 	showInactive = false,
 	excludedLocationIds = [],
+	placeholder = 'Select a location...',
 	...textFieldProps
 }: DeskLocationSelectProps) {
 	const { data = { rows: [], count: 0 }, isFetching } = useDeskTrpc().listLocations(
@@ -38,13 +40,22 @@ export default function DeskLocationSelect({
 	return (
 		<TextField
 			label="Desk Location"
-			
 			select
 			value={value ?? ''}
 			onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
 			disabled={isFetching || !deskLocationTypeId}
 			InputProps={{
 				startAdornment: <LocationOn sx={{ fontSize: 18, mr: 1, color: 'text.secondary' }} />,
+			}}
+			SelectProps={{
+				displayEmpty: true,
+				renderValue: (selected) => {
+					if (!selected) {
+						return <Typography color="text.secondary">{placeholder}</Typography>;
+					}
+					const option = filteredLocations.find((l) => l.id === selected);
+					return option ? `${option.name}${!option.is_active ? ' (Inactive)' : ''}` : selected;
+				},
 			}}
 			{...textFieldProps}
 			sx={styles.textFieldOverrides}
