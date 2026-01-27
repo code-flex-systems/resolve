@@ -134,90 +134,90 @@ jobs:
                     --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
                     .
 
-            # - name: Update migration job image to this build
-            #   run: |
-            #       az containerapp job update \
-            #       --name aca-prod-migration-job \
-            #       --resource-group Manifest \
-            #       --image ca735b7ce9aeacr.azurecr.io/manifest-container-app:${{ github.sha }}
+            - name: Update migration job image to this build
+              run: |
+                  az containerapp job update \
+                  --name aca-prod-migration-job \
+                  --resource-group Manifest \
+                  --image ca735b7ce9aeacr.azurecr.io/manifest-container-app:${{ github.sha }}
 
-            # - name: Set database secrets for migration job
-            #   run: |
-            #       az containerapp job secret set \
-            #       --name aca-prod-migration-job \
-            #       --resource-group Manifest \
-            #       --secrets \
-            #         db-host="${{ secrets.DB_HOST }}" \
-            #         db-port="${{ secrets.DB_PORT }}" \
-            #         db-user="${{ secrets.DB_USER }}" \
-            #         db-password="${{ secrets.DB_PASSWORD }}" \
-            #         db-database="${{ secrets.DB_DATABASE }}" \
-            #         db-schema="${{ secrets.DB_SCHEMA }}"
+            - name: Set database secrets for migration job
+              run: |
+                  az containerapp job secret set \
+                  --name aca-prod-migration-job \
+                  --resource-group Manifest \
+                  --secrets \
+                    db-host="${{ secrets.DB_HOST }}" \
+                    db-port="${{ secrets.DB_PORT }}" \
+                    db-user="${{ secrets.DB_USER }}" \
+                    db-password="${{ secrets.DB_PASSWORD }}" \
+                    db-database="${{ secrets.DB_DATABASE }}" \
+                    db-schema="${{ secrets.DB_SCHEMA }}"
 
-            # - name: Start migration job
-            #   run: |
-            #       az containerapp job start \
-            #       --name aca-prod-migration-job \
-            #       --resource-group Manifest
+            - name: Start migration job
+              run: |
+                  az containerapp job start \
+                  --name aca-prod-migration-job \
+                  --resource-group Manifest
 
-            # - name: Wait for migration job execution to complete
-            #   shell: bash
-            #   run: |
-            #       set -euo pipefail
+            - name: Wait for migration job execution to complete
+              shell: bash
+              run: |
+                  set -euo pipefail
 
-            #       JOB="aca-prod-migration-job"
-            #       RG="Manifest"
+                  JOB="aca-prod-migration-job"
+                  RG="Manifest"
 
-            #       echo "Locating latest execution for job: $JOB"
+                  echo "Locating latest execution for job: $JOB"
 
-            #       # Get the latest execution name by startTime
-            #       EXEC_NAME=$(az containerapp job execution list \
-            #       --name "$JOB" \
-            #       --resource-group "$RG" \
-            #       --query "sort_by([].{name:name,start:properties.startTime}, &start)[-1].name" \
-            #       -o tsv)
+                  # Get the latest execution name by startTime
+                  EXEC_NAME=$(az containerapp job execution list \
+                  --name "$JOB" \
+                  --resource-group "$RG" \
+                  --query "sort_by([].{name:name,start:properties.startTime}, &start)[-1].name" \
+                  -o tsv)
 
-            #       if [[ -z "$EXEC_NAME" ]]; then
-            #       echo "ERROR: Could not find a job execution."
-            #       exit 1
-            #       fi
+                  if [[ -z "$EXEC_NAME" ]]; then
+                  echo "ERROR: Could not find a job execution."
+                  exit 1
+                  fi
 
-            #       echo "Latest execution: $EXEC_NAME"
-            #       echo "Polling execution status..."
+                  echo "Latest execution: $EXEC_NAME"
+                  echo "Polling execution status..."
 
-            #       # Poll until terminal state
-            #       for i in {1..120}; do
-            #       STATUS=$(az containerapp job execution show \
-            #           --name "$JOB" \
-            #           --resource-group "$RG" \
-            #           --execution "$EXEC_NAME" \
-            #           --query "properties.status" \
-            #           -o tsv)
+                  # Poll until terminal state
+                  for i in {1..120}; do
+                  STATUS=$(az containerapp job execution show \
+                      --name "$JOB" \
+                      --resource-group "$RG" \
+                      --job-execution-name "$EXEC_NAME" \
+                      --query "properties.status" \
+                      -o tsv)
 
-            #       echo "Status: $STATUS"
+                  echo "Status: $STATUS"
 
-            #       case "$STATUS" in
-            #           Succeeded|Completed)
-            #           echo "Migration job completed successfully."
-            #           exit 0
-            #           ;;
-            #           Failed)
-            #           echo "ERROR: Migration job failed."
-            #           echo "Fetching execution details..."
-            #           az containerapp job execution show \
-            #               --name "$JOB" \
-            #               --resource-group "$RG" \
-            #               --execution "$EXEC_NAME" \
-            #               -o json
-            #           exit 1
-            #           ;;
-            #       esac
+                  case "$STATUS" in
+                      Succeeded|Completed)
+                      echo "Migration job completed successfully."
+                      exit 0
+                      ;;
+                      Failed)
+                      echo "ERROR: Migration job failed."
+                      echo "Fetching execution details..."
+                      az containerapp job execution show \
+                          --name "$JOB" \
+                          --resource-group "$RG" \
+                          --job-execution-name "$EXEC_NAME" \
+                          -o json
+                      exit 1
+                      ;;
+                  esac
 
-            #       sleep 10
-            #       done
+                  sleep 10
+                  done
 
-            #       echo "ERROR: Timed out waiting for migration job."
-            #       exit 1
+                  echo "ERROR: Timed out waiting for migration job."
+                  exit 1
 
             - name: Deploy Container App (prod)
               run: |

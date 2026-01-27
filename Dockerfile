@@ -46,8 +46,8 @@ COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
 
 # Copy migrations for ACA job
-COPY --from=builder /app/apps/web/src/api/database/migrations ./migrations
-COPY --from=builder /app/apps/web/src/api/database/migrate-to-latest.ts ./migrate-to-latest.ts
+COPY --from=builder /app/apps/web/dist-migrator /app/migrator
+COPY --from=builder /app/apps/web/src/api/database/migrations /app/migrator-migrations
 
 USER app
 EXPOSE 8080
