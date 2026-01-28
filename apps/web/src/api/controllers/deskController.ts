@@ -643,3 +643,33 @@ export async function updateUsersDeskAssignments(
 export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext) {
 	return await deskQueries.getMyDeskAssignmentsWithClaimCounts(ctx);
 }
+
+// ============================================================================
+// CLAIM DESK LOCATION TRANSITION CONTROLLERS
+// ============================================================================
+
+/**
+ * Record a claim transition to a new desk location.
+ * No admin logging since this is an append-only audit trail.
+ */
+export async function createClaimTransition(
+	ctx: ProtectedContext,
+	input: {
+		claimId: number;
+		deskLocationId: number;
+		previousDeskLocationId?: number;
+		enteredReason?: string;
+	}
+) {
+	return await deskQueries.createClaimTransition(ctx, input);
+}
+
+/**
+ * Get transition history for a claim.
+ */
+export async function getClaimTransitions(
+	ctx: ProtectedContext,
+	{ claimId }: { claimId: number }
+) {
+	return await deskQueries.getClaimTransitions(ctx, claimId);
+}

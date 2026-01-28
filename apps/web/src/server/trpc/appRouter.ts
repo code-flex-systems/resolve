@@ -23,6 +23,8 @@ import { responseRouter } from './routers/response';
 import { statuteRouter } from './routers/statute';
 import { taskRouter } from './routers/task';
 import { userRouter } from './routers/user';
+import { workflowRouter } from './routers/workflow';
+import { workflowAnalyticsRouter } from './routers/workflowAnalytics';
 
 export const appRouter = router({
 	action: actionRouter,
@@ -48,6 +50,8 @@ export const appRouter = router({
 	statute: statuteRouter,
 	task: taskRouter,
 	user: userRouter,
+	workflow: workflowRouter,
+	workflowAnalytics: workflowAnalyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -78,6 +78,10 @@ export enum EntityName {
 
 	// Workflow management entities (Phase 3)
 	TASK = 'task',
+	WORKFLOW_DEFINITION = 'workflow_definition',
+	WORKFLOW_THRESHOLD = 'workflow_threshold',
+	WORKFLOW_RULE = 'workflow_rule',
+	CLAIM_DESK_LOCATION_TRANSITION = 'claim_desk_location_transition',
 
 	// Reference data management entities
 	REFERENCE_LIST = 'reference_list',
@@ -112,6 +116,9 @@ const CONFIG_ENTITIES: Set<EntityName> = new Set([
 	EntityName.STATUTE_RULE,
 	EntityName.REFERENCE_LIST,
 	EntityName.REFERENCE_OPTION,
+	EntityName.WORKFLOW_DEFINITION,
+	EntityName.WORKFLOW_THRESHOLD,
+	EntityName.WORKFLOW_RULE,
 ]);
 
 /**
@@ -129,6 +136,7 @@ const CLAIM_ENTITIES: Set<EntityName> = new Set([
 	EntityName.DOCUMENT,
 	EntityName.CHECKLIST_CLAIM,
 	EntityName.COMMENT,
+	EntityName.CLAIM_DESK_LOCATION_TRANSITION,
 ]);
 
 /**

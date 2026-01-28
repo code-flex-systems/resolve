@@ -59,6 +59,18 @@ export interface AdminConfigLogs {
   value: Json | null;
 }
 
+export interface AnalyticsDailyWorkflowStageSnapshot {
+  avg_hours_in_stage: Numeric | null;
+  claims_breaching_sla: Generated<number>;
+  claims_count: Generated<number>;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  desk_location_id: number;
+  id: Generated<number>;
+  median_hours_in_stage: Numeric | null;
+  snapshot_date: Timestamp;
+}
+
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
@@ -219,6 +231,20 @@ export interface ClaimCoverage {
   subro_applicable: Generated<boolean>;
   updated_at: Timestamp | null;
   updated_by: string | null;
+}
+
+export interface ClaimDeskLocationTransition {
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  desk_location_id: number;
+  entered_at: Generated<Timestamp>;
+  entered_by: string | null;
+  entered_reason: string | null;
+  id: Generated<number>;
+  previous_desk_location_id: number | null;
 }
 
 export interface ClaimParty {
@@ -981,10 +1007,62 @@ export interface Users {
   updated_by: string | null;
 }
 
+export interface WorkflowDefinition {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  description: string | null;
+  desk_location_id: number | null;
+  id: Generated<number>;
+  is_active: Generated<boolean>;
+  name: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface WorkflowRule {
+  action_config: Generated<Json>;
+  action_type: string;
+  client_id: string;
+  conditions: Generated<Json>;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  description: string | null;
+  execution_mode: Generated<string>;
+  id: Generated<number>;
+  is_active: Generated<boolean>;
+  name: string;
+  priority: Generated<number>;
+  trigger_type: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  workflow_definition_id: number;
+}
+
+export interface WorkflowThreshold {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  id: Generated<number>;
+  is_active: Generated<boolean>;
+  threshold_type: string;
+  threshold_value: number;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  workflow_definition_id: number;
+}
+
 export interface DB {
   action: Action;
   action_log: ActionLog;
   admin_config_logs: AdminConfigLogs;
+  "analytics.daily_workflow_stage_snapshot": AnalyticsDailyWorkflowStageSnapshot;
   answer: Answer;
   answer_call_edges: AnswerCallEdges;
   auth_events: AuthEvents;
@@ -993,6 +1071,7 @@ export interface DB {
   claim: Claim;
   claim_activity_logs: ClaimActivityLogs;
   claim_coverage: ClaimCoverage;
+  claim_desk_location_transition: ClaimDeskLocationTransition;
   claim_party: ClaimParty;
   claim_payment: ClaimPayment;
   client: Client;
@@ -1025,4 +1104,7 @@ export interface DB {
   task: Task;
   user_desk_location: UserDeskLocation;
   users: Users;
+  workflow_definition: WorkflowDefinition;
+  workflow_rule: WorkflowRule;
+  workflow_threshold: WorkflowThreshold;
 }

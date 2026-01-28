@@ -993,3 +993,71 @@ export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext)
 		.orderBy('user_desk_location.priority asc')
 		.execute();
 }
+
+// ============================================================================
+// CLAIM DESK LOCATION TRANSITION OPERATIONS
+// ============================================================================
+
+/**
+ * Record a claim transition to a new desk location.
+ * This creates an append-only audit trail of claim movements.
+ */
+export async function createClaimTransition(
+	ctx: ProtectedContext,
+	params: {
+		claimId: number;
+		deskLocationId: number;
+		previousDeskLocationId?: number;
+		enteredReason?: string;
+	}
+) {
+	return await ctx.db
+		.insertInto('claim_desk_location_transition')
+		.values({
+			client_id: ctx.session.user.client_id!,
+			claim_id: params.claimId,
+			desk_location_id: params.deskLocationId,
+			previous_desk_location_id: params.previousDeskLocationId,
+			entered_by: ctx.session.user.id,
+			entered_reason: params.enteredReason,
+		})
+		.returning([
+			'id',
+			'claim_id',
+			'desk_location_id',
+			'previous_desk_location_id',
+			'entered_at',
+			'entered_by',
+			'entered_reason',
+			'created_at',
+		])
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Get transition history for a claim, with desk location names.
+ * Ordered most recent first.
+ */
+export async function getClaimTransitions(ctx: ProtectedContext, claimId: number) {
+	return await ctx.db
+		.selectFrom('claim_desk_location_transition as t')
+		.leftJoin('desk_location as to_loc', 'to_loc.id', 't.desk_location_id')
+		.leftJoin('desk_location as from_loc', 'from_loc.id', 't.previous_desk_location_id')
+		.select([
+			't.id',
+			't.claim_id',
+			't.desk_location_id',
+			't.previous_desk_location_id',
+			't.entered_at',
+			't.entered_by',
+			't.entered_reason',
+			't.created_at',
+			'to_loc.name as desk_location_name',
+			'from_loc.name as previous_desk_location_name',
+		])
+		.where('t.client_id', '=', ctx.session.user.client_id)
+		.where('t.claim_id', '=', claimId)
+		.where('t.deleted_at', 'is', null)
+		.orderBy('t.entered_at desc')
+		.execute();
+}

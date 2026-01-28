@@ -223,3 +223,26 @@ export const updateUsersDeskAssignmentsInput = z.object({
 	).min(1).max(50), // Support 1-50 users per bulk update
 });
 export type UpdateUsersDeskAssignmentsInput = z.infer<typeof updateUsersDeskAssignmentsInput>;
+
+// ============================================================================
+// CLAIM DESK LOCATION TRANSITION SCHEMAS
+// ============================================================================
+
+/**
+ * Create a claim desk location transition record
+ */
+export const createClaimTransitionInput = z.object({
+	claimId: z.number().int().positive(),
+	deskLocationId: z.number().int().positive(),
+	previousDeskLocationId: z.number().int().positive().optional(),
+	enteredReason: z.string().optional(),
+});
+export type CreateClaimTransitionInput = z.infer<typeof createClaimTransitionInput>;
+
+/**
+ * Get claim desk location transitions for a specific claim
+ */
+export const getClaimTransitionsInput = z.object({
+	claimId: z.number().int().positive(),
+});
+export type GetClaimTransitionsInput = z.infer<typeof getClaimTransitionsInput>;
