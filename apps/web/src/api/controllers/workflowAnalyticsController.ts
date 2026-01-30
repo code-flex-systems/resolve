@@ -1,5 +1,6 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as workflowAnalyticsQueries from '@/api/queries/workflowAnalyticsQueries';
+import { generateWorkflowSuggestions, serializeSuggestion } from '@/lib/workflow/suggestions';
 
 // ============================================================================
 // TIER 0 OPERATIONAL QUERIES
@@ -102,6 +103,22 @@ export async function getConfigurationHealthCheck(ctx: ProtectedContext) {
 		locationsMissingCapacity,
 		usersWithoutAssignments,
 	};
+}
+
+// ============================================================================
+// WORKFLOW SUGGESTIONS
+// ============================================================================
+
+/**
+ * Fetch current load/assignment data and run the suggestion algorithm.
+ * Returns serialized suggestions for admin review.
+ */
+export async function getWorkflowSuggestions(ctx: ProtectedContext) {
+	const { locations, assignments, currentTasks } =
+		await workflowAnalyticsQueries.getSuggestionInput(ctx);
+
+	const suggestion = generateWorkflowSuggestions(locations, assignments, currentTasks);
+	return serializeSuggestion(suggestion);
 }
 
 // ============================================================================

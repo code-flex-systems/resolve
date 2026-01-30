@@ -330,6 +330,117 @@ WHERE dwss.client_id = :client_id
   -- AND (:desk_location_id IS NULL OR dl.id = :desk_location_id)
 ORDER BY dwss.snapshot_date ASC, dlt.name, dl.name;
 
+-- ============================================================================
+-- 1.7 PERIOD WORKFLOW SUMMARY (with comparison)
+-- ============================================================================
+-- Description:
+--   Top-level workflow stats for a period with comparison to prior period.
+--   Supports day, week, or month periods. Includes absolute change and
+--   percent change calculations ready for direct UI consumption.
+--
+-- Parameters:
+--   - :client_id: Tenant ID
+--   - :period_end: End date of current period (typically CURRENT_DATE - 1 for yesterday)
+--   - :period_days: Number of days in period (7 for week, 30 for month, 1 for day)
+--
+-- Returns:
+--   Single row with current period stats, previous period stats, absolute
+--   change, and percent change. Percent change is NULL when previous = 0.
+--
+-- Staleness: 24 hours (uses analytics rollup tables)
+-- ============================================================================
+
+WITH period_bounds AS (
+  SELECT
+    :period_end::date AS current_end,
+    (:period_end::date - :period_days + 1) AS current_start,
+    (:period_end::date - :period_days) AS previous_end,
+    (:period_end::date - :period_days * 2 + 1) AS previous_start
+),
+current_recovery AS (
+  SELECT
+    COALESCE(SUM(drs.claims_closed), 0) AS claims_closed,
+    COALESCE(SUM(drs.claims_created), 0) AS claims_created
+  FROM analytics.daily_recovery_summary drs
+  CROSS JOIN period_bounds pb
+  WHERE drs.client_id = :client_id
+    AND drs.summary_date >= pb.current_start
+    AND drs.summary_date <= pb.current_end
+),
+previous_recovery AS (
+  SELECT
+    COALESCE(SUM(drs.claims_closed), 0) AS claims_closed,
+    COALESCE(SUM(drs.claims_created), 0) AS claims_created
+  FROM analytics.daily_recovery_summary drs
+  CROSS JOIN period_bounds pb
+  WHERE drs.client_id = :client_id
+    AND drs.summary_date >= pb.previous_start
+    AND drs.summary_date <= pb.previous_end
+),
+current_workflow AS (
+  SELECT
+    COALESCE(SUM(dwss.claims_breaching_sla), 0) AS total_sla_breaches,
+    COALESCE(SUM(dwss.claims_count), 0) AS total_claim_days,
+    AVG(dwss.avg_hours_in_stage) AS period_avg_hours_in_stage,
+    COUNT(DISTINCT dwss.desk_location_id) AS locations_tracked
+  FROM analytics.daily_workflow_stage_snapshot dwss
+  CROSS JOIN period_bounds pb
+  WHERE dwss.client_id = :client_id
+    AND dwss.snapshot_date >= pb.current_start
+    AND dwss.snapshot_date <= pb.current_end
+),
+previous_workflow AS (
+  SELECT
+    COALESCE(SUM(dwss.claims_breaching_sla), 0) AS total_sla_breaches,
+    COALESCE(SUM(dwss.claims_count), 0) AS total_claim_days,
+    AVG(dwss.avg_hours_in_stage) AS period_avg_hours_in_stage
+  FROM analytics.daily_workflow_stage_snapshot dwss
+  CROSS JOIN period_bounds pb
+  WHERE dwss.client_id = :client_id
+    AND dwss.snapshot_date >= pb.previous_start
+    AND dwss.snapshot_date <= pb.previous_end
+)
+SELECT
+  -- Period metadata
+  pb.current_start,
+  pb.current_end,
+  pb.previous_start,
+  pb.previous_end,
+  :period_days AS period_days,
+
+  -- Claims closed: current, previous, absolute change, percent change
+  cr.claims_closed AS current_claims_closed,
+  pr.claims_closed AS previous_claims_closed,
+  cr.claims_closed - pr.claims_closed AS claims_closed_change,
+  CASE
+    WHEN pr.claims_closed = 0 THEN NULL
+    ELSE (cr.claims_closed - pr.claims_closed)::NUMERIC / pr.claims_closed
+  END AS claims_closed_change_pct,
+
+  -- SLA breaches: current, previous, absolute change, percent change
+  cw.total_sla_breaches AS current_sla_breaches,
+  pw.total_sla_breaches AS previous_sla_breaches,
+  cw.total_sla_breaches - pw.total_sla_breaches AS sla_breaches_change,
+  CASE
+    WHEN pw.total_sla_breaches = 0 THEN NULL
+    ELSE (cw.total_sla_breaches - pw.total_sla_breaches)::NUMERIC / pw.total_sla_breaches
+  END AS sla_breaches_change_pct,
+
+  -- Additional stats (available for future use)
+  cr.claims_created AS current_claims_created,
+  pr.claims_created AS previous_claims_created,
+  cw.total_claim_days AS current_total_claim_days,
+  pw.total_claim_days AS previous_total_claim_days,
+  cw.period_avg_hours_in_stage AS current_avg_hours_in_stage,
+  pw.period_avg_hours_in_stage AS previous_avg_hours_in_stage,
+  cw.locations_tracked
+
+FROM period_bounds pb
+CROSS JOIN current_recovery cr
+CROSS JOIN previous_recovery pr
+CROSS JOIN current_workflow cw
+CROSS JOIN previous_workflow pw;
+
 
 -- ============================================================================
 -- RECOMMENDED INDEXES FOR TIER 1 QUERIES

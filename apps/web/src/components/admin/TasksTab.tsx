@@ -90,11 +90,11 @@ export default function TasksTab() {
 	// URL filters
 	const { getParam, setParam, setParams, getBoolParam } = useUrlFilters();
 	const showOnlyOpen = getBoolParam('open') ?? true; // Default true (show pending + in progress)
-	const filterClaimedBy = getParam('claimedBy');
+	const filterAssignedTo = getParam('assignedTo');
 	const filterClaimNumber = getParam('claimNumber');
 
 	// Draft filter state for popper
-	const [draftClaimedBy, setDraftClaimedBy] = useState<string | null>(null);
+	const [draftAssignedTo, setDraftAssignedTo] = useState<string | null>(null);
 	const [draftClaimNumber, setDraftClaimNumber] = useState<string | null>(null);
 
 	// Fetch tasks for the week
@@ -144,11 +144,11 @@ export default function TasksTab() {
 		const claimNumbersSet = new Set<string>();
 
 		allTasks.forEach((task) => {
-			// Collect users who are working on tasks
-			if (task.claimed_by && task.claimed_by_first && task.claimed_by_last) {
-				usersMap.set(task.claimed_by, {
-					id: task.claimed_by,
-					name: `${task.claimed_by_first} ${task.claimed_by_last}`,
+			// Collect users who are assigned to tasks
+			if (task.assigned_to && task.assigned_to_first && task.assigned_to_last) {
+				usersMap.set(task.assigned_to, {
+					id: task.assigned_to,
+					name: `${task.assigned_to_first} ${task.assigned_to_last}`,
 				});
 			}
 			// Collect claim numbers
@@ -172,9 +172,9 @@ export default function TasksTab() {
 			tasks = tasks.filter((t) => t.status === TaskStatus.PENDING || t.status === TaskStatus.IN_PROGRESS);
 		}
 
-		// Filter by claimed by (user working on task)
-		if (filterClaimedBy) {
-			tasks = tasks.filter((t) => t.claimed_by === filterClaimedBy);
+		// Filter by assigned to (user assigned to task)
+		if (filterAssignedTo) {
+			tasks = tasks.filter((t) => t.assigned_to === filterAssignedTo);
 		}
 
 		// Filter by claim number
@@ -183,7 +183,7 @@ export default function TasksTab() {
 		}
 
 		return tasks;
-	}, [allTasks, showOnlyOpen, filterClaimedBy, filterClaimNumber]);
+	}, [allTasks, showOnlyOpen, filterAssignedTo, filterClaimNumber]);
 
 	// Week navigation handlers
 	const handlePreviousWeek = () => {
@@ -305,12 +305,12 @@ export default function TasksTab() {
 				},
 			},
 			{
-				field: 'claimed_by_name',
-				headerName: 'Working By',
+				field: 'assigned_to_name',
+				headerName: 'Assigned To',
 				width: 140,
 				valueGetter: (_value, row) =>
-					row.claimed_by_first && row.claimed_by_last
-						? `${row.claimed_by_first} ${row.claimed_by_last}`
+					row.assigned_to_first && row.assigned_to_last
+						? `${row.assigned_to_first} ${row.assigned_to_last}`
 						: '-',
 			},
 			{
@@ -352,11 +352,11 @@ export default function TasksTab() {
 	const isCurrentWeek = weekStart.isSame(getWeekStart(dayjs()), 'day');
 
 	// Filter count (only count filters in the popper, not the toggle)
-	const activeFilterCount = [filterClaimedBy, filterClaimNumber].filter(Boolean).length;
+	const activeFilterCount = [filterAssignedTo, filterClaimNumber].filter(Boolean).length;
 
 	// Handler for opening filters popper - sync draft with applied
 	const handleOpenFilters = (e: React.MouseEvent<HTMLElement>) => {
-		setDraftClaimedBy(filterClaimedBy);
+		setDraftAssignedTo(filterAssignedTo);
 		setDraftClaimNumber(filterClaimNumber);
 		setFiltersAnchorEl(e.currentTarget);
 	};
@@ -364,7 +364,7 @@ export default function TasksTab() {
 	// Handler for applying filters
 	const handleApplyFilters = () => {
 		setParams({
-			claimedBy: draftClaimedBy,
+			assignedTo: draftAssignedTo,
 			claimNumber: draftClaimNumber,
 		});
 		setFiltersAnchorEl(null);
@@ -372,10 +372,10 @@ export default function TasksTab() {
 
 	// Handler for clearing filters
 	const handleClearFilters = () => {
-		setDraftClaimedBy(null);
+		setDraftAssignedTo(null);
 		setDraftClaimNumber(null);
 		setParams({
-			claimedBy: null,
+			assignedTo: null,
 			claimNumber: null,
 		});
 		setFiltersAnchorEl(null);
@@ -505,13 +505,13 @@ export default function TasksTab() {
 										size="small"
 										options={filterOptions.users}
 										getOptionLabel={(option) => option.name}
-										value={filterOptions.users.find((u) => u.id === draftClaimedBy) || null}
-										onChange={(_, newValue) => setDraftClaimedBy(newValue?.id || null)}
+										value={filterOptions.users.find((u) => u.id === draftAssignedTo) || null}
+										onChange={(_, newValue) => setDraftAssignedTo(newValue?.id || null)}
 										renderInput={(params) => (
 											<TextField
 												{...params}
 												placeholder="Select"
-												label="Working By"
+												label="Assigned To"
 												variant="outlined"
 											/>
 										)}
@@ -538,7 +538,7 @@ export default function TasksTab() {
 										<Button
 											size="small"
 											onClick={handleClearFilters}
-											disabled={!draftClaimedBy && !draftClaimNumber}
+											disabled={!draftAssignedTo && !draftClaimNumber}
 										>
 											Clear
 										</Button>

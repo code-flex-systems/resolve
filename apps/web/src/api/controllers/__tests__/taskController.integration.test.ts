@@ -43,56 +43,56 @@ describe('taskController integration tests', () => {
 	}
 
 	// =========================================================================
-	// claimTask - Claims task and logs user workflow action
+	// startTask - Starts task and logs user workflow action
 	// =========================================================================
 
-	describe('claimTask', () => {
+	describe('startTask', () => {
 		describe('basic functionality', () => {
-			it('should claim a pending task', async () => {
+			it('should start a pending task', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
-				const result = await taskController.claimTask(ctx, { id: task.id });
+				const result = await taskController.startTask(ctx, { id: task.id });
 
 				expect(result.id).toBe(task.id);
 				expect(result.status).toBe(TaskStatus.IN_PROGRESS);
-				expect(result.claimed_by).toBe(user.id);
+				expect(result.started_at).not.toBeNull();
 			});
 
-			it('should set claimed_at timestamp when claiming', async () => {
+			it('should set started_at timestamp when starting', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
-				const result = await taskController.claimTask(ctx, { id: task.id });
+				const result = await taskController.startTask(ctx, { id: task.id });
 
-				expect(result.claimed_at).not.toBeNull();
+				expect(result.started_at).not.toBeNull();
 			});
 		});
 
 		describe('database persistence', () => {
-			it('should persist claim to database', async () => {
+			it('should persist start to database', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
-				await taskController.claimTask(ctx, { id: task.id });
+				await taskController.startTask(ctx, { id: task.id });
 
 				const dbTask = await db
 					.selectFrom('task')
@@ -101,7 +101,7 @@ describe('taskController integration tests', () => {
 					.executeTakeFirst();
 
 				expect(dbTask!.status).toBe(TaskStatus.IN_PROGRESS);
-				expect(dbTask!.claimed_by).toBe(user.id);
+				expect(dbTask!.started_at).not.toBeNull();
 			});
 		});
 
@@ -109,12 +109,12 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.claimTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(taskController.startTask(ctx, { id: 999999 })).rejects.toThrow();
 			});
 		});
 
 		describe('tenant isolation', () => {
-			it('should not allow claiming task from different client', async () => {
+			it('should not allow starting task from different client', async () => {
 				const clientA = await createTestClient(db, { name: 'Client A' });
 				const clientB = await createTestClient(db, { name: 'Client B' });
 				const userA = await createTestUser(db, { client_id: clientA.id });
@@ -130,71 +130,68 @@ describe('taskController integration tests', () => {
 					client_id: clientA.id,
 					claim_id: claimA.id,
 					desk_location_id: deskLocationA.id,
-					assigned_by: userA.id,
+					assigned_to: userA.id,
 					status: TaskStatus.PENDING,
 				});
 
 				const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id });
 
-				await expect(taskController.claimTask(ctxB, { id: taskA.id })).rejects.toThrow();
+				await expect(taskController.startTask(ctxB, { id: taskA.id })).rejects.toThrow();
 			});
 		});
 	});
 
 	// =========================================================================
-	// unclaimTask - Unclaims task and logs user workflow action
+	// unassignTask - Unassigns task and logs user workflow action
 	// =========================================================================
 
-	describe('unclaimTask', () => {
+	describe('unassignTask', () => {
 		describe('basic functionality', () => {
-			it('should unclaim an in-progress task', async () => {
+			it('should unassign a pending task', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
-					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					assigned_to: user.id,
+					status: TaskStatus.PENDING,
 				});
 
-				const result = await taskController.unclaimTask(ctx, { id: task.id });
+				const result = await taskController.unassignTask(ctx, { id: task.id });
 
 				expect(result.id).toBe(task.id);
 				expect(result.status).toBe(TaskStatus.PENDING);
-				expect(result.claimed_by).toBeNull();
+				expect(result.assigned_to).toBeNull();
 			});
 
-			it('should clear claimed_at timestamp when unclaiming', async () => {
+			it('should clear assigned_to when unassigning', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
-					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					assigned_to: user.id,
+					status: TaskStatus.PENDING,
 				});
 
-				const result = await taskController.unclaimTask(ctx, { id: task.id });
+				const result = await taskController.unassignTask(ctx, { id: task.id });
 
-				expect(result.claimed_at).toBeNull();
+				expect(result.assigned_to).toBeNull();
 			});
 		});
 
 		describe('database persistence', () => {
-			it('should persist unclaim to database', async () => {
+			it('should persist unassign to database', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
-					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					assigned_to: user.id,
+					status: TaskStatus.PENDING,
 				});
 
-				await taskController.unclaimTask(ctx, { id: task.id });
+				await taskController.unassignTask(ctx, { id: task.id });
 
 				const dbTask = await db
 					.selectFrom('task')
@@ -203,7 +200,7 @@ describe('taskController integration tests', () => {
 					.executeTakeFirst();
 
 				expect(dbTask!.status).toBe(TaskStatus.PENDING);
-				expect(dbTask!.claimed_by).toBeNull();
+				expect(dbTask!.assigned_to).toBeNull();
 			});
 		});
 
@@ -211,12 +208,12 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.unclaimTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(taskController.unassignTask(ctx, { id: 999999 })).rejects.toThrow();
 			});
 		});
 
 		describe('tenant isolation', () => {
-			it('should not allow unclaiming task from different client', async () => {
+			it('should not allow unassigning task from different client', async () => {
 				const clientA = await createTestClient(db, { name: 'Client A' });
 				const clientB = await createTestClient(db, { name: 'Client B' });
 				const userA = await createTestUser(db, { client_id: clientA.id });
@@ -232,14 +229,13 @@ describe('taskController integration tests', () => {
 					client_id: clientA.id,
 					claim_id: claimA.id,
 					desk_location_id: deskLocationA.id,
-					assigned_by: userA.id,
-					status: TaskStatus.IN_PROGRESS,
-					claimed_by: userA.id,
+					assigned_to: userA.id,
+					status: TaskStatus.PENDING,
 				});
 
 				const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id });
 
-				await expect(taskController.unclaimTask(ctxB, { id: taskA.id })).rejects.toThrow();
+				await expect(taskController.unassignTask(ctxB, { id: taskA.id })).rejects.toThrow();
 			});
 		});
 	});
@@ -250,22 +246,22 @@ describe('taskController integration tests', () => {
 
 	describe('completeTask', () => {
 		describe('basic functionality', () => {
-			it('should complete a claimed task', async () => {
+			it('should complete an in-progress task', async () => {
 				const { client, user, claim, deskLocation, ctx } = await setupTestFixtures();
 				const task = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					started_at: new Date(),
 				});
 
 				const result = await taskController.completeTask(ctx, { id: task.id });
 
 				expect(result.id).toBe(task.id);
 				expect(result.status).toBe(TaskStatus.COMPLETED);
-				expect(result.completed_by).toBe(user.id);
+				expect(result.completed_at).not.toBeNull();
 			});
 
 			it('should set completed_at timestamp when completing', async () => {
@@ -274,9 +270,9 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					started_at: new Date(),
 				});
 
 				const result = await taskController.completeTask(ctx, { id: task.id });
@@ -290,9 +286,9 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					started_at: new Date(),
 				});
 
 				const result = await taskController.completeTask(ctx, {
@@ -309,9 +305,9 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					started_at: new Date(),
 				});
 
 				const result = await taskController.completeTask(ctx, { id: task.id });
@@ -327,9 +323,9 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					started_at: new Date(),
 				});
 
 				await taskController.completeTask(ctx, { id: task.id, completionNotes: 'Done!' });
@@ -341,7 +337,7 @@ describe('taskController integration tests', () => {
 					.executeTakeFirst();
 
 				expect(dbTask!.status).toBe(TaskStatus.COMPLETED);
-				expect(dbTask!.completed_by).toBe(user.id);
+				expect(dbTask!.completed_at).not.toBeNull();
 				expect(dbTask!.completion_notes).toBe('Done!');
 			});
 		});
@@ -371,9 +367,9 @@ describe('taskController integration tests', () => {
 					client_id: clientA.id,
 					claim_id: claimA.id,
 					desk_location_id: deskLocationA.id,
-					assigned_by: userA.id,
+					assigned_to: userA.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: userA.id,
+					started_at: new Date(),
 				});
 
 				const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id });
@@ -395,16 +391,16 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 				const task2 = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.IN_PROGRESS,
-					claimed_by: user.id,
+					started_at: new Date(),
 				});
 
 				const result = await taskController.bulkCancelTasks(ctx, {
@@ -421,7 +417,7 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
@@ -453,14 +449,14 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 				const task2 = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
@@ -493,14 +489,14 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.CANCELLED,
 				});
 				const pendingTask = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
@@ -519,16 +515,15 @@ describe('taskController integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.COMPLETED,
-					completed_by: user.id,
 					completed_at: new Date(),
 				});
 				const pendingTask = await createTestTask(db, {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: deskLocation.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					status: TaskStatus.PENDING,
 				});
 
@@ -574,14 +569,14 @@ describe('taskController integration tests', () => {
 					client_id: clientA.id,
 					claim_id: claimA.id,
 					desk_location_id: deskLocationA.id,
-					assigned_by: userA.id,
+					assigned_to: userA.id,
 					status: TaskStatus.PENDING,
 				});
 				const taskB = await createTestTask(db, {
 					client_id: clientB.id,
 					claim_id: claimB.id,
 					desk_location_id: deskLocationB.id,
-					assigned_by: userB.id,
+					assigned_to: userB.id,
 					status: TaskStatus.PENDING,
 				});
 

@@ -2,6 +2,7 @@ import * as taskController from '@/api/controllers/taskController';
 import { requireRole } from '@/lib/auth/requireRole';
 import config from '@/config/config';
 import { protectedProcedure, router } from '../trpc';
+import { TRPCError } from '@trpc/server';
 import {
 	getTasksInput,
 	getTaskInput,
@@ -10,8 +11,9 @@ import {
 	getTasksForUserInput,
 	createTaskInput,
 	updateTaskInput,
-	claimTaskInput,
-	unclaimTaskInput,
+	assignTaskInput,
+	unassignTaskInput,
+	startTaskInput,
 	completeTaskInput,
 	cancelTaskInput,
 	getDeskCapacityInput,
@@ -108,26 +110,46 @@ export const taskRouter = router({
 	}),
 
 	/**
-	 * Claim task (start working on it)
-	 * Available to any user who has access to the desk location
+	 * Assign task to a user
+	 * Admin can assign to anyone; contributor can only assign to themselves
 	 */
-	claimTask: protectedProcedure.input(claimTaskInput).mutation(async ({ input, ctx }) => {
-		return taskController.claimTask(ctx, input);
+	assignTask: protectedProcedure.input(assignTaskInput).mutation(async ({ input, ctx }) => {
+		const isAdmin =
+			ctx.session.user.role === config.ROLES.ADMIN ||
+			ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+		if (!isAdmin && input.userId !== ctx.session.user.id) {
+			throw new TRPCError({
+				code: 'FORBIDDEN',
+				message: 'Contributors can only assign tasks to themselves',
+			});
+		}
+		return taskController.assignTask(ctx, input);
 	}),
 
 	/**
-	 * Unclaim task (release it back to queue)
-	 * Available to any user who has access to the desk location
+	 * Unassign task (release assignment, revert to pending)
+	 * Requires the assigned user or an admin
 	 */
-	unclaimTask: protectedProcedure.input(unclaimTaskInput).mutation(async ({ input, ctx }) => {
-		return taskController.unclaimTask(ctx, input);
+	unassignTask: protectedProcedure.input(unassignTaskInput).mutation(async ({ input, ctx }) => {
+		await taskController.requireTaskOwnership(ctx, input.id);
+		return taskController.unassignTask(ctx, input);
+	}),
+
+	/**
+	 * Start task (begin working on it)
+	 * Requires the assigned user or an admin
+	 */
+	startTask: protectedProcedure.input(startTaskInput).mutation(async ({ input, ctx }) => {
+		await taskController.requireTaskOwnership(ctx, input.id);
+		return taskController.startTask(ctx, input);
 	}),
 
 	/**
 	 * Complete task
-	 * Available to any user who has access to the desk location
+	 * Requires the assigned user or an admin
 	 */
 	completeTask: protectedProcedure.input(completeTaskInput).mutation(async ({ input, ctx }) => {
+		await taskController.requireTaskOwnership(ctx, input.id);
 		return taskController.completeTask(ctx, input);
 	}),
 

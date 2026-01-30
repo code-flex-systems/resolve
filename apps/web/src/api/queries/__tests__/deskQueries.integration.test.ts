@@ -769,6 +769,7 @@ describe('deskQueries integration', () => {
 			const result = await createDeskLocation(ctx, {
 				name: 'New Location',
 				desk_location_type_id: deskType.id,
+				capacity_threshold: 100,
 			});
 
 			expect(result.name).toBe('New Location');
@@ -789,6 +790,7 @@ describe('deskQueries integration', () => {
 				name: 'Inactive Location',
 				desk_location_type_id: deskType.id,
 				is_active: false,
+				capacity_threshold: 100,
 			});
 
 			expect(result.is_active).toBe(false);

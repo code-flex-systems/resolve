@@ -8,10 +8,13 @@ import Settings from '@mui/icons-material/Settings';
 import Stop from '@mui/icons-material/Stop';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Cancel from '@mui/icons-material/Cancel';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import { useMemo, useState } from 'react';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
 import { TaskStatus, TaskType } from '@/config/enums';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import useIsAdmin from '@/hooks/useIsAdmin';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import BasicButtonStyled from './BasicButtonStyled';
 import TaskCreationDialog from './TaskCreationDialog';
@@ -48,31 +51,43 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
+	const { data: session } = useClerkSession();
+	const isAdmin = useIsAdmin();
 
 	const { data, isLoading, refetch } = useTaskTrpc().listByClaim({
 		claimId,
 	});
 
-	const { mutateAsync: claimTask, isPending: claiming } = useTaskTrpc().claim;
-	const { mutateAsync: unclaimTask, isPending: unclaiming } = useTaskTrpc().unclaim;
+	const { mutateAsync: startTask, isPending: starting } = useTaskTrpc().start;
+	const { mutateAsync: unassignTask, isPending: unassigning } = useTaskTrpc().unassign;
+	const { mutateAsync: assignTask, isPending: assigning } = useTaskTrpc().assign;
 
 	const tasks = data?.rows || [];
 
-	const handleClaimTask = async (taskId: number) => {
+	const handleStartTask = async (taskId: number) => {
 		try {
-			await claimTask({ id: taskId });
-			showAlert('Task claimed - you can now work on it', 'success');
+			await startTask({ id: taskId });
+			showAlert('Task started - you can now work on it', 'success');
 		} catch (error: any) {
-			showAlert(error?.message || 'Failed to claim task', 'error');
+			showAlert(error?.message || 'Failed to start task', 'error');
 		}
 	};
 
-	const handleUnclaimTask = async (taskId: number) => {
+	const handleUnassignTask = async (taskId: number) => {
 		try {
-			await unclaimTask({ id: taskId });
+			await unassignTask({ id: taskId });
 			showAlert('Task released back to queue', 'success');
 		} catch (error: any) {
 			showAlert(error?.message || 'Failed to release task', 'error');
+		}
+	};
+
+	const handleAssignToMe = async (taskId: number) => {
+		try {
+			await assignTask({ id: taskId, userId: session!.user!.id });
+			showAlert('Task assigned to you', 'success');
+		} catch (error: any) {
+			showAlert(error?.message || 'Failed to assign task', 'error');
 		}
 	};
 
@@ -135,11 +150,11 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 				params.value ? new Date(params.value).toLocaleDateString() : '-',
 		},
 		{
-			field: 'claimed_by_name',
-			headerName: 'Working By',
+			field: 'assigned_to_name',
+			headerName: 'Assigned To',
 			width: 140,
 			valueGetter: (value, row) =>
-				row.claimed_by_first && row.claimed_by_last ? `${row.claimed_by_first} ${row.claimed_by_last}` : '-',
+				row.assigned_to_first && row.assigned_to_last ? `${row.assigned_to_first} ${row.assigned_to_last}` : '-',
 		},
 		];
 
@@ -151,55 +166,65 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 				width: 120,
 				sortable: false,
 				renderCell: (params: GridRenderCellParams) => {
-					const task = params.row;
+				const task = params.row;
 				const status = task.status as TaskStatus;
+				const isAssignedToMe = task.assigned_to === session?.user?.id;
+				const isAssigned = !!task.assigned_to;
 
 				return (
 					<Stack direction="row" spacing={0.5} justifyContent="flex-end" width="100%">
-						{status === TaskStatus.PENDING && (
-							<>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => handleClaimTask(task.id),
-										disabled: claiming,
-									}}
-									tooltipProps={{ title: 'Start working on this task' }}
-									icon={<PlayArrow sx={{ fontSize: 15, color: theme.palette.primary.main }} />}
-								/>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => setCancellingTask(task),
-									}}
-									tooltipProps={{ title: 'Cancel task' }}
-									icon={<Cancel sx={{ fontSize: 15, color: theme.palette.error.main }} />}
-								/>
-							</>
+						{/* Unassigned + PENDING: Assign to Me */}
+						{status === TaskStatus.PENDING && !isAssigned && (
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => handleAssignToMe(task.id),
+									disabled: assigning,
+								}}
+								tooltipProps={{ title: 'Assign task to yourself' }}
+								icon={<PersonAdd sx={{ fontSize: 15, color: theme.palette.primary.main }} />}
+							/>
 						)}
-						{status === TaskStatus.IN_PROGRESS && (
-							<>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => handleUnclaimTask(task.id),
-										disabled: unclaiming,
-									}}
-									tooltipProps={{ title: 'Release task back to queue' }}
-									icon={<Stop sx={{ fontSize: 15, color: theme.palette.warning.main }} />}
-								/>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => setCompletingTask(task),
-									}}
-									tooltipProps={{ title: 'Mark task as complete' }}
-									icon={<CheckCircle sx={{ fontSize: 15, color: theme.palette.success.main }} />}
-								/>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => setCancellingTask(task),
-									}}
-									tooltipProps={{ title: 'Cancel task' }}
-									icon={<Cancel sx={{ fontSize: 15, color: theme.palette.error.main }} />}
-								/>
-							</>
+						{/* Assigned to me + PENDING: Start */}
+						{status === TaskStatus.PENDING && isAssignedToMe && (
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => handleStartTask(task.id),
+									disabled: starting,
+								}}
+								tooltipProps={{ title: 'Start working on this task' }}
+								icon={<PlayArrow sx={{ fontSize: 15, color: theme.palette.primary.main }} />}
+							/>
+						)}
+						{/* Assigned to me + PENDING or IN_PROGRESS: Release */}
+						{(status === TaskStatus.PENDING || status === TaskStatus.IN_PROGRESS) && isAssignedToMe && (
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => handleUnassignTask(task.id),
+									disabled: unassigning,
+								}}
+								tooltipProps={{ title: 'Release task back to queue' }}
+								icon={<Stop sx={{ fontSize: 15, color: theme.palette.warning.main }} />}
+							/>
+						)}
+						{/* Assigned to me (or admin) + IN_PROGRESS: Complete */}
+						{status === TaskStatus.IN_PROGRESS && (isAdmin || isAssignedToMe) && (
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => setCompletingTask(task),
+								}}
+								tooltipProps={{ title: 'Mark task as complete' }}
+								icon={<CheckCircle sx={{ fontSize: 15, color: theme.palette.success.main }} />}
+							/>
+						)}
+						{/* Admin only: Cancel (pending or in progress) */}
+						{(status === TaskStatus.PENDING || status === TaskStatus.IN_PROGRESS) && isAdmin && (
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => setCancellingTask(task),
+								}}
+								tooltipProps={{ title: 'Cancel task' }}
+								icon={<Cancel sx={{ fontSize: 15, color: theme.palette.error.main }} />}
+							/>
 						)}
 					</Stack>
 				);
@@ -208,7 +233,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 		}
 
 		return baseColumns;
-	}, [isManageMode, claiming, unclaiming]);
+	}, [isManageMode, starting, unassigning, assigning, session?.user?.id, isAdmin]);
 
 	if (isLoading) {
 		return (

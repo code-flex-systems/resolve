@@ -244,6 +244,7 @@ export async function createDeskLocation(
 		name: string;
 		desk_location_type_id: number;
 		is_active?: boolean;
+		capacity_threshold: number;
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {

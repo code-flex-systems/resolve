@@ -125,6 +125,7 @@ export async function createDeskLocationType(
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 			is_active: true,
+			capacity_threshold: 100,
 		}));
 
 		await ctx.db.insertInto('desk_location').values(defaultLocations).execute();
@@ -268,6 +269,7 @@ export async function getDeskLocations(
 			'desk_location.desk_location_type_id',
 			'desk_location.client_id',
 			'desk_location.is_active',
+			'desk_location.capacity_threshold',
 			'desk_location.created_at',
 			'desk_location.created_by',
 			'desk_location.updated_at',
@@ -347,6 +349,7 @@ export async function getDeskLocation(ctx: ProtectedContext, id: number) {
 			'desk_location.desk_location_type_id',
 			'desk_location.client_id',
 			'desk_location.is_active',
+			'desk_location.capacity_threshold',
 			'desk_location.created_at',
 			'desk_location.created_by',
 			'desk_location.updated_at',
@@ -368,6 +371,7 @@ export async function createDeskLocation(
 		name: string;
 		desk_location_type_id: number;
 		is_active?: boolean;
+		capacity_threshold: number;
 	}
 ) {
 	return await ctx.db
@@ -376,6 +380,7 @@ export async function createDeskLocation(
 			name: params.name,
 			desk_location_type_id: params.desk_location_type_id,
 			is_active: params.is_active ?? true,
+			capacity_threshold: params.capacity_threshold,
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
@@ -393,6 +398,7 @@ export async function updateDeskLocation(
 		name?: string;
 		desk_location_type_id?: number;
 		is_active?: boolean;
+		capacity_threshold?: number;
 	}
 ) {
 	return await ctx.db

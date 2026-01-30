@@ -13,8 +13,9 @@ export enum LogAction {
 	BULK_DELETE = 'BULK_DELETE',
 
 	// User workflow actions
-	CLAIM = 'CLAIM',
-	UNCLAIM = 'UNCLAIM',
+	ASSIGN = 'ASSIGN',
+	UNASSIGN = 'UNASSIGN',
+	START = 'START',
 	COMPLETE = 'COMPLETE',
 	CANCEL = 'CANCEL',
 }
@@ -304,11 +305,11 @@ export interface LogActionParams {
  * @example
  * // User workflow action (within transaction)
  * await ctx.db.transaction().execute(async (trx) => {
- *   const task = await claimTask({ ...ctx, db: trx }, taskId);
+ *   const task = await startTask({ ...ctx, db: trx }, taskId);
  *   await logAction({ ...ctx, db: trx }, {
  *     entityId: taskId,
  *     entityName: EntityName.TASK,
- *     action: LogAction.CLAIM,
+ *     action: LogAction.START,
  *     claimId: task.claim_id // Optional, will be auto-derived
  *   });
  * });
@@ -370,7 +371,7 @@ export async function logAction(ctx: ProtectedContext, params: LogActionParams):
  * @example
  * await logUserWorkflowAction(ctx, {
  *   claimId: 123,
- *   action: 'task_claim',
+ *   action: 'task_assign',
  *   entityId: taskId,
  * });
  */
@@ -378,14 +379,15 @@ export async function logUserWorkflowAction(
 	ctx: ProtectedContext,
 	params: {
 		claimId: number;
-		action: 'task_claim' | 'task_unclaim' | 'task_complete' | 'deadline_complete' | 'comment_create';
+		action: 'task_assign' | 'task_unassign' | 'task_start' | 'task_complete' | 'deadline_complete' | 'comment_create';
 		entityId: number;
 		value?: any;
 	}
 ): Promise<void> {
 	const actionMap: Record<typeof params.action, { entityName: EntityName; logAction: LogAction }> = {
-		task_claim: { entityName: EntityName.TASK, logAction: LogAction.CLAIM },
-		task_unclaim: { entityName: EntityName.TASK, logAction: LogAction.UNCLAIM },
+		task_assign: { entityName: EntityName.TASK, logAction: LogAction.ASSIGN },
+		task_unassign: { entityName: EntityName.TASK, logAction: LogAction.UNASSIGN },
+		task_start: { entityName: EntityName.TASK, logAction: LogAction.START },
 		task_complete: { entityName: EntityName.TASK, logAction: LogAction.COMPLETE },
 		deadline_complete: { entityName: EntityName.DEADLINE, logAction: LogAction.COMPLETE },
 		comment_create: { entityName: EntityName.COMMENT, logAction: LogAction.CREATE },

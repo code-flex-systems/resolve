@@ -91,6 +91,19 @@ export const workflowAnalyticsRouter = router({
 	}),
 
 	// ========================================================================
+	// WORKFLOW SUGGESTIONS (Admin Only)
+	// ========================================================================
+
+	/**
+	 * Generate workflow suggestions based on current load and assignments.
+	 * Returns priority reassignment suggestions for admin review.
+	 */
+	getWorkflowSuggestions: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return workflowAnalyticsController.getWorkflowSuggestions(ctx);
+	}),
+
+	// ========================================================================
 	// TIER 1 BATCH QUERIES (Admin Only)
 	// ========================================================================
 

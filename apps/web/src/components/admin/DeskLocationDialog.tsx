@@ -13,6 +13,7 @@ interface DeskLocationFormInputs {
 	name: string;
 	desk_location_type_id: number | null;
 	is_active: boolean;
+	capacity_threshold: number;
 }
 
 interface DeskLocationDialogProps {
@@ -42,11 +43,13 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					name: deskLocation.name,
 					desk_location_type_id: deskLocation.desk_location_type_id,
 					is_active: Boolean(deskLocation.is_active),
+					capacity_threshold: Number(deskLocation.capacity_threshold),
 				}
 			: {
 					name: '',
 					desk_location_type_id: selectedDeskLocationTypeId,
 					is_active: true,
+					capacity_threshold: 100,
 				},
 		mode: 'onChange',
 	});
@@ -70,6 +73,7 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 						name: data.name,
 						desk_location_type_id: data.desk_location_type_id!,
 						is_active: data.is_active,
+						capacity_threshold: data.capacity_threshold,
 					},
 				});
 			} else {
@@ -77,6 +81,7 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					name: data.name,
 					desk_location_type_id: data.desk_location_type_id!,
 					is_active: data.is_active,
+					capacity_threshold: data.capacity_threshold,
 				});
 			}
 
@@ -118,6 +123,25 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 							error={!!errors.name}
 							helperText={errors.name?.message}
 							{...field}
+							disabled={isSubmitting}
+							sx={styles.textFieldOverrides}
+						/>
+					)}
+				/>
+
+				<Controller
+					name="capacity_threshold"
+					control={control}
+					rules={{ required: 'Capacity threshold is required', min: { value: 1, message: 'Must be at least 1' } }}
+					render={({ field }) => (
+						<TextField
+							label="Capacity Threshold (work units)"
+							type="number"
+							placeholder="100"
+							error={!!errors.capacity_threshold}
+							helperText={errors.capacity_threshold?.message}
+							{...field}
+							onChange={(e) => field.onChange(Number(e.target.value))}
 							disabled={isSubmitting}
 							sx={styles.textFieldOverrides}
 						/>

@@ -1,6 +1,7 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
 import { WorkflowThresholdType } from '@/config/enums';
+import type { DeskLocationLoad, UserDeskAssignment, UserCurrentTask } from '@/lib/workflow/suggestions';
 
 // ============================================================================
 // TIER 0 OPERATIONAL QUERIES
@@ -13,10 +14,7 @@ import { WorkflowThresholdType } from '@/config/enums';
  * Uses CTEs to resolve location-specific vs global SLA thresholds and
  * to determine the latest transition (current location) for each claim.
  */
-export async function getDeskLocationQueueDepth(
-	ctx: ProtectedContext,
-	deskLocationId?: number
-) {
+export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocationId?: number) {
 	const clientId = ctx.session.user.client_id;
 
 	const rows = await ctx.db
@@ -39,11 +37,7 @@ export async function getDeskLocationQueueDepth(
 				)
 				.leftJoin('workflow_threshold as wt', (join) =>
 					join
-						.on(
-							'wt.workflow_definition_id',
-							'=',
-							sql<number>`COALESCE(wd_specific.id, wd_global.id)`
-						)
+						.on('wt.workflow_definition_id', '=', sql<number>`COALESCE(wd_specific.id, wd_global.id)`)
 						.on('wt.threshold_type', '=', WorkflowThresholdType.LOCATION_AGE)
 						.on('wt.is_active', '=', true)
 						.on('wt.deleted_at', 'is', null)
@@ -69,25 +63,19 @@ export async function getDeskLocationQueueDepth(
 			db
 				.selectFrom('claim as c')
 				.innerJoin('current_transitions as ct', (join) =>
-					join
-						.onRef('ct.claim_id', '=', 'c.id')
-						.onRef('ct.desk_location_id', '=', 'c.desk_location_id')
+					join.onRef('ct.claim_id', '=', 'c.id').onRef('ct.desk_location_id', '=', 'c.desk_location_id')
 				)
 				.select([
 					'c.id as claim_id',
 					'c.desk_location_id',
-					sql<number>`EXTRACT(EPOCH FROM (NOW() - ct.entered_at)) / 3600`.as(
-						'hours_in_stage'
-					),
+					sql<number>`EXTRACT(EPOCH FROM (NOW() - ct.entered_at)) / 3600`.as('hours_in_stage'),
 				])
 				.where('c.client_id', '=', clientId)
 				.where('c.desk_location_id', 'is not', null)
 		)
 		.selectFrom('desk_location as dl')
 		.innerJoin('desk_location_type as dlt', (join) =>
-			join
-				.onRef('dlt.id', '=', 'dl.desk_location_type_id')
-				.onRef('dlt.client_id', '=', 'dl.client_id')
+			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
 		)
 		.leftJoin('location_sla as ls', 'ls.desk_location_id', 'dl.id')
 		.leftJoin('claim_age as ca', 'ca.desk_location_id', 'dl.id')
@@ -110,34 +98,34 @@ export async function getDeskLocationQueueDepth(
 			sql<string | null>`CASE WHEN ls.sla_hours IS NOT NULL THEN
 				COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours)
 			END`.as('breached'),
+			sql<number>`SUM(COUNT(*)) OVER ()`.as('total_claims_in_workflow'),
 		])
 		.where('dl.client_id', '=', clientId)
 		.where('dl.is_active', '=', true)
 		.where('dl.deleted_at', 'is', null)
-		.$if(deskLocationId !== undefined, (qb) =>
-			qb.where('dl.id', '=', deskLocationId!)
-		)
+		.$if(deskLocationId !== undefined, (qb) => qb.where('dl.id', '=', deskLocationId!))
 		.groupBy(['dl.id', 'dl.name', 'dlt.id', 'dlt.name', 'ls.sla_hours'])
-		.orderBy(
-			sql`COALESCE(COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours), 0) DESC`
-		)
+		.orderBy(sql`COALESCE(COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours), 0) DESC`)
 		.orderBy(
 			sql`COALESCE(COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours * 0.75 AND ca.hours_in_stage <= ls.sla_hours), 0) DESC`
 		)
 		.orderBy(sql`COUNT(ca.claim_id) DESC`)
 		.execute();
 
-	return rows.map((row) => ({
-		deskLocationId: row.desk_location_id,
-		deskLocationName: row.desk_location_name,
-		deskLocationTypeId: row.desk_location_type_id,
-		deskLocationTypeName: row.desk_location_type_name,
-		totalClaims: parseInt(row.total_claims),
-		slaHours: row.sla_hours,
-		healthy: row.healthy ? parseInt(row.healthy) : null,
-		warning: row.warning ? parseInt(row.warning) : null,
-		breached: row.breached ? parseInt(row.breached) : null,
-	}));
+	return {
+		totalClaimsInWorkflow: rows[0]?.total_claims_in_workflow ?? null,
+		rows: rows.map((row) => ({
+			deskLocationId: row.desk_location_id,
+			deskLocationName: row.desk_location_name,
+			deskLocationTypeId: row.desk_location_type_id,
+			deskLocationTypeName: row.desk_location_type_name,
+			totalClaims: parseInt(row.total_claims),
+			slaHours: row.sla_hours,
+			healthy: row.healthy ? parseInt(row.healthy) : null,
+			warning: row.warning ? parseInt(row.warning) : null,
+			breached: row.breached ? parseInt(row.breached) : null,
+		})),
+	};
 }
 
 /**
@@ -145,18 +133,13 @@ export async function getDeskLocationQueueDepth(
  *
  * Returns task counts and utilization ratio by desk location.
  */
-export async function getDeskLocationWorkLoad(
-	ctx: ProtectedContext,
-	deskLocationId?: number
-) {
+export async function getDeskLocationWorkLoad(ctx: ProtectedContext, deskLocationId?: number) {
 	const clientId = ctx.session.user.client_id;
 
 	const rows = await ctx.db
 		.selectFrom('desk_location as dl')
 		.innerJoin('desk_location_type as dlt', (join) =>
-			join
-				.onRef('dlt.id', '=', 'dl.desk_location_type_id')
-				.onRef('dlt.client_id', '=', 'dl.client_id')
+			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
 		)
 		.leftJoin('task as t', (join) =>
 			join
@@ -176,28 +159,29 @@ export async function getDeskLocationWorkLoad(
 					COALESCE(SUM(t.work_units), 0)::numeric / dl.daily_work_units
 				ELSE NULL
 			END`.as('utilization_ratio'),
+			sql<number>`SUM(current_load) OVER ()`.as('total_current_load'),
+			sql<number>`SUM(total_capacity) OVER ()`.as('total_capacity_all'),
 		])
 		.where('dl.client_id', '=', clientId)
 		.where('dl.is_active', '=', true)
 		.where('dl.deleted_at', 'is', null)
-		.$if(deskLocationId !== undefined, (qb) =>
-			qb.where('dl.id', '=', deskLocationId!)
-		)
+		.$if(deskLocationId !== undefined, (qb) => qb.where('dl.id', '=', deskLocationId!))
 		.groupBy(['dl.id', 'dl.name', 'dlt.id', 'dlt.name', 'dl.daily_work_units'])
 		.orderBy(sql`utilization_ratio DESC NULLS LAST`)
 		.execute();
 
-	return rows.map((row) => ({
-		deskLocationId: row.desk_location_id,
-		deskLocationName: row.desk_location_name,
-		deskLocationTypeId: row.desk_location_type_id,
-		deskLocationTypeName: row.desk_location_type_name,
-		capacity: row.capacity,
-		currentLoad: parseInt(row.current_load),
-		utilizationRatio: row.utilization_ratio
-			? parseFloat(row.utilization_ratio)
-			: null,
-	}));
+	return {
+		workloadUtilizationRatio: rows[0] ? rows[0].total_current_load / rows[0].total_capacity_all : null,
+		rows: rows.map((row) => ({
+			deskLocationId: row.desk_location_id,
+			deskLocationName: row.desk_location_name,
+			deskLocationTypeId: row.desk_location_type_id,
+			deskLocationTypeName: row.desk_location_type_name,
+			capacity: row.capacity,
+			currentLoad: parseInt(row.current_load),
+			utilizationRatio: row.utilization_ratio ? parseFloat(row.utilization_ratio) : null,
+		})),
+	};
 }
 
 /**
@@ -221,14 +205,14 @@ export async function getUserWorkloadAndCapacity(
 			db
 				.selectFrom('task as t')
 				.select([
-					't.claimed_by as user_id',
+					't.assigned_to as user_id',
 					sql<string>`COUNT(*)`.as('tasks_claimed'),
 					sql<string>`COALESCE(SUM(t.work_units), 0)`.as('work_units_claimed'),
 				])
 				.where('t.client_id', '=', clientId)
 				.where('t.status', '=', 'in_progress')
-				.where('t.claimed_by', 'is not', null)
-				.groupBy('t.claimed_by')
+				.where('t.assigned_to', 'is not', null)
+				.groupBy('t.assigned_to')
 		)
 		.with('user_pending', (db) => {
 			let query = db
@@ -238,12 +222,9 @@ export async function getUserWorkloadAndCapacity(
 						.onRef('t.desk_location_id', '=', 'udl.desk_location_id')
 						.on('t.client_id', '=', clientId)
 						.on('t.status', '=', 'pending')
-						.on('t.claimed_by', 'is', null)
+						.on('t.assigned_to', 'is', null)
 				)
-				.select([
-					'udl.user_id',
-					sql<string>`COUNT(DISTINCT t.id)`.as('tasks_available'),
-				])
+				.select(['udl.user_id', sql<string>`COUNT(DISTINCT t.id)`.as('tasks_available')])
 				.where('udl.removed_at', 'is', null);
 
 			if (options?.deskLocationId !== undefined) {
@@ -272,9 +253,7 @@ export async function getUserWorkloadAndCapacity(
 		])
 		.where('u.client_id', '=', clientId)
 		.where('u.disabled', '=', false)
-		.$if(options?.userId !== undefined, (qb) =>
-			qb.where('u.id', '=', options!.userId!)
-		)
+		.$if(options?.userId !== undefined, (qb) => qb.where('u.id', '=', options!.userId!))
 		.orderBy(sql`utilization_ratio DESC NULLS LAST`)
 		.execute();
 
@@ -287,9 +266,7 @@ export async function getUserWorkloadAndCapacity(
 		currentLoad: parseInt(row.current_load),
 		tasksInProgress: parseInt(row.tasks_in_progress),
 		tasksAvailableInQueue: parseInt(row.tasks_available_in_queue),
-		utilizationRatio: row.utilization_ratio
-			? parseFloat(row.utilization_ratio)
-			: null,
+		utilizationRatio: row.utilization_ratio ? parseFloat(row.utilization_ratio) : null,
 	}));
 }
 
@@ -299,10 +276,7 @@ export async function getUserWorkloadAndCapacity(
  * Returns claims ordered by hours remaining until SLA breach.
  * Only includes claims where hours_remaining < sla_hours * 0.5 (warning+).
  */
-export async function getClaimsApproachingSLABreach(
-	ctx: ProtectedContext,
-	limit: number = 20
-) {
+export async function getClaimsApproachingSLABreach(ctx: ProtectedContext, limit: number = 20) {
 	const clientId = ctx.session.user.client_id;
 
 	const rows = await ctx.db
@@ -325,11 +299,7 @@ export async function getClaimsApproachingSLABreach(
 				)
 				.leftJoin('workflow_threshold as wt', (join) =>
 					join
-						.on(
-							'wt.workflow_definition_id',
-							'=',
-							sql<number>`COALESCE(wd_specific.id, wd_global.id)`
-						)
+						.on('wt.workflow_definition_id', '=', sql<number>`COALESCE(wd_specific.id, wd_global.id)`)
 						.on('wt.threshold_type', '=', WorkflowThresholdType.LOCATION_AGE)
 						.on('wt.is_active', '=', true)
 						.on('wt.deleted_at', 'is', null)
@@ -355,19 +325,13 @@ export async function getClaimsApproachingSLABreach(
 			db
 				.selectFrom('claim as c')
 				.innerJoin('current_transitions as ct', (join) =>
-					join
-						.onRef('ct.claim_id', '=', 'c.id')
-						.onRef('ct.desk_location_id', '=', 'c.desk_location_id')
+					join.onRef('ct.claim_id', '=', 'c.id').onRef('ct.desk_location_id', '=', 'c.desk_location_id')
 				)
 				.innerJoin('desk_location as dl', (join) =>
-					join
-						.onRef('dl.id', '=', 'c.desk_location_id')
-						.onRef('dl.client_id', '=', 'c.client_id')
+					join.onRef('dl.id', '=', 'c.desk_location_id').onRef('dl.client_id', '=', 'c.client_id')
 				)
 				.innerJoin('location_sla as ls', (join) =>
-					join
-						.onRef('ls.desk_location_id', '=', 'dl.id')
-						.on('ls.sla_hours', 'is not', null)
+					join.onRef('ls.desk_location_id', '=', 'dl.id').on('ls.sla_hours', 'is not', null)
 				)
 				.select([
 					'c.id as claim_id',
@@ -378,25 +342,18 @@ export async function getClaimsApproachingSLABreach(
 					'dl.name as desk_location_name',
 					'ct.entered_at as stage_entered_at',
 					'ls.sla_hours',
-					sql<number>`EXTRACT(EPOCH FROM (NOW() - ct.entered_at)) / 3600`.as(
-						'hours_in_stage'
-					),
+					sql<number>`EXTRACT(EPOCH FROM (NOW() - ct.entered_at)) / 3600`.as('hours_in_stage'),
 					sql<number>`ls.sla_hours - (EXTRACT(EPOCH FROM (NOW() - ct.entered_at)) / 3600)`.as(
 						'hours_remaining'
 					),
 				])
 				.where('c.client_id', '=', clientId)
 				.where('c.desk_location_id', 'is not', null)
-				.where('c.recovery_status', 'not in', [
-					'closed_no_recovery',
-					'recovered',
-				])
+				.where('c.recovery_status', 'not in', ['closed_no_recovery', 'recovered'])
 		)
 		.selectFrom('claim_sla_status as css')
 		.leftJoin('users as u', (join) =>
-			join
-				.onRef('u.id', '=', 'css.client_adjuster')
-				.on('u.client_id', '=', clientId)
+			join.onRef('u.id', '=', 'css.client_adjuster').on('u.client_id', '=', clientId)
 		)
 		.select([
 			'css.claim_id',
@@ -455,19 +412,15 @@ export async function getTaskThroughputToday(
 	const rows = await ctx.db
 		.selectFrom('task as t')
 		.innerJoin('desk_location as dl', (join) =>
-			join
-				.onRef('dl.id', '=', 't.desk_location_id')
-				.onRef('dl.client_id', '=', 't.client_id')
+			join.onRef('dl.id', '=', 't.desk_location_id').onRef('dl.client_id', '=', 't.client_id')
 		)
 		.leftJoin('users as u', (join) =>
-			join
-				.onRef('u.id', '=', 't.completed_by')
-				.onRef('u.client_id', '=', 't.client_id')
+			join.onRef('u.id', '=', 't.assigned_to').onRef('u.client_id', '=', 't.client_id')
 		)
 		.select([
 			'dl.id as desk_location_id',
 			'dl.name as desk_location_name',
-			't.completed_by as user_id',
+			't.assigned_to as user_id',
 			'u.first as user_first_name',
 			'u.last as user_last_name',
 			sql<string>`COUNT(*)`.as('tasks_completed'),
@@ -480,10 +433,8 @@ export async function getTaskThroughputToday(
 		.$if(options?.deskLocationId !== undefined, (qb) =>
 			qb.where('t.desk_location_id', '=', options!.deskLocationId!)
 		)
-		.$if(options?.userId !== undefined, (qb) =>
-			qb.where('t.completed_by', '=', options!.userId!)
-		)
-		.groupBy(['dl.id', 'dl.name', 't.completed_by', 'u.first', 'u.last'])
+		.$if(options?.userId !== undefined, (qb) => qb.where('t.assigned_to', '=', options!.userId!))
+		.groupBy(['dl.id', 'dl.name', 't.assigned_to', 'u.first', 'u.last'])
 		.orderBy('dl.name')
 		.orderBy(sql`SUM(t.work_units) DESC`)
 		.execute();
@@ -531,23 +482,13 @@ export async function getDeadlineStatusOverview(
 				AND d.deadline_date <= CURRENT_DATE + INTERVAL '7 days'
 				AND d.status = 'pending'
 			)`.as('next_7_days'),
-			sql<string>`COUNT(*) FILTER (WHERE d.status = 'completed')`.as(
-				'completed'
-			),
-			sql<string>`COUNT(*) FILTER (WHERE d.status = 'cancelled')`.as(
-				'cancelled'
-			),
+			sql<string>`COUNT(*) FILTER (WHERE d.status = 'completed')`.as('completed'),
+			sql<string>`COUNT(*) FILTER (WHERE d.status = 'cancelled')`.as('cancelled'),
 		])
 		.where('d.client_id', '=', clientId)
-		.$if(options?.deadlineType !== undefined, (qb) =>
-			qb.where('d.deadline_type', '=', options!.deadlineType!)
-		)
-		.$if(options?.createdBy !== undefined, (qb) =>
-			qb.where('d.created_by', '=', options!.createdBy!)
-		)
-		.$if(options?.claimId !== undefined, (qb) =>
-			qb.where('d.claim_id', '=', options!.claimId!)
-		)
+		.$if(options?.deadlineType !== undefined, (qb) => qb.where('d.deadline_type', '=', options!.deadlineType!))
+		.$if(options?.createdBy !== undefined, (qb) => qb.where('d.created_by', '=', options!.createdBy!))
+		.$if(options?.claimId !== undefined, (qb) => qb.where('d.claim_id', '=', options!.claimId!))
 		.executeTakeFirstOrThrow();
 
 	return {
@@ -572,9 +513,7 @@ export async function getDeskLocationsWithoutWorkflow(ctx: ProtectedContext) {
 	const rows = await ctx.db
 		.selectFrom('desk_location as dl')
 		.innerJoin('desk_location_type as dlt', (join) =>
-			join
-				.onRef('dlt.id', '=', 'dl.desk_location_type_id')
-				.onRef('dlt.client_id', '=', 'dl.client_id')
+			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
 		)
 		.leftJoin('workflow_definition as wd', (join) =>
 			join
@@ -621,17 +560,13 @@ export async function getDeskLocationsWithoutWorkflow(ctx: ProtectedContext) {
 /**
  * Workflows without location_age threshold (no SLA metrics possible).
  */
-export async function getWorkflowsWithoutLocationAgeThreshold(
-	ctx: ProtectedContext
-) {
+export async function getWorkflowsWithoutLocationAgeThreshold(ctx: ProtectedContext) {
 	const clientId = ctx.session.user.client_id;
 
 	const rows = await ctx.db
 		.selectFrom('workflow_definition as wd')
 		.leftJoin('desk_location as dl', (join) =>
-			join
-				.onRef('dl.id', '=', 'wd.desk_location_id')
-				.onRef('dl.client_id', '=', 'wd.client_id')
+			join.onRef('dl.id', '=', 'wd.desk_location_id').onRef('dl.client_id', '=', 'wd.client_id')
 		)
 		.leftJoin('workflow_threshold as wt', (join) =>
 			join
@@ -672,15 +607,9 @@ export async function getDeskLocationsMissingCapacity(ctx: ProtectedContext) {
 	const rows = await ctx.db
 		.selectFrom('desk_location as dl')
 		.innerJoin('desk_location_type as dlt', (join) =>
-			join
-				.onRef('dlt.id', '=', 'dl.desk_location_type_id')
-				.onRef('dlt.client_id', '=', 'dl.client_id')
+			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
 		)
-		.select([
-			'dl.id as desk_location_id',
-			'dl.name as desk_location_name',
-			'dlt.name as desk_location_type_name',
-		])
+		.select(['dl.id as desk_location_id', 'dl.name as desk_location_name', 'dlt.name as desk_location_type_name'])
 		.where('dl.client_id', '=', clientId)
 		.where('dl.is_active', '=', true)
 		.where('dl.deleted_at', 'is', null)
@@ -707,13 +636,7 @@ export async function getUsersWithoutDeskAssignments(ctx: ProtectedContext) {
 		.leftJoin('user_desk_location as udl', (join) =>
 			join.onRef('udl.user_id', '=', 'u.id').on('udl.removed_at', 'is', null)
 		)
-		.select([
-			'u.id as user_id',
-			'u.first',
-			'u.last',
-			'u.email',
-			'u.role',
-		])
+		.select(['u.id as user_id', 'u.first', 'u.last', 'u.email', 'u.role'])
 		.where('u.client_id', '=', clientId)
 		.where('u.disabled', '=', false)
 		.where('udl.id', 'is', null)
@@ -728,6 +651,88 @@ export async function getUsersWithoutDeskAssignments(ctx: ProtectedContext) {
 		email: row.email,
 		role: row.role,
 	}));
+}
+
+// ============================================================================
+// WORKFLOW SUGGESTIONS
+// ============================================================================
+
+export async function getSuggestionInput(ctx: ProtectedContext): Promise<{
+	locations: DeskLocationLoad[];
+	assignments: UserDeskAssignment[];
+	currentTasks: UserCurrentTask[];
+}> {
+	const clientId = ctx.session.user.client_id;
+
+	const [locationRows, assignmentRows, taskRows] = await Promise.all([
+		// 1. Desk location load (active, non-deleted only)
+		ctx.db
+			.selectFrom('desk_location as dl')
+			.leftJoin('claim as c', (join) =>
+				join.onRef('c.desk_location_id', '=', 'dl.id').on('c.client_id', '=', clientId)
+			)
+			.leftJoin('task as t', (join) => join.onRef('t.claim_id', '=', 'c.id').on('t.completed_at', 'is', null))
+			.where('dl.client_id', '=', clientId)
+			.where('dl.is_active', '=', true)
+			.where('dl.deleted_at', 'is', null)
+			.groupBy(['dl.id', 'dl.name', 'dl.capacity_threshold'])
+			.select([
+				'dl.id',
+				'dl.name',
+				sql<number>`COALESCE(SUM(t.work_units), 0)`.as('open_task_units'),
+				'dl.capacity_threshold',
+			])
+			.execute(),
+
+		// 2. User desk assignments (active only, client-scoped)
+		ctx.db
+			.selectFrom('user_desk_location as udl')
+			.innerJoin('users as u', 'u.id', 'udl.user_id')
+			.innerJoin('desk_location as dl', 'dl.id', 'udl.desk_location_id')
+			.where('udl.removed_at', 'is', null)
+			.where('dl.client_id', '=', clientId)
+			.where('u.client_id', '=', clientId)
+			.select((eb) => [
+				'udl.user_id',
+				sql<string>`concat(${eb.ref('u.first')}, ' ', ${eb.ref('u.last')})`.as('user_name'),
+				'udl.desk_location_id',
+				'dl.name as desk_location_name',
+				'udl.priority',
+			])
+			.execute(),
+
+		// 3. User current tasks (in-progress only)
+		ctx.db
+			.selectFrom('task as t')
+			.where('t.client_id', '=', clientId)
+			.where('t.started_at', 'is not', null)
+			.where('t.completed_at', 'is', null)
+			.where('t.assigned_to', 'is not', null)
+			.select(['t.assigned_to', 't.id', 't.work_units', 't.started_at'])
+			.execute(),
+	]);
+
+	return {
+		locations: locationRows.map((row) => ({
+			deskLocationId: row.id,
+			deskLocationName: row.name,
+			openTaskUnits: Number(row.open_task_units),
+			capacityThreshold: Number(row.capacity_threshold),
+		})),
+		assignments: assignmentRows.map((row) => ({
+			userId: row.user_id,
+			userName: row.user_name,
+			deskLocationId: row.desk_location_id,
+			deskLocationName: row.desk_location_name,
+			priority: row.priority,
+		})),
+		currentTasks: taskRows.map((row) => ({
+			userId: row.assigned_to!,
+			taskId: row.id,
+			totalWorkUnits: Number(row.work_units),
+			startedAt: row.started_at ? new Date(row.started_at) : null,
+		})),
+	};
 }
 
 // ============================================================================
@@ -754,14 +759,10 @@ export async function getWorkflowStageMetrics(
 	const rows = await ctx.db
 		.selectFrom('analytics.daily_workflow_stage_snapshot as dwss')
 		.innerJoin('desk_location as dl', (join) =>
-			join
-				.onRef('dl.id', '=', 'dwss.desk_location_id')
-				.onRef('dl.client_id', '=', 'dwss.client_id')
+			join.onRef('dl.id', '=', 'dwss.desk_location_id').onRef('dl.client_id', '=', 'dwss.client_id')
 		)
 		.innerJoin('desk_location_type as dlt', (join) =>
-			join
-				.onRef('dlt.id', '=', 'dl.desk_location_type_id')
-				.onRef('dlt.client_id', '=', 'dl.client_id')
+			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
 		)
 		.select([
 			'dwss.snapshot_date',
@@ -777,9 +778,7 @@ export async function getWorkflowStageMetrics(
 		.where('dwss.client_id', '=', clientId)
 		.where('dwss.snapshot_date', '>=', sql<Date>`${options.startDate}::date`)
 		.where('dwss.snapshot_date', '<=', sql<Date>`${options.endDate}::date`)
-		.$if(options.deskLocationTypeId !== undefined, (qb) =>
-			qb.where('dlt.id', '=', options.deskLocationTypeId!)
-		)
+		.$if(options.deskLocationTypeId !== undefined, (qb) => qb.where('dlt.id', '=', options.deskLocationTypeId!))
 		.$if(options.deskLocationId !== undefined, (qb) =>
 			qb.where('dwss.desk_location_id', '=', options.deskLocationId!)
 		)
@@ -795,12 +794,8 @@ export async function getWorkflowStageMetrics(
 		deskLocationTypeId: row.desk_location_type_id,
 		deskLocationTypeName: row.desk_location_type_name,
 		claimsCount: row.claims_count,
-		avgHoursInStage: row.avg_hours_in_stage
-			? parseFloat(String(row.avg_hours_in_stage))
-			: null,
-		medianHoursInStage: row.median_hours_in_stage
-			? parseFloat(String(row.median_hours_in_stage))
-			: null,
+		avgHoursInStage: row.avg_hours_in_stage ? parseFloat(String(row.avg_hours_in_stage)) : null,
+		medianHoursInStage: row.median_hours_in_stage ? parseFloat(String(row.median_hours_in_stage)) : null,
 		claimsBreachingSla: row.claims_breaching_sla,
 	}));
 }

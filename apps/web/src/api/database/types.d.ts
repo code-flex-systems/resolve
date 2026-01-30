@@ -357,6 +357,10 @@ export interface Deadline {
 }
 
 export interface DeskLocation {
+  /**
+   * Work unit threshold for this location. Used for capacity alerting and workflow analytics.
+   */
+  capacity_threshold: Generated<number>;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string | null;
@@ -899,27 +903,18 @@ export interface StatuteRule {
 export interface Task {
   assigned_at: Generated<Timestamp>;
   /**
-   * User who created/assigned the task
+   * User this task is assigned to (nullable - unassigned tasks are available to anyone)
    */
-  assigned_by: string;
+  assigned_to: string | null;
   /**
    * The claim this task is associated with
    */
   claim_id: number;
-  claimed_at: Timestamp | null;
-  /**
-   * User currently working on the task
-   */
-  claimed_by: string | null;
   /**
    * Client scope for multi-tenancy
    */
   client_id: string;
   completed_at: Timestamp | null;
-  /**
-   * User who completed the task
-   */
-  completed_by: string | null;
   /**
    * Notes added when completing the task
    */
@@ -937,6 +932,10 @@ export interface Task {
    * Primary key
    */
   id: Generated<number>;
+  /**
+   * When the user started working on the task
+   */
+  started_at: Timestamp | null;
   status: Generated<string>;
   /**
    * Type of task (enum value from TaskType)
@@ -973,7 +972,7 @@ export interface UserDeskLocation {
   /**
    * Priority level (1-5) for this desk location assignment, 1 being highest
    */
-  priority: number;
+  priority: number | null;
   /**
    * Soft deletion timestamp - when assignment was removed
    */

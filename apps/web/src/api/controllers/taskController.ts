@@ -1,8 +1,10 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as taskQueries from '@/api/queries/taskQueries';
 import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
-import { EntityName, logUserWorkflowAction } from '@/api/utils/activityLogger';
+import { EntityName, LogAction, logAction, logUserWorkflowAction } from '@/api/utils/activityLogger';
 import { TaskStatus, TaskType } from '@/config/enums';
+import { TRPCError } from '@trpc/server';
+import config from '@/config/config';
 
 // ============================================================================
 // TASK QUERY CONTROLLERS
@@ -18,8 +20,7 @@ export async function getTasks(
 		claimId?: number;
 		status?: TaskStatus;
 		taskType?: TaskType;
-		assignedBy?: string;
-		claimedBy?: string;
+		assignedTo?: string;
 		searchTerm?: string;
 		limit?: number;
 		offset?: number;
@@ -115,6 +116,58 @@ export async function getTaskCountsByStatus(
 }
 
 // ============================================================================
+// TASK AUTHORIZATION HELPERS
+// ============================================================================
+
+/**
+ * Verify the task is assigned and the caller is the assigned user or an admin.
+ * Unassigned tasks can only be assigned or cancelled — not started, released, or completed.
+ * Throws NOT_FOUND if the task doesn't exist in this client.
+ * Throws FORBIDDEN if the task is unassigned or the caller isn't authorized.
+ */
+export async function requireTaskOwnership(ctx: ProtectedContext, taskId: number) {
+	const task = await taskQueries.getTaskOwnership(ctx, taskId);
+	if (!task) {
+		throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found' });
+	}
+	if (!task.assigned_to) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Task must be assigned before this action can be performed',
+		});
+	}
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	if (!isAdmin && task.assigned_to !== ctx.session.user.id) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Only the assigned user or an admin can perform this action',
+		});
+	}
+	return task;
+}
+
+/**
+ * Verify the target user belongs to the same client as the caller.
+ * Throws BAD_REQUEST if the user doesn't exist in this client.
+ */
+async function requireSameClientUser(ctx: ProtectedContext, userId: string) {
+	const user = await ctx.db
+		.selectFrom('users')
+		.select('users.id')
+		.where('users.id', '=', userId)
+		.where('users.client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+	if (!user) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Target user does not belong to this organization',
+		});
+	}
+}
+
+// ============================================================================
 // TASK MUTATION CONTROLLERS
 // ============================================================================
 
@@ -133,8 +186,14 @@ export async function createTask(
 		deadlineDate?: string;
 		deadlineDescription?: string;
 		workUnits?: number;
+		assignedTo?: string;
 	}
 ) {
+	// Validate assignedTo user belongs to the same client (prevents cross-tenant assignment)
+	if (input.assignedTo) {
+		await requireSameClientUser(ctx, input.assignedTo);
+	}
+
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.createTask(trxCtx, input);
@@ -192,17 +251,56 @@ export async function updateTask(
 }
 
 /**
- * Claim task (start working on it)
+ * Assign task to a user
+ * Validates target user belongs to the same client before assigning.
+ * Non-admins can only assign unassigned tasks (prevents stealing from another user).
  * Logs user workflow action to claim_activity_logs
  */
-export async function claimTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function assignTask(ctx: ProtectedContext, { id, userId }: { id: number; userId: string }) {
+	await requireSameClientUser(ctx, userId);
+
+	// Check current task state to prevent non-admins from stealing assignments
+	const task = await taskQueries.getTaskOwnership(ctx, id);
+	if (!task) {
+		throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found' });
+	}
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	if (!isAdmin && task.assigned_to) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Task is already assigned to another user',
+		});
+	}
+
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
-		const task = await taskQueries.claimTask(trxCtx, id);
+		const task = await taskQueries.assignTask(trxCtx, id, userId);
 
 		await logUserWorkflowAction(trxCtx, {
 			claimId: task.claim_id!,
-			action: 'task_claim',
+			action: 'task_assign',
+			entityId: task.id,
+			value: { userId },
+		});
+
+		return task;
+	});
+}
+
+/**
+ * Unassign task (clear assignment)
+ * Logs user workflow action to claim_activity_logs
+ */
+export async function unassignTask(ctx: ProtectedContext, { id }: { id: number }) {
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.unassignTask(trxCtx, id);
+
+		await logUserWorkflowAction(trxCtx, {
+			claimId: task.claim_id!,
+			action: 'task_unassign',
 			entityId: task.id,
 		});
 
@@ -211,17 +309,17 @@ export async function claimTask(ctx: ProtectedContext, { id }: { id: number }) {
 }
 
 /**
- * Unclaim task (release it back to queue)
+ * Start task (begin working on it)
  * Logs user workflow action to claim_activity_logs
  */
-export async function unclaimTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function startTask(ctx: ProtectedContext, { id }: { id: number }) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
-		const task = await taskQueries.unclaimTask(trxCtx, id);
+		const task = await taskQueries.startTask(trxCtx, id);
 
 		await logUserWorkflowAction(trxCtx, {
 			claimId: task.claim_id!,
-			action: 'task_unclaim',
+			action: 'task_start',
 			entityId: task.id,
 		});
 

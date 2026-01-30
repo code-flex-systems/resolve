@@ -78,6 +78,17 @@ export function useWorkflowAnalyticsTrpc() {
 			trpc.workflowAnalytics.getConfigurationHealthCheck.useQuery,
 
 		// ====================================================================
+		// WORKFLOW SUGGESTIONS (Admin Only)
+		// ====================================================================
+
+		/**
+		 * Generate workflow suggestions based on current load and assignments
+		 * Returns priority reassignment suggestions for admin review
+		 */
+		getWorkflowSuggestions:
+			trpc.workflowAnalytics.getWorkflowSuggestions.useQuery,
+
+		// ====================================================================
 		// TIER 1 BATCH QUERIES (Admin Only, from rollup tables)
 		// ====================================================================
 
@@ -121,6 +132,10 @@ export type DeadlineStatusOverviewResult =
 // Health check output type
 export type ConfigurationHealthCheckResult =
 	WorkflowAnalyticsOutput['getConfigurationHealthCheck'];
+
+// Workflow suggestions output type
+export type WorkflowSuggestionsResult =
+	WorkflowAnalyticsOutput['getWorkflowSuggestions'];
 
 // Tier 1 output types
 export type WorkflowStageMetricsResult =

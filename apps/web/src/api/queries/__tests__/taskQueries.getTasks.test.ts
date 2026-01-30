@@ -55,20 +55,16 @@ const createMockTask = (overrides: Record<string, unknown> = {}) => ({
 	work_units: 2,
 	title: 'Test Task',
 	description: 'Test description',
-	assigned_by: 'user-1',
+	assigned_to: 'user-1',
 	assigned_at: new Date('2025-01-01'),
-	claimed_by: null,
-	claimed_at: null,
-	completed_by: null,
+	started_at: null,
 	completed_at: null,
 	completion_notes: null,
 	created_at: new Date('2025-01-01'),
 	updated_at: new Date('2025-01-01'),
 	desk_location_name: 'Evaluation',
-	assigned_by_first: 'John',
-	assigned_by_last: 'Doe',
-	claimed_by_first: null,
-	claimed_by_last: null,
+	assigned_to_first: 'John',
+	assigned_to_last: 'Doe',
 	claim_number: 'CLM-001',
 	deadline_id: null,
 	deadline_date: null,
@@ -116,11 +112,10 @@ describe('getTasks', () => {
 			expect(result.rows[0].derived_status).toBe('available');
 		});
 
-		it('should return in_progress status for claimed tasks', async () => {
+		it('should return in_progress status for started tasks', async () => {
 			const mockTask = createMockTask({
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: 'user-2',
-				claimed_at: new Date(),
+				started_at: new Date(),
 				derived_status: 'in_progress',
 			});
 
@@ -144,7 +139,6 @@ describe('getTasks', () => {
 		it('should return completed_on_time when task completed and deadline met', async () => {
 			const mockTask = createMockTask({
 				status: TaskStatus.COMPLETED,
-				completed_by: 'user-2',
 				completed_at: new Date(),
 				deadline_id: 1,
 				deadline_status: 'met',
@@ -171,7 +165,6 @@ describe('getTasks', () => {
 		it('should return completed_late when task completed and deadline missed', async () => {
 			const mockTask = createMockTask({
 				status: TaskStatus.COMPLETED,
-				completed_by: 'user-2',
 				completed_at: new Date(),
 				deadline_id: 1,
 				deadline_status: 'missed',
@@ -198,7 +191,6 @@ describe('getTasks', () => {
 		it('should return completed_on_time for completed tasks without deadline', async () => {
 			const mockTask = createMockTask({
 				status: TaskStatus.COMPLETED,
-				completed_by: 'user-2',
 				completed_at: new Date(),
 				deadline_id: null,
 				deadline_status: null,
@@ -323,7 +315,7 @@ describe('getTasks', () => {
 			expect(mockWhere).toHaveBeenCalledWith('task.task_type', '=', TaskType.GENERIC);
 		});
 
-		it('should filter by assigned_by user', async () => {
+		it('should filter by assigned_to user', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -337,28 +329,9 @@ describe('getTasks', () => {
 				} as any;
 			});
 
-			await getTasks(mockContext, { assignedBy: 'user-1' });
+			await getTasks(mockContext, { assignedTo: 'user-1' });
 
-			expect(mockWhere).toHaveBeenCalledWith('task.assigned_by', '=', 'user-1');
-		});
-
-		it('should filter by claimed_by user', async () => {
-			const mockWhere = vi.fn().mockReturnThis();
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
-				return {
-					leftJoin: vi.fn().mockReturnThis(),
-					select: vi.fn().mockReturnThis(),
-					where: mockWhere,
-					orderBy: vi.fn().mockReturnThis(),
-					$if: vi.fn().mockReturnThis(),
-					execute: vi.fn().mockResolvedValue([]),
-					executeTakeFirst: vi.fn().mockResolvedValue({ count: '0' }),
-				} as any;
-			});
-
-			await getTasks(mockContext, { claimedBy: 'user-2' });
-
-			expect(mockWhere).toHaveBeenCalledWith('task.claimed_by', '=', 'user-2');
+			expect(mockWhere).toHaveBeenCalledWith('task.assigned_to', '=', 'user-1');
 		});
 
 		it('should exclude cancelled tasks by default', async () => {
@@ -536,14 +509,11 @@ describe('getTasks', () => {
 			expect(result.rows[0].deadline_status).toBe('pending');
 		});
 
-		it('should include user names for assigned_by and claimed_by', async () => {
+		it('should include user names for assigned_to', async () => {
 			const mockTask = createMockTask({
-				assigned_by: 'user-1',
-				assigned_by_first: 'John',
-				assigned_by_last: 'Doe',
-				claimed_by: 'user-2',
-				claimed_by_first: 'Jane',
-				claimed_by_last: 'Smith',
+				assigned_to: 'user-1',
+				assigned_to_first: 'John',
+				assigned_to_last: 'Doe',
 			});
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -560,8 +530,8 @@ describe('getTasks', () => {
 
 			const result = await getTasks(mockContext, {});
 
-			expect(result.rows[0].assigned_by_first).toBe('John');
-			expect(result.rows[0].claimed_by_first).toBe('Jane');
+			expect(result.rows[0].assigned_to_first).toBe('John');
+			expect(result.rows[0].assigned_to_last).toBe('Doe');
 		});
 	});
 

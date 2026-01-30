@@ -59,7 +59,7 @@ BEGIN
     -- Task 1: Pending review task (future deadline)
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at, created_at
+        title, description, work_units, assigned_to, assigned_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'review', 'pending',
         'Initial coverage review', 'Review policy coverage and verify claim eligibility',
@@ -79,13 +79,13 @@ BEGIN
     -- Task 2: Completed on time - document request
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'request_document', 'completed',
         'Request proof of loss', 'Request signed proof of loss form from insured',
         2, v_user_id, NOW() - INTERVAL '10 days',
-        v_user_id, NOW() - INTERVAL '10 days', v_user_id, NOW() - INTERVAL '5 days',
+        NOW() - INTERVAL '10 days', NOW() - INTERVAL '5 days',
         'Proof of loss received via email', NOW() - INTERVAL '10 days'
     ) RETURNING id INTO v_task_id;
 
@@ -119,13 +119,13 @@ BEGIN
     -- Task 1: In progress - send demand
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'send_demand', 'in_progress',
         'Send demand letter to adverse party', 'Prepare and send demand letter with supporting documentation',
         4, v_user_id, NOW() - INTERVAL '7 days',
-        v_user_id, NOW() - INTERVAL '5 days', NOW() - INTERVAL '7 days'
+        NOW() - INTERVAL '5 days', NOW() - INTERVAL '7 days'
     ) RETURNING id INTO v_task_id;
 
     -- Deadline for in-progress task (due in 3 days)
@@ -141,13 +141,13 @@ BEGIN
     -- Task 2: Completed late - follow up call
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'outbound_call', 'completed',
         'Follow up with claimant', 'Call claimant to discuss claim status and next steps',
         2, v_user_id, NOW() - INTERVAL '20 days',
-        v_user_id, NOW() - INTERVAL '18 days', v_user_id, NOW() - INTERVAL '10 days',
+        NOW() - INTERVAL '18 days', NOW() - INTERVAL '10 days',
         'Spoke with claimant, they understand the process', NOW() - INTERVAL '20 days'
     ) RETURNING id INTO v_task_id;
 
@@ -164,7 +164,7 @@ BEGIN
     -- Task 3: Cancelled task
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at, created_at
+        title, description, work_units, assigned_to, assigned_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'send_document', 'cancelled',
         'Send preliminary estimate', 'Send initial damage estimate to insured (cancelled - superseded)',
@@ -202,7 +202,7 @@ BEGIN
     -- Task 1: Pending - overdue (deadline already passed)
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at, created_at
+        title, description, work_units, assigned_to, assigned_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'follow_up', 'pending',
         'Follow up on subrogation demand', 'Contact adverse carrier regarding outstanding subrogation demand',
@@ -222,7 +222,7 @@ BEGIN
     -- Task 2: Pending - future deadline
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at, created_at
+        title, description, work_units, assigned_to, assigned_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'letter', 'pending',
         'Send recovery status update', 'Send status update letter to insured regarding recovery efforts',
@@ -242,13 +242,13 @@ BEGIN
     -- Task 3: Completed on time - inbound call
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'inbound_call', 'completed',
         'Handle adverse carrier callback', 'Return call from adverse carrier claims department',
         2, v_user_id, NOW() - INTERVAL '15 days',
-        v_user_id, NOW() - INTERVAL '15 days', v_user_id, NOW() - INTERVAL '14 days',
+        NOW() - INTERVAL '15 days', NOW() - INTERVAL '14 days',
         'Discussed settlement terms, carrier requested additional documentation', NOW() - INTERVAL '15 days'
     ) RETURNING id INTO v_task_id;
 
@@ -272,7 +272,7 @@ BEGIN
     -- Task 1: Pending generic task
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at, created_at
+        title, description, work_units, assigned_to, assigned_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'generic', 'pending',
         'Review expert report', 'Review independent expert report and summarize findings',
@@ -291,13 +291,13 @@ BEGIN
     -- Task 2: In progress - document request
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'request_document', 'in_progress',
         'Request medical records', 'Request updated medical records from treating physician',
         3, v_user_id, NOW() - INTERVAL '5 days',
-        v_user_id, NOW() - INTERVAL '4 days', NOW() - INTERVAL '5 days'
+        NOW() - INTERVAL '4 days', NOW() - INTERVAL '5 days'
     ) RETURNING id INTO v_task_id;
 
     INSERT INTO deadline (
@@ -312,13 +312,13 @@ BEGIN
     -- Task 3: Completed - review task
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'review', 'completed',
         'Liability assessment', 'Complete liability assessment and document findings',
         5, v_user_id, NOW() - INTERVAL '20 days',
-        v_user_id, NOW() - INTERVAL '19 days', v_user_id, NOW() - INTERVAL '12 days',
+        NOW() - INTERVAL '19 days', NOW() - INTERVAL '12 days',
         'Liability assessed at 70/30 split, documented in claim notes', NOW() - INTERVAL '20 days'
     ) RETURNING id INTO v_task_id;
 
@@ -334,13 +334,13 @@ BEGIN
     -- Task 4: Completed late
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'outbound_call', 'completed',
         'Contact claimant attorney', 'Discuss case status with claimant attorney',
         2, v_user_id, NOW() - INTERVAL '30 days',
-        v_user_id, NOW() - INTERVAL '28 days', v_user_id, NOW() - INTERVAL '20 days',
+        NOW() - INTERVAL '28 days', NOW() - INTERVAL '20 days',
         'Attorney requests extension on document production', NOW() - INTERVAL '30 days'
     ) RETURNING id INTO v_task_id;
 
@@ -381,13 +381,13 @@ BEGIN
     -- Task 1: Completed - send document
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'send_document', 'completed',
         'Send closing statement', 'Send final closing statement and recovery documentation to insured',
         2, v_user_id, NOW() - INTERVAL '30 days',
-        v_user_id, NOW() - INTERVAL '30 days', v_user_id, NOW() - INTERVAL '28 days',
+        NOW() - INTERVAL '30 days', NOW() - INTERVAL '28 days',
         'Closing statement sent with full recovery confirmation', NOW() - INTERVAL '30 days'
     ) RETURNING id INTO v_task_id;
 
@@ -403,13 +403,13 @@ BEGIN
     -- Task 2: Completed - final review
     INSERT INTO task (
         client_id, claim_id, desk_location_id, task_type, status,
-        title, description, work_units, assigned_by, assigned_at,
-        claimed_by, claimed_at, completed_by, completed_at, completion_notes, created_at
+        title, description, work_units, assigned_to, assigned_at,
+        started_at, completed_at, completion_notes, created_at
     ) VALUES (
         v_client_id, v_claim_id, v_desk_location_id, 'review', 'completed',
         'Final file review', 'Complete final review before closing claim file',
         3, v_user_id, NOW() - INTERVAL '35 days',
-        v_user_id, NOW() - INTERVAL '35 days', v_user_id, NOW() - INTERVAL '32 days',
+        NOW() - INTERVAL '35 days', NOW() - INTERVAL '32 days',
         'All documentation complete, file ready for closure', NOW() - INTERVAL '35 days'
     ) RETURNING id INTO v_task_id;
 

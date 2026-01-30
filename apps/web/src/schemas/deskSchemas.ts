@@ -91,6 +91,7 @@ export const createDeskLocationInput = z.object({
 	name: z.string().min(1).max(255),
 	desk_location_type_id: z.number().int().positive(),
 	is_active: z.boolean().optional().default(true),
+	capacity_threshold: z.number().int().positive(),
 });
 export type CreateDeskLocationInput = z.infer<typeof createDeskLocationInput>;
 
@@ -103,6 +104,7 @@ export const updateDeskLocationInput = z.object({
 		name: z.string().min(1).max(255).optional(),
 		desk_location_type_id: z.number().int().positive().optional(),
 		is_active: z.boolean().optional(),
+		capacity_threshold: z.number().int().positive().optional(),
 	}),
 });
 export type UpdateDeskLocationInput = z.infer<typeof updateDeskLocationInput>;

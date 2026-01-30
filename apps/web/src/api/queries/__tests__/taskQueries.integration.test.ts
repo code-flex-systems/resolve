@@ -3,7 +3,7 @@
  *
  * These tests run against a real database to verify:
  * - Multi-tenant data isolation
- * - Task lifecycle operations (create, claim, unclaim, complete, cancel)
+ * - Task lifecycle operations (create, assign, start, unassign, complete, cancel)
  * - Derived status logic (combining task.status with deadline timing)
  * - Transaction atomicity for task+deadline operations
  * - Desk location visibility and capacity management
@@ -28,8 +28,9 @@ import {
 	getTasksByDeskLocation,
 	getTasksForUser,
 	createTask,
-	claimTask,
-	unclaimTask,
+	assignTask,
+	unassignTask,
+	startTask,
 	updateTask,
 	completeTask,
 	cancelTask,
@@ -84,14 +85,14 @@ describe('taskQueries integration', () => {
 				client_id: client1.id,
 				claim_id: claim1.id,
 				desk_location_id: desk1.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 				title: 'Client 1 Task',
 			});
 			await createTestTask(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
 				desk_location_id: desk2.id,
-				assigned_by: user2.id,
+				assigned_to: user2.id,
 				title: 'Client 2 Task',
 			});
 
@@ -135,7 +136,7 @@ describe('taskQueries integration', () => {
 					client_id: client1.id,
 					claim_id: claim1.id,
 					desk_location_id: desk1.id,
-					assigned_by: user1.id,
+					assigned_to: user1.id,
 				});
 			}
 			// 2 tasks for client 2
@@ -144,7 +145,7 @@ describe('taskQueries integration', () => {
 					client_id: client2.id,
 					claim_id: claim2.id,
 					desk_location_id: desk2.id,
-					assigned_by: user1.id,
+					assigned_to: user1.id,
 				});
 			}
 
@@ -181,14 +182,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk1.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Desk 1 Task',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk2.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Desk 2 Task',
 			});
 
@@ -218,14 +219,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim1.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Claim 1 Task',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim2.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Claim 2 Task',
 			});
 
@@ -254,7 +255,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 				title: 'Pending Task',
 			});
@@ -262,18 +263,17 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 				title: 'In Progress Task',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 				title: 'Completed Task',
 			});
@@ -312,7 +312,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					task_type: TaskType.OUTBOUND_CALL,
 					title: 'Call Task',
 					status: TaskStatus.PENDING,
@@ -324,7 +324,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					task_type: TaskType.REVIEW,
 					title: 'Review Task',
 					status: TaskStatus.PENDING,
@@ -356,14 +356,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Follow up with insured',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Review documents',
 			});
 
@@ -392,7 +392,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 				title: 'Active Task',
 			});
@@ -400,7 +400,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.CANCELLED,
 				title: 'Cancelled Task',
 			});
@@ -434,7 +434,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: `Task ${String(i).padStart(2, '0')}`,
 				});
 			}
@@ -456,7 +456,7 @@ describe('taskQueries integration', () => {
 			expect(page1Titles.some((t) => page2Titles.includes(t))).toBe(false);
 		});
 
-		it('should filter by assignedBy', async () => {
+		it('should filter by assignedTo', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -472,69 +472,28 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 				title: 'User 1 Assigned Task',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user2.id,
+				assigned_to: user2.id,
 				title: 'User 2 Assigned Task',
 			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await getTasks(ctx, { assignedBy: user1.id });
+			const result = await getTasks(ctx, { assignedTo: user1.id });
 
 			// Assert
 			expect(result.rows).toHaveLength(1);
 			expect(result.rows[0].title).toBe('User 1 Assigned Task');
 		});
 
-		it('should filter by claimedBy', async () => {
-			// Arrange
-			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const desk = await createTestDeskLocation(db, {
-				client_id: client.id,
-				desk_location_type_id: deskType.id,
-			});
-			const claim = await createTestClaim(db, { client_id: client.id });
-
-			await createTestTask(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				desk_location_id: desk.id,
-				assigned_by: user1.id,
-				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user1.id,
-				title: 'User 1 Claimed Task',
-			});
-			await createTestTask(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				desk_location_id: desk.id,
-				assigned_by: user1.id,
-				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user2.id,
-				title: 'User 2 Claimed Task',
-			});
-
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
-
-			// Act
-			const result = await getTasks(ctx, { claimedBy: user2.id });
-
-			// Assert
-			expect(result.rows).toHaveLength(1);
-			expect(result.rows[0].title).toBe('User 2 Claimed Task');
-		});
-
-		it('should return user name fields for assigned and claimed users', async () => {
+		it('should return user name fields for assigned users', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const assigner = await createTestUser(db, {
@@ -543,12 +502,6 @@ describe('taskQueries integration', () => {
 				first: 'John',
 				last: 'Assigner',
 			});
-			const claimer = await createTestUser(db, {
-				client_id: client.id,
-				role: 'Contributor',
-				first: 'Jane',
-				last: 'Claimer',
-			});
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const desk = await createTestDeskLocation(db, {
 				client_id: client.id,
@@ -560,9 +513,9 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: assigner.id,
+				assigned_to: assigner.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: claimer.id,
+				started_at: new Date(),
 				title: 'Task with users',
 			});
 
@@ -573,10 +526,8 @@ describe('taskQueries integration', () => {
 
 			// Assert
 			expect(result.rows).toHaveLength(1);
-			expect(result.rows[0].assigned_by_first).toBe('John');
-			expect(result.rows[0].assigned_by_last).toBe('Assigner');
-			expect(result.rows[0].claimed_by_first).toBe('Jane');
-			expect(result.rows[0].claimed_by_last).toBe('Claimer');
+			expect(result.rows[0].assigned_to_first).toBe('John');
+			expect(result.rows[0].assigned_to_last).toBe('Assigner');
 		});
 	});
 
@@ -597,7 +548,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 				title: 'Pending Task',
 			});
@@ -607,9 +558,9 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 				title: 'In Progress Task',
 			});
 
@@ -618,9 +569,8 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 				title: 'Completed On Time Task',
 			});
@@ -638,9 +588,8 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 				title: 'Completed Late Task',
 			});
@@ -689,7 +638,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Test Task',
 				description: 'Test description',
 			});
@@ -725,7 +674,7 @@ describe('taskQueries integration', () => {
 				client_id: client1.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -755,21 +704,21 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim1.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Claim 1 Task 1',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim1.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Claim 1 Task 2',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim2.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Claim 2 Task',
 			});
 
@@ -806,14 +755,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk1.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Desk 1 Task',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk2.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Desk 2 Task',
 			});
 
@@ -859,7 +808,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk1.id,
-				assigned_by: otherUser.id,
+				assigned_to: otherUser.id,
 				title: 'User Desk Task',
 			});
 
@@ -868,7 +817,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk2.id,
-				assigned_by: otherUser.id,
+				assigned_to: otherUser.id,
 				title: 'Other Desk Task',
 			});
 
@@ -905,7 +854,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Task at removed desk',
 			});
 
@@ -952,14 +901,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: lowPriorityDesk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Low Priority Task',
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: highPriorityDesk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'High Priority Task',
 			});
 
@@ -994,7 +943,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 				title: 'Pending Task',
 			});
@@ -1002,9 +951,9 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 				title: 'In Progress Task',
 			});
 
@@ -1040,7 +989,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: admin.id,
+				assigned_to: admin.id,
 				title: 'Contributor Desk Task',
 			});
 
@@ -1083,7 +1032,7 @@ describe('taskQueries integration', () => {
 			expect(result.title).toBe('New Task');
 			expect(result.description).toBe('Task description');
 			expect(result.status).toBe(TaskStatus.PENDING);
-			expect(result.assigned_by).toBe(user.id);
+			expect(result.assigned_to).toBe(user.id);
 			expect(result.client_id).toBe(client.id);
 			expect(result.task_type).toBe(TaskType.GENERIC);
 		});
@@ -1155,8 +1104,8 @@ describe('taskQueries integration', () => {
 		});
 	});
 
-	describe('claimTask', () => {
-		it('should claim a pending task', async () => {
+	describe('startTask', () => {
+		it('should start a pending task', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1171,22 +1120,21 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await claimTask(ctx, task.id);
+			const result = await startTask(ctx, task.id);
 
 			// Assert
 			expect(result.status).toBe(TaskStatus.IN_PROGRESS);
-			expect(result.claimed_by).toBe(user.id);
-			expect(result.claimed_at).toBeDefined();
+			expect(result.started_at).toBeDefined();
 		});
 
-		it('should fail to claim an already claimed task', async () => {
+		it('should fail to start an already started task', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1202,18 +1150,18 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user1.id, // Already claimed
+				started_at: new Date(), // Already started
 			});
 
 			const ctx = createTestContext(db, { id: user2.id, client_id: client.id, role: 'Contributor' });
 
-			// Act & Assert - Should fail because task is already claimed
-			await expect(claimTask(ctx, task.id)).rejects.toThrow();
+			// Act & Assert - Should fail because task is already started
+			await expect(startTask(ctx, task.id)).rejects.toThrow();
 		});
 
-		it('should fail to claim a completed task', async () => {
+		it('should fail to start a completed task', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1228,21 +1176,20 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert
-			await expect(claimTask(ctx, task.id)).rejects.toThrow();
+			await expect(startTask(ctx, task.id)).rejects.toThrow();
 		});
 	});
 
-	describe('unclaimTask', () => {
-		it('should unclaim a task claimed by the user', async () => {
+	describe('unassignTask', () => {
+		it('should unassign a task assigned to a user', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1257,47 +1204,45 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
-				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				assigned_to: user.id,
+				status: TaskStatus.PENDING,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await unclaimTask(ctx, task.id);
+			const result = await unassignTask(ctx, task.id);
 
 			// Assert
 			expect(result.status).toBe(TaskStatus.PENDING);
-			expect(result.claimed_by).toBeNull();
-			expect(result.claimed_at).toBeNull();
+			expect(result.assigned_to).toBeNull();
 		});
 
-		it('should fail to unclaim a task claimed by another user', async () => {
+		it('should fail to unassign a task from a different client', async () => {
 			// Arrange
-			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
 			const desk = await createTestDeskLocation(db, {
-				client_id: client.id,
+				client_id: client1.id,
 				desk_location_type_id: deskType.id,
 			});
-			const claim = await createTestClaim(db, { client_id: client.id });
+			const claim = await createTestClaim(db, { client_id: client1.id });
 
 			const task = await createTestTask(db, {
-				client_id: client.id,
+				client_id: client1.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
-				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user1.id, // Claimed by user1
+				assigned_to: user1.id,
+				status: TaskStatus.PENDING,
 			});
 
-			const ctx = createTestContext(db, { id: user2.id, client_id: client.id, role: 'Contributor' });
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
-			// Act & Assert - user2 cannot unclaim user1's task
-			await expect(unclaimTask(ctx, task.id)).rejects.toThrow();
+			// Act & Assert - different client cannot unassign task
+			await expect(unassignTask(ctx2, task.id)).rejects.toThrow();
 		});
 	});
 
@@ -1317,7 +1262,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Original Title',
 				description: 'Original description',
 			});
@@ -1352,7 +1297,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			// Create linked deadline
@@ -1399,7 +1344,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			// Create linked deadline
@@ -1449,7 +1394,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk1.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1478,7 +1423,7 @@ describe('taskQueries integration', () => {
 				client_id: client1.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 				title: 'Original Title',
 			});
 
@@ -1505,9 +1450,9 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 			});
 
 			// Create deadline that's due in the future (will be met)
@@ -1529,7 +1474,6 @@ describe('taskQueries integration', () => {
 
 			// Assert - Task should be completed
 			expect(result.status).toBe(TaskStatus.COMPLETED);
-			expect(result.completed_by).toBe(user.id);
 			expect(result.completed_at).toBeDefined();
 			expect(result.completion_notes).toBe('Task completed successfully');
 
@@ -1559,9 +1503,9 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 			});
 
 			// Create deadline that's in the past (will be missed)
@@ -1607,9 +1551,8 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 			});
 
@@ -1634,7 +1577,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.CANCELLED,
 			});
 
@@ -1661,7 +1604,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 
@@ -1709,7 +1652,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.CANCELLED,
 			});
 
@@ -1734,9 +1677,8 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 			});
 
@@ -1768,7 +1710,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Task 1',
 					status: TaskStatus.PENDING,
 					work_units: 3,
@@ -1810,7 +1752,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Pending task',
 					status: TaskStatus.PENDING,
 					work_units: 4,
@@ -1825,12 +1767,12 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
-					claimed_by: user.id,
+					assigned_to: user.id,
 					title: 'In progress task',
 					status: TaskStatus.IN_PROGRESS,
 					work_units: 2,
 					assigned_at: assignedAt,
+					started_at: assignedAt,
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
@@ -1841,7 +1783,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Completed task',
 					status: TaskStatus.COMPLETED,
 					work_units: 5,
@@ -1856,7 +1798,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Cancelled deadline task',
 					status: TaskStatus.PENDING,
 					work_units: 6,
@@ -1873,7 +1815,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Previous day task',
 					status: TaskStatus.PENDING,
 					work_units: 8,
@@ -1937,7 +1879,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Task 1',
 					status: TaskStatus.PENDING,
 					work_units: 5,
@@ -1991,7 +1933,7 @@ describe('taskQueries integration', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					assigned_by: user.id,
+					assigned_to: user.id,
 					title: 'Today Task',
 					status: TaskStatus.PENDING,
 					work_units: 3,
@@ -2033,14 +1975,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 			await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 
@@ -2049,9 +1991,9 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 			});
 			await createTestDeadline(db, {
 				client_id: client.id,
@@ -2067,9 +2009,8 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 			});
 			await createTestDeadline(db, {
@@ -2086,9 +2027,8 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 			});
 			await createTestDeadline(db, {
@@ -2137,7 +2077,7 @@ describe('taskQueries integration', () => {
 					client_id: client1.id,
 					claim_id: claim1.id,
 					desk_location_id: desk1.id,
-					assigned_by: user1.id,
+					assigned_to: user1.id,
 					status: TaskStatus.PENDING,
 				});
 			}
@@ -2147,7 +2087,7 @@ describe('taskQueries integration', () => {
 				client_id: client2.id,
 				claim_id: claim2.id,
 				desk_location_id: desk2.id,
-				assigned_by: user2.id,
+				assigned_to: user2.id,
 				status: TaskStatus.PENDING,
 			});
 
@@ -2185,7 +2125,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Task in range',
 			});
 			const midWeek = new Date(weekStart);
@@ -2205,7 +2145,7 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Task outside range',
 			});
 			const nextWeek = new Date(weekEnd);
@@ -2254,21 +2194,21 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Week start task',
 			});
 			const midTask = await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Midweek task',
 			});
 			const endTask = await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				title: 'Week end task',
 			});
 			await createTestDeadline(db, {
@@ -2351,7 +2291,7 @@ describe('taskQueries integration', () => {
 				client_id: client1.id,
 				claim_id: claim1.id,
 				desk_location_id: desk1.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 				title: 'Client 1 Task',
 			});
 			await createTestDeadline(db, {
@@ -2369,7 +2309,7 @@ describe('taskQueries integration', () => {
 				client_id: client2.id,
 				claim_id: claim2.id,
 				desk_location_id: desk2.id,
-				assigned_by: user2.id,
+				assigned_to: user2.id,
 				title: 'Client 2 Task',
 			});
 			await createTestDeadline(db, {
@@ -2419,16 +2359,16 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 			const task2 = await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.IN_PROGRESS,
-				claimed_by: user.id,
+				started_at: new Date(),
 			});
 
 			// Add deadlines
@@ -2507,14 +2447,14 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 			const cancelledTask = await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.CANCELLED, // Already cancelled
 			});
 
@@ -2545,16 +2485,15 @@ describe('taskQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.PENDING,
 			});
 			const completedTask = await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 				status: TaskStatus.COMPLETED,
-				completed_by: user.id,
 				completed_at: new Date(),
 			});
 
@@ -2612,7 +2551,7 @@ describe('taskQueries integration', () => {
 				client_id: client1.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 				status: TaskStatus.PENDING,
 			});
 

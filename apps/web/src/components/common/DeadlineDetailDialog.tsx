@@ -6,6 +6,7 @@ import CheckCircle from '@mui/icons-material/CheckCircle';
 import Cancel from '@mui/icons-material/Cancel';
 import PlayArrow from '@mui/icons-material/PlayArrow';
 import Stop from '@mui/icons-material/Stop';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import Person from '@mui/icons-material/Person';
 import Assignment from '@mui/icons-material/Assignment';
@@ -103,8 +104,9 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 	// Fetch task details if this deadline is linked to a task
 	const { data: task, isLoading: taskLoading } = useTaskTrpc().get({ id: taskId! }, { enabled: !!taskId });
 
-	const { mutateAsync: claimTask, isPending: isClaiming } = useTaskTrpc().claim;
-	const { mutateAsync: unclaimTask, isPending: isUnclaiming } = useTaskTrpc().unclaim;
+	const { mutateAsync: startTask, isPending: isStarting } = useTaskTrpc().start;
+	const { mutateAsync: unassignTask, isPending: isUnassigning } = useTaskTrpc().unassign;
+	const { mutateAsync: assignTask, isPending: isAssigning } = useTaskTrpc().assign;
 
 	const isOverdue = dayjs(deadline.deadline_date).isBefore(dayjs());
 	const isPendingDeadline = deadline.status === DeadlineStatus.PENDING;
@@ -112,18 +114,20 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 	// Determine task status and user permissions for actions
 	const isTaskPending = task?.status === TaskStatus.PENDING;
 	const isTaskInProgress = task?.status === TaskStatus.IN_PROGRESS;
-	const isUserClaimedBy = task?.claimed_by === session?.user?.id;
+	const isUserAssignedTo = task?.assigned_to === session?.user?.id;
+	const isAssigned = !!task?.assigned_to;
 
 	// Action availability
-	const canStartTask = task && isTaskPending;
-	const canReleaseTask = task && isTaskInProgress && isUserClaimedBy;
-	const canCompleteTask = task && isTaskInProgress && (isAdmin || isUserClaimedBy);
+	const canAssignToMe = task && isTaskPending && !isAssigned;
+	const canStartTask = task && isTaskPending && isUserAssignedTo;
+	const canReleaseTask = task && (isTaskPending || isTaskInProgress) && isUserAssignedTo;
+	const canCompleteTask = task && isTaskInProgress && (isAdmin || isUserAssignedTo);
 	const canCancelTask = task && (isTaskPending || isTaskInProgress) && isAdmin;
 
 	const handleStartTask = async () => {
 		if (!task) return;
 		try {
-			await claimTask({ id: task.id });
+			await startTask({ id: task.id });
 			showAlert('Task started - you can now work on it', 'success');
 		} catch (error: any) {
 			showAlert(error?.message || 'Failed to start task', 'error');
@@ -133,10 +137,20 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 	const handleReleaseTask = async () => {
 		if (!task) return;
 		try {
-			await unclaimTask({ id: task.id });
+			await unassignTask({ id: task.id });
 			showAlert('Task released back to queue', 'success');
 		} catch (error: any) {
 			showAlert(error?.message || 'Failed to release task', 'error');
+		}
+	};
+
+	const handleAssignToMe = async () => {
+		if (!task || !session?.user?.id) return;
+		try {
+			await assignTask({ id: task.id, userId: session.user.id });
+			showAlert('Task assigned to you', 'success');
+		} catch (error: any) {
+			showAlert(error?.message || 'Failed to assign task', 'error');
 		}
 	};
 
@@ -217,7 +231,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 								}
 							/>
 							{task.description && <DetailRow label="Description" value={task.description} />}
-							{task.claimed_by_first && task.claimed_by_last && (
+							{task.assigned_to_first && task.assigned_to_last && (
 								<DetailRow
 									label="Assigned To"
 									value={
@@ -229,7 +243,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 										>
 											<Person sx={{ fontSize: 14, color: BASE_COLOR_LIGHT }} />
 											<Typography fontSize={13}>
-												{task.claimed_by_first} {task.claimed_by_last}
+												{task.assigned_to_first} {task.assigned_to_last}
 											</Typography>
 										</Stack>
 									}
@@ -244,10 +258,22 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							)}
 
 							{/* Task Actions */}
-							{(canStartTask || canReleaseTask || canCompleteTask || canCancelTask) && (
+							{(canAssignToMe || canStartTask || canReleaseTask || canCompleteTask || canCancelTask) && (
 								<>
 									<Divider sx={{ my: 1.5 }} />
 									<Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+										{canAssignToMe && (
+											<Button
+												size="small"
+												variant="outlined"
+												color="primary"
+												startIcon={<PersonAdd />}
+												onClick={handleAssignToMe}
+												disabled={isAssigning}
+											>
+												Assign to Me
+											</Button>
+										)}
 										{canStartTask && (
 											<Button
 												size="small"
@@ -255,7 +281,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 												color="primary"
 												startIcon={<PlayArrow />}
 												onClick={handleStartTask}
-												disabled={isClaiming}
+												disabled={isStarting}
 											>
 												Start Task
 											</Button>
@@ -267,7 +293,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 												color="warning"
 												startIcon={<Stop />}
 												onClick={handleReleaseTask}
-												disabled={isUnclaiming}
+												disabled={isUnassigning}
 											>
 												Release Task
 											</Button>

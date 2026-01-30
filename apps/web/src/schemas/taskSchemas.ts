@@ -13,14 +13,12 @@ export const getTasksInput = z.object({
 	deskLocationId: z.number().int().positive().optional(),
 	// Filter by claim
 	claimId: z.number().int().positive().optional(),
-	// Filter by derived status (calculated from claimed_by + deadline.status)
+	// Filter by derived status
 	status: z.nativeEnum(TaskStatus).optional(),
 	// Filter by task type
 	taskType: z.nativeEnum(TaskType).optional(),
 	// Filter by assigned user
-	assignedBy: z.string().uuid().optional(),
-	// Filter by claimed user
-	claimedBy: z.string().uuid().optional(),
+	assignedTo: z.string().uuid().optional(),
 	// Search
 	searchTerm: z.string().optional(),
 	// Pagination
@@ -84,6 +82,7 @@ export const createTaskInput = z.object({
 	title: z.string().min(1).max(255),
 	description: z.string().max(2000).optional(),
 	workUnits: z.number().int().min(1).max(100).optional().default(2),
+	assignedTo: z.string().uuid().optional(),
 	// Optional deadline fields (creates linked deadline if provided)
 	deadlineDate: z.string().optional(), // ISO date string
 	deadlineDescription: z.string().max(500).optional(),
@@ -106,20 +105,29 @@ export const updateTaskInput = z.object({
 export type UpdateTaskInput = z.infer<typeof updateTaskInput>;
 
 /**
- * Claim task (start working on it)
+ * Assign task to a user
  */
-export const claimTaskInput = z.object({
+export const assignTaskInput = z.object({
 	id: z.number().int().positive(),
+	userId: z.string().uuid(),
 });
-export type ClaimTaskInput = z.infer<typeof claimTaskInput>;
+export type AssignTaskInput = z.infer<typeof assignTaskInput>;
 
 /**
- * Unclaim task (release it back to queue)
+ * Unassign task (clear assignment)
  */
-export const unclaimTaskInput = z.object({
+export const unassignTaskInput = z.object({
 	id: z.number().int().positive(),
 });
-export type UnclaimTaskInput = z.infer<typeof unclaimTaskInput>;
+export type UnassignTaskInput = z.infer<typeof unassignTaskInput>;
+
+/**
+ * Start task (begin working on it)
+ */
+export const startTaskInput = z.object({
+	id: z.number().int().positive(),
+});
+export type StartTaskInput = z.infer<typeof startTaskInput>;
 
 /**
  * Complete task input

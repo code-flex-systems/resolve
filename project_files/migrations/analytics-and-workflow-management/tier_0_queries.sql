@@ -202,14 +202,14 @@ ORDER BY utilization_ratio DESC NULLS LAST;
 
 WITH user_load AS (
   SELECT
-    t.claimed_by AS user_id,
+    t.started_by AS user_id,
     COUNT(*) AS tasks_claimed,
     COALESCE(SUM(t.work_units), 0) AS work_units_claimed
   FROM task t
   WHERE t.client_id = :client_id
     AND t.status = 'in_progress'
-    AND t.claimed_by IS NOT NULL
-  GROUP BY t.claimed_by
+    AND t.started_by IS NOT NULL
+  GROUP BY t.started_by
 ),
 user_pending AS (
   SELECT
@@ -220,7 +220,7 @@ user_pending AS (
     ON t.desk_location_id = udl.desk_location_id
     AND t.client_id = :client_id
     AND t.status = 'pending'
-    AND t.claimed_by IS NULL
+    AND t.started_by IS NULL
   WHERE udl.removed_at IS NULL
     -- Optional filter:
     -- AND (:desk_location_id IS NULL OR udl.desk_location_id = :desk_location_id)
@@ -611,15 +611,15 @@ CREATE INDEX IF NOT EXISTS idx_task_desk_location_status
   ON task (client_id, desk_location_id, status)
   WHERE status IN ('pending', 'in_progress');
 
--- Task lookup by claimed user
-CREATE INDEX IF NOT EXISTS idx_task_claimed_by_status
-  ON task (client_id, claimed_by, status)
-  WHERE status = 'in_progress' AND claimed_by IS NOT NULL;
+-- Task lookup by started user
+CREATE INDEX IF NOT EXISTS idx_task_started_by_status
+  ON task (client_id, started_by, status)
+  WHERE status = 'in_progress' AND started_by IS NOT NULL;
 
--- Pending unclaimed tasks
-CREATE INDEX IF NOT EXISTS idx_task_pending_unclaimed
+-- Pending unstarted tasks
+CREATE INDEX IF NOT EXISTS idx_task_pending_unstarted
   ON task (client_id, desk_location_id)
-  WHERE status = 'pending' AND claimed_by IS NULL;
+  WHERE status = 'pending' AND started_by IS NULL;
 
 -- Task completion lookup by date
 CREATE INDEX IF NOT EXISTS idx_task_completed_today

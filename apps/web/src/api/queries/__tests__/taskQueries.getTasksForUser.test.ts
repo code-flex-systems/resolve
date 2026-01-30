@@ -54,10 +54,9 @@ const createMockTask = (overrides: Record<string, unknown> = {}) => ({
 	work_units: 2,
 	title: 'Test Task',
 	description: 'Test description',
-	assigned_by: 'user-1',
+	assigned_to: 'user-1',
 	assigned_at: new Date('2025-01-01'),
-	claimed_by: null,
-	claimed_at: null,
+	started_at: null,
 	created_at: new Date('2025-01-01'),
 	desk_location_name: 'Evaluation',
 	user_priority: 1,
@@ -215,9 +214,9 @@ describe('getTasksForUser', () => {
 	});
 
 	describe('Derived Status', () => {
-		it('should return available status for pending unclaimed tasks', async () => {
+		it('should return available status for pending unstarted tasks', async () => {
 			const mockTask = createMockTask({
-				claimed_by: null,
+				started_at: null,
 				deadline_status: 'pending',
 				derived_status: 'available',
 			});
@@ -239,9 +238,9 @@ describe('getTasksForUser', () => {
 			expect(result.rows[0].derived_status).toBe('available');
 		});
 
-		it('should return in_progress status for claimed tasks', async () => {
+		it('should return in_progress status for started tasks', async () => {
 			const mockTask = createMockTask({
-				claimed_by: 'user-123',
+				started_at: new Date(),
 				deadline_status: 'pending',
 				derived_status: 'in_progress',
 			});
