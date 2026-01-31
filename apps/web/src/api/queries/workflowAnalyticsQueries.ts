@@ -10,7 +10,7 @@ import type { DeskLocationLoad, UserDeskAssignment, UserCurrentTask } from '@/li
 /**
  * Query 0.1: Desk Location Queue Depth
  *
- * Returns claims count and SLA status breakdown by desk location.
+ * Returns claims count, open task work units, and SLA status breakdown by desk location.
  * Uses CTEs to resolve location-specific vs global SLA thresholds and
  * to determine the latest transition (current location) for each claim.
  */
@@ -73,12 +73,24 @@ export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocat
 				.where('c.client_id', '=', clientId)
 				.where('c.desk_location_id', 'is not', null)
 		)
+		.with('location_task_units', (db) =>
+			db
+				.selectFrom('task as t')
+				.select([
+					't.desk_location_id',
+					sql<string>`COALESCE(SUM(t.work_units), 0)`.as('open_work_units'),
+				])
+				.where('t.client_id', '=', clientId)
+				.where('t.status', 'in', ['pending', 'in_progress'])
+				.groupBy('t.desk_location_id')
+		)
 		.selectFrom('desk_location as dl')
 		.innerJoin('desk_location_type as dlt', (join) =>
 			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
 		)
 		.leftJoin('location_sla as ls', 'ls.desk_location_id', 'dl.id')
 		.leftJoin('claim_age as ca', 'ca.desk_location_id', 'dl.id')
+		.leftJoin('location_task_units as ltu', 'ltu.desk_location_id', 'dl.id')
 		.select([
 			'dl.id as desk_location_id',
 			'dl.name as desk_location_name',
@@ -99,12 +111,14 @@ export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocat
 				COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours)
 			END`.as('breached'),
 			sql<number>`SUM(COUNT(*)) OVER ()`.as('total_claims_in_workflow'),
+			sql<string>`COALESCE(ltu.open_work_units, '0')`.as('open_work_units'),
+			sql<number>`SUM(COALESCE(ltu.open_work_units::integer, 0)) OVER ()`.as('total_open_work_units'),
 		])
 		.where('dl.client_id', '=', clientId)
 		.where('dl.is_active', '=', true)
 		.where('dl.deleted_at', 'is', null)
 		.$if(deskLocationId !== undefined, (qb) => qb.where('dl.id', '=', deskLocationId!))
-		.groupBy(['dl.id', 'dl.name', 'dlt.id', 'dlt.name', 'ls.sla_hours'])
+		.groupBy(['dl.id', 'dl.name', 'dlt.id', 'dlt.name', 'ls.sla_hours', 'ltu.open_work_units'])
 		.orderBy(sql`COALESCE(COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours), 0) DESC`)
 		.orderBy(
 			sql`COALESCE(COUNT(ca.claim_id) FILTER (WHERE ca.hours_in_stage > ls.sla_hours * 0.75 AND ca.hours_in_stage <= ls.sla_hours), 0) DESC`
@@ -114,12 +128,14 @@ export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocat
 
 	return {
 		totalClaimsInWorkflow: rows[0]?.total_claims_in_workflow ?? null,
+		totalOpenWorkUnits: rows[0]?.total_open_work_units ?? null,
 		rows: rows.map((row) => ({
 			deskLocationId: row.desk_location_id,
 			deskLocationName: row.desk_location_name,
 			deskLocationTypeId: row.desk_location_type_id,
 			deskLocationTypeName: row.desk_location_type_name,
 			totalClaims: parseInt(row.total_claims),
+			openWorkUnits: parseInt(row.open_work_units),
 			slaHours: row.sla_hours,
 			healthy: row.healthy ? parseInt(row.healthy) : null,
 			warning: row.warning ? parseInt(row.warning) : null,
@@ -159,8 +175,8 @@ export async function getDeskLocationWorkLoad(ctx: ProtectedContext, deskLocatio
 					COALESCE(SUM(t.work_units), 0)::numeric / dl.daily_work_units
 				ELSE NULL
 			END`.as('utilization_ratio'),
-			sql<number>`SUM(current_load) OVER ()`.as('total_current_load'),
-			sql<number>`SUM(total_capacity) OVER ()`.as('total_capacity_all'),
+			sql<number>`SUM(COALESCE(SUM(t.work_units), 0)) OVER ()`.as('total_current_load'),
+			sql<number>`SUM(dl.daily_work_units) OVER ()`.as('total_capacity_all'),
 		])
 		.where('dl.client_id', '=', clientId)
 		.where('dl.is_active', '=', true)
@@ -187,7 +203,7 @@ export async function getDeskLocationWorkLoad(ctx: ProtectedContext, deskLocatio
 /**
  * Query 0.3: User Workload and Capacity
  *
- * Returns per-user task counts and capacity metrics.
+ * Returns per-user task counts, capacity metrics, and current in-progress task details.
  */
 export async function getUserWorkloadAndCapacity(
 	ctx: ProtectedContext,
@@ -236,6 +252,23 @@ export async function getUserWorkloadAndCapacity(
 		.selectFrom('users as u')
 		.leftJoin('user_load as ul', 'ul.user_id', 'u.id')
 		.leftJoin('user_pending as up', 'up.user_id', 'u.id')
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('task as t')
+					.select([
+						't.id as task_id',
+						't.work_units as task_work_units',
+						't.started_at as task_started_at',
+					])
+					.whereRef('t.assigned_to', '=', 'u.id')
+					.where('t.client_id', '=', clientId)
+					.where('t.status', '=', 'in_progress')
+					.orderBy('t.started_at', 'desc')
+					.limit(1)
+					.as('latest_task'),
+			(join) => join.onTrue()
+		)
 		.select([
 			'u.id as user_id',
 			'u.first as first_name',
@@ -250,6 +283,9 @@ export async function getUserWorkloadAndCapacity(
 					COALESCE(ul.work_units_claimed, 0)::numeric / ${userDailyWorkUnits}
 				ELSE NULL
 			END`.as('utilization_ratio'),
+			'latest_task.task_id as current_task_id',
+			'latest_task.task_work_units as current_task_work_units',
+			'latest_task.task_started_at as current_task_started_at',
 		])
 		.where('u.client_id', '=', clientId)
 		.where('u.disabled', '=', false)
@@ -267,6 +303,9 @@ export async function getUserWorkloadAndCapacity(
 		tasksInProgress: parseInt(row.tasks_in_progress),
 		tasksAvailableInQueue: parseInt(row.tasks_available_in_queue),
 		utilizationRatio: row.utilization_ratio ? parseFloat(row.utilization_ratio) : null,
+		currentTaskId: row.current_task_id ?? null,
+		currentTaskWorkUnits: row.current_task_work_units ?? null,
+		currentTaskStartedAt: row.current_task_started_at ? new Date(row.current_task_started_at).toISOString() : null,
 	}));
 }
 
@@ -398,7 +437,8 @@ export async function getClaimsApproachingSLABreach(ctx: ProtectedContext, limit
 /**
  * Query 0.6: Task Throughput Today
  *
- * Returns completed task counts for today, grouped by desk location and user.
+ * Returns completed and created task counts/work units for today,
+ * grouped by desk location and user.
  */
 export async function getTaskThroughputToday(
 	ctx: ProtectedContext,
@@ -409,45 +449,121 @@ export async function getTaskThroughputToday(
 ) {
 	const clientId = ctx.session.user.client_id;
 
+	// Use two separate CTEs to allow index usage on completed_at and created_at
 	const rows = await ctx.db
-		.selectFrom('task as t')
-		.innerJoin('desk_location as dl', (join) =>
-			join.onRef('dl.id', '=', 't.desk_location_id').onRef('dl.client_id', '=', 't.client_id')
+		.with('completed_today', (db) => {
+			let query = db
+				.selectFrom('task as t')
+				.select([
+					't.desk_location_id',
+					't.assigned_to',
+					sql<string>`COUNT(*)`.as('tasks_completed'),
+					sql<string>`COALESCE(SUM(t.work_units), 0)`.as('work_units_completed'),
+				])
+				.where('t.client_id', '=', clientId)
+				.where('t.status', '=', 'completed')
+				.where('t.completed_at', '>=', sql<Date>`CURRENT_DATE`)
+				.where('t.completed_at', '<', sql<Date>`CURRENT_DATE + INTERVAL '1 day'`);
+
+			if (options?.deskLocationId !== undefined) {
+				query = query.where('t.desk_location_id', '=', options.deskLocationId);
+			}
+			if (options?.userId !== undefined) {
+				query = query.where('t.assigned_to', '=', options.userId);
+			}
+
+			return query.groupBy(['t.desk_location_id', 't.assigned_to']);
+		})
+		.with('created_today', (db) => {
+			let query = db
+				.selectFrom('task as t')
+				.select([
+					't.desk_location_id',
+					't.assigned_to',
+					sql<string>`COUNT(*)`.as('tasks_created'),
+					sql<string>`COALESCE(SUM(t.work_units), 0)`.as('work_units_created'),
+				])
+				.where('t.client_id', '=', clientId)
+				.where('t.created_at', '>=', sql<Date>`CURRENT_DATE`)
+				.where('t.created_at', '<', sql<Date>`CURRENT_DATE + INTERVAL '1 day'`);
+
+			if (options?.deskLocationId !== undefined) {
+				query = query.where('t.desk_location_id', '=', options.deskLocationId);
+			}
+			if (options?.userId !== undefined) {
+				query = query.where('t.assigned_to', '=', options.userId);
+			}
+
+			return query.groupBy(['t.desk_location_id', 't.assigned_to']);
+		})
+		.with('combined', (db) =>
+			db
+				.selectFrom('completed_today as ct')
+				.fullJoin('created_today as crt', (join) =>
+					join
+						.onRef('crt.desk_location_id', '=', 'ct.desk_location_id')
+						.on(
+							sql`(
+								(ct.assigned_to IS NOT NULL AND crt.assigned_to IS NOT NULL AND crt.assigned_to = ct.assigned_to)
+								OR (ct.assigned_to IS NULL AND crt.assigned_to IS NULL)
+							)`
+						)
+				)
+				.select([
+					sql<number>`COALESCE(ct.desk_location_id, crt.desk_location_id)`.as('desk_location_id'),
+					sql<string | null>`COALESCE(ct.assigned_to, crt.assigned_to)`.as('assigned_to'),
+					sql<string>`COALESCE(ct.tasks_completed, '0')`.as('tasks_completed'),
+					sql<string>`COALESCE(ct.work_units_completed, '0')`.as('work_units_completed'),
+					sql<string>`COALESCE(crt.tasks_created, '0')`.as('tasks_created'),
+					sql<string>`COALESCE(crt.work_units_created, '0')`.as('work_units_created'),
+				])
 		)
+		.selectFrom('combined as c')
+		.innerJoin('desk_location as dl', 'dl.id', 'c.desk_location_id')
 		.leftJoin('users as u', (join) =>
-			join.onRef('u.id', '=', 't.assigned_to').onRef('u.client_id', '=', 't.client_id')
+			join.onRef('u.id', '=', 'c.assigned_to').on('u.client_id', '=', clientId)
 		)
 		.select([
 			'dl.id as desk_location_id',
 			'dl.name as desk_location_name',
-			't.assigned_to as user_id',
+			'c.assigned_to as user_id',
 			'u.first as user_first_name',
 			'u.last as user_last_name',
-			sql<string>`COUNT(*)`.as('tasks_completed'),
-			sql<string>`SUM(t.work_units)`.as('work_units_completed'),
+			'c.tasks_completed',
+			'c.work_units_completed',
+			'c.tasks_created',
+			'c.work_units_created',
+			sql<number>`SUM(c.tasks_completed::integer) OVER ()`.as('total_tasks_completed'),
+			sql<number>`SUM(c.work_units_completed::integer) OVER ()`.as('total_work_units_completed'),
+			sql<number>`SUM(c.tasks_created::integer) OVER ()`.as('total_tasks_created'),
+			sql<number>`SUM(c.work_units_created::integer) OVER ()`.as('total_work_units_created'),
 		])
-		.where('t.client_id', '=', clientId)
-		.where('t.status', '=', 'completed')
-		.where('t.completed_at', '>=', sql<Date>`CURRENT_DATE`)
-		.where('t.completed_at', '<', sql<Date>`CURRENT_DATE + INTERVAL '1 day'`)
-		.$if(options?.deskLocationId !== undefined, (qb) =>
-			qb.where('t.desk_location_id', '=', options!.deskLocationId!)
-		)
-		.$if(options?.userId !== undefined, (qb) => qb.where('t.assigned_to', '=', options!.userId!))
-		.groupBy(['dl.id', 'dl.name', 't.assigned_to', 'u.first', 'u.last'])
+		.where('dl.client_id', '=', clientId)
+		.where('dl.is_active', '=', true)
+		.where('dl.deleted_at', 'is', null)
 		.orderBy('dl.name')
-		.orderBy(sql`SUM(t.work_units) DESC`)
+		.orderBy(sql`c.work_units_completed::integer DESC`)
 		.execute();
 
-	return rows.map((row) => ({
-		deskLocationId: row.desk_location_id,
-		deskLocationName: row.desk_location_name,
-		userId: row.user_id,
-		userFirstName: row.user_first_name,
-		userLastName: row.user_last_name,
-		tasksCompleted: parseInt(row.tasks_completed),
-		workUnitsCompleted: parseInt(row.work_units_completed || '0'),
-	}));
+	return {
+		totals: {
+			tasksCompleted: rows[0]?.total_tasks_completed ?? 0,
+			workUnitsCompleted: rows[0]?.total_work_units_completed ?? 0,
+			tasksCreated: rows[0]?.total_tasks_created ?? 0,
+			workUnitsCreated: rows[0]?.total_work_units_created ?? 0,
+		},
+		rows: rows.map((row) => ({
+			deskLocationId: row.desk_location_id,
+			deskLocationName: row.desk_location_name,
+			userId: row.user_id,
+			userFirstName: row.user_first_name,
+			userLastName: row.user_last_name,
+			tasksCompleted: parseInt(row.tasks_completed),
+			workUnitsCompleted: parseInt(row.work_units_completed),
+			tasksCreated: parseInt(row.tasks_created),
+			workUnitsCreated: parseInt(row.work_units_created),
+		})),
+	};
 }
 
 /**

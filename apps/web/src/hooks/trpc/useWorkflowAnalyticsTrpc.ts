@@ -49,7 +49,7 @@ export function useWorkflowAnalyticsTrpc() {
 
 		/**
 		 * Get task throughput for today
-		 * Shows completed tasks grouped by desk location and user
+		 * Shows completed and created tasks/work units grouped by desk location and user
 		 * Optional filter by desk location or user
 		 */
 		getTaskThroughputToday: trpc.workflowAnalytics.getTaskThroughputToday.useQuery,
@@ -111,10 +111,10 @@ export function useWorkflowAnalyticsTrpc() {
 
 // Tier 0 output types
 export type DeskQueueDepthResult = WorkflowAnalyticsOutput['getDeskQueueDepth'];
-export type DeskQueueDepthItem = DeskQueueDepthResult[number];
+export type DeskQueueDepthItem = DeskQueueDepthResult['rows'][number];
 
 export type DeskWorkLoadResult = WorkflowAnalyticsOutput['getDeskWorkLoad'];
-export type DeskWorkLoadItem = DeskWorkLoadResult[number];
+export type DeskWorkLoadItem = DeskWorkLoadResult['rows'][number];
 
 export type UserWorkloadResult = WorkflowAnalyticsOutput['getUserWorkload'];
 export type UserWorkloadItem = UserWorkloadResult[number];
@@ -124,7 +124,7 @@ export type ClaimsApproachingSLABreachResult =
 export type ClaimSLABreachItem = ClaimsApproachingSLABreachResult[number];
 
 export type TaskThroughputResult = WorkflowAnalyticsOutput['getTaskThroughputToday'];
-export type TaskThroughputItem = TaskThroughputResult[number];
+export type TaskThroughputItem = TaskThroughputResult['rows'][number];
 
 export type DeadlineStatusOverviewResult =
 	WorkflowAnalyticsOutput['getDeadlineStatusOverview'];
