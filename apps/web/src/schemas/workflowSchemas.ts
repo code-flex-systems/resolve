@@ -49,9 +49,7 @@ export type RuleConditionsInput = z.infer<typeof ruleConditionsSchema>;
 // ============================================================================
 
 export const getWorkflowDefinitionsInput = z.object({
-	searchTerm: z.string().optional(),
-	limit: z.number().int().positive().optional(),
-	offset: z.number().int().nonnegative().optional(),
+	isActive: z.boolean().optional(),
 });
 export type GetWorkflowDefinitionsInput = z.infer<typeof getWorkflowDefinitionsInput>;
 

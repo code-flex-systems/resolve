@@ -6,6 +6,8 @@ import PageWrapper from '@/components/common/PageWrapper';
 import AdminSidebar, { AdminNavCategory } from '@/components/admin/AdminSidebar';
 import NewUserDialog from '@/components/admin/NewUserDialog';
 import { useAdminStore } from '@/stores/useAdminStore';
+import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
+import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import config from '@/config/config';
 
 // Icons
@@ -31,6 +33,7 @@ import TaskIcon from '@mui/icons-material/Task';
 import ListIcon from '@mui/icons-material/List';
 import GavelIcon from '@mui/icons-material/Gavel';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -91,6 +94,11 @@ const adminNavCategories: AdminNavCategory[] = [
 			},
 			...(config.FEATURES.DESK_HIERARCHY
 				? [
+						{
+							label: 'Workflows',
+							route: '/admin/workflow-configuration/workflows',
+							icon: <AccountTreeIcon fontSize="small" />,
+						},
 						{
 							label: 'Desk Locations',
 							route: '/admin/workflow-configuration/desk-locations',
@@ -206,6 +214,29 @@ const adminNavCategories: AdminNavCategory[] = [
 export default function ClientAdminShell(props: PropsWithChildren) {
 	const showNewUserDialog = useAdminStore((state) => state.showNewUserDialog);
 	const resetAdminStore = useAdminStore((state) => state.reset);
+	const deskStore = useDeskLocationStore();
+	const { listLocations, listTypes } = useDeskTrpc();
+
+	// Fetch desk locations and types for global store
+	const { data: locationsData } = listLocations({});
+	const locations = locationsData?.rows || [];
+	const { data: typesData } = listTypes({});
+	const types = typesData?.rows || [];
+
+	// Populate desk location store (stays fresh with query invalidations)
+	useEffect(() => {
+		if (locations.length > 0) {
+			deskStore.setLocations(locations);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [locations]);
+
+	useEffect(() => {
+		if (types.length > 0) {
+			deskStore.setTypes(types);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [types]);
 
 	useEffect(() => {
 		return () => resetAdminStore();

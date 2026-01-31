@@ -1,12 +1,7 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
-import {
-	WorkflowTriggerType,
-	WorkflowActionType,
-	WorkflowExecutionMode,
-	WorkflowThresholdType,
-} from '@/config/enums';
+import { WorkflowTriggerType, WorkflowActionType, WorkflowExecutionMode, WorkflowThresholdType } from '@/config/enums';
 
 // ============================================================================
 // TENANT VALIDATION HELPERS
@@ -65,18 +60,21 @@ export async function validateWorkflowDefinitionBelongsToClient(
 // ============================================================================
 
 /**
- * Get paginated list of workflow definitions with optional search.
+ * Get all workflow definitions with optional active filter.
  * Left joins desk_location to include location name for scoped workflows.
  */
 export async function getWorkflowDefinitions(
 	ctx: ProtectedContext,
-	searchTerm?: string,
-	limit?: number,
-	offset?: number
+	isActive?: boolean
 ) {
 	let query = ctx.db
 		.selectFrom('workflow_definition')
 		.leftJoin('desk_location', 'desk_location.id', 'workflow_definition.desk_location_id')
+		.leftJoin('users as creator', (join) =>
+			join
+				.onRef('creator.id', '=', 'workflow_definition.created_by')
+				.on('creator.client_id', '=', ctx.session.user.client_id)
+		)
 		.select([
 			'workflow_definition.id',
 			'workflow_definition.name',
@@ -90,24 +88,17 @@ export async function getWorkflowDefinitions(
 			'workflow_definition.updated_by',
 		])
 		.select('desk_location.name as desk_location_name')
+		.select(['creator.first as creator_first_name', 'creator.last as creator_last_name'])
 		.where('workflow_definition.client_id', '=', ctx.session.user.client_id)
-		.where('workflow_definition.deleted_at', 'is', null)
-		.orderBy('workflow_definition.name asc');
+		.where('workflow_definition.deleted_at', 'is', null);
 
-	if (searchTerm) {
-		query = query.where(sql<boolean>`workflow_definition.name ILIKE ${`${searchTerm}%`}`);
+	if (isActive !== undefined) {
+		query = query.where('workflow_definition.is_active', '=', isActive);
 	}
 
-	const rowsWithCount = await query
-		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
-		.$if(limit !== undefined, (qb) => qb.limit(limit!))
-		.$if(offset !== undefined, (qb) => qb.offset(offset!))
-		.execute();
+	const rows = await query.orderBy('workflow_definition.name asc').execute();
 
-	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
-	const rows = rowsWithCount.map(({ total_count, ...row }) => row);
-
-	return { rows, count };
+	return { rows, count: rows.length };
 }
 
 /**
@@ -119,6 +110,11 @@ export async function getWorkflowDefinition(ctx: ProtectedContext, id: number) {
 		ctx.db
 			.selectFrom('workflow_definition')
 			.leftJoin('desk_location', 'desk_location.id', 'workflow_definition.desk_location_id')
+			.leftJoin('users as creator', (join) =>
+				join
+					.onRef('creator.id', '=', 'workflow_definition.created_by')
+					.on('creator.client_id', '=', ctx.session.user.client_id)
+			)
 			.select([
 				'workflow_definition.id',
 				'workflow_definition.name',
@@ -132,6 +128,7 @@ export async function getWorkflowDefinition(ctx: ProtectedContext, id: number) {
 				'workflow_definition.updated_by',
 			])
 			.select('desk_location.name as desk_location_name')
+			.select(['creator.first as creator_first_name', 'creator.last as creator_last_name'])
 			.where('workflow_definition.client_id', '=', ctx.session.user.client_id)
 			.where('workflow_definition.id', '=', id)
 			.where('workflow_definition.deleted_at', 'is', null)

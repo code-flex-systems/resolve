@@ -19,16 +19,12 @@ import { validateRuleConditions, type RuleConditions } from '@/lib/workflow/rule
 export async function getWorkflowDefinitions(
 	ctx: ProtectedContext,
 	{
-		searchTerm,
-		limit,
-		offset,
+		isActive,
 	}: {
-		searchTerm?: string;
-		limit?: number;
-		offset?: number;
+		isActive?: boolean;
 	}
 ) {
-	return await workflowQueries.getWorkflowDefinitions(ctx, searchTerm, limit, offset);
+	return await workflowQueries.getWorkflowDefinitions(ctx, isActive);
 }
 
 export async function getWorkflowDefinition(

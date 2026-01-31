@@ -43,7 +43,7 @@ export default function DeskLocationSelect({
 			select
 			value={value ?? ''}
 			onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
-			disabled={isFetching || !deskLocationTypeId}
+			disabled={!deskLocationTypeId || isFetching}
 			InputProps={{
 				startAdornment: <LocationOn sx={{ fontSize: 18, mr: 1, color: 'text.secondary' }} />,
 			}}
