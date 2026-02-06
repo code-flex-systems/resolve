@@ -12,6 +12,8 @@
  * - Availability: based on current task assignment and remaining work
  */
 
+import { SuggestionStatus } from '@/config/enums';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -20,6 +22,7 @@
 export interface DeskLocationLoad {
 	deskLocationId: number;
 	deskLocationName: string;
+	deskLocationTypeName: string;
 	openTaskUnits: number;
 	capacityThreshold: number;
 }
@@ -45,6 +48,7 @@ export interface UserCurrentTask {
 export interface Breach {
 	deskLocationId: number;
 	deskLocationName: string;
+	deskLocationTypeName: string;
 	openTaskUnits: number;
 	capacityThreshold: number;
 	excessUnits: number;
@@ -82,6 +86,8 @@ export interface CascadedChange {
 
 /** Result of attempting to resolve a single breach */
 export interface BreachResolution {
+	suggestionId?: string; // UUID of the workflow_suggestion record (added by controller after persistence)
+	status?: SuggestionStatus; // Status of the suggestion (pending, ignored, executed, hidden)
 	breach: Breach;
 	usersNeeded: number;
 	assignments: PriorityAssignment[];
@@ -141,6 +147,7 @@ export function detectBreaches(locations: DeskLocationLoad[], config: Suggestion
 	const breaches: Breach[] = [];
 
 	for (const loc of locations) {
+		if (loc.capacityThreshold <= 0) continue; // Skip locations with no capacity configured
 		if (loc.openTaskUnits > loc.capacityThreshold) {
 			const excessUnits = loc.openTaskUnits - loc.capacityThreshold;
 			const rawSeverity = excessUnits / loc.capacityThreshold;
@@ -149,6 +156,7 @@ export function detectBreaches(locations: DeskLocationLoad[], config: Suggestion
 			breaches.push({
 				deskLocationId: loc.deskLocationId,
 				deskLocationName: loc.deskLocationName,
+				deskLocationTypeName: loc.deskLocationTypeName,
 				openTaskUnits: loc.openTaskUnits,
 				capacityThreshold: loc.capacityThreshold,
 				excessUnits,
@@ -274,9 +282,6 @@ function findLowestAvailablePriority(userId: string, targetLocationId: number, s
 
 	// Check if already assigned to this location
 	const existingPriority = userPriorities.get(targetLocationId);
-	if (existingPriority === 1) {
-		return null; // Already P1 at this location, can't improve
-	}
 
 	// Find which priorities are taken by OTHER locations
 	const takenPriorities = new Set<number>();
@@ -286,14 +291,14 @@ function findLowestAvailablePriority(userId: string, targetLocationId: number, s
 		}
 	}
 
-	// Find lowest available
+	// Find lowest available priority that is DIFFERENT from existing priority
 	for (let p = 1; p <= 5; p++) {
-		if (!takenPriorities.has(p)) {
+		if (!takenPriorities.has(p) && p !== existingPriority) {
 			return p;
 		}
 	}
 
-	return null; // All slots taken by other locations
+	return null; // No different priority available
 }
 
 /**
@@ -383,13 +388,9 @@ function resolveBreach(
 	locationNames: Map<number, string>
 ): BreachResolution {
 	// Get eligible users for this location
+	// Users already assigned to this location ARE eligible for reassignment to a different priority
 	const eligible = scoredUsers
 		.filter((u) => u.eligibleLocationIds.has(breach.deskLocationId))
-		.filter((u) => {
-			// Exclude users already at P1 for this location
-			const currentP = state.userPriorities.get(u.userId)?.get(breach.deskLocationId);
-			return currentP !== 1;
-		})
 		.sort((a, b) => a.availabilityScore - b.availabilityScore); // Soonest first
 
 	// Calculate users needed based on severity and pool size
@@ -501,11 +502,11 @@ export function generateWorkflowSuggestions(
 	const state = createAssignmentState(scoredUsers);
 
 	// Step 5: Resolve breaches in severity order
-	const resolutions: BreachResolution[] = [];
+	const allResolutions: BreachResolution[] = [];
 
 	for (const breach of breaches) {
 		const resolution = resolveBreach(breach, scoredUsers, state, locationNames);
-		resolutions.push(resolution);
+		allResolutions.push(resolution);
 	}
 
 	// Step 6: Build affected user assignments by comparing initial vs final state
@@ -516,22 +517,31 @@ export function generateWorkflowSuggestions(
 	);
 
 	// Step 7: Compile summary
+	// Discard resolutions with 0 assignments (completely unresolvable breaches)
+	// These still count toward totalUnresolved but aren't surfaced as actionable suggestions
+	const resolutions: BreachResolution[] = [];
 	let breachesFullyResolved = 0;
 	let breachesPartiallyResolved = 0;
 	let totalAssignments = 0;
 	let totalCascades = 0;
 	let totalUnresolved = 0;
 
-	for (const res of resolutions) {
+	for (const res of allResolutions) {
 		totalAssignments += res.assignments.length;
 		totalCascades += res.cascadedChanges.length;
 		totalUnresolved += res.shortfall;
 
-		if (res.shortfall === 0 && res.assignments.length > 0) {
+		if (res.assignments.length === 0) {
+			// No users could be assigned — unresolvable, don't surface as a suggestion
+			continue;
+		}
+
+		if (res.shortfall === 0) {
 			breachesFullyResolved++;
-		} else if (res.assignments.length > 0) {
+		} else {
 			breachesPartiallyResolved++;
 		}
+		resolutions.push(res);
 	}
 
 	return {
@@ -602,6 +612,29 @@ function hasStateChanged(
 }
 
 // ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Converts severity value (0-1) to a human-readable label
+ */
+export function getSeverityLabel(severity: number): 'Low' | 'Medium' | 'High' {
+	if (severity < 0.33) return 'Low';
+	if (severity < 0.67) return 'Medium';
+	return 'High';
+}
+
+/**
+ * Gets color configuration for severity label
+ */
+export function getSeverityColor(severity: number): { bg: string; color: string } {
+	const label = getSeverityLabel(severity);
+	if (label === 'Low') return { bg: '#fef3c7', color: '#92400e' }; // yellow
+	if (label === 'Medium') return { bg: '#fed7aa', color: '#9a3412' }; // orange
+	return { bg: '#fee2e2', color: '#991b1b' }; // red
+}
+
+// ============================================================================
 // SUGGESTION SERIALIZATION (for storage/API response)
 // ============================================================================
 
@@ -611,18 +644,7 @@ export interface SerializedSuggestion {
 	breachesDetected: number;
 	breachesFullyResolved: number;
 	breachesPartiallyResolved: number;
-	resolutions: Array<{
-		breach: Breach;
-		usersNeeded: number;
-		assignments: PriorityAssignment[];
-		cascadedChanges: CascadedChange[];
-		shortfall: number;
-		skippedUsers: Array<{
-			userId: string;
-			userName: string;
-			reason: string;
-		}>;
-	}>;
+	resolutions: BreachResolution[];
 	affectedUserAssignments: UserAssignmentState[];
 	summary: {
 		totalAssignments: number;

@@ -58,6 +58,8 @@ SCRIPTS=(
     "07-generate-payments.sql"
     "08-generate-settlements.sql"
     "09-generate-recovery-events.sql"
+    "10-generate-tasks-deadlines.sql"
+    "11-generate-workflow-data.sql"
 )
 
 for script in "${SCRIPTS[@]}"; do
@@ -84,7 +86,14 @@ UNION ALL SELECT 'Coverages', COUNT(*) FROM claim_coverage
 UNION ALL SELECT 'Claim-Party Links', COUNT(*) FROM claim_party
 UNION ALL SELECT 'Payments', COUNT(*) FROM claim_payment
 UNION ALL SELECT 'Settlements', COUNT(*) FROM settlement
-UNION ALL SELECT 'Recovery Events', COUNT(*) FROM recovery_event;
+UNION ALL SELECT 'Recovery Events', COUNT(*) FROM recovery_event
+UNION ALL SELECT 'Tasks', COUNT(*) FROM task
+UNION ALL SELECT 'Deadlines', COUNT(*) FROM deadline
+UNION ALL SELECT 'Workflow Definitions', COUNT(*) FROM workflow_definition
+UNION ALL SELECT 'Workflow Rules', COUNT(*) FROM workflow_rule
+UNION ALL SELECT 'Workflow Thresholds', COUNT(*) FROM workflow_threshold
+UNION ALL SELECT 'Claim Transitions', COUNT(*) FROM claim_desk_location_transition
+UNION ALL SELECT 'Stage Snapshots', COUNT(*) FROM analytics.daily_workflow_stage_snapshot;
 "
 
 echo ""

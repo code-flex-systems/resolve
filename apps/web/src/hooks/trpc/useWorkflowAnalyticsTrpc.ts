@@ -88,6 +88,24 @@ export function useWorkflowAnalyticsTrpc() {
 		getWorkflowSuggestions:
 			trpc.workflowAnalytics.getWorkflowSuggestions.useQuery,
 
+		/**
+		 * Execute a workflow suggestion
+		 * Applies suggested priority changes to user_desk_location table
+		 */
+		executeSuggestion: trpc.workflowAnalytics.executeSuggestion.useMutation,
+
+		/**
+		 * Execute all pending workflow suggestions
+		 * Runs in a single transaction — all-or-nothing
+		 */
+		executeAllSuggestions: trpc.workflowAnalytics.executeAllSuggestions.useMutation,
+
+		/**
+		 * Update a workflow suggestion status
+		 * Used for hide, ignore, or restore operations
+		 */
+		updateSuggestion: trpc.workflowAnalytics.updateSuggestion.useMutation,
+
 		// ====================================================================
 		// TIER 1 BATCH QUERIES (Admin Only, from rollup tables)
 		// ====================================================================
@@ -136,6 +154,7 @@ export type ConfigurationHealthCheckResult =
 // Workflow suggestions output type
 export type WorkflowSuggestionsResult =
 	WorkflowAnalyticsOutput['getWorkflowSuggestions'];
+export type UpdateSuggestionInput = WorkflowAnalyticsInput['updateSuggestion'];
 
 // Tier 1 output types
 export type WorkflowStageMetricsResult =

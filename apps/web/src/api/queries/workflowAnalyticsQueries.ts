@@ -1,7 +1,8 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
-import { sql } from 'kysely';
-import { WorkflowThresholdType } from '@/config/enums';
+import { sql, type Kysely } from 'kysely';
+import { DeadlineStatus, WorkflowThresholdType } from '@/config/enums';
 import type { DeskLocationLoad, UserDeskAssignment, UserCurrentTask } from '@/lib/workflow/suggestions';
+import type { DB } from '@/api/database/types';
 
 // ============================================================================
 // TIER 0 OPERATIONAL QUERIES
@@ -598,8 +599,8 @@ export async function getDeadlineStatusOverview(
 				AND d.deadline_date <= CURRENT_DATE + INTERVAL '7 days'
 				AND d.status = 'pending'
 			)`.as('next_7_days'),
-			sql<string>`COUNT(*) FILTER (WHERE d.status = 'completed')`.as('completed'),
-			sql<string>`COUNT(*) FILTER (WHERE d.status = 'cancelled')`.as('cancelled'),
+			sql<string>`COUNT(*) FILTER (WHERE d.status = ${DeadlineStatus.MET})`.as('completed'),
+			sql<string>`COUNT(*) FILTER (WHERE d.status = ${DeadlineStatus.CANCELLED})`.as('cancelled'),
 		])
 		.where('d.client_id', '=', clientId)
 		.$if(options?.deadlineType !== undefined, (qb) => qb.where('d.deadline_type', '=', options!.deadlineType!))
@@ -773,17 +774,21 @@ export async function getUsersWithoutDeskAssignments(ctx: ProtectedContext) {
 // WORKFLOW SUGGESTIONS
 // ============================================================================
 
-export async function getSuggestionInput(ctx: ProtectedContext): Promise<{
+export async function getSuggestionInput(ctx: ProtectedContext, dbOverride?: Kysely<DB>): Promise<{
 	locations: DeskLocationLoad[];
 	assignments: UserDeskAssignment[];
 	currentTasks: UserCurrentTask[];
 }> {
 	const clientId = ctx.session.user.client_id;
+	const queryDb = dbOverride ?? ctx.db;
 
 	const [locationRows, assignmentRows, taskRows] = await Promise.all([
 		// 1. Desk location load (active, non-deleted only)
-		ctx.db
+		queryDb
 			.selectFrom('desk_location as dl')
+			.innerJoin('desk_location_type as dlt', (join) =>
+				join.onRef('dlt.id', '=', 'dl.desk_location_type_id').onRef('dlt.client_id', '=', 'dl.client_id')
+			)
 			.leftJoin('claim as c', (join) =>
 				join.onRef('c.desk_location_id', '=', 'dl.id').on('c.client_id', '=', clientId)
 			)
@@ -791,17 +796,18 @@ export async function getSuggestionInput(ctx: ProtectedContext): Promise<{
 			.where('dl.client_id', '=', clientId)
 			.where('dl.is_active', '=', true)
 			.where('dl.deleted_at', 'is', null)
-			.groupBy(['dl.id', 'dl.name', 'dl.capacity_threshold'])
+			.groupBy(['dl.id', 'dl.name', 'dlt.name', 'dl.capacity_threshold'])
 			.select([
 				'dl.id',
 				'dl.name',
+				'dlt.name as desk_location_type_name',
 				sql<number>`COALESCE(SUM(t.work_units), 0)`.as('open_task_units'),
 				'dl.capacity_threshold',
 			])
 			.execute(),
 
 		// 2. User desk assignments (active only, client-scoped)
-		ctx.db
+		queryDb
 			.selectFrom('user_desk_location as udl')
 			.innerJoin('users as u', 'u.id', 'udl.user_id')
 			.innerJoin('desk_location as dl', 'dl.id', 'udl.desk_location_id')
@@ -818,7 +824,7 @@ export async function getSuggestionInput(ctx: ProtectedContext): Promise<{
 			.execute(),
 
 		// 3. User current tasks (in-progress only)
-		ctx.db
+		queryDb
 			.selectFrom('task as t')
 			.where('t.client_id', '=', clientId)
 			.where('t.started_at', 'is not', null)
@@ -832,6 +838,7 @@ export async function getSuggestionInput(ctx: ProtectedContext): Promise<{
 		locations: locationRows.map((row) => ({
 			deskLocationId: row.id,
 			deskLocationName: row.name,
+			deskLocationTypeName: row.desk_location_type_name,
 			openTaskUnits: Number(row.open_task_units),
 			capacityThreshold: Number(row.capacity_threshold),
 		})),

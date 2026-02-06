@@ -34,6 +34,7 @@ import ListIcon from '@mui/icons-material/List';
 import GavelIcon from '@mui/icons-material/Gavel';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import TimelineIcon from '@mui/icons-material/Timeline';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -119,6 +120,23 @@ const adminNavCategories: AdminNavCategory[] = [
 		],
 		defaultExpanded: false,
 	},
+	...(config.FEATURES.DESK_HIERARCHY
+		? [
+				{
+					label: 'Workflow Management',
+					icon: <TimelineIcon fontSize="small" color="secondary" />,
+					items: [
+						{
+							label: 'Dashboard',
+							route: '/admin/workflow-management/dashboard',
+							icon: <TimelineIcon fontSize="small" />,
+						},
+					],
+					defaultExpanded: false,
+					hideHeader: false,
+				},
+			]
+		: []),
 	{
 		label: 'Party Management',
 		icon: <BusinessIcon fontSize="small" color="secondary" />,

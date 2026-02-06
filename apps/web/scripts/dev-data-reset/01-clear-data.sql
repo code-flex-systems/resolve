@@ -31,6 +31,13 @@ DELETE FROM page;
 DELETE FROM checklist_claim;
 DELETE FROM checklist;
 
+-- Phase 3b: Workflow data (depends on desk_location, claim)
+DELETE FROM analytics.daily_workflow_stage_snapshot;
+DELETE FROM workflow_rule;
+DELETE FROM workflow_threshold;
+DELETE FROM workflow_definition;
+DELETE FROM claim_desk_location_transition;
+
 -- Phase 4: Documents & tasks
 DELETE FROM doc_requirement_fulfillment;
 DELETE FROM doc_requirement;
@@ -87,5 +94,9 @@ ALTER SEQUENCE IF EXISTS settlement_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS recovery_event_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS task_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS deadline_id_seq RESTART WITH 1;
+ALTER SEQUENCE IF EXISTS workflow_definition_id_seq RESTART WITH 1;
+ALTER SEQUENCE IF EXISTS workflow_threshold_id_seq RESTART WITH 1;
+ALTER SEQUENCE IF EXISTS workflow_rule_id_seq RESTART WITH 1;
+ALTER SEQUENCE IF EXISTS claim_desk_location_transition_id_seq RESTART WITH 1;
 
 SELECT 'Phase 1-10 complete. Transactional data cleared and sequences reset.' AS status;

@@ -10,6 +10,8 @@ import {
 	getTaskThroughputTodayInput,
 	getDeadlineStatusOverviewInput,
 	getWorkflowStageMetricsInput,
+	executeSuggestionInput,
+	updateSuggestionInput,
 } from '@/schemas/workflowAnalyticsSchemas';
 
 export const workflowAnalyticsRouter = router({
@@ -102,6 +104,38 @@ export const workflowAnalyticsRouter = router({
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return workflowAnalyticsController.getWorkflowSuggestions(ctx);
 	}),
+
+	/**
+	 * Execute a workflow suggestion.
+	 * Applies the suggested priority changes to user_desk_location table.
+	 */
+	executeSuggestion: protectedProcedure
+		.input(executeSuggestionInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowAnalyticsController.executeSuggestion(ctx, input);
+		}),
+
+	/**
+	 * Execute all pending workflow suggestions.
+	 * Runs in a single transaction — all-or-nothing.
+	 */
+	executeAllSuggestions: protectedProcedure
+		.mutation(async ({ ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowAnalyticsController.executeAllSuggestions(ctx);
+		}),
+
+	/**
+	 * Update a workflow suggestion status.
+	 * Can be used to hide, ignore, restore, or mark as executed.
+	 */
+	updateSuggestion: protectedProcedure
+		.input(updateSuggestionInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowAnalyticsController.updateSuggestion(ctx, input);
+		}),
 
 	// ========================================================================
 	// TIER 1 BATCH QUERIES (Admin Only)

@@ -194,6 +194,16 @@ export enum PaymentFrequency {
 	QUARTERLY = 'quarterly',
 }
 
+/**
+ * Workflow suggestion status
+ */
+export enum SuggestionStatus {
+	PENDING = 'pending',
+	EXECUTED = 'executed',
+	IGNORED = 'ignored',
+	HIDDEN = 'hidden',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',

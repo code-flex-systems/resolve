@@ -1042,6 +1042,18 @@ export interface WorkflowRule {
   workflow_definition_id: number;
 }
 
+export interface WorkflowSuggestion {
+  client_id: string;
+  desk_location_id: number;
+  expires_at: Timestamp;
+  generated_at: Generated<Timestamp>;
+  id: Generated<string>;
+  resolved_at: Timestamp | null;
+  resolved_by: string | null;
+  status: Generated<string>;
+  suggestion_data: Json;
+}
+
 export interface WorkflowThreshold {
   client_id: string;
   created_at: Generated<Timestamp>;
@@ -1105,5 +1117,6 @@ export interface DB {
   users: Users;
   workflow_definition: WorkflowDefinition;
   workflow_rule: WorkflowRule;
+  workflow_suggestion: WorkflowSuggestion;
   workflow_threshold: WorkflowThreshold;
 }

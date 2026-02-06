@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SuggestionStatus } from '@/config/enums';
 
 // ============================================================================
 // TIER 0 OPERATIONAL QUERY INPUTS
@@ -90,3 +91,27 @@ export const refreshSnapshotInput = z.object({
 	snapshotDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
 });
 export type RefreshSnapshotInput = z.infer<typeof refreshSnapshotInput>;
+
+// ============================================================================
+// WORKFLOW SUGGESTION MANAGEMENT
+// ============================================================================
+
+/**
+ * Input for executing a workflow suggestion
+ * Applies the suggested priority changes to user_desk_location table
+ */
+export const executeSuggestionInput = z.object({
+	suggestionId: z.string().uuid(),
+});
+export type ExecuteSuggestionInput = z.infer<typeof executeSuggestionInput>;
+
+/**
+ * Input for updating a workflow suggestion status
+ * Used for hide, ignore, or restore operations.
+ * EXECUTED status must go through the executeSuggestion endpoint.
+ */
+export const updateSuggestionInput = z.object({
+	suggestionId: z.string().uuid(),
+	status: z.enum([SuggestionStatus.PENDING, SuggestionStatus.IGNORED, SuggestionStatus.HIDDEN]),
+});
+export type UpdateSuggestionInput = z.infer<typeof updateSuggestionInput>;

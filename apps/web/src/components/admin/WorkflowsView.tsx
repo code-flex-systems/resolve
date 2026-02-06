@@ -61,7 +61,7 @@ export default function WorkflowsView() {
 				{/* Title */}
 				<Box p={2} pb={1}>
 					<Typography variant="h6" mb={1}>
-						Workflows
+						Workflows ({definitions.length.toLocaleString()})
 					</Typography>
 				</Box>
 
@@ -115,7 +115,7 @@ export default function WorkflowsView() {
 				</div>
 
 				{/* Workflow List */}
-				<Box flex={1} sx={{ overflowY: 'auto', px: 2, pb: 2 }}>
+				<Box height="calc(100% - 180px)" sx={{ overflowY: 'auto', px: 2, pb: 2 }}>
 					{isLoading ? (
 						<Stack spacing={1}>
 							<Skeleton variant="rectangular" height={80} />
