@@ -25,8 +25,8 @@ RUN echo "=== /app/apps/web ===" && ls -la /app/apps/web && \
     echo "=== /app/apps/web/.next ===" && ls -la /app/apps/web/.next || true && \
     echo "=== find standalone ===" && find /app -maxdepth 5 -type d -name standalone -print
 
-# Build Next.js (will produce standalone output)
-RUN npm --workspace apps/web run build
+# Build Next.js (will produce standalone output) and migration scripts
+RUN npm --workspace apps/web run build && npm run db:migrate:build
 
 # ---------- runtime ----------
 FROM node:20-alpine AS runner
