@@ -82,6 +82,7 @@ export enum EntityName {
 	WORKFLOW_DEFINITION = 'workflow_definition',
 	WORKFLOW_THRESHOLD = 'workflow_threshold',
 	WORKFLOW_RULE = 'workflow_rule',
+	WORKFLOW_RULE_EXECUTION = 'workflow_rule_execution',
 	CLAIM_DESK_LOCATION_TRANSITION = 'claim_desk_location_transition',
 
 	// Reference data management entities

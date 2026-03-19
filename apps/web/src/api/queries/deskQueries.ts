@@ -1067,3 +1067,21 @@ export async function getClaimTransitions(ctx: ProtectedContext, claimId: number
 		.orderBy('t.entered_at desc')
 		.execute();
 }
+
+/**
+ * Update a claim's current desk location.
+ * Used by the workflow rule execution engine when moving claims between locations.
+ */
+export async function updateClaimDeskLocation(
+	ctx: ProtectedContext,
+	claimId: number,
+	deskLocationId: number | null
+) {
+	return await ctx.db
+		.updateTable('claim')
+		.set({ desk_location_id: deskLocationId })
+		.where('id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returning(['id', 'desk_location_id', 'claim_number'])
+		.executeTakeFirstOrThrow();
+}

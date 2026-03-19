@@ -13,6 +13,8 @@ type WorkflowAnalyticsOutput = RouterOutput['workflowAnalytics'];
  * Health Check: Configuration gap analysis (admin only)
  */
 export function useWorkflowAnalyticsTrpc() {
+	const utils = trpc.useUtils();
+
 	return {
 		// ====================================================================
 		// TIER 0 OPERATIONAL QUERIES (Real-time, All Users)
@@ -92,19 +94,35 @@ export function useWorkflowAnalyticsTrpc() {
 		 * Execute a workflow suggestion
 		 * Applies suggested priority changes to user_desk_location table
 		 */
-		executeSuggestion: trpc.workflowAnalytics.executeSuggestion.useMutation,
+		executeSuggestion: trpc.workflowAnalytics.executeSuggestion.useMutation({
+			onSuccess() {
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
+				utils.workflowAnalytics.getDeskQueueDepth.invalidate();
+				utils.workflowAnalytics.getUserWorkload.invalidate();
+			},
+		}),
 
 		/**
 		 * Execute all pending workflow suggestions
 		 * Runs in a single transaction — all-or-nothing
 		 */
-		executeAllSuggestions: trpc.workflowAnalytics.executeAllSuggestions.useMutation,
+		executeAllSuggestions: trpc.workflowAnalytics.executeAllSuggestions.useMutation({
+			onSuccess() {
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
+				utils.workflowAnalytics.getDeskQueueDepth.invalidate();
+				utils.workflowAnalytics.getUserWorkload.invalidate();
+			},
+		}),
 
 		/**
 		 * Update a workflow suggestion status
 		 * Used for hide, ignore, or restore operations
 		 */
-		updateSuggestion: trpc.workflowAnalytics.updateSuggestion.useMutation,
+		updateSuggestion: trpc.workflowAnalytics.updateSuggestion.useMutation({
+			onSuccess() {
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
+			},
+		}),
 
 		// ====================================================================
 		// TIER 1 BATCH QUERIES (Admin Only, from rollup tables)

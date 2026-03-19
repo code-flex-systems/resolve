@@ -5,6 +5,7 @@ import { EntityName, LogAction, logAction, logUserWorkflowAction } from '@/api/u
 import { TaskStatus, TaskType } from '@/config/enums';
 import { TRPCError } from '@trpc/server';
 import config from '@/config/config';
+import { onTaskCompleted } from '@/lib/workflow/ruleEventHooks';
 
 // ============================================================================
 // TASK QUERY CONTROLLERS
@@ -335,7 +336,7 @@ export async function completeTask(
 	ctx: ProtectedContext,
 	{ id, completionNotes }: { id: number; completionNotes?: string }
 ) {
-	return await ctx.db.transaction().execute(async (trx) => {
+	const result = await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.completeTask(trxCtx, id, completionNotes);
 
@@ -350,6 +351,13 @@ export async function completeTask(
 
 		return task;
 	});
+
+	// Fire-and-forget: check if any TASK_COMPLETED workflow rules should trigger
+	if (result.claim_id) {
+		void onTaskCompleted(ctx, result.id, result.claim_id);
+	}
+
+	return result;
 }
 
 /**

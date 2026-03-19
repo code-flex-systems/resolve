@@ -90,9 +90,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 	const [hiddenSuggestionIds, setHiddenSuggestionIds] = useState<Set<string>>(new Set());
 
 	const showAlert = useAlertStore((state) => state.showAlert);
-	const executeSuggestion = useWorkflowAnalyticsTrpc().executeSuggestion();
-	const executeAllSuggestions = useWorkflowAnalyticsTrpc().executeAllSuggestions();
-	const updateSuggestion = useWorkflowAnalyticsTrpc().updateSuggestion();
+	const { executeSuggestion, executeAllSuggestions, updateSuggestion } = useWorkflowAnalyticsTrpc();
 
 	// Combine all busy states for disabling interactions
 	const isBusy =

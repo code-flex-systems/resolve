@@ -195,7 +195,10 @@ export function calculateAvailabilityScore(
 	const elapsedMs = now.getTime() - currentTask.startedAt.getTime();
 	const elapsedMinutes = elapsedMs / (1000 * 60);
 	const elapsedWorkUnits = elapsedMinutes / config.minutesPerWorkUnit;
-	const remainingWorkUnits = Math.max(0, currentTask.totalWorkUnits - elapsedWorkUnits);
+	const remainingWorkUnits = Math.min(
+		currentTask.totalWorkUnits,
+		Math.max(0, currentTask.totalWorkUnits - elapsedWorkUnits)
+	);
 
 	return remainingWorkUnits;
 }

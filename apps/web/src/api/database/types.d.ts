@@ -1042,6 +1042,24 @@ export interface WorkflowRule {
   workflow_definition_id: number;
 }
 
+export interface WorkflowRuleExecution {
+  action_config: Generated<Json>;
+  action_type: string;
+  claim_id: number;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  error_message: string | null;
+  executed_at: Timestamp | null;
+  executed_by: string | null;
+  execution_mode: string;
+  id: Generated<number>;
+  result_data: Json | null;
+  status: Generated<string>;
+  trigger_type: string;
+  workflow_rule_id: number;
+}
+
 export interface WorkflowSuggestion {
   client_id: string;
   desk_location_id: number;
@@ -1117,6 +1135,7 @@ export interface DB {
   users: Users;
   workflow_definition: WorkflowDefinition;
   workflow_rule: WorkflowRule;
+  workflow_rule_execution: WorkflowRuleExecution;
   workflow_suggestion: WorkflowSuggestion;
   workflow_threshold: WorkflowThreshold;
 }

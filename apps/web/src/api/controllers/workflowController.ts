@@ -8,9 +8,13 @@ import {
 	WorkflowActionType,
 	WorkflowExecutionMode,
 	WorkflowThresholdType,
+	RuleExecutionStatus,
 } from '@/config/enums';
 import type { RuleConditionsInput } from '@/schemas/workflowSchemas';
 import { validateRuleConditions, type RuleConditions } from '@/lib/workflow/ruleConditions';
+import { evaluateRules } from '@/lib/workflow/ruleExecutionEngine';
+import { evaluateConditions } from '@/lib/workflow/conditionEvaluator';
+import { executeAction } from '@/lib/workflow/actionExecutors';
 
 // ============================================================================
 // WORKFLOW DEFINITION CONTROLLERS
@@ -414,4 +418,262 @@ export async function resolveWorkflowForLocation(
 	{ deskLocationId }: { deskLocationId: number }
 ) {
 	return await workflowQueries.resolveWorkflowForLocation(ctx, deskLocationId);
+}
+
+// ============================================================================
+// RULE EXECUTION CONTROLLERS
+// ============================================================================
+
+/**
+ * Manually execute a single rule.
+ * Admin clicks "Run" from the rule management UI.
+ * Uses MANUAL trigger type regardless of the rule's configured trigger.
+ */
+export async function executeRule(
+	ctx: ProtectedContext,
+	{ ruleId, deskLocationId }: { ruleId: number; deskLocationId?: number }
+) {
+	const summary = await evaluateRules(ctx, {
+		triggerType: WorkflowTriggerType.MANUAL,
+		ruleId,
+		deskLocationId,
+	});
+
+	await logAdminAction(ctx, {
+		entityId: ruleId,
+		entityName: EntityName.WORKFLOW_RULE_EXECUTION,
+		action: AdminAction.CREATE,
+		value: {
+			triggerType: WorkflowTriggerType.MANUAL,
+			ruleId,
+			deskLocationId,
+			summary,
+		},
+	});
+
+	return summary;
+}
+
+/**
+ * Evaluate all applicable rules for a given trigger type.
+ * Used by poll-based triggers or admin "evaluate all" button.
+ */
+export async function evaluateRulesByTrigger(
+	ctx: ProtectedContext,
+	{
+		triggerType,
+		deskLocationId,
+	}: {
+		triggerType: WorkflowTriggerType;
+		deskLocationId?: number;
+	}
+) {
+	const summary = await evaluateRules(ctx, {
+		triggerType,
+		deskLocationId,
+	});
+
+	await logAdminAction(ctx, {
+		entityId: 0,
+		entityName: EntityName.WORKFLOW_RULE_EXECUTION,
+		action: AdminAction.CREATE,
+		value: {
+			triggerType,
+			deskLocationId,
+			summary,
+		},
+	});
+
+	return summary;
+}
+
+/**
+ * Approve and execute a pending rule execution.
+ * Re-validates that the claim still matches the rule's conditions before executing.
+ */
+export async function approvePendingExecution(
+	ctx: ProtectedContext,
+	{ executionId }: { executionId: number }
+) {
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+
+		// All reads inside the transaction to prevent TOCTOU race conditions
+		const execution = await workflowQueries.getRuleExecution(trxCtx, executionId);
+
+		if (!execution) {
+			throw new TRPCError({
+				code: 'NOT_FOUND',
+				message: 'Rule execution not found',
+			});
+		}
+
+		if (execution.status !== RuleExecutionStatus.PENDING) {
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: `Execution is already ${execution.status}`,
+			});
+		}
+
+		// Fetch the rule to get current conditions for re-validation
+		const rule = await trx
+			.selectFrom('workflow_rule')
+			.select(['id', 'name', 'conditions', 'action_type', 'action_config', 'is_active', 'deleted_at'])
+			.where('id', '=', execution.workflow_rule_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.executeTakeFirst();
+
+		if (!rule || !rule.is_active || rule.deleted_at) {
+			await workflowQueries.updateRuleExecution(trxCtx, executionId, {
+				status: RuleExecutionStatus.SKIPPED,
+				errorMessage: 'Rule is no longer active',
+			});
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: 'Rule is no longer active',
+			});
+		}
+
+		// Re-validate: check that the claim still matches conditions
+		const conditions = rule.conditions as unknown as RuleConditions;
+		if (conditions?.conditions?.length) {
+			const matches = await evaluateConditions(trxCtx, conditions, {
+				claimIds: [execution.claim_id],
+			});
+
+			if (matches.length === 0) {
+				await workflowQueries.updateRuleExecution(trxCtx, executionId, {
+					status: RuleExecutionStatus.SKIPPED,
+					errorMessage: 'Claim no longer matches rule conditions',
+				});
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Claim no longer matches rule conditions',
+				});
+			}
+		}
+
+		const actionType = execution.action_type as WorkflowActionType;
+		const actionConfig = execution.action_config as Record<string, unknown>;
+
+		// Get claim's current desk location and claim number in one query
+		const claim = await trx
+			.selectFrom('claim')
+			.select(['id', 'desk_location_id', 'claim_number'])
+			.where('id', '=', execution.claim_id)
+			.where('client_id', '=', ctx.session.user.client_id)
+			.executeTakeFirstOrThrow();
+
+		const result = await executeAction(actionType, {
+			ctx: trxCtx,
+			claimId: execution.claim_id,
+			currentDeskLocationId: claim.desk_location_id,
+			claimNumber: claim.claim_number,
+			actionConfig,
+			ruleId: execution.workflow_rule_id,
+			ruleName: rule.name,
+		});
+
+		if (result.success) {
+			await workflowQueries.updateRuleExecution(trxCtx, executionId, {
+				status: RuleExecutionStatus.EXECUTED,
+				resultData: result.data,
+			});
+		} else {
+			await workflowQueries.updateRuleExecution(trxCtx, executionId, {
+				status: RuleExecutionStatus.FAILED,
+				errorMessage: result.error,
+			});
+		}
+
+		await logAdminAction(trxCtx, {
+			entityId: executionId,
+			entityName: EntityName.WORKFLOW_RULE_EXECUTION,
+			action: AdminAction.UPDATE,
+			value: {
+				ruleId: execution.workflow_rule_id,
+				claimId: execution.claim_id,
+				actionType,
+				result: result.success ? 'executed' : 'failed',
+			},
+		});
+
+		return result;
+	});
+}
+
+/**
+ * Reject a pending rule execution.
+ * Transitions execution from PENDING to SKIPPED.
+ */
+export async function rejectPendingExecution(
+	ctx: ProtectedContext,
+	{ executionId }: { executionId: number }
+) {
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+
+		const execution = await workflowQueries.getRuleExecution(trxCtx, executionId);
+
+		if (!execution) {
+			throw new TRPCError({
+				code: 'NOT_FOUND',
+				message: 'Rule execution not found',
+			});
+		}
+
+		if (execution.status !== RuleExecutionStatus.PENDING) {
+			throw new TRPCError({
+				code: 'BAD_REQUEST',
+				message: `Execution is already ${execution.status}`,
+			});
+		}
+
+		const updated = await workflowQueries.updateRuleExecution(trxCtx, executionId, {
+			status: RuleExecutionStatus.SKIPPED,
+		});
+
+		await logAdminAction(trxCtx, {
+			entityId: executionId,
+			entityName: EntityName.WORKFLOW_RULE_EXECUTION,
+			action: AdminAction.UPDATE,
+			value: {
+				ruleId: execution.workflow_rule_id,
+				claimId: execution.claim_id,
+				result: 'rejected',
+			},
+		});
+
+		return updated;
+	});
+}
+
+/**
+ * List pending rule executions for admin review.
+ */
+export async function getPendingExecutions(
+	ctx: ProtectedContext,
+	{ ruleId, limit, offset }: { ruleId?: number; limit: number; offset: number }
+) {
+	return await workflowQueries.getPendingRuleExecutions(ctx, {
+		ruleId,
+		limit,
+		offset,
+	});
+}
+
+/**
+ * Get execution history for a rule or claim.
+ */
+export async function getRuleExecutionHistory(
+	ctx: ProtectedContext,
+	input: {
+		ruleId?: number;
+		claimId?: number;
+		status?: RuleExecutionStatus;
+		limit: number;
+		cursor?: { createdAt: string; id: number };
+	}
+) {
+	return await workflowQueries.getRuleExecutions(ctx, input);
 }

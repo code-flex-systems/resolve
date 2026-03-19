@@ -17,6 +17,12 @@ import {
 	updateWorkflowRuleInput,
 	deleteWorkflowRuleInput,
 	resolveWorkflowForLocationInput,
+	executeRuleInput,
+	evaluateRulesByTriggerInput,
+	approvePendingExecutionInput,
+	rejectPendingExecutionInput,
+	getPendingExecutionsInput,
+	getRuleExecutionHistoryInput,
 } from '@/schemas/workflowSchemas';
 
 export const workflowRouter = router({
@@ -132,5 +138,51 @@ export const workflowRouter = router({
 		.query(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return workflowController.resolveWorkflowForLocation(ctx, input);
+		}),
+
+	// ========================================================================
+	// RULE EXECUTION ENDPOINTS
+	// ========================================================================
+
+	executeRule: protectedProcedure
+		.input(executeRuleInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowController.executeRule(ctx, input);
+		}),
+
+	evaluateRulesByTrigger: protectedProcedure
+		.input(evaluateRulesByTriggerInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowController.evaluateRulesByTrigger(ctx, input);
+		}),
+
+	approvePendingExecution: protectedProcedure
+		.input(approvePendingExecutionInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowController.approvePendingExecution(ctx, input);
+		}),
+
+	rejectPendingExecution: protectedProcedure
+		.input(rejectPendingExecutionInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowController.rejectPendingExecution(ctx, input);
+		}),
+
+	getPendingExecutions: protectedProcedure
+		.input(getPendingExecutionsInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowController.getPendingExecutions(ctx, input);
+		}),
+
+	getRuleExecutionHistory: protectedProcedure
+		.input(getRuleExecutionHistoryInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return workflowController.getRuleExecutionHistory(ctx, input);
 		}),
 });

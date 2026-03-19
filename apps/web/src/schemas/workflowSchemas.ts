@@ -4,6 +4,7 @@ import {
 	WorkflowTriggerType,
 	WorkflowActionType,
 	WorkflowExecutionMode,
+	RuleExecutionStatus,
 } from '@/config/enums';
 import {
 	WORKFLOW_CONDITION_FIELDS,
@@ -162,3 +163,50 @@ export const resolveWorkflowForLocationInput = z.object({
 	deskLocationId: z.number().int().positive(),
 });
 export type ResolveWorkflowForLocationInput = z.infer<typeof resolveWorkflowForLocationInput>;
+
+// ============================================================================
+// RULE EXECUTION SCHEMAS
+// ============================================================================
+
+export const executeRuleInput = z.object({
+	ruleId: z.number().int().positive(),
+	deskLocationId: z.number().int().positive().optional(),
+});
+export type ExecuteRuleInput = z.infer<typeof executeRuleInput>;
+
+export const evaluateRulesByTriggerInput = z.object({
+	triggerType: z.nativeEnum(WorkflowTriggerType),
+	deskLocationId: z.number().int().positive().optional(),
+});
+export type EvaluateRulesByTriggerInput = z.infer<typeof evaluateRulesByTriggerInput>;
+
+export const approvePendingExecutionInput = z.object({
+	executionId: z.number().int().positive(),
+});
+export type ApprovePendingExecutionInput = z.infer<typeof approvePendingExecutionInput>;
+
+export const rejectPendingExecutionInput = z.object({
+	executionId: z.number().int().positive(),
+});
+export type RejectPendingExecutionInput = z.infer<typeof rejectPendingExecutionInput>;
+
+export const getPendingExecutionsInput = z.object({
+	ruleId: z.number().int().positive().optional(),
+	limit: z.number().int().min(1).max(100).default(25),
+	offset: z.number().int().min(0).default(0),
+});
+export type GetPendingExecutionsInput = z.infer<typeof getPendingExecutionsInput>;
+
+export const getRuleExecutionHistoryInput = z.object({
+	ruleId: z.number().int().positive().optional(),
+	claimId: z.number().int().positive().optional(),
+	status: z.nativeEnum(RuleExecutionStatus).optional(),
+	limit: z.number().int().min(1).max(100).default(25),
+	cursor: z
+		.object({
+			createdAt: z.string(),
+			id: z.number().int(),
+		})
+		.optional(),
+});
+export type GetRuleExecutionHistoryInput = z.infer<typeof getRuleExecutionHistoryInput>;

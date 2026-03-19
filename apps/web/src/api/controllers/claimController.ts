@@ -5,6 +5,7 @@ import { Claim } from '@/types/types';
 import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
 import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateClaimInput, ClaimData } from '@/schemas/claimSchemas';
+import { onClaimFieldChange } from '@/lib/workflow/ruleEventHooks';
 
 export async function assignClaim(
 	ctx: ProtectedContext,
@@ -169,6 +170,10 @@ export async function updateClaim(
 
 		return updatedClaim;
 	});
+
+	// Fire-and-forget: check if any FIELD_CHANGE workflow rules should trigger
+	const changedFields = Object.keys(updates);
+	void onClaimFieldChange(ctx, claimId, changedFields);
 
 	return updated;
 }

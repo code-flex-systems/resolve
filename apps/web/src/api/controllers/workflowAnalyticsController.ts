@@ -1,7 +1,6 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as workflowAnalyticsQueries from '@/api/queries/workflowAnalyticsQueries';
 import { generateWorkflowSuggestions, serializeSuggestion } from '@/lib/workflow/suggestions';
-import { db } from '@/api/database/kysely';
 import { sql } from 'kysely';
 import { SuggestionStatus } from '@/config/enums';
 
@@ -119,7 +118,7 @@ export async function getConfigurationHealthCheck(ctx: ProtectedContext) {
 export async function getWorkflowSuggestions(ctx: ProtectedContext) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await db.transaction().execute(async (trx) => {
+	return await ctx.db.transaction().execute(async (trx) => {
 		// 1. Fetch ignored and hidden desk location IDs
 		// Both are excluded from the algorithm so they don't regenerate new pending rows.
 		// Ignored suggestions are appended back to the response; hidden ones are not.
@@ -239,7 +238,7 @@ export async function executeSuggestion(
 ) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await db.transaction().execute(async (trx) => {
+	return await ctx.db.transaction().execute(async (trx) => {
 		// 1. Fetch the suggestion (verify client_id and status='pending')
 		const suggestion = await trx
 			.selectFrom('workflow_suggestion')
@@ -275,6 +274,7 @@ export async function executeSuggestion(
 					.set({ priority: change.priority })
 					.where('user_id', '=', change.userId)
 					.where('desk_location_id', '=', change.deskLocationId)
+					.where('removed_at', 'is', null)
 					.execute()
 			)
 		);
@@ -302,7 +302,7 @@ export async function executeSuggestion(
 export async function executeAllSuggestions(ctx: ProtectedContext) {
 	const clientId = ctx.session.user.client_id!;
 
-	return await db.transaction().execute(async (trx) => {
+	return await ctx.db.transaction().execute(async (trx) => {
 		// 1. Fetch all pending suggestions
 		const pendingSuggestions = await trx
 			.selectFrom('workflow_suggestion')
@@ -375,7 +375,7 @@ export async function updateSuggestion(
 	// Restoring to PENDING clears resolution metadata
 	const isRestoring = input.status === SuggestionStatus.PENDING;
 
-	await db
+	await ctx.db
 		.updateTable('workflow_suggestion')
 		.set({
 			status: input.status,

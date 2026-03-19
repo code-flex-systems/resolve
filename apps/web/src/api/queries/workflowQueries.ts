@@ -1,7 +1,13 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
-import { WorkflowTriggerType, WorkflowActionType, WorkflowExecutionMode, WorkflowThresholdType } from '@/config/enums';
+import {
+	WorkflowTriggerType,
+	WorkflowActionType,
+	WorkflowExecutionMode,
+	WorkflowThresholdType,
+	RuleExecutionStatus,
+} from '@/config/enums';
 
 // ============================================================================
 // TENANT VALIDATION HELPERS
@@ -608,5 +614,240 @@ export async function resolveWorkflowForLocation(ctx: ProtectedContext, deskLoca
 		)
 		.orderBy(sql`workflow_definition.desk_location_id IS NULL asc`)
 		.limit(1)
+		.executeTakeFirst();
+}
+
+// ============================================================================
+// RULE EXECUTION QUERIES
+// ============================================================================
+
+/**
+ * Find active rules matching a trigger type, optionally scoped to a desk location's workflow.
+ * Joins to workflow_definition to ensure the parent workflow is also active.
+ * Ordered by priority ASC (lower = evaluated first).
+ */
+export async function getApplicableRules(
+	ctx: ProtectedContext,
+	params: {
+		triggerType: WorkflowTriggerType;
+		deskLocationId?: number;
+		ruleId?: number;
+	}
+) {
+	let query = ctx.db
+		.selectFrom('workflow_rule')
+		.innerJoin('workflow_definition', 'workflow_definition.id', 'workflow_rule.workflow_definition_id')
+		.select([
+			'workflow_rule.id',
+			'workflow_rule.name',
+			'workflow_rule.trigger_type',
+			'workflow_rule.action_type',
+			'workflow_rule.action_config',
+			'workflow_rule.conditions',
+			'workflow_rule.execution_mode',
+			'workflow_rule.priority',
+		])
+		.where('workflow_rule.client_id', '=', ctx.session.user.client_id)
+		// Skip trigger_type filter when targeting a specific rule (manual execution)
+		.$if(params.ruleId == null, (qb) => qb.where('workflow_rule.trigger_type', '=', params.triggerType))
+		.where('workflow_rule.is_active', '=', true)
+		.where('workflow_rule.deleted_at', 'is', null)
+		.where('workflow_definition.is_active', '=', true)
+		.where('workflow_definition.deleted_at', 'is', null);
+
+	if (params.ruleId != null) {
+		query = query.where('workflow_rule.id', '=', params.ruleId);
+	}
+
+	if (params.deskLocationId != null) {
+		// Match location-specific or global workflows
+		query = query.where((eb) =>
+			eb.or([
+				eb('workflow_definition.desk_location_id', '=', params.deskLocationId!),
+				eb('workflow_definition.desk_location_id', 'is', null),
+			])
+		);
+	}
+
+	return await query.orderBy('workflow_rule.priority asc').orderBy('workflow_rule.name asc').execute();
+}
+
+/**
+ * Create a rule execution log entry.
+ */
+export async function createRuleExecution(
+	ctx: ProtectedContext,
+	params: {
+		workflowRuleId: number;
+		claimId: number;
+		triggerType: string;
+		actionType: string;
+		actionConfig: Record<string, unknown>;
+		executionMode: string;
+		status: RuleExecutionStatus;
+		resultData?: Record<string, unknown>;
+		errorMessage?: string;
+	}
+) {
+	return await ctx.db
+		.insertInto('workflow_rule_execution')
+		.values({
+			client_id: ctx.session.user.client_id!,
+			workflow_rule_id: params.workflowRuleId,
+			claim_id: params.claimId,
+			trigger_type: params.triggerType,
+			action_type: params.actionType,
+			action_config: JSON.stringify(params.actionConfig),
+			execution_mode: params.executionMode,
+			status: params.status,
+			result_data: params.resultData ? JSON.stringify(params.resultData) : null,
+			error_message: params.errorMessage,
+			executed_at: params.status === RuleExecutionStatus.EXECUTED ? new Date() : null,
+			executed_by:
+				params.status === RuleExecutionStatus.EXECUTED ? ctx.session.user.id : null,
+			created_by: ctx.session.user.id,
+		})
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Get rule executions with cursor pagination, optionally filtered by rule, claim, or status.
+ * Uses cursor-based pagination (created_at + id) for efficient traversal of large tables.
+ */
+export async function getRuleExecutions(
+	ctx: ProtectedContext,
+	params: {
+		ruleId?: number;
+		claimId?: number;
+		status?: RuleExecutionStatus;
+		limit: number;
+		cursor?: { createdAt: string; id: number };
+	}
+) {
+	const { limit, cursor } = params;
+
+	let query = ctx.db
+		.selectFrom('workflow_rule_execution')
+		.selectAll()
+		.where('client_id', '=', ctx.session.user.client_id);
+
+	if (params.ruleId != null) {
+		query = query.where('workflow_rule_id', '=', params.ruleId);
+	}
+
+	if (params.claimId != null) {
+		query = query.where('claim_id', '=', params.claimId);
+	}
+
+	if (params.status) {
+		query = query.where('status', '=', params.status);
+	}
+
+	if (cursor) {
+		const cursorDate = new Date(cursor.createdAt);
+		query = query.where((eb) =>
+			eb.or([
+				eb('created_at', '<', cursorDate),
+				eb.and([eb('created_at', '=', cursorDate), eb('id', '<', cursor.id)]),
+			])
+		);
+	}
+
+	const rows = await query
+		.orderBy('created_at', 'desc')
+		.orderBy('id', 'desc')
+		.limit(limit + 1)
+		.execute();
+
+	const hasNextPage = rows.length > limit;
+	const trimmedRows = hasNextPage ? rows.slice(0, limit) : rows;
+	const lastRow = trimmedRows[trimmedRows.length - 1];
+	const nextCursor =
+		hasNextPage && lastRow
+			? {
+					createdAt:
+						lastRow.created_at instanceof Date
+							? lastRow.created_at.toISOString()
+							: new Date(lastRow.created_at).toISOString(),
+					id: lastRow.id,
+				}
+			: null;
+
+	return { rows: trimmedRows, nextCursor, hasNextPage };
+}
+
+/**
+ * Get pending rule executions with COUNT(*) OVER() pagination.
+ * Uses offset-based pagination since the pending set stays small.
+ */
+export async function getPendingRuleExecutions(
+	ctx: ProtectedContext,
+	params: {
+		ruleId?: number;
+		limit: number;
+		offset: number;
+	}
+) {
+	let query = ctx.db
+		.selectFrom('workflow_rule_execution')
+		.selectAll()
+		.select(sql<string>`count(*) over()`.as('total_count'))
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('status', '=', RuleExecutionStatus.PENDING);
+
+	if (params.ruleId != null) {
+		query = query.where('workflow_rule_id', '=', params.ruleId);
+	}
+
+	const rowsWithCount = await query
+		.orderBy('created_at', 'desc')
+		.limit(params.limit)
+		.offset(params.offset)
+		.execute();
+
+	const count = rowsWithCount.length > 0 ? parseInt(rowsWithCount[0].total_count ?? '0') : 0;
+	const rows = rowsWithCount.map(({ total_count, ...rest }) => rest);
+
+	return { rows, count };
+}
+
+/**
+ * Update a rule execution's status and result.
+ */
+export async function updateRuleExecution(
+	ctx: ProtectedContext,
+	id: number,
+	params: {
+		status: RuleExecutionStatus;
+		resultData?: Record<string, unknown>;
+		errorMessage?: string;
+	}
+) {
+	return await ctx.db
+		.updateTable('workflow_rule_execution')
+		.set({
+			status: params.status,
+			result_data: params.resultData ? JSON.stringify(params.resultData) : null,
+			error_message: params.errorMessage ?? null,
+			executed_at: params.status === RuleExecutionStatus.EXECUTED ? new Date() : null,
+			executed_by:
+				params.status === RuleExecutionStatus.EXECUTED ? ctx.session.user.id : null,
+		})
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Get a single rule execution by ID.
+ */
+export async function getRuleExecution(ctx: ProtectedContext, id: number) {
+	return await ctx.db
+		.selectFrom('workflow_rule_execution')
+		.selectAll()
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
 		.executeTakeFirst();
 }

@@ -176,6 +176,64 @@ export function useWorkflowTrpc() {
 		 * Returns the location-specific workflow if exists, otherwise global
 		 */
 		resolveForLocation: trpc.workflow.resolveWorkflowForLocation.useQuery,
+
+		// ====================================================================
+		// RULE EXECUTION OPERATIONS
+		// ====================================================================
+
+		/**
+		 * Manually execute a single rule
+		 * Invalidates pending executions and execution history
+		 */
+		executeRule: trpc.workflow.executeRule.useMutation({
+			onSuccess() {
+				utils.workflow.getPendingExecutions.invalidate();
+				utils.workflow.getRuleExecutionHistory.invalidate();
+			},
+		}),
+
+		/**
+		 * Evaluate all rules for a trigger type
+		 * Invalidates pending executions and execution history
+		 */
+		evaluateRulesByTrigger: trpc.workflow.evaluateRulesByTrigger.useMutation({
+			onSuccess() {
+				utils.workflow.getPendingExecutions.invalidate();
+				utils.workflow.getRuleExecutionHistory.invalidate();
+			},
+		}),
+
+		/**
+		 * Approve a pending rule execution
+		 * Invalidates pending executions and execution history
+		 */
+		approvePendingExecution: trpc.workflow.approvePendingExecution.useMutation({
+			onSuccess() {
+				utils.workflow.getPendingExecutions.invalidate();
+				utils.workflow.getRuleExecutionHistory.invalidate();
+			},
+		}),
+
+		/**
+		 * Reject a pending rule execution
+		 * Invalidates pending executions
+		 */
+		rejectPendingExecution: trpc.workflow.rejectPendingExecution.useMutation({
+			onSuccess() {
+				utils.workflow.getPendingExecutions.invalidate();
+				utils.workflow.getRuleExecutionHistory.invalidate();
+			},
+		}),
+
+		/**
+		 * List pending rule executions for admin review
+		 */
+		listPendingExecutions: trpc.workflow.getPendingExecutions.useQuery,
+
+		/**
+		 * Get rule execution history with cursor pagination
+		 */
+		listExecutionHistory: trpc.workflow.getRuleExecutionHistory.useQuery,
 	};
 }
 
@@ -204,3 +262,8 @@ export type CreateWorkflowThresholdInput = WorkflowInput['createWorkflowThreshol
 export type UpdateWorkflowThresholdInput = WorkflowInput['updateWorkflowThreshold'];
 export type CreateWorkflowRuleInput = WorkflowInput['createWorkflowRule'];
 export type UpdateWorkflowRuleInput = WorkflowInput['updateWorkflowRule'];
+
+// Execution types
+export type RuleExecutionSummary = WorkflowOutput['executeRule'];
+export type PendingExecutionList = WorkflowOutput['getPendingExecutions'];
+export type RuleExecutionHistory = WorkflowOutput['getRuleExecutionHistory'];

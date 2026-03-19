@@ -204,6 +204,16 @@ export enum SuggestionStatus {
 	HIDDEN = 'hidden',
 }
 
+/**
+ * Workflow rule execution status
+ */
+export enum RuleExecutionStatus {
+	PENDING = 'pending',
+	EXECUTED = 'executed',
+	FAILED = 'failed',
+	SKIPPED = 'skipped',
+}
+
 export enum FeedStatus {
 	ONLINE = 'Online',
 	OFFLINE = 'Offline',

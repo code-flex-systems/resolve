@@ -311,7 +311,7 @@ export const WORKFLOW_CONDITION_FIELDS: FieldDefinition[] = [
 		type: 'numeric',
 		source: 'derived',
 		allowedOperators: NUMERIC_OPERATORS,
-		nullable: false, // Always has value if claim is at a desk location
+		nullable: true, // NULL if claim has no transition records
 	},
 	{
 		field: 'claim.days_since_date_of_loss',
