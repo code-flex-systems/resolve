@@ -729,34 +729,40 @@ export async function getRuleExecutions(
 
 	let query = ctx.db
 		.selectFrom('workflow_rule_execution')
-		.selectAll()
-		.where('client_id', '=', ctx.session.user.client_id);
+		.innerJoin('workflow_rule', 'workflow_rule.id', 'workflow_rule_execution.workflow_rule_id')
+		.innerJoin('claim', 'claim.id', 'workflow_rule_execution.claim_id')
+		.selectAll('workflow_rule_execution')
+		.select(['workflow_rule.name as rule_name', 'claim.claim_number'])
+		.where('workflow_rule_execution.client_id', '=', ctx.session.user.client_id);
 
 	if (params.ruleId != null) {
-		query = query.where('workflow_rule_id', '=', params.ruleId);
+		query = query.where('workflow_rule_execution.workflow_rule_id', '=', params.ruleId);
 	}
 
 	if (params.claimId != null) {
-		query = query.where('claim_id', '=', params.claimId);
+		query = query.where('workflow_rule_execution.claim_id', '=', params.claimId);
 	}
 
 	if (params.status) {
-		query = query.where('status', '=', params.status);
+		query = query.where('workflow_rule_execution.status', '=', params.status);
 	}
 
 	if (cursor) {
 		const cursorDate = new Date(cursor.createdAt);
 		query = query.where((eb) =>
 			eb.or([
-				eb('created_at', '<', cursorDate),
-				eb.and([eb('created_at', '=', cursorDate), eb('id', '<', cursor.id)]),
+				eb('workflow_rule_execution.created_at', '<', cursorDate),
+				eb.and([
+					eb('workflow_rule_execution.created_at', '=', cursorDate),
+					eb('workflow_rule_execution.id', '<', cursor.id),
+				]),
 			])
 		);
 	}
 
 	const rows = await query
-		.orderBy('created_at', 'desc')
-		.orderBy('id', 'desc')
+		.orderBy('workflow_rule_execution.created_at', 'desc')
+		.orderBy('workflow_rule_execution.id', 'desc')
 		.limit(limit + 1)
 		.execute();
 
@@ -791,17 +797,20 @@ export async function getPendingRuleExecutions(
 ) {
 	let query = ctx.db
 		.selectFrom('workflow_rule_execution')
-		.selectAll()
+		.innerJoin('workflow_rule', 'workflow_rule.id', 'workflow_rule_execution.workflow_rule_id')
+		.innerJoin('claim', 'claim.id', 'workflow_rule_execution.claim_id')
+		.selectAll('workflow_rule_execution')
+		.select(['workflow_rule.name as rule_name', 'claim.claim_number'])
 		.select(sql<string>`count(*) over()`.as('total_count'))
-		.where('client_id', '=', ctx.session.user.client_id)
-		.where('status', '=', RuleExecutionStatus.PENDING);
+		.where('workflow_rule_execution.client_id', '=', ctx.session.user.client_id)
+		.where('workflow_rule_execution.status', '=', RuleExecutionStatus.PENDING);
 
 	if (params.ruleId != null) {
-		query = query.where('workflow_rule_id', '=', params.ruleId);
+		query = query.where('workflow_rule_execution.workflow_rule_id', '=', params.ruleId);
 	}
 
 	const rowsWithCount = await query
-		.orderBy('created_at', 'desc')
+		.orderBy('workflow_rule_execution.created_at', 'desc')
 		.limit(params.limit)
 		.offset(params.offset)
 		.execute();

@@ -35,6 +35,7 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import TimelineIcon from '@mui/icons-material/Timeline';
+import HistoryIcon from '@mui/icons-material/History';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
@@ -130,6 +131,11 @@ const adminNavCategories: AdminNavCategory[] = [
 							label: 'Dashboard',
 							route: '/admin/workflow-management/dashboard',
 							icon: <TimelineIcon fontSize="small" />,
+						},
+						{
+							label: 'Execution History',
+							route: '/admin/workflow-management/execution-history',
+							icon: <HistoryIcon fontSize="small" />,
 						},
 					],
 					defaultExpanded: false,

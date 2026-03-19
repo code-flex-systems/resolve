@@ -2,6 +2,7 @@
 
 import { Box, Typography, CircularProgress } from '@mui/material';
 import MetricCard from './MetricCard';
+import PendingExecutionsPanel from '@/components/admin/PendingExecutionsPanel';
 import SuggestionsPanel from './SuggestionsPanel';
 import { useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc';
 
@@ -133,6 +134,11 @@ export default function WorkflowManagementDashboard() {
 					label="Open Work Units"
 					subtitle={`${workUnitsCompleted} units completed today`}
 				/>
+			</Box>
+
+			{/* Pending executions panel */}
+			<Box sx={{ mt: 3 }}>
+				<PendingExecutionsPanel />
 			</Box>
 
 			{/* Suggestions panel */}

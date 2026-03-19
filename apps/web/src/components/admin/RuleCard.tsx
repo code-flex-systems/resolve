@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Chip, Paper, Stack, Typography } from '@mui/material';
+import { Box, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Archive from '@mui/icons-material/Archive';
 import FlashOn from '@mui/icons-material/FlashOn';
@@ -22,6 +22,8 @@ interface RuleCardProps {
 	rule: WorkflowRule;
 	onEdit: (rule: WorkflowRule) => void;
 	onArchive: (rule: WorkflowRule) => void;
+	onRun?: (rule: WorkflowRule) => void;
+	isRunning?: boolean;
 }
 
 const formatCondition = (cond: any) => {
@@ -30,7 +32,7 @@ const formatCondition = (cond: any) => {
 	return `${cond.field} ${cond.operator} ${valueStr}`;
 };
 
-export default function RuleCard({ rule, onEdit, onArchive }: RuleCardProps) {
+export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning }: RuleCardProps) {
 	const deskStore = useDeskLocationStore();
 
 	// Get target location name if this is a MOVE_CLAIM action
@@ -149,6 +151,18 @@ export default function RuleCard({ rule, onEdit, onArchive }: RuleCardProps) {
 
 				{/* Action buttons */}
 				<Box display="flex" gap={0.5}>
+					{rule.is_active && onRun && (
+						<BasicButtonStyled
+							buttonProps={{
+								onClick: () => onRun(rule),
+								sx: { bgcolor: BG_TERTIARY },
+								disabled: isRunning,
+							}}
+							icon={isRunning ? <CircularProgress size={20} /> : <PlayArrow />}
+							compact
+							tooltipProps={{ title: 'Run Rule' }}
+						/>
+					)}
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => onEdit(rule),

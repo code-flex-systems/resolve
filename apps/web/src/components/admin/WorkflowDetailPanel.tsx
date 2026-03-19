@@ -3,6 +3,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
 	Box,
+	Collapse,
+	FormControl,
+	IconButton,
+	MenuItem,
+	Select,
 	Stack,
 	Paper,
 	Typography,
@@ -20,19 +25,24 @@ import Add from '@mui/icons-material/Add';
 import Archive from '@mui/icons-material/Archive';
 import Public from '@mui/icons-material/Public';
 import LocationOn from '@mui/icons-material/LocationOn';
+import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import DeskLocationTypeSelect from '@/components/common/DeskLocationTypeSelect';
 import DeskLocationSelect from '@/components/common/DeskLocationSelect';
+import ExecutionHistoryTable from '@/components/admin/ExecutionHistoryTable';
 import RuleCard from '@/components/admin/RuleCard';
 import WorkflowThresholdDialog from '@/components/admin/WorkflowThresholdDialog';
 import WorkflowRuleDialog from '@/components/admin/WorkflowRuleDialog';
+import RuleExecutionSummaryDialog from '@/components/admin/RuleExecutionSummaryDialog';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
+import { useAlertStore } from '@/stores/useAlertStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
 import { formatThresholdType, getThresholdUnit } from '@/lib/utils/workflowUtils';
 import { formatMDY } from '@/lib/utils/utils';
-import type { WorkflowThreshold, WorkflowRule } from '@/hooks/trpc/useWorkflowTrpc';
+import type { WorkflowThreshold, WorkflowRule, RuleExecutionSummary } from '@/hooks/trpc/useWorkflowTrpc';
 
 interface WorkflowDetailPanelProps {
 	workflowId: number;
@@ -46,6 +56,11 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 	const [editingRule, setEditingRule] = useState<WorkflowRule | null>(null);
 	const [archivingThreshold, setArchivingThreshold] = useState<WorkflowThreshold | null>(null);
 	const [archivingRule, setArchivingRule] = useState<WorkflowRule | null>(null);
+	const [runningRuleId, setRunningRuleId] = useState<number | null>(null);
+	const [executionSummary, setExecutionSummary] = useState<RuleExecutionSummary | null>(null);
+	const [summaryRuleName, setSummaryRuleName] = useState('');
+	const [historyExpanded, setHistoryExpanded] = useState(false);
+	const [historyRuleFilter, setHistoryRuleFilter] = useState<number | undefined>(undefined);
 
 	const [formData, setFormData] = useState({
 		name: '',
@@ -55,8 +70,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 		isActive: true,
 	});
 
-	const { getDefinition, updateDefinition, archiveThreshold, archiveRule } = useWorkflowTrpc();
+	const { getDefinition, updateDefinition, archiveThreshold, archiveRule, executeRule } = useWorkflowTrpc();
 	const { listLocations } = useDeskTrpc();
+	const showAlert = useAlertStore((state) => state.showAlert);
 
 	const { data: workflow, isLoading } = getDefinition({ id: workflowId });
 	const { data: locationsData } = listLocations({});
@@ -139,6 +155,24 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 	const handleCloseRuleDialog = () => {
 		setShowRuleDialog(false);
 		setEditingRule(null);
+	};
+
+	const handleRunRule = (rule: WorkflowRule) => {
+		setRunningRuleId(rule.id);
+		setSummaryRuleName(rule.name);
+		executeRule.mutate(
+			{ ruleId: rule.id },
+			{
+				onSuccess: (summary) => {
+					setExecutionSummary(summary);
+					setRunningRuleId(null);
+				},
+				onError: (err) => {
+					showAlert(err.message || 'Failed to execute rule', 'error');
+					setRunningRuleId(null);
+				},
+			}
+		);
 	};
 
 	// Memoize derived values to prevent unnecessary rerenders
@@ -418,10 +452,57 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 										rule={rule}
 										onEdit={handleEditRule}
 										onArchive={handleArchiveRule}
+										onRun={handleRunRule}
+										isRunning={runningRuleId === rule.id}
 									/>
 								))}
 							</Stack>
 						)}
+					</Box>
+				</Paper>
+
+				{/* Section 4: Execution History (Collapsible) */}
+				<Paper elevation={0} sx={containerStyles.beveledCard}>
+					<Box p={2}>
+						<Box display="flex" justifyContent="space-between" alignItems="center">
+							<Box display="flex" alignItems="center" gap={1}>
+								<Typography fontSize={13} fontWeight={600}>
+									Execution History
+								</Typography>
+								<IconButton
+									size="small"
+									onClick={() => setHistoryExpanded((prev) => !prev)}
+								>
+									{historyExpanded ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+								</IconButton>
+							</Box>
+							{historyExpanded && (
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<Select
+										value={historyRuleFilter ?? ''}
+										displayEmpty
+										onChange={(e) => {
+											const val = e.target.value;
+											setHistoryRuleFilter(val === '' ? undefined : (val as number));
+										}}
+									>
+										<MenuItem value="">All Rules</MenuItem>
+										{rules.map((rule) => (
+											<MenuItem key={rule.id} value={rule.id}>
+												{rule.name}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							)}
+						</Box>
+						<Collapse in={historyExpanded}>
+							<Box mt={2}>
+								{historyExpanded && (
+									<ExecutionHistoryTable ruleId={historyRuleFilter} compact />
+								)}
+							</Box>
+						</Collapse>
 					</Box>
 				</Paper>
 			</Stack>
@@ -478,6 +559,13 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 					</Typography>
 				</BasicDialog>
 			)}
+
+			<RuleExecutionSummaryDialog
+				open={!!executionSummary}
+				onClose={() => setExecutionSummary(null)}
+				summary={executionSummary}
+				ruleName={summaryRuleName}
+			/>
 		</Box>
 	);
 }
