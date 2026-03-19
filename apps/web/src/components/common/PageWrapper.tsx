@@ -15,10 +15,7 @@ import { Box } from '@mui/material';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { BG_SECONDARY } from '@/styles/theme';
 
-export default function PageWrapper({
-	bgcolor = BG_SECONDARY,
-	children,
-}: { bgcolor?: string } & PropsWithChildren) {
+export default function PageWrapper({ bgcolor = BG_SECONDARY, children }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -57,6 +54,9 @@ export default function PageWrapper({
 				justifyContent: 'flex-start',
 				alignItems: 'flex-start',
 				bgcolor,
+				backgroundImage:
+					'linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px)',
+				backgroundSize: '30px 30px',
 			}}
 		>
 			<Sidebar items={navItems} />

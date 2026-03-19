@@ -57,6 +57,7 @@ export default function WorkflowsView() {
 					...containerStyles.beveledCard,
 					width: 320,
 				}}
+				mr={2}
 			>
 				{/* Title */}
 				<Box p={2} pb={1}>

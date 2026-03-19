@@ -82,7 +82,6 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		bgcolor: 'white',
 		p: 2.5,
 	},
 };

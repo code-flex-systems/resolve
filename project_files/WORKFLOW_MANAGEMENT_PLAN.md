@@ -1,7 +1,8 @@
 # Workflow Management Implementation Plan
 
 **Date:** November 21, 2025
-**Status:** Planning
+**Last assessed:** March 18, 2026
+**Status:** In Progress
 **Dependencies:** Phase 1 (Desk Types/Locations) ✅, Phase 2 (User Assignments) ✅
 
 ## Executive Summary
@@ -13,6 +14,22 @@ This document outlines the implementation of a **flexible, extensible workflow m
 3. **Future automation** - Worker executes approved action patterns automatically
 
 **Key Design Principle:** The system is built to be **generically extensible**. Task types, rule types, trigger types, and action types are defined as TypeScript enums (not database tables), with case-based logic in controllers. This allows incremental addition of new capabilities without database migrations.
+
+---
+
+## Implementation Status Summary
+
+| Phase | Status | Key Gaps |
+|---|---|---|
+| 3A: Task System | ✅ Complete | — |
+| 3B: Workflow Dashboard | ⚠️ Partial | Manual action panels (Move Claims, Assign Tasks, Adjust Priorities) |
+| 3C: Evaluation & Suggestions | ✅ Mostly Complete | Stale claims by activity (beyond SLA) |
+| 3D: Workflow Rules | ⚠️ Partial | Rule execution engine, rule testing/preview |
+| 3E: Contact Information | ⏸️ Deferred | Intentionally deferred |
+| Analytics (unplanned) | ✅ Complete | Added beyond original scope |
+| Workflow Config UI (unplanned) | ✅ Complete | Added beyond original scope |
+
+---
 
 ## Architecture: Enum-Based Extensibility
 
@@ -61,7 +78,7 @@ export enum TaskType {
 ```
 
 ```typescript
-// In controller - case-based execution
+// In controller - case-based execution (NOT YET IMPLEMENTED)
 async function executeWorkflowAction(action: WorkflowAction, claim: Claim) {
   switch (action.actionType) {
     case WorkflowActionType.MOVE_CLAIM:
@@ -79,98 +96,51 @@ async function executeWorkflowAction(action: WorkflowAction, claim: Claim) {
 
 ## Implementation Phases
 
-### Phase 3A: Task System Foundation
+### Phase 3A: Task System Foundation ✅ COMPLETE
 
 Tasks enable multi-desk collaboration. A claim stays with one desk (ownership) while tasks can be assigned to other desks for specific work.
 
-**Database Schema:**
+**What was built:**
 
-```sql
--- Task instances
-CREATE TABLE task (
-  id SERIAL PRIMARY KEY,
-  client_id INTEGER NOT NULL REFERENCES client(id),
-
-  -- What this task is for
-  checklist_claim_id INTEGER NOT NULL REFERENCES checklist_claim(id),
-
-  -- Where this task should be worked
-  desk_location_id INTEGER NOT NULL REFERENCES desk_location(id),
-
-  -- Task definition (enum value stored as string)
-  task_type VARCHAR(100) NOT NULL DEFAULT 'generic',
-
-  -- Work measurement
-  work_units INTEGER NOT NULL DEFAULT 2,  -- 1 unit = 5 minutes
-
-  -- Task details
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  due_date DATE,
-
-  -- Status tracking
-  status VARCHAR(50) NOT NULL DEFAULT 'pending',  -- pending, in_progress, completed, cancelled
-
-  -- Assignment tracking
-  assigned_by INTEGER NOT NULL REFERENCES "user"(id),
-  assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-  -- Completion tracking
-  completed_by INTEGER REFERENCES "user"(id),
-  completed_at TIMESTAMPTZ,
-
-  -- Soft deletion
-  cancelled_by INTEGER REFERENCES "user"(id),
-  cancelled_at TIMESTAMPTZ,
-  cancellation_reason TEXT,
-
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ
-);
-
-CREATE INDEX idx_task_client_id ON task(client_id);
-CREATE INDEX idx_task_claim_id ON task(checklist_claim_id);
-CREATE INDEX idx_task_desk_location_id ON task(desk_location_id);
-CREATE INDEX idx_task_status ON task(status) WHERE cancelled_at IS NULL;
-CREATE INDEX idx_task_due_date ON task(due_date) WHERE status = 'pending';
-```
-
-**Add capacity to desk_location:**
-
-```sql
-ALTER TABLE desk_location
-  ADD COLUMN daily_work_units INTEGER;  -- NULL = unlimited
-```
-
-**Backend:**
-- `apps/web/src/schemas/taskSchemas.ts` - Zod validation
-- `apps/web/src/api/queries/taskQueries.ts` - CRUD operations
-- `apps/web/src/api/controllers/taskController.ts` - Business logic
-- `apps/web/src/server/trpc/routers/task.ts` - tRPC endpoints
-
-**Key Operations:**
-- `createTask(claimId, deskLocationId, taskType, details)` - Create task
-- `completeTask(taskId)` - Mark task complete
-- `cancelTask(taskId, reason)` - Cancel task with reason
-- `getTasksByDeskLocation(deskLocationId)` - Tasks for a desk
-- `getTasksByClaim(claimId)` - Tasks for a claim
-- `getTasksByUser(userId)` - Tasks user can work (via desk assignments)
-- `getDeskCapacityUsage(deskLocationId, date)` - Work units used vs capacity
-
-**UI Components:**
-- `TaskCreationDialog.tsx` - Create task from claim detail
-- `TaskListPanel.tsx` - View tasks for a desk or claim
-- `TaskCompletionDialog.tsx` - Complete task with notes
+- **3 migrations:**
+  - `2025-11-21_180000_add_task_system.ts` — task table with deadline integration
+  - `2025-11-24_210639_simplify_task_schema.ts` — removed inline deadline fields
+  - `2026-01-30_012259_add_capacity_threshold_rename_task_fields.ts` — capacity threshold, renamed assigned_by→assigned_to, claimed_by→started_by
+- **`daily_work_units` and `capacity_threshold`** added to desk_location
+- **Backend:** `taskSchemas.ts`, `taskQueries.ts` (15+ functions), `taskController.ts`, `task.ts` router
+- **Frontend:** `useTaskTrpc.ts` hook, `taskUtils.tsx` (type configs/icons), enums (TaskStatus, DerivedTaskStatus, TaskType with 9 values)
+- **UI Components:**
+  - `TaskListPanel.tsx` — task list with status, type, assignment, action buttons
+  - `TaskCreationDialog.tsx` — create with desk location, type, deadline
+  - `TaskCompletionDialog.tsx` — complete with notes
+  - `TaskCancellationDialog.tsx` — cancel with reason
+  - `TasksTab.tsx` — admin weekly view with metrics, filtering, bulk cancellation
+  - `TaskBulkCancellationDialog.tsx`, `TaskMetrics.tsx`
+- **Tests:** 5 test files (integration tests for queries and controller)
+- **Features:** Full lifecycle (pending→in_progress→completed/cancelled), desk-based routing, capacity management, deadline integration, authorization, admin logging
 
 ---
 
-### Phase 3B: Workflow Dashboard (Manual Management)
+### Phase 3B: Workflow Dashboard (Manual Management) ⚠️ PARTIAL
 
 New tab under Workflow Configuration for manual workflow operations.
 
-**Location:** `/admin/workflow-configuration/workflow-management`
+**Location:** `/admin/workflow-management/dashboard`
 
-**Dashboard Layout:**
+**What was built:**
+- ✅ Dashboard layout — `WorkflowManagementDashboard.tsx` with 4 metric cards (Total Workload, Team Capacity, Daily Throughput, Open Work Units)
+- ✅ `SuggestionsPanel.tsx` integrated into dashboard
+- ✅ `workflowQueries.ts` — Full CRUD for definitions, thresholds, rules, resolution logic
+- ✅ `workflowController.ts` — Wraps queries in transactions with audit logging
+- ✅ `workflow.ts` router — All definition/threshold/rule endpoints
+
+**What remains:**
+- ❌ **Move Claims Panel** — Filter/select claims, choose destination desk location, execute move (single and bulk)
+- ❌ **Assign Tasks Panel** — Search claim, select task type/desk/work units, create task
+- ❌ **Adjust Priorities Panel** — Select user, view/reorder priorities, save (suggestion execution partially covers this)
+- ❌ **`moveClaimToLocation()`** and **`bulkMoveClaimsToLocation()`** backend operations
+
+**Original dashboard layout design:**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Workflow Management                                        │
@@ -200,264 +170,72 @@ New tab under Workflow Configuration for manual workflow operations.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Manual Action Panels:**
-
-1. **Move Claims Panel**
-   - Filter claims by current desk location, age, amount, etc.
-   - Select one or more claims
-   - Choose destination desk location
-   - Execute move (with confirmation)
-   - All moves logged to admin action log
-
-2. **Assign Tasks Panel**
-   - Search for claim
-   - Select task type (from enum)
-   - Select target desk location
-   - Set work units, due date, description
-   - Create task
-
-3. **Adjust Priorities Panel**
-   - Select user
-   - View current priority assignments
-   - Drag/reorder priorities
-   - Save changes
-
-4. **Workload Overview Cards**
-   - Claims per desk location (bar chart or numbers)
-   - Tasks pending per desk location
-   - User capacity utilization
-
-**Backend:**
-- `apps/web/src/api/queries/workflowQueries.ts` - Dashboard data queries
-- `apps/web/src/api/controllers/workflowController.ts` - Manual action execution
-- `apps/web/src/server/trpc/routers/workflow.ts` - tRPC endpoints
-
-**Key Operations:**
-- `moveClaimToLocation(claimId, destinationLocationId)` - Move single claim
-- `bulkMoveClaimsToLocation(claimIds, destinationLocationId)` - Bulk move
-- `getWorkloadSummary()` - Dashboard overview data
-- `getClaimsByLocation(locationId, filters)` - Claims for move selection
-
-**UI Components:**
-- `WorkflowManagementTab.tsx` - Main dashboard container
-- `MoveClaimsPanel.tsx` - Claim movement interface
-- `AssignTasksPanel.tsx` - Task assignment interface
-- `AdjustPrioritiesPanel.tsx` - Priority management
-- `WorkloadOverviewCards.tsx` - Summary statistics
-
 ---
 
-### Phase 3C: Evaluation Queries & Suggestions
+### Phase 3C: Evaluation Queries & Suggestions ✅ MOSTLY COMPLETE
 
 Queries that analyze workload and surface actionable suggestions to admins.
 
-**Evaluation Query Types:**
+**What was built (organized differently than planned — combined into analytics files):**
+- ✅ `workflow_threshold` table (part of `add_workflow_management` migration)
+- ✅ `workflow_suggestion` table (dedicated `add_workflow_suggestion_table` migration with status lifecycle, expiration, partial unique index)
+- ✅ Threshold configuration UI — `WorkflowThresholdDialog.tsx` in workflow detail panel
+- ✅ Capacity analysis — `getDeskLocationQueueDepth()`, `getUserWorkloadAndCapacity()`
+- ✅ Load balance analysis — Suggestion algorithm with breach detection and severity scoring (`lib/workflow/suggestions.ts`, 713 lines)
+- ✅ SLA breach detection — `getClaimsApproachingSLABreach()` with hours-remaining ordering
+- ✅ Suggestion UI — `SuggestionCard.tsx`, `SuggestionDetailDialog.tsx`, `SuggestionsPanel.tsx`
+- ✅ Suggestion execution — Execute single, execute all, ignore, hide with cascade-safe priority reassignment
+- ✅ Configuration health checks — 4 validation checks (missing workflows, thresholds, capacity, user assignments)
+- ✅ Analytics infrastructure — `workflowAnalyticsQueries.ts` (Tier 0 real-time + Tier 1 time-series), `workflowAnalyticsController.ts`, `workflowAnalytics.ts` router, `useWorkflowAnalyticsTrpc.ts` hook
 
-1. **Capacity Analysis**
-   - Users over threshold (e.g., >20 claims assigned)
-   - Users under threshold (e.g., <5 claims assigned)
-   - Configurable thresholds per desk location or globally
+**File organization note:** The plan called for separate `evaluationQueries.ts` and `evaluationController.ts` files, but evaluation logic was combined into `workflowAnalyticsQueries.ts`, `workflowAnalyticsController.ts`, and `lib/workflow/suggestions.ts`.
 
-2. **Load Imbalance**
-   - Standard deviation of claims per user within same desk
-   - Identifies uneven distribution
-   - Suggests rebalancing
-
-3. **Stale Claims**
-   - Claims in location longer than configurable threshold
-   - Days since last activity
-   - Suggests review or escalation
-
-4. **Approaching Deadlines**
-   - Claims with due dates within configurable window
-   - Tasks approaching due dates
-   - Prioritization suggestions
-
-5. **Queue Prioritization**
-   - User's priority 2+ queues have more work than priority 1
-   - Suggests priority shuffle
-
-**Database Schema:**
-
-```sql
--- Configurable thresholds for evaluation queries
-CREATE TABLE workflow_threshold (
-  id SERIAL PRIMARY KEY,
-  client_id INTEGER NOT NULL REFERENCES client(id),
-
-  -- What this threshold applies to
-  threshold_type VARCHAR(100) NOT NULL,  -- enum: user_capacity, location_age, etc.
-
-  -- Scope (optional - NULL means global for client)
-  desk_location_id INTEGER REFERENCES desk_location(id),
-  desk_location_type_id INTEGER REFERENCES desk_location_type(id),
-
-  -- Threshold values
-  warning_value INTEGER,   -- Yellow alert
-  critical_value INTEGER,  -- Red alert
-
-  -- Active status
-  is_active BOOLEAN NOT NULL DEFAULT true,
-
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_by INTEGER REFERENCES "user"(id),
-  updated_at TIMESTAMPTZ,
-  updated_by INTEGER REFERENCES "user"(id)
-);
-
-CREATE UNIQUE INDEX idx_workflow_threshold_unique
-  ON workflow_threshold(client_id, threshold_type, COALESCE(desk_location_id, 0), COALESCE(desk_location_type_id, 0))
-  WHERE is_active = true;
-```
-
-**Suggestion UI Pattern:**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ ⚠️  Load Imbalance Detected                                 │
-├─────────────────────────────────────────────────────────────┤
-│ Desk Location: Evaluation - Transactional                   │
-│                                                             │
-│ User A: 25 claims                                          │
-│ User B: 8 claims                                           │
-│ User C: 12 claims                                          │
-│                                                             │
-│ Suggested Action: Move 6 claims from User A to User B      │
-│                                                             │
-│ [Approve] [Modify] [Dismiss]                               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Backend:**
-- `apps/web/src/api/queries/evaluationQueries.ts` - Analysis queries
-- `apps/web/src/api/controllers/evaluationController.ts` - Suggestion generation
-
-**Key Operations:**
-- `evaluateCapacity(clientId)` - Run capacity analysis
-- `evaluateLoadBalance(clientId)` - Check distribution
-- `evaluateStaleClaims(clientId)` - Find old claims
-- `generateSuggestions(clientId)` - Aggregate all evaluations
-- `executeSuggestion(suggestionId)` - Apply suggested action
-- `dismissSuggestion(suggestionId)` - Mark as dismissed
-
-**UI Components:**
-- `SuggestionCard.tsx` - Individual suggestion display
-- `SuggestionsList.tsx` - All pending suggestions
-- `ThresholdConfigDialog.tsx` - Configure thresholds
+**What remains:**
+- ❌ Stale claims by activity — "Days since last activity" analysis (beyond SLA-based staleness)
 
 ---
 
-### Phase 3D: Workflow Rules Definition
+### Phase 3D: Workflow Rules Definition ⚠️ PARTIAL
 
 Allow admins to define rules that generate suggestions or (future) auto-execute.
 
-**Database Schema:**
+**What was built:**
+- ✅ `workflow_rule` table (part of `add_workflow_management` migration) with JSONB action_config and conditions
+- ✅ Rule CRUD — Full create/update/archive in queries, controller, router
+- ✅ Condition parser/evaluator — `lib/workflow/ruleConditions.ts` (887 lines) with 12+ fields, operators, validation, SQL generation helpers
+- ✅ Rule management UI — `WorkflowRuleDialog.tsx` with condition builder, `RuleCard.tsx` for display
+- ✅ Rule configuration — trigger types, action types, execution modes, priority ordering
 
-```sql
--- Workflow rules
-CREATE TABLE workflow_rule (
-  id SERIAL PRIMARY KEY,
-  client_id INTEGER NOT NULL REFERENCES client(id),
+**What remains:**
+- ❌ **Rule execution engine** — The `executeWorkflowAction()` switch-case handler that actually runs actions (move_claim, create_task, notify_user, update_priority) when rules fire
+- ❌ **Rule testing/preview** — Dry-run capability to see what claims would match a rule before activating it
 
-  -- Rule identification
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-
-  -- Trigger (enum value stored as string)
-  trigger_type VARCHAR(100) NOT NULL,  -- e.g., 'claim_age', 'location_age', 'field_change'
-
-  -- Source context (optional - NULL means any)
-  source_desk_location_id INTEGER REFERENCES desk_location(id),
-  source_desk_location_type_id INTEGER REFERENCES desk_location_type(id),
-
-  -- Action (enum value stored as string)
-  action_type VARCHAR(100) NOT NULL,  -- e.g., 'move_claim', 'create_task', 'notify_user'
-
-  -- Action configuration (JSON)
-  action_config JSONB NOT NULL DEFAULT '{}',
-
-  -- Conditions (JSON array)
-  conditions JSONB NOT NULL DEFAULT '[]',
-
-  -- Execution mode
-  execution_mode VARCHAR(50) NOT NULL DEFAULT 'suggest',  -- 'suggest' or 'auto' (future)
-
-  -- Priority (lower = evaluated first)
-  priority INTEGER NOT NULL DEFAULT 100,
-
-  -- Status
-  is_active BOOLEAN NOT NULL DEFAULT true,
-
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_by INTEGER REFERENCES "user"(id),
-  updated_at TIMESTAMPTZ,
-  updated_by INTEGER REFERENCES "user"(id),
-  deleted_at TIMESTAMPTZ
-);
-
-CREATE INDEX idx_workflow_rule_client_id ON workflow_rule(client_id);
-CREATE INDEX idx_workflow_rule_trigger ON workflow_rule(trigger_type) WHERE is_active = true AND deleted_at IS NULL;
-CREATE INDEX idx_workflow_rule_active ON workflow_rule(is_active) WHERE deleted_at IS NULL;
-```
-
-**Condition Structure (JSON):**
-
+**Condition Structure (JSON) — implemented:**
 ```json
 {
   "conditions": [
-    {
-      "field": "days_in_location",
-      "operator": "gt",
-      "value": 30
-    },
-    {
-      "field": "claim_amount",
-      "operator": "gte",
-      "value": 10000
-    }
+    { "field": "days_in_location", "operator": "gt", "value": 30 },
+    { "field": "claim_amount", "operator": "gte", "value": 10000 }
   ],
-  "logic": "AND"  // or "OR"
+  "logic": "AND"
 }
 ```
 
-**Action Config Structure (JSON):**
-
+**Action Config Structure (JSON) — schema implemented, execution not:**
 ```json
-// For move_claim action
-{
-  "destination_location_id": 5
-}
+// move_claim
+{ "destination_location_id": 5 }
 
-// For create_task action
-{
-  "task_type": "review_claim",
-  "target_location_id": 8,
-  "work_units": 2,
-  "title_template": "Review stale claim {{claim_number}}"
-}
+// create_task
+{ "task_type": "review_claim", "target_location_id": 8, "work_units": 2, "title_template": "Review stale claim {{claim_number}}" }
 
-// For notify_user action
-{
-  "user_id": 123,  // or "assignee" for dynamic
-  "message_template": "Claim {{claim_number}} needs attention"
-}
+// notify_user
+{ "user_id": 123, "message_template": "Claim {{claim_number}} needs attention" }
 ```
-
-**Backend:**
-- Rule CRUD operations
-- Rule evaluation engine
-- Condition parser and evaluator
-- Action executor (case-based on action_type enum)
-
-**UI Components:**
-- `WorkflowRulesTab.tsx` - List/manage rules
-- `WorkflowRuleDialog.tsx` - Create/edit rules
-- `ConditionBuilder.tsx` - Build condition sets
-- `RuleTestPanel.tsx` - Preview what would match
 
 ---
 
-### Phase 3E: Contact Information (Deferred)
+### Phase 3E: Contact Information ⏸️ DEFERRED
 
 **Deferred until letter generation is prioritized.**
 
@@ -468,83 +246,41 @@ When implemented:
 
 ---
 
-## Implementation Order
+### Analytics Infrastructure (Added Beyond Original Plan) ✅ COMPLETE
 
-### Sprint 1: Task Foundation
-1. Database migration for `task` table
-2. Add `daily_work_units` to `desk_location`
-3. Task schemas, queries, controller, router
-4. Task creation dialog (from claim detail)
-5. Task list views (by desk, by claim)
-6. Task completion workflow
+Built as a complement to the evaluation system:
+- `analytics` schema with `daily_workflow_stage_snapshot` table
+- Nightly snapshot refresh with backfill capability (`workflowAnalyticsRefreshQueries.ts`)
+- Tier 0 real-time queries: queue depth, workload, user capacity, SLA breach, throughput, deadline overview
+- Tier 1 time-series analytics with date range filtering
+- `workflowAnalytics.ts` router with full endpoint coverage
+- `useWorkflowAnalyticsTrpc.ts` hook
 
-### Sprint 2: Workflow Dashboard - Manual Actions
-1. Dashboard layout and navigation
-2. Workload overview cards (read-only stats)
-3. Move Claims panel (single and bulk)
-4. Assign Tasks panel
-5. Adjust Priorities panel (reuse existing components)
+### Workflow Configuration UI (Added Beyond Original Plan) ✅ COMPLETE
 
-### Sprint 3: Evaluation Queries
-1. Database migration for `workflow_threshold`
-2. Threshold configuration UI
-3. Capacity analysis query
-4. Load balance analysis query
-5. Stale claims analysis query
-6. Suggestion card components
-7. Suggestion execution/dismissal
-
-### Sprint 4: Workflow Rules
-1. Database migration for `workflow_rule`
-2. Rule CRUD operations
-3. Condition parser/evaluator
-4. Action executor (enum-based)
-5. Rule management UI
-6. Rule testing/preview
-
-### Future: Automation Worker
-- Scheduled job runs evaluation queries
-- Auto-executes rules with `execution_mode = 'auto'`
-- Audit logging for automated actions
-- Human-in-the-loop for edge cases
+- `WorkflowsView.tsx` — two-panel layout (workflow list + detail)
+- `WorkflowDefinitionFormDialog.tsx` — create global or location-scoped workflows
+- `WorkflowDetailPanel.tsx` — view/edit with thresholds and rules sections
+- `WorkflowThresholdDialog.tsx`, `WorkflowRuleDialog.tsx`, `RuleCard.tsx`
+- Route at `/admin/workflow-configuration/workflows`
+- Format utilities in `lib/utils/workflowUtils.tsx`
+- Configuration explanations in `config/workflowExplanations.ts`
 
 ---
 
-## Files to Create
+## Remaining Work
 
-### Database Migrations
-- `2025-XX-XX_add_task_system.ts`
-- `2025-XX-XX_add_workflow_thresholds.ts`
-- `2025-XX-XX_add_workflow_rules.ts`
+### High Priority
+1. **Manual action panels (Phase 3B)** — Move Claims, Assign Tasks, Adjust Priorities panels for the workflow dashboard, including `moveClaimToLocation()` and `bulkMoveClaimsToLocation()` backend operations
+2. **Rule execution engine (Phase 3D)** — The switch-case action executor that runs rule actions (move_claim, create_task, notify_user, update_priority) when triggered
 
-### Backend
-- `apps/web/src/config/enums.ts` (add workflow enums)
-- `apps/web/src/schemas/taskSchemas.ts`
-- `apps/web/src/schemas/workflowSchemas.ts`
-- `apps/web/src/api/queries/taskQueries.ts`
-- `apps/web/src/api/queries/workflowQueries.ts`
-- `apps/web/src/api/queries/evaluationQueries.ts`
-- `apps/web/src/api/controllers/taskController.ts`
-- `apps/web/src/api/controllers/workflowController.ts`
-- `apps/web/src/api/controllers/evaluationController.ts`
-- `apps/web/src/server/trpc/routers/task.ts`
-- `apps/web/src/server/trpc/routers/workflow.ts`
+### Medium Priority
+3. **Rule testing/preview (Phase 3D)** — Dry-run capability to see what claims would match a rule
+4. **Stale claims by activity (Phase 3C)** — "Days since last activity" analysis beyond SLA-based staleness
 
-### Frontend
-- `apps/web/src/hooks/trpc/useTaskTrpc.ts`
-- `apps/web/src/hooks/trpc/useWorkflowTrpc.ts`
-- `apps/web/src/components/admin/WorkflowManagementTab.tsx`
-- `apps/web/src/components/admin/MoveClaimsPanel.tsx`
-- `apps/web/src/components/admin/AssignTasksPanel.tsx`
-- `apps/web/src/components/admin/AdjustPrioritiesPanel.tsx`
-- `apps/web/src/components/admin/WorkloadOverviewCards.tsx`
-- `apps/web/src/components/admin/SuggestionCard.tsx`
-- `apps/web/src/components/admin/SuggestionsList.tsx`
-- `apps/web/src/components/admin/WorkflowRulesTab.tsx`
-- `apps/web/src/components/admin/WorkflowRuleDialog.tsx`
-- `apps/web/src/components/common/TaskCreationDialog.tsx`
-- `apps/web/src/components/common/TaskListPanel.tsx`
-- `apps/web/src/components/common/TaskCompletionDialog.tsx`
+### Low Priority / Future
+5. **Automation worker** — Scheduled job to auto-execute rules with `execution_mode = 'auto'`, audit logging, human-in-the-loop for edge cases
+6. **Contact information (Phase 3E)** — Deferred until letter generation is prioritized
 
 ---
 
@@ -562,15 +298,41 @@ When implemented:
 
 ## Open Questions
 
-1. **Task type details** - What specific task types does the business need? (Start with GENERIC, add as needed)
+1. **Notification mechanism** - How should notify_user action work? (Email, in-app, both?)
+2. **Rule evaluation frequency** - How often should evaluation queries run for suggestions?
+3. **Bulk operation limits** - Max claims to move at once? Max tasks to create?
 
-2. **Threshold defaults** - What are reasonable default thresholds for capacity, staleness, etc.?
+---
 
-3. **Notification mechanism** - How should notify_user action work? (Email, in-app, both?)
+## Key Files Reference
 
-4. **Rule evaluation frequency** - How often should evaluation queries run for suggestions?
+### Database
+- `apps/web/src/api/database/migrations/2025-11-21_180000_add_task_system.ts`
+- `apps/web/src/api/database/migrations/2025-11-24_210639_simplify_task_schema.ts`
+- `apps/web/src/api/database/migrations/2026-01-28_*_add_workflow_management.ts`
+- `apps/web/src/api/database/migrations/2026-01-28_*_add_workflow_analytics_schema.ts`
+- `apps/web/src/api/database/migrations/2026-01-30_*_add_capacity_threshold_rename_task_fields.ts`
+- `apps/web/src/api/database/migrations/2026-02-03_*_add_workflow_suggestion_table.ts`
 
-5. **Bulk operation limits** - Max claims to move at once? Max tasks to create?
+### Backend
+- `apps/web/src/config/enums.ts` — All workflow/task enums
+- `apps/web/src/schemas/taskSchemas.ts`, `workflowSchemas.ts`, `workflowAnalyticsSchemas.ts`
+- `apps/web/src/api/queries/taskQueries.ts`, `workflowQueries.ts`, `workflowAnalyticsQueries.ts`, `workflowAnalyticsRefreshQueries.ts`
+- `apps/web/src/api/controllers/taskController.ts`, `workflowController.ts`, `workflowAnalyticsController.ts`
+- `apps/web/src/server/trpc/routers/task.ts`, `workflow.ts`, `workflowAnalytics.ts`
+
+### Frontend
+- `apps/web/src/hooks/trpc/useTaskTrpc.ts`, `useWorkflowTrpc.ts`, `useWorkflowAnalyticsTrpc.ts`
+- `apps/web/src/lib/workflow/suggestions.ts`, `ruleConditions.ts`
+- `apps/web/src/lib/utils/taskUtils.tsx`, `workflowUtils.tsx`
+- `apps/web/src/config/workflowExplanations.ts`
+- `apps/web/src/components/common/Task*.tsx` (4 components)
+- `apps/web/src/components/admin/TasksTab.tsx`, `TaskBulkCancellationDialog.tsx`, `TaskMetrics.tsx`
+- `apps/web/src/components/admin/Workflow*.tsx`, `SuggestionCard.tsx`, `SuggestionDetailDialog.tsx`, `SuggestionsPanel.tsx`, `RuleCard.tsx`
+
+### Tests
+- `apps/web/src/api/queries/__tests__/taskQueries.*.test.ts` (4 files)
+- `apps/web/src/api/controllers/__tests__/taskController.integration.test.ts`
 
 ---
 

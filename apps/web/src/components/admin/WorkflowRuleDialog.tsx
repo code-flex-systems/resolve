@@ -200,7 +200,7 @@ function RuleConditionsBuilder({
 			</Box>
 
 			<Stack spacing={1.5}>
-				{conditions.conditions.map((cond, idx) => (
+				{(conditions.conditions ?? []).map((cond, idx) => (
 					<ConditionRow
 						key={idx}
 						condition={cond}

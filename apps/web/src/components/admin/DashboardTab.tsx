@@ -73,7 +73,6 @@ export default function DashboardTab() {
 				justifyContent="flex-start"
 				alignContent="flex-start"
 				padding="10px 0px"
-				bgcolor={BG_TERTIARY}
 				overflow="auto"
 			>
 				<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
