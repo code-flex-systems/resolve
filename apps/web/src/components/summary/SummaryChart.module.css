@@ -1,0 +1,38 @@
+.paper {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	height: 100%;
+	border-radius: var(--radius-lg);
+	padding: 30px;
+	background: var(--bg-white);
+	box-shadow: var(--shadow-sm);
+}
+
+.header {
+	width: 100%;
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.title {
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0;
+}
+
+.infoSection {
+	padding: 20px 20px 0;
+}
+
+.divider {
+	width: 100%;
+	padding: 5px 10px;
+}
+
+.dividerLine {
+	border: none;
+	border-top: 1px solid var(--border);
+}

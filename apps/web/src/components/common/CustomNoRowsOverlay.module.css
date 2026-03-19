@@ -1,0 +1,20 @@
+.container {
+	display: flex;
+	height: 100%;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
+}
+
+.inner {
+	width: 200px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.text {
+	font-size: 15px;
+	color: var(--text-muted);
+	padding-left: 10px;
+}

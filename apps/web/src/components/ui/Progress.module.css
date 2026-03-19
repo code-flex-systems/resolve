@@ -1,0 +1,118 @@
+/* =========================================================================
+   SPINNER — Base
+   ========================================================================= */
+
+.spinner {
+	display: inline-block;
+	border-radius: 50%;
+	border-style: solid;
+	border-top-color: transparent !important;
+	animation: spin 0.7s linear infinite;
+}
+
+/* =========================================================================
+   SPINNER — Sizes
+   ========================================================================= */
+
+.spinner-sm {
+	width: 16px;
+	height: 16px;
+	border-width: 2px;
+}
+
+.spinner-md {
+	width: 24px;
+	height: 24px;
+	border-width: 2.5px;
+}
+
+.spinner-lg {
+	width: 32px;
+	height: 32px;
+	border-width: 3px;
+}
+
+/* =========================================================================
+   SPINNER — Colors
+   ========================================================================= */
+
+.spinner-primary {
+	border-color: var(--text-accent);
+}
+
+.spinner-neutral {
+	border-color: var(--text-muted);
+}
+
+/* =========================================================================
+   PROGRESS BAR — Track (outer)
+   ========================================================================= */
+
+.track {
+	height: 4px;
+	width: 100%;
+	background: var(--bg-tertiary);
+	border-radius: var(--radius-full);
+	overflow: hidden;
+}
+
+/* =========================================================================
+   PROGRESS BAR — Bar (inner)
+   ========================================================================= */
+
+.bar {
+	height: 100%;
+	border-radius: var(--radius-full);
+	transition: width var(--transition-normal);
+}
+
+/* =========================================================================
+   PROGRESS BAR — Colors
+   ========================================================================= */
+
+.bar-primary {
+	background: var(--text-accent);
+}
+
+.bar-success {
+	background: var(--status-success);
+}
+
+.bar-error {
+	background: var(--status-error);
+}
+
+.bar-warning {
+	background: var(--status-warning);
+}
+
+/* =========================================================================
+   PROGRESS BAR — Indeterminate animation
+   ========================================================================= */
+
+.indeterminate {
+	width: 40%;
+	animation: indeterminate 1.5s ease-in-out infinite;
+}
+
+/* =========================================================================
+   KEYFRAMES
+   ========================================================================= */
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes indeterminate {
+	0% {
+		transform: translateX(-100%);
+	}
+	50% {
+		transform: translateX(150%);
+	}
+	100% {
+		transform: translateX(-100%);
+	}
+}

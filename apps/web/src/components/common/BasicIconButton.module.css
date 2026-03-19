@@ -1,0 +1,32 @@
+.iconButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px;
+	border-radius: 10px;
+	border: 1px solid var(--border-strong);
+	background-color: #ffffff;
+	cursor: pointer;
+	color: var(--text-secondary);
+	transition: all 0.2s ease;
+}
+
+.iconButton:hover:not(:disabled) {
+	background-color: rgba(33, 181, 255, 0.08);
+}
+
+.iconButton:disabled {
+	background-color: var(--bg-secondary);
+	border-color: var(--border);
+	color: var(--text-muted);
+	cursor: default;
+}
+
+.compact {
+	padding: 4px;
+}
+
+.compact svg {
+	width: 18px;
+	height: 18px;
+}

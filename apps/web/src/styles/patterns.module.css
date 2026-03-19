@@ -1,0 +1,147 @@
+/*
+ * Reference CSS Module Patterns
+ *
+ * Foundational component styles as CSS Modules.
+ * Import and compose these in component-level CSS Modules
+ * or apply directly via className.
+ *
+ * Usage:
+ *   import styles from '@/styles/patterns.module.css';
+ *   <div className={styles.floatCard}>...</div>
+ */
+
+/* =========================================================================
+   CARDS
+   ========================================================================= */
+
+.floatCard {
+	background: var(--surface-float);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-lg);
+}
+
+.beveledCard {
+	background: var(--bg-white);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+	padding: var(--space-5);
+}
+
+.surfaceCard {
+	background: var(--bg-primary);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: var(--space-5);
+}
+
+/* =========================================================================
+   SECTION BACKGROUNDS (for layering)
+   ========================================================================= */
+
+.bgPrimary {
+	background: var(--bg-primary);
+}
+
+.bgSecondary {
+	background: var(--bg-secondary);
+}
+
+.bgTertiary {
+	background: var(--bg-tertiary);
+}
+
+/* =========================================================================
+   STATUS CHIPS
+   ========================================================================= */
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 10px;
+	border-radius: var(--radius-full);
+	font-size: var(--text-xs);
+	font-weight: var(--font-semibold);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-wide);
+	line-height: var(--leading-normal);
+}
+
+.chipSuccess {
+	composes: chip;
+	background: var(--status-success-bg);
+	color: var(--status-success);
+}
+
+.chipError {
+	composes: chip;
+	background: var(--status-error-bg);
+	color: var(--status-error);
+}
+
+.chipWarning {
+	composes: chip;
+	background: var(--status-warning-bg);
+	color: var(--status-warning);
+}
+
+.chipInfo {
+	composes: chip;
+	background: var(--status-info-bg);
+	color: var(--status-info);
+}
+
+.chipNeutral {
+	composes: chip;
+	background: var(--bg-tertiary);
+	color: var(--text-secondary);
+}
+
+/* =========================================================================
+   INTERACTIVE
+   ========================================================================= */
+
+.interactiveRow {
+	transition: background-color var(--transition-fast);
+	cursor: pointer;
+}
+
+.interactiveRow:hover {
+	background-color: var(--bg-secondary);
+}
+
+/* =========================================================================
+   SKELETON LOADING
+   ========================================================================= */
+
+.skeleton {
+	background: linear-gradient(
+		90deg,
+		var(--bg-tertiary) 25%,
+		var(--bg-secondary) 50%,
+		var(--bg-tertiary) 75%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s ease-in-out infinite;
+	border-radius: var(--radius-sm);
+}
+
+/* =========================================================================
+   LABELS & MONOSPACE
+   ========================================================================= */
+
+.label {
+	font-size: var(--text-xs);
+	font-weight: var(--font-semibold);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-wide);
+	color: var(--text-secondary);
+}
+
+.mono {
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+}

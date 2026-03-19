@@ -1,0 +1,44 @@
+.container {
+	width: fit-content;
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	position: relative;
+}
+
+.iconCircle {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 30px;
+	position: absolute;
+	left: 0;
+	z-index: 1;
+}
+
+.titlePill {
+	width: fit-content;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 30px;
+	padding-right: 15px;
+	overflow: hidden;
+	transition: max-width 500ms ease;
+}
+
+.titlePillCollapsed {
+	max-width: 0;
+}
+
+.titlePillExpanded {
+	max-width: 500px;
+}
+
+.titleText {
+	font-size: 17px;
+	margin-left: 5px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

@@ -1,0 +1,20 @@
+/* =========================================================================
+   POPPER
+   ========================================================================= */
+
+.popper {
+	position: absolute;
+	z-index: 1300;
+	background: var(--bg-white);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-lg);
+	opacity: 0;
+	transition: opacity var(--transition-fast);
+	pointer-events: none;
+}
+
+.popper.visible {
+	opacity: 1;
+	pointer-events: auto;
+}

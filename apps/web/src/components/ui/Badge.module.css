@@ -1,0 +1,62 @@
+/* =========================================================================
+   BADGE
+   ========================================================================= */
+
+.wrapper {
+	position: relative;
+	display: inline-flex;
+}
+
+/* =========================================================================
+   BADGE ELEMENT
+   ========================================================================= */
+
+.badge {
+	position: absolute;
+	top: -4px;
+	right: -4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+}
+
+/* Dot mode */
+.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+}
+
+/* Content mode */
+.content {
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	border-radius: var(--radius-full);
+	font-family: var(--font-sans);
+	font-size: 10px;
+	font-weight: var(--font-bold);
+	color: #ffffff;
+	line-height: 1;
+}
+
+/* =========================================================================
+   COLORS
+   ========================================================================= */
+
+.color-primary {
+	background: var(--text-accent);
+}
+
+.color-error {
+	background: var(--status-error);
+}
+
+.color-success {
+	background: var(--status-success);
+}
+
+.color-warning {
+	background: var(--status-warning);
+}

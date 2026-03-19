@@ -1,0 +1,64 @@
+/* =========================================================================
+   DIVIDER — Base
+   ========================================================================= */
+
+.divider {
+	border: none;
+	margin: 0;
+	flex-shrink: 0;
+}
+
+/* =========================================================================
+   DIVIDER — Orientation
+   ========================================================================= */
+
+.horizontal {
+	height: 1px;
+	width: 100%;
+	background: var(--border);
+}
+
+.vertical {
+	width: 1px;
+	height: 100%;
+	background: var(--border);
+	align-self: stretch;
+}
+
+/* =========================================================================
+   DIVIDER — Spacing (horizontal: margin-top/bottom)
+   ========================================================================= */
+
+.horizontal.spacing-sm {
+	margin-top: var(--space-2);
+	margin-bottom: var(--space-2);
+}
+
+.horizontal.spacing-md {
+	margin-top: var(--space-4);
+	margin-bottom: var(--space-4);
+}
+
+.horizontal.spacing-lg {
+	margin-top: var(--space-6);
+	margin-bottom: var(--space-6);
+}
+
+/* =========================================================================
+   DIVIDER — Spacing (vertical: margin-left/right)
+   ========================================================================= */
+
+.vertical.spacing-sm {
+	margin-left: var(--space-2);
+	margin-right: var(--space-2);
+}
+
+.vertical.spacing-md {
+	margin-left: var(--space-4);
+	margin-right: var(--space-4);
+}
+
+.vertical.spacing-lg {
+	margin-left: var(--space-6);
+	margin-right: var(--space-6);
+}

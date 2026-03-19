@@ -1,0 +1,70 @@
+/* =========================================================================
+   ACCORDION
+   ========================================================================= */
+
+.accordion {
+	border-bottom: 1px solid var(--border);
+}
+
+/* =========================================================================
+   HEADER
+   ========================================================================= */
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-4);
+	cursor: pointer;
+	user-select: none;
+	transition: background var(--transition-normal);
+	border-radius: var(--radius-md);
+}
+
+.header:hover {
+	background: var(--bg-secondary);
+}
+
+.title {
+	font-family: var(--font-sans);
+	font-size: var(--text-base);
+	font-weight: var(--font-medium);
+	color: var(--text-primary);
+}
+
+/* =========================================================================
+   CHEVRON
+   ========================================================================= */
+
+.chevron {
+	color: var(--text-secondary);
+	transition: transform var(--transition-normal);
+	flex-shrink: 0;
+}
+
+.chevronOpen {
+	transform: rotate(180deg);
+}
+
+/* =========================================================================
+   COLLAPSE (grid-template-rows pattern)
+   ========================================================================= */
+
+.collapse {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows var(--transition-normal);
+}
+
+.collapseOpen {
+	grid-template-rows: 1fr;
+}
+
+.content {
+	overflow: hidden;
+	padding: 0 var(--space-4);
+}
+
+.collapseOpen .content {
+	padding-bottom: var(--space-4);
+}

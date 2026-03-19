@@ -1,0 +1,21 @@
+.toolbar {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+}
+
+.left {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 4px;
+}
+
+.right {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 4px;
+}

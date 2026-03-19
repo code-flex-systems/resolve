@@ -1,0 +1,74 @@
+.container {
+	height: 100%;
+	width: 300px;
+}
+
+.scrollContainer {
+	height: calc(100% - 90px);
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 4px;
+}
+
+.scrollContainer::-webkit-scrollbar {
+	width: 6px;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+	background: var(--bg-secondary);
+	border-radius: 3px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+	background: var(--bg-tertiary);
+	border-radius: 3px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
+
+.emptyState {
+	padding: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+}
+
+.emptyText {
+	font-size: 13px;
+	color: var(--text-secondary);
+	text-align: center;
+	font-style: italic;
+}
+
+.deadlineList {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.skeletonList {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.skeleton {
+	border-radius: var(--radius-sm);
+	background: var(--bg-secondary);
+	animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.5; }
+}
+
+.footer {
+	font-size: 11px;
+	color: var(--text-secondary);
+	text-align: center;
+	margin-top: 8px;
+}

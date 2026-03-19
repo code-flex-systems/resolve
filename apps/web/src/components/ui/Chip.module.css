@@ -1,0 +1,94 @@
+/* =========================================================================
+   CHIP
+   ========================================================================= */
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	border-radius: var(--radius-full);
+	font-family: var(--font-mono);
+	font-weight: var(--font-semibold);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-wide);
+	line-height: var(--leading-normal);
+	white-space: nowrap;
+	user-select: none;
+}
+
+/* =========================================================================
+   SIZES
+   ========================================================================= */
+
+.sm {
+	height: 20px;
+	padding: 2px 8px;
+	font-size: 10px;
+}
+
+.md {
+	height: 24px;
+	padding: 2px 10px;
+	font-size: 11px;
+}
+
+/* =========================================================================
+   VARIANT: FILLED
+   ========================================================================= */
+
+.filled.color-success {
+	background: var(--status-success-bg);
+	color: var(--status-success);
+}
+
+.filled.color-error {
+	background: var(--status-error-bg);
+	color: var(--status-error);
+}
+
+.filled.color-warning {
+	background: var(--status-warning-bg);
+	color: var(--status-warning);
+}
+
+.filled.color-info {
+	background: var(--status-info-bg);
+	color: var(--status-info);
+}
+
+.filled.color-neutral {
+	background: var(--bg-tertiary);
+	color: var(--text-secondary);
+}
+
+/* =========================================================================
+   VARIANT: OUTLINED
+   ========================================================================= */
+
+.outlined {
+	background: transparent;
+}
+
+.outlined.color-success {
+	border: 1px solid var(--status-success);
+	color: var(--status-success);
+}
+
+.outlined.color-error {
+	border: 1px solid var(--status-error);
+	color: var(--status-error);
+}
+
+.outlined.color-warning {
+	border: 1px solid var(--status-warning);
+	color: var(--status-warning);
+}
+
+.outlined.color-info {
+	border: 1px solid var(--status-info);
+	color: var(--status-info);
+}
+
+.outlined.color-neutral {
+	border: 1px solid var(--border-strong);
+	color: var(--text-secondary);
+}

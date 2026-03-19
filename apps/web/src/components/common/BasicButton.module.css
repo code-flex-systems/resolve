@@ -1,0 +1,10 @@
+.button {
+	border-radius: 10px;
+	box-shadow: none;
+	font-family: 'Inter', sans-serif;
+}
+
+.iconButton {
+	min-width: 25px;
+	padding: 3px;
+}

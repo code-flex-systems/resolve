@@ -1,0 +1,70 @@
+.container {
+	width: 100%;
+	border-top: 1px solid var(--border);
+	padding-top: 16px;
+	margin-top: 8px;
+}
+
+.containerFlex {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.title {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 0 0 12px;
+}
+
+.scrollContainer {
+	max-height: 220px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 4px;
+}
+
+.scrollContainer::-webkit-scrollbar {
+	width: 6px;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+	background: var(--bg-secondary);
+	border-radius: 3px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+	background: var(--bg-tertiary);
+	border-radius: 3px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
+
+.scrollContainerFlex {
+	flex: 1;
+	max-height: none;
+}
+
+.emptyState {
+	padding: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+}
+
+.emptyText {
+	font-size: 14px;
+	color: var(--text-secondary);
+	text-align: center;
+}
+
+.deadlineList {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}

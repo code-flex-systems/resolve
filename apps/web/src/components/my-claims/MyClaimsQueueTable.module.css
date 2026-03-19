@@ -1,0 +1,66 @@
+.table {
+	width: 100%;
+	height: calc(100% - 250px);
+}
+
+.toolbarLeft {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.filterBadge {
+	margin-left: 4px;
+	background-color: var(--text-accent);
+	color: white;
+	border-radius: 50%;
+	width: 18px;
+	height: 18px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.filtersPaper {
+	margin-top: 5px;
+	padding: 24px;
+	min-width: 300px;
+	max-width: 400px;
+	background: var(--bg-white);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+}
+
+.filtersTitle {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 16px;
+}
+
+.filtersFields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.filtersActions {
+	display: flex;
+	gap: 8px;
+	margin-top: 16px;
+	justify-content: flex-end;
+}
+
+.activityCell {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.indicator {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-left: 4px;
+}

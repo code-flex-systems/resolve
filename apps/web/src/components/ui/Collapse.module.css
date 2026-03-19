@@ -1,0 +1,25 @@
+/* =========================================================================
+   COLLAPSE — Outer grid wrapper
+   ========================================================================= */
+
+.collapse {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition:
+		grid-template-rows var(--transition-normal),
+		opacity var(--transition-normal);
+	opacity: 0;
+}
+
+.collapse.open {
+	grid-template-rows: 1fr;
+	opacity: 1;
+}
+
+/* =========================================================================
+   COLLAPSE — Inner overflow wrapper
+   ========================================================================= */
+
+.inner {
+	overflow: hidden;
+}

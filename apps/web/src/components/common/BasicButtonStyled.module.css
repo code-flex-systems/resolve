@@ -1,0 +1,9 @@
+.textButton {
+	min-width: fit-content;
+	white-space: nowrap;
+}
+
+.wrapText {
+	white-space: normal;
+	min-width: unset;
+}

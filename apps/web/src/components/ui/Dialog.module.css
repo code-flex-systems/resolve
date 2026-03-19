@@ -1,0 +1,138 @@
+/* =========================================================================
+   DIALOG
+   ========================================================================= */
+
+.dialog {
+	background: transparent;
+	border: none;
+	padding: 0;
+	max-width: none;
+	max-height: none;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.dialog::backdrop {
+	background: var(--surface-overlay);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+}
+
+.dialog[open] {
+	animation: backdropFadeIn var(--transition-normal) ease-out;
+}
+
+/* =========================================================================
+   INNER CONTAINER (the visible card)
+   ========================================================================= */
+
+.inner {
+	background: var(--bg-white);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-lg);
+	border: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	max-height: 85vh;
+	animation: dialogEnter var(--transition-normal) ease-out;
+}
+
+.sm .inner {
+	max-width: 400px;
+	width: 90vw;
+}
+
+.md .inner {
+	max-width: 540px;
+	width: 90vw;
+}
+
+.lg .inner {
+	max-width: 720px;
+	width: 90vw;
+}
+
+/* =========================================================================
+   HEADER
+   ========================================================================= */
+
+.header {
+	padding: var(--space-6);
+	padding-bottom: var(--space-4);
+}
+
+.title {
+	margin: 0;
+	color: var(--text-primary);
+	font-size: var(--text-lg);
+	font-weight: var(--font-semibold);
+	font-family: var(--font-sans);
+	line-height: var(--leading-tight);
+}
+
+.description {
+	margin: var(--space-1) 0 0;
+	color: var(--text-secondary);
+	font-size: var(--text-sm);
+	font-family: var(--font-sans);
+	line-height: var(--leading-normal);
+}
+
+/* =========================================================================
+   DIVIDER
+   ========================================================================= */
+
+.divider {
+	height: 1px;
+	background: var(--border);
+	flex-shrink: 0;
+}
+
+/* =========================================================================
+   CONTENT
+   ========================================================================= */
+
+.content {
+	padding: var(--space-6);
+	overflow-y: auto;
+	flex: 1;
+}
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+
+.footer {
+	padding: var(--space-4) var(--space-6);
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--space-3);
+}
+
+/* =========================================================================
+   ANIMATIONS
+   ========================================================================= */
+
+@keyframes dialogEnter {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes backdropFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}

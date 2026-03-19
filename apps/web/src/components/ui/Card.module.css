@@ -1,0 +1,59 @@
+/* =========================================================================
+   CARD
+   ========================================================================= */
+
+.card {
+	position: relative;
+}
+
+/* =========================================================================
+   VARIANTS
+   ========================================================================= */
+
+.float {
+	background: var(--surface-float);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-lg);
+}
+
+.beveled {
+	background: var(--bg-white);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+}
+
+.surface {
+	background: var(--bg-primary);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+}
+
+.flat {
+	border: none;
+	box-shadow: none;
+	border-radius: var(--radius-lg);
+}
+
+/* =========================================================================
+   PADDING
+   ========================================================================= */
+
+.padding-none {
+	padding: 0;
+}
+
+.padding-sm {
+	padding: 12px;
+}
+
+.padding-md {
+	padding: 20px;
+}
+
+.padding-lg {
+	padding: 24px;
+}
