@@ -1,7 +1,6 @@
 'use client';
 
 import BasicDialog from '@/components/common/BasicDialog';
-import { Dialog } from '@mui/material';
 
 export default function AdminLogSnapshotDialog({
 	entityLabel,

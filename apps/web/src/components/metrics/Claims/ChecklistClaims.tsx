@@ -9,7 +9,6 @@ import {
 	GridRowSelectionModel,
 } from '@mui/x-data-grid-pro';
 import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
-import { Box, Paper, Typography } from '@mui/material';
 import IconHeaderCell from '../../common/IconHeaderCell';
 import CustomPagination from '../../common/CustomPagination';
 import { useMemo, useRef, useState } from 'react';
@@ -219,16 +218,16 @@ export default function ChecklistClaims({
 	);
 
 	return (
-		<div style={styles.container} className="flex-col-start">
-			<Paper sx={styles.paper} className="flex-col-start">
-				<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-					<Typography variant="h6" fontSize={18} fontWeight={600}>
+		<div className="flex-col-start" style={styles.container}>
+			<div className="flex-col-start" style={styles.paper}>
+				<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+					<span style={{ fontSize: 18, fontWeight: 600 }}>
 						Assigned Claims
-					</Typography>
-					<Box display="flex" justifyContent="flex-end" alignItems="center">
-						<Typography variant="caption" fontSize={12} color="text.secondary" marginRight="20px">
+					</span>
+					<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+						<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
 							{rowCount.toLocaleString()} claim{rowCount !== 1 ? 's' : ''}
-						</Typography>
+						</span>
 						<ExportButton
 							onExport={async () => {
 								const result = await trpcUtils.checklist.exportChecklistClaims.fetch({ filters });
@@ -238,8 +237,8 @@ export default function ChecklistClaims({
 							filename="checklist_claims"
 							size="sm"
 						/>
-					</Box>
-				</Box>
+					</div>
+				</div>
 				<div style={styles.table}>
 					<DataGridPro
 						columns={COLUMNS}
@@ -275,7 +274,7 @@ export default function ChecklistClaims({
 						sx={styles.tableOverrides}
 					/>
 				</div>
-			</Paper>
+			</div>
 		</div>
 	);
 }

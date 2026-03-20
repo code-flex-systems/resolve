@@ -1,7 +1,7 @@
 'use client';
 
 import { IconFile, IconFolder, IconSettings } from '@tabler/icons-react';
-import { Breadcrumbs, Link } from '@mui/material';
+import { Breadcrumbs } from '@mui/material';
 import { DataGridPro, GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -245,25 +245,19 @@ export default function DocumentNavigationTable({
 			{/* Breadcrumbs for navigation */}
 			{showBreadcrumbs && (
 				<Breadcrumbs style={{ padding: 16, paddingBottom: 8 }}>
-					<Link
-						component="button"
-						underline="hover"
-						color={currentFolderId === null ? 'text.primary' : 'inherit'}
+					<button
 						onClick={() => onNavigate(null)}
-						style={{ cursor: 'pointer' }}
+						style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'inherit', textDecoration: 'none' }}
 					>
 						{breadcrumbRootLabel}
-					</Link>
+					</button>
 					{parentFolder && parentFolder.id !== hiddenBreadcrumbFolderId && (
-						<Link
-							component="button"
-							underline="hover"
-							color="inherit"
+						<button
 							onClick={() => onNavigate(parentFolder.id)}
-							style={{ cursor: 'pointer' }}
+							style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'inherit', textDecoration: 'none' }}
 						>
 							{parentFolder.name}
-						</Link>
+						</button>
 					)}
 					{currentFolder && currentFolder.id !== hiddenBreadcrumbFolderId && (
 					<span style={{ color: 'var(--text-primary)' }}>{currentFolder.name}</span>

@@ -1,5 +1,7 @@
 'use client';
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { TextField } from '@mui/material';
+import Dialog from '@/components/ui/Dialog';
+import Dropdown from '@/components/ui/Dropdown';
 import Button from '@/components/ui/Button';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import DateField from '@/components/common/DateField';
@@ -51,26 +53,32 @@ export default function RecoveryFormDialog({
 		formData.settlement_id !== '' && formData.recovery_amount && parseFloat(formData.recovery_amount) > 0;
 
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEditing ? 'Edit Recovery Event' : 'Add Recovery Event'}</DialogTitle>
-			<DialogContent>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
-					<FormControl fullWidth required>
-						<InputLabel>Settlement</InputLabel>
-						<Select
-							value={formData.settlement_id}
-							label="Settlement"
-							onChange={(e) => setFormData({ ...formData, settlement_id: Number(e.target.value) })}
-						>
-							{settlements.map((settlement) => (
-								<MenuItem key={settlement.id} value={settlement.id}>
-									{settlement.party_name} · {capitalize(settlement.loss_type)} -{' '}
-									{formatCurrencyExact(Number(settlement.demand_amount))} (
-									{dayjs(settlement.demand_date).format('MMM D')})
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+		<Dialog
+			open={open}
+			onClose={onClose}
+			title={isEditing ? 'Edit Recovery Event' : 'Add Recovery Event'}
+			size="sm"
+			footer={
+				<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
+						{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
+					</Button>
+				</div>
+			}
+		>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+				<Dropdown
+						label="Settlement"
+						options={settlements.map((settlement) => ({
+							value: settlement.id,
+							label: `${settlement.party_name} · ${capitalize(settlement.loss_type)} - ${formatCurrencyExact(Number(settlement.demand_amount))} (${dayjs(settlement.demand_date).format('MMM D')})`,
+						}))}
+						value={formData.settlement_id}
+						onChange={(v) => setFormData({ ...formData, settlement_id: Number(v) })}
+						required
+						fullWidth
+					/>
 					<DateField
 						label="Recovery Date"
 						value={formData.recovery_date || null}
@@ -106,13 +114,6 @@ export default function RecoveryFormDialog({
 						placeholder="Additional details about this recovery..."
 					/>
 				</div>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
-				<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
-					{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
-				</Button>
-			</DialogActions>
 		</Dialog>
 	);
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, LinearProgress, linearProgressClasses, Typography } from '@mui/material';
+import { ProgressBar } from '@/components/ui/Progress';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import useIsAssigned from '@/hooks/useIsAssigned';
@@ -29,7 +29,7 @@ export default function ChecklistProgress({
 
 	return (
 		<>
-			<Box display="flex" justifyContent="center" alignItems="center" paddingBottom="15px">
+			<div     style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '15px' }}>
 				{showInfo && (
 					<BasicButtonStyled
 						buttonProps={{}}
@@ -38,12 +38,11 @@ export default function ChecklistProgress({
 							title: isAssigned
 								? 'Answering additional questions or changing your existing responses will alter this metric.'
 								: 'If additional questions are answered or existing responses are changed, this metric will update.',
-							placement: 'bottom-start',
-							arrow: true,
+							placement: 'bottom',
 						}}
 					/>
 				)}
-				<Typography fontSize={fontSize} marginLeft="10px">
+				<span   style={{ fontSize: fontSize, marginLeft: '10px' }}>
 					{isFetchingProgress ? (
 						<>Checking progress...</>
 					) : isAssigned ? (
@@ -55,25 +54,14 @@ export default function ChecklistProgress({
 							<b>{progressPercentage}%</b> of this checklist has been answered.
 						</>
 					)}
-				</Typography>
-			</Box>
-			<Box width="100%" display="flex" justifyContent="center" alignItems="center">
-				<LinearProgress
+				</span>
+			</div>
+			<div     style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+				<ProgressBar
 					value={isFetchingProgress ? undefined : progressPercentage}
-					variant={isFetchingProgress ? 'indeterminate' : 'determinate'}
-					sx={{
-						width,
-						height: 5,
-						borderRadius: 2,
-						bgcolor: `rgba(76, 175, 79, 0.4)`,
-						[`& .${linearProgressClasses.bar1}`]: {
-							backgroundColor: 'var(--status-success)',
-							transition: 'transform 500ms ease',
-							borderRadius: 2,
-						},
-					}}
+					color="success"
 				/>
-			</Box>
+			</div>
 		</>
 	);
 }

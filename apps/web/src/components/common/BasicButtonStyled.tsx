@@ -1,20 +1,21 @@
 'use client';
 
 import Button, { type ButtonProps as UiButtonProps } from '@/components/ui/Button';
-import { Tooltip, TooltipProps } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import type { TooltipProps } from '@/components/ui/Tooltip';
 import { JSX, PropsWithChildren } from 'react';
 import BasicIconButton from './BasicIconButton';
 import css from './BasicButtonStyled.module.css';
 
 interface BasicTooltipProps {
 	title: string;
-	placement?: TooltipProps['placement'];
+	placement?: TooltipProps['position'];
 	arrow?: boolean;
 }
 
 function TooltipWrapper({ children, tooltipProps }: { tooltipProps?: BasicTooltipProps } & PropsWithChildren) {
 	return tooltipProps ? (
-		<Tooltip {...tooltipProps} enterDelay={500}>
+		<Tooltip content={tooltipProps.title} position={tooltipProps.placement}>
 			<span>{children}</span>
 		</Tooltip>
 	) : (

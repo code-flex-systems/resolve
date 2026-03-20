@@ -1,6 +1,6 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import { Paper, Popper, PopperProps, Stack , Fade } from '@mui/material';
+import { Paper, Popper, PopperProps, Fade } from '@mui/material';
 import { useState } from 'react';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { StackedRow } from '../common/StackedRow';
@@ -24,8 +24,7 @@ export default function ChecklistInfo() {
 					onMouseEnter: (e) => setChecklistAnchorEl(e.currentTarget),
 					onMouseLeave: () => setChecklistAnchorEl(null),
 					startIcon: <IconChecklist size={20} />,
-				}}
-			>
+				}}>
 				{checklist.name}
 			</BasicButtonStyled>
 			<Popper
@@ -33,13 +32,12 @@ export default function ChecklistInfo() {
 				anchorEl={checklistAnchorEl}
 				placement="bottom-start"
 				sx={{ zIndex: 100 }}
-				transition
-			>
+				transition>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
 						<span>
 							<Paper sx={styles.container} className="flex-col-start">
-								<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
+								<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 									{(isAdmin || isSuperAdmin) && (
 										<StackedRow
 											primary="Status"
@@ -50,7 +48,7 @@ export default function ChecklistInfo() {
 										primary="Last Update"
 										secondary={formatMDY(checklist.updated_at ?? checklist.created_at)}
 									/>
-								</Stack>
+								</div>
 							</Paper>
 						</span>
 					</Fade>
@@ -63,8 +61,8 @@ export default function ChecklistInfo() {
 const styles = {
 	container: {
 		width: 'fit-content',
-		p: '0px 20px 10px',
+		padding: '0px 20px 10px',
 		height: 'fit-content',
-		mt: 0.625,
+		marginTop: 5,
 	},
 };

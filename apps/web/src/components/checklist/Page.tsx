@@ -2,7 +2,6 @@
 import { Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
-import { Box, Stack, Typography , Fade } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -157,28 +156,28 @@ export default function Page() {
 
 	return (
 		<>
-			<Box sx={styles.container}>
+			<div style={styles.container}>
 				{(selectedPageInstance === -1 || loading) && (
-					<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
+					<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
 						{loading ? (
-							<Stack spacing={2} width="100%" p={2}>
+							<div style={{ gap: 16, width: '100%', padding: 16 }}>
 								<Skeleton variant="text" width="60%" height={32} />
 								{[1, 2, 3, 4].map((i) => (
-									<Stack key={i} spacing={1}>
+									<div key={i}  style={{ gap: 8 }}>
 										<Skeleton variant="text" width="40%" />
 										<Skeleton variant="rect" height={48} />
-									</Stack>
+									</div>
 								))}
-							</Stack>
+							</div>
 						) : (
-							<Box width={200} display="flex" justifyContent="center" alignItems="center">
+							<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 								<IconFileDescription size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
-								<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
+								<span style={{ color: BASE_COLOR_LIGHT, fontSize: 15, paddingLeft: '10px' }}>
 									No page selected
-								</Typography>
-							</Box>
+								</span>
+							</div>
 						)}
-					</Box>
+					</div>
 				)}
 				{selectedPageInstance !== -1 && !loading && (
 					<>
@@ -190,18 +189,18 @@ export default function Page() {
 										icon={<IconFileDescription size={20} />}
 										color="white"
 									/>
-									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
-										<Box sx={{ ml: 1.25 }} className="flex-row-left">
+									{showUpdateMsg && (
+										<div className="flex-row-left" style={{ marginLeft: 10 }}>
 											<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
-											<Typography color={'var(--status-success)'}>Saved!</Typography>
-										</Box>
-									</Fade>
+											<span style={{ color: 'var(--status-success)' }}>Saved!</span>
+										</div>
+									)}
 								</>
 							}
 							leftWidth="70%"
 							right={
-								<Fade in={mode === ChecklistMode.VIEW && isAssigned} unmountOnExit>
-									<Box className="flex-row-right">
+								mode === ChecklistMode.VIEW && isAssigned ? (
+									<div className="flex-row-right">
 										<BasicButtonStyled
 											buttonProps={{
 												onClick: () =>
@@ -211,8 +210,7 @@ export default function Page() {
 													),
 												startIcon: <IconRefresh size={20} />,
 												sx: { height: 25, marginRight: '10px' },
-											}}
-										>
+											}}>
 											Reset
 										</BasicButtonStyled>
 										<BasicButtonStyled
@@ -228,23 +226,21 @@ export default function Page() {
 												},
 												startIcon: <IconDeviceFloppy size={20} />,
 												sx: { height: 25 },
-											}}
-										>
+											}}>
 											Save
 										</BasicButtonStyled>
-									</Box>
-								</Fade>
+									</div>
+								) : undefined
 							}
 							rightWidth="30%"
 							height={60}
 							padding={'10px 0px'}
 						/>
-						<Box sx={styles.divider}>
+						<div style={styles.divider}>
 							<Divider />
-						</Box>
-						<Box sx={styles.formWrapper}>
-							<Fade key={selectedPageInstance} in={!loading} timeout={500} unmountOnExit>
-								<Form control={control} style={{ width: '100%' }}>
+						</div>
+						<div style={styles.formWrapper}>
+							<Form control={control} style={{ width: '100%' }}>
 									{(questions ?? []).map((question, i) => (
 										<ChecklistQuestion
 											key={question.id}
@@ -258,11 +254,10 @@ export default function Page() {
 										/>
 									))}
 								</Form>
-							</Fade>
-						</Box>
+						</div>
 					</>
 				)}
-			</Box>
+			</div>
 			{questionCommentDialog.show && <CommentDialog />}
 			{!!updateSubmittedDialogAction && <UpdateSubmittedDialog />}
 		</>
@@ -276,21 +271,21 @@ const styles = {
 		width: '100%',
 		height: '100%',
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		p: 2.5,
-		overflow: 'hidden',
+		padding: 20,
+		overflow: 'hidden' as const,
 	},
 	divider: {
 		width: '100%',
-		mb: 0.625,
+		marginBottom: 5,
 		flexShrink: 0,
 	},
 	formWrapper: {
 		flex: 1,
 		width: '100%',
 		minHeight: 0,
-		overflow: 'auto',
+		overflow: 'auto' as const,
 	},
 };

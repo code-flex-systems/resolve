@@ -1,5 +1,5 @@
 'use client';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Link, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { QuestionStat } from '@/types/types';
 import { IconChevronDown, IconHelp } from '@tabler/icons-react';
 
@@ -29,48 +29,47 @@ export default function QuestionStatItem(props: {
 			}}
 		>
 			<AccordionSummary sx={styles.accordionSummary} expandIcon={<IconChevronDown size={20} />}>
-				<Typography>
+				<span>
 					{question_text} (p{pageId}.q{question_id})
-				</Typography>
+				</span>
 			</AccordionSummary>
 			<AccordionDetails>
 				{answers.map((a) => (
-					<Box key={a.answer_id} sx={styles.container} className="flex-col-left">
-						<Box sx={styles.container} className="flex-row-left">
-							<Box
-								display="flex"
-								justifyContent="center"
-								alignItems="center"
-								sx={{
+					<div key={a.answer_id}  className="flex-col-left" style={styles.container}>
+						<div  className="flex-row-left" style={styles.container}>
+							<div
+								
+								
+								
+								 style={{ ...{
 									...styles.dot,
 									backgroundColor:
 										selectedAnswerId === a.answer_id ? 'var(--text-accent)' : '#EBEBEB',
 									transition: 'background-color 300ms ease',
-								}}
+								}, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
 							>
-								<Typography
-									fontSize={12}
-									color={selectedAnswerId === a.answer_id ? 'white' : undefined}
+								<span
+									
+									 style={{ fontSize: 12, color: selectedAnswerId === a.answer_id ? 'white' : undefined }}
 								>
 									{a.answer_count.toLocaleString()}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 							{a.answer_count > 0 ? (
-								<Link
+								<button
 									className="link"
-									marginLeft="10px"
-									color={selectedAnswerId === a.answer_id ? 'secondary' : 'primary'}
+									style={{ marginLeft: '10px', background: 'none', border: 'none', padding: 0, font: 'inherit', color: selectedAnswerId === a.answer_id ? 'var(--status-success)' : 'var(--text-accent)', cursor: 'pointer' }}
 									onClick={() => onAnswerClick(a.answer_id)}
 								>
 									{a.answer_text} (p{pageId}.q{question_id}.a{a.answer_id})
-								</Link>
+								</button>
 							) : (
-								<Typography marginLeft="10px">
+								<span  style={{ marginLeft: '10px' }}>
 									{a.answer_text} (p{pageId}.q{question_id}.a{a.answer_id})
-								</Typography>
+								</span>
 							)}
-						</Box>
-					</Box>
+						</div>
+					</div>
 				))}
 			</AccordionDetails>
 		</Accordion>

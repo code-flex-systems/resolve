@@ -1,5 +1,4 @@
 'use client';
-import { Box } from '@mui/material';
 import { useState } from 'react';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -17,7 +16,7 @@ export default function ClaimInfo() {
 
 	if (!claim) return <></>;
 	return (
-		<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+		<div  style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 			<BasicButtonStyled
 				buttonProps={{
 					onClick: () => setDialogOpen(true),
@@ -33,6 +32,6 @@ export default function ClaimInfo() {
 				onClose={() => setDialogOpen(false)}
 				showChecklistProgress={false}
 			/>
-		</Box>
+		</div>
 	);
 }

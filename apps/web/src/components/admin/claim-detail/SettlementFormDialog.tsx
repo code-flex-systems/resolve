@@ -1,5 +1,7 @@
 'use client';
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { TextField } from '@mui/material';
+import Dialog from '@/components/ui/Dialog';
+import Dropdown from '@/components/ui/Dropdown';
 import Divider from '@/components/ui/Divider';
 import Button from '@/components/ui/Button';
 import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/config/enums';
@@ -102,41 +104,43 @@ export default function SettlementFormDialog({
 			: null;
 
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEditing ? 'Edit Settlement' : 'Add Settlement'}</DialogTitle>
-			<DialogContent>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
-					<FormControl fullWidth required>
-						<InputLabel>Adverse Party</InputLabel>
-						<Select
-							value={formData.claim_party_id}
-							label="Adverse Party"
-							onChange={(e) => setFormData({ ...formData, claim_party_id: Number(e.target.value) })}
-						>
-							{adverseParties.map((cp) => (
-								<MenuItem key={cp.id} value={cp.id}>
-									{cp.party?.name}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					<FormControl fullWidth required>
-						<InputLabel>Coverage</InputLabel>
-						<Select
-							value={formData.coverage_id}
-							label="Coverage"
-							onChange={(e) => setFormData({ ...formData, coverage_id: Number(e.target.value) })}
-						>
-							{coverages.map((coverage) => (
-								<MenuItem key={coverage.id} value={coverage.id}>
-									{capitalize(coverage.loss_type)}
-									{coverage.coverage_amount
-										? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}`
-										: ''}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+		<Dialog
+			open={open}
+			onClose={onClose}
+			title={isEditing ? 'Edit Settlement' : 'Add Settlement'}
+			size="sm"
+			footer={
+				<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
+						{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
+					</Button>
+				</div>
+			}
+		>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+				<Dropdown
+						label="Adverse Party"
+						options={adverseParties.map((cp) => ({
+							value: cp.id,
+							label: cp.party?.name || '',
+						}))}
+						value={formData.claim_party_id}
+						onChange={(v) => setFormData({ ...formData, claim_party_id: Number(v) })}
+						required
+						fullWidth
+					/>
+					<Dropdown
+						label="Coverage"
+						options={coverages.map((coverage) => ({
+							value: coverage.id,
+							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
+						}))}
+						value={formData.coverage_id}
+						onChange={(v) => setFormData({ ...formData, coverage_id: Number(v) })}
+						required
+						fullWidth
+					/>
 
 					{/* Adverse Party Reference */}
 					<TextField
@@ -168,18 +172,17 @@ export default function SettlementFormDialog({
 					{/* Edit-only fields: Status, Agreed Liability, Settlement Amount, Settlement Date */}
 					{isEditing && (
 						<>
-							<FormControl fullWidth>
-								<InputLabel>Status</InputLabel>
-								<Select
-									value={formData.status}
-									label="Status"
-									onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-								>
-									<MenuItem value={SettlementStatus.SENT}>Sent</MenuItem>
-									<MenuItem value={SettlementStatus.SETTLED}>Settled</MenuItem>
-									<MenuItem value={SettlementStatus.CLOSED}>Closed</MenuItem>
-								</Select>
-							</FormControl>
+							<Dropdown
+								label="Status"
+								options={[
+									{ value: SettlementStatus.SENT, label: 'Sent' },
+									{ value: SettlementStatus.SETTLED, label: 'Settled' },
+									{ value: SettlementStatus.CLOSED, label: 'Closed' },
+								]}
+								value={formData.status}
+								onChange={(v) => setFormData({ ...formData, status: String(v) })}
+								fullWidth
+							/>
 							<TextField
 								label="Agreed Liability %"
 								type="number"
@@ -217,27 +220,26 @@ export default function SettlementFormDialog({
 					)}
 
 					{/* Settlement Structure - available on both create and edit */}
-					<FormControl fullWidth>
-						<InputLabel>Settlement Structure</InputLabel>
-						<Select
-							value={formData.settlement_structure || SettlementStructure.LUMP_SUM}
-							label="Settlement Structure"
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									settlement_structure: e.target.value,
-									// Clear payment fields if switching to lump sum
-									...(e.target.value === SettlementStructure.LUMP_SUM && {
-										payment_amount: '',
-										payment_frequency: '',
-									}),
-								})
-							}
-						>
-							<MenuItem value={SettlementStructure.LUMP_SUM}>Lump Sum</MenuItem>
-							<MenuItem value={SettlementStructure.PAYMENT_PLAN}>Payment Plan</MenuItem>
-						</Select>
-					</FormControl>
+					<Dropdown
+						label="Settlement Structure"
+						options={[
+							{ value: SettlementStructure.LUMP_SUM, label: 'Lump Sum' },
+							{ value: SettlementStructure.PAYMENT_PLAN, label: 'Payment Plan' },
+						]}
+						value={formData.settlement_structure || SettlementStructure.LUMP_SUM}
+						onChange={(v) =>
+							setFormData({
+								...formData,
+								settlement_structure: String(v),
+								// Clear payment fields if switching to lump sum
+								...(String(v) === SettlementStructure.LUMP_SUM && {
+									payment_amount: '',
+									payment_frequency: '',
+								}),
+							})
+						}
+						fullWidth
+					/>
 
 					{/* Payment Plan Fields - available on both create and edit when payment plan is selected */}
 					{isPaymentPlan && (
@@ -254,21 +256,19 @@ export default function SettlementFormDialog({
 									htmlInput: { step: '0.01', min: '0' },
 								}}
 							/>
-							<FormControl fullWidth required>
-								<InputLabel>Payment Frequency</InputLabel>
-								<Select
-									value={formData.payment_frequency}
-									label="Payment Frequency"
-									onChange={(e) =>
-										setFormData({ ...formData, payment_frequency: e.target.value })
-									}
-								>
-									<MenuItem value={PaymentFrequency.WEEKLY}>Weekly</MenuItem>
-									<MenuItem value={PaymentFrequency.BI_WEEKLY}>Bi-Weekly</MenuItem>
-									<MenuItem value={PaymentFrequency.MONTHLY}>Monthly</MenuItem>
-									<MenuItem value={PaymentFrequency.QUARTERLY}>Quarterly</MenuItem>
-								</Select>
-							</FormControl>
+							<Dropdown
+								label="Payment Frequency"
+								options={[
+									{ value: PaymentFrequency.WEEKLY, label: 'Weekly' },
+									{ value: PaymentFrequency.BI_WEEKLY, label: 'Bi-Weekly' },
+									{ value: PaymentFrequency.MONTHLY, label: 'Monthly' },
+									{ value: PaymentFrequency.QUARTERLY, label: 'Quarterly' },
+								]}
+								value={formData.payment_frequency}
+								onChange={(v) => setFormData({ ...formData, payment_frequency: String(v) })}
+								required
+								fullWidth
+							/>
 							{estimatedPayments && (
 								<span style={{ color: 'var(--text-secondary)' }}>
 									Estimated payments: {estimatedPayments} installments
@@ -279,24 +279,20 @@ export default function SettlementFormDialog({
 
 					{/* Settled By - required when settlement_amount is provided (edit mode only since settlement_amount is edit-only) */}
 					{hasSettlementAmount && (
-						<FormControl fullWidth required>
-							<InputLabel>Settled By</InputLabel>
-							<Select
-								value={formData.settled_by}
-								label="Settled By"
-								onChange={(e) => setFormData({ ...formData, settled_by: e.target.value })}
-							>
-								<MenuItem value={DROP_CHECK_VALUE}>
-									<em>Drop Check (No Direct Contact)</em>
-								</MenuItem>
-								<Divider />
-								{adminUsers.map((user) => (
-									<MenuItem key={user.id} value={user.id}>
-										{user.first} {user.last}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
+						<Dropdown
+							label="Settled By"
+							options={[
+								{ value: DROP_CHECK_VALUE, label: 'Drop Check (No Direct Contact)' },
+								...adminUsers.map((user) => ({
+									value: user.id,
+									label: `${user.first} ${user.last}`,
+								})),
+							]}
+							value={formData.settled_by}
+							onChange={(v) => setFormData({ ...formData, settled_by: String(v) })}
+							required
+							fullWidth
+						/>
 					)}
 					<TextField
 						label="Notes"
@@ -308,13 +304,6 @@ export default function SettlementFormDialog({
 						placeholder="Additional details about this settlement demand..."
 					/>
 				</div>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
-				<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
-					{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
-				</Button>
-			</DialogActions>
 		</Dialog>
 	);
 }

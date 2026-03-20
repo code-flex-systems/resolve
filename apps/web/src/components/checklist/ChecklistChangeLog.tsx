@@ -1,4 +1,3 @@
-import { Box, Stack, Typography } from '@mui/material';
 import UserActivityTable from '../metrics/UserActivity/UserActivityTable';
 import SearchInput from '@/components/common/SearchInput';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -14,23 +13,23 @@ export default function ChecklistChangeLog() {
 		[]
 	);
 	return (
-		<Stack
-			width="100%"
-			height={400}
-			display="flex"
-			justifyContent="flex-start"
-			alignItems="flex-start"
-			bgcolor="white"
+		<div
+			
+			
+			
+			
+			
+			 style={{ width: '100%', height: 400, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}
 		>
-			<Box
-				width="100%"
-				height={40}
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				padding="5px 10px"
+			<div
+				
+				
+				
+				
+				
+				 style={{ width: '100%', height: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px' }}
 			>
-				<Typography fontSize={15}>Change Log</Typography>
+				<span  style={{ fontSize: 15 }}>Change Log</span>
 				<SearchInput
 					value={searchTerm}
 					onChange={(value) => {
@@ -40,8 +39,8 @@ export default function ChecklistChangeLog() {
 					placeholder="Search by question..."
 					width={200}
 				/>
-			</Box>
-			<Box width={480} height={360} padding="0px 5px">
+			</div>
+			<div    style={{ width: 480, height: 360, padding: '0px 5px' }}>
 				<UserActivityTable
 					checklistId={checklistId}
 					claimId={claimId}
@@ -52,7 +51,7 @@ export default function ChecklistChangeLog() {
 					pageSize={10}
 					compact
 				/>
-			</Box>
-		</Stack>
+			</div>
+		</div>
 	);
 }

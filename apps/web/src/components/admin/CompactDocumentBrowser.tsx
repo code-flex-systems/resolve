@@ -1,7 +1,7 @@
 'use client';
 
 import { IconFile, IconFolder } from '@tabler/icons-react';
-import { Breadcrumbs, Link } from '@mui/material';
+import { Breadcrumbs } from '@mui/material';
 import Card from '@/components/ui/Card';
 import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -154,15 +154,12 @@ export default function CompactDocumentBrowser({
 			{/* Breadcrumbs for navigation - hidden in userFilteredMode */}
 			{!userFilteredMode && (
 				<Breadcrumbs style={{ padding: 16, paddingBottom: 8 }}>
-					<Link
-						component="button"
-						underline="hover"
-						color={currentFolderId === null ? 'text.primary' : 'inherit'}
+					<button
 						onClick={() => !disabled && setCurrentFolderId(null)}
-						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'inherit', textDecoration: 'none' }}
 					>
 						Documents
-					</Link>
+					</button>
 					{breadcrumbTrail.map((folder, index) => {
 						const isLast = index === breadcrumbTrail.length - 1;
 						return isLast ? (
@@ -170,16 +167,13 @@ export default function CompactDocumentBrowser({
 								{folder.name}
 							</span>
 						) : (
-							<Link
+							<button
 								key={folder.id}
-								component="button"
-								underline="hover"
-								color="inherit"
 								onClick={() => !disabled && setCurrentFolderId(folder.id)}
-								style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+								style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'inherit', textDecoration: 'none' }}
 							>
 								{folder.name}
-							</Link>
+							</button>
 						);
 					})}
 				</Breadcrumbs>

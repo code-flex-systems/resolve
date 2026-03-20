@@ -1,142 +1,111 @@
-/* === Design System Variables (Clerk-inspired) === */
-:root {
-	/* === Colors === */
-	/* Primary - cyan with shades */
-	--color-primary: #21B5FF;
-	--color-primary-hover: #1a9fd9;
-	--color-primary-dark: #158abf;
-	--color-primary-light: rgba(33, 181, 255, 0.08);
+/*
+ * Global Styles
+ *
+ * Imports design tokens, provides CSS reset, base styles,
+ * utility classes, and vendor overrides.
+ */
 
-	/* Secondary */
-	--color-secondary: #32AE99;
-	--color-secondary-hover: #2a9482;
+@import '../styles/tokens.css';
 
-	/* Semantic */
-	--color-success: #1BB934;
-	--color-warning: #F5BF48;
-	--color-error: #ED1C24;
+/* =========================================================================
+   RESET
+   ========================================================================= */
 
-	/* Neutrals - Clerk-inspired gray scale */
-	--color-neutral-950: #131316;
-	--color-neutral-900: #1f1f23;
-	--color-neutral-800: #2e2e33;
-	--color-neutral-700: #41414a; /* Dark text */
-	--color-neutral-600: #5e5e6e;
-	--color-neutral-500: #747686; /* Secondary text */
-	--color-neutral-400: #9394a1;
-	--color-neutral-300: #b5b6c0; /* Muted text */
-	--color-neutral-200: #dfe0e4; /* Borders */
-	--color-neutral-150: #eaebee; /* Light borders */
-	--color-neutral-100: #f2f2f4; /* Backgrounds */
-	--color-neutral-50: #fafafb; /* Card backgrounds */
-
-	/* Backgrounds */
-	--color-bg-primary: #ffffff;
-	--color-bg-secondary: #fafafb; /* Light card background */
-	--color-bg-tertiary: #f7f7f9; /* Page background - lighter */
-	--color-bg-hover: #f5f5f7;
-	--color-bg-muted: #fafafa;
-
-	/* Text */
-	--color-text-primary: #131316;
-	--color-text-secondary: #5e5e6e;
-	--color-text-tertiary: #747686;
-	--color-text-muted: #9394a1;
-	--color-text-inverse: #ffffff;
-
-	/* Borders */
-	--color-border: #e8e8ec;
-	--color-border-light: #f0f0f3;
-	--color-border-hover: #dcdce0;
-	--color-border-focus: #21B5FF;
-
-	/* === Spacing (4px base unit) === */
-	--space-0: 0;
-	--space-0-5: 2px;
-	--space-1: 4px;
-	--space-1-5: 6px;
-	--space-2: 8px;
-	--space-3: 12px;
-	--space-4: 16px;
-	--space-5: 20px;
-	--space-6: 24px;
-	--space-8: 32px;
-	--space-10: 40px;
-	--space-12: 48px;
-
-	/* === Border Radius === */
-	--radius-sm: 4px;
-	--radius-md: 6px;
-	--radius-lg: 8px;
-	--radius-xl: 12px;
-	--radius-full: 9999px;
-
-	/* === Typography === */
-	--font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-	/* Font sizes - compact */
-	--font-size-xs: 11px;
-	--font-size-sm: 12px;
-	--font-size-base: 13px;
-	--font-size-md: 14px;
-	--font-size-lg: 15px;
-	--font-size-xl: 17px;
-	--font-size-2xl: 20px;
-	--font-size-3xl: 24px;
-
-	/* Line heights */
-	--line-height-tight: 1.25;
-	--line-height-normal: 1.5;
-	--line-height-relaxed: 1.625;
-
-	/* Font weights */
-	--font-weight-normal: 400;
-	--font-weight-medium: 500;
-	--font-weight-semibold: 600;
-	--font-weight-bold: 700;
-
-	/* === Shadows === */
-	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-
-	/* === Transitions === */
-	--transition-fast: 150ms ease;
-	--transition-normal: 200ms ease;
-	--transition-slow: 300ms ease;
-}
-
-* {
+*,
+*::before,
+*::after {
 	box-sizing: border-box;
-}
-
-html,
-body {
 	margin: 0;
 	padding: 0;
 }
 
-.bump:hover {
-	scale: 1.005;
-	transition: scale 200ms ease;
+html,
+body {
+	min-height: 100vh;
 }
 
-.bump-lg:hover {
-	scale: 1.1;
-	transition: scale 200ms ease;
+img {
+	max-width: 100%;
+	display: block;
 }
 
-.cell-bold {
-	font-weight: 500;
+/* =========================================================================
+   BASE STYLES
+   ========================================================================= */
+
+body {
+	font-family: var(--font-sans);
+	font-size: var(--text-base);
+	line-height: var(--leading-relaxed);
+	color: var(--text-primary);
+	background: var(--bg-primary);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-.cell-primary {
-	color: #216bc4;
+/* =========================================================================
+   SCROLLBAR
+   ========================================================================= */
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
 }
 
-.cursor-pointer {
-	cursor: pointer;
+::-webkit-scrollbar-track {
+	background: transparent;
 }
+
+::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
+
+/* =========================================================================
+   REDUCED MOTION
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* =========================================================================
+   KEYFRAME ANIMATIONS
+   ========================================================================= */
+
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+/* =========================================================================
+   UTILITY CLASSES — Background patterns
+   ========================================================================= */
+
+.graph-paper-bg {
+	background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+	background-size: 24px 24px;
+}
+
+/* =========================================================================
+   UTILITY CLASSES — Layout
+   ========================================================================= */
 
 .flex-col-center {
 	display: flex;
@@ -197,44 +166,80 @@ body {
 	align-items: center;
 }
 
+/* =========================================================================
+   UTILITY CLASSES — Interactive
+   ========================================================================= */
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.bump:hover {
+	scale: 1.005;
+	transition: scale var(--transition-normal);
+}
+
+.bump-lg:hover {
+	scale: 1.1;
+	transition: scale var(--transition-normal);
+}
+
 .hovered-button:hover {
 	scale: 1.1;
-	transition: scale 100ms ease;
+	transition: scale var(--transition-fast);
 }
 
 .hovered-row:hover {
 	scale: 1.005;
-	transition: scale 100ms ease;
+	transition: scale var(--transition-fast);
 	cursor: pointer;
+}
+
+/* =========================================================================
+   UTILITY CLASSES — Text & Data Grid cells
+   ========================================================================= */
+
+.cell-bold {
+	font-weight: var(--font-medium);
+}
+
+.cell-primary {
+	color: var(--text-accent);
 }
 
 .italics {
 	font-style: italic;
 }
 
-.striped {
-	background-color: #f8fafc;
-}
-
-.user-row {
-	background-color: rgba(34, 180, 255, 0.1);
-}
-
-.user-disabled-row {
-	background-color: var(--color-bg-tertiary);
-}
-
-.selected-row {
-	background-color: rgba(33, 107, 196, 0.08);
-}
-
 .inactive-cell {
-	color: #9e9e9e;
+	color: var(--text-muted);
 	font-style: italic;
 }
 
-/* Fix MUI outlined input notch gap when no label is present */
-/* Target inputs without an associated label in FormControl */
+/* =========================================================================
+   UTILITY CLASSES — Row highlights
+   ========================================================================= */
+
+.striped {
+	background-color: var(--bg-secondary);
+}
+
+.user-row {
+	background-color: var(--status-info-bg);
+}
+
+.user-disabled-row {
+	background-color: var(--bg-tertiary);
+}
+
+.selected-row {
+	background-color: var(--status-info-bg);
+}
+
+/* =========================================================================
+   VENDOR OVERRIDES — MUI notched outline fix
+   ========================================================================= */
+
 .MuiFormControl-root:not(:has(> .MuiInputLabel-root)) .MuiOutlinedInput-notchedOutline legend,
 .MuiFormControl-root:not(:has(> .MuiFormLabel-root)) .MuiOutlinedInput-notchedOutline legend {
 	padding: 0 !important;
@@ -243,7 +248,6 @@ body {
 	overflow: hidden !important;
 }
 
-/* Also handle TextField without label prop */
 .MuiTextField-root:not(:has(.MuiInputLabel-root:not(:empty))) .MuiOutlinedInput-notchedOutline legend {
 	padding: 0 !important;
 	max-width: 0 !important;
@@ -251,7 +255,6 @@ body {
 	overflow: hidden !important;
 }
 
-/* Handle standalone Select/OutlinedInput without label - target when notched is not explicitly set */
 .MuiOutlinedInput-root:not(.MuiInputBase-formControl) .MuiOutlinedInput-notchedOutline legend {
 	padding: 0 !important;
 	max-width: 0 !important;

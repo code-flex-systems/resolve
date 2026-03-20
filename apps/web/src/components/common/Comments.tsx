@@ -1,9 +1,8 @@
 'use client';
 
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
-import { Collapse, MenuItem } from '@mui/material';
 import { IconArrowRight } from '@tabler/icons-react';
-import { TransitionGroup } from 'react-transition-group';
+
 import { formatMD, formatUser } from '@/lib/utils/utils';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CommentFilters } from '@/types/types';
@@ -53,13 +52,12 @@ export default function Comments({
 			No comments
 		</span>
 	) : (
-		<TransitionGroup>
+		<>
 			{pagedData.map((c, i) => {
 				const canNavigate = !viewingInChecklist || (!!c.instance_id && !!c.question_id);
 				return (
-					<Collapse key={i} sx={{ width }}>
-						<MenuItem
-							disableRipple
+					<div key={i} style={{ width }}>
+						<div
 							onClick={() => {
 								if (!canNavigate) return;
 								if (!viewingInChecklist) toggleComments();
@@ -70,12 +68,12 @@ export default function Comments({
 									questionId: c.question_id ?? undefined,
 								});
 							}}
-							sx={{
+							style={{
 								...styles.menuItem,
 								marginBottom: offset == null && i === pagedData.length - 1 ? '40px' : undefined,
+								cursor: 'pointer',
 							}}
-							className="comment"
-						>
+							className="comment">
 							<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 								<div style={{ padding: '5px 10px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 									<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 5 }}>
@@ -86,58 +84,53 @@ export default function Comments({
 										</div>
 
 										<div
-											style={{
+style={{
 												width: width - 20,
 												display: 'flex',
 												justifyContent: 'space-between',
 												alignItems: 'center',
-											}}
-										>
+											}}>
 											<div
-												style={{
+style={{
 													width: width - 50,
 													display: 'flex',
 													justifyContent: 'flex-start',
 													alignItems: 'center',
 													overflow: 'hidden',
-												}}
-											>
+												}}>
 												<span
-													style={{
+style={{
 														fontSize: 12,
 														lineHeight: '15px',
 														color: BASE_COLOR_LIGHT,
 														minWidth: 'fit-content',
 														whiteSpace: 'nowrap',
-													}}
-												>
+													}}>
 													{formatUser(c, session?.user?.email)}
 												</span>
 												<div style={dividerStyle} />
 												<span
-													style={{
+style={{
 														fontSize: 12,
 														lineHeight: '15px',
 														color: BASE_COLOR_LIGHT,
 														minWidth: 'fit-content',
 														whiteSpace: 'nowrap',
-													}}
-												>
+													}}>
 													{formatMD(c.updated_at ?? c.created_at)}
 												</span>
 												{c.page_title && c.question_id && (
 													<>
 														<div style={dividerStyle} />
 														<span
-															style={{
+style={{
 																fontSize: 12,
 																lineHeight: '15px',
 																color: 'var(--text-accent)',
 																textOverflow: 'ellipsis',
 																whiteSpace: 'nowrap',
 																overflow: 'hidden',
-															}}
-														>
+															}}>
 															{c.page_title} (Q{c.position})
 														</span>
 													</>
@@ -152,11 +145,11 @@ export default function Comments({
 									</div>
 								</div>
 							</div>
-						</MenuItem>
-					</Collapse>
+						</div>
+					</div>
 				);
 			})}
-		</TransitionGroup>
+		</>
 	);
 }
 
@@ -174,6 +167,5 @@ const styles = {
 		flex: 1,
 		width: '100%',
 		padding: 0,
-		bgcolor: 'white',
 	},
 };

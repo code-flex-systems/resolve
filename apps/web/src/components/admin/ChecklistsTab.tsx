@@ -18,7 +18,6 @@ import StackedHeaderCell from '../common/StackedHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { Dialog } from '@mui/material';
 
 const getColumns = (isManageMode: boolean): GridColDef[] => [
 	{

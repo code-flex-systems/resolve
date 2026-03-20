@@ -1,5 +1,7 @@
 'use client';
-import { FormLabel, IconButton, Tooltip, Typography } from '@mui/material';
+import { FormLabel } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import Button from '@/components/ui/Button';
 import QuestionInfo from './QuestionInfo';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
@@ -28,52 +30,54 @@ export default function ChecklistFormLabel(props: {
 	return (
 		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
 			{isAssigned && (
-				<Tooltip title="Reset question" enterDelay={500}>
+				<Tooltip content="Reset question">
 					<span>
-						<IconButton
+						<Button
+							variant="icon"
+							size="sm"
 							onClick={() =>
 								setValue(id, question.type === QuestionType.FREEFORM ? '' : [], {
 									shouldDirty: true,
 								})
 							}
 							disabled={!value?.length || disabled}
-							sx={{ marginRight: '5px' }}
+							style={{ marginRight: '5px' }}
 						>
 							<IconRefresh size={17} />
-						</IconButton>
+						</Button>
 					</span>
 				</Tooltip>
 			)}
 			{mode === ChecklistMode.VIEW && (
-				<Tooltip title="Add a comment" enterDelay={500}>
+				<Tooltip content="Add a comment">
 					<span>
-						<IconButton
+						<Button
+							variant="icon"
+							size="sm"
 							onClick={() =>
 								toggleQuestionCommentDialog(selectedPageInfo.instanceId, question.id, comment)
 							}
 							disabled={disabled}
-							sx={{ marginRight: '10px' }}
+							style={{ marginRight: '10px' }}
 						>
 							<IconMessage size={17} style={{ color: comment ? 'var(--text-accent)' : undefined }}
 							/>
-						</IconButton>
+						</Button>
 					</span>
 				</Tooltip>
 			)}
 
-			<Typography
-				fontSize={14}
-				color={
-					isEmpty && mode === ChecklistMode.VIEW
+			<span
+				
+				
+				 style={{ fontSize: 14, color: isEmpty && mode === ChecklistMode.VIEW
 						? 'error.light'
 						: highlightedQuestion === question.id
 							? 'secondary'
-							: undefined
-				}
-				fontWeight="bold"
+							: undefined, fontWeight: 'bold' }}
 			>
 				{idx + 1}. {question.text}
-			</Typography>
+			</span>
 			{(!!question.description_text || question.id !== -1) && (
 				<QuestionInfo
 					description={question.description_text}

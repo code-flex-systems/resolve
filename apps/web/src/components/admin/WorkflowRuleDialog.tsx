@@ -1,7 +1,8 @@
 'use client';
 
 import { IconTrash } from '@tabler/icons-react';
-import { FormControl, FormControlLabel, FormHelperText, InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControlLabel, FormHelperText } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import Divider from '@/components/ui/Divider';
@@ -52,18 +53,16 @@ function renderValueInput(
 ) {
 	if (fieldDef.source === 'enum' && fieldDef.enumOptions) {
 		return (
-			<FormControl size="small" fullWidth>
-				<Select
-					value={condition.value || ''}
-					onChange={(e) => onChange({ ...condition, value: e.target.value })}
-				>
-					{fieldDef.enumOptions.map((opt: any) => (
-						<MenuItem key={opt.value} value={opt.value}>
-							{opt.label}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
+			<Dropdown
+				options={fieldDef.enumOptions.map((opt: any) => ({
+					value: opt.value,
+					label: opt.label,
+				}))}
+				value={(condition.value as string | number) || ''}
+				onChange={(v) => onChange({ ...condition, value: v })}
+				fullWidth
+				size="sm"
+			/>
 		);
 	}
 
@@ -103,39 +102,35 @@ function ConditionRow({
 	return (
 		<div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
 			{/* Field selector */}
-			<FormControl size="small" style={{ minWidth: 200 }}>
-				<InputLabel>Field</InputLabel>
-				<Select
-					value={condition.field}
-					onChange={(e) =>
-						onChange({ ...condition, field: e.target.value, operator: 'eq' as any, value: null })
-					}
+			<div style={{ minWidth: 200 }}>
+				<Dropdown
 					label="Field"
-				>
-					{WORKFLOW_CONDITION_FIELDS.map((fieldDef) => (
-						<MenuItem key={fieldDef.field} value={fieldDef.field}>
-							{fieldDef.label}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
+					options={WORKFLOW_CONDITION_FIELDS.map((fieldDef) => ({
+						value: fieldDef.field,
+						label: fieldDef.label,
+					}))}
+					value={condition.field}
+					onChange={(v) =>
+						onChange({ ...condition, field: String(v), operator: 'eq' as any, value: null })
+					}
+					size="sm"
+				/>
+			</div>
 
 			{/* Operator selector (filtered by field type) */}
 			{selectedFieldDef && (
-				<FormControl size="small" style={{ minWidth: 120 }}>
-					<InputLabel>Operator</InputLabel>
-					<Select
-						value={condition.operator}
-						onChange={(e) => onChange({ ...condition, operator: e.target.value as any })}
+				<div style={{ minWidth: 120 }}>
+					<Dropdown
 						label="Operator"
-					>
-						{selectedFieldDef.allowedOperators.map((op) => (
-							<MenuItem key={op} value={op}>
-								{OPERATOR_LABELS[op]}
-							</MenuItem>
-						))}
-					</Select>
-				</FormControl>
+						options={selectedFieldDef.allowedOperators.map((op) => ({
+							value: op,
+							label: OPERATOR_LABELS[op],
+						}))}
+						value={condition.operator}
+						onChange={(v) => onChange({ ...condition, operator: v as any })}
+						size="sm"
+					/>
+				</div>
 			)}
 
 			{/* Value input (type depends on field and operator) */}
@@ -170,15 +165,17 @@ function RuleConditionsBuilder({
 	return (
 		<div style={{ padding: 16, backgroundColor: 'var(--bg-primary)' }}>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-				<FormControl size="small" style={{ minWidth: 100 }}>
-					<Select
+				<div style={{ minWidth: 100 }}>
+					<Dropdown
+						options={[
+							{ value: 'AND', label: 'Match ALL' },
+							{ value: 'OR', label: 'Match ANY' },
+						]}
 						value={conditions.logic}
-						onChange={(e) => onChange({ ...conditions, logic: e.target.value as 'AND' | 'OR' })}
-					>
-						<MenuItem value="AND">Match ALL</MenuItem>
-						<MenuItem value="OR">Match ANY</MenuItem>
-					</Select>
-				</FormControl>
+						onChange={(v) => onChange({ ...conditions, logic: v as 'AND' | 'OR' })}
+						size="sm"
+					/>
+				</div>
 
 				<Button size="sm" variant="outlined" onClick={() => onChange(null)}>
 					Remove All
@@ -352,77 +349,47 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 						TRIGGER & ACTION
 					</span>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-						<FormControl fullWidth required>
-							<InputLabel>Trigger Type</InputLabel>
-							<Select
-								value={formData.triggerType}
-								onChange={(e) =>
-									setFormData({ ...formData, triggerType: e.target.value as WorkflowTriggerType })
-								}
+						<div>
+							<Dropdown
 								label="Trigger Type"
-								displayEmpty
-								renderValue={(selected) => {
-									if (!selected) {
-										return (
-											<span style={{ color: 'var(--text-secondary)' }}>
-												Select when this rule should fire...
-											</span>
-										);
-									}
-									return TRIGGER_CONFIG[selected as WorkflowTriggerType]?.label || selected;
-								}}
-							>
-								{Object.entries(TRIGGER_CONFIG).map(([key, config]) => (
-									<MenuItem key={key} value={key}>
-										<div>
-											<span style={{ fontSize: 14 }}>{config.label}</span>
-											<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-												{config.description}
-											</span>
-										</div>
-									</MenuItem>
-								))}
-							</Select>
+								options={Object.entries(TRIGGER_CONFIG).map(([key, config]) => ({
+									value: key,
+									label: config.label,
+									description: config.description,
+								}))}
+								value={formData.triggerType}
+								onChange={(v) =>
+									setFormData({ ...formData, triggerType: v as WorkflowTriggerType })
+								}
+								placeholder="Select when this rule should fire..."
+								required
+								fullWidth
+							/>
 							{formData.triggerType && (
 								<FormHelperText>{TRIGGER_EXPLANATIONS[formData.triggerType]}</FormHelperText>
 							)}
-						</FormControl>
+						</div>
 
-						<FormControl fullWidth required>
-							<InputLabel>Action Type</InputLabel>
-							<Select
-								value={formData.actionType}
-								onChange={(e) =>
-									setFormData({ ...formData, actionType: e.target.value as WorkflowActionType })
-								}
+						<div>
+							<Dropdown
 								label="Action Type"
-								displayEmpty
-								renderValue={(selected) => {
-									if (!selected) {
-										return (
-											<span style={{ color: 'var(--text-secondary)' }}>
-												Select what action to perform...
-											</span>
-										);
-									}
-									return ACTION_CONFIG[selected as WorkflowActionType]?.label || selected;
-								}}
-							>
-								{Object.entries(ACTION_CONFIG).map(([key, config]) => (
-									<MenuItem key={key} value={key}>
-										<div>
-											<span style={{ fontSize: 14 }}>{config.label}</span>
-											<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-												{config.description}
-											</span>
-										</div>
-									</MenuItem>
-								))}
-							</Select>
+								options={Object.entries(ACTION_CONFIG).map(([key, config]) => ({
+									value: key,
+									label: config.label,
+									description: config.description,
+								}))}
+								value={formData.actionType}
+								onChange={(v) =>
+									setFormData({ ...formData, actionType: v as WorkflowActionType })
+								}
+								placeholder="Select what action to perform..."
+								required
+								fullWidth
+							/>
 							{formData.actionType && (
 								<FormHelperText>{ACTION_EXPLANATIONS[formData.actionType]}</FormHelperText>
 							)}
-						</FormControl>
+						</div>
 
 						{/* Dynamic action config fields based on actionType */}
 						{formData.actionType === WorkflowActionType.MOVE_CLAIM && (
@@ -480,40 +447,25 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 						EXECUTION SETTINGS
 					</span>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-						<FormControl fullWidth>
-							<InputLabel>Execution Mode</InputLabel>
-							<Select
-								value={formData.executionMode}
-								onChange={(e) =>
-									setFormData({ ...formData, executionMode: e.target.value as WorkflowExecutionMode })
-								}
+						<div>
+							<Dropdown
 								label="Execution Mode"
-								renderValue={(selected) => {
-									if (!selected) {
-										return (
-											<span style={{ color: 'var(--text-secondary)' }}>
-												Select how this rule should execute...
-											</span>
-										);
-									}
-									return MODE_CONFIG[selected as WorkflowExecutionMode]?.label || selected;
-								}}
-							>
-								{Object.entries(MODE_CONFIG).map(([key, config]) => (
-									<MenuItem key={key} value={key}>
-										<div>
-											<span style={{ fontSize: 14 }}>{config.label}</span>
-											<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-												{config.description}
-											</span>
-										</div>
-									</MenuItem>
-								))}
-							</Select>
+								options={Object.entries(MODE_CONFIG).map(([key, config]) => ({
+									value: key,
+									label: config.label,
+									description: config.description,
+								}))}
+								value={formData.executionMode}
+								onChange={(v) =>
+									setFormData({ ...formData, executionMode: v as WorkflowExecutionMode })
+								}
+								placeholder="Select how this rule should execute..."
+								fullWidth
+							/>
 							{formData.executionMode && (
 								<FormHelperText>{MODE_EXPLANATIONS[formData.executionMode]}</FormHelperText>
 							)}
-						</FormControl>
+						</div>
 
 						<Input
 							label="Priority"

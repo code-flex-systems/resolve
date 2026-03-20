@@ -1,7 +1,8 @@
 'use client';
 
 import { IconChevronDown, IconDeviceFloppy, IconPlus, IconTrash } from '@tabler/icons-react';
-import { Accordion, AccordionDetails, AccordionSummary, Dialog, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, TextField } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Button from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
 import BasicDialog from '../common/BasicDialog';
@@ -131,25 +132,20 @@ export default function StatuteRuleDialog() {
 					<AccordionDetails>
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-								<FormControl size="small" style={{ minWidth: 200 }}>
-									<InputLabel>Negligence Type</InputLabel>
-									<Select
-										value={negligenceType ?? ''}
+								<div style={{ minWidth: 200 }}>
+									<Dropdown
 										label="Negligence Type"
-										onChange={(e) =>
-											setNegligenceType((e.target.value as NegligenceType) || null)
-										}
-									>
-										<MenuItem value="">
-											<em>Not Set</em>
-										</MenuItem>
-										{negligenceTypeOptions.map((opt) => (
-											<MenuItem key={opt.value} value={opt.value}>
-												{opt.label}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+										options={[
+											{ value: '', label: 'Not Set' },
+											...negligenceTypeOptions.map((opt) => ({
+												value: opt.value,
+												label: opt.label,
+											})),
+										]}
+										value={negligenceType ?? ''}
+										onChange={(v) => setNegligenceType((String(v) as NegligenceType) || null)}
+									/>
+								</div>
 								<TextField
 									label="Bar Percentage"
 									size="small"
@@ -235,27 +231,25 @@ export default function StatuteRuleDialog() {
 													flexWrap: 'wrap',
 												}}
 											>
-												<FormControl size="small" style={{ minWidth: 130 }}>
-													<InputLabel>LOB</InputLabel>
-													<Select
-														value={rule.lob || ''}
+												<div style={{ minWidth: 130 }}>
+													<Dropdown
 														label="LOB"
-														onChange={(e) =>
+														options={[
+															{ value: '', label: 'Any' },
+															...STATUTE_LOB_TYPES.map((lob) => ({
+																value: lob.value,
+																label: lob.label,
+															})),
+														]}
+														value={rule.lob || ''}
+														onChange={(v) =>
 															updateConditionalRule(tort.value, idx, {
-																lob: e.target.value || undefined,
+																lob: String(v) || undefined,
 															})
 														}
-													>
-														<MenuItem value="">
-															<em>Any</em>
-														</MenuItem>
-														{STATUTE_LOB_TYPES.map((lob) => (
-															<MenuItem key={lob.value} value={lob.value}>
-																{lob.label}
-															</MenuItem>
-														))}
-													</Select>
-												</FormControl>
+														size="sm"
+													/>
+												</div>
 												<DateField
 													label="From Date"
 													value={rule.date_from ?? null}

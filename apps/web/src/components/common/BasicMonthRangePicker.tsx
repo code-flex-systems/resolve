@@ -2,13 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Button, Chip, MenuItem, Paper, PopperProps, Select, Typography } from '@mui/material';
+import { Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
+import CustomButton from '@/components/ui/Button';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { IconClock } from '@tabler/icons-react';
 import { BASE_COLOR } from '@/styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';
+import Dropdown from '@/components/ui/Dropdown';
 
 dayjs.extend(quarterOfYear);
 dayjs.extend(utc);
@@ -131,6 +134,16 @@ export default function BasicMonthRangePicker({
 		return years;
 	}, []);
 
+	const monthDropdownOptions = MONTHS.map((month, idx) => ({
+		value: idx,
+		label: month,
+	}));
+
+	const yearDropdownOptions = yearOptions.map((year) => ({
+		value: year,
+		label: String(year),
+	}));
+
 	useEffect(() => {
 		if (range.every((r) => r === null)) {
 			setLabel(EMPTY_LABEL);
@@ -185,129 +198,93 @@ export default function BasicMonthRangePicker({
 
 	return (
 		<>
-			<Chip
-				label={labelConfirmed}
-				icon={<IconClock size={20} />}
+			<span
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={
-					isEmpty || !clearable
-						? undefined
-						: () => {
-								setRange([null, null]);
-								setLabelConfirmed(EMPTY_LABEL);
-								onConfirm(range);
-							}
-				}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: isEmpty ? undefined : 'var(--text-accent)',
-					},
-					'& .MuiChip-label': {
-						color: isEmpty ? undefined : 'var(--text-accent)',
-						fontStyle: isEmpty ? 'italic' : undefined,
-					},
-				}}
-			/>
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', height }}
+			>
+				<CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
+					<IconClock size={16} style={{ color: isEmpty ? undefined : 'var(--text-accent)' }} />
+					<span style={{ color: isEmpty ? undefined : 'var(--text-accent)', fontStyle: isEmpty ? 'italic' : undefined }}>{labelConfirmed}</span>
+				</CustomChip>
+				{!isEmpty && clearable && (
+					<button onClick={(e) => { e.stopPropagation(); setRange([null, null]); setLabelConfirmed(EMPTY_LABEL); onConfirm(range); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
 					<Paper sx={styles.paper}>
-						<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
-							<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-								<div style={{ width: 150, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
+						<div  style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
+							<div  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+								<div  style={{ width: 150, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
 									{shortcuts.map((s, i) => (
-										<Chip
-											key={i}
-											label={s.label}
-											onClick={() => handleShortcut(s)}
-											sx={{
-												margin: '5px 0px',
-												'& .MuiChip-icon': {
-													color:
-														s.label === label ? 'var(--text-accent)' : BASE_COLOR,
-												},
-												'& .MuiChip-label': {
-													color:
-														s.label === label ? 'var(--text-accent)' : BASE_COLOR,
-												},
-											}}
-										/>
+										<span key={i} style={{ margin: '5px 0px', cursor: 'pointer' }}>
+											<CustomChip
+												color={s.label === label ? 'info' : 'neutral'}
+												size="sm"
+												onClick={() => handleShortcut(s)}
+											>
+												{s.label}
+											</CustomChip>
+										</span>
 									))}
 								</div>
-								<div style={{ padding: 20, width: 320 }}>
-									<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+								<div  style={{ padding: 20, width: 320 }}>
+									<div  style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 										{/* Start Date */}
 										<div>
-											<span style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+											<span  style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
 												Start Month
 											</span>
-											<div style={{ display: 'flex', gap: 8 }}>
-												<Select
-													value={startMonth}
-													onChange={(e) => setStartMonth(e.target.value as number)}
-													size="small"
-													sx={{ flex: 2 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{MONTHS.map((month, idx) => (
-														<MenuItem key={idx} value={idx}>
-															{month}
-														</MenuItem>
-													))}
-												</Select>
-												<Select
-													value={startYear}
-													onChange={(e) => setStartYear(e.target.value as number)}
-													size="small"
-													sx={{ flex: 1 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{yearOptions.map((year) => (
-														<MenuItem key={year} value={year}>
-															{year}
-														</MenuItem>
-													))}
-												</Select>
+											<div  style={{ display: 'flex', gap: 8 }}>
+												<div style={{ flex: 2 }}>
+													<Dropdown
+														options={monthDropdownOptions}
+														value={startMonth}
+														onChange={(v) => setStartMonth(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
+												<div style={{ flex: 1 }}>
+													<Dropdown
+														options={yearDropdownOptions}
+														value={startYear}
+														onChange={(v) => setStartYear(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
 											</div>
 										</div>
 
 										{/* End Date */}
 										<div>
-											<span style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+											<span  style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
 												End Month
 											</span>
-											<div style={{ display: 'flex', gap: 8 }}>
-												<Select
-													value={endMonth}
-													onChange={(e) => setEndMonth(e.target.value as number)}
-													size="small"
-													sx={{ flex: 2 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{MONTHS.map((month, idx) => (
-														<MenuItem key={idx} value={idx}>
-															{month}
-														</MenuItem>
-													))}
-												</Select>
-												<Select
-													value={endYear}
-													onChange={(e) => setEndYear(e.target.value as number)}
-													size="small"
-													sx={{ flex: 1 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{yearOptions.map((year) => (
-														<MenuItem key={year} value={year}>
-															{year}
-														</MenuItem>
-													))}
-												</Select>
+											<div  style={{ display: 'flex', gap: 8 }}>
+												<div style={{ flex: 2 }}>
+													<Dropdown
+														options={monthDropdownOptions}
+														value={endMonth}
+														onChange={(v) => setEndMonth(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
+												<div style={{ flex: 1 }}>
+													<Dropdown
+														options={yearDropdownOptions}
+														value={endYear}
+														onChange={(v) => setEndYear(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -315,7 +292,7 @@ export default function BasicMonthRangePicker({
 							</div>
 
 							<div
-								style={{
+								 style={{
 									width: '100%',
 									display: 'flex',
 									justifyContent: 'space-between',
@@ -325,26 +302,27 @@ export default function BasicMonthRangePicker({
 							>
 								<div></div>
 								<div>
-									<Button
+									<CustomButton
 										onClick={() => onClose()}
 										variant="outlined"
-										sx={{ height: 30, marginRight: '10px' }}
+										size="sm"
+										style={{ marginRight: '10px' }}
 									>
 										Cancel
-									</Button>
-									<Button
+									</CustomButton>
+									<CustomButton
 										onClick={() => {
 											setLabelConfirmed(label);
 											onConfirm(range);
 											setAnchorEl(null);
 										}}
 										variant="contained"
-										color="secondary"
-										sx={{ height: 30 }}
+										color="success"
+										size="sm"
 										disabled={!clearable && range.some((r) => !r)}
 									>
 										Apply
-									</Button>
+									</CustomButton>
 								</div>
 							</div>
 						</div>

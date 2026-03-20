@@ -1,5 +1,6 @@
-import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
-import { useState } from 'react';
+import { MenuItem, Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
+import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { IconCircleCheck } from '@tabler/icons-react';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -25,24 +26,22 @@ export default function SubstatusSelect({
 
 	return (
 		<>
-			<Chip
-				label={substatus ? formatLabel(substatus) : text}
-				icon={<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />}
-				onClick={(e) => {
-					setAnchorEl(e.currentTarget);
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				onDelete={substatus && clearable ? () => setSubstatus(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: substatus ? undefined : BASE_COLOR_LIGHT,
-					},
-				}}
-				disabled={disabled}
-			/>
+			<span
+				onClick={(e: React.MouseEvent) => {
+				setAnchorEl(e.currentTarget as HTMLElement);
+				e.preventDefault();
+				e.stopPropagation();
+			}}
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', opacity: disabled ? 0.5 : 1 }}
+			>
+				<CustomChip color={substatus ? 'info' : 'neutral'} size="sm">
+				<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />
+					<span>{substatus ? formatLabel(substatus) : text}</span>
+				</CustomChip>
+				{substatus && (
+					<button onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSubstatus(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
 					<Paper sx={styles.paper}>

@@ -19,7 +19,6 @@ import DeskLocationDialog from './DeskLocationDialog';
 import DeskTypeActionsCell from './DeskTypeActionsCell';
 import DeskLocationActionsCell from './DeskLocationActionsCell';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { Dialog } from '@mui/material';
 
 const getTypeColumns = (isManageMode: boolean): GridColDef[] => [
 	{

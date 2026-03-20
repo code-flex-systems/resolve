@@ -1,7 +1,7 @@
 'use client';
 
 import { IconGauge, IconTrendingUp, IconUsers } from '@tabler/icons-react';
-import { Card, CircularProgress } from '@mui/material';
+import { Spinner } from '@/components/ui/Progress';
 import MetricCard from './MetricCard';
 import PendingExecutionsPanel from '@/components/admin/PendingExecutionsPanel';
 import SuggestionsPanel from './SuggestionsPanel';
@@ -55,7 +55,7 @@ export default function WorkflowManagementDashboard() {
 					height: '400px',
 				}}
 			>
-				<CircularProgress />
+				<Spinner size="lg" />
 			</div>
 		);
 	}

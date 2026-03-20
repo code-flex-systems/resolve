@@ -22,7 +22,6 @@ import AddressDialog from './AddressDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { AddressStatus } from '@/schemas/partySchemas';
-import { Dialog } from '@mui/material';
 
 interface AddressesTabProps {
 	isAdminContext?: boolean;

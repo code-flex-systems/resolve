@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Grid, Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useEffect } from 'react';
 import MyQueue from '@/components/home/MyQueue';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
@@ -23,23 +23,23 @@ export default function Home() {
 	}, []);
 
 	return (
-		<Box sx={styles.container}>
+		<div style={styles.container}>
 			{/* Toolbar */}
-			<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" marginBottom="10px">
-				<Typography fontSize={20} fontWeight="bold">
+			<div      style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+				<span   style={{ fontSize: 20, fontWeight: 'bold' }}>
 					Welcome back, {session?.user?.name?.split(' ')?.[0] ?? ''}!
-				</Typography>
+				</span>
 				<ProfileAvatar />
-			</Box>
+			</div>
 
 			{/* Dashboard Content */}
-			<Box
-				width="100%"
-				height="100%"
-				display="flex"
-				justifyContent="space-between"
-				alignItems="flex-start"
-				overflow="auto"
+			<div
+				
+				
+				
+				
+				
+				 style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', overflow: 'auto' }}
 			>
 				<Grid container>
 					<Grid container direction="column">
@@ -68,8 +68,8 @@ export default function Home() {
 						</Grid>
 					</Grid>
 				</Grid>
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 

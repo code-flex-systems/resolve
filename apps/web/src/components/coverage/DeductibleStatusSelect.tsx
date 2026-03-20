@@ -1,4 +1,4 @@
-import Select from '@/components/ui/Select';
+import Dropdown from '@/components/ui/Dropdown';
 import { DeductibleStatus } from '@/config/enums';
 
 interface DeductibleStatusSelectProps {
@@ -36,10 +36,10 @@ export default function DeductibleStatusSelect({
 	helperText,
 }: DeductibleStatusSelectProps) {
 	return (
-		<Select
+		<Dropdown
 			label="Deductible Status"
 			value={value}
-			onChange={(val) => onChange(val as DeductibleStatus)}
+			onChange={(val) => onChange(String(val) as DeductibleStatus)}
 			required={required}
 			disabled={disabled}
 			error={error}

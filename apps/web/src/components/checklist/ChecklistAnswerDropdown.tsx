@@ -1,5 +1,6 @@
 'use client';
-import { Box, MenuItem, Select, Tooltip, Typography } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import Dropdown from '@/components/ui/Dropdown';
 import { Question } from '@/types/types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -21,16 +22,16 @@ function DropdownAnswerItem(props: { answer: any }) {
 	const attachedImage = attachedImages.length > 0 ? attachedImages[0] : null;
 
 	return (
-		<Tooltip title={a.description_text ?? ''} placement="right" arrow>
-			<Box display="flex" alignItems="center" gap={0.5} width="100%">
-				<Typography fontSize={13}>{a.text}</Typography>
+		<Tooltip content={a.description_text ?? ''} position="right">
+			<div     style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
+				<span  style={{ fontSize: 13 }}>{a.text}</span>
 				{attachedImage && (
 					<ImageTooltip
 						imageUrl={`/api/download?docId=${attachedImage.id}`}
 						description={attachedImage.title ?? undefined}
 					/>
 				)}
-			</Box>
+			</div>
 		</Tooltip>
 	);
 }
@@ -42,38 +43,18 @@ export default function ChecklistAnswerDropdown(props: {
 }) {
 	const { field, question, disabled } = props;
 	return (
-		<Select
-			variant="outlined"
-			displayEmpty
-			{...field}
-			value={field.value ?? ''}
-			onChange={(e) => {
-				const value = e.target.value;
-				field.onChange([value]);
-			}}
-			renderValue={(value) => {
-				return question.answers.find((a) => a.id === +value?.[0])?.text ?? 'Choose an answer';
-			}}
-			sx={{
-				width: 300,
-				marginTop: '5px',
-				marginLeft: '10px',
-				padding: '2px 10px',
-				'& .MuiInputBase-root': {
-					padding: '2px 5px',
-				},
-				'& .MuiOutlinedInput-input': {
-					fontSize: 13,
-					padding: '2px 5px',
-				},
-			}}
-			disabled={disabled}
-		>
-			{question.answers.map((a) => (
-				<MenuItem key={a.id} value={a.id}>
-					<DropdownAnswerItem answer={a} />
-				</MenuItem>
-			))}
-		</Select>
+		<div style={{ marginTop: 5, marginLeft: 10 }}>
+			<Dropdown
+				options={question.answers.map((a) => ({
+					value: a.id,
+					label: a.text,
+				}))}
+				value={field.value?.[0] ?? ''}
+				onChange={(v) => field.onChange([v])}
+				placeholder="Choose an answer"
+				disabled={disabled}
+				size="sm"
+			/>
+		</div>
 	);
 }

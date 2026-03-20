@@ -14,7 +14,6 @@ import { formatCityState } from '@/schemas/addressSchemas';
 import { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Select } from '@mui/material';
 
 dayjs.extend(relativeTime);
 

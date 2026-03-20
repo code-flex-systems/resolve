@@ -1,6 +1,5 @@
 'use client';
 
-import { Paper, Stack, Typography } from '@mui/material';
 import { useState, useMemo, useEffect } from 'react';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -75,10 +74,10 @@ export default function DocumentsPage() {
 	};
 
 	return (
-		<Stack width="100%" flex={1} padding="20px">
-			<Paper sx={styles.container}>
+		<div style={{ width: '100%', flex: 1, padding: '20px' }}>
+			<div style={styles.container}>
 				<Toolbar
-					left={<Typography variant="h6">Shared Documents</Typography>}
+					left={<span>Shared Documents</span>}
 					height={50}
 					padding={'0px 10px'}
 				/>
@@ -101,8 +100,8 @@ export default function DocumentsPage() {
 				{previewDocument && (
 					<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
 				)}
-			</Paper>
-		</Stack>
+			</div>
+		</div>
 	);
 }
 

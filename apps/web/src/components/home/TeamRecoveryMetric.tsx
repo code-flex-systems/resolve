@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
 import TeamRecoveryChart from './TeamRecoveryChart';
 import { containerStyles } from '@/styles/theme';
 import { getQuarterRanges } from '@/lib/utils/recoveryUtils';
@@ -10,17 +9,17 @@ export default function TeamRecoveryMetric() {
 	const quarters = useMemo(() => getQuarterRanges(), []);
 
 	return (
-		<Box sx={{ ...containerStyles.section, ...styles.container }}>
-			<Typography sx={{ ...containerStyles.sectionTitle, justifyContent: 'space-between' }}>
+		<div style={{ ...containerStyles.section, ...styles.container }}>
+			<span style={{ ...containerStyles.sectionTitle, justifyContent: 'space-between' }}>
 				Team Recovery
-				<Typography component="span" sx={{ ml: 1, color: 'primary.main', fontWeight: 600 }}>
+				<span style={{ marginLeft: 8, color: 'primary.main', fontWeight: 600 }}>
 					Q{quarters.currentQuarter}
-				</Typography>
-			</Typography>
-			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+				</span>
+			</span>
+			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				<TeamRecoveryChart />
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 

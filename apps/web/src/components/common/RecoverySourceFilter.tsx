@@ -1,5 +1,6 @@
-import { Chip, Paper, PopperProps } from '@mui/material';
-import { useState } from 'react';
+import { Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
+import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { IconSearch } from '@tabler/icons-react';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
@@ -34,25 +35,22 @@ export default function RecoverySourceFilter({
 
 	return (
 		<>
-			<Chip
-				label={recoverySource || text}
-				icon={<IconSearch size={20} style={{ color: BASE_COLOR_LIGHT }} />}
-				onClick={(e) => {
-					setAnchorEl(e.currentTarget);
-					setInputValue(recoverySource);
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				onDelete={recoverySource && clearable ? handleClear : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: BASE_COLOR_LIGHT,
-					},
-				}}
-				disabled={disabled}
-			/>
+			<span
+				onClick={(e: React.MouseEvent) => {
+				setAnchorEl(e.currentTarget as HTMLElement);
+				e.preventDefault();
+				e.stopPropagation();
+			}}
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', opacity: disabled ? 0.5 : 1 }}
+			>
+				<CustomChip color={recoverySource ? 'info' : 'neutral'} size="sm">
+				<IconSearch size={20} style={{ color: BASE_COLOR_LIGHT }} />
+					<span>{recoverySource || text}</span>
+				</CustomChip>
+				{recoverySource && (
+					<button onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleClear; }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
 					<Paper sx={styles.paper}>

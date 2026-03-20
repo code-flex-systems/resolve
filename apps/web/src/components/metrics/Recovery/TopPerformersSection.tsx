@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Card, CardContent, Grid, Paper, Typography } from '@mui/material';
+import { Card, CardContent, Grid } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -91,7 +91,7 @@ export default function TopPerformersSection({
 
 	if (isFetching) {
 		return (
-			<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
+			<div style={{ ...styles.paper, ...containerStyles.beveledCard }}>
 				<Skeleton variant="text" width={150} height={32} />
 				<Grid container spacing={3}>
 					<Grid size={6}>
@@ -101,50 +101,49 @@ export default function TopPerformersSection({
 						<Skeleton variant="rect" height={250} />
 					</Grid>
 				</Grid>
-			</Paper>
+			</div>
 		);
 	}
 
 	return (
-		<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
-			<Typography variant="h6" fontSize={18} fontWeight={600} mb={2}>
+		<div style={{ ...styles.paper, ...containerStyles.beveledCard }}>
+			<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
 				Top Performers
-			</Typography>
+			</span>
 
 			<Grid container spacing={3}>
 				{/* Top Claims by Recovery Amount */}
 				<Grid size={6}>
 					<Card variant="outlined">
 						<CardContent>
-							<Typography fontSize={14} fontWeight={600} mb={2}>
+							<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
 								Top Claims by Recovery Amount
-							</Typography>
+							</span>
 							{topClaims.length === 0 ? (
-								<Typography fontSize={12} color="text.secondary">
+								<span style={{ fontSize: 12, color: 'text.secondary' }}>
 									No data available
-								</Typography>
+								</span>
 							) : (
 								topClaims.map((claim, index) => (
-									<Box
-										key={index}
-										display="flex"
-										justifyContent="space-between"
-										alignItems="center"
-										py={1}
-										borderBottom={index < topClaims.length - 1 ? '1px solid #E0E0E0' : 'none'}
-									>
-										<Box>
-											<Typography fontSize={13} fontWeight={500}>
+									<div
+key={index}
+										
+										
+										
+										
+										 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
+										<div>
+											<span style={{ fontSize: 13, fontWeight: 500 }}>
 												{claim.claim_number || 'N/A'}
-											</Typography>
-											<Typography fontSize={11} color="text.secondary">
+											</span>
+											<span style={{ fontSize: 11, color: 'text.secondary' }}>
 												{claim.insured || 'Unknown'}
-											</Typography>
-										</Box>
-										<Typography fontSize={14} fontWeight={600} color="success.main">
+											</span>
+										</div>
+										<span style={{ fontSize: 14, fontWeight: 600, color: 'success.main' }}>
 											{formatCurrency(claim.total)}
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								))
 							)}
 						</CardContent>
@@ -155,42 +154,41 @@ export default function TopPerformersSection({
 				<Grid size={6}>
 					<Card variant="outlined">
 						<CardContent>
-							<Typography fontSize={14} fontWeight={600} mb={2}>
+							<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
 								Top Sources by Recovery Amount
-							</Typography>
+							</span>
 							{topSources.length === 0 ? (
-								<Typography fontSize={12} color="text.secondary">
+								<span style={{ fontSize: 12, color: 'text.secondary' }}>
 									No data available
-								</Typography>
+								</span>
 							) : (
 								topSources.map((source, index) => (
-									<Box
-										key={index}
-										display="flex"
-										justifyContent="space-between"
-										alignItems="center"
-										py={1}
-										borderBottom={index < topSources.length - 1 ? '1px solid #E0E0E0' : 'none'}
-									>
-										<Box flex={1}>
-											<Typography fontSize={13} fontWeight={500}>
+									<div
+key={index}
+										
+										
+										
+										
+										 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
+										<div style={{ flex: 1 }}>
+											<span style={{ fontSize: 13, fontWeight: 500 }}>
 												{source.source}
-											</Typography>
-											<Typography fontSize={11} color="text.secondary">
+											</span>
+											<span style={{ fontSize: 11, color: 'text.secondary' }}>
 												{source.count} event{source.count !== 1 ? 's' : ''}
-											</Typography>
-										</Box>
-										<Typography fontSize={14} fontWeight={600} color="primary.main">
+											</span>
+										</div>
+										<span style={{ fontSize: 14, fontWeight: 600, color: 'primary.main' }}>
 											{formatCurrency(source.total)}
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								))
 							)}
 						</CardContent>
 					</Card>
 				</Grid>
 			</Grid>
-		</Paper>
+		</div>
 	);
 }
 

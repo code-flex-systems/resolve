@@ -2,7 +2,8 @@
 
 import { trpc } from '@/lib/trpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Chip, Paper, PopperProps, TextField } from '@mui/material';
+import { Autocomplete, Paper, PopperProps, TextField } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
 import BasicPopper from './BasicPopper';
 import { IconFileSearch } from '@tabler/icons-react';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -43,26 +44,22 @@ export default function ClaimFilter({
 
 	return (
 		<>
-			<Chip
-				label={claim ? claim.claim_number : 'Filter by claim'}
-				icon={<IconFileSearch size={20} />}
+			<span
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={claim ? () => setClaim(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: claim ? 'var(--text-accent)' : undefined,
-					},
-					'& .MuiChip-label': {
-						color: claim ? 'var(--text-accent)' : undefined,
-					},
-				}}
-			/>
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', height }}
+			>
+				<CustomChip color={claim ? 'info' : 'neutral'} size="sm">
+					<IconFileSearch size={16} style={{ color: claim ? 'var(--text-accent)' : undefined }} />
+					<span style={{ color: claim ? 'var(--text-accent)' : undefined }}>{claim ? claim.claim_number : 'Filter by claim'}</span>
+				</CustomChip>
+				{claim && (
+					<button onClick={(e) => { e.stopPropagation(); setClaim(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={zIndex}>
 					<Paper sx={styles.paper}>

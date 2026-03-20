@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Link, Stack, Typography } from '@mui/material';
+import Link from 'next/link';
 import { containerStyles } from '@/styles/theme';
 import { useClaimTrpc, type MyDeskClaimListItem } from '@/hooks/trpc/useClaimTrpc';
 import ClaimDetailPanel from '../admin/ClaimDetailPanel';
@@ -50,37 +50,32 @@ export default function MyQueue() {
 
 	return (
 		<>
-			<Box sx={{ ...containerStyles.section, ...styles.container }}>
-				<Typography sx={containerStyles.sectionTitle}>
+			<div style={{ ...containerStyles.section, ...styles.container }}>
+				<span style={containerStyles.sectionTitle}>
 					<IconList style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 					My Queue
-					{claims.length > 0 && (
-						<Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+					{claims.length> 0 && (
+						<span style={{ ...{ marginLeft: 8 }, color: 'text.secondary' }}>
 							({claims.length})
-						</Typography>
+						</span>
 					)}
-				</Typography>
-				<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+				</span>
+				<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 					{isFetching ? (
 						<Skeleton variant="rect" width="100%" height="100%" />
 					) : (
-						<Stack width="100%" height="100%" spacing={1}>
+						<div style={{ width: '100%', height: '100%', gap: 8 }}>
 							{/* Claims List */}
-							<Box sx={styles.listContainer}>
+							<div style={styles.listContainer}>
 								{claims.length === 0 ? (
-									<Box
-										width="100%"
-										height="100%"
-										display="flex"
-										justifyContent="center"
-										alignItems="center"
-									>
-										<Typography fontSize={13} color="text.secondary" fontStyle="italic">
+									<div
+style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+										<span style={{ fontSize: 13, color: 'text.secondary', fontStyle: 'italic' }}>
 											No claims in queue
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								) : (
-									<Stack width="100%" spacing={0}>
+									<div style={{ width: '100%', gap: 0 }}>
 										{claims.map((claim, index) => (
 											<ClaimListItem
 												key={claim.id}
@@ -94,28 +89,22 @@ export default function MyQueue() {
 												index={index}
 											/>
 										))}
-									</Stack>
+									</div>
 								)}
-							</Box>
+							</div>
 
 							{/* Footer */}
-							{claims.length > 0 && (
-								<Box width="100%" display="flex" justifyContent="center" paddingTop={1}>
-									<Link
-										href="/my-claims"
-										underline="hover"
-										fontSize={12}
-										color="primary"
-										sx={{ cursor: 'pointer' }}
-									>
+							{claims.length> 0 && (
+								<div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: 1 }}>
+									<Link href="/my-claims" style={{ fontSize: 12, color: 'var(--text-accent)', textDecoration: 'none', cursor: 'pointer' }}>
 										View All My Claims
 									</Link>
-								</Box>
+								</div>
 							)}
-						</Stack>
+						</div>
 					)}
-				</Box>
-			</Box>
+				</div>
+			</div>
 
 			{/* Claim Detail Panel */}
 			<ClaimDetailPanel claimId={selectedClaimId} open={panelOpen} onClose={handlePanelClose} />
@@ -132,26 +121,12 @@ const styles = {
 	},
 	contentContainer: {
 		height: 'calc(100% - 45px)',
-		overflow: 'hidden',
+		overflow: 'hidden' as const,
 	},
 	listContainer: {
 		width: '100%',
 		height: '100%',
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		'&::-webkit-scrollbar': {
-			width: '8px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: '#f1f1f1',
-			borderRadius: '4px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: '#888',
-			borderRadius: '4px',
-		},
-		'&::-webkit-scrollbar-thumb:hover': {
-			background: '#555',
-		},
+		overflowY: 'auto' as const,
+		overflowX: 'hidden' as const,
 	},
 };

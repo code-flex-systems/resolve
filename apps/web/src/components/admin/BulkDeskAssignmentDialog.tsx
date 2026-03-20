@@ -1,7 +1,7 @@
 'use client';
 
 import { IconClipboard } from '@tabler/icons-react';
-import { Dialog, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -87,20 +87,19 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					required
 				/>
 
-				<FormControl style={{ width: 400, margin: '5px 0px' }}>
-					<InputLabel>Priority</InputLabel>
-					<Select
-						value={priority}
-						onChange={(e) => setPriority(e.target.value as number)}
-						disabled={isPending}
-					>
-						<MenuItem value={1}>Priority 1 (Highest)</MenuItem>
-						<MenuItem value={2}>Priority 2</MenuItem>
-						<MenuItem value={3}>Priority 3</MenuItem>
-						<MenuItem value={4}>Priority 4</MenuItem>
-						<MenuItem value={5}>Priority 5 (Lowest)</MenuItem>
-					</Select>
-				</FormControl>
+				<Dropdown
+					label="Priority"
+					options={[
+						{ value: 1, label: 'Priority 1 (Highest)' },
+						{ value: 2, label: 'Priority 2' },
+						{ value: 3, label: 'Priority 3' },
+						{ value: 4, label: 'Priority 4' },
+						{ value: 5, label: 'Priority 5 (Lowest)' },
+					]}
+					value={priority}
+					onChange={(v) => setPriority(Number(v))}
+					disabled={isPending}
+				/>
 			</div>
 		</BasicDialog>
 	);

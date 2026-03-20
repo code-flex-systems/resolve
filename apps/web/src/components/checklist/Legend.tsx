@@ -1,4 +1,4 @@
-import { Box, Paper, Popper, PopperProps, Stack, Typography , Fade } from '@mui/material';
+import { Paper, Popper, PopperProps, Fade } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useState } from 'react';
 import { IconAdjustments, IconAlertCircle, IconCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
@@ -21,31 +21,31 @@ export default function Legend() {
 					<Fade {...TransitionProps} timeout={350}>
 						<span>
 							<Paper sx={styles.container} className="flex-col-start">
-								<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-									<Typography marginBottom="5px">Legend</Typography>
+								<div     style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+									<span  style={{ marginBottom: '5px' }}>Legend</span>
 									<Divider />
-									<Box display="flex" alignItems="center" padding="2px" marginTop="10px">
+									<div     style={{ display: 'flex', alignItems: 'center', padding: '2px', marginTop: '10px' }}>
 										<IconCircle style={styles.icon} />
-										<Typography fontSize={14}>The page hasn't been started yet</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="2px">
+										<span  style={{ fontSize: 14 }}>The page hasn't been started yet</span>
+									</div>
+									<div    style={{ display: 'flex', alignItems: 'center', padding: '2px' }}>
 										<IconAdjustments style={styles.icon} />
-										<Typography fontSize={14}>The page is partially complete</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="2px">
+										<span  style={{ fontSize: 14 }}>The page is partially complete</span>
+									</div>
+									<div    style={{ display: 'flex', alignItems: 'center', padding: '2px' }}>
 										<IconCircleCheck style={styles.icon} />
-										<Typography fontSize={14}>The page is complete</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="2px">
+										<span  style={{ fontSize: 14 }}>The page is complete</span>
+									</div>
+									<div    style={{ display: 'flex', alignItems: 'center', padding: '2px' }}>
 										<IconAlertCircle style={styles.icon} />
-										<Typography fontSize={14}>The page has been changed</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="5px 2px 2px">
-										<Typography fontSize={14} color="error.light">
+										<span  style={{ fontSize: 14 }}>The page has been changed</span>
+									</div>
+									<div    style={{ display: 'flex', alignItems: 'center', padding: '5px 2px 2px' }}>
+										<span   style={{ fontSize: 14, color: 'error.light' }}>
 											Unanswered questions show in red
-										</Typography>
-									</Box>
-								</Stack>
+										</span>
+									</div>
+								</div>
 							</Paper>
 						</span>
 					</Fade>

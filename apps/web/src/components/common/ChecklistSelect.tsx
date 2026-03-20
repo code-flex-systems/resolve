@@ -1,5 +1,6 @@
 import { GetChecklistOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
+import { Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { IconChecklist } from '@tabler/icons-react';
@@ -32,42 +33,42 @@ export default function ChecklistSelect({
 
 	return (
 		<>
-			<Chip
-				label={options.find((o) => o.id === checklist?.id)?.name ?? text}
-				icon={<IconChecklist size={20} />}
-				onClick={(e) => {
+			<span
+				onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
+					if (disabled) return;
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={checklist && clearable ? () => setChecklist(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: checklist ? 'var(--text-accent)' : undefined,
-					},
-					'& .MuiChip-label': {
-						color: checklist ? 'var(--text-accent)' : undefined,
-					},
-				}}
-				disabled={disabled}
-			/>
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: disabled ? 'default' : 'pointer', margin: '5px 0px', height, opacity: disabled ? 0.5 : 1 }}
+			>
+				<CustomChip color={checklist ? 'info' : 'neutral'} size="sm">
+					<IconChecklist size={16} style={{ color: checklist ? 'var(--text-accent)' : undefined }} />
+					<span style={{ color: checklist ? 'var(--text-accent)' : undefined }}>{options.find((o) => o.id === checklist?.id)?.name ?? text}</span>
+				</CustomChip>
+				{checklist && clearable && (
+					<button onClick={(e) => { e.stopPropagation(); setChecklist(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
 					<Paper sx={styles.paper}>
 						{options.map((o) => (
-							<MenuItem
+							<div
 								key={o.id}
-								selected={o.id === checklist?.id}
-								value={o.id}
+								style={{
+									padding: '8px 12px',
+									borderRadius: 6,
+									cursor: 'pointer',
+									backgroundColor: o.id === checklist?.id ? 'var(--status-info-bg)' : undefined,
+								}}
 								onClick={() => {
 									setChecklist(o);
 									setAnchorEl(null);
 								}}
 							>
 								<span style={{ fontSize: 13 }}>{o.name}</span>
-							</MenuItem>
+							</div>
 						))}
 					</Paper>
 				</BasicPopper>

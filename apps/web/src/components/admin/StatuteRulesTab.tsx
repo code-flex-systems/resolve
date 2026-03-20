@@ -18,7 +18,6 @@ import StatuteRuleDialog from './StatuteRuleDialog';
 import { US_JURISDICTIONS } from '@/config/usJurisdictions';
 import type { StatuteRules, TortTypeConfig, NegligenceType } from '@/schemas/statuteSchemas';
 import { getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
-import { Dialog } from '@mui/material';
 
 /**
  * Render cell value for a tort type column.

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Chip, CircularProgress, Divider } from '@mui/material';
+import Chip from '@/components/ui/Chip';
+import { Spinner } from '@/components/ui/Progress';
+import Divider from '@/components/ui/Divider';
 import {
 	IconCircleCheck, IconX, IconPlayerPlay, IconPlayerStop,
 	IconUserPlus, IconCalendar, IconUser, IconClipboard,
@@ -27,8 +29,8 @@ interface DeadlineDetailDialogProps {
 	onClose: () => void;
 }
 
-const STATUS_COLORS: Record<DeadlineStatus, 'default' | 'primary' | 'success' | 'error' | 'warning'> = {
-	[DeadlineStatus.PENDING]: 'default',
+const STATUS_COLORS: Record<DeadlineStatus, 'neutral' | 'info' | 'success' | 'error' | 'warning'> = {
+	[DeadlineStatus.PENDING]: 'neutral',
 	[DeadlineStatus.MET]: 'success',
 	[DeadlineStatus.MISSED]: 'error',
 	[DeadlineStatus.CANCELLED]: 'warning',
@@ -41,9 +43,9 @@ const STATUS_LABELS: Record<DeadlineStatus, string> = {
 	[DeadlineStatus.CANCELLED]: 'Cancelled',
 };
 
-const TASK_STATUS_COLORS: Record<TaskStatus, 'default' | 'primary' | 'success' | 'error'> = {
-	[TaskStatus.PENDING]: 'default',
-	[TaskStatus.IN_PROGRESS]: 'primary',
+const TASK_STATUS_COLORS: Record<TaskStatus, 'neutral' | 'info' | 'success' | 'error'> = {
+	[TaskStatus.PENDING]: 'neutral',
+	[TaskStatus.IN_PROGRESS]: 'info',
 	[TaskStatus.COMPLETED]: 'success',
 	[TaskStatus.CANCELLED]: 'error',
 };
@@ -170,7 +172,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 				width={480}
 			>
 				<div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-					<CircularProgress size={32} />
+					<Spinner size="lg" />
 				</div>
 			</BasicDialog>
 		);
@@ -207,10 +209,9 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 								label="Status"
 								value={
 									<Chip
-										label={TASK_STATUS_LABELS[task.status as TaskStatus]}
 										color={TASK_STATUS_COLORS[task.status as TaskStatus]}
-										size="small"
-									/>
+										size="sm"
+										>{TASK_STATUS_LABELS[task.status as TaskStatus]}</Chip>
 								}
 							/>
 							<DetailRow
@@ -253,7 +254,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							{/* Task Actions */}
 							{(canAssignToMe || canStartTask || canReleaseTask || canCompleteTask || canCancelTask) && (
 								<>
-									<Divider sx={{ my: 1.5 }} />
+									<Divider spacing="md" />
 									<div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
 										{canAssignToMe && (
 											<Button
@@ -365,10 +366,9 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 						label="Status"
 						value={
 							<Chip
-								label={STATUS_LABELS[deadline.status as DeadlineStatus]}
 								color={STATUS_COLORS[deadline.status as DeadlineStatus]}
-								size="small"
-							/>
+								size="sm"
+								>{STATUS_LABELS[deadline.status as DeadlineStatus]}</Chip>
 						}
 					/>
 					{deadline.description && <DetailRow label="Description" value={deadline.description} />}

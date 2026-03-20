@@ -9,7 +9,6 @@ import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import DeskLocationTypeSelect from '../common/DeskLocationTypeSelect';
 import DeskLocationSelect from '../common/DeskLocationSelect';
-import { Dialog, Select } from '@mui/material';
 
 interface EditUserDeskAssignmentsDialogProps {
 	userId: string;

@@ -1,6 +1,7 @@
 'use client';
 
-import { Tooltip, IconButton } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import Button from '@/components/ui/Button';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -28,17 +29,17 @@ export default function ImageTooltip({
 	// If image failed to load, fallback to text description
 	if (imageError) {
 		return (
-			<Tooltip title={description || 'Image failed to load'} arrow>
-				<IconButton size="small" sx={{ ml: 0.5, p: 0.5 }}>
+			<Tooltip content={description || 'Image failed to load'}>
+				<Button variant="icon" size="sm">
 					<IconInfoCircle size={16} style={{ color: 'var(--color-error)' }} />
-				</IconButton>
+				</Button>
 			</Tooltip>
 		);
 	}
 
 	return (
 		<Tooltip
-			title={
+			content={
 				<div style={{ padding: 8 }}>
 					{!imageLoaded && (
 						<div style={{ padding: 16, textAlign: 'center' }}>
@@ -72,20 +73,10 @@ export default function ImageTooltip({
 					)}
 				</div>
 			}
-			arrow
-			slotProps={{
-				tooltip: {
-					sx: {
-						bgcolor: 'rgba(0, 0, 0, 0.9)',
-						maxWidth: maxWidth + 40,
-						p: 0,
-					},
-				},
-			}}
 		>
-			<IconButton size="small" sx={{ ml: 0.5, p: 0.5 }}>
+			<Button variant="icon" size="sm">
 				<IconInfoCircle size={16} style={{ color: imageLoaded ? 'var(--color-primary)' : 'var(--text-secondary)' }} />
-			</IconButton>
+			</Button>
 		</Tooltip>
 	);
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import SearchInput from '@/components/common/SearchInput';
 import { useCallback, useState } from 'react';
@@ -33,32 +32,24 @@ export default function UserActivityView() {
 	);
 
 	return (
-		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-				<Box marginRight="5px">
+		<div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+				<div style={{ marginRight: '5px' }}>
 					<BasicDateRangePicker defaultLabel="This Month" defaultValue={range} onConfirm={setRange} />
-				</Box>
-				<Box marginRight="5px">
+				</div>
+				<div style={{ marginRight: '5px' }}>
 					<ChecklistSelect checklist={checklist} setChecklist={setChecklist} />
-				</Box>
-				<Box marginRight="5px">
+				</div>
+				<div style={{ marginRight: '5px' }}>
 					<ClaimFilter claim={claim} setClaim={setClaim} />
-				</Box>
+				</div>
 				<UserFilter users={users} setUsers={setUsers} width="100%" />
-			</Box>
-			<Box sx={styles.divider}>
+			</div>
+			<div style={styles.divider}>
 				<Divider />
-			</Box>
-			<Stack
-				width="100%"
-				height="calc(100vh - 70px)"
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="flex-start"
-				bgcolor="#F7F8FA"
-				padding="20px"
-				overflow="auto"
-			>
+			</div>
+			<div
+style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}>
 				<UserActivityChart
 					checklistId={checklist?.id}
 					claimId={claim?.id}
@@ -66,19 +57,13 @@ export default function UserActivityView() {
 					range={range}
 					searchTerm={debouncedSearchTerm}
 				/>
-				<Paper elevation={0} sx={styles.paper}>
-					<Box
-						width="100%"
-						height={50}
-						display="flex"
-						justifyContent="flex-start"
-						alignItems="center"
-						padding="10px"
-					>
-						<Typography variant="h6" fontSize={18} fontWeight={600}>
+				<div style={styles.paper}>
+					<div
+style={{ width: '100%', height: 50, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '10px' }}>
+						<span style={{ fontSize: 18, fontWeight: 600 }}>
 							Change Log
-						</Typography>
-						<Box display="flex" justifyContent="flex-end" alignItems="center" marginLeft="20px">
+						</span>
+						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginLeft: '20px' }}>
 							<SearchInput
 								value={searchTerm}
 								onChange={(value) => {
@@ -87,9 +72,9 @@ export default function UserActivityView() {
 								}}
 								placeholder="Search by question..."
 							/>
-						</Box>
-					</Box>
-					<Box height={500}>
+						</div>
+					</div>
+					<div style={{ height: 500 }}>
 						<UserActivityTable
 							checklistId={checklist?.id}
 							claimId={claim?.id}
@@ -97,11 +82,11 @@ export default function UserActivityView() {
 							range={range}
 							searchTerm={debouncedSearchTerm}
 						/>
-					</Box>
-				</Paper>
-				{/* </Box> */}
-			</Stack>
-		</Stack>
+					</div>
+				</div>
+				{/* </div> */}
+			</div>
+		</div>
 	);
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, FormControl, MenuItem, Select, Stack, TextField, Typography , Fade } from '@mui/material';
+import { TextField } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { ActionType } from '@/config/enums';
@@ -72,8 +73,7 @@ export default function UserActionsDialog() {
 	} = useForm<
 		{
 			recipients: GetUserOutput[]; // Pull recipients out of def to handle user mapping
-		} & ActionInput
-	>({ mode: 'onChange' });
+		} & ActionInput>({ mode: 'onChange' });
 	const recipients = watch('recipients');
 	const actionType = watch('type');
 
@@ -109,56 +109,36 @@ export default function UserActionsDialog() {
 			onClose={toggleActionDialog}
 			closeDisabled={isCreating}
 			width={800}
-			height={600}
-		>
-			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
+			height={600}>
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 				<Controller
 					name="type"
 					control={control}
 					rules={{ required: true }}
 					render={({ field }) => (
-						<FormControl>
-							<Select
-								displayEmpty
-								variant="outlined"
-								error={!!errors.type}
-								{...field}
-								value={field.value ?? ''}
-								renderValue={(value) => (
-									<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-										{actionTypeOptions.find((o) => o.value === value)?.icon ?? <></>}
-										<Typography paddingLeft="5px">{capitalize(value)}</Typography>
-									</Box>
-								)}
-								sx={{ ...styles.textFieldOverrides, width: 120 }}
-							>
-								{actionTypeOptions.map((o) => (
-									<MenuItem key={o.value} value={o.value}>
-										<Box
-											width="100%"
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="center"
-										>
-											{o.icon}
-											<Typography paddingLeft="5px">{capitalize(o.value)}</Typography>
-										</Box>
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
+						<Dropdown
+							options={actionTypeOptions.map((o) => ({
+								value: o.value,
+								label: capitalize(o.value),
+								icon: o.icon,
+							}))}
+							value={field.value ?? ''}
+							onChange={(v) => field.onChange(v)}
+							error={!!errors.type}
+							name={field.name}
+							renderValue={(val) => (
+								<div style={{ display: 'flex', alignItems: 'center' }}>
+									{actionTypeOptions.find((o) => o.value === val)?.icon ?? <></>}
+									<span style={{ paddingLeft: '5px' }}>{capitalize(String(val))}</span>
+								</div>
+							)}
+						/>
 					)}
 				/>
-			</Box>
-			<Fade in={!!actionType} key={actionType}>
-				<Stack
-					width="100%"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="flex-start"
-					paddingTop="20px"
-					height="fit-content"
-				>
+			</div>
+			{!!actionType && (
+				<div
+style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingTop: '20px', height: 'fit-content' }}>
 					{actionType === ActionType.EMAIL && (
 						<>
 							<BasicAutocomplete
@@ -220,8 +200,8 @@ export default function UserActionsDialog() {
 							/>
 						</>
 					)}
-				</Stack>
-			</Fade>
+				</div>
+			)}
 		</BasicDialog>
 	);
 }

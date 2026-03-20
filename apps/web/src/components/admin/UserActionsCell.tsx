@@ -9,7 +9,6 @@ import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from '../home/UpdateUserDialog';
-import { Dialog } from '@mui/material';
 
 interface UserActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;

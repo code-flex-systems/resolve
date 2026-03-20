@@ -1,4 +1,3 @@
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicButtonStyled from '../common/BasicButtonStyled';
@@ -56,24 +55,19 @@ export default function ActionsMetric() {
 	};
 
 	return (
-		<Paper elevation={0} sx={styles.paper}>
+		<div style={styles.paper}>
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
-				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
-					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
-						<Box
-							width="100%"
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-							padding="5px"
-						>
-							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
+					<div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+						<div
+style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
+							<span style={{ fontSize: 14, fontWeight: 600 }}>
 								Popular Actions
-							</Typography>
-							<Box display="flex" justifyContent="flex-end" alignItems="center">
-								<Box marginRight="5px">
+							</span>
+							<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+								<div style={{ marginRight: '5px' }}>
 									<BasicButtonStyled
 										buttonProps={{}}
 										icon={<IconInfoCircle size={20} />}
@@ -81,7 +75,7 @@ export default function ActionsMetric() {
 											title: 'Actions are ranked by highest execution rate aross unique checklist + claim combinations.',
 										}}
 									/>
-								</Box>
+								</div>
 								<BasicButtonStyled
 									buttonProps={{
 										onClick: () => router.push('/metrics/user-actions'),
@@ -96,71 +90,53 @@ export default function ActionsMetric() {
 									}
 									tooltipProps={{ title: 'Open in Inspector' }}
 								/>
-							</Box>
-						</Box>
-						<Stack
-							width="100%"
-							height="100%"
-							display="flex"
-							justifyContent={stats.length ? 'flex-start' : 'center'}
-							alignItems={stats.length ? 'flex-start' : 'center'}
-						>
+							</div>
+						</div>
+						<div
+style={{ width: '100%', height: '100%', display: 'flex', justifyContent: stats.length ? 'flex-start' : 'center', alignItems: stats.length ? 'flex-start' : 'center' }}>
 							{stats.length ? (
 								<>
 									{stats.map((s) => {
 										const type = s.type as ActionType;
 										return (
-											<Box
-												key={s.id}
-												width="100%"
-												display="flex"
-												justifyContent="flex-start"
-												alignItems="center"
-												height={60}
-												padding="0px 10px"
-											>
-												<Box minWidth={40} width={40} paddingRight="10px">
+											<div
+key={s.id}
+												
+												
+												
+												
+												
+												 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', height: 60, padding: '0px 10px' }}>
+												<div style={{ minWidth: 40, width: 40, paddingRight: '10px' }}>
 													{getActionIcon(type)}
-												</Box>
+												</div>
 
-												<Stack
-													display="flex"
-													justifyContent="center"
-													alignItems="flex-start"
-													width={290}
-													minWidth={0}
-													overflow="hidden"
-													textOverflow={'ellipsis'}
-												>
-													<Typography fontSize={14} textOverflow="ellipsis" noWrap>
+												<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: 290, minWidth: 0, overflow: 'hidden' as const, textOverflow: 'ellipsis' }}>
+													<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 14 }}>
 														{getActionPrimaryContent(type, s.definition)}
-													</Typography>
-													<Typography
-														fontSize={13}
-														color={BASE_COLOR_LIGHT}
-														textOverflow="ellipsis"
-														noWrap
-													>
+													</span>
+													<span
+style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 13, color: BASE_COLOR_LIGHT }}>
 														{getActionSecondaryContent(type, s.definition)}
-													</Typography>
-												</Stack>
-												<Box minWidth={30} paddingLeft="10px">
+													</span>
+												</div>
+												<div style={{ minWidth: 30, paddingLeft: '10px' }}>
 													<MetricValue value={s.count.toLocaleString()} fontSize={13} />
-												</Box>
-											</Box>
+												</div>
+											</div>
 										);
 									})}
 								</>
 							) : (
-								<Typography fontSize={15} color="#d9d9d9">
+								<span style={{ fontSize: 15, color: '#d9d9d9' }}>
 									No actions
-								</Typography>
+								</span>
 							)}
-						</Stack>
-					</Stack>
-				</Box>
+						</div>
+					</div>
+				</div>
 			)}
-		</Paper>
+		</div>
 	);
 }
 

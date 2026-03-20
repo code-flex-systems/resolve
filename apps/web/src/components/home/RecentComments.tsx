@@ -1,5 +1,4 @@
 'use client';
-import { Box, Stack, Typography } from '@mui/material';
 import { containerStyles } from '@/styles/theme';
 import Comments from '../common/Comments';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
@@ -17,20 +16,22 @@ export default function RecentComments() {
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({ filters: { userId } });
 
 	return (
-		<Box sx={{ ...containerStyles.section, ...styles.container }}>
-			<Typography sx={containerStyles.sectionTitle}>
+		<div style={{ ...containerStyles.section, ...styles.container }}>
+			<span style={containerStyles.sectionTitle}>
 				<IconMessage style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				Recent Comments
-			</Typography>
-			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
-				<Stack
-					width="100%"
-					height="100%"
-					display="flex"
-					justifyContent={comments.count > 0 ? 'flex-start' : 'center'}
-					alignItems={comments.count > 0 ? 'flex-start' : 'center'}
-					overflow="auto"
-					paddingTop="100px"
+			</span>
+			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+				<div
+					style={{
+						width: '100%',
+						height: '100%',
+						display: 'flex',
+						justifyContent: comments.count > 0 ? 'flex-start' : 'center',
+						alignItems: comments.count > 0 ? 'flex-start' : 'center',
+						overflow: 'auto',
+						paddingTop: 100,
+					}}
 				>
 					<Comments
 						filters={{ userId }}
@@ -42,19 +43,19 @@ export default function RecentComments() {
 							);
 						}}
 					/>
-				</Stack>
-				<Box
-					sx={{
+				</div>
+				<div
+					className="fade-edges"
+					style={{
 						width: 470,
 						height: 50,
 						position: 'absolute',
 						zIndex: 1000,
 						bottom: 16,
 					}}
-					className="fade-edges"
 				/>
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 
@@ -65,10 +66,10 @@ const styles = {
 		height: 350,
 		margin: '15px',
 		position: 'relative',
-	},
+	} as React.CSSProperties,
 	contentContainer: {
 		height: 'calc(100% - 45px)',
 		overflow: 'hidden',
 		position: 'relative',
-	},
+	} as React.CSSProperties,
 };

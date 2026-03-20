@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Chip, Stack, Typography } from '@mui/material';
+import Chip from '@/components/ui/Chip';
 import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import React, { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -22,124 +22,89 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 			case 'insert':
 				return (
 					<>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Responded to the question
-							</Typography>
-							<Chip label={row.question_text} sx={styles.chip} />
-						</Box>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+							</span>
+							<Chip size="sm">{row.question_text}</Chip>
+						</div>
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								with answer(s)
-							</Typography>
+							</span>
 							{row.new_response_text ? (
-								<Chip label={row.new_response_text} sx={styles.chip} />
+								<Chip size="sm">{row.new_response_text}</Chip>
 							) : (
 								row.new_answers.map((a: any, i: number) => (
-									<Chip key={i} label={a.label} sx={styles.chip} />
+									<Chip key={i} size="sm">{a.label}</Chip>
 								))
 							)}
-						</Box>
+						</div>
 					</>
 				);
 			case 'update':
 				return (
 					<>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Changed their response to the question
-							</Typography>
-							<Chip label={row.question_text} sx={styles.chip} />
-						</Box>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+							</span>
+							<Chip size="sm">{row.question_text}</Chip>
+						</div>
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								from answer(s)
-							</Typography>
+							</span>
 							{row.old_response_text ? (
-								<Chip label={row.old_response_text} sx={styles.chip} />
+								<Chip size="sm">{row.old_response_text}</Chip>
 							) : (
 								row.old_answers.map((a: any, i: number) => (
-									<Chip key={i} label={a.label} sx={styles.chip} />
+									<Chip key={i} size="sm">{a.label}</Chip>
 								))
 							)}
-						</Box>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+						</div>
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								to answer(s)
-							</Typography>
+							</span>
 							{row.new_response_text ? (
-								<Chip label={row.new_response_text} sx={styles.chip} />
+								<Chip size="sm">{row.new_response_text}</Chip>
 							) : (
 								row.new_answers.map((a: any, i: number) => (
-									<Chip key={i} label={a.label} sx={styles.chip} />
+									<Chip key={i} size="sm">{a.label}</Chip>
 								))
 							)}
-						</Box>
+						</div>
 					</>
 				);
 			case 'delete':
 				return (
 					<>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Cleared their response to the question
-							</Typography>
-							<Chip label={row.question_text} sx={styles.chip} />
-						</Box>
-						<Box
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							padding="2px 0px"
-							flexWrap="wrap"
-						>
-							<Typography fontStyle="italic" fontSize={13} marginRight="5px">
+							</span>
+							<Chip size="sm">{row.question_text}</Chip>
+						</div>
+						<div
+style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Answers were{' '}
-							</Typography>
+							</span>
 							{row.old_response_text ? (
-								<Chip label={row.old_response_text} sx={styles.chip} />
+								<Chip size="sm">{row.old_response_text}</Chip>
 							) : (
 								row.old_answers.map((a: any, i: number) => (
-									<Chip key={i} label={a.label} sx={styles.chip} />
+									<Chip key={i} size="sm">{a.label}</Chip>
 								))
 							)}
-						</Box>
+						</div>
 					</>
 				);
 			default:
@@ -148,38 +113,31 @@ function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boo
 	};
 
 	return (
-		<Stack
-			display="flex"
-			width="100%"
-			minWidth="fit-content"
-			height="100%"
-			justifyContent="center"
-			alignItems="flex-start"
-			padding="10px 10px"
-		>
-			<Stack display="flex" justifyContent="flex-start" alignItems="flex-start">
+		<div
+style={{ display: 'flex', width: '100%', minWidth: 'fit-content', height: '100%', justifyContent: 'center', alignItems: 'flex-start', padding: '10px 10px' }}>
+			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 				{getLogText()}
-			</Stack>
-			<Box display="flex" justifyContent="flex-start" alignItems="center" paddingTop="5px" flexWrap="wrap">
-				<Box display="flex" justifyContent="flex-start" alignItems="center">
-					<Typography fontSize={12} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
+			</div>
+			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '5px', flexWrap: 'wrap' }}>
+				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: BASE_COLOR_LIGHT }}>
 						{formatUser(row, session?.user?.email)}
-					</Typography>
+					</span>
 					<div style={styles.divider} />
-					<Typography fontSize={12} lineHeight="17px" color="primary" noWrap>
+					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'primary' }}>
 						{row.page_label}
-					</Typography>
-				</Box>
-				<Box display="flex" justifyContent="flex-start" alignItems="center">
+					</span>
+				</div>
+				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 					<div style={styles.divider} />
-					<Typography fontSize={12} lineHeight="17px" color={BASE_COLOR_LIGHT} noWrap>
+					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: BASE_COLOR_LIGHT }}>
 						{compact
 							? dayjs(row.created_at).format('MM/DD/YY hh:mm A')
 							: dayjs(row.created_at).format('MMMM D, YYYY hh:mm A')}
-					</Typography>
-				</Box>
-			</Box>
-		</Stack>
+					</span>
+				</div>
+			</div>
+		</div>
 	);
 }
 
@@ -329,10 +287,10 @@ export default function UserActivityTable({
 	);
 
 	return (
-		<Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+		<div style={{ width: '100%', height: '100%', position: 'relative' }}>
 			{showPagination && !compact && (
-				<Box
-					sx={{
+				<div
+style={{
 						display: 'flex',
 						justifyContent: 'flex-end',
 						alignItems: 'center',
@@ -340,11 +298,10 @@ export default function UserActivityTable({
 						top: -45,
 						right: 0,
 						zIndex: 1,
-					}}
-				>
-					<Typography variant="caption" fontSize={12} color="text.secondary" marginRight="20px">
+					}}>
+					<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
 						{rowCount.toLocaleString()} event{rowCount !== 1 ? 's' : ''}
-					</Typography>
+					</span>
 					<ExportButton
 						onExport={async () => {
 							const result = await trpcUtils.response.exportResponseAuditLogs.fetch({ filters });
@@ -354,7 +311,7 @@ export default function UserActivityTable({
 						filename="user_activity"
 						size="sm"
 					/>
-				</Box>
+				</div>
 			)}
 			<DataGridPro
 				columns={columns}
@@ -379,7 +336,7 @@ export default function UserActivityTable({
 				disableColumnMenu
 				sx={styles.tableOverrides}
 			/>
-		</Box>
+		</div>
 	);
 }
 

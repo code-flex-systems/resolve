@@ -1,8 +1,9 @@
 'use client';
 
-import { MenuItem, TextField, Typography } from '@mui/material';
+import { TextField } from '@mui/material';
 import { Control, Controller, FieldErrors, useWatch, UseFormSetValue } from 'react-hook-form';
 import { useMemo, useEffect, useRef } from 'react';
+import Dropdown from '@/components/ui/Dropdown';
 import {
 	COUNTRIES,
 	getStatesForCountry,
@@ -110,7 +111,7 @@ export default function AddressFields({
 			/>
 
 			{/* City and State on same row */}
-			<div style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
+			<div  style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
 				<Controller
 					name={fieldNames.city}
 					control={control}
@@ -132,43 +133,30 @@ export default function AddressFields({
 					name={fieldNames.state}
 					control={control}
 					render={({ field }) => (
-						<TextField
-							label="State/Province (optional)"
-
-							select
-							error={!!getError(fieldNames.state)}
-							{...field}
-							value={field.value ?? ''}
-							disabled={disabled}
-							sx={{ ...textFieldSx, width: (width - 16) / 2, flex: 1 }}
-							SelectProps={{
-								displayEmpty: true,
-								renderValue: (value) => {
-									if (!value) return <Typography color="text.secondary" fontSize={14}>Select...</Typography>;
-									const state = stateOptions.find((s) => s.code === value);
-									return state ? state.code : String(value);
-								},
-							}}
-						>
-							<MenuItem value="">
-								<Typography color="text.secondary" fontSize={13}>
-									None
-								</Typography>
-							</MenuItem>
-							{stateOptions.map((state) => (
-								<MenuItem key={state.code} value={state.code}>
-									<Typography fontSize={13}>
-										{state.name} ({state.code})
-									</Typography>
-								</MenuItem>
-							))}
-						</TextField>
+						<div style={{ flex: 1 }}>
+							<Dropdown
+								label="State/Province (optional)"
+								options={[
+									{ value: '', label: 'None' },
+									...stateOptions.map((state) => ({
+										value: state.code,
+										label: `${state.name} (${state.code})`,
+									})),
+								]}
+								value={field.value ?? ''}
+								onChange={(v) => field.onChange(v === '' ? '' : String(v))}
+								disabled={disabled}
+								error={!!getError(fieldNames.state)}
+								placeholder="Select..."
+								fullWidth
+							/>
+						</div>
 					)}
 				/>
 			</div>
 
 			{/* Postal Code and Country on same row */}
-			<div style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
+			<div  style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
 				<Controller
 					name={fieldNames.postal_code}
 					control={control}
@@ -190,35 +178,24 @@ export default function AddressFields({
 					name={fieldNames.country}
 					control={control}
 					render={({ field }) => (
-						<TextField
-							label="Country (optional)"
-
-							select
-							error={!!getError(fieldNames.country)}
-							{...field}
-							value={field.value ?? ''}
-							disabled={disabled}
-							sx={{ ...textFieldSx, width: (width - 16) / 2, flex: 1 }}
-							SelectProps={{
-								displayEmpty: true,
-								renderValue: (value) => {
-									if (!value) return <Typography color="text.secondary" fontSize={14}>Select...</Typography>;
-									const country = COUNTRIES.find((c) => c.code === value);
-									return country ? country.name : String(value);
-								},
-							}}
-						>
-							<MenuItem value="">
-								<Typography color="text.secondary" fontSize={13}>
-									None
-								</Typography>
-							</MenuItem>
-							{COUNTRIES.map((country) => (
-								<MenuItem key={country.code} value={country.code}>
-									<Typography fontSize={13}>{country.name}</Typography>
-								</MenuItem>
-							))}
-						</TextField>
+						<div style={{ flex: 1 }}>
+							<Dropdown
+								label="Country (optional)"
+								options={[
+									{ value: '', label: 'None' },
+									...COUNTRIES.map((country) => ({
+										value: country.code,
+										label: country.name,
+									})),
+								]}
+								value={field.value ?? ''}
+								onChange={(v) => field.onChange(v === '' ? '' : String(v))}
+								disabled={disabled}
+								error={!!getError(fieldNames.country)}
+								placeholder="Select..."
+								fullWidth
+							/>
+						</div>
 					)}
 				/>
 			</div>

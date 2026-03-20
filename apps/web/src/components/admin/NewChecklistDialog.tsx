@@ -1,7 +1,8 @@
 'use client';
 
 import { IconFileSearch } from '@tabler/icons-react';
-import { FormControl, FormLabel, MenuItem, Select } from '@mui/material';
+import { FormLabel } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
@@ -73,30 +74,25 @@ export default function NewChecklistDialog() {
 					/>
 				</div>
 				<div className="flex-row-left" style={styles.row}>
-					<FormControl>
+					<div>
 						<FormLabel style={styles.formLabel}>Choose a checklist to copy from (optional)</FormLabel>
-						<Select
-							variant="outlined"
-							displayEmpty
-							{...register('from')}
-							renderValue={(value) => {
-								if (value) return checklists.find((c) => c.id === value)?.name ?? '';
-								if (value != null) return 'None';
-								return loadingChecklists ? 'Loading...' : 'Select';
+						<Dropdown
+							options={[
+								{ value: '', label: 'None' },
+								...checklists.map((o) => ({
+									value: o.id,
+									label: o.name,
+								})),
+							]}
+							value={(watch('from') as any) ?? ''}
+							onChange={(v) => {
+								const event = { target: { name: 'from', value: v } };
+								register('from').onChange(event as any);
 							}}
-							style={styles.textFieldOverrides}
 							disabled={loadingChecklists}
-						>
-							<MenuItem key="none" value={''}>
-								<i>None</i>
-							</MenuItem>
-							{checklists.map((o) => (
-								<MenuItem key={o.id} value={o.id}>
-									{o.name}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+							placeholder={loadingChecklists ? 'Loading...' : 'Select'}
+						/>
+					</div>
 				</div>
 			</form>
 		</BasicDialog>

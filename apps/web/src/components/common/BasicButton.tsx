@@ -1,7 +1,8 @@
 'use client';
 
 import Button, { type ButtonProps as UiButtonProps } from '@/components/ui/Button';
-import { Tooltip, TooltipProps } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import type { TooltipProps } from '@/components/ui/Tooltip';
 import { JSX, PropsWithChildren, forwardRef } from 'react';
 import css from './BasicButton.module.css';
 
@@ -62,7 +63,7 @@ const BasicButton = forwardRef<
 		icon?: JSX.Element;
 		tooltipProps?: {
 			title: string;
-			placement?: TooltipProps['placement'];
+			placement?: TooltipProps['position'];
 			arrow?: boolean;
 		};
 	} & PropsWithChildren
@@ -101,7 +102,7 @@ const BasicButton = forwardRef<
 
 	if (tooltipProps) {
 		return (
-			<Tooltip {...tooltipProps} enterDelay={500}>
+			<Tooltip content={tooltipProps.title} position={tooltipProps.placement}>
 				<span>{btn}</span>
 			</Tooltip>
 		);

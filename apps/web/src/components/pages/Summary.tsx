@@ -1,5 +1,4 @@
 'use client';
-import { Box, Stack, Typography } from '@mui/material';
 import { BG_TERTIARY } from '@/styles/theme';
 import { useRouter } from 'next/navigation';
 import Toolbar from '@/components/common/Toolbar';
@@ -19,34 +18,34 @@ export default function Summary() {
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
 
 	return (
-		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start" padding="10px">
+		<div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}>
 			<Toolbar
 				left={
 					<>
-						<Box marginRight="5px">
+						<div style={{ marginRight: '5px' }}>
 							<BasicButtonStyled
 								icon={<IconArrowLeft size={20} />}
 								buttonProps={{ onClick: () => router.back() }}
 								tooltipProps={{ title: 'Back to checklist' }}
 							/>
-						</Box>
+						</div>
 						<IconChecklist size={20} />
-						<Typography variant="h6" ml={0.5} mr={1}>
+						<span style={{ marginLeft: 4, marginRight: 8 }}>
 							{checklist?.name}
-						</Typography>
+						</span>
 						<ClaimInfo />
 					</>
 				}
 				padding={0}
 			/>
-			<Box sx={styles.divider} mt={1}>
+			<div style={{ ...styles.divider, marginTop: 8 }}>
 				<Divider />
-			</Box>
-			<Box sx={styles.containerInner} className="flex-row-left">
+			</div>
+			<div className="flex-row-left" style={styles.containerInner}>
 				<SummaryChart />
 				<SummaryDetails />
-			</Box>
-		</Stack>
+			</div>
+		</div>
 	);
 }
 
@@ -64,7 +63,7 @@ const styles = {
 		width: '100%',
 		height: 'calc(100vh - 65px)',
 		bgcolor: BG_TERTIARY,
-		p: '20px',
+		padding: '20px',
 	},
 	divider: {
 		width: '100%',

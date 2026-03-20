@@ -20,7 +20,6 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import BasicIconButton from '@/components/common/BasicIconButton';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
-import { Dialog } from '@mui/material';
 
 dayjs.extend(utc);
 

@@ -8,7 +8,6 @@ import CompactDocumentBrowser from './CompactDocumentBrowser';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { validateFileType, IMAGE_MIME_TYPES } from '@/config/allowedFileTypes';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
-import { Dialog } from '@mui/material';
 
 interface DocumentSelectorDialogProps {
 	onClose: () => void;

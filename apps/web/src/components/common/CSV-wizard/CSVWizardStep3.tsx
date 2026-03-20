@@ -1,7 +1,9 @@
 'use client';
 
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { LinearProgress, Alert, Collapse } from '@mui/material';
+import { Alert } from '@mui/material';
+import { ProgressBar } from '@/components/ui/Progress';
+import Collapse from '@/components/ui/Collapse';
 import { IconChevronDown } from '@tabler/icons-react';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { dataGridFocusStyles } from '@/styles/theme';
@@ -84,7 +86,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 
 		return (
 			<>
-				{submitting && <LinearProgress />}
+				{submitting && <ProgressBar />}
 				{submitSuccess === true && <Alert severity="success">Import successful!</Alert>}
 				{submitSuccess === false && <Alert severity="error">Import failed. Please try again.</Alert>}
 
@@ -103,10 +105,10 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 					/>
 				</div>
 
-				{skippedRows.length > 0 && (
+				{skippedRows.length> 0 && (
 					<>
 						<div
-							style={{
+style={{
 								width: '100%',
 								height: 30,
 								cursor: 'pointer',
@@ -115,8 +117,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 								justifyContent: 'flex-start',
 								alignItems: 'center',
 							}}
-							onClick={() => setSkippedRowsExpanded((prev) => !prev)}
-						>
+							onClick={() => setSkippedRowsExpanded((prev) => !prev)}>
 							<IconChevronDown
 								size={20}
 								style={{
@@ -128,10 +129,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 							<span style={{ fontSize: 13 }}>{skippedRows.length} skipped row(s)</span>
 						</div>
 						<Collapse
-							in={skippedRowsExpanded}
-							sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-							unmountOnExit
-						>
+							open={skippedRowsExpanded}>
 							{skippedRows.map((row, idx) => (
 								<p key={idx} style={{ fontSize: 13, padding: '4px 0' }}>
 									<b>Row {row.rowIndex}:</b> Invalid entry for <b>{row.reason}</b>

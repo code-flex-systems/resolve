@@ -1,6 +1,5 @@
 'use client';
 
-import { Box, Paper, Stack, Typography , Fade } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -154,41 +153,37 @@ export default function ChecklistProgressDialog() {
 			width={500}
 			height={250}
 		>
-			<Stack display="flex" justifyContent="center" alignContent="center" height={120}>
-				<Paper elevation={0} sx={styles.paper}>
-					<Fade
-						key={confirmingStatus ?? 'none'}
-						in={true}
-						unmountOnExit
-					>
-						<Stack width="100%" display="flex" justifyContent="center" alignContent="center" height="100%">
+			<div     style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
+				<div style={styles.paper}>
+					<div>
+						<div      style={{ width: '100%', display: 'flex', justifyContent: 'center', alignContent: 'center', height: '100%' }}>
 							{!confirmingStatus && (
 								<ChecklistProgress checklistId={checklistId} claimId={claimId} width={400} />
 							)}
 
 							{!!confirmingStatus && (
-								<Box display="flex" justifyContent="flex-start" alignItems="center">
+								<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 									<IconAlertTriangle size={20} style={{ color: BASE_COLOR }} />
-									<Stack
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										marginLeft="10px"
+									<div
+										
+										
+										
+										 style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}
 									>
 										{getStatusConfirmationMsg()
 											.split('|')
 											.map((part, i) => (
-												<Typography key={i} fontSize={15}>
+												<span key={i}  style={{ fontSize: 15 }}>
 													{part}
-												</Typography>
+												</span>
 											))}
-									</Stack>
-								</Box>
+									</div>
+								</div>
 							)}
-						</Stack>
-					</Fade>
-				</Paper>
-			</Stack>
+						</div>
+					</div>
+				</div>
+			</div>
 		</BasicDialog>
 	);
 }

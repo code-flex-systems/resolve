@@ -2,7 +2,7 @@ import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import { MenuItem, Select, Typography } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export default function BreakdownPageSelect({ onClose }: { onClose: () => void }) {
@@ -44,29 +44,18 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 			]}
 			width={400}
 		>
-			<Typography fontSize={15} color="primary" paddingBottom="10px">
+			<span    style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
 				Choose a page instance to get started:
-			</Typography>
-			<Select
-				displayEmpty
-				
+			</span>
+			<Dropdown
+				options={instances.map((o) => ({
+					value: o.instance_id,
+					label: `${o.title} (p${o.id}.i${o.instance_id})`,
+				}))}
 				value={selectedInstanceId}
-				renderValue={() =>
-					selectedPage
-						? `${selectedPage.title} (p${selectedPage.id}.i${selectedPage.instance_id})`
-						: 'Select page...'
-				}
-				onChange={(e) => setSelectedInstanceId(+(e.target.value as string))}
-				sx={styles.textFieldOverrides}
-			>
-				{instances.map((o) => (
-					<MenuItem key={o.instance_id} value={o.instance_id}>
-						<Typography fontSize={13}>
-							{o.title} (p{o.id}.i{o.instance_id})
-						</Typography>
-					</MenuItem>
-				))}
-			</Select>
+				onChange={(v) => setSelectedInstanceId(Number(v))}
+				placeholder="Select page..."
+			/>
 		</BasicDialog>
 	);
 }

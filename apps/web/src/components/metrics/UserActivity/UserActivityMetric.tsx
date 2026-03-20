@@ -3,7 +3,6 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
 import { BASE_COLOR } from '@/styles/theme';
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
@@ -33,35 +32,25 @@ export default function UserActivityMetric() {
 	const maxUserRow = formattedData.find((u) => u.activity_date === stats.maxRow?.activity_date);
 
 	return (
-		<Paper elevation={0} sx={styles.paper}>
+		<div style={styles.paper}>
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
-				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
-					<Stack
-						flex={1}
-						display="flex"
-						justifyContent="flex-start"
-						alignItems="flex-start"
-						position="relative"
-					>
-						<Box
-							width="100%"
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-							padding="5px"
-						>
-							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
+					<div
+style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative' as const }}>
+						<div
+style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
+							<span style={{ fontSize: 14, fontWeight: 600 }}>
 								User Activity
-							</Typography>
-							<Box display="flex" justifyContent="flex-end" alignItems="center">
-								<Box marginRight="15px">
-									<Typography fontSize={13} color="#d9d9d9">
+							</span>
+							<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+								<div style={{ marginRight: '15px' }}>
+									<span style={{ fontSize: 13, color: '#d9d9d9' }}>
 										past 30 days
-									</Typography>
-								</Box>
-								<Box marginRight="5px">
+									</span>
+								</div>
+								<div style={{ marginRight: '5px' }}>
 									<BasicButtonStyled
 										buttonProps={{}}
 										icon={<IconInfoCircle size={20} />}
@@ -69,7 +58,7 @@ export default function UserActivityMetric() {
 											title: 'Engagement is measured by the number of users generating activity logs for a given day.',
 										}}
 									/>
-								</Box>
+								</div>
 								<BasicButtonStyled
 									buttonProps={{
 										onClick: () => router.push('/admin/user-management/activity'),
@@ -85,16 +74,10 @@ export default function UserActivityMetric() {
 									}
 									tooltipProps={{ title: 'Open in Inspector' }}
 								/>
-							</Box>
-						</Box>
-						<Box
-							width="calc(100% - 30xp)"
-							display="flex"
-							justifyContent="center"
-							alignItems={yValues.length ? 'flex-end' : 'center'}
-							height={120}
-							marginTop="20px"
-						>
+							</div>
+						</div>
+						<div
+style={{ width: 'calc(100% - 30xp)', display: 'flex', justifyContent: 'center', alignItems: yValues.length ? 'flex-end' : 'center', height: 120, marginTop: '20px' }}>
 							{yValues.length ? (
 								<BarChart
 									xAxis={[
@@ -120,28 +103,23 @@ export default function UserActivityMetric() {
 									hideLegend
 								/>
 							) : (
-								<Typography fontSize={13}>No activity</Typography>
+								<span style={{ fontSize: 13 }}>No activity</span>
 							)}
-						</Box>
-						<Paper elevation={0} sx={styles.paperInner}>
-							<Stack
-								width="100%"
-								height="100%"
-								display="flex"
-								justifyContent="center"
-								alignItems="center"
-							>
+						</div>
+						<div style={styles.paperInner}>
+							<div
+style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 								<UserActivitySummary
 									totalEvents={stats.total}
 									avgEvents={stats.avg}
 									maxEventsRow={stats.maxRow}
 								/>
-							</Stack>
-						</Paper>
-					</Stack>
-				</Box>
+							</div>
+						</div>
+					</div>
+				</div>
 			)}
-		</Paper>
+		</div>
 	);
 }
 
@@ -153,12 +131,12 @@ const styles = {
 		height: METRIC_HEIGHT,
 	},
 	paperInner: {
-		position: 'absolute',
+		position: 'absolute' as const,
 		zIndex: 100,
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		width: 375,
 		height: 120,
 		bottom: 0,

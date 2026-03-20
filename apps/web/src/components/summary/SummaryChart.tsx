@@ -4,7 +4,6 @@ import { useChecklistStore } from '@/stores/useChecklistStore';
 
 import { useMemo } from 'react';
 import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -96,11 +95,11 @@ export default function SummaryChart() {
 	}, [checklistSummaryTotals]);
 
 	return (
-		<Paper elevation={0} sx={styles.paper}>
-			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-				<Typography variant="h6">Q/A Summary</Typography>
-			</Box>
-			<Stack padding="20px 20px 0px">
+		<div style={styles.paper}>
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+				<span>Q/A Summary</span>
+			</div>
+			<div style={{ padding: '20px 20px 0px' }}>
 				<ExpandableTitle
 					icon={<IconFileDescription size={20} />}
 					color="white"
@@ -128,10 +127,10 @@ export default function SummaryChart() {
 					title={`Selected - ${capitalize(selectedSummarySegment)}`}
 					padding="0px 0px 10px"
 				/>
-			</Stack>
-			<Box sx={styles.divider}>
+			</div>
+			<div style={styles.divider}>
 				<Divider />
-			</Box>
+			</div>
 			<PieChart
 				loading={loadingSummary}
 				series={chartData}
@@ -150,7 +149,7 @@ export default function SummaryChart() {
 				height={500}
 				sx={{ maxHeight: 500, padding: '0px 30px' }}
 			/>
-		</Paper>
+		</div>
 	);
 }
 

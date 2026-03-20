@@ -1,6 +1,5 @@
 'use client';
 
-import { Box, Stack, Typography } from '@mui/material';
 import { containerStyles } from '@/styles/theme';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import dayjs from 'dayjs';
@@ -21,54 +20,48 @@ export default function MyDeskAssignments() {
 	}, [assignments]);
 
 	return (
-		<Box sx={{ ...containerStyles.section, ...styles.container }}>
-			<Typography sx={containerStyles.sectionTitle}>
+		<div style={{ ...containerStyles.section, ...styles.container }}>
+			<span style={containerStyles.sectionTitle}>
 				<IconBriefcase style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				My Desk Assignments
-			</Typography>
-			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+			</span>
+			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				{isLoading ? (
 					<Skeleton variant="rect" width="100%" height="100%" />
 				) : assignments.length === 0 ? (
-					<Box sx={styles.emptyState}>
-						<Typography variant="body2" color="text.secondary">
+					<div style={styles.emptyState}>
+						<span style={{ color: 'text.secondary' }}>
 							No desk assignments
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				) : (
 					<>
-						<Stack spacing={0.5} sx={styles.listContainer}>
+						<div style={{ ...styles.listContainer, gap: 32 }}>
 							{assignments.map((assignment, index) => {
 								const isPrimary = assignment.priority === 1;
 								return (
-									<Box key={assignment.id} sx={styles.assignmentRow}>
-										<Typography
-											variant="body2"
-											fontWeight={isPrimary ? 700 : 400}
-											sx={styles.deskName}
-										>
+									<div key={assignment.id} style={styles.assignmentRow}>
+										<span
+style={{ ...styles.deskName, fontWeight: isPrimary ? 700 : 400 }}>
 											{index + 1}. {assignment.desk_location_name}
-										</Typography>
-										<Typography
-											variant="body2"
-											color="text.secondary"
-											fontWeight={isPrimary ? 600 : 400}
-										>
+										</span>
+										<span
+style={{ color: 'text.secondary', fontWeight: isPrimary ? 600 : 400 }}>
 											({Number(assignment.claim_count)} claims)
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								);
 							})}
-						</Stack>
+						</div>
 						{lastUpdated && (
-							<Typography variant="caption" color="text.secondary" sx={styles.lastUpdated}>
+							<span style={{ ...styles.lastUpdated, color: 'text.secondary' }}>
 								Last updated: {lastUpdated.format('MMM D, YYYY')}
-							</Typography>
+							</span>
 						)}
 					</>
 				)}
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 
@@ -82,7 +75,7 @@ const styles = {
 	contentContainer: {
 		height: 'calc(100% - 45px)',
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		justifyContent: 'space-between',
 		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.03) 0%, rgba(255, 255, 255, 1) 100%)',
 	},
@@ -94,16 +87,16 @@ const styles = {
 	},
 	listContainer: {
 		flex: 1,
-		overflow: 'auto',
+		overflow: 'auto' as const,
 	},
 	assignmentRow: {
 		display: 'flex',
 		alignItems: 'center',
-		gap: 1,
+		gap: 8,
 	},
 	deskName: {
 		whiteSpace: 'nowrap',
-		overflow: 'hidden',
+		overflow: 'hidden' as const,
 		textOverflow: 'ellipsis',
 		maxWidth: 250,
 	},

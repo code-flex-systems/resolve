@@ -1,7 +1,7 @@
 'use client';
 
 import { IconFileUpload } from '@tabler/icons-react';
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import BasicDialog from '../common/BasicDialog';
@@ -165,41 +165,35 @@ export default function UploadDocumentDialog({ onClose, currentFolderId = null }
 					{...register('alias', { required: 'Document name is required' })}
 				/>
 
-				<FormControl fullWidth style={{ marginBottom: 16 }}>
-					<InputLabel id="doc-type-label">Document Type</InputLabel>
+				<div style={{ marginBottom: 16 }}>
 					<Controller
 						name="doc_type"
 						control={control}
 						render={({ field }) => (
-							<Select
-								{...field}
-								labelId="doc-type-label"
+							<Dropdown
 								label="Document Type"
-								style={{ ...styles.selectOverrides, marginBottom: 8 }}
-							>
-								<MenuItem value={DocType.POLICE_REPORT}>Police Report</MenuItem>
-								<MenuItem value={DocType.MEDICAL_RECORD}>Medical Record</MenuItem>
-								<MenuItem value={DocType.INVOICE}>Invoice</MenuItem>
-								<MenuItem value={DocType.CORRESPONDENCE}>Correspondence</MenuItem>
-								<MenuItem value={DocType.SETTLEMENT}>Settlement</MenuItem>
-								<MenuItem value={DocType.PHOTO} disabled={selectedFile !== null && !isFileImage}>
-									<div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-										<span>Photo</span>
-										<span style={{ fontSize: 12, color: selectedFile && !isFileImage ? '#ff0000' : '#d9d9d9' }}>
-											({IMAGE_EXTENSIONS.join(', ')})
-										</span>
-									</div>
-								</MenuItem>
-								<MenuItem value={DocType.ESTIMATE}>Estimate</MenuItem>
-								<MenuItem value={DocType.REPAIR_INVOICE}>Repair Invoice</MenuItem>
-								<MenuItem value={DocType.PROOF_OF_PAYMENT}>Proof of Payment</MenuItem>
-								<MenuItem value={DocType.DEMAND_LETTER}>Demand Letter</MenuItem>
-								<MenuItem value={DocType.LEGAL_FILING}>Legal Filing</MenuItem>
-								<MenuItem value={DocType.OTHER}>Other</MenuItem>
-							</Select>
+								options={[
+									{ value: DocType.POLICE_REPORT, label: 'Police Report' },
+									{ value: DocType.MEDICAL_RECORD, label: 'Medical Record' },
+									{ value: DocType.INVOICE, label: 'Invoice' },
+									{ value: DocType.CORRESPONDENCE, label: 'Correspondence' },
+									{ value: DocType.SETTLEMENT, label: 'Settlement' },
+									{ value: DocType.PHOTO, label: 'Photo', disabled: selectedFile !== null && !isFileImage },
+									{ value: DocType.ESTIMATE, label: 'Estimate' },
+									{ value: DocType.REPAIR_INVOICE, label: 'Repair Invoice' },
+									{ value: DocType.PROOF_OF_PAYMENT, label: 'Proof of Payment' },
+									{ value: DocType.DEMAND_LETTER, label: 'Demand Letter' },
+									{ value: DocType.LEGAL_FILING, label: 'Legal Filing' },
+									{ value: DocType.OTHER, label: 'Other' },
+								]}
+								value={field.value}
+								onChange={(v) => field.onChange(v)}
+								name={field.name}
+								fullWidth
+							/>
 						)}
 					/>
-				</FormControl>
+				</div>
 
 				<Input
 					id="title"

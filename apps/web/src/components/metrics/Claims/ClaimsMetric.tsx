@@ -2,7 +2,6 @@
 
 import { ClaimStatus } from '@/config/enums';
 import { BASE_COLOR, ORANGE } from '@/styles/theme';
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import { PieChart } from '@mui/x-charts-pro';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -61,24 +60,19 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 	}, [checklists, checklistId]);
 
 	return (
-		<Paper elevation={0} sx={styles.paper}>
+		<div style={styles.paper}>
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
-				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
-					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
-						<Box
-							width="100%"
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-							padding="5px"
-						>
-							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
+					<div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+						<div
+style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
+							<span style={{ fontSize: 14, fontWeight: 600 }}>
 								Claim Submission
-							</Typography>
-							<Box display="flex" justifyContent="flex-end" alignItems="center">
-								<Box marginRight="5px">
+							</span>
+							<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+								<div style={{ marginRight: '5px' }}>
 									<BasicButtonStyled
 										buttonProps={{}}
 										icon={<IconInfoCircle size={20} />}
@@ -86,7 +80,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 											title: 'A claim is considered complete if all necessary questions have been answered for the related checklist.',
 										}}
 									/>
-								</Box>
+								</div>
 								{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
 									<BasicButtonStyled
 										buttonProps={{
@@ -103,10 +97,10 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 										tooltipProps={{ title: 'Open in Inspector' }}
 									/>
 								)}
-							</Box>
-						</Box>
+							</div>
+						</div>
 						{(!checklistId || selectedChecklistOption) && (
-							<Stack flex={1} display="flex" justifyContent="center" alignItems="center">
+							<div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 								<PieChart
 									series={[
 										{
@@ -131,16 +125,9 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 									]}
 									height={225}
 								/>
-								<Box position="relative">
-									<Stack
-										display="flex"
-										justifyContent="center"
-										alignItems="center"
-										position="absolute"
-										width={80}
-										left={-90}
-										top={-120}
-									>
+								<div style={{ position: 'relative' }}>
+									<div
+style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'absolute', width: 80, left: -90, top: -120 }}>
 										<AnimatedCounter
 											value={getProgressPercentage(
 												data[ClaimStatus.SUBMITTED],
@@ -152,17 +139,17 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 											fontSize={40}
 											duration={500}
 										/>
-										<Typography paddingTop="5px" fontSize={17} lineHeight="17px" fontWeight="bold">
+										<span style={{ paddingTop: '5px', fontSize: 17, lineHeight: '17px', fontWeight: 'bold' }}>
 											Submitted
-										</Typography>
-									</Stack>
-								</Box>
-							</Stack>
+										</span>
+									</div>
+								</div>
+							</div>
 						)}
-					</Stack>
-				</Box>
+					</div>
+				</div>
 			)}
-		</Paper>
+		</div>
 	);
 }
 

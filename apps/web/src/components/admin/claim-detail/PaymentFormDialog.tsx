@@ -1,5 +1,7 @@
 'use client';
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, InputAdornment, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { FormControlLabel, InputAdornment, TextField } from '@mui/material';
+import Dialog from '@/components/ui/Dialog';
+import Dropdown from '@/components/ui/Dropdown';
 import Checkbox from '@/components/ui/Checkbox';
 import Button from '@/components/ui/Button';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
@@ -58,29 +60,32 @@ export default function PaymentFormDialog({
 		!isNaN(parseFloat(formData.payment_amount));
 
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEditing ? 'Edit Payment' : 'Add Payment'}</DialogTitle>
-			<DialogContent>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
-					<FormControl fullWidth required>
-						<InputLabel>Coverage</InputLabel>
-						<Select
-							value={formData.coverage_id}
-							label="Coverage"
-							onChange={(e) =>
-								setFormData({ ...formData, coverage_id: Number(e.target.value) })
-							}
-						>
-							{coverages.map((coverage) => (
-								<MenuItem key={coverage.id} value={coverage.id}>
-									{capitalize(coverage.loss_type)}
-									{coverage.coverage_amount
-										? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}`
-										: ''}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+		<Dialog
+			open={open}
+			onClose={onClose}
+			title={isEditing ? 'Edit Payment' : 'Add Payment'}
+			size="sm"
+			footer={
+				<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
+						{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
+					</Button>
+				</div>
+			}
+		>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+				<Dropdown
+						label="Coverage"
+						options={coverages.map((coverage) => ({
+							value: coverage.id,
+							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
+						}))}
+						value={formData.coverage_id}
+						onChange={(v) => setFormData({ ...formData, coverage_id: Number(v) })}
+						required
+						fullWidth
+					/>
 					<DateField
 						label="Payment Date"
 						value={formData.payment_date || null}
@@ -128,28 +133,24 @@ export default function PaymentFormDialog({
 							label="Expense"
 						/>
 					</div>
-					<FormControl fullWidth>
-						<InputLabel>Payee (Optional)</InputLabel>
-						<Select
-							value={formData.payee_claim_party_id ?? ''}
-							label="Payee (Optional)"
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									payee_claim_party_id: e.target.value === '' ? null : Number(e.target.value),
-								})
-							}
-						>
-							<MenuItem value="">
-								<em>None</em>
-							</MenuItem>
-							{claimParties.map((cp) => (
-								<MenuItem key={cp.id} value={cp.id}>
-									{cp.party?.name}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+					<Dropdown
+						label="Payee (Optional)"
+						options={[
+							{ value: '', label: 'None' },
+							...claimParties.map((cp) => ({
+								value: cp.id,
+								label: cp.party?.name || '',
+							})),
+						]}
+						value={formData.payee_claim_party_id ?? ''}
+						onChange={(v) =>
+							setFormData({
+								...formData,
+								payee_claim_party_id: v === '' ? null : Number(v),
+							})
+						}
+						fullWidth
+					/>
 					<TextField
 						label="Description"
 						value={formData.description}
@@ -160,13 +161,6 @@ export default function PaymentFormDialog({
 						placeholder="Optional details about this payment..."
 					/>
 				</div>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
-				<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
-					{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
-				</Button>
-			</DialogActions>
 		</Dialog>
 	);
 }

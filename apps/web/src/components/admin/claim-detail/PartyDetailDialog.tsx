@@ -10,7 +10,6 @@ import AddressDialog from '../AddressDialog';
 import RepresentativeDialog from '../RepresentativeDialog';
 import { trpc } from '@/lib/trpc';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Dialog } from '@mui/material';
 
 interface PartyDetailDialogProps {
 	open: boolean;

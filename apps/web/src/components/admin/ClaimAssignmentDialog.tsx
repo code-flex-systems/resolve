@@ -16,7 +16,6 @@ import UserSearch from '../checklist/UserSearch';
 import { StackedRow } from '../common/StackedRow';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import { formatCityState } from '@/schemas/addressSchemas';
-import { Dialog, Select } from '@mui/material';
 
 export default function ClaimAssignmentDialog() {
 	const [progress, setProgress] = useState(0);

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Avatar, Box, Paper, PopperProps, Typography } from '@mui/material';
+import { Avatar, Paper, PopperProps } from '@mui/material';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from '../common/BasicPopper';
 import { useClerk } from '@clerk/nextjs';
@@ -22,49 +22,47 @@ export default function ProfileAvatar() {
 
 	return (
 		<>
-			<Box
-				id="avatar"
+			<div
+id="avatar"
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
-				}}
-			>
+				}}>
 				<Avatar sx={styles.avatar}>{getInitials(session?.user?.name)}</Avatar>
-			</Box>
+			</div>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
 					<Paper elevation={3} sx={styles.paper}>
-						<Box
-							sx={{
+						<div
+style={{
 								...styles.row,
 								justifyContent: 'space-between',
-								overflow: 'hidden',
-								m: '5px 0px 10px',
-							}}
-						>
-							<Typography fontSize={17} fontWeight="bold" textOverflow="ellipsis" noWrap>
+								overflow: 'hidden' as const,
+								margin: '5px 0px 10px',
+							}}>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 17, fontWeight: 'bold' }}>
 								{session?.user?.name ?? ''}
-							</Typography>
+							</span>
 							{!!session?.user && <RoleValue role={session.user.role as Role} />}
-						</Box>
-						<Box sx={styles.divider}>
+						</div>
+						<div style={styles.divider}>
 							<Divider />
-						</Box>
-						<Box sx={{ ...styles.row, overflow: 'hidden', mt: 0.625 }}>
+						</div>
+						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
 							<IconMail style={styles.icon} />
-							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: BASE_COLOR_LIGHT }}>
 								{session?.user?.email ?? ''}
-							</Typography>
-						</Box>
-						<Box sx={{ ...styles.row, overflow: 'hidden', mt: 0.625 }}>
+							</span>
+						</div>
+						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
 							<IconPhone style={styles.icon} />
-							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: BASE_COLOR_LIGHT }}>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
-							</Typography>
-						</Box>
-						<Box sx={{ ...styles.row, justifyContent: 'flex-end', mt: 0.625 }}>
-							<Box marginRight="10px">
+							</span>
+						</div>
+						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
+							<div style={{ marginRight: '10px' }}>
 								<BasicButtonStyled
 									buttonProps={{
 										onClick: () => {
@@ -75,7 +73,7 @@ export default function ProfileAvatar() {
 									tooltipProps={{ title: 'Update my info' }}
 									icon={<IconEdit size={20} />}
 								/>
-							</Box>
+							</div>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () => signOut({ redirectUrl: '/login' }),
@@ -83,7 +81,7 @@ export default function ProfileAvatar() {
 								tooltipProps={{ title: 'Sign out' }}
 								icon={<IconLogout size={20} />}
 							/>
-						</Box>
+						</div>
 					</Paper>
 				</BasicPopper>
 			)}
@@ -97,7 +95,6 @@ const styles = {
 		width: 35,
 		height: 35,
 		fontSize: 15,
-		bgcolor: 'var(--text-accent)',
 		cursor: 'pointer',
 	},
 	divider: {
@@ -112,11 +109,11 @@ const styles = {
 		width: 350,
 		height: 'fit-content',
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		p: 1.25,
-		mt: 0.625,
+		padding: 10,
+		marginTop: 5,
 	},
 	row: {
 		width: '100%',

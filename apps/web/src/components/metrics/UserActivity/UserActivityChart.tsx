@@ -1,7 +1,6 @@
 'use client';
 import { BarChart } from '@mui/x-charts-pro';
 import { BASE_COLOR } from '@/styles/theme';
-import { Box, Paper, Stack, Typography , Fade } from '@mui/material';
 import { formatMD } from '@/lib/utils/utils';
 import dayjs, { Dayjs } from 'dayjs';
 import { GetUserOutput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
@@ -49,25 +48,25 @@ export default function UserActivityChart({
 	const maxY = maxUserRow ? Math.ceil(maxUserRow.active_users / 10) * 10 : 10;
 
 	return (
-		<Box width="100%" height={650}>
-			<Paper elevation={0} sx={styles.paper}>
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-					<Typography variant="h6" fontSize={18} fontWeight={600}>
+		<div style={{ width: '100%', height: 650 }}>
+			<div style={styles.paper}>
+				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+					<span style={{ fontSize: 18, fontWeight: 600 }}>
 						User Activity
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
-				<Fade key={JSON.stringify(filters)} in={true} unmountOnExit timeout={1000}>
-					<Box width="100%">
+				<div>
+					<div style={{ width: '100%' }}>
 						{isLoading && (
-							<Stack width="100%" spacing={2} p={2}>
-								<Stack direction="row" spacing={2}>
+							<div style={{ width: '100%', gap: 16, padding: 16 }}>
+								<div style={{ display: 'flex', flexDirection: 'row', gap: 16 }}>
 									<Skeleton variant="rect" width="33%" height={80} />
 									<Skeleton variant="rect" width="33%" height={80} />
 									<Skeleton variant="rect" width="33%" height={80} />
-								</Stack>
+								</div>
 								<Skeleton variant="rect" width="100%" height={350} />
-							</Stack>
+							</div>
 						)}
 						{!isLoading && (
 							<>
@@ -77,7 +76,7 @@ export default function UserActivityChart({
 									maxEventsRow={stats.maxRow}
 									isBreakdown={true}
 								/>
-								<Box width="100%" height={380} padding="20px">
+								<div style={{ width: '100%', height: 380, padding: '20px' }}>
 									<BarChart
 										xAxis={[
 											{
@@ -102,13 +101,13 @@ export default function UserActivityChart({
 										hideLegend
 										loading={isFetching || isFetchingStats}
 									/>
-								</Box>
+								</div>
 							</>
 						)}
-					</Box>
-				</Fade>
-			</Paper>
-		</Box>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

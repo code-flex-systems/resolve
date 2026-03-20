@@ -2,7 +2,7 @@
 
 import { capitalize, formatMetric } from '@/lib/utils/utils';
 import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
-import { Box, IconButton, Paper, Stack, Typography } from '@mui/material';
+import Button from '@/components/ui/Button';
 import { JSX } from 'react';
 import './styles.css';
 import Skeleton from '@/components/ui/Skeleton';
@@ -46,11 +46,10 @@ export default function SimpleMetric({
 	const formattedMetric = formatMetric(values?.total, { showNegative });
 	const textColor = !showNegative && formattedMetric.isNegative ? 'error' : '';
 	return (
-		<Stack margin="10px" className="metric" sx={styles.container}>
-			<Paper
-				elevation={0}
+		<div  className="metric"  style={{ ...styles.container, margin: '10px' }}>
+			<div
 				onClick={hasDetail ? onSelect : onClick}
-				sx={{
+				 style={{
 					...styles.paper,
 					...(selected ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : {}),
 					cursor: onSelect || onClick ? 'pointer' : undefined,
@@ -61,102 +60,100 @@ export default function SimpleMetric({
 				{isLoading ? (
 					<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 				) : (
-					<Box
-						width={METRIC_WIDTH}
-						height={METRIC_HEIGHT}
-						display="flex"
-						justifyContent="space-between"
-						alignItems="flex-start"
-						padding="10px 20px"
+					<div
+						
+						
+						
+						
+						
+						 style={{ width: METRIC_WIDTH, height: METRIC_HEIGHT, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '10px 20px' }}
 					>
-						<Box position="relative" top={-20} right={-140}>
-							<Paper elevation={0} sx={{ position: 'absolute', borderRadius: 25 }}>
-								<Box sx={{ ...styles.circle, backgroundColor: color }}>{icon}</Box>
-							</Paper>
-						</Box>
-						<Box
-							width="100%"
-							flex={1}
-							display="flex"
-							justifyContent="flex-start"
-							alignItems="center"
-							paddingTop="5px"
+						<div    style={{ position: 'relative', top: -20, right: -140 }}>
+							<div  style={{ position: 'absolute', borderRadius: 25 }}>
+								<div  style={{ ...styles.circle, backgroundColor: color }}>{icon}</div>
+							</div>
+						</div>
+						<div
+							
+							
+							
+							
+							
+							 style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '5px' }}
 						>
 							{symbol && (
-								<Typography color={textColor} fontSize={45} lineHeight="50px">
+								<span    style={{ color: textColor, fontSize: 45, lineHeight: '50px' }}>
 									{symbol}
-								</Typography>
+								</span>
 							)}
-							<Stack>
-								<Box display="flex" justifyContent="flex-start" alignItems="end">
-									<Typography color={textColor} fontSize={50} lineHeight="50px" fontWeight="bold">
+							<div>
+								<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'end' }}>
+									<span     style={{ color: textColor, fontSize: 50, lineHeight: '50px', fontWeight: 'bold' }}>
 										{formattedMetric.value}
-									</Typography>
+									</span>
 									{unit && (
-										<Typography color={textColor} fontWeight="bold">
+										<span   style={{ color: textColor, fontWeight: 'bold' }}>
 											{unit}
-										</Typography>
+										</span>
 									)}
-								</Box>
-								<Typography lineHeight="19px" color={BASE_COLOR_LIGHT}>
+								</div>
+								<span   style={{ lineHeight: '19px', color: BASE_COLOR_LIGHT }}>
 									{title}
-								</Typography>
-							</Stack>
-						</Box>
-					</Box>
+								</span>
+							</div>
+						</div>
+					</div>
 				)}
-			</Paper>
+			</div>
 			{hasDetail && (
 				<Collapse open={selected}>
-					<Paper elevation={0} sx={styles.expandedPaper}>
-						<Stack width={METRIC_WIDTH} padding="5px 10px">
+					<div style={styles.expandedPaper}>
+						<div   style={{ width: METRIC_WIDTH, padding: '5px 10px' }}>
 							{Object.keys(values ?? {})
 								.filter((k) => k !== 'total')
 								.map((k) => {
 									const formattedKeyMetric = formatMetric(values?.[k]);
 									return (
-										<Box
+										<div
 											key={k}
-											display="flex"
-											justifyContent="space-between"
-											alignItems="center"
-											padding="0px 5px 5px"
+											
+											
+											
+											 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px 5px 5px' }}
 										>
-											<Typography fontSize={14}>{capitalize(k)}</Typography>
-											<Box
-												display="flex"
-												justifyContent="center"
-												alignItems="center"
-												sx={styles.dot}
-												bgcolor="white"
+											<span  style={{ fontSize: 14 }}>{capitalize(k)}</span>
+											<div
+												
+												
+												
+												
+												 style={{ ...styles.dot, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
 											>
-												<Typography
-													fontSize={12}
-													color={
-														!showNegative && formattedMetric.isNegative
+												<span
+													
+													 style={{ fontSize: 12, color: !showNegative && formattedMetric.isNegative
 															? 'error'
-															: BASE_COLOR
-													}
+															: BASE_COLOR }}
 												>
 													{formattedKeyMetric.value}
-												</Typography>
-											</Box>
-										</Box>
+												</span>
+											</div>
+										</div>
 									);
 								})}
 							<Divider />
 							{onClick && (
-								<Box display="flex" justifyContent="flex-end" alignItems="center" paddingTop="5px">
-									<IconButton onClick={onClick} disableRipple>
+								<div     style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '5px' }}>
+									<Button variant="icon" size="sm" onClick={onClick}>
 										<IconCircleArrowRight size={21} style={{ color: BASE_COLOR }} />
-									</IconButton>
-								</Box>
+									</Button>
+								</div>
 							)}
-						</Stack>
-					</Paper>
+						</div>
+					</div>
 				</Collapse>
 			)}
-		</Stack>
+		</div>
 	);
 }
 

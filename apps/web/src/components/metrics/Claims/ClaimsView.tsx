@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, CardContent, Paper, Stack, Typography , Fade } from '@mui/material';
+import { CardContent } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useState } from 'react';
@@ -35,9 +35,9 @@ const Highlight = ({
 	color?: string;
 	bold?: boolean;
 }) => (
-	<Box component="span" sx={{ color, fontWeight: bold ? 600 : 'inherit' }}>
+	<div style={{ color, fontWeight: bold ? 600 : 'inherit' }}>
 		{children}
-	</Box>
+	</div>
 );
 
 export default function ClaimsView() {
@@ -55,31 +55,25 @@ export default function ClaimsView() {
 
 	return (
 		<PageWrapper>
-			<Stack
-				flex={1}
-				width="100%"
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="flex-start"
-				padding="10px"
-			>
-				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-					<Box marginRight="5px">
+			<div
+style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}>
+				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+					<div style={{ marginRight: '5px' }}>
 						<BasicButtonStyled
 							icon={<IconArrowLeft size={20} />}
 							buttonProps={{ onClick: () => router.back() }}
 							tooltipProps={{ title: 'Back to dashboard' }}
 						/>
-					</Box>
-					<Box marginRight="5px">
+					</div>
+					<div style={{ marginRight: '5px' }}>
 						<BasicDateRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
-					</Box>
-					<Box marginRight="5px">
+					</div>
+					<div style={{ marginRight: '5px' }}>
 						<ChecklistSelect checklist={checklist} setChecklist={setChecklist} clearable={false} />
-					</Box>
-					<Box marginRight="5px">
+					</div>
+					<div style={{ marginRight: '5px' }}>
 						<ClaimStatusSelect claimStatus={selectedClaimStatus} setClaimStatus={setClaimStatus} />
-					</Box>
+					</div>
 
 					<UserFilter
 						users={users}
@@ -88,48 +82,29 @@ export default function ClaimsView() {
 						text="Filter by current assignee"
 						multi={false}
 					/>
-				</Box>
-				<Box sx={styles.divider}>
+				</div>
+				<div style={styles.divider}>
 					<Divider />
-				</Box>
-				<Box
-					width="100%"
-					height="calc(100vh - 70px)"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="flex-start"
-					bgcolor="#F7F8FA"
-					padding="20px"
-					overflow="auto"
-				>
-					<Stack width={400} height="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-						<Paper elevation={0} sx={styles.paper}>
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="flex-start"
-								alignItems="center"
-								paddingTop="10px"
-								paddingLeft="10px"
-							>
+				</div>
+				<div
+style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}>
+					<div style={{ width: 400, height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+						<div style={styles.paper}>
+							<div
+style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '10px', paddingLeft: '10px' }}>
 								{claim ? (
 									<ClaimStatusIcon status={claim.status as ClaimStatus} fontSize={17} />
 								) : (
 									<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />
 								)}
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginLeft="5px">
+								<span style={{ fontSize: 13, color: BASE_COLOR_LIGHT, marginLeft: '5px' }}>
 									Progress through {checklist?.name ?? 'checklist'}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 
-							<Fade key={claim ? 'data' : 'none'} in={true}>
-								<Stack
-									width="100%"
-									height={150}
-									display="flex"
-									justifyContent="center"
-									alignItems="center"
-								>
+							<div>
+								<div
+style={{ width: '100%', height: 150, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 									{!!claim && (
 										<ChecklistProgress
 											checklistId={checklist?.id ?? -1}
@@ -140,59 +115,41 @@ export default function ClaimsView() {
 										/>
 									)}
 									{!claim && (
-										<Typography fontSize={14} width={250} color={BASE_COLOR_LIGHT}>
+										<span style={{ fontSize: 14, width: 250, color: BASE_COLOR_LIGHT }}>
 											Select a claim to see its progress through the checklist
-										</Typography>
+										</span>
 									)}
-								</Stack>
-							</Fade>
-						</Paper>
-						<Paper elevation={0} sx={{ ...styles.paper, flex: 1, marginTop: '20px' }}>
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="flex-start"
-								alignItems="center"
-								paddingTop="10px"
-								paddingLeft="10px"
-							>
+								</div>
+							</div>
+						</div>
+						<div style={{ ...styles.paper, flex: 1, marginTop: '20px' }}>
+							<div
+style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '10px', paddingLeft: '10px' }}>
 								<IconFileText size={20} style={{ color: BASE_COLOR_LIGHT }} />
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginLeft="5px">
+								<span style={{ fontSize: 13, color: BASE_COLOR_LIGHT, marginLeft: '5px' }}>
 									Details
-								</Typography>
-							</Box>
-							<Fade key={claim ? 'data' : 'none'} in={true}>
-								<Stack
-									width="100%"
-									height="100%"
-									display="flex"
-									justifyContent="center"
-									alignItems="center"
-									padding="0px 20px"
-								>
+								</span>
+							</div>
+							<div>
+								<div
+style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0px 20px' }}>
 									{!!claim && (
-										<Stack
-											width="100%"
-											height="100%"
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="flex-start"
-											paddingTop="20px"
-										>
-											<Typography fontSize={30} color="primary">
+										<div
+style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingTop: '20px' }}>
+											<span style={{ fontSize: 30, color: 'primary' }}>
 												{claim.claim_number}
-											</Typography>
-											<Box display="flex" justifyContent="center" alignItems="center">
+											</span>
+											<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 												<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-													<Typography color="#d9d9d9" fontSize={15} gutterBottom>
+													<span style={{ color: '#d9d9d9', fontSize: 15 }}>
 														Actual Recovery
-													</Typography>
-													<Typography variant="h6" fontSize={18} component="div">
+													</span>
+													<span style={{ fontSize: 18 }}>
 														{formatAmount(claim.actual_recovery ?? 0, true)}
-													</Typography>
+													</span>
 												</CardContent>
-											</Box>
-											<Typography fontSize={14} marginTop="10px">
+											</div>
+											<span style={{ fontSize: 14, marginTop: '10px' }}>
 												{claim.assignee === claim.created_by ? (
 													<>
 														This claim{' '}
@@ -220,8 +177,8 @@ export default function ClaimsView() {
 														{isClaimSubmitted && ' before submission'}.
 													</>
 												)}
-											</Typography>
-											<Typography fontSize={14} paddingTop="10px">
+											</span>
+											<span style={{ fontSize: 14, paddingTop: '10px' }}>
 												{claim.updated_at ? (
 													isClaimBlocked ? (
 														<>
@@ -240,8 +197,8 @@ export default function ClaimsView() {
 														{formatDateForSentence(formatMDY(claim.created_at))}.
 													</>
 												)}
-											</Typography>
-											<Box paddingTop="20px">
+											</span>
+											<div style={{ paddingTop: '20px' }}>
 												<BasicButtonStyled
 													buttonProps={{
 														onClick: () => {
@@ -249,12 +206,11 @@ export default function ClaimsView() {
 																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}`
 															);
 														},
-													}}
-												>
+													}}>
 													Open in checklist...
 												</BasicButtonStyled>
-											</Box>
-											<Box paddingTop="10px">
+											</div>
+											<div style={{ paddingTop: '10px' }}>
 												<BasicButtonStyled
 													buttonProps={{
 														onClick: () => {
@@ -262,35 +218,33 @@ export default function ClaimsView() {
 																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}/summary`
 															);
 														},
-													}}
-												>
+													}}>
 													Go to checklist summary...
 												</BasicButtonStyled>
-											</Box>
-											<Box paddingTop="10px">
+											</div>
+											<div style={{ paddingTop: '10px' }}>
 												<BasicButtonStyled
 													buttonProps={{
 														onClick: () => {},
-													}}
-												>
+													}}>
 													See activity...
 												</BasicButtonStyled>
-											</Box>
-										</Stack>
+											</div>
+										</div>
 									)}
 									{!claim && (
-										<Typography fontSize={14} width={250} color={BASE_COLOR_LIGHT}>
+										<span style={{ fontSize: 14, width: 250, color: BASE_COLOR_LIGHT }}>
 											Select a claim to see details
-										</Typography>
+										</span>
 									)}
-								</Stack>
-							</Fade>
-						</Paper>
-					</Stack>
+								</div>
+							</div>
+						</div>
+					</div>
 
 					<ChecklistClaims checklistId={checklist?.id} user={users[0]} range={range} setClaim={setClaim} />
-				</Box>
-			</Stack>
+				</div>
+			</div>
 		</PageWrapper>
 	);
 }

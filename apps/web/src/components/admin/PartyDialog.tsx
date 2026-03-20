@@ -3,7 +3,7 @@
 import { IconBuilding, IconHeadset, IconSend, IconUser } from '@tabler/icons-react';
 import { FormControlLabel } from '@mui/material';
 import Input, { Textarea } from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import Dropdown from '@/components/ui/Dropdown';
 import Switch from '@/components/ui/Switch';
 import BasicDialog from '../common/BasicDialog';
 import AddressFields from '../common/AddressFields';
@@ -315,24 +315,26 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 			onClose={handleClose}
 			width={500}
 		>
-			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<div  style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
 				<Controller
 					name="party_type"
 					control={control}
 					rules={{ required: true }}
 					render={({ field }) => (
-						<Select
-							label="Type"
-							error={!!errors.party_type}
-							value={field.value}
-							onChange={(val) => field.onChange(val)}
-							disabled={isSubmitting || !!lockedType}
-							style={styles.textFieldOverrides}
-							options={[
-								{ value: PartyType.ENTITY, label: 'Entity' },
-								{ value: PartyType.FACILITATOR, label: 'Facilitator' },
-							]}
-						/>
+						<div style={styles.textFieldOverrides}>
+							<Dropdown
+								label="Type"
+								error={!!errors.party_type}
+								value={field.value}
+								onChange={(val) => field.onChange(String(val))}
+								disabled={isSubmitting || !!lockedType}
+								fullWidth
+								options={[
+									{ value: PartyType.ENTITY, label: 'Entity' },
+									{ value: PartyType.FACILITATOR, label: 'Facilitator' },
+								]}
+							/>
+						</div>
 					)}
 				/>
 
@@ -342,7 +344,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					control={control}
 					render={({ field }) => (
 						<div
-							style={{
+							 style={{
 								width: 400,
 								display: 'flex',
 								alignItems: 'center',
@@ -350,13 +352,13 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 								paddingInline: 8,
 							}}
 						>
-							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+							<div  style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 								{field.value ? (
 									<IconBuilding size={18} style={{ color: 'var(--text-secondary)' }} />
 								) : (
 									<IconUser size={18} style={{ color: 'var(--text-secondary)' }} />
 								)}
-								<span style={{ color: 'var(--text-secondary)' }}>
+								<span  style={{ color: 'var(--text-secondary)' }}>
 									{field.value ? 'Business' : 'Individual'}
 								</span>
 							</div>
@@ -398,7 +400,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					/>
 				) : (
 					<>
-						<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
+						<div  style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
 							<Controller
 								name="first_name"
 								control={control}
@@ -431,7 +433,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 								)}
 							/>
 						</div>
-						<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
+						<div  style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
 							<Controller
 								name="last_name"
 								control={control}
@@ -488,7 +490,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				/>
 
 				{/* Contact Information Section */}
-				<span style={{  color: 'var(--text-secondary)' ,  width: 400, paddingTop: 8  }}>
+				<span  style={{  color: 'var(--text-secondary)' ,  width: 400, paddingTop: 8  }}>
 					Contact Information (optional)
 				</span>
 
@@ -515,7 +517,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					)}
 				/>
 
-				<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
+				<div  style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
 					<Controller
 						name="contact_phone"
 						control={control}
@@ -535,19 +537,21 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 						name="contact_phone_type"
 						control={control}
 						render={({ field }) => (
-							<Select
-								label="Type"
-								value={field.value ?? ''}
-								onChange={(val) => field.onChange(val)}
-								disabled={isSubmitting}
-								style={{ width: 120 }}
-								options={[
-									{ value: 'work', label: 'Work' },
-									{ value: 'mobile', label: 'Mobile' },
-									{ value: 'home', label: 'Home' },
-									{ value: 'fax', label: 'Fax' },
-								]}
-							/>
+							<div  style={{ width: 120 }}>
+								<Dropdown
+									label="Type"
+									value={field.value ?? ''}
+									onChange={(val) => field.onChange(String(val))}
+									disabled={isSubmitting}
+									fullWidth
+									options={[
+										{ value: 'work', label: 'Work' },
+										{ value: 'mobile', label: 'Mobile' },
+										{ value: 'home', label: 'Home' },
+										{ value: 'fax', label: 'Fax' },
+									]}
+								/>
+							</div>
 						)}
 					/>
 				</div>
@@ -565,17 +569,19 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					name="contact_address_type"
 					control={control}
 					render={({ field }) => (
-						<Select
-							label="Address Type"
-							value={field.value ?? ''}
-							onChange={(val) => field.onChange(val)}
-							disabled={isSubmitting}
-							style={styles.textFieldOverrides}
-							options={[
-								{ value: 'business', label: 'Business' },
-								{ value: 'home', label: 'Home' },
-							]}
-						/>
+						<div style={styles.textFieldOverrides}>
+							<Dropdown
+								label="Address Type"
+								value={field.value ?? ''}
+								onChange={(val) => field.onChange(String(val))}
+								disabled={isSubmitting}
+								fullWidth
+								options={[
+									{ value: 'business', label: 'Business' },
+									{ value: 'home', label: 'Home' },
+								]}
+							/>
+						</div>
 					)}
 				/>
 

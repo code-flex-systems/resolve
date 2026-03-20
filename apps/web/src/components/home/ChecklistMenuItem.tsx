@@ -1,5 +1,5 @@
 'use client';
-import { Box, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { Checklist as ChecklistType } from '@/types/types';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
@@ -14,45 +14,41 @@ export default function ChecklistMenuItem(props: {
 	const { checklist, onClose, selected } = props;
 	return (
 		<Tooltip
-			title={`${checklist?.name ?? ''} - ${checklist?.page_count?.toLocaleString() ?? '0'} pages - ${formatMDYAbv(checklist?.updated_at?.toString())}`}
-			enterDelay={1000}
-			placement="left"
-			arrow
-		>
-			<Paper elevation={0} sx={{ width: '100%', borderRadius: 1 }}>
-				<MenuItem
-					sx={styles.menuItem}
+			content={`${checklist?.name ?? ''} - ${checklist?.page_count?.toLocaleString() ?? '0'} pages - ${formatMDYAbv(checklist?.updated_at?.toString())}`}
+			position="left">
+			<div style={{ width: '100%', borderRadius: 1 }}>
+				<div
+					style={styles.menuItem}
 					onClick={() => {
 						useChecklistsStore.getState().updateSelectedChecklist(checklist);
 						if (typeof onClose === 'function') onClose();
 					}}
-					className="flex-row-between"
-				>
-					<Box sx={styles.menuItemInner} className="flex-row-left">
-						<Box display="flex" alignItems="center" width={200} overflow="hidden">
+					className="flex-row-between">
+					<div className="flex-row-left" style={styles.menuItemInner}>
+						<div style={{ display: 'flex', alignItems: 'center', width: 200, overflow: 'hidden' }}>
 							<IconChecklist style={{ ...styles.icon, color: 'var(--text-accent)' }} />
-							<Typography fontSize={13} fontWeight="bold" color="primary" textOverflow="ellipsis" noWrap>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 13, fontWeight: 'bold', color: 'primary' }}>
 								{checklist?.name}
-							</Typography>
-						</Box>
-						<Box display="flex" alignItems="center" width={90} overflow="hidden" margin="0px 10px">
+							</span>
+						</div>
+						<div style={{ display: 'flex', alignItems: 'center', width: 90, overflow: 'hidden', margin: '0px 10px' }}>
 							<IconFileDescription style={styles.icon} />
-							<Typography fontSize={13} textOverflow="ellipsis" noWrap>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 13 }}>
 								{checklist?.page_count?.toLocaleString() ?? '0'} pages
-							</Typography>
-						</Box>
-						<Box display="flex" alignItems="center" overflow="hidden" marginLeft="10px">
+							</span>
+						</div>
+						<div style={{ display: 'flex', alignItems: 'center', overflow: 'hidden', marginLeft: '10px' }}>
 							<IconClockFilled style={styles.icon} />
-							<Typography fontSize={13} textOverflow="ellipsis" noWrap>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 13 }}>
 								{formatMDYAbv(checklist?.updated_at?.toString())}
-							</Typography>
-						</Box>
-					</Box>
-					<Box className="flex-row-right">
+							</span>
+						</div>
+					</div>
+					<div className="flex-row-right">
 						{selected ? <IconCircleCheck size={20} style={{ color: 'primary.main', marginLeft: '10px' }} /> : <></>}
-					</Box>
-				</MenuItem>
-			</Paper>
+					</div>
+				</div>
+			</div>
 		</Tooltip>
 	);
 }
@@ -66,6 +62,6 @@ const styles = {
 		width: '100%',
 	},
 	menuItemInner: {
-		p: 0.625,
+		padding: 5,
 	},
 };

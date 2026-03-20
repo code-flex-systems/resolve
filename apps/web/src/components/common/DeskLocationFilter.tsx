@@ -1,5 +1,6 @@
-import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
-import { useState } from 'react';
+import { MenuItem, Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
+import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -52,26 +53,22 @@ export default function DeskLocationFilter({
 
 	return (
 		<>
-			<Chip
-				label={displayLabel}
-				icon={<IconMapPin size={20} style={{ color: value ? undefined : BASE_COLOR_LIGHT }} />}
-				onClick={(e) => {
-					if (!isDisabled) {
-						setAnchorEl(e.currentTarget);
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				}}
-				onDelete={value && clearable ? () => onChange(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: value ? undefined : BASE_COLOR_LIGHT,
-					},
-				}}
-				disabled={isDisabled}
-			/>
+			<span
+				onClick={(e: React.MouseEvent) => {
+				setAnchorEl(e.currentTarget as HTMLElement);
+				e.preventDefault();
+				e.stopPropagation();
+			}}
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', opacity: isDisabled ? 0.5 : 1 }}
+			>
+				<CustomChip color={value ? 'info' : 'neutral'} size="sm">
+				<IconMapPin size={20} style={{ color: value ? undefined : BASE_COLOR_LIGHT }} />
+					<span>{displayLabel}</span>
+				</CustomChip>
+				{value && (
+					<button onClick={(e: React.MouseEvent) => { e.stopPropagation(); onChange(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
 					<Paper sx={styles.paper}>

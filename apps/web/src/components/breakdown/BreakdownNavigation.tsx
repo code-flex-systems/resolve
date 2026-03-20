@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Box, Paper, Stack, Typography , Fade } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
@@ -49,50 +48,49 @@ export default function BreakdownNavigation() {
 	useEffect(() => {});
 
 	return (
-		<Stack
-			width={600}
-			minWidth={600}
-			height="100%"
-			display="flex"
-			justifyContent="flex-start"
-			alignItems="flex-start"
-			pr={2.5}
+		<div
+			
+			
+			
+			
+			
+			
+			 style={{ width: 600, minWidth: 600, height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingRight: 20 }}
 		>
-			<Paper elevation={0} sx={styles.paper}>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="center"
-					pt={1.5}
-					pl={1.5}
+			<div style={styles.paper}>
+				<div
+					
+					
+					
+					
+					
+					 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 12, paddingLeft: 12 }}
 				>
 					<IconTrophy size={20} style={{ color: TEXT_MUTED, transform: 'rotate(90deg)' }} />
-					<Typography fontSize={14} color={TEXT_MUTED} ml={1.5}>
+					<span    style={{ fontSize: 14, color: TEXT_MUTED, marginLeft: 12 }}>
 						{pageInstance
 							? `Breakdown for ${pageInstance.title}`
 							: isLoading
 								? 'Loading questions...'
 								: 'Waiting for selection...'}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
-				<Fade key={isLoading ? 'loading' : 'data'} in={true}>
-					<span>
-						<Paper elevation={0} sx={styles.contentPaper}>
+				<div>
+						<div style={styles.contentPaper}>
 							{isLoading && (
-								<Stack spacing={2} width="100%" p={2}>
+								<div    style={{ gap: 16, width: '100%', padding: 16 }}>
 									{[1, 2, 3, 4].map((i) => (
 										<Skeleton key={i} variant="rect" height={60} />
 									))}
-								</Stack>
+								</div>
 							)}
 							{!isLoading && !questionStats.length && (
-								<Box sx={styles.loadingContainer} className="flex-col-center">
-									<Typography color={TEXT_MUTED} fontSize={18}>
+								<div  className="flex-col-center" style={styles.loadingContainer}>
+									<span   style={{ color: TEXT_MUTED, fontSize: 18 }}>
 										No response data found
-									</Typography>
-								</Box>
+									</span>
+								</div>
 							)}
 							{!isLoading &&
 								!!questionStats.length &&
@@ -111,11 +109,10 @@ export default function BreakdownNavigation() {
 										}}
 									/>
 								))}
-						</Paper>
-					</span>
-				</Fade>
-			</Paper>
-		</Stack>
+						</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

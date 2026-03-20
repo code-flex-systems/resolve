@@ -1,7 +1,7 @@
 'use client';
 
 import { IconChecklist, IconCircleCheck, IconEdit, IconExternalLink, IconListCheck, IconShield, IconSubtask, IconUsersGroup } from '@tabler/icons-react';
-import { CardContent, Select } from '@mui/material';
+import { CardContent } from '@mui/material';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';

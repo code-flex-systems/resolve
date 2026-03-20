@@ -3,7 +3,8 @@
 import { trpc } from '@/lib/trpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Chip, Paper, PopperProps, TextField } from '@mui/material';
+import { Autocomplete, Paper, PopperProps, TextField } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
 import BasicPopper from './BasicPopper';
 import { IconUsers } from '@tabler/icons-react';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -57,43 +58,27 @@ export default function UserFilter({
 					overflow: 'auto',
 				}}
 			>
-				<Chip
-					label={users.length ? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}` : text}
-					icon={<IconUsers size={20} />}
+				<span
 					onClick={(e) => {
 						setAnchorEl(e.currentTarget);
 						e.preventDefault();
 						e.stopPropagation();
 					}}
-					onDelete={users.length ? () => setUsers([]) : undefined}
-					sx={{
-						minWidth: 135,
-						height,
-						'& .MuiChip-icon': {
-							color: users.length ? 'var(--text-accent)' : undefined,
-						},
-						'& .MuiChip-label': {
-							color: users.length ? 'var(--text-accent)' : undefined,
-						},
-					}}
-				/>
+					style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', minWidth: 135, height }}
+				>
+					<CustomChip color={users.length ? 'info' : 'neutral'} size="sm">
+						<IconUsers size={16} style={{ color: users.length ? 'var(--text-accent)' : undefined }} />
+						<span style={{ color: users.length ? 'var(--text-accent)' : undefined }}>{users.length ? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}` : text}</span>
+					</CustomChip>
+					{!!users.length && (
+						<button onClick={(e) => { e.stopPropagation(); setUsers([]); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+					)}
+				</span>
 				{users.map((u) => (
-					<Chip
-						key={u.id}
-						label={`${u.first} ${u.last}`}
-						onDelete={() => {
-							const newUsers = users.filter((s) => s.email !== u.email);
-							setUsers(newUsers);
-						}}
-						sx={{
-							margin: '5px 0px',
-							marginLeft: '5px',
-							height,
-							'& .MuiChip-label': {
-								color: 'var(--text-accent)',
-							},
-						}}
-					/>
+					<span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, margin: '5px 0px', marginLeft: '5px' }}>
+						<CustomChip color="info" size="sm">{`${u.first} ${u.last}`}</CustomChip>
+						<button onClick={() => { const newUsers = users.filter((s) => s.email !== u.email); setUsers(newUsers); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+					</span>
 				))}
 			</div>
 

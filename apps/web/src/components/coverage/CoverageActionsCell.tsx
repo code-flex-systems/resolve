@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
@@ -43,25 +42,25 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 					onClose={() => setShowDeleteDialog(false)}
 					width={500}
 				>
-					<Typography fontWeight="bold" marginBottom={1}>
+					<span   style={{ fontWeight: 'bold', marginBottom: 1 }}>
 						Are you sure you want to delete this coverage?
-					</Typography>
-					<Typography fontSize={14} color="text.secondary">
+					</span>
+					<span   style={{ fontSize: 14, color: 'text.secondary' }}>
 						Coverage Type: <strong>{formatCoverageType(coverage.loss_type)}</strong>
-					</Typography>
-					<Typography fontSize={14} color="text.secondary">
+					</span>
+					<span   style={{ fontSize: 14, color: 'text.secondary' }}>
 						Amount:{' '}
 						<strong>
 							{coverage.coverage_amount ? formatCurrencyExact(parseFloat(coverage.coverage_amount.toString())) : 'N/A'}
 						</strong>
-					</Typography>
-					<Typography paddingTop={2} fontStyle="italic" fontSize={13}>
+					</span>
+					<span    style={{ paddingTop: 2, fontStyle: 'italic', fontSize: 13 }}>
 						This action cannot be undone.
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
-			<Box sx={styles.container}>
+			<div style={styles.container}>
 				<BasicButtonStyled
 					buttonProps={{
 						onClick: () => onEdit(coverage),
@@ -70,7 +69,7 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 					tooltipProps={{ title: 'Edit coverage' }}
 					icon={<IconEdit size={15} />}
 				/>
-				<Box marginLeft="10px">
+				<div  style={{ marginLeft: '10px' }}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => setShowDeleteDialog(true),
@@ -79,8 +78,8 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 						tooltipProps={{ title: 'Delete coverage' }}
 						icon={<IconTrash size={15} />}
 					/>
-				</Box>
-			</Box>
+				</div>
+			</div>
 		</>
 	);
 }

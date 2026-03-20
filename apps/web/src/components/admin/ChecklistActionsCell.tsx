@@ -10,7 +10,6 @@ import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { Dialog } from '@mui/material';
 
 interface ChecklistActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;

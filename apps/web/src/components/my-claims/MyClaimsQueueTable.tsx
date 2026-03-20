@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { Box, Paper, PopperProps, Typography, Button } from '@mui/material';
+import { Paper, PopperProps } from '@mui/material';
+import CustomButton from '@/components/ui/Button';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
@@ -150,9 +151,9 @@ export default function MyClaimsQueueTable({
 	const getActivityIndicator = (lastUpdate: string | null) => {
 		if (!lastUpdate) return null;
 		const daysSince = dayjs().diff(dayjs(lastUpdate), 'day');
-		if (daysSince === 0) return <Box sx={{ ...styles.indicator, bgcolor: 'success.main' }} />;
-		if (daysSince <= 7) return <Box sx={{ ...styles.indicator, bgcolor: 'warning.main' }} />;
-		return <Box sx={{ ...styles.indicator, bgcolor: 'error.main' }} />;
+		if (daysSince === 0) return <div style={{ ...styles.indicator, }} />;
+		if (daysSince <= 7) return <div style={{ ...styles.indicator, }} />;
+		return <div style={{ ...styles.indicator, }} />;
 	};
 
 	// DataGrid columns
@@ -220,10 +221,10 @@ export default function MyClaimsQueueTable({
 			headerName: 'Last Update',
 			renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
 			renderCell: (params) => (
-				<Box display="flex" alignItems="center" gap={1}>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{getActivityIndicator(params.value)}
 					{formatMDYAbv(params.value)}
-				</Box>
+				</div>
 			),
 			align: 'right',
 			width: 140,
@@ -237,7 +238,7 @@ export default function MyClaimsQueueTable({
 			{/* Search and Filters Toolbar */}
 			<Toolbar
 				left={
-					<Box display="flex" gap={1} alignItems="center">
+					<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 						<SearchInput
 							value={searchTerm}
 							onChange={(value) => setSearchTerm(value)}
@@ -248,15 +249,12 @@ export default function MyClaimsQueueTable({
 							buttonProps={{
 								onClick: handleOpenFilters,
 								endIcon: <IconFilter size={20} />,
-							}}
-						>
+							}}>
 							Filters...
 							{hasActiveFilters && (
-								<Box
-									component="span"
-									sx={{
-										ml: 0.5,
-										bgcolor: 'primary.main',
+								<div
+style={{
+										marginLeft: 4,
 										color: 'white',
 										borderRadius: '50%',
 										width: 18,
@@ -266,10 +264,9 @@ export default function MyClaimsQueueTable({
 										justifyContent: 'center',
 										fontSize: 11,
 										fontWeight: 600,
-									}}
-								>
+									}}>
 									{[appliedSubstatus, appliedRecoveryStatus, appliedSearch].filter(Boolean).length}
-								</Box>
+								</div>
 							)}
 						</BasicButtonStyled>
 						{hasActiveFilters && (
@@ -277,22 +274,20 @@ export default function MyClaimsQueueTable({
 								buttonProps={{
 									onClick: handleClearAllFilters,
 									size: 'small',
-								}}
-							>
+								}}>
 								Clear all filters
 							</BasicButtonStyled>
 						)}
-					</Box>
+					</div>
 				}
 				right={
-					<Button
+					<CustomButton
 						variant="contained"
 						startIcon={<IconDownload size={20} />}
 						onClick={handleExport}
-						disabled={rows.length === 0}
-					>
+						disabled={rows.length === 0}>
 						Export
-					</Button>
+					</CustomButton>
 				}
 				height={55}
 				padding={'0px 10px'}
@@ -302,10 +297,10 @@ export default function MyClaimsQueueTable({
 			{!!filtersAnchorEl && (
 				<BasicPopper anchorEl={filtersAnchorEl} setAnchorEl={handleCloseFilters} placement="bottom-start">
 					<Paper sx={styles.filtersPaper}>
-						<Typography fontSize={14} fontWeight={600} marginBottom={2}>
+						<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
 							Filter Claims
-						</Typography>
-						<Box display="flex" flexDirection="column" gap={2}>
+						</span>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
 							<SubstatusSelect
 								substatus={draftSubstatus as ClaimSubstatus | null}
 								setSubstatus={(status) => setDraftSubstatus(status as string | null)}
@@ -316,21 +311,21 @@ export default function MyClaimsQueueTable({
 								setRecoveryStatus={(status) => setDraftRecoveryStatus(status as string | null)}
 								text="Recovery"
 							/>
-						</Box>
-						<Box display="flex" gap={1} marginTop={2} justifyContent="flex-end">
-							<Button size="small" onClick={handleCloseFilters}>
+						</div>
+						<div style={{ display: 'flex', gap: 8, marginTop: 2, justifyContent: 'flex-end' }}>
+							<CustomButton size="sm" variant="text" onClick={handleCloseFilters}>
 								Cancel
-							</Button>
-							<Button size="small" variant="contained" onClick={handleApplyFilters}>
+							</CustomButton>
+							<CustomButton size="sm" variant="contained" onClick={handleApplyFilters}>
 								Apply
-							</Button>
-						</Box>
+							</CustomButton>
+						</div>
 					</Paper>
 				</BasicPopper>
 			)}
 
 			{/* DataGrid */}
-			<Box sx={styles.table}>
+			<div style={styles.table}>
 				<DataGridPro
 					rows={rows}
 					columns={columns}
@@ -355,7 +350,7 @@ export default function MyClaimsQueueTable({
 						),
 					}}
 				/>
-			</Box>
+			</div>
 		</>
 	);
 }
@@ -370,7 +365,7 @@ const styles = {
 		...dataGridFocusStyles,
 	},
 	filtersPaper: {
-		mt: 0.625,
+		marginTop: 5,
 		padding: '24px',
 		minWidth: 300,
 		maxWidth: 400,

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Chip, Stack, Typography } from '@mui/material';
+import Chip from '@/components/ui/Chip';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { ClaimStatus } from '@/config/enums';
@@ -18,69 +18,33 @@ export default function MyClaimsMetric() {
 		(stats[ClaimStatus.IN_PROGRESS] ?? 0) + (stats[ClaimStatus.BLOCKED] ?? 0) + (stats[ClaimStatus.UNWORKED] ?? 0);
 
 	return (
-		<Box sx={{ ...containerStyles.section, ...styles.container }}>
-			<Typography sx={containerStyles.sectionTitle}>My Open Claims</Typography>
-			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+		<div style={{ ...containerStyles.section, ...styles.container }}>
+			<span style={containerStyles.sectionTitle}>My Open Claims</span>
+			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				{isLoading ? (
 					<Skeleton variant="rect" width="100%" height="100%" />
 				) : (
-					<Stack width="100%" height="100%" spacing={2}>
+					<div style={{ width: '100%', height: '100%', gap: 16 }}>
 						{/* Main Count */}
-						<Box display="flex" alignItems="baseline" gap={1}>
-							<Typography variant="h2" fontSize={48} fontWeight={700} color="primary">
+						<div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+							<span style={{ fontSize: 48, fontWeight: 700, color: 'primary' }}>
 								{totalOpen}
-							</Typography>
-							<Typography variant="body2" color="text.secondary">
+							</span>
+							<span style={{ color: 'text.secondary' }}>
 								open {totalOpen === 1 ? 'claim' : 'claims'}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 
 						{/* Status Breakdown */}
-						<Box display="flex" gap={1} flexWrap="wrap">
-							<Chip
-								label={`${stats[ClaimStatus.IN_PROGRESS] ?? 0} In Progress`}
-								size="small"
-								sx={{
-									border: 'none',
-									backgroundColor: 'var(--status-warning)',
-									color: 'white',
-									fontSize: 12,
-									'& .MuiChip-label': {
-										color: 'white',
-									},
-								}}
-							/>
-							<Chip
-								label={`${stats[ClaimStatus.BLOCKED] ?? 0} Blocked`}
-								size="small"
-								sx={{
-									border: 'none',
-									backgroundColor: ORANGE,
-									color: 'white',
-									fontSize: 12,
-									'& .MuiChip-label': {
-										color: 'white',
-									},
-								}}
-							/>
-							<Chip
-								label={`${stats[ClaimStatus.UNWORKED] ?? 0} Unworked`}
-								size="small"
-								sx={{
-									border: 'none',
-									backgroundColor: 'var(--status-error)',
-									color: 'white',
-									fontSize: 12,
-									'& .MuiChip-label': {
-										color: 'white',
-									},
-								}}
-							/>
-						</Box>
-					</Stack>
+						<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+							<Chip color="warning" size="sm">{`${stats[ClaimStatus.IN_PROGRESS] ?? 0} In Progress`}</Chip>
+							<Chip color="warning" size="sm">{`${stats[ClaimStatus.BLOCKED] ?? 0} Blocked`}</Chip>
+							<Chip color="error" size="sm">{`${stats[ClaimStatus.UNWORKED] ?? 0} Unworked`}</Chip>
+						</div>
+					</div>
 				)}
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 

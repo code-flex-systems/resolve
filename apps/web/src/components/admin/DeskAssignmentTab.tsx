@@ -22,7 +22,6 @@ import CustomPagination from '../common/CustomPagination';
 import DeskLocationTypeFilter from '../common/DeskLocationTypeFilter';
 import DeskLocationFilter from '../common/DeskLocationFilter';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { Dialog } from '@mui/material';
 
 function NoUsersRows() {
 	return (

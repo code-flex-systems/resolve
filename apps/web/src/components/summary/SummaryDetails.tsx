@@ -1,6 +1,5 @@
 'use client';
 import { dataGridFocusStyles } from '@/styles/theme';
-import { Paper } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useMemo, useRef } from 'react';
@@ -73,7 +72,7 @@ export default function SummaryDetails() {
 	}, [summaryDetails.count]);
 
 	return (
-		<Paper elevation={0} sx={styles.table}>
+		<div style={styles.table}>
 			<DataGridPro
 				columns={columns}
 				columnHeaderHeight={45}
@@ -105,7 +104,7 @@ export default function SummaryDetails() {
 				disableColumnMenu
 				sx={styles.tableOverrides}
 			/>
-		</Paper>
+		</div>
 	);
 }
 

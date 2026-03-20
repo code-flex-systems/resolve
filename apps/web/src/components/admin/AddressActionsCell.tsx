@@ -8,7 +8,6 @@ import BasicDialog from '../common/BasicDialog';
 import AddressDialog from './AddressDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { Dialog } from '@mui/material';
 
 interface AddressActionsCellProps extends GridRenderCellParams {
 	isAdminContext?: boolean;

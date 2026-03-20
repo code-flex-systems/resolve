@@ -3,7 +3,7 @@
 import { IconBinaryTree } from '@tabler/icons-react';
 import { PopperProps } from '@mui/material';
 import { useState } from 'react';
-import Select from '@/components/ui/Select';
+import Dropdown from '@/components/ui/Dropdown';
 import BasicPopper from '@/components/common/BasicPopper';
 import { EntityName } from '@/api/utils/activityLogger';
 
@@ -68,13 +68,13 @@ export default function AdminLogsEntityFilter({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={handleClose} placement="bottom-start">
-					<div style={{ padding: 12, minWidth: 240 }}>
-						<Select
+					<div  style={{ padding: 12, minWidth: 240 }}>
+						<Dropdown
 							fullWidth
 							label="Entity"
 							value={value ?? ''}
 							onChange={(val) => {
-								const nextValue = val as EntityName;
+								const nextValue = String(val) as EntityName;
 								onChange(nextValue || null);
 								handleClose();
 							}}

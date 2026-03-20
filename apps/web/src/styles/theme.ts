@@ -4,13 +4,11 @@
  * This file is being phased out. Use CSS custom properties from tokens.css instead.
  *
  * What remains:
- * 1. Minimal MUI theme (font + colors only, for remaining MUI components)
- * 2. Deprecated color constants (still imported during migration)
- * 3. containerStyles (still imported by ~31 files, being replaced with CSS Modules)
- * 4. DataGrid styles (kept until TanStack Table migration)
+ * 1. Deprecated color constants (still imported during migration)
+ * 2. containerStyles (still imported by ~31 files, being replaced with CSS Modules)
+ * 3. DataGrid styles (kept until TanStack Table migration)
  */
 
-import { createTheme } from '@mui/material/styles';
 import { gridClasses } from '@mui/x-data-grid-pro';
 
 // =============================================================================
@@ -68,15 +66,16 @@ export const containerStyles = {
 		fontSize: 13,
 		fontWeight: 600,
 		color: TEXT_PRIMARY,
-		px: 2,
-		py: 1.5,
-		bgcolor: BG_TERTIARY,
+		paddingLeft: 16,
+		paddingRight: 16,
+		paddingTop: 12,
+		paddingBottom: 12,
+		backgroundColor: BG_TERTIARY,
 		borderBottom: `1px solid ${BORDER_LIGHT}`,
-	},
+	} as React.CSSProperties,
 	sectionContent: {
-		p: 2,
-		bgcolor: '#ffffff',
-	},
+		padding: 16,
+	} as React.CSSProperties,
 };
 
 // =============================================================================

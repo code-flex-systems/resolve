@@ -1,7 +1,8 @@
 'use client';
 
 import { IconHistory } from '@tabler/icons-react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import Dialog from '@/components/ui/Dialog';
+import Dropdown from '@/components/ui/Dropdown';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -181,22 +182,20 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 			{/* Filter toolbar (full mode only) */}
 			{!compact && (
 				<div style={{ flexDirection: 'column', display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16 }}>
-					<FormControl size="small" style={{ minWidth: 160 }}>
-						<InputLabel>Status</InputLabel>
-						<Select
-							value={statusFilter}
+					<div style={{ minWidth: 160 }}>
+						<Dropdown
 							label="Status"
-							onChange={(e) =>
-								handleStatusFilterChange(e.target.value as RuleExecutionStatus | '')
-							}
-						>
-							<MenuItem value="">All</MenuItem>
-							<MenuItem value={RuleExecutionStatus.PENDING}>Pending</MenuItem>
-							<MenuItem value={RuleExecutionStatus.EXECUTED}>Executed</MenuItem>
-							<MenuItem value={RuleExecutionStatus.FAILED}>Failed</MenuItem>
-							<MenuItem value={RuleExecutionStatus.SKIPPED}>Skipped</MenuItem>
-						</Select>
-					</FormControl>
+							options={[
+								{ value: '', label: 'All' },
+								{ value: RuleExecutionStatus.PENDING, label: 'Pending' },
+								{ value: RuleExecutionStatus.EXECUTED, label: 'Executed' },
+								{ value: RuleExecutionStatus.FAILED, label: 'Failed' },
+								{ value: RuleExecutionStatus.SKIPPED, label: 'Skipped' },
+							]}
+							value={statusFilter}
+							onChange={(v) => handleStatusFilterChange(String(v) as RuleExecutionStatus | '')}
+						/>
+					</div>
 				</div>
 			)}
 
@@ -246,73 +245,77 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 			)}
 
 			{/* Detail Dialog */}
-			{detailRow && (
-				<Dialog open onClose={() => setDetailRow(null)} maxWidth="sm" fullWidth>
-					<DialogTitle>Execution Detail</DialogTitle>
-					<DialogContent>
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+			<Dialog
+				open={!!detailRow}
+				onClose={() => setDetailRow(null)}
+				title="Execution Detail"
+				size="sm"
+				footer={
+					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+						<Button onClick={() => setDetailRow(null)}>Close</Button>
+					</div>
+				}
+			>
+				{detailRow && (
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+						<div>
+							<span style={{ color: 'var(--text-secondary)' }}>
+								Status
+							</span>
+							<div style={{ marginTop: 4 }}>
+								<Chip
+									color={EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.color || 'default'}
+									size="sm">{EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.label || detailRow.status}</Chip>
+							</div>
+						</div>
+
+						{detailRow.error_message && (
 							<div>
 								<span style={{ color: 'var(--text-secondary)' }}>
-									Status
+									Error Message
 								</span>
-								<div style={{ marginTop: 4 }}>
-									<Chip 
-										color={EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.color || 'default'}
-										size="sm">{EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.label || detailRow.status}</Chip>
+								<span
+									style={{  color: 'var(--status-error)' ,
+										marginTop: 4,
+										padding: 12,
+										backgroundColor: '#fef2f2',
+										borderRadius: 4,
+										fontFamily: 'monospace',
+										whiteSpace: 'pre-wrap',
+										wordBreak: 'break-word',
+									 }}
+								>
+									{detailRow.error_message}
+								</span>
+							</div>
+						)}
+
+						{detailRow.result_data && (
+							<div>
+								<span style={{ color: 'var(--text-secondary)' }}>
+									Result Data
+								</span>
+								<div
+									style={{
+										marginTop: 4,
+										padding: 12,
+										backgroundColor: 'grey.50',
+										borderRadius: 4,
+										overflow: 'auto',
+										maxHeight: 300,
+									}}
+								>
+									<pre style={{ margin: 0, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+										{typeof detailRow.result_data === 'string'
+											? detailRow.result_data
+											: JSON.stringify(detailRow.result_data, null, 2)}
+									</pre>
 								</div>
 							</div>
-
-							{detailRow.error_message && (
-								<div>
-									<span style={{ color: 'var(--text-secondary)' }}>
-										Error Message
-									</span>
-									<span
-										style={{  color: 'var(--status-error)' , 
-											marginTop: 4,
-											padding: 12,
-											backgroundColor: '#fef2f2',
-											borderRadius: 4,
-											fontFamily: 'monospace',
-											whiteSpace: 'pre-wrap',
-											wordBreak: 'break-word',
-										 }}
-									>
-										{detailRow.error_message}
-									</span>
-								</div>
-							)}
-
-							{detailRow.result_data && (
-								<div>
-									<span style={{ color: 'var(--text-secondary)' }}>
-										Result Data
-									</span>
-									<div
-										style={{
-											marginTop: 4,
-											padding: 12,
-											backgroundColor: 'grey.50',
-											borderRadius: 4,
-											overflow: 'auto',
-											maxHeight: 300,
-										}}
-									>
-										<pre style={{ margin: 0, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-											{typeof detailRow.result_data === 'string'
-												? detailRow.result_data
-												: JSON.stringify(detailRow.result_data, null, 2)}
-										</pre>
-									</div>
-								</div>
-							)}
-						</div>
-					</DialogContent>
-					<DialogActions>
-						<Button onClick={() => setDetailRow(null)}>Close</Button>
-					</DialogActions>
-				</Dialog>
-			)}
+						)}
+					</div>
+				)}
+			</Dialog>
 		</div>
 	);
 }

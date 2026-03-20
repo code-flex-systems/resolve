@@ -1,6 +1,5 @@
 'use client';
 
-import { MenuItem } from '@mui/material';
 import { IconCircleCheck, IconFileSearch, IconCurrencyDollar } from '@tabler/icons-react';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
@@ -151,9 +150,9 @@ export default function ClaimListItem({
 
 	if (variant === 'menuItem') {
 		return (
-			<MenuItem className={css.menuItem} onClick={onClick}>
+			<div className={css.menuItem} onClick={onClick} style={{ padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}>
 				{content}
-			</MenuItem>
+			</div>
 		);
 	}
 

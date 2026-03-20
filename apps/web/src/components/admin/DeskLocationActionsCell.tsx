@@ -8,7 +8,6 @@ import BasicDialog from '../common/BasicDialog';
 import DeskLocationDialog from './DeskLocationDialog';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { Dialog } from '@mui/material';
 
 interface DeskLocationActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;

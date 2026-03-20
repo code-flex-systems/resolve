@@ -1,7 +1,7 @@
 'use client';
 import { Autocomplete, TextField } from '@mui/material';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import Dropdown from '@/components/ui/Dropdown';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import BasicDialog from '../common/BasicDialog';
 import AddressFields from '../common/AddressFields';
@@ -182,11 +182,11 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 								renderOption={(props, party) => (
 									<li {...props} key={party.id}>
 										<div>
-											<span style={{ fontWeight: 'bold' }}>
+											<span  style={{ fontWeight: 'bold' }}>
 												{party.name}
 											</span>
 											{party.organization && (
-												<span style={{ color: 'var(--text-secondary)' }}>
+												<span  style={{ color: 'var(--text-secondary)' }}>
 													{party.organization}
 												</span>
 											)}
@@ -222,7 +222,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 				/>
 
 				{/* Address Fields */}
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+				<div  style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 					<AddressFields
 						control={control}
 						errors={errors}
@@ -233,14 +233,14 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 				</div>
 
 				{/* Address Type & Status Row */}
-				<div style={{ display: 'flex', gap: 16 }}>
+				<div  style={{ display: 'flex', gap: 16 }}>
 					<Controller
 						name="address_type"
 						control={control}
 						render={({ field }) => (
-							<Select
+							<Dropdown
 								value={field.value}
-								onChange={(val) => field.onChange(val)}
+								onChange={(val) => field.onChange(String(val))}
 								label="Address Type"
 								fullWidth
 								options={[
@@ -255,9 +255,9 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 						name="address_status"
 						control={control}
 						render={({ field }) => (
-							<Select
+							<Dropdown
 								value={field.value}
-								onChange={(val) => field.onChange(val)}
+								onChange={(val) => field.onChange(String(val))}
 								label="Address Status"
 								fullWidth
 								options={[
@@ -272,7 +272,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 				</div>
 
 				{!hasRequiredField && (
-					<span style={{  color: 'var(--status-error)' ,  fontStyle: 'italic'  }}>
+					<span  style={{  color: 'var(--status-error)' ,  fontStyle: 'italic'  }}>
 						* At least one of: Address Label, City, or Street Address is required
 					</span>
 				)}

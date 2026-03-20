@@ -1,7 +1,6 @@
 'use client';
 
 import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
-import { Box, Paper, Typography } from '@mui/material';
 import { useRecoveryTrpc, RecoveryEventWithDetails } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -153,15 +152,15 @@ export default function RecoveryEventsTable({
 	);
 
 	return (
-		<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
-			<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-				<Typography variant="h6" fontSize={18} fontWeight={600}>
+		<div style={{ ...styles.paper, ...containerStyles.beveledCard }}>
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+				<span style={{ fontSize: 18, fontWeight: 600 }}>
 					Recovery Events
-				</Typography>
-				<Box display="flex" alignItems="center" gap={2}>
-					<Typography variant="caption" fontSize={12} color="text.secondary">
+				</span>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+					<span style={{ fontSize: 12, color: 'text.secondary' }}>
 						{rowCount.toLocaleString()} event{rowCount !== 1 ? 's' : ''}
-					</Typography>
+					</span>
 					<ExportButton
 						onExport={async () => {
 							const result = await trpcUtils.recovery.exportRecoveryEvents.fetch({ filters });
@@ -171,10 +170,10 @@ export default function RecoveryEventsTable({
 						filename="recovery_events"
 						size="sm"
 					/>
-				</Box>
-			</Box>
+				</div>
+			</div>
 
-			<Box width="100%" height={400}>
+			<div style={{ width: '100%', height: 400 }}>
 				<DataGridPro
 					rows={data.rows}
 					columns={columns}
@@ -208,8 +207,8 @@ export default function RecoveryEventsTable({
 					disableColumnSelector
 					disableColumnMenu
 				/>
-			</Box>
-		</Paper>
+			</div>
+		</div>
 	);
 }
 

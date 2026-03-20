@@ -8,7 +8,6 @@ import BasicDialog from '../common/BasicDialog';
 import RepresentativeDialog from './RepresentativeDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { Dialog } from '@mui/material';
 
 interface RepresentativeActionsCellProps extends GridRenderCellParams {
 	isAdminContext?: boolean;

@@ -1,6 +1,6 @@
 'use client';
 
-import { MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import { IconSubtask } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
@@ -181,26 +181,30 @@ export default function TaskCreationDialog({
 					)}
 				/>
 
-				<FormControl sx={{ width: 400 }}>
-					<InputLabel>Work Units (1 unit = 5 min)</InputLabel>
-					<Controller
-						name="workUnits"
-						control={control}
-						render={({ field }) => (
-							<Select {...field} disabled={isPending}>
-								<MenuItem value={1}>1 unit (5 min)</MenuItem>
-								<MenuItem value={2}>2 units (10 min)</MenuItem>
-								<MenuItem value={3}>3 units (15 min)</MenuItem>
-								<MenuItem value={4}>4 units (20 min)</MenuItem>
-								<MenuItem value={5}>5 units (25 min)</MenuItem>
-								<MenuItem value={6}>6 units (30 min)</MenuItem>
-								<MenuItem value={8}>8 units (40 min)</MenuItem>
-								<MenuItem value={10}>10 units (50 min)</MenuItem>
-								<MenuItem value={12}>12 units (1 hour)</MenuItem>
-							</Select>
-						)}
-					/>
-				</FormControl>
+				<Controller
+					name="workUnits"
+					control={control}
+					render={({ field }) => (
+						<Dropdown
+							label="Work Units (1 unit = 5 min)"
+							options={[
+								{ value: 1, label: '1 unit (5 min)' },
+								{ value: 2, label: '2 units (10 min)' },
+								{ value: 3, label: '3 units (15 min)' },
+								{ value: 4, label: '4 units (20 min)' },
+								{ value: 5, label: '5 units (25 min)' },
+								{ value: 6, label: '6 units (30 min)' },
+								{ value: 8, label: '8 units (40 min)' },
+								{ value: 10, label: '10 units (50 min)' },
+								{ value: 12, label: '12 units (1 hour)' },
+							]}
+							value={field.value}
+							onChange={(v) => field.onChange(Number(v))}
+							disabled={isPending}
+							name={field.name}
+						/>
+					)}
+				/>
 			</div>
 		</BasicDialog>
 	);

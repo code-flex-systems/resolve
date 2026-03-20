@@ -1,7 +1,7 @@
 'use client';
 
 import { IconMapPin, IconPlus, IconSearch, IconWorld } from '@tabler/icons-react';
-import { FormControl, MenuItem, Select } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
@@ -68,15 +68,17 @@ export default function WorkflowsView() {
 
 				{/* Active/Inactive Filter and Add New Button */}
 				<div style={{ paddingInline: 16, paddingBottom: 8, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-					<FormControl size="small" style={{ minWidth: 100 }}>
-						<Select
+					<div style={{ minWidth: 100 }}>
+						<Dropdown
+							options={[
+								{ value: 'active', label: 'Active' },
+								{ value: 'inactive', label: 'Inactive' },
+							]}
 							value={isActive ? 'active' : 'inactive'}
-							onChange={(e) => setIsActive(e.target.value === 'active')}
-						>
-							<MenuItem value="active">Active</MenuItem>
-							<MenuItem value="inactive">Inactive</MenuItem>
-						</Select>
-					</FormControl>
+							onChange={(v) => setIsActive(v === 'active')}
+							size="sm"
+						/>
+					</div>
 
 					<BasicButtonStyled
 						buttonProps={{

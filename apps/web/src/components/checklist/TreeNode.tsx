@@ -1,5 +1,7 @@
 'use client';
-import { Box, CircularProgress, IconButton, Stack, Tooltip, Typography , Fade } from '@mui/material';
+import { Spinner } from '@/components/ui/Progress';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
@@ -61,25 +63,25 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 		switch (status) {
 			case PageInstanceStatus.UNSTARTED:
 				return (
-					<Tooltip title="Unstarted">
+					<Tooltip content="Unstarted">
 						<IconCircle size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
-					<Tooltip title="Started">
+					<Tooltip content="Started">
 						<IconAdjustments size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.COMPLETE:
 				return (
-					<Tooltip title="Complete">
+					<Tooltip content="Complete">
 						<IconCircleCheck style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.STALE:
 				return (
-					<Tooltip title="This page has changed">
+					<Tooltip content="This page has changed">
 						<IconAlertCircle size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
@@ -88,33 +90,31 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 	return (
 		<>
-			<Box
-				sx={{
+			<div
+				style={{
 					...styles.node,
 					...(selected && mode === ChecklistMode.EDIT
 						? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
 						: {}),
 					paddingLeft: `${level * 20}px`,
-					'&:hover .node-selected-inner': {
-						// color: 'var(--text-accent)',
-					},
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
 				}}
 				onClick={() => updateSelectedPage(instanceId)}
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
 				className={selected ? 'node node-selected' : 'node'}
 			>
 				<div className="flex-row-left">
 					{!!filteredChildren.length ? (
-						<IconButton
+						<Button
+							variant="icon"
+							size="sm"
 							onClick={(e) => {
 								setExpanded((prev) => !prev);
 								clearExpandedBranch();
 								e.stopPropagation();
 								e.preventDefault();
 							}}
-							disableRipple
 						>
 							<IconChevronRight
 							 style={{
@@ -123,33 +123,32 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 								}}
 								className={selected ? 'node-selected-inner' : ''}
 							/>
-						</IconButton>
+						</Button>
 					) : (
-						<Box sx={{ width: 30, minWidth: 30 }} />
+						<div style={{ width: 30, minWidth: 30 }} />
 					)}
-					<Typography
-						maxWidth={350}
-						color={selected ? 'white' : ''}
+					<span
 						className={selected ? 'node-selected-inner' : ''}
+						style={{ maxWidth: 350, color: selected ? 'white' : '' }}
 					>
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
-					</Typography>
+					</span>
 				</div>
-				<Fade in={mode === ChecklistMode.VIEW || isFetching} unmountOnExit>
+				{(mode === ChecklistMode.VIEW || isFetching) && (
 					<span>
 						{isFetching ? (
-							<CircularProgress size={19} sx={{ color: 'white', ...styles.icon }} />
+							<Spinner size="sm" className="" />
 						) : (
 							statusIcon
 						)}
 					</span>
-				</Fade>
-			</Box>
+				)}
+			</div>
 
 			{questions && mode === ChecklistMode.EDIT && (
 				<Collapse open={selected && !isFetching}>
-					<Stack pb={1} sx={styles.questionsContainer}>
+					<div style={{ ...styles.questionsContainer, paddingBottom: 8 }}>
 						{questions.map((q, i) => (
 							<QuestionNode
 								key={i}
@@ -172,7 +171,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							level={level + 1}
 							idx={-1}
 						/>
-					</Stack>
+					</div>
 				</Collapse>
 			)}
 
@@ -191,20 +190,21 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 const styles = {
 	icon: {
-		mt: 0.5,
-		ml: 0.75,
-		mr: 1.25,
+		marginTop: 4,
+		marginLeft: 6,
+		marginRight: 10,
 		width: 18,
 		height: 18,
 	},
 	node: {
 		width: '100%',
 		minHeight: 32,
-		py: 0.75,
-	},
+		paddingTop: 6,
+		paddingBottom: 6,
+	} as React.CSSProperties,
 	questionsContainer: {
 		borderBottomLeftRadius: 2,
 		borderBottomRightRadius: 2,
 		background: containerStyles.gradientCard.background,
-	},
+	} as React.CSSProperties,
 };

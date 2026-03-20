@@ -23,7 +23,6 @@ import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
 import { formatAddressInline } from '@/schemas/addressSchemas';
-import { Dialog } from '@mui/material';
 
 interface RepresentativesTabProps {
 	isAdminContext?: boolean;

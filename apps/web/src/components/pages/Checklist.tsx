@@ -9,7 +9,6 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useEffect } from 'react';
-import { Box } from '@mui/material';
 import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
 import ChecklistHandoffDialog from '../checklist/ChecklistHandoffDialog';
 
@@ -33,11 +32,11 @@ export default function Checklist() {
 	return !checklist || (claimId !== -1 && !claim) ? (
 		<></>
 	) : (
-		<Box width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="stretch">
+		<div      style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'stretch' }}>
 			<PageNavigation />
 			{mode === ChecklistMode.EDIT ? <PageEditor /> : <Page />}
 			{showChecklistHandoffDialog && <ChecklistHandoffDialog />}
 			{showChecklistProgressDialog && claimId && <ChecklistProgressDialog />}
-		</Box>
+		</div>
 	);
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { Box, Stack, Typography , Fade } from '@mui/material';
 import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import { Dayjs } from 'dayjs';
 import { useRouter } from 'next/navigation';
@@ -23,21 +22,20 @@ export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: D
 	};
 
 	return (
-		<Box sx={{ ...styles.container, ...(flexGrow && styles.flexContainer) }}>
-			<Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1.5}>
+		<div style={{ ...styles.container, ...(flexGrow && styles.flexContainer) }}>
+			<span style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
 				{selectedDate ? selectedDate.format('MMMM D, YYYY') : 'Select a date'}
-			</Typography>
+			</span>
 
-			<Fade key={selectedDate?.toString() ?? 'empty'} in={true} timeout={1000}>
-				<Box sx={{ ...styles.scrollContainer, ...(flexGrow && styles.flexScrollContainer) }}>
+			<div style={{ ...styles.scrollContainer, ...(flexGrow && styles.flexScrollContainer) }}>
 					{deadlines.length === 0 ? (
-						<Box sx={styles.emptyState}>
-							<Typography variant="body2" color="text.secondary" textAlign="center">
+						<div style={styles.emptyState}>
+							<span style={{ color: 'text.secondary', textAlign: 'center' as const }}>
 								No deadlines for this day
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					) : (
-						<Stack spacing={1}>
+						<div style={{ gap: 8 }}>
 							{deadlines.map((deadline) => (
 								<DeadlineListItem
 									key={deadline.id}
@@ -46,11 +44,10 @@ export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: D
 									showTime={true}
 								/>
 							))}
-						</Stack>
+						</div>
 					)}
-				</Box>
-			</Fade>
-		</Box>
+				</div>
+		</div>
 	);
 }
 
@@ -64,29 +61,15 @@ const styles = {
 	flexContainer: {
 		flex: 1,
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		minHeight: 0,
-		overflow: 'hidden',
+		overflow: 'hidden' as const,
 	},
 	scrollContainer: {
 		maxHeight: 220,
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		paddingRight: 1,
-		'&::-webkit-scrollbar': {
-			width: '6px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: 'var(--bg-tertiary)',
-			borderRadius: '3px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: 'var(--bg-secondary)',
-			borderRadius: '3px',
-			'&:hover': {
-				background: 'var(--bg-tertiary)',
-			},
-		},
+		overflowY: 'auto' as const,
+		overflowX: 'hidden' as const,
+		paddingRight: 8,
 	},
 	flexScrollContainer: {
 		flex: 1,

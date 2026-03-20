@@ -1,6 +1,5 @@
 'use client';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import { Box, Paper } from '@mui/material';
 import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
@@ -103,9 +102,9 @@ export default function Breakdown() {
 	}, [selectedAnswerId]);
 
 	return (
-		<Box flex={1} height="100%" flexShrink={1} minWidth={0}>
-			<Paper sx={styles.paper} className="flex-col-start">
-				<Box sx={styles.table}>
+		<div     style={{ flex: 1, height: '100%', flexShrink: 1, minWidth: 0 }}>
+			<div  className="flex-col-start" style={styles.paper}>
+				<div style={styles.table}>
 					<DataGridPro
 						columns={COLUMNS}
 						columnHeaderHeight={45}
@@ -138,9 +137,9 @@ export default function Breakdown() {
 						disableColumnMenu
 						sx={styles.tableOverrides}
 					/>
-				</Box>
-			</Paper>
-		</Box>
+				</div>
+			</div>
+		</div>
 	);
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import ClaimsSearch from '@/components/home/ClaimsSearch';
 import ClaimSummaryDialog from '@/components/admin/ClaimSummaryDialog';
 import ChecklistSelectionDialog from '@/components/common/ChecklistSelectionDialog';
@@ -43,36 +42,36 @@ export default function SearchLanding() {
 
 	return (
 		<>
-			<Box sx={styles.container}>
-				<Paper sx={styles.paper}>
-					<Stack width="100%" maxWidth={700} spacing={4} mx="auto">
+			<div style={styles.container}>
+				<div style={styles.paper}>
+					<div style={{ width: '100%', maxWidth: 700, gap: 32, marginLeft: 'auto', marginRight: 'auto' }}>
 						{/* Hero Header */}
-						<Box textAlign="center">
-							<Typography variant="h3" fontSize={48} fontWeight={700} color="primary" mb={2}>
+						<div style={{ textAlign: 'center' }}>
+							<span style={{ fontSize: 48, fontWeight: 700, color: 'primary', marginBottom: 16 }}>
 								MANIFEST
-							</Typography>
-							<Typography variant="h5" fontSize={24} fontWeight={500} color="text.secondary" mb={1}>
+							</span>
+							<span style={{ fontSize: 24, fontWeight: 500, color: 'text.secondary', marginBottom: 8 }}>
 								Welcome{session?.user ? `, ${session.user.name?.split(' ')[0] ?? ''}` : ''}!
-							</Typography>
-							<Typography variant="body1" fontSize={16} color="text.secondary" mt={2}>
+							</span>
+							<span style={{ fontSize: 16, color: 'text.secondary', marginTop: 16 }}>
 								Search for a claim to get started
-							</Typography>
-						</Box>
+							</span>
+						</div>
 
 						{/* Hero Search */}
-						<Box sx={styles.searchContainer}>
+						<div style={styles.searchContainer}>
 							<ClaimsSearch onClaimSelect={handleClaimSelect} heroMode />
-						</Box>
+						</div>
 
 						{/* Helper Text */}
-						<Box textAlign="center">
-							<Typography variant="body2" fontSize={14} color="text.disabled">
+						<div style={{ textAlign: 'center' }}>
+							<span style={{ fontSize: 14, color: 'text.disabled' }}>
 								Search by claim number or insured name
-							</Typography>
-						</Box>
-					</Stack>
-				</Paper>
-			</Box>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
 
 			{/* Claim Summary Dialog */}
 			<ClaimSummaryDialog
@@ -102,12 +101,12 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'center',
 		alignItems: 'center',
-		p: '40px 20px',
+		padding: '40px 20px',
 	},
 	paper: {
 		width: '100%',
 		maxWidth: 900,
-		p: '30px 40px',
+		padding: '30px 40px',
 		borderRadius: 4,
 		m: '15px auto',
 		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.06) 0%, rgba(255, 255, 255, 1) 100%)',

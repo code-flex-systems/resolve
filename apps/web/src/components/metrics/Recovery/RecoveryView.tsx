@@ -1,6 +1,5 @@
 'use client';
 
-import { Box, Paper, Stack, Typography } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import { useMemo, useState } from 'react';
 import { DateRange } from '@mui/x-date-pickers-pro';
@@ -53,35 +52,35 @@ export default function RecoveryView() {
 	const [recoverySource, setRecoverySource] = useState<string>('');
 
 	return (
-		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-				<Box marginRight="5px">
+		<div      style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+			<div     style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+				<div  style={{ marginRight: '5px' }}>
 					<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
-				</Box>
-				<Box marginRight="5px">
+				</div>
+				<div  style={{ marginRight: '5px' }}>
 					<RecoveryStatusSelect recoveryStatus={recoveryStatus} setRecoveryStatus={setRecoveryStatus} />
-				</Box>
-				<Box marginRight="5px">
+				</div>
+				<div  style={{ marginRight: '5px' }}>
 					<RecoverySourceFilter recoverySource={recoverySource} setRecoverySource={setRecoverySource} />
-				</Box>
-				<Box marginRight="5px">
+				</div>
+				<div  style={{ marginRight: '5px' }}>
 					<ChecklistSelect checklist={checklist} setChecklist={setChecklist} />
-				</Box>
-			</Box>
-			<Box sx={styles.divider}>
+				</div>
+			</div>
+			<div style={styles.divider}>
 				<Divider />
-			</Box>
-			<Box
-				width="100%"
-				height="calc(100vh - 70px)"
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="flex-start"
-				bgcolor="#F7F8FA"
-				padding="20px"
-				overflow="auto"
+			</div>
+			<div
+				
+				
+				
+				
+				
+				
+				
+				 style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}
 			>
-				<Stack width="100%" spacing={2}>
+				<div   style={{ width: '100%', gap: 16 }}>
 					<RecoveryMetricsChart
 						range={range}
 						isBreakdown={true}
@@ -101,9 +100,9 @@ export default function RecoveryView() {
 						recoverySource={recoverySource}
 						checklistId={checklist?.id}
 					/>
-				</Stack>
-			</Box>
-		</Stack>
+				</div>
+			</div>
+		</div>
 	);
 }
 

@@ -7,7 +7,6 @@ import Divider from '@/components/ui/Divider';
 import BasicDialog from '../common/BasicDialog';
 import { formatMDY } from '@/lib/utils/utils';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
-import { Dialog } from '@mui/material';
 
 interface DocumentPreviewDialogProps {
 	onClose: () => void;
@@ -34,7 +33,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 	return (
 		<BasicDialog
 			title={
-				<span noWrap style={{ maxWidth: '80%' }}>
+				<span style={{ maxWidth: '80%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
 					{document.title || document.alias}
 				</span>
 			}
@@ -88,7 +87,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 					}}
 				>
 					{isImage && (
-						<div
+						<img
 							src={previewUrl}
 							alt={document.title || document.alias}
 							style={{
@@ -99,7 +98,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						/>
 					)}
 					{isPdf && (
-						<div
+						<iframe
 							src={previewUrl}
 							title={document.title || document.alias}
 							style={{
@@ -138,7 +137,7 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 					>
 						<IconCloudDownload size={20} />
 					</Button>
-					<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }} mt={1}>
+					<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
 						Click to download
 					</span>
 				</div>

@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Button, Chip, Paper, PopperProps } from '@mui/material';
+import { Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
+import CustomButton from '@/components/ui/Button';
 import { DateRange, DateRangeCalendar } from '@mui/x-date-pickers-pro';
 import { IconClock } from '@tabler/icons-react';
 import { BASE_COLOR } from '@/styles/theme';
@@ -119,35 +121,22 @@ export default function BasicDateRangePicker({
 
 	return (
 		<>
-			<Chip
-				label={labelConfirmed}
-				icon={<IconClock size={20} />}
+			<span
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={
-					isEmpty || !clearable
-						? undefined
-						: () => {
-								setRange([null, null]);
-								setLabelConfirmed(EMPTY_LABEL);
-								onConfirm(range);
-							}
-				}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: isEmpty ? undefined : 'var(--text-accent)',
-					},
-					'& .MuiChip-label': {
-						color: isEmpty ? undefined : 'var(--text-accent)',
-						fontStyle: isEmpty ? 'italic' : undefined,
-					},
-				}}
-			/>
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', height }}
+			>
+				<CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
+					<IconClock size={16} style={{ color: isEmpty ? undefined : 'var(--text-accent)' }} />
+					<span style={{ color: isEmpty ? undefined : 'var(--text-accent)', fontStyle: isEmpty ? 'italic' : undefined }}>{labelConfirmed}</span>
+				</CustomChip>
+				{!isEmpty && clearable && (
+					<button onClick={(e) => { e.stopPropagation(); setRange([null, null]); setLabelConfirmed(EMPTY_LABEL); onConfirm(range); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
 					<Paper sx={styles.paper}>
@@ -155,25 +144,18 @@ export default function BasicDateRangePicker({
 							<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
 								<div style={{ width: 130, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
 									{shortcuts.map((s, i) => (
-										<Chip
-											key={i}
-											label={s.label}
-											onClick={() => {
-												if (s.label !== 'Reset') setLabel(s.label);
-												setRange(s.getValue());
-											}}
-											sx={{
-												margin: '5px 0px',
-												'& .MuiChip-icon': {
-													color:
-														s.label === label ? 'var(--text-accent)' : BASE_COLOR,
-												},
-												'& .MuiChip-label': {
-													color:
-														s.label === label ? 'var(--text-accent)' : BASE_COLOR,
-												},
-											}}
-										/>
+										<span key={i} style={{ margin: '5px 0px', cursor: 'pointer' }}>
+											<CustomChip
+												color={s.label === label ? 'info' : 'neutral'}
+												size="sm"
+												onClick={() => {
+													if (s.label !== 'Reset') setLabel(s.label);
+													setRange(s.getValue());
+												}}
+											>
+												{s.label}
+											</CustomChip>
+										</span>
 									))}
 								</div>
 								<DateRangeCalendar
@@ -197,26 +179,27 @@ export default function BasicDateRangePicker({
 							>
 								<div></div>
 								<div>
-									<Button
+									<CustomButton
 										onClick={() => onClose()}
 										variant="outlined"
-										sx={{ height: 30, marginRight: '10px' }}
+										size="sm"
+										style={{ marginRight: '10px' }}
 									>
 										Cancel
-									</Button>
-									<Button
+									</CustomButton>
+									<CustomButton
 										onClick={() => {
 											setLabelConfirmed(label);
 											onConfirm(range);
 											setAnchorEl(null);
 										}}
 										variant="contained"
-										color="secondary"
-										sx={{ height: 30 }}
+										color="success"
+										size="sm"
 										disabled={!clearable && range.some((r) => !r)}
 									>
 										Apply
-									</Button>
+									</CustomButton>
 								</div>
 							</div>
 						</div>

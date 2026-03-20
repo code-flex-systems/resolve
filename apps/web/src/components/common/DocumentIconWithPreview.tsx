@@ -1,6 +1,7 @@
 'use client';
 
-import { IconButton, Tooltip } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import Button from '@/components/ui/Button';
 import { IconPaperclip } from '@tabler/icons-react';
 import { useState } from 'react';
 import DocumentPreviewDialog from '../admin/DocumentPreviewDialog';
@@ -27,10 +28,10 @@ export default function DocumentIconWithPreview({
 
 	return (
 		<>
-			<Tooltip title={tooltipText} arrow>
-				<IconButton size="small" onClick={handleClick} sx={{ ml: 0.5, padding: 0.5 }}>
+			<Tooltip content={tooltipText}>
+				<Button variant="icon" size="sm" onClick={handleClick}>
 					<IconPaperclip size={16} style={{ color: 'var(--color-primary)' }} />
-				</IconButton>
+				</Button>
 			</Tooltip>
 
 			{showPreview && <DocumentPreviewDialog onClose={() => setShowPreview(false)} document={document} />}

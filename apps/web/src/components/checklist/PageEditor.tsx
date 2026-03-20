@@ -1,6 +1,7 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
-import { Box, IconButton, InputAdornment, Link, TextField, Typography , Fade } from '@mui/material';
+import { InputAdornment, TextField } from '@mui/material';
+import Button from '@/components/ui/Button';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import CopyPageDialog from './CopyPageDialog';
@@ -172,35 +173,35 @@ export default function PageEditor() {
 	};
 
 	return (
-		<Box sx={styles.container}>
+		<div style={styles.container}>
 			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
-				<Box sx={styles.formContainer}>
+				<div style={styles.formContainer}>
 					{/* Page Header */}
-					<Box sx={styles.headerSection}>
-						<Box sx={styles.titleRow}>
-							<Typography sx={styles.pageTitle}>{pageTitle}</Typography>
-							<Typography sx={styles.pageId}>
+					<div style={styles.headerSection}>
+						<div style={styles.titleRow}>
+							<span style={styles.pageTitle}>{pageTitle}</span>
+							<span style={styles.pageId}>
 								p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
-							</Typography>
-							<Fade in={showUpdateMsg} timeout={500}>
-								<Box sx={{ ml: 1.5 }} className="flex-row-left">
+							</span>
+							{showUpdateMsg && (
+								<div className="flex-row-left" style={{ marginLeft: 12 }}>
 									<IconCircleCheck size={20} style={{ color: 'success.main', fontSize: 18, marginRight: 4 }} />
-									<Typography color="success.main" fontSize={13}>
+									<span style={{ color: 'success.main', fontSize: 13 }}>
 										Saved
-									</Typography>
-								</Box>
-							</Fade>
-						</Box>
-					</Box>
-					<Box sx={styles.divider}>
+									</span>
+								</div>
+							)}
+						</div>
+					</div>
+					<div style={styles.divider}>
 						<Divider />
-					</Box>
+					</div>
 
 					{/* Page Information Section */}
-					<Box sx={styles.section}>
-						<Typography sx={styles.sectionTitle}>Information</Typography>
-						<Box sx={styles.sectionContent}>
-							<Box sx={styles.fieldRow}>
+					<div style={styles.section}>
+						<span style={styles.sectionTitle}>Information</span>
+						<div style={styles.sectionContent}>
+							<div style={styles.fieldRow}>
 								<TextField
 									label="Page title"
 									placeholder="New Page"
@@ -219,11 +220,10 @@ export default function PageEditor() {
 										input: {
 											endAdornment: (
 												<InputAdornment position="end">
-													<IconButton
-														disableRipple
-														size="small"
-														onClick={() => onCopyText('pageTitle', pageTitle)}
-													>
+													<Button
+														variant="icon"
+														size="sm"
+														onClick={() => onCopyText('pageTitle', pageTitle)}>
 														{copiedField === 'pageTitle' ? (
 															<IconCheck size={20} style={{ color: 'var(--status-success)',
 																	fontSize: 18, }}
@@ -232,25 +232,23 @@ export default function PageEditor() {
 															<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
 															/>
 														)}
-													</IconButton>
-													<IconButton
-														disableRipple
-														size="small"
+													</Button>
+													<Button
+														variant="icon"
+														size="sm"
 														onClick={onClearField}
-														disabled={!pageTitle}
-													>
+														disabled={!pageTitle}>
 														<IconX size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
-													</IconButton>
-													<IconButton
-														disableRipple
-														size="small"
+													</Button>
+													<Button
+														variant="icon"
+														size="sm"
 														onClick={() => onModifyPage()}
 														disabled={
 															updating ||
 															!pageTitle ||
 															pageTitle === selectedPageInfo.title
-														}
-													>
+														}>
 														<IconDeviceFloppy size={20} style={{ color: !updating &&
 																	pageTitle &&
 																	pageTitle !== selectedPageInfo.title
@@ -258,67 +256,66 @@ export default function PageEditor() {
 																		: BASE_COLOR_LIGHT,
 																fontSize: 18, }}
 														/>
-													</IconButton>
+													</Button>
 												</InputAdornment>
 											),
 										},
 									}}
 								/>
-							</Box>
-							<Box sx={styles.statsRow}>
-								<Box sx={styles.statItem}>
+							</div>
+							<div style={styles.statsRow}>
+								<div style={styles.statItem}>
 									<IconHelpCircle size={18} style={{ color: TEXT_SECONDARY }} />
-									<Typography fontSize={13}>
+									<span style={{ fontSize: 13 }}>
 										<strong>{questions.length}</strong>{' '}
 										{questions.length === 1 ? 'Question' : 'Questions'}
-									</Typography>
-								</Box>
-								<Box sx={styles.statItem}>
+									</span>
+								</div>
+								<div style={styles.statItem}>
 									<IconQuote size={18} style={{ color: TEXT_SECONDARY }} />
-									<Typography fontSize={13}>
+									<span style={{ fontSize: 13 }}>
 										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
-									</Typography>
-								</Box>
-							</Box>
-						</Box>
-					</Box>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
 
 					{/* Related Instances Section */}
-					{otherInstances.length > 0 && (
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Related Instances</Typography>
-							<Box sx={styles.sectionContent}>
-								<Typography fontSize={13} color="text.secondary" mb={1}>
+					{otherInstances.length> 0 && (
+						<div style={styles.section}>
+							<span style={styles.sectionTitle}>Related Instances</span>
+							<div style={styles.sectionContent}>
+								<span style={{ fontSize: 13, color: 'text.secondary', marginBottom: 8 }}>
 									{otherInstances.length === 1
 										? 'Another page uses this template:'
 										: `${otherInstances.length} other pages use this template:`}
-								</Typography>
-								<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+								</span>
+								<div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
 									{otherInstances.map((node) => (
-										<Link
+										<button
 											key={node.instanceId}
 											onClick={() => {
 												updateSelectedPage(node.instanceId);
 												updateSelectedPageInfo(node);
 											}}
-											sx={styles.instanceLink}
-										>
+											style={{ fontSize: 13, paddingLeft: 12, paddingRight: 12, paddingTop: 4, paddingBottom: 4, borderRadius: '6px', cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-accent)', font: 'inherit' }}>
 											p{node.pageId}.i{node.instanceId}
-										</Link>
+										</button>
 									))}
-								</Box>
-							</Box>
-						</Box>
+								</div>
+							</div>
+						</div>
 					)}
 
 					{/* Actions Section */}
-					<Box sx={styles.section}>
-						<Typography sx={styles.sectionTitle}>Actions</Typography>
-						<Box sx={styles.sectionContent}>
-							<Box sx={styles.actionsGrid}>
-								<Box sx={styles.actionGroup}>
-									<Typography sx={styles.actionGroupTitle}>Copy</Typography>
-									<Box sx={styles.actionButtons}>
+					<div style={styles.section}>
+						<span style={styles.sectionTitle}>Actions</span>
+						<div style={styles.sectionContent}>
+							<div style={styles.actionsGrid}>
+								<div style={styles.actionGroup}>
+									<span style={styles.actionGroupTitle}>Copy</span>
+									<div style={styles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () => {
@@ -329,8 +326,7 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconCopy size={16} />,
-											}}
-										>
+											}}>
 											Copy template
 										</BasicButton>
 										<BasicButton
@@ -343,16 +339,15 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconCopy size={16} />,
-											}}
-										>
+											}}>
 											Copy instance
 										</BasicButton>
-									</Box>
-								</Box>
+									</div>
+								</div>
 
-								<Box sx={styles.actionGroup}>
-									<Typography sx={styles.actionGroupTitle}>Create</Typography>
-									<Box sx={styles.actionButtons}>
+								<div style={styles.actionGroup}>
+									<span style={styles.actionGroupTitle}>Create</span>
+									<div style={styles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () =>
@@ -363,8 +358,7 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconArrowRight size={16} />,
-											}}
-										>
+											}}>
 											New sibling
 										</BasicButton>
 										<BasicButton
@@ -377,16 +371,15 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconCornerDownRight size={16} />,
-											}}
-										>
+											}}>
 											New child
 										</BasicButton>
-									</Box>
-								</Box>
+									</div>
+								</div>
 
-								<Box sx={styles.actionGroup}>
-									<Typography sx={styles.actionGroupTitle}>Delete</Typography>
-									<Box sx={styles.actionButtons}>
+								<div style={styles.actionGroup}>
+									<span style={styles.actionGroupTitle}>Delete</span>
+									<div style={styles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () => onDeletePage().catch((e) => console.error(e)),
@@ -395,28 +388,27 @@ export default function PageEditor() {
 												color: 'error',
 												size: 'small',
 												startIcon: <IconTrash size={16} />,
-											}}
-										>
+											}}>
 											Delete page
 										</BasicButton>
-									</Box>
-								</Box>
-							</Box>
-						</Box>
-					</Box>
-				</Box>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			)}
 			{!!selectedQuestion && !selectedAnswer && <FormQuestion />}
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
-				<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Box width={200} display="flex" justifyContent="center" alignItems="center">
+				<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
+					<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 						<IconFileDescription size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
-						<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
+						<span style={{ color: BASE_COLOR_LIGHT, fontSize: 15, paddingLeft: '10px' }}>
 							No page selected
-						</Typography>
-					</Box>
-				</Box>
+						</span>
+					</div>
+				</div>
 			)}
 			{copyDialogOpen && (
 				<CopyPageDialog
@@ -430,7 +422,7 @@ export default function PageEditor() {
 					isPending={inTransition}
 				/>
 			)}
-		</Box>
+		</div>
 	);
 }
 
@@ -439,29 +431,29 @@ const styles = {
 		width: '100%',
 		height: '100%',
 		display: 'flex',
-		flexDirection: 'column',
-		p: 2.5,
+		flexDirection: 'column' as const,
+		padding: 20,
 		minWidth: 500,
-		overflow: 'auto',
+		overflow: 'auto' as const,
 	},
 	formContainer: {
 		display: 'flex',
-		flexDirection: 'column',
-		gap: 2.5,
-		p: 2.5,
+		flexDirection: 'column' as const,
+		gap: 20,
+		padding: 20,
 		width: '100%',
 	},
 	headerSection: {
-		mb: 0,
+		marginBottom: 0,
 	},
 	divider: {
 		width: '100%',
-		mb: 3,
+		marginBottom: 24,
 	},
 	titleRow: {
 		display: 'flex',
 		alignItems: 'center',
-		gap: 1.5,
+		gap: 12,
 	},
 	pageTitle: {
 		fontSize: 20,
@@ -471,13 +463,12 @@ const styles = {
 	pageId: {
 		fontSize: 13,
 		color: TEXT_MUTED,
-		bgcolor: BG_TERTIARY,
-		px: 1,
-		py: 0.25,
+paddingLeft: 8, paddingRight: 8,
+		paddingTop: 2, paddingBottom: 2,
 		borderRadius: '4px',
 	},
 	fieldRow: {
-		mb: 2,
+		marginBottom: 16,
 	},
 	section: {
 		...containerStyles.section,
@@ -487,44 +478,40 @@ const styles = {
 	sectionContent: containerStyles.sectionContent,
 	statsRow: {
 		display: 'flex',
-		gap: 3,
+		gap: 24,
 	},
 	statItem: {
 		display: 'flex',
 		alignItems: 'center',
-		gap: 1,
+		gap: 8,
 	},
 	instanceLink: {
 		fontSize: 13,
-		bgcolor: BG_TERTIARY,
-		px: 1.5,
-		py: 0.5,
+paddingLeft: 12, paddingRight: 12,
+		paddingTop: 4, paddingBottom: 4,
 		borderRadius: '6px',
 		cursor: 'pointer',
-		'&:hover': {
-			bgcolor: HOVERED_COLOR,
-		},
-	},
+},
 	actionsGrid: {
 		display: 'flex',
-		flexDirection: 'column',
-		gap: 2.5,
+		flexDirection: 'column' as const,
+		gap: 20,
 	},
 	actionGroup: {
 		display: 'flex',
-		flexDirection: 'column',
-		gap: 1,
+		flexDirection: 'column' as const,
+		gap: 8,
 	},
 	actionGroupTitle: {
 		fontSize: 12,
 		fontWeight: 500,
 		color: TEXT_SECONDARY,
-		textTransform: 'uppercase',
+		textTransform: 'uppercase' as const,
 		letterSpacing: '0.5px',
 	},
 	actionButtons: {
 		display: 'flex',
-		gap: 1,
-		flexWrap: 'wrap',
+		gap: 8,
+		flexWrap: 'wrap' as const,
 	},
 };

@@ -1,5 +1,6 @@
 'use client';
-import { Box, Checkbox, FormControlLabel, Link, Radio, Stack, Tooltip, Typography } from '@mui/material';
+import { Checkbox, FormControlLabel, Radio } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
 import { ChecklistMode, QuestionType } from '@/config/enums';
 import { Question } from '@/types/types';
 import { ControllerRenderProps, FieldValues, UseFormWatch } from 'react-hook-form';
@@ -59,7 +60,7 @@ function AnswerWithImage(props: {
 	const answerComplete = isAnswerComplete();
 
 	return (
-		<Tooltip key={a.id} placement="top" title={a.description_text ?? ''} arrow>
+		<Tooltip key={a.id} position="top" content={a.description_text ?? ''}>
 			<FormControlLabel
 				control={
 					questionType === QuestionType.MULTI ? (
@@ -87,17 +88,17 @@ function AnswerWithImage(props: {
 					)
 				}
 				label={
-					<Box display="flex" alignItems="center" gap={0.5}>
+					<div    style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 						{a.calls_instance_id &&
 						visibleInstanceIds.includes(a.calls_instance_id) &&
 						(answerComplete || mode === ChecklistMode.TEST) ? (
-							<Link fontSize={13} color="info" onClick={() => goToPage(a.calls_instance_id!, tree)}>
+							<button onClick={() => goToPage(a.calls_instance_id!, tree)} style={{ fontSize: 13, color: 'var(--text-accent)', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
 								{a.text}
-							</Link>
+							</button>
 						) : (
-							<Typography fontSize={13} noWrap>
+							<span   style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 13 }}>
 								{a.text}
-							</Typography>
+							</span>
 						)}
 						{attachedImage && (
 							<ImageTooltip
@@ -105,7 +106,7 @@ function AnswerWithImage(props: {
 								description={attachedImage.title ?? undefined}
 							/>
 						)}
-					</Box>
+					</div>
 				}
 			/>
 		</Tooltip>
@@ -130,7 +131,7 @@ export default function ChecklistAnswerRadio(props: {
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
 	return (
-		<Stack direction="row" flexWrap="wrap" spacing={0.5} useFlexGap padding="0px 10px">
+		<div     style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: '0px 10px' }}>
 			{(question.answers ?? []).map((a) => (
 				<AnswerWithImage
 					key={a.id}
@@ -145,6 +146,6 @@ export default function ChecklistAnswerRadio(props: {
 					question={question}
 				/>
 			))}
-		</Stack>
+		</div>
 	);
 }

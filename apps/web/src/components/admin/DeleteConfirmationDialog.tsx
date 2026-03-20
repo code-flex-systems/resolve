@@ -3,7 +3,6 @@
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
 import BasicDialog from '../common/BasicDialog';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
-import { Dialog } from '@mui/material';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
 

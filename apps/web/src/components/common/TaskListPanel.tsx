@@ -1,6 +1,9 @@
 'use client';
 
-import { Chip, CircularProgress, Tooltip, IconButton } from '@mui/material';
+import Chip from '@/components/ui/Chip';
+import { Spinner } from '@/components/ui/Progress';
+import Tooltip from '@/components/ui/Tooltip';
+import UIButton from '@/components/ui/Button';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, gridClasses } from '@mui/x-data-grid-pro';
 import {
 	IconSubtask, IconPlayerPlay, IconSettings, IconPlayerStop,
@@ -26,9 +29,9 @@ interface TaskListPanelProps {
 	showCreateButton?: boolean;
 }
 
-const STATUS_COLORS: Record<TaskStatus, 'default' | 'primary' | 'success' | 'error'> = {
-	[TaskStatus.PENDING]: 'default',
-	[TaskStatus.IN_PROGRESS]: 'primary',
+const STATUS_COLORS: Record<TaskStatus, 'neutral' | 'info' | 'success' | 'error'> = {
+	[TaskStatus.PENDING]: 'neutral',
+	[TaskStatus.IN_PROGRESS]: 'info',
 	[TaskStatus.COMPLETED]: 'success',
 	[TaskStatus.CANCELLED]: 'error',
 };
@@ -124,10 +127,9 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 			width: 120,
 			renderCell: (params: GridRenderCellParams) => (
 				<Chip
-					label={STATUS_LABELS[params.value as TaskStatus]}
 					color={STATUS_COLORS[params.value as TaskStatus]}
-					size="small"
-				/>
+					size="sm"
+				>{STATUS_LABELS[params.value as TaskStatus]}</Chip>
 			),
 		},
 		{
@@ -236,7 +238,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 	if (isLoading) {
 		return (
 			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-				<CircularProgress size={24} />
+				<Spinner size="md" />
 			</div>
 		);
 	}
@@ -253,14 +255,14 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 							Create Task
 						</Button>
 					)}
-					<Tooltip title="Manage">
-						<IconButton
-							size="small"
+					<Tooltip content="Manage">
+						<UIButton
+							variant="icon"
+							size="sm"
 							onClick={() => setIsManageMode(!isManageMode)}
-							sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
 						>
 							<IconSettings size={18} style={{ color: isManageMode ? 'var(--text-accent)' : undefined }} />
-						</IconButton>
+						</UIButton>
 					</Tooltip>
 				</div>
 			</div>

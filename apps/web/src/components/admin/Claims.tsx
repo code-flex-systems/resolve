@@ -1,7 +1,7 @@
 'use client';
 
 import { IconEye, IconFileSearch, IconFilter, IconSquarePlus, IconUpload, IconUserSearch } from '@tabler/icons-react';
-import { Autocomplete, PopperProps, Select, TextField } from '@mui/material';
+import { Autocomplete, PopperProps, TextField } from '@mui/material';
 import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
 import Switch from '@/components/ui/Switch';

@@ -6,7 +6,7 @@ import Chip from '@/components/ui/Chip';
 import Card from '@/components/ui/Card';
 import Dialog from '@/components/ui/Dialog';
 import Input, { Textarea } from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import Dropdown from '@/components/ui/Dropdown';
 import {
 	IconPlus,
 	IconArrowRight,
@@ -27,7 +27,8 @@ export default function ComponentShowcase() {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [dialogSize, setDialogSize] = useState<'sm' | 'md' | 'lg'>('md');
 	const [inputValue, setInputValue] = useState('');
-	const [selectValue, setSelectValue] = useState('');
+	const [dropdownValue, setDropdownValue] = useState<string | number | null>(null);
+	const [renderValueDemo, setRenderValueDemo] = useState<string | number | null>('high');
 	const [textareaValue, setTextareaValue] = useState('');
 
 	const selectOptions = [
@@ -150,7 +151,7 @@ export default function ComponentShowcase() {
 						<Button variant="outlined" disabled>Outlined Disabled</Button>
 						<Button variant="solid" disabled>Solid Disabled</Button>
 					</div>
-					<div className={styles.row} style={{ marginTop: 12 }}>
+					<div className={styles.row}  style={{ marginTop: 12 }}>
 						<Button fullWidth>Full Width</Button>
 					</div>
 				</div>
@@ -382,48 +383,89 @@ export default function ComponentShowcase() {
 			</section>
 
 			{/* ================================================================
-			    SELECT
+			    DROPDOWN (custom menu, replaces MUI Select)
 			    ================================================================ */}
 			<section className={styles.section}>
-				<h2 className={styles.sectionTitle}>Select</h2>
+				<h2 className={styles.sectionTitle}>Dropdown</h2>
 				<p className={styles.sectionDescription}>
-					Selects let users choose from a predefined list. They share the same
-					label and error patterns as inputs for consistency.
+					Dropdowns replace MUI Select with a fully custom menu panel. They support
+					icons, descriptions, disabled items, custom display rendering, and keyboard
+					navigation. The menu renders via portal and positions itself below the trigger.
 				</p>
 
 				<div className={styles.formGrid}>
-					<Select
-						label="Standard Select"
-						options={selectOptions}
+					<Dropdown
+						label="Basic Dropdown"
+						options={selectOptions.map(o => ({ value: o.value, label: o.label }))}
+						value={dropdownValue}
+						onChange={setDropdownValue}
 						placeholder="Choose an option..."
-						value={selectValue}
-						onChange={setSelectValue}
-						helperText="Pick your favorite"
+						helperText="Click to open the custom menu"
 					/>
 
-					<Select
+					<Dropdown
+						label="With Icons & Descriptions"
+						options={[
+							{ value: 'move', label: 'Move Claim', icon: <IconArrowRight size={16} stroke={1.5} />, description: 'Move to a different desk location' },
+							{ value: 'task', label: 'Create Task', icon: <IconPlus size={16} stroke={1.5} />, description: 'Create a task for another desk' },
+							{ value: 'notify', label: 'Notify User', icon: <IconSearch size={16} stroke={1.5} />, description: 'Send a notification to a user' },
+						]}
+						value={dropdownValue}
+						onChange={setDropdownValue}
+						placeholder="Select an action..."
+					/>
+
+					<Dropdown
+						label="With Disabled Items"
+						options={[
+							{ value: 'active', label: 'Active Option' },
+							{ value: 'disabled1', label: 'Disabled Option', disabled: true },
+							{ value: 'another', label: 'Another Active Option' },
+							{ value: 'disabled2', label: 'Also Disabled', disabled: true, description: 'Not available right now' },
+						]}
+						value={dropdownValue}
+						onChange={setDropdownValue}
+						placeholder="Some items are disabled..."
+					/>
+
+					<Dropdown
 						label="With Error"
-						options={selectOptions}
+						options={selectOptions.map(o => ({ value: o.value, label: o.label }))}
+						value={null}
+						onChange={() => {}}
 						error
-						errorText="Selection is required"
-						value=""
-						onChange={() => {}}
+						errorText="This field is required"
+						placeholder="Select something..."
+						required
 					/>
+				</div>
 
-					<Select
-						label="Disabled"
-						options={selectOptions}
-						value="option1"
-						disabled
-						onChange={() => {}}
-					/>
-
-					<Select
-						label="With Preselected Value"
-						options={selectOptions}
-						value="option2"
-						onChange={() => {}}
-					/>
+				<div className={styles.subsection}>
+					<h3 className={styles.subsectionTitle}>States</h3>
+					<div className={styles.row}>
+						<Dropdown
+							label="Disabled"
+							options={selectOptions.map(o => ({ value: o.value, label: o.label }))}
+							value="option1"
+							onChange={() => {}}
+							disabled
+						/>
+						<Dropdown
+							label="Custom Render Value"
+							options={[
+								{ value: 'high', label: 'High Priority', icon: <IconArrowRight size={14} stroke={1.5} /> },
+								{ value: 'medium', label: 'Medium Priority' },
+								{ value: 'low', label: 'Low Priority' },
+							]}
+							value={renderValueDemo}
+							onChange={setRenderValueDemo}
+							renderValue={(val, opt) => (
+								<span  style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--status-error)' }}>
+									● {opt?.label}
+								</span>
+							)}
+						/>
+					</div>
 				</div>
 			</section>
 

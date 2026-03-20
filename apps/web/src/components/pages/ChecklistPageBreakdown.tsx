@@ -4,7 +4,7 @@ import Breakdown from '@/components/breakdown/Breakdown';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useEffect, useState } from 'react';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import { Box, Chip, Stack } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDateRangePicker from '../common/BasicDateRangePicker';
 import ClaimFilter from '../common/ClaimFilter';
@@ -71,31 +71,31 @@ export default function ChecklistPageBreakdown() {
 
 	return (
 		<>
-			<Stack
-				flex={1}
-				width="100%"
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="flex-start"
-				padding="10px"
-				bgcolor="#F9FAFC"
+			<div
+				
+				
+				
+				
+				
+				
+				 style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}
 			>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="center"
-					overflow="auto"
-					padding="0px 2px"
+				<div
+					
+					
+					
+					
+					
+					 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', overflow: 'auto', padding: '0px 2px' }}
 				>
-					<Box marginRight="5px">
+					<div  style={{ marginRight: '5px' }}>
 						<BasicButtonStyled
 							icon={<IconArrowLeft size={20} />}
 							buttonProps={{ onClick: () => router.push('/admin/workflow-configuration/checklists') }}
 							tooltipProps={{ title: 'Back to dashboard' }}
 						/>
-					</Box>
-					<Box marginRight="5px">
+					</div>
+					<div  style={{ marginRight: '5px' }}>
 						<ChecklistSelect
 							checklist={selectedChecklist ?? null}
 							setChecklist={(newChecklist) => {
@@ -105,29 +105,29 @@ export default function ChecklistPageBreakdown() {
 							showEmpty
 							clearable={false}
 						/>
-					</Box>
+					</div>
 					{/* <Collapse open={instanceId !== -1}> */}
 					{instanceId !== -1 && (
-						<Box marginRight="5px">
+						<div  style={{ marginRight: '5px' }}>
 							<PageInstanceSelect
 								checklistId={checklistId}
 								instanceId={instanceId}
 								setInstanceId={setSearchParams}
 								clearable={false}
 							/>
-						</Box>
+						</div>
 					)}
 					{/* </Collapse> */}
-					<Box marginRight="5px">
+					<div  style={{ marginRight: '5px' }}>
 						<BasicDateRangePicker
 							defaultLabel="This Month"
 							defaultValue={breakdownRange}
 							onConfirm={updateBreakdownRange}
 						/>
-					</Box>
-					<Box marginRight="5px">
+					</div>
+					<div  style={{ marginRight: '5px' }}>
 						<ClaimFilter claim={breakdownClaim} setClaim={updateBreakdownClaim} />
-					</Box>
+					</div>
 					<UserFilter
 						users={breakdownUsers}
 						setUsers={updateBreakdownUsers}
@@ -135,37 +135,27 @@ export default function ChecklistPageBreakdown() {
 						text="Filter by responder"
 					/>
 					<Collapse open={!!answerData}>
-						<Box marginLeft="5px">
-							<Chip
-								label={`${answerData?.answer_text ?? ''} (p${pageId}.q${selectedQuestionId}.a${answerData?.answer_id ?? ''})`}
-								icon={<IconQuote size={20} />}
-								sx={{
-									height: 30,
-									margin: '5px 0px',
-									'& .MuiChip-icon': {
-										color: 'var(--text-accent)',
-									},
-									'& .MuiChip-label': {
-										color: 'var(--text-accent)',
-									},
-								}}
-							/>
-						</Box>
+						<div  style={{ marginLeft: '5px' }}>
+							<CustomChip color="info" size="sm">
+								<IconQuote size={16} style={{ color: 'var(--text-accent)' }} />
+								<span style={{ color: 'var(--text-accent)' }}>{`${answerData?.answer_text ?? ''} (p${pageId}.q${selectedQuestionId}.a${answerData?.answer_id ?? ''})`}</span>
+							</CustomChip>
+						</div>
 					</Collapse>
-				</Box>
+				</div>
 				<Divider />
-				<Box
-					width="100%"
-					height="calc(100vh - 70px)"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="flex-start"
-					padding="20px 10px"
+				<div
+					
+					
+					
+					
+					
+					 style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px 10px' }}
 				>
 					<BreakdownNavigation />
 					<Breakdown />
-				</Box>
-			</Stack>
+				</div>
+			</div>
 			{showPageSelect && <BreakdownPageSelect onClose={() => setShowPageSelect(false)} />}
 		</>
 	);

@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
+import { Card, CardContent, Grid } from '@mui/material';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import Skeleton from '@/components/ui/Skeleton';
 
@@ -17,9 +17,9 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 			<Grid>
 				<Card variant="outlined" sx={{ height: '100%' }}>
 					<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-						<Typography color="#d9d9d9" fontSize={12} gutterBottom>
+						<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 							Filtered Results
-						</Typography>
+						</span>
 						{isLoading ? (
 							<>
 								<Skeleton variant="text" width={40} height={24} />
@@ -27,12 +27,12 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 							</>
 						) : (
 							<>
-								<Typography variant="h6" fontSize={16} component="div">
+								<span style={{ fontSize: 16 }}>
 									{count}
-								</Typography>
-								<Typography variant="body2" fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12, color: 'text.secondary' }}>
 									{count === 1 ? 'claim' : 'claims'}
-								</Typography>
+								</span>
 							</>
 						)}
 					</CardContent>
@@ -43,9 +43,9 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 			<Grid>
 				<Card variant="outlined" sx={{ height: '100%' }}>
 					<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-						<Typography color="#d9d9d9" fontSize={12} gutterBottom>
+						<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 							Total Value
-						</Typography>
+						</span>
 						{isLoading ? (
 							<>
 								<Skeleton variant="text" width={80} height={24} />
@@ -53,12 +53,12 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 							</>
 						) : (
 							<>
-								<Typography variant="h6" fontSize={16} component="div">
+								<span style={{ fontSize: 16 }}>
 									{formatCurrency(totalValue)}
-								</Typography>
-								<Typography variant="body2" fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12, color: 'text.secondary' }}>
 									claim amounts
-								</Typography>
+								</span>
 							</>
 						)}
 					</CardContent>
@@ -69,9 +69,9 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 			<Grid>
 				<Card variant="outlined" sx={{ height: '100%' }}>
 					<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-						<Typography color="#d9d9d9" fontSize={12} gutterBottom>
+						<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 							Avg Time in Queue
-						</Typography>
+						</span>
 						{isLoading ? (
 							<>
 								<Skeleton variant="text" width={70} height={24} />
@@ -79,12 +79,12 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 							</>
 						) : (
 							<>
-								<Typography variant="h6" fontSize={16} component="div">
+								<span style={{ fontSize: 16 }}>
 									{avgDaysInQueue} days
-								</Typography>
-								<Typography variant="body2" fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12, color: 'text.secondary' }}>
 									since assignment
-								</Typography>
+								</span>
 							</>
 						)}
 					</CardContent>

@@ -9,7 +9,6 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import config from '@/config/config';
-import { Dialog } from '@mui/material';
 
 // Icons
 

@@ -3,7 +3,6 @@ import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChe
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
-import { Stack, Typography } from '@mui/material';
 import BasicButton from '../common/BasicButton';
 import { useRouter } from 'next/navigation';
 import { OFFWHITE_COLOR } from '@/styles/theme';
@@ -40,21 +39,20 @@ export default function QuestionStatsDialog() {
 			]}
 			onClose={toggleStatsDialog}
 			width={600}
-			maxHeight={600}
-		>
+			maxHeight={600}>
 			{loading && (
-				<Stack spacing={2} p={2}>
+				<div style={{ gap: 16, padding: 16 }}>
 					{[1, 2, 3].map((i) => (
 						<Skeleton key={i} variant="rect" height={60} />
 					))}
-				</Stack>
+				</div>
 			)}
 			<Collapse open={!loading}>
-				<div style={styles.row} className="flex-row-left">
+				<div className="flex-row-left" style={styles.row}>
 					<IconAlertTriangle size={20} style={{ color: 'warning.main' }} />
-					<Typography color="warning" fontStyle="italic" marginLeft="5px">
+					<span style={{ color: 'warning', fontStyle: 'italic', marginLeft: '5px' }}>
 						This summary only shows responses for the last <b>30</b> days.
-					</Typography>
+					</span>
 				</div>
 				{data.map((stat, i) => (
 					<QuestionStatItem

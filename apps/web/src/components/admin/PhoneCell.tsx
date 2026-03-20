@@ -1,5 +1,4 @@
 'use client';
-import { Link } from '@mui/material';
 
 
 export default function PhoneCell({
@@ -13,7 +12,7 @@ export default function PhoneCell({
 }) {
 	return value ? (
 		<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<Link style={{ marginLeft: 4 }}>{value}</Link>
+			<span style={{ marginLeft: 4, color: 'var(--text-accent)' }}>{value}</span>
 		</div>
 	) : (
 		<>-</>

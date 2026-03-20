@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Box, Typography } from '@mui/material';
+import { Badge } from '@mui/material';
 import { CalendarIcon, DateCalendar, PickersDay, PickersDayProps } from '@mui/x-date-pickers-pro';
 import { Deadline, useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { DeadlineStatus } from '@/config/enums';
@@ -75,7 +75,7 @@ export default function MyDeadlinesMetric() {
 			const deadlineDate = dayjs(deadline.deadline_date).startOf('day');
 
 			if (
-				deadlineDate.valueOf() >= today.valueOf() &&
+				deadlineDate.valueOf()>= today.valueOf() &&
 				deadlineDate.valueOf() < nextWeek.valueOf() &&
 				deadline.status === DeadlineStatus.PENDING
 			) {
@@ -104,7 +104,7 @@ export default function MyDeadlinesMetric() {
 		const { day, ...other } = props;
 		const dateKey = day.format('YYYY-MM-DD');
 		const dayDeadlines = deadlinesByDay.get(dateKey);
-		const hasDeadlines = dayDeadlines && dayDeadlines.length > 0;
+		const hasDeadlines = dayDeadlines && dayDeadlines.length> 0;
 		const isSelected = selectedDate && day.isSame(selectedDate, 'day');
 
 		return (
@@ -121,8 +121,7 @@ export default function MyDeadlinesMetric() {
 						backgroundColor: 'var(--status-error)',
 						color: 'white',
 					},
-				}}
-			>
+				}}>
 				<PickersDay
 					{...other}
 					day={day}
@@ -151,64 +150,50 @@ export default function MyDeadlinesMetric() {
 	}, [selectedDate, deadlinesByDay]);
 
 	return (
-		<Box sx={{ ...containerStyles.section, ...styles.container }}>
-			<Typography sx={containerStyles.sectionTitle}>
+		<div style={{ ...containerStyles.section, ...styles.container }}>
+			<span style={containerStyles.sectionTitle}>
 				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
 				My Deadlines
-			</Typography>
-			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+			</span>
+			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				{isLoading ? (
 					<Skeleton variant="rect" width="100%" height="100%" />
 				) : (
 					<>
 						{/* Overdue/Upcoming Stats */}
-						<Box sx={{ ...styles.statsContainer, ...containerStyles.beveledCard }}>
+						<div style={{ ...styles.statsContainer, ...containerStyles.beveledCard }}>
 							{/* Overdue */}
-							<Box display="flex" alignItems="center" gap={1}>
-								<Box
-									display="flex"
-									alignItems="center"
-									justifyContent="center"
-									width={40}
-									height={40}
-									borderRadius="50%"
-									bgcolor={'var(--status-error)'}
-								>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+								<div
+style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
 									<IconAlertTriangle size={20} style={{ color: 'white', fontSize: 22 }} />
-								</Box>
-								<Box>
-									<Typography variant="h5" fontSize={24} fontWeight={700} color="error">
+								</div>
+								<div>
+									<span style={{ fontSize: 24, fontWeight: 700, color: 'error' }}>
 										{overdueCount}
-									</Typography>
-									<Typography variant="caption" fontSize={11}>
+									</span>
+									<span style={{ fontSize: 11 }}>
 										Overdue
-									</Typography>
-								</Box>
-							</Box>
+									</span>
+								</div>
+							</div>
 
 							{/* Upcoming */}
-							<Box display="flex" alignItems="center" gap={1}>
-								<Box
-									display="flex"
-									alignItems="center"
-									justifyContent="center"
-									width={40}
-									height={40}
-									borderRadius="50%"
-									bgcolor={'var(--status-warning)'}
-								>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+								<div
+style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
 									<IconClock size={20} style={{ color: 'white', fontSize: 22 }} />
-								</Box>
-								<Box>
-									<Typography variant="h5" fontSize={24} fontWeight={700} color="warning.main">
+								</div>
+								<div>
+									<span style={{ fontSize: 24, fontWeight: 700, color: 'warning.main' }}>
 										{upcomingCount}
-									</Typography>
-									<Typography variant="caption" color="text.secondary" fontSize={11}>
+									</span>
+									<span style={{ color: 'text.secondary', fontSize: 11 }}>
 										Next 7 Days
-									</Typography>
-								</Box>
-							</Box>
-						</Box>
+									</span>
+								</div>
+							</div>
+						</div>
 
 						{/* Calendar */}
 						<DateCalendar
@@ -236,8 +221,8 @@ export default function MyDeadlinesMetric() {
 						<DailyEventsList deadlines={selectedDeadlines} selectedDate={selectedDate} flexGrow />
 					</>
 				)}
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 
@@ -250,9 +235,9 @@ const styles = {
 	},
 	contentContainer: {
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		height: 'calc(100% - 45px)',
-		overflow: 'hidden',
+		overflow: 'hidden' as const,
 	},
 	statsContainer: {
 		display: 'flex',

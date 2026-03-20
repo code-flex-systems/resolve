@@ -1,7 +1,6 @@
 'use client';
 
 import { LineChart } from '@mui/x-charts-pro';
-import { Box, Stack } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
@@ -23,15 +22,15 @@ export default function TeamRecoveryChart() {
 	const actualData = timeSeriesData.map((d) => d.actual_recovery);
 
 	return (
-		<Box width="100%" height="100%">
+		<div style={{ width: '100%', height: '100%' }}>
 			{isFetching && (
-				<Stack width="100%" spacing={1}>
+				<div style={{ width: '100%', gap: 8 }}>
 					<Skeleton variant="rect" width="100%" height={130} />
-				</Stack>
+				</div>
 			)}
 
 			{!isFetching && (
-				<Box width="100%" height={130}>
+				<div style={{ width: '100%', height: 130 }}>
 					<LineChart
 						xAxis={[
 							{
@@ -82,8 +81,8 @@ export default function TeamRecoveryChart() {
 							},
 						}}
 					/>
-				</Box>
+				</div>
 			)}
-		</Box>
+		</div>
 	);
 }

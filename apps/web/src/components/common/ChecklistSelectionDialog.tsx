@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Fade, MenuItem } from '@mui/material';
 import { IconChecklist, IconFileDescription, IconCircleCheck } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -78,11 +77,10 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 							const isSelected = selectedChecklist?.id === checklist.id;
 
 							return (
-								<MenuItem
+								<div
 									key={checklist.id}
 									onClick={() => handleSelectChecklist(checklist)}
 									className={`${css.menuItem} ${isSelected ? css.menuItemSelected : ''}`}
-									disableRipple
 								>
 									<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
 										{/* Name and Page Count */}
@@ -92,14 +90,14 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 												<span style={{ fontSize: 16, fontWeight: 600 }}>
 													{checklist.name}
 												</span>
-												<Fade in={isSelected}>
+												{isSelected && (
 													<span style={{ display: 'inline-flex' }}>
 														<IconCircleCheck
 															size={20}
 															style={{ color: 'var(--text-accent)' }}
 														/>
 													</span>
-												</Fade>
+												)}
 											</div>
 											<div
 												className={css.pageBadge}
@@ -125,7 +123,7 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 											</span>
 										)}
 									</div>
-								</MenuItem>
+								</div>
 							);
 						})}
 					</div>

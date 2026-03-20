@@ -12,7 +12,6 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
-import { Select } from '@mui/material';
 
 export default function ClaimHeader({ claimId }: { claimId: number }) {
 	const router = useRouter();

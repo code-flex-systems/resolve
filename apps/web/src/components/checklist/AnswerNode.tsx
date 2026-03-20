@@ -1,5 +1,4 @@
 'use client';
-import { Box, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ChecklistMode } from '@/config/enums';
 import './styles.css';
@@ -21,25 +20,22 @@ export default function AnswerNode(props: {
 	const selected = selectedAnswer === answerId && selectedQuestion === questionId;
 	const isPlaceholder = answerId === -1;
 	return (
-		<Box
-			sx={{ ...styles.node, pl: level * 3.125 }}
+		<div
+			style={{ ...styles.node, paddingLeft: level * 3.125 * 8 }}
 			onClick={mode === ChecklistMode.EDIT ? () => updateSelectedAnswer(questionId, answerId) : undefined}
 			className="flex-row-between"
 		>
-			<Box className="flex-row-left">
-				<IconQuote size={16} style={{ marginRight: '10px', color: selected ? 'warning.main' : BASE_COLOR_LIGHT }}
+			<div className="flex-row-left">
+				<IconQuote size={16} style={{ marginRight: '10px', color: selected ? 'var(--status-warning)' : BASE_COLOR_LIGHT }}
 				/>
-				<Typography
-					color={selected ? 'var(--status-warning)' : isPlaceholder ? '#DAB0FF' : ''}
-					fontWeight={isPlaceholder ? 'bold' : ''}
+				<span
 					className={isPlaceholder ? 'node-p' : 'node-a'}
-					lineHeight="19px"
-					sx={{ cursor: 'pointer' }}
+					style={{ cursor: 'pointer', color: selected ? 'var(--status-warning)' : isPlaceholder ? '#DAB0FF' : '', fontWeight: isPlaceholder ? 'bold' : '', lineHeight: '19px' }}
 				>
 					{answerText} (p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId})
-				</Typography>
-			</Box>
-		</Box>
+				</span>
+			</div>
+		</div>
 	);
 }
 
@@ -47,6 +43,7 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		py: 0.625,
-	},
+		paddingTop: 5,
+		paddingBottom: 5,
+	} as React.CSSProperties,
 };

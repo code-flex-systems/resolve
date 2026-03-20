@@ -1,7 +1,7 @@
 'use client';
 import { LineChart } from '@mui/x-charts-pro';
 import { containerStyles } from '@/styles/theme';
-import { Box, Card, CardContent, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Card, CardContent, Grid } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -85,8 +85,8 @@ export default function RecoveryMetricsChart({
 	const lastExpected = lastQuarterSummary?.total_expected ?? 0;
 	const lastActual = lastQuarterSummary?.total_actual ?? 0;
 
-	const expectedChange = lastExpected > 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
-	const actualChange = lastActual > 0 ? ((currentActual - lastActual) / lastActual) * 100 : 0;
+	const expectedChange = lastExpected> 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
+	const actualChange = lastActual> 0 ? ((currentActual - lastActual) / lastActual) * 100 : 0;
 
 	const containerWidth = isBreakdown ? '100%' : 600;
 	const chartHeight = isBreakdown ? 400 : 260;
@@ -101,29 +101,24 @@ export default function RecoveryMetricsChart({
 	const marginBottom = isBreakdown ? 3 : 1.5;
 
 	return (
-		<Box width={containerWidth}>
-			<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard, padding }}>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="space-between"
-					alignItems="center"
-					mb={isBreakdown ? 2 : 1}
-				>
-					<Typography variant={isBreakdown ? 'h6' : 'subtitle1'} fontSize={titleFontSize} fontWeight={600}>
+		<div style={{ width: containerWidth }}>
+			<div style={{ ...styles.paper, ...containerStyles.beveledCard, padding }}>
+				<div
+style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: marginBottom * 8 }}>
+					<span style={{ fontSize: titleFontSize, fontWeight: 600 }}>
 						{isBreakdown
 							? 'Recovery Metrics'
 							: `Recovery Metrics - Q${quarters.currentQuarter} ${quarters.currentYear}`}
-					</Typography>
+					</span>
 					{isBreakdown ? (
-						<Typography variant="caption" fontSize={14} color="#d9d9d9">
+						<span style={{ fontSize: 14, color: '#d9d9d9' }}>
 							vs Q{quarters.lastQuarter} {quarters.lastYear}
-						</Typography>
+						</span>
 					) : (
-						<Box>
-							<Typography variant="caption" fontSize={13} color="#d9d9d9" marginRight="15px">
+						<div>
+							<span style={{ fontSize: 13, color: '#d9d9d9', marginRight: '15px' }}>
 								vs Q{quarters.lastQuarter} {quarters.lastYear}
-							</Typography>
+							</span>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () => router.push('/admin/financial/recovery'),
@@ -138,19 +133,19 @@ export default function RecoveryMetricsChart({
 								}
 								tooltipProps={{ title: 'Open in Inspector' }}
 							/>
-						</Box>
+						</div>
 					)}
-				</Box>
+				</div>
 
 				{isLoading && (
-					<Stack width="100%" spacing={2}>
-						<Stack direction="row" spacing={spacing}>
+					<div style={{ width: '100%', gap: 16 }}>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: spacing * 8 }}>
 							<Skeleton variant="rect" width="33%" height={80} />
 							<Skeleton variant="rect" width="33%" height={80} />
 							<Skeleton variant="rect" width="33%" height={80} />
-						</Stack>
+						</div>
 						<Skeleton variant="rect" width="100%" height={chartHeight} />
-					</Stack>
+					</div>
 				)}
 
 				{!isLoading && (
@@ -160,67 +155,49 @@ export default function RecoveryMetricsChart({
 							<Grid>
 								<Card variant="outlined" sx={{ height: '100%' }}>
 									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
 											Total Expected
-										</Typography>
-										<Typography
-											variant={isBreakdown ? 'h5' : 'h6'}
-											fontSize={cardValueSize}
-											component="div"
-										>
+										</span>
+										<div style={{ fontSize: cardValueSize }}>
 											{formatCurrency(currentExpected)}
-										</Typography>
-										<Typography
-											variant="body2"
-											fontSize={cardSubtextSize}
-											color={expectedChange >= 0 ? 'success.main' : 'error.main'}
-										>
-											{expectedChange >= 0 ? '+' : ''}
+										</div>
+										<span
+style={{ fontSize: cardSubtextSize, color: expectedChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
+											{expectedChange>= 0 ? '+' : ''}
 											{expectedChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-										</Typography>
+										</span>
 									</CardContent>
 								</Card>
 							</Grid>
 							<Grid>
 								<Card variant="outlined" sx={{ height: '100%' }}>
 									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
 											Total Actual
-										</Typography>
-										<Typography
-											variant={isBreakdown ? 'h5' : 'h6'}
-											fontSize={cardValueSize}
-											component="div"
-										>
+										</span>
+										<div style={{ fontSize: cardValueSize }}>
 											{formatCurrency(currentActual)}
-										</Typography>
-										<Typography
-											variant="body2"
-											fontSize={cardSubtextSize}
-											color={actualChange >= 0 ? 'success.main' : 'error.main'}
-										>
-											{actualChange >= 0 ? '+' : ''}
+										</div>
+										<span
+style={{ fontSize: cardSubtextSize, color: actualChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
+											{actualChange>= 0 ? '+' : ''}
 											{actualChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-										</Typography>
+										</span>
 									</CardContent>
 								</Card>
 							</Grid>
 							<Grid>
 								<Card variant="outlined" sx={{ height: '100%' }}>
 									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
 											Variance
-										</Typography>
-										<Typography
-											variant={isBreakdown ? 'h5' : 'h6'}
-											fontSize={cardValueSize}
-											component="div"
-										>
+										</span>
+										<div style={{ fontSize: cardValueSize }}>
 											{formatCurrency(currentVariance)}
-										</Typography>
-										<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
+										</div>
+										<span style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
 											{currentRate.toFixed(1)}% rate
-										</Typography>
+										</span>
 									</CardContent>
 								</Card>
 							</Grid>
@@ -228,19 +205,16 @@ export default function RecoveryMetricsChart({
 								<Grid>
 									<Card variant="outlined" sx={{ height: '100%' }}>
 										<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-											<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
+											<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
 												Recovery Rate
-											</Typography>
-											<Typography variant="h5" fontSize={cardValueSize} component="div">
+											</span>
+											<div style={{ fontSize: cardValueSize }}>
 												{currentRate.toFixed(1)}%
-											</Typography>
-											<Typography
-												variant="body2"
-												fontSize={cardSubtextSize}
-												color="text.secondary"
-											>
+											</div>
+											<span
+style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
 												actual / expected
-											</Typography>
+											</span>
 										</CardContent>
 									</Card>
 								</Grid>
@@ -248,7 +222,7 @@ export default function RecoveryMetricsChart({
 						</Grid>
 
 						{/* Line Chart */}
-						<Box width="100%" height={chartHeight}>
+						<div style={{ width: '100%', height: chartHeight }}>
 							<LineChart
 								xAxis={[
 									{
@@ -299,11 +273,11 @@ export default function RecoveryMetricsChart({
 									},
 								}}
 							/>
-						</Box>
+						</div>
 					</>
 				)}
-			</Paper>
-		</Box>
+			</div>
+		</div>
 	);
 }
 

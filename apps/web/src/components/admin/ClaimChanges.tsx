@@ -1,7 +1,7 @@
 'use client';
 
 import { IconCircleX, IconDeviceFloppy } from '@tabler/icons-react';
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import Divider from '@/components/ui/Divider';
@@ -294,31 +294,20 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 								/>
 
-								<FormControl
-									size="small"
-									style={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-									disabled={!canEditRestrictedFields}
-								>
-									<InputLabel>Recovery Status</InputLabel>
-									<Select
-										value={recoveryStatus}
+								<div style={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
+									<Dropdown
 										label="Recovery Status"
-										onChange={(e) => setValue('recovery_status', e.target.value as RecoveryStatus)}
-									>
-										{Object.values(RecoveryStatus).map((status) => (
-											<MenuItem key={status} value={status}>
-												<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-													<span style={{ fontSize: 14 }}>
-														{RECOVERY_STATUS_ICONS[status]}
-													</span>
-													<span style={{ fontSize: 14 }}>
-														{formatRecoveryStatus(status)}
-													</span>
-												</div>
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+										options={Object.values(RecoveryStatus).map((status) => ({
+											value: status,
+											label: formatRecoveryStatus(status),
+											icon: <span style={{ fontSize: 14 }}>{RECOVERY_STATUS_ICONS[status]}</span>,
+										}))}
+										value={recoveryStatus}
+										onChange={(v) => setValue('recovery_status', v as RecoveryStatus)}
+										disabled={!canEditRestrictedFields}
+										fullWidth
+									/>
+								</div>
 
 								<ClaimSubstatusSelect
 									substatus={substatus}

@@ -16,7 +16,6 @@ import PartyDetailDialog from './PartyDetailDialog';
 import PartyCard from './PartyCard';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { Dialog } from '@mui/material';
 
 dayjs.extend(relativeTime);
 

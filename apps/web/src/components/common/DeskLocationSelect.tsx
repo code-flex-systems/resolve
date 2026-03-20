@@ -1,14 +1,17 @@
-import { MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { IconMapPin } from '@tabler/icons-react';
+import Dropdown from '@/components/ui/Dropdown';
 
-interface DeskLocationSelectProps extends Omit<TextFieldProps, 'children' | 'select' | 'onChange' | 'value'> {
+interface DeskLocationSelectProps {
 	value: number | null;
 	onChange: (value: number | null) => void;
 	deskLocationTypeId?: number | null;
 	showInactive?: boolean;
 	excludedLocationIds?: number[];
 	placeholder?: string;
+	disabled?: boolean;
+	required?: boolean;
+	label?: string;
+	fullWidth?: boolean;
 }
 
 export default function DeskLocationSelect({
@@ -18,7 +21,10 @@ export default function DeskLocationSelect({
 	showInactive = false,
 	excludedLocationIds = [],
 	placeholder = 'Select a location...',
-	...textFieldProps
+	disabled,
+	required,
+	label = 'Desk Location',
+	fullWidth,
 }: DeskLocationSelectProps) {
 	const { data = { rows: [], count: 0 }, isFetching } = useDeskTrpc().listLocations(
 		{
@@ -38,48 +44,22 @@ export default function DeskLocationSelect({
 	}
 
 	return (
-		<TextField
-			label="Desk Location"
-			select
-			value={value ?? ''}
-			onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
-			disabled={!deskLocationTypeId || isFetching}
-			InputProps={{
-				startAdornment: <IconMapPin size={18} style={{ marginRight: 8, color: 'var(--text-secondary)' }} />,
+		<Dropdown
+			label={label}
+			options={filteredLocations.map((location) => ({
+				value: location.id,
+				label: `${location.name}${!location.is_active ? ' (Inactive)' : ''}`,
+			}))}
+			value={value}
+			onChange={(v) => onChange(Number(v))}
+			disabled={!deskLocationTypeId || isFetching || disabled}
+			placeholder={placeholder}
+			required={required}
+			fullWidth={fullWidth}
+			renderValue={(val) => {
+				const option = filteredLocations.find((l) => l.id === val);
+				return <span>{option ? `${option.name}${!option.is_active ? ' (Inactive)' : ''}` : String(val)}</span>;
 			}}
-			SelectProps={{
-				displayEmpty: true,
-				renderValue: (selected) => {
-					if (!selected) {
-						return <Typography color="text.secondary">{placeholder}</Typography>;
-					}
-					const option = filteredLocations.find((l) => l.id === selected);
-					return option ? `${option.name}${!option.is_active ? ' (Inactive)' : ''}` : selected;
-				},
-			}}
-			{...textFieldProps}
-			sx={styles.textFieldOverrides}
-		>
-			{filteredLocations.map((location) => (
-				<MenuItem key={location.id} value={location.id}>
-					{location.name} {!location.is_active && '(Inactive)'}
-				</MenuItem>
-			))}
-		</TextField>
+		/>
 	);
 }
-
-const styles = {
-	textFieldOverrides: {
-		width: 400,
-		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
-};

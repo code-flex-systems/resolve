@@ -22,7 +22,6 @@ import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { dataGridFocusStyles } from '@/styles/theme';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
-import { Dialog } from '@mui/material';
 
 interface PartiesTabProps {
 	isAdminContext?: boolean;

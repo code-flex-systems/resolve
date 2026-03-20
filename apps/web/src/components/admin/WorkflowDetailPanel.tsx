@@ -1,7 +1,8 @@
 'use client';
 
 import { IconArchive, IconChevronDown, IconChevronUp, IconEdit, IconMapPin, IconPlus, IconWorld } from '@tabler/icons-react';
-import { FormControl, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -450,23 +451,22 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								</Button>
 							</div>
 							{historyExpanded && (
-								<FormControl size="small" style={{ minWidth: 160 }}>
-									<Select
+								<div style={{ minWidth: 160 }}>
+									<Dropdown
+										options={[
+											{ value: '', label: 'All Rules' },
+											...rules.map((rule) => ({
+												value: rule.id,
+												label: rule.name,
+											})),
+										]}
 										value={historyRuleFilter ?? ''}
-										displayEmpty
-										onChange={(e) => {
-											const val = e.target.value;
-											setHistoryRuleFilter(val === '' ? undefined : (val as number));
+										onChange={(v) => {
+											setHistoryRuleFilter(v === '' ? undefined : (v as number));
 										}}
-									>
-										<MenuItem value="">All Rules</MenuItem>
-										{rules.map((rule) => (
-											<MenuItem key={rule.id} value={rule.id}>
-												{rule.name}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+										size="sm"
+									/>
+								</div>
 							)}
 						</div>
 						<Collapse open={historyExpanded}>

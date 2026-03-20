@@ -1,7 +1,7 @@
 'use client';
 
 import { IconChevronLeft, IconChevronRight, IconCircleX, IconExternalLink, IconFilter, IconRefresh, IconSubtask } from '@tabler/icons-react';
-import { Autocomplete, Dialog, FormControlLabel, Select, TextField } from '@mui/material';
+import { Autocomplete, FormControlLabel, TextField } from '@mui/material';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Switch from '@/components/ui/Switch';

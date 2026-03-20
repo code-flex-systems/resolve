@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { MenuItem, Select, Typography } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import { TreeNode } from '@/types/types';
 import BasicDialog from '../common/BasicDialog';
 
@@ -81,44 +81,24 @@ export default function CopyPageDialog(props: CopyPageDialogProps) {
 			]}
 			showCloseButton={false}
 		>
-			<Typography fontSize={15} color="primary" paddingBottom="10px">
+			<span    style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
 				Select parent page:
-			</Typography>
-			<Select
+			</span>
+			<Dropdown
+				options={[
+					{ value: -999, label: 'Copy as sibling' },
+					{ value: -1, label: 'Root level' },
+					...pageInstanceOptions
+						.sort((a, b) => a.pageId - b.pageId)
+						.map((o) => ({
+							value: o.instanceId,
+							label: `${o.title} (p${o.pageId}.i${o.instanceId})`,
+						})),
+				]}
 				value={selectedParentId ?? -999}
-				onChange={(e) => setSelectedParentId(e.target.value === -999 ? null : (e.target.value as number))}
-				variant="outlined"
-				displayEmpty
-				renderValue={(value) => {
-					if (value === -999) {
-						return 'Copy as sibling';
-					}
-					if (value === -1 || value === null) {
-						return 'Root level';
-					}
-					const option = pageInstanceOptions.find((o) => o.instanceId === value);
-					return option ? `${option.title} (p${option.pageId}.i${option.instanceId})` : 'Choose a parent';
-				}}
-				sx={styles.textFieldOverrides}
-			>
-				<MenuItem value={-999}>
-					<Typography fontSize={14} fontWeight={500}>
-						Copy as sibling
-					</Typography>
-				</MenuItem>
-				<MenuItem value={-1}>
-					<Typography fontSize={14}>Root level</Typography>
-				</MenuItem>
-				{pageInstanceOptions
-					.sort((a, b) => a.pageId - b.pageId)
-					.map((o) => (
-						<MenuItem key={o.instanceId} value={o.instanceId}>
-							<Typography fontSize={14}>
-								{o.title} (p{o.pageId}.i{o.instanceId})
-							</Typography>
-						</MenuItem>
-					))}
-			</Select>
+				onChange={(v) => setSelectedParentId(Number(v) === -999 ? null : Number(v))}
+				placeholder="Choose a parent"
+			/>
 		</BasicDialog>
 	);
 }

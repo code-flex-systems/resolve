@@ -1,7 +1,7 @@
 'use client';
 
 import { IconArchive, IconBolt, IconCircleCheck, IconCircleX, IconCurrentLocation, IconEdit, IconFlag, IconHandClick, IconPlayerPlay, IconRobot } from '@tabler/icons-react';
-import { CircularProgress } from '@mui/material';
+import { Spinner } from '@/components/ui/Progress';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
@@ -111,7 +111,7 @@ export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning }: 
 								sx: { backgroundColor: 'var(--bg-tertiary)' },
 								disabled: isRunning,
 							}}
-							icon={isRunning ? <CircularProgress size={20} /> : <IconPlayerPlay size={20} />}
+							icon={isRunning ? <Spinner size="sm" /> : <IconPlayerPlay size={20} />}
 							compact
 							tooltipProps={{ title: 'Run Rule' }}
 						/>

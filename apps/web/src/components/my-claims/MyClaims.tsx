@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Paper, PopperProps, Typography } from '@mui/material';
+import { Paper, PopperProps } from '@mui/material';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ClaimDetailPanel from '@/components/admin/ClaimDetailPanel';
@@ -122,49 +122,44 @@ export default function MyClaims() {
 	const hasActiveFilters = appliedSubstatus || appliedRecoveryStatus || appliedSearch;
 
 	return (
-		<Box display="flex" gap={2} width="100%" height="100%" padding="20px">
-			<Box flexShrink={0}>
+		<div style={{ display: 'flex', gap: 16, width: '100%', height: '100%', padding: '20px' }}>
+			<div style={{ flexShrink: 0 }}>
 				<MyClaimsDeadlines />
-			</Box>
-			<Box flex={1} minWidth={0} height="100%">
+			</div>
+			<div style={{ flex: 1, minWidth: 0, height: '100%' }}>
 				<Paper sx={styles.paper} className="flex-col-start">
 					{/* Title */}
-					<Box width="100%" padding="10px 10px 0px" mb={3}>
-						<Typography variant="h6">My Queue</Typography>
-					</Box>
+					<div style={{ width: '100%', padding: '10px 10px 0px', marginBottom: 24 }}>
+						<span>My Queue</span>
+					</div>
 
 					{/* Metrics and Legend */}
-					<Box
-						width="100%"
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						padding="0px 10px"
-					>
+					<div
+style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0px 10px' }}>
 						<MyClaimsMetrics
 							count={count}
 							totalValue={metrics.totalValue}
 							avgDaysInQueue={metrics.avgDaysInQueue}
 							isLoading={isFetching}
 						/>
-						<Box display="flex" flexDirection="column" gap={0.5} mr={2}>
-							<Typography fontSize={11} fontWeight={600} color="text.secondary" mb={0.5}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 4, marginRight: 16 }}>
+							<span style={{ fontSize: 11, fontWeight: 600, color: 'text.secondary', marginBottom: 4 }}>
 								LAST ACTIVITY
-							</Typography>
-							<Box display="flex" alignItems="center" gap={0.75}>
-								<Box sx={{ ...styles.indicator, bgcolor: 'success.main' }} />
-								<Typography fontSize={12}>Today</Typography>
-							</Box>
-							<Box display="flex" alignItems="center" gap={0.75}>
-								<Box sx={{ ...styles.indicator, bgcolor: 'warning.main' }} />
-								<Typography fontSize={12}>Within 7 days</Typography>
-							</Box>
-							<Box display="flex" alignItems="center" gap={0.75}>
-								<Box sx={{ ...styles.indicator, bgcolor: 'error.main' }} />
-								<Typography fontSize={12}>Over 7 days</Typography>
-							</Box>
-						</Box>
-					</Box>
+							</span>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+								<div style={{ ...styles.indicator, }} />
+								<span style={{ fontSize: 12 }}>Today</span>
+							</div>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+								<div style={{ ...styles.indicator, }} />
+								<span style={{ fontSize: 12 }}>Within 7 days</span>
+							</div>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+								<div style={{ ...styles.indicator, }} />
+								<span style={{ fontSize: 12 }}>Over 7 days</span>
+							</div>
+						</div>
+					</div>
 
 					{/* Queue Table */}
 					<MyClaimsQueueTable
@@ -189,11 +184,11 @@ export default function MyClaims() {
 						showDeskColumn={true}
 					/>
 				</Paper>
-			</Box>
+			</div>
 
 			{/* Claim Detail Panel */}
 			<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
-		</Box>
+		</div>
 	);
 }
 

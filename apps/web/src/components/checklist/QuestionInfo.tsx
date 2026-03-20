@@ -1,6 +1,7 @@
 'use client';
 import './styles.css';
-import { Paper, Popper, Tooltip, Typography, Box , Fade } from '@mui/material';
+import { Paper, Popper, Fade } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
 import { useRef } from 'react';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
@@ -28,7 +29,7 @@ export default function QuestionInfo(props: {
 			{/* Show info icon with description tooltip if there's a description */}
 			{description && (
 				<>
-					<Tooltip title={description ?? ''} placement="top" arrow>
+					<Tooltip content={description ?? ''} position="top">
 						<IconInfoCircle ref={ref} style={{ color: 'primary.main', marginLeft: '10px' }} className="info" />
 					</Tooltip>
 
@@ -44,9 +45,9 @@ export default function QuestionInfo(props: {
 							<Fade {...TransitionProps} timeout={350}>
 								<span>
 									<Paper sx={styles.paper}>
-										<Typography fontSize={17} fontWeight="bold">
+										<span   style={{ fontSize: 17, fontWeight: 'bold' }}>
 											{description}
-										</Typography>
+										</span>
 									</Paper>
 								</span>
 							</Fade>
@@ -57,7 +58,7 @@ export default function QuestionInfo(props: {
 
 			{/* Show attached document/image */}
 			{attachedDoc && (
-				<Box display="inline-flex" ml={description ? 0 : 1}>
+				<div   style={{ display: 'inline-flex', marginLeft: description ? 0 : 1 }}>
 					{attachedDoc.mime_type?.startsWith('image/') ? (
 						<ImageTooltip
 							imageUrl={`/api/download?docId=${attachedDoc.id}`}
@@ -66,7 +67,7 @@ export default function QuestionInfo(props: {
 					) : (
 						<DocumentIconWithPreview document={attachedDoc} />
 					)}
-				</Box>
+				</div>
 			)}
 		</>
 	);

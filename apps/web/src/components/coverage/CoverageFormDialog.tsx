@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, TextField, InputAdornment, Typography, MenuItem } from '@mui/material';
+import { TextField, InputAdornment } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import { CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import CoverageTypeSelect from '../common/CoverageTypeSelect';
 import BasicDialog from '../common/BasicDialog';
@@ -97,15 +98,15 @@ export default function CoverageFormDialog({
 
 	const isValidCoverageAmount =
 		!formData.coverage_amount ||
-		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount) > 0);
+		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount)> 0);
 
 	const isValidReservedAmount =
 		!formData.amount_reserved ||
-		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved) >= 0);
+		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved)>= 0);
 
 	const isValidDeductibleAmount =
 		!formData.deductible_amount ||
-		(!isNaN(parseFloat(formData.deductible_amount)) && parseFloat(formData.deductible_amount) >= 0);
+		(!isNaN(parseFloat(formData.deductible_amount)) && parseFloat(formData.deductible_amount)>= 0);
 
 	if (!open) return null;
 
@@ -129,9 +130,8 @@ export default function CoverageFormDialog({
 				},
 			]}
 			onClose={onClose}
-			width={600}
-		>
-			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+			width={600}>
+			<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, paddingTop: 1 }}>
 				<CoverageTypeSelect
 					value={formData.loss_type}
 					onChange={(type) => setFormData({ ...formData, loss_type: type })}
@@ -175,9 +175,9 @@ export default function CoverageFormDialog({
 				/>
 
 				{/* Deductible Section */}
-				<Typography variant="subtitle2" sx={{ mt: 1, mb: -1 }}>
+				<span style={{ marginTop: 8, marginBottom: -8 }}>
 					Deductible Information
-				</Typography>
+				</span>
 
 				<TextField
 					label="Deductible Amount"
@@ -210,20 +210,20 @@ export default function CoverageFormDialog({
 				/>
 
 				{/* Subrogation & Statute Section */}
-				<Typography variant="subtitle2" sx={{ mt: 1, mb: -1 }}>
+				<span style={{ marginTop: 8, marginBottom: -8 }}>
 					Subrogation & Statute Tracking
-				</Typography>
+				</span>
 
-				<TextField
-					select
+				<Dropdown
 					label="Subrogation Applicable"
+					options={[
+						{ value: 'yes', label: 'Yes' },
+						{ value: 'no', label: 'No' },
+					]}
 					value={formData.subro_applicable ? 'yes' : 'no'}
-					onChange={(e) => setFormData({ ...formData, subro_applicable: e.target.value === 'yes' })}
+					onChange={(v) => setFormData({ ...formData, subro_applicable: v === 'yes' })}
 					fullWidth
-				>
-					<MenuItem value="yes">Yes</MenuItem>
-					<MenuItem value="no">No</MenuItem>
-				</TextField>
+				/>
 
 				{/* Show statute_date read-only if editing existing coverage */}
 				{editingCoverage?.statute_date && (
@@ -236,17 +236,17 @@ export default function CoverageFormDialog({
 					/>
 				)}
 
-				<TextField
-					select
+				<Dropdown
 					label="Statute Preserved"
+					options={[
+						{ value: 'yes', label: 'Yes' },
+						{ value: 'no', label: 'No' },
+					]}
 					value={formData.statute_preserved ? 'yes' : 'no'}
-					onChange={(e) => setFormData({ ...formData, statute_preserved: e.target.value === 'yes' })}
+					onChange={(v) => setFormData({ ...formData, statute_preserved: v === 'yes' })}
 					fullWidth
-				>
-					<MenuItem value="yes">Yes</MenuItem>
-					<MenuItem value="no">No</MenuItem>
-				</TextField>
-			</Box>
+				/>
+			</div>
 		</BasicDialog>
 	);
 }

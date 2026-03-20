@@ -13,7 +13,6 @@ import UploadDocumentDialog from './UploadDocumentDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import DocumentPreviewDialog from './DocumentPreviewDialog';
 import DocumentNavigationTable from './DocumentNavigationTable';
-import { Dialog, Table } from '@mui/material';
 
 export default function DocumentsTab() {
 	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);

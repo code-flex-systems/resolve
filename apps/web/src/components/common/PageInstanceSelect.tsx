@@ -1,5 +1,6 @@
-import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { MenuItem, Paper, PopperProps } from '@mui/material';
+import CustomChip from '@/components/ui/Chip';
+import React, { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { IconFileDescription } from '@tabler/icons-react';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -36,31 +37,24 @@ export default function PageInstanceSelect({
 
 	return (
 		<>
-			<Chip
-				label={
-					selectedOption
+			<span
+				onClick={(e: React.MouseEvent) => {
+				setAnchorEl(e.currentTarget as HTMLElement);
+				e.preventDefault();
+				e.stopPropagation();
+			}}
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', opacity: disabled ? 0.5 : 1 }}
+			>
+				<CustomChip color={instanceId ? 'info' : 'neutral'} size="sm">
+				<IconFileDescription size={20} />
+					<span>{selectedOption
 						? `${selectedOption.title} (p${selectedOption.id}.i${selectedOption.instance_id})`
-						: text
-				}
-				icon={<IconFileDescription size={20} />}
-				onClick={(e) => {
-					setAnchorEl(e.currentTarget);
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				onDelete={instanceId && clearable ? () => setInstanceId(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: instanceId ? 'var(--text-accent)' : undefined,
-					},
-					'& .MuiChip-label': {
-						color: instanceId ? 'var(--text-accent)' : undefined,
-					},
-				}}
-				disabled={disabled}
-			/>
+						: text}</span>
+				</CustomChip>
+				{instanceId && (
+					<button onClick={(e: React.MouseEvent) => { e.stopPropagation(); setInstanceId(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
 					<Paper sx={styles.paper}>

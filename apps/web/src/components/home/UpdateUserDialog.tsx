@@ -148,8 +148,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 				confirmingRoleChange ? [{ label: 'Cancel', onClick: () => setConfirmingRoleChange(false) }] : undefined
 			}
 			onClose={() => onClose()}
-			width={500}
-		>
+			width={500}>
 			<Avatar sx={styles.avatar}>
 				{userData ? getInitials('name' in userData ? userData.name : `${userData.first} ${userData.last}`) : ''}
 			</Avatar>
@@ -189,8 +188,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 											width="100%"
 											display="flex"
 											justifyContent="flex-start"
-											alignItems="center"
-										>
+											alignItems="center">
 											{availableRoleOptions.find((o) => o.value === value)?.icon ??
 												roleOptions.find((o) => o.value === value)?.icon ?? <></>}
 											<Typography paddingLeft="10px" fontSize={13}>
@@ -198,16 +196,14 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 											</Typography>
 										</Box>
 									)}
-									sx={{ ...styles.textFieldOverrides, marginBottom: '20px' }}
-								>
+									sx={{ ...styles.textFieldOverrides, marginBottom: '20px' }}>
 									{availableRoleOptions.map((o) => (
 										<MenuItem key={o.value} value={o.value}>
 											<Box
 												width="100%"
 												display="flex"
 												justifyContent="flex-start"
-												alignItems="center"
-											>
+												alignItems="center">
 												{o.icon}
 												<Typography paddingLeft="10px" fontSize={13}>
 													{o.value}
@@ -328,7 +324,6 @@ const styles = {
 		width: 100,
 		height: 100,
 		fontSize: 40,
-		bgcolor: 'var(--text-accent)',
 		marginBottom: '10px',
 	},
 	textFieldOverrides: {

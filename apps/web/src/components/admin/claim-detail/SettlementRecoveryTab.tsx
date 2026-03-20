@@ -1,7 +1,6 @@
 'use client';
 
 import { IconAlertTriangle, IconCurrencyDollar, IconGavel, IconSettings } from '@tabler/icons-react';
-import { Dialog, Link, Table } from '@mui/material';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
@@ -369,14 +368,14 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 								Settlements ({settlements.length})
 							</span>
-							<Link
-								component="button"
+							<button
+								
 								onClick={() => setViewMode(viewMode === 'table' ? 'timeline' : 'table')}
-								underline="hover"
-								style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}
+								
+								style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-accent)', cursor: 'pointer' }}
 							>
 								{viewMode === 'table' ? 'See in timeline...' : 'See in table...'}
-							</Link>
+							</button>
 						</div>
 						<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 							<Button

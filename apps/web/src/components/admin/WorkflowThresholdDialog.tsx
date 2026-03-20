@@ -1,5 +1,6 @@
 'use client';
-import { FormControl, FormControlLabel, InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControlLabel } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import Switch from '@/components/ui/Switch';
 import { useState, useEffect } from 'react';
@@ -85,18 +86,19 @@ export default function WorkflowThresholdDialog({
 			width={500}
 		>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
-				<FormControl fullWidth required disabled={!!editingThreshold}>
-					<InputLabel>Threshold Type</InputLabel>
-					<Select
-						value={formData.thresholdType}
-						onChange={(e) => setFormData({ ...formData, thresholdType: e.target.value as WorkflowThresholdType })}
-						label="Threshold Type"
-					>
-						<MenuItem value={WorkflowThresholdType.USER_CAPACITY}>User Capacity</MenuItem>
-						<MenuItem value={WorkflowThresholdType.LOCATION_AGE}>Location Age (Hours)</MenuItem>
-						<MenuItem value={WorkflowThresholdType.TASK_DUE}>Task Due Warning (Days)</MenuItem>
-					</Select>
-				</FormControl>
+				<Dropdown
+					label="Threshold Type"
+					options={[
+						{ value: WorkflowThresholdType.USER_CAPACITY, label: 'User Capacity' },
+						{ value: WorkflowThresholdType.LOCATION_AGE, label: 'Location Age (Hours)' },
+						{ value: WorkflowThresholdType.TASK_DUE, label: 'Task Due Warning (Days)' },
+					]}
+					value={formData.thresholdType}
+					onChange={(v) => setFormData({ ...formData, thresholdType: v as WorkflowThresholdType })}
+					required
+					disabled={!!editingThreshold}
+					fullWidth
+				/>
 
 				<Input
 					label="Threshold Value"

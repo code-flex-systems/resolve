@@ -1,6 +1,6 @@
 'use client';
 import { PopperProps } from '@mui/material';
-import Select from '@/components/ui/Select';
+import Dropdown from '@/components/ui/Dropdown';
 import { Dayjs } from 'dayjs';
 import ClaimFilter from '@/components/common/ClaimFilter';
 import type { EntityName } from '@/api/utils/activityLogger';
@@ -58,20 +58,20 @@ export default function ClaimActivityLogsFiltersPopper({
 			onApply={onApply}
 		>
 			<div>
-				<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+				<span  style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 					Claim
 				</span>
 				<ClaimFilter claim={draftClaim} setClaim={setDraftClaim} height={32} zIndex={1500} />
 			</div>
 			<div>
-				<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+				<span  style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 					Actor Type
 				</span>
-				<Select
+				<Dropdown
 					fullWidth
 					value={draftActorType ?? ''}
 					onChange={(val) => {
-						const value = val as 'admin' | 'user' | '';
+						const value = String(val) as 'admin' | 'user' | '';
 						setDraftActorType(value ? value : null);
 					}}
 					options={ACTOR_TYPE_OPTIONS}

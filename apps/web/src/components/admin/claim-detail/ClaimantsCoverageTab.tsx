@@ -25,7 +25,6 @@ import { useAlertStore } from '@/stores/useAlertStore';
 import { DeductibleStatus } from '@/config/enums';
 import { DEDUCTIBLE_STATUS_OPTIONS } from '../../coverage/DeductibleStatusSelect';
 import Highlight from '@/components/common/Highlight';
-import { Dialog, Select } from '@mui/material';
 
 dayjs.extend(relativeTime);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Box, FormControl, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
+import Dropdown from '@/components/ui/Dropdown';
 import { useDeadlineTrpc, Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 import { useRouter } from 'next/navigation';
@@ -26,8 +26,8 @@ export default function MyClaimsDeadlines() {
 		router.push(`/my-claims/${claimId}`);
 	};
 
-	const handleFilterChange = (event: SelectChangeEvent<DeadlineFilter>) => {
-		setFilter(event.target.value as DeadlineFilter);
+	const handleFilterChange = (value: string | number) => {
+		setFilter(value as DeadlineFilter);
 	};
 
 	// Calculate counts and filter deadlines
@@ -68,45 +68,46 @@ export default function MyClaimsDeadlines() {
 	}, [deadlines, filter]);
 
 	return (
-		<Box sx={{ ...containerStyles.section, ...styles.container }}>
-			<Typography sx={containerStyles.sectionTitle}>
+		<div style={{ ...containerStyles.section, ...styles.container }}>
+			<span style={containerStyles.sectionTitle}>
 				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
 				Related Deadlines
-			</Typography>
-			<Box sx={containerStyles.sectionContent}>
+			</span>
+			<div style={containerStyles.sectionContent}>
 				{isLoading ? (
-					<Stack spacing={1}>
+					<div style={{ gap: 8 }}>
 						<Skeleton variant="rect" height={40} />
 						<Skeleton variant="rect" height={60} />
 						<Skeleton variant="rect" height={60} />
-					</Stack>
+					</div>
 				) : (
 					<>
 						{/* Filter Dropdown */}
-						<FormControl size="small" sx={{ marginBottom: 2, minWidth: 180 }}>
-							<Select value={filter} onChange={handleFilterChange} sx={{ fontSize: 13 }}>
-								<MenuItem value="all">All ({counts.all})</MenuItem>
-								<MenuItem value="pending">Upcoming ({counts.pending})</MenuItem>
-								<MenuItem value="overdue">Overdue ({counts.overdue})</MenuItem>
-								<MenuItem value="completed">Completed ({counts.completed})</MenuItem>
-							</Select>
-						</FormControl>
+						<div style={{ marginBottom: 16, minWidth: 180 }}>
+							<Dropdown
+								options={[
+									{ value: 'all', label: `All (${counts.all})` },
+									{ value: 'pending', label: `Upcoming (${counts.pending})` },
+									{ value: 'overdue', label: `Overdue (${counts.overdue})` },
+									{ value: 'completed', label: `Completed (${counts.completed})` },
+								]}
+								value={filter}
+								onChange={handleFilterChange}
+								size="sm"
+							/>
+						</div>
 
 						{/* Deadline List */}
-						<Box sx={styles.scrollContainer}>
+						<div style={styles.scrollContainer}>
 							{filteredDeadlines.length === 0 ? (
-								<Box sx={styles.emptyState}>
-									<Typography
-										fontSize={13}
-										color="text.secondary"
-										textAlign="center"
-										fontStyle="italic"
-									>
+								<div style={styles.emptyState}>
+									<span
+style={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' as const, fontStyle: 'italic' }}>
 										{filter === 'all' ? 'No deadlines for your claims' : `No ${filter} deadlines`}
-									</Typography>
-								</Box>
+									</span>
+								</div>
 							) : (
-								<Stack spacing={1}>
+								<div style={{ gap: 8 }}>
 									{filteredDeadlines.slice(0, 10).map((deadline) => (
 										<DeadlineListItem
 											key={deadline.id}
@@ -116,18 +117,18 @@ export default function MyClaimsDeadlines() {
 											showDate={true}
 										/>
 									))}
-								</Stack>
+								</div>
 							)}
-						</Box>
-						{filteredDeadlines.length > 10 && (
-							<Typography fontSize={11} color="text.secondary" textAlign="center" marginTop={1}>
+						</div>
+						{filteredDeadlines.length> 10 && (
+							<span style={{ fontSize: 11, color: 'text.secondary', textAlign: 'center' as const, marginTop: 1 }}>
 								Showing 10 of {filteredDeadlines.length} deadlines
-							</Typography>
+							</span>
 						)}
 					</>
 				)}
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 
@@ -138,23 +139,9 @@ const styles = {
 	},
 	scrollContainer: {
 		height: 'calc(100% - 90px)',
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		paddingRight: 1,
-		'&::-webkit-scrollbar': {
-			width: '6px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: 'var(--bg-tertiary)',
-			borderRadius: '3px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: 'var(--bg-secondary)',
-			borderRadius: '3px',
-			'&:hover': {
-				background: 'var(--bg-tertiary)',
-			},
-		},
+		overflowY: 'auto' as const,
+		overflowX: 'hidden' as const,
+		paddingRight: 8,
 	},
 	emptyState: {
 		padding: 4,

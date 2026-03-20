@@ -1,4 +1,4 @@
-import { Box, InputAdornment, TextField, Typography } from '@mui/material';
+import { InputAdornment, TextField } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import config from '@/config/config';
@@ -55,8 +55,7 @@ export default function CommentDialog() {
 			title={existingComment ? `${formatUser(existingComment)} said...` : 'Add a comment...'}
 			onClose={() => toggleQuestionCommentDialog()}
 			closeDisabled={inTransition}
-			width={400}
-		>
+			width={400}>
 			<TextField
 				value={comment}
 				placeholder="New comment..."
@@ -97,20 +96,20 @@ export default function CommentDialog() {
 					},
 				}}
 				autoFocus
-				disabled={comment.length >= config.MAX_COMMENT_SIZE || !!existingComment || inTransition}
+				disabled={comment.length>= config.MAX_COMMENT_SIZE || !!existingComment || inTransition}
 			/>
-			<Box width="100%" display="flex" justifyContent="flex-end" alignItems="center" paddingTop="2px">
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '2px' }}>
 				{!!existingComment && (
-					<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+					<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT }}>
 						{formatMDY(existingComment.created_at)}
-					</Typography>
+					</span>
 				)}
 				{!existingComment && (
-					<Typography fontSize={12} color={comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined}>
+					<span style={{ fontSize: 12, color: comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined }}>
 						Max characters: {comment.length}/{config.MAX_COMMENT_SIZE}
-					</Typography>
+					</span>
 				)}
-			</Box>
+			</div>
 		</BasicDialog>
 	);
 }

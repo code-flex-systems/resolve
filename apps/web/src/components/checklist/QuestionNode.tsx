@@ -1,5 +1,5 @@
 'use client';
-import { Box, IconButton, Typography } from '@mui/material';
+import Button from '@/components/ui/Button';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import './styles.css';
 import AnswerNode from './AnswerNode';
@@ -30,34 +30,32 @@ export default function QuestionNode(props: {
 
 	return (
 		<>
-			<Box
-				sx={{ ...styles.node, pl: level * 1.875, pr: 1.25 }}
+			<div
+				style={{ ...styles.node, paddingLeft: level * 1.875 * 8, paddingRight: 10 }}
 				onClick={() => updateSelectedQuestion(questionId)}
 				className="flex-row-between"
 			>
-				<Box className="flex-row-left">
-					<IconHelpCircle size={16} style={{ marginRight: '10px', color: selected ? 'secondary.main' : '' }} />
-					<Typography
-						color={selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : ''}
-						fontWeight={isPlaceholder ? 'bold' : ''}
-						lineHeight="19px"
-						sx={{ cursor: 'pointer' }}
+				<div className="flex-row-left">
+					<IconHelpCircle size={16} style={{ marginRight: '10px', color: selected ? 'var(--text-accent)' : '' }} />
+					<span
 						className={isPlaceholder ? 'node-p' : 'node-q'}
+						style={{ cursor: 'pointer', color: selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : '', fontWeight: isPlaceholder ? 'bold' : '', lineHeight: '19px' }}
 					>
 						{questionId !== -1 ? `${idx + 1}. ` : ''}
 						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
-					</Typography>
-				</Box>
+					</span>
+				</div>
 				{questionId === -1 || questionType === QuestionType.FREEFORM ? (
-					<Box sx={{ width: 25 }} />
+					<div style={{ width: 25 }} />
 				) : (
-					<IconButton
+					<Button
+						variant="icon"
+						size="sm"
 						onClick={(e) => {
 							setExpanded((prev) => !prev);
 							e.stopPropagation();
 							e.preventDefault();
 						}}
-						disableRipple
 					>
 						<IconCircleMinus
 						 style={{
@@ -66,9 +64,9 @@ export default function QuestionNode(props: {
 								fontSize: 17,
 							}}
 						/>
-					</IconButton>
+					</Button>
 				)}
-			</Box>
+			</div>
 			<Collapse open={expanded}>
 				<span>
 					{[...questionAnswers]
@@ -103,6 +101,7 @@ const styles = {
 	node: {
 		width: '100%',
 		minHeight: 30,
-		py: 1.25,
-	},
+		paddingTop: 10,
+		paddingBottom: 10,
+	} as React.CSSProperties,
 };

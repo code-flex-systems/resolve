@@ -16,7 +16,6 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import ReferenceOptionDialog from './ReferenceOptionDialog';
 import ReferenceOptionActionsCell from './ReferenceOptionActionsCell';
-import { Dialog } from '@mui/material';
 import {
 	KNOWN_REFERENCE_ENTITIES,
 	REFERENCE_ENTITY_DISPLAY,

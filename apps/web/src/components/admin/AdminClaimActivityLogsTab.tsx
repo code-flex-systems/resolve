@@ -1,7 +1,7 @@
 'use client';
 
 import { IconClipboardCheck, IconClockFilled, IconFileSearch, IconFilter, IconUser } from '@tabler/icons-react';
-import { Dialog, PopperProps } from '@mui/material';
+import { PopperProps } from '@mui/material';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import { useCallback, useEffect, useMemo, useState } from 'react';
