@@ -1,6 +1,7 @@
 'use client';
 import { LineChart } from '@mui/x-charts-pro';
 import Card from '@/components/ui/Card';
+import KpiCard from '@/components/ui/KpiCard';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -151,64 +152,29 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 					<>
 						{/* Summary Cards */}
 						<div style={{ display: 'flex', gap: spacing, marginBottom, width: '100%' }}>
-							<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-								<div style={{ padding: cardPadding }}>
-									<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-										Total Expected
-									</span>
-									<div style={{ fontSize: cardValueSize }}>
-										{formatCurrency(currentExpected)}
-									</div>
-									<span
-style={{ fontSize: cardSubtextSize, color: expectedChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
-										{expectedChange>= 0 ? '+' : ''}
-										{expectedChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-									</span>
-								</div>
-							</Card>
-							<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-								<div style={{ padding: cardPadding }}>
-									<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-										Total Actual
-									</span>
-									<div style={{ fontSize: cardValueSize }}>
-										{formatCurrency(currentActual)}
-									</div>
-									<span
-style={{ fontSize: cardSubtextSize, color: actualChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
-										{actualChange>= 0 ? '+' : ''}
-										{actualChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-									</span>
-								</div>
-							</Card>
-							<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-								<div style={{ padding: cardPadding }}>
-									<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-										Variance
-									</span>
-									<div style={{ fontSize: cardValueSize }}>
-										{formatCurrency(currentVariance)}
-									</div>
-									<span style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
-										{currentRate.toFixed(1)}% rate
-									</span>
-								</div>
-							</Card>
+							<KpiCard size="sm"
+								value={formatCurrency(currentExpected)}
+								label="Total Expected"
+								subtitle={`${expectedChange >= 0 ? '+' : ''}${expectedChange.toFixed(1)}%${isBreakdown ? ' vs last quarter' : ''}`}
+								subtitleColor={expectedChange >= 0 ? 'positive' : 'negative'}
+							/>
+							<KpiCard size="sm"
+								value={formatCurrency(currentActual)}
+								label="Total Actual"
+								subtitle={`${actualChange >= 0 ? '+' : ''}${actualChange.toFixed(1)}%${isBreakdown ? ' vs last quarter' : ''}`}
+								subtitleColor={actualChange >= 0 ? 'positive' : 'negative'}
+							/>
+							<KpiCard size="sm"
+								value={formatCurrency(currentVariance)}
+								label="Variance"
+								subtitle={`${currentRate.toFixed(1)}% rate`}
+							/>
 							{isBreakdown && (
-								<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-									<div style={{ padding: cardPadding }}>
-										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-											Recovery Rate
-										</span>
-										<div style={{ fontSize: cardValueSize }}>
-											{currentRate.toFixed(1)}%
-										</div>
-										<span
-style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
-											actual / expected
-										</span>
-									</div>
-								</Card>
+								<KpiCard size="sm"
+									value={`${currentRate.toFixed(1)}%`}
+									label="Recovery Rate"
+									subtitle="actual / expected"
+								/>
 							)}
 						</div>
 

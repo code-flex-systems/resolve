@@ -16,6 +16,7 @@ import ClaimFilter from '@/components/common/ClaimFilter';
 import { Claim } from '@/hooks/trpc/useClaimTrpc';
 import { GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
 import Divider from '@/components/ui/Divider';
+import Card from '@/components/ui/Card';
 
 export default function UserActivityView() {
 	const router = useRouter();
@@ -32,8 +33,8 @@ export default function UserActivityView() {
 	);
 
 	return (
-		<div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+		<div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'row' as const, justifyContent: 'flex-start', alignItems: 'center' }}>
 				<div style={{ marginRight: '5px' }}>
 					<BasicDateRangePicker defaultLabel="This Month" defaultValue={range} onConfirm={setRange} />
 				</div>
@@ -49,7 +50,7 @@ export default function UserActivityView() {
 				<Divider />
 			</div>
 			<div
-style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}>
+style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto', gap: 16 }}>
 				<UserActivityChart
 					checklistId={checklist?.id}
 					claimId={claim?.id}
@@ -57,13 +58,10 @@ style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyCo
 					range={range}
 					searchTerm={debouncedSearchTerm}
 				/>
-				<div style={styles.paper}>
-					<div
-style={{ width: '100%', height: 50, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '10px' }}>
-						<span style={{ fontSize: 18, fontWeight: 600 }}>
-							Change Log
-						</span>
-						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginLeft: '20px' }}>
+				<Card variant="beveled" padding="lg" style={{ width: '100%' }}>
+					<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, width: '100%' }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+							<span style={{ fontSize: 18, fontWeight: 600 }}>Change Log</span>
 							<SearchInput
 								value={searchTerm}
 								onChange={(value) => {
@@ -73,18 +71,17 @@ style={{ width: '100%', height: 50, display: 'flex', justifyContent: 'flex-start
 								placeholder="Search by question..."
 							/>
 						</div>
+						<div style={{ height: 500 }}>
+							<UserActivityTable
+								checklistId={checklist?.id}
+								claimId={claim?.id}
+								users={users}
+								range={range}
+								searchTerm={debouncedSearchTerm}
+							/>
+						</div>
 					</div>
-					<div style={{ height: 500 }}>
-						<UserActivityTable
-							checklistId={checklist?.id}
-							claimId={claim?.id}
-							users={users}
-							range={range}
-							searchTerm={debouncedSearchTerm}
-						/>
-					</div>
-				</div>
-				{/* </div> */}
+				</Card>
 			</div>
 		</div>
 	);

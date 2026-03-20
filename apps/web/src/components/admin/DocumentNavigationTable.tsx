@@ -1,13 +1,12 @@
 'use client';
 
 import { IconFile, IconFolder, IconSettings } from '@tabler/icons-react';
-import { DataGridPro, GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useMemo, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
 
@@ -19,8 +18,8 @@ interface DocumentNavigationTableProps {
 	onDocumentPreview: (doc: DocListItem) => void;
 	loading?: boolean;
 	editMode?: boolean;
-	selectedRows?: GridRowSelectionModel;
-	onRowSelectionChange?: (selection: GridRowSelectionModel) => void;
+	selectedRows?: Record<string, boolean>;
+	onRowSelectionChange?: (selection: Record<string, boolean>) => void;
 	showBreadcrumbs?: boolean;
 	breadcrumbRootLabel?: string;
 	adminMode?: boolean; // Show system folder indicators
@@ -37,7 +36,7 @@ export default function DocumentNavigationTable({
 	onDocumentPreview,
 	loading = false,
 	editMode = false,
-	selectedRows = [],
+	selectedRows = {},
 	onRowSelectionChange,
 	showBreadcrumbs = true,
 	breadcrumbRootLabel = 'Documents',
@@ -95,7 +94,7 @@ export default function DocumentNavigationTable({
 		return result;
 	}, [currentFolderId, groups, docs]);
 
-	const handleRowDoubleClick = (params: GridRowParams<GridRow>) => {
+	const handleRowDoubleClick = (params: { row: GridRow }) => {
 		if (editMode) return; // Don't navigate in edit mode
 
 		if (params.row.type === 'folder') {
@@ -106,13 +105,12 @@ export default function DocumentNavigationTable({
 	};
 
 	// Create columns with system indicator support
-	const columns: GridColDef<GridRow>[] = useMemo(
+	const columns: ColumnDef<GridRow, any>[] = useMemo(
 		() => [
 			{
-				headerName: 'Name',
-				field: 'name',
-				flex: 1,
-				renderCell: ({ row }) => {
+				header: 'Name',
+				accessorKey: 'name',
+				cell: ({ row: { original: row } }) => {
 					// For user folders, display user's full name and email
 					if (
 						row.type === 'folder' &&
@@ -163,18 +161,12 @@ export default function DocumentNavigationTable({
 						</div>
 					);
 				},
-				renderHeader: (params) => (
-					<IconHeaderCell
-						{...(params as any)}
-						icon={<IconFile style={{ color: 'var(--text-muted)' }} />}
-					/>
-				),
 			},
 			{
-				headerName: 'Type',
-				field: 'type',
-				width: 150,
-				renderCell: ({ row }) => {
+				header: 'Type',
+				accessorKey: 'type',
+				size: 150,
+				cell: ({ row: { original: row } }) => {
 					if (row.type === 'folder') {
 						// Show "User Folder" for user-specific folders
 						if (row.data.group_type === 'user') {
@@ -206,20 +198,20 @@ export default function DocumentNavigationTable({
 				},
 			},
 			{
-				headerName: 'Date',
-				field: 'date',
-				width: 150,
-				renderCell: ({ row }) => (
+				header: 'Date',
+				accessorKey: 'date',
+				size: 150,
+				cell: ({ row: { original: row } }) => (
 					<span style={{ color: 'var(--text-secondary)' }}>
 						{formatMDY(row.data.created_at)}
 					</span>
 				),
 			},
 			{
-				headerName: 'Size',
-				field: 'size',
-				width: 120,
-				renderCell: ({ row }) => {
+				header: 'Size',
+				accessorKey: 'size',
+				size: 120,
+				cell: ({ row: { original: row } }) => {
 					if (row.type === 'document' && row.data.file_size) {
 						const sizeInKB = Number(row.data.file_size) / 1024;
 						return (
@@ -270,19 +262,15 @@ export default function DocumentNavigationTable({
 				</nav>
 			)}
 
-			<DataGridPro
+			<DataTable
 				rows={rows}
 				loading={loading}
 				columns={columns}
 				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowDoubleClick={handleRowDoubleClick}
+				onRowClick={handleRowDoubleClick as any}
 				checkboxSelection={editMode}
-				rowSelectionModel={selectedRows}
-				onRowSelectionModelChange={onRowSelectionChange}
-				slots={{
-					noRowsOverlay,
-				}}
-				style={styles.dataGrid}
+				rowSelection={selectedRows}
+				onRowSelectionChange={onRowSelectionChange}
 				hideFooter
 			/>
 		</>
@@ -290,9 +278,4 @@ export default function DocumentNavigationTable({
 }
 
 const styles = {
-	dataGrid: {
-		flex: 1,
-		border: 'none',
-		...dataGridFocusStyles,
-	},
 };

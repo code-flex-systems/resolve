@@ -6,10 +6,8 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useCallback, useMemo, useState } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -19,77 +17,67 @@ import DeskLocationDialog from './DeskLocationDialog';
 import DeskTypeActionsCell from './DeskTypeActionsCell';
 import DeskLocationActionsCell from './DeskLocationActionsCell';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const getTypeColumns = (isManageMode: boolean): GridColDef[] => [
+const getTypeColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Desk Location Type',
-		field: 'name',
-		renderCell: ({ row }) => (
+		accessorKey: 'name',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell
 				primary={row.name}
 				secondary={`${row.location_count ?? 0} location${row.location_count === 1 ? '' : 's'}`}
 			/>
 		),
-		renderHeader: (params) => (
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconDesk style={{ color: 'var(--text-muted)' }} />} />
 		),
-		flex: 1,
 	},
 	{
-		headerName: 'Created',
-		field: 'created_at',
-		renderCell: ({ row }) => formatMDY(row.created_at),
-		width: 150,
+		header: 'Created',
+		accessorKey: 'created_at',
+		cell: ({ row: { original: row } }) => formatMDY(row.created_at),
+		size: 150,
 	},
 	{
-		headerName: 'Actions',
-		field: 'actions',
-		renderCell: (params) => <DeskTypeActionsCell {...params} isManageMode={isManageMode} />,
-		width: 100,
-		sortable: false,
-		filterable: false,
-		disableColumnMenu: true,
+		header: 'Actions',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <DeskTypeActionsCell {...params} isManageMode={isManageMode} />; },
+		size: 100,
+		enableSorting: false,
 	},
 ];
 
-const getLocationColumns = (isManageMode: boolean): GridColDef[] => [
+const getLocationColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Desk Location',
-		field: 'name',
-		renderCell: ({ row }) => (
+		accessorKey: 'name',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell
 				primary={row.name}
 				secondary={row.is_active ? 'Active' : 'Inactive'}
 			/>
 		),
-		renderHeader: (params) => (
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconMapPin style={{ color: 'var(--text-muted)' }} />} />
 		),
-		flex: 1,
-		cellClassName: (params) => (!params.row.is_active ? 'inactive-cell' : ''),
 	},
 	{
-		headerName: 'Users',
-		field: 'user_count',
-		renderCell: ({ row }) => `${row.user_count ?? 0} assigned`,
-		width: 150,
-		cellClassName: (params) => (!params.row.is_active ? 'inactive-cell' : ''),
+		header: 'Users',
+		accessorKey: 'user_count',
+		cell: ({ row: { original: row } }) => `${row.user_count ?? 0} assigned`,
+		size: 150,
 	},
 	{
-		headerName: 'Created',
-		field: 'created_at',
-		renderCell: ({ row }) => formatMDY(row.created_at),
-		width: 150,
-		cellClassName: (params) => (!params.row.is_active ? 'inactive-cell' : ''),
+		header: 'Created',
+		accessorKey: 'created_at',
+		cell: ({ row: { original: row } }) => formatMDY(row.created_at),
+		size: 150,
 	},
 	{
-		headerName: 'Actions',
-		field: 'actions',
-		renderCell: (params) => <DeskLocationActionsCell {...params} isManageMode={isManageMode} />,
-		width: 100,
-		sortable: false,
-		filterable: false,
-		disableColumnMenu: true,
+		header: 'Actions',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <DeskLocationActionsCell {...params} isManageMode={isManageMode} />; },
+		size: 100,
+		enableSorting: false,
 	},
 ];
 
@@ -131,9 +119,7 @@ export default function DeskLocationsTab() {
 
 	const typeColumns = useMemo(() => getTypeColumns(isManageMode), [isManageMode]);
 	const locationColumns = useMemo(() => getLocationColumns(isManageMode), [isManageMode]);
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
-	// Fetch all desk location types (no pagination)
+	// Fetch all desk location types (no)
 	const { data: typesData = { rows: [], count: undefined }, isFetching: typesFetching } = useDeskTrpc().listTypes({});
 
 	// Fetch desk locations for selected type (only when type is selected)
@@ -158,10 +144,10 @@ export default function DeskLocationsTab() {
 			<div style={styles.container}>
 				<div style={styles.panelContainer}>
 					{/* Left Panel: Desk Location Types */}
-					<div style={styles.leftPanel} className="flex-col-start">
+					<Card variant="beveled" padding="md" style={styles.leftPanel}>
 						<Toolbar
 							left={
-								<span>Desk Location Types</span>
+								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Desk Location Types</h5>
 							}
 							right={
 								<>
@@ -186,42 +172,28 @@ export default function DeskLocationsTab() {
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
-							<DataGridPro
+							<DataTable
 								columns={typeColumns}
-								columnHeaderHeight={45}
+								headerHeight={45}
 								loading={typesFetching}
-								slots={{
-									noRowsOverlay: NoTypesRows,
-									noResultsOverlay: NoTypesRows,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
 								rows={typesData.rows}
 								rowHeight={60}
 								hideFooter
-								onRowClick={(params) => setDeskLocationTypeId(params.row.id)}
-								getRowClassName={(params) => {
-									if (params.row.id === selectedDeskLocationTypeId) return 'selected-row';
+								onRowClick={(row) => setDeskLocationTypeId(row.id)}
+								getRowClassName={(row, index) => {
+									if (row.id === selectedDeskLocationTypeId) return 'selected-row';
 									return '';
 								}}
-								disableColumnSelector
-								disableRowSelectionOnClick
-								disableColumnMenu
-								pinnedColumns={pinnedColumns}
-								style={styles.tableOverrides}
+								pinnedRight={isManageMode ? ['actions'] : []}
 							/>
 						</div>
-					</div>
+					</Card>
 
 					{/* Right Panel: Desk Locations */}
-					<div style={styles.rightPanel} className="flex-col-start">
+					<Card variant="beveled" padding="md" style={styles.rightPanel}>
 						<Toolbar
 							left={
-								<span>Desk Locations</span>
+								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Desk Locations</h5>
 							}
 							right={
 								<Button
@@ -237,31 +209,17 @@ export default function DeskLocationsTab() {
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
-							<DataGridPro
+							<DataTable
 								columns={locationColumns}
-								columnHeaderHeight={45}
+								headerHeight={45}
 								loading={locationsFetching}
-								slots={{
-									noRowsOverlay: locationsOverlay,
-									noResultsOverlay: locationsOverlay,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
 								rows={locationsData.rows}
 								rowHeight={60}
 								hideFooter
-								disableColumnSelector
-								disableRowSelectionOnClick
-								disableColumnMenu
-								pinnedColumns={pinnedColumns}
-								style={styles.tableOverrides}
+								pinnedRight={isManageMode ? ['actions'] : []}
 							/>
 						</div>
-					</div>
+					</Card>
 				</div>
 
 				{showNewDeskLocationTypeDialog && <DeskLocationTypeDialog />}
@@ -273,14 +231,13 @@ export default function DeskLocationsTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	panelContainer: {
-		width: '100%',
-		flex: 1,
+		size: '100%',
 		display: 'flex',
 		gap: '15px',
 		minHeight: 0,
@@ -289,22 +246,16 @@ const styles = {
 		width: '40%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '24px 24px 0px',
 		minHeight: 0,
 	},
 	rightPanel: {
 		width: '60%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '24px 24px 0px',
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

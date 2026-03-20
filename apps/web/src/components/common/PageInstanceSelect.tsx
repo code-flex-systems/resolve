@@ -1,8 +1,6 @@
-import CustomChip from '@/components/ui/Chip';
-import React, { useEffect, useState } from 'react';
-import BasicPopper from './BasicPopper';
-import { IconFileDescription } from '@tabler/icons-react';
+import React, { useEffect } from 'react';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import Dropdown from '@/components/ui/Dropdown';
 
 export default function PageInstanceSelect({
 	checklistId,
@@ -25,8 +23,6 @@ export default function PageInstanceSelect({
 		{ checklistId },
 		{ enabled: checklistId !== -1 }
 	);
-	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-	const selectedOption = options.find((o) => o.instance_id === instanceId);
 
 	useEffect(() => {
 		if (!clearable && options.length > 0) {
@@ -34,52 +30,22 @@ export default function PageInstanceSelect({
 		}
 	}, [options, clearable]);
 
+	const dropdownOptions = [
+		...(clearable ? [{ value: '', label: 'All' }] : []),
+		...options.map((o) => ({
+			value: o.instance_id,
+			label: `${o.title} (p${o.id}.i${o.instance_id})`,
+		})),
+	];
+
 	return (
-		<>
-			<span
-				onClick={(e: React.MouseEvent) => {
-				setAnchorEl(e.currentTarget as HTMLElement);
-				e.preventDefault();
-				e.stopPropagation();
-			}}
-				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', opacity: disabled ? 0.5 : 1 }}
-			>
-				<CustomChip color={instanceId ? 'info' : 'neutral'} size="sm">
-				<IconFileDescription size={20} />
-					<span>{selectedOption
-						? `${selectedOption.title} (p${selectedOption.id}.i${selectedOption.instance_id})`
-						: text}</span>
-				</CustomChip>
-				{instanceId && (
-					<button onClick={(e: React.MouseEvent) => { e.stopPropagation(); setInstanceId(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
-				)}
-			</span>
-			{!!anchorEl && (
-				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 200, maxHeight: 300, overflow: 'auto' }}>
-						{options.map((o) => (
-							<div
-								key={o.instance_id}
-								style={{
-									padding: '8px 12px',
-									borderRadius: 6,
-									cursor: 'pointer',
-									fontSize: 13,
-									backgroundColor: o.instance_id === instanceId ? 'var(--status-info-bg)' : undefined,
-								}}
-								onClick={() => {
-									setInstanceId(o.instance_id);
-									setAnchorEl(null);
-								}}
-							>
-								<span style={{ fontSize: 13 }}>
-									{o.title} (p{o.id}.i{o.instance_id})
-								</span>
-							</div>
-						))}
-					</div>
-				</BasicPopper>
-			)}
-		</>
+		<Dropdown
+			options={dropdownOptions}
+			value={instanceId ?? ''}
+			onChange={(val) => setInstanceId(val === '' ? null : Number(val))}
+			placeholder={text}
+			size="sm"
+			disabled={disabled}
+		/>
 	);
 }

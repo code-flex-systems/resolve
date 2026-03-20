@@ -17,8 +17,15 @@ const Chip = forwardRef<HTMLSpanElement, ChipProps>(
 			.filter(Boolean)
 			.join(' ');
 
+		const interactive = !!props.onClick;
+
 		return (
-			<span ref={ref} className={classNames} {...props}>
+			<span
+				ref={ref}
+				className={classNames}
+				{...(interactive ? { 'data-interactive': '', tabIndex: 0, role: 'button' } : {})}
+				{...props}
+			>
 				{children}
 			</span>
 		);

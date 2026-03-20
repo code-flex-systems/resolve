@@ -17,10 +17,10 @@ export default function TaskMetrics({
 	isLoading,
 }: TaskMetricsProps) {
 	return (
-		<div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+		<div style={{ display: 'flex', flexDirection: 'row', gap: 16, marginBottom: 12 }}>
 			{/* Open Tasks */}
 			<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-				<div style={{ padding: 8 }}>
+				<div style={{ padding: 8, display: 'flex', flexDirection: 'column' }}>
 					<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 						Open Tasks
 					</span>
@@ -44,7 +44,7 @@ export default function TaskMetrics({
 
 			{/* Overdue Tasks */}
 			<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-				<div style={{ padding: 8 }}>
+				<div style={{ padding: 8, display: 'flex', flexDirection: 'column' }}>
 					<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 						Overdue
 					</span>
@@ -70,7 +70,7 @@ export default function TaskMetrics({
 
 			{/* Average Completion Time */}
 			<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-				<div style={{ padding: 8 }}>
+				<div style={{ padding: 8, display: 'flex', flexDirection: 'column' }}>
 					<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 						Avg Completion
 					</span>

@@ -5,7 +5,6 @@ import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { ClaimStatus } from '@/config/enums';
 import Card from '@/components/ui/Card';
-import { ORANGE } from '@/styles/theme';
 import Skeleton from '@/components/ui/Skeleton';
 
 export default function MyClaimsMetric() {

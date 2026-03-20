@@ -2,7 +2,6 @@
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ChecklistMode } from '@/config/enums';
 import './styles.css';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { IconQuote } from '@tabler/icons-react';
 
 export default function AnswerNode(props: {
@@ -26,7 +25,7 @@ export default function AnswerNode(props: {
 			className="flex-row-between"
 		>
 			<div className="flex-row-left">
-				<IconQuote size={16} style={{ marginRight: '10px', color: selected ? 'var(--status-warning)' : BASE_COLOR_LIGHT }}
+				<IconQuote size={16} style={{ marginRight: '10px', color: selected ? 'var(--status-warning)' : 'var(--text-muted)' }}
 				/>
 				<span
 					className={isPlaceholder ? 'node-p' : 'node-a'}

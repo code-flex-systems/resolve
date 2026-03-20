@@ -2,7 +2,6 @@
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import { BASE_COLOR } from '@/styles/theme';
 import { useRouter } from 'next/navigation';
 import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
@@ -38,7 +37,7 @@ export default function UserActivityMetric() {
 			) : (
 				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
 					<div
-style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative' as const }}>
+style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative' as const }}>
 						<div
 style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
 							<span style={{ fontSize: 14, fontWeight: 600 }}>

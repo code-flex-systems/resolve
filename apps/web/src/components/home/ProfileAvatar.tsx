@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from '../common/BasicPopper';
 import { useClerk } from '@clerk/nextjs';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
@@ -52,13 +51,13 @@ style={{
 						</div>
 						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
 							<IconMail style={styles.icon} />
-							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: BASE_COLOR_LIGHT }}>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: 'var(--text-muted)' }}>
 								{session?.user?.email ?? ''}
 							</span>
 						</div>
 						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
 							<IconPhone style={styles.icon} />
-							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: BASE_COLOR_LIGHT }}>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: 'var(--text-muted)' }}>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
 							</span>
 						</div>
@@ -98,7 +97,7 @@ const styles = {
 	icon: {
 		fontSize: 15,
 		marginRight: '10px',
-		color: BASE_COLOR_LIGHT,
+		color: 'var(--text-muted)',
 	},
 	paper: {
 		width: 350,

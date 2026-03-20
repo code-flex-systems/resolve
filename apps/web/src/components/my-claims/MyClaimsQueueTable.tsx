@@ -2,7 +2,6 @@
 
 import { useMemo, useCallback } from 'react';
 import CustomButton from '@/components/ui/Button';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
@@ -16,11 +15,11 @@ import SearchInput from '@/components/common/SearchInput';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import SubstatusSelect from '@/components/common/SubstatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import { ClaimSubstatus, RecoveryStatus } from '@/config/enums';
 import { IconClipboardSearch, IconDownload, IconFilter } from '@tabler/icons-react';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 export interface MyClaimListItem {
 	id: number;
@@ -156,77 +155,61 @@ export default function MyClaimsQueueTable({
 	};
 
 	// DataGrid columns
-	const columns: GridColDef<MyClaimListItem>[] = useMemo(() => {
-		const baseColumns: GridColDef<MyClaimListItem>[] = [
+	const columns: ColumnDef<MyClaimListItem, any>[] = useMemo(() => {
+		const baseColumns: ColumnDef<MyClaimListItem, any>[] = [
 			{
-				field: 'status',
-				headerName: 'Status',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => (
+				accessorKey: 'status',
+				header: () => <IconHeaderCell />,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 					<ClaimStatusChip recoveryStatus={params.row.recovery_status} substatus={params.row.substatus} />
-				),
-				width: 200,
+				); },
+				size: 200,
 			},
 			{
-				field: 'claim_number',
-				headerName: 'Claim',
-				renderHeader: (params) => (
-					<IconHeaderCell
-						{...(params as any)}
-						icon={<IconClipboardSearch size={20} style={{ color: BASE_COLOR_LIGHT }} />}
-					/>
-				),
-				cellClassName: 'cell-bold',
-				width: 220,
+				accessorKey: 'claim_number',
+				header: () => <IconHeaderCell icon={<IconClipboardSearch size={20} />} />,
+				size: 220,
 			},
 		];
 
 		if (showDeskColumn) {
 			baseColumns.push({
-				field: 'desk_location_name',
-				headerName: 'Desk',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				width: 180,
+				accessorKey: 'desk_location_name',
+				header: () => <IconHeaderCell />,
+				size: 180,
 			});
 		}
 
 		baseColumns.push(
 			{
-				field: 'insured',
-				headerName: 'Insured',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				width: 180,
+				accessorKey: 'insured',
+				header: () => <IconHeaderCell />,
+				size: 180,
 			},
 			{
-				field: 'expected_recovery',
-				headerName: 'Expected',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => formatCurrencyExact(parseFloat(params.value?.toString() || '0')),
-				align: 'right',
-				width: 130,
+				accessorKey: 'expected_recovery',
+				header: () => <IconHeaderCell />,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return formatCurrencyExact(parseFloat(params.value?.toString() || '0')); },
+				size: 130,
 			},
 			{
-				field: 'actual_recovery',
-				headerName: 'Actual',
-				renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-				renderCell: (params) => formatCurrencyExact(parseFloat(params.value?.toString() || '0')),
-				align: 'right',
-				width: 130,
+				accessorKey: 'actual_recovery',
+				header: () => <IconHeaderCell />,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return formatCurrencyExact(parseFloat(params.value?.toString() || '0')); },
+				size: 130,
 			}
 		);
 
 		baseColumns.push({
-			field: 'last_update',
-			headerName: 'Last Update',
-			renderHeader: (params) => <IconHeaderCell {...(params as any)} />,
-			renderCell: (params) => (
+			accessorKey: 'last_update',
+			header: () => <IconHeaderCell />,
+			cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{getActivityIndicator(params.value)}
 					{formatMDYAbv(params.value)}
 				</div>
-			),
-			align: 'right',
-			width: 140,
+			); },
+			size: 140,
 		});
 
 		return baseColumns;
@@ -256,7 +239,7 @@ style={{
 										marginLeft: 4,
 										color: 'white',
 										borderRadius: '50%',
-										width: 18,
+										size: 18,
 										height: 18,
 										display: 'inline-flex',
 										alignItems: 'center',
@@ -325,29 +308,21 @@ style={{
 
 			{/* DataGrid */}
 			<div style={queueStyles.table}>
-				<DataGridPro
+				<DataTable
 					rows={rows}
 					columns={columns}
 					loading={isFetching}
 					rowHeight={60}
-					columnHeaderHeight={45}
+					headerHeight={45}
 					onRowClick={handleRowClick}
 					getRowClassName={() => 'cursor-pointer'}
 					hideFooter={true}
-					disableColumnSelector={true}
-					disableColumnMenu={true}
-					initialState={{
-						pinnedColumns: { left: ['claim_status'] },
-					}}
-					sx={queueStyles.tableOverrides}
-					slots={{
-						noRowsOverlay: () => (
-							<CustomNoRowsOverlay
-								text={hasActiveFilters ? 'No claims match your filters' : 'No claims in this queue'}
-								icon={<IconClipboardSearch size={35} style={{ color: BASE_COLOR_LIGHT }} />}
-							/>
-						),
-					}}
+				emptyState={
+					<CustomNoRowsOverlay
+						text={hasActiveFilters ? 'No claims match your filters' : 'No claims in this queue'}
+						icon={<IconClipboardSearch size={35} style={{ color: 'var(--text-muted)' }} />}
+					/>
+				}
 				/>
 			</div>
 		</>
@@ -356,15 +331,11 @@ style={{
 
 const queueStyles = {
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 250px)', // Account for toolbar
 	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
-	},
 	indicator: {
-		width: 8,
+		size: 8,
 		height: 8,
 		borderRadius: '50%',
 		marginLeft: 1,

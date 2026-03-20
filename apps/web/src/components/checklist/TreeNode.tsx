@@ -8,7 +8,6 @@ import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import { BORDER_LIGHT } from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';

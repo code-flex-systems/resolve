@@ -1,42 +1,32 @@
 'use client';
-import { dataGridFocusStyles } from '@/styles/theme';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { SummarySegment } from '@/config/enums';
 
-import CustomPagination from '../common/CustomPagination';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import IconHeaderCell from '../common/IconHeaderCell';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const COLUMNS: GridColDef[] = [
+const COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Page',
-		field: 'page_title',
-		cellClassName: 'cell-bold',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'page_title',
+		header: () => <IconHeaderCell />,
+		size: 200,
 	},
 	{
-		headerName: 'Question',
-		field: 'question_text',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'question_text',
+		header: () => <IconHeaderCell />,
+		size: 200,
 	},
 	{
-		headerName: 'Answer',
-		field: 'answer_texts',
-		cellClassName: 'italics',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'answer_texts',
+		header: () => <IconHeaderCell />,
+		size: 200,
 	},
 	{
-		headerName: 'Additional Info',
-		field: 'response_text',
-		cellClassName: 'italics',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		flex: 1,
+		accessorKey: 'response_text',
+		header: () => <IconHeaderCell />,
 	},
 ];
 
@@ -56,53 +46,27 @@ export default function SummaryDetails() {
 			},
 			{ enabled: checklistId !== -1 && claimId !== -1 }
 		);
-	const rowCountRef = useRef(summaryDetails.count ?? 0);
 
 	const columns = useMemo(() => {
 		return selectedSummarySegment === SummarySegment.UNANSWERED
-			? COLUMNS.filter((c) => !['answer_texts', 'response_text'].includes(c.field))
+			? COLUMNS.filter((c) => !['answer_texts', 'response_text'].includes((c as any).accessorKey))
 			: COLUMNS;
 	}, [selectedSummarySegment]);
 
-	const rowCount = useMemo(() => {
-		if (summaryDetails.count !== undefined) {
-			rowCountRef.current = summaryDetails.count;
-		}
-		return rowCountRef.current;
-	}, [summaryDetails.count]);
-
 	return (
 		<div style={styles.table}>
-			<DataGridPro
+			<DataTable
 				columns={columns}
-				columnHeaderHeight={45}
+				headerHeight={45}
 				loading={isLoadingDetails}
-				slots={{
-					pagination: CustomPagination,
-				}}
-				slotProps={{
-					loadingOverlay: {
-						noRowsVariant: 'linear-progress',
-						variant: 'linear-progress',
-					},
-				}}
 				rows={summaryDetails.rows}
-				rowCount={rowCount}
+				rowCount={summaryDetails.count ?? 0}
 				rowHeight={40}
 				getRowId={(row) => row.question_id}
-				hideFooterSelectedRowCount
-				pageSizeOptions={[]}
-				getRowClassName={(params) =>
-					params.indexRelativeToCurrentPage % 2 === 0 ? 'striped hovered-row' : 'hovered-row'
-				}
-				pagination
+				getRowClassName={(row, index) => index % 2 === 0 ? 'striped hovered-row' : 'hovered-row'}
 				paginationMode="server"
 				paginationModel={checklistSummaryContraints}
 				onPaginationModelChange={updateChecklistSummaryConstraints}
-				disableColumnSelector
-				disableRowSelectionOnClick
-				disableColumnMenu
-				sx={styles.tableOverrides}
 			/>
 		</div>
 	);
@@ -110,15 +74,10 @@ export default function SummaryDetails() {
 
 const styles = {
 	table: {
-		flex: 1,
 		height: '100%',
 		overflow: 'auto',
 		marginLeft: '20px',
 		borderRadius: 6,
 		padding: '24px 30px 12px',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

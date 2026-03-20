@@ -1,0 +1,237 @@
+/* =========================================================================
+   WRAPPER
+   ========================================================================= */
+
+.wrapper {
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+/* =========================================================================
+   TABLE CONTAINER (scrollable)
+   ========================================================================= */
+
+.tableContainer {
+	overflow: auto;
+	position: relative;
+	flex: 1;
+	min-height: 200px;
+}
+
+.tableContainer::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border-radius: 3px;
+}
+
+/* =========================================================================
+   TABLE
+   ========================================================================= */
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--text-base);
+	font-family: var(--font-sans);
+	table-layout: auto;
+}
+
+/* =========================================================================
+   HEADER
+   ========================================================================= */
+
+.table thead {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: var(--bg-white);
+}
+
+.table th {
+	text-align: left;
+	padding: 0 var(--space-3);
+	font-size: var(--text-xs);
+	font-weight: var(--font-semibold);
+	color: var(--text-secondary);
+	letter-spacing: var(--tracking-wide);
+	white-space: nowrap;
+	border-bottom: 1px solid var(--border-strong);
+	user-select: none;
+	overflow: visible;
+}
+
+.sortable {
+	cursor: pointer;
+	transition: color var(--transition-fast);
+}
+
+.sortable:hover {
+	color: var(--text-accent);
+}
+
+.headerContent {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.sortIcon {
+	display: inline-flex;
+	align-items: center;
+	color: var(--text-accent);
+}
+
+/* =========================================================================
+   CELLS
+   ========================================================================= */
+
+.table td {
+	padding: 0 var(--space-3);
+	vertical-align: middle;
+	border-bottom: 1px solid var(--border);
+	color: var(--text-primary);
+}
+
+.table tbody tr {
+	transition: background-color var(--transition-fast);
+}
+
+.table tbody tr:hover {
+	background-color: var(--bg-secondary);
+}
+
+.clickableRow {
+	cursor: pointer;
+}
+
+.selectedRow {
+	background-color: var(--status-info-bg) !important;
+}
+
+/* =========================================================================
+   CHECKBOX CELLS
+   ========================================================================= */
+
+.checkboxCell {
+	width: 40px;
+	min-width: 40px;
+	text-align: center;
+	padding: 0 var(--space-2) !important;
+}
+
+/* =========================================================================
+   PINNED COLUMNS
+   ========================================================================= */
+
+.pinnedLeft {
+	border-right: 1px solid var(--border);
+}
+
+.pinnedRight {
+	border-left: 1px solid var(--border);
+}
+
+/* =========================================================================
+   EMPTY STATE
+   ========================================================================= */
+
+.emptyCell {
+	text-align: center;
+	padding: var(--space-12) var(--space-4) !important;
+	border-bottom: none;
+}
+
+.emptyContent {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-2);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+/* =========================================================================
+   LOADING SKELETON
+   ========================================================================= */
+
+.skeleton {
+	background: linear-gradient(
+		90deg,
+		var(--bg-tertiary) 25%,
+		var(--bg-secondary) 50%,
+		var(--bg-tertiary) 75%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s ease-in-out infinite;
+	border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+	0% { background-position: -200% 0; }
+	100% { background-position: 200% 0; }
+}
+
+/* =========================================================================
+   FOOTER & PAGINATION
+   ========================================================================= */
+
+.footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-3) var(--space-3);
+	border-top: 1px solid var(--border);
+}
+
+.rowCountText {
+	font-size: var(--text-sm);
+	color: var(--text-secondary);
+}
+
+.pagination {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.pageInfo {
+	font-size: var(--text-sm);
+	color: var(--text-secondary);
+}
+
+.pageBtn {
+	padding: var(--space-1) var(--space-3);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	background: var(--bg-white);
+	color: var(--text-primary);
+	font-family: var(--font-sans);
+	font-size: var(--text-xs);
+	font-weight: var(--font-medium);
+	cursor: pointer;
+	transition:
+		border-color var(--transition-normal),
+		background-color var(--transition-normal),
+		transform var(--transition-normal);
+}
+
+.pageBtn:hover:not(:disabled) {
+	border-color: var(--text-accent);
+	transform: translateY(-1px);
+}
+
+.pageBtn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}

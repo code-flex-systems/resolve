@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { IconChecklist, IconFileDescription, IconCircleCheck } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import RingLoadingIndicator from './RingLoadingIndicator';
 import { useRouter } from 'next/navigation';
 import css from './ChecklistSelectionDialog.module.css';
@@ -64,7 +63,7 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 
 				{!isLoading && checklists.length === 0 && (
 					<div className={css.emptyState}>
-						<span style={{ fontSize: 15, color: BASE_COLOR_LIGHT }}>
+						<span style={{ fontSize: 15, color: 'var(--text-muted)' }}>
 							No checklists available
 						</span>
 					</div>

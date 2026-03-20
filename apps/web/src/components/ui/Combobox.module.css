@@ -7,10 +7,6 @@
 	width: 100%;
 }
 
-/* =========================================================================
-   LABEL
-   ========================================================================= */
-
 .label {
 	font-size: var(--text-sm);
 	font-weight: var(--font-medium);
@@ -32,8 +28,8 @@
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 4px;
-	min-height: 32px;
-	padding: 4px var(--space-3);
+	height: 32px;
+	padding: 0 var(--space-3);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-md);
 	background: var(--bg-white);
@@ -68,12 +64,14 @@
 	background: var(--bg-secondary);
 }
 
-.size-sm {
-	min-height: 32px;
-}
+/* =========================================================================
+   SEARCH ICON
+   ========================================================================= */
 
-.size-md {
-	min-height: 36px;
+.searchIcon {
+	color: var(--text-muted);
+	flex-shrink: 0;
+	margin-right: var(--space-1);
 }
 
 /* =========================================================================
@@ -82,8 +80,8 @@
 
 .input {
 	flex: 1;
-	min-width: 80px;
-	height: 24px;
+	min-width: 60px;
+	height: 100%;
 	border: none;
 	outline: none;
 	background: transparent;
@@ -102,7 +100,7 @@
 }
 
 /* =========================================================================
-   CONTROLS (clear, chevron, spinner)
+   CONTROLS
    ========================================================================= */
 
 .controls {
@@ -124,23 +122,13 @@
 	cursor: pointer;
 	color: var(--text-muted);
 	border-radius: var(--radius-sm);
-	transition: color var(--transition-fast), background-color var(--transition-fast);
 	padding: 0;
+	transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .clearButton:hover {
 	color: var(--text-primary);
 	background: var(--bg-secondary);
-}
-
-.chevron {
-	color: var(--text-secondary);
-	transition: transform var(--transition-normal);
-	flex-shrink: 0;
-}
-
-.chevronOpen {
-	transform: rotate(180deg);
 }
 
 .spinner {
@@ -153,7 +141,7 @@
 }
 
 /* =========================================================================
-   TAGS (multi-select)
+   TAGS
    ========================================================================= */
 
 .tags {
@@ -202,7 +190,7 @@
 }
 
 /* =========================================================================
-   MENU (portal)
+   MENU
    ========================================================================= */
 
 .menu {
@@ -219,14 +207,8 @@
 }
 
 @keyframes menuEnter {
-	from {
-		opacity: 0;
-		transform: translateY(-4px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
+	from { opacity: 0; transform: translateY(-4px); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .menu::-webkit-scrollbar {
@@ -322,20 +304,12 @@
 	margin-left: auto;
 }
 
-/* =========================================================================
-   EMPTY STATE
-   ========================================================================= */
-
 .emptyState {
 	padding: var(--space-4) var(--space-3);
 	text-align: center;
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 }
-
-/* =========================================================================
-   HELPER & ERROR TEXT
-   ========================================================================= */
 
 .helperText {
 	font-size: var(--text-xs);

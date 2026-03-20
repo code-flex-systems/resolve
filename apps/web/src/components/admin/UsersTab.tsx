@@ -6,8 +6,6 @@ import Card from '@/components/ui/Card';
 import Switch from '@/components/ui/Switch';
 import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { formatMDY } from '@/lib/utils/utils';
@@ -15,7 +13,7 @@ import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import useDebounce from '@/lib/utils/useDebounce';
 import StackedHeaderCell from '../common/StackedHeaderCell';
@@ -23,45 +21,40 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import SearchInput from '../common/SearchInput';
-import { dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const getColumns = (isManageMode: boolean): GridColDef[] => [
+const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'User',
-		field: 'user',
-		renderCell: ({ row }) => (
+		accessorKey: 'user',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 		),
-		renderHeader: (params) => (
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />} />
 		),
-		flex: 1,
 	},
 	{
-		headerName: 'Phone',
-		field: 'phone',
-		renderCell: (params) => (
+		accessorKey: 'phone',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 			<PhoneCell
 				value={parsePhoneNumberFromString(params.value ?? '')?.formatNational() ?? ''}
 				verified={params.row.phone_verified}
 				disabled={params.row.disabled}
 			/>
-		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<IconPhone style={{ color: 'var(--text-muted)' }} />} />,
-		width: 180,
+		); },
+		header: (params) => <IconHeaderCell {...params} icon={<IconPhone style={{ color: 'var(--text-muted)' }} />} />,
+		size: 180,
 	},
 	{
-		headerName: 'Role',
-		field: 'role',
-		renderCell: (params) => <RoleCell {...params} />,
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<IconShield style={{ color: 'var(--text-muted)' }} />} />,
-		width: 180,
+		accessorKey: 'role',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <RoleCell {...params} />; },
+		header: (params) => <IconHeaderCell {...params} icon={<IconShield style={{ color: 'var(--text-muted)' }} />} />,
+		size: 180,
 	},
 	{
-		headerName: 'Status',
-		field: 'status',
-		renderCell: ({ row }) => (
+		accessorKey: 'status',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell
 				primary={
 					row.disabled
@@ -79,17 +72,16 @@ const getColumns = (isManageMode: boolean): GridColDef[] => [
 				)}
 			/>
 		),
-		renderHeader: (params) => (
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
 		),
-		width: 180,
+		size: 180,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => <UserActionsCell {...params} isManageMode={isManageMode} />,
-		width: 120,
-		resizable: false,
+		header: '',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <UserActionsCell {...params} isManageMode={isManageMode} />; },
+		size: 120,
 	},
 ];
 
@@ -118,8 +110,6 @@ export default function UsersTab() {
 	const [isManageMode, setIsManageMode] = useState(false);
 
 	const columns = useMemo(() => getColumns(isManageMode), [isManageMode]);
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
 		inactive: showInactiveUsers,
@@ -127,14 +117,6 @@ export default function UsersTab() {
 		offset: userConstraints.page * userConstraints.pageSize,
 		searchTerm: userSearchTerm,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -147,13 +129,13 @@ export default function UsersTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading users...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
 						left={
 							<>
-								<span style={{ marginRight: '20px' }}>
+								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
 									Users
-								</span>
+								</h5>
 								<Switch
 									size="sm"
 									checked={showDisabled}
@@ -212,42 +194,24 @@ export default function UsersTab() {
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={60}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							getRowClassName={(params) => {
-								if (params.row.email === session?.user?.email) return 'user-row';
+							getRowClassName={(row, index) => {
+								if (row.email === session?.user?.email) return 'user-row';
 								return '';
 							}}
-							pagination
 							paginationMode="server"
 							paginationModel={userConstraints}
 							onPaginationModelChange={updateUserConstraints}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							pinnedColumns={pinnedColumns}
-							style={styles.tableOverrides}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
-				</div>
+			</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -255,23 +219,20 @@ export default function UsersTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

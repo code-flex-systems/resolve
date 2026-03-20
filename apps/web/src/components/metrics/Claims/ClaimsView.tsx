@@ -13,7 +13,6 @@ import UserFilter from '@/components/common/UserFilter';
 import ClaimFilter from '@/components/common/ClaimFilter';
 import { ChecklistClaimsOutput, GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import CheckGradient from '@/components/common/CheckGradient';
 import ChecklistClaims from './ChecklistClaims';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
@@ -94,9 +93,9 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 								{claim ? (
 									<ClaimStatusIcon status={claim.status as ClaimStatus} fontSize={17} />
 								) : (
-									<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />
+									<IconCircleCheck size={20} style={{ color: 'var(--text-muted)' }} />
 								)}
-								<span style={{ fontSize: 13, color: BASE_COLOR_LIGHT, marginLeft: '5px' }}>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: '5px' }}>
 									Progress through {checklist?.name ?? 'checklist'}
 								</span>
 							</div>
@@ -114,7 +113,7 @@ style={{ width: '100%', height: 150, display: 'flex', justifyContent: 'center', 
 										/>
 									)}
 									{!claim && (
-										<span style={{ fontSize: 14, width: 250, color: BASE_COLOR_LIGHT }}>
+										<span style={{ fontSize: 14, width: 250, color: 'var(--text-muted)' }}>
 											Select a claim to see its progress through the checklist
 										</span>
 									)}
@@ -124,8 +123,8 @@ style={{ width: '100%', height: 150, display: 'flex', justifyContent: 'center', 
 						<div style={{ ...styles.paper, flex: 1, marginTop: '20px' }}>
 							<div
 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '10px', paddingLeft: '10px' }}>
-								<IconFileText size={20} style={{ color: BASE_COLOR_LIGHT }} />
-								<span style={{ fontSize: 13, color: BASE_COLOR_LIGHT, marginLeft: '5px' }}>
+								<IconFileText size={20} style={{ color: 'var(--text-muted)' }} />
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: '5px' }}>
 									Details
 								</span>
 							</div>
@@ -232,7 +231,7 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 										</div>
 									)}
 									{!claim && (
-										<span style={{ fontSize: 14, width: 250, color: BASE_COLOR_LIGHT }}>
+										<span style={{ fontSize: 14, width: 250, color: 'var(--text-muted)' }}>
 											Select a claim to see details
 										</span>
 									)}

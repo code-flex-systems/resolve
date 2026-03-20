@@ -1,7 +1,6 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import { BASE_COLOR, ORANGE } from '@/styles/theme';
 import { PieChart } from '@mui/x-charts-pro';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -32,7 +31,7 @@ function getStatusColor(status: ClaimStatus) {
 		case ClaimStatus.UNWORKED:
 			return 'var(--status-error)';
 		case ClaimStatus.BLOCKED:
-			return ORANGE;
+			return 'var(--status-warning)';
 	}
 }
 

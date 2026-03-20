@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import { useCoverageTrpc, CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
@@ -9,7 +8,10 @@ import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 
-interface CoverageActionsCellProps extends GridRenderCellParams {
+interface CoverageActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	onEdit: (coverage: CoverageListItem) => void;
 }
 

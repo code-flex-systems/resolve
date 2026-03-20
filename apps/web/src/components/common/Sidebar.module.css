@@ -3,7 +3,7 @@
 	top: 0;
 	left: 0;
 	bottom: 0;
-	background-color: #ffffff;
+	background-color: var(--bg-white);
 	transition: width 0.3s ease;
 	overflow-x: hidden;
 	z-index: 500;
@@ -52,7 +52,7 @@
 }
 
 .navLink:hover {
-	background-color: rgba(33, 181, 255, 0.08);
+	background-color: var(--status-info-bg);
 }
 
 .navLink:hover .navIcon {
@@ -60,7 +60,7 @@
 }
 
 .navLinkSelected {
-	background-color: rgba(33, 181, 255, 0.08);
+	background-color: var(--status-info-bg);
 }
 
 .navIcon {
@@ -116,6 +116,6 @@
 }
 
 .themeButton:hover {
-	background-color: rgba(33, 181, 255, 0.08);
+	background-color: var(--status-info-bg);
 	color: var(--text-accent);
 }

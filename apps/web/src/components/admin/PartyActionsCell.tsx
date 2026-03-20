@@ -1,7 +1,6 @@
 'use client';
 
 import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useState } from 'react';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
@@ -9,7 +8,10 @@ import PartyDialog from './PartyDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 
-interface PartyActionsCellProps extends GridRenderCellParams {
+interface PartyActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isAdminContext?: boolean;
 	isManageMode?: boolean;
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { capitalize, formatMetric } from '@/lib/utils/utils';
-import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
 import Button from '@/components/ui/Button';
 import { JSX } from 'react';
 import './styles.css';
@@ -97,7 +96,7 @@ export default function SimpleMetric({
 										</span>
 									)}
 								</div>
-								<span   style={{ lineHeight: '19px', color: BASE_COLOR_LIGHT }}>
+								<span   style={{ lineHeight: '19px', color: 'var(--text-muted)' }}>
 									{title}
 								</span>
 							</div>
@@ -133,7 +132,7 @@ export default function SimpleMetric({
 													
 													 style={{ fontSize: 12, color: !showNegative && formattedMetric.isNegative
 															? 'error'
-															: BASE_COLOR }}
+															: 'var(--text-secondary)' }}
 												>
 													{formattedKeyMetric.value}
 												</span>
@@ -145,7 +144,7 @@ export default function SimpleMetric({
 							{onClick && (
 								<div     style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '5px' }}>
 									<Button variant="icon" size="sm" onClick={onClick}>
-										<IconCircleArrowRight size={21} style={{ color: BASE_COLOR }} />
+										<IconCircleArrowRight size={21} style={{ color: 'var(--text-secondary)' }} />
 									</Button>
 								</div>
 							)}

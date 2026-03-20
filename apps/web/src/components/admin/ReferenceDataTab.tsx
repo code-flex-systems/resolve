@@ -7,43 +7,39 @@ import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { useMemo, useCallback, useState } from 'react';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import ReferenceOptionDialog from './ReferenceOptionDialog';
 import ReferenceOptionActionsCell from './ReferenceOptionActionsCell';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 import {
 	KNOWN_REFERENCE_ENTITIES,
 	REFERENCE_ENTITY_DISPLAY,
 	type ReferenceEntity,
 } from '@/schemas/referenceDataSchemas';
 
-const ENTITY_COLUMNS: GridColDef[] = [
+const ENTITY_COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Reference Data Type',
-		field: 'display_name',
-		renderCell: ({ row }) => (
+		accessorKey: 'display_name',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell
 				primary={row.display_name}
 				secondary={row.description || row.entity}
 			/>
 		),
-		renderHeader: (params) => (
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconCategory style={{ color: 'var(--text-muted)' }} />} />
 		),
-		flex: 1,
 	},
 ];
 
-const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
+const getOptionColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Option',
-		field: 'display_label',
-		renderCell: ({ row }) => (
+		accessorKey: 'display_label',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell
 				primary={
 					<span>
@@ -54,20 +50,14 @@ const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
 				secondary={row.value}
 			/>
 		),
-		renderHeader: (params) => (
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />
 		),
-		flex: 1,
-		cellClassName: (params) => {
-			if (params.row.deleted_at) return 'deleted-cell';
-			if (!params.row.is_active) return 'inactive-cell';
-			return '';
-		},
 	},
 	{
-		headerName: 'Status',
-		field: 'is_active',
-		renderCell: ({ row }: GridRenderCellParams) => {
+		header: 'Status',
+		accessorKey: 'is_active',
+		cell: ({ row: { original: row } }: any) => {
 			if (row.deleted_at) {
 				return <Chip  size="sm" color="error" variant="outlined">Deactivated</Chip>;
 			}
@@ -78,25 +68,23 @@ const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
 					variant="outlined">{row.is_active ? 'Active' : 'Inactive'}</Chip>
 			);
 		},
-		width: 110,
+		size: 110,
 	},
 	{
-		headerName: 'System',
-		field: 'is_system_default',
-		renderCell: ({ row }: GridRenderCellParams) =>
+		header: 'System',
+		accessorKey: 'is_system_default',
+		cell: ({ row: { original: row } }: any) =>
 			row.is_system_default ? (
 				<Chip  size="sm" color="info" variant="outlined">System</Chip>
 			) : null,
-		width: 90,
+		size: 90,
 	},
 	{
-		headerName: 'Actions',
-		field: 'actions',
-		renderCell: (params) => <ReferenceOptionActionsCell {...params} isManageMode={isManageMode} />,
-		width: 100,
-		sortable: false,
-		filterable: false,
-		disableColumnMenu: true,
+		header: 'Actions',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ReferenceOptionActionsCell {...params} isManageMode={isManageMode} />; },
+		size: 100,
+		enableSorting: false,
 	},
 ];
 
@@ -135,8 +123,6 @@ export default function ReferenceDataTab() {
 	const [isManageMode, setIsManageMode] = useState(false);
 
 	const optionColumns = useMemo(() => getOptionColumns(isManageMode), [isManageMode]);
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
 	const { lists, options } = useReferenceDataTrpc();
 
 	// Fetch all reference lists
@@ -187,32 +173,18 @@ export default function ReferenceDataTab() {
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
-							<DataGridPro
+							<DataTable
 								columns={ENTITY_COLUMNS}
-								columnHeaderHeight={45}
+								headerHeight={45}
 								loading={listsFetching}
-								slots={{
-									noRowsOverlay: NoEntitiesRows,
-									noResultsOverlay: NoEntitiesRows,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
 								rows={entityRows}
 								rowHeight={60}
 								hideFooter
-								onRowClick={(params) => setReferenceEntity(params.row.entity)}
-								getRowClassName={(params) => {
-									if (params.row.entity === selectedReferenceEntity) return 'selected-row';
+								onRowClick={(row) => setReferenceEntity(row.entity)}
+								getRowClassName={(row, index) => {
+									if (row.entity === selectedReferenceEntity) return 'selected-row';
 									return '';
 								}}
-								disableColumnSelector
-								disableRowSelectionOnClick
-								disableColumnMenu
-								style={styles.tableOverrides}
 							/>
 						</div>
 					</div>
@@ -251,28 +223,14 @@ export default function ReferenceDataTab() {
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
-							<DataGridPro
+							<DataTable
 								columns={optionColumns}
-								columnHeaderHeight={45}
+								headerHeight={45}
 								loading={optionsFetching}
-								slots={{
-									noRowsOverlay: optionsOverlay,
-									noResultsOverlay: optionsOverlay,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
 								rows={optionsData}
 								rowHeight={60}
 								hideFooter
-								disableColumnSelector
-								disableRowSelectionOnClick
-								disableColumnMenu
-								pinnedColumns={pinnedColumns}
-								style={styles.tableOverrides}
+								pinnedRight={isManageMode ? ['actions'] : []}
 							/>
 						</div>
 					</div>
@@ -286,38 +244,33 @@ export default function ReferenceDataTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	panelContainer: {
-		width: '100%',
-		flex: 1,
+		size: '100%',
 		display: 'flex',
 		gap: '15px',
 		minHeight: 0,
 	},
 	leftPanel: {
-		width: '40%',
+		size: '40%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	rightPanel: {
-		width: '60%',
+		size: '60%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

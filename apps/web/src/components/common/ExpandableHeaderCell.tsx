@@ -1,13 +1,20 @@
 'use client';
 
-import { GridColumnHeaderParams } from '@mui/x-data-grid-pro';
 import { JSX } from 'react';
 import ExpandableTitle from './ExpandableTitle';
 
-export default function ExpandableHeaderCell(params: GridColumnHeaderParams & { icon: JSX.Element }) {
+interface ExpandableHeaderCellProps {
+	field?: string;
+	icon: JSX.Element;
+	colDef?: { headerName?: string };
+	headerName?: string;
+}
+
+export default function ExpandableHeaderCell(props: ExpandableHeaderCellProps) {
+	const headerName = props.headerName ?? props.colDef?.headerName ?? '';
 	return (
 		<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<ExpandableTitle title={params.colDef.headerName?.toUpperCase() ?? ''} icon={params.icon} size={25} />
+			<ExpandableTitle title={headerName.toUpperCase()} icon={props.icon} size={25} />
 		</div>
 	);
 }

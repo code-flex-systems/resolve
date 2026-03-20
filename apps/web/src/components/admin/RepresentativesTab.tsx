@@ -7,14 +7,11 @@ import Switch from '@/components/ui/Switch';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
-import { dataGridFocusStyles } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -23,16 +20,17 @@ import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
 import { formatAddressInline } from '@/schemas/addressSchemas';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface RepresentativesTabProps {
 	isAdminContext?: boolean;
 }
 
-const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Party',
-		field: 'party_name',
-		renderCell: ({ row }) => (
+		header: 'Party',
+		accessorKey: 'party_name',
+		cell: ({ row: { original: row } }) => (
 			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
 					<Tooltip content="Party is archived" position="right">
@@ -42,42 +40,40 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 				<span>{row.party_name}</span>
 			</div>
 		),
-		flex: 1,
-		minWidth: 150,
+		minSize: 150,
 	},
 	{
-		headerName: 'First Name',
-		field: 'first_name',
-		width: 120,
+		header: 'First Name',
+		accessorKey: 'first_name',
+		size: 120,
 	},
 	{
-		headerName: 'Last Name',
-		field: 'last_name',
-		width: 120,
+		header: 'Last Name',
+		accessorKey: 'last_name',
+		size: 120,
 	},
 	{
-		headerName: 'Title',
-		field: 'title',
-		renderCell: ({ row }) => row.title || '—',
-		width: 130,
+		header: 'Title',
+		accessorKey: 'title',
+		cell: ({ row: { original: row } }) => row.title || '—',
+		size: 130,
 	},
 	{
-		headerName: 'Email',
-		field: 'email',
-		renderCell: ({ row }) => row.email || '—',
-		flex: 1,
-		minWidth: 180,
+		header: 'Email',
+		accessorKey: 'email',
+		cell: ({ row: { original: row } }) => row.email || '—',
+		minSize: 180,
 	},
 	{
-		headerName: 'Phone',
-		field: 'phone',
-		renderCell: ({ row }) => formatPhoneDisplay(row.phone) || formatPhoneDisplay(row.mobile_phone) || '—',
-		width: 140,
+		header: 'Phone',
+		accessorKey: 'phone',
+		cell: ({ row: { original: row } }) => formatPhoneDisplay(row.phone) || formatPhoneDisplay(row.mobile_phone) || '—',
+		size: 140,
 	},
 	{
-		headerName: 'Address',
-		field: 'address_city',
-		renderCell: ({ row }) => {
+		header: 'Address',
+		accessorKey: 'address_city',
+		cell: ({ row: { original: row } }) => {
 			const formattedAddress = formatAddressInline({
 				street_address: row.address_street_address,
 				city: row.address_city,
@@ -96,20 +92,19 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 				</div>
 			);
 		},
-		width: 220,
+		size: 220,
 	},
 	{
-		headerName: 'Primary',
-		field: 'is_primary',
-		renderCell: ({ row }) => (row.is_primary ? <Chip  color="info" size="sm">Primary</Chip> : null),
-		width: 90,
+		header: 'Primary',
+		accessorKey: 'is_primary',
+		cell: ({ row: { original: row } }) => (row.is_primary ? <Chip  color="info" size="sm">Primary</Chip> : null),
+		size: 90,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />,
-		width: isAdminContext ? 100 : 50,
-		resizable: false,
+		header: '',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />; },
+		size: isAdminContext ? 100 : 50,
 	},
 ];
 
@@ -169,7 +164,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
 
 	// Pinned columns - pin actions to right when in manage mode
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
 		() => (isManageMode ? { right: ['actions'] } : {}),
 		[isManageMode]
 	);
@@ -180,14 +175,6 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		searchTerm: representativeSearchTerm,
 		showArchived: showArchivedRepresentatives,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Effect to set editing representative from dedicated query when data is loaded
 	useEffect(() => {
@@ -207,13 +194,13 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading representatives...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
 						left={
 							<>
-								<span style={{ marginRight: '20px' }}>
+								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
 									Representatives
-								</span>
+								</h5>
 								{isAdminContext && (
 									<>
 										<Switch
@@ -266,38 +253,17 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={45}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={representativeConstraints}
 							onPaginationModelChange={updateRepresentativeConstraints}
-							pinnedColumns={pinnedColumns}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							style={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 
@@ -305,7 +271,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 					{editingRepresentativeFromUrl && (
 						<RepresentativeDialog representative={editingRepresentativeFromUrl} onClose={handleCloseEditDialog} />
 					)}
-				</div>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -313,23 +279,21 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
 		overflow: 'hidden',
-	},
-	tableOverrides: {
-		border: 'none',
 	},
 };

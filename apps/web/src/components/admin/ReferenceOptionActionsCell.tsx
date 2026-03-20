@@ -1,7 +1,6 @@
 'use client';
 
 import { IconEdit, IconTrash, IconTrashOff } from '@tabler/icons-react';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useState } from 'react';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
@@ -9,7 +8,10 @@ import ReferenceOptionDialog from './ReferenceOptionDialog';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 
-interface ReferenceOptionActionsCellProps extends GridRenderCellParams {
+interface ReferenceOptionActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isManageMode?: boolean;
 }
 

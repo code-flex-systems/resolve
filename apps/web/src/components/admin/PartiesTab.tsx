@@ -7,11 +7,9 @@ import Switch from '@/components/ui/Switch';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PartyActionsCell from './PartyActionsCell';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -20,69 +18,67 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { dataGridFocusStyles } from '@/styles/theme';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface PartiesTabProps {
 	isAdminContext?: boolean;
 }
 
-const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Name',
-		field: 'name',
-		flex: 1,
-		minWidth: 180,
+		header: 'Name',
+		accessorKey: 'name',
+		minSize: 180,
 	},
 	{
-		headerName: 'Type',
-		field: 'party_type',
-		renderCell: ({ row }) => (
+		header: 'Type',
+		accessorKey: 'party_type',
+		cell: ({ row: { original: row } }) => (
 			<Chip
 				size="sm"
 				color={row.party_type === 'entity' ? 'info' : 'neutral'}
 				variant="outlined">{row.party_type === 'entity' ? 'Entity' : 'Facilitator'}</Chip>
 		),
-		width: 110,
+		size: 110,
 	},
 	{
-		headerName: 'Organization',
-		field: 'organization',
-		renderCell: ({ row }) => row.organization || '—',
-		width: 160,
+		header: 'Organization',
+		accessorKey: 'organization',
+		cell: ({ row: { original: row } }) => row.organization || '—',
+		size: 160,
 	},
 	{
-		headerName: 'Email',
-		field: 'primary_email',
-		renderCell: ({ row }) => row.primary_email || '—',
-		width: 200,
+		header: 'Email',
+		accessorKey: 'primary_email',
+		cell: ({ row: { original: row } }) => row.primary_email || '—',
+		size: 200,
 	},
 	{
-		headerName: 'Phone',
-		field: 'primary_phone',
-		renderCell: ({ row }) => formatPhoneDisplay(row.primary_phone) || '—',
-		width: 140,
+		header: 'Phone',
+		accessorKey: 'primary_phone',
+		cell: ({ row: { original: row } }) => formatPhoneDisplay(row.primary_phone) || '—',
+		size: 140,
 	},
 	{
-		headerName: 'City',
-		field: 'primary_city',
-		renderCell: ({ row }) => row.primary_city || '—',
-		width: 120,
+		header: 'City',
+		accessorKey: 'primary_city',
+		cell: ({ row: { original: row } }) => row.primary_city || '—',
+		size: 120,
 	},
 	{
-		headerName: 'State',
-		field: 'primary_state',
-		renderCell: ({ row }) => row.primary_state || '—',
-		width: 80,
+		header: 'State',
+		accessorKey: 'primary_state',
+		cell: ({ row: { original: row } }) => row.primary_state || '—',
+		size: 80,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => (
+		header: '',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 			<PartyActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
-		),
-		width: isAdminContext ? 100 : 50,
-		resizable: false,
+		); },
+		size: isAdminContext ? 100 : 50,
 	},
 ];
 
@@ -145,7 +141,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 	// Memoize columns based on isAdminContext and isManageMode
 	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
 		() => (isManageMode ? { right: ['actions'] } : {}),
 		[isManageMode]
 	);
@@ -156,14 +152,6 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 		searchTerm: partySearchTerm,
 		showArchived: showArchivedParties,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -176,13 +164,13 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading parties...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
 						left={
 							<>
-								<span style={{ marginRight: '20px' }}>
+								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
 									Parties
-								</span>
+								</h5>
 								{isAdminContext && (
 									<>
 										<Switch
@@ -235,44 +223,23 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={45}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={partyConstraints}
 							onPaginationModelChange={updatePartyConstraints}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							pinnedColumns={pinnedColumns}
-							style={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 
 					{showNewPartyDialog && <PartyDialog />}
 					{editingPartyFromUrl && <PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />}
-				</div>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -280,23 +247,21 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
 		overflow: 'hidden',
-	},
-	tableOverrides: {
-		border: 'none',
 	},
 };

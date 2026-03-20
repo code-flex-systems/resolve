@@ -7,14 +7,11 @@ import Switch from '@/components/ui/Switch';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AddressActionsCell from './AddressActionsCell';
-import { dataGridFocusStyles } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -22,6 +19,7 @@ import AddressDialog from './AddressDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { AddressStatus } from '@/schemas/partySchemas';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface AddressesTabProps {
 	isAdminContext?: boolean;
@@ -41,11 +39,11 @@ const getStatusChip = (status: string) => {
 	}
 };
 
-const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Party',
-		field: 'party_name',
-		renderCell: ({ row }) => (
+		header: 'Party',
+		accessorKey: 'party_name',
+		cell: ({ row: { original: row } }) => (
 			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
 					<Tooltip content="Party is archived" position="right">
@@ -55,64 +53,61 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 				<span>{row.party_name}</span>
 			</div>
 		),
-		flex: 1,
-		minWidth: 160,
+		minSize: 160,
 	},
 	{
-		headerName: 'Label',
-		field: 'name',
-		renderCell: ({ row }) => row.name || '—',
-		width: 140,
+		header: 'Label',
+		accessorKey: 'name',
+		cell: ({ row: { original: row } }) => row.name || '—',
+		size: 140,
 	},
 	{
-		headerName: 'Street',
-		field: 'street_address',
-		renderCell: ({ row }) => row.street_address || '—',
-		flex: 1,
-		minWidth: 180,
+		header: 'Street',
+		accessorKey: 'street_address',
+		cell: ({ row: { original: row } }) => row.street_address || '—',
+		minSize: 180,
 	},
 	{
-		headerName: 'City',
-		field: 'city',
-		renderCell: ({ row }) => row.city || '—',
-		width: 120,
+		header: 'City',
+		accessorKey: 'city',
+		cell: ({ row: { original: row } }) => row.city || '—',
+		size: 120,
 	},
 	{
-		headerName: 'State',
-		field: 'state',
-		renderCell: ({ row }) => row.state || '—',
-		width: 70,
+		header: 'State',
+		accessorKey: 'state',
+		cell: ({ row: { original: row } }) => row.state || '—',
+		size: 70,
 	},
 	{
-		headerName: 'Postal',
-		field: 'postal_code',
-		renderCell: ({ row }) => row.postal_code || '—',
-		width: 90,
+		header: 'Postal',
+		accessorKey: 'postal_code',
+		cell: ({ row: { original: row } }) => row.postal_code || '—',
+		size: 90,
 	},
 	{
-		headerName: 'Type',
-		field: 'address_type',
-		renderCell: ({ row }) => (
+		header: 'Type',
+		accessorKey: 'address_type',
+		cell: ({ row: { original: row } }) => (
 			<span style={{ textTransform: 'capitalize', fontSize: 13 }}>
 				{row.address_type || 'business'}
 			</span>
 		),
-		width: 90,
+		size: 90,
 	},
 	{
-		headerName: 'Status',
-		field: 'address_status',
-		renderCell: ({ row }) => getStatusChip(row.address_status),
-		width: 115,
+		header: 'Status',
+		accessorKey: 'address_status',
+		cell: ({ row: { original: row } }) => getStatusChip(row.address_status),
+		size: 115,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => (
+		header: '',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 			<AddressActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
-		),
-		width: isAdminContext ? 100 : 50,
-		resizable: false,
+		); },
+		size: isAdminContext ? 100 : 50,
 	},
 ];
 
@@ -168,7 +163,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 
 	// Memoize columns based on isAdminContext and isManageMode
 	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
 		() => (isManageMode ? { right: ['actions'] } : {}),
 		[isManageMode]
 	);
@@ -179,14 +174,6 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 		searchTerm: addressSearchTerm,
 		showArchived: showArchivedAddresses,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Effect to set editing address from dedicated query when data is loaded
 	useEffect(() => {
@@ -206,13 +193,13 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading addresses...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
 						left={
 							<>
-								<span style={{ marginRight: '20px' }}>
+								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
 									Addresses
-								</span>
+								</h5>
 								{isAdminContext && (
 									<>
 										<Switch
@@ -265,38 +252,17 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={45}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={addressConstraints}
 							onPaginationModelChange={updateAddressConstraints}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							pinnedColumns={pinnedColumns}
-							style={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 
@@ -304,7 +270,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 					{editingAddressFromUrl && (
 						<AddressDialog address={editingAddressFromUrl} onClose={handleCloseEditDialog} />
 					)}
-				</div>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -312,23 +278,21 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
 		overflow: 'hidden',
-	},
-	tableOverrides: {
-		border: 'none',
 	},
 };

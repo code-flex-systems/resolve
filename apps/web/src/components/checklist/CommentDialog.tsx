@@ -8,7 +8,6 @@ import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { IconCirclePlus, IconTrash } from '@tabler/icons-react';
 
 export default function CommentDialog() {
@@ -94,7 +93,7 @@ export default function CommentDialog() {
 			/>
 			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '2px' }}>
 				{!!existingComment && (
-					<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT }}>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						{formatMDY(existingComment.created_at)}
 					</span>
 				)}

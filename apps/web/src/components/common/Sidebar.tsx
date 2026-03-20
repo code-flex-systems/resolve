@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import logo from '@/lib/resources/images/Full Logo.png';
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from '@/hooks/useTheme';
 import css from './Sidebar.module.css';
 
 export interface NavItem {
@@ -37,6 +39,7 @@ export default function Sidebar({
 	const [open, setOpen] = useState(false);
 	const pathname = usePathname();
 	const sidebarRef = useRef<HTMLDivElement>(null);
+	const { theme: currentTheme, toggleTheme } = useTheme();
 
 	const toggleOpen = () => setOpen((o) => !o);
 
@@ -94,6 +97,16 @@ export default function Sidebar({
 					);
 				})}
 			</ul>
+
+			<div className={css.themeToggle} style={{ width: open ? expandedWidth : collapsedWidth }}>
+				<button className={css.themeButton} onClick={toggleTheme} type="button">
+					{currentTheme === 'light' ? (
+						<IconMoon size={18} stroke={1.5} />
+					) : (
+						<IconSun size={18} stroke={1.5} />
+					)}
+				</button>
+			</div>
 		</div>
 	);
 }

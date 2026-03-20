@@ -550,7 +550,6 @@ export default function PartyLinkingDialog({
 							const party = opt ? partyAutocompleteOptions.find((p: any) => p.id === opt.value) : null;
 							handlePartySelect(party);
 						}}
-						inputValue={partySearchTerm}
 						onInputChange={(value) => setPartySearchTerm(value)}
 						isOptionEqual={(a, b) => a.value === b.value}
 						filterDisabled

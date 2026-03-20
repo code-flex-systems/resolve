@@ -4,7 +4,6 @@ import BasicDialog from '../common/BasicDialog';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import Card from '@/components/ui/Card';
-import { BASE_COLOR } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { ClaimStatus } from '@/config/enums';
@@ -164,7 +163,7 @@ export default function ChecklistProgressDialog() {
 
 							{!!confirmingStatus && (
 								<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-									<IconAlertTriangle size={20} style={{ color: BASE_COLOR }} />
+									<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)' }} />
 									<div
 										
 										

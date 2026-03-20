@@ -6,7 +6,6 @@ import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
 import Switch from '@/components/ui/Switch';
 import Button from '@/components/ui/Button';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { formatAmount, formatMDYAbv } from '@/lib/utils/utils';
 import { formatLineOfBusiness, formatLabel } from '@/lib/utils/claimUtils';
@@ -15,11 +14,9 @@ import { formatCityState } from '@/schemas/addressSchemas';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
-import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import { dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import { LineOfBusinessSelect } from '../common/ReferenceDataSelect';
@@ -32,108 +29,90 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ClaimDetailPanel from './ClaimDetailPanel';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const COLUMNS: GridColDef[] = [
+const COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Claim',
-		field: 'claim_number',
-		renderHeader: (params) => (
+		accessorKey: 'claim_number',
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 		),
-		width: 150,
+		size: 150,
 	},
 	{
-		headerName: 'Client',
-		field: 'client',
-		renderHeader: (params) => (
+		accessorKey: 'client',
+		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconUserSearch style={{ color: 'var(--text-muted)' }} />} />
 		),
-		width: 150,
+		size: 150,
 	},
 	{
-		headerName: 'Client Adjuster',
-		field: 'client_adjuster',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'client_adjuster',
+		header: () => <IconHeaderCell />,
+		size: 150,
 	},
 	{
-		headerName: 'Insured',
-		field: 'insured',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'insured',
+		header: () => <IconHeaderCell />,
+		size: 150,
 	},
 	{
-		headerName: 'Date of Loss',
-		field: 'date_of_loss',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => formatMDYAbv(value),
-		align: 'right',
-		width: 150,
+		accessorKey: 'date_of_loss',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const value = getValue(); return formatMDYAbv(value); },
+		size: 150,
 	},
 	{
-		headerName: 'Loss Location',
-		field: 'loss_city',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueGetter: (_value: any, row: any) => formatCityState(row.loss_city, row.loss_state),
-		width: 150,
+		accessorKey: 'loss_city',
+		header: () => <IconHeaderCell headerName='Loss Location' />,
+		size: 150,
 	},
 	{
-		headerName: 'Line of Business',
-		field: 'line_of_business',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (v) => formatLineOfBusiness(v),
-		width: 150,
+		accessorKey: 'line_of_business',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const v = getValue(); return formatLineOfBusiness(v); },
+		size: 150,
 	},
 	{
-		headerName: 'Recovery Status',
-		field: 'recovery_status',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (v) => formatRecoveryStatus(v),
-		width: 150,
+		accessorKey: 'recovery_status',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const v = getValue(); return formatRecoveryStatus(v); },
+		size: 150,
 	},
 	{
-		headerName: 'Substatus',
-		field: 'substatus',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (v) => formatLabel(v),
-		width: 150,
+		accessorKey: 'substatus',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const v = getValue(); return formatLabel(v); },
+		size: 150,
 	},
 	// Amount fields grouped at end (ClaimHeader order)
 	{
-		headerName: 'Claim Amount',
-		field: 'claim_amount',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
-		align: 'right',
-		width: 130,
+		accessorKey: 'claim_amount',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		size: 130,
 	},
 	{
-		headerName: 'Total Incurred',
-		field: 'total_incurred',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
-		align: 'right',
-		width: 130,
+		accessorKey: 'total_incurred',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		size: 130,
 	},
 	{
-		headerName: 'Expected Recovery',
-		field: 'expected_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
-		align: 'right',
-		width: 140,
+		accessorKey: 'expected_recovery',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		size: 140,
 	},
 	{
-		headerName: 'Actual Recovery',
-		field: 'actual_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => (value ? `$${formatAmount(value)}` : '$0.00'),
-		align: 'right',
-		width: 130,
+		accessorKey: 'actual_recovery',
+		header: () => <IconHeaderCell />,
+		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		size: 130,
 	},
 ];
 
-const PINNED_COLUMNS: GridPinnedColumnFields = {
+const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
 	left: ['claim_number'],
 };
 
@@ -205,14 +184,6 @@ export default function Claims() {
 		limit: claimConstraints.pageSize,
 		offset: claimConstraints.page * claimConstraints.pageSize,
 	});
-	const rowCountRef = useRef(typeof data.count === 'number' ? data.count : 0);
-
-	const rowCount = useMemo(() => {
-		if (typeof data.count === 'number') {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Derive unique insureds/clients once (sorted)
 	const uniqueInsureds = useMemo(
@@ -377,10 +348,10 @@ export default function Claims() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					{/* Main Toolbar: Title and Actions */}
 					<Toolbar
-						left={<span>All Claims</span>}
+						left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>All Claims</h5>}
 						right={
 							<>
 								<Button
@@ -431,7 +402,7 @@ export default function Claims() {
 												backgroundColor: 'primary.main',
 												color: 'white',
 												borderRadius: '50%',
-												width: 18,
+												size: 18,
 												height: 18,
 												display: 'inline-flex',
 												alignItems: 'center',
@@ -557,7 +528,6 @@ export default function Claims() {
 													: 'Search insured...'
 											}
 											fullWidth
-											size="sm"
 										/>
 									</div>
 									<div>
@@ -581,7 +551,6 @@ export default function Claims() {
 													: 'Search client...'
 											}
 											fullWidth
-											size="sm"
 										/>
 									</div>
 								</div>
@@ -595,45 +564,22 @@ export default function Claims() {
 					)}
 
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={COLUMNS}
-							pinnedColumns={PINNED_COLUMNS}
-							columnHeaderHeight={45}
+						pinnedLeft={['claim_number']}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'skeleton',
-									variant: 'skeleton',
-								},
-							}}
-							initialState={{
-								pagination: { paginationModel: { pageSize: 20 } },
-							}}
 							rows={Array.isArray(data.rows) ? data.rows : []}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={40}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={claimConstraints}
 							onPaginationModelChange={updateClaimConstraints}
 							onRowClick={handleRowClick}
-							getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
-							disableColumnSelector
-							disableColumnMenu
-							style={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-								}}
+							getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
 						/>
 					</div>
-				</div>
+				</Card>
 				<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
 			</div>
 		</PageTransitionWrapper>
@@ -642,26 +588,23 @@ export default function Claims() {
 
 const styles = {
 	container: {
-		flex: 1,
-		minWidth: 0,
+		minSize: 0,
 		height: '100%',
 	},
 	paper: {
 		width: '100%',
 		height: '100%',
-		padding: '15px 15px 0px',
+		display: 'flex',
+		flexDirection: 'column' as const,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 95px)', // Account for two toolbars (50px + 45px)
-	},
-	tableOverrides: {
-		border: 'none',
 	},
 	filtersPaper: {
 		marginTop: 5,
 		padding: '15px',
-		minWidth: 300,
+		minSize: 300,
 		maxWidth: 400,
 	},
 };

@@ -4,24 +4,22 @@ import { IconClockFilled, IconFileSearch, IconFilter, IconUser } from '@tabler/i
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAdminLogsTrpc, AdminConfigLogCursor } from '@/hooks/trpc/useAdminLogsTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import type { EntityName } from '@/api/utils/activityLogger';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
-import CustomPagination from '@/components/common/CustomPagination';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import PageTransitionWrapper from '@/components/common/PageTransitionWrapper';
 import StackedHeaderCell from '@/components/common/StackedHeaderCell';
 import Toolbar from '@/components/common/Toolbar';
 import { useUserTrpc, GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { dataGridFocusStyles } from '@/styles/theme';
 import AdminLogSnapshotDialog from '@/components/admin/AdminLogSnapshotDialog';
 import AdminLogsFiltersPopper from '@/components/admin/AdminLogsFiltersPopper';
 import { formatEntityLabelForDisplay } from '@/components/admin/AdminLogsEntityFilter';
 import useCursorPagination from '@/hooks/useCursorPagination';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 function formatTimestamp(value?: string) {
 	if (!value) return '';
@@ -120,60 +118,51 @@ export default function AdminLogsTab() {
 		}
 	}, [data?.nextCursor, registerCursor]);
 
-	const columns = useMemo<GridColDef[]>(
+	const columns = useMemo<ColumnDef<any, any>[]>(
 		() => [
 			{
-				headerName: 'Timestamp',
-				field: 'created_at',
-				renderHeader: (params) => (
+				accessorKey: 'created_at',
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
 				),
-				renderCell: ({ value }) => (
+				cell: ({ getValue }: any) => { const value = getValue(); return (
 					<StackedHeaderCell
 						primary={formatTimestamp(value)}
 						secondary={value ? dayjs(value).format('MMM D, YYYY') : '-'}
 					/>
-				),
-				minWidth: 180,
-				flex: 0.6,
+				); },
+				minSize: 180,
 			},
 			{
-				headerName: 'User',
-				field: 'user',
-				renderHeader: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
-				renderCell: ({ row }) => (
+				accessorKey: 'user',
+				header: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
+				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell primary={`${row.first_name} ${row.last_name}`} secondary={row.user_email} />
 				),
-				minWidth: 200,
-				flex: 1,
+				minSize: 200,
 			},
 			{
-				headerName: 'Entity',
-				field: 'entity_name',
-				renderHeader: (params) => <IconHeaderCell {...params} />,
-				renderCell: ({ row }) => (
+				accessorKey: 'entity_name',
+				header: () => <IconHeaderCell />,
+				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell
 						primary={formatEntityLabelForDisplay(row.entity_name)}
 						secondary={`ID: ${row.entity_id}`}
 					/>
 				),
-				minWidth: 200,
-				flex: 1,
+				minSize: 200,
 			},
 			{
-				headerName: 'Action',
-				field: 'action',
-				renderHeader: (params) => (
+				accessorKey: 'action',
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 				),
-				minWidth: 140,
-				flex: 0.5,
+				minSize: 140,
 			},
 			{
-				headerName: 'Snapshot',
-				field: 'value',
-				renderHeader: (params) => <IconHeaderCell {...params} />,
-				renderCell: ({ row }) => {
+				accessorKey: 'value',
+				header: () => <IconHeaderCell />,
+				cell: ({ row: { original: row } }) => {
 					if (!hasValue(row.value)) {
 						return <span style={{ color: 'var(--text-secondary)' }}>-</span>;
 					}
@@ -197,8 +186,8 @@ export default function AdminLogsTab() {
 						</span>
 					);
 				},
-				minWidth: 120,
-				sortable: false,
+				minSize: 120,
+				enableSorting: false,
 			},
 		],
 		[]
@@ -239,9 +228,9 @@ export default function AdminLogsTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading logs...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
-						left={<span>Admin Logs</span>}
+						left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Admin Logs</h5>}
 						right={<></>}
 						height={50}
 						padding={'0px 10px'}
@@ -297,39 +286,19 @@ export default function AdminLogsTab() {
 					/>
 
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRowsOverlay,
-								noResultsOverlay: NoRowsOverlay,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={rows}
 							getRowId={(row) => row.id}
-							rowCount={-1}
-							paginationMeta={{ hasNextPage }}
 							rowHeight={60}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[25]}
-							pagination
 							paginationMode="server"
 							paginationModel={paginationModel}
 							onPaginationModelChange={setPaginationModel}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							style={styles.tableOverrides}
 						/>
 					</div>
-				</div>
+				</Card>
 			</div>
 
 			{selectedValue && (
@@ -345,19 +314,20 @@ export default function AdminLogsTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 95px)',
 	},
 	filterCountBadge: {
@@ -365,16 +335,12 @@ const styles = {
 		backgroundColor: 'primary.main',
 		color: 'white',
 		borderRadius: '50%',
-		width: 18,
+		size: 18,
 		height: 18,
 		display: 'inline-flex',
 		alignItems: 'center',
 		justifyContent: 'center',
 		fontSize: 11,
 		fontWeight: 600,
-	},
-	tableOverrides: {
-		borderRadius: '0 0 4px 4px',
-		...dataGridFocusStyles,
 	},
 };

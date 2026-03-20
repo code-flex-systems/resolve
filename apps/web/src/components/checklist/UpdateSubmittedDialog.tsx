@@ -1,6 +1,5 @@
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import BasicDialog from '../common/BasicDialog';
-import { BASE_COLOR } from '@/styles/theme';
 import { IconAlertTriangle } from '@tabler/icons-react';
 
 export default function UpdateSubmittedDialog() {
@@ -29,7 +28,7 @@ export default function UpdateSubmittedDialog() {
 		>
 			<div style={styles.paper}>
 				<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-					<IconAlertTriangle size={20} style={{ color: BASE_COLOR }} />
+					<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)' }} />
 					<span   style={{ fontSize: 15, marginLeft: '15px' }}>
 						Making changes to the checklist will cancel your submission and return the claim to in-progress.
 					</span>

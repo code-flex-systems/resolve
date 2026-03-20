@@ -6,7 +6,6 @@ import CustomChip from '@/components/ui/Chip';
 import CustomButton from '@/components/ui/Button';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { IconClock } from '@tabler/icons-react';
-import { BASE_COLOR } from '@/styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';

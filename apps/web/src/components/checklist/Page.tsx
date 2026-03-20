@@ -6,7 +6,6 @@ import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
@@ -171,8 +170,8 @@ export default function Page() {
 							</div>
 						) : (
 							<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-								<IconFileDescription size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
-								<span style={{ color: BASE_COLOR_LIGHT, fontSize: 15, paddingLeft: '10px' }}>
+								<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
+								<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 									No page selected
 								</span>
 							</div>

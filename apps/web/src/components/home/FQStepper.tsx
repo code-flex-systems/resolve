@@ -10,7 +10,6 @@ import {
 	Typography,
 	Tooltip} from '@mui/material';
 import { useState, useEffect } from 'react';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
@@ -66,7 +65,7 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 			sx={{
 				backgroundImage: index <= active ? 'linear-gradient(rgb(50, 174, 153), rgba(50, 174, 153, 0.9))' : '',
 			}}
-			bgcolor={index <= active ? '' : BASE_COLOR_LIGHT}
+			bgcolor={index <= active ? '' : 'var(--text-muted)'}
 			borderRadius={20}
 		>
 			{index === active ? (
@@ -135,7 +134,7 @@ export default function FQStepper() {
 								<Typography
 									fontSize={15}
 									fontWeight={i === active ? 700 : 500}
-									color={i <= active ? 'var(--text-accent)' : BASE_COLOR_LIGHT}
+									color={i <= active ? 'var(--text-accent)' : 'var(--text-muted)'}
 								>
 									{label}
 								</Typography>

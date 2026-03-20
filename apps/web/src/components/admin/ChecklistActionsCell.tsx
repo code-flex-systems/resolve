@@ -3,7 +3,6 @@
 import { IconArchive, IconArchiveOff, IconChartBar, IconExternalLink } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
 import Tooltip from '@/components/ui/Tooltip';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useState } from 'react';
@@ -11,7 +10,10 @@ import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
-interface ChecklistActionsCellProps extends GridRenderCellParams {
+interface ChecklistActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isManageMode?: boolean;
 }
 

@@ -11,7 +11,6 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import Card from '@/components/ui/Card';
-import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY } from '@/styles/theme';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 import { IconArrowRight, IconCheck, IconCircleCheck, IconCopy, IconCornerDownRight, IconDeviceFloppy, IconFileDescription, IconHelpCircle, IconQuote, IconTrash, IconX } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
@@ -227,7 +226,7 @@ export default function PageEditor() {
 															fontSize: 18, }}
 													/>
 												) : (
-													<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
+													<IconCopy size={20} style={{ color: 'var(--text-muted)', fontSize: 18 }}
 													/>
 												)}
 											</Button>
@@ -236,7 +235,7 @@ export default function PageEditor() {
 												size="sm"
 												onClick={onClearField}
 												disabled={!pageTitle}>
-												<IconX size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
+												<IconX size={20} style={{ color: 'var(--text-muted)', fontSize: 18 }} />
 											</Button>
 											<Button
 												variant="icon"
@@ -251,7 +250,7 @@ export default function PageEditor() {
 															pageTitle &&
 															pageTitle !== selectedPageInfo.title
 																? 'var(--text-accent)'
-																: BASE_COLOR_LIGHT,
+																: 'var(--text-muted)',
 														fontSize: 18, }}
 												/>
 											</Button>
@@ -261,14 +260,14 @@ export default function PageEditor() {
 							</div>
 							<div style={pageStyles.statsRow}>
 								<div style={pageStyles.statItem}>
-									<IconHelpCircle size={18} style={{ color: TEXT_SECONDARY }} />
+									<IconHelpCircle size={18} style={{ color: 'var(--text-secondary)' }} />
 									<span style={{ fontSize: 13 }}>
 										<strong>{questions.length}</strong>{' '}
 										{questions.length === 1 ? 'Question' : 'Questions'}
 									</span>
 								</div>
 								<div style={pageStyles.statItem}>
-									<IconQuote size={18} style={{ color: TEXT_SECONDARY }} />
+									<IconQuote size={18} style={{ color: 'var(--text-secondary)' }} />
 									<span style={{ fontSize: 13 }}>
 										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
 									</span>
@@ -399,8 +398,8 @@ export default function PageEditor() {
 			{!selectedPageInstance && (
 				<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
 					<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-						<IconFileDescription size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
-						<span style={{ color: BASE_COLOR_LIGHT, fontSize: 15, paddingLeft: '10px' }}>
+						<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
+						<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 							No page selected
 						</span>
 					</div>
@@ -454,11 +453,11 @@ const pageStyles = {
 	pageTitle: {
 		fontSize: 20,
 		fontWeight: 600,
-		color: TEXT_PRIMARY,
+		color: 'var(--text-primary)',
 	},
 	pageId: {
 		fontSize: 13,
-		color: TEXT_MUTED,
+		color: 'var(--text-muted)',
 paddingLeft: 8, paddingRight: 8,
 		paddingTop: 2, paddingBottom: 2,
 		borderRadius: '4px',
@@ -495,7 +494,7 @@ paddingLeft: 12, paddingRight: 12,
 	actionGroupTitle: {
 		fontSize: 12,
 		fontWeight: 500,
-		color: TEXT_SECONDARY,
+		color: 'var(--text-secondary)',
 		textTransform: 'uppercase' as const,
 		letterSpacing: '0.5px',
 	},

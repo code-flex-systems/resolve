@@ -2,14 +2,13 @@
 
 import { IconFile, IconFolder } from '@tabler/icons-react';
 import Card from '@/components/ui/Card';
-import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
 
@@ -138,7 +137,7 @@ export default function CompactDocumentBrowser({
 		return result;
 	}, [currentFolderId, groups, docs, filterByType, userFilteredMode, userId, allowedExtensions]);
 
-	const handleRowDoubleClick = (params: GridRowParams<GridRow>) => {
+	const handleRowDoubleClick = (params: { row: GridRow }) => {
 		if (disabled) return; // Prevent interactions when disabled
 
 		if (params.row.type === 'folder') {
@@ -180,16 +179,12 @@ export default function CompactDocumentBrowser({
 				</nav>
 			)}
 
-			<DataGridPro
+			<DataTable
 				rows={rows}
 				loading={isLoading}
 				columns={COLUMNS}
 				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowDoubleClick={handleRowDoubleClick}
-				slots={{
-					noRowsOverlay,
-				}}
-				style={styles.dataGrid}
+				onRowClick={handleRowDoubleClick as any}
 				hideFooter
 			/>
 
@@ -202,12 +197,11 @@ export default function CompactDocumentBrowser({
 	);
 }
 
-const COLUMNS: GridColDef<GridRow>[] = [
+const COLUMNS: ColumnDef<GridRow, any>[] = [
 	{
-		headerName: 'Name',
-		field: 'name',
-		flex: 1,
-		renderCell: ({ row }) => {
+		header: 'Name',
+		accessorKey: 'name',
+		cell: ({ row: { original: row } }) => {
 			// For user folders, display user's full name and email
 			if (row.type === 'folder' && row.data.group_type === 'user' && row.data.user_first && row.data.user_last) {
 				return (
@@ -241,25 +235,22 @@ const COLUMNS: GridColDef<GridRow>[] = [
 				</div>
 			);
 		},
-		renderHeader: (params) => (
-			<IconHeaderCell {...(params as any)} icon={<IconFile style={{ color: 'var(--text-muted)' }} />} />
-		),
 	},
 	{
-		headerName: 'Type',
-		field: 'type',
-		width: 150,
-		renderCell: ({ row }) => (
+		header: 'Type',
+		accessorKey: 'type',
+		size: 150,
+		cell: ({ row: { original: row } }) => (
 			<span style={{ color: 'var(--text-secondary)' }}>
 				{row.type === 'folder' ? 'Folder' : capitalize(row.data.doc_type.replace('_', ' '))}
 			</span>
 		),
 	},
 	{
-		headerName: 'Date',
-		field: 'date',
-		width: 150,
-		renderCell: ({ row }) => (
+		header: 'Date',
+		accessorKey: 'date',
+		size: 150,
+		cell: ({ row: { original: row } }) => (
 			<span style={{ color: 'var(--text-secondary)' }}>
 				{formatMDY(row.data.created_at)}
 			</span>
@@ -269,15 +260,10 @@ const COLUMNS: GridColDef<GridRow>[] = [
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		border: '1px solid #e0e0e0',
 		borderRadius: 4,
-	},
-	dataGrid: {
-		flex: 1,
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

@@ -4,7 +4,6 @@ import Chip from '@/components/ui/Chip';
 import { Spinner } from '@/components/ui/Progress';
 import Tooltip from '@/components/ui/Tooltip';
 import UIButton from '@/components/ui/Button';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, gridClasses } from '@mui/x-data-grid-pro';
 import {
 	IconSubtask, IconPlayerPlay, IconSettings, IconPlayerStop,
 	IconCircleCheck, IconX, IconUserPlus,
@@ -21,7 +20,7 @@ import BasicButtonStyled from './BasicButtonStyled';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskCompletionDialog from './TaskCompletionDialog';
 import TaskCancellationDialog from './TaskCancellationDialog';
-import { dataGridFocusStyles } from '@/styles/theme';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface TaskListPanelProps {
 	claimId: number;
@@ -48,8 +47,6 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 	const [completingTask, setCompletingTask] = useState<Task | null>(null);
 	const [cancellingTask, setCancellingTask] = useState<Task | null>(null);
 	const [isManageMode, setIsManageMode] = useState(false);
-
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const { data: session } = useClerkSession();
@@ -92,19 +89,18 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 		}
 	};
 
-	const columns: GridColDef[] = useMemo(() => {
-		const baseColumns: GridColDef[] = [
+	const columns: ColumnDef<any, any>[] = useMemo(() => {
+		const baseColumns: ColumnDef<any, any>[] = [
 			{
-				field: 'title',
-				headerName: 'Title',
-				flex: 1,
-				minWidth: 200,
+				accessorKey: 'title',
+				header: 'Title',
+				minSize: 200,
 			},
 		{
-			field: 'task_type',
-			headerName: 'Type',
-			width: 150,
-			renderCell: (params: GridRenderCellParams) => {
+			accessorKey: 'task_type',
+			header: 'Type',
+			size: 150,
+			cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 				const taskType = params.value as TaskType;
 				const config = TASK_TYPE_CONFIG[taskType];
 				if (!config) return params.value || '-';
@@ -117,15 +113,15 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 			},
 		},
 		{
-			field: 'desk_location_name',
-			headerName: 'Desk Location',
-			width: 180,
+			accessorKey: 'desk_location_name',
+			header: 'Desk Location',
+			size: 180,
 		},
 		{
-			field: 'status',
-			headerName: 'Status',
-			width: 120,
-			renderCell: (params: GridRenderCellParams) => (
+			accessorKey: 'status',
+			header: 'Status',
+			size: 120,
+			cell: (params: { row: any; value?: any }) => (
 				<Chip
 					color={STATUS_COLORS[params.value as TaskStatus]}
 					size="sm"
@@ -133,39 +129,38 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 			),
 		},
 		{
-			field: 'work_units',
-			headerName: 'Work Units',
-			width: 100,
-			renderCell: (params: GridRenderCellParams) => (
+			accessorKey: 'work_units',
+			header: 'Work Units',
+			size: 100,
+			cell: (params: { row: any; value?: any }) => (
 				<span style={{ fontSize: 14 }}>
 					{params.value} ({params.value * 5} min)
 				</span>
 			),
 		},
 		{
-			field: 'due_date',
-			headerName: 'Due Date',
-			width: 110,
-			renderCell: (params: GridRenderCellParams) =>
+			accessorKey: 'due_date',
+			header: 'Due Date',
+			size: 110,
+			cell: (params: { row: any; value?: any }) =>
 				params.value ? new Date(params.value).toLocaleDateString() : '-',
 		},
 		{
-			field: 'assigned_to_name',
-			headerName: 'Assigned To',
-			width: 140,
-			valueGetter: (value, row) =>
-				row.assigned_to_first && row.assigned_to_last ? `${row.assigned_to_first} ${row.assigned_to_last}` : '-',
+			accessorKey: 'assigned_to_name',
+			header: 'Assigned To',
+			size: 140,
+
 		},
 		];
 
 		// Only include actions column when in manage mode
 		if (isManageMode) {
 			baseColumns.push({
-				field: 'actions',
-				headerName: '',
-				width: 120,
-				sortable: false,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'actions',
+				header: '',
+				size: 120,
+				enableSorting: false,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 				const task = params.row;
 				const status = task.status as TaskStatus;
 				const isAssignedToMe = task.assigned_to === session?.user?.id;
@@ -272,20 +267,11 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 					No tasks for this claim
 				</p>
 			) : (
-				<DataGridPro
+				<DataTable
 					rows={tasks}
 					columns={columns}
-					autoHeight
 					hideFooter
-					disableColumnMenu
-					disableRowSelectionOnClick
-					pinnedColumns={pinnedColumns}
-					sx={{
-						...dataGridFocusStyles,
-						[`& .${gridClasses.cell}`]: {
-							py: 1,
-						},
-					}}
+					pinnedRight={isManageMode ? ['actions'] : []}
 				/>
 			)}
 

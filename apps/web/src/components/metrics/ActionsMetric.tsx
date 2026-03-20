@@ -1,5 +1,4 @@
 import ExpandableTitle from '../common/ExpandableTitle';
-import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
@@ -116,7 +115,7 @@ key={s.id}
 														{getActionPrimaryContent(type, s.definition)}
 													</span>
 													<span
-style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 13, color: BASE_COLOR_LIGHT }}>
+style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 13, color: 'var(--text-muted)' }}>
 														{getActionSecondaryContent(type, s.definition)}
 													</span>
 												</div>

@@ -2,8 +2,6 @@
 
 import { IconArchive, IconCalendarRepeat, IconCash, IconEdit } from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
-import { dataGridFocusStyles } from '@/styles/theme';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useMemo } from 'react';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
@@ -11,6 +9,7 @@ import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
 import { SettlementStructure } from '@/config/enums';
 import dayjs from 'dayjs';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 interface TableRow {
 	id: string;
 	hierarchy: string[];
@@ -48,8 +47,6 @@ export default function SettlementTable({
 	onArchiveSettlement,
 	onArchiveRecovery,
 }: SettlementTableProps) {
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
 	const tableRows = useMemo<TableRow[]>(() => {
 		const rows: TableRow[] = [];
 
@@ -104,14 +101,13 @@ export default function SettlementTable({
 		return rows;
 	}, [settlements, recoveryEvents]);
 
-	const columns = useMemo<GridColDef<TableRow>[]>(
+	const columns = useMemo<ColumnDef<TableRow, any>[]>(
 		() => [
 			{
-				field: 'party_name',
-				headerName: 'Party / Source',
-				flex: 1,
-				minWidth: 150,
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'party_name',
+				header: 'Party / Source',
+				minSize: 150,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement') {
 						return <span style={{ fontSize: 13 }}>{params.row.party_name}</span>;
 					}
@@ -121,33 +117,23 @@ export default function SettlementTable({
 						</span>
 					);
 				},
-				sortComparator: (v1, v2, param1, param2) => {
-					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
-					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
-					const a = row1?.type === 'settlement' ? (row1?.party_name || '') : (row1?.recovery_source || '');
-					const b = row2?.type === 'settlement' ? (row2?.party_name || '') : (row2?.recovery_source || '');
-					return a.toLowerCase().localeCompare(b.toLowerCase());
-				},
 			},
 			{
-				field: 'loss_type',
-				headerName: 'Coverage',
-				width: 120,
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'loss_type',
+				header: 'Coverage',
+				size: 120,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement' && params.row.loss_type) {
 						return <span style={{ fontSize: 13 }}>{formatCoverageType(params.row.loss_type)}</span>;
 					}
 					return null;
 				},
-				sortComparator: stringSortComparator,
 			},
 			{
-				field: 'settlement_structure',
-				headerName: 'Type',
-				width: 60,
-				align: 'center',
-				headerAlign: 'center',
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'settlement_structure',
+				header: 'Type',
+				size: 60,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const structure = params.row.settlement_structure;
 					if (!structure) return null;
 					const isPaymentPlan = structure === SettlementStructure.PAYMENT_PLAN;
@@ -163,29 +149,23 @@ export default function SettlementTable({
 						</Tooltip>
 					);
 				},
-				sortComparator: stringSortComparator,
 			},
 			{
-				field: 'demand_amount',
-				headerName: 'Demand',
-				width: 110,
-				align: 'right',
-				headerAlign: 'right',
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'demand_amount',
+				header: 'Demand',
+				size: 110,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement' && params.row.demand_amount !== undefined) {
 						return <span style={{ fontSize: 13 }}>{formatCurrencyExact(params.row.demand_amount)}</span>;
 					}
 					return null;
 				},
-				sortComparator: numericSortComparator,
 			},
 			{
-				field: 'total_recovered',
-				headerName: 'Recovered',
-				width: 110,
-				align: 'right',
-				headerAlign: 'right',
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'total_recovered',
+				header: 'Recovered',
+				size: 110,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement') {
 						return (
 							<span style={{ fontSize: 13 }}>
@@ -198,21 +178,12 @@ export default function SettlementTable({
 					}
 					return null;
 				},
-				sortComparator: (v1, v2, param1, param2) => {
-					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
-					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
-					const a = row1?.type === 'settlement' ? (row1?.total_recovered || 0) : (row1?.recovery_amount || 0);
-					const b = row2?.type === 'settlement' ? (row2?.total_recovered || 0) : (row2?.recovery_amount || 0);
-					return a - b;
-				},
 			},
 			{
-				field: 'remaining_balance',
-				headerName: 'Balance',
-				width: 110,
-				align: 'right',
-				headerAlign: 'right',
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'remaining_balance',
+				header: 'Balance',
+				size: 110,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement' && params.row.remaining_balance !== undefined) {
 						const balance = params.row.remaining_balance;
 						return (
@@ -225,36 +196,25 @@ export default function SettlementTable({
 					}
 					return null;
 				},
-				sortComparator: numericSortComparator,
 			},
 			{
-				field: 'date',
-				headerName: 'Date',
-				width: 100,
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'date',
+				header: 'Date',
+				size: 100,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const date = params.row.type === 'settlement' ? params.row.demand_date : params.row.recovery_date;
 					if (date) {
 						return <span style={{ fontSize: 13 }}>{dayjs(date).format('MMM D, YYYY')}</span>;
 					}
 					return null;
 				},
-				sortComparator: (v1, v2, param1, param2) => {
-					const row1 = param1.api.getRow(param1.id) as TableRow | undefined;
-					const row2 = param2.api.getRow(param2.id) as TableRow | undefined;
-					const date1 = row1?.type === 'settlement' ? row1?.demand_date : row1?.recovery_date;
-					const date2 = row2?.type === 'settlement' ? row2?.demand_date : row2?.recovery_date;
-					if (!date1 && !date2) return 0;
-					if (!date1) return 1;
-					if (!date2) return -1;
-					return new Date(date1).getTime() - new Date(date2).getTime();
-				},
 			},
 			{
-				field: 'actions',
-				headerName: '',
-				width: 80,
-				sortable: false,
-				renderCell: (params: GridRenderCellParams<TableRow>) => {
+				accessorKey: 'actions',
+				header: '',
+				size: 80,
+				enableSorting: false,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
@@ -291,29 +251,13 @@ export default function SettlementTable({
 	);
 
 	return (
-		<DataGridPro
+		<DataTable
 			rows={tableRows}
 			columns={columns}
-			treeData
-			getTreeDataPath={(row) => row.hierarchy}
-			groupingColDef={{
-				headerName: '',
-				width: 50,
-				valueFormatter: () => '',
-				hideDescendantCount: true,
-			}}
-			defaultGroupingExpansionDepth={0}
-			columnHeaderHeight={40}
+			headerHeight={40}
 			rowHeight={44}
 			hideFooter
-			disableColumnSelector
-			disableRowSelectionOnClick
-			disableColumnMenu
-			pinnedColumns={pinnedColumns}
-			style={{
-				border: 'none',
-				...dataGridFocusStyles,
-			}}
+			pinnedRight={isManageMode ? ['actions'] : []}
 		/>
 	);
 }

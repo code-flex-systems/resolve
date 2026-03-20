@@ -1,17 +1,8 @@
 'use client';
 
-import { dataGridFocusStyles } from '@/styles/theme';
-import {
-	DataGridPro,
-	GridColDef,
-	GridPaginationModel,
-	GridPinnedColumnFields,
-	GridRowSelectionModel,
-} from '@mui/x-data-grid-pro';
 import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import IconHeaderCell from '../../common/IconHeaderCell';
-import CustomPagination from '../../common/CustomPagination';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChecklistClaimsOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
@@ -26,51 +17,46 @@ import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
 import { ClaimStatus } from '@/config/enums';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const PINNED_COLUMNS: GridPinnedColumnFields = {
+const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
 	left: ['status'],
 };
 
-const COLUMNS: GridColDef[] = [
+const COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Status',
-		field: 'status',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimStatusCell {...params} />,
-		align: 'right',
-		width: 150,
+		accessorKey: 'status',
+		header: () => <IconHeaderCell />,
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ClaimStatusCell {...params} />; },
+		size: 150,
 	},
 	{
-		headerName: 'Claim / Checklist',
-		field: 'claim_number',
-		cellClassName: 'cell-bold',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />,
-		width: 220,
+		accessorKey: 'claim_number',
+		header: () => <IconHeaderCell />,
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />; },
+		size: 220,
 	},
 	{
-		headerName: 'Client',
-		field: 'client',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'client',
+		header: () => <IconHeaderCell />,
+		size: 200,
 	},
 	{
-		headerName: 'Expected / Actual Recovery',
-		field: 'expected_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => (
+		accessorKey: 'expected_recovery',
+		header: () => <IconHeaderCell />,
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 			<StackedHeaderCell
 				primary={formatAmount(params.row.actual_recovery ?? 0, true)}
 				secondary={formatAmount(params.value, true)}
 			/>
-		),
-		width: 300,
+		); },
+		size: 300,
 	},
 	{
-		headerName: 'Current assignee',
-		field: 'assignee',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => {
+		accessorKey: 'assignee',
+		header: () => <IconHeaderCell />,
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
 			const user = formatUser({
 				id: params.value,
 				first: params.row.assignee_first,
@@ -79,13 +65,13 @@ const COLUMNS: GridColDef[] = [
 			});
 			return <StackedHeaderCell primary={user} secondary={params.row.assignee_email} />;
 		},
-		width: 250,
+		size: 250,
 	},
 	// {
-	// 	headerName: 'Initial assignee',
-	// 	field: 'created_by',
-	// 	renderHeader: (params) => <IconHeaderCell {...params} />,
-	// 	renderCell: (params) => {
+	// 	header: 'Initial assignee',
+	// 	accessorKey: 'created_by',
+	// 	header: () => <IconHeaderCell />,
+	// 	cell: (info: any) => { const params = { row: info.row.original, value: info.getValue(), id: info.row.id }; {
 	// 		const user = formatUser({
 	// 			id: params.value,
 	// 			first: params.row.created_by_first,
@@ -94,15 +80,13 @@ const COLUMNS: GridColDef[] = [
 	// 		});
 	// 		return <StackedHeaderCell primary={user} secondary={params.row.created_by_email} />;
 	// 	},
-	// 	width: 220,
+	// 	size: 220,
 	// },
 	{
-		headerName: 'Last Update',
-		field: 'updated_at',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any, row) => formatMDY(value ?? row.created_at),
-		align: 'right',
-		width: 130,
+		accessorKey: 'updated_at',
+		header: () => <IconHeaderCell />,
+		cell: (info: any) => { const value = info.getValue(); const row = info.row.original; return formatMDY(value ?? row.created_at); },
+		size: 130,
 	},
 ];
 
@@ -117,8 +101,8 @@ export default function ChecklistClaims({
 	range: DateRange<Dayjs>;
 	setClaim: (newClaim: ChecklistClaimsOutput[number] | null) => void;
 }) {
-	const [constraints, setContraints] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-	const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
+	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
+	const [selectionModel, setSelectionModel] = useState<Record<string, boolean>>({});
 	const selectedClaimStatus = useMetricsStore((state) => state.selectedClaimStatus);
 	const trpcUtils = trpc.useUtils();
 	const today = dayjs().format('MM/DD/YYYY');
@@ -138,19 +122,12 @@ export default function ChecklistClaims({
 		limit: constraints.pageSize,
 		offset: constraints.page * constraints.pageSize,
 	});
-	const rowCountRef = useRef(typeof data.count === 'number' ? data.count : 0);
 
-	const rowCount = useMemo(() => {
-		if (typeof data.count === 'number') {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
-
-	const updateSelectionModel = (newModel: GridRowSelectionModel) => {
+	const updateSelectionModel = (newModel: Record<string, boolean>) => {
 		setSelectionModel(newModel);
-		const newClaim = newModel.length
-			? (data.rows.find((c) => `${c.checklist_id}:${c.claim_id}` === newModel[0]) ?? null)
+		const selectedIds = Object.keys(newModel).filter(k => newModel[k]);
+		const newClaim = selectedIds.length
+			? (data.rows.find((c) => `${c.checklist_id}:${c.claim_id}` === selectedIds[0]) ?? null)
 			: null;
 		setClaim(newClaim);
 	};
@@ -226,7 +203,7 @@ export default function ChecklistClaims({
 					</span>
 					<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
 						<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
-							{rowCount.toLocaleString()} claim{rowCount !== 1 ? 's' : ''}
+							{(data?.count ?? 0).toLocaleString()} claim{(data?.count ?? 0) !== 1 ? 's' : ''}
 						</span>
 						<ExportButton
 							onExport={async () => {
@@ -240,38 +217,20 @@ export default function ChecklistClaims({
 					</div>
 				</div>
 				<div style={styles.table}>
-					<DataGridPro
+					<DataTable
 						columns={COLUMNS}
-						columnHeaderHeight={45}
+						headerHeight={45}
 						loading={isFetching}
-						slots={{
-							pagination: CustomPagination,
-						}}
-						slotProps={{
-							loadingOverlay: {
-								noRowsVariant: 'skeleton',
-								variant: 'skeleton',
-							},
-						}}
-						initialState={{
-							pagination: { paginationModel: { pageSize: 20 } },
-						}}
 						rows={Array.isArray(data.rows) ? data.rows : []}
-						rowCount={rowCount}
+						rowCount={data?.count ?? 0}
 						rowHeight={60}
 						getRowId={(row) => `${row.checklist_id}:${row.claim_id}`}
-						hideFooterSelectedRowCount
-						rowSelectionModel={selectionModel}
-						onRowSelectionModelChange={updateSelectionModel}
-						pageSizeOptions={[]}
-						pagination
+						rowSelection={selectionModel}
+						onRowSelectionChange={updateSelectionModel}
 						paginationMode="server"
 						paginationModel={constraints}
 						onPaginationModelChange={setContraints}
 						getRowClassName={(params) => 'cursor-pointer'}
-						disableColumnSelector
-						disableColumnMenu
-						sx={styles.tableOverrides}
 					/>
 				</div>
 			</div>
@@ -281,22 +240,17 @@ export default function ChecklistClaims({
 
 const styles = {
 	container: {
-		flex: 1,
-		minWidth: 0,
+		minSize: 0,
 		height: '100%',
 		marginLeft: 20,
 	},
 	paper: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		padding: '24px 24px 0px',
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 40px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

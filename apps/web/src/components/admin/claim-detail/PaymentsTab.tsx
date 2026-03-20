@@ -7,19 +7,18 @@ import Skeleton from '@/components/ui/Skeleton';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { useCallback, useMemo, useState } from 'react';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { trpc } from '@/lib/trpc';
 import BasicDialog from '@/components/common/BasicDialog';
 import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { dateSortComparator, numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
-import { dataGridFocusStyles } from '@/styles/theme';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import BasicIconButton from '@/components/common/BasicIconButton';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 dayjs.extend(utc);
 
@@ -56,8 +55,6 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	const [isManageMode, setIsManageMode] = useState(false);
 	const [editingPayment, setEditingPayment] = useState<PaymentRow | null>(null);
 	const [archivingPayment, setArchivingPayment] = useState<PaymentRow | null>(null);
-
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
 
 	const utils = trpc.useUtils();
 	const showAlert = useAlertStore((state) => state.showAlert);
@@ -188,31 +185,25 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	};
 
 	// Table columns
-	const columns = useMemo<GridColDef<PaymentRow>[]>(
+	const columns = useMemo<ColumnDef<PaymentRow, any>[]>(
 		() => [
 			{
-				field: 'payment_date',
-				headerName: 'Date',
-				width: 100,
-				valueFormatter: (value) => (value ? dayjs(value).format('MMM D, YYYY') : ''),
-				sortComparator: dateSortComparator,
+				accessorKey: 'payment_date',
+				header: 'Date',
+				size: 100,
+				cell: ({ getValue }) => { const value = getValue(); return value ? dayjs(value).format('MMM D, YYYY') : ''; },
 			},
 			{
-				field: 'loss_type',
-				headerName: 'Coverage',
-				width: 120,
-				valueFormatter: (value) => (value ? formatCoverageType(value) : ''),
-				sortComparator: (v1, v2) => {
-					const a = v1 ? formatCoverageType(v1).toLowerCase() : '';
-					const b = v2 ? formatCoverageType(v2).toLowerCase() : '';
-					return a.localeCompare(b);
-				},
+				accessorKey: 'loss_type',
+				header: 'Coverage',
+				size: 120,
+				cell: ({ getValue }) => { const value = getValue(); return value ? formatCoverageType(value as string) : ''; },
 			},
 			{
-				field: 'payment_amount',
-				headerName: 'Amount',
-				width: 120,
-				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
+				accessorKey: 'payment_amount',
+				header: 'Amount',
+				size: 120,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const amount = parseFloat(params.value?.toString() || '0');
 					return (
 						<span style={{ fontSize: 13, color: amount < 0 ? 'error.main' : 'text.primary' }}>
@@ -220,19 +211,12 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 						</span>
 					);
 				},
-				sortComparator: numericSortComparator,
 			},
 			{
-				field: 'type',
-				headerName: 'Type',
-				width: 180,
-				valueGetter: (value, row) => {
-					const isCredit = parseFloat(row.payment_amount?.toString() || '0') < 0;
-					// Create a consistent sortable key from the three boolean flags
-					return `${isCredit ? '1' : '0'}-${row.is_subrogable ? '1' : '0'}-${row.is_expense ? '1' : '0'}`;
-				},
-				sortComparator: stringSortComparator,
-				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
+				accessorKey: 'type',
+				header: 'Type',
+				size: 180,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const amount = parseFloat(params.row.payment_amount?.toString() || '0');
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
@@ -248,26 +232,23 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 				},
 			},
 			{
-				field: 'payee_name',
-				headerName: 'Payee',
-				width: 150,
-				valueFormatter: (value) => value || '—',
-				sortComparator: stringSortComparator,
+				accessorKey: 'payee_name',
+				header: 'Payee',
+				size: 150,
+				cell: ({ getValue }) => { const value = getValue(); return value || '—'; },
 			},
 			{
-				field: 'description',
-				headerName: 'Description',
-				flex: 1,
-				minWidth: 150,
-				valueFormatter: (value) => value || '—',
-				sortComparator: stringSortComparator,
+				accessorKey: 'description',
+				header: 'Description',
+				minSize: 150,
+				cell: ({ getValue }) => { const value = getValue(); return value || '—'; },
 			},
 			{
-				field: 'actions',
-				headerName: '',
-				width: 80,
-				sortable: false,
-				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
+				accessorKey: 'actions',
+				header: '',
+				size: 80,
+				enableSorting: false,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
@@ -399,17 +380,11 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 					)}
 
 					{!isLoading && payments.length > 0 && (
-						<DataGridPro
+						<DataTable
 							rows={payments as PaymentRow[]}
 							columns={columns}
-							autoHeight
 							hideFooter
-							disableRowSelectionOnClick
-							pinnedColumns={pinnedColumns}
-							style={{
-								border: 'none',
-								...dataGridFocusStyles,
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					)}
 				</Card>

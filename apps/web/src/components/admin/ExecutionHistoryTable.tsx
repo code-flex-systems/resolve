@@ -6,13 +6,12 @@ import Dropdown from '@/components/ui/Dropdown';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import dayjs from 'dayjs';
 import { useWorkflowTrpc, RuleExecutionHistory } from '@/hooks/trpc/useWorkflowTrpc';
 import { RuleExecutionStatus, WorkflowActionType, WorkflowTriggerType } from '@/config/enums';
 import { EXECUTION_STATUS_CONFIG, formatActionType, formatTriggerType } from '@/lib/utils/workflowUtils';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { dataGridFocusStyles } from '@/styles/theme';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface ExecutionHistoryTableProps {
 	ruleId?: number;
@@ -84,24 +83,23 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 		}
 	}, [data?.nextCursor]);
 
-	const columns: GridColDef[] = useMemo(() => {
-		const cols: GridColDef[] = [];
+	const columns: ColumnDef<any, any>[] = useMemo(() => {
+		const cols: ColumnDef<any, any>[] = [];
 
 		if (!compact) {
 			cols.push({
-				field: 'rule_name',
-				headerName: 'Rule Name',
-				flex: 1,
-				minWidth: 180,
+				accessorKey: 'rule_name',
+				header: 'Rule Name',
+				minSize: 180,
 			});
 		}
 
 		cols.push(
 			{
-				field: 'claim_number',
-				headerName: 'Claim',
-				width: 140,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'claim_number',
+				header: 'Claim',
+				size: 140,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					return (
 						<span>
 							{params.row.claim_number || `#${params.row.claim_id}`}
@@ -110,20 +108,20 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				},
 			},
 			{
-				field: 'action_type',
-				headerName: 'Action Type',
-				width: 160,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'action_type',
+				header: 'Action Type',
+				size: 160,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const actionType = params.value as WorkflowActionType;
 					if (!actionType) return '-';
 					return <Chip  size="sm" variant="outlined">{formatActionType(actionType)}</Chip>;
 				},
 			},
 			{
-				field: 'status',
-				headerName: 'Status',
-				width: 120,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'status',
+				header: 'Status',
+				size: 120,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const status = params.value as RuleExecutionStatus;
 					const config = EXECUTION_STATUS_CONFIG[status];
 					if (!config) return params.value || '-';
@@ -131,20 +129,20 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				},
 			},
 			{
-				field: 'trigger_type',
-				headerName: 'Trigger Type',
-				width: 140,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'trigger_type',
+				header: 'Trigger Type',
+				size: 140,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const triggerType = params.value as WorkflowTriggerType;
 					if (!triggerType) return '-';
 					return <span>{formatTriggerType(triggerType)}</span>;
 				},
 			},
 			{
-				field: 'created_at',
-				headerName: 'Created At',
-				width: 170,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'created_at',
+				header: 'Created At',
+				size: 170,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!params.value) return '-';
 					return (
 						<span>
@@ -154,10 +152,10 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				},
 			},
 			{
-				field: 'executed_at',
-				headerName: 'Executed At',
-				width: 170,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'executed_at',
+				header: 'Executed At',
+				size: 170,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!params.value) {
 						return (
 							<span style={{ color: 'var(--text-secondary)' }}>
@@ -201,32 +199,11 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 
 			{/* DataGrid */}
 			<div style={{ flex: 1, minHeight: 400 }}>
-				<DataGridPro
+				<DataTable
 					rows={allRows}
 					columns={columns}
 					loading={isLoading}
-					disableColumnMenu
-					disableRowSelectionOnClick
-					onRowClick={(params) => setDetailRow(params.row as ExecutionRow)}
-					pageSizeOptions={[25, 50, 100]}
-					initialState={{
-						pagination: { paginationModel: { pageSize: 25 } },
-					}}
-					slots={{
-						noRowsOverlay: NoRows,
-						noResultsOverlay: NoRows,
-					}}
-					slotProps={{
-						loadingOverlay: {
-							noRowsVariant: 'linear-progress',
-							variant: 'linear-progress',
-						},
-					}}
-					style={{
-						height: '100%',
-						border: 'none',
-						...dataGridFocusStyles,
-					}}
+					onRowClick={setDetailRow}
 				/>
 			</div>
 

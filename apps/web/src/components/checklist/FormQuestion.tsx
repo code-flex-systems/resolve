@@ -23,7 +23,6 @@ import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import Card from '@/components/ui/Card';
-import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED } from '@/styles/theme';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -312,7 +311,7 @@ export default function FormQuestion() {
 																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT }} />
+																		<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
 																	)}
 																</IconButton>
 																<IconButton
@@ -320,7 +319,7 @@ export default function FormQuestion() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<IconX size={20} style={{ color: BASE_COLOR_LIGHT }} />
+																	<IconX size={20} style={{ color: 'var(--text-muted)' }} />
 																</IconButton>
 															</InputAdornment>
 														),
@@ -356,7 +355,7 @@ export default function FormQuestion() {
 																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT }} />
+																		<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
 																	)}
 																</IconButton>
 																<IconButton
@@ -364,7 +363,7 @@ export default function FormQuestion() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<IconX size={20} style={{ color: BASE_COLOR_LIGHT }} />
+																	<IconX size={20} style={{ color: 'var(--text-muted)' }} />
 																</IconButton>
 															</InputAdornment>
 														),
@@ -577,8 +576,8 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		gap: 1,
-		bgcolor: BG_TERTIARY,
-		border: `1px solid ${BORDER_COLOR}`,
+		bgcolor: 'var(--bg-secondary)',
+		border: '1px solid var(--border-strong)',
 		borderRadius: '8px',
 		px: 1.5,
 		py: 0.75,

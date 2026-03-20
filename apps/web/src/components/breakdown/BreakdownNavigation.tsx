@@ -8,7 +8,6 @@ import { useSearchParams } from 'next/navigation';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
-import { TEXT_MUTED } from '@/styles/theme';
 import Skeleton from '@/components/ui/Skeleton';
 import { IconTrophy } from '@tabler/icons-react';
 
@@ -66,8 +65,8 @@ export default function BreakdownNavigation() {
 					
 					 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 12, paddingLeft: 12 }}
 				>
-					<IconTrophy size={20} style={{ color: TEXT_MUTED, transform: 'rotate(90deg)' }} />
-					<span    style={{ fontSize: 14, color: TEXT_MUTED, marginLeft: 12 }}>
+					<IconTrophy size={20} style={{ color: 'var(--text-muted)', transform: 'rotate(90deg)' }} />
+					<span    style={{ fontSize: 14, color: 'var(--text-muted)', marginLeft: 12 }}>
 						{pageInstance
 							? `Breakdown for ${pageInstance.title}`
 							: isLoading
@@ -87,7 +86,7 @@ export default function BreakdownNavigation() {
 							)}
 							{!isLoading && !questionStats.length && (
 								<div  className="flex-col-center" style={styles.loadingContainer}>
-									<span   style={{ color: TEXT_MUTED, fontSize: 18 }}>
+									<span   style={{ color: 'var(--text-muted)', fontSize: 18 }}>
 										No response data found
 									</span>
 								</div>

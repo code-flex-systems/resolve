@@ -5,7 +5,6 @@ import ClaimsSearch from '@/components/home/ClaimsSearch';
 import ClaimSummaryDialog from '@/components/admin/ClaimSummaryDialog';
 import ChecklistSelectionDialog from '@/components/common/ChecklistSelectionDialog';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { BG_TERTIARY, BORDER_COLOR } from '@/styles/theme';
 
 /**
  * Landing page with hero search
@@ -110,7 +109,7 @@ const styles = {
 		borderRadius: 4,
 		m: '15px auto',
 		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.06) 0%, rgba(255, 255, 255, 1) 100%)',
-		border: `1px solid ${BORDER_COLOR}`,
+		border: '1px solid var(--border-strong)',
 	},
 	searchContainer: {
 		width: '100%',

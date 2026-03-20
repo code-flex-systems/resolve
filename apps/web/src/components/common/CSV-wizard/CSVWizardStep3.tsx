@@ -4,8 +4,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'rea
 import { ProgressBar } from '@/components/ui/Progress';
 import Collapse from '@/components/ui/Collapse';
 import { IconChevronDown } from '@tabler/icons-react';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import { dataGridFocusStyles } from '@/styles/theme';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 type ParsedRow = Record<string, string>;
 
@@ -77,10 +76,10 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 			},
 		}));
 
-		const gridColumns: GridColDef[] = fields.map((f) => ({
+		const gridColumns: ColumnDef<any, any>[] = fields.map((f) => ({
 			field: f.key,
-			headerName: f.label,
-			width: 120,
+			header: f.label,
+			size: 120,
 		}));
 
 		return (
@@ -98,17 +97,13 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 				)}
 
 				<div style={{ height: 250, minHeight: 250 }}>
-					<DataGridPro
-						columnHeaderHeight={35}
+					<DataTable
+						headerHeight={35}
 						rowHeight={35}
 						rows={validRows.map((r, i) => ({ id: i, ...r }))}
-						getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
+						getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
 						columns={gridColumns}
-						disableRowSelectionOnClick
-						disableColumnMenu
-						disableColumnSorting
 						hideFooter
-						sx={dataGridFocusStyles}
 					/>
 				</div>
 
@@ -116,7 +111,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 					<>
 						<div
 style={{
-								width: '100%',
+								size: '100%',
 								height: 30,
 								cursor: 'pointer',
 								marginTop: 8,

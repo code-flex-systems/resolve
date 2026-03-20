@@ -1,4 +1,3 @@
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { JSX } from 'react';
 
 export default function StackedMetric({
@@ -26,7 +25,7 @@ export default function StackedMetric({
 						<span
 							
 							
-							 style={{ fontSize: fontSizeSubtext, lineHeight: `${fontSizeSubtext + 2}px`, color: BASE_COLOR_LIGHT }}
+							 style={{ fontSize: fontSizeSubtext, lineHeight: `${fontSizeSubtext + 2}px`, color: 'var(--text-muted)' }}
 						>
 							{subtext}
 						</span>

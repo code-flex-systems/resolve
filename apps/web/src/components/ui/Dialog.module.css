@@ -5,6 +5,7 @@
 .dialog {
 	background: transparent;
 	border: none;
+	outline: none;
 	padding: 0;
 	max-width: none;
 	max-height: none;
@@ -14,6 +15,10 @@
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
+}
+
+.dialog:focus {
+	outline: none;
 }
 
 .dialog::backdrop {
@@ -38,6 +43,7 @@
 	display: flex;
 	flex-direction: column;
 	max-height: 85vh;
+	overflow: hidden;
 	animation: dialogEnter var(--transition-normal) ease-out;
 }
 
@@ -98,8 +104,23 @@
 
 .content {
 	padding: var(--space-6);
+	padding-right: var(--space-4);
+	margin-right: var(--space-2);
 	overflow-y: auto;
 	flex: 1;
+}
+
+.content::-webkit-scrollbar {
+	width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border-radius: 3px;
 }
 
 /* =========================================================================

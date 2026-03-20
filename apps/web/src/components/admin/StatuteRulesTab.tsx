@@ -8,16 +8,15 @@ import Chip from '@/components/ui/Chip';
 import { useMemo, useState } from 'react';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { STATUTE_TORT_TYPES } from '@/config/statuteConfig';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useAdminStore } from '@/stores/useAdminStore';
 import StatuteRuleDialog from './StatuteRuleDialog';
 import { US_JURISDICTIONS } from '@/config/usJurisdictions';
 import type { StatuteRules, TortTypeConfig, NegligenceType } from '@/schemas/statuteSchemas';
 import { getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 /**
  * Render cell value for a tort type column.
@@ -155,56 +154,51 @@ export default function StatuteRulesTab() {
 		[rulesByState]
 	);
 
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
 	// Build dynamic columns for each tort type (using hardcoded config)
-	const columns = useMemo<GridColDef[]>(() => {
-		const tortColumns: GridColDef[] = STATUTE_TORT_TYPES.map((tort) => ({
-			headerName: tort.label,
+	const columns = useMemo<ColumnDef<any, any>[]>(() => {
+		const tortColumns: ColumnDef<any, any>[] = STATUTE_TORT_TYPES.map((tort) => ({
+			header: tort.label,
 			field: tort.value,
-			width: 130,
-			renderCell: ({ row }: GridRenderCellParams) => (
+			size: 130,
+			cell: ({ row: { original: row } }: any) => (
 				<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 					{renderTortCell(row.rules, tort.value)}
 				</div>
 			),
-			sortable: false,
+			enableSorting: false,
 		}));
 
 		return [
 			{
-				headerName: 'State',
-				field: 'state_name',
-				width: 200,
-				renderHeader: (params) => (
+				accessorKey: 'state_name',
+				size: 200,
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconGavel style={{ color: 'var(--text-muted)' }} />} />
 				),
 			},
 			{
-				headerName: 'Code',
-				field: 'state_code',
-				width: 70,
+				header: 'Code',
+				accessorKey: 'state_code',
+				size: 70,
 			},
 			...tortColumns,
 			{
-				headerName: 'Negligence Law',
-				field: 'negligence',
-				width: 220,
-				sortable: false,
-				renderCell: ({ row }: GridRenderCellParams) => (
+				header: 'Negligence Law',
+				accessorKey: 'negligence',
+				size: 220,
+				enableSorting: false,
+				cell: ({ row: { original: row } }: any) => (
 					<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 						{renderNegligenceCell(row.negligence_type, row.negligence_bar_percent, row.negligence_notes)}
 					</div>
 				),
 			},
 			{
-				headerName: '',
-				field: 'actions',
-				width: 60,
-				sortable: false,
-				filterable: false,
-				disableColumnMenu: true,
-				renderCell: ({ row }: GridRenderCellParams) => {
+				header: '',
+				accessorKey: 'actions',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row: { original: row } }: any) => {
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
@@ -244,28 +238,14 @@ export default function StatuteRulesTab() {
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={rulesFetching}
-							slots={{
-								noRowsOverlay: NoRowsOverlay,
-								noResultsOverlay: NoRowsOverlay,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={rows}
 							rowHeight={50}
 							hideFooter
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							pinnedColumns={pinnedColumns}
-							style={styles.tableOverrides}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 				</div>
@@ -278,24 +258,19 @@ export default function StatuteRulesTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
-		flex: 1,
 		display: 'flex',
 		flexDirection: 'column' as const,
 		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

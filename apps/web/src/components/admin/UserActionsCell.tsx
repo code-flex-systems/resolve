@@ -3,14 +3,16 @@
 import { IconEdit, IconLogout } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from '../home/UpdateUserDialog';
 
-interface UserActionsCellProps extends GridRenderCellParams {
+interface UserActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isManageMode?: boolean;
 }
 

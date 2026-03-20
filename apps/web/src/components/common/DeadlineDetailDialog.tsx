@@ -18,7 +18,6 @@ import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
 import { DeadlineEntityType, DeadlineStatus, TaskStatus, TaskType } from '@/config/enums';
 import Card from '@/components/ui/Card';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { formatDeadlineType } from './DeadlineListItem';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -236,7 +235,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 									label="Assigned To"
 									value={
 										<div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'flex-end' }}>
-											<IconUser size={14} style={{ color: BASE_COLOR_LIGHT }} />
+											<IconUser size={14} style={{ color: 'var(--text-muted)' }} />
 											<span style={{ fontSize: 13 }}>
 												{task.assigned_to_first} {task.assigned_to_last}
 											</span>

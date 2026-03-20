@@ -10,7 +10,7 @@ import {
 	type KeyboardEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { IconChevronDown, IconX, IconLoader2 } from '@tabler/icons-react';
+import { IconX, IconLoader2, IconSearch } from '@tabler/icons-react';
 import styles from './Combobox.module.css';
 
 /* =========================================================================
@@ -18,42 +18,30 @@ import styles from './Combobox.module.css';
    ========================================================================= */
 
 export interface ComboboxOption {
-	/** Unique value for this option */
 	value: string | number;
-	/** Display label (used for filtering and display) */
 	label: string;
-	/** Optional icon */
 	icon?: ReactNode;
-	/** Optional secondary text */
 	description?: string;
-	/** Disable this option */
 	disabled?: boolean;
 }
 
 export interface ComboboxProps<T extends ComboboxOption = ComboboxOption> {
-	// --- Value ---
 	options: T[];
-	/** Single value (when multiple=false) */
+
+	// --- Single select ---
 	value?: T | null;
-	/** Multiple values (when multiple=true) */
-	values?: T[];
-	/** Change handler for single select */
 	onChange?: (option: T | null) => void;
-	/** Change handler for multi select */
+
+	// --- Multi select ---
+	values?: T[];
 	onChangeMultiple?: (options: T[]) => void;
-	/** Enable multi-select mode */
 	multiple?: boolean;
 
 	// --- Search ---
-	/** Controlled input value for async search */
-	inputValue?: string;
-	/** Called when the user types in the search field */
 	onInputChange?: (value: string) => void;
-	/** Show loading spinner */
 	loading?: boolean;
 	/** Disable client-side filtering (for server-side search) */
 	filterDisabled?: boolean;
-	/** Allow typing values not in the options list */
 	freeSolo?: boolean;
 
 	// --- Labels ---
@@ -65,21 +53,18 @@ export interface ComboboxProps<T extends ComboboxOption = ComboboxOption> {
 	noOptionsText?: string;
 
 	// --- Rendering ---
-	/** Custom option renderer */
 	renderOption?: (option: T) => ReactNode;
-	/** Custom equality check (default: compares .value) */
 	isOptionEqual?: (option: T, value: T) => boolean;
 
 	// --- Layout ---
 	fullWidth?: boolean;
 	disabled?: boolean;
 	required?: boolean;
-	size?: 'sm' | 'md';
 	className?: string;
 }
 
 /* =========================================================================
-   COMBOBOX COMPONENT
+   COMBOBOX
    ========================================================================= */
 
 export default function Combobox<T extends ComboboxOption = ComboboxOption>({
@@ -89,7 +74,6 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 	onChange,
 	onChangeMultiple,
 	multiple = false,
-	inputValue: controlledInputValue,
 	onInputChange,
 	loading = false,
 	filterDisabled = false,
@@ -105,118 +89,103 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 	fullWidth,
 	disabled,
 	required,
-	size = 'sm',
 	className,
 }: ComboboxProps<T>) {
 	const [open, setOpen] = useState(false);
-	const [internalInputValue, setInternalInputValue] = useState('');
+	const [search, setSearch] = useState('');
 	const [highlightedIndex, setHighlightedIndex] = useState(-1);
-	const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+	const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
 	const wrapperRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	const searchValue = controlledInputValue ?? internalInputValue;
-
-	const optionEquals = useCallback(
+	const eq = useCallback(
 		(a: T, b: T) => (isOptionEqual ? isOptionEqual(a, b) : a.value === b.value),
 		[isOptionEqual]
 	);
 
-	// Filter options (client-side unless disabled)
-	const filteredOptions = useMemo(() => {
-		if (filterDisabled || !searchValue) return options;
-		const lower = searchValue.toLowerCase();
-		return options.filter(
-			(o) =>
-				o.label.toLowerCase().includes(lower) ||
-				(o.description && o.description.toLowerCase().includes(lower))
-		);
-	}, [options, searchValue, filterDisabled]);
+	// What the input displays: search text when open, selected label when closed
+	const displayValue = useMemo(() => {
+		if (open) return search;
+		if (!multiple && value) return value.label;
+		return '';
+	}, [open, search, multiple, value]);
 
-	// Check if an option is selected
+	// Filtered options
+	const filtered = useMemo(() => {
+		if (filterDisabled || !search) return options;
+		const lower = search.toLowerCase();
+		return options.filter(
+			(o) => o.label.toLowerCase().includes(lower) || (o.description?.toLowerCase().includes(lower))
+		);
+	}, [options, search, filterDisabled]);
+
 	const isSelected = useCallback(
-		(option: T) => {
-			if (multiple && values) {
-				return values.some((v) => optionEquals(v, option));
-			}
-			return value ? optionEquals(option, value) : false;
+		(opt: T) => {
+			if (multiple && values) return values.some((v) => eq(v, opt));
+			return value ? eq(opt, value) : false;
 		},
-		[multiple, values, value, optionEquals]
+		[multiple, values, value, eq]
 	);
 
-	// Position menu
-	const updatePosition = useCallback(() => {
+	const updatePos = useCallback(() => {
 		if (!wrapperRef.current) return;
-		const rect = wrapperRef.current.getBoundingClientRect();
-		setMenuPosition({
-			top: rect.bottom + 4,
-			left: rect.left,
-			width: rect.width,
-		});
+		const r = wrapperRef.current.getBoundingClientRect();
+		setMenuPos({ top: r.bottom + 4, left: r.left, width: r.width });
 	}, []);
 
 	const openMenu = useCallback(() => {
 		if (disabled) return;
-		updatePosition();
+		setSearch('');
+		updatePos();
 		setOpen(true);
 		setHighlightedIndex(-1);
-	}, [disabled, updatePosition]);
+	}, [disabled, updatePos]);
 
 	const closeMenu = useCallback(() => {
 		setOpen(false);
+		setSearch('');
 		setHighlightedIndex(-1);
 	}, []);
 
-	// Select an option
 	const selectOption = useCallback(
-		(option: T) => {
-			if (option.disabled) return;
-
+		(opt: T) => {
+			if (opt.disabled) return;
 			if (multiple) {
-				const currentValues = values ?? [];
-				const exists = currentValues.some((v) => optionEquals(v, option));
-				const newValues = exists
-					? currentValues.filter((v) => !optionEquals(v, option))
-					: [...currentValues, option];
-				onChangeMultiple?.(newValues);
-				// Keep menu open for multi-select, clear input
-				setInternalInputValue('');
+				const cur = values ?? [];
+				const exists = cur.some((v) => eq(v, opt));
+				onChangeMultiple?.(exists ? cur.filter((v) => !eq(v, opt)) : [...cur, opt]);
+				setSearch('');
 				onInputChange?.('');
 				inputRef.current?.focus();
 			} else {
-				onChange?.(option);
-				setInternalInputValue(option.label);
-				onInputChange?.(option.label);
+				onChange?.(opt);
+				onInputChange?.('');
 				closeMenu();
 			}
 		},
-		[multiple, values, onChange, onChangeMultiple, optionEquals, closeMenu, onInputChange]
+		[multiple, values, onChange, onChangeMultiple, eq, closeMenu, onInputChange]
 	);
 
-	// Remove a tag in multi-select
 	const removeTag = useCallback(
-		(option: T) => {
+		(opt: T) => {
 			if (disabled) return;
-			const currentValues = values ?? [];
-			onChangeMultiple?.(currentValues.filter((v) => !optionEquals(v, option)));
+			onChangeMultiple?.((values ?? []).filter((v) => !eq(v, opt)));
 		},
-		[disabled, values, onChangeMultiple, optionEquals]
+		[disabled, values, onChangeMultiple, eq]
 	);
 
-	// Clear single value
 	const clearValue = useCallback(() => {
 		onChange?.(null);
-		setInternalInputValue('');
+		setSearch('');
 		onInputChange?.('');
 		inputRef.current?.focus();
 	}, [onChange, onInputChange]);
 
-	// Handle input change
 	const handleInputChange = useCallback(
 		(val: string) => {
-			setInternalInputValue(val);
+			setSearch(val);
 			onInputChange?.(val);
 			if (!open) openMenu();
 			setHighlightedIndex(-1);
@@ -228,71 +197,55 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 	useEffect(() => {
 		if (!open) return;
 		const handler = (e: MouseEvent) => {
-			if (
-				wrapperRef.current?.contains(e.target as Node) ||
-				menuRef.current?.contains(e.target as Node)
-			) {
-				return;
-			}
+			if (wrapperRef.current?.contains(e.target as Node) || menuRef.current?.contains(e.target as Node)) return;
 			closeMenu();
-			// For freeSolo single, keep the typed value
-			if (!multiple && !freeSolo && !value) {
-				setInternalInputValue('');
-				onInputChange?.('');
-			}
 		};
 		document.addEventListener('mousedown', handler);
 		return () => document.removeEventListener('mousedown', handler);
-	}, [open, closeMenu, multiple, freeSolo, value, onInputChange]);
+	}, [open, closeMenu]);
 
-	// Reposition on scroll/resize
+	// Reposition
 	useEffect(() => {
 		if (!open) return;
-		const handler = () => updatePosition();
+		const handler = () => updatePos();
 		window.addEventListener('scroll', handler, true);
 		window.addEventListener('resize', handler);
 		return () => {
 			window.removeEventListener('scroll', handler, true);
 			window.removeEventListener('resize', handler);
 		};
-	}, [open, updatePosition]);
+	}, [open, updatePos]);
 
-	// Keyboard navigation
+	// Keyboard
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent<HTMLInputElement>) => {
 			if (!open) {
-				if (e.key === 'ArrowDown' || e.key === 'Enter') {
-					e.preventDefault();
-					openMenu();
-				}
+				if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); openMenu(); }
 				return;
 			}
-
 			switch (e.key) {
 				case 'ArrowDown':
 					e.preventDefault();
-					setHighlightedIndex((prev) => {
-						let next = prev + 1;
-						while (next < filteredOptions.length && filteredOptions[next].disabled) next++;
-						return next < filteredOptions.length ? next : prev;
+					setHighlightedIndex((p) => {
+						let n = p + 1;
+						while (n < filtered.length && filtered[n].disabled) n++;
+						return n < filtered.length ? n : p;
 					});
 					break;
 				case 'ArrowUp':
 					e.preventDefault();
-					setHighlightedIndex((prev) => {
-						let next = prev - 1;
-						while (next >= 0 && filteredOptions[next].disabled) next--;
-						return next >= 0 ? next : prev;
+					setHighlightedIndex((p) => {
+						let n = p - 1;
+						while (n >= 0 && filtered[n].disabled) n--;
+						return n >= 0 ? n : p;
 					});
 					break;
 				case 'Enter':
 					e.preventDefault();
-					if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
-						selectOption(filteredOptions[highlightedIndex]);
-					} else if (freeSolo && searchValue) {
-						// FreeSolo: create option from typed text
-						const freeOption = { value: searchValue, label: searchValue } as T;
-						selectOption(freeOption);
+					if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+						selectOption(filtered[highlightedIndex]);
+					} else if (freeSolo && search) {
+						selectOption({ value: search, label: search } as T);
 					}
 					break;
 				case 'Escape':
@@ -300,41 +253,20 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 					closeMenu();
 					break;
 				case 'Backspace':
-					if (multiple && !searchValue && values && values.length > 0) {
-						// Remove last tag
-						removeTag(values[values.length - 1]);
-					}
+					if (multiple && !search && values && values.length > 0) removeTag(values[values.length - 1]);
 					break;
 			}
 		},
-		[open, openMenu, closeMenu, selectOption, highlightedIndex, filteredOptions, freeSolo, searchValue, multiple, values, removeTag]
+		[open, openMenu, closeMenu, selectOption, highlightedIndex, filtered, freeSolo, search, multiple, values, removeTag]
 	);
-
-	// Sync input with value for single select
-	useEffect(() => {
-		if (!multiple && value && !open) {
-			setInternalInputValue(value.label);
-		}
-	}, [multiple, value, open]);
-
-	const wrapperClassNames = [styles.wrapper, fullWidth && styles.fullWidth, className]
-		.filter(Boolean)
-		.join(' ');
-
-	const inputWrapperClassNames = [
-		styles.inputWrapper,
-		styles[`size-${size}`],
-		open && styles.open,
-		error && styles.error,
-		disabled && styles.disabled,
-	]
-		.filter(Boolean)
-		.join(' ');
 
 	const hasValue = multiple ? (values && values.length > 0) : !!value;
 
+	const wrapperCls = [styles.wrapper, fullWidth && styles.fullWidth, className].filter(Boolean).join(' ');
+	const inputCls = [styles.inputWrapper, open && styles.open, error && styles.error, disabled && styles.disabled].filter(Boolean).join(' ');
+
 	return (
-		<div className={wrapperClassNames} ref={wrapperRef}>
+		<div className={wrapperCls} ref={wrapperRef}>
 			{label && (
 				<label className={styles.label}>
 					{label}
@@ -342,19 +274,15 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 				</label>
 			)}
 
-			<div className={inputWrapperClassNames} onClick={() => inputRef.current?.focus()}>
-				{/* Multi-select tags */}
+			<div className={inputCls} onClick={() => inputRef.current?.focus()}>
+				<IconSearch size={15} stroke={1.5} className={styles.searchIcon} />
+
 				{multiple && values && values.length > 0 && (
 					<div className={styles.tags}>
 						{values.map((v) => (
 							<span key={String(v.value)} className={styles.tag}>
 								<span className={styles.tagLabel}>{v.label}</span>
-								<button
-									type="button"
-									className={styles.tagRemove}
-									onClick={(e) => { e.stopPropagation(); removeTag(v); }}
-									tabIndex={-1}
-								>
+								<button type="button" className={styles.tagRemove} onClick={(e) => { e.stopPropagation(); removeTag(v); }} tabIndex={-1}>
 									<IconX size={12} stroke={2} />
 								</button>
 							</span>
@@ -365,7 +293,7 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 				<input
 					ref={inputRef}
 					className={styles.input}
-					value={searchValue}
+					value={displayValue}
 					onChange={(e) => handleInputChange(e.target.value)}
 					onFocus={openMenu}
 					onKeyDown={handleKeyDown}
@@ -381,11 +309,6 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 							<IconX size={14} stroke={1.5} />
 						</button>
 					)}
-					<IconChevronDown
-						size={16}
-						stroke={1.5}
-						className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}
-					/>
 				</div>
 			</div>
 
@@ -395,69 +318,31 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 				<span className={styles.helperText}>{helperText}</span>
 			) : null}
 
-			{/* Menu portal */}
-			{open &&
-				menuPosition &&
-				createPortal(
-					<div
-						ref={menuRef}
-						className={styles.menu}
-						style={{
-							top: menuPosition.top,
-							left: menuPosition.left,
-							width: menuPosition.width,
-						}}
-						role="listbox"
-					>
-						{filteredOptions.length === 0 && !loading && (
-							<div className={styles.emptyState}>{noOptionsText}</div>
-						)}
-						{loading && filteredOptions.length === 0 && (
-							<div className={styles.emptyState}>Loading...</div>
-						)}
-						{filteredOptions.map((option, index) => {
-							const selected = isSelected(option);
-							const optionClassNames = [
-								styles.option,
-								selected && styles.selected,
-								option.disabled && styles.optionDisabled,
-								index === highlightedIndex && styles.highlighted,
-							]
-								.filter(Boolean)
-								.join(' ');
-
-							return (
-								<div
-									key={String(option.value)}
-									className={optionClassNames}
-									role="option"
-									aria-selected={selected}
-									aria-disabled={option.disabled}
-									onClick={() => selectOption(option)}
-									onMouseEnter={() => !option.disabled && setHighlightedIndex(index)}
-								>
-									{renderOption ? (
-										renderOption(option)
-									) : (
-										<>
-											{option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
-											<span className={styles.optionContent}>
-												<span className={styles.optionLabel}>{option.label}</span>
-												{option.description && (
-													<span className={styles.optionDescription}>{option.description}</span>
-												)}
-											</span>
-										</>
-									)}
-									{multiple && selected && (
-										<span className={styles.checkmark}>✓</span>
-									)}
-								</div>
-							);
-						})}
-					</div>,
-					document.body
-				)}
+			{open && menuPos && createPortal(
+				<div ref={menuRef} className={styles.menu} style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }} role="listbox">
+					{filtered.length === 0 && !loading && <div className={styles.emptyState}>{noOptionsText}</div>}
+					{loading && filtered.length === 0 && <div className={styles.emptyState}>Loading...</div>}
+					{filtered.map((opt, i) => {
+						const sel = isSelected(opt);
+						const cls = [styles.option, sel && styles.selected, opt.disabled && styles.optionDisabled, i === highlightedIndex && styles.highlighted].filter(Boolean).join(' ');
+						return (
+							<div key={String(opt.value)} className={cls} role="option" aria-selected={sel} onClick={() => selectOption(opt)} onMouseEnter={() => !opt.disabled && setHighlightedIndex(i)}>
+								{renderOption ? renderOption(opt) : (
+									<>
+										{opt.icon && <span className={styles.optionIcon}>{opt.icon}</span>}
+										<span className={styles.optionContent}>
+											<span className={styles.optionLabel}>{opt.label}</span>
+											{opt.description && <span className={styles.optionDescription}>{opt.description}</span>}
+										</span>
+									</>
+								)}
+								{multiple && sel && <span className={styles.checkmark}>✓</span>}
+							</div>
+						);
+					})}
+				</div>,
+				document.body
+			)}
 		</div>
 	);
 }

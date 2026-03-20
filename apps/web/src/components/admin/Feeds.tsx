@@ -5,17 +5,16 @@ import Button from '@/components/ui/Button';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import { FeedStatus } from '@/config/enums';
-import { dataGridFocusStyles } from '@/styles/theme';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
 import Toolbar from '../common/Toolbar';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import IconHeaderCell from '../common/IconHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
@@ -124,35 +123,30 @@ export default function Feeds() {
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
 
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
 	// Fake tester
 	const onTest = () => {
 		setTesting(true);
 		setTimeout(() => setTesting(false), 5000);
 	};
 
-	const columns: GridColDef[] = [
+	const columns: ColumnDef<any, any>[] = [
 		{
-			headerName: 'Name',
-			field: 'name',
-			flex: 1,
-			minWidth: 200,
-			renderHeader: (params) => <IconHeaderCell {...params} />,
+			accessorKey: 'name',
+			minSize: 200,
+			header: () => <IconHeaderCell />,
 		},
 		{
-			headerName: 'Status',
-			field: 'status',
-			width: 130,
-			renderHeader: (params) => <IconHeaderCell {...params} />,
-			renderCell: ({ row }: GridRenderCellParams) => (
+			accessorKey: 'status',
+			size: 130,
+			header: () => <IconHeaderCell />,
+			cell: ({ row: { original: row } }: any) => (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{testing ? (
 						<Ping size="20" speed="2" color={getStatusColor(row.status)} />
 					) : (
 						<div
 							style={{
-								width: 10,
+								size: 10,
 								height: 10,
 								borderRadius: '50%',
 								backgroundColor: getStatusColor(row.status),
@@ -164,33 +158,29 @@ export default function Feeds() {
 			),
 		},
 		{
-			headerName: 'Schedule',
-			field: 'schedule',
-			width: 150,
-			renderHeader: (params) => <IconHeaderCell {...params} icon={<IconClock style={{ color: 'var(--text-muted)' }} />} />,
-			renderCell: ({ row }: GridRenderCellParams) => (
+			accessorKey: 'schedule',
+			size: 150,
+			header: (params) => <IconHeaderCell {...params} icon={<IconClock style={{ color: 'var(--text-muted)' }} />} />,
+			cell: ({ row: { original: row } }: any) => (
 				<span style={{ fontSize: 13 }}>
 					{formatHour(row.schedule)} {row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
 				</span>
 			),
 		},
 		{
-			headerName: 'Last Synced',
-			field: 'last_synced_at',
-			width: 150,
-			renderHeader: (params) => <IconHeaderCell {...params} icon={<IconRefresh style={{ color: 'var(--text-muted)' }} />} />,
-			renderCell: ({ row }: GridRenderCellParams) => (
+			accessorKey: 'last_synced_at',
+			size: 150,
+			header: (params) => <IconHeaderCell {...params} icon={<IconRefresh style={{ color: 'var(--text-muted)' }} />} />,
+			cell: ({ row: { original: row } }: any) => (
 				<span style={{ fontSize: 13 }}>{formatMDYAbv(row.last_synced_at?.toString())}</span>
 			),
 		},
 		{
-			headerName: '',
-			field: 'actions',
-			width: 130,
-			sortable: false,
-			filterable: false,
-			disableColumnMenu: true,
-			renderCell: ({ row }: GridRenderCellParams) => (
+			header: '',
+			accessorKey: 'actions',
+			size: 130,
+			enableSorting: false,
+			cell: ({ row: { original: row } }: any) => (
 				<FeedActionsCell row={row} mutate={mutate} isPending={isPending} isManageMode={isManageMode} />
 			),
 		},
@@ -198,9 +188,9 @@ export default function Feeds() {
 
 	return (
 		<div style={{ width: '100%', height: '100%' }}>
-			<div style={{ width: '100%', height: '100%', padding: 16 }}>
+			<Card variant="beveled" padding="md" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
 				<Toolbar
-					left={<span>Feeds</span>}
+					left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Feeds</h5>}
 					right={
 						<>
 							<BasicButtonStyled
@@ -225,23 +215,15 @@ export default function Feeds() {
 					padding={0}
 				/>
 				<div style={{ height: 'calc(100% - 60px)', width: '100%' }}>
-					<DataGridPro
+					<DataTable
 						rows={feeds}
 						columns={columns}
 						loading={isFetching}
-						disableRowSelectionOnClick
 						hideFooter
-						pinnedColumns={pinnedColumns}
-						slots={{
-							noRowsOverlay: NoRows,
-						}}
-						style={{
-							border: 'none',
-							...dataGridFocusStyles,
-						}}
+						pinnedRight={isManageMode ? ['actions'] : []}
 					/>
 				</div>
-			</div>
+			</Card>
 		</div>
 	);
 }

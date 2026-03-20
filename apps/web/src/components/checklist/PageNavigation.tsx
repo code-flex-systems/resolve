@@ -10,7 +10,6 @@ import {
 	ToggleButtonGroup,
 	Typography, Fade } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { BG_TERTIARY, BORDER_COLOR, BORDER_LIGHT, TEXT_MUTED, TEXT_SECONDARY } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
@@ -46,7 +45,7 @@ function ExpandAllButton({ expandAll, disabled }: { expandAll: boolean; disabled
 				disabled,
 			}}
 			icon={
-				<SvgIcon sx={{ color: TEXT_SECONDARY }}>
+				<SvgIcon sx={{ color: 'var(--text-secondary)' }}>
 					{expandAll ? (
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 							<title>collapse-all</title>
@@ -200,7 +199,7 @@ export default function PageNavigation() {
 													color:
 														mode === ChecklistMode.VIEW
 															? 'secondary.main'
-															: TEXT_MUTED,
+															: 'var(--text-muted)',
 												}}
 											/>
 											View
@@ -213,7 +212,7 @@ export default function PageNavigation() {
 												color:
 													mode === ChecklistMode.TEST
 														? 'secondary.main'
-														: TEXT_MUTED,
+														: 'var(--text-muted)',
 											}}
 										/>
 										Test
@@ -225,7 +224,7 @@ export default function PageNavigation() {
 												color:
 													mode === ChecklistMode.EDIT
 														? 'secondary.main'
-														: TEXT_MUTED,
+														: 'var(--text-muted)',
 											}}
 										/>
 										Edit
@@ -371,7 +370,7 @@ export default function PageNavigation() {
 									justifyContent="center"
 									alignItems="center"
 								>
-									<Typography color={TEXT_MUTED} fontSize={18}>
+									<Typography color={'var(--text-muted)'} fontSize={18}>
 										No pages found
 									</Typography>
 								</Stack>
@@ -414,13 +413,13 @@ const styles = {
 		minWidth: 500,
 		maxWidth: 500,
 		height: '100vh',
-		backgroundColor: BG_TERTIARY,
+		backgroundColor: 'var(--bg-secondary)',
 		padding: 12,
 		overflow: 'hidden',
 		display: 'flex',
 		flex: 1,
 		flexDirection: 'column' as const,
-		borderRight: `1px solid ${BORDER_COLOR}`,
+		borderRight: '1px solid var(--border-strong)',
 		borderTop: 'none',
 		borderBottom: 'none',
 		borderLeft: 'none',

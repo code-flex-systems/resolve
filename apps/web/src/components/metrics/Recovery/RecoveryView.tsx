@@ -52,8 +52,8 @@ export default function RecoveryView() {
 	const [recoverySource, setRecoverySource] = useState<string>('');
 
 	return (
-		<div      style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-			<div     style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+		<div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
 				<div  style={{ marginRight: '5px' }}>
 					<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
 				</div>
@@ -70,17 +70,8 @@ export default function RecoveryView() {
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<div
-				
-				
-				
-				
-				
-				
-				
-				 style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}
-			>
-				<div   style={{ width: '100%', gap: 16 }}>
+			<div style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}>
+				<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
 					<RecoveryMetricsChart
 						range={range}
 						isBreakdown={true}

@@ -1,7 +1,6 @@
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 
-export default function ClaimStatusCell(props: GridRenderCellParams & { fontSize?: number }) {
+export default function ClaimStatusCell(props: { row: any; value?: any; id?: string | number } & { fontSize?: number }) {
 	return (
 		<div      style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 			<div

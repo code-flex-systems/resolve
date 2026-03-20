@@ -6,7 +6,6 @@ import { useChecklistStore } from '@/stores/useChecklistStore';
 import Chip from '@/components/ui/Chip';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import { BASE_COLOR } from '@/styles/theme';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 import { IconAlertTriangle, IconHandStop } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
@@ -59,7 +58,7 @@ export default function ChecklistHandoffDialog() {
 				<div style={styles.paper}>
 					{/* <div style={styles.warning}> */}
 					<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-						<IconAlertTriangle size={20} style={{ color: BASE_COLOR, marginLeft: '5px' }} />
+						<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)', marginLeft: '5px' }} />
 						<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}>
 							<span style={{ fontSize: 15 }}>
 								This action will transfer the claim to the selected assignee.

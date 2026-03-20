@@ -4,7 +4,6 @@ import { IconFileUpload, IconFolderPlus, IconPackage, IconSettings } from '@tabl
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
-import { GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import Toolbar from '../common/Toolbar';
 import { useState, useMemo } from 'react';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -18,7 +17,7 @@ export default function DocumentsTab() {
 	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
 	const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
 	const [showUploadDocumentDialog, setShowUploadDocumentDialog] = useState(false);
-	const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+	const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [editMode, setEditMode] = useState(false);
 	const [previewDocument, setPreviewDocument] = useState<DocListItem | null>(null);
@@ -75,13 +74,14 @@ export default function DocumentsTab() {
 		setEditMode(!editMode);
 		if (editMode) {
 			// Exit edit mode - clear selection
-			setSelectedRows([]);
+			setSelectedRows({});
 		}
 	};
 
 	const handleConfirmDelete = async () => {
 		try {
-			for (const rowId of selectedRows) {
+			const selectedKeys = Object.keys(selectedRows).filter(k => selectedRows[k]);
+			for (const rowId of selectedKeys) {
 				const [type, id] = String(rowId).split('-');
 				if (type === 'folder') {
 					await deleteDocGroup({ groupId: Number(id) });
@@ -89,7 +89,7 @@ export default function DocumentsTab() {
 					await deleteDoc({ docId: Number(id) });
 				}
 			}
-			setSelectedRows([]);
+			setSelectedRows({});
 			setShowDeleteDialog(false);
 		} catch (e) {
 			console.error('Delete failed:', e);
@@ -102,7 +102,8 @@ export default function DocumentsTab() {
 		const folders: any[] = [];
 		const documents: any[] = [];
 
-		selectedRows.forEach((rowId) => {
+		const selectedKeys = Object.keys(selectedRows).filter(k => selectedRows[k]);
+		selectedKeys.forEach((rowId) => {
 			const [type, id] = String(rowId).split('-');
 			if (type === 'folder') {
 				const folder = groups.find((g) => g.id === Number(id));
@@ -128,21 +129,21 @@ export default function DocumentsTab() {
 	}, [selectedRows, groups, docs, docCountsByFolder]);
 
 	return (
-		<div style={styles.container}>
+		<Card variant="beveled" padding="md" style={styles.container}>
 			<Toolbar
-				left={<span>Documents</span>}
+				left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Documents</h5>}
 				right={
 					<div style={{ display: 'flex', gap: 8 }}>
 						{editMode ? (
 							<>
-								{selectedRows.length > 0 && (
+								{Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
 									<Button
 										variant="outlined"
 										color="error"
 										startIcon={<IconPackage size={20} />}
 										onClick={handleDelete}
 									>
-										Archive ({selectedRows.length})
+										Archive ({Object.keys(selectedRows).filter(k => selectedRows[k]).length})
 									</Button>
 								)}
 								<Button variant="outlined" onClick={handleToggleEditMode}>
@@ -208,7 +209,7 @@ export default function DocumentsTab() {
 			{previewDocument && (
 				<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
 			)}
-		</div>
+		</Card>
 	);
 }
 

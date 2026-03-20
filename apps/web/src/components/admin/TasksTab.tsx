@@ -9,7 +9,6 @@ import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { useMemo, useState } from 'react';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import dayjs from 'dayjs';
 import { useTaskTrpc } from '@/hooks/trpc/useTaskTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
@@ -20,7 +19,7 @@ import TaskBulkCancellationDialog from './TaskBulkCancellationDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { dataGridFocusStyles } from '@/styles/theme';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 // Status display config
 const STATUS_COLORS: Record<TaskStatus, 'neutral' | 'info' | 'success' | 'error'> = {
@@ -63,9 +62,9 @@ export default function TasksTab() {
 
 	// Manage mode state
 	const [manageMode, setManageMode] = useState(false);
-	const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+	const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
 
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (manageMode ? { right: ['actions'] } : {}), [manageMode]);
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(() => (manageMode ? { right: ['actions'] } : {}), [manageMode]);
 
 	// Bulk cancellation dialog state
 	const [showBulkCancel, setShowBulkCancel] = useState(false);
@@ -174,24 +173,24 @@ export default function TasksTab() {
 	// Week navigation handlers
 	const handlePreviousWeek = () => {
 		setWeekStart((prev) => prev.subtract(7, 'day'));
-		setSelectedRows([]);
+		setSelectedRows({});
 	};
 
 	const handleNextWeek = () => {
 		setWeekStart((prev) => prev.add(7, 'day'));
-		setSelectedRows([]);
+		setSelectedRows({});
 	};
 
 	const handleGoToCurrentWeek = () => {
 		setWeekStart(getWeekStart(dayjs()));
-		setSelectedRows([]);
+		setSelectedRows({});
 	};
 
 	// Manage mode handlers
 	const handleToggleManageMode = () => {
 		setManageMode(!manageMode);
 		if (manageMode) {
-			setSelectedRows([]);
+			setSelectedRows({});
 		}
 	};
 
@@ -201,7 +200,7 @@ export default function TasksTab() {
 
 	const handleBulkCancelComplete = () => {
 		setShowBulkCancel(false);
-		setSelectedRows([]);
+		setSelectedRows({});
 		refetch();
 	};
 
@@ -211,24 +210,23 @@ export default function TasksTab() {
 	};
 
 	// DataGrid columns (memoized)
-	const columns: GridColDef[] = useMemo(
+	const columns: ColumnDef<any, any>[] = useMemo(
 		() => [
 			{
-				field: 'title',
-				headerName: 'Title',
-				flex: 1,
-				minWidth: 200,
+				accessorKey: 'title',
+				header: 'Title',
+				minSize: 200,
 			},
 			{
-				field: 'task_type',
-				headerName: 'Type',
-				width: 150,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'task_type',
+				header: 'Type',
+				size: 150,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const taskType = params.value as TaskType;
 					const config = TASK_TYPE_CONFIG[taskType];
 					if (!config) return params.value || '-';
 					return (
-						<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
 							{config.icon}
 							<span>{config.label}</span>
 						</div>
@@ -236,13 +234,13 @@ export default function TasksTab() {
 				},
 			},
 			{
-				field: 'claim_number',
-				headerName: 'Claim',
-				width: 150,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'claim_number',
+				header: 'Claim',
+				size: 150,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const claimId = params.row.claim_id;
 					return (
-						<div style={{ flexDirection: 'column', display: 'flex', gap: 4, alignItems: 'center' }}>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center' }}>
 							<span>{params.value || '-'}</span>
 							{claimId && (
 								<Tooltip content="Open claim in new tab">
@@ -256,25 +254,25 @@ export default function TasksTab() {
 				},
 			},
 			{
-				field: 'desk_location_name',
-				headerName: 'Desk Location',
-				width: 160,
+				accessorKey: 'desk_location_name',
+				header: 'Desk Location',
+				size: 160,
 			},
 			{
-				field: 'status',
-				headerName: 'Status',
-				width: 120,
-				renderCell: (params: GridRenderCellParams) => (
+				accessorKey: 'status',
+				header: 'Status',
+				size: 120,
+				cell: (params: { row: any; value?: any }) => (
 					<Chip
 						color={STATUS_COLORS[params.value as TaskStatus]}
 						size="sm">{STATUS_LABELS[params.value as TaskStatus]}</Chip>
 				),
 			},
 			{
-				field: 'due_date',
-				headerName: 'Due Date',
-				width: 110,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'due_date',
+				header: 'Due Date',
+				size: 110,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!params.value) return '-';
 					const dueDate = dayjs(params.value);
 					const isOverdue =
@@ -289,20 +287,17 @@ export default function TasksTab() {
 				},
 			},
 			{
-				field: 'assigned_to_name',
-				headerName: 'Assigned To',
-				width: 140,
-				valueGetter: (_value, row) =>
-					row.assigned_to_first && row.assigned_to_last
-						? `${row.assigned_to_first} ${row.assigned_to_last}`
-						: '-',
+				accessorKey: 'assigned_to_name',
+				header: 'Assigned To',
+				size: 140,
+
 			},
 			{
-				field: 'actions',
-				headerName: '',
-				width: 60,
-				sortable: false,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'actions',
+				header: '',
+				size: 60,
+				enableSorting: false,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const task = params.row;
 					const status = task.status as TaskStatus;
 
@@ -312,11 +307,11 @@ export default function TasksTab() {
 					}
 
 					return (
-						<div style={{ flexDirection: 'column', display: 'flex', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () => {
-										setSelectedRows([task.id]);
+										setSelectedRows({ [task.id]: true });
 										setShowBulkCancel(true);
 									},
 								}}
@@ -387,7 +382,7 @@ export default function TasksTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading tasks...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
 						{/* Metrics */}
 						<TaskMetrics
@@ -399,12 +394,12 @@ export default function TasksTab() {
 
 						{/* Toolbar */}
 						<div style={{ padding: 12, marginBottom: 16 }}>
-							<div style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+							<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 								{/* Left: Week navigation */}
-								<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
-									<span style={{ marginRight: '40px' }}>
+								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+									<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '40px' }}>
 										Tasks
-									</span>
+									</h5>
 									<Button variant="icon" size="sm" onClick={handlePreviousWeek}>
 										<IconChevronLeft size={20} />
 									</Button>
@@ -429,7 +424,7 @@ export default function TasksTab() {
 								</div>
 
 								{/* Right: Filters and manage */}
-								<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
+								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
 									{/* Show only open tasks toggle */}
 									<div style={{ marginRight: 8 }}>
 										<Switch
@@ -459,7 +454,7 @@ export default function TasksTab() {
 									{/* Manage mode */}
 									{manageMode ? (
 										<>
-											{selectedRows.length > 0 && (
+											{Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
 												<Button
 													size="sm"
 													variant="outlined"
@@ -467,7 +462,7 @@ export default function TasksTab() {
 													startIcon={<IconCircleX size={20} />}
 													onClick={handleBulkCancel}
 												>
-													Cancel ({selectedRows.length})
+													Cancel ({Object.keys(selectedRows).filter(k => selectedRows[k]).length})
 												</Button>
 											)}
 											<Button size="sm" variant="outlined" onClick={handleToggleManageMode}>
@@ -516,7 +511,7 @@ export default function TasksTab() {
 										fullWidth
 									/>
 
-									<div style={{ flexDirection: 'column', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+									<div style={{ display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
 										<Button
 											size="sm"
 											onClick={handleClearFilters}
@@ -534,52 +529,27 @@ export default function TasksTab() {
 
 						{/* DataGrid */}
 						<div style={{ flex: 1, minHeight: 0 }}>
-							<DataGridPro
+							<DataTable
 								rows={filteredTasks}
 								columns={columns}
 								loading={isLoading}
 								checkboxSelection={manageMode}
-								rowSelectionModel={selectedRows}
-								onRowSelectionModelChange={setSelectedRows}
-								isRowSelectable={(params) =>
-									params.row.status === TaskStatus.PENDING ||
-									params.row.status === TaskStatus.IN_PROGRESS
-								}
-								disableColumnMenu
-								disableRowSelectionOnClick
-								pinnedColumns={pinnedColumns}
-								pageSizeOptions={[25, 50, 100]}
-								initialState={{
-									pagination: { paginationModel: { pageSize: 25 } },
-								}}
-								slots={{
-									noRowsOverlay: NoRows,
-									noResultsOverlay: NoRows,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
-								style={{
-									height: '100%',
-									border: 'none',
-									...dataGridFocusStyles,
-								}}
+								rowSelection={selectedRows}
+								onRowSelectionChange={setSelectedRows}
+								pinnedRight={manageMode ? ['actions'] : []}
 							/>
 						</div>
 
 						{/* Bulk Cancellation Dialog */}
-						{showBulkCancel && selectedRows.length > 0 && (
+						{showBulkCancel && Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
 							<TaskBulkCancellationDialog
-								taskIds={selectedRows as number[]}
+								taskIds={Object.keys(selectedRows).filter(k => selectedRows[k]).map(Number)}
 								onClose={() => setShowBulkCancel(false)}
 								onCancelled={handleBulkCancelComplete}
 							/>
 						)}
 					</div>
-				</div>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -587,7 +557,7 @@ export default function TasksTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
@@ -595,7 +565,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
-		padding: '24px',
 	},
 };

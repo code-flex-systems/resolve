@@ -5,7 +5,6 @@ import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
 import BasicButton from '../common/BasicButton';
 import { useRouter } from 'next/navigation';
-import { OFFWHITE_COLOR } from '@/styles/theme';
 import { IconAlertTriangle, IconChartDonutFilled } from '@tabler/icons-react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -63,7 +62,7 @@ export default function QuestionStatsDialog() {
 						pageId={selectedPageInfo.pageId}
 						onAnswerClick={() => {}}
 						setExpandedIdx={setExpandedIdx}
-						bgColor={OFFWHITE_COLOR}
+						bgColor={'var(--bg-primary)'}
 					/>
 				))}
 			</Collapse>

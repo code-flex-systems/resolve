@@ -3,7 +3,6 @@
 import { IconCircleCheck, IconFileSearch, IconCurrencyDollar } from '@tabler/icons-react';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -121,7 +120,7 @@ export default function ClaimListItem({
 			<div className={css.infoRow}>
 				{/* Show date of loss for menu items */}
 				{variant === 'menuItem' && claim?.date_of_loss && (
-					<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT }}>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						Loss Date: {formatMDYAbv(claim.date_of_loss.toString())}
 					</span>
 				)}
@@ -129,7 +128,7 @@ export default function ClaimListItem({
 				{/* Show desk location for list rows */}
 				{variant === 'listRow' && showDeskLocation && claim?.desk_location_name && (
 					<>
-						<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
 							{claim.desk_location_name}
 						</span>
 						{showLastUpdate && claim?.last_update && (
@@ -140,7 +139,7 @@ export default function ClaimListItem({
 
 				{/* Show last update for list rows */}
 				{variant === 'listRow' && showLastUpdate && claim?.last_update && (
-					<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT }}>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						{dayjs(claim.last_update).fromNow()}
 					</span>
 				)}

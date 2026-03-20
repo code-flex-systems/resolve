@@ -2,7 +2,7 @@
 
 import { IconGauge, IconTrendingUp, IconUsers } from '@tabler/icons-react';
 import { Spinner } from '@/components/ui/Progress';
-import MetricCard from './MetricCard';
+import KpiCard from '@/components/ui/KpiCard';
 import PendingExecutionsPanel from '@/components/admin/PendingExecutionsPanel';
 import SuggestionsPanel from './SuggestionsPanel';
 import { useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc';
@@ -61,18 +61,19 @@ export default function WorkflowManagementDashboard() {
 	}
 
 	return (
-		<div>
+		<div style={{ display: 'flex', flexDirection: 'column' }}>
 			{/* Page header */}
-			<div style={{ marginBottom: 24 }}>
-				<span
+			<div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' }}>
+				<h6
 					style={{
+						margin: 0,
 						fontWeight: 700,
 						color: 'var(--text-primary)',
 						marginBottom: 4,
 					}}
 				>
 					Workflow Management
-				</span>
+				</h6>
 				<span
 					style={{
 						fontSize: 14,
@@ -84,35 +85,24 @@ export default function WorkflowManagementDashboard() {
 			</div>
 
 			{/* Metrics cards */}
-			<div
-				style={{
-					display: 'flex',
-					gap: 16,
-					flexWrap: 'wrap',
-				}}
-			>
-				{/* Total Workload metric */}
-				<MetricCard
+			<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+				<KpiCard
 					icon={<IconTrendingUp size={20} />}
 					iconColor="var(--text-accent)"
-					iconBgColor="rgba(33, 181, 255, 0.1)"
+					iconBgColor="var(--status-info-bg)"
 					value={totalClaims}
 					label="Total Workload"
 					subtitle="Active claims in workflow"
 				/>
-
-				{/* Team Capacity metric */}
-				<MetricCard
+				<KpiCard
 					icon={<IconUsers size={20} />}
-					iconColor="#10b981"
-					iconBgColor="rgba(16, 185, 129, 0.1)"
+					iconColor="var(--status-success)"
+					iconBgColor="var(--status-success-bg)"
 					value={utilizationPercent !== null ? `${utilizationPercent}%` : 'N/A'}
 					label="Team Capacity"
 					subtitle="Average utilization"
 				/>
-
-				{/* Throughput metric */}
-				<MetricCard
+				<KpiCard
 					icon={<IconGauge size={20} />}
 					iconColor="#8b5cf6"
 					iconBgColor="rgba(139, 92, 246, 0.1)"
@@ -120,12 +110,10 @@ export default function WorkflowManagementDashboard() {
 					label="Daily Throughput"
 					subtitle={`${tasksCreated} tasks created today`}
 				/>
-
-				{/* Open Work Units metric */}
-				<MetricCard
+				<KpiCard
 					icon={<IconTrendingUp size={20} />}
-					iconColor="#f59e0b"
-					iconBgColor="rgba(245, 158, 11, 0.1)"
+					iconColor="var(--status-warning)"
+					iconBgColor="var(--status-warning-bg)"
 					value={totalOpenWorkUnits}
 					label="Open Work Units"
 					subtitle={`${workUnitsCompleted} units completed today`}

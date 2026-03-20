@@ -1,22 +1,31 @@
 'use client';
-import { GridColumnHeaderParams } from '@mui/x-data-grid-pro';
 import { JSX } from 'react';
 
-export default function IconHeaderCell(params: GridColumnHeaderParams & { icon?: JSX.Element }) {
+interface IconHeaderCellProps {
+	field?: string;
+	icon?: JSX.Element;
+	colDef?: { headerName?: string };
+	headerName?: string;
+}
+
+export default function IconHeaderCell(props: IconHeaderCellProps) {
+	const headerName = props.headerName ?? props.colDef?.headerName ?? '';
 	return (
 		<div style={styles.cell} className="flex-row-left">
-			{params.icon ?? <></>}
+			{props.icon ?? <></>}
 			<span
 				style={{
-					fontSize: 15,
-					marginLeft: params.icon ? 5 : undefined,
-					color: 'var(--text-muted)',
+					fontSize: 12,
+					fontWeight: 600,
+					marginLeft: props.icon ? 5 : undefined,
+					color: 'var(--text-secondary)',
 					whiteSpace: 'nowrap',
 					overflow: 'hidden',
 					textOverflow: 'ellipsis',
+					letterSpacing: '0.04em',
 				}}
 			>
-				{params.colDef.headerName?.toUpperCase() ?? ''}
+				{headerName.toUpperCase()}
 			</span>
 		</div>
 	);

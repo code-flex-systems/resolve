@@ -3,7 +3,6 @@ import { PieChart, PieChartProps } from '@mui/x-charts-pro';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
 import { useMemo } from 'react';
-import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
@@ -64,7 +63,7 @@ export default function SummaryChart() {
 				innerRadius: 140,
 				outerRadius: 200,
 				cornerRadius: 5,
-				faded: { additionalRadius: -3, color: BASE_COLOR_LIGHT },
+				faded: { additionalRadius: -3, color: 'var(--text-muted)' },
 				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
 			},
 			{
@@ -80,14 +79,14 @@ export default function SummaryChart() {
 						id: SummarySegment.NO_ACTION_REQUIRED,
 						label: 'No action required',
 						value: total_answered - total_action_required,
-						color: PURPLE,
+						color: '#CA8EFF',
 					},
 				],
 				highlightScope: { fade: 'global', highlight: 'item' },
 				innerRadius: 0,
 				outerRadius: 120,
 				cornerRadius: 5,
-				faded: { additionalRadius: -3, color: BASE_COLOR_LIGHT },
+				faded: { additionalRadius: -3, color: 'var(--text-muted)' },
 				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
 			},
 		];

@@ -4,13 +4,11 @@ import { IconClipboardCheck, IconClockFilled, IconFileSearch, IconFilter, IconUs
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAdminLogsTrpc, ClaimActivityLogCursor } from '@/hooks/trpc/useAdminLogsTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import type { EntityName } from '@/api/utils/activityLogger';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
-import CustomPagination from '@/components/common/CustomPagination';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import PageTransitionWrapper from '@/components/common/PageTransitionWrapper';
@@ -18,11 +16,11 @@ import StackedHeaderCell from '@/components/common/StackedHeaderCell';
 import Toolbar from '@/components/common/Toolbar';
 import { useUserTrpc, GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useClaimTrpc, Claim } from '@/hooks/trpc/useClaimTrpc';
-import { dataGridFocusStyles } from '@/styles/theme';
 import AdminLogSnapshotDialog from '@/components/admin/AdminLogSnapshotDialog';
 import ClaimActivityLogsFiltersPopper from '@/components/admin/ClaimActivityLogsFiltersPopper';
 import { formatEntityLabelForDisplay } from '@/components/admin/AdminLogsEntityFilter';
 import useCursorPagination from '@/hooks/useCursorPagination';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 const ACTOR_TYPE_VALUES = new Set(['admin', 'user']);
 
@@ -156,55 +154,49 @@ export default function AdminClaimActivityLogsTab() {
 		}
 	}, [data?.nextCursor, registerCursor]);
 
-	const columns = useMemo<GridColDef[]>(
+	const columns = useMemo<ColumnDef<any, any>[]>(
 		() => [
 			{
-				headerName: 'Timestamp',
-				field: 'created_at',
-				renderHeader: (params) => (
+				accessorKey: 'created_at',
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
 				),
-				renderCell: ({ value }) => (
+				cell: ({ getValue }: any) => { const value = getValue(); return (
 					<StackedHeaderCell
 						primary={formatTimestamp(value)}
 						secondary={value ? dayjs(value).format('MMM D, YYYY') : '-'}
 					/>
-				),
-				minWidth: 180,
-				flex: 0.6,
+				); },
+				minSize: 180,
 			},
 			{
-				headerName: 'Claim',
-				field: 'claim_number',
-				renderHeader: (params) => (
+				accessorKey: 'claim_number',
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 				),
-				renderCell: ({ row }) => (
+				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell
 						primary={row.claim_number || `Claim ${row.claim_id}`}
 						secondary={row.claim_insured || `ID: ${row.claim_id}`}
 					/>
 				),
-				minWidth: 200,
-				flex: 1,
+				minSize: 200,
 			},
 			{
-				headerName: 'User',
-				field: 'user',
-				renderHeader: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
-				renderCell: ({ row }) => (
+				accessorKey: 'user',
+				header: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
+				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell primary={`${row.first_name} ${row.last_name}`} secondary={row.user_email} />
 				),
-				minWidth: 200,
-				flex: 1,
+				minSize: 200,
 			},
 			{
-				headerName: 'Actor',
-				field: 'actor_type',
-				renderHeader: (params) => (
+				accessorKey: 'actor_type',
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconClipboardCheck style={{ color: 'var(--text-muted)' }} />} />
 				),
-				renderCell: ({ value }) => {
+				cell: ({ getValue }: any) => {
+					const value = getValue();
 					const label = value === 'admin' ? 'Admin' : value === 'user' ? 'User' : 'Unknown';
 					return (
 						<Chip 
@@ -213,36 +205,30 @@ export default function AdminClaimActivityLogsTab() {
 							variant="outlined">{label}</Chip>
 					);
 				},
-				minWidth: 140,
-				flex: 0.5,
+				minSize: 140,
 			},
 			{
-				headerName: 'Entity',
-				field: 'entity_name',
-				renderHeader: (params) => <IconHeaderCell {...params} />,
-				renderCell: ({ row }) => (
+				accessorKey: 'entity_name',
+				header: () => <IconHeaderCell />,
+				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell
 						primary={formatEntityLabelForDisplay(row.entity_name)}
 						secondary={`ID: ${row.entity_id}`}
 					/>
 				),
-				minWidth: 200,
-				flex: 1,
+				minSize: 200,
 			},
 			{
-				headerName: 'Action',
-				field: 'action',
-				renderHeader: (params) => (
+				accessorKey: 'action',
+				header: (params) => (
 					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 				),
-				minWidth: 140,
-				flex: 0.5,
+				minSize: 140,
 			},
 			{
-				headerName: 'Snapshot',
-				field: 'value',
-				renderHeader: (params) => <IconHeaderCell {...params} />,
-				renderCell: ({ row }) => {
+				accessorKey: 'value',
+				header: () => <IconHeaderCell />,
+				cell: ({ row: { original: row } }) => {
 					if (!hasValue(row.value)) {
 						return <span style={{ color: 'var(--text-secondary)' }}>-</span>;
 					}
@@ -266,8 +252,8 @@ export default function AdminClaimActivityLogsTab() {
 						</span>
 					);
 				},
-				minWidth: 120,
-				sortable: false,
+				minSize: 120,
+				enableSorting: false,
 			},
 		],
 		[]
@@ -382,36 +368,16 @@ export default function AdminClaimActivityLogsTab() {
 					/>
 
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRowsOverlay,
-								noResultsOverlay: NoRowsOverlay,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={rows}
 							getRowId={(row) => row.id}
-							rowCount={-1}
-							paginationMeta={{ hasNextPage }}
 							rowHeight={60}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[25]}
-							pagination
 							paginationMode="server"
 							paginationModel={paginationModel}
 							onPaginationModelChange={setPaginationModel}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							style={styles.tableOverrides}
 						/>
 					</div>
 				</div>
@@ -430,19 +396,18 @@ export default function AdminClaimActivityLogsTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
-		width: '100%',
-		flex: 1,
+		size: '100%',
 		padding: '24px 24px 0px',
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 95px)',
 	},
 	filterCountBadge: {
@@ -450,16 +415,12 @@ const styles = {
 		backgroundColor: 'primary.main',
 		color: 'white',
 		borderRadius: '50%',
-		width: 18,
+		size: 18,
 		height: 18,
 		display: 'inline-flex',
 		alignItems: 'center',
 		justifyContent: 'center',
 		fontSize: 11,
 		fontWeight: 600,
-	},
-	tableOverrides: {
-		borderRadius: '0 0 4px 4px',
-		...dataGridFocusStyles,
 	},
 };

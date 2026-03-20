@@ -1,5 +1,4 @@
 'use client';
-import { BG_TERTIARY } from '@/styles/theme';
 import { useRouter } from 'next/navigation';
 import Toolbar from '@/components/common/Toolbar';
 import SummaryChart from '@/components//summary/SummaryChart';
@@ -62,7 +61,7 @@ const styles = {
 	containerInner: {
 		width: '100%',
 		height: 'calc(100vh - 65px)',
-		bgcolor: BG_TERTIARY,
+		bgcolor: 'var(--bg-secondary)',
 		padding: '20px',
 	},
 	divider: {

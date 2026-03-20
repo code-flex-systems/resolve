@@ -1,12 +1,9 @@
 'use client';
 
 import Chip from '@/components/ui/Chip';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { DataGridPro, GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
-import CustomPagination from '@/components/common/CustomPagination';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatUser } from '@/lib/utils/utils';
@@ -14,8 +11,9 @@ import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-function DescriptionCell({ row, compact }: GridRenderCellParams & { compact: boolean }) {
+function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact: boolean }) {
 	const { data: session } = useClerkSession();
 	const getLogText = () => {
 		switch (row.action) {
@@ -120,7 +118,7 @@ style={{ display: 'flex', width: '100%', minWidth: 'fit-content', height: '100%'
 			</div>
 			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '5px', flexWrap: 'wrap' }}>
 				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: BASE_COLOR_LIGHT }}>
+					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'var(--text-muted)' }}>
 						{formatUser(row, session?.user?.email)}
 					</span>
 					<div style={styles.divider} />
@@ -130,7 +128,7 @@ style={{ display: 'flex', width: '100%', minWidth: 'fit-content', height: '100%'
 				</div>
 				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 					<div style={styles.divider} />
-					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: BASE_COLOR_LIGHT }}>
+					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'var(--text-muted)' }}>
 						{compact
 							? dayjs(row.created_at).format('MM/DD/YY hh:mm A')
 							: dayjs(row.created_at).format('MMMM D, YYYY hh:mm A')}
@@ -160,7 +158,7 @@ export default function UserActivityTable({
 	compact?: boolean;
 	showPagination?: boolean;
 }) {
-	const [constraints, setConstraints] = useState<GridPaginationModel>({ page: 0, pageSize });
+	const [constraints, setConstraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize });
 	const trpcUtils = trpc.useUtils();
 	const { data: session } = useClerkSession();
 
@@ -185,22 +183,13 @@ export default function UserActivityTable({
 			enabled: checklistId !== -1 && claimId !== -1,
 		}
 	);
-	const rowCountRef = useRef(logs.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (logs.count !== undefined) {
-			rowCountRef.current = logs.count;
-		}
-		return rowCountRef.current;
-	}, [logs.count]);
 
 	const columns = useMemo(() => {
-		const gridColumns: GridColDef[] = [
+		const gridColumns: ColumnDef<any, any>[] = [
 			{
-				field: 'desc',
-				headerName: '',
-				renderCell: (params) => <DescriptionCell compact={compact} {...params} />,
-				flex: 1,
+				accessorKey: 'desc',
+				header: '',
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <DescriptionCell compact={compact} {...params} />; },
 			},
 		];
 		return gridColumns;
@@ -300,7 +289,7 @@ style={{
 						zIndex: 1,
 					}}>
 					<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
-						{rowCount.toLocaleString()} event{rowCount !== 1 ? 's' : ''}
+						{(logs.count ?? 0).toLocaleString()} event{(logs.count ?? 0) !== 1 ? 's' : ''}
 					</span>
 					<ExportButton
 						onExport={async () => {
@@ -313,28 +302,18 @@ style={{
 					/>
 				</div>
 			)}
-			<DataGridPro
+			<DataTable
 				columns={columns}
-				columnHeaderHeight={0}
+				headerHeight={0}
 				loading={isFetchingLogs}
-				slots={{
-					pagination: CustomPagination,
-				}}
 				rows={logs.rows}
-				getRowHeight={() => 'auto'}
-				rowCount={rowCount}
-				hideFooterSelectedRowCount
-				pageSizeOptions={[]}
-				getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
+				rowCount={logs.count ?? 0}
+				getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
 				hideFooter={!showPagination}
 				pagination={showPagination}
 				paginationMode="server"
 				paginationModel={constraints}
 				onPaginationModelChange={setConstraints}
-				disableColumnSelector
-				disableRowSelectionOnClick
-				disableColumnMenu
-				sx={styles.tableOverrides}
 			/>
 		</div>
 	);
@@ -348,7 +327,7 @@ const styles = {
 		fontStyle: 'italic',
 	},
 	divider: {
-		width: 5,
+		size: 5,
 		height: 5,
 		borderRadius: 5,
 		backgroundColor: '#d9d9d9',
@@ -364,6 +343,6 @@ const styles = {
 		'& .MuiDataGrid-row': {
 			cursor: 'default',
 		},
-		...dataGridFocusStyles,
+		...{},
 	},
 };

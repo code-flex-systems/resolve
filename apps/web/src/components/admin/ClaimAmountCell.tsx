@@ -1,8 +1,7 @@
 'use client';
 import { formatAmount } from '@/lib/utils/utils';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 
-export default function ClaimAmountCell(props: GridRenderCellParams) {
+export default function ClaimAmountCell(props: { row: any; value?: any; id?: string | number }) {
 	return (
 		<div style={styles.cell} className="flex-row-between">
 			<span style={{ fontSize: 14 }}>$</span>

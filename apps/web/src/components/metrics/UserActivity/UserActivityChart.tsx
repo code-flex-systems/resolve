@@ -1,6 +1,5 @@
 'use client';
 import { BarChart } from '@mui/x-charts-pro';
-import { BASE_COLOR } from '@/styles/theme';
 import { formatMD } from '@/lib/utils/utils';
 import dayjs, { Dayjs } from 'dayjs';
 import { GetUserOutput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
@@ -10,6 +9,7 @@ import { useMemo } from 'react';
 import MetricValue from '@/components/common/MetricValue';
 import UserActivitySummary from './UserActivitySummary';
 import Skeleton from '@/components/ui/Skeleton';
+import Card from '@/components/ui/Card';
 
 export default function UserActivityChart({
 	checklistId,
@@ -48,8 +48,8 @@ export default function UserActivityChart({
 	const maxY = maxUserRow ? Math.ceil(maxUserRow.active_users / 10) * 10 : 10;
 
 	return (
-		<div style={{ width: '100%', height: 650 }}>
-			<div style={styles.paper}>
+		<Card variant="beveled" padding="lg" style={{ width: '100%' }}>
+			<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%' }}>
 				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 					<span style={{ fontSize: 18, fontWeight: 600 }}>
 						User Activity
@@ -107,7 +107,7 @@ export default function UserActivityChart({
 					</div>
 				</div>
 			</div>
-		</div>
+		</Card>
 	);
 }
 

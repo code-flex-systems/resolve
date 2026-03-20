@@ -4,7 +4,6 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { IconArrowRight } from '@tabler/icons-react';
 
 import { formatMD, formatUser } from '@/lib/utils/utils';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CommentFilters } from '@/types/types';
 import { useMemo } from 'react';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
@@ -48,7 +47,7 @@ export default function Comments({
 	}, [comments.rows, page, pageSize]);
 
 	return !comments.rows.length ? (
-		<span style={{ fontSize: 15, color: BASE_COLOR_LIGHT, paddingTop: 10, display: 'block' }}>
+		<span style={{ fontSize: 15, color: 'var(--text-muted)', paddingTop: 10, display: 'block' }}>
 			No comments
 		</span>
 	) : (
@@ -102,7 +101,7 @@ style={{
 style={{
 														fontSize: 12,
 														lineHeight: '15px',
-														color: BASE_COLOR_LIGHT,
+														color: 'var(--text-muted)',
 														minWidth: 'fit-content',
 														whiteSpace: 'nowrap',
 													}}>
@@ -113,7 +112,7 @@ style={{
 style={{
 														fontSize: 12,
 														lineHeight: '15px',
-														color: BASE_COLOR_LIGHT,
+														color: 'var(--text-muted)',
 														minWidth: 'fit-content',
 														whiteSpace: 'nowrap',
 													}}>
@@ -138,7 +137,7 @@ style={{
 											</div>
 											<div className="go-icon">
 												{canNavigate && (
-													<IconArrowRight size={19} style={{ color: BASE_COLOR_LIGHT }} />
+													<IconArrowRight size={19} style={{ color: 'var(--text-muted)' }} />
 												)}
 											</div>
 										</div>

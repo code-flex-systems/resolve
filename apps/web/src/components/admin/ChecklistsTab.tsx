@@ -6,7 +6,6 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import { useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -16,51 +15,45 @@ import NewChecklistDialog from './NewChecklistDialog';
 import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const getColumns = (isManageMode: boolean): GridColDef[] => [
+const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		field: 'name',
-		headerName: '',
-		// renderHeader: (params) => (
+		accessorKey: 'name',
+		header: '',
+		// header: (params) => (
 		// 	<ExpandableHeaderCell {...params} icon={<IconFileSearch size={17} style={{ color: white }} />} />
 		// ),
-		renderCell: (params) => <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />,
-		cellClassName: 'cell-primary cell-bold',
-		width: 200,
-		sortable: false,
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />; },
+		size: 200,
+		enableSorting: false,
 	},
 	{
-		field: 'page_count',
-		headerName: '',
-		valueFormatter: (value: any) => `${value?.toLocaleString() ?? ''} pages`,
-		width: 120,
-		sortable: false,
+		accessorKey: 'page_count',
+		header: '',
+		cell: ({ getValue }) => { const value = getValue(); return `${value?.toLocaleString() ?? ''} pages`; },
+		size: 120,
+		enableSorting: false,
 	},
 	{
-		field: 'dates',
-		headerName: '',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => (
+		accessorKey: 'dates',
+		header: () => <IconHeaderCell />,
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 			<StackedHeaderCell
 				primary={params.row.updated_at ? `Last updated ${formatMDY(params.row.updated_at)}` : ''}
 				secondary={`Created ${formatMDY(params.row.created_at)}`}
 			/>
-		),
-		width: 250,
-		align: 'left',
-		sortable: false,
+		); },
+		size: 250,
+		enableSorting: false,
 	},
 	{
-		field: 'actions',
-		headerName: '',
-		flex: 1,
-		minWidth: 200,
-		sortable: false,
-		filterable: false,
-		disableColumnMenu: true,
-		renderCell: (params) => <ChecklistActionsCell {...params} isManageMode={isManageMode} />,
+		accessorKey: 'actions',
+		header: '',
+		minSize: 200,
+		enableSorting: false,
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ChecklistActionsCell {...params} isManageMode={isManageMode} />; },
 	},
 ];
 
@@ -80,14 +73,12 @@ export default function ChecklistsTab() {
 	const [isManageMode, setIsManageMode] = useState(false);
 
 	const columns = useMemo(() => getColumns(isManageMode), [isManageMode]);
-	const pinnedColumns = useMemo<GridPinnedColumnFields>(() => (isManageMode ? { right: ['actions'] } : {}), [isManageMode]);
-
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading checklists...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
-						left={<span>Checklists</span>}
+						left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Checklists</h5>}
 						right={
 							<>
 								<Button variant="contained" startIcon={<IconSquarePlus size={20} />} onClick={toggleNewChecklistDialog}>
@@ -107,34 +98,17 @@ export default function ChecklistsTab() {
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={checklists}
 							rowHeight={60}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							pinnedColumns={pinnedColumns}
-							style={styles.tableOverrides}
+							pinnedRight={isManageMode ? ['actions'] : []}
 							hideFooter
-							showColumnVerticalBorder={false}
 						/>
 					</div>
-				</div>
+				</Card>
 				{showNewChecklistDialog && <NewChecklistDialog />}
 			</div>
 		</PageTransitionWrapper>
@@ -143,24 +117,20 @@ export default function ChecklistsTab() {
 
 const styles = {
 	container: {
-		width: '100%',
+		size: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
-		width: '100%',
+		size: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		fontSize: 15,
-		...dataGridFocusStyles,
 	},
 };
