@@ -1,7 +1,6 @@
 'use client';
 
 import ExecutionHistoryTable from './ExecutionHistoryTable';
-import { Table } from '@mui/material';
 
 export default function ExecutionHistoryView() {
 	return (

@@ -1,7 +1,6 @@
 'use client';
 
 import { IconBinaryTree } from '@tabler/icons-react';
-import { PopperProps } from '@mui/material';
 import { useState } from 'react';
 import Dropdown from '@/components/ui/Dropdown';
 import BasicPopper from '@/components/common/BasicPopper';
@@ -27,7 +26,7 @@ export default function AdminLogsEntityFilter({
 	height?: number;
 	text?: string;
 }) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	const handleClose = () => setAnchorEl(null);
 

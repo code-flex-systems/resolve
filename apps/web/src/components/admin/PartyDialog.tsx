@@ -1,7 +1,6 @@
 'use client';
 
 import { IconBuilding, IconHeadset, IconSend, IconUser } from '@tabler/icons-react';
-import { FormControlLabel } from '@mui/material';
 import Input, { Textarea } from '@/components/ui/Input';
 import Dropdown from '@/components/ui/Dropdown';
 import Switch from '@/components/ui/Switch';
@@ -362,15 +361,10 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 									{field.value ? 'Business' : 'Individual'}
 								</span>
 							</div>
-							<FormControlLabel
-								control={
-									<Switch
-										checked={field.value}
-										onChange={(checked) => field.onChange(checked)}
-										disabled={isSubmitting}
-									/>
-								}
-								label=""
+							<Switch
+								checked={field.value}
+								onChange={(checked) => field.onChange(checked)}
+								disabled={isSubmitting}
 							/>
 						</div>
 					)}

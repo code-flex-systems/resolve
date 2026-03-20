@@ -1,7 +1,6 @@
 'use client';
 
 import { IconFileSearch } from '@tabler/icons-react';
-import { FormLabel } from '@mui/material';
 import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
@@ -75,7 +74,7 @@ export default function NewChecklistDialog() {
 				</div>
 				<div className="flex-row-left" style={styles.row}>
 					<div>
-						<FormLabel style={styles.formLabel}>Choose a checklist to copy from (optional)</FormLabel>
+						<label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Choose a checklist to copy from (optional)</label>
 						<Dropdown
 							options={[
 								{ value: '', label: 'None' },
@@ -100,10 +99,6 @@ export default function NewChecklistDialog() {
 }
 
 const styles = {
-	formLabel: {
-		fontSize: 12,
-		paddingBottom: '5px',
-	},
 	row: {
 		padding: '10px 0px',
 	},

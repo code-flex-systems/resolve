@@ -3,12 +3,11 @@
 import { trpc } from '@/lib/trpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Paper, PopperProps, TextField } from '@mui/material';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import CustomChip from '@/components/ui/Chip';
 import BasicPopper from './BasicPopper';
 import { IconUsers } from '@tabler/icons-react';
 import useDebounce from '@/lib/utils/useDebounce';
-import { StackedRow } from './StackedRow';
 
 export default function UserFilter({
 	users,
@@ -30,7 +29,7 @@ export default function UserFilter({
 	const trpcUtils = trpc.useUtils();
 	const [results, setResults] = useState<GetUserOutput[]>([]);
 	const [searching, setSearching] = useState(false);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	const debouncedSearch = useCallback(
 		useDebounce(async (query: string) => {
@@ -44,6 +43,20 @@ export default function UserFilter({
 		}, 500),
 		[]
 	);
+
+	// Map users to ComboboxOption
+	const options: ComboboxOption[] = results.map((u) => ({
+		value: u.id,
+		label: `${u.first} ${u.last}`,
+		description: u.email,
+	}));
+
+	// Map selected users to ComboboxOption
+	const selectedOptions: ComboboxOption[] = users.map((u) => ({
+		value: u.id,
+		label: `${u.first} ${u.last}`,
+		description: u.email,
+	}));
 
 	return (
 		<>
@@ -84,72 +97,39 @@ export default function UserFilter({
 
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5 }}>
-							<Autocomplete
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5 }}>
+						<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, width: 300 }}>
+							<Combobox
 								multiple
-								value={users}
-								options={results}
-								getOptionLabel={(option) => option.last}
-								loading={searching}
-								filterOptions={(x) => x}
-								onInputChange={(_, value) => {
+								options={options}
+								values={selectedOptions}
+								onChangeMultiple={(opts) => {
+									const newUsers = opts.map((opt) => {
+										const found = results.find((u) => u.id === opt.value);
+										if (found) return found;
+										return users.find((u) => u.id === opt.value)!;
+									}).filter(Boolean);
+									if (multi) {
+										setUsers(newUsers);
+									} else {
+										setUsers(newUsers.length ? [newUsers[newUsers.length - 1]] : []);
+									}
+								}}
+								onInputChange={(value) => {
 									if (value) {
 										setSearching(true);
 										debouncedSearch(value);
 									}
 								}}
-								onChange={(_, newValue) =>
-									setUsers(multi ? newValue : newValue.length ? [newValue[newValue.length - 1]] : [])
-								}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant="outlined"
-										placeholder="Search by name"
-										type="text"
-										style={styles.textField}
-										sx={styles.textFieldOverrides}
-									/>
-								)}
-								renderTags={() => <></>}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<StackedRow
-											primary={`${option.first} ${option.last}`}
-											secondary={option.email}
-											fontSize={14}
-										/>
-									</li>
-								)}
-								sx={{
-									width: 300,
-									...styles.textFieldOverrides,
-								}}
+								loading={searching}
+								filterDisabled
+								placeholder="Search by name"
+								fullWidth
 							/>
 						</div>
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	paper: {
-		mt: 0.625,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-	},
-	textFieldOverrides: {
-		'& .MuiInputBase-root': {
-			padding: '0px 10px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 13,
-		},
-	},
-};

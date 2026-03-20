@@ -1,12 +1,12 @@
 'use client';
 import './styles.css';
-import { Paper, Popper, Fade } from '@mui/material';
 import Tooltip from '@/components/ui/Tooltip';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { IconInfoCircle } from '@tabler/icons-react';
+import BasicPopper from '../common/BasicPopper';
 
 export default function QuestionInfo(props: {
 	description: string | null;
@@ -14,7 +14,7 @@ export default function QuestionInfo(props: {
 	questionId: number;
 }) {
 	const { description, questionId } = props;
-	const ref = useRef(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	// Fetch attached document for this question
 	const { data: attachedDocsResult } = useDocTrpc().listDocs({
@@ -30,35 +30,32 @@ export default function QuestionInfo(props: {
 			{description && (
 				<>
 					<Tooltip content={description ?? ''} position="top">
-						<IconInfoCircle ref={ref} style={{ color: 'primary.main', marginLeft: '10px' }} className="info" />
+						<IconInfoCircle
+							onMouseEnter={(e) => setAnchorEl(e.currentTarget as unknown as HTMLElement)}
+							onMouseLeave={() => setAnchorEl(null)}
+							style={{ color: 'var(--text-accent)', marginLeft: '10px' }}
+							className="info"
+						/>
 					</Tooltip>
 
-					<Popper
-						open={true}
-						anchorEl={ref.current}
+					<BasicPopper
+						anchorEl={anchorEl}
+						setAnchorEl={setAnchorEl}
 						placement="right"
-						className="popper"
-						sx={{ zIndex: 100 }}
-						transition
+						zIndex={100}
 					>
-						{({ TransitionProps }) => (
-							<Fade {...TransitionProps} timeout={350}>
-								<span>
-									<Paper sx={styles.paper}>
-										<span   style={{ fontSize: 17, fontWeight: 'bold' }}>
-											{description}
-										</span>
-									</Paper>
-								</span>
-							</Fade>
-						)}
-					</Popper>
+						<div style={{ width: 250, height: 'fit-content', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10, marginTop: 5, backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)' }}>
+							<span style={{ fontSize: 17, fontWeight: 'bold' }}>
+								{description}
+							</span>
+						</div>
+					</BasicPopper>
 				</>
 			)}
 
 			{/* Show attached document/image */}
 			{attachedDoc && (
-				<div   style={{ display: 'inline-flex', marginLeft: description ? 0 : 1 }}>
+				<div style={{ display: 'inline-flex', marginLeft: description ? 0 : 1 }}>
 					{attachedDoc.mime_type?.startsWith('image/') ? (
 						<ImageTooltip
 							imageUrl={`/api/download?docId=${attachedDoc.id}`}
@@ -72,16 +69,3 @@ export default function QuestionInfo(props: {
 		</>
 	);
 }
-
-const styles = {
-	paper: {
-		width: 250,
-		height: 'fit-content',
-		display: 'flex',
-		flexDirection: 'column',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		p: 1.25,
-		mt: 0.625,
-	},
-};

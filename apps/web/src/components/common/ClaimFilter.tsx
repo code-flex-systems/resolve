@@ -2,7 +2,7 @@
 
 import { trpc } from '@/lib/trpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Paper, PopperProps, TextField } from '@mui/material';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import CustomChip from '@/components/ui/Chip';
 import BasicPopper from './BasicPopper';
 import { IconFileSearch } from '@tabler/icons-react';
@@ -27,7 +27,7 @@ export default function ClaimFilter({
 	const trpcUtils = trpc.useUtils();
 	const [results, setResults] = useState<Claim[]>([]);
 	const [searching, setSearching] = useState(false);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	const debouncedSearch = useCallback(
 		useDebounce(async (query: string) => {
@@ -41,6 +41,16 @@ export default function ClaimFilter({
 		}, 500),
 		[]
 	);
+
+	// Map Claim objects to ComboboxOption
+	const options: ComboboxOption[] = results.map((c) => ({
+		value: c.id,
+		label: c.claim_number ?? '',
+		description: c.insured ?? undefined,
+	}));
+
+	// Find selected option
+	const selectedOption = claim ? options.find((o) => o.value === claim.id) ?? { value: claim.id, label: claim.claim_number ?? '', description: claim.insured ?? undefined } : null;
 
 	return (
 		<>
@@ -62,72 +72,41 @@ export default function ClaimFilter({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={zIndex}>
-					<Paper sx={styles.paper}>
-						<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5 }}>
-							<Autocomplete
-								value={claim}
-								options={results}
-								getOptionLabel={(option) => option.claim_number ?? ''}
-								loading={searching}
-								filterOptions={(x) => x}
-								onInputChange={(_, value) => {
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5 }}>
+						<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, width: 300 }}>
+							<Combobox
+								options={options}
+								value={selectedOption}
+								onChange={(opt) => {
+									if (!opt) {
+										setClaim(null);
+									} else {
+										const found = results.find((c) => c.id === opt.value);
+										setClaim(found ?? null);
+									}
+								}}
+								onInputChange={(value) => {
 									if (value) {
 										setSearching(true);
 										debouncedSearch(value);
 									}
 								}}
-								onChange={(_, newValue) => setClaim(newValue)}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant="outlined"
-										placeholder="Search by claim number"
-										type="text"
-										style={styles.textField}
-										sx={styles.textFieldOverrides}
+								loading={searching}
+								filterDisabled
+								placeholder="Search by claim number"
+								renderOption={(option) => (
+									<StackedRow
+										primary={option.label}
+										secondary={option.description}
+										fontSize={14}
 									/>
 								)}
-								renderTags={() => <></>}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<StackedRow
-											primary={option.claim_number}
-											secondary={option.insured}
-											fontSize={14}
-										/>
-									</li>
-								)}
-								sx={{
-									width: 300,
-									...styles.textFieldOverrides,
-								}}
+								fullWidth
 							/>
 						</div>
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-	},
-	textFieldOverrides: {
-		'& .MuiInputBase-root': {
-			padding: '0px 10px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 13,
-		},
-	},
-};

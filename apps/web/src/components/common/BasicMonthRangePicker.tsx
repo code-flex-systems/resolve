@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import CustomButton from '@/components/ui/Button';
 import { DateRange } from '@mui/x-date-pickers-pro';
@@ -115,7 +114,7 @@ export default function BasicMonthRangePicker({
 	const [label, setLabel] = useState(defaultLabel);
 	const [labelConfirmed, setLabelConfirmed] = useState(defaultLabel);
 	const [range, setRange] = useState<DateRange<Dayjs>>(defaultValue);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const isEmpty = labelConfirmed === EMPTY_LABEL;
 
 	const [startMonth, setStartMonth] = useState<number>(range[0]?.month() ?? dayjs().month());
@@ -166,7 +165,7 @@ export default function BasicMonthRangePicker({
 		setLabel(formatMonthLabel([start, end]));
 	}, [startMonth, startYear, endMonth, endYear]);
 
-	const onClose = (newAnchor: PopperProps['anchorEl'] = null) => {
+	const onClose = (newAnchor: HTMLElement | null = null) => {
 		setLabel(defaultLabel);
 		setRange(defaultValue);
 		if (defaultValue[0]) {
@@ -216,7 +215,7 @@ export default function BasicMonthRangePicker({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5 }}>
 						<div  style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
 							<div  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
 								<div  style={{ width: 150, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
@@ -326,18 +325,9 @@ export default function BasicMonthRangePicker({
 								</div>
 							</div>
 						</div>
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-	},
-};

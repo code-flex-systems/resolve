@@ -1,6 +1,6 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
-import { InputAdornment, TextField } from '@mui/material';
+import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
@@ -174,14 +174,14 @@ export default function PageEditor() {
 	};
 
 	return (
-		<div style={styles.container}>
+		<div style={pageStyles.container}>
 			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
-				<div style={styles.formContainer}>
+				<div style={pageStyles.formContainer}>
 					{/* Page Header */}
-					<div style={styles.headerSection}>
-						<div style={styles.titleRow}>
-							<span style={styles.pageTitle}>{pageTitle}</span>
-							<span style={styles.pageId}>
+					<div style={pageStyles.headerSection}>
+						<div style={pageStyles.titleRow}>
+							<span style={pageStyles.pageTitle}>{pageTitle}</span>
+							<span style={pageStyles.pageId}>
 								p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
 							</span>
 							{showUpdateMsg && (
@@ -194,7 +194,7 @@ export default function PageEditor() {
 							)}
 						</div>
 					</div>
-					<div style={styles.divider}>
+					<div style={pageStyles.divider}>
 						<Divider />
 					</div>
 
@@ -202,11 +202,10 @@ export default function PageEditor() {
 					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
 						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Information</div>
 						<div style={{ padding: 16 }}>
-							<div style={styles.fieldRow}>
-								<TextField
+							<div style={pageStyles.fieldRow}>
+								<Input
 									label="Page title"
 									placeholder="New Page"
-									variant="outlined"
 									fullWidth
 									value={pageTitle}
 									onChange={(e) => setPageTitle(e.target.value)}
@@ -217,62 +216,58 @@ export default function PageEditor() {
 									}}
 									disabled={updating}
 									error={pageTitle === ''}
-									slotProps={{
-										input: {
-											endAdornment: (
-												<InputAdornment position="end">
-													<Button
-														variant="icon"
-														size="sm"
-														onClick={() => onCopyText('pageTitle', pageTitle)}>
-														{copiedField === 'pageTitle' ? (
-															<IconCheck size={20} style={{ color: 'var(--status-success)',
-																	fontSize: 18, }}
-															/>
-														) : (
-															<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
-															/>
-														)}
-													</Button>
-													<Button
-														variant="icon"
-														size="sm"
-														onClick={onClearField}
-														disabled={!pageTitle}>
-														<IconX size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
-													</Button>
-													<Button
-														variant="icon"
-														size="sm"
-														onClick={() => onModifyPage()}
-														disabled={
-															updating ||
-															!pageTitle ||
-															pageTitle === selectedPageInfo.title
-														}>
-														<IconDeviceFloppy size={20} style={{ color: !updating &&
-																	pageTitle &&
-																	pageTitle !== selectedPageInfo.title
-																		? 'var(--text-accent)'
-																		: BASE_COLOR_LIGHT,
-																fontSize: 18, }}
-														/>
-													</Button>
-												</InputAdornment>
-											),
-										},
-									}}
+									endAdornment={
+										<span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+											<Button
+												variant="icon"
+												size="sm"
+												onClick={() => onCopyText('pageTitle', pageTitle)}>
+												{copiedField === 'pageTitle' ? (
+													<IconCheck size={20} style={{ color: 'var(--status-success)',
+															fontSize: 18, }}
+													/>
+												) : (
+													<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
+													/>
+												)}
+											</Button>
+											<Button
+												variant="icon"
+												size="sm"
+												onClick={onClearField}
+												disabled={!pageTitle}>
+												<IconX size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
+											</Button>
+											<Button
+												variant="icon"
+												size="sm"
+												onClick={() => onModifyPage()}
+												disabled={
+													updating ||
+													!pageTitle ||
+													pageTitle === selectedPageInfo.title
+												}>
+												<IconDeviceFloppy size={20} style={{ color: !updating &&
+															pageTitle &&
+															pageTitle !== selectedPageInfo.title
+																? 'var(--text-accent)'
+																: BASE_COLOR_LIGHT,
+														fontSize: 18, }}
+												/>
+											</Button>
+										</span>
+									}
 								/>
 							</div>
-							<div style={styles.statsRow}>
-								<div style={styles.statItem}>
+							<div style={pageStyles.statsRow}>
+								<div style={pageStyles.statItem}>
 									<IconHelpCircle size={18} style={{ color: TEXT_SECONDARY }} />
 									<span style={{ fontSize: 13 }}>
 										<strong>{questions.length}</strong>{' '}
 										{questions.length === 1 ? 'Question' : 'Questions'}
 									</span>
 								</div>
-								<div style={styles.statItem}>
+								<div style={pageStyles.statItem}>
 									<IconQuote size={18} style={{ color: TEXT_SECONDARY }} />
 									<span style={{ fontSize: 13 }}>
 										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
@@ -313,10 +308,10 @@ export default function PageEditor() {
 					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
 						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Actions</div>
 						<div style={{ padding: 16 }}>
-							<div style={styles.actionsGrid}>
-								<div style={styles.actionGroup}>
-									<span style={styles.actionGroupTitle}>Copy</span>
-									<div style={styles.actionButtons}>
+							<div style={pageStyles.actionsGrid}>
+								<div style={pageStyles.actionGroup}>
+									<span style={pageStyles.actionGroupTitle}>Copy</span>
+									<div style={pageStyles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () => {
@@ -346,9 +341,9 @@ export default function PageEditor() {
 									</div>
 								</div>
 
-								<div style={styles.actionGroup}>
-									<span style={styles.actionGroupTitle}>Create</span>
-									<div style={styles.actionButtons}>
+								<div style={pageStyles.actionGroup}>
+									<span style={pageStyles.actionGroupTitle}>Create</span>
+									<div style={pageStyles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () =>
@@ -378,9 +373,9 @@ export default function PageEditor() {
 									</div>
 								</div>
 
-								<div style={styles.actionGroup}>
-									<span style={styles.actionGroupTitle}>Delete</span>
-									<div style={styles.actionButtons}>
+								<div style={pageStyles.actionGroup}>
+									<span style={pageStyles.actionGroupTitle}>Delete</span>
+									<div style={pageStyles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () => onDeletePage().catch((e) => console.error(e)),
@@ -427,7 +422,7 @@ export default function PageEditor() {
 	);
 }
 
-const styles = {
+const pageStyles = {
 	container: {
 		width: '100%',
 		height: '100%',

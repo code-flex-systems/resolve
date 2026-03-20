@@ -1,4 +1,3 @@
-import { MenuItem, Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import React, { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -26,7 +25,7 @@ export default function PageInstanceSelect({
 		{ checklistId },
 		{ enabled: checklistId !== -1 }
 	);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const selectedOption = options.find((o) => o.instance_id === instanceId);
 
 	useEffect(() => {
@@ -57,12 +56,17 @@ export default function PageInstanceSelect({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 200, maxHeight: 300, overflow: 'auto' }}>
 						{options.map((o) => (
-							<MenuItem
+							<div
 								key={o.instance_id}
-								selected={o.instance_id === instanceId}
-								value={o.instance_id}
+								style={{
+									padding: '8px 12px',
+									borderRadius: 6,
+									cursor: 'pointer',
+									fontSize: 13,
+									backgroundColor: o.instance_id === instanceId ? 'var(--status-info-bg)' : undefined,
+								}}
 								onClick={() => {
 									setInstanceId(o.instance_id);
 									setAnchorEl(null);
@@ -71,23 +75,11 @@ export default function PageInstanceSelect({
 								<span style={{ fontSize: 13 }}>
 									{o.title} (p{o.id}.i{o.instance_id})
 								</span>
-							</MenuItem>
+							</div>
 						))}
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-		maxHeight: 300,
-		overflow: 'auto',
-	},
-};

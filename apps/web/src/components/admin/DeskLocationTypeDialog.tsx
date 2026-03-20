@@ -1,7 +1,6 @@
 'use client';
 
 import { IconSend } from '@tabler/icons-react';
-import { FormControlLabel } from '@mui/material';
 import Input from '@/components/ui/Input';
 import Checkbox from '@/components/ui/Checkbox';
 import BasicDialog from '../common/BasicDialog';
@@ -113,11 +112,9 @@ export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocati
 						name="createDefaultLocations"
 						control={control}
 						render={({ field }) => (
-							<FormControlLabel
-								control={<Checkbox checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} />}
-								label="Create default desk locations (Pending, Transactional, Closed, etc.)"
-								style={{ width: 400, fontSize: 13 }}
-							/>
+							<div style={{ width: 400 }}>
+								<Checkbox checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} label="Create default desk locations (Pending, Transactional, Closed, etc.)" />
+							</div>
 						)}
 					/>
 				)}

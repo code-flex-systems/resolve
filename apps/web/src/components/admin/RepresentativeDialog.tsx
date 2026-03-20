@@ -1,5 +1,5 @@
 'use client';
-import { Autocomplete, TextField } from '@mui/material';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Input from '@/components/ui/Input';
 import Switch from '@/components/ui/Switch';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
@@ -196,6 +196,27 @@ export default function RepresentativeDialog({
 		setPartySearchTerm(search);
 	}, 500);
 
+	// Map party matches to ComboboxOption
+	const partyOptions: ComboboxOption[] = (partyMatches as any[]).map((p: any) => ({
+		value: p.id,
+		label: p.name,
+		description: p.organization ?? undefined,
+	}));
+
+	const selectedPartyOption: ComboboxOption | null = selectedParty
+		? { value: Number(selectedParty.id), label: (selectedParty as any).name, description: (selectedParty as any).organization ?? undefined }
+		: null;
+
+	// Map addresses to ComboboxOption
+	const addressOptions: ComboboxOption[] = (partyAddresses as any[]).map((addr: any) => ({
+		value: addr.id,
+		label: formatAddressOption(addr),
+	}));
+
+	const selectedAddressOption: ComboboxOption | null = selectedAddress
+		? { value: Number(selectedAddress.id), label: formatAddressOption(selectedAddress) }
+		: null;
+
 	return (
 		<BasicDialog
 			title={
@@ -225,46 +246,36 @@ export default function RepresentativeDialog({
 						control={control}
 						rules={{ required: 'Party is required' }}
 						render={({ field }) => (
-							<Autocomplete
-								options={partyMatches as any}
-								getOptionLabel={(party: any) => party.name}
-								onChange={(_, value: any) => {
-									setSelectedParty(value);
-									field.onChange(value?.id || null);
+							<Combobox
+								options={partyOptions}
+								value={selectedPartyOption}
+								onChange={(opt) => {
+									const party = opt ? (partyMatches as any[]).find((p: any) => p.id === opt.value) ?? null : null;
+									setSelectedParty(party);
+									field.onChange(party?.id || null);
 								}}
-								onInputChange={(_, value: string) => {
+								onInputChange={(value) => {
 									debouncedPartySearch(value);
 								}}
-								value={selectedParty}
+								filterDisabled
 								disabled={lockParty}
-								renderOption={(props, party: any) => (
-									<li {...props} key={String(party.id)}>
-										<div>
-											<span style={{ fontWeight: 'bold' }}>
-												{party.name}
-											</span>
-											{party.organization && (
-												<span style={{ color: 'var(--text-secondary)' }}>
-													{party.organization}
-												</span>
-											)}
-										</div>
-									</li>
+								label="Party"
+								placeholder={lockParty ? 'Party is locked' : 'Search for party...'}
+								error={!!errors.party_id}
+								errorText={
+									lockParty && selectedParty
+										? `Locked to: ${(selectedParty as any).name}`
+										: errors.party_id?.message
+								}
+								renderOption={(option) => (
+									<div>
+										<span style={{ fontWeight: 'bold' }}>{option.label}</span>
+										{option.description && (
+											<span style={{ color: 'var(--text-secondary)' }}>{option.description}</span>
+										)}
+									</div>
 								)}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										label="Party"
-										
-										error={!!errors.party_id}
-										helperText={
-											lockParty && selectedParty
-												? `Locked to: ${selectedParty.name}`
-												: errors.party_id?.message
-										}
-										placeholder={lockParty ? 'Party is locked' : 'Search for party...'}
-									/>
-								)}
+								fullWidth
 							/>
 						)}
 					/>
@@ -277,46 +288,41 @@ export default function RepresentativeDialog({
 					render={({ field }) => {
 						const hasParty = !!(selectedParty?.id || representative?.party_id);
 						return (
-							<Autocomplete
-								options={partyAddresses as any}
-								getOptionLabel={(address: any) => formatAddressOption(address)}
-								onChange={(_, value: any) => {
-									setSelectedAddress(value);
-									field.onChange(value?.id || null);
+							<Combobox
+								options={addressOptions}
+								value={selectedAddressOption}
+								onChange={(opt) => {
+									const addr = opt ? (partyAddresses as any[]).find((a: any) => a.id === opt.value) ?? null : null;
+									setSelectedAddress(addr);
+									field.onChange(addr?.id || null);
 								}}
-								value={selectedAddress}
 								disabled={!hasParty}
-								isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-								renderOption={(props, address: any) => {
-									const addressLine = formatAddressInline({
-										street_address: address.street_address ?? undefined,
-										city: address.city ?? undefined,
-										state: address.state ?? undefined,
-										postal_code: address.postal_code ?? undefined,
-										country: address.country ?? undefined,
-									});
+								isOptionEqual={(a, b) => a.value === b.value}
+								label="Address (Optional)"
+								placeholder={hasParty ? 'Select an address...' : 'Select a party first'}
+								renderOption={(option) => {
+									const addr = (partyAddresses as any[]).find((a: any) => a.id === option.value);
+									const addressLine = addr ? formatAddressInline({
+										street_address: addr.street_address ?? undefined,
+										city: addr.city ?? undefined,
+										state: addr.state ?? undefined,
+										postal_code: addr.postal_code ?? undefined,
+										country: addr.country ?? undefined,
+									}) : '';
 									return (
-										<li {...props} key={String(address.id)}>
-											<div>
-												<span style={{ fontWeight: 'bold' }}>
-													{address.name || 'Unnamed address'}
+										<div>
+											<span style={{ fontWeight: 'bold' }}>
+												{addr?.name || 'Unnamed address'}
+											</span>
+											{addressLine && (
+												<span style={{ color: 'var(--text-secondary)' }}>
+													{addressLine}
 												</span>
-												{addressLine && (
-													<span style={{ color: 'var(--text-secondary)' }}>
-														{addressLine}
-													</span>
-												)}
-											</div>
-										</li>
+											)}
+										</div>
 									);
 								}}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										label="Address (Optional)"
-										placeholder={hasParty ? 'Select an address...' : 'Select a party first'}
-									/>
-								)}
+								fullWidth
 							/>
 						);
 					}}

@@ -1,4 +1,3 @@
-import { MenuItem, Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -22,7 +21,7 @@ export default function RecoveryStatusSelect({
 	text?: string;
 	disabled?: boolean;
 }) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	const displayLabel = recoveryStatus ? formatRecoveryStatus(recoveryStatus) : text;
 
@@ -46,33 +45,28 @@ export default function RecoveryStatusSelect({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 200 }}>
 						{Object.values(RecoveryStatus).map((status) => (
-							<MenuItem
+							<div
 								key={status}
-								selected={recoveryStatus === status}
-								value={status}
+								style={{
+									padding: '8px 12px',
+									borderRadius: 6,
+									cursor: 'pointer',
+									fontSize: 13,
+									backgroundColor: recoveryStatus === status ? 'var(--status-info-bg)' : undefined,
+								}}
 								onClick={() => {
 									setRecoveryStatus(status);
 									setAnchorEl(null);
 								}}
 							>
 								<span style={{ fontSize: 13 }}>{formatRecoveryStatus(status)}</span>
-							</MenuItem>
+							</div>
 						))}
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-	},
-};

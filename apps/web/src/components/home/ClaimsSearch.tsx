@@ -6,7 +6,6 @@ import {
 	MenuItem,
 	Popper,
 	InputAdornment,
-	PopperProps,
 	TextFieldProps,
 	ClickAwayListener,
 	Typography,
@@ -37,7 +36,7 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 	const [type, setType] = useState<ClaimSearch>(ClaimSearch.CLAIM_NUMBER);
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<Claim[]>([]);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const spanRef = useRef<HTMLElement | null>(null);
 
 	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);

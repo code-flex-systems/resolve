@@ -1,5 +1,4 @@
 'use client';
-import { PopperProps } from '@mui/material';
 import Dropdown from '@/components/ui/Dropdown';
 import { Dayjs } from 'dayjs';
 import ClaimFilter from '@/components/common/ClaimFilter';
@@ -29,7 +28,7 @@ export default function ClaimActivityLogsFiltersPopper({
 	setDraftActorType,
 	onApply,
 }: {
-	anchorEl: PopperProps['anchorEl'];
+	anchorEl: HTMLElement | null;
 	onClose: () => void;
 	draftRange: [Dayjs | null, Dayjs | null];
 	setDraftRange: (range: [Dayjs | null, Dayjs | null]) => void;

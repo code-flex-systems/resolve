@@ -1,5 +1,5 @@
 'use client';
-import { FormControlLabel, InputAdornment, TextField } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
 import Dialog from '@/components/ui/Dialog';
 import Dropdown from '@/components/ui/Dropdown';
 import Checkbox from '@/components/ui/Checkbox';
@@ -93,7 +93,7 @@ export default function PaymentFormDialog({
 						fullWidth
 						required
 					/>
-					<TextField
+					<Input
 						label="Payment Amount"
 						type="number"
 						value={formData.payment_amount}
@@ -102,33 +102,21 @@ export default function PaymentFormDialog({
 						required
 						placeholder="0.00"
 						helperText="Use negative values for credits or reversals"
-						slotProps={{
-							input: {
-								startAdornment: <InputAdornment position="start">$</InputAdornment>,
-							},
-							htmlInput: { step: '0.01' },
-						}}
+						startAdornment={<span style={{ color: 'var(--text-secondary)', marginRight: 4 }}>$</span>}
+						step="0.01"
 					/>
 					<div style={{ display: 'flex', gap: 16 }}>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={formData.is_subrogable}
-									onChange={(checked) =>
-										setFormData({ ...formData, is_subrogable: checked })
-									}
-								/>
+						<Checkbox
+							checked={formData.is_subrogable}
+							onChange={(checked) =>
+								setFormData({ ...formData, is_subrogable: checked })
 							}
 							label="Subrogable"
 						/>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={formData.is_expense}
-									onChange={(checked) =>
-										setFormData({ ...formData, is_expense: checked })
-									}
-								/>
+						<Checkbox
+							checked={formData.is_expense}
+							onChange={(checked) =>
+								setFormData({ ...formData, is_expense: checked })
 							}
 							label="Expense"
 						/>
@@ -151,12 +139,11 @@ export default function PaymentFormDialog({
 						}
 						fullWidth
 					/>
-					<TextField
+					<Textarea
 						label="Description"
 						value={formData.description}
 						onChange={(e) => setFormData({ ...formData, description: e.target.value })}
 						fullWidth
-						multiline
 						rows={3}
 						placeholder="Optional details about this payment..."
 					/>

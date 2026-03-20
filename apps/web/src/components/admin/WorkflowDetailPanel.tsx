@@ -1,7 +1,6 @@
 'use client';
 
 import { IconArchive, IconChevronDown, IconChevronUp, IconEdit, IconMapPin, IconPlus, IconWorld } from '@tabler/icons-react';
-import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -344,52 +343,54 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								No thresholds configured
 							</span>
 						) : (
-							<Table>
-								<TableHead>
-									<TableRow>
-										<TableCell>Type</TableCell>
-										<TableCell>Value</TableCell>
-										<TableCell>Status</TableCell>
-										<TableCell width={100}>Actions</TableCell>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{thresholds.map((threshold) => (
-										<TableRow key={threshold.id}>
-											<TableCell>
-												{formatThresholdType(threshold.threshold_type as any)}
-											</TableCell>
-											<TableCell>
-												{threshold.threshold_value}{' '}
-												{getThresholdUnit(threshold.threshold_type as any)}
-											</TableCell>
-											<TableCell>
-												<Chip
-													size="sm"
-													color={threshold.is_active ? 'success' : 'neutral'}>{threshold.is_active ? 'Active' : 'Inactive'}</Chip>
-											</TableCell>
-											<TableCell>
-												<div style={{ display: 'flex', gap: 4 }}>
-													<BasicButtonStyled
-														icon={<IconEdit size={20} />}
-														compact
-														buttonProps={{ onClick: () => handleEditThreshold(threshold) }}
-														tooltipProps={{ title: 'Edit Threshold' }}
-													/>
-													<BasicButtonStyled
-														icon={<IconArchive size={20} />}
-														compact
-														buttonProps={{
-															onClick: () => handleArchiveThreshold(threshold),
-														}}
-														tooltipProps={{ title: 'Archive Threshold' }}
-													/>
-												</div>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+							<div style={{ overflowX: 'auto' }}>
+								<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+									<thead>
+										<tr>
+											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Type</th>
+											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Value</th>
+											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Status</th>
+											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)', width: 100 }}>Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{thresholds.map((threshold) => (
+											<tr key={threshold.id}>
+												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+													{formatThresholdType(threshold.threshold_type as any)}
+												</td>
+												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+													{threshold.threshold_value}{' '}
+													{getThresholdUnit(threshold.threshold_type as any)}
+												</td>
+												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+													<Chip
+														size="sm"
+														color={threshold.is_active ? 'success' : 'neutral'}>{threshold.is_active ? 'Active' : 'Inactive'}</Chip>
+												</td>
+												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+													<div style={{ display: 'flex', gap: 4 }}>
+														<BasicButtonStyled
+															icon={<IconEdit size={20} />}
+															compact
+															buttonProps={{ onClick: () => handleEditThreshold(threshold) }}
+															tooltipProps={{ title: 'Edit Threshold' }}
+														/>
+														<BasicButtonStyled
+															icon={<IconArchive size={20} />}
+															compact
+															buttonProps={{
+																onClick: () => handleArchiveThreshold(threshold),
+															}}
+															tooltipProps={{ title: 'Archive Threshold' }}
+														/>
+													</div>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
 						)}
 					</div>
 				</Card>

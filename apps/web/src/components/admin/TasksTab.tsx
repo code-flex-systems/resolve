@@ -1,7 +1,7 @@
 'use client';
 
 import { IconChevronLeft, IconChevronRight, IconCircleX, IconExternalLink, IconFilter, IconRefresh, IconSubtask } from '@tabler/icons-react';
-import { Autocomplete, FormControlLabel, TextField } from '@mui/material';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Switch from '@/components/ui/Switch';
@@ -265,7 +265,7 @@ export default function TasksTab() {
 				headerName: 'Status',
 				width: 120,
 				renderCell: (params: GridRenderCellParams) => (
-					<Chip 
+					<Chip
 						color={STATUS_COLORS[params.value as TaskStatus]}
 						size="sm">{STATUS_LABELS[params.value as TaskStatus]}</Chip>
 				),
@@ -365,6 +365,25 @@ export default function TasksTab() {
 		setFiltersAnchorEl(null);
 	};
 
+	// Map filter options to ComboboxOption
+	const userComboboxOptions: ComboboxOption[] = filterOptions.users.map((u) => ({
+		value: u.id,
+		label: u.name,
+	}));
+
+	const claimNumberComboboxOptions: ComboboxOption[] = filterOptions.claimNumbers.map((cn) => ({
+		value: cn,
+		label: cn,
+	}));
+
+	const selectedUserOption: ComboboxOption | null = draftAssignedTo
+		? userComboboxOptions.find((u) => u.value === draftAssignedTo) ?? null
+		: null;
+
+	const selectedClaimNumberOption: ComboboxOption | null = draftClaimNumber
+		? { value: draftClaimNumber, label: draftClaimNumber }
+		: null;
+
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading tasks...">
 			<div style={styles.container}>
@@ -412,17 +431,14 @@ export default function TasksTab() {
 								{/* Right: Filters and manage */}
 								<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
 									{/* Show only open tasks toggle */}
-									<FormControlLabel
-										control={
-											<Switch
-												size="sm"
-												checked={showOnlyOpen}
-												onChange={(checked) => setParam('open', checked ? null : 'false')}
-											/>
-										}
-										label={<span>Open only</span>}
-										style={{ marginRight: 8 }}
-									/>
+									<div style={{ marginRight: 8 }}>
+										<Switch
+											size="sm"
+											checked={showOnlyOpen}
+											onChange={(checked) => setParam('open', checked ? null : 'false')}
+											label="Open only"
+										/>
+									</div>
 
 									{/* Filters button */}
 									<Button
@@ -433,7 +449,7 @@ export default function TasksTab() {
 									>
 										Filters
 										{activeFilterCount > 0 && (
-											<Chip 
+											<Chip
 												size="sm"
 												color="info"
 												style={{ marginLeft: 4, height: 18, fontSize: 11 }}>{activeFilterCount}</Chip>
@@ -480,37 +496,24 @@ export default function TasksTab() {
 
 								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									{/* User filter */}
-									<Autocomplete
-										size="small"
-										options={filterOptions.users}
-										getOptionLabel={(option) => option.name}
-										value={filterOptions.users.find((u) => u.id === draftAssignedTo) || null}
-										onChange={(_, newValue) => setDraftAssignedTo(newValue?.id || null)}
-										renderInput={(params) => (
-											<TextField
-												{...params}
-												placeholder="Select"
-												label="Assigned To"
-												variant="outlined"
-											/>
-										)}
-										isOptionEqualToValue={(option, value) => option.id === value.id}
+									<Combobox
+										options={userComboboxOptions}
+										value={selectedUserOption}
+										onChange={(opt) => setDraftAssignedTo(opt ? String(opt.value) : null)}
+										label="Assigned To"
+										placeholder="Select"
+										isOptionEqual={(a, b) => a.value === b.value}
+										fullWidth
 									/>
 
 									{/* Claim number filter */}
-									<Autocomplete
-										size="small"
-										options={filterOptions.claimNumbers}
-										value={draftClaimNumber}
-										onChange={(_, newValue) => setDraftClaimNumber(newValue)}
-										renderInput={(params) => (
-											<TextField
-												{...params}
-												placeholder="Select"
-												label="Claim Number"
-												variant="outlined"
-											/>
-										)}
+									<Combobox
+										options={claimNumberComboboxOptions}
+										value={selectedClaimNumberOption}
+										onChange={(opt) => setDraftClaimNumber(opt ? String(opt.value) : null)}
+										label="Claim Number"
+										placeholder="Select"
+										fullWidth
 									/>
 
 									<div style={{ flexDirection: 'column', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

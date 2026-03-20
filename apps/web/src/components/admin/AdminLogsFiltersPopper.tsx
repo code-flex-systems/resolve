@@ -1,5 +1,4 @@
 'use client';
-import { PopperProps } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
@@ -16,7 +15,7 @@ export default function AdminLogsFiltersPopper({
 	setDraftUsers,
 	onApply,
 }: {
-	anchorEl: PopperProps['anchorEl'];
+	anchorEl: HTMLElement | null;
 	onClose: () => void;
 	draftRange: [Dayjs | null, Dayjs | null];
 	setDraftRange: (range: [Dayjs | null, Dayjs | null]) => void;

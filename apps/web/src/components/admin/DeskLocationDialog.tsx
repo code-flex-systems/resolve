@@ -1,7 +1,6 @@
 'use client';
 
 import { IconSend } from '@tabler/icons-react';
-import { FormControlLabel } from '@mui/material';
 import Input from '@/components/ui/Input';
 import Switch from '@/components/ui/Switch';
 import BasicDialog from '../common/BasicDialog';
@@ -153,11 +152,9 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					name="is_active"
 					control={control}
 					render={({ field }) => (
-						<FormControlLabel
-							control={<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} />}
-							label="Active"
-							style={{ width: 400, fontSize: 13 }}
-						/>
+						<div style={{ width: 400 }}>
+							<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} label="Active" />
+						</div>
 					)}
 				/>
 			</div>

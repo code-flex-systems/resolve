@@ -11,8 +11,6 @@ import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
 import { SettlementStructure } from '@/config/enums';
 import dayjs from 'dayjs';
-import { TableRow } from '@mui/material';
-
 interface TableRow {
 	id: string;
 	hierarchy: string[];

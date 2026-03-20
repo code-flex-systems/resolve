@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Paper, PopperProps } from '@mui/material';
+import Card from '@/components/ui/Card';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ClaimDetailPanel from '@/components/admin/ClaimDetailPanel';
@@ -37,7 +37,7 @@ export default function MyClaims() {
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
 
 	// Filters popper
-	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 
 	// Debounce search - write to URL param
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
@@ -94,7 +94,7 @@ export default function MyClaims() {
 	const handleOpenFilters = (e: React.MouseEvent) => {
 		setDraftSubstatus(appliedSubstatus);
 		setDraftRecoveryStatus(appliedRecoveryStatus);
-		setFiltersAnchorEl(e.currentTarget);
+		setFiltersAnchorEl(e.currentTarget as HTMLElement);
 	};
 
 	// Apply filters from draft to URL params
@@ -127,7 +127,7 @@ export default function MyClaims() {
 				<MyClaimsDeadlines />
 			</div>
 			<div style={{ flex: 1, minWidth: 0, height: '100%' }}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="none" style={{ width: '100%', height: '100%', padding: '24px 24px 0px' }} className="flex-col-start">
 					{/* Title */}
 					<div style={{ width: '100%', padding: '10px 10px 0px', marginBottom: 24 }}>
 						<span>My Queue</span>
@@ -147,15 +147,15 @@ style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: '
 								LAST ACTIVITY
 							</span>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-								<div style={{ ...styles.indicator, }} />
+								<div style={{ ...myClaimsStyles.indicator, }} />
 								<span style={{ fontSize: 12 }}>Today</span>
 							</div>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-								<div style={{ ...styles.indicator, }} />
+								<div style={{ ...myClaimsStyles.indicator, }} />
 								<span style={{ fontSize: 12 }}>Within 7 days</span>
 							</div>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-								<div style={{ ...styles.indicator, }} />
+								<div style={{ ...myClaimsStyles.indicator, }} />
 								<span style={{ fontSize: 12 }}>Over 7 days</span>
 							</div>
 						</div>
@@ -183,7 +183,7 @@ style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: '
 						handleApplyFilters={handleApplyFilters}
 						showDeskColumn={true}
 					/>
-				</Paper>
+				</Card>
 			</div>
 
 			{/* Claim Detail Panel */}
@@ -192,12 +192,7 @@ style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: '
 	);
 }
 
-const styles = {
-	paper: {
-		width: '100%',
-		height: '100%',
-		padding: '24px 24px 0px',
-	},
+const myClaimsStyles = {
 	indicator: {
 		width: 8,
 		height: 8,

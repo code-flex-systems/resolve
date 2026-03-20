@@ -1,6 +1,6 @@
 'use client';
 
-import { TextField } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
 import Dropdown from '@/components/ui/Dropdown';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
@@ -171,13 +171,12 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 								control={control}
 								rules={{ required: true }}
 								render={({ field }) => (
-									<TextField
+									<Input
 										label="Subject"
 										placeholder="Important Announcement"
-										variant="outlined"
 										{...field}
 										value={field.value ?? ''}
-										sx={{ ...styles.textFieldOverrides, marginTop: '20px' }}
+										style={{ width: 300, marginTop: 20 }}
 									/>
 								)}
 							/>
@@ -186,15 +185,13 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 								control={control}
 								rules={{ required: true }}
 								render={({ field }) => (
-									<TextField
+									<Textarea
 										label="Body"
 										placeholder={`Hello, ${config.APP_NAME} users...`}
-										variant="outlined"
 										{...field}
 										value={field.value ?? ''}
 										rows={10}
-										multiline
-										sx={{ ...styles.textFieldOverrides, width: '100%', marginTop: '20px' }}
+										style={{ width: '100%', marginTop: 20 }}
 									/>
 								)}
 							/>
@@ -205,19 +202,3 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	formLabel: {
-		paddingLeft: '10px',
-		fontSize: 12,
-	},
-	textFieldOverrides: {
-		width: 300,
-		'& .MuiInputBase-root': {
-			padding: '3px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
-		},
-	},
-};

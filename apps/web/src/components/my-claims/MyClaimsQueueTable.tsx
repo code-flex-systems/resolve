@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { Paper, PopperProps } from '@mui/material';
 import CustomButton from '@/components/ui/Button';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -61,7 +60,7 @@ interface MyClaimsQueueTableProps {
 	appliedRecoveryStatus: string | null;
 	appliedSearch: string;
 	hasActiveFilters: boolean;
-	filtersAnchorEl: PopperProps['anchorEl'];
+	filtersAnchorEl: HTMLElement | null;
 	handleOpenFilters: (e: React.MouseEvent) => void;
 	handleCloseFilters: () => void;
 	handleClearAllFilters: () => void;
@@ -151,9 +150,9 @@ export default function MyClaimsQueueTable({
 	const getActivityIndicator = (lastUpdate: string | null) => {
 		if (!lastUpdate) return null;
 		const daysSince = dayjs().diff(dayjs(lastUpdate), 'day');
-		if (daysSince === 0) return <div style={{ ...styles.indicator, }} />;
-		if (daysSince <= 7) return <div style={{ ...styles.indicator, }} />;
-		return <div style={{ ...styles.indicator, }} />;
+		if (daysSince === 0) return <div style={{ ...queueStyles.indicator, }} />;
+		if (daysSince <= 7) return <div style={{ ...queueStyles.indicator, }} />;
+		return <div style={{ ...queueStyles.indicator, }} />;
 	};
 
 	// DataGrid columns
@@ -295,8 +294,8 @@ style={{
 
 			{/* Filters Popper */}
 			{!!filtersAnchorEl && (
-				<BasicPopper anchorEl={filtersAnchorEl} setAnchorEl={handleCloseFilters} placement="bottom-start">
-					<Paper sx={styles.filtersPaper}>
+				<BasicPopper anchorEl={filtersAnchorEl} setAnchorEl={() => handleCloseFilters()} placement="bottom-start">
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 24, marginTop: 5, minWidth: 300, maxWidth: 400 }}>
 						<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
 							Filter Claims
 						</span>
@@ -320,12 +319,12 @@ style={{
 								Apply
 							</CustomButton>
 						</div>
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 
 			{/* DataGrid */}
-			<div style={styles.table}>
+			<div style={queueStyles.table}>
 				<DataGridPro
 					rows={rows}
 					columns={columns}
@@ -340,7 +339,7 @@ style={{
 					initialState={{
 						pinnedColumns: { left: ['claim_status'] },
 					}}
-					sx={styles.tableOverrides}
+					sx={queueStyles.tableOverrides}
 					slots={{
 						noRowsOverlay: () => (
 							<CustomNoRowsOverlay
@@ -355,7 +354,7 @@ style={{
 	);
 }
 
-const styles = {
+const queueStyles = {
 	table: {
 		width: '100%',
 		height: 'calc(100% - 250px)', // Account for toolbar
@@ -363,12 +362,6 @@ const styles = {
 	tableOverrides: {
 		border: 'none',
 		...dataGridFocusStyles,
-	},
-	filtersPaper: {
-		marginTop: 5,
-		padding: '24px',
-		minWidth: 300,
-		maxWidth: 400,
 	},
 	indicator: {
 		width: 8,

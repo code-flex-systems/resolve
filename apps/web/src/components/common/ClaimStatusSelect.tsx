@@ -1,5 +1,4 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { MenuItem, Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import React, { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -26,7 +25,7 @@ export default function ClaimStatusSelect({
 	disabled?: boolean;
 }) {
 	const { data: options = [], isFetching } = useChecklistTrpc().list({});
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	useEffect(() => {
 		if (!clearable && options.length > 0) {
@@ -60,14 +59,19 @@ export default function ClaimStatusSelect({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 200 }}>
 						{Object.values(ClaimStatus)
 							.sort((a, b) => a.localeCompare(b))
 							.map((o) => (
-								<MenuItem
+								<div
 									key={o}
-									selected={claimStatus === o}
-									value={o}
+									style={{
+										padding: '8px 12px',
+										borderRadius: 6,
+										cursor: 'pointer',
+										fontSize: 13,
+										backgroundColor: claimStatus === o ? 'var(--status-info-bg)' : undefined,
+									}}
 									onClick={() => {
 										setClaimStatus(o);
 										setAnchorEl(null);
@@ -79,21 +83,11 @@ export default function ClaimStatusSelect({
 											{o}
 										</span>
 									</div>
-								</MenuItem>
+								</div>
 							))}
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-	},
-};

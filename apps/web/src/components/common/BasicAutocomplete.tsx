@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
-import TextField, { TextFieldProps } from '@mui/material/TextField';
-import Chip from '@mui/material/Chip';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import useDebounce from '@/lib/utils/useDebounce';
 
 export default function BasicAutocomplete<T>({
@@ -30,7 +28,7 @@ export default function BasicAutocomplete<T>({
 	renderOption: (option: string | T) => string;
 	renderOptionLabel: (option: string | T) => string;
 	renderSelection: (selection: string | T) => string;
-	variant?: TextFieldProps['variant'];
+	variant?: string;
 	freeSolo?: boolean;
 	width?: number;
 	fontSize?: number;
@@ -47,60 +45,51 @@ export default function BasicAutocomplete<T>({
 			.finally(() => setSearching(false));
 	}, 500);
 
+	// Map results to ComboboxOption
+	const options: ComboboxOption[] = results.map((r, i) => ({
+		value: renderOptionLabel(r),
+		label: renderOption(r),
+	}));
+
+	// Map currentSelected to ComboboxOption[]
+	const selectedOptions: ComboboxOption[] = currentSelected.map((s) => ({
+		value: renderOptionLabel(s),
+		label: renderSelection(s),
+	}));
+
 	return (
-		<Autocomplete
-			multiple
-			freeSolo={freeSolo}
-			options={results}
-			getOptionLabel={renderOptionLabel}
-			loading={searching}
-			filterOptions={(x) => x}
-			value={currentSelected}
-			onInputChange={(_, value) => {
-				if (value) {
-					setSearching(true);
-					debouncedSearch(value);
-				}
-			}}
-			onChange={(_, newValue) => onSelect(newValue)}
-			renderTags={(tagValue, getTagProps) =>
-				tagValue.map((option, index) => (
-					<Chip label={renderSelection(option)} {...getTagProps({ index })} key={index} sx={{ height: 25 }} />
-				))
-			}
-			renderInput={(params) => (
-				<TextField
-					{...params}
-					variant={variant}
-					label={label}
-					placeholder={currentSelected?.length ? undefined : placeholder}
-					sx={styles.textFieldOverrides}
-				/>
-			)}
-			renderOption={(props, option) => (
-				<li {...props} key={renderOption(option)}>
-					{renderOption(option)}
-				</li>
-			)}
-			sx={styles.autocompleteOverrides(width, fontSize)}
-		/>
+		<div style={{ width }}>
+			<Combobox
+				multiple
+				freeSolo={freeSolo}
+				options={options}
+				values={selectedOptions}
+				onChangeMultiple={(opts) => {
+					// Map back to original objects or strings
+					const newSelection = opts.map((opt) => {
+						// Try to find the original object in results
+						const original = results.find((r) => renderOptionLabel(r) === opt.value);
+						if (original) return original;
+						// Try to find in currentSelected
+						const existing = currentSelected.find((s) => renderOptionLabel(s) === opt.value);
+						if (existing) return existing;
+						// FreeSolo typed value
+						return String(opt.value);
+					});
+					onSelect(newSelection as (string | T)[]);
+				}}
+				onInputChange={(value) => {
+					if (value) {
+						setSearching(true);
+						debouncedSearch(value);
+					}
+				}}
+				loading={searching}
+				filterDisabled
+				label={label}
+				placeholder={currentSelected?.length ? undefined : placeholder}
+				fullWidth
+			/>
+		</div>
 	);
 }
-
-const styles = {
-	autocompleteOverrides: (width: string | number, fontSize: number) => ({
-		width,
-		'& .MuiOutlinedInput-root': {
-			fontSize,
-			padding: 0,
-		},
-	}),
-	textFieldOverrides: {
-		'& .MuiInputBase-root': {
-			padding: '3px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
-		},
-	},
-};

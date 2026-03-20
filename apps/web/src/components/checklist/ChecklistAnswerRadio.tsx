@@ -1,5 +1,5 @@
 'use client';
-import { Checkbox, FormControlLabel, Radio } from '@mui/material';
+import CheckboxUi from '@/components/ui/Checkbox';
 import Tooltip from '@/components/ui/Tooltip';
 import { ChecklistMode, QuestionType } from '@/config/enums';
 import { Question } from '@/types/types';
@@ -59,56 +59,57 @@ function AnswerWithImage(props: {
 
 	const answerComplete = isAnswerComplete();
 
+	const labelContent = (
+		<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+			{a.calls_instance_id &&
+			visibleInstanceIds.includes(a.calls_instance_id) &&
+			(answerComplete || mode === ChecklistMode.TEST) ? (
+				<button onClick={() => goToPage(a.calls_instance_id!, tree)} style={{ fontSize: 13, color: 'var(--text-accent)', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
+					{a.text}
+				</button>
+			) : (
+				<span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 13 }}>
+					{a.text}
+				</span>
+			)}
+			{attachedImage && (
+				<ImageTooltip
+					imageUrl={`/api/download?docId=${attachedImage.id}`}
+					description={attachedImage.title ?? undefined}
+				/>
+			)}
+		</div>
+	);
+
 	return (
 		<Tooltip key={a.id} position="top" content={a.description_text ?? ''}>
-			<FormControlLabel
-				control={
-					questionType === QuestionType.MULTI ? (
-						<Checkbox
-							checked={!!field.value?.includes(a.id)}
-							onChange={(e) => {
-								const newValue = e.target.checked
-									? [...(field.value ?? []), a.id]
-									: field.value?.filter((value: any) => value !== a.id);
-								field.onChange(newValue);
-							}}
-							disabled={disabled}
-							color="primary"
-						/>
-					) : (
-						<Radio
-							checked={!!field.value?.includes(a.id)}
-							onChange={(e) => {
-								const newValue = e.target.checked ? [a.id] : [];
-								field.onChange(newValue);
-							}}
-							disabled={disabled}
-							color="primary"
-						/>
-					)
-				}
-				label={
-					<div    style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-						{a.calls_instance_id &&
-						visibleInstanceIds.includes(a.calls_instance_id) &&
-						(answerComplete || mode === ChecklistMode.TEST) ? (
-							<button onClick={() => goToPage(a.calls_instance_id!, tree)} style={{ fontSize: 13, color: 'var(--text-accent)', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
-								{a.text}
-							</button>
-						) : (
-							<span   style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 13 }}>
-								{a.text}
-							</span>
-						)}
-						{attachedImage && (
-							<ImageTooltip
-								imageUrl={`/api/download?docId=${attachedImage.id}`}
-								description={attachedImage.title ?? undefined}
-							/>
-						)}
-					</div>
-				}
-			/>
+			{questionType === QuestionType.MULTI ? (
+				<CheckboxUi
+					checked={!!field.value?.includes(a.id)}
+					onChange={(checked) => {
+						const newValue = checked
+							? [...(field.value ?? []), a.id]
+							: field.value?.filter((value: any) => value !== a.id);
+						field.onChange(newValue);
+					}}
+					disabled={disabled}
+					label={a.text}
+				/>
+			) : (
+				<label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'default' : 'pointer' }}>
+					<input
+						type="radio"
+						checked={!!field.value?.includes(a.id)}
+						onChange={(e) => {
+							const newValue = e.target.checked ? [a.id] : [];
+							field.onChange(newValue);
+						}}
+						disabled={disabled}
+						style={{ accentColor: 'var(--text-accent)' }}
+					/>
+					{labelContent}
+				</label>
+			)}
 		</Tooltip>
 	);
 }

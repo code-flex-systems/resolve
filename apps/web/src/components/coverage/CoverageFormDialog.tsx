@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TextField, InputAdornment } from '@mui/material';
+import Input from '@/components/ui/Input';
 import Dropdown from '@/components/ui/Dropdown';
 import { CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import CoverageTypeSelect from '../common/CoverageTypeSelect';
@@ -137,41 +137,33 @@ export default function CoverageFormDialog({
 					onChange={(type) => setFormData({ ...formData, loss_type: type })}
 					fullWidth
 				/>
-				<TextField
+				<Input
 					label="Coverage Amount"
 					type="number"
 					value={formData.coverage_amount}
 					onChange={(e) => setFormData({ ...formData, coverage_amount: e.target.value })}
 					fullWidth
 					placeholder="Enter coverage limit"
-					inputProps={{ step: '0.01', min: '0' }}
-					slotProps={{
-						input: {
-							startAdornment: <InputAdornment position="start">$</InputAdornment>,
-						},
-					}}
+					step="0.01"
+					min="0"
+					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					error={!isValidCoverageAmount}
-					helperText={!isValidCoverageAmount ? 'Must be greater than 0' : 'Policy coverage limit'}
+					errorText={!isValidCoverageAmount ? 'Must be greater than 0' : undefined}
+					helperText={isValidCoverageAmount ? 'Policy coverage limit' : undefined}
 				/>
-				<TextField
+				<Input
 					label="Amount Reserved"
 					type="number"
 					value={formData.amount_reserved}
 					onChange={(e) => setFormData({ ...formData, amount_reserved: e.target.value })}
 					fullWidth
 					placeholder="Enter reserved amount"
-					inputProps={{ step: '0.01', min: '0' }}
-					slotProps={{
-						input: {
-							startAdornment: <InputAdornment position="start">$</InputAdornment>,
-						},
-					}}
+					step="0.01"
+					min="0"
+					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					error={!isValidReservedAmount}
-					helperText={
-						!isValidReservedAmount
-							? 'Must be 0 or greater'
-							: 'Amount reserved for potential claim payments'
-					}
+					errorText={!isValidReservedAmount ? 'Must be 0 or greater' : undefined}
+					helperText={isValidReservedAmount ? 'Amount reserved for potential claim payments' : undefined}
 				/>
 
 				{/* Deductible Section */}
@@ -179,27 +171,25 @@ export default function CoverageFormDialog({
 					Deductible Information
 				</span>
 
-				<TextField
+				<Input
 					label="Deductible Amount"
 					type="number"
 					value={formData.deductible_amount}
 					onChange={(e) => setFormData({ ...formData, deductible_amount: e.target.value })}
 					fullWidth
 					placeholder="Enter deductible amount"
-					inputProps={{ step: '0.01', min: '0' }}
-					slotProps={{
-						input: {
-							startAdornment: <InputAdornment position="start">$</InputAdornment>,
-						},
-					}}
+					step="0.01"
+					min="0"
+					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					disabled={formData.deductible_status === DeductibleStatus.NO_DEDUCTIBLE}
 					error={!isValidDeductibleAmount}
+					errorText={!isValidDeductibleAmount ? 'Must be 0 or greater' : undefined}
 					helperText={
 						formData.deductible_status === DeductibleStatus.NO_DEDUCTIBLE
 							? 'Amount locked at $0 for No Deductible status'
-							: !isValidDeductibleAmount
-								? 'Must be 0 or greater'
-								: 'Optional - defaults to $0'
+							: isValidDeductibleAmount
+								? 'Optional - defaults to $0'
+								: undefined
 					}
 				/>
 
@@ -227,7 +217,7 @@ export default function CoverageFormDialog({
 
 				{/* Show statute_date read-only if editing existing coverage */}
 				{editingCoverage?.statute_date && (
-					<TextField
+					<Input
 						label="Statute Date"
 						value={new Date(editingCoverage.statute_date).toLocaleDateString()}
 						fullWidth

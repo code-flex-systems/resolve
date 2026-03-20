@@ -1,7 +1,6 @@
 'use client';
 
 import { IconClockFilled, IconFileSearch, IconFilter, IconUser } from '@tabler/icons-react';
-import { PopperProps } from '@mui/material';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -87,7 +86,7 @@ export default function AdminLogsTab() {
 		25
 	);
 
-	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 	const [draftEntity, setDraftEntity] = useState<EntityName | null>(null);
 	const [draftRange, setDraftRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
 	const [draftUsers, setDraftUsers] = useState<GetUserOutput[]>([]);
@@ -209,7 +208,7 @@ export default function AdminLogsTab() {
 		setDraftEntity(appliedEntity);
 		setDraftRange(appliedRange);
 		setDraftUsers(appliedUserFilter ? [appliedUserFilter] : []);
-		setFiltersAnchorEl(event.currentTarget);
+		setFiltersAnchorEl(event.currentTarget as HTMLElement);
 	};
 
 	const handleApplyFilters = () => {

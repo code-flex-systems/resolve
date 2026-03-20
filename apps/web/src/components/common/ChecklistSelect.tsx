@@ -1,5 +1,4 @@
 import { GetChecklistOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -23,7 +22,7 @@ export default function ChecklistSelect({
 	disabled?: boolean;
 }) {
 	const { data: options = [], isFetching } = useChecklistTrpc().list({});
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	useEffect(() => {
 		if (!clearable && !showEmpty && options.length > 0) {
@@ -52,7 +51,7 @@ export default function ChecklistSelect({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 200 }}>
 						{options.map((o) => (
 							<div
 								key={o.id}
@@ -70,19 +69,9 @@ export default function ChecklistSelect({
 								<span style={{ fontSize: 13 }}>{o.name}</span>
 							</div>
 						))}
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-	},
-};

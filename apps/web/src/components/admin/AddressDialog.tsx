@@ -1,5 +1,5 @@
 'use client';
-import { Autocomplete, TextField } from '@mui/material';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Input from '@/components/ui/Input';
 import Dropdown from '@/components/ui/Dropdown';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
@@ -143,6 +143,18 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 		setPartySearchTerm(search);
 	}, 500);
 
+	// Map party matches to ComboboxOption
+	const partyOptions: ComboboxOption[] = (partyMatches as PartySearchResult[]).map((p) => ({
+		value: p.id,
+		label: p.name,
+		description: p.organization ?? undefined,
+	}));
+
+	// Find selected party option
+	const selectedPartyOption = selectedParty
+		? { value: selectedParty.id, label: selectedParty.name, description: selectedParty.organization ?? undefined }
+		: null;
+
 	return (
 		<BasicDialog
 			title={isEditMode ? `Edit Address${address?.party_name ? ` - ${address.party_name}` : ''}` : `New Address${address?.party_name ? ` - ${address.party_name}` : ''}`}
@@ -168,40 +180,31 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 						control={control}
 						rules={{ required: 'Party is required' }}
 						render={({ field }) => (
-							<Autocomplete<PartySearchResult>
-								options={partyMatches as PartySearchResult[]}
-								getOptionLabel={(party) => party.name}
-								onChange={(_, value) => {
-									setSelectedParty(value);
-									field.onChange(value?.id || null);
+							<Combobox
+								options={partyOptions}
+								value={selectedPartyOption}
+								onChange={(opt) => {
+									const party = opt ? (partyMatches as PartySearchResult[]).find((p) => p.id === opt.value) ?? null : null;
+									setSelectedParty(party);
+									field.onChange(party?.id || null);
 								}}
-								onInputChange={(_, value: string) => {
+								onInputChange={(value) => {
 									debouncedPartySearch(value);
 								}}
-								value={selectedParty}
-								renderOption={(props, party) => (
-									<li {...props} key={party.id}>
-										<div>
-											<span  style={{ fontWeight: 'bold' }}>
-												{party.name}
-											</span>
-											{party.organization && (
-												<span  style={{ color: 'var(--text-secondary)' }}>
-													{party.organization}
-												</span>
-											)}
-										</div>
-									</li>
+								filterDisabled
+								label="Party"
+								placeholder="Search for party..."
+								error={!!errors.party_id}
+								errorText={errors.party_id?.message}
+								renderOption={(option) => (
+									<div>
+										<span style={{ fontWeight: 'bold' }}>{option.label}</span>
+										{option.description && (
+											<span style={{ color: 'var(--text-secondary)' }}>{option.description}</span>
+										)}
+									</div>
 								)}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										label="Party"
-										error={!!errors.party_id}
-										helperText={errors.party_id?.message}
-										placeholder="Search for party..."
-									/>
-								)}
+								fullWidth
 							/>
 						)}
 					/>

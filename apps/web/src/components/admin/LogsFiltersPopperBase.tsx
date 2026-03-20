@@ -1,5 +1,4 @@
 'use client';
-import { PopperProps } from '@mui/material';
 import Card from '@/components/ui/Card';
 import { ReactNode } from 'react';
 import { Dayjs } from 'dayjs';
@@ -25,7 +24,7 @@ export default function LogsFiltersPopperBase({
 	children,
 	minWidth = 320,
 }: {
-	anchorEl: PopperProps['anchorEl'];
+	anchorEl: HTMLElement | null;
 	onClose: () => void;
 	title: string;
 	draftRange: [Dayjs | null, Dayjs | null];
@@ -41,7 +40,7 @@ export default function LogsFiltersPopperBase({
 	if (!anchorEl) return null;
 
 	return (
-		<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
+		<BasicPopper anchorEl={anchorEl} setAnchorEl={() => onClose()} placement="bottom-start">
 			<div style={{ ...styles.filtersPaper, minWidth }}>
 				<span style={{ fontSize: 14, fontWeight: 600 }}>
 					{title}

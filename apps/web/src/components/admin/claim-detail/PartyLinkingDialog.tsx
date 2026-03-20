@@ -1,5 +1,6 @@
 'use client';
-import { Autocomplete, InputAdornment, TextField } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Chip from '@/components/ui/Chip';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import BasicDialog from '@/components/common/BasicDialog';
@@ -431,6 +432,59 @@ export default function PartyLinkingDialog({
 		return isFacilitatorMode ? 'Add Facilitator' : 'Add Entity';
 	};
 
+	// --- ComboboxOption mappings ---
+
+	// Parent entity options
+	const parentEntityComboboxOptions: ComboboxOption[] = parentEntityOptions.map((cp: any) => ({
+		value: cp.id,
+		label: cp.party?.name || '',
+		description: cp.role ?? undefined,
+	}));
+	const selectedParentEntityOption: ComboboxOption | null = selectedParentEntity
+		? { value: selectedParentEntity.id, label: selectedParentEntity.party?.name || '', description: selectedParentEntity.role ?? undefined }
+		: null;
+
+	// Role options (multi-select)
+	const roleComboboxOptions: ComboboxOption[] = roleOptions.map((opt) => ({
+		value: opt.value,
+		label: opt.display_label,
+	}));
+	const selectedRoleOptions: ComboboxOption[] = roleOptions
+		.filter((opt) => formData.role.includes(opt.value))
+		.map((opt) => ({ value: opt.value, label: opt.display_label }));
+
+	// Party options
+	const partyComboboxOptions: ComboboxOption[] = partyAutocompleteOptions.map((p: any) => ({
+		value: p.id,
+		label: p.name || '',
+		description: p.id === -2 ? undefined : `${p.organization || 'No organization'} • ${p.address_city ? (p.address_state ? `${p.address_city}, ${p.address_state}` : p.address_city) : 'No address'}`,
+		disabled: p.id === -2,
+	}));
+	const selectedPartyOption: ComboboxOption | null = selectedParty
+		? { value: selectedParty.id, label: selectedParty.name || '' }
+		: null;
+
+	// Address options (facilitators)
+	const addressComboboxOptions: ComboboxOption[] = (addresses as any[]).map((addr: any) => ({
+		value: addr.id,
+		label: addr.name || 'Unnamed Address',
+	}));
+	const selectedAddressOption: ComboboxOption | null = selectedAddress
+		? { value: selectedAddress.id, label: selectedAddress.name || 'Unnamed Address' }
+		: null;
+
+	// Representative options (facilitators)
+	const repComboboxOptions: ComboboxOption[] = representativeAutocompleteOptions.map((rep: any) => ({
+		value: rep.id,
+		label: `${rep.first_name} ${rep.last_name || ''}`.trim(),
+		description: !selectedParty && rep.party_name
+			? `${rep.party_name}${rep.address_city ? ` • ${rep.address_city}, ${rep.address_state}` : ''}`
+			: rep.title ? `(${rep.title})` : undefined,
+	}));
+	const selectedRepOption: ComboboxOption | null = selectedRepresentative
+		? { value: selectedRepresentative.id, label: `${selectedRepresentative.first_name} ${selectedRepresentative.last_name || ''}`.trim() }
+		: null;
+
 	return (
 		<BasicDialog
 			title={getDialogTitle()}
@@ -451,103 +505,72 @@ export default function PartyLinkingDialog({
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 				{/* Parent Entity Selection - only for facilitator mode when no fixed parent */}
 				{isFacilitatorMode && !parentClaimPartyId && (
-					<Autocomplete
-						options={parentEntityOptions}
-						value={selectedParentEntity}
-						onChange={(_, newValue) => handleParentEntitySelect(newValue)}
-						getOptionLabel={(option: any) => option.party?.name || ''}
-						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-						renderOption={(props, option: any) => (
-							<li {...props} key={option.id}>
-								<div>
-									<span>{option.party?.name}</span>
-									{option.role && (
-										<span style={{ color: 'var(--text-secondary)' }}>
-											{option.role}
-										</span>
-									)}
-								</div>
-							</li>
+					<Combobox
+						options={parentEntityComboboxOptions}
+						value={selectedParentEntityOption}
+						onChange={(opt) => {
+							const entity = opt ? parentEntityOptions.find((pe: any) => pe.id === opt.value) : null;
+							handleParentEntitySelect(entity);
+						}}
+						isOptionEqual={(a, b) => a.value === b.value}
+						label="Parent Entity *"
+						placeholder="Select parent entity..."
+						required
+						renderOption={(option) => (
+							<div>
+								<span>{option.label}</span>
+								{option.description && (
+									<span style={{ color: 'var(--text-secondary)' }}>{option.description}</span>
+								)}
+							</div>
 						)}
 						fullWidth
-						renderInput={(params) => (
-							<TextField {...params} label="Parent Entity *" placeholder="Select parent entity..." required />
-						)}
 					/>
 				)}
 
 				{/* Role Selection - multiselect for roles */}
-				<Autocomplete
+				<Combobox
 					multiple
-					options={roleOptions}
-					value={roleOptions.filter((opt) => formData.role.includes(opt.value))}
-					onChange={(_, newValue) => setFormData({ ...formData, role: newValue.map((v) => v.value) })}
-					getOptionLabel={(option) => option.display_label}
-					isOptionEqualToValue={(option, value) => option.value === value.value}
-					renderTags={(value, getTagProps) =>
-						value.map((option, index) => {
-							const { key, ...tagProps } = getTagProps({ index });
-							return (
-								<Chip key={key}
-									
-									size="sm"
-									{...tagProps}>{option.display_label}</Chip>
-							);
-						})
-					}
-					renderInput={(params) => (
-						<TextField
-							{...params}
-							label="Roles *"
-							placeholder={formData.role.length === 0 ? 'Select one or more roles...' : ''}
-							required
-						/>
-					)}
+					options={roleComboboxOptions}
+					values={selectedRoleOptions}
+					onChangeMultiple={(opts) => setFormData({ ...formData, role: opts.map((o) => String(o.value)) })}
+					isOptionEqual={(a, b) => a.value === b.value}
+					label="Roles *"
+					placeholder={formData.role.length === 0 ? 'Select one or more roles...' : ''}
+					required
 					fullWidth
 				/>
 
 				{/* Party Selection */}
 				<div>
-					<Autocomplete
-						options={partyAutocompleteOptions}
-						value={selectedParty}
-						onChange={(_, newValue) => handlePartySelect(newValue)}
+					<Combobox
+						options={partyComboboxOptions}
+						value={selectedPartyOption}
+						onChange={(opt) => {
+							const party = opt ? partyAutocompleteOptions.find((p: any) => p.id === opt.value) : null;
+							handlePartySelect(party);
+						}}
 						inputValue={partySearchTerm}
-						onInputChange={(_, newValue) => setPartySearchTerm(newValue)}
-						getOptionLabel={(option: any) => option.name || ''}
-						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-						getOptionDisabled={(option: any) => option.id === -2}
-						renderOption={(props, option: any) => {
-							// Build secondary info line
-							const orgPart = option.organization || 'No organization';
-							const addressPart = option.address_city
-								? (option.address_state ? `${option.address_city}, ${option.address_state}` : option.address_city)
-								: 'No address';
-
+						onInputChange={(value) => setPartySearchTerm(value)}
+						isOptionEqual={(a, b) => a.value === b.value}
+						filterDisabled
+						label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
+						placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
+						required
+						renderOption={(option) => {
+							if (option.disabled) {
+								return <em style={{ color: '#999' }}>{option.label}</em>;
+							}
 							return (
-								<li {...props} key={option.id}>
-									{option.id === -2 ? (
-										<em style={{ color: '#999' }}>{option.name}</em>
-									) : (
-										<div>
-											<span>{option.name}</span>
-											<span style={{ color: 'var(--text-secondary)' }}>
-												{`${orgPart} • ${addressPart}`}
-											</span>
-										</div>
+								<div>
+									<span>{option.label}</span>
+									{option.description && (
+										<span style={{ color: 'var(--text-secondary)' }}>{option.description}</span>
 									)}
-								</li>
+								</div>
 							);
 						}}
 						fullWidth
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
-								placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
-								required
-							/>
-						)}
 					/>
 					{/* Add New Party Link */}
 					<span
@@ -564,28 +587,31 @@ export default function PartyLinkingDialog({
 
 				{/* Liability Percentage - only show on adverse parties tab for entities, positioned early in form */}
 				{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
-					<TextField
+					<Input
 						label="Liability Percentage"
 						type="number"
 						value={formData.liability_percentage}
 						onChange={(e) => setFormData({ ...formData, liability_percentage: e.target.value })}
 						fullWidth
 						placeholder="Enter percentage (0-100)"
-						inputProps={{ step: '0.01', min: '0', max: '100' }}
-						slotProps={{
-							input: {
-								endAdornment: <InputAdornment position="end">%</InputAdornment>,
-							},
-						}}
+						step="0.01"
+						min="0"
+						max="100"
+						endAdornment={<span style={{ color: 'var(--text-muted)' }}>%</span>}
 						error={!isValidLiabilityPercentage || wouldExceedTotalLiability}
-						helperText={
+						errorText={
 							!isValidLiabilityPercentage
 								? 'Must be between 0 and 100'
 								: wouldExceedTotalLiability
 									? `Combined liability cannot exceed 100% (currently ${currentTotalLiability.toFixed(1)}% allocated to other parties)`
-									: currentTotalLiability > 0
-										? `Current total: ${currentTotalLiability.toFixed(1)}% • Available: ${(100 - currentTotalLiability).toFixed(1)}%`
-										: "This party's percentage of liability for the claim"
+									: undefined
+						}
+						helperText={
+							isValidLiabilityPercentage && !wouldExceedTotalLiability
+								? (currentTotalLiability > 0
+									? `Current total: ${currentTotalLiability.toFixed(1)}% • Available: ${(100 - currentTotalLiability).toFixed(1)}%`
+									: "This party's percentage of liability for the claim")
+								: undefined
 						}
 					/>
 				)}
@@ -593,22 +619,19 @@ export default function PartyLinkingDialog({
 				{/* Facilitator: Address Selection (Office) */}
 				{isFacilitatorMode && (
 					<div>
-						<Autocomplete
-							options={addresses}
-							value={selectedAddress}
-							onChange={(_, newValue) => handleAddressSelect(newValue)}
-							getOptionLabel={(option: any) => option.name || 'Unnamed Address'}
-							isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+						<Combobox
+							options={addressComboboxOptions}
+							value={selectedAddressOption}
+							onChange={(opt) => {
+								const addr = opt ? (addresses as any[]).find((a: any) => a.id === opt.value) : null;
+								handleAddressSelect(addr);
+							}}
+							isOptionEqual={(a, b) => a.value === b.value}
 							disabled={!selectedParty}
+							label="Office/Address *"
+							placeholder={selectedParty ? 'Select office...' : 'Select facilitator first'}
+							required
 							fullWidth
-							renderInput={(params) => (
-								<TextField
-									{...params}
-									label="Office/Address *"
-									placeholder={selectedParty ? 'Select office...' : 'Select facilitator first'}
-									required
-								/>
-							)}
 						/>
 						{/* Add New Address Link */}
 						{selectedParty && (
@@ -629,64 +652,53 @@ export default function PartyLinkingDialog({
 				{/* Facilitator: Representative Selection (global search or filtered by address) */}
 				{isFacilitatorMode && (
 					<div>
-						<Autocomplete
-							options={representativeAutocompleteOptions}
-							value={selectedRepresentative}
-							onChange={(_, newValue) => {
-								if (newValue?._isHint) return; // Ignore hint option clicks
-								handleRepresentativeSelect(newValue);
+						<Combobox
+							options={repComboboxOptions}
+							value={selectedRepOption}
+							onChange={(opt) => {
+								if (!opt) {
+									handleRepresentativeSelect(null);
+									return;
+								}
+								const rep = representativeAutocompleteOptions.find((r: any) => r.id === opt.value);
+								if (rep?._isHint) return; // Ignore hint option clicks
+								handleRepresentativeSelect(rep);
 							}}
-							onInputChange={(_, newValue, reason) => {
-								// Only update search term when typing (not when selecting)
-								if (!selectedParty && reason === 'input') {
-									setRepSearchTerm(newValue);
+							onInputChange={(value) => {
+								// Only update search term when no party selected (global search mode)
+								if (!selectedParty) {
+									setRepSearchTerm(value);
 								}
 							}}
-							getOptionLabel={(option: any) => {
-								if (!option || !option.first_name) return '';
-								return `${option.first_name} ${option.last_name || ''}`.trim();
-							}}
-							isOptionEqualToValue={(option: any, value: any) => {
-								if (!option || !value) return false;
-								return option.id === value.id;
-							}}
-							filterOptions={(options) => options} // Disable client-side filtering, server handles it
-							renderOption={(props, option: any) => (
-								<li {...props} key={option.id}>
-									<div>
-										<span>
-											{`${option.first_name} ${option.last_name}`}
-											{option.title && (
-												<span style={{  color: 'var(--text-secondary)' ,  marginLeft: 8  }}>
-													({option.title})
-												</span>
-											)}
-										</span>
-										{/* Show party/address info in global search mode */}
-										{option.party_name && !selectedParty && (
-											<span style={{ color: 'var(--text-secondary)' }}>
-												{option.party_name}
-												{option.address_city && ` • ${option.address_city}, ${option.address_state}`}
+							isOptionEqual={(a, b) => a.value === b.value}
+							filterDisabled
+							label="Representative *"
+							placeholder={
+								selectedAddress
+									? 'Select representative...'
+									: selectedParty
+										? 'Select office first'
+										: 'Search by name, title, or email...'
+							}
+							required
+							renderOption={(option) => (
+								<div>
+									<span>
+										{option.label}
+										{option.description && !option.description.startsWith('(') && (
+											<span style={{ color: 'var(--text-secondary)', marginLeft: 8 }}>
+												{option.description}
 											</span>
 										)}
-									</div>
-								</li>
+										{option.description && option.description.startsWith('(') && (
+											<span style={{ color: 'var(--text-secondary)', marginLeft: 8 }}>
+												{option.description}
+											</span>
+										)}
+									</span>
+								</div>
 							)}
 							fullWidth
-							renderInput={(params) => (
-								<TextField
-									{...params}
-									label="Representative *"
-									placeholder={
-										selectedAddress
-											? 'Select representative...'
-											: selectedParty
-												? 'Select office first'
-												: 'Search by name, title, or email...'
-									}
-									required
-								/>
-							)}
 						/>
 						{/* Add New Representative Link */}
 						{selectedAddress && (
@@ -706,7 +718,7 @@ export default function PartyLinkingDialog({
 
 				{/* Entity: Simplified Representative Field */}
 				{!isFacilitatorMode && (
-					<TextField
+					<Input
 						label="Representative"
 						value={formData.representative_name}
 						onChange={(e) => setFormData({ ...formData, representative_name: e.target.value })}
@@ -728,30 +740,26 @@ export default function PartyLinkingDialog({
 
 				{/* Policy Limit - only show for facilitators on adverse parties tab */}
 				{isFacilitatorMode && roleListEntity === 'adverse_party_role' && (
-					<TextField
+					<Input
 						label="Policy Limit"
 						type="number"
 						value={formData.policy_limit}
 						onChange={(e) => setFormData({ ...formData, policy_limit: e.target.value })}
 						fullWidth
 						placeholder="Enter maximum policy payout amount"
-						inputProps={{ step: '0.01', min: '0' }}
-						slotProps={{
-							input: {
-								startAdornment: <InputAdornment position="start">$</InputAdornment>,
-							},
-						}}
+						step="0.01"
+						min="0"
+						startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 						helperText="Maximum amount this carrier will pay (their policy limit)"
 					/>
 				)}
 
 				{/* Notes */}
-				<TextField
+				<Textarea
 					label="Notes"
 					value={formData.notes}
 					onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
 					fullWidth
-					multiline
 					rows={3}
 					placeholder={
 						isFacilitatorMode

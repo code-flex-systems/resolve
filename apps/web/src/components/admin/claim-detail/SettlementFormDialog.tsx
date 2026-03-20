@@ -1,5 +1,5 @@
 'use client';
-import { TextField } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
 import Dialog from '@/components/ui/Dialog';
 import Dropdown from '@/components/ui/Dropdown';
 import Divider from '@/components/ui/Divider';
@@ -143,7 +143,7 @@ export default function SettlementFormDialog({
 					/>
 
 					{/* Adverse Party Reference */}
-					<TextField
+					<Input
 						label="Adverse Party Claim #"
 						value={formData.adverse_party_reference}
 						onChange={(e) => setFormData({ ...formData, adverse_party_reference: e.target.value })}
@@ -151,7 +151,7 @@ export default function SettlementFormDialog({
 						placeholder="External reference number"
 					/>
 
-					<TextField
+					<Input
 						label="Demand Amount"
 						type="number"
 						value={formData.demand_amount}
@@ -159,9 +159,8 @@ export default function SettlementFormDialog({
 						fullWidth
 						required
 						placeholder="0.00"
-						slotProps={{
-							htmlInput: { step: '0.01', min: '0' },
-						}}
+						step="0.01"
+						min="0"
 					/>
 					<DateField
 						label="Demand Date"
@@ -183,7 +182,7 @@ export default function SettlementFormDialog({
 								onChange={(v) => setFormData({ ...formData, status: String(v) })}
 								fullWidth
 							/>
-							<TextField
+							<Input
 								label="Agreed Liability %"
 								type="number"
 								value={formData.agreed_liability_percentage}
@@ -195,20 +194,19 @@ export default function SettlementFormDialog({
 								}
 								fullWidth
 								placeholder="0-100"
-								slotProps={{
-									htmlInput: { step: '0.01', min: '0', max: '100' },
-								}}
+								step="0.01"
+								min="0"
+								max="100"
 							/>
-							<TextField
+							<Input
 								label="Settlement Amount"
 								type="number"
 								value={formData.settlement_amount}
 								onChange={(e) => setFormData({ ...formData, settlement_amount: e.target.value })}
 								fullWidth
 								placeholder="0.00"
-								slotProps={{
-									htmlInput: { step: '0.01', min: '0' },
-								}}
+								step="0.01"
+								min="0"
 							/>
 							<DateField
 								label="Settlement Date"
@@ -244,7 +242,7 @@ export default function SettlementFormDialog({
 					{/* Payment Plan Fields - available on both create and edit when payment plan is selected */}
 					{isPaymentPlan && (
 						<>
-							<TextField
+							<Input
 								label="Payment Amount (per installment)"
 								type="number"
 								value={formData.payment_amount}
@@ -252,9 +250,8 @@ export default function SettlementFormDialog({
 								fullWidth
 								required
 								placeholder="0.00"
-								slotProps={{
-									htmlInput: { step: '0.01', min: '0' },
-								}}
+								step="0.01"
+								min="0"
 							/>
 							<Dropdown
 								label="Payment Frequency"
@@ -294,12 +291,11 @@ export default function SettlementFormDialog({
 							fullWidth
 						/>
 					)}
-					<TextField
+					<Textarea
 						label="Notes"
 						value={formData.notes}
 						onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
 						fullWidth
-						multiline
 						rows={3}
 						placeholder="Additional details about this settlement demand..."
 					/>

@@ -6,7 +6,6 @@ import {
 	MenuItem,
 	Popper,
 	InputAdornment,
-	PopperProps,
 	TextFieldProps,
 	ClickAwayListener,
 	Typography,
@@ -35,7 +34,7 @@ export default function UserSearch({
 	const [query, setQuery] = useState<string>('');
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<GetUserOutput[]>([]);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const spanRef = useRef<HTMLElement | null>(null);
 
 	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);

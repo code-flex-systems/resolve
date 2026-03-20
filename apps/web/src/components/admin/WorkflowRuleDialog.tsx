@@ -1,7 +1,6 @@
 'use client';
 
 import { IconTrash } from '@tabler/icons-react';
-import { FormControlLabel, FormHelperText } from '@mui/material';
 import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -366,7 +365,7 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								fullWidth
 							/>
 							{formData.triggerType && (
-								<FormHelperText>{TRIGGER_EXPLANATIONS[formData.triggerType]}</FormHelperText>
+								<span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{TRIGGER_EXPLANATIONS[formData.triggerType]}</span>
 							)}
 						</div>
 
@@ -387,7 +386,7 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								fullWidth
 							/>
 							{formData.actionType && (
-								<FormHelperText>{ACTION_EXPLANATIONS[formData.actionType]}</FormHelperText>
+								<span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{ACTION_EXPLANATIONS[formData.actionType]}</span>
 							)}
 						</div>
 
@@ -463,7 +462,7 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								fullWidth
 							/>
 							{formData.executionMode && (
-								<FormHelperText>{MODE_EXPLANATIONS[formData.executionMode]}</FormHelperText>
+								<span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{MODE_EXPLANATIONS[formData.executionMode]}</span>
 							)}
 						</div>
 
@@ -479,13 +478,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 						/>
 
 						{editingRule && (
-							<FormControlLabel
-								control={
-									<Switch
-										checked={formData.isActive}
-										onChange={(checked) => setFormData({ ...formData, isActive: checked })}
-									/>
-								}
+							<Switch
+								checked={formData.isActive}
+								onChange={(checked) => setFormData({ ...formData, isActive: checked })}
 								label="Active"
 							/>
 						)}

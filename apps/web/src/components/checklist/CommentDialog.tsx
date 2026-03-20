@@ -1,4 +1,4 @@
-import { InputAdornment, TextField } from '@mui/material';
+import { Textarea } from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import config from '@/config/config';
@@ -56,47 +56,41 @@ export default function CommentDialog() {
 			onClose={() => toggleQuestionCommentDialog()}
 			closeDisabled={inTransition}
 			width={400}>
-			<TextField
+			<Textarea
 				value={comment}
 				placeholder="New comment..."
 				onChange={(e) => {
 					if (e.target.value.length <= config.MAX_COMMENT_SIZE) setComment(e.target.value);
 				}}
-				multiline
 				rows={5}
-				variant="outlined"
-				sx={styles.textField}
 				fullWidth
-				slotProps={{
-					input: {
-						endAdornment:
-							!existingComment || session?.user.id === existingComment.created_by ? (
-								<InputAdornment sx={{ marginTop: '90px', marginRight: '5px' }} position="end">
-									{existingComment ? (
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => deleteComment().catch(console.error),
-												disabled: inTransition,
-											}}
-											icon={<IconTrash size={20} />}
-											tooltipProps={{ title: 'Delete comment' }}
-										/>
-									) : (
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => addComment().catch(console.error),
-												disabled: !comment || inTransition,
-											}}
-											icon={<IconCirclePlus size={20} />}
-											tooltipProps={{ title: 'Add comment' }}
-										/>
-									)}
-								</InputAdornment>
-							) : undefined,
-					},
-				}}
+				endAdornment={
+					!existingComment || session?.user.id === existingComment.created_by ? (
+						<span style={{ marginTop: 90, marginRight: 5 }}>
+							{existingComment ? (
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: () => deleteComment().catch(console.error),
+										disabled: inTransition,
+									}}
+									icon={<IconTrash size={20} />}
+									tooltipProps={{ title: 'Delete comment' }}
+								/>
+							) : (
+								<BasicButtonStyled
+									buttonProps={{
+										onClick: () => addComment().catch(console.error),
+										disabled: !comment || inTransition,
+									}}
+									icon={<IconCirclePlus size={20} />}
+									tooltipProps={{ title: 'Add comment' }}
+								/>
+							)}
+						</span>
+					) : undefined
+				}
 				autoFocus
-				disabled={comment.length>= config.MAX_COMMENT_SIZE || !!existingComment || inTransition}
+				disabled={comment.length >= config.MAX_COMMENT_SIZE || !!existingComment || inTransition}
 			/>
 			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '2px' }}>
 				{!!existingComment && (
@@ -113,16 +107,3 @@ export default function CommentDialog() {
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	textField: {
-		'& .MuiOutlinedInput-root': {
-			padding: '5px',
-			borderRadius: 3,
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
-};

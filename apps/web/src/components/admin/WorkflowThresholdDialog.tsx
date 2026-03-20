@@ -1,5 +1,4 @@
 'use client';
-import { FormControlLabel } from '@mui/material';
 import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import Switch from '@/components/ui/Switch';
@@ -117,13 +116,9 @@ export default function WorkflowThresholdDialog({
 				/>
 
 				{editingThreshold && (
-					<FormControlLabel
-						control={
-							<Switch
-								checked={formData.isActive}
-								onChange={(checked) => setFormData({ ...formData, isActive: checked })}
-							/>
-						}
+					<Switch
+						checked={formData.isActive}
+						onChange={(checked) => setFormData({ ...formData, isActive: checked })}
 						label="Active"
 					/>
 				)}

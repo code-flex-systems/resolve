@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Paper } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 
@@ -62,7 +61,19 @@ export function CSVStep1({ fields, onParsed }: Props) {
 					.map((f) => f.label)
 					.join(', ')}
 			</p>
-			<Paper {...getRootProps({ style: { height: 300 } })} elevation={0} sx={styles.paper}>
+			<div
+				{...getRootProps({ style: { height: 300 } })}
+				style={{
+					height: 300,
+					padding: 32,
+					textAlign: 'center',
+					width: '100%',
+					backgroundColor: '#f7f7f7',
+					cursor: 'pointer',
+					borderRadius: 'var(--radius-lg)',
+					border: '1px solid var(--border)',
+				}}
+			>
 				<input {...getInputProps({ style: { height: 100, visibility: 'hidden' } })} />
 				<p>
 					{isDragActive ? 'Drop the CSV file here...' : 'Drag and drop a CSV file here, or click to select'}
@@ -72,19 +83,9 @@ export function CSVStep1({ fields, onParsed }: Props) {
 						Selected: {filename}
 					</p>
 				)}
-			</Paper>
+			</div>
 
 			{error && <p style={{ color: 'var(--color-error)' }}>{error}</p>}
 		</div>
 	);
 }
-
-const styles = {
-	paper: {
-		p: 4,
-		textAlign: 'center',
-		width: '100%',
-		backgroundColor: '#f7f7f7',
-		cursor: 'pointer',
-	},
-};

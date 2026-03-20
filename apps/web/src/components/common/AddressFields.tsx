@@ -1,6 +1,6 @@
 'use client';
 
-import { TextField } from '@mui/material';
+import Input from '@/components/ui/Input';
 import { Control, Controller, FieldErrors, useWatch, UseFormSetValue } from 'react-hook-form';
 import { useMemo, useEffect, useRef } from 'react';
 import Dropdown from '@/components/ui/Dropdown';
@@ -77,19 +77,6 @@ export default function AddressFields({
 		return (errors as any)[fieldName];
 	};
 
-	const textFieldSx = {
-		width,
-		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	};
-
 	return (
 		<>
 			{/* Street Address */}
@@ -97,15 +84,14 @@ export default function AddressFields({
 				name={fieldNames.street_address}
 				control={control}
 				render={({ field }) => (
-					<TextField
+					<Input
 						label="Street Address (optional)"
-
 						placeholder="123 Main St"
 						error={!!getError(fieldNames.street_address)}
 						{...field}
 						value={field.value ?? ''}
 						disabled={disabled}
-						sx={textFieldSx}
+						style={{ width, margin: '5px 0px' }}
 					/>
 				)}
 			/>
@@ -116,15 +102,14 @@ export default function AddressFields({
 					name={fieldNames.city}
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="City (optional)"
-
 							placeholder="City"
 							error={!!getError(fieldNames.city)}
 							{...field}
 							value={field.value ?? ''}
 							disabled={disabled}
-							sx={{ ...textFieldSx, width: (width - 16) / 2, flex: 1 }}
+							style={{ width: (width - 16) / 2, flex: 1, margin: '5px 0px' }}
 						/>
 					)}
 				/>
@@ -161,15 +146,14 @@ export default function AddressFields({
 					name={fieldNames.postal_code}
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Postal Code (optional)"
-
 							placeholder="12345"
 							error={!!getError(fieldNames.postal_code)}
 							{...field}
 							value={field.value ?? ''}
 							disabled={disabled}
-							sx={{ ...textFieldSx, width: (width - 16) / 2, flex: 1 }}
+							style={{ width: (width - 16) / 2, flex: 1, margin: '5px 0px' }}
 						/>
 					)}
 				/>

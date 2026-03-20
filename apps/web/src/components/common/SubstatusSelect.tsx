@@ -1,4 +1,3 @@
-import { MenuItem, Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -22,7 +21,7 @@ export default function SubstatusSelect({
 	text?: string;
 	disabled?: boolean;
 }) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	return (
 		<>
@@ -44,14 +43,19 @@ export default function SubstatusSelect({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 200 }}>
 						{Object.values(ClaimSubstatus)
 							.sort((a, b) => a.localeCompare(b))
 							.map((o) => (
-								<MenuItem
+								<div
 									key={o}
-									selected={substatus === o}
-									value={o}
+									style={{
+										padding: '8px 12px',
+										borderRadius: 6,
+										cursor: 'pointer',
+										fontSize: 13,
+										backgroundColor: substatus === o ? 'var(--status-info-bg)' : undefined,
+									}}
 									onClick={() => {
 										setSubstatus(o);
 										setAnchorEl(null);
@@ -60,21 +64,11 @@ export default function SubstatusSelect({
 									<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 										<span style={{ fontSize: 13 }}>{formatLabel(o)}</span>
 									</div>
-								</MenuItem>
+								</div>
 							))}
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-	},
-};

@@ -4,7 +4,6 @@ import {
 	InputLabel,
 	MenuItem,
 	Paper,
-	PopperProps,
 	Select,
 	Skeleton,
 	Tooltip,
@@ -48,7 +47,7 @@ export default function ReferenceDataSelect({
 	size = 'small',
 	fullWidth = true,
 }: ReferenceDataSelectProps) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	const { data: options = [], isLoading } = trpc.referenceData.getReferenceOptions.useQuery(
 		{ entity },

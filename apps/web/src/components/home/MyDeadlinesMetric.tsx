@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge } from '@mui/material';
+import Badge from '@/components/ui/Badge';
 import { CalendarIcon, DateCalendar, PickersDay, PickersDayProps } from '@mui/x-date-pickers-pro';
 import { Deadline, useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { DeadlineStatus } from '@/config/enums';
@@ -110,18 +110,9 @@ export default function MyDeadlinesMetric() {
 		return (
 			<Badge
 				key={day.toString()}
-				overlap="circular"
-				badgeContent={hasDeadlines ? dayDeadlines.length : undefined}
-				sx={{
-					bottom: -10,
-					'& .MuiBadge-badge': {
-						fontSize: 10,
-						height: 16,
-						minWidth: 16,
-						backgroundColor: 'var(--status-error)',
-						color: 'white',
-					},
-				}}>
+				content={hasDeadlines ? dayDeadlines.length : undefined}
+				color="error"
+			>
 				<PickersDay
 					{...other}
 					day={day}

@@ -1,4 +1,3 @@
-import { MenuItem, Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -29,7 +28,7 @@ export default function DeskLocationFilter({
 	label = 'Filter by desk location',
 	disabled = false,
 }: DeskLocationFilterProps) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const { data = { rows: [], count: 0 }, isFetching } = useDeskTrpc().listLocations(
 		{
 			deskLocationTypeId: deskLocationTypeId ?? undefined,
@@ -71,19 +70,24 @@ export default function DeskLocationFilter({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5, minWidth: 220, maxHeight: 300, overflowY: 'auto' }}>
 						{filteredLocations.length === 0 ? (
-							<MenuItem disabled>
+							<div style={{ padding: '8px 12px', borderRadius: 6, fontSize: 13 }}>
 								<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 									No locations available
 								</span>
-							</MenuItem>
+							</div>
 						) : (
 							filteredLocations.map((location) => (
-								<MenuItem
+								<div
 									key={location.id}
-									selected={value === location.id}
-									value={location.id}
+									style={{
+										padding: '8px 12px',
+										borderRadius: 6,
+										cursor: 'pointer',
+										fontSize: 13,
+										backgroundColor: value === location.id ? 'var(--status-info-bg)' : undefined,
+									}}
 									onClick={() => {
 										onChange(location.id);
 										setAnchorEl(null);
@@ -95,24 +99,12 @@ export default function DeskLocationFilter({
 											{location.name} {!location.is_active && '(Inactive)'}
 										</span>
 									</div>
-								</MenuItem>
+								</div>
 							))
 						)}
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 220,
-		maxHeight: 300,
-		overflowY: 'auto',
-	},
-};

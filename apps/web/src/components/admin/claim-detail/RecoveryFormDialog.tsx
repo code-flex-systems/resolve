@@ -1,5 +1,5 @@
 'use client';
-import { TextField } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
 import Dialog from '@/components/ui/Dialog';
 import Dropdown from '@/components/ui/Dropdown';
 import Button from '@/components/ui/Button';
@@ -85,7 +85,7 @@ export default function RecoveryFormDialog({
 						onChange={(val) => setFormData({ ...formData, recovery_date: val ?? '' })}
 						fullWidth
 					/>
-					<TextField
+					<Input
 						label="Recovery Amount"
 						type="number"
 						value={formData.recovery_amount}
@@ -93,23 +93,21 @@ export default function RecoveryFormDialog({
 						fullWidth
 						required
 						placeholder="0.00"
-						slotProps={{
-							htmlInput: { step: '0.01', min: '0' },
-						}}
+						step="0.01"
+						min="0"
 					/>
-					<TextField
+					<Input
 						label="Recovery Source"
 						value={formData.recovery_source}
 						onChange={(e) => setFormData({ ...formData, recovery_source: e.target.value })}
 						fullWidth
 						placeholder="e.g., Check, Wire Transfer, etc."
 					/>
-					<TextField
+					<Textarea
 						label="Notes"
 						value={formData.notes}
 						onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
 						fullWidth
-						multiline
 						rows={3}
 						placeholder="Additional details about this recovery..."
 					/>

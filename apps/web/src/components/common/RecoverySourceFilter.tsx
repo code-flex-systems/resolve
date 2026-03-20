@@ -1,4 +1,3 @@
-import { Paper, PopperProps } from '@mui/material';
 import CustomChip from '@/components/ui/Chip';
 import React, { useState } from 'react';
 import BasicPopper from './BasicPopper';
@@ -20,7 +19,7 @@ export default function RecoverySourceFilter({
 	text?: string;
 	disabled?: boolean;
 }) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const [inputValue, setInputValue] = useState(recoverySource);
 
 	const handleApply = () => {
@@ -53,7 +52,7 @@ export default function RecoverySourceFilter({
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 10, marginTop: 5, minWidth: 250 }}>
 						<input
 							type="text"
 							placeholder="Search recovery source..."
@@ -64,30 +63,18 @@ export default function RecoverySourceFilter({
 									handleApply();
 								}
 							}}
-							style={styles.input}
+							style={{
+								width: '100%',
+								border: 'none',
+								outline: 'none',
+								fontSize: 13,
+								padding: '5px',
+							}}
 							autoFocus
 						/>
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 250,
-		padding: '10px',
-	},
-	input: {
-		width: '100%',
-		border: 'none',
-		outline: 'none',
-		fontSize: 13,
-		padding: '5px',
-	},
-};

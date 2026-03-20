@@ -1,7 +1,6 @@
 'use client';
 
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Alert } from '@mui/material';
 import { ProgressBar } from '@/components/ui/Progress';
 import Collapse from '@/components/ui/Collapse';
 import { IconChevronDown } from '@tabler/icons-react';
@@ -87,8 +86,16 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 		return (
 			<>
 				{submitting && <ProgressBar />}
-				{submitSuccess === true && <Alert severity="success">Import successful!</Alert>}
-				{submitSuccess === false && <Alert severity="error">Import failed. Please try again.</Alert>}
+				{submitSuccess === true && (
+					<div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--status-success-bg)', color: 'var(--status-success)', fontSize: 13 }}>
+						Import successful!
+					</div>
+				)}
+				{submitSuccess === false && (
+					<div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--status-error-bg)', color: 'var(--status-error)', fontSize: 13 }}>
+						Import failed. Please try again.
+					</div>
+				)}
 
 				<div style={{ height: 250, minHeight: 250 }}>
 					<DataGridPro

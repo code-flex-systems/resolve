@@ -1,5 +1,4 @@
 'use client';
-import { FormLabel } from '@mui/material';
 import Tooltip from '@/components/ui/Tooltip';
 import Button from '@/components/ui/Button';
 import QuestionInfo from './QuestionInfo';
@@ -28,7 +27,7 @@ export default function ChecklistFormLabel(props: {
 	const isAssigned = useIsAssigned();
 	const isEmpty = Array.isArray(value) ? !value.length : !value;
 	return (
-		<FormLabel sx={{ marginLeft: 0, paddingLeft: 0 }} className="flex-row-left">
+		<label style={{ marginLeft: 0, paddingLeft: 0, display: 'flex', alignItems: 'center' }} className="flex-row-left">
 			{isAssigned && (
 				<Tooltip content="Reset question">
 					<span>
@@ -85,6 +84,6 @@ export default function ChecklistFormLabel(props: {
 					questionId={question.id}
 				/>
 			)}
-		</FormLabel>
+		</label>
 	);
 }

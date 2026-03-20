@@ -1,7 +1,7 @@
 'use client';
 
 import { IconEye, IconFileSearch, IconFilter, IconSquarePlus, IconUpload, IconUserSearch } from '@tabler/icons-react';
-import { Autocomplete, PopperProps, TextField } from '@mui/material';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
 import Switch from '@/components/ui/Switch';
@@ -186,7 +186,7 @@ export default function Claims() {
 	const [debouncedClientSearch, setDebouncedClientSearch] = useState('');
 
 	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
-	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 
 	const { data: feeds = [] } = useFeedTrpc().list();
 	const trpcUtils = useClaimTrpc();
@@ -312,7 +312,7 @@ export default function Claims() {
 		// Initialize search terms with current values
 		setInsuredSearchTerm(appliedInsured ?? '');
 		setClientSearchTerm(appliedClient ?? '');
-		setFiltersAnchorEl(e.currentTarget);
+		setFiltersAnchorEl(e.currentTarget as HTMLElement);
 	};
 
 	// Apply filters from draft to URL params
@@ -366,6 +366,13 @@ export default function Claims() {
 		appliedClient ||
 		appliedManualOnly ||
 		appliedClaimNumber;
+
+	// Map string options to ComboboxOption for insured/client
+	const insuredComboboxOptions: ComboboxOption[] = insuredOptions.map((s) => ({ value: s, label: s }));
+	const clientComboboxOptions: ComboboxOption[] = clientOptions.map((s) => ({ value: s, label: s }));
+
+	const selectedInsuredOption: ComboboxOption | null = draftInsured ? { value: draftInsured, label: draftInsured } : null;
+	const selectedClientOption: ComboboxOption | null = draftClient ? { value: draftClient, label: draftClient } : null;
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
@@ -533,60 +540,48 @@ export default function Claims() {
 										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Insured
 										</span>
-										<Autocomplete
+										<Combobox
 											freeSolo
-											options={insuredOptions}
-											value={draftInsured ?? ''}
-											onInputChange={(_, value) => {
+											options={insuredComboboxOptions}
+											value={selectedInsuredOption}
+											onChange={(opt) => {
+												setDraftInsured(opt ? String(opt.value) : null);
+											}}
+											onInputChange={(value) => {
 												setInsuredSearchTerm(value);
 											}}
-											onChange={(_, newValue) => {
-												setDraftInsured(typeof newValue === 'string' ? newValue : null);
-											}}
-											renderInput={(params) => (
-												<TextField
-													{...params}
-													variant="outlined"
-													placeholder={
-														insuredOptions.length === 0 && !insuredSearchTerm
-															? 'Type to search...'
-															: 'Search insured...'
-													}
-													size="small"
-												/>
-											)}
 											noOptionsText={insuredSearchTerm ? 'No matches' : 'Type to search'}
-											style={styles.autocomplete}
+											placeholder={
+												insuredOptions.length === 0 && !insuredSearchTerm
+													? 'Type to search...'
+													: 'Search insured...'
+											}
+											fullWidth
+											size="sm"
 										/>
 									</div>
 									<div>
 										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Client
 										</span>
-										<Autocomplete
+										<Combobox
 											freeSolo
-											options={clientOptions}
-											value={draftClient ?? ''}
-											onInputChange={(_, value) => {
+											options={clientComboboxOptions}
+											value={selectedClientOption}
+											onChange={(opt) => {
+												setDraftClient(opt ? String(opt.value) : null);
+											}}
+											onInputChange={(value) => {
 												setClientSearchTerm(value);
 											}}
-											onChange={(_, newValue) => {
-												setDraftClient(typeof newValue === 'string' ? newValue : null);
-											}}
-											renderInput={(params) => (
-												<TextField
-													{...params}
-													variant="outlined"
-													placeholder={
-														clientOptions.length === 0 && !clientSearchTerm
-															? 'Type to search...'
-															: 'Search client...'
-													}
-													size="small"
-												/>
-											)}
 											noOptionsText={clientSearchTerm ? 'No matches' : 'Type to search'}
-											style={styles.autocomplete}
+											placeholder={
+												clientOptions.length === 0 && !clientSearchTerm
+													? 'Type to search...'
+													: 'Search client...'
+											}
+											fullWidth
+											size="sm"
 										/>
 									</div>
 								</div>
@@ -669,6 +664,4 @@ const styles = {
 		minWidth: 300,
 		maxWidth: 400,
 	},
-	autocomplete: {
-		},
 };

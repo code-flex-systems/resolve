@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { Avatar, Paper, PopperProps } from '@mui/material';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from '../common/BasicPopper';
 import { useClerk } from '@clerk/nextjs';
@@ -15,7 +14,7 @@ import { IconEdit, IconLogout, IconMail, IconPhone } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
 
 export default function ProfileAvatar() {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const { data: session } = useClerkSession();
 	const { signOut } = useClerk();
@@ -29,11 +28,13 @@ id="avatar"
 					e.preventDefault();
 					e.stopPropagation();
 				}}>
-				<Avatar sx={styles.avatar}>{getInitials(session?.user?.name)}</Avatar>
+				<div style={{ width: 35, height: 35, borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+					{getInitials(session?.user?.name)}
+				</div>
 			</div>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
-					<Paper elevation={3} sx={styles.paper}>
+					<div style={styles.paper}>
 						<div
 style={{
 								...styles.row,
@@ -82,7 +83,7 @@ style={{
 								icon={<IconLogout size={20} />}
 							/>
 						</div>
-					</Paper>
+					</div>
 				</BasicPopper>
 			)}
 			{dialogOpen && <UpdateUserDialog onClose={() => setDialogOpen(false)} />}
@@ -91,12 +92,6 @@ style={{
 }
 
 const styles = {
-	avatar: {
-		width: 35,
-		height: 35,
-		fontSize: 15,
-		cursor: 'pointer',
-	},
 	divider: {
 		width: '100%',
 	},
@@ -114,6 +109,9 @@ const styles = {
 		alignItems: 'flex-start',
 		padding: 10,
 		marginTop: 5,
+		backgroundColor: 'var(--bg-primary)',
+		borderRadius: 'var(--radius-lg)',
+		boxShadow: 'var(--shadow-md)',
 	},
 	row: {
 		width: '100%',
