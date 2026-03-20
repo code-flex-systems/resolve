@@ -1,7 +1,8 @@
-import { ButtonOwnProps } from '@mui/material';
 import { JSX } from 'react';
 import config from '@/config/config';
 import { PageInstanceStatus } from '@/config/enums';
+
+type ButtonColor = 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
 
 // Plain Answer interface for runtime use (matches query output)
 export interface Answer {
@@ -141,7 +142,7 @@ export interface DialogAction {
 	onClick: () => void;
 	disabled?: boolean;
 	hidden?: boolean;
-	color?: ButtonOwnProps['color'];
+	color?: ButtonColor;
 	icon?: JSX.Element;
 }
 

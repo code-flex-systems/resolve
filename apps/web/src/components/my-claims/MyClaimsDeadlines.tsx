@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import dayjs from 'dayjs';
 import { DeadlineStatus } from '@/config/enums';
-import { CalendarIcon } from '@mui/x-date-pickers-pro';
+import { IconCalendar } from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
 
 type DeadlineFilter = 'all' | 'pending' | 'completed' | 'overdue';
@@ -70,7 +70,7 @@ export default function MyClaimsDeadlines() {
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
 			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+				<IconCalendar size={16} style={{ marginRight: 8 }} />
 				Related Deadlines
 			</div>
 			<div style={{ padding: 16 }}>

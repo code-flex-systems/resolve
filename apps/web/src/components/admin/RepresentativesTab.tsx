@@ -18,7 +18,8 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { formatPhoneDisplay } from '@/lib/utils/utils';
+import PhoneCell from './PhoneCell';
+import EmailCell from './EmailCell';
 import { formatAddressInline } from '@/schemas/addressSchemas';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
@@ -61,13 +62,13 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 	{
 		header: 'Email',
 		accessorKey: 'email',
-		cell: ({ row: { original: row } }) => row.email || '—',
+		cell: ({ row: { original: row } }) => <EmailCell value={row.email} />,
 		minSize: 180,
 	},
 	{
 		header: 'Phone',
 		accessorKey: 'phone',
-		cell: ({ row: { original: row } }) => formatPhoneDisplay(row.phone) || formatPhoneDisplay(row.mobile_phone) || '—',
+		cell: ({ row: { original: row } }) => <PhoneCell value={row.phone || row.mobile_phone} />,
 		size: 140,
 	},
 	{

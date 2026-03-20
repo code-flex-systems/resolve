@@ -7,8 +7,6 @@ import { httpBatchLink } from '@trpc/client';
 import SuperJSON from 'superjson';
 import { trpc } from '@/lib/trpc';
 import { ClerkProvider } from '@clerk/nextjs';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 export function Providers({ children, state }: { children: React.ReactNode; state?: DehydratedState }) {
@@ -45,9 +43,7 @@ export function Providers({ children, state }: { children: React.ReactNode; stat
 			<QueryClientProvider client={queryClient}>
 				<trpc.Provider client={trpcClient} queryClient={queryClient}>
 					<HydrationBoundary state={state}>
-						<LocalizationProvider dateAdapter={AdapterDayjs}>
-							{children}
-						</LocalizationProvider>
+						{children}
 					</HydrationBoundary>
 				</trpc.Provider>
 				{process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}

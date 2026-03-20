@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
 import CustomChip from '@/components/ui/Chip';
 import CustomButton from '@/components/ui/Button';
-import { DateRange, DateRangeCalendar } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import { IconClock } from '@tabler/icons-react';
 import dayjs, { Dayjs } from 'dayjs';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/style.css';
 
 const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 	{
@@ -117,6 +119,13 @@ export default function BasicDateRangePicker({
 		setAnchorEl(newAnchor);
 	};
 
+	const selectedRange =
+		range[0] && range[1]
+			? { from: range[0].toDate(), to: range[1].toDate() }
+			: range[0]
+				? { from: range[0].toDate(), to: undefined }
+				: undefined;
+
 	return (
 		<>
 			<span
@@ -156,13 +165,18 @@ export default function BasicDateRangePicker({
 										</span>
 									))}
 								</div>
-								<DateRangeCalendar
-									value={range}
-									onChange={(v) => {
-										setLabel(formatDateLabel(v));
-										setRange(v);
+								<DayPicker
+									mode="range"
+									selected={selectedRange}
+									onSelect={(newRange) => {
+										const from = newRange?.from ? dayjs(newRange.from) : null;
+										const to = newRange?.to ? dayjs(newRange.to) : null;
+										const newDateRange: DateRange<Dayjs> = [from, to];
+										setLabel(formatDateLabel(newDateRange));
+										setRange(newDateRange);
 									}}
-									disableFuture={disableFuture}
+									disabled={disableFuture ? { after: new Date() } : undefined}
+									numberOfMonths={2}
 								/>
 							</div>
 

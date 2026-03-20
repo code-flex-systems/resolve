@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { IconChevronDown } from '@tabler/icons-react';
+import { getPortalTarget } from './usePortalTarget';
 import styles from './Dropdown.module.css';
 
 /* =========================================================================
@@ -329,7 +330,7 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 								<div className={styles.emptyState}>No options</div>
 							)}
 						</div>,
-						document.body
+						getPortalTarget(triggerRef)
 					)}
 			</div>
 		);

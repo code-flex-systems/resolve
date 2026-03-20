@@ -1,5 +1,5 @@
 'use client';
-import { LineChart } from '@mui/x-charts-pro';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from '@/components/ui/Card';
 import KpiCard from '@/components/ui/KpiCard';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
@@ -8,7 +8,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import BasicButtonStyled from '../../common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import Skeleton from '@/components/ui/Skeleton';
 import { IconBug } from '@tabler/icons-react';
 
@@ -72,9 +72,11 @@ export default function RecoveryMetricsChart({
 	const isLoading = isFetchingTimeSeries || isFetchingCurrentSummary || isFetchingLastSummary;
 
 	// Format data for chart
-	const xLabels = timeSeriesData.map((d) => dayjs(d.month_start).format('MMM YYYY'));
-	const expectedData = timeSeriesData.map((d) => d.expected_recovery);
-	const actualData = timeSeriesData.map((d) => d.actual_recovery);
+	const chartData = timeSeriesData.map((d: any) => ({
+		name: dayjs(d.month_start).format('MMM YYYY'),
+		expected: d.expected_recovery,
+		actual: d.actual_recovery,
+	}));
 
 	// Calculate summary metrics
 	const currentExpected = currentSummary?.total_expected ?? 0;
@@ -90,7 +92,7 @@ export default function RecoveryMetricsChart({
 
 	const containerWidth = isBreakdown ? '100%' : 600;
 	const chartHeight = isBreakdown ? 400 : 260;
-	const chartMargin = isBreakdown ? { left: 80, right: 20, top: 20, bottom: 60 } : { left: 60, right: 10, top: 10 };
+	const chartMargin = isBreakdown ? { left: 80, right: 20, top: 20, bottom: 60 } : { left: 60, right: 10, top: 10, bottom: 20 };
 	const padding = isBreakdown ? '30px' : '20px';
 	const titleFontSize = isBreakdown ? 18 : 14;
 	const cardPadding = isBreakdown ? 16 : 8;
@@ -99,6 +101,9 @@ export default function RecoveryMetricsChart({
 	const cardSubtextSize = isBreakdown ? 13 : 12;
 	const spacing = isBreakdown ? 16 : 8;
 	const marginBottom = isBreakdown ? 24 : 12;
+
+	const formatTooltipValue = (value: number) =>
+		`$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 	return (
 		<div style={{ width: containerWidth }}>
@@ -180,56 +185,44 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 
 						{/* Line Chart */}
 						<div style={{ width: '100%', height: chartHeight }}>
-							<LineChart
-								xAxis={[
-									{
-										scaleType: 'band',
-										data: xLabels,
-										tickLabelStyle: {
-											angle: 0,
-											textAnchor: 'middle',
-											fontSize: isBreakdown ? 11 : 10,
-										},
-									},
-								]}
-								yAxis={[
-									{
-										valueFormatter: (value: number) => formatCurrency(value),
-										tickLabelStyle: {
-											fontSize: isBreakdown ? 11 : 10,
-										},
-									},
-								]}
-								series={[
-									{
-										data: expectedData,
-										label: 'Expected',
-										color: 'var(--text-accent)',
-										curve: 'linear',
-										valueFormatter: (value: number | null) =>
-											value !== null
-												? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-												: 'N/A',
-									},
-									{
-										data: actualData,
-										label: 'Actual',
-										color: 'var(--status-success)',
-										curve: 'linear',
-										valueFormatter: (value: number | null) =>
-											value !== null
-												? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-												: 'N/A',
-									},
-								]}
-								margin={chartMargin}
-								slotProps={{
-									legend: {
-										direction: 'horizontal',
-										position: { vertical: 'bottom', horizontal: 'center' },
-									},
-								}}
-							/>
+							<ResponsiveContainer width="100%" height={chartHeight}>
+								<LineChart data={chartData} margin={chartMargin}>
+									<XAxis
+										dataKey="name"
+										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
+										stroke="var(--border)"
+									/>
+									<YAxis
+										tickFormatter={(value: number) => formatCurrency(value)}
+										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
+										stroke="var(--border)"
+									/>
+									<Tooltip
+										formatter={(value: any, name: any) => [formatTooltipValue(value as number), name]}
+									/>
+									<Legend
+										verticalAlign="bottom"
+										align="center"
+										layout="horizontal"
+									/>
+									<Line
+										type="linear"
+										dataKey="expected"
+										name="Expected"
+										stroke="var(--text-accent)"
+										strokeWidth={2}
+										dot={false}
+									/>
+									<Line
+										type="linear"
+										dataKey="actual"
+										name="Actual"
+										stroke="var(--status-success)"
+										strokeWidth={2}
+										dot={false}
+									/>
+								</LineChart>
+							</ResponsiveContainer>
 						</div>
 					</>
 				)}

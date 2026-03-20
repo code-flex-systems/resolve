@@ -3,7 +3,7 @@
 import { useRecoveryTrpc, RecoveryEventWithDetails } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import { formatCurrency, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import ExportButton from '@/components/common/ExportButton';

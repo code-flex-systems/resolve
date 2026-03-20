@@ -1,6 +1,6 @@
 import { Claim } from '@/hooks/trpc/useClaimTrpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';

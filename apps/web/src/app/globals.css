@@ -36,7 +36,7 @@ img {
 body {
 	font-family: var(--font-sans);
 	font-size: var(--text-base);
-	line-height: var(--leading-relaxed);
+	line-height: var(--leading-normal);
 	color: var(--text-primary);
 	background: var(--bg-primary);
 	-webkit-font-smoothing: antialiased;
@@ -260,4 +260,10 @@ body {
 	max-width: 0 !important;
 	width: 0 !important;
 	overflow: hidden !important;
+}
+
+/* react-day-picker overrides */
+.rdp {
+	--rdp-accent-color: var(--text-accent);
+	--rdp-background-color: var(--status-info-bg);
 }

@@ -18,7 +18,8 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { formatPhoneDisplay } from '@/lib/utils/utils';
+import PhoneCell from './PhoneCell';
+import EmailCell from './EmailCell';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface PartiesTabProps {
@@ -51,13 +52,13 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 	{
 		header: 'Email',
 		accessorKey: 'primary_email',
-		cell: ({ row: { original: row } }) => row.primary_email || '—',
+		cell: ({ row: { original: row } }) => <EmailCell value={row.primary_email} />,
 		size: 200,
 	},
 	{
 		header: 'Phone',
 		accessorKey: 'primary_phone',
-		cell: ({ row: { original: row } }) => formatPhoneDisplay(row.primary_phone) || '—',
+		cell: ({ row: { original: row } }) => <PhoneCell value={row.primary_phone} />,
 		size: 140,
 	},
 	{

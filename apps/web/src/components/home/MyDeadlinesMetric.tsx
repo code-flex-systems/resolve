@@ -1,7 +1,7 @@
 'use client';
 
 import Badge from '@/components/ui/Badge';
-import { CalendarIcon, DateCalendar, PickersDay, PickersDayProps } from '@mui/x-date-pickers-pro';
+import { IconCalendar } from '@tabler/icons-react';
 import { Deadline, useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { DeadlineStatus } from '@/config/enums';
 import Card from '@/components/ui/Card';
@@ -10,6 +10,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import DailyEventsList from './DailyEventsList';
 import { IconAlertTriangle, IconClock } from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/style.css';
 
 export default function MyDeadlinesMetric() {
 	// Calendar state
@@ -99,39 +101,10 @@ export default function MyDeadlinesMetric() {
 		return grouped;
 	}, [monthData]);
 
-	// Custom day renderer with badge
-	function CustomDay(props: PickersDayProps) {
-		const { day, ...other } = props;
-		const dateKey = day.format('YYYY-MM-DD');
-		const dayDeadlines = deadlinesByDay.get(dateKey);
-		const hasDeadlines = dayDeadlines && dayDeadlines.length> 0;
-		const isSelected = selectedDate && day.isSame(selectedDate, 'day');
-
-		return (
-			<Badge
-				key={day.toString()}
-				content={hasDeadlines ? dayDeadlines.length : undefined}
-				color="error"
-			>
-				<PickersDay
-					{...other}
-					day={day}
-					selected={Boolean(isSelected)}
-					onClick={(e) => {
-						e.stopPropagation();
-						e.preventDefault();
-						setSelectedDate(day);
-					}}
-					sx={{
-						cursor: 'pointer',
-						'&:hover': {
-							backgroundColor: 'var(--bg-tertiary)',
-						},
-					}}
-				/>
-			</Badge>
-		);
-	}
+	// Dates that have deadlines (for modifiers)
+	const deadlineDates = useMemo(() => {
+		return Array.from(deadlinesByDay.keys()).map((key) => new Date(key + 'T00:00:00'));
+	}, [deadlinesByDay]);
 
 	// Get deadlines for selected date
 	const selectedDeadlines = useMemo(() => {
@@ -143,7 +116,7 @@ export default function MyDeadlinesMetric() {
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
 			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+				<IconCalendar size={16} style={{ marginRight: 8 }} />
 				My Deadlines
 			</div>
 			<div style={{ ...styles.contentContainer, padding: 16 }}>
@@ -187,25 +160,22 @@ style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width:
 						</Card>
 
 						{/* Calendar */}
-						<DateCalendar
-							value={selectedDate || currentMonth}
-							onChange={(newValue) => {
-								if (newValue) {
-									setCurrentMonth(newValue);
-									setSelectedDate(newValue);
+						<DayPicker
+							mode="single"
+							selected={selectedDate?.toDate() ?? undefined}
+							onSelect={(date) => {
+								if (date) {
+									const d = dayjs(date);
+									setCurrentMonth(d);
+									setSelectedDate(d);
 								}
 							}}
-							onMonthChange={(newMonth) => {
-								setCurrentMonth(newMonth);
+							onMonthChange={(month) => {
+								setCurrentMonth(dayjs(month));
 							}}
-							sx={{
-								'& .MuiDayCalendar-monthContainer': {
-									overflow: 'unset',
-								},
-							}}
-							slots={{
-								day: CustomDay,
-							}}
+							month={currentMonth?.toDate() ?? undefined}
+							modifiers={{ hasDeadline: deadlineDates }}
+							modifiersStyles={{ hasDeadline: { fontWeight: 'bold', backgroundColor: 'var(--status-info-bg)' } }}
 						/>
 
 						{/* Daily Events List - fills remaining space */}

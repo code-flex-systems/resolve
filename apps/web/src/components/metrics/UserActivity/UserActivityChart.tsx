@@ -1,9 +1,9 @@
 'use client';
-import { BarChart } from '@mui/x-charts-pro';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatMD } from '@/lib/utils/utils';
 import dayjs, { Dayjs } from 'dayjs';
 import { GetUserOutput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useMemo } from 'react';
 import MetricValue from '@/components/common/MetricValue';
@@ -42,8 +42,10 @@ export default function UserActivityChart({
 
 	const isLoading = isFetching || isFetchingStats;
 	const formattedData = data.map((r) => ({ ...r, active_users: parseInt(r.active_users ?? '0') }));
-	const xLabels = formattedData.map((r) => r.activity_date);
-	const yValues = formattedData.map((r) => r.active_users);
+	const chartData = formattedData.map((r) => ({
+		name: r.activity_date,
+		active_users: r.active_users,
+	}));
 	const maxUserRow = formattedData.find((u) => u.activity_date === stats.maxRow?.activity_date);
 	const maxY = maxUserRow ? Math.ceil(maxUserRow.active_users / 10) * 10 : 10;
 
@@ -77,30 +79,34 @@ export default function UserActivityChart({
 									isBreakdown={true}
 								/>
 								<div style={{ width: '100%', height: 380, padding: '20px' }}>
-									<BarChart
-										xAxis={[
-											{
-												scaleType: 'band',
-												data: xLabels,
-												valueFormatter: (v) => formatMD(v),
-												height: 50,
-												tickMinStep: 1,
-												tickLabelStyle: {
-													angle: 45,
-												},
-												categoryGapRatio: 0.5,
-											},
-										]}
-										yAxis={[{ tickMinStep: 1, max: maxY }]}
-										series={[{ data: yValues, label: 'Active users' }]}
-										margin={{ left: 0, right: 30, top: 20, bottom: 10 }}
-										// width={700}
-										// height={350}
-										borderRadius={3}
-										colors={['var(--text-accent)']}
-										hideLegend
-										loading={isFetching || isFetchingStats}
-									/>
+									<ResponsiveContainer width="100%" height="100%">
+										<BarChart data={chartData} margin={{ left: 0, right: 30, top: 20, bottom: 10 }}>
+											<XAxis
+												dataKey="name"
+												tickFormatter={(v) => formatMD(v)}
+												tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+												stroke="var(--border)"
+												angle={45}
+												textAnchor="start"
+												height={50}
+											/>
+											<YAxis
+												domain={[0, maxY]}
+												allowDecimals={false}
+												tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+												stroke="var(--border)"
+											/>
+											<Tooltip
+												formatter={(value: any) => [value, 'Active users']}
+												labelFormatter={(label) => formatMD(label as string)}
+											/>
+											<Bar
+												dataKey="active_users"
+												fill="var(--text-accent)"
+												radius={[3, 3, 0, 0]}
+											/>
+										</BarChart>
+									</ResponsiveContainer>
 								</div>
 							</>
 						)}

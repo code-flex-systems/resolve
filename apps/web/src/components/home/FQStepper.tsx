@@ -1,14 +1,3 @@
-import {
-	Box,
-	Stack,
-	Step,
-	StepConnector,
-	stepConnectorClasses,
-	StepLabel,
-	Stepper,
-	styled,
-	Typography,
-	Tooltip} from '@mui/material';
 import { useState, useEffect } from 'react';
 import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
@@ -16,6 +5,7 @@ import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import { getFiscalYearStart } from '@/config/config';
 import { IconCalendar, IconCheck } from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
+import Tooltip from '@/components/ui/Tooltip';
 
 const steps: { value: number; label: string }[] = [
 	{ value: 1, label: 'Q1' },
@@ -24,58 +14,28 @@ const steps: { value: number; label: string }[] = [
 	{ value: 4, label: 'Q4' },
 ];
 
-const Connector = styled(StepConnector)(({ theme }) => ({
-	[`&.${stepConnectorClasses.root}`]: {
-		marginLeft: '10px',
-	},
-	[`&.${stepConnectorClasses.alternativeLabel}`]: {
-		top: 10,
-		left: 'calc(-50% + 16px)',
-		right: 'calc(50% + 16px)',
-	},
-	[`&.${stepConnectorClasses.active}`]: {
-		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: theme.palette.secondary.light,
-		},
-	},
-	[`&.${stepConnectorClasses.completed}`]: {
-		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: theme.palette.secondary.light,
-		},
-	},
-	[`& .${stepConnectorClasses.line}`]: {
-		borderWidth: 2,
-		height: '100%',
-		borderColor: '#eaeaf0',
-
-		...theme.applyStyles('dark', {
-			borderColor: theme.palette.grey[800],
-		}),
-	},
-}));
-
 function IconContainer({ active, index }: { active: number; index: number }) {
 	return (
-		<Box
-			width={20}
-			height={20}
-			display="flex"
-			justifyContent="center"
-			alignItems="center"
-			sx={{
-				backgroundImage: index <= active ? 'linear-gradient(rgb(50, 174, 153), rgba(50, 174, 153, 0.9))' : '',
+		<div
+			style={{
+				width: 20,
+				height: 20,
+				display: 'flex',
+				justifyContent: 'center',
+				alignItems: 'center',
+				backgroundImage: index <= active ? 'linear-gradient(rgb(50, 174, 153), rgba(50, 174, 153, 0.9))' : undefined,
+				backgroundColor: index <= active ? undefined : 'var(--text-muted)',
+				borderRadius: 20,
 			}}
-			bgcolor={index <= active ? '' : 'var(--text-muted)'}
-			borderRadius={20}
 		>
 			{index === active ? (
-				<IconCalendar size={20} style={{ color: 'white', fontSize: 17 }} />
+				<IconCalendar size={20} style={{ color: 'white' }} />
 			) : index < active ? (
-				<IconCheck size={20} style={{ color: 'white', fontSize: 17 }} />
+				<IconCheck size={20} style={{ color: 'white' }} />
 			) : (
-				<IconCalendar size={20} style={{ color: 'white', fontSize: 17 }} />
+				<IconCalendar size={20} style={{ color: 'white' }} />
 			)}
-		</Box>
+		</div>
 	);
 }
 
@@ -103,62 +63,72 @@ export default function FQStepper() {
 		: ['0', '0', '0', '0'];
 
 	return (
-		<Stack
-			width={150}
-			minWidth={150}
-			height={600}
-			display="flex"
-			justifyContent="flex-start"
-			alignItems="center"
-			bgcolor="white"
-			borderRadius={4}
-			margin="15px"
-			padding="15px"
+		<div
+			style={{
+				width: 150,
+				minWidth: 150,
+				height: 600,
+				display: 'flex',
+				flexDirection: 'column',
+				justifyContent: 'flex-start',
+				alignItems: 'center',
+				backgroundColor: 'white',
+				borderRadius: 16,
+				margin: 15,
+				padding: 15,
+			}}
 		>
-			<Box display="flex" justifyContent="center" alignItems="center" marginBottom={2} padding="0px 10px">
-				<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 16, padding: '0px 10px' }}>
+				<span style={{ fontSize: 14, fontWeight: 600 }}>
 					Fiscal Year Recovery
-				</Typography>
-			</Box>
+				</span>
+			</div>
 
-			<Stepper
-				sx={{ width: '100%', height: 'calc(100% - 50px)', marginLeft: '20px' }}
-				connector={<Connector />}
-				orientation="vertical"
-				activeStep={active}
-			>
+			<div style={{ width: '100%', height: 'calc(100% - 50px)', marginLeft: 20, display: 'flex', flexDirection: 'column', gap: 0 }}>
 				{steps.map(({ value, label }, i) => (
-					<Step key={value}>
-						<StepLabel icon={<IconContainer active={active} index={i} />}>
-							<Box display="flex" flexDirection="column" alignItems="flex-start">
-								<Typography
-									fontSize={15}
-									fontWeight={i === active ? 700 : 500}
-									color={i <= active ? 'var(--text-accent)' : 'var(--text-muted)'}
-								>
-									{label}
-								</Typography>
-								{isLoading ? (
-									<Skeleton variant="text" width={80} height={20} />
-								) : (
-									<Tooltip title={getQuarterDateRange(i)} placement="right">
-										<Typography
-											fontSize={i === active ? 15 : 13}
-											fontWeight={i === active ? 600 : 400}
-											color={
-												i <= active ? 'var(--text-primary)' : 'var(--text-muted)'
-											}
-											sx={{ cursor: 'help' }}
-										>
-											{formatCurrency(parseFloat(quarterAmounts[i]))}
-										</Typography>
-									</Tooltip>
-								)}
-							</Box>
-						</StepLabel>
-					</Step>
+					<div key={value} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+							<IconContainer active={active} index={i} />
+							{i < steps.length - 1 && (
+								<div
+									style={{
+										width: 2,
+										flex: 1,
+										backgroundColor: i < active ? 'rgb(50, 174, 153)' : '#eaeaf0',
+									}}
+								/>
+							)}
+						</div>
+						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+							<span
+								style={{
+									fontSize: 15,
+									fontWeight: i === active ? 700 : 500,
+									color: i <= active ? 'var(--text-accent)' : 'var(--text-muted)',
+								}}
+							>
+								{label}
+							</span>
+							{isLoading ? (
+								<Skeleton variant="text" width={80} height={20} />
+							) : (
+								<Tooltip content={getQuarterDateRange(i)} position="right">
+									<span
+										style={{
+											fontSize: i === active ? 15 : 13,
+											fontWeight: i === active ? 600 : 400,
+											color: i <= active ? 'var(--text-primary)' : 'var(--text-muted)',
+											cursor: 'help',
+										}}
+									>
+										{formatCurrency(parseFloat(quarterAmounts[i]))}
+									</span>
+								</Tooltip>
+							)}
+						</div>
+					</div>
 				))}
-			</Stepper>
-		</Stack>
+			</div>
+		</div>
 	);
 }

@@ -1,16 +1,6 @@
-import {
-	Badge,
-	badgeClasses,
-	Box,
-	ClickAwayListener,
-	IconButton,
-	InputAdornment,
-	Stack,
-	TextField,
-	Typography} from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Comments from '../common/Comments';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
@@ -21,6 +11,7 @@ import { IconChevronLeft, IconChevronRight, IconCirclePlus, IconMessage } from '
 import Skeleton from '@/components/ui/Skeleton';
 import Collapse from '@/components/ui/Collapse';
 import Divider from '@/components/ui/Divider';
+import Badge from '@/components/ui/Badge';
 
 const limit = 30;
 const pageSize = 3;
@@ -35,6 +26,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	const goToPage = useChecklistStore((state) => state.goToPage);
 	const toggleHighlightedQuestion = useChecklistStore((state) => state.toggleHighlightedQuestion);
 	const isAssigned = useIsAssigned(true);
+	const commentFormRef = useRef<HTMLDivElement>(null);
 
 	const { data = { rows: [], count: 0 }, isFetching } = useCommentTrpc().list(
 		{ filters: { checklistId, claimId }, limit, offset: commentOffset },
@@ -69,18 +61,32 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 		}
 	};
 
+	// Click-away handler for comment form
+	useEffect(() => {
+		if (!showNewComment) return;
+		const handleClickOutside = (e: MouseEvent) => {
+			if (commentFormRef.current && !commentFormRef.current.contains(e.target as Node)) {
+				closeNewComment();
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [showNewComment]);
+
 	return (
-		<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start" bgcolor="white">
-			<Box
-				width="100%"
-				height={40}
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				padding="5px 10px"
+		<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white' }}>
+			<div
+				style={{
+					width: '100%',
+					height: 40,
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					padding: '5px 10px',
+				}}
 			>
-				<Badge badgeContent={data?.count ?? 0} color="secondary" showZero={false} sx={styles.badge}>
-					<Typography fontSize={15}>Comments</Typography>
+				<Badge content={(data?.count ?? 0) || undefined} color="primary">
+					<span style={{ fontSize: 15 }}>Comments</span>
 				</Badge>
 
 				{isAssigned && (
@@ -92,74 +98,82 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 						tooltipProps={{ title: 'New comment' }}
 					/>
 				)}
-			</Box>
+			</div>
 
 			<Divider />
 
 			<Collapse open={showNewComment}>
-				<ClickAwayListener onClickAway={closeNewComment}>
-					<Stack
-						width="100%"
-						height="100%"
-						display="flex"
-						justifyContent="flex-start"
-						alignItems="flex-start"
-						padding="10px"
-					>
-						<TextField
+				<div
+					ref={commentFormRef}
+					style={{
+						width: '100%',
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+						justifyContent: 'flex-start',
+						alignItems: 'flex-start',
+						padding: 10,
+					}}
+				>
+					<div style={{ position: 'relative', width: '100%' }}>
+						<textarea
 							value={newComment}
 							placeholder="New comment..."
 							onChange={(e) => {
 								if (e.target.value.length <= config.MAX_COMMENT_SIZE) setNewComment(e.target.value);
 							}}
-							multiline
 							rows={5}
-							variant="outlined"
-							sx={styles.textField}
-							fullWidth
-							slotProps={{
-								input: {
-									endAdornment: (
-										<InputAdornment sx={{ marginTop: '90px', marginRight: '5px' }} position="end">
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () => addComment().catch(console.error),
-													disabled: !newComment || isPending,
-												}}
-												icon={<IconCirclePlus size={20} />}
-												tooltipProps={{ title: 'Add comment' }}
-											/>
-										</InputAdornment>
-									),
-								},
+							style={{
+								width: '100%',
+								padding: 5,
+								borderRadius: 12,
+								border: '1px solid var(--border)',
+								fontSize: 14,
+								resize: 'none',
+								fontFamily: 'inherit',
 							}}
 						/>
-						<Box width="100%" display="flex" justifyContent="flex-end" alignItems="center" paddingTop="2px">
-							<Typography
-								fontSize={12}
-								color={newComment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined}
-							>
-								Max characters: {newComment.length}/{config.MAX_COMMENT_SIZE}
-							</Typography>
-						</Box>
-					</Stack>
-				</ClickAwayListener>
+						<div style={{ position: 'absolute', bottom: 8, right: 8 }}>
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: () => addComment().catch(console.error),
+									disabled: !newComment || isPending,
+								}}
+								icon={<IconCirclePlus size={20} />}
+								tooltipProps={{ title: 'Add comment' }}
+							/>
+						</div>
+					</div>
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 2 }}>
+						<span
+							style={{
+								fontSize: 12,
+								color: newComment.length === config.MAX_COMMENT_SIZE ? 'var(--status-error)' : undefined,
+							}}
+						>
+							Max characters: {newComment.length}/{config.MAX_COMMENT_SIZE}
+						</span>
+					</div>
+				</div>
 			</Collapse>
 
-			<Stack
-				width="100%"
-				height={200}
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="center"
-				overflow="auto"
+			<div
+				style={{
+					width: '100%',
+					height: 200,
+					display: 'flex',
+					flexDirection: 'column',
+					justifyContent: 'flex-start',
+					alignItems: 'center',
+					overflow: 'auto',
+				}}
 			>
 				{isFetching ? (
-					<Stack width="100%" spacing={1.5} p={1.5}>
+					<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
 						{[1, 2, 3].map((i) => (
 							<Skeleton key={i} variant="rect" height={50} />
 						))}
-					</Stack>
+					</div>
 				) : (
 					<Comments
 						width={460}
@@ -175,39 +189,24 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 						}}
 					/>
 				)}
-			</Stack>
+			</div>
 
-			<Box width="100%" height={40} display="flex" justifyContent="center" alignItems="center" padding="5px 10px">
-				<IconButton onClick={() => updatePage(-1)} disabled={isFetching || (page === 0 && commentOffset === 0)}>
+			<div style={{ width: '100%', height: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5px 10px' }}>
+				<button
+					onClick={() => updatePage(-1)}
+					disabled={isFetching || (page === 0 && commentOffset === 0)}
+					style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isFetching || (page === 0 && commentOffset === 0) ? 0.4 : 1 }}
+				>
 					<IconChevronLeft size={20} />
-				</IconButton>
-				<IconButton
+				</button>
+				<button
 					onClick={() => updatePage(1)}
 					disabled={isFetching || commentOffset + page + pageSize >= data.count}
+					style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isFetching || commentOffset + page + pageSize >= data.count ? 0.4 : 1 }}
 				>
 					<IconChevronRight size={20} />
-				</IconButton>
-			</Box>
-		</Stack>
+				</button>
+			</div>
+		</div>
 	);
 }
-
-const styles = {
-	badge: {
-		[`& .${badgeClasses.badge}`]: {
-			top: 5,
-			right: -10,
-			fontSize: 10,
-		},
-	},
-	textField: {
-		'& .MuiOutlinedInput-root': {
-			padding: '5px',
-			borderRadius: 3,
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
-};

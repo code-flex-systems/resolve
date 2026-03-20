@@ -1,20 +1,17 @@
 'use client';
 
+import { formatPhoneDisplay } from '@/lib/utils/utils';
 
 export default function PhoneCell({
 	value,
-	verified,
-	disabled,
 }: {
-	value: string;
-	verified: boolean;
-	disabled: boolean;
+	value: string | null | undefined;
+	verified?: boolean;
+	disabled?: boolean;
 }) {
-	return value ? (
-		<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<span style={{ marginLeft: 4, color: 'var(--text-accent)' }}>{value}</span>
-		</div>
-	) : (
-		<>-</>
-	);
+	const formatted = formatPhoneDisplay(value);
+	if (!formatted) {
+		return <span style={{ color: 'var(--text-muted)' }}>—</span>;
+	}
+	return <span>{formatted}</span>;
 }

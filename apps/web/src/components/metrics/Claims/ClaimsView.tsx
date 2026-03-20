@@ -3,7 +3,7 @@
 import PageWrapper from '@/components/common/PageWrapper';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useState } from 'react';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';

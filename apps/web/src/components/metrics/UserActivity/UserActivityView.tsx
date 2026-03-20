@@ -3,7 +3,7 @@
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import SearchInput from '@/components/common/SearchInput';
 import { useCallback, useState } from 'react';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import UserActivityTable from './UserActivityTable';
 import { useRouter } from 'next/navigation';

@@ -1,17 +1,5 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
-import {
-	Box,
-	Button,
-	FormControlLabel,
-	IconButton,
-	InputAdornment,
-	MenuItem,
-	Radio,
-	RadioGroup,
-	TextField,
-	Fade } from '@mui/material';
-
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -22,7 +10,9 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import BasicIconButton from '../common/BasicIconButton';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -31,6 +21,8 @@ import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 import { IconCheck, IconCircleCheck, IconCopy, IconHelpCircle, IconPaperclip, IconTrash, IconX } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
+import Input from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Input';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -56,11 +48,8 @@ export default function FormQuestion() {
 	const { isPending: deleting, mutateAsync: deleteQuestion } = remove;
 	const { data: questions, isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
 
-	// Fetch attached document for current question
 	const { data: attachedDocsResult } = useDocTrpc().listDocs(
-		{
-			filters: { question_id: selectedQuestionData.id },
-		},
+		{ filters: { question_id: selectedQuestionData.id } },
 		{ enabled: selectedQuestionData.id !== -1 }
 	);
 	const attachedDocs = attachedDocsResult?.rows ?? [];
@@ -74,9 +63,7 @@ export default function FormQuestion() {
 		formState: { errors, isDirty, isValid, isSubmitting },
 		watch,
 	} = useForm<Omit<Question, 'answers'>>({
-		defaultValues: {
-			...getDefaults(selectedQuestionData),
-		},
+		defaultValues: { ...getDefaults(selectedQuestionData) },
 		mode: 'onChange',
 	});
 	const questionText = watch('text');
@@ -88,8 +75,6 @@ export default function FormQuestion() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			// Extract only the fields needed for QuestionParams/QuestionUpdateParams
-			// Note: type needs to be cast to QuestionType enum
 			const params = {
 				text: data.text,
 				type: data.type as QuestionType,
@@ -104,11 +89,7 @@ export default function FormQuestion() {
 			const newQuestion =
 				selectedQuestionData.id === -1
 					? await addQuestion({ pageId: selectedPageInfo.pageId, params })
-					: await updateQuestion({
-							questionId: selectedQuestionData.id,
-							pageId: selectedPageInfo.pageId,
-							params,
-						});
+					: await updateQuestion({ questionId: selectedQuestionData.id, pageId: selectedPageInfo.pageId, params });
 			if (newQuestion.page_id === selectedPageInfo.pageId) {
 				updateSelectedQuestion(newQuestion.id);
 			}
@@ -122,10 +103,7 @@ export default function FormQuestion() {
 
 	const onCopy = async () => {
 		try {
-			const newQuestion = await copyQuestion({
-				questionId: selectedQuestionData.id,
-				pageId: selectedPageInfo.pageId,
-			});
+			const newQuestion = await copyQuestion({ questionId: selectedQuestionData.id, pageId: selectedPageInfo.pageId });
 			updateSelectedQuestion(newQuestion.id);
 			showSuccess('copy');
 		} catch (e) {
@@ -135,10 +113,7 @@ export default function FormQuestion() {
 
 	const onDelete = async () => {
 		try {
-			await deleteQuestion({
-				questionId: selectedQuestionData.id,
-				pageId: selectedPageInfo.pageId,
-			});
+			await deleteQuestion({ questionId: selectedQuestionData.id, pageId: selectedPageInfo.pageId });
 			updateSelectedQuestion(null);
 			showSuccess('delete', 'Question deleted');
 		} catch (e) {
@@ -153,16 +128,11 @@ export default function FormQuestion() {
 	};
 
 	const handleSelectDocument = async (doc: DocListItem) => {
-		// Unlink the previous document first if there is one
 		if (attachedDoc && attachedDoc.id !== doc.id) {
 			try {
-				await updateDoc({
-					docId: attachedDoc.id,
-					params: { question_id: null },
-				});
+				await updateDoc({ docId: attachedDoc.id, params: { question_id: null } });
 			} catch (e) {
 				console.error('Failed to unlink previous document:', e);
-				// Continue anyway - the new document will be linked
 			}
 		}
 		setAttachedDoc(doc);
@@ -172,11 +142,7 @@ export default function FormQuestion() {
 	const handleRemoveDocument = async () => {
 		if (!attachedDoc) return;
 		try {
-			// Unlink the document instead of deleting it
-			await updateDoc({
-				docId: attachedDoc.id,
-				params: { question_id: null },
-			});
+			await updateDoc({ docId: attachedDoc.id, params: { question_id: null } });
 			setAttachedDoc(null);
 			showSuccess('update', 'Attachment removed from question');
 		} catch (e) {
@@ -188,10 +154,9 @@ export default function FormQuestion() {
 		reset({ ...getDefaults(selectedQuestionData) });
 	}, [selectedQuestionData, selectedPageInfo.pageId]);
 
-	// Sync attached document when docs are fetched
 	useEffect(() => {
 		if (attachedDocs.length > 0) {
-			setAttachedDoc(attachedDocs[0]); // Only support one document per question
+			setAttachedDoc(attachedDocs[0]);
 		} else {
 			setAttachedDoc(null);
 		}
@@ -207,8 +172,15 @@ export default function FormQuestion() {
 		return options;
 	}, [questions, isPlaceholder]);
 
+	const radioOptions = [
+		{ value: QuestionType.SINGLE, label: 'Single select' },
+		{ value: QuestionType.MULTI, label: 'Multi select' },
+		{ value: QuestionType.DROPDOWN, label: 'Dropdown' },
+		{ value: QuestionType.FREEFORM, label: 'Free-form text' },
+	];
+
 	return (
-		<Box sx={styles.container}>
+		<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: 20, minWidth: 500, overflow: 'auto' }}>
 			<Toolbar
 				left={
 					<>
@@ -219,12 +191,12 @@ export default function FormQuestion() {
 						<span style={{ fontSize: 13, color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", padding: "2px 8px", borderRadius: 8, marginLeft: 8 }}>
 							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
 						</span>
-						<Fade in={showUpdateMsg} timeout={500}>
-							<Box sx={{ ml: 1.25 }} className="flex-row-left">
+						{showUpdateMsg && (
+							<span style={{ marginLeft: 10 }} className="flex-row-left">
 								<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
 								<span style={{ color: 'var(--status-success)' }}>Saved!</span>
-							</Box>
-						</Fade>
+							</span>
+						)}
 					</>
 				}
 				leftWidth="60%"
@@ -242,32 +214,20 @@ export default function FormQuestion() {
 											}
 										},
 										disabled: inTransition,
-										sx: { height: 25, marginRight: '10px' },
 										startIcon: <IconTrash size={20} />,
 									}}
 								>
 									Delete
 								</BasicButtonStyled>
 								<BasicButtonStyled
-									buttonProps={{
-										onClick: onCopy,
-										disabled: inTransition,
-										sx: { height: 25, marginRight: '10px' },
-										startIcon: <IconCopy size={20} />,
-									}}
+									buttonProps={{ onClick: onCopy, disabled: inTransition, startIcon: <IconCopy size={20} /> }}
 								>
 									Copy
 								</BasicButtonStyled>
 							</>
 						)}
 						<BasicButtonStyled
-							buttonProps={{
-								onClick: onSubmit,
-								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
-								color: 'primary',
-								sx: { height: 25 },
-								startIcon: <IconCircleCheck size={20} />,
-							}}
+							buttonProps={{ onClick: onSubmit, disabled: inTransition || (isPlaceholder ? !isValid : !isDirty), color: 'primary', startIcon: <IconCircleCheck size={20} /> }}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
 						</BasicButtonStyled>
@@ -277,105 +237,76 @@ export default function FormQuestion() {
 				height={60}
 				padding={'10px 0px'}
 			/>
-			<Box sx={styles.divider}>
+			<div style={{ width: '100%', marginBottom: 24 }}>
 				<Divider />
-			</Box>
-			<Fade key={selectedQuestionData.id} in={!!selectedQuestionData.id} timeout={500} unmountOnExit>
+			</div>
+			{!!selectedQuestionData.id && (
 				<Form control={control} style={{ width: '100%' }}>
-					<Box sx={styles.formContainer}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
 						{/* Basic Information Section */}
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
 							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Basic Information</div>
 							<div style={{ padding: 16 }}>
-								<Box sx={styles.fieldRow}>
+								<div style={{ marginBottom: 16 }}>
 									<Controller
 										name="text"
 										control={control}
 										rules={{ required: true }}
 										render={({ field }) => (
-											<TextField
+											<Input
 												label="Question text"
 												placeholder="What is the cause of loss?"
-												variant="outlined"
 												fullWidth
-												{...field}
-												slotProps={{
-													input: {
-														endAdornment: (
-															<InputAdornment position="end">
-																<IconButton
-																	disableRipple
-																	onClick={() => onCopyText(field.name, field.value)}
-																>
-																	{copiedField === field.name ? (
-																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
-																		/>
-																	) : (
-																		<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
-																	)}
-																</IconButton>
-																<IconButton
-																	disableRipple
-																	onClick={() => field.onChange('')}
-																	disabled={!field.value}
-																>
-																	<IconX size={20} style={{ color: 'var(--text-muted)' }} />
-																</IconButton>
-															</InputAdornment>
-														),
-													},
-												}}
 												error={!!errors.text}
+												{...field}
+												endAdornment={
+													<>
+														<BasicIconButton onClick={() => onCopyText(field.name, field.value)}>
+															{copiedField === field.name ? (
+																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
+															) : (
+																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
+															)}
+														</BasicIconButton>
+														<BasicIconButton onClick={() => field.onChange('')} disabled={!field.value}>
+															<IconX size={20} style={{ color: 'var(--text-muted)' }} />
+														</BasicIconButton>
+													</>
+												}
 											/>
 										)}
 									/>
-								</Box>
-								<Box sx={styles.fieldRow}>
+								</div>
+								<div>
 									<Controller
 										name="description_text"
 										control={control}
 										render={({ field }) => (
-											<TextField
+											<Textarea
 												label="Description (optional)"
 												placeholder="Describe how the damage occurred"
-												variant="outlined"
 												fullWidth
 												{...field}
-												slotProps={{
-													input: {
-														endAdornment: (
-															<InputAdornment position="end">
-																<IconButton
-																	disableRipple
-																	onClick={() =>
-																		onCopyText(field.name, field.value ?? '')
-																	}
-																>
-																	{copiedField === field.name ? (
-																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
-																		/>
-																	) : (
-																		<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
-																	)}
-																</IconButton>
-																<IconButton
-																	disableRipple
-																	onClick={() => field.onChange('')}
-																	disabled={!field.value}
-																>
-																	<IconX size={20} style={{ color: 'var(--text-muted)' }} />
-																</IconButton>
-															</InputAdornment>
-														),
-													},
-												}}
 												value={field.value ?? ''}
-												multiline
 												minRows={3}
+												endAdornment={
+													<>
+														<BasicIconButton onClick={() => onCopyText(field.name, field.value ?? '')}>
+															{copiedField === field.name ? (
+																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
+															) : (
+																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
+															)}
+														</BasicIconButton>
+														<BasicIconButton onClick={() => field.onChange('')} disabled={!field.value}>
+															<IconX size={20} style={{ color: 'var(--text-muted)' }} />
+														</BasicIconButton>
+													</>
+												}
 											/>
 										)}
 									/>
-								</Box>
+								</div>
 							</div>
 						</Card>
 
@@ -388,32 +319,20 @@ export default function FormQuestion() {
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<RadioGroup {...field} row sx={{ gap: 2 }}>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<span style={{ fontSize: 13 }}>Single select</span>}
-												value={QuestionType.SINGLE}
-												sx={styles.radioLabel}
-											/>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<span style={{ fontSize: 13 }}>Multi select</span>}
-												value={QuestionType.MULTI}
-												sx={styles.radioLabel}
-											/>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<span style={{ fontSize: 13 }}>Dropdown</span>}
-												value={QuestionType.DROPDOWN}
-												sx={styles.radioLabel}
-											/>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<span style={{ fontSize: 13 }}>Free-form text</span>}
-												value={QuestionType.FREEFORM}
-												sx={styles.radioLabel}
-											/>
-										</RadioGroup>
+										<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+											{radioOptions.map((option) => (
+												<label key={option.value} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+													<input
+														type="radio"
+														name={field.name}
+														value={option.value}
+														checked={field.value === option.value}
+														onChange={() => field.onChange(option.value)}
+													/>
+													{option.label}
+												</label>
+											))}
+										</div>
 									)}
 								/>
 							</div>
@@ -423,25 +342,26 @@ export default function FormQuestion() {
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
 							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Organization</div>
 							<div style={{ padding: 16 }}>
-								<Box sx={{ display: 'flex', gap: 2 }}>
+								<div style={{ display: 'flex', gap: 16 }}>
 									<Controller
 										name="page_id"
 										control={control}
 										rules={{ required: true }}
 										render={({ field }) => (
-											<TextField
-												select
-												label="Assigned page"
-												error={!!errors.page_id}
-												{...field}
-												sx={{ minWidth: 200 }}
-											>
-												{pageTemplates.map((o) => (
-													<MenuItem key={o.id} value={o.id}>
-														{o.title} (p{o.id})
-													</MenuItem>
-												))}
-											</TextField>
+											<div>
+												<label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: 'var(--text-secondary)' }}>Assigned page</label>
+												<select
+													{...field}
+													onChange={(e) => field.onChange(Number(e.target.value))}
+													style={{ minWidth: 200, padding: '8px', borderRadius: 6, border: errors.page_id ? '1px solid var(--status-error)' : '1px solid var(--border)', fontSize: 14, backgroundColor: 'var(--bg-white)' }}
+												>
+													{pageTemplates.map((o) => (
+														<option key={o.id} value={o.id}>
+															{o.title} (p{o.id})
+														</option>
+													))}
+												</select>
+											</div>
 										)}
 									/>
 									<Controller
@@ -449,22 +369,21 @@ export default function FormQuestion() {
 										control={control}
 										rules={{ required: true }}
 										render={({ field }) => (
-											<TextField
-												select
-												label="Display order"
-												error={!!errors.position}
-												{...field}
-												sx={{ width: 100 }}
-											>
-												{positionOptions.map((o) => (
-													<MenuItem key={o} value={o}>
-														{o}
-													</MenuItem>
-												))}
-											</TextField>
+											<div>
+												<label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: 'var(--text-secondary)' }}>Display order</label>
+												<select
+													{...field}
+													onChange={(e) => field.onChange(Number(e.target.value))}
+													style={{ width: 100, padding: '8px', borderRadius: 6, border: errors.position ? '1px solid var(--status-error)' : '1px solid var(--border)', fontSize: 14, backgroundColor: 'var(--bg-white)' }}
+												>
+													{positionOptions.map((o) => (
+														<option key={o} value={o}>{o}</option>
+													))}
+												</select>
+											</div>
 										)}
 									/>
-								</Box>
+								</div>
 							</div>
 						</Card>
 
@@ -472,10 +391,10 @@ export default function FormQuestion() {
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
 							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Attachments</div>
 							<div style={{ padding: 16 }}>
-								<Box display="flex" alignItems="center" gap={1.5}>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
 									<Button
 										variant="outlined"
-										size="small"
+										size="sm"
 										startIcon={<IconPaperclip size={20} />}
 										onClick={() => setShowDocSelector(true)}
 										disabled={inTransition || isPlaceholder}
@@ -483,7 +402,7 @@ export default function FormQuestion() {
 										{attachedDoc ? 'Change Document' : 'Add Document'}
 									</Button>
 									{attachedDoc && (
-										<Box sx={styles.attachmentChip}>
+										<div style={{ display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '6px 12px' }}>
 											<span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
 												{attachedDoc.title || attachedDoc.alias}
 											</span>
@@ -495,22 +414,17 @@ export default function FormQuestion() {
 											) : (
 												<DocumentIconWithPreview document={attachedDoc} />
 											)}
-											<IconButton
-												size="small"
-												onClick={handleRemoveDocument}
-												disabled={inTransition}
-												sx={{ padding: '2px' }}
-											>
+											<BasicIconButton onClick={handleRemoveDocument} disabled={inTransition}>
 												<IconX size={14} />
-											</IconButton>
-										</Box>
+											</BasicIconButton>
+										</div>
 									)}
-								</Box>
+								</div>
 							</div>
 						</Card>
-					</Box>
+					</div>
 				</Form>
-			</Fade>
+			)}
 
 			{showDeleteDialog && (
 				<ConfirmationDialog
@@ -537,49 +451,6 @@ export default function FormQuestion() {
 					relationshipData={{ question_id: selectedQuestionData.id }}
 				/>
 			)}
-		</Box>
+		</div>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100%',
-		height: '100%',
-		display: 'flex',
-		flexDirection: 'column',
-		p: 2.5,
-		minWidth: 500,
-		overflow: 'auto',
-	},
-	divider: {
-		width: '100%',
-		mb: 3,
-	},
-	formContainer: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: 2.5,
-		width: '100%',
-	},
-	fieldRow: {
-		mb: 2,
-		'&:last-child': {
-			mb: 0,
-		},
-	},
-	radioLabel: {
-		'& .MuiFormControlLabel-label': {
-			fontSize: 13,
-		},
-	},
-	attachmentChip: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 1,
-		bgcolor: 'var(--bg-secondary)',
-		border: '1px solid var(--border-strong)',
-		borderRadius: '8px',
-		px: 1.5,
-		py: 0.75,
-	},
-};

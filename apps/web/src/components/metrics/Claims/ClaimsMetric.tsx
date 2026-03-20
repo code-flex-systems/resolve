@@ -1,7 +1,7 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import { PieChart } from '@mui/x-charts-pro';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../../common/ExpandableTitle';
@@ -58,6 +58,18 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 		return option ? { ...option, key: `${option.id}:${option.name}` } : null;
 	}, [checklists, checklistId]);
 
+	const pieData = useMemo(() => {
+		return Object.keys(data).map((status) => {
+			const parsedStatus = status as ClaimStatus;
+			return {
+				id: parsedStatus,
+				label: parsedStatus,
+				value: data[parsedStatus],
+				color: getStatusColor(parsedStatus),
+			};
+		});
+	}, [data]);
+
 	return (
 		<div style={styles.paper}>
 			{isFetching ? (
@@ -100,30 +112,27 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 						</div>
 						{(!checklistId || selectedChecklistOption) && (
 							<div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-								<PieChart
-									series={[
-										{
-											data: Object.keys(data).map((status) => {
-												const parsedStatus = status as ClaimStatus;
-												return {
-													id: parsedStatus,
-													label: parsedStatus,
-													value: data[parsedStatus],
-													color: getStatusColor(parsedStatus),
-												};
-											}),
-											valueFormatter: (v) => `${v.value} claim(s)`,
-											innerRadius: 75,
-											outerRadius: 100,
-											paddingAngle: 2,
-											cornerRadius: 5,
-											startAngle: -110,
-											endAngle: 110,
-											cy: 150,
-										},
-									]}
-									height={225}
-								/>
+								<ResponsiveContainer width="100%" height={225}>
+									<PieChart>
+										<Pie
+											data={pieData}
+											dataKey="value"
+											nameKey="label"
+											innerRadius={75}
+											outerRadius={100}
+											paddingAngle={2}
+											cornerRadius={5}
+											startAngle={250}
+											endAngle={-70}
+											cy="67%"
+										>
+											{pieData.map((entry, i) => (
+												<Cell key={i} fill={entry.color} />
+											))}
+										</Pie>
+										<Tooltip formatter={(value: any) => [`${value} claim(s)`]} />
+									</PieChart>
+								</ResponsiveContainer>
 								<div style={{ position: 'relative' }}>
 									<div
 style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'absolute', width: 80, left: -90, top: -120 }}>

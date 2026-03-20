@@ -2,7 +2,7 @@
 
 import PageWrapper from '@/components/common/PageWrapper';
 import { useMemo, useState } from 'react';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';

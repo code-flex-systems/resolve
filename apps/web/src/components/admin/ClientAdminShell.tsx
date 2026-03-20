@@ -1,6 +1,32 @@
 'use client';
 
-import { IconBinaryTree, IconBuilding, IconCashBanknote, IconChecklist, IconClipboard, IconClipboardCheck, IconCurrencyDollar, IconDesk, IconFileDescription, IconFileSearch, IconFolder, IconGavel, IconHistory, IconLayoutDashboard, IconList, IconListCheck, IconMapPin, IconRss, IconSettings, IconSubtask, IconTimeline, IconUser, IconUserCog, IconUsers, IconWaveSquare } from '@tabler/icons-react';
+import {
+	IconBinaryTree,
+	IconBuilding,
+	IconCashBanknote,
+	IconChecklist,
+	IconClipboard,
+	IconClipboardCheck,
+	IconCurrencyDollar,
+	IconDesk,
+	IconFileDescription,
+	IconFileSearch,
+	IconFolder,
+	IconGavel,
+	IconHistory,
+	IconLayoutDashboard,
+	IconList,
+	IconListCheck,
+	IconMapPin,
+	IconRss,
+	IconSettings,
+	IconSubtask,
+	IconTimeline,
+	IconUser,
+	IconUserCog,
+	IconUsers,
+	IconWaveSquare,
+} from '@tabler/icons-react';
 import { PropsWithChildren, useEffect } from 'react';
 import PageWrapper from '@/components/common/PageWrapper';
 import AdminSidebar, { AdminNavCategory } from '@/components/admin/AdminSidebar';
@@ -28,7 +54,7 @@ const adminNavCategories: AdminNavCategory[] = [
 	},
 	{
 		label: 'User Management',
-		icon: <IconUserCog fontSize="small" color="neutral" />,
+		icon: <IconUserCog size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'Users',
@@ -45,7 +71,7 @@ const adminNavCategories: AdminNavCategory[] = [
 	},
 	{
 		label: 'Claim Management',
-		icon: <IconFileSearch fontSize="small" color="neutral" />,
+		icon: <IconFileSearch size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'All Claims',
@@ -62,7 +88,7 @@ const adminNavCategories: AdminNavCategory[] = [
 	},
 	{
 		label: 'Workflow Configuration',
-		icon: <IconListCheck fontSize="small" color="neutral" />,
+		icon: <IconListCheck size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'Checklists',
@@ -100,7 +126,7 @@ const adminNavCategories: AdminNavCategory[] = [
 		? [
 				{
 					label: 'Workflow Management',
-					icon: <IconTimeline fontSize="small" color="neutral" />,
+					icon: <IconTimeline size={18} stroke={1.5} />,
 					items: [
 						{
 							label: 'Dashboard',
@@ -120,7 +146,7 @@ const adminNavCategories: AdminNavCategory[] = [
 		: []),
 	{
 		label: 'Party Management',
-		icon: <IconBuilding fontSize="small" color="neutral" />,
+		icon: <IconBuilding size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'Parties',
@@ -142,7 +168,7 @@ const adminNavCategories: AdminNavCategory[] = [
 	},
 	{
 		label: 'Financial',
-		icon: <IconCurrencyDollar fontSize="small" color="neutral" />,
+		icon: <IconCurrencyDollar size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'Recovery',
@@ -160,7 +186,7 @@ const adminNavCategories: AdminNavCategory[] = [
 	// },
 	{
 		label: 'Documents',
-		icon: <IconFolder fontSize="small" color="neutral" />,
+		icon: <IconFolder size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'Documents',
@@ -178,7 +204,7 @@ const adminNavCategories: AdminNavCategory[] = [
 	// },
 	{
 		label: 'System',
-		icon: <IconSettings fontSize="small" color="neutral" />,
+		icon: <IconSettings size={18} stroke={1.5} />,
 		items: [
 			{
 				label: 'Logs',

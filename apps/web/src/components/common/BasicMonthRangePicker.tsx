@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
 import CustomChip from '@/components/ui/Chip';
 import CustomButton from '@/components/ui/Button';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import { IconClock } from '@tabler/icons-react';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';

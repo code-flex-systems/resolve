@@ -3,7 +3,7 @@
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
 import { useRouter } from 'next/navigation';
-import { BarChart } from '@mui/x-charts-pro';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import dayjs from 'dayjs';
@@ -26,8 +26,10 @@ export default function UserActivityMetric() {
 	const { data: stats = { avg: 0, total: 0, maxRow: null }, isFetching: isFetchingStats } =
 		useResponseTrpc().listLogStats({ filters: { range } }, { enabled: range.every((r) => !!r) });
 	const formattedData = data.map((r) => ({ ...r, active_users: parseInt(r.active_users ?? '0') }));
-	const xLabels = data.map((r) => r.activity_date);
-	const yValues = formattedData.map((r) => r.active_users);
+	const chartData = formattedData.map((r) => ({
+		name: r.activity_date,
+		active_users: r.active_users,
+	}));
 	const maxUserRow = formattedData.find((u) => u.activity_date === stats.maxRow?.activity_date);
 
 	return (
@@ -76,31 +78,23 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 							</div>
 						</div>
 						<div
-style={{ width: 'calc(100% - 30xp)', display: 'flex', justifyContent: 'center', alignItems: yValues.length ? 'flex-end' : 'center', height: 120, marginTop: '20px' }}>
-							{yValues.length ? (
-								<BarChart
-									xAxis={[
-										{
-											scaleType: 'band',
-											data: xLabels,
-											position: 'none',
-											valueFormatter: (v) => formatMDY(v),
-											tickMinStep: 1,
-											categoryGapRatio: 0.7,
-										},
-									]}
-									yAxis={[{ position: 'none', tickMinStep: 1 }]}
-									series={[{ data: yValues, label: 'Active users' }]}
-									width={375}
-									height={120}
-									margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
-									sx={{
-										borderRadius: 3,
-									}}
-									colors={['var(--text-accent)']}
-									borderRadius={10}
-									hideLegend
-								/>
+style={{ width: 'calc(100% - 30xp)', display: 'flex', justifyContent: 'center', alignItems: chartData.length ? 'flex-end' : 'center', height: 120, marginTop: '20px' }}>
+							{chartData.length ? (
+								<ResponsiveContainer width={375} height={120}>
+									<BarChart data={chartData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+										<XAxis dataKey="name" hide />
+										<YAxis hide allowDecimals={false} />
+										<Tooltip
+											formatter={(value: any) => [value, 'Active users']}
+											labelFormatter={(label) => formatMDY(label as string)}
+										/>
+										<Bar
+											dataKey="active_users"
+											fill="var(--text-accent)"
+											radius={[10, 10, 0, 0]}
+										/>
+									</BarChart>
+								</ResponsiveContainer>
 							) : (
 								<span style={{ fontSize: 13 }}>No activity</span>
 							)}

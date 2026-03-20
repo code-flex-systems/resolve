@@ -2,17 +2,27 @@
 import { JSX } from 'react';
 
 interface IconHeaderCellProps {
-	field?: string;
-	icon?: JSX.Element;
-	colDef?: { headerName?: string };
 	headerName?: string;
+	colDef?: { headerName?: string };
+	column?: any;
+	icon?: JSX.Element;
 }
 
-export default function IconHeaderCell(props: IconHeaderCellProps) {
-	const headerName = props.headerName ?? props.colDef?.headerName ?? '';
+export default function IconHeaderCell(props: IconHeaderCellProps & Record<string, any>) {
+	// Resolve header name from multiple sources (explicit > colDef > column id)
+	const headerName =
+		props.headerName ??
+		props.colDef?.headerName ??
+		(typeof props.column?.columnDef?.header === 'string' ? props.column.columnDef.header : null) ??
+		props.column?.id ??
+		'';
+
+	// Format: capitalize and replace underscores with spaces
+	const displayName = headerName.replace(/_/g, ' ').toUpperCase();
+
 	return (
-		<div style={styles.cell} className="flex-row-left">
-			{props.icon ?? <></>}
+		<div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
+			{props.icon ?? null}
 			<span
 				style={{
 					fontSize: 12,
@@ -25,15 +35,8 @@ export default function IconHeaderCell(props: IconHeaderCellProps) {
 					letterSpacing: '0.04em',
 				}}
 			>
-				{headerName.toUpperCase()}
+				{displayName}
 			</span>
 		</div>
 	);
 }
-
-const styles = {
-	cell: {
-		width: '100%',
-		height: '100%',
-	},
-};

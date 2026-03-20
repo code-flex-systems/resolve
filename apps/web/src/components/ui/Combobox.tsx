@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { IconX, IconLoader2, IconSearch } from '@tabler/icons-react';
+import { getPortalTarget } from './usePortalTarget';
 import styles from './Combobox.module.css';
 
 /* =========================================================================
@@ -341,7 +342,7 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 						);
 					})}
 				</div>,
-				document.body
+				getPortalTarget(wrapperRef)
 			)}
 		</div>
 	);

@@ -5,7 +5,7 @@ import React, { useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import { formatUser } from '@/lib/utils/utils';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import ExportButton from '@/components/common/ExportButton';
@@ -310,7 +310,6 @@ style={{
 				rowCount={logs.count ?? 0}
 				getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
 				hideFooter={!showPagination}
-				pagination={showPagination}
 				paginationMode="server"
 				paginationModel={constraints}
 				onPaginationModelChange={setConstraints}

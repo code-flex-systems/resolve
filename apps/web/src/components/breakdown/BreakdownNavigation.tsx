@@ -6,7 +6,7 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useSearchParams } from 'next/navigation';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import Skeleton from '@/components/ui/Skeleton';
 import { IconTrophy } from '@tabler/icons-react';

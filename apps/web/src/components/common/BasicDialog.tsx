@@ -30,8 +30,8 @@ export default function BasicDialog(
 		primaryAction,
 		secondaryActions = [],
 		iconActions = [],
-		width = 'fit-content',
-		height = 'fit-content',
+		width = 500,
+		height,
 		maxHeight,
 		showCloseButton = true,
 		showOverflow = false,
@@ -46,7 +46,6 @@ export default function BasicDialog(
 		}
 	}, []);
 
-	// Sync native close event (Escape key) with React state
 	useEffect(() => {
 		const dialog = dialogRef.current;
 		if (!dialog) return;
@@ -57,7 +56,6 @@ export default function BasicDialog(
 		return () => dialog.removeEventListener('close', handleClose);
 	}, [onClose, closeDisabled]);
 
-	// Close on backdrop click
 	const handleClick = useCallback(
 		(e: React.MouseEvent<HTMLDialogElement>) => {
 			if (e.target === e.currentTarget && !closeDisabled) {
@@ -71,10 +69,16 @@ export default function BasicDialog(
 		<dialog
 			ref={dialogRef}
 			className={css.dialog}
-			style={{ width, height, maxHeight }}
 			onClick={handleClick}
 		>
-			<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+			<div
+				className={css.inner}
+				style={{
+					width: typeof width === 'number' ? `min(${width}px, 90vw)` : width,
+					height,
+					maxHeight: maxHeight ?? '85vh',
+				}}
+			>
 				{(!!title || !!iconActions.length || showCloseButton) && (
 					<div className={css.header} style={{ minHeight: titleHeight }}>
 						<div className={css.titleArea}>
@@ -93,7 +97,7 @@ export default function BasicDialog(
 									disabled={closeDisabled}
 									type="button"
 								>
-									<IconX size={19} />
+									<IconX size={19} stroke={1.5} />
 								</button>
 							)}
 						</div>
@@ -106,39 +110,42 @@ export default function BasicDialog(
 				</div>
 
 				{(primaryAction || secondaryActions.length > 0) && (
-					<div className={css.actions}>
-						{secondaryActions.reverse().map((action) =>
-							action.hidden ? null : (
+					<>
+						<div className={css.divider} />
+						<div className={css.actions}>
+							{secondaryActions.reverse().map((action) =>
+								action.hidden ? null : (
+									<BasicButton
+										key={action.label}
+										buttonProps={{
+											onClick: action.onClick,
+											variant: 'outlined',
+											disabled: action.disabled,
+											color: action.color,
+											startIcon: action.icon,
+										}}
+									>
+										{action.label}
+									</BasicButton>
+								)
+							)}
+
+							{primaryAction && !primaryAction.hidden && (
 								<BasicButton
-									key={action.label}
+									key="primary"
 									buttonProps={{
-										onClick: action.onClick,
-										variant: 'outlined',
-										disabled: action.disabled,
-										color: action.color,
-										startIcon: action.icon,
+										onClick: primaryAction.onClick,
+										variant: 'contained',
+										disabled: primaryAction.disabled,
+										color: primaryAction.color,
+										startIcon: primaryAction.icon ?? <IconCircleCheck size={18} />,
 									}}
 								>
-									{action.label}
+									{primaryAction.label}
 								</BasicButton>
-							)
-						)}
-
-						{primaryAction && !primaryAction.hidden && (
-							<BasicButton
-								key="primary"
-								buttonProps={{
-									onClick: primaryAction.onClick,
-									variant: 'contained',
-									disabled: primaryAction.disabled,
-									color: primaryAction.color,
-									startIcon: primaryAction.icon ?? <IconCircleCheck size={18} />,
-								}}
-							>
-								{primaryAction.label}
-							</BasicButton>
-						)}
-					</div>
+							)}
+						</div>
+					</>
 				)}
 			</div>
 		</dialog>

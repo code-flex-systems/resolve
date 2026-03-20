@@ -1,13 +1,36 @@
 .dialog {
+	background: transparent;
 	border: none;
-	border-radius: 20px;
-	padding: 20px 20px 10px;
-	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-	max-width: 100%;
+	outline: none;
+	padding: 0;
+	max-width: none;
+	max-height: none;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.dialog:focus {
+	outline: none;
 }
 
 .dialog::backdrop {
-	background-color: rgba(0, 0, 0, 0.4);
+	background: var(--surface-overlay);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+}
+
+.inner {
+	background: var(--bg-white);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-lg);
+	border: 1px solid var(--border);
+	padding: var(--space-5) var(--space-5) var(--space-3);
+	max-width: min(400px, 90vw);
+	animation: dialogEnter var(--transition-normal) ease-out;
 }
 
 .container {
@@ -15,13 +38,24 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 10px 0;
+	padding: var(--space-2) 0;
 }
 
 .actions {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 8px;
-	padding: 8px 0;
+	gap: var(--space-2);
+	padding: var(--space-2) 0 0;
+}
+
+@keyframes dialogEnter {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
 }

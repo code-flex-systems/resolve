@@ -47,12 +47,14 @@
 	min-height: 40px;
 	padding: 0;
 	text-decoration: none;
+	color: var(--text-muted);
 	border-radius: 8px;
 	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .navLink:hover {
 	background-color: var(--status-info-bg);
+	color: var(--text-accent);
 }
 
 .navLink:hover .navIcon {
@@ -61,6 +63,7 @@
 
 .navLinkSelected {
 	background-color: var(--status-info-bg);
+	color: var(--text-accent);
 }
 
 .navIcon {

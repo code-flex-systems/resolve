@@ -106,9 +106,7 @@ export default function TopPerformersSection({
 
 	return (
 		<Card variant="beveled" padding="lg" style={styles.paper}>
-			<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
-				Top Performers
-			</span>
+			<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Top Performers</span>
 
 			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24, width: '100%' }}>
 				{/* Top Claims by Recovery Amount */}
@@ -117,18 +115,21 @@ export default function TopPerformersSection({
 						Top Claims by Recovery Amount
 					</span>
 					{topClaims.length === 0 ? (
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-							No data available
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>No data available</span>
 					) : (
 						topClaims.map((claim, index) => (
 							<div
 								key={index}
-								style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
-								<div>
-									<span style={{ fontSize: 13, fontWeight: 500 }}>
-										{claim.claim_number || 'N/A'}
-									</span>
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+									paddingTop: 8,
+									paddingBottom: 8,
+								}}
+							>
+								<div style={{ display: 'flex', flexDirection: 'column' }}>
+									<span style={{ fontSize: 13, fontWeight: 500 }}>{claim.claim_number || 'N/A'}</span>
 									<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 										{claim.insured || 'Unknown'}
 									</span>
@@ -147,18 +148,21 @@ export default function TopPerformersSection({
 						Top Sources by Recovery Amount
 					</span>
 					{topSources.length === 0 ? (
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-							No data available
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>No data available</span>
 					) : (
 						topSources.map((source, index) => (
 							<div
 								key={index}
-								style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
-								<div style={{ flex: 1 }}>
-									<span style={{ fontSize: 13, fontWeight: 500 }}>
-										{source.source}
-									</span>
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+									paddingTop: 8,
+									paddingBottom: 8,
+								}}
+							>
+								<div style={{ display: 'flex', flexDirection: 'column' }}>
+									<span style={{ fontSize: 13, fontWeight: 500 }}>{source.source}</span>
 									<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 										{source.count} event{source.count !== 1 ? 's' : ''}
 									</span>

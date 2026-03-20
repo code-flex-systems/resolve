@@ -1,22 +1,20 @@
 'use client';
 
-import { IconClockFilled, IconPhone, IconSettings, IconShield, IconUser, IconUserCircle, IconUserPlus } from '@tabler/icons-react';
+import { IconSettings, IconUser, IconUserPlus } from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Switch from '@/components/ui/Switch';
 import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
 import { formatMDY } from '@/lib/utils/utils';
-import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
+import EmailCell from './EmailCell';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useEffect, useMemo, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import useDebounce from '@/lib/utils/useDebounce';
-import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
@@ -26,62 +24,62 @@ import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		accessorKey: 'user',
+		accessorKey: 'name',
+		header: 'Name',
 		cell: ({ row: { original: row } }) => (
-			<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
+			<span style={{ fontWeight: 500 }}>{row.first} {row.last}</span>
 		),
-		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />} />
-		),
+		size: 200,
+	},
+	{
+		accessorKey: 'email',
+		header: 'Email',
+		cell: ({ row: { original: row } }) => <EmailCell value={row.email} />,
+		size: 280,
 	},
 	{
 		accessorKey: 'phone',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-			<PhoneCell
-				value={parsePhoneNumberFromString(params.value ?? '')?.formatNational() ?? ''}
-				verified={params.row.phone_verified}
-				disabled={params.row.disabled}
-			/>
-		); },
-		header: (params) => <IconHeaderCell {...params} icon={<IconPhone style={{ color: 'var(--text-muted)' }} />} />,
-		size: 180,
+		header: 'Phone',
+		cell: ({ row: { original: row } }) => <PhoneCell value={row.phone} />,
+		size: 160,
 	},
 	{
 		accessorKey: 'role',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <RoleCell {...params} />; },
-		header: (params) => <IconHeaderCell {...params} icon={<IconShield style={{ color: 'var(--text-muted)' }} />} />,
-		size: 180,
+		header: 'Role',
+		cell: ({ row: { original: row } }) => <RoleCell row={row} />,
+		size: 140,
 	},
 	{
 		accessorKey: 'status',
-		cell: ({ row: { original: row } }) => (
-			<StackedHeaderCell
-				primary={
-					row.disabled
-						? 'Disabled'
-						: row.onboarding_email_sent && !row.email_verified
-							? 'Invited'
-							: 'Verified'
-				}
-				secondary={formatMDY(
-					row.disabled
-						? row.updated_at
-						: row.onboarding_email_sent && !row.email_verified
-							? (row.updated_at ?? row.created_at)
-							: (row.email_verified ?? row.created_at)
-				)}
-			/>
-		),
-		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
-		),
-		size: 180,
+		header: 'Status',
+		cell: ({ row: { original: row } }) => {
+			const statusText = row.disabled
+				? 'Disabled'
+				: row.onboarding_email_sent && !row.email_verified
+					? 'Invited'
+					: 'Verified';
+			const statusDate = formatMDY(
+				row.disabled
+					? row.updated_at
+					: row.onboarding_email_sent && !row.email_verified
+						? (row.updated_at ?? row.created_at)
+						: (row.email_verified ?? row.created_at)
+			);
+			return (
+				<span>
+					{statusText}
+					{statusDate && <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: 12 }}>{statusDate}</span>}
+				</span>
+			);
+		},
+		size: 200,
 	},
 	{
 		header: '',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <UserActionsCell {...params} isManageMode={isManageMode} />; },
-		size: 120,
+		cell: ({ row: { original: row } }) => <UserActionsCell row={row} isManageMode={isManageMode} />,
+		size: 100,
+		enableResizing: false,
 	},
 ];
 
@@ -232,7 +230,7 @@ const styles = {
 		minHeight: 0,
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100% - 50px)',
 	},
 };

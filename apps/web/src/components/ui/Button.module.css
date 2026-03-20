@@ -44,21 +44,21 @@
    ========================================================================= */
 
 .sm {
-	height: 32px;
-	padding: 0 var(--space-3);
+	height: 28px;
+	padding: 0 var(--space-2);
 	font-size: var(--text-xs);
 	border-radius: var(--radius-md);
 }
 
 .md {
-	height: 38px;
-	padding: 0 var(--space-4);
+	height: 32px;
+	padding: 0 var(--space-3);
 	font-size: var(--text-sm);
 	border-radius: var(--radius-md);
 }
 
 .lg {
-	height: 44px;
+	height: 38px;
 	padding: 0 var(--space-6);
 	font-size: var(--text-base);
 	border-radius: var(--radius-lg);
@@ -137,18 +137,18 @@ button.icon {
 }
 
 button.icon.sm {
+	width: 28px;
+	height: 28px;
+}
+
+button.icon.md {
 	width: 32px;
 	height: 32px;
 }
 
-button.icon.md {
+button.icon.lg {
 	width: 38px;
 	height: 38px;
-}
-
-button.icon.lg {
-	width: 44px;
-	height: 44px;
 }
 
 button.icon:not(:disabled):hover {

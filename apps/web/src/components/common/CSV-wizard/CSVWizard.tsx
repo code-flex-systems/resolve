@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Stepper, Step, StepLabel } from '@mui/material';
 import CustomButton from '@/components/ui/Button';
 import { CSVStep1 } from './CSVWizardStep1';
 import { CSVStep2ColumnMapping, Step2RefHandle } from './CSVWizardStep2';
@@ -118,13 +117,25 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 				</div>
 			}
 		>
-			<Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
-				{steps.map((label) => (
-					<Step key={label}>
-						<StepLabel>{label}</StepLabel>
-					</Step>
+			<div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+				{steps.map((label, index) => (
+					<div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+						<div style={{
+							width: 24, height: 24, borderRadius: '50%',
+							display: 'flex', alignItems: 'center', justifyContent: 'center',
+							fontSize: 12, fontWeight: 600,
+							backgroundColor: index <= activeStep ? 'var(--text-accent)' : 'var(--bg-tertiary)',
+							color: index <= activeStep ? 'white' : 'var(--text-muted)',
+						}}>
+							{index + 1}
+						</div>
+						<span style={{ fontSize: 13, color: index <= activeStep ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+							{label}
+						</span>
+						{index < steps.length - 1 && <div style={{ width: 24, height: 1, backgroundColor: 'var(--border)' }} />}
+					</div>
 				))}
-			</Stepper>
+			</div>
 
 			<div style={{ position: 'relative', height: 350 }}>
 				{activeStep === 0 && (

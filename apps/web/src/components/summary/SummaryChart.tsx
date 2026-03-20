@@ -1,5 +1,5 @@
 'use client';
-import { PieChart, PieChartProps } from '@mui/x-charts-pro';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
 import { useMemo } from 'react';
@@ -12,6 +12,7 @@ import { capitalize } from '@/lib/utils/utils';
 import { IconClick, IconFileDescription, IconHelp, IconHelpCircle } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 import Divider from '@/components/ui/Divider';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function SummaryChart() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -37,61 +38,30 @@ export default function SummaryChart() {
 		{ enabled: checklistId !== -1 && claimId !== -1 }
 	);
 
-	const chartData = useMemo(() => {
+	const outerData = useMemo(() => {
 		if (!checklistSummaryTotals) return [];
-
-		const { total_answered, total_questions, total_action_required, total_unknown } = checklistSummaryTotals;
+		const { total_answered, total_questions } = checklistSummaryTotals;
 		const totalUnanswered = total_questions - total_answered;
-		const series: PieChartProps['series'] = [
-			{
-				id: 'answered-unanswered',
-				data: [
-					{
-						id: SummarySegment.ANSWERED,
-						label: 'Answered',
-						value: total_answered,
-						color: 'var(--text-accent)',
-					},
-					{
-						id: SummarySegment.UNANSWERED,
-						label: 'Unanswered',
-						value: totalUnanswered,
-						color: 'var(--status-warning)',
-					},
-				],
-				highlightScope: { fade: 'global', highlight: 'item' },
-				innerRadius: 140,
-				outerRadius: 200,
-				cornerRadius: 5,
-				faded: { additionalRadius: -3, color: 'var(--text-muted)' },
-				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
-			},
-			{
-				id: 'action-required-not-required',
-				data: [
-					{
-						id: SummarySegment.ACTION_REQUIRED,
-						label: 'Action required',
-						value: total_action_required,
-						color: 'var(--text-accent)',
-					},
-					{
-						id: SummarySegment.NO_ACTION_REQUIRED,
-						label: 'No action required',
-						value: total_answered - total_action_required,
-						color: '#CA8EFF',
-					},
-				],
-				highlightScope: { fade: 'global', highlight: 'item' },
-				innerRadius: 0,
-				outerRadius: 120,
-				cornerRadius: 5,
-				faded: { additionalRadius: -3, color: 'var(--text-muted)' },
-				valueFormatter: (arc) => `${arc.value.toLocaleString()} questions`,
-			},
+		return [
+			{ id: SummarySegment.ANSWERED, label: 'Answered', value: total_answered, color: 'var(--text-accent)' },
+			{ id: SummarySegment.UNANSWERED, label: 'Unanswered', value: totalUnanswered, color: 'var(--status-warning)' },
 		];
-		return series;
 	}, [checklistSummaryTotals]);
+
+	const innerData = useMemo(() => {
+		if (!checklistSummaryTotals) return [];
+		const { total_answered, total_action_required } = checklistSummaryTotals;
+		return [
+			{ id: SummarySegment.ACTION_REQUIRED, label: 'Action required', value: total_action_required, color: 'var(--text-accent)' },
+			{ id: SummarySegment.NO_ACTION_REQUIRED, label: 'No action required', value: total_answered - total_action_required, color: '#CA8EFF' },
+		];
+	}, [checklistSummaryTotals]);
+
+	const handlePieClick = (data: any) => {
+		if (data && data.id) {
+			updateSelectedSegment(data.id as SummarySegment);
+		}
+	};
 
 	return (
 		<div style={styles.paper}>
@@ -130,24 +100,55 @@ export default function SummaryChart() {
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<PieChart
-				loading={loadingSummary}
-				series={chartData}
-				slotProps={{
-					legend: {
-						direction: 'vertical',
-						position: { vertical: 'middle', horizontal: 'start' },
-					},
-				}}
-				onItemClick={(_, arc) => {
-					updateSelectedSegment(
-						chartData.find((c) => c.id === arc.seriesId)?.data?.[arc.dataIndex]?.id as SummarySegment
-					);
-				}}
-				width={500}
-				height={500}
-				sx={{ maxHeight: 500, padding: '0px 30px' }}
-			/>
+			{loadingSummary ? (
+				<Skeleton variant="rect" width={500} height={500} />
+			) : (
+				<div style={{ width: 500, height: 500, padding: '0px 30px' }}>
+					<ResponsiveContainer width="100%" height="100%">
+						<PieChart>
+							{/* Inner ring: action required vs not */}
+							<Pie
+								data={innerData}
+								dataKey="value"
+								nameKey="label"
+								cx="50%"
+								cy="50%"
+								innerRadius={0}
+								outerRadius={120}
+								cornerRadius={5}
+								onClick={handlePieClick}
+							>
+								{innerData.map((entry, i) => (
+									<Cell key={i} fill={entry.color} />
+								))}
+							</Pie>
+							{/* Outer ring: answered vs unanswered */}
+							<Pie
+								data={outerData}
+								dataKey="value"
+								nameKey="label"
+								cx="50%"
+								cy="50%"
+								innerRadius={140}
+								outerRadius={200}
+								cornerRadius={5}
+								paddingAngle={2}
+								onClick={handlePieClick}
+							>
+								{outerData.map((entry, i) => (
+									<Cell key={i} fill={entry.color} />
+								))}
+							</Pie>
+							<Tooltip formatter={(value: any) => [`${(value as number).toLocaleString()} questions`]} />
+							<Legend
+								layout="vertical"
+								verticalAlign="middle"
+								align="left"
+							/>
+						</PieChart>
+					</ResponsiveContainer>
+				</div>
+			)}
 		</div>
 	);
 }

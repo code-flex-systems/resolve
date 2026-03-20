@@ -38,19 +38,21 @@ export default function ConfirmationDialog(
 
 	return (
 		<dialog ref={dialogRef} className={css.dialog} onClick={handleClick}>
-			<div className={css.container}>{props.children}</div>
-			<div className={css.actions}>
-				<Button variant="outlined" onClick={onClose} size="sm">
-					Cancel
-				</Button>
-				<Button
-					variant="outlined"
-					color={negative ? 'warning' : 'primary'}
-					onClick={onConfirm}
-					size="sm"
-				>
-					OK
-				</Button>
+			<div className={css.inner}>
+				<div className={css.container}>{props.children}</div>
+				<div className={css.actions}>
+					<Button variant="outlined" onClick={onClose} size="sm">
+						Cancel
+					</Button>
+					<Button
+						variant="outlined"
+						color={negative ? 'warning' : 'primary'}
+						onClick={onConfirm}
+						size="sm"
+					>
+						OK
+					</Button>
+				</div>
 			</div>
 		</dialog>
 	);

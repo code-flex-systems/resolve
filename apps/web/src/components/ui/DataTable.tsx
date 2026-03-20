@@ -17,6 +17,7 @@ import {
 	type SortingState,
 	type RowSelectionState,
 	type OnChangeFn,
+	type ColumnResizeMode,
 } from '@tanstack/react-table';
 import { IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import styles from './DataTable.module.css';
@@ -154,9 +155,12 @@ export default function DataTable<T extends Record<string, any>>({
 		return undefined;
 	}, [paginationMode, paginationModel]);
 
+	const [columnResizeMode] = useState<ColumnResizeMode>('onChange');
+
 	const table = useReactTable({
 		data: rows,
 		columns,
+		columnResizeMode,
 		state: {
 			sorting,
 			rowSelection: activeRowSelection,
@@ -169,6 +173,7 @@ export default function DataTable<T extends Record<string, any>>({
 		...(paginationMode === 'client' ? { getPaginationRowModel: getPaginationRowModel() } : {}),
 		...(paginationMode === 'server' && rowCount != null ? { rowCount, manualPagination: true } : {}),
 		enableRowSelection: checkboxSelection,
+		enableColumnResizing: true,
 		getRowId: getRowId ? (row) => getRowId(row) : (row) => String(row.id),
 		initialState: {
 			pagination: { pageSize },
@@ -238,7 +243,7 @@ export default function DataTable<T extends Record<string, any>>({
 	return (
 		<div className={`${styles.wrapper} ${className ?? ''}`}>
 			<div className={styles.tableContainer} style={containerStyle}>
-				<table className={styles.table}>
+				<table className={styles.table} style={{ minWidth: table.getCenterTotalSize() }}>
 					<thead>
 						{headerGroups.map((headerGroup) => (
 							<tr key={headerGroup.id}>
@@ -275,7 +280,8 @@ export default function DataTable<T extends Record<string, any>>({
 											key={header.id}
 											style={{
 												height: headerHeight,
-												width: header.getSize() !== 150 ? header.getSize() : undefined,
+												width: header.getSize(),
+												position: 'relative' as const,
 												...pinStyle,
 											}}
 											className={`${sortable && header.column.getCanSort() ? styles.sortable : ''} ${pinLeft ? styles.pinnedLeft : ''} ${pinRight ? styles.pinnedRight : ''}`}
@@ -293,6 +299,14 @@ export default function DataTable<T extends Record<string, any>>({
 													</span>
 												)}
 											</span>
+											{header.column.getCanResize() && (
+												<div
+													onMouseDown={header.getResizeHandler()}
+													onTouchStart={header.getResizeHandler()}
+													onClick={(e) => e.stopPropagation()}
+													className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.resizing : ''}`}
+												/>
+											)}
 										</th>
 									);
 								})}
@@ -378,6 +392,7 @@ export default function DataTable<T extends Record<string, any>>({
 														key={cell.id}
 														style={{
 															height: rowHeight,
+															width: cell.column.getSize(),
 															...pinStyle,
 														}}
 														className={`${pinLeft ? styles.pinnedLeft : ''} ${pinRight ? styles.pinnedRight : ''}`}

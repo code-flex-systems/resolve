@@ -4,7 +4,7 @@ import { formatAmount, formatMDY, formatUser } from '@/lib/utils/utils';
 import IconHeaderCell from '../../common/IconHeaderCell';
 import { useMemo, useState } from 'react';
 import { ChecklistClaimsOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import ClaimStatusCell from './ClaimStatusCell';
 import { Claim } from '@/hooks/trpc/useClaimTrpc';

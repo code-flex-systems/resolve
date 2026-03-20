@@ -1,17 +1,5 @@
 'use client';
-import React, { useState, useRef } from 'react';
-import {
-	TextField,
-	IconButton,
-	MenuItem,
-	Popper,
-	InputAdornment,
-	TextFieldProps,
-	ClickAwayListener,
-	Typography,
-	Paper,
-	Box, Collapse } from '@mui/material';
-import { TransitionGroup } from 'react-transition-group';
+import React, { useState, useRef, useEffect } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Claim } from '@/types/types';
 import { ClaimSearch } from '@/config/enums';
@@ -21,7 +9,9 @@ import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
 import { trpc } from '@/lib/trpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import BasicIconButton from '../common/BasicIconButton';
 import { IconSearch, IconUserSearch, IconX } from '@tabler/icons-react';
+import Input from '@/components/ui/Input';
 
 interface ClaimsSearchProps {
 	showIcon?: boolean;
@@ -36,11 +26,23 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 	const [type, setType] = useState<ClaimSearch>(ClaimSearch.CLAIM_NUMBER);
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<Claim[]>([]);
-	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-	const spanRef = useRef<HTMLElement | null>(null);
+	const [showResults, setShowResults] = useState(false);
+	const containerRef = useRef<HTMLSpanElement | null>(null);
 
-	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);
-	const onClose = () => setAnchorEl(null);
+	const onFocus = () => setShowResults(true);
+	const onClose = () => setShowResults(false);
+
+	// Click-away handler
+	useEffect(() => {
+		if (!showResults) return;
+		const handleClickOutside = (e: MouseEvent) => {
+			if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+				onClose();
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [showResults]);
 
 	const debouncedSearch = useDebounce(async (query: string) => {
 		trpcUtils.claim.getClaims
@@ -76,156 +78,108 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 	};
 
 	return (
-		<Box sx={styles.container} className="flex-col-center">
-			<ClickAwayListener onClickAway={onClose}>
-				<span ref={spanRef} style={{ width: '100%' }}>
-					<TextField
-						placeholder={`Start typing a ${type === 'claim_number' ? 'claim number' : 'name'}...`}
-						fullWidth
-						value={query}
-						onChange={handleInputChange}
-						onFocus={onFocus}
-						sx={heroMode ? styles.textFieldHero : styles.textField}
-						slotProps={{
-							input: {
-								startAdornment: showIcon ? (
-									<InputAdornment position="start">
+		<div style={{ width: '100%' }} className="flex-col-center">
+			<span ref={containerRef} style={{ width: '100%', position: 'relative' }}>
+				<Input
+					placeholder={`Start typing a ${type === 'claim_number' ? 'claim number' : 'name'}...`}
+					fullWidth
+					value={query}
+					onChange={handleInputChange}
+					onFocus={onFocus}
+					inputSize={heroMode ? 'lg' : 'md'}
+					autoComplete="off"
+					startAdornment={showIcon ? <IconSearch size={20} /> : undefined}
+					endAdornment={
+						searching ? (
+							<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
+						) : query ? (
+							<BasicIconButton onClick={handleClearInput}>
+								<IconX size={15} />
+							</BasicIconButton>
+						) : (
+							<BasicButtonStyled
+								buttonProps={{
+									onClick: handleSwitchSearch,
+								}}
+								tooltipProps={{
+									title:
+										type === ClaimSearch.CLAIM_NUMBER
+											? 'Search by insured'
+											: 'Search by claim number',
+								}}
+								icon={
+									type === ClaimSearch.CLAIM_NUMBER ? (
+										<IconUserSearch size={20} />
+									) : (
 										<IconSearch size={20} />
-									</InputAdornment>
-								) : undefined,
-								endAdornment: (
-									<InputAdornment position="end">
-										{searching ? (
-											<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
-										) : query ? (
-											<IconButton size="small" onClick={handleClearInput}>
-												<IconX size={15} />
-											</IconButton>
-										) : (
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: handleSwitchSearch,
-												}}
-												tooltipProps={{
-													title:
-														type === ClaimSearch.CLAIM_NUMBER
-															? 'Search by insured'
-															: 'Search by claim number',
-												}}
-												icon={
-													type === ClaimSearch.CLAIM_NUMBER ? (
-														<IconUserSearch size={20} />
-													) : (
-														<IconSearch size={20} />
-													)
-												}
-											/>
-										)}
-									</InputAdornment>
-								),
-							},
-						}}
-						variant="outlined"
-						autoComplete="off"
-					/>
+									)
+								}
+							/>
+						)
+					}
+				/>
 
-					<Popper
-						open={Boolean(anchorEl)}
-						sx={{ zIndex: 100, width: spanRef.current?.offsetWidth || 'auto' }}
-						anchorEl={anchorEl}
-						placement="bottom-start"
-						disablePortal
+				{showResults && (
+					<div
+						style={{
+							position: 'absolute',
+							top: '100%',
+							left: 0,
+							right: 0,
+							zIndex: 100,
+							maxHeight: 400,
+							overflowY: 'auto',
+							marginTop: 4,
+							backgroundColor: 'var(--bg-white)',
+							border: '1px solid var(--border)',
+							borderRadius: 8,
+							boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+						}}
 					>
-						<Paper elevation={3} sx={styles.popper}>
-							{searching && (
-								<Box sx={styles.emptyState}>
-									<Typography fontStyle="italic" color="text.secondary">
-										Searching...
-									</Typography>
-								</Box>
-							)}
-							{!searching && results.length === 0 && !selectedClaim && (
-								<Box sx={styles.emptyState}>
-									<Typography fontStyle="italic" color="text.secondary">
-										No claims found
-									</Typography>
-								</Box>
-							)}
-							{!searching && results.length === 0 && !!selectedClaim && (
+						{searching && (
+							<div style={{ minHeight: 80, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+								<span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+									Searching...
+								</span>
+							</div>
+						)}
+						{!searching && results.length === 0 && !selectedClaim && (
+							<div style={{ minHeight: 80, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+								<span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+									No claims found
+								</span>
+							</div>
+						)}
+						{!searching && results.length === 0 && !!selectedClaim && (
+							<ClaimMenuItem
+								claim={selectedClaim}
+								onClose={() => {
+									onClose();
+									setQuery('');
+									setResults([]);
+								}}
+								onSelect={onClaimSelect}
+								selected={true}
+							/>
+						)}
+						{!searching &&
+							results.length > 0 &&
+							results.map((c, i) => (
 								<ClaimMenuItem
-									claim={selectedClaim}
+									key={i}
+									claim={c}
 									onClose={() => {
 										onClose();
 										setQuery('');
 										setResults([]);
 									}}
 									onSelect={onClaimSelect}
-									selected={true}
+									selected={selectedClaim?.id === c.id}
 								/>
-							)}
-							<TransitionGroup>
-								{!searching &&
-									results.length > 0 &&
-									results.map((c, i) => (
-										<Collapse key={i}>
-											<ClaimMenuItem
-												claim={c}
-												onClose={() => {
-													onClose();
-													setQuery('');
-													setResults([]);
-												}}
-												onSelect={onClaimSelect}
-												selected={selectedClaim?.id === c.id}
-											/>
-										</Collapse>
-									))}
-							</TransitionGroup>
-						</Paper>
-					</Popper>
-				</span>
-			</ClickAwayListener>
-		</Box>
+							))}
+					</div>
+				)}
+			</span>
+		</div>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100%',
-	},
-	emptyState: {
-		minHeight: 80,
-		padding: '16px',
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	popper: {
-		maxHeight: 400,
-		overflowY: 'auto' as const,
-		width: '100%',
-		mt: 1,
-	},
-	switch: {
-		width: '100%',
-		padding: '10px 0px 0px',
-	},
-	textField: {
-		width: '100%',
-		'& .MuiInput-input': {
-			fontSize: 15,
-		},
-	},
-	textFieldHero: {
-		width: '100%',
-		'& .MuiInput-input': {
-			fontSize: 18,
-		},
-		'& .MuiOutlinedInput-root': {
-			fontSize: 18,
-			'&:not(.MuiInputBase-multiline)': {
-				height: 70,
-			},
-		},
-	},
-};
