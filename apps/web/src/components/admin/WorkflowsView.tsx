@@ -1,30 +1,19 @@
 'use client';
 
+import { IconMapPin, IconPlus, IconSearch, IconWorld } from '@tabler/icons-react';
+import { FormControl, MenuItem, Select } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
+import Chip from '@/components/ui/Chip';
 import { useState, useMemo } from 'react';
-import {
-	Box,
-	Paper,
-	TextField,
-	Typography,
-	InputAdornment,
-	Stack,
-	Chip,
-	Skeleton,
-	MenuItem,
-	Select,
-	FormControl,
-	Divider,
-} from '@mui/material';
-import Search from '@mui/icons-material/Search';
-import Add from '@mui/icons-material/Add';
-import Public from '@mui/icons-material/Public';
-import LocationOn from '@mui/icons-material/LocationOn';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import WorkflowDetailPanel from '@/components/admin/WorkflowDetailPanel';
 import WorkflowDefinitionFormDialog from '@/components/admin/WorkflowDefinitionFormDialog';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
-import { BORDER_LIGHT, BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 
 export default function WorkflowsView() {
 	const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
@@ -50,45 +39,36 @@ export default function WorkflowsView() {
 	};
 
 	return (
-		<Box display="flex" height="100%" sx={{ overflow: 'hidden' }}>
+		<div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 			{/* Left Panel - Workflow List */}
-			<Box
-				sx={{
+			<div
+				style={{
 					...containerStyles.beveledCard,
 					width: 320,
+					marginRight: 16,
 				}}
-				mr={2}
 			>
 				{/* Title */}
-				<Box p={2} pb={1}>
-					<Typography variant="h6" mb={1}>
+				<div style={{ padding: 16, paddingBottom: 8 }}>
+					<span>
 						Workflows ({definitions.length.toLocaleString()})
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
 				{/* Search */}
-				<Box px={2} pb={1}>
-					<TextField
-						size="small"
+				<div style={{ paddingInline: 16, paddingBottom: 8 }}>
+					<Input
 						fullWidth
 						placeholder="Search workflows..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						slotProps={{
-							input: {
-								startAdornment: (
-									<InputAdornment position="start">
-										<Search fontSize="small" />
-									</InputAdornment>
-								),
-							},
-						}}
+						startAdornment={<IconSearch size={20} />}
 					/>
-				</Box>
+				</div>
 
 				{/* Active/Inactive Filter and Add New Button */}
-				<Box px={2} pb={1} display="flex" justifyContent="space-between" gap={1}>
-					<FormControl size="small" sx={{ minWidth: 100 }}>
+				<div style={{ paddingInline: 16, paddingBottom: 8, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+					<FormControl size="small" style={{ minWidth: 100 }}>
 						<Select
 							value={isActive ? 'active' : 'inactive'}
 							onChange={(e) => setIsActive(e.target.value === 'active')}
@@ -103,32 +83,32 @@ export default function WorkflowsView() {
 							variant: 'contained',
 							size: 'small',
 							onClick: () => setShowCreateDialog(true),
-							startIcon: <Add />,
+							startIcon: <IconPlus size={20} />,
 							sx: { height: 35 },
 						}}
 					>
 						Workflow
 					</BasicButtonStyled>
-				</Box>
+				</div>
 
 				<div style={{ padding: '0px 10px 10px' }}>
-					<Divider sx={{ padding: '5px' }} />
+					<Divider />
 				</div>
 
 				{/* Workflow List */}
-				<Box height="calc(100% - 180px)" sx={{ overflowY: 'auto', px: 2, pb: 2 }}>
+				<div style={{ height: 'calc(100% - 180px)', overflowY: 'auto', paddingInline: 16, paddingBottom: 16 }}>
 					{isLoading ? (
-						<Stack spacing={1}>
-							<Skeleton variant="rectangular" height={80} />
-							<Skeleton variant="rectangular" height={80} />
-							<Skeleton variant="rectangular" height={80} />
-						</Stack>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+							<Skeleton variant="rect" height={80} />
+							<Skeleton variant="rect" height={80} />
+							<Skeleton variant="rect" height={80} />
+						</div>
 					) : definitions.length === 0 ? (
-						<Typography fontSize={13} color="text.secondary" textAlign="center" mt={2}>
+						<span style={{ fontSize: 13,  color: 'var(--text-secondary)', textAlign: 'center', marginTop: 16  }}>
 							{searchTerm ? 'No workflows found' : 'No workflows yet'}
-						</Typography>
+						</span>
 					) : (
-						<Stack spacing={1}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							{definitions.map((definition) => {
 								const isSelected = selectedWorkflowId === definition.id;
 								const location = definition.desk_location_id
@@ -136,91 +116,69 @@ export default function WorkflowsView() {
 									: null;
 
 								return (
-									<Paper
+									<div
 										key={definition.id}
-										variant="outlined"
-										sx={{
-											p: 1.5,
+										style={{
+											padding: 12,
 											border: isSelected ? '2px solid' : '1px solid',
-											borderColor: isSelected ? 'primary.main' : BORDER_LIGHT,
-											bgcolor: isSelected ? 'rgba(33, 181, 255, 0.04)' : 'background.paper',
+											borderColor: isSelected ? 'primary.main' : 'var(--border)',
+											backgroundColor: isSelected ? 'rgba(33, 181, 255, 0.04)' : 'background.paper',
 											cursor: 'pointer',
 											transition: 'all 0.2s',
-											'&:hover': {
-												borderColor: 'primary.light',
-											},
-										}}
+											}}
 										onClick={() => setSelectedWorkflowId(definition.id)}
 									>
-										<Typography fontSize={14} fontWeight={isSelected ? 600 : 500} mb={0.5}>
+										<span style={{ fontSize: 14, fontWeight: isSelected ? 600 : 500 }}>
 											{definition.name}
-										</Typography>
+										</span>
 
 										{definition.description && (
-											<Typography
-												fontSize={12}
-												color="text.secondary"
-												mb={1}
-												sx={{
+											<span style={{  fontSize: 12,  color: 'var(--text-secondary)'  , 
 													overflow: 'hidden',
 													textOverflow: 'ellipsis',
 													display: '-webkit-box',
 													WebkitLineClamp: 2,
 													WebkitBoxOrient: 'vertical',
-												}}
+												 }}
 											>
 												{definition.description}
-											</Typography>
+											</span>
 										)}
 
-										<Box display="flex" gap={0.5} flexWrap="wrap">
+										<div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
 											<Chip
-												icon={location ? <LocationOn /> : <Public />}
-												label={location ? `Desk Location: ${location.name}` : 'Global'}
-												size="small"
-												color={location ? 'primary' : 'default'}
+												size="sm"
+												color={location ? 'info' : 'neutral'}
 												variant="outlined"
-												sx={{
-													fontSize: 11,
-													height: 22,
-													'& .MuiChip-icon': { color: location ? 'primary.main' : undefined },
-												}}
-											/>
+											>{location ? `Desk Location: ${location.name}` : 'Global'}</Chip>
 											{!definition.is_active && (
-												<Chip
-													label="Inactive"
-													size="small"
-													color="default"
-													sx={{ fontSize: 11, height: 20 }}
-												/>
+												<Chip 
+													size="sm"
+													color="neutral"
+													style={{ fontSize: 11, height: 20 }}>Inactive</Chip>
 											)}
-										</Box>
-									</Paper>
+										</div>
+									</div>
 								);
 							})}
-						</Stack>
+						</div>
 					)}
-				</Box>
-			</Box>
+				</div>
+			</div>
 
 			{/* Right Panel - Workflow Detail */}
-			<Box
-				flex={1}
-				sx={{
-					overflowY: 'auto',
-					bgcolor: 'background.default',
-				}}
-			>
+			<div style={{ flex: 1, overflowY: 'auto',
+					backgroundColor: 'var(--bg-primary)', }}>
 				{selectedWorkflowId ? (
 					<WorkflowDetailPanel workflowId={selectedWorkflowId} />
 				) : (
-					<Box display="flex" alignItems="center" justifyContent="center" height="100%" p={3}>
-						<Typography fontSize={14} color="text.secondary">
+					<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 24 }}>
+						<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
 							Select a workflow to view details
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				)}
-			</Box>
+			</div>
 
 			{/* Create Dialog */}
 			{showCreateDialog && (
@@ -229,6 +187,6 @@ export default function WorkflowsView() {
 					onSuccess={handleCreateSuccess}
 				/>
 			)}
-		</Box>
+		</div>
 	);
 }

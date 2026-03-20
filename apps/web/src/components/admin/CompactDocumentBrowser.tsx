@@ -1,12 +1,12 @@
 'use client';
 
-import { Breadcrumbs, Link, Paper, Typography, Box } from '@mui/material';
+import { IconFile, IconFolder } from '@tabler/icons-react';
+import { Breadcrumbs, Link } from '@mui/material';
+import Card from '@/components/ui/Card';
 import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro';
-import FolderIcon from '@mui/icons-material/Folder';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import IconHeaderCell from '../common/IconHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -84,7 +84,7 @@ export default function CompactDocumentBrowser({
 		return (
 			<CustomNoRowsOverlay
 				text={text}
-				icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconFile style={{ fontSize: 40, color: 'var(--text-muted)' }} />}
 			/>
 		);
 	}, [currentFolderId, filterByType]);
@@ -150,25 +150,25 @@ export default function CompactDocumentBrowser({
 	};
 
 	return (
-		<Paper elevation={0} sx={{ ...styles.container, height }}>
+		<div style={{ ...styles.container, height }}>
 			{/* Breadcrumbs for navigation - hidden in userFilteredMode */}
 			{!userFilteredMode && (
-				<Breadcrumbs sx={{ p: 2, pb: 1 }}>
+				<Breadcrumbs style={{ padding: 16, paddingBottom: 8 }}>
 					<Link
 						component="button"
 						underline="hover"
 						color={currentFolderId === null ? 'text.primary' : 'inherit'}
 						onClick={() => !disabled && setCurrentFolderId(null)}
-						sx={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
 					>
 						Documents
 					</Link>
 					{breadcrumbTrail.map((folder, index) => {
 						const isLast = index === breadcrumbTrail.length - 1;
 						return isLast ? (
-							<Typography key={folder.id} color="text.primary">
+							<span key={folder.id} style={{ color: 'var(--text-primary)' }}>
 								{folder.name}
-							</Typography>
+							</span>
 						) : (
 							<Link
 								key={folder.id}
@@ -176,7 +176,7 @@ export default function CompactDocumentBrowser({
 								underline="hover"
 								color="inherit"
 								onClick={() => !disabled && setCurrentFolderId(folder.id)}
-								sx={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+								style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
 							>
 								{folder.name}
 							</Link>
@@ -194,16 +194,16 @@ export default function CompactDocumentBrowser({
 				slots={{
 					noRowsOverlay,
 				}}
-				sx={styles.dataGrid}
+				style={styles.dataGrid}
 				hideFooter
 			/>
 
-			<Box sx={{ p: 1, bgcolor: '#f5f5f5', borderTop: '1px solid #e0e0e0' }}>
-				<Typography fontSize={11} color="text.secondary">
+			<div style={{ padding: 8, backgroundColor: '#f5f5f5', borderTop: '1px solid #e0e0e0' }}>
+				<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 					Double-click a {filterByType === 'image' ? 'image' : 'document'} to select it
-				</Typography>
-			</Box>
-		</Paper>
+				</span>
+			</div>
+		</div>
 	);
 }
 
@@ -217,15 +217,15 @@ const COLUMNS: GridColDef<GridRow>[] = [
 			if (row.type === 'folder' && row.data.group_type === 'user' && row.data.user_first && row.data.user_last) {
 				return (
 					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<IconFolder style={{ color: 'var(--text-muted)' }} />
 						<div>
-							<Typography variant="body2">
+							<span>
 								{row.data.user_first} {row.data.user_last}
-							</Typography>
+							</span>
 							{row.data.user_email && (
-								<Typography variant="caption" color="text.secondary" display="block">
+								<span style={{ color: 'var(--text-secondary)' }}>
 									{row.data.user_email}
-								</Typography>
+								</span>
 							)}
 						</div>
 					</div>
@@ -236,18 +236,18 @@ const COLUMNS: GridColDef<GridRow>[] = [
 			return (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 					{row.type === 'folder' ? (
-						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<IconFolder style={{ color: 'var(--text-muted)' }} />
 					) : (
-						<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<IconFile style={{ color: 'var(--text-muted)' }} />
 					)}
-					<Typography variant="body2">
+					<span>
 						{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
-					</Typography>
+					</span>
 				</div>
 			);
 		},
 		renderHeader: (params) => (
-			<IconHeaderCell {...(params as any)} icon={<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...(params as any)} icon={<IconFile style={{ color: 'var(--text-muted)' }} />} />
 		),
 	},
 	{
@@ -255,9 +255,9 @@ const COLUMNS: GridColDef<GridRow>[] = [
 		field: 'type',
 		width: 150,
 		renderCell: ({ row }) => (
-			<Typography variant="body2" color="text.secondary">
+			<span style={{ color: 'var(--text-secondary)' }}>
 				{row.type === 'folder' ? 'Folder' : capitalize(row.data.doc_type.replace('_', ' '))}
-			</Typography>
+			</span>
 		),
 	},
 	{
@@ -265,9 +265,9 @@ const COLUMNS: GridColDef<GridRow>[] = [
 		field: 'date',
 		width: 150,
 		renderCell: ({ row }) => (
-			<Typography variant="body2" color="text.secondary">
+			<span style={{ color: 'var(--text-secondary)' }}>
 				{formatMDY(row.data.created_at)}
-			</Typography>
+			</span>
 		),
 	},
 ];
@@ -278,18 +278,11 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		border: '1px solid #e0e0e0',
-		borderRadius: 1,
+		borderRadius: 4,
 	},
 	dataGrid: {
 		flex: 1,
 		border: 'none',
-		'& .MuiDataGrid-row': {
-			cursor: 'pointer',
-		},
-		'& .MuiDataGrid-cell': {
-			display: 'flex',
-			alignItems: 'center',
-		},
 		...dataGridFocusStyles,
 	},
 };

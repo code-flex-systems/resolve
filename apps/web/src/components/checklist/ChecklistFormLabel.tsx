@@ -1,15 +1,13 @@
 'use client';
-import Replay from '@mui/icons-material/Replay';
-import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import { FormLabel, IconButton, Tooltip, Typography } from '@mui/material';
 import QuestionInfo from './QuestionInfo';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Question } from '@/types/types';
 import { ChecklistMode, QuestionType } from '@/config/enums';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
-import theme from '@/styles/theme';
 import { GetCommentOutput } from '@/hooks/trpc/useCommentTrpc';
 import useIsAssigned from '@/hooks/useIsAssigned';
+import { IconMessage, IconRefresh } from '@tabler/icons-react';
 
 export default function ChecklistFormLabel(props: {
 	id: string;
@@ -41,7 +39,7 @@ export default function ChecklistFormLabel(props: {
 							disabled={!value?.length || disabled}
 							sx={{ marginRight: '5px' }}
 						>
-							<Replay sx={{ fontSize: 17 }} />
+							<IconRefresh size={17} />
 						</IconButton>
 					</span>
 				</Tooltip>
@@ -56,8 +54,7 @@ export default function ChecklistFormLabel(props: {
 							disabled={disabled}
 							sx={{ marginRight: '10px' }}
 						>
-							<SmsOutlined
-								sx={{ fontSize: 17, color: comment ? theme.palette.secondary.main : undefined }}
+							<IconMessage size={17} style={{ color: comment ? 'var(--text-accent)' : undefined }}
 							/>
 						</IconButton>
 					</span>

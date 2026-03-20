@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
-import Assignment from '@mui/icons-material/Assignment';
+import { IconClipboard } from '@tabler/icons-react';
+import { Dialog, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -53,7 +53,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 			primaryAction={{
 				label: 'Assign',
 				onClick: handleAssign,
-				icon: <Assignment />,
+				icon: <IconClipboard size={20} />,
 				disabled: isPending || !deskLocationId,
 			}}
 			secondaryActions={[
@@ -65,10 +65,10 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 			onClose={onClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
-				<Typography variant="body2" color="text.secondary" sx={{ width: 400, marginBottom: 1 }}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+				<span style={{  color: 'var(--text-secondary)' ,  width: 400, marginBottom: 1  }}>
 					Assigning {selectedUserIds.length} user(s) to a desk location
-				</Typography>
+				</span>
 
 				<DeskLocationTypeSelect
 					value={deskLocationTypeId}
@@ -87,7 +87,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					required
 				/>
 
-				<FormControl sx={{ width: 400, margin: '5px 0px' }}>
+				<FormControl style={{ width: 400, margin: '5px 0px' }}>
 					<InputLabel>Priority</InputLabel>
 					<Select
 						value={priority}
@@ -101,7 +101,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 						<MenuItem value={5}>Priority 5 (Lowest)</MenuItem>
 					</Select>
 				</FormControl>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

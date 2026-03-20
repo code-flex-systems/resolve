@@ -1,6 +1,7 @@
 'use client';
+import { Card, CardContent, Grid } from '@mui/material';
+import Skeleton from '@/components/ui/Skeleton';
 
-import { Card, CardContent, Grid, Skeleton, Typography } from '@mui/material';
 
 interface TaskMetricsProps {
 	openTasks: number;
@@ -19,24 +20,24 @@ export default function TaskMetrics({
 		<Grid container spacing={1} mb={1.5}>
 			{/* Open Tasks */}
 			<Grid>
-				<Card variant="outlined" sx={{ height: '100%' }}>
-					<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-						<Typography color="#d9d9d9" fontSize={12} gutterBottom>
+				<Card variant="outlined" style={{ height: '100%' }}>
+					<CardContent style={{ padding: 8, }}>
+						<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 							Open Tasks
-						</Typography>
+						</span>
 						{isLoading ? (
 							<>
-								<Skeleton variant="text" width={40} height={24} sx={{ mb: 0.5 }} />
+								<Skeleton variant="text" width={40} height={24} />
 								<Skeleton variant="text" width={80} height={16} />
 							</>
 						) : (
 							<>
-								<Typography variant="h6" fontSize={16} component="div">
+								<span style={{ fontSize: 16 }}>
 									{openTasks}
-								</Typography>
-								<Typography variant="body2" fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									pending + in progress
-								</Typography>
+								</span>
 							</>
 						)}
 					</CardContent>
@@ -45,29 +46,26 @@ export default function TaskMetrics({
 
 			{/* Overdue Tasks */}
 			<Grid>
-				<Card variant="outlined" sx={{ height: '100%' }}>
-					<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-						<Typography color="#d9d9d9" fontSize={12} gutterBottom>
+				<Card variant="outlined" style={{ height: '100%' }}>
+					<CardContent style={{ padding: 8, }}>
+						<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 							Overdue
-						</Typography>
+						</span>
 						{isLoading ? (
 							<>
-								<Skeleton variant="text" width={40} height={24} sx={{ mb: 0.5 }} />
+								<Skeleton variant="text" width={40} height={24} />
 								<Skeleton variant="text" width={70} height={16} />
 							</>
 						) : (
 							<>
-								<Typography
-									variant="h6"
-									fontSize={16}
-									component="div"
-									color={overdueTasks > 0 ? 'error.main' : 'inherit'}
+								<span
+									style={{ fontSize: 16, color: overdueTasks > 0 ? 'var(--status-error)' : 'inherit' }}
 								>
 									{overdueTasks}
-								</Typography>
-								<Typography variant="body2" fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									past due date
-								</Typography>
+								</span>
 							</>
 						)}
 					</CardContent>
@@ -76,24 +74,24 @@ export default function TaskMetrics({
 
 			{/* Average Completion Time */}
 			<Grid>
-				<Card variant="outlined" sx={{ height: '100%' }}>
-					<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-						<Typography color="#d9d9d9" fontSize={12} gutterBottom>
+				<Card variant="outlined" style={{ height: '100%' }}>
+					<CardContent style={{ padding: 8, }}>
+						<span style={{ color: '#d9d9d9', fontSize: 12 }}>
 							Avg Completion
-						</Typography>
+						</span>
 						{isLoading ? (
 							<>
-								<Skeleton variant="text" width={60} height={24} sx={{ mb: 0.5 }} />
+								<Skeleton variant="text" width={60} height={24} />
 								<Skeleton variant="text" width={90} height={16} />
 							</>
 						) : (
 							<>
-								<Typography variant="h6" fontSize={16} component="div">
+								<span style={{ fontSize: 16 }}>
 									{avgCompletionDays !== null ? `${avgCompletionDays.toFixed(1)} days` : '-'}
-								</Typography>
-								<Typography variant="body2" fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									create to complete
-								</Typography>
+								</span>
 							</>
 						)}
 					</CardContent>

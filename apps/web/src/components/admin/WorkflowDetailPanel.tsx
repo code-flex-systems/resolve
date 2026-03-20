@@ -1,32 +1,14 @@
 'use client';
 
+import { IconArchive, IconChevronDown, IconChevronUp, IconEdit, IconMapPin, IconPlus, IconWorld } from '@tabler/icons-react';
+import { FormControl, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Collapse from '@/components/ui/Collapse';
+import Skeleton from '@/components/ui/Skeleton';
+import Chip from '@/components/ui/Chip';
 import { useState, useEffect, useMemo } from 'react';
-import {
-	Box,
-	Collapse,
-	FormControl,
-	IconButton,
-	MenuItem,
-	Select,
-	Stack,
-	Paper,
-	Typography,
-	TextField,
-	Table,
-	TableHead,
-	TableBody,
-	TableRow,
-	TableCell,
-	Chip,
-	Skeleton,
-} from '@mui/material';
-import Edit from '@mui/icons-material/Edit';
-import Add from '@mui/icons-material/Add';
-import Archive from '@mui/icons-material/Archive';
-import Public from '@mui/icons-material/Public';
-import LocationOn from '@mui/icons-material/LocationOn';
-import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import DeskLocationTypeSelect from '@/components/common/DeskLocationTypeSelect';
@@ -39,7 +21,7 @@ import RuleExecutionSummaryDialog from '@/components/admin/RuleExecutionSummaryD
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import { formatThresholdType, getThresholdUnit } from '@/lib/utils/workflowUtils';
 import { formatMDY } from '@/lib/utils/utils';
 import type { WorkflowThreshold, WorkflowRule, RuleExecutionSummary } from '@/hooks/trpc/useWorkflowTrpc';
@@ -185,46 +167,46 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 
 	if (isLoading) {
 		return (
-			<Box maxWidth={1000} mx="auto">
-				<Stack spacing={3}>
-					<Skeleton variant="rectangular" height={200} />
-					<Skeleton variant="rectangular" height={150} />
-					<Skeleton variant="rectangular" height={300} />
-				</Stack>
-			</Box>
+			<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+					<Skeleton variant="rect" height={200} />
+					<Skeleton variant="rect" height={150} />
+					<Skeleton variant="rect" height={300} />
+				</div>
+			</div>
 		);
 	}
 
 	if (!workflow) {
 		return (
-			<Box maxWidth={1000} mx="auto">
-				<Typography color="text.secondary">Workflow not found</Typography>
-			</Box>
+			<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
+				<span style={{ color: 'var(--text-secondary)' }}>Workflow not found</span>
+			</div>
 		);
 	}
 
 	return (
-		<Box maxWidth={1000} mx="auto">
-			<Stack spacing={3}>
+		<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 				{/* Section 1: Workflow Definition (Gradient Container) */}
-				<Paper elevation={0} sx={containerStyles.gradientCard}>
-					<Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+				<div style={containerStyles.gradientCard}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							WORKFLOW DEFINITION
-						</Typography>
+						</span>
 						{!isEditing && (
 							<BasicButtonStyled
-								icon={<Edit />}
+								icon={<IconEdit size={20} />}
 								tooltipProps={{ title: 'Edit Workflow' }}
 								compact
 								buttonProps={{ onClick: () => setIsEditing(true) }}
 							/>
 						)}
-					</Box>
+					</div>
 
 					{isEditing ? (
-						<Stack spacing={2}>
-							<TextField
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<Input
 								label="Workflow Name"
 								value={formData.name}
 								onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -233,12 +215,11 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								placeholder="e.g., Standard Subrogation Workflow"
 							/>
 
-							<TextField
+							<Textarea
 								label="Description"
 								value={formData.description}
 								onChange={(e) => setFormData({ ...formData, description: e.target.value })}
 								fullWidth
-								multiline
 								rows={3}
 								placeholder="Optional description of this workflow..."
 							/>
@@ -260,7 +241,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								fullWidth
 							/>
 
-							<Box display="flex" gap={1}>
+							<div style={{ display: 'flex', gap: 8 }}>
 								<BasicButtonStyled
 									buttonProps={{
 										variant: 'contained',
@@ -290,83 +271,78 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								>
 									Cancel
 								</BasicButtonStyled>
-							</Box>
-						</Stack>
+							</div>
+						</div>
 					) : (
-						<Box>
-							<Typography fontSize={18} fontWeight={600} mb={1}>
+						<div>
+							<span style={{ fontSize: 18, fontWeight: 600 }}>
 								{workflow.name}
-							</Typography>
+							</span>
 
 							{workflow.description && (
-								<Typography fontSize={14} color="text.secondary" mb={2}>
+								<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
 									{workflow.description}
-								</Typography>
+								</span>
 							)}
 
-							<Box display="flex" gap={1} mb={1.5} flexWrap="wrap">
+							<div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
 								<Chip
-									icon={location ? <LocationOn /> : <Public />}
-									label={location ? `Desk Location: ${location.name}` : 'Global'}
-									size="small"
-									color={location ? 'primary' : 'default'}
+									size="sm"
+									color={location ? 'info' : 'neutral'}
 									variant="outlined"
-									sx={{ '& .MuiChip-icon': { color: location ? 'primary.main' : undefined } }}
-								/>
+								>{location ? `Desk Location: ${location.name}` : 'Global'}</Chip>
 								<Chip
-									label={workflow.is_active ? 'Active' : 'Inactive'}
-									size="small"
-									color={workflow.is_active ? 'success' : 'default'}
-								/>
-							</Box>
+									size="sm"
+									color={workflow.is_active ? 'success' : 'neutral'}>{workflow.is_active ? 'Active' : 'Inactive'}</Chip>
+							</div>
 
-							<Box display="flex" gap={2} mt={2}>
+							<div style={{ display: 'flex', gap: 16, marginTop: 16 }}>
 								{(workflow as any).creator_first_name && (
-									<Typography fontSize={12} color="text.secondary">
+									<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 										{(workflow as any).creator_first_name} {(workflow as any).creator_last_name}
-									</Typography>
+									</span>
 								)}
-								<Typography fontSize={12} color="text.secondary">
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									Created:{' '}
 									{workflow.created_at
 										? formatMDY(new Date(workflow.created_at).toISOString())
 										: 'N/A'}
-								</Typography>
-								<Typography fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									Updated:{' '}
 									{workflow.updated_at
 										? formatMDY(new Date(workflow.updated_at).toISOString())
 										: 'N/A'}
-								</Typography>
-							</Box>
-						</Box>
+								</span>
+							</div>
+						</div>
 					)}
-				</Paper>
+				</div>
 
 				{/* Section 2: Thresholds (Beveled Container with Table) */}
-				<Paper elevation={0} sx={containerStyles.beveledCard}>
-					<Box p={2}>
-						<Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-							<Typography fontSize={13} fontWeight={600}>
+				<div style={containerStyles.beveledCard}>
+					<div style={{ padding: 16 }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								SLA & Capacity Thresholds ({thresholds.length})
-							</Typography>
+							</span>
 							<BasicButtonStyled
 								buttonProps={{
 									variant: 'outlined',
 									size: 'small',
 									onClick: () => setShowThresholdDialog(true),
-									startIcon: <Add />,
+									startIcon: <IconPlus size={20} />,
 									color: 'inherit',
 								}}
 							>
 								Threshold
 							</BasicButtonStyled>
-						</Box>
+						</div>
 
 						{thresholds.length === 0 ? (
-							<Typography fontSize={14} color="text.secondary">
+							<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
 								No thresholds configured
-							</Typography>
+							</span>
 						) : (
 							<Table>
 								<TableHead>
@@ -389,63 +365,61 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 											</TableCell>
 											<TableCell>
 												<Chip
-													label={threshold.is_active ? 'Active' : 'Inactive'}
-													size="small"
-													color={threshold.is_active ? 'success' : 'default'}
-												/>
+													size="sm"
+													color={threshold.is_active ? 'success' : 'neutral'}>{threshold.is_active ? 'Active' : 'Inactive'}</Chip>
 											</TableCell>
 											<TableCell>
-												<Box display="flex" gap={0.5}>
+												<div style={{ display: 'flex', gap: 4 }}>
 													<BasicButtonStyled
-														icon={<Edit />}
+														icon={<IconEdit size={20} />}
 														compact
 														buttonProps={{ onClick: () => handleEditThreshold(threshold) }}
 														tooltipProps={{ title: 'Edit Threshold' }}
 													/>
 													<BasicButtonStyled
-														icon={<Archive />}
+														icon={<IconArchive size={20} />}
 														compact
 														buttonProps={{
 															onClick: () => handleArchiveThreshold(threshold),
 														}}
 														tooltipProps={{ title: 'Archive Threshold' }}
 													/>
-												</Box>
+												</div>
 											</TableCell>
 										</TableRow>
 									))}
 								</TableBody>
 							</Table>
 						)}
-					</Box>
-				</Paper>
+					</div>
+				</div>
 
 				{/* Section 3: Rules (Beveled Container with Containerized Items) */}
-				<Paper elevation={0} sx={containerStyles.beveledCard}>
-					<Box p={2}>
-						<Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-							<Typography fontSize={13} fontWeight={600}>
+				<div style={containerStyles.beveledCard}>
+					<div style={{ padding: 16 }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								Automation Rules ({rules.length})
-							</Typography>
+							</span>
 							<BasicButtonStyled
 								buttonProps={{
 									variant: 'outlined',
 									size: 'small',
 									onClick: () => setShowRuleDialog(true),
-									startIcon: <Add />,
+									startIcon: <IconPlus size={20} />,
 									color: 'inherit',
 								}}
 							>
 								Rule
 							</BasicButtonStyled>
-						</Box>
+						</div>
 
 						{rules.length === 0 ? (
-							<Typography fontSize={14} color="text.secondary">
+							<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
 								No rules configured
-							</Typography>
+							</span>
 						) : (
-							<Stack spacing={2}>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 								{rules.map((rule) => (
 									<RuleCard
 										key={rule.id}
@@ -456,28 +430,27 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 										isRunning={runningRuleId === rule.id}
 									/>
 								))}
-							</Stack>
+							</div>
 						)}
-					</Box>
-				</Paper>
+					</div>
+				</div>
 
 				{/* Section 4: Execution History (Collapsible) */}
-				<Paper elevation={0} sx={containerStyles.beveledCard}>
-					<Box p={2}>
-						<Box display="flex" justifyContent="space-between" alignItems="center">
-							<Box display="flex" alignItems="center" gap={1}>
-								<Typography fontSize={13} fontWeight={600}>
+				<div style={containerStyles.beveledCard}>
+					<div style={{ padding: 16 }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+								<span style={{ fontSize: 13, fontWeight: 600 }}>
 									Execution History
-								</Typography>
-								<IconButton
-									size="small"
+								</span>
+								<Button variant="icon" size="sm"
 									onClick={() => setHistoryExpanded((prev) => !prev)}
 								>
-									{historyExpanded ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-								</IconButton>
-							</Box>
+									{historyExpanded ? <IconChevronUp size={20} /> : <IconChevronDown size={20} />}
+								</Button>
+							</div>
 							{historyExpanded && (
-								<FormControl size="small" sx={{ minWidth: 160 }}>
+								<FormControl size="small" style={{ minWidth: 160 }}>
 									<Select
 										value={historyRuleFilter ?? ''}
 										displayEmpty
@@ -495,17 +468,17 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 									</Select>
 								</FormControl>
 							)}
-						</Box>
-						<Collapse in={historyExpanded}>
-							<Box mt={2}>
+						</div>
+						<Collapse open={historyExpanded}>
+							<div style={{ marginTop: 16 }}>
 								{historyExpanded && (
 									<ExecutionHistoryTable ruleId={historyRuleFilter} compact />
 								)}
-							</Box>
+							</div>
 						</Collapse>
-					</Box>
-				</Paper>
-			</Stack>
+					</div>
+				</div>
+			</div>
 
 			{/* Dialogs */}
 			{showThresholdDialog && (
@@ -534,10 +507,10 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 					secondaryActions={[{ label: 'Cancel', onClick: () => setArchivingThreshold(null) }]}
 					width={500}
 				>
-					<Typography>
+					<span>
 						Are you sure you want to archive the threshold "
 						{formatThresholdType(archivingThreshold.threshold_type as any)}"? This action cannot be undone.
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
@@ -554,9 +527,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 					secondaryActions={[{ label: 'Cancel', onClick: () => setArchivingRule(null) }]}
 					width={500}
 				>
-					<Typography>
+					<span>
 						Are you sure you want to archive the rule "{archivingRule.name}"? This action cannot be undone.
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
@@ -566,6 +539,6 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				summary={executionSummary}
 				ruleName={summaryRuleName}
 			/>
-		</Box>
+		</div>
 	);
 }

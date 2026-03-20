@@ -1,14 +1,13 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import { Fade, Paper, Popper, PopperProps, Stack } from '@mui/material';
-import Checklist from '@mui/icons-material/Checklist';
+import { Paper, Popper, PopperProps, Stack , Fade } from '@mui/material';
 import { useState } from 'react';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { StackedRow } from '../common/StackedRow';
 import { formatMDY } from '@/lib/utils/utils';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
-import theme from '@/styles/theme';
+import { IconChecklist } from '@tabler/icons-react';
 
 export default function ChecklistInfo() {
 	const isAdmin = useIsAdmin();
@@ -24,7 +23,7 @@ export default function ChecklistInfo() {
 				buttonProps={{
 					onMouseEnter: (e) => setChecklistAnchorEl(e.currentTarget),
 					onMouseLeave: () => setChecklistAnchorEl(null),
-					startIcon: <Checklist />,
+					startIcon: <IconChecklist size={20} />,
 				}}
 			>
 				{checklist.name}

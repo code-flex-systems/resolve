@@ -1,13 +1,12 @@
 'use client';
 
-import theme from '@/styles/theme';
-import { Box, Collapse, Typography } from '@mui/material';
 import { JSX, useEffect, useState } from 'react';
+import styles from './ExpandableTitle.module.css';
 
 export default function ExpandableTitle({
 	title,
 	icon,
-	color = theme.palette.primary.main,
+	color = 'var(--color-primary)',
 	bgcolor = '#F0F3F7',
 	padding,
 	size = 30,
@@ -25,44 +24,21 @@ export default function ExpandableTitle({
 		return () => setShowTitle(false);
 	}, []);
 	return (
-		<Box
-			width="fit-content"
-			display="flex"
-			justifyContent="flex-start"
-			alignItems="center"
-			padding={padding}
-			position="relative"
-		>
-			<Box
-				bgcolor={color}
-				width={size}
-				height={size}
-				display="flex"
-				justifyContent="center"
-				alignItems="center"
-				borderRadius={30}
-				position="absolute"
-				left={0}
+		<div className={styles.container} style={{ padding }}>
+			<div
+				className={styles.iconCircle}
+				style={{ backgroundColor: color, width: size, height: size }}
 			>
 				{icon}
-			</Box>
-			<Collapse in={showTitle} timeout={500} orientation="horizontal">
-				<Box
-					width="fit-content"
-					display="flex"
-					justifyContent="center"
-					alignItems="center"
-					borderRadius={30}
-					paddingRight="15px"
-					sx={{ backgroundColor: bgcolor }}
-					paddingLeft={`${size}px`}
-					overflow="hidden"
-				>
-					<Typography fontSize={17} marginLeft="5px" noWrap>
-						{title}
-					</Typography>
-				</Box>
-			</Collapse>
-		</Box>
+			</div>
+			<div
+				className={`${styles.titlePill} ${showTitle ? styles.titlePillExpanded : styles.titlePillCollapsed}`}
+				style={{ backgroundColor: bgcolor, paddingLeft: size }}
+			>
+				<span className={styles.titleText}>
+					{title}
+				</span>
+			</div>
+		</div>
 	);
 }

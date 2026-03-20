@@ -3,8 +3,8 @@ import { Box, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ChecklistMode } from '@/config/enums';
 import './styles.css';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
-import FormatQuote from '@mui/icons-material/FormatQuote';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { IconQuote } from '@tabler/icons-react';
 
 export default function AnswerNode(props: {
 	pageId: number;
@@ -27,11 +27,10 @@ export default function AnswerNode(props: {
 			className="flex-row-between"
 		>
 			<Box className="flex-row-left">
-				<FormatQuote
-					sx={{ fontSize: 16, marginRight: '10px', color: selected ? 'warning.main' : BASE_COLOR_LIGHT }}
+				<IconQuote size={16} style={{ marginRight: '10px', color: selected ? 'warning.main' : BASE_COLOR_LIGHT }}
 				/>
 				<Typography
-					color={selected ? theme.palette.warning.light : isPlaceholder ? '#DAB0FF' : ''}
+					color={selected ? 'var(--status-warning)' : isPlaceholder ? '#DAB0FF' : ''}
 					fontWeight={isPlaceholder ? 'bold' : ''}
 					className={isPlaceholder ? 'node-p' : 'node-a'}
 					lineHeight="19px"

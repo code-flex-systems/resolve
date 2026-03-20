@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Paper, Stack, Typography , Fade } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import Leaderboard from '@mui/icons-material/Leaderboard';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useSearchParams } from 'next/navigation';
@@ -11,6 +10,8 @@ import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import dayjs, { Dayjs } from 'dayjs';
 import { TEXT_MUTED } from '@/styles/theme';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconTrophy } from '@tabler/icons-react';
 
 export default function BreakdownNavigation() {
 	const searchParams = useSearchParams();
@@ -66,7 +67,7 @@ export default function BreakdownNavigation() {
 					pt={1.5}
 					pl={1.5}
 				>
-					<Leaderboard sx={{ color: TEXT_MUTED, transform: 'rotate(90deg)' }} />
+					<IconTrophy size={20} style={{ color: TEXT_MUTED, transform: 'rotate(90deg)' }} />
 					<Typography fontSize={14} color={TEXT_MUTED} ml={1.5}>
 						{pageInstance
 							? `Breakdown for ${pageInstance.title}`
@@ -82,7 +83,7 @@ export default function BreakdownNavigation() {
 							{isLoading && (
 								<Stack spacing={2} width="100%" p={2}>
 									{[1, 2, 3, 4].map((i) => (
-										<Skeleton key={i} variant="rounded" height={60} />
+										<Skeleton key={i} variant="rect" height={60} />
 									))}
 								</Stack>
 							)}

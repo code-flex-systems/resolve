@@ -1,11 +1,12 @@
 'use client';
 
-import { Box, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { containerStyles } from '@/styles/theme';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import WorkOutline from '@mui/icons-material/WorkOutline';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconBriefcase } from '@tabler/icons-react';
 
 export default function MyDeskAssignments() {
 	const { data: assignments = [], isLoading } = useDeskTrpc().getMyDeskAssignments();
@@ -22,12 +23,12 @@ export default function MyDeskAssignments() {
 	return (
 		<Box sx={{ ...containerStyles.section, ...styles.container }}>
 			<Typography sx={containerStyles.sectionTitle}>
-				<WorkOutline sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+				<IconBriefcase style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				My Desk Assignments
 			</Typography>
 			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				{isLoading ? (
-					<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 1 }} />
+					<Skeleton variant="rect" width="100%" height="100%" />
 				) : assignments.length === 0 ? (
 					<Box sx={styles.emptyState}>
 						<Typography variant="body2" color="text.secondary">

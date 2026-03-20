@@ -1,30 +1,18 @@
 'use client';
 
+import { IconTrash } from '@tabler/icons-react';
+import { FormControl, FormControlLabel, FormHelperText, InputLabel, MenuItem, Select } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
+import Divider from '@/components/ui/Divider';
+import Switch from '@/components/ui/Switch';
+import Button from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
-import {
-	Box,
-	Stack,
-	TextField,
-	FormControl,
-	InputLabel,
-	Select,
-	MenuItem,
-	Switch,
-	FormControlLabel,
-	Divider,
-	Typography,
-	Button,
-	Paper,
-	IconButton,
-	FormHelperText,
-} from '@mui/material';
-import Delete from '@mui/icons-material/Delete';
 import BasicDialog from '@/components/common/BasicDialog';
 import DeskLocationSelect from '@/components/common/DeskLocationSelect';
 import DeskLocationTypeSelect from '@/components/common/DeskLocationTypeSelect';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { WorkflowTriggerType, WorkflowActionType, WorkflowExecutionMode } from '@/config/enums';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { WORKFLOW_CONDITION_FIELDS, VALUE_LESS_OPERATORS } from '@/lib/workflow/ruleConditions';
 import {
 	TRIGGER_EXPLANATIONS,
@@ -81,11 +69,10 @@ function renderValueInput(
 
 	if (fieldDef.type === 'numeric' || fieldDef.type === 'integer') {
 		return (
-			<TextField
+			<Input
 				type="number"
-				size="small"
 				fullWidth
-				value={condition.value || ''}
+				value={String(condition.value ?? '')}
 				onChange={(e) => onChange({ ...condition, value: parseFloat(e.target.value) })}
 			/>
 		);
@@ -93,10 +80,9 @@ function renderValueInput(
 
 	// Default: text input
 	return (
-		<TextField
-			size="small"
+		<Input
 			fullWidth
-			value={condition.value || ''}
+			value={String(condition.value ?? '')}
 			onChange={(e) => onChange({ ...condition, value: e.target.value })}
 		/>
 	);
@@ -115,9 +101,9 @@ function ConditionRow({
 	const selectedFieldDef = WORKFLOW_CONDITION_FIELDS.find((f) => f.field === condition.field);
 
 	return (
-		<Box display="flex" gap={1} alignItems="flex-start">
+		<div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
 			{/* Field selector */}
-			<FormControl size="small" sx={{ minWidth: 200 }}>
+			<FormControl size="small" style={{ minWidth: 200 }}>
 				<InputLabel>Field</InputLabel>
 				<Select
 					value={condition.field}
@@ -136,7 +122,7 @@ function ConditionRow({
 
 			{/* Operator selector (filtered by field type) */}
 			{selectedFieldDef && (
-				<FormControl size="small" sx={{ minWidth: 120 }}>
+				<FormControl size="small" style={{ minWidth: 120 }}>
 					<InputLabel>Operator</InputLabel>
 					<Select
 						value={condition.operator}
@@ -154,14 +140,14 @@ function ConditionRow({
 
 			{/* Value input (type depends on field and operator) */}
 			{selectedFieldDef && condition.operator && !VALUE_LESS_OPERATORS.includes(condition.operator as any) && (
-				<Box flex={1}>{renderValueInput(selectedFieldDef, condition, onChange)}</Box>
+				<div style={{ flex: 1 }}>{renderValueInput(selectedFieldDef, condition, onChange)}</div>
 			)}
 
 			{/* Remove button */}
-			<IconButton size="small" onClick={onRemove}>
-				<Delete fontSize="small" />
-			</IconButton>
-		</Box>
+			<Button variant="icon" size="sm" onClick={onRemove}>
+				<IconTrash size={20} />
+			</Button>
+		</div>
 	);
 }
 
@@ -182,9 +168,9 @@ function RuleConditionsBuilder({
 	}
 
 	return (
-		<Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
-			<Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-				<FormControl size="small" sx={{ minWidth: 100 }}>
+		<div style={{ padding: 16, backgroundColor: 'var(--bg-primary)' }}>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+				<FormControl size="small" style={{ minWidth: 100 }}>
 					<Select
 						value={conditions.logic}
 						onChange={(e) => onChange({ ...conditions, logic: e.target.value as 'AND' | 'OR' })}
@@ -194,12 +180,12 @@ function RuleConditionsBuilder({
 					</Select>
 				</FormControl>
 
-				<Button size="small" variant="outlined" onClick={() => onChange(null)}>
+				<Button size="sm" variant="outlined" onClick={() => onChange(null)}>
 					Remove All
 				</Button>
-			</Box>
+			</div>
 
-			<Stack spacing={1.5}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 				{(conditions.conditions ?? []).map((cond, idx) => (
 					<ConditionRow
 						key={idx}
@@ -217,7 +203,7 @@ function RuleConditionsBuilder({
 				))}
 
 				<Button
-					size="small"
+					size="sm"
 					variant="text"
 					onClick={() =>
 						onChange({
@@ -231,8 +217,8 @@ function RuleConditionsBuilder({
 				>
 					+ Add Condition
 				</Button>
-			</Stack>
-		</Paper>
+			</div>
+		</div>
 	);
 }
 
@@ -331,14 +317,14 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 			width={700}
 			maxHeight="80vh"
 		>
-			<Box display="flex" flexDirection="column" gap={2.5} pt={1}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 8 }}>
 				{/* Section 1: Basic Info */}
-				<Box>
-					<Typography fontSize={12} color={BASE_COLOR_LIGHT} mb={1}>
+				<div>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						BASIC INFORMATION
-					</Typography>
-					<Stack spacing={2}>
-						<TextField
+					</span>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+						<Input
 							label="Rule Name"
 							value={formData.name}
 							onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -347,26 +333,25 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 							autoFocus
 							placeholder="e.g., Move aged claims to review"
 						/>
-						<TextField
+						<Textarea
 							label="Description"
 							value={formData.description}
 							onChange={(e) => setFormData({ ...formData, description: e.target.value })}
 							fullWidth
-							multiline
 							rows={2}
 							placeholder="Optional description of what this rule does..."
 						/>
-					</Stack>
-				</Box>
+					</div>
+				</div>
 
 				<Divider />
 
 				{/* Section 2: Trigger & Action */}
-				<Box>
-					<Typography fontSize={12} color={BASE_COLOR_LIGHT} mb={1}>
+				<div>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						TRIGGER & ACTION
-					</Typography>
-					<Stack spacing={2}>
+					</span>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 						<FormControl fullWidth required>
 							<InputLabel>Trigger Type</InputLabel>
 							<Select
@@ -379,9 +364,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								renderValue={(selected) => {
 									if (!selected) {
 										return (
-											<Typography color="text.secondary">
+											<span style={{ color: 'var(--text-secondary)' }}>
 												Select when this rule should fire...
-											</Typography>
+											</span>
 										);
 									}
 									return TRIGGER_CONFIG[selected as WorkflowTriggerType]?.label || selected;
@@ -389,12 +374,12 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 							>
 								{Object.entries(TRIGGER_CONFIG).map(([key, config]) => (
 									<MenuItem key={key} value={key}>
-										<Box>
-											<Typography fontSize={14}>{config.label}</Typography>
-											<Typography fontSize={12} color="text.secondary">
+										<div>
+											<span style={{ fontSize: 14 }}>{config.label}</span>
+											<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 												{config.description}
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									</MenuItem>
 								))}
 							</Select>
@@ -415,9 +400,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								renderValue={(selected) => {
 									if (!selected) {
 										return (
-											<Typography color="text.secondary">
+											<span style={{ color: 'var(--text-secondary)' }}>
 												Select what action to perform...
-											</Typography>
+											</span>
 										);
 									}
 									return ACTION_CONFIG[selected as WorkflowActionType]?.label || selected;
@@ -425,12 +410,12 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 							>
 								{Object.entries(ACTION_CONFIG).map(([key, config]) => (
 									<MenuItem key={key} value={key}>
-										<Box>
-											<Typography fontSize={14}>{config.label}</Typography>
-											<Typography fontSize={12} color="text.secondary">
+										<div>
+											<span style={{ fontSize: 14 }}>{config.label}</span>
+											<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 												{config.description}
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									</MenuItem>
 								))}
 							</Select>
@@ -441,7 +426,7 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 
 						{/* Dynamic action config fields based on actionType */}
 						{formData.actionType === WorkflowActionType.MOVE_CLAIM && (
-							<Box display="flex" gap={2}>
+							<div style={{ display: 'flex', gap: 16 }}>
 								<DeskLocationTypeSelect
 									value={(formData.actionConfig.targetLocationTypeId as number) || null}
 									onChange={(id) =>
@@ -469,32 +454,32 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 									label="Target Desk Location"
 									fullWidth
 								/>
-							</Box>
+							</div>
 						)}
-					</Stack>
-				</Box>
+					</div>
+				</div>
 
 				<Divider />
 
 				{/* Section 3: Conditions (Optional) */}
-				<Box>
-					<Typography fontSize={12} color={BASE_COLOR_LIGHT} mb={1}>
+				<div>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						CONDITIONS (OPTIONAL)
-					</Typography>
+					</span>
 					<RuleConditionsBuilder
 						conditions={formData.conditions}
 						onChange={(conditions) => setFormData({ ...formData, conditions })}
 					/>
-				</Box>
+				</div>
 
 				<Divider />
 
 				{/* Section 4: Execution Settings */}
-				<Box>
-					<Typography fontSize={12} color={BASE_COLOR_LIGHT} mb={1}>
+				<div>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						EXECUTION SETTINGS
-					</Typography>
-					<Stack spacing={2}>
+					</span>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 						<FormControl fullWidth>
 							<InputLabel>Execution Mode</InputLabel>
 							<Select
@@ -506,9 +491,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								renderValue={(selected) => {
 									if (!selected) {
 										return (
-											<Typography color="text.secondary">
+											<span style={{ color: 'var(--text-secondary)' }}>
 												Select how this rule should execute...
-											</Typography>
+											</span>
 										);
 									}
 									return MODE_CONFIG[selected as WorkflowExecutionMode]?.label || selected;
@@ -516,12 +501,12 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 							>
 								{Object.entries(MODE_CONFIG).map(([key, config]) => (
 									<MenuItem key={key} value={key}>
-										<Box>
-											<Typography fontSize={14}>{config.label}</Typography>
-											<Typography fontSize={12} color="text.secondary">
+										<div>
+											<span style={{ fontSize: 14 }}>{config.label}</span>
+											<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 												{config.description}
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									</MenuItem>
 								))}
 							</Select>
@@ -530,12 +515,13 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 							)}
 						</FormControl>
 
-						<TextField
+						<Input
 							label="Priority"
 							type="number"
 							value={formData.priority}
 							onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value, 10) })}
-							slotProps={{ input: { inputProps: { min: 1, max: 1000 } } }}
+							min={1}
+							max={1000}
 							helperText="Lower numbers = higher priority (1-1000)"
 							placeholder="500"
 						/>
@@ -545,15 +531,15 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								control={
 									<Switch
 										checked={formData.isActive}
-										onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+										onChange={(checked) => setFormData({ ...formData, isActive: checked })}
 									/>
 								}
 								label="Active"
 							/>
 						)}
-					</Stack>
-				</Box>
-			</Box>
+					</div>
+				</div>
+			</div>
 		</BasicDialog>
 	);
 }

@@ -1,12 +1,11 @@
 'use client';
 
+import { IconChecklist, IconFileSearch, IconSettings, IconSquarePlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import { Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
-import AddBox from '@mui/icons-material/AddBox';
-import Checklist from '@mui/icons-material/Checklist';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Settings from '@mui/icons-material/Settings';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import { useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -17,15 +16,16 @@ import NewChecklistDialog from './NewChecklistDialog';
 import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import { Dialog } from '@mui/material';
 
 const getColumns = (isManageMode: boolean): GridColDef[] => [
 	{
 		field: 'name',
 		headerName: '',
 		// renderHeader: (params) => (
-		// 	<ExpandableHeaderCell {...params} icon={<ContentPasteSearch sx={{ fontSize: 17, color: 'white' }} />} />
+		// 	<ExpandableHeaderCell {...params} icon={<IconFileSearch size={17} style={{ color: white }} />} />
 		// ),
 		renderCell: (params) => <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />,
 		cellClassName: 'cell-primary cell-bold',
@@ -69,7 +69,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No checklists found"
-			icon={<Checklist sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconChecklist size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -86,22 +86,21 @@ export default function ChecklistsTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading checklists...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
-						left={<Typography variant="h6">Checklists</Typography>}
+						left={<span>Checklists</span>}
 						right={
 							<>
-								<Button variant="contained" startIcon={<AddBox />} onClick={toggleNewChecklistDialog}>
+								<Button variant="contained" startIcon={<IconSquarePlus size={20} />} onClick={toggleNewChecklistDialog}>
 									Checklist
 								</Button>
-								<Tooltip title="Manage">
-									<IconButton
-										size="small"
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 									>
-										<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-									</IconButton>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
 								</Tooltip>
 							</>
 						}
@@ -131,12 +130,12 @@ export default function ChecklistsTab() {
 							disableRowSelectionOnClick
 							disableColumnMenu
 							pinnedColumns={pinnedColumns}
-							sx={styles.tableOverrides}
+							style={styles.tableOverrides}
 							hideFooter
 							showColumnVerticalBorder={false}
 						/>
 					</div>
-				</Paper>
+				</div>
 				{showNewChecklistDialog && <NewChecklistDialog />}
 			</div>
 		</PageTransitionWrapper>
@@ -163,12 +162,6 @@ const styles = {
 	tableOverrides: {
 		border: 'none',
 		fontSize: 15,
-		'& .MuiDataGrid-columnSeparator': {
-			display: 'none',
-		},
-		'& .MuiDataGrid-columnHeader:hover .MuiDataGrid-iconSeparator': {
-			opacity: 0,
-		},
 		...dataGridFocusStyles,
 	},
 };

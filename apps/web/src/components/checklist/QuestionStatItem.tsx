@@ -1,9 +1,7 @@
 'use client';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Link, Typography } from '@mui/material';
 import { QuestionStat } from '@/types/types';
-import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
-import Help from '@mui/icons-material/Help';
-import theme from '@/styles/theme';
+import { IconChevronDown, IconHelp } from '@tabler/icons-react';
 
 export default function QuestionStatItem(props: {
 	bgColor?: string;
@@ -30,7 +28,7 @@ export default function QuestionStatItem(props: {
 				borderTopRightRadius: idx === 0 ? 6 : undefined,
 			}}
 		>
-			<AccordionSummary sx={styles.accordionSummary} expandIcon={<ArrowDropDown />}>
+			<AccordionSummary sx={styles.accordionSummary} expandIcon={<IconChevronDown size={20} />}>
 				<Typography>
 					{question_text} (p{pageId}.q{question_id})
 				</Typography>
@@ -46,7 +44,7 @@ export default function QuestionStatItem(props: {
 								sx={{
 									...styles.dot,
 									backgroundColor:
-										selectedAnswerId === a.answer_id ? theme.palette.primary.main : '#EBEBEB',
+										selectedAnswerId === a.answer_id ? 'var(--text-accent)' : '#EBEBEB',
 									transition: 'background-color 300ms ease',
 								}}
 							>

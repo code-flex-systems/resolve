@@ -1,11 +1,11 @@
 'use client';
 
-import { Box, Grid, TextField, Typography, Stack } from '@mui/material';
+import { IconFileSearch, IconInfoCircle } from '@tabler/icons-react';
+import { Grid } from '@mui/material';
+import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import DateField from '../common/DateField';
 import { useForm, Controller } from 'react-hook-form';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Info from '@mui/icons-material/Info';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { formatDateToISO } from '@/lib/utils/utils';
@@ -47,54 +47,48 @@ export default function NewClaimDialog() {
 			primaryAction={{
 				label: 'Create claim',
 				onClick: onSubmit,
-				icon: <ContentPasteSearch />,
+				icon: <IconFileSearch size={20} />,
 				disabled: isSubmitting || isPending,
 			}}
 			onClose={toggleNewClaimDialog}
 			width={700}
 		>
-			<Box display="flex" alignItems="center" justifyContent="flex-start" paddingBottom="10px">
-				<Info sx={{ color: 'primary.main' }} />
-				<Typography marginLeft="5px">
+			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingBottom: '10px' }}>
+				<IconInfoCircle style={{ color: 'var(--text-accent)' }} />
+				<span style={{ marginLeft: '5px' }}>
 					Toggle <b>Only Manual Claims</b> to filter by claims created here.
-				</Typography>
-			</Box>
+				</span>
+			</div>
 
 			<form style={styles.form} className="flex-col-start">
 				<Grid container spacing={2}>
 					<Grid style={styles.row}>
-						<TextField
+						<Input
 							id="claim_number"
 							label="Claim Number"
 							placeholder="OPV63SASBX"
 							error={!!errors.claim_number}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('claim_number', { required: true })}
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
+						<Input
 							id="client"
 							label="Client"
 							placeholder="Liberty Mutual"
 							error={!!errors.client}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('client', { required: true })}
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
+						<Input
 							id="client_adjuster"
 							label="Client Adjuster"
 							placeholder="Matthew Howell"
 							error={!!errors.client_adjuster}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('client_adjuster', { required: true })}
 						/>
 					</Grid>
@@ -115,14 +109,12 @@ export default function NewClaimDialog() {
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
+						<Input
 							id="insured"
 							label="Insured"
 							placeholder="Rachel Anderson"
 							error={!!errors.insured}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('insured', { required: true })}
 						/>
 					</Grid>
@@ -143,22 +135,20 @@ export default function NewClaimDialog() {
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<TextField
+						<Input
 							id="last_updated_by"
 							label="Updater"
 							placeholder="Bridget Lubowitz-Nader"
 							error={!!errors.last_updated_by}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('last_updated_by', { required: true })}
 						/>
 					</Grid>
 					<Grid style={styles.row}>
-						<Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+						<span style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>
 							Loss Location
-						</Typography>
-						<Stack spacing={1}>
+						</span>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							<AddressFields
 								control={control}
 								errors={errors}
@@ -167,7 +157,7 @@ export default function NewClaimDialog() {
 								variant="loss"
 								width={200}
 							/>
-						</Stack>
+						</div>
 					</Grid>
 					{/* Note: Total Incurred is now a calculated field from claim_coverage.amount_reserved */}
 				</Grid>

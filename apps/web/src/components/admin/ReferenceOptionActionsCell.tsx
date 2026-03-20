@@ -1,17 +1,14 @@
 'use client';
 
-import Edit from '@mui/icons-material/Edit';
-import Delete from '@mui/icons-material/Delete';
-import RestoreFromTrash from '@mui/icons-material/RestoreFromTrash';
+import { IconEdit, IconTrash, IconTrashOff } from '@tabler/icons-react';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import ReferenceOptionDialog from './ReferenceOptionDialog';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import theme from '@/styles/theme';
+import { Dialog } from '@mui/material';
 
 interface ReferenceOptionActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;
@@ -70,28 +67,28 @@ export default function ReferenceOptionActionsCell(params: ReferenceOptionAction
 					onClose={() => setShowDeleteConfirm(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {isDeleted ? 'reactivate' : 'deactivate'} this option?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						{isDeleted
 							? 'The option will be reactivated and become available for selection.'
 							: 'The option will no longer be available for selection, but existing records will retain this value.'}
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight="10px">
+				<div style={{ marginRight: '10px' }}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => setEditing(true),
 							disabled: isDeleted,
 						}}
 						tooltipProps={{ title: isDeleted ? 'Cannot edit deactivated option' : 'Edit option' }}
-						icon={<Edit sx={{ fontSize: 15 }} />}
+						icon={<IconEdit size={15} />}
 					/>
-				</Box>
+				</div>
 				<BasicButtonStyled
 					buttonProps={{
 						onClick: () => setShowDeleteConfirm(true),
@@ -106,14 +103,9 @@ export default function ReferenceOptionActionsCell(params: ReferenceOptionAction
 					}}
 					icon={
 						isDeleted ? (
-							<RestoreFromTrash sx={{ fontSize: 15, color: theme.palette.success.main }} />
+							<IconTrashOff size={15} style={{ color: 'var(--status-success)' }} />
 						) : (
-							<Delete
-								sx={{
-									fontSize: 15,
-									color: isSystemDefault ? theme.palette.grey[400] : theme.palette.error.main,
-								}}
-							/>
+							<IconTrash size={15} style={{ color: isSystemDefault ? '#bdbdbd' : 'var(--status-error)', }} />
 						)
 					}
 				/>

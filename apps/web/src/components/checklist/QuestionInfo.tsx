@@ -1,12 +1,11 @@
 'use client';
-import Info from '@mui/icons-material/Info';
 import './styles.css';
-import { Fade, Paper, Popper, Tooltip, Typography, Box } from '@mui/material';
+import { Paper, Popper, Tooltip, Typography, Box , Fade } from '@mui/material';
 import { useRef } from 'react';
-import theme from '@/styles/theme';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
+import { IconInfoCircle } from '@tabler/icons-react';
 
 export default function QuestionInfo(props: {
 	description: string | null;
@@ -30,7 +29,7 @@ export default function QuestionInfo(props: {
 			{description && (
 				<>
 					<Tooltip title={description ?? ''} placement="top" arrow>
-						<Info ref={ref} sx={{ color: 'primary.main', marginLeft: '10px' }} className="info" />
+						<IconInfoCircle ref={ref} style={{ color: 'primary.main', marginLeft: '10px' }} className="info" />
 					</Tooltip>
 
 					<Popper

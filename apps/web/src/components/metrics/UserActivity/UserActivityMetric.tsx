@@ -2,11 +2,8 @@
 
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { formatMDY } from '@/lib/utils/utils';
-import theme, { BASE_COLOR } from '@/styles/theme';
-import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import GraphicEq from '@mui/icons-material/GraphicEq';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import Troubleshoot from '@mui/icons-material/Troubleshoot';
+import { BASE_COLOR } from '@/styles/theme';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { BarChart } from '@mui/x-charts-pro';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
@@ -15,6 +12,9 @@ import dayjs from 'dayjs';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import MetricValue from '@/components/common/MetricValue';
 import UserActivitySummary from './UserActivitySummary';
+import { IconBug, IconChartBar, IconInfoCircle } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -35,7 +35,7 @@ export default function UserActivityMetric() {
 	return (
 		<Paper elevation={0} sx={styles.paper}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
+				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
 				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
 					<Stack
@@ -64,7 +64,7 @@ export default function UserActivityMetric() {
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
-										icon={<InfoOutlined />}
+										icon={<IconInfoCircle size={20} />}
 										tooltipProps={{
 											title: 'Engagement is measured by the number of users generating activity logs for a given day.',
 										}}
@@ -76,10 +76,10 @@ export default function UserActivityMetric() {
 										sx: { marginLeft: '5px' },
 									}}
 									icon={
-										<Troubleshoot
-											sx={{
+										<IconBug
+										 style={{
 												transform: 'scaleX(-1)',
-												color: theme.palette.primary.main,
+												color: 'var(--text-accent)',
 											}}
 										/>
 									}
@@ -115,7 +115,7 @@ export default function UserActivityMetric() {
 									sx={{
 										borderRadius: 3,
 									}}
-									colors={[theme.palette.primary.main]}
+									colors={['var(--text-accent)']}
 									borderRadius={10}
 									hideLegend
 								/>
@@ -165,7 +165,7 @@ const styles = {
 		borderTopLeftRadius: 0,
 		borderTopRightRadius: 0,
 		borderRadius: 3,
-		borderTop: `1px solid ${theme.palette.primary.main}`,
+		borderTop: `1px solid ${'var(--text-accent)'}`,
 	},
 	skeleton: {
 		borderRadius: 3,

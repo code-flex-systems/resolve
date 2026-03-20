@@ -1,8 +1,8 @@
 'use client';
 
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Typography, LinearProgress, Box, Alert, Collapse } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { LinearProgress, Alert, Collapse } from '@mui/material';
+import { IconChevronDown } from '@tabler/icons-react';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import { dataGridFocusStyles } from '@/styles/theme';
 
@@ -88,7 +88,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 				{submitSuccess === true && <Alert severity="success">Import successful!</Alert>}
 				{submitSuccess === false && <Alert severity="error">Import failed. Please try again.</Alert>}
 
-				<Box height={250} minHeight={250}>
+				<div style={{ height: 250, minHeight: 250 }}>
 					<DataGridPro
 						columnHeaderHeight={35}
 						rowHeight={35}
@@ -101,40 +101,41 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 						hideFooter
 						sx={dataGridFocusStyles}
 					/>
-				</Box>
+				</div>
 
 				{skippedRows.length > 0 && (
 					<>
-						<Box
-							sx={{
+						<div
+							style={{
 								width: '100%',
 								height: 30,
 								cursor: 'pointer',
-								mt: 1,
+								marginTop: 8,
 								display: 'flex',
 								justifyContent: 'flex-start',
 								alignItems: 'center',
 							}}
 							onClick={() => setSkippedRowsExpanded((prev) => !prev)}
 						>
-							<ExpandMoreIcon
-								sx={{
-									mr: 0.5,
+							<IconChevronDown
+								size={20}
+								style={{
+									marginRight: 4,
 									transform: skippedRowsExpanded ? undefined : 'rotate(-90deg)',
 									transition: 'transform 100ms ease',
 								}}
 							/>
-							<Typography fontSize={13}>{skippedRows.length} skipped row(s)</Typography>
-						</Box>
+							<span style={{ fontSize: 13 }}>{skippedRows.length} skipped row(s)</span>
+						</div>
 						<Collapse
 							in={skippedRowsExpanded}
 							sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
 							unmountOnExit
 						>
 							{skippedRows.map((row, idx) => (
-								<Typography key={idx} fontSize={13} py={0.5}>
+								<p key={idx} style={{ fontSize: 13, padding: '4px 0' }}>
 									<b>Row {row.rowIndex}:</b> Invalid entry for <b>{row.reason}</b>
-								</Typography>
+								</p>
 							))}
 						</Collapse>
 					</>

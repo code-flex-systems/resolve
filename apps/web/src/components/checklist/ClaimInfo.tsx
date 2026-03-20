@@ -1,11 +1,11 @@
 'use client';
 import { Box } from '@mui/material';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useState } from 'react';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import ClaimSummaryDialog from '../admin/ClaimSummaryDialog';
+import { IconClipboardSearch } from '@tabler/icons-react';
 
 export default function ClaimInfo() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -21,7 +21,7 @@ export default function ClaimInfo() {
 			<BasicButtonStyled
 				buttonProps={{
 					onClick: () => setDialogOpen(true),
-					startIcon: <ContentPasteSearch sx={{ color: 'primary.main' }} />,
+					startIcon: <IconClipboardSearch size={20} style={{ color: 'primary.main' }} />,
 					sx: { mr: 0.5 },
 				}}
 			>

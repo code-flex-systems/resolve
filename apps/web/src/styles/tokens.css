@@ -141,7 +141,7 @@
 
 :root {
 	/* Font families */
-	--font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	--font-mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
 
 	/* Font sizes */

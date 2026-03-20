@@ -2,14 +2,13 @@
 
 import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import Edit from '@mui/icons-material/Edit';
-import Delete from '@mui/icons-material/Delete';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import { useCoverageTrpc, CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 
 interface CoverageActionsCellProps extends GridRenderCellParams {
 	onEdit: (coverage: CoverageListItem) => void;
@@ -69,7 +68,7 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 						disabled: isPending,
 					}}
 					tooltipProps={{ title: 'Edit coverage' }}
-					icon={<Edit sx={{ fontSize: 15 }} />}
+					icon={<IconEdit size={15} />}
 				/>
 				<Box marginLeft="10px">
 					<BasicButtonStyled
@@ -78,7 +77,7 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 							disabled: isPending,
 						}}
 						tooltipProps={{ title: 'Delete coverage' }}
-						icon={<Delete sx={{ fontSize: 15 }} />}
+						icon={<IconTrash size={15} />}
 					/>
 				</Box>
 			</Box>

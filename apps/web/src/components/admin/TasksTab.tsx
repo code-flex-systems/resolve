@@ -1,29 +1,15 @@
 'use client';
 
+import { IconChevronLeft, IconChevronRight, IconCircleX, IconExternalLink, IconFilter, IconRefresh, IconSubtask } from '@tabler/icons-react';
+import { Autocomplete, Dialog, FormControlLabel, Select, TextField } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useMemo, useState } from 'react';
-import {
-	Autocomplete,
-	Box,
-	Button,
-	Chip,
-	FormControlLabel,
-	IconButton,
-	Paper,
-	Stack,
-	Switch,
-	TextField,
-	Tooltip,
-	Typography,
-} from '@mui/material';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import ChevronLeft from '@mui/icons-material/ChevronLeft';
-import ChevronRight from '@mui/icons-material/ChevronRight';
-import Refresh from '@mui/icons-material/Refresh';
-import FilterList from '@mui/icons-material/FilterList';
-import Cancel from '@mui/icons-material/Cancel';
-import OpenInNew from '@mui/icons-material/OpenInNew';
-import TaskIcon from '@mui/icons-material/Task';
 import dayjs from 'dayjs';
 import { useTaskTrpc } from '@/hooks/trpc/useTaskTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
@@ -34,12 +20,12 @@ import TaskBulkCancellationDialog from './TaskBulkCancellationDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 
 // Status display config
-const STATUS_COLORS: Record<TaskStatus, 'default' | 'primary' | 'success' | 'error'> = {
-	[TaskStatus.PENDING]: 'default',
-	[TaskStatus.IN_PROGRESS]: 'primary',
+const STATUS_COLORS: Record<TaskStatus, 'neutral' | 'info' | 'success' | 'error'> = {
+	[TaskStatus.PENDING]: 'neutral',
+	[TaskStatus.IN_PROGRESS]: 'info',
 	[TaskStatus.COMPLETED]: 'success',
 	[TaskStatus.CANCELLED]: 'error',
 };
@@ -66,7 +52,7 @@ function getWeekEnd(weekStart: dayjs.Dayjs): dayjs.Dayjs {
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No tasks found" icon={<TaskIcon sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />} />
+		<CustomNoRowsOverlay text="No tasks found" icon={<IconSubtask size={35} style={{ color: 'var(--text-muted)' }} />} />
 	);
 }
 
@@ -242,10 +228,10 @@ export default function TasksTab() {
 					const config = TASK_TYPE_CONFIG[taskType];
 					if (!config) return params.value || '-';
 					return (
-						<Stack direction="row" spacing={1} alignItems="center">
+						<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
 							{config.icon}
-							<Typography variant="body2">{config.label}</Typography>
-						</Stack>
+							<span>{config.label}</span>
+						</div>
 					);
 				},
 			},
@@ -256,16 +242,16 @@ export default function TasksTab() {
 				renderCell: (params: GridRenderCellParams) => {
 					const claimId = params.row.claim_id;
 					return (
-						<Stack direction="row" spacing={0.5} alignItems="center">
-							<Typography variant="body2">{params.value || '-'}</Typography>
+						<div style={{ flexDirection: 'column', display: 'flex', gap: 4, alignItems: 'center' }}>
+							<span>{params.value || '-'}</span>
 							{claimId && (
-								<Tooltip title="Open claim in new tab">
-									<IconButton size="small" onClick={() => handleGoToClaim(claimId)}>
-										<OpenInNew sx={{ fontSize: 14 }} />
-									</IconButton>
+								<Tooltip content="Open claim in new tab">
+									<Button variant="icon" size="sm" onClick={() => handleGoToClaim(claimId)}>
+										<IconExternalLink size={14} />
+									</Button>
 								</Tooltip>
 							)}
-						</Stack>
+						</div>
 					);
 				},
 			},
@@ -279,11 +265,9 @@ export default function TasksTab() {
 				headerName: 'Status',
 				width: 120,
 				renderCell: (params: GridRenderCellParams) => (
-					<Chip
-						label={STATUS_LABELS[params.value as TaskStatus]}
+					<Chip 
 						color={STATUS_COLORS[params.value as TaskStatus]}
-						size="small"
-					/>
+						size="sm">{STATUS_LABELS[params.value as TaskStatus]}</Chip>
 				),
 			},
 			{
@@ -298,9 +282,9 @@ export default function TasksTab() {
 						params.row.status !== TaskStatus.COMPLETED &&
 						params.row.status !== TaskStatus.CANCELLED;
 					return (
-						<Typography variant="body2" color={isOverdue ? 'error.main' : 'inherit'}>
+						<span style={{ color: isOverdue ? 'error.main' : 'inherit' }}>
 							{dueDate.format('MMM D, YYYY')}
-						</Typography>
+						</span>
 					);
 				},
 			},
@@ -328,7 +312,7 @@ export default function TasksTab() {
 					}
 
 					return (
-						<Stack direction="row" spacing={0.5} justifyContent="flex-end" width="100%">
+						<div style={{ flexDirection: 'column', display: 'flex', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () => {
@@ -337,9 +321,9 @@ export default function TasksTab() {
 									},
 								}}
 								tooltipProps={{ title: 'Cancel task' }}
-								icon={<Cancel sx={{ fontSize: 15, color: theme.palette.error.main }} />}
+								icon={<IconCircleX size={15} style={{ color: 'var(--status-error)' }} />}
 							/>
-						</Stack>
+						</div>
 					);
 				},
 			},
@@ -384,8 +368,8 @@ export default function TasksTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading tasks...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
-					<Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+				<div style={styles.paper} className="flex-col-start">
+					<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
 						{/* Metrics */}
 						<TaskMetrics
 							openTasks={metrics.openTasks}
@@ -395,69 +379,64 @@ export default function TasksTab() {
 						/>
 
 						{/* Toolbar */}
-						<Paper elevation={0} sx={{ p: 1.5, mb: 2 }}>
-							<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<div style={{ padding: 12, marginBottom: 16 }}>
+							<div style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 								{/* Left: Week navigation */}
-								<Stack direction="row" spacing={1} alignItems="center">
-									<Typography variant="h6" marginRight="40px">
+								<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
+									<span style={{ marginRight: '40px' }}>
 										Tasks
-									</Typography>
-									<IconButton size="small" onClick={handlePreviousWeek}>
-										<ChevronLeft />
-									</IconButton>
-									<Typography
-										fontSize={14}
-										fontWeight={500}
-										sx={{ minWidth: 160, textAlign: 'center', cursor: 'pointer' }}
+									</span>
+									<Button variant="icon" size="sm" onClick={handlePreviousWeek}>
+										<IconChevronLeft size={20} />
+									</Button>
+									<span style={{  fontSize: 14, fontWeight: 500 ,  minWidth: 160, textAlign: 'center', cursor: 'pointer'  }}
 										onClick={handleGoToCurrentWeek}
 									>
 										{weekDisplay}
-									</Typography>
-									<IconButton size="small" onClick={handleNextWeek}>
-										<ChevronRight />
-									</IconButton>
+									</span>
+									<Button variant="icon" size="sm" onClick={handleNextWeek}>
+										<IconChevronRight size={20} />
+									</Button>
 									{!isCurrentWeek && (
-										<Button size="small" variant="text" onClick={handleGoToCurrentWeek}>
+										<Button size="sm" variant="text" onClick={handleGoToCurrentWeek}>
 											Today
 										</Button>
 									)}
-									<Tooltip title="Refresh">
-										<IconButton size="small" onClick={() => refetch()} disabled={isFetching}>
-											<Refresh sx={{ fontSize: 20 }} />
-										</IconButton>
+									<Tooltip content="Refresh">
+										<Button variant="icon" size="sm" onClick={() => refetch()} disabled={isFetching}>
+											<IconRefresh size={20} />
+										</Button>
 									</Tooltip>
-								</Stack>
+								</div>
 
 								{/* Right: Filters and manage */}
-								<Stack direction="row" spacing={1} alignItems="center">
+								<div style={{ flexDirection: 'column', display: 'flex', gap: 8, alignItems: 'center' }}>
 									{/* Show only open tasks toggle */}
 									<FormControlLabel
 										control={
 											<Switch
-												size="small"
+												size="sm"
 												checked={showOnlyOpen}
-												onChange={(e) => setParam('open', e.target.checked ? null : 'false')}
+												onChange={(checked) => setParam('open', checked ? null : 'false')}
 											/>
 										}
-										label={<Typography variant="body2">Open only</Typography>}
-										sx={{ mr: 1 }}
+										label={<span>Open only</span>}
+										style={{ marginRight: 8 }}
 									/>
 
 									{/* Filters button */}
 									<Button
-										size="small"
+										size="sm"
 										variant="outlined"
-										startIcon={<FilterList />}
+										startIcon={<IconFilter size={20} />}
 										onClick={handleOpenFilters}
 									>
 										Filters
 										{activeFilterCount > 0 && (
-											<Chip
-												label={activeFilterCount}
-												size="small"
-												color="primary"
-												sx={{ ml: 0.5, height: 18, fontSize: 11 }}
-											/>
+											<Chip 
+												size="sm"
+												color="info"
+												style={{ marginLeft: 4, height: 18, fontSize: 11 }}>{activeFilterCount}</Chip>
 										)}
 									</Button>
 
@@ -466,27 +445,27 @@ export default function TasksTab() {
 										<>
 											{selectedRows.length > 0 && (
 												<Button
-													size="small"
+													size="sm"
 													variant="outlined"
 													color="error"
-													startIcon={<Cancel />}
+													startIcon={<IconCircleX size={20} />}
 													onClick={handleBulkCancel}
 												>
 													Cancel ({selectedRows.length})
 												</Button>
 											)}
-											<Button size="small" variant="outlined" onClick={handleToggleManageMode}>
+											<Button size="sm" variant="outlined" onClick={handleToggleManageMode}>
 												Done
 											</Button>
 										</>
 									) : (
-										<Button size="small" variant="outlined" onClick={handleToggleManageMode}>
+										<Button size="sm" variant="outlined" onClick={handleToggleManageMode}>
 											Manage
 										</Button>
 									)}
-								</Stack>
-							</Stack>
-						</Paper>
+								</div>
+							</div>
+						</div>
 
 						{/* Filter Popper */}
 						<BasicPopper
@@ -494,12 +473,12 @@ export default function TasksTab() {
 							setAnchorEl={(el) => setFiltersAnchorEl(el as HTMLElement | null)}
 							placement="bottom-end"
 						>
-							<Paper sx={{ p: 2, minWidth: 300 }}>
-								<Typography variant="subtitle2" mb={2}>
+							<div style={{ padding: 16, minWidth: 300 }}>
+								<span>
 									Filter Tasks
-								</Typography>
+								</span>
 
-								<Stack spacing={2}>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									{/* User filter */}
 									<Autocomplete
 										size="small"
@@ -534,24 +513,24 @@ export default function TasksTab() {
 										)}
 									/>
 
-									<Stack direction="row" spacing={1} justifyContent="flex-end">
+									<div style={{ flexDirection: 'column', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
 										<Button
-											size="small"
+											size="sm"
 											onClick={handleClearFilters}
 											disabled={!draftAssignedTo && !draftClaimNumber}
 										>
 											Clear
 										</Button>
-										<Button size="small" variant="contained" onClick={handleApplyFilters}>
+										<Button size="sm" variant="contained" onClick={handleApplyFilters}>
 											Apply
 										</Button>
-									</Stack>
-								</Stack>
-							</Paper>
+									</div>
+								</div>
+							</div>
 						</BasicPopper>
 
 						{/* DataGrid */}
-						<Box sx={{ flex: 1, minHeight: 0 }}>
+						<div style={{ flex: 1, minHeight: 0 }}>
 							<DataGridPro
 								rows={filteredTasks}
 								columns={columns}
@@ -580,21 +559,13 @@ export default function TasksTab() {
 										variant: 'linear-progress',
 									},
 								}}
-								sx={{
+								style={{
 									height: '100%',
 									border: 'none',
-									'& .MuiDataGrid-cell': {
-										py: 1,
-										display: 'flex',
-										alignItems: 'center',
-									},
-									'& .MuiDataGrid-columnSeparator': {
-										display: 'none',
-									},
 									...dataGridFocusStyles,
 								}}
 							/>
-						</Box>
+						</div>
 
 						{/* Bulk Cancellation Dialog */}
 						{showBulkCancel && selectedRows.length > 0 && (
@@ -604,8 +575,8 @@ export default function TasksTab() {
 								onCancelled={handleBulkCancelComplete}
 							/>
 						)}
-					</Box>
-				</Paper>
+					</div>
+				</div>
 			</div>
 		</PageTransitionWrapper>
 	);

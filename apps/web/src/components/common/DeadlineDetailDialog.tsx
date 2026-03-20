@@ -1,17 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Button, Chip, CircularProgress, Divider, Stack, Typography } from '@mui/material';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Cancel from '@mui/icons-material/Cancel';
-import PlayArrow from '@mui/icons-material/PlayArrow';
-import Stop from '@mui/icons-material/Stop';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import Person from '@mui/icons-material/Person';
-import Assignment from '@mui/icons-material/Assignment';
+import { Chip, CircularProgress, Divider } from '@mui/material';
+import {
+	IconCircleCheck, IconX, IconPlayerPlay, IconPlayerStop,
+	IconUserPlus, IconCalendar, IconUser, IconClipboard,
+} from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
 import BasicDialog from './BasicDialog';
 import TaskCompletionDialog from './TaskCompletionDialog';
 import TaskCancellationDialog from './TaskCancellationDialog';
@@ -60,14 +57,14 @@ const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
 	return (
-		<Box display="flex" justifyContent="space-between" alignItems="flex-start" py={0.75}>
-			<Typography fontSize={13} color="text.secondary" sx={{ minWidth: 120 }}>
+		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '6px 0' }}>
+			<span style={{ fontSize: 13, color: 'var(--text-secondary)', minWidth: 120 }}>
 				{label}
-			</Typography>
-			<Box textAlign="right" flex={1}>
-				{typeof value === 'string' ? <Typography fontSize={13}>{value}</Typography> : value}
-			</Box>
-		</Box>
+			</span>
+			<div style={{ textAlign: 'right', flex: 1 }}>
+				{typeof value === 'string' ? <span style={{ fontSize: 13 }}>{value}</span> : value}
+			</div>
+		</div>
 	);
 }
 
@@ -75,19 +72,18 @@ function ClaimLink({ claimId, claimNumber }: { claimId: number; claimNumber: str
 	const router = useRouter();
 
 	return (
-		<Typography
-			fontSize={13}
-			color="primary.main"
-			sx={{
+		<span
+			style={{
+				fontSize: 13,
+				color: 'var(--color-primary)',
 				cursor: 'pointer',
-				'&:hover': {
-					textDecoration: 'underline',
-				},
 			}}
+			onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+			onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
 			onClick={() => router.push(`/my-claims/${claimId}`)}
 		>
 			{claimNumber || `Claim #${claimId}`}
-		</Typography>
+		</span>
 	);
 }
 
@@ -173,9 +169,9 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 				onClose={onClose}
 				width={480}
 			>
-				<Box display="flex" justifyContent="center" py={4}>
+				<div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
 					<CircularProgress size={32} />
-				</Box>
+				</div>
 			</BasicDialog>
 		);
 	}
@@ -190,21 +186,21 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 					onClose={onClose}
 					width={480}
 				>
-					<Box sx={containerStyles.section}>
-						<Typography sx={containerStyles.sectionTitle}>
-							<Assignment sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+					<div style={containerStyles.section as React.CSSProperties}>
+						<div style={containerStyles.sectionTitle as React.CSSProperties}>
+							<IconClipboard size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
 							{task.title}
-						</Typography>
-						<Box sx={containerStyles.sectionContent}>
+						</div>
+						<div style={containerStyles.sectionContent as React.CSSProperties}>
 							<DetailRow
 								label="Type"
 								value={
-									<Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
+									<div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'flex-end' }}>
 										{TASK_TYPE_CONFIG[task.task_type as TaskType]?.icon}
-										<Typography fontSize={13}>
+										<span style={{ fontSize: 13 }}>
 											{TASK_TYPE_CONFIG[task.task_type as TaskType]?.label || task.task_type}
-										</Typography>
-									</Stack>
+										</span>
+									</div>
 								}
 							/>
 							<DetailRow
@@ -220,14 +216,16 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							<DetailRow
 								label="Due Date"
 								value={
-									<Typography
-										fontSize={13}
-										color={isOverdue && isPendingDeadline ? 'error.main' : 'inherit'}
-										fontWeight={isOverdue && isPendingDeadline ? 600 : 400}
+									<span
+										style={{
+											fontSize: 13,
+											color: isOverdue && isPendingDeadline ? 'var(--color-error)' : 'inherit',
+											fontWeight: isOverdue && isPendingDeadline ? 600 : 400,
+										}}
 									>
 										{dayjs(deadline.deadline_date).format('MMM D, YYYY')}
 										{isOverdue && isPendingDeadline && ' (Overdue)'}
-									</Typography>
+									</span>
 								}
 							/>
 							{task.description && <DetailRow label="Description" value={task.description} />}
@@ -235,17 +233,12 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 								<DetailRow
 									label="Assigned To"
 									value={
-										<Stack
-											direction="row"
-											spacing={0.5}
-											alignItems="center"
-											justifyContent="flex-end"
-										>
-											<Person sx={{ fontSize: 14, color: BASE_COLOR_LIGHT }} />
-											<Typography fontSize={13}>
+										<div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'flex-end' }}>
+											<IconUser size={14} style={{ color: BASE_COLOR_LIGHT }} />
+											<span style={{ fontSize: 13 }}>
 												{task.assigned_to_first} {task.assigned_to_last}
-											</Typography>
-										</Stack>
+											</span>
+										</div>
 									}
 								/>
 							)}
@@ -261,13 +254,13 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							{(canAssignToMe || canStartTask || canReleaseTask || canCompleteTask || canCancelTask) && (
 								<>
 									<Divider sx={{ my: 1.5 }} />
-									<Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+									<div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
 										{canAssignToMe && (
 											<Button
-												size="small"
+												size="sm"
 												variant="outlined"
 												color="primary"
-												startIcon={<PersonAdd />}
+												startIcon={<IconUserPlus size={16} />}
 												onClick={handleAssignToMe}
 												disabled={isAssigning}
 											>
@@ -276,10 +269,10 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 										)}
 										{canStartTask && (
 											<Button
-												size="small"
+												size="sm"
 												variant="outlined"
 												color="primary"
-												startIcon={<PlayArrow />}
+												startIcon={<IconPlayerPlay size={16} />}
 												onClick={handleStartTask}
 												disabled={isStarting}
 											>
@@ -288,10 +281,10 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 										)}
 										{canReleaseTask && (
 											<Button
-												size="small"
+												size="sm"
 												variant="outlined"
 												color="warning"
-												startIcon={<Stop />}
+												startIcon={<IconPlayerStop size={16} />}
 												onClick={handleReleaseTask}
 												disabled={isUnassigning}
 											>
@@ -300,10 +293,10 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 										)}
 										{canCancelTask && (
 											<Button
-												size="small"
+												size="sm"
 												variant="outlined"
 												color="error"
-												startIcon={<Cancel />}
+												startIcon={<IconX size={16} />}
 												onClick={() => setShowCancellationDialog(true)}
 											>
 												Cancel Task
@@ -311,20 +304,20 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 										)}
 										{canCompleteTask && (
 											<Button
-												size="small"
+												size="sm"
 												variant="contained"
 												color="success"
-												startIcon={<CheckCircle />}
+												startIcon={<IconCircleCheck size={16} />}
 												onClick={() => setShowCompletionDialog(true)}
 											>
 												Complete Task
 											</Button>
 										)}
-									</Stack>
+									</div>
 								</>
 							)}
-						</Box>
-					</Box>
+						</div>
+					</div>
 				</BasicDialog>
 
 				{/* Task Completion Dialog */}
@@ -356,16 +349,16 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 			onClose={onClose}
 			width={480}
 		>
-			<Box sx={containerStyles.section}>
-				<Typography sx={containerStyles.sectionTitle}>
-					<CalendarTodayIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+			<div style={containerStyles.section as React.CSSProperties}>
+				<div style={containerStyles.sectionTitle as React.CSSProperties}>
+					<IconCalendar size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
 					{formatDeadlineType(deadline.deadline_type)}
-				</Typography>
-				<Box sx={containerStyles.sectionContent}>
+				</div>
+				<div style={containerStyles.sectionContent as React.CSSProperties}>
 					<DetailRow
 						label="Due Date"
 						value={
-							<Typography fontSize={13}>{dayjs(deadline.deadline_date).format('MMM D, YYYY')}</Typography>
+							<span style={{ fontSize: 13 }}>{dayjs(deadline.deadline_date).format('MMM D, YYYY')}</span>
 						}
 					/>
 					<DetailRow
@@ -383,8 +376,8 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 						label="Claim"
 						value={<ClaimLink claimId={deadline.claim_id} claimNumber={deadline.claim_number} />}
 					/>
-				</Box>
-			</Box>
+				</div>
+			</div>
 		</BasicDialog>
 	);
 }

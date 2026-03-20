@@ -1,10 +1,10 @@
 'use client';
 
-import { MenuItem, Stack, TextField, Typography, Box, FormControlLabel, Switch } from '@mui/material';
-import Send from '@mui/icons-material/Send';
-import Business from '@mui/icons-material/Business';
-import Person from '@mui/icons-material/Person';
-import SupportAgent from '@mui/icons-material/SupportAgent';
+import { IconBuilding, IconHeadset, IconSend, IconUser } from '@tabler/icons-react';
+import { FormControlLabel } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Switch from '@/components/ui/Switch';
 import BasicDialog from '../common/BasicDialog';
 import AddressFields from '../common/AddressFields';
 import { Controller, useForm } from 'react-hook-form';
@@ -149,9 +149,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	const getPartyTypeIcon = (type: PartyType) => {
 		switch (type) {
 			case PartyType.ENTITY:
-				return <Business sx={{ fontSize: 18 }} />;
+				return <IconBuilding size={18} />;
 			case PartyType.FACILITATOR:
-				return <SupportAgent sx={{ fontSize: 18 }} />;
+				return <IconHeadset size={18} />;
 		}
 	};
 
@@ -303,7 +303,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: onSubmit,
-				icon: isEditMode ? undefined : <Send />,
+				icon: isEditMode ? undefined : <IconSend size={20} />,
 				disabled:
 					!hasRequiredName ||
 					isSubmitting ||
@@ -315,33 +315,24 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 			onClose={handleClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
 				<Controller
 					name="party_type"
 					control={control}
 					rules={{ required: true }}
 					render={({ field }) => (
-						<TextField
+						<Select
 							label="Type"
-							select
 							error={!!errors.party_type}
-							{...field}
+							value={field.value}
+							onChange={(val) => field.onChange(val)}
 							disabled={isSubmitting || !!lockedType}
-							sx={styles.textFieldOverrides}
-						>
-							<MenuItem value={PartyType.ENTITY}>
-								<Box display="flex" alignItems="center" gap={1}>
-									{getPartyTypeIcon(PartyType.ENTITY)}
-									<Typography fontSize={13}>Entity</Typography>
-								</Box>
-							</MenuItem>
-							<MenuItem value={PartyType.FACILITATOR}>
-								<Box display="flex" alignItems="center" gap={1}>
-									{getPartyTypeIcon(PartyType.FACILITATOR)}
-									<Typography fontSize={13}>Facilitator</Typography>
-								</Box>
-							</MenuItem>
-						</TextField>
+							style={styles.textFieldOverrides}
+							options={[
+								{ value: PartyType.ENTITY, label: 'Entity' },
+								{ value: PartyType.FACILITATOR, label: 'Facilitator' },
+							]}
+						/>
 					)}
 				/>
 
@@ -350,36 +341,36 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					name="is_business"
 					control={control}
 					render={({ field }) => (
-						<Box
-							sx={{
+						<div
+							style={{
 								width: 400,
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'space-between',
-								px: 1,
+								paddingInline: 8,
 							}}
 						>
-							<Box display="flex" alignItems="center" gap={1}>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 								{field.value ? (
-									<Business sx={{ fontSize: 18, color: 'text.secondary' }} />
+									<IconBuilding size={18} style={{ color: 'var(--text-secondary)' }} />
 								) : (
-									<Person sx={{ fontSize: 18, color: 'text.secondary' }} />
+									<IconUser size={18} style={{ color: 'var(--text-secondary)' }} />
 								)}
-								<Typography variant="body2" color="text.secondary">
+								<span style={{ color: 'var(--text-secondary)' }}>
 									{field.value ? 'Business' : 'Individual'}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 							<FormControlLabel
 								control={
 									<Switch
 										checked={field.value}
-										onChange={(e) => field.onChange(e.target.checked)}
+										onChange={(checked) => field.onChange(checked)}
 										disabled={isSubmitting}
 									/>
 								}
 								label=""
 							/>
-						</Box>
+						</div>
 					)}
 				/>
 
@@ -390,37 +381,37 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 						control={control}
 						rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
 						render={({ field }) => (
-							<TextField
+							<Input
 								label="Business Name"
 								placeholder="Business or organization name"
 								error={!!errors.name || duplicateMatches.length > 0}
-								helperText={
+								errorText={
 									duplicateMatches.length > 0
 										? `A party named "${duplicateMatches[0].name}" already exists`
 										: errors.name?.message
 								}
 								{...field}
 								disabled={isSubmitting}
-								sx={styles.textFieldOverrides}
+								style={styles.textFieldOverrides}
 							/>
 						)}
 					/>
 				) : (
 					<>
-						<Stack direction="row" spacing={1} width={400}>
+						<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
 							<Controller
 								name="first_name"
 								control={control}
 								rules={{ required: 'First name is required', maxLength: 100 }}
 								render={({ field }) => (
-									<TextField
+									<Input
 										label="First Name"
 										placeholder="First name"
 										error={!!errors.first_name}
-										helperText={errors.first_name?.message}
+										errorText={errors.first_name?.message}
 										{...field}
 										disabled={isSubmitting}
-										sx={{ flex: 1 }}
+										style={{ flex: 1 }}
 									/>
 								)}
 							/>
@@ -429,35 +420,35 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 								control={control}
 								rules={{ maxLength: 100 }}
 								render={({ field }) => (
-									<TextField
+									<Input
 										label="Middle"
 										placeholder="Middle"
 										error={!!errors.middle_name}
 										{...field}
 										disabled={isSubmitting}
-										sx={{ width: 100 }}
+										style={{ width: 100 }}
 									/>
 								)}
 							/>
-						</Stack>
-						<Stack direction="row" spacing={1} width={400}>
+						</div>
+						<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
 							<Controller
 								name="last_name"
 								control={control}
 								rules={{ required: 'Last name is required', maxLength: 100 }}
 								render={({ field }) => (
-									<TextField
+									<Input
 										label="Last Name"
 										placeholder="Last name"
 										error={!!errors.last_name || duplicateMatches.length > 0}
-										helperText={
+										errorText={
 											duplicateMatches.length > 0
 												? `A party named "${duplicateMatches[0].name}" already exists`
 												: errors.last_name?.message
 										}
 										{...field}
 										disabled={isSubmitting}
-										sx={{ flex: 1 }}
+										style={{ flex: 1 }}
 									/>
 								)}
 							/>
@@ -466,17 +457,17 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 								control={control}
 								rules={{ maxLength: 20 }}
 								render={({ field }) => (
-									<TextField
+									<Input
 										label="Suffix"
 										placeholder="Jr., Sr."
 										error={!!errors.suffix}
 										{...field}
 										disabled={isSubmitting}
-										sx={{ width: 100 }}
+										style={{ width: 100 }}
 									/>
 								)}
 							/>
-						</Stack>
+						</div>
 					</>
 				)}
 
@@ -485,21 +476,21 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					control={control}
 					rules={{ maxLength: 255 }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Organization (optional)"
 							placeholder="Organization name"
 							error={!!errors.organization}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
 
 				{/* Contact Information Section */}
-				<Typography variant="caption" color="text.secondary" sx={{ width: 400, pt: 1 }}>
+				<span style={{  color: 'var(--text-secondary)' ,  width: 400, paddingTop: 8  }}>
 					Contact Information (optional)
-				</Typography>
+				</span>
 
 				<Controller
 					name="contact_email"
@@ -511,32 +502,32 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 						},
 					}}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Email"
 							placeholder="email@example.com"
 							type="email"
 							error={!!errors.contact_email}
-							helperText={errors.contact_email?.message}
+							errorText={errors.contact_email?.message}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
 
-				<Stack direction="row" spacing={1} width={400}>
+				<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
 					<Controller
 						name="contact_phone"
 						control={control}
 						rules={{ maxLength: 50 }}
 						render={({ field }) => (
-							<TextField
+							<Input
 								label="Phone"
 								placeholder="Phone number"
 								error={!!errors.contact_phone}
 								{...field}
 								disabled={isSubmitting}
-								sx={{ flex: 1 }}
+								style={{ flex: 1 }}
 							/>
 						)}
 					/>
@@ -544,21 +535,22 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 						name="contact_phone_type"
 						control={control}
 						render={({ field }) => (
-							<TextField
+							<Select
 								label="Type"
-								select
-								{...field}
+								value={field.value ?? ''}
+								onChange={(val) => field.onChange(val)}
 								disabled={isSubmitting}
-								sx={{ width: 120 }}
-							>
-								<MenuItem value="work">Work</MenuItem>
-								<MenuItem value="mobile">Mobile</MenuItem>
-								<MenuItem value="home">Home</MenuItem>
-								<MenuItem value="fax">Fax</MenuItem>
-							</TextField>
+								style={{ width: 120 }}
+								options={[
+									{ value: 'work', label: 'Work' },
+									{ value: 'mobile', label: 'Mobile' },
+									{ value: 'home', label: 'Home' },
+									{ value: 'fax', label: 'Fax' },
+								]}
+							/>
 						)}
 					/>
-				</Stack>
+				</div>
 
 				<AddressFields
 					control={control}
@@ -573,16 +565,17 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					name="contact_address_type"
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Select
 							label="Address Type"
-							select
-							{...field}
+							value={field.value ?? ''}
+							onChange={(val) => field.onChange(val)}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
-						>
-							<MenuItem value="business">Business</MenuItem>
-							<MenuItem value="home">Home</MenuItem>
-						</TextField>
+							style={styles.textFieldOverrides}
+							options={[
+								{ value: 'business', label: 'Business' },
+								{ value: 'home', label: 'Home' },
+							]}
+						/>
 					)}
 				/>
 
@@ -591,19 +584,18 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 					control={control}
 					rules={{ maxLength: 2000 }}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							label="Notes (optional)"
 							placeholder="Additional notes"
 							error={!!errors.notes}
-							multiline
 							rows={3}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }
@@ -612,13 +604,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
 		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
 };

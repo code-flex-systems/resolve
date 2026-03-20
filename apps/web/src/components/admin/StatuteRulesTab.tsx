@@ -1,22 +1,24 @@
 'use client';
 
+import { IconGavel, IconInfoCircle, IconSettings } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
 import { useMemo, useState } from 'react';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { STATUTE_TORT_TYPES } from '@/config/statuteConfig';
-import { Chip, Fade, Paper, Tooltip, Typography, Box, IconButton } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
-import GavelIcon from '@mui/icons-material/Gavel';
-import Settings from '@mui/icons-material/Settings';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useAdminStore } from '@/stores/useAdminStore';
 import StatuteRuleDialog from './StatuteRuleDialog';
 import { US_JURISDICTIONS } from '@/config/usJurisdictions';
 import type { StatuteRules, TortTypeConfig, NegligenceType } from '@/schemas/statuteSchemas';
 import { getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
+import { Dialog } from '@mui/material';
 
 /**
  * Render cell value for a tort type column.
@@ -25,9 +27,9 @@ import { getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
 function renderTortCell(rules: StatuteRules | undefined, tortType: string): React.ReactNode {
 	if (!rules || !rules[tortType]) {
 		return (
-			<Typography color="text.secondary" height="100%">
+			<span style={{ color: 'var(--text-secondary)', height: '100%' }}>
 				-
-			</Typography>
+			</span>
 		);
 	}
 
@@ -37,9 +39,9 @@ function renderTortCell(rules: StatuteRules | undefined, tortType: string): Reac
 	// No default and no rules = unconfigured
 	if (config.default_years === null && !hasConditionalRules) {
 		return (
-			<Typography color="text.secondary" height="100%">
+			<span style={{ color: 'var(--text-secondary)', height: '100%' }}>
 				N/A
-			</Typography>
+			</span>
 		);
 	}
 
@@ -47,29 +49,29 @@ function renderTortCell(rules: StatuteRules | undefined, tortType: string): Reac
 	if (hasConditionalRules) {
 		return (
 			<Tooltip
-				title={
-					<Box>
+				content={
+					<div>
 						{config.default_years !== null && (
-							<Typography color="white">Default: {config.default_years} years</Typography>
+							<span style={{ color: 'white' }}>Default: {config.default_years} years</span>
 						)}
 						{config.rules.map((rule, idx) => (
-							<Typography key={idx} color="white">
+							<span key={idx} style={{ color: 'white' }}>
 								{rule.lob && `LOB: ${rule.lob}`}
 								{rule.date_from && ` From: ${rule.date_from}`}
 								{rule.date_to && ` To: ${rule.date_to}`}
 								{` = ${rule.years} years`}
-							</Typography>
+							</span>
 						))}
-					</Box>
+					</div>
 				}
 			>
-				<Chip label="..." size="small" color="info" variant="outlined" sx={{ cursor: 'pointer' }} />
+				<Chip  size="sm" color="info" variant="outlined" style={{ cursor: 'pointer' }}>...</Chip>
 			</Tooltip>
 		);
 	}
 
 	// Simple default years
-	return <Typography>{config.default_years} yrs</Typography>;
+	return <span>{config.default_years} yrs</span>;
 }
 
 /**
@@ -83,9 +85,9 @@ function renderNegligenceCell(
 ): React.ReactNode {
 	if (!type) {
 		return (
-			<Typography color="text.secondary" height="100%">
+			<span style={{ color: 'var(--text-secondary)', height: '100%' }}>
 				-
-			</Typography>
+			</span>
 		);
 	}
 
@@ -93,16 +95,16 @@ function renderNegligenceCell(
 	const barText = barPercent !== null ? `${barPercent}% bars` : 'varies';
 
 	return (
-		<Box display="flex" alignItems="center" gap={1} height="100%">
-			<Typography variant="body2">
+		<div style={{ display: 'flex', alignItems: 'center', gap: 8, height: '100%' }}>
+			<span>
 				{label}, {barText}
-			</Typography>
+			</span>
 			{notes && (
-				<Tooltip title={notes}>
-					<InfoOutlinedIcon fontSize="small" sx={{ color: 'warning.main', cursor: 'pointer' }} />
+				<Tooltip content={notes}>
+					<IconInfoCircle size={20} style={{ color: 'var(--status-warning)', cursor: 'pointer' }} />
 				</Tooltip>
 			)}
-		</Box>
+		</div>
 	);
 }
 
@@ -110,7 +112,7 @@ function NoRowsOverlay() {
 	return (
 		<CustomNoRowsOverlay
 			text="No statute rules found"
-			icon={<GavelIcon sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconGavel size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -163,9 +165,9 @@ export default function StatuteRulesTab() {
 			field: tort.value,
 			width: 130,
 			renderCell: ({ row }: GridRenderCellParams) => (
-				<Box display="flex" alignItems="center" height="100%">
+				<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 					{renderTortCell(row.rules, tort.value)}
-				</Box>
+				</div>
 			),
 			sortable: false,
 		}));
@@ -176,7 +178,7 @@ export default function StatuteRulesTab() {
 				field: 'state_name',
 				width: 200,
 				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<GavelIcon style={{ color: BASE_COLOR_LIGHT }} />} />
+					<IconHeaderCell {...params} icon={<IconGavel style={{ color: 'var(--text-muted)' }} />} />
 				),
 			},
 			{
@@ -191,9 +193,9 @@ export default function StatuteRulesTab() {
 				width: 220,
 				sortable: false,
 				renderCell: ({ row }: GridRenderCellParams) => (
-					<Box display="flex" alignItems="center" height="100%">
+					<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 						{renderNegligenceCell(row.negligence_type, row.negligence_bar_percent, row.negligence_notes)}
-					</Box>
+					</div>
 				),
 			},
 			{
@@ -206,18 +208,17 @@ export default function StatuteRulesTab() {
 				renderCell: ({ row }: GridRenderCellParams) => {
 					if (!isManageMode) return null;
 					return (
-						<Box display="flex" alignItems="center" justifyContent="center" width="100%" height="100%">
-							<IconButton
-								size="small"
+						<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+							<Button variant="icon" size="sm"
 								onClick={(e) => {
 									e.stopPropagation();
 									setStatuteStateCode(row.state_code);
 									toggleStatuteRuleDialog();
 								}}
 							>
-								<Settings fontSize="small" />
-							</IconButton>
-						</Box>
+								<IconSettings size={20} />
+							</Button>
+						</div>
 					);
 				},
 			},
@@ -225,20 +226,19 @@ export default function StatuteRulesTab() {
 	}, [isManageMode, setStatuteStateCode, toggleStatuteRuleDialog]);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<div>
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
-						left={<Typography variant="h6">Statute of Limitations Rules</Typography>}
+						left={<span>Statute of Limitations Rules</span>}
 						right={
-							<Tooltip title="Manage">
-								<IconButton
-									size="small"
+							<Tooltip content="Manage">
+								<Button variant="icon" size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
-									sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 								>
-									<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-								</IconButton>
+									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</Button>
 							</Tooltip>
 						}
 						height={50}
@@ -266,14 +266,14 @@ export default function StatuteRulesTab() {
 							disableRowSelectionOnClick
 							disableColumnMenu
 							pinnedColumns={pinnedColumns}
-							sx={styles.tableOverrides}
+							style={styles.tableOverrides}
 						/>
 					</div>
-				</Paper>
+				</div>
 
 				{showStatuteRuleDialog && <StatuteRuleDialog />}
 			</div>
-		</Fade>
+		</div>
 	);
 }
 

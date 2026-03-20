@@ -1,10 +1,10 @@
-import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
 import { useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { RecoveryStatus } from '@/config/enums';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import AttachMoney from '@mui/icons-material/AttachMoney';
+import { IconCurrencyDollar } from '@tabler/icons-react';
 
 export default function RecoveryStatusSelect({
 	recoveryStatus,
@@ -29,7 +29,7 @@ export default function RecoveryStatusSelect({
 		<>
 			<Chip
 				label={displayLabel}
-				icon={<AttachMoney sx={{ color: recoveryStatus ? undefined : BASE_COLOR_LIGHT }} />}
+				icon={<IconCurrencyDollar size={20} style={{ color: recoveryStatus ? undefined : BASE_COLOR_LIGHT }} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -58,7 +58,7 @@ export default function RecoveryStatusSelect({
 									setAnchorEl(null);
 								}}
 							>
-								<Typography fontSize={13}>{formatRecoveryStatus(status)}</Typography>
+								<span style={{ fontSize: 13 }}>{formatRecoveryStatus(status)}</span>
 							</MenuItem>
 						))}
 					</Paper>

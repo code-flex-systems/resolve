@@ -1,5 +1,4 @@
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
-import theme from '@/styles/theme';
 import { Box, Typography } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 

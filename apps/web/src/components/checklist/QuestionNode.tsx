@@ -1,13 +1,13 @@
 'use client';
-import { Box, Collapse, IconButton, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import './styles.css';
 import AnswerNode from './AnswerNode';
 import { useEffect, useState } from 'react';
 import { Answer } from '@/types/types';
-import HelpOutline from '@mui/icons-material/HelpOutline';
 import { QuestionType } from '@/config/enums';
+import { IconCircleMinus, IconHelpCircle } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
 
 export default function QuestionNode(props: {
 	pageId: number;
@@ -36,7 +36,7 @@ export default function QuestionNode(props: {
 				className="flex-row-between"
 			>
 				<Box className="flex-row-left">
-					<HelpOutline sx={{ fontSize: 16, marginRight: '10px', color: selected ? 'secondary.main' : '' }} />
+					<IconHelpCircle size={16} style={{ marginRight: '10px', color: selected ? 'secondary.main' : '' }} />
 					<Typography
 						color={selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : ''}
 						fontWeight={isPlaceholder ? 'bold' : ''}
@@ -59,8 +59,8 @@ export default function QuestionNode(props: {
 						}}
 						disableRipple
 					>
-						<RemoveCircleOutline
-							sx={{
+						<IconCircleMinus
+						 style={{
 								transform: expanded === true ? 'rotate(90deg)' : undefined,
 								transition: 'transform 100ms ease',
 								fontSize: 17,
@@ -69,7 +69,7 @@ export default function QuestionNode(props: {
 					</IconButton>
 				)}
 			</Box>
-			<Collapse in={expanded} unmountOnExit>
+			<Collapse open={expanded}>
 				<span>
 					{[...questionAnswers]
 						.sort((a, b) => a.position - b.position)

@@ -1,11 +1,8 @@
 'use client';
 
+import { IconArchive, IconCalendarRepeat, IconCash, IconEdit } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
 import { dataGridFocusStyles } from '@/styles/theme';
-import { Box, Tooltip, Typography } from '@mui/material';
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import Payments from '@mui/icons-material/Payments';
-import EventRepeat from '@mui/icons-material/EventRepeat';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useMemo } from 'react';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
@@ -14,6 +11,7 @@ import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
 import { SettlementStructure } from '@/config/enums';
 import dayjs from 'dayjs';
+import { TableRow } from '@mui/material';
 
 interface TableRow {
 	id: string;
@@ -117,12 +115,12 @@ export default function SettlementTable({
 				minWidth: 150,
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (params.row.type === 'settlement') {
-						return <Typography fontSize={13}>{params.row.party_name}</Typography>;
+						return <span style={{ fontSize: 13 }}>{params.row.party_name}</span>;
 					}
 					return (
-						<Typography fontSize={13} color="text.secondary">
+						<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
 							{params.row.recovery_source || 'No source'}
-						</Typography>
+						</span>
 					);
 				},
 				sortComparator: (v1, v2, param1, param2) => {
@@ -139,7 +137,7 @@ export default function SettlementTable({
 				width: 120,
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (params.row.type === 'settlement' && params.row.loss_type) {
-						return <Typography fontSize={13}>{formatCoverageType(params.row.loss_type)}</Typography>;
+						return <span style={{ fontSize: 13 }}>{formatCoverageType(params.row.loss_type)}</span>;
 					}
 					return null;
 				},
@@ -157,13 +155,12 @@ export default function SettlementTable({
 					const isPaymentPlan = structure === SettlementStructure.PAYMENT_PLAN;
 					return (
 						<Tooltip
-							title={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'}
-							arrow
+							content={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'}
 						>
 							{isPaymentPlan ? (
-								<EventRepeat fontSize="small" sx={{ color: 'info.main' }} />
+								<IconCalendarRepeat size={20} style={{ color: 'var(--status-info)' }} />
 							) : (
-								<Payments fontSize="small" sx={{ color: 'text.secondary' }} />
+								<IconCash size={20} style={{ color: 'var(--text-secondary)' }} />
 							)}
 						</Tooltip>
 					);
@@ -178,7 +175,7 @@ export default function SettlementTable({
 				headerAlign: 'right',
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (params.row.type === 'settlement' && params.row.demand_amount !== undefined) {
-						return <Typography fontSize={13}>{formatCurrencyExact(params.row.demand_amount)}</Typography>;
+						return <span style={{ fontSize: 13 }}>{formatCurrencyExact(params.row.demand_amount)}</span>;
 					}
 					return null;
 				},
@@ -193,13 +190,13 @@ export default function SettlementTable({
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (params.row.type === 'settlement') {
 						return (
-							<Typography fontSize={13}>
+							<span style={{ fontSize: 13 }}>
 								{formatCurrencyExact(params.row.total_recovered || 0)}
-							</Typography>
+							</span>
 						);
 					}
 					if (params.row.type === 'recovery' && params.row.recovery_amount !== undefined) {
-						return <Typography fontSize={13}>{formatCurrencyExact(params.row.recovery_amount)}</Typography>;
+						return <span style={{ fontSize: 13 }}>{formatCurrencyExact(params.row.recovery_amount)}</span>;
 					}
 					return null;
 				},
@@ -221,11 +218,11 @@ export default function SettlementTable({
 					if (params.row.type === 'settlement' && params.row.remaining_balance !== undefined) {
 						const balance = params.row.remaining_balance;
 						return (
-							<Typography fontSize={13} color={balance > 0 ? 'error.light' : 'success.main'}>
+							<span style={{ fontSize: 13, color: balance > 0 ? 'var(--status-error)' : 'var(--status-success)' }}>
 								{balance < 0
 									? `-${formatCurrencyExact(Math.abs(balance))}`
 									: formatCurrencyExact(balance)}
-							</Typography>
+							</span>
 						);
 					}
 					return null;
@@ -239,7 +236,7 @@ export default function SettlementTable({
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					const date = params.row.type === 'settlement' ? params.row.demand_date : params.row.recovery_date;
 					if (date) {
-						return <Typography fontSize={13}>{dayjs(date).format('MMM D, YYYY')}</Typography>;
+						return <span style={{ fontSize: 13 }}>{dayjs(date).format('MMM D, YYYY')}</span>;
 					}
 					return null;
 				},
@@ -262,17 +259,17 @@ export default function SettlementTable({
 				renderCell: (params: GridRenderCellParams<TableRow>) => {
 					if (!isManageMode) return null;
 					return (
-						<Box display="flex" gap={0.5}>
+						<div style={{ display: 'flex', gap: 4 }}>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () =>
 										params.row.type === 'settlement'
 											? onEditSettlement(params.row.originalData)
 											: onEditRecovery(params.row.originalData),
-									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
+									sx: { padding: '3px', },
 								}}
 								tooltipProps={{ title: `Edit ${params.row.type}` }}
-								icon={<Edit />}
+								icon={<IconEdit size={20} />}
 								compact
 							/>
 							<BasicButtonStyled
@@ -281,13 +278,13 @@ export default function SettlementTable({
 										params.row.type === 'settlement'
 											? onArchiveSettlement(params.row.originalData)
 											: onArchiveRecovery(params.row.originalData),
-									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
+									sx: { padding: '3px', },
 								}}
 								tooltipProps={{ title: `Archive ${params.row.type}` }}
-								icon={<Archive sx={{ color: 'error.main' }} />}
+								icon={<IconArchive style={{ color: 'var(--status-error)' }} />}
 								compact
 							/>
-						</Box>
+						</div>
 					);
 				},
 			},
@@ -315,12 +312,8 @@ export default function SettlementTable({
 			disableRowSelectionOnClick
 			disableColumnMenu
 			pinnedColumns={pinnedColumns}
-			sx={{
+			style={{
 				border: 'none',
-				'& .MuiDataGrid-cell': {
-					display: 'flex',
-					alignItems: 'center',
-				},
 				...dataGridFocusStyles,
 			}}
 		/>

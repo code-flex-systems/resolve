@@ -1,28 +1,27 @@
 'use client';
 
+import { IconEye, IconFileSearch, IconFilter, IconSquarePlus, IconUpload, IconUserSearch } from '@tabler/icons-react';
+import { Autocomplete, PopperProps, Select, TextField } from '@mui/material';
+import Card from '@/components/ui/Card';
+import Collapse from '@/components/ui/Collapse';
+import Switch from '@/components/ui/Switch';
+import Button from '@/components/ui/Button';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { formatAmount, formatMDYAbv } from '@/lib/utils/utils';
 import { formatLineOfBusiness, formatLabel } from '@/lib/utils/claimUtils';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { formatCityState } from '@/schemas/addressSchemas';
-import { Autocomplete, Box, Button, Collapse, Paper, PopperProps, Switch, TextField, Typography } from '@mui/material';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import AddBox from '@mui/icons-material/AddBox';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import PersonSearch from '@mui/icons-material/PersonSearch';
-import Upload from '@mui/icons-material/Upload';
-import FilterList from '@mui/icons-material/FilterList';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import Visibility from '@mui/icons-material/Visibility';
 import { LineOfBusinessSelect } from '../common/ReferenceDataSelect';
 import RecoveryStatusSelect from '../common/RecoveryStatusSelect';
 import SubstatusSelect from '../common/SubstatusSelect';
@@ -39,7 +38,7 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Claim',
 		field: 'claim_number',
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 		),
 		width: 150,
 	},
@@ -47,7 +46,7 @@ const COLUMNS: GridColDef[] = [
 		headerName: 'Client',
 		field: 'client',
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<PersonSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<IconUserSearch style={{ color: 'var(--text-muted)' }} />} />
 		),
 		width: 150,
 	},
@@ -142,7 +141,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No claims found"
-			icon={<ContentPasteSearch sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconFileSearch size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -371,24 +370,24 @@ export default function Claims() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					{/* Main Toolbar: Title and Actions */}
 					<Toolbar
-						left={<Typography variant="h6">All Claims</Typography>}
+						left={<span>All Claims</span>}
 						right={
 							<>
 								<Button
 									variant="contained"
-									color="secondary"
-									startIcon={<Upload />}
+									color="neutral"
+									startIcon={<IconUpload size={20} />}
 									onClick={toggleImportClaimsDialog}
-									sx={{ marginRight: '10px' }}
+									style={{ marginRight: '10px' }}
 								>
 									Import
 								</Button>
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={() => router.push('/admin/claims/edit')}
 								>
 									Claim
@@ -404,7 +403,7 @@ export default function Claims() {
 					{/* Search and Filters Toolbar */}
 					<Toolbar
 						left={
-							<Box display="flex" gap={1} alignItems="center">
+							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 								<SearchInput
 									value={claimNumberSearch}
 									onChange={(value) => setClaimNumberSearch(value)}
@@ -414,16 +413,15 @@ export default function Claims() {
 								<BasicButtonStyled
 									buttonProps={{
 										onClick: handleOpenFilters,
-										endIcon: <FilterList />,
+										endIcon: <IconFilter size={20} />,
 									}}
 								>
 									Filters...
 									{hasActiveFilters && (
-										<Box
-											component="span"
-											sx={{
-												ml: 0.5,
-												bgcolor: 'primary.main',
+										<div
+											style={{
+												marginLeft: 4,
+												backgroundColor: 'primary.main',
 												color: 'white',
 												borderRadius: '50%',
 												width: 18,
@@ -446,7 +444,7 @@ export default function Claims() {
 													appliedClaimNumber,
 												].filter(Boolean).length
 											}
-										</Box>
+										</div>
 									)}
 								</BasicButtonStyled>
 								{hasActiveFilters && (
@@ -459,18 +457,18 @@ export default function Claims() {
 										Clear all filters
 									</BasicButtonStyled>
 								)}
-								<Collapse in={!!selectedFeed} orientation="horizontal">
-									<Box display="flex" alignItems="center" marginLeft="5px">
-										<Visibility sx={{ color: 'text.secondary', fontSize: 18 }} />
-										<Typography fontSize={14} lineHeight="18px" marginLeft="8px" noWrap>
+								<Collapse open={!!selectedFeed}>
+									<div style={{ display: 'flex', alignItems: 'center', marginLeft: '5px' }}>
+										<IconEye size={18} style={{ color: 'var(--text-secondary)' }} />
+										<span style={{ fontSize: 14, lineHeight: '18px', marginLeft: '8px' }}>
 											Viewing{' '}
-											<span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>
+											<span style={{ color: 'var(--text-accent)', fontWeight: 600 }}>
 												{selectedFeed?.name ?? ''}
 											</span>
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								</Collapse>
-							</Box>
+							</div>
 						}
 						leftWidth="100%"
 						rightWidth="0%"
@@ -485,56 +483,56 @@ export default function Claims() {
 							setAnchorEl={handleCloseFilters}
 							placement="bottom-start"
 						>
-							<Paper sx={styles.filtersPaper}>
-								<Typography fontSize={14} fontWeight={600} marginBottom={2}>
+							<div style={styles.filtersPaper}>
+								<span style={{ fontSize: 14, fontWeight: 600 }}>
 									Filter Claims
-								</Typography>
-								<Box display="flex" flexDirection="column" gap={1}>
-									<Box display="flex" alignItems="center" gap={1}>
+								</span>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+									<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 										<Switch
-											size="small"
+											size="sm"
 											checked={draftManualOnly}
-											onChange={(_, checked) => setDraftManualOnly(checked)}
+											onChange={(checked) => setDraftManualOnly(checked)}
 										/>
-										<Typography fontSize={13}>Only Manual Claims</Typography>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+										<span style={{ fontSize: 13 }}>Only Manual Claims</span>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Line of Business
-										</Typography>
+										</span>
 										<LineOfBusinessSelect
 											lineOfBusiness={draftLob}
 											setLineOfBusiness={setDraftLob}
 											clearable={true}
 											height={32}
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Recovery Status
-										</Typography>
+										</span>
 										<RecoveryStatusSelect
 											recoveryStatus={draftRecoveryStatus}
 											setRecoveryStatus={setDraftRecoveryStatus}
 											clearable={true}
 											height={32}
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Substatus
-										</Typography>
+										</span>
 										<SubstatusSelect
 											substatus={draftSubstatus}
 											setSubstatus={setDraftSubstatus}
 											clearable={true}
 											height={32}
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Insured
-										</Typography>
+										</span>
 										<Autocomplete
 											freeSolo
 											options={insuredOptions}
@@ -558,13 +556,13 @@ export default function Claims() {
 												/>
 											)}
 											noOptionsText={insuredSearchTerm ? 'No matches' : 'Type to search'}
-											sx={styles.autocomplete}
+											style={styles.autocomplete}
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Client
-										</Typography>
+										</span>
 										<Autocomplete
 											freeSolo
 											options={clientOptions}
@@ -588,22 +586,16 @@ export default function Claims() {
 												/>
 											)}
 											noOptionsText={clientSearchTerm ? 'No matches' : 'Type to search'}
-											sx={styles.autocomplete}
+											style={styles.autocomplete}
 										/>
-									</Box>
-								</Box>
-								<Box
-									display="flex"
-									justifyContent="flex-end"
-									marginTop={2}
-									paddingTop={2}
-									borderTop="1px solid #e0e0e0"
-								>
-									<Button variant="contained" onClick={handleApplyFilters} size="small">
+									</div>
+								</div>
+								<div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, paddingTop: 16, borderTop: '1px solid #e0e0e0' }}>
+									<Button variant="contained" onClick={handleApplyFilters} size="sm">
 										Apply
 									</Button>
-								</Box>
-							</Paper>
+								</div>
+							</div>
 						</BasicPopper>
 					)}
 
@@ -640,16 +632,13 @@ export default function Claims() {
 							getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
 							disableColumnSelector
 							disableColumnMenu
-							sx={{
+							style={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
-								'& .MuiDataGrid-row': {
-									cursor: 'pointer',
-								},
-							}}
+								}}
 						/>
 					</div>
-				</Paper>
+				</div>
 				<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
 			</div>
 		</PageTransitionWrapper>
@@ -675,17 +664,11 @@ const styles = {
 		border: 'none',
 	},
 	filtersPaper: {
-		mt: 0.625,
+		marginTop: 5,
 		padding: '15px',
 		minWidth: 300,
 		maxWidth: 400,
 	},
 	autocomplete: {
-		'& .MuiOutlinedInput-root': {
-			padding: '3px 9px',
 		},
-		'& .MuiInputBase-input': {
-			fontSize: 13,
-		},
-	},
 };

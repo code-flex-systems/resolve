@@ -1,10 +1,6 @@
 'use client';
 
-import { Box, Fade, FormControl, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
-import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
-import Email from '@mui/icons-material/Email';
-import Event from '@mui/icons-material/Event';
-import MarkunreadMailbox from '@mui/icons-material/MarkunreadMailbox';
+import { Box, FormControl, MenuItem, Select, Stack, TextField, Typography , Fade } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { ActionType } from '@/config/enums';
@@ -18,22 +14,23 @@ import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ActionInput } from '@/schemas/actionSchemas';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconCalendar, IconClipboardCheck, IconMail, IconMailbox } from '@tabler/icons-react';
 
 const actionTypeOptions: { icon: JSX.Element; value: ActionType }[] = [
 	{
-		icon: <Email />,
+		icon: <IconMail size={20} />,
 		value: ActionType.EMAIL,
 	},
 	{
-		icon: <Event />,
+		icon: <IconCalendar size={20} />,
 		value: ActionType.EVENT,
 	},
 	{
-		icon: <MarkunreadMailbox />,
+		icon: <IconMailbox size={20} />,
 		value: ActionType.LETTER,
 	},
 	{
-		icon: <AssignmentTurnedIn />,
+		icon: <IconClipboardCheck size={20} />,
 		value: ActionType.TASK,
 	},
 ];

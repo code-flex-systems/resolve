@@ -1,8 +1,7 @@
 'use client';
 
-import { Box, Typography } from '@mui/material';
 import { ReactNode } from 'react';
-import { containerStyles, TEXT_PRIMARY, TEXT_SECONDARY } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 
 interface MetricCardProps {
 	icon: ReactNode;
@@ -31,20 +30,20 @@ export default function MetricCard({
 	trend,
 }: MetricCardProps) {
 	return (
-		<Box
-			sx={{
+		<div
+			style={{
 				...containerStyles.beveledCard,
-				p: 3,
+				padding: 24,
 				display: 'flex',
 				alignItems: 'center',
-				gap: 2.5,
+				gap: 20,
 				minWidth: 280,
 				flex: 1,
 			}}
 		>
 			{/* Icon circle */}
-			<Box
-				sx={{
+			<div
+				style={{
 					width: 50,
 					height: 50,
 					borderRadius: '50%',
@@ -53,67 +52,63 @@ export default function MetricCard({
 					alignItems: 'center',
 					justifyContent: 'center',
 					flexShrink: 0,
-					'& .MuiSvgIcon-root': {
-						color: iconColor,
-						fontSize: 26,
-					},
-				}}
+					}}
 			>
 				{icon}
-			</Box>
+			</div>
 
 			{/* Content */}
-			<Box sx={{ flex: 1, minWidth: 0 }}>
-				<Typography
-					sx={{
+			<div style={{ flex: 1, minWidth: 0 }}>
+				<span
+					style={{
 						fontSize: 40,
 						fontWeight: 700,
 						lineHeight: 1,
-						color: TEXT_PRIMARY,
-						mb: 0.5,
+						color: 'var(--text-primary)',
+						marginBottom: 4,
 					}}
 				>
 					{value}
-				</Typography>
-				<Typography
-					sx={{
+				</span>
+				<span
+					style={{
 						fontSize: 14,
 						fontWeight: 600,
-						color: TEXT_PRIMARY,
-						mb: 0.25,
+						color: 'var(--text-primary)',
+						marginBottom: 2,
 					}}
 				>
 					{label}
-				</Typography>
-				<Typography
-					sx={{
+				</span>
+				<span
+					style={{
 						fontSize: 13,
-						color: TEXT_SECONDARY,
+						color: 'var(--text-secondary)',
 					}}
 				>
 					{subtitle}
-				</Typography>
-			</Box>
+				</span>
+			</div>
 
 			{/* Trend indicator (optional) */}
 			{trend && (
-				<Box
-					sx={{
+				<div
+					style={{
 						alignSelf: 'flex-start',
-						pt: 0.5,
+						paddingTop: 4,
 					}}
 				>
-					<Typography
-						sx={{
+					<span
+						style={{
 							fontSize: 16,
 							fontWeight: 600,
 							color: trend.isPositive ? '#10b981' : '#ef4444',
 						}}
 					>
 						{trend.value}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 			)}
-		</Box>
+		</div>
 	);
 }

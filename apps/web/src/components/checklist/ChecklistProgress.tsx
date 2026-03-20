@@ -1,11 +1,11 @@
 'use client';
 
-import { Box, LinearProgress, linearProgressClasses, Skeleton, Typography } from '@mui/material';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import { Box, LinearProgress, linearProgressClasses, Typography } from '@mui/material';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import theme from '@/styles/theme';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import useIsAssigned from '@/hooks/useIsAssigned';
+import { IconInfoCircle } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function ChecklistProgress({
 	checklistId,
@@ -33,7 +33,7 @@ export default function ChecklistProgress({
 				{showInfo && (
 					<BasicButtonStyled
 						buttonProps={{}}
-						icon={<InfoOutlined />}
+						icon={<IconInfoCircle size={20} />}
 						tooltipProps={{
 							title: isAssigned
 								? 'Answering additional questions or changing your existing responses will alter this metric.'
@@ -67,7 +67,7 @@ export default function ChecklistProgress({
 						borderRadius: 2,
 						bgcolor: `rgba(76, 175, 79, 0.4)`,
 						[`& .${linearProgressClasses.bar1}`]: {
-							backgroundColor: theme.palette.success.light,
+							backgroundColor: 'var(--status-success)',
 							transition: 'transform 500ms ease',
 							borderRadius: 2,
 						},

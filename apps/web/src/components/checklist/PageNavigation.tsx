@@ -3,24 +3,14 @@ import {
 	Badge,
 	badgeClasses,
 	Box,
-	Collapse,
-	Divider,
-	Fade,
 	Paper,
 	Stack,
 	SvgIcon,
 	ToggleButton,
 	ToggleButtonGroup,
-	Typography,
-} from '@mui/material';
-import AccessTime from '@mui/icons-material/AccessTime';
-import Add from '@mui/icons-material/Add';
-import MovieCreationOutlined from '@mui/icons-material/MovieCreationOutlined';
-import MovieEdit from '@mui/icons-material/MovieEdit';
-import SmsOutlined from '@mui/icons-material/SmsOutlined';
-import Visibility from '@mui/icons-material/Visibility';
+	Typography, Fade } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import theme, { BG_TERTIARY, BORDER_COLOR, BORDER_LIGHT, TEXT_MUTED, TEXT_SECONDARY } from '@/styles/theme';
+import { BG_TERTIARY, BORDER_COLOR, BORDER_LIGHT, TEXT_MUTED, TEXT_SECONDARY } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Toolbar from '../common/Toolbar';
 import TreeNode from './TreeNode';
@@ -41,8 +31,10 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistDeepLink } from '@/hooks/useChecklistDeepLink';
 import { useEffect } from 'react';
 import Legend from './Legend';
-import ChecklistIcon from '@mui/icons-material/Checklist';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconChecklist, IconClock, IconEye, IconMessage, IconMovie, IconMovieOff, IconPlus } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
+import Divider from '@/components/ui/Divider';
 
 const COMMENT_LIMIT = 30;
 
@@ -177,7 +169,7 @@ export default function PageNavigation() {
 					<Toolbar
 						left={
 							<>
-								<ChecklistIcon />
+								<IconChecklist size={20} />
 								<Typography variant="h6" ml={0.5} mr={2}>
 									{checklist?.name}
 								</Typography>
@@ -202,8 +194,8 @@ export default function PageNavigation() {
 								>
 									{!!claimId && (
 										<ToggleButton value={ChecklistMode.VIEW} sx={styles.toggleButton}>
-											<Visibility
-												sx={{
+											<IconEye
+											 style={{
 													...styles.icon,
 													color:
 														mode === ChecklistMode.VIEW
@@ -215,8 +207,8 @@ export default function PageNavigation() {
 										</ToggleButton>
 									)}
 									<ToggleButton value={ChecklistMode.TEST} sx={styles.toggleButton}>
-										<MovieCreationOutlined
-											sx={{
+										<IconMovie
+										 style={{
 												...styles.icon,
 												color:
 													mode === ChecklistMode.TEST
@@ -227,8 +219,8 @@ export default function PageNavigation() {
 										Test
 									</ToggleButton>
 									<ToggleButton value={ChecklistMode.EDIT} sx={styles.toggleButton}>
-										<MovieEdit
-											sx={{
+										<IconMovieOff
+										 style={{
 												...styles.icon,
 												color:
 													mode === ChecklistMode.EDIT
@@ -244,7 +236,7 @@ export default function PageNavigation() {
 						padding={0}
 						height={36}
 					/>
-					<Divider flexItem sx={{ my: 1 }} />
+					<Divider />
 				</>
 				<Toolbar
 					left={
@@ -264,7 +256,7 @@ export default function PageNavigation() {
 										buttonProps={{
 											onClick: () => onAddPage().catch((e) => console.error(e)),
 											disabled: isFetching || adding,
-											startIcon: <Add />,
+											startIcon: <IconPlus size={20} />,
 										}}
 									>
 										New Page
@@ -279,7 +271,7 @@ export default function PageNavigation() {
 												startIcon: (
 													<SvgIcon>
 														<svg
-															fill={theme.palette.secondary.main}
+															fill={'var(--text-accent)'}
 															xmlns="http://www.w3.org/2000/svg"
 															viewBox="0 0 24 24"
 														>
@@ -336,10 +328,7 @@ export default function PageNavigation() {
 											onClick: () => useChecklistStore.getState().toggleChangeLog(),
 										}}
 										icon={
-											<AccessTime
-												sx={{
-													color: showChangeLog ? theme.palette.primary.main : undefined,
-												}}
+											<IconClock size={20} style={{ color: showChangeLog ? 'var(--text-accent)' : undefined, }}
 											/>
 										}
 										tooltipProps={{
@@ -358,10 +347,7 @@ export default function PageNavigation() {
 												onClick: () => useChecklistStore.getState().toggleComments(),
 											}}
 											icon={
-												<SmsOutlined
-													sx={{
-														color: showComments ? theme.palette.secondary.main : undefined,
-													}}
+												<IconMessage size={20} style={{ color: showComments ? 'var(--text-accent)' : undefined, }}
 												/>
 											}
 											tooltipProps={{ title: `${showComments ? 'Hide' : 'Show'} comments` }}
@@ -393,10 +379,10 @@ export default function PageNavigation() {
 						</span>
 					</Fade>
 				</Box>
-				<Collapse in={showComments} unmountOnExit>
+				<Collapse open={showComments}>
 					<ChecklistComments tree={navigation.tree} />
 				</Collapse>
-				<Collapse in={showChangeLog} unmountOnExit>
+				<Collapse open={showChangeLog}>
 					<ChecklistChangeLog />
 				</Collapse>
 			</Paper>

@@ -1,7 +1,7 @@
 'use client';
 import { BarChart } from '@mui/x-charts-pro';
-import theme, { BASE_COLOR } from '@/styles/theme';
-import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { BASE_COLOR } from '@/styles/theme';
+import { Box, Paper, Stack, Typography , Fade } from '@mui/material';
 import { formatMD } from '@/lib/utils/utils';
 import dayjs, { Dayjs } from 'dayjs';
 import { GetUserOutput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
@@ -10,6 +10,7 @@ import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useMemo } from 'react';
 import MetricValue from '@/components/common/MetricValue';
 import UserActivitySummary from './UserActivitySummary';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function UserActivityChart({
 	checklistId,
@@ -61,11 +62,11 @@ export default function UserActivityChart({
 						{isLoading && (
 							<Stack width="100%" spacing={2} p={2}>
 								<Stack direction="row" spacing={2}>
-									<Skeleton variant="rounded" width="33%" height={80} />
-									<Skeleton variant="rounded" width="33%" height={80} />
-									<Skeleton variant="rounded" width="33%" height={80} />
+									<Skeleton variant="rect" width="33%" height={80} />
+									<Skeleton variant="rect" width="33%" height={80} />
+									<Skeleton variant="rect" width="33%" height={80} />
 								</Stack>
-								<Skeleton variant="rounded" width="100%" height={350} />
+								<Skeleton variant="rect" width="100%" height={350} />
 							</Stack>
 						)}
 						{!isLoading && (
@@ -97,7 +98,7 @@ export default function UserActivityChart({
 										// width={700}
 										// height={350}
 										borderRadius={3}
-										colors={[theme.palette.primary.main]}
+										colors={['var(--text-accent)']}
 										hideLegend
 										loading={isFetching || isFetchingStats}
 									/>

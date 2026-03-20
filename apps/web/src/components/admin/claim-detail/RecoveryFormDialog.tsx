@@ -1,18 +1,6 @@
 'use client';
-
-import {
-	Box,
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	TextField,
-} from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import Button from '@/components/ui/Button';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import DateField from '@/components/common/DateField';
 import dayjs from 'dayjs';
@@ -66,7 +54,7 @@ export default function RecoveryFormDialog({
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
 			<DialogTitle>{isEditing ? 'Edit Recovery Event' : 'Add Recovery Event'}</DialogTitle>
 			<DialogContent>
-				<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 					<FormControl fullWidth required>
 						<InputLabel>Settlement</InputLabel>
 						<Select
@@ -117,7 +105,7 @@ export default function RecoveryFormDialog({
 						rows={3}
 						placeholder="Additional details about this recovery..."
 					/>
-				</Box>
+				</div>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose}>Cancel</Button>

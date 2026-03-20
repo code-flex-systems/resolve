@@ -1,10 +1,12 @@
 'use client';
 
-import { Box, Button, Collapse, IconButton, Link, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import AttachMoney from '@mui/icons-material/AttachMoney';
-import Gavel from '@mui/icons-material/Gavel';
-import Settings from '@mui/icons-material/Settings';
-import Warning from '@mui/icons-material/Warning';
+import { IconAlertTriangle, IconCurrencyDollar, IconGavel, IconSettings } from '@tabler/icons-react';
+import { Dialog, Link, Table } from '@mui/material';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Collapse from '@/components/ui/Collapse';
+import Skeleton from '@/components/ui/Skeleton';
+import Button from '@/components/ui/Button';
 import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
@@ -17,7 +19,7 @@ import SettlementTimeline from './SettlementTimeline';
 import RecoverySummaryTable from './RecoverySummaryTable';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/config/enums';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
@@ -345,41 +347,41 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 	const isLoading = isLoadingRecovery || isLoadingSettlements;
 
 	return (
-		<Box p={3}>
-			<Stack spacing={3} maxWidth={1000} mx="auto">
+		<div style={{ padding: 24 }}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Summary */}
-				<Paper elevation={0} sx={styles.gradientPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.gradientPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Settlement & Recovery Summary
-					</Typography>
+					</span>
 					<RecoverySummaryTable
 						data={recoverySummary}
 						ourLiabilityPercentage={claimDetail?.our_liability_percentage ?? 0}
 						isLoading={isLoadingSummary}
 					/>
-				</Paper>
+				</div>
 
 				{/* Settlements & Recoveries */}
-				<Paper elevation={0} sx={styles.beveledPaper}>
+				<div style={styles.beveledPaper}>
 					{/* Header */}
-					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
-						<Box display="flex" alignItems="center" gap={2}>
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 								Settlements ({settlements.length})
-							</Typography>
+							</span>
 							<Link
 								component="button"
 								onClick={() => setViewMode(viewMode === 'table' ? 'timeline' : 'table')}
 								underline="hover"
-								sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: 14 }}
+								style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}
 							>
 								{viewMode === 'table' ? 'See in timeline...' : 'See in table...'}
 							</Link>
-						</Box>
-						<Box display="flex" gap={1} alignItems="center">
+						</div>
+						<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 							<Button
-								size="small"
-								startIcon={<AttachMoney />}
+								size="sm"
+								startIcon={<IconCurrencyDollar size={20} />}
 								variant="outlined"
 								onClick={() => handleOpenRecoveryDialog()}
 								disabled={settlementsForDropdown.length === 0}
@@ -388,8 +390,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								Add Recovery
 							</Button>
 							<Button
-								size="small"
-								startIcon={<Gavel />}
+								size="sm"
+								startIcon={<IconGavel size={20} />}
 								variant="contained"
 								onClick={() => handleOpenSettlementDialog()}
 								disabled={adverseParties.length === 0 || coverages.length === 0}
@@ -403,46 +405,36 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							>
 								Add Settlement
 							</Button>
-							<Tooltip title="Manage">
-								<IconButton
-									size="small"
+							<Tooltip content="Manage">
+								<Button variant="icon" size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
-									sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
+									style={{ backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 								>
-									<Settings
-										fontSize="small"
-										sx={{ color: isManageMode ? 'primary.main' : undefined }}
-									/>
-								</IconButton>
+									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</Button>
 							</Tooltip>
-						</Box>
-					</Box>
+						</div>
+					</div>
 
 					{isLoading && (
-						<Stack spacing={2}>
-							<Skeleton variant="rectangular" height={60} />
-							<Skeleton variant="rectangular" height={60} />
-						</Stack>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<Skeleton variant="rect" height={60} />
+							<Skeleton variant="rect" height={60} />
+						</div>
 					)}
 
 					{!isLoading && settlements.length === 0 && (
-						<Box
-							display="flex"
-							flexDirection="column"
-							alignItems="center"
-							justifyContent="center"
-							padding={4}
-						>
-							<Gavel sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+							<IconGavel size={48} style={{ color: 'var(--text-muted)', marginBottom: 1 }} />
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								No settlements or recoveries recorded yet
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					)}
 
 					{!isLoading && settlements.length > 0 && (
 						<>
-							<Collapse in={viewMode === 'table'} unmountOnExit>
+							<Collapse open={viewMode === 'table'}>
 								<SettlementTable
 									settlements={settlements}
 									recoveryEvents={recoveryEvents}
@@ -453,7 +445,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 									onArchiveRecovery={setArchivingRecovery}
 								/>
 							</Collapse>
-							<Collapse in={viewMode === 'timeline'} unmountOnExit>
+							<Collapse open={viewMode === 'timeline'}>
 								<SettlementTimeline
 									settlements={settlements}
 									recoveryEvents={recoveryEvents}
@@ -466,8 +458,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							</Collapse>
 						</>
 					)}
-				</Paper>
-			</Stack>
+				</div>
+			</div>
 
 			{/* Dialogs */}
 			<SettlementFormDialog
@@ -507,46 +499,38 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					onClose={() => setArchivingSettlement(null)}
 					width={450}
 				>
-					<Box>
-						<Typography fontSize={14} marginBottom={2}>
+					<div>
+						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this settlement?
-						</Typography>
-						<Box bgcolor="#fff8e1" padding={2} borderRadius={1} marginBottom={2}>
-							<Typography fontSize={13} fontWeight={600}>
+						</span>
+						<div style={{ backgroundColor: '#fff8e1', padding: 16, borderRadius: 4, marginBottom: 16 }}>
+							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								{archivingSettlement.party_name}
-							</Typography>
-							<Typography fontSize={12} color="text.secondary">
+							</span>
+							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 								{formatCoverageType(archivingSettlement.loss_type)} ·{' '}
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 						{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 0 && (
-							<Box
-								bgcolor="#fff3e0"
-								padding={2}
-								borderRadius={1}
-								marginBottom={2}
-								display="flex"
-								gap={1}
-								alignItems="flex-start"
-							>
-								<Warning color="warning" sx={{ fontSize: 20, mt: 0.25 }} />
-								<Box>
-									<Typography fontSize={13} fontWeight={600} color="warning.dark">
+							<div style={{ backgroundColor: '#fff3e0', padding: 16, borderRadius: 4, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+								<IconAlertTriangle color="warning" style={{ fontSize: 20, marginTop: 2 }} />
+								<div>
+									<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
 										This will also archive:
-									</Typography>
-									<Typography fontSize={13} color="warning.dark">
+									</span>
+									<span style={{ fontSize: 13,  color: 'var(--status-warning)'  }}>
 										• {recoveryCounts.get(archivingSettlement.id) ?? 0} recovery event
 										{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 1 ? 's' : ''}
-									</Typography>
-								</Box>
-							</Box>
+									</span>
+								</div>
+							</div>
 						)}
-						<Typography fontSize={12} color="text.secondary">
+						<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 							The settlement will be archived and hidden from view, but the record will be preserved for
 							historical purposes.
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				</BasicDialog>
 			)}
 
@@ -563,27 +547,27 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					onClose={() => setArchivingRecovery(null)}
 					width={450}
 				>
-					<Box>
-						<Typography fontSize={14} marginBottom={2}>
+					<div>
+						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this recovery event?
-						</Typography>
-						<Box bgcolor="#e8f5e9" padding={2} borderRadius={1} marginBottom={2}>
-							<Typography fontSize={13} fontWeight={600} color="success.main">
+						</span>
+						<div style={{ backgroundColor: '#e8f5e9', padding: 16, borderRadius: 4, marginBottom: 16 }}>
+							<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-success)'  }}>
 								{formatCurrencyExact(parseFloat(archivingRecovery.recovery_amount.toString()))}
-							</Typography>
-							<Typography fontSize={12} color="text.secondary">
+							</span>
+							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 								{dayjs(archivingRecovery.recovery_date).format('MMM D, YYYY')}
 								{archivingRecovery.recovery_source && ` · ${archivingRecovery.recovery_source}`}
-							</Typography>
-						</Box>
-						<Typography fontSize={12} color="text.secondary">
+							</span>
+						</div>
+						<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 							The recovery event will be archived and hidden from view, but the record will be preserved
 							for historical purposes.
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				</BasicDialog>
 			)}
-		</Box>
+		</div>
 	);
 }
 

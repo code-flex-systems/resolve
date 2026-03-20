@@ -1,16 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
 import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import dayjs from 'dayjs';
-import theme, { containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import { DeadlineEntityType, DeadlineStatus } from '@/config/enums';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { IconCircleCheck, IconCircleX, IconCircle, IconCalendar } from '@tabler/icons-react';
 import DeadlineDetailDialog from './DeadlineDetailDialog';
+import css from './DeadlineListItem.module.css';
 
 interface DeadlineListItemProps {
 	deadline: Deadline;
@@ -19,7 +16,7 @@ interface DeadlineListItemProps {
 	showDate?: boolean;
 }
 
-const MUTED_COLOR = theme.palette.text.disabled;
+const MUTED_COLOR = 'var(--text-muted)';
 
 /**
  * Get icon for deadline based on entity type and status
@@ -33,22 +30,22 @@ function getDeadlineIcon(deadline: Deadline) {
 
 	// Non-task deadlines (calendar entries) - calendar icon with error color if overdue
 	if (!isTaskDeadline) {
-		const color = isOverdue && isPending ? theme.palette.error.main : MUTED_COLOR;
-		return <CalendarTodayIcon sx={{ ...styles.icon, color }} />;
+		const color = isOverdue && isPending ? 'var(--status-error)' : MUTED_COLOR;
+		return <IconCalendar size={16} style={{ color }} />;
 	}
 
 	// Task deadlines - show status-based icons
 	switch (deadline.status) {
 		case DeadlineStatus.PENDING: {
-			const color = isOverdue ? theme.palette.error.main : MUTED_COLOR;
-			return <RadioButtonUncheckedIcon sx={{ ...styles.icon, color }} />;
+			const color = isOverdue ? 'var(--status-error)' : MUTED_COLOR;
+			return <IconCircle size={16} style={{ color }} />;
 		}
 		case DeadlineStatus.MET:
-			return <CheckCircleIcon sx={{ ...styles.icon, color: theme.palette.success.main }} />;
+			return <IconCircleCheck size={16} style={{ color: 'var(--status-success)' }} />;
 		case DeadlineStatus.MISSED:
-			return <CancelIcon sx={{ ...styles.icon, color: theme.palette.error.main }} />;
+			return <IconCircleX size={16} style={{ color: 'var(--status-error)' }} />;
 		case DeadlineStatus.CANCELLED:
-			return <CancelIcon sx={{ ...styles.icon, color: MUTED_COLOR }} />;
+			return <IconCircleX size={16} style={{ color: MUTED_COLOR }} />;
 		default:
 			return null;
 	}
@@ -91,49 +88,41 @@ export default function DeadlineListItem({
 
 	return (
 		<>
-			<Box sx={{ ...styles.deadlineItem, ...containerStyles.beveledCard }} onClick={handleItemClick}>
-				<Stack spacing={0.5}>
-					<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" gap={0.5}>
-						<Box display="flex" alignItems="center" gap={1}>
+			<div className={css.deadlineItem} onClick={handleItemClick}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 							{getDeadlineIcon(deadline)}
-							<Typography variant="body2" fontWeight={600} fontSize={13}>
+							<span style={{ fontWeight: 600, fontSize: 13 }}>
 								{formatDeadlineType(deadline.deadline_type)}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 						{showTime && (
-							<Typography fontSize={12} color={isOverduePending ? 'error.main' : 'text.secondary'}>
+							<span style={{ fontSize: 12, color: isOverduePending ? 'var(--color-error)' : 'var(--text-secondary)' }}>
 								{dayjs(deadline.deadline_date).format('h:mm A')}
-							</Typography>
+							</span>
 						)}
 						{showDate && (
-							<Typography fontSize={12} color={isOverduePending ? 'error.main' : 'text.secondary'}>
+							<span style={{ fontSize: 12, color: isOverduePending ? 'var(--color-error)' : 'var(--text-secondary)' }}>
 								{dayjs(deadline.deadline_date).format('MMM D, YYYY')}
-							</Typography>
+							</span>
 						)}
-					</Box>
+					</div>
 
 					{deadline.description && (
-						<Typography variant="caption" fontSize={12} color="text.secondary">
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 							{deadline.description}
-						</Typography>
+						</span>
 					)}
 
-					<Typography
-						variant="caption"
-						fontSize={12}
-						color="primary.main"
-						sx={{
-							cursor: 'pointer',
-							'&:hover': {
-								textDecoration: 'underline',
-							},
-						}}
+					<span
+						className={css.claimLink}
 						onClick={handleClaimClick}
 					>
 						{deadline.claim_number}
-					</Typography>
-				</Stack>
-			</Box>
+					</span>
+				</div>
+			</div>
 
 			{showDetailDialog && (
 				<DeadlineDetailDialog deadline={deadline} onClose={() => setShowDetailDialog(false)} />
@@ -141,19 +130,3 @@ export default function DeadlineListItem({
 		</>
 	);
 }
-
-const styles = {
-	deadlineItem: {
-		padding: '10px 12px',
-		borderRadius: 1,
-		transition: 'all 0.2s',
-		cursor: 'pointer',
-		'&:hover': {
-			backgroundColor: theme.palette.action.selected,
-			borderColor: theme.palette.primary.light,
-		},
-	},
-	icon: {
-		fontSize: 16,
-	},
-};

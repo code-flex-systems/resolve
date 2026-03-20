@@ -1,15 +1,14 @@
 'use client';
 
-import { Box, Button, Divider, IconButton, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import AddBox from '@mui/icons-material/AddBox';
-import Business from '@mui/icons-material/Business';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import UnfoldMore from '@mui/icons-material/UnfoldMore';
-import UnfoldLess from '@mui/icons-material/UnfoldLess';
-import Settings from '@mui/icons-material/Settings';
+import { IconArrowsMaximize, IconArrowsMinimize, IconBuilding, IconSettings, IconSquarePlus, IconUserPlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
 import { useState, useMemo } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLinkingDialog from './PartyLinkingDialog';
@@ -17,6 +16,7 @@ import PartyDetailDialog from './PartyDetailDialog';
 import PartyCard from './PartyCard';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { Dialog } from '@mui/material';
 
 dayjs.extend(relativeTime);
 
@@ -185,57 +185,57 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 	}, 0);
 
 	return (
-		<Box p={3}>
-			<Stack spacing={3} maxWidth={1000} mx="auto">
+		<div style={{ padding: 24 }}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Summary */}
-				<Paper elevation={0} sx={styles.gradientPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.gradientPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Liability Summary
-					</Typography>
-					<Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={2}>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+					</span>
+					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+						<div>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Adverse Parties
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+							</span>
+							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 								Number of adverse party entities
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="primary.main">
+							</span>
+							<span style={{ fontSize: 18,  color: 'var(--text-accent)'  }}>
 								{entities.length}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+							</span>
+						</div>
+						<div>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Combined Liability
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+							</span>
+							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 								Sum of all entity liability percentages
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="warning.main">
+							</span>
+							<span style={{ fontSize: 18,  color: 'var(--status-warning)'  }}>
 								{totalLiability.toFixed(2)}%
-							</Typography>
-						</Box>
-					</Box>
-				</Paper>
+							</span>
+						</div>
+					</div>
+				</div>
 
 				{/* Party List */}
-				<Paper elevation={0} sx={styles.beveledPaper}>
-					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+				<div style={styles.beveledPaper}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							Adverse Parties ({entities.length})
-						</Typography>
-						<Box display="flex" gap={1} alignItems="center">
+						</span>
+						<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 							<Button
-								size="small"
-								startIcon={<PersonAdd />}
+								size="sm"
+								startIcon={<IconUserPlus size={20} />}
 								variant="outlined"
 								onClick={() => handleOpenFacilitatorDialog()}
 							>
 								Add Facilitator
 							</Button>
 							<Button
-								size="small"
-								startIcon={<AddBox />}
+								size="sm"
+								startIcon={<IconSquarePlus size={20} />}
 								variant="contained"
 								onClick={() => handleOpenEntityDialog()}
 							>
@@ -243,63 +243,53 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							</Button>
 							{entities.length > 0 && (
 								<>
-									<Tooltip title="Manage">
-										<IconButton
-											size="small"
+									<Tooltip content="Manage">
+										<Button variant="icon" size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
-											sx={{
-												bgcolor: isManageMode ? 'action.selected' : undefined,
+											style={{
+												backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
 											}}
 										>
-											<Settings
-												sx={{ fontSize: 20, color: isManageMode ? 'primary.main' : undefined }}
-											/>
-										</IconButton>
+											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										</Button>
 									</Tooltip>
-									<Tooltip title={allExpanded ? 'Collapse all' : 'Expand all'}>
-										<IconButton
-											size="small"
+									<Tooltip content={allExpanded ? 'Collapse all' : 'Expand all'}>
+										<Button variant="icon" size="sm"
 											onClick={() => setAllExpanded(!allExpanded)}
-											sx={{ mr: 0.5 }}
+											style={{ marginRight: 4 }}
 										>
 											{allExpanded ? (
-												<UnfoldLess sx={{ fontSize: 20 }} />
+												<IconArrowsMinimize size={20} />
 											) : (
-												<UnfoldMore sx={{ fontSize: 20 }} />
+												<IconArrowsMaximize size={20} />
 											)}
-										</IconButton>
+										</Button>
 									</Tooltip>
 								</>
 							)}
-						</Box>
-					</Box>
+						</div>
+					</div>
 
 					{isLoading && (
-						<Stack spacing={2}>
-							<Skeleton variant="rectangular" height={80} />
-							<Skeleton variant="rectangular" height={80} />
-						</Stack>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<Skeleton variant="rect" height={80} />
+							<Skeleton variant="rect" height={80} />
+						</div>
 					)}
 
 					{!isLoading && entities.length === 0 && (
-						<Box
-							display="flex"
-							flexDirection="column"
-							alignItems="center"
-							justifyContent="center"
-							padding={4}
-						>
-							<Business sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+							<IconBuilding size={48} style={{ color: 'var(--text-muted)', marginBottom: 1 }} />
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								No adverse parties linked yet
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					)}
 
 					{!isLoading && entities.length > 0 && (
-						<Stack spacing={2}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 							{entities.map((claimParty, index) => (
-								<Box key={claimParty.id}>
+								<div key={claimParty.id}>
 									<PartyCard
 										claimParty={claimParty}
 										isNested={false}
@@ -314,13 +304,13 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 										expanded={allExpanded}
 										isManageMode={isManageMode}
 									/>
-									{index < entities.length - 1 && <Divider sx={{ marginTop: 2 }} />}
-								</Box>
+									{index < entities.length - 1 && <Divider />}
+								</div>
 							))}
-						</Stack>
+						</div>
 					)}
-				</Paper>
-			</Stack>
+				</div>
+			</div>
 
 			{/* Party Dialog */}
 			<PartyLinkingDialog
@@ -355,43 +345,42 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					onClose={() => setArchivingClaimParty(null)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold" marginBottom={1}>
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to archive{' '}
-						<Typography component="span" fontWeight="bold" color="primary.main">
+						<span style={{  fontWeight: 'bold' ,  color: 'var(--text-accent)'  }}>
 							{archivingClaimParty.party?.name}
-						</Typography>
+						</span>
 						?
-					</Typography>
+					</span>
 
 					{archivePreview.hasNestedElements && (
-						<Paper
-							elevation={0}
-							sx={{
+						<div
+							style={{
 								backgroundColor: 'rgba(237, 108, 2, 0.08)',
 								padding: 2,
-								marginY: 2,
+								marginTop: 16, marginBottom: 16,
 								borderLeft: '4px solid',
 								borderColor: 'warning.main',
 							}}
 						>
-							<Typography fontSize={13} fontWeight={600} color="warning.dark" marginBottom={1}>
+							<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
 								This will also archive:
-							</Typography>
-							<Stack spacing={0.5}>
+							</span>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 								{archivePreview.facilitatorCount > 0 && (
-									<Typography fontSize={13} color="warning.dark">
+									<span style={{ fontSize: 13,  color: 'var(--status-warning)'  }}>
 										• {archivePreview.facilitatorCount} facilitator
 										{archivePreview.facilitatorCount > 1 ? 's' : ''}
-									</Typography>
+									</span>
 								)}
-							</Stack>
-						</Paper>
+							</div>
+						</div>
 					)}
 
-					<Typography paddingTop="10px" fontStyle="italic" color="text.secondary">
+					<span style={{  paddingTop: '10px', fontStyle: 'italic' ,  color: 'var(--text-secondary)'  }}>
 						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be
 						archived and hidden from view, but all records will be preserved for traceability.
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
@@ -401,7 +390,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 				onClose={() => setViewingPartyDetails(null)}
 				claimParty={viewingPartyDetails}
 			/>
-		</Box>
+		</div>
 	);
 }
 

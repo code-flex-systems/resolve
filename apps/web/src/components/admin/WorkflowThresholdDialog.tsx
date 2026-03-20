@@ -1,7 +1,8 @@
 'use client';
-
+import { FormControl, FormControlLabel, InputLabel, MenuItem, Select } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Switch from '@/components/ui/Switch';
 import { useState, useEffect } from 'react';
-import { Box, TextField, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, InputAdornment } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { WorkflowThresholdType } from '@/config/enums';
@@ -83,7 +84,7 @@ export default function WorkflowThresholdDialog({
 			secondaryActions={[{ label: 'Cancel', onClick: onClose }]}
 			width={500}
 		>
-			<Box display="flex" flexDirection="column" gap={2} pt={1}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 				<FormControl fullWidth required disabled={!!editingThreshold}>
 					<InputLabel>Threshold Type</InputLabel>
 					<Select
@@ -97,7 +98,7 @@ export default function WorkflowThresholdDialog({
 					</Select>
 				</FormControl>
 
-				<TextField
+				<Input
 					label="Threshold Value"
 					type="number"
 					value={formData.thresholdValue}
@@ -105,16 +106,12 @@ export default function WorkflowThresholdDialog({
 					fullWidth
 					required
 					placeholder="Enter threshold value"
-					slotProps={{
-						input: {
-							inputProps: { min: 1 },
-							endAdornment: formData.thresholdType ? (
-								<InputAdornment position="end">
-									{getThresholdUnit(formData.thresholdType as WorkflowThresholdType)}
-								</InputAdornment>
-							) : undefined,
-						},
-					}}
+					min={1}
+					endAdornment={
+						formData.thresholdType ? (
+							<span>{getThresholdUnit(formData.thresholdType as WorkflowThresholdType)}</span>
+						) : undefined
+					}
 				/>
 
 				{editingThreshold && (
@@ -122,13 +119,13 @@ export default function WorkflowThresholdDialog({
 						control={
 							<Switch
 								checked={formData.isActive}
-								onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+								onChange={(checked) => setFormData({ ...formData, isActive: checked })}
 							/>
 						}
 						label="Active"
 					/>
 				)}
-			</Box>
+			</div>
 		</BasicDialog>
 	);
 }

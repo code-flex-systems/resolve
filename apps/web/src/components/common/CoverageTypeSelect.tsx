@@ -42,28 +42,28 @@ export default function CoverageTypeSelect({
 					const option = options.find((o) => o.value === selected);
 					if (!option) return selected;
 					return (
-						<Box display="flex" alignItems="center">
+						<span style={{ display: 'flex', alignItems: 'center' }}>
 							{option.icon_emoji && (
-								<Typography component="span" fontSize={14} sx={{ mr: 1 }}>
+								<span style={{ fontSize: 14, marginRight: 8 }}>
 									{option.icon_emoji}
-								</Typography>
+								</span>
 							)}
-							<Typography component="span">{option.display_label}</Typography>
-						</Box>
+							<span>{option.display_label}</span>
+						</span>
 					);
 				}}
 				{...selectProps}
 			>
 				{options.map((option) => (
 					<MenuItem key={option.value} value={option.value}>
-						<Box display="flex" alignItems="center">
+						<span style={{ display: 'flex', alignItems: 'center' }}>
 							{option.icon_emoji && (
-								<Typography fontSize={14} sx={{ mr: 1 }}>
+								<span style={{ fontSize: 14, marginRight: 8 }}>
 									{option.icon_emoji}
-								</Typography>
+								</span>
 							)}
-							<Typography>{option.display_label}</Typography>
-						</Box>
+							<span>{option.display_label}</span>
+						</span>
 					</MenuItem>
 				))}
 			</Select>

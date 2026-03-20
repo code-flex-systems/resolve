@@ -1,21 +1,7 @@
 'use client';
-
-import {
-	Box,
-	Button,
-	Checkbox,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	FormControl,
-	FormControlLabel,
-	InputAdornment,
-	InputLabel,
-	MenuItem,
-	Select,
-	TextField,
-} from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, InputAdornment, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import Checkbox from '@/components/ui/Checkbox';
+import Button from '@/components/ui/Button';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { capitalize } from '@/lib/utils/utils';
 import DateField from '@/components/common/DateField';
@@ -75,7 +61,7 @@ export default function PaymentFormDialog({
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
 			<DialogTitle>{isEditing ? 'Edit Payment' : 'Add Payment'}</DialogTitle>
 			<DialogContent>
-				<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 					<FormControl fullWidth required>
 						<InputLabel>Coverage</InputLabel>
 						<Select
@@ -118,13 +104,13 @@ export default function PaymentFormDialog({
 							htmlInput: { step: '0.01' },
 						}}
 					/>
-					<Box display="flex" gap={2}>
+					<div style={{ display: 'flex', gap: 16 }}>
 						<FormControlLabel
 							control={
 								<Checkbox
 									checked={formData.is_subrogable}
-									onChange={(e) =>
-										setFormData({ ...formData, is_subrogable: e.target.checked })
+									onChange={(checked) =>
+										setFormData({ ...formData, is_subrogable: checked })
 									}
 								/>
 							}
@@ -134,14 +120,14 @@ export default function PaymentFormDialog({
 							control={
 								<Checkbox
 									checked={formData.is_expense}
-									onChange={(e) =>
-										setFormData({ ...formData, is_expense: e.target.checked })
+									onChange={(checked) =>
+										setFormData({ ...formData, is_expense: checked })
 									}
 								/>
 							}
 							label="Expense"
 						/>
-					</Box>
+					</div>
 					<FormControl fullWidth>
 						<InputLabel>Payee (Optional)</InputLabel>
 						<Select
@@ -173,7 +159,7 @@ export default function PaymentFormDialog({
 						rows={3}
 						placeholder="Optional details about this payment..."
 					/>
-				</Box>
+				</div>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose}>Cancel</Button>

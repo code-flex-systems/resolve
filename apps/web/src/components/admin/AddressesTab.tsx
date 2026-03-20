@@ -1,19 +1,20 @@
 'use client';
 
+import { IconAlertTriangle, IconMapPin, IconSettings, IconSquarePlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import LocationOn from '@mui/icons-material/LocationOn';
-import Settings from '@mui/icons-material/Settings';
-import Warning from '@mui/icons-material/Warning';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AddressActionsCell from './AddressActionsCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -21,6 +22,7 @@ import AddressDialog from './AddressDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { AddressStatus } from '@/schemas/partySchemas';
+import { Dialog } from '@mui/material';
 
 interface AddressesTabProps {
 	isAdminContext?: boolean;
@@ -29,14 +31,14 @@ interface AddressesTabProps {
 const getStatusChip = (status: string) => {
 	switch (status) {
 		case AddressStatus.VALID:
-			return <Chip label="Valid" color="success" size="small" />;
+			return <Chip  color="success" size="sm">Valid</Chip>;
 		case AddressStatus.MAILING:
-			return <Chip label="Mailing" color="primary" size="small" />;
+			return <Chip  color="info" size="sm">Mailing</Chip>;
 		case AddressStatus.UNDELIVERABLE:
-			return <Chip label="Undeliverable" color="error" size="small" />;
+			return <Chip  color="error" size="sm">Undeliverable</Chip>;
 		case AddressStatus.UNKNOWN:
 		default:
-			return <Chip label="Unknown" color="default" size="small" />;
+			return <Chip  color="neutral" size="sm">Unknown</Chip>;
 	}
 };
 
@@ -47,8 +49,8 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 		renderCell: ({ row }) => (
 			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
-					<Tooltip title="Party is archived" placement="right">
-						<Warning sx={{ fontSize: 16, color: 'warning.main' }} />
+					<Tooltip content="Party is archived" position="right">
+						<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 					</Tooltip>
 				)}
 				<span>{row.party_name}</span>
@@ -92,9 +94,9 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 		headerName: 'Type',
 		field: 'address_type',
 		renderCell: ({ row }) => (
-			<Typography variant="body2" textTransform="capitalize" fontSize={13}>
+			<span style={{ textTransform: 'capitalize', fontSize: 13 }}>
 				{row.address_type || 'business'}
-			</Typography>
+			</span>
 		),
 		width: 90,
 	},
@@ -119,7 +121,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No addresses found"
-			icon={<LocationOn sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconMapPin size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -205,25 +207,25 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading addresses...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
+								<span style={{ marginRight: '20px' }}>
 									Addresses
-								</Typography>
+								</span>
 								{isAdminContext && (
 									<>
 										<Switch
-											size="small"
+											size="sm"
 											checked={showArchivedAddresses}
-											onChange={(_, checked) => setParam('archived', checked)}
+											onChange={(checked) => setParam('archived', checked)}
 											color="warning"
-											sx={{ marginLeft: '10px' }}
+											style={{ marginLeft: '10px' }}
 										/>
-										<Typography fontSize={14} fontStyle="italic">
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 											Show Archived Only
-										</Typography>
+										</span>
 									</>
 								)}
 							</>
@@ -244,23 +246,19 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 								/>
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={toggleNewAddressDialog}
-									sx={{ ml: 2 }}
+									style={{ marginLeft: 16 }}
 								>
 									Address
 								</Button>
-								<Tooltip title="Manage">
-									<IconButton
-										size="small"
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 									>
-										<Settings
-											fontSize="small"
-											sx={{ color: isManageMode ? 'primary.main' : undefined }}
-										/>
-									</IconButton>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
 								</Tooltip>
 							</>
 						}
@@ -296,7 +294,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 							disableRowSelectionOnClick
 							disableColumnMenu
 							pinnedColumns={pinnedColumns}
-							sx={{
+							style={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
 							}}
@@ -307,7 +305,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 					{editingAddressFromUrl && (
 						<AddressDialog address={editingAddressFromUrl} onClose={handleCloseEditDialog} />
 					)}
-				</Paper>
+				</div>
 			</div>
 		</PageTransitionWrapper>
 	);

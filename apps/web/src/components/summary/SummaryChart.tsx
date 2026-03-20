@@ -3,18 +3,17 @@ import { PieChart, PieChartProps } from '@mui/x-charts-pro';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
 import { useMemo } from 'react';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
-import { Box, Collapse, Divider, Paper, Stack, Typography } from '@mui/material';
-import AdsClick from '@mui/icons-material/AdsClick';
-import Help from '@mui/icons-material/Help';
-import HelpOutline from '@mui/icons-material/HelpOutline';
-import Description from '@mui/icons-material/Description';
+import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR, PURPLE } from '@/styles/theme';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import { SummarySegment } from '@/config/enums';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { capitalize } from '@/lib/utils/utils';
+import { IconClick, IconFileDescription, IconHelp, IconHelpCircle } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
+import Divider from '@/components/ui/Divider';
 
 export default function SummaryChart() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -53,13 +52,13 @@ export default function SummaryChart() {
 						id: SummarySegment.ANSWERED,
 						label: 'Answered',
 						value: total_answered,
-						color: theme.palette.primary.main,
+						color: 'var(--text-accent)',
 					},
 					{
 						id: SummarySegment.UNANSWERED,
 						label: 'Unanswered',
 						value: totalUnanswered,
-						color: theme.palette.warning.main,
+						color: 'var(--status-warning)',
 					},
 				],
 				highlightScope: { fade: 'global', highlight: 'item' },
@@ -76,7 +75,7 @@ export default function SummaryChart() {
 						id: SummarySegment.ACTION_REQUIRED,
 						label: 'Action required',
 						value: total_action_required,
-						color: theme.palette.secondary.main,
+						color: 'var(--text-accent)',
 					},
 					{
 						id: SummarySegment.NO_ACTION_REQUIRED,
@@ -103,20 +102,20 @@ export default function SummaryChart() {
 			</Box>
 			<Stack padding="20px 20px 0px">
 				<ExpandableTitle
-					icon={<Description />}
+					icon={<IconFileDescription size={20} />}
 					color="white"
 					title={`Pages (${data.maxPosition.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
 				<ExpandableTitle
-					icon={<Help />}
+					icon={<IconHelp size={20} />}
 					color="white"
 					title={`Questions (${checklistSummaryTotals.total_questions.toLocaleString()})`}
 					padding="0px 0px 10px"
 				/>
-				<Collapse in={selectedSummarySegment === SummarySegment.ACTION_REQUIRED}>
+				<Collapse open={selectedSummarySegment === SummarySegment.ACTION_REQUIRED}>
 					<ExpandableTitle
-						icon={<HelpOutline />}
+						icon={<IconHelpCircle size={20} />}
 						color="white"
 						title={`Unknowns (${checklistSummaryTotals.total_unknown})`}
 						padding="0px 0px 10px"
@@ -124,7 +123,7 @@ export default function SummaryChart() {
 				</Collapse>
 				<ExpandableTitle
 					key={selectedSummarySegment}
-					icon={<AdsClick />}
+					icon={<IconClick size={20} />}
 					color="white"
 					title={`Selected - ${capitalize(selectedSummarySegment)}`}
 					padding="0px 0px 10px"

@@ -1,6 +1,7 @@
 'use client';
-import { Box } from '@mui/material';
+
 import { JSX } from 'react';
+import css from './Toolbar.module.css';
 
 export default function Toolbar(props: {
 	height?: string | number;
@@ -13,42 +14,21 @@ export default function Toolbar(props: {
 }) {
 	const { height = 36, padding = '0 12px', left, leftWidth, right, rightWidth, backgroundColor } = props;
 	return (
-		<Box
-			sx={{
-				width: '100%',
+		<div
+			className={css.toolbar}
+			style={{
 				height,
 				minHeight: height,
-				p: typeof padding === 'string' ? padding : undefined,
-				px: typeof padding === 'number' ? padding / 8 : undefined,
-				bgcolor: backgroundColor,
-				display: 'flex',
-				justifyContent: 'space-between',
-				alignItems: 'center',
-				gap: 1,
+				padding: typeof padding === 'string' ? padding : `0 ${padding}px`,
+				backgroundColor,
 			}}
 		>
-			<Box
-				sx={{
-					width: leftWidth ?? '50%',
-					display: 'flex',
-					justifyContent: 'flex-start',
-					alignItems: 'center',
-					gap: 0.5,
-				}}
-			>
+			<div className={css.left} style={{ width: leftWidth ?? '50%' }}>
 				{left}
-			</Box>
-			<Box
-				sx={{
-					width: rightWidth ?? '50%',
-					display: 'flex',
-					justifyContent: 'flex-end',
-					alignItems: 'center',
-					gap: 0.5,
-				}}
-			>
+			</div>
+			<div className={css.right} style={{ width: rightWidth ?? '50%' }}>
 				{right}
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }

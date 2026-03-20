@@ -1,29 +1,17 @@
 'use client';
 
+import { IconHistory } from '@tabler/icons-react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-	Box,
-	Button,
-	Chip,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	Stack,
-	Typography,
-} from '@mui/material';
 import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
-import HistoryIcon from '@mui/icons-material/History';
 import dayjs from 'dayjs';
 import { useWorkflowTrpc, RuleExecutionHistory } from '@/hooks/trpc/useWorkflowTrpc';
 import { RuleExecutionStatus, WorkflowActionType, WorkflowTriggerType } from '@/config/enums';
 import { EXECUTION_STATUS_CONFIG, formatActionType, formatTriggerType } from '@/lib/utils/workflowUtils';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 
 interface ExecutionHistoryTableProps {
 	ruleId?: number;
@@ -36,7 +24,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No execution history"
-			icon={<HistoryIcon sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconHistory size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -114,9 +102,9 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				width: 140,
 				renderCell: (params: GridRenderCellParams) => {
 					return (
-						<Typography variant="body2">
+						<span>
 							{params.row.claim_number || `#${params.row.claim_id}`}
-						</Typography>
+						</span>
 					);
 				},
 			},
@@ -127,7 +115,7 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				renderCell: (params: GridRenderCellParams) => {
 					const actionType = params.value as WorkflowActionType;
 					if (!actionType) return '-';
-					return <Chip label={formatActionType(actionType)} size="small" variant="outlined" />;
+					return <Chip  size="sm" variant="outlined">{formatActionType(actionType)}</Chip>;
 				},
 			},
 			{
@@ -138,7 +126,7 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 					const status = params.value as RuleExecutionStatus;
 					const config = EXECUTION_STATUS_CONFIG[status];
 					if (!config) return params.value || '-';
-					return <Chip label={config.label} color={config.color} size="small" />;
+					return <Chip  color={config.color} size="sm">{config.label}</Chip>;
 				},
 			},
 			{
@@ -148,7 +136,7 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				renderCell: (params: GridRenderCellParams) => {
 					const triggerType = params.value as WorkflowTriggerType;
 					if (!triggerType) return '-';
-					return <Typography variant="body2">{formatTriggerType(triggerType)}</Typography>;
+					return <span>{formatTriggerType(triggerType)}</span>;
 				},
 			},
 			{
@@ -158,9 +146,9 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				renderCell: (params: GridRenderCellParams) => {
 					if (!params.value) return '-';
 					return (
-						<Typography variant="body2">
+						<span>
 							{dayjs(params.value).format('MMM D, YYYY h:mm A')}
-						</Typography>
+						</span>
 					);
 				},
 			},
@@ -171,15 +159,15 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				renderCell: (params: GridRenderCellParams) => {
 					if (!params.value) {
 						return (
-							<Typography variant="body2" color="text.secondary">
+							<span style={{ color: 'var(--text-secondary)' }}>
 								&mdash;
-							</Typography>
+							</span>
 						);
 					}
 					return (
-						<Typography variant="body2">
+						<span>
 							{dayjs(params.value).format('MMM D, YYYY h:mm A')}
-						</Typography>
+						</span>
 					);
 				},
 			}
@@ -189,11 +177,11 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 	}, [compact]);
 
 	return (
-		<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+		<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 			{/* Filter toolbar (full mode only) */}
 			{!compact && (
-				<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-					<FormControl size="small" sx={{ minWidth: 160 }}>
+				<div style={{ flexDirection: 'column', display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16 }}>
+					<FormControl size="small" style={{ minWidth: 160 }}>
 						<InputLabel>Status</InputLabel>
 						<Select
 							value={statusFilter}
@@ -209,11 +197,11 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 							<MenuItem value={RuleExecutionStatus.SKIPPED}>Skipped</MenuItem>
 						</Select>
 					</FormControl>
-				</Stack>
+				</div>
 			)}
 
 			{/* DataGrid */}
-			<Box sx={{ flex: 1, minHeight: 400 }}>
+			<div style={{ flex: 1, minHeight: 400 }}>
 				<DataGridPro
 					rows={allRows}
 					columns={columns}
@@ -235,35 +223,26 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 							variant: 'linear-progress',
 						},
 					}}
-					sx={{
+					style={{
 						height: '100%',
 						border: 'none',
-						'& .MuiDataGrid-cell': {
-							py: 1,
-							display: 'flex',
-							alignItems: 'center',
-							cursor: 'pointer',
-						},
-						'& .MuiDataGrid-columnSeparator': {
-							display: 'none',
-						},
 						...dataGridFocusStyles,
 					}}
 				/>
-			</Box>
+			</div>
 
 			{/* Load More button */}
 			{data?.hasNextPage && (
-				<Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+				<div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
 					<Button
 						variant="outlined"
-						size="small"
+						size="sm"
 						onClick={handleLoadMore}
 						disabled={isFetching}
 					>
 						{isFetching ? 'Loading...' : 'Load More'}
 					</Button>
-				</Box>
+				</div>
 			)}
 
 			{/* Detail Dialog */}
@@ -271,54 +250,50 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 				<Dialog open onClose={() => setDetailRow(null)} maxWidth="sm" fullWidth>
 					<DialogTitle>Execution Detail</DialogTitle>
 					<DialogContent>
-						<Stack spacing={2} sx={{ mt: 1 }}>
-							<Box>
-								<Typography variant="caption" color="text.secondary">
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+							<div>
+								<span style={{ color: 'var(--text-secondary)' }}>
 									Status
-								</Typography>
-								<Box sx={{ mt: 0.5 }}>
-									<Chip
-										label={EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.label || detailRow.status}
+								</span>
+								<div style={{ marginTop: 4 }}>
+									<Chip 
 										color={EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.color || 'default'}
-										size="small"
-									/>
-								</Box>
-							</Box>
+										size="sm">{EXECUTION_STATUS_CONFIG[detailRow.status as RuleExecutionStatus]?.label || detailRow.status}</Chip>
+								</div>
+							</div>
 
 							{detailRow.error_message && (
-								<Box>
-									<Typography variant="caption" color="text.secondary">
+								<div>
+									<span style={{ color: 'var(--text-secondary)' }}>
 										Error Message
-									</Typography>
-									<Typography
-										variant="body2"
-										color="error.main"
-										sx={{
-											mt: 0.5,
-											p: 1.5,
-											bgcolor: '#fef2f2',
-											borderRadius: 1,
+									</span>
+									<span
+										style={{  color: 'var(--status-error)' , 
+											marginTop: 4,
+											padding: 12,
+											backgroundColor: '#fef2f2',
+											borderRadius: 4,
 											fontFamily: 'monospace',
 											whiteSpace: 'pre-wrap',
 											wordBreak: 'break-word',
-										}}
+										 }}
 									>
 										{detailRow.error_message}
-									</Typography>
-								</Box>
+									</span>
+								</div>
 							)}
 
 							{detailRow.result_data && (
-								<Box>
-									<Typography variant="caption" color="text.secondary">
+								<div>
+									<span style={{ color: 'var(--text-secondary)' }}>
 										Result Data
-									</Typography>
-									<Box
-										sx={{
-											mt: 0.5,
-											p: 1.5,
-											bgcolor: 'grey.50',
-											borderRadius: 1,
+									</span>
+									<div
+										style={{
+											marginTop: 4,
+											padding: 12,
+											backgroundColor: 'grey.50',
+											borderRadius: 4,
 											overflow: 'auto',
 											maxHeight: 300,
 										}}
@@ -328,16 +303,16 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 												? detailRow.result_data
 												: JSON.stringify(detailRow.result_data, null, 2)}
 										</pre>
-									</Box>
-								</Box>
+									</div>
+								</div>
 							)}
-						</Stack>
+						</div>
 					</DialogContent>
 					<DialogActions>
 						<Button onClick={() => setDetailRow(null)}>Close</Button>
 					</DialogActions>
 				</Dialog>
 			)}
-		</Box>
+		</div>
 	);
 }

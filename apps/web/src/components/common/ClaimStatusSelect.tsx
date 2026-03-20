@@ -1,9 +1,9 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { Box, Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { IconCircleCheck } from '@tabler/icons-react';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { ClaimStatus } from '@/config/enums';
 import ClaimStatusIcon from '../checklist/ClaimStatusIcon';
 
@@ -39,11 +39,11 @@ export default function ClaimStatusSelect({
 				label={claimStatus ?? text}
 				icon={
 					claimStatus ? (
-						<Box marginLeft="5px" marginTop="5px">
+						<span style={{ marginLeft: 5, marginTop: 5, display: 'inline-flex' }}>
 							<ClaimStatusIcon status={claimStatus} />
-						</Box>
+						</span>
 					) : (
-						<CheckCircle sx={{ color: BASE_COLOR_LIGHT }} />
+						<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />
 					)
 				}
 				onClick={(e) => {
@@ -76,12 +76,12 @@ export default function ClaimStatusSelect({
 										setAnchorEl(null);
 									}}
 								>
-									<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
+									<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 										<ClaimStatusIcon status={o} />
-										<Typography fontSize={13} marginLeft="5px">
+										<span style={{ fontSize: 13, marginLeft: 5 }}>
 											{o}
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								</MenuItem>
 							))}
 					</Paper>

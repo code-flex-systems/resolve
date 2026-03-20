@@ -1,7 +1,7 @@
-import { Box, Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
 import { useState } from 'react';
 import BasicPopper from './BasicPopper';
-import CheckCircle from '@mui/icons-material/CheckCircle';
+import { IconCircleCheck } from '@tabler/icons-react';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { ClaimSubstatus } from '@/config/enums';
 import { formatLabel } from '@/lib/utils/claimUtils';
@@ -27,7 +27,7 @@ export default function SubstatusSelect({
 		<>
 			<Chip
 				label={substatus ? formatLabel(substatus) : text}
-				icon={<CheckCircle sx={{ color: BASE_COLOR_LIGHT }} />}
+				icon={<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -58,9 +58,9 @@ export default function SubstatusSelect({
 										setAnchorEl(null);
 									}}
 								>
-									<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-										<Typography fontSize={13}>{formatLabel(o)}</Typography>
-									</Box>
+									<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+										<span style={{ fontSize: 13 }}>{formatLabel(o)}</span>
+									</div>
 								</MenuItem>
 							))}
 					</Paper>

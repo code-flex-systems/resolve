@@ -169,7 +169,7 @@ export default function RecoveryEventsTable({
 						}}
 						columns={csvColumns}
 						filename="recovery_events"
-						size="small"
+						size="sm"
 					/>
 				</Box>
 			</Box>

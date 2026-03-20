@@ -1,7 +1,10 @@
 'use client';
-import { Button, ButtonProps, Tooltip, TooltipProps } from '@mui/material';
+
+import Button, { type ButtonProps as UiButtonProps } from '@/components/ui/Button';
+import { Tooltip, TooltipProps } from '@mui/material';
 import { JSX, PropsWithChildren } from 'react';
 import BasicIconButton from './BasicIconButton';
+import css from './BasicButtonStyled.module.css';
 
 interface BasicTooltipProps {
 	title: string;
@@ -19,9 +22,36 @@ function TooltipWrapper({ children, tooltipProps }: { tooltipProps?: BasicToolti
 	);
 }
 
+/** Map MUI variant to our custom Button variant */
+function mapVariant(variant: string | undefined): UiButtonProps['variant'] {
+	switch (variant) {
+		case 'contained':
+			return 'contained';
+		case 'text':
+			return 'text';
+		case 'outlined':
+		default:
+			return 'outlined';
+	}
+}
+
+export interface BasicButtonStyledButtonProps {
+	onClick?: React.MouseEventHandler<HTMLButtonElement>;
+	variant?: string;
+	color?: string;
+	disabled?: boolean;
+	startIcon?: JSX.Element;
+	endIcon?: JSX.Element;
+	size?: 'small' | 'medium' | 'large';
+	sx?: unknown;
+	className?: string;
+	type?: 'button' | 'submit' | 'reset';
+	[key: string]: unknown;
+}
+
 export default function BasicButtonStyled(
 	props: {
-		buttonProps: ButtonProps;
+		buttonProps: BasicButtonStyledButtonProps;
 		icon?: JSX.Element;
 		tooltipProps?: BasicTooltipProps;
 		wrapText?: boolean;
@@ -29,19 +59,35 @@ export default function BasicButtonStyled(
 	} & PropsWithChildren
 ) {
 	const { buttonProps, icon, tooltipProps, compact } = props;
+	const {
+		onClick,
+		variant,
+		disabled,
+		startIcon,
+		endIcon,
+		size: _size,
+		sx: _sx,
+		className,
+		type,
+		...rest
+	} = buttonProps;
+
 	return (
 		<TooltipWrapper tooltipProps={tooltipProps}>
 			{icon ? (
-				<BasicIconButton {...buttonProps} compact={compact}>{icon}</BasicIconButton>
+				<BasicIconButton onClick={onClick} disabled={disabled} compact={compact} className={className}>
+					{icon}
+				</BasicIconButton>
 			) : (
 				<Button
-					{...buttonProps}
-					variant={buttonProps.variant ?? 'outlined'}
-					sx={{
-						minWidth: props.wrapText ? undefined : 'fit-content',
-						whiteSpace: props.wrapText === true ? undefined : 'nowrap',
-						...buttonProps.sx,
-					}}
+					onClick={onClick}
+					variant={mapVariant(variant)}
+					disabled={disabled}
+					startIcon={startIcon}
+					endIcon={endIcon}
+					className={[props.wrapText ? css.wrapText : css.textButton, className].filter(Boolean).join(' ')}
+					type={type}
+					{...(rest as Record<string, unknown>)}
 				>
 					{props.children}
 				</Button>

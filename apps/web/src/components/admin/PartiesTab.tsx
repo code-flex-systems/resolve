@@ -1,11 +1,13 @@
 'use client';
 
+import { IconBuilding, IconSettings, IconSquarePlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Business from '@mui/icons-material/Business';
-import Settings from '@mui/icons-material/Settings';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
@@ -18,8 +20,9 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
+import { Dialog } from '@mui/material';
 
 interface PartiesTabProps {
 	isAdminContext?: boolean;
@@ -37,11 +40,9 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 		field: 'party_type',
 		renderCell: ({ row }) => (
 			<Chip
-				label={row.party_type === 'entity' ? 'Entity' : 'Facilitator'}
-				size="small"
-				color={row.party_type === 'entity' ? 'primary' : 'secondary'}
-				variant="outlined"
-			/>
+				size="sm"
+				color={row.party_type === 'entity' ? 'info' : 'neutral'}
+				variant="outlined">{row.party_type === 'entity' ? 'Entity' : 'Facilitator'}</Chip>
 		),
 		width: 110,
 	},
@@ -90,7 +91,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No parties found"
-			icon={<Business sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconBuilding size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -176,25 +177,25 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading parties...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
+								<span style={{ marginRight: '20px' }}>
 									Parties
-								</Typography>
+								</span>
 								{isAdminContext && (
 									<>
 										<Switch
-											size="small"
+											size="sm"
 											checked={showArchivedParties}
-											onChange={(_, checked) => setParam('archived', checked)}
+											onChange={(checked) => setParam('archived', checked)}
 											color="warning"
-											sx={{ marginLeft: '10px' }}
+											style={{ marginLeft: '10px' }}
 										/>
-										<Typography fontSize={14} fontStyle="italic">
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 											Show Archived Only
-										</Typography>
+										</span>
 									</>
 								)}
 							</>
@@ -215,23 +216,19 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 								/>
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={toggleNewPartyDialog}
-									sx={{ ml: 1.5 }}
+									style={{ marginLeft: 12 }}
 								>
 									Party
 								</Button>
-								<Tooltip title="Manage">
-									<IconButton
-										size="small"
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 									>
-										<Settings
-											fontSize="small"
-											sx={{ color: isManageMode ? 'primary.main' : undefined }}
-										/>
-									</IconButton>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
 								</Tooltip>
 							</>
 						}
@@ -267,7 +264,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 							disableRowSelectionOnClick
 							disableColumnMenu
 							pinnedColumns={pinnedColumns}
-							sx={{
+							style={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
 							}}
@@ -276,7 +273,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 					{showNewPartyDialog && <PartyDialog />}
 					{editingPartyFromUrl && <PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />}
-				</Paper>
+				</div>
 			</div>
 		</PageTransitionWrapper>
 	);

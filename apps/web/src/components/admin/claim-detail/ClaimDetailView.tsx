@@ -1,6 +1,6 @@
 'use client';
-
-import { Box, Fade, Paper, Tab, Tabs } from '@mui/material';
+import { Tab, Tabs } from '@mui/material';
+import Card from '@/components/ui/Card';
 import PageTransitionWrapper from '../../common/PageTransitionWrapper';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -42,8 +42,8 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claim details...">
-			<Paper
-				sx={{
+			<div
+				style={{
 					display: 'flex',
 					flexDirection: 'column',
 					height: 'calc(100vh - 50px)',
@@ -55,7 +55,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 				<ClaimHeader claimId={claimId} />
 
 				{/* Tab Navigation */}
-				<Paper sx={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', px: 1, pb: 0.2 }}>
+				<div style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', paddingInline: 8, paddingBottom: 1.6 }}>
 					<Tabs
 						value={currentTab}
 						onChange={(_, newValue) => setCurrentTab(newValue)}
@@ -68,24 +68,24 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 						<Tab label="Payments" />
 						<Tab label="Settlement & Recovery" />
 					</Tabs>
-				</Paper>
+				</div>
 
 				{/* Tab Content */}
-				<Fade in={true} timeout={1000}>
-					<Box flex={1} overflow="auto">
-						<Box display="flex" justifyContent="center" width="100%">
-							<Box width="100%" maxWidth={1400}>
+				<div>
+					<div style={{ flex: 1, overflow: 'auto' }}>
+						<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+							<div style={{ width: '100%', maxWidth: 1400 }}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
 								{currentTab === 2 && <ClaimantsCoverageTab claimId={claimId} />}
 								{currentTab === 3 && <PartyLiabilityTab claimId={claimId} />}
 								{currentTab === 4 && <PaymentsTab claimId={claimId} />}
 								{currentTab === 5 && <SettlementRecoveryTab claimId={claimId} />}
-							</Box>
-						</Box>
-					</Box>
-				</Fade>
-			</Paper>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</PageTransitionWrapper>
 	);
 }

@@ -1,9 +1,8 @@
 'use client';
 
-import { Box, Typography, Chip } from '@mui/material';
-import { containerStyles, TEXT_PRIMARY, TEXT_SECONDARY } from '@/styles/theme';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { IconArrowRight, IconCircleCheck } from '@tabler/icons-react';
+import Chip from '@/components/ui/Chip';
+import { containerStyles } from '@/styles/theme';
 
 interface SuggestionCardProps {
 	icon: React.ReactNode;
@@ -29,47 +28,28 @@ export default function SuggestionCard({
 	onClick,
 }: SuggestionCardProps) {
 	return (
-		<Box
+		<div
 			onClick={onClick}
-			sx={{
+			style={{
 				...containerStyles.beveledCard,
-				p: 2.5,
+				padding: 20,
 				display: 'flex',
 				alignItems: 'flex-start',
-				gap: 2,
+				gap: 16,
 				position: 'relative',
 				cursor: onClick ? 'pointer' : 'default',
 				transition: 'all 0.2s ease',
-				'&:hover': onClick
-					? {
-							borderColor: '#21B5FF',
-							backgroundColor: 'rgba(33, 181, 255, 0.02)',
-							transform: 'translateY(-2px)',
-							boxShadow:
-								'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 4px 12px 0 rgba(33, 181, 255, 0.15)',
-							'& .suggestion-icon': {
-								backgroundColor: '#21B5FF',
-								'& .MuiSvgIcon-root': {
-									color: 'white',
-								},
-							},
-							'& .arrow-icon': {
-								color: '#21B5FF',
-								transform: 'translateX(4px)',
-							},
-						}
-					: {},
 			}}
 		>
 			{/* Severity chip (top right) */}
 			{severityChip && (
-				<Box sx={{ position: 'absolute', top: 12, right: 12 }}>{severityChip}</Box>
+				<div style={{ position: 'absolute', top: 12, right: 12 }}>{severityChip}</div>
 			)}
 
 			{/* Icon */}
-			<Box
+			<div
 				className="suggestion-icon"
-				sx={{
+				style={{
 					width: 44,
 					height: 44,
 					borderRadius: '10px',
@@ -79,78 +59,73 @@ export default function SuggestionCard({
 					justifyContent: 'center',
 					flexShrink: 0,
 					transition: 'all 0.2s ease',
-					'& .MuiSvgIcon-root': {
-						color: TEXT_SECONDARY,
-						fontSize: 22,
-						transition: 'color 0.2s ease',
-					},
 				}}
 			>
 				{icon}
-			</Box>
+			</div>
 
 			{/* Content */}
-			<Box sx={{ flex: 1, minWidth: 0 }}>
+			<div style={{ flex: 1, minWidth: 0 }}>
 				{/* Title */}
-				<Typography
-					sx={{
+				<span
+					style={{
 						fontSize: 15,
 						fontWeight: 600,
-						color: TEXT_PRIMARY,
-						mb: 0.5,
+						color: 'var(--text-primary)',
+						marginBottom: 4,
 					}}
 				>
 					{title}
-				</Typography>
+				</span>
 
 				{/* Subtitle */}
-				<Typography
-					sx={{
+				<span
+					style={{
 						fontSize: 13,
-						color: TEXT_SECONDARY,
-						mb: 1,
+						color: 'var(--text-secondary)',
+						marginBottom: 8,
 					}}
 				>
 					{subtitle}
-				</Typography>
+				</span>
 
 				{/* Benefit (green check) */}
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-					<CheckCircleIcon sx={{ fontSize: 16, color: '#10b981' }} />
-					<Typography
-						sx={{
+				<div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+					<IconCircleCheck size={16} style={{ color: '#10b981' }} />
+					<span
+						style={{
 							fontSize: 13,
 							fontWeight: 500,
 							color: '#10b981',
 						}}
 					>
 						{benefit}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
 				{/* Details */}
-				<Typography
-					sx={{
+				<span
+					style={{
 						fontSize: 13,
-						color: TEXT_SECONDARY,
+						color: 'var(--text-secondary)',
 					}}
 				>
 					{details}
-				</Typography>
-			</Box>
+				</span>
+			</div>
 
 			{/* Arrow icon (appears on hover) */}
 			{onClick && (
-				<Box
+				<div
 					className="arrow-icon"
-					sx={{
+					style={{
 						alignSelf: 'center',
 						transition: 'all 0.2s ease',
 					}}
 				>
-					<ArrowForwardIcon sx={{ fontSize: 20, color: TEXT_SECONDARY }} />
-				</Box>
+					<IconArrowRight size={20} style={{ color: 'var(--text-secondary)' }} />
+				</div>
 			)}
-		</Box>
+		</div>
 	);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { DialogContent, DialogActions, Stepper, Step, StepLabel, Button, Box, Fade } from '@mui/material';
+import { DialogContent, DialogActions, Stepper, Step, StepLabel, Button, Fade } from '@mui/material';
 import { CSVStep1 } from './CSVWizardStep1';
 import { CSVStep2ColumnMapping, Step2RefHandle } from './CSVWizardStep2';
 import { CSVStep3Preview, Step3RefHandle } from './CSVWizardStep3';
@@ -88,14 +88,14 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 					))}
 				</Stepper>
 
-				<Box sx={{ position: 'relative', height: 350 }}>
+				<div style={{ position: 'relative', height: 350 }}>
 					<Fade in={activeStep === 0} timeout={400} unmountOnExit>
-						<Box key="step1" sx={{ position: 'absolute', width: '100%' }}>
+						<div style={{ position: 'absolute', width: '100%' }}>
 							<CSVStep1 fields={fields} onParsed={handleFileParsed} />
-						</Box>
+						</div>
 					</Fade>
 					<Fade in={activeStep === 1} timeout={400} unmountOnExit>
-						<Box key="step2" sx={{ position: 'absolute', width: '100%' }}>
+						<div style={{ position: 'absolute', width: '100%' }}>
 							<CSVStep2ColumnMapping
 								ref={step2Ref}
 								headers={headers}
@@ -103,10 +103,10 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 								onMapped={handleMappingComplete}
 								setContinueEnabled={setContinueEnabled}
 							/>
-						</Box>
+						</div>
 					</Fade>
 					<Fade in={activeStep === 2} timeout={400} unmountOnExit>
-						<Box key="step3" sx={{ position: 'absolute', width: '100%' }}>
+						<div style={{ position: 'absolute', width: '100%' }}>
 							<CSVStep3Preview
 								ref={step3Ref}
 								rows={parsedRows}
@@ -117,9 +117,9 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 								submitting={submitting}
 								setValidRowCount={setValidRowCount}
 							/>
-						</Box>
+						</div>
 					</Fade>
-				</Box>
+				</div>
 			</DialogContent>
 
 			<DialogActions>

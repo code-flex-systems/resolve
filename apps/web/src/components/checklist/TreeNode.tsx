@@ -1,21 +1,17 @@
 'use client';
-import { Box, CircularProgress, Collapse, Fade, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, CircularProgress, IconButton, Stack, Tooltip, Typography , Fade } from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import Adjust from '@mui/icons-material/Adjust';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Error from '@mui/icons-material/Error';
-import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import PanoramaFishEye from '@mui/icons-material/PanoramaFishEye';
 import './styles.css';
 import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import theme, { BORDER_LIGHT, containerStyles } from '@/styles/theme';
+import { BORDER_LIGHT, containerStyles } from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import { IconAdjustments, IconAlertCircle, IconChevronRight, IconCircle, IconCircleCheck, IconFileDescription } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -60,31 +56,31 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	}, [selectedPageInstance, props]);
 
 	const statusIcon = useMemo(() => {
-		const iconColor = selected ? 'white' : theme.palette.primary.main;
+		const iconColor = selected ? 'white' : 'var(--text-accent)';
 		const iconClassname = selected ? 'node-selected-inner' : '';
 		switch (status) {
 			case PageInstanceStatus.UNSTARTED:
 				return (
 					<Tooltip title="Unstarted">
-						<PanoramaFishEye sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircle size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
 					<Tooltip title="Started">
-						<Adjust sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconAdjustments size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.COMPLETE:
 				return (
 					<Tooltip title="Complete">
-						<CheckCircle sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircleCheck style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip title="This page has changed">
-						<Error sx={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconAlertCircle size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 		}
@@ -100,7 +96,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						: {}),
 					paddingLeft: `${level * 20}px`,
 					'&:hover .node-selected-inner': {
-						// color: theme.palette.primary.main,
+						// color: 'var(--text-accent)',
 					},
 				}}
 				onClick={() => updateSelectedPage(instanceId)}
@@ -120,8 +116,8 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							}}
 							disableRipple
 						>
-							<KeyboardArrowRight
-								sx={{
+							<IconChevronRight
+							 style={{
 									transform: expanded ? 'rotate(90deg)' : undefined,
 									transition: 'transform 100ms ease',
 								}}
@@ -152,7 +148,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			</Box>
 
 			{questions && mode === ChecklistMode.EDIT && (
-				<Collapse in={selected && !isFetching} unmountOnExit>
+				<Collapse open={selected && !isFetching}>
 					<Stack pb={1} sx={styles.questionsContainer}>
 						{questions.map((q, i) => (
 							<QuestionNode
@@ -181,7 +177,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			)}
 
 			{!!filteredChildren.length && (
-				<Collapse in={expanded} timeout={expandedBranch.has(instanceId) ? 0 : 100}>
+				<Collapse open={expanded}>
 					<span>
 						{filteredChildren.map((c) => (
 							<TreeNode key={`i${c.instanceId}`} {...c} level={level + 1} />

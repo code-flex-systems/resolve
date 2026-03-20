@@ -1,15 +1,14 @@
 'use client';
 
-import { Box, MenuItem, Stack, Typography } from '@mui/material';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import CurrencyExchange from '@mui/icons-material/CurrencyExchange';
+import { MenuItem } from '@mui/material';
+import { IconCircleCheck, IconFileSearch, IconCurrencyDollar } from '@tabler/icons-react';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import css from './ClaimListItem.module.css';
 
 dayjs.extend(relativeTime);
 
@@ -61,33 +60,27 @@ export default function ClaimListItem({
 	const claimAmount = claim?.claim_amount ? parseFloat(claim.claim_amount.toString()) : null;
 
 	const content = (
-		<Stack width="100%" spacing={0.5}>
+		<div className={css.stack}>
 			{/* Top row: Claim number and status/amount */}
-			<Box display="flex" alignItems="center" justifyContent="space-between">
-				<Box display="flex" alignItems="center" gap={1}>
+			<div className={css.topRow}>
+				<div className={css.nameGroup}>
 					{variant === 'menuItem' && (
-						<ContentPasteSearch sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+						<IconFileSearch size={20} style={{ color: 'var(--text-accent)' }} />
 					)}
-					<Typography
-						variant={variant === 'menuItem' ? 'subtitle1' : 'body1'}
-						fontSize={variant === 'menuItem' ? 16 : 15}
-						fontWeight={variant === 'menuItem' ? 600 : 400}
-						color={variant === 'listRow' ? 'primary' : undefined}
-						sx={
-							variant === 'listRow'
-								? {
-										cursor: 'pointer',
-										'&:hover': { textDecoration: 'underline' },
-									}
-								: undefined
-						}
+					<span
+						style={{
+							fontSize: variant === 'menuItem' ? 16 : 15,
+							fontWeight: variant === 'menuItem' ? 600 : 400,
+							color: variant === 'listRow' ? 'var(--text-accent)' : undefined,
+						}}
+						className={variant === 'listRow' ? css.claimLink : undefined}
 					>
 						{claim?.claim_number ?? 'N/A'}
-					</Typography>
-					{selected && <CheckCircle sx={{ color: theme.palette.primary.main, fontSize: 20 }} />}
-				</Box>
+					</span>
+					{selected && <IconCircleCheck size={20} style={{ color: 'var(--text-accent)' }} />}
+				</div>
 
-				<Box display="flex" alignItems="center" gap={1}>
+				<div className={css.badgeGroup}>
 					{/* Status Chip */}
 					{showStatusChip && (
 						<ClaimStatusChip recoveryStatus={claim.recovery_status} substatus={claim.substatus} />
@@ -95,75 +88,70 @@ export default function ClaimListItem({
 
 					{/* Claim Amount Badge */}
 					{showAmount && claimAmount !== null && (
-						<Box
-							px={1.5}
-							py={0.5}
-							borderRadius={2}
-							bgcolor={theme.palette.primary.light}
-							display="flex"
-							alignItems="center"
-							gap={0.5}
+						<div
+							className={css.amountBadge}
+							style={{ backgroundColor: 'var(--status-info-bg)' }}
 						>
-							<CurrencyExchange sx={{ fontSize: 14, color: 'white' }} />
-							<Typography fontSize={12} fontWeight={600} color="white">
+							<IconCurrencyDollar size={14} style={{ color: 'white' }} />
+							<span style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>
 								{formatCurrencyExact(claimAmount)}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					)}
-				</Box>
-			</Box>
+				</div>
+			</div>
 
 			{/* Second row: Client and Insured */}
-			<Box display="flex" alignItems="center" gap={1}>
+			<div className={css.infoRow}>
 				{claim?.client && (
-					<Typography variant="body2" fontSize={13} color="text.primary">
+					<span style={{ fontSize: 13 }}>
 						{claim.client}
-					</Typography>
+					</span>
 				)}
 				{claim?.client && claim?.insured && (
-					<Box width={4} height={4} borderRadius="50%" bgcolor={BASE_COLOR_LIGHT} />
+					<div className={css.dot} />
 				)}
 				{claim?.insured && (
-					<Typography variant="body2" fontSize={13} color="text.secondary">
+					<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 						{claim.insured}
-					</Typography>
+					</span>
 				)}
-			</Box>
+			</div>
 
 			{/* Third row: Date of loss or Last update or Desk location */}
-			<Box display="flex" alignItems="center" gap={1}>
+			<div className={css.infoRow}>
 				{/* Show date of loss for menu items */}
 				{variant === 'menuItem' && claim?.date_of_loss && (
-					<Typography variant="caption" fontSize={12} color={BASE_COLOR_LIGHT}>
+					<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT }}>
 						Loss Date: {formatMDYAbv(claim.date_of_loss.toString())}
-					</Typography>
+					</span>
 				)}
 
 				{/* Show desk location for list rows */}
 				{variant === 'listRow' && showDeskLocation && claim?.desk_location_name && (
 					<>
-						<Typography variant="caption" fontSize={12} color={BASE_COLOR_LIGHT} noWrap>
+						<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
 							{claim.desk_location_name}
-						</Typography>
+						</span>
 						{showLastUpdate && claim?.last_update && (
-							<Box width={4} height={4} borderRadius="50%" bgcolor={BASE_COLOR_LIGHT} />
+							<div className={css.dot} />
 						)}
 					</>
 				)}
 
 				{/* Show last update for list rows */}
 				{variant === 'listRow' && showLastUpdate && claim?.last_update && (
-					<Typography variant="caption" fontSize={12} color={BASE_COLOR_LIGHT}>
+					<span style={{ fontSize: 12, color: BASE_COLOR_LIGHT }}>
 						{dayjs(claim.last_update).fromNow()}
-					</Typography>
+					</span>
 				)}
-			</Box>
-		</Stack>
+			</div>
+		</div>
 	);
 
 	if (variant === 'menuItem') {
 		return (
-			<MenuItem sx={styles.menuItem} onClick={onClick}>
+			<MenuItem className={css.menuItem} onClick={onClick}>
 				{content}
 			</MenuItem>
 		);
@@ -171,46 +159,12 @@ export default function ClaimListItem({
 
 	// listRow variant
 	return (
-		<Box
+		<div
 			onClick={onClick}
-			sx={{
-				...styles.listRow,
-				backgroundColor: index % 2 === 0 ? 'white' : '#FAFAFA',
-			}}
+			className={css.listRow}
+			style={{ backgroundColor: index % 2 === 0 ? 'white' : '#FAFAFA' }}
 		>
 			{content}
-		</Box>
+		</div>
 	);
 }
-
-const styles = {
-	menuItem: {
-		minHeight: 80,
-		padding: '16px',
-		borderBottom: '1px solid #f0f0f0',
-		transition: 'background-color 0.2s ease',
-		'&:hover': {
-			backgroundColor: '#F0F7F5 !important',
-		},
-		'&:last-child': {
-			borderBottom: 'none',
-		},
-		'&.Mui-focused': {
-			backgroundColor: '#F0F7F5',
-		},
-	},
-	listRow: {
-		width: '100%',
-		padding: '12px 16px',
-		cursor: 'pointer',
-		transition: 'all 0.2s ease',
-		borderBottom: '1px solid #f0f0f0',
-		'&:hover': {
-			backgroundColor: '#F0F7F5 !important',
-			transform: 'translateX(4px)',
-		},
-		'&:last-child': {
-			borderBottom: 'none',
-		},
-	},
-};

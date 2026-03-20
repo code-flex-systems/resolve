@@ -1,18 +1,16 @@
 'use client';
 
-import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import Archive from '@mui/icons-material/Archive';
-import OpenInNew from '@mui/icons-material/OpenInNew';
-import Unarchive from '@mui/icons-material/Unarchive';
-import Leaderboard from '@mui/icons-material/Leaderboard';
+import { IconArchive, IconArchiveOff, IconChartBar, IconExternalLink } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useRouter } from 'next/navigation';
-import theme from '@/styles/theme';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { Dialog } from '@mui/material';
 
 interface ChecklistActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;
@@ -40,13 +38,13 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 					}}
 					icon={
 						published ? (
-							<Archive sx={{ ...styles.icon, color: theme.palette.error.main }} />
+							<IconArchive style={{ ...styles.icon, color: 'var(--status-error)' }} />
 						) : (
-							<Unarchive sx={{ ...styles.icon, color: theme.palette.success.main }} />
+							<IconArchiveOff style={{ ...styles.icon, color: 'var(--status-success)' }} />
 						)
 					}
 				/>
-				<Box marginLeft="10px">
+				<div style={{ marginLeft: '10px' }}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => router.push(`/checklist/${params.id}/breakdown`),
@@ -54,10 +52,10 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 						tooltipProps={{
 							title: 'Go to breakdown...',
 						}}
-						icon={<Leaderboard sx={{ ...styles.icon, transform: 'rotate(90deg)' }} />}
+						icon={<IconChartBar style={{ ...styles.icon, transform: 'rotate(90deg)' }} />}
 					/>
-				</Box>
-				<Box marginLeft="10px">
+				</div>
+				<div style={{ marginLeft: '10px' }}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => router.push(`/checklist/${params.id}`),
@@ -65,9 +63,9 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 						tooltipProps={{
 							title: 'Open checklist...',
 						}}
-						icon={<OpenInNew sx={styles.icon} />}
+						icon={<IconExternalLink style={styles.icon} />}
 					/>
-				</Box>
+				</div>
 			</div>
 
 			{updating && (
@@ -98,14 +96,14 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 					onClose={() => setUpdating(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {published ? 'unpublish' : 'publish'} this checklist?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						{published
 							? 'Users will no longer have access to this checklist or be able to open it with new or associated claims.'
 							: 'Users will now have access to this checklist and be able to open it with new or associated claims.'}
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 		</>

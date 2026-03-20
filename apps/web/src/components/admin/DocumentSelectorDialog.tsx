@@ -1,15 +1,14 @@
 'use client';
 
+import { IconArrowLeft, IconFileUpload, IconFolderOpen } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 import { useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CompactDocumentBrowser from './CompactDocumentBrowser';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { validateFileType, IMAGE_MIME_TYPES } from '@/config/allowedFileTypes';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
+import { Dialog } from '@mui/material';
 
 interface DocumentSelectorDialogProps {
 	onClose: () => void;
@@ -187,7 +186,7 @@ export default function DocumentSelectorDialog({
 							label: isUploading ? 'Uploading...' : 'Upload',
 							onClick: handleUpload,
 							disabled: isBusy,
-							icon: <UploadFileIcon />,
+							icon: <IconFileUpload size={20} />,
 					  }
 					: undefined
 			}
@@ -200,7 +199,7 @@ export default function DocumentSelectorDialog({
 									setMode('choice');
 									setSelectedFile(null);
 								},
-								icon: <ArrowBackIcon />,
+								icon: <IconArrowLeft size={20} />,
 								disabled: isBusy,
 							},
 					  ]
@@ -208,54 +207,54 @@ export default function DocumentSelectorDialog({
 			}
 		>
 			{mode === 'choice' && (
-				<Box>
-					<Typography fontSize={13} mb={3}>
+				<div>
+					<span style={{ fontSize: 13 }}>
 						Choose how you want to add {filterByType === 'image' ? 'an image' : 'a document'}:
-					</Typography>
+					</span>
 
-					<Box display="flex" flexDirection="column" gap={2}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 						<Button
 							variant="outlined"
-							size="large"
-							startIcon={<FolderOpenIcon />}
+							size="lg"
+							startIcon={<IconFolderOpen size={20} />}
 							onClick={() => setMode('library')}
-							sx={{ justifyContent: 'flex-start', p: 2 }}
+							style={{ justifyContent: 'flex-start', padding: 16 }}
 						>
-							<Box textAlign="left" ml={2}>
-								<Typography fontWeight={600} fontSize={14}>
+							<div style={{ textAlign: 'left', marginLeft: 16 }}>
+								<span style={{ fontWeight: 600, fontSize: 14 }}>
 									Choose from library
-								</Typography>
-								<Typography fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									Select an existing {filterByType === 'image' ? 'image' : 'document'}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 						</Button>
 
 						<Button
 							variant="outlined"
-							size="large"
-							startIcon={<UploadFileIcon />}
+							size="lg"
+							startIcon={<IconFileUpload size={20} />}
 							onClick={() => setMode('upload')}
-							sx={{ justifyContent: 'flex-start', p: 2 }}
+							style={{ justifyContent: 'flex-start', padding: 16 }}
 						>
-							<Box textAlign="left" ml={2}>
-								<Typography fontWeight={600} fontSize={14}>
+							<div style={{ textAlign: 'left', marginLeft: 16 }}>
+								<span style={{ fontWeight: 600, fontSize: 14 }}>
 									Browse this device
-								</Typography>
-								<Typography fontSize={12} color="text.secondary">
+								</span>
+								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 									Upload a new {filterByType === 'image' ? 'image' : 'file'}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 						</Button>
-					</Box>
-				</Box>
+					</div>
+				</div>
 			)}
 
 			{mode === 'library' && (
-				<Box>
-					<Typography fontSize={13} mb={2}>
+				<div>
+					<span style={{ fontSize: 13 }}>
 						{isLinking ? 'Linking document...' : 'Browse your document library and double-click to select:'}
-					</Typography>
+					</span>
 					<CompactDocumentBrowser
 						onSelectDocument={handleLibrarySelect}
 						filterByType={filterByType}
@@ -265,19 +264,21 @@ export default function DocumentSelectorDialog({
 						allowedExtensions={allowedExtensions}
 						disabled={isBusy}
 					/>
-				</Box>
+				</div>
 			)}
 
 			{mode === 'upload' && (
-				<Box>
-					<Typography fontSize={13} mb={2}>
+				<div>
+					<span style={{ fontSize: 13 }}>
 						{isUploading
 							? 'Uploading file...'
 							: `Select ${filterByType === 'image' ? 'an image' : 'a file'} from your device to upload:`}
-					</Typography>
+					</span>
 
-					<Button variant="outlined" component="label" fullWidth sx={{ mb: 2 }} disabled={isBusy}>
-						{selectedFile ? selectedFile.name : 'Choose File'}
+					<label style={{ display: 'block', marginBottom: 16 }}>
+						<Button variant="outlined" fullWidth disabled={isBusy}>
+							{selectedFile ? selectedFile.name : 'Choose File'}
+						</Button>
 						<input
 							type="file"
 							hidden
@@ -285,27 +286,27 @@ export default function DocumentSelectorDialog({
 							accept={filterByType === 'image' ? IMAGE_MIME_TYPES.join(',') : undefined}
 							disabled={isBusy}
 						/>
-					</Button>
+					</label>
 
 					{selectedFile && (
-						<Box bgcolor="#f5f5f5" p={2} borderRadius={1}>
-							<Typography fontSize={12} color="text.secondary">
+						<div style={{ backgroundColor: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 								<strong>Size:</strong> {(selectedFile.size / 1024).toFixed(1)} KB
-							</Typography>
-							<Typography fontSize={12} color="text.secondary">
+							</span>
+							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 								<strong>Type:</strong> {selectedFile.type}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					)}
 
 					{!selectedFile && (
-						<Typography fontSize={11} color="text.secondary" mt={1}>
+						<span style={{ fontSize: 11,  color: 'var(--text-secondary)', marginTop: 8  }}>
 							{filterByType === 'image'
 								? 'Accepted: JPG, PNG, GIF, WebP, BMP, SVG'
 								: 'Accepted: PDF, Word, Excel, PowerPoint, images, text files, and archives'}
-						</Typography>
+						</span>
 					)}
-				</Box>
+				</div>
 			)}
 		</BasicDialog>
 	);

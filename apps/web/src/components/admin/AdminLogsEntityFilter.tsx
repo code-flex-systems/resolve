@@ -1,11 +1,11 @@
 'use client';
 
-import { Chip, MenuItem, Paper, PopperProps, TextField, Typography } from '@mui/material';
+import { IconBinaryTree } from '@tabler/icons-react';
+import { PopperProps } from '@mui/material';
 import { useState } from 'react';
-import AccountTree from '@mui/icons-material/AccountTree';
+import Select from '@/components/ui/Select';
 import BasicPopper from '@/components/common/BasicPopper';
 import { EntityName } from '@/api/utils/activityLogger';
-import { TEXT_MUTED } from '@/styles/theme';
 
 const ENTITY_OPTIONS = Object.values(EntityName);
 
@@ -33,47 +33,60 @@ export default function AdminLogsEntityFilter({
 
 	return (
 		<>
-			<Chip
-				label={value ? formatEntityLabel(value) : text}
-				icon={<AccountTree sx={{ color: value ? undefined : TEXT_MUTED }} />}
+			<span
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={value ? () => onChange(null) : undefined}
-				sx={{
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: 6,
 					height,
-					'& .MuiChip-icon': {
-						color: value ? undefined : TEXT_MUTED,
-					},
+					padding: '0 12px',
+					borderRadius: 'var(--radius-full)',
+					backgroundColor: 'var(--bg-tertiary)',
+					fontSize: 13,
+					cursor: 'pointer',
+					color: value ? 'var(--text-primary)' : 'var(--text-muted)',
 				}}
-			/>
+			>
+				<IconBinaryTree size={16} style={{ color: value ? undefined : 'var(--text-muted)' }} />
+				{value ? formatEntityLabel(value) : text}
+				{value && (
+					<span
+						onClick={(e) => {
+							e.stopPropagation();
+							onChange(null);
+						}}
+						style={{ marginLeft: 4, cursor: 'pointer', color: 'var(--text-muted)' }}
+					>
+						&times;
+					</span>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={handleClose} placement="bottom-start">
-					<Paper sx={styles.filterPaper}>
-						<TextField
-							select
+					<div style={{ padding: 12, minWidth: 240 }}>
+						<Select
 							fullWidth
 							label="Entity"
 							value={value ?? ''}
-							onChange={(event) => {
-								const nextValue = event.target.value as EntityName;
+							onChange={(val) => {
+								const nextValue = val as EntityName;
 								onChange(nextValue || null);
 								handleClose();
 							}}
-							size="small"
-						>
-							<MenuItem value="">
-								<Typography fontSize={13}>All entities</Typography>
-							</MenuItem>
-							{ENTITY_OPTIONS.map((entity) => (
-								<MenuItem key={entity} value={entity}>
-									<Typography fontSize={13}>{formatEntityLabel(entity)}</Typography>
-								</MenuItem>
-							))}
-						</TextField>
-					</Paper>
+							options={[
+								{ value: '', label: 'All entities' },
+								...ENTITY_OPTIONS.map((entity) => ({
+									value: entity,
+									label: formatEntityLabel(entity),
+								})),
+							]}
+						/>
+					</div>
 				</BasicPopper>
 			)}
 		</>
@@ -83,10 +96,3 @@ export default function AdminLogsEntityFilter({
 export function formatEntityLabelForDisplay(value: string) {
 	return formatEntityLabel(value);
 }
-
-const styles = {
-	filterPaper: {
-		padding: 1.5,
-		minWidth: 240,
-	},
-};

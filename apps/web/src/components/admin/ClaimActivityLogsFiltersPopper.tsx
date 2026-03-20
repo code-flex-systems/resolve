@@ -1,9 +1,8 @@
 'use client';
-
-import { Box, MenuItem, PopperProps, TextField, Typography } from '@mui/material';
+import { PopperProps } from '@mui/material';
+import Select from '@/components/ui/Select';
 import { Dayjs } from 'dayjs';
 import ClaimFilter from '@/components/common/ClaimFilter';
-import { TEXT_MUTED } from '@/styles/theme';
 import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import type { Claim } from '@/hooks/trpc/useClaimTrpc';
@@ -58,33 +57,26 @@ export default function ClaimActivityLogsFiltersPopper({
 			setDraftUsers={setDraftUsers}
 			onApply={onApply}
 		>
-			<Box>
-				<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
+			<div>
+				<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 					Claim
-				</Typography>
+				</span>
 				<ClaimFilter claim={draftClaim} setClaim={setDraftClaim} height={32} zIndex={1500} />
-			</Box>
-			<Box>
-				<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
+			</div>
+			<div>
+				<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 					Actor Type
-				</Typography>
-				<TextField
-					select
+				</span>
+				<Select
 					fullWidth
-					size="small"
 					value={draftActorType ?? ''}
-					onChange={(event) => {
-						const value = event.target.value as 'admin' | 'user' | '';
+					onChange={(val) => {
+						const value = val as 'admin' | 'user' | '';
 						setDraftActorType(value ? value : null);
 					}}
-				>
-					{ACTOR_TYPE_OPTIONS.map((option) => (
-						<MenuItem key={option.value} value={option.value}>
-							<Typography fontSize={13}>{option.label}</Typography>
-						</MenuItem>
-					))}
-				</TextField>
-			</Box>
+					options={ACTOR_TYPE_OPTIONS}
+				/>
+			</div>
 		</LogsFiltersPopperBase>
 	);
 }

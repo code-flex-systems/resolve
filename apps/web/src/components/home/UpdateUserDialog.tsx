@@ -2,24 +2,18 @@
 import {
 	Avatar,
 	Box,
-	Collapse,
 	FormControl,
 	InputAdornment,
 	MenuItem,
 	Select,
 	Stack,
 	TextField,
-	Typography,
-} from '@mui/material';
-import PersonOutlined from '@mui/icons-material/PersonOutlined';
-import Security from '@mui/icons-material/Security';
-import Warning from '@mui/icons-material/Warning';
+	Typography} from '@mui/material';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { formatPhoneNumber, getInitials, parsePhoneNumber } from '@/lib/utils/utils';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { GetUserOutput, UpdateUserInput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import theme from '@/styles/theme';
 import { Role } from '@/types/types';
 import config from '@/config/config';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -27,6 +21,8 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { JSX, useState } from 'react';
 import RoleValue from '../admin/RoleValue';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconAlertTriangle, IconShield, IconUser } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
 
 interface UserFormState {
 	first: string;
@@ -38,15 +34,15 @@ interface UserFormState {
 
 const roleOptions: { icon: JSX.Element; value: Role }[] = [
 	{
-		icon: <Security sx={{ fontSize: 15 }} />,
+		icon: <IconShield size={15} />,
 		value: config.ROLES.SUPER_ADMIN,
 	},
 	{
-		icon: <Security sx={{ fontSize: 15 }} />,
+		icon: <IconShield size={15} />,
 		value: config.ROLES.ADMIN,
 	},
 	{
-		icon: <PersonOutlined sx={{ fontSize: 15 }} />,
+		icon: <IconUser size={15} />,
 		value: config.ROLES.CONTRIBUTOR,
 	},
 ];
@@ -159,9 +155,9 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 			</Avatar>
 
 			<Stack width="100%" display="flex" alignItems="center">
-				<Collapse in={confirmingRoleChange}>
+				<Collapse open={confirmingRoleChange}>
 					<Box width={300} display="flex" alignItems="center" marginBottom="10px">
-						<Warning sx={{ color: theme.palette.warning.main, marginRight: '10px' }} />
+						<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)', marginRight: '10px' }} />
 						<Typography fontSize={13} lineHeight="17px" color="warning">
 							You are {role === config.ROLES.ADMIN ? 'elevating' : 'lowering'} this user's privileges.
 							<br />
@@ -332,7 +328,7 @@ const styles = {
 		width: 100,
 		height: 100,
 		fontSize: 40,
-		bgcolor: theme.palette.primary.main,
+		bgcolor: 'var(--text-accent)',
 		marginBottom: '10px',
 	},
 	textFieldOverrides: {

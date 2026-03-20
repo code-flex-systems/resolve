@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Typography } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
+import { Dialog } from '@mui/material';
 
 export default function AdminLogSnapshotDialog({
 	entityLabel,
@@ -14,22 +14,21 @@ export default function AdminLogSnapshotDialog({
 }) {
 	return (
 		<BasicDialog title="Log Snapshot" onClose={onClose} width={720}>
-			<Box display="flex" flexDirection="column" gap={1.5}>
-				<Typography fontWeight={600}>{entityLabel}</Typography>
-				<Box
-					component="pre"
-					sx={{
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+				<span style={{ fontWeight: 600 }}>{entityLabel}</span>
+				<div
+					style={{
 						whiteSpace: 'pre-wrap',
 						wordBreak: 'break-word',
-						bgcolor: 'grey.100',
-						borderRadius: 1,
-						p: 2,
+						backgroundColor: 'grey.100',
+						borderRadius: 4,
+						padding: 16,
 						fontSize: 13,
 					}}
 				>
 					{typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-				</Box>
-			</Box>
+				</div>
+			</div>
 		</BasicDialog>
 	);
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { Tooltip, IconButton, Box, Typography } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
+import { Tooltip, IconButton } from '@mui/material';
+import { IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 
 interface ImageTooltipProps {
@@ -30,7 +30,7 @@ export default function ImageTooltip({
 		return (
 			<Tooltip title={description || 'Image failed to load'} arrow>
 				<IconButton size="small" sx={{ ml: 0.5, p: 0.5 }}>
-					<InfoIcon sx={{ fontSize: 16, color: 'error.main' }} />
+					<IconInfoCircle size={16} style={{ color: 'var(--color-error)' }} />
 				</IconButton>
 			</Tooltip>
 		);
@@ -39,16 +39,15 @@ export default function ImageTooltip({
 	return (
 		<Tooltip
 			title={
-				<Box sx={{ p: 1 }}>
+				<div style={{ padding: 8 }}>
 					{!imageLoaded && (
-						<Box sx={{ p: 2, textAlign: 'center' }}>
-							<Typography fontSize={12} color="rgba(255,255,255,0.9)">
+						<div style={{ padding: 16, textAlign: 'center' }}>
+							<span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
 								Loading image...
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					)}
-					<Box
-						component="img"
+					<img
 						src={imageUrl}
 						alt={alt}
 						onError={() => {
@@ -57,21 +56,21 @@ export default function ImageTooltip({
 						onLoad={() => {
 							setImageLoaded(true);
 						}}
-						sx={{
+						style={{
 							maxWidth,
 							maxHeight,
 							width: 'auto',
 							height: 'auto',
 							display: imageLoaded ? 'block' : 'none',
-							borderRadius: 0.5,
+							borderRadius: 4,
 						}}
 					/>
 					{description && imageLoaded && (
-						<Box sx={{ mt: 1, fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
+						<div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
 							{description}
-						</Box>
+						</div>
 					)}
-				</Box>
+				</div>
 			}
 			arrow
 			slotProps={{
@@ -85,7 +84,7 @@ export default function ImageTooltip({
 			}}
 		>
 			<IconButton size="small" sx={{ ml: 0.5, p: 0.5 }}>
-				<InfoIcon sx={{ fontSize: 16, color: imageLoaded ? 'primary.main' : 'text.secondary' }} />
+				<IconInfoCircle size={16} style={{ color: imageLoaded ? 'var(--color-primary)' : 'var(--text-secondary)' }} />
 			</IconButton>
 		</Tooltip>
 	);

@@ -1,6 +1,6 @@
 import { MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import Desk from '@mui/icons-material/Desk';
+import { IconLayoutBoard } from '@tabler/icons-react';
 
 interface DeskLocationTypeSelectProps extends Omit<TextFieldProps, 'children' | 'select' | 'onChange' | 'value'> {
 	value: number | null;
@@ -24,7 +24,7 @@ export default function DeskLocationTypeSelect({
 			onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
 			disabled={isFetching}
 			InputProps={{
-				startAdornment: <Desk sx={{ fontSize: 18, mr: 1, color: 'text.secondary' }} />,
+				startAdornment: <IconLayoutBoard size={18} style={{ marginRight: 8, color: 'var(--text-secondary)' }} />,
 			}}
 			SelectProps={{
 				displayEmpty: true,

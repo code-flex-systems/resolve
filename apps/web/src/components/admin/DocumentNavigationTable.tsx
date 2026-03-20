@@ -1,13 +1,11 @@
 'use client';
 
-import { Breadcrumbs, Link, Typography } from '@mui/material';
+import { IconFile, IconFolder, IconSettings } from '@tabler/icons-react';
+import { Breadcrumbs, Link } from '@mui/material';
 import { DataGridPro, GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import FolderIcon from '@mui/icons-material/Folder';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import SettingsIcon from '@mui/icons-material/Settings';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useMemo, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -65,7 +63,7 @@ export default function DocumentNavigationTable({
 		() => (
 			<CustomNoRowsOverlay
 				text={currentFolderId === null ? emptyRootText : emptyFolderText}
-				icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconFile style={{ fontSize: 40, color: 'var(--text-muted)' }} />}
 			/>
 		),
 		[currentFolderId, emptyRootText, emptyFolderText]
@@ -125,15 +123,15 @@ export default function DocumentNavigationTable({
 					) {
 						return (
 							<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-								<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+								<IconFolder style={{ color: 'var(--text-muted)' }} />
 								<div>
-									<Typography variant="body2">
+									<span>
 										{row.data.user_first} {row.data.user_last}
-									</Typography>
+									</span>
 									{row.data.user_email && (
-										<Typography variant="caption" color="text.secondary" display="block">
+										<span style={{ color: 'var(--text-secondary)' }}>
 											{row.data.user_email}
-										</Typography>
+										</span>
 									)}
 								</div>
 							</div>
@@ -144,10 +142,10 @@ export default function DocumentNavigationTable({
 					if (adminMode && row.type === 'folder' && row.data.system) {
 						return (
 							<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-								<SettingsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-								<Typography variant="body2" color="primary">
+								<IconSettings size={20} style={{ color: 'var(--text-accent)' }} />
+								<span style={{ color: 'var(--text-accent)' }}>
 									{row.data.name}
-								</Typography>
+								</span>
 							</div>
 						);
 					}
@@ -156,20 +154,20 @@ export default function DocumentNavigationTable({
 					return (
 						<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 							{row.type === 'folder' ? (
-								<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+								<IconFolder style={{ color: 'var(--text-muted)' }} />
 							) : (
-								<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
+								<IconFile style={{ color: 'var(--text-muted)' }} />
 							)}
-							<Typography variant="body2">
+							<span>
 								{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
-							</Typography>
+							</span>
 						</div>
 					);
 				},
 				renderHeader: (params) => (
 					<IconHeaderCell
 						{...(params as any)}
-						icon={<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />}
+						icon={<IconFile style={{ color: 'var(--text-muted)' }} />}
 					/>
 				),
 			},
@@ -182,29 +180,29 @@ export default function DocumentNavigationTable({
 						// Show "User Folder" for user-specific folders
 						if (row.data.group_type === 'user') {
 							return (
-								<Typography variant="body2" color="text.secondary">
+								<span style={{ color: 'var(--text-secondary)' }}>
 									User Folder
-								</Typography>
+								</span>
 							);
 						}
 						// Show "System Folder" for system folders in admin mode
 						if (adminMode && row.data.system) {
 							return (
-								<Typography variant="body2" color="primary">
+								<span style={{ color: 'var(--text-accent)' }}>
 									System Folder
-								</Typography>
+								</span>
 							);
 						}
 						return (
-							<Typography variant="body2" color="text.secondary">
+							<span style={{ color: 'var(--text-secondary)' }}>
 								Folder
-							</Typography>
+							</span>
 						);
 					}
 					return (
-						<Typography variant="body2" color="text.secondary">
+						<span style={{ color: 'var(--text-secondary)' }}>
 							{capitalize(row.data.doc_type.replace('_', ' '))}
-						</Typography>
+						</span>
 					);
 				},
 			},
@@ -213,9 +211,9 @@ export default function DocumentNavigationTable({
 				field: 'date',
 				width: 150,
 				renderCell: ({ row }) => (
-					<Typography variant="body2" color="text.secondary">
+					<span style={{ color: 'var(--text-secondary)' }}>
 						{formatMDY(row.data.created_at)}
-					</Typography>
+					</span>
 				),
 			},
 			{
@@ -226,15 +224,15 @@ export default function DocumentNavigationTable({
 					if (row.type === 'document' && row.data.file_size) {
 						const sizeInKB = Number(row.data.file_size) / 1024;
 						return (
-							<Typography variant="body2" color="text.secondary">
+							<span style={{ color: 'var(--text-secondary)' }}>
 								{sizeInKB.toFixed(1)} KB
-							</Typography>
+							</span>
 						);
 					}
 					return (
-						<Typography variant="body2" color="text.secondary">
+						<span style={{ color: 'var(--text-secondary)' }}>
 							—
-						</Typography>
+						</span>
 					);
 				},
 			},
@@ -246,13 +244,13 @@ export default function DocumentNavigationTable({
 		<>
 			{/* Breadcrumbs for navigation */}
 			{showBreadcrumbs && (
-				<Breadcrumbs sx={{ p: 2, pb: 1 }}>
+				<Breadcrumbs style={{ padding: 16, paddingBottom: 8 }}>
 					<Link
 						component="button"
 						underline="hover"
 						color={currentFolderId === null ? 'text.primary' : 'inherit'}
 						onClick={() => onNavigate(null)}
-						sx={{ cursor: 'pointer' }}
+						style={{ cursor: 'pointer' }}
 					>
 						{breadcrumbRootLabel}
 					</Link>
@@ -262,13 +260,13 @@ export default function DocumentNavigationTable({
 							underline="hover"
 							color="inherit"
 							onClick={() => onNavigate(parentFolder.id)}
-							sx={{ cursor: 'pointer' }}
+							style={{ cursor: 'pointer' }}
 						>
 							{parentFolder.name}
 						</Link>
 					)}
 					{currentFolder && currentFolder.id !== hiddenBreadcrumbFolderId && (
-					<Typography color="text.primary">{currentFolder.name}</Typography>
+					<span style={{ color: 'var(--text-primary)' }}>{currentFolder.name}</span>
 				)}
 				</Breadcrumbs>
 			)}
@@ -285,7 +283,7 @@ export default function DocumentNavigationTable({
 				slots={{
 					noRowsOverlay,
 				}}
-				sx={styles.dataGrid}
+				style={styles.dataGrid}
 				hideFooter
 			/>
 		</>
@@ -296,13 +294,6 @@ const styles = {
 	dataGrid: {
 		flex: 1,
 		border: 'none',
-		'& .MuiDataGrid-row': {
-			cursor: 'pointer',
-		},
-		'& .MuiDataGrid-cell': {
-			display: 'flex',
-			alignItems: 'center',
-		},
 		...dataGridFocusStyles,
 	},
 };

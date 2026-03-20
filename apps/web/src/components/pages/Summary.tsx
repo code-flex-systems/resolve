@@ -1,7 +1,6 @@
 'use client';
-import { Box, Divider, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { BG_TERTIARY } from '@/styles/theme';
-import ArrowBack from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import Toolbar from '@/components/common/Toolbar';
 import SummaryChart from '@/components//summary/SummaryChart';
@@ -11,7 +10,8 @@ import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistInfo from '../checklist/ChecklistInfo';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import ChecklistIcon from '@mui/icons-material/Checklist';
+import { IconArrowLeft, IconChecklist } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 export default function Summary() {
 	const router = useRouter();
@@ -25,12 +25,12 @@ export default function Summary() {
 					<>
 						<Box marginRight="5px">
 							<BasicButtonStyled
-								icon={<ArrowBack />}
+								icon={<IconArrowLeft size={20} />}
 								buttonProps={{ onClick: () => router.back() }}
 								tooltipProps={{ title: 'Back to checklist' }}
 							/>
 						</Box>
-						<ChecklistIcon />
+						<IconChecklist size={20} />
 						<Typography variant="h6" ml={0.5} mr={1}>
 							{checklist?.name}
 						</Typography>

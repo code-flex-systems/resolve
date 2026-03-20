@@ -1,11 +1,11 @@
-import { Chip } from '@mui/material';
+import Chip, { type ChipProps } from '@/components/ui/Chip';
 import { formatClaimStatus } from '@/lib/utils/claimUtils';
 import { RecoveryStatus } from '@/config/enums';
 
 /**
  * Get chip color based on recovery status
  */
-function getChipColor(recoveryStatus: string | null | undefined): 'warning' | 'info' | 'success' | 'default' {
+function getChipColor(recoveryStatus: string | null | undefined): ChipProps['color'] {
 	switch (recoveryStatus) {
 		case RecoveryStatus.PENDING:
 			return 'warning';
@@ -14,9 +14,9 @@ function getChipColor(recoveryStatus: string | null | undefined): 'warning' | 'i
 		case RecoveryStatus.RECOVERED:
 			return 'success';
 		case RecoveryStatus.CLOSED_NO_RECOVERY:
-			return 'default';
+			return 'neutral';
 		default:
-			return 'default';
+			return 'neutral';
 	}
 }
 
@@ -40,13 +40,14 @@ export default function ClaimStatusChip({ recoveryStatus, substatus, size = 'sma
 
 	return (
 		<Chip
-			label={label}
 			color={color}
-			size={size}
-			sx={{
+			size={size === 'small' ? 'sm' : 'md'}
+			style={{
 				fontWeight: 500,
 				fontSize: size === 'small' ? 12 : 13,
 			}}
-		/>
+		>
+			{label}
+		</Chip>
 	);
 }

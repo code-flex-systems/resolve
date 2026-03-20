@@ -1,18 +1,10 @@
 'use client';
 
-import { Box, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material';
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import FlashOn from '@mui/icons-material/FlashOn';
-import PlayArrow from '@mui/icons-material/PlayArrow';
-import SmartToy from '@mui/icons-material/SmartToy';
-import TouchApp from '@mui/icons-material/TouchApp';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Cancel from '@mui/icons-material/Cancel';
-import Flag from '@mui/icons-material/Flag';
-import GpsFixed from '@mui/icons-material/GpsFixed';
+import { IconArchive, IconBolt, IconCircleCheck, IconCircleX, IconCurrentLocation, IconEdit, IconFlag, IconHandClick, IconPlayerPlay, IconRobot } from '@tabler/icons-react';
+import { CircularProgress } from '@mui/material';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
-import { BASE_COLOR_LIGHT, BG_TERTIARY } from '@/styles/theme';
 import { formatTriggerType, formatActionType } from '@/lib/utils/workflowUtils';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 import { WorkflowActionType } from '@/config/enums';
@@ -41,124 +33,85 @@ export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning }: 
 	const targetLocationName = targetLocationId ? deskStore.getLocationName(targetLocationId) : null;
 
 	return (
-		<Paper
-			variant="outlined"
-			sx={{
-				p: 2,
-				bgcolor: 'background.default',
+		<div
+			style={{
+				padding: 16,
+				backgroundColor: 'var(--bg-primary)',
 				boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 			}}
 		>
-			<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-				<Box flex={1}>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+				<div style={{ flex: 1 }}>
 					{/* Rule name and description */}
-					<Typography fontSize={14} fontWeight={600} mb={1}>
+					<span style={{ fontSize: 14, fontWeight: 600 }}>
 						{rule.name}
-					</Typography>
+					</span>
 
 					{rule.description && (
-						<Typography fontSize={13} color="text.secondary" mb={1.5}>
+						<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
 							{rule.description}
-						</Typography>
+						</span>
 					)}
 
 					{/* Metadata chips */}
-					<Box display="flex" gap={1} mb={1.5} flexWrap="wrap">
+					<div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
 						<Chip
-							icon={
-								rule.is_active ? (
-									<CheckCircle sx={{ fontSize: 18 }} />
-								) : (
-									<Cancel sx={{ fontSize: 18 }} />
-								)
-							}
-							label={rule.is_active ? 'Active' : 'Inactive'}
-							size="small"
-							color={rule.is_active ? 'success' : 'default'}
-							sx={{
-								'& .MuiChip-icon': {
-									color: rule.is_active ? 'success.main' : 'action.active',
-								},
-							}}
-						/>
+							size="sm"
+							color={rule.is_active ? 'success' : 'neutral'}
+						>{rule.is_active ? 'Active' : 'Inactive'}</Chip>
 						<Chip
-							icon={<FlashOn sx={{ fontSize: 18 }} />}
-							label={`Trigger: ${formatTriggerType(rule.trigger_type as any)}`}
-							size="small"
+							size="sm"
 							color="warning"
 							variant="outlined"
-							sx={{ '& .MuiChip-icon': { color: 'warning.main' } }}
-						/>
+						>{`Trigger: ${formatTriggerType(rule.trigger_type as any)}`}</Chip>
 						<Chip
-							icon={<PlayArrow sx={{ fontSize: 18 }} />}
-							label={`Action: ${formatActionType(rule.action_type as any)}`}
-							size="small"
+							size="sm"
 							color="info"
 							variant="outlined"
-							sx={{ '& .MuiChip-icon': { color: 'info.main' } }}
-						/>
+						>{`Action: ${formatActionType(rule.action_type as any)}`}</Chip>
 						{targetLocationName && (
 							<Chip
-								icon={<GpsFixed sx={{ fontSize: 18 }} />}
-								label={`Target desk location: ${targetLocationName}`}
-								size="small"
-								color="primary"
+								size="sm"
+								color="info"
 								variant="outlined"
-								sx={{ '& .MuiChip-icon': { color: 'primary.main' } }}
-							/>
+							>{`Target desk location: ${targetLocationName}`}</Chip>
 						)}
 						<Chip
-							icon={
-								rule.execution_mode === 'auto' ? (
-									<SmartToy sx={{ fontSize: 18 }} />
-								) : (
-									<TouchApp sx={{ fontSize: 18 }} />
-								)
-							}
-							label={`Mode: ${rule.execution_mode}`}
-							size="small"
-							color={rule.execution_mode === 'auto' ? 'warning' : 'default'}
-							sx={{
-								'& .MuiChip-icon': {
-									color: rule.execution_mode === 'auto' ? 'warning.main' : 'action.active',
-								},
-							}}
-						/>
+							size="sm"
+							color={rule.execution_mode === 'auto' ? 'warning' : 'neutral'}
+						>{`Mode: ${rule.execution_mode}`}</Chip>
 						<Chip
-							icon={<Flag sx={{ fontSize: 18 }} />}
-							label={`Priority: ${rule.priority}`}
-							size="small"
-							sx={{ '& .MuiChip-icon': { color: 'action.active' } }}
-						/>
-					</Box>
+							size="sm"
+						>{`Priority: ${rule.priority}`}</Chip>
+					</div>
 
 					{/* Conditions summary (if exists) */}
 					{rule.conditions && typeof rule.conditions === 'object' && (rule.conditions as any).conditions && (
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} mb={0.5}>
+						<div>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 								Conditions ({(rule.conditions as any).logic}):
-							</Typography>
-							<Stack spacing={0.5} pl={1}>
+							</span>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8 }}>
 								{((rule.conditions as any).conditions || []).map((cond: any, idx: number) => (
-									<Typography key={idx} fontSize={12} color="text.secondary">
+									<span key={idx} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 										• {formatCondition(cond)}
-									</Typography>
+									</span>
 								))}
-							</Stack>
-						</Box>
+							</div>
+						</div>
 					)}
-				</Box>
+				</div>
 
 				{/* Action buttons */}
-				<Box display="flex" gap={0.5}>
+				<div style={{ display: 'flex', gap: 4 }}>
 					{rule.is_active && onRun && (
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: () => onRun(rule),
-								sx: { bgcolor: BG_TERTIARY },
+								sx: { backgroundColor: 'var(--bg-tertiary)' },
 								disabled: isRunning,
 							}}
-							icon={isRunning ? <CircularProgress size={20} /> : <PlayArrow />}
+							icon={isRunning ? <CircularProgress size={20} /> : <IconPlayerPlay size={20} />}
 							compact
 							tooltipProps={{ title: 'Run Rule' }}
 						/>
@@ -166,23 +119,23 @@ export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning }: 
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => onEdit(rule),
-							sx: { bgcolor: BG_TERTIARY },
+							sx: { backgroundColor: 'var(--bg-tertiary)' },
 						}}
-						icon={<Edit />}
+						icon={<IconEdit size={20} />}
 						compact
 						tooltipProps={{ title: 'Edit Rule' }}
 					/>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => onArchive(rule),
-							sx: { bgcolor: BG_TERTIARY },
+							sx: { backgroundColor: 'var(--bg-tertiary)' },
 						}}
-						icon={<Archive />}
+						icon={<IconArchive size={20} />}
 						compact
 						tooltipProps={{ title: 'Archive Rule' }}
 					/>
-				</Box>
-			</Box>
-		</Paper>
+				</div>
+			</div>
+		</div>
 	);
 }

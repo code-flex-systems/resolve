@@ -352,7 +352,7 @@ export default function UserActivityTable({
 						}}
 						columns={csvColumns}
 						filename="user_activity"
-						size="small"
+						size="sm"
 					/>
 				</Box>
 			)}

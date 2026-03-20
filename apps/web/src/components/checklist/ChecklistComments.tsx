@@ -3,19 +3,11 @@ import {
 	badgeClasses,
 	Box,
 	ClickAwayListener,
-	Collapse,
-	Divider,
 	IconButton,
 	InputAdornment,
-	Skeleton,
 	Stack,
 	TextField,
-	Typography,
-} from '@mui/material';
-import AddCircle from '@mui/icons-material/AddCircle';
-import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import SmsOutlined from '@mui/icons-material/SmsOutlined';
+	Typography} from '@mui/material';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import Comments from '../common/Comments';
 import { useState } from 'react';
@@ -25,6 +17,10 @@ import BasicButtonStyled from '../common/BasicButtonStyled';
 import config from '@/config/config';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { TreeNode } from '@/types/types';
+import { IconChevronLeft, IconChevronRight, IconCirclePlus, IconMessage } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+import Collapse from '@/components/ui/Collapse';
+import Divider from '@/components/ui/Divider';
 
 const limit = 30;
 const pageSize = 3;
@@ -92,15 +88,15 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 						buttonProps={{
 							onClick: () => setShowNewComment(true),
 						}}
-						icon={<SmsOutlined sx={{ transform: 'scaleX(-1)' }} />}
+						icon={<IconMessage style={{ transform: 'scaleX(-1)' }} />}
 						tooltipProps={{ title: 'New comment' }}
 					/>
 				)}
 			</Box>
 
-			<Divider flexItem sx={{ margin: '0px 10px' }} />
+			<Divider />
 
-			<Collapse in={showNewComment} unmountOnExit sx={{ width: '100%' }}>
+			<Collapse open={showNewComment}>
 				<ClickAwayListener onClickAway={closeNewComment}>
 					<Stack
 						width="100%"
@@ -130,7 +126,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 													onClick: () => addComment().catch(console.error),
 													disabled: !newComment || isPending,
 												}}
-												icon={<AddCircle />}
+												icon={<IconCirclePlus size={20} />}
 												tooltipProps={{ title: 'Add comment' }}
 											/>
 										</InputAdornment>
@@ -161,7 +157,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				{isFetching ? (
 					<Stack width="100%" spacing={1.5} p={1.5}>
 						{[1, 2, 3].map((i) => (
-							<Skeleton key={i} variant="rounded" height={50} />
+							<Skeleton key={i} variant="rect" height={50} />
 						))}
 					</Stack>
 				) : (
@@ -183,13 +179,13 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 
 			<Box width="100%" height={40} display="flex" justifyContent="center" alignItems="center" padding="5px 10px">
 				<IconButton onClick={() => updatePage(-1)} disabled={isFetching || (page === 0 && commentOffset === 0)}>
-					<KeyboardArrowLeft />
+					<IconChevronLeft size={20} />
 				</IconButton>
 				<IconButton
 					onClick={() => updatePage(1)}
 					disabled={isFetching || commentOffset + page + pageSize >= data.count}
 				>
-					<KeyboardArrowRight />
+					<IconChevronRight size={20} />
 				</IconButton>
 			</Box>
 		</Stack>

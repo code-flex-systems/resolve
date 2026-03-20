@@ -1,15 +1,15 @@
 'use client';
 
-import { Badge, Box, Skeleton, Typography } from '@mui/material';
+import { Badge, Box, Typography } from '@mui/material';
 import { CalendarIcon, DateCalendar, PickersDay, PickersDayProps } from '@mui/x-date-pickers-pro';
 import { Deadline, useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
 import { DeadlineStatus } from '@/config/enums';
-import theme, { containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import { useMemo, useState, useEffect } from 'react';
-import AccessTime from '@mui/icons-material/AccessTime';
-import Warning from '@mui/icons-material/Warning';
 import dayjs, { Dayjs } from 'dayjs';
 import DailyEventsList from './DailyEventsList';
+import { IconAlertTriangle, IconClock } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function MyDeadlinesMetric() {
 	// Calendar state
@@ -118,7 +118,7 @@ export default function MyDeadlinesMetric() {
 						fontSize: 10,
 						height: 16,
 						minWidth: 16,
-						backgroundColor: theme.palette.error.light,
+						backgroundColor: 'var(--status-error)',
 						color: 'white',
 					},
 				}}
@@ -135,7 +135,7 @@ export default function MyDeadlinesMetric() {
 					sx={{
 						cursor: 'pointer',
 						'&:hover': {
-							backgroundColor: theme.palette.action.hover,
+							backgroundColor: 'var(--bg-tertiary)',
 						},
 					}}
 				/>
@@ -158,7 +158,7 @@ export default function MyDeadlinesMetric() {
 			</Typography>
 			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				{isLoading ? (
-					<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 1 }} />
+					<Skeleton variant="rect" width="100%" height="100%" />
 				) : (
 					<>
 						{/* Overdue/Upcoming Stats */}
@@ -172,9 +172,9 @@ export default function MyDeadlinesMetric() {
 									width={40}
 									height={40}
 									borderRadius="50%"
-									bgcolor={theme.palette.error.light}
+									bgcolor={'var(--status-error)'}
 								>
-									<Warning sx={{ color: 'white', fontSize: 22 }} />
+									<IconAlertTriangle size={20} style={{ color: 'white', fontSize: 22 }} />
 								</Box>
 								<Box>
 									<Typography variant="h5" fontSize={24} fontWeight={700} color="error">
@@ -195,9 +195,9 @@ export default function MyDeadlinesMetric() {
 									width={40}
 									height={40}
 									borderRadius="50%"
-									bgcolor={theme.palette.warning.light}
+									bgcolor={'var(--status-warning)'}
 								>
-									<AccessTime sx={{ color: 'white', fontSize: 22 }} />
+									<IconClock size={20} style={{ color: 'white', fontSize: 22 }} />
 								</Box>
 								<Box>
 									<Typography variant="h5" fontSize={24} fontWeight={700} color="warning.main">

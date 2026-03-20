@@ -1,5 +1,5 @@
 'use client';
-import { Box, ClickAwayListener, Fade, Popper, PopperProps } from '@mui/material';
+import { ClickAwayListener, Fade, Popper, PopperProps } from '@mui/material';
 import { PropsWithChildren } from 'react';
 
 export default function BasicPopper(
@@ -24,7 +24,7 @@ export default function BasicPopper(
 			>
 				{({ TransitionProps }) => (
 					<Fade {...TransitionProps} timeout={350}>
-						<Box>{props.children}</Box>
+						<div>{props.children}</div>
 					</Fade>
 				)}
 			</Popper>

@@ -2,6 +2,7 @@
 
 import BasicDialog from '@/components/common/BasicDialog';
 import ClaimSummary from './ClaimSummary';
+import { Dialog } from '@mui/material';
 
 interface ClaimSummaryDialogProps {
 	claimId: number | null;

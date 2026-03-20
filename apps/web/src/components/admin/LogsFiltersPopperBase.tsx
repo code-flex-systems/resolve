@@ -1,13 +1,12 @@
 'use client';
-
+import { PopperProps } from '@mui/material';
+import Card from '@/components/ui/Card';
 import { ReactNode } from 'react';
-import { Box, Paper, PopperProps, Typography } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import BasicPopper from '@/components/common/BasicPopper';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDateRangePicker from '@/components/common/BasicDateRangePicker';
 import UserFilter from '@/components/common/UserFilter';
-import { TEXT_MUTED } from '@/styles/theme';
 import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import AdminLogsEntityFilter from '@/components/admin/AdminLogsEntityFilter';
@@ -43,15 +42,15 @@ export default function LogsFiltersPopperBase({
 
 	return (
 		<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
-			<Paper sx={[styles.filtersPaper, { minWidth }]}>
-				<Typography fontSize={14} fontWeight={600} marginBottom={2}>
+			<div style={{ ...styles.filtersPaper, minWidth }}>
+				<span style={{ fontSize: 14, fontWeight: 600 }}>
 					{title}
-				</Typography>
-				<Box display="flex" flexDirection="column" gap={1}>
-					<Box>
-						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
+				</span>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+					<div>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 							Date Range
-						</Typography>
+						</span>
 						<BasicDateRangePicker
 							key={`${draftRange[0]?.toISOString() ?? 'start'}-${draftRange[1]?.toISOString() ?? 'end'}`}
 							defaultLabel="Select a range"
@@ -60,17 +59,17 @@ export default function LogsFiltersPopperBase({
 							clearable={true}
 							height={32}
 						/>
-					</Box>
-					<Box>
-						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
+					</div>
+					<div>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 							Entity
-						</Typography>
+						</span>
 						<AdminLogsEntityFilter value={draftEntity} onChange={setDraftEntity} height={32} />
-					</Box>
-					<Box>
-						<Typography fontSize={12} color={TEXT_MUTED} marginBottom={0.5}>
+					</div>
+					<div>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 							User
-						</Typography>
+						</span>
 						<UserFilter
 							users={draftUsers}
 							setUsers={setDraftUsers}
@@ -79,9 +78,9 @@ export default function LogsFiltersPopperBase({
 							width="100%"
 							height={32}
 						/>
-					</Box>
+					</div>
 					{children}
-					<Box display="flex" justifyContent="flex-end">
+					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: onApply,
@@ -90,9 +89,9 @@ export default function LogsFiltersPopperBase({
 						>
 							Apply filters
 						</BasicButtonStyled>
-					</Box>
-				</Box>
-			</Paper>
+					</div>
+				</div>
+			</div>
 		</BasicPopper>
 	);
 }

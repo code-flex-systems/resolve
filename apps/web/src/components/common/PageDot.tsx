@@ -1,21 +1,16 @@
 'use client';
-import { Box } from '@mui/material';
 import { useState } from 'react';
+import styles from './PageDot.module.css';
 
 export default function PageDot(props: { id: number; onClick: () => void; filled?: boolean; disabled?: boolean }) {
 	const [hovered, setHovered] = useState(false);
+	const isFilled = props.filled || props.disabled || hovered;
 	return (
-		<Box
-			sx={{
+		<div
+			className={`${styles.dot} ${isFilled ? styles.active : styles.inactive} ${!props.disabled ? styles.clickable : ''}`}
+			style={{
 				width: props.disabled ? 5 : 10,
 				height: props.disabled ? 5 : 10,
-				m: 0.5,
-				borderRadius: 25,
-				border: '1px solid',
-				borderColor: 'primary.main',
-				bgcolor: props.filled || props.disabled || hovered ? 'primary.main' : '#ffffff',
-				transition: 'background-color 300ms ease, width 300ms ease, height 100ms ease',
-				cursor: props.disabled ? undefined : 'pointer',
 			}}
 			onClick={props.disabled ? undefined : props.onClick}
 			onMouseEnter={props.disabled ? undefined : () => setHovered(true)}

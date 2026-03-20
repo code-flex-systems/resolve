@@ -8,18 +8,15 @@ import {
 	Stepper,
 	styled,
 	Typography,
-	Skeleton,
-	Tooltip,
-} from '@mui/material';
+	Tooltip} from '@mui/material';
 import { useState, useEffect } from 'react';
-import CalendarToday from '@mui/icons-material/CalendarToday';
-import Check from '@mui/icons-material/Check';
-import Event from '@mui/icons-material/Event';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { getCurrentFiscalQuarter } from '@/lib/utils/utils';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import { getFiscalYearStart } from '@/config/config';
+import { IconCalendar, IconCheck } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
 
 const steps: { value: number; label: string }[] = [
 	{ value: 1, label: 'Q1' },
@@ -73,11 +70,11 @@ function IconContainer({ active, index }: { active: number; index: number }) {
 			borderRadius={20}
 		>
 			{index === active ? (
-				<Event sx={{ color: 'white', fontSize: 17 }} />
+				<IconCalendar size={20} style={{ color: 'white', fontSize: 17 }} />
 			) : index < active ? (
-				<Check sx={{ color: 'white', fontSize: 17 }} />
+				<IconCheck size={20} style={{ color: 'white', fontSize: 17 }} />
 			) : (
-				<CalendarToday sx={{ color: 'white', fontSize: 17 }} />
+				<IconCalendar size={20} style={{ color: 'white', fontSize: 17 }} />
 			)}
 		</Box>
 	);
@@ -138,7 +135,7 @@ export default function FQStepper() {
 								<Typography
 									fontSize={15}
 									fontWeight={i === active ? 700 : 500}
-									color={i <= active ? theme.palette.secondary.main : BASE_COLOR_LIGHT}
+									color={i <= active ? 'var(--text-accent)' : BASE_COLOR_LIGHT}
 								>
 									{label}
 								</Typography>
@@ -150,7 +147,7 @@ export default function FQStepper() {
 											fontSize={i === active ? 15 : 13}
 											fontWeight={i === active ? 600 : 400}
 											color={
-												i <= active ? theme.palette.text.primary : theme.palette.text.disabled
+												i <= active ? 'var(--text-primary)' : 'var(--text-muted)'
 											}
 											sx={{ cursor: 'help' }}
 										>

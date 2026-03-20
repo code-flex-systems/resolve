@@ -3,10 +3,9 @@
 import { trpc } from '@/lib/trpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Box, Chip, Paper, PopperProps, TextField } from '@mui/material';
+import { Autocomplete, Chip, Paper, PopperProps, TextField } from '@mui/material';
 import BasicPopper from './BasicPopper';
-import theme from '@/styles/theme';
-import People from '@mui/icons-material/People';
+import { IconUsers } from '@tabler/icons-react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { StackedRow } from './StackedRow';
 
@@ -47,18 +46,20 @@ export default function UserFilter({
 
 	return (
 		<>
-			<Box
-				width={width}
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="center"
-				padding={padding}
-				flexWrap="wrap"
-				overflow="auto"
+			<div
+				style={{
+					width,
+					display: 'flex',
+					justifyContent: 'flex-start',
+					alignItems: 'center',
+					padding,
+					flexWrap: 'wrap',
+					overflow: 'auto',
+				}}
 			>
 				<Chip
 					label={users.length ? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}` : text}
-					icon={<People />}
+					icon={<IconUsers size={20} />}
 					onClick={(e) => {
 						setAnchorEl(e.currentTarget);
 						e.preventDefault();
@@ -69,10 +70,10 @@ export default function UserFilter({
 						minWidth: 135,
 						height,
 						'& .MuiChip-icon': {
-							color: users.length ? theme.palette.primary.main : undefined,
+							color: users.length ? 'var(--text-accent)' : undefined,
 						},
 						'& .MuiChip-label': {
-							color: users.length ? theme.palette.primary.main : undefined,
+							color: users.length ? 'var(--text-accent)' : undefined,
 						},
 					}}
 				/>
@@ -85,21 +86,21 @@ export default function UserFilter({
 							setUsers(newUsers);
 						}}
 						sx={{
-							...styles.chip,
+							margin: '5px 0px',
 							marginLeft: '5px',
 							height,
 							'& .MuiChip-label': {
-								color: theme.palette.primary.main,
+								color: 'var(--text-accent)',
 							},
 						}}
 					/>
 				))}
-			</Box>
+			</div>
 
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start">
 					<Paper sx={styles.paper}>
-						<Box display="flex" justifyContent="center" alignItems="center" padding="5px">
+						<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5 }}>
 							<Autocomplete
 								multiple
 								value={users}
@@ -141,7 +142,7 @@ export default function UserFilter({
 									...styles.textFieldOverrides,
 								}}
 							/>
-						</Box>
+						</div>
 					</Paper>
 				</BasicPopper>
 			)}
@@ -150,9 +151,6 @@ export default function UserFilter({
 }
 
 const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
 	paper: {
 		mt: 0.625,
 	},

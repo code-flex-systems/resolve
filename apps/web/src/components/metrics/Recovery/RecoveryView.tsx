@@ -1,7 +1,6 @@
 'use client';
 
-import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
-import ArrowBack from '@mui/icons-material/ArrowBack';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import { useMemo, useState } from 'react';
 import { DateRange } from '@mui/x-date-pickers-pro';
@@ -18,6 +17,8 @@ import RecoverySourceFilter from '@/components/common/RecoverySourceFilter';
 import RecoveryMetricsChart from './RecoveryMetricsChart';
 import RecoveryEventsTable from './RecoveryEventsTable';
 import TopPerformersSection from './TopPerformersSection';
+import Divider from '@/components/ui/Divider';
+import { IconArrowLeft } from '@tabler/icons-react';
 
 dayjs.extend(quarterOfYear);
 dayjs.extend(utc);

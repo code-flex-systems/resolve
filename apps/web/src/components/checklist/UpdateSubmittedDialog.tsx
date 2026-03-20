@@ -1,8 +1,8 @@
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import BasicDialog from '../common/BasicDialog';
 import { Box, Paper, Typography } from '@mui/material';
-import Warning from '@mui/icons-material/Warning';
 import { BASE_COLOR } from '@/styles/theme';
+import { IconAlertTriangle } from '@tabler/icons-react';
 
 export default function UpdateSubmittedDialog() {
 	const updateSubmittedDialogAction = useChecklistStore((state) => state.updateSubmittedDialogAction);
@@ -30,7 +30,7 @@ export default function UpdateSubmittedDialog() {
 		>
 			<Paper elevation={0} sx={styles.paper}>
 				<Box display="flex" justifyContent="flex-start" alignItems="center">
-					<Warning sx={{ color: BASE_COLOR }} />
+					<IconAlertTriangle size={20} style={{ color: BASE_COLOR }} />
 					<Typography fontSize={15} marginLeft="15px">
 						Making changes to the checklist will cancel your submission and return the claim to in-progress.
 					</Typography>

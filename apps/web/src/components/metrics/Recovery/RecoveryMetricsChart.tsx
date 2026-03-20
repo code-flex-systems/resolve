@@ -1,15 +1,16 @@
 'use client';
 import { LineChart } from '@mui/x-charts-pro';
-import theme, { containerStyles } from '@/styles/theme';
-import { Box, Card, CardContent, Grid, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { containerStyles } from '@/styles/theme';
+import { Box, Card, CardContent, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import BasicButtonStyled from '../../common/BasicButtonStyled';
-import Troubleshoot from '@mui/icons-material/Troubleshoot';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
 import { DateRange } from '@mui/x-date-pickers-pro';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconBug } from '@tabler/icons-react';
 
 export default function RecoveryMetricsChart({
 	range,
@@ -128,10 +129,10 @@ export default function RecoveryMetricsChart({
 									onClick: () => router.push('/admin/financial/recovery'),
 								}}
 								icon={
-									<Troubleshoot
-										sx={{
+									<IconBug
+									 style={{
 											transform: 'scaleX(-1)',
-											color: theme.palette.primary.main,
+											color: 'var(--text-accent)',
 										}}
 									/>
 								}
@@ -144,11 +145,11 @@ export default function RecoveryMetricsChart({
 				{isLoading && (
 					<Stack width="100%" spacing={2}>
 						<Stack direction="row" spacing={spacing}>
-							<Skeleton variant="rounded" width="33%" height={80} />
-							<Skeleton variant="rounded" width="33%" height={80} />
-							<Skeleton variant="rounded" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
 						</Stack>
-						<Skeleton variant="rounded" width="100%" height={chartHeight} />
+						<Skeleton variant="rect" width="100%" height={chartHeight} />
 					</Stack>
 				)}
 
@@ -272,7 +273,7 @@ export default function RecoveryMetricsChart({
 									{
 										data: expectedData,
 										label: 'Expected',
-										color: theme.palette.primary.main,
+										color: 'var(--text-accent)',
 										curve: 'linear',
 										valueFormatter: (value: number | null) =>
 											value !== null
@@ -282,7 +283,7 @@ export default function RecoveryMetricsChart({
 									{
 										data: actualData,
 										label: 'Actual',
-										color: theme.palette.success.main,
+										color: 'var(--status-success)',
 										curve: 'linear',
 										valueFormatter: (value: number | null) =>
 											value !== null

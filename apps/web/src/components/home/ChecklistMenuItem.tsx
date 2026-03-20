@@ -1,13 +1,10 @@
 'use client';
-import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Checklist from '@mui/icons-material/Checklist';
-import Description from '@mui/icons-material/Description';
-import { Box, Divider, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
+import { Box, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { formatMDYAbv } from '@/lib/utils/utils';
 import { Checklist as ChecklistType } from '@/types/types';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
-import theme from '@/styles/theme';
+import { IconChecklist, IconCircleCheck, IconClockFilled, IconFileDescription } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 export default function ChecklistMenuItem(props: {
 	checklist: ChecklistType | null;
@@ -33,26 +30,26 @@ export default function ChecklistMenuItem(props: {
 				>
 					<Box sx={styles.menuItemInner} className="flex-row-left">
 						<Box display="flex" alignItems="center" width={200} overflow="hidden">
-							<Checklist sx={{ ...styles.icon, color: theme.palette.primary.main }} />
+							<IconChecklist style={{ ...styles.icon, color: 'var(--text-accent)' }} />
 							<Typography fontSize={13} fontWeight="bold" color="primary" textOverflow="ellipsis" noWrap>
 								{checklist?.name}
 							</Typography>
 						</Box>
 						<Box display="flex" alignItems="center" width={90} overflow="hidden" margin="0px 10px">
-							<Description sx={styles.icon} />
+							<IconFileDescription style={styles.icon} />
 							<Typography fontSize={13} textOverflow="ellipsis" noWrap>
 								{checklist?.page_count?.toLocaleString() ?? '0'} pages
 							</Typography>
 						</Box>
 						<Box display="flex" alignItems="center" overflow="hidden" marginLeft="10px">
-							<AccessTimeFilled sx={styles.icon} />
+							<IconClockFilled style={styles.icon} />
 							<Typography fontSize={13} textOverflow="ellipsis" noWrap>
 								{formatMDYAbv(checklist?.updated_at?.toString())}
 							</Typography>
 						</Box>
 					</Box>
 					<Box className="flex-row-right">
-						{selected ? <CheckCircle sx={{ color: 'primary.main', marginLeft: '10px' }} /> : <></>}
+						{selected ? <IconCircleCheck size={20} style={{ color: 'primary.main', marginLeft: '10px' }} /> : <></>}
 					</Box>
 				</MenuItem>
 			</Paper>

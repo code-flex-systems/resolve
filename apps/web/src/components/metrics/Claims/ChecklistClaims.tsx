@@ -236,7 +236,7 @@ export default function ChecklistClaims({
 							}}
 							columns={csvColumns}
 							filename="checklist_claims"
-							size="small"
+							size="sm"
 						/>
 					</Box>
 				</Box>

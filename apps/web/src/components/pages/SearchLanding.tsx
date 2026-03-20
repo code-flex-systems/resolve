@@ -6,7 +6,7 @@ import ClaimsSearch from '@/components/home/ClaimsSearch';
 import ClaimSummaryDialog from '@/components/admin/ClaimSummaryDialog';
 import ChecklistSelectionDialog from '@/components/common/ChecklistSelectionDialog';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import theme, { BG_TERTIARY, BORDER_COLOR } from '@/styles/theme';
+import { BG_TERTIARY, BORDER_COLOR } from '@/styles/theme';
 
 /**
  * Landing page with hero search

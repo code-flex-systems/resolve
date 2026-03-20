@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Box, FormControl, MenuItem, Select, SelectChangeEvent, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, FormControl, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import { useDeadlineTrpc, Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 import { useRouter } from 'next/navigation';
-import theme, { containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import { DeadlineStatus } from '@/config/enums';
 import { CalendarIcon } from '@mui/x-date-pickers-pro';
+import Skeleton from '@/components/ui/Skeleton';
 
 type DeadlineFilter = 'all' | 'pending' | 'completed' | 'overdue';
 
@@ -75,9 +76,9 @@ export default function MyClaimsDeadlines() {
 			<Box sx={containerStyles.sectionContent}>
 				{isLoading ? (
 					<Stack spacing={1}>
-						<Skeleton variant="rectangular" height={40} />
-						<Skeleton variant="rectangular" height={60} />
-						<Skeleton variant="rectangular" height={60} />
+						<Skeleton variant="rect" height={40} />
+						<Skeleton variant="rect" height={60} />
+						<Skeleton variant="rect" height={60} />
 					</Stack>
 				) : (
 					<>
@@ -144,14 +145,14 @@ const styles = {
 			width: '6px',
 		},
 		'&::-webkit-scrollbar-track': {
-			background: theme.palette.action.hover,
+			background: 'var(--bg-tertiary)',
 			borderRadius: '3px',
 		},
 		'&::-webkit-scrollbar-thumb': {
-			background: theme.palette.action.selected,
+			background: 'var(--bg-secondary)',
 			borderRadius: '3px',
 			'&:hover': {
-				background: theme.palette.action.disabled,
+				background: 'var(--bg-tertiary)',
 			},
 		},
 	},

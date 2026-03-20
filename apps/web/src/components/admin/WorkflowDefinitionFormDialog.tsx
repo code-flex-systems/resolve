@@ -1,7 +1,6 @@
 'use client';
-
 import { useState, useEffect } from 'react';
-import { Box, TextField } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
 import BasicDialog from '@/components/common/BasicDialog';
 import DeskLocationTypeSelect from '@/components/common/DeskLocationTypeSelect';
 import DeskLocationSelect from '@/components/common/DeskLocationSelect';
@@ -65,8 +64,8 @@ export default function WorkflowDefinitionFormDialog({
 			secondaryActions={[{ label: 'Cancel', onClick: onClose }]}
 			width={600}
 		>
-			<Box display="flex" flexDirection="column" gap={2} pt={1}>
-				<TextField
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+				<Input
 					label="Workflow Name"
 					value={formData.name}
 					onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -76,12 +75,11 @@ export default function WorkflowDefinitionFormDialog({
 					autoFocus
 				/>
 
-				<TextField
+				<Textarea
 					label="Description"
 					value={formData.description}
 					onChange={(e) => setFormData({ ...formData, description: e.target.value })}
 					fullWidth
-					multiline
 					rows={3}
 					placeholder="Optional description of this workflow..."
 				/>
@@ -102,7 +100,7 @@ export default function WorkflowDefinitionFormDialog({
 					label="Desk Location"
 					fullWidth
 				/>
-			</Box>
+			</div>
 		</BasicDialog>
 	);
 }

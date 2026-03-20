@@ -1,11 +1,7 @@
 'use client';
 
-import { Box, Fade, Paper, Stack, Typography } from '@mui/material';
+import { Box, Paper, Stack, Typography , Fade } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import Handshake from '@mui/icons-material/Handshake';
-import PlayCircle from '@mui/icons-material/PlayCircle';
-import StopCircle from '@mui/icons-material/StopCircle';
-import Warning from '@mui/icons-material/Warning';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { BASE_COLOR, containerStyles } from '@/styles/theme';
@@ -18,6 +14,7 @@ import { DialogAction } from '@/types/types';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import ChecklistProgress from './ChecklistProgress';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconAlertTriangle, IconHandStop, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react';
 
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
@@ -97,12 +94,12 @@ export default function ChecklistProgressDialog() {
 					label: "I'm blocked",
 					onClick: () => setConfirmingStatus(ClaimStatus.BLOCKED),
 					color: 'error',
-					icon: <StopCircle />,
+					icon: <IconPlayerStop size={20} />,
 				},
 				{
 					label: 'Hand off',
 					onClick: toggleChecklistHandoffDialog,
-					icon: <Handshake />,
+					icon: <IconHandStop size={20} />,
 				},
 			];
 		}
@@ -111,7 +108,7 @@ export default function ChecklistProgressDialog() {
 				{
 					label: "I'm unblocked",
 					onClick: () => setConfirmingStatus(ClaimStatus.IN_PROGRESS),
-					icon: <PlayCircle />,
+					icon: <IconPlayerPlay size={20} />,
 				},
 			];
 		}
@@ -171,7 +168,7 @@ export default function ChecklistProgressDialog() {
 
 							{!!confirmingStatus && (
 								<Box display="flex" justifyContent="flex-start" alignItems="center">
-									<Warning sx={{ color: BASE_COLOR }} />
+									<IconAlertTriangle size={20} style={{ color: BASE_COLOR }} />
 									<Stack
 										display="flex"
 										justifyContent="flex-start"

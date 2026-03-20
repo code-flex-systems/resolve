@@ -1,22 +1,16 @@
 'use client';
 
+import { IconBell, IconBellOff, IconClock, IconNetwork, IconPower, IconTowerOff, IconRefresh, IconRss, IconSettings } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
 import { FeedStatus } from '@/config/enums';
-import theme, { TEXT_MUTED, dataGridFocusStyles } from '@/styles/theme';
-import { Box, IconButton, Paper, Tooltip, Typography } from '@mui/material';
+import { dataGridFocusStyles } from '@/styles/theme';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
-import Settings from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
 import { useMemo, useState } from 'react';
-import NetworkCheck from '@mui/icons-material/NetworkCheck';
-import Notifications from '@mui/icons-material/Notifications';
-import NotificationsOff from '@mui/icons-material/NotificationsOff';
-import Power from '@mui/icons-material/Power';
-import PowerOff from '@mui/icons-material/PowerOff';
-import RssFeed from '@mui/icons-material/RssFeed';
-import Schedule from '@mui/icons-material/Schedule';
-import Sync from '@mui/icons-material/Sync';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
@@ -26,11 +20,11 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
 		case FeedStatus.OFFLINE:
-			return theme.palette.error.main;
+			return 'var(--status-error)';
 		case FeedStatus.ONLINE:
-			return theme.palette.success.light;
+			return 'var(--status-success)';
 		case FeedStatus.MUTED:
-			return theme.palette.warning.light;
+			return 'var(--status-warning-bg)';
 	}
 };
 
@@ -46,7 +40,7 @@ const formatStatus = (status: FeedStatus) => {
 };
 
 function NoRows() {
-	return <CustomNoRowsOverlay text="No feeds found" icon={<RssFeed sx={{ fontSize: 35, color: TEXT_MUTED }} />} />;
+	return <CustomNoRowsOverlay text="No feeds found" icon={<IconRss size={35} style={{ color: 'var(--text-muted)' }} />} />;
 }
 
 interface FeedActionsCellProps {
@@ -62,31 +56,27 @@ interface FeedActionsCellProps {
 function FeedActionsCell({ row, mutate, isPending, isManageMode }: FeedActionsCellProps) {
 	if (!isManageMode) return null;
 	return (
-		<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+		<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 			<Tooltip
-				title={row.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
-				enterDelay={500}
-				arrow
+				content={row.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
 			>
 				<span>
-					<IconButton disabled={row.status === FeedStatus.OFFLINE || isPending} size="small">
-						<NetworkCheck fontSize="small" />
-					</IconButton>
+					<Button variant="icon" disabled={row.status === FeedStatus.OFFLINE || isPending} size="sm">
+						<IconNetwork size={20} />
+					</Button>
 				</span>
 			</Tooltip>
 			<Tooltip
-				title={
+				content={
 					row.status === FeedStatus.OFFLINE
 						? 'Feed is offline'
 						: row.status === FeedStatus.MUTED
 							? 'Unmute'
 							: 'Mute'
 				}
-				enterDelay={500}
-				arrow
 			>
 				<span>
-					<IconButton
+					<Button variant="icon"
 						onClick={() =>
 							mutate({
 								id: row.id,
@@ -96,19 +86,19 @@ function FeedActionsCell({ row, mutate, isPending, isManageMode }: FeedActionsCe
 							})
 						}
 						disabled={row.status === FeedStatus.OFFLINE || isPending}
-						size="small"
+						size="sm"
 					>
 						{row.status === FeedStatus.MUTED ? (
-							<Notifications fontSize="small" />
+							<IconBell size={20} />
 						) : (
-							<NotificationsOff fontSize="small" />
+							<IconBellOff size={20} />
 						)}
-					</IconButton>
+					</Button>
 				</span>
 			</Tooltip>
-			<Tooltip title={row.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'} enterDelay={500} arrow>
+			<Tooltip content={row.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'}>
 				<span>
-					<IconButton
+					<Button variant="icon"
 						onClick={() =>
 							mutate({
 								id: row.id,
@@ -118,13 +108,13 @@ function FeedActionsCell({ row, mutate, isPending, isManageMode }: FeedActionsCe
 							})
 						}
 						disabled={isPending}
-						size="small"
+						size="sm"
 					>
-						{row.status === FeedStatus.OFFLINE ? <Power fontSize="small" /> : <PowerOff fontSize="small" />}
-					</IconButton>
+						{row.status === FeedStatus.OFFLINE ? <IconPower size={20} /> : <IconTowerOff size={20} />}
+					</Button>
 				</span>
 			</Tooltip>
-		</Box>
+		</div>
 	);
 }
 
@@ -156,41 +146,41 @@ export default function Feeds() {
 			width: 130,
 			renderHeader: (params) => <IconHeaderCell {...params} />,
 			renderCell: ({ row }: GridRenderCellParams) => (
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{testing ? (
 						<Ping size="20" speed="2" color={getStatusColor(row.status)} />
 					) : (
-						<Box
-							sx={{
+						<div
+							style={{
 								width: 10,
 								height: 10,
 								borderRadius: '50%',
-								bgcolor: getStatusColor(row.status),
+								backgroundColor: getStatusColor(row.status),
 							}}
 						/>
 					)}
-					<Typography fontSize={13}>{formatStatus(row.status)}</Typography>
-				</Box>
+					<span style={{ fontSize: 13 }}>{formatStatus(row.status)}</span>
+				</div>
 			),
 		},
 		{
 			headerName: 'Schedule',
 			field: 'schedule',
 			width: 150,
-			renderHeader: (params) => <IconHeaderCell {...params} icon={<Schedule sx={{ color: TEXT_MUTED }} />} />,
+			renderHeader: (params) => <IconHeaderCell {...params} icon={<IconClock style={{ color: 'var(--text-muted)' }} />} />,
 			renderCell: ({ row }: GridRenderCellParams) => (
-				<Typography fontSize={13}>
+				<span style={{ fontSize: 13 }}>
 					{formatHour(row.schedule)} {row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
-				</Typography>
+				</span>
 			),
 		},
 		{
 			headerName: 'Last Synced',
 			field: 'last_synced_at',
 			width: 150,
-			renderHeader: (params) => <IconHeaderCell {...params} icon={<Sync sx={{ color: TEXT_MUTED }} />} />,
+			renderHeader: (params) => <IconHeaderCell {...params} icon={<IconRefresh style={{ color: 'var(--text-muted)' }} />} />,
 			renderCell: ({ row }: GridRenderCellParams) => (
-				<Typography fontSize={13}>{formatMDYAbv(row.last_synced_at?.toString())}</Typography>
+				<span style={{ fontSize: 13 }}>{formatMDYAbv(row.last_synced_at?.toString())}</span>
 			),
 		},
 		{
@@ -207,10 +197,10 @@ export default function Feeds() {
 	];
 
 	return (
-		<Box sx={{ width: '100%', height: '100%' }}>
-			<Paper sx={{ width: '100%', height: '100%', p: 2 }}>
+		<div style={{ width: '100%', height: '100%' }}>
+			<div style={{ width: '100%', height: '100%', padding: 16 }}>
 				<Toolbar
-					left={<Typography variant="h6">Feeds</Typography>}
+					left={<span>Feeds</span>}
 					right={
 						<>
 							<BasicButtonStyled
@@ -218,24 +208,23 @@ export default function Feeds() {
 									onClick: onTest,
 									disabled: testing || !feeds.length,
 								}}
-								icon={<NetworkCheck />}
+								icon={<IconNetwork size={20} />}
 								tooltipProps={{ title: 'Test all connections' }}
 							/>
-							<Tooltip title="Manage">
-								<IconButton
-									size="small"
+							<Tooltip content="Manage">
+								<Button variant="icon" size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
-									sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 								>
-									<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-								</IconButton>
+									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</Button>
 							</Tooltip>
 						</>
 					}
 					height={50}
 					padding={0}
 				/>
-				<Box sx={{ height: 'calc(100% - 60px)', width: '100%' }}>
+				<div style={{ height: 'calc(100% - 60px)', width: '100%' }}>
 					<DataGridPro
 						rows={feeds}
 						columns={columns}
@@ -246,13 +235,13 @@ export default function Feeds() {
 						slots={{
 							noRowsOverlay: NoRows,
 						}}
-						sx={{
+						style={{
 							border: 'none',
 							...dataGridFocusStyles,
 						}}
 					/>
-				</Box>
-			</Paper>
-		</Box>
+				</div>
+			</div>
+		</div>
 	);
 }

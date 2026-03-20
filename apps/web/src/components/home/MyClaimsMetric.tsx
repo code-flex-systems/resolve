@@ -1,10 +1,11 @@
 'use client';
 
-import { Box, Chip, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Chip, Stack, Typography } from '@mui/material';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { ClaimStatus } from '@/config/enums';
-import theme, { containerStyles, ORANGE } from '@/styles/theme';
+import { containerStyles, ORANGE } from '@/styles/theme';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function MyClaimsMetric() {
 	const { data: session } = useClerkSession();
@@ -21,7 +22,7 @@ export default function MyClaimsMetric() {
 			<Typography sx={containerStyles.sectionTitle}>My Open Claims</Typography>
 			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 				{isLoading ? (
-					<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 1 }} />
+					<Skeleton variant="rect" width="100%" height="100%" />
 				) : (
 					<Stack width="100%" height="100%" spacing={2}>
 						{/* Main Count */}
@@ -41,7 +42,7 @@ export default function MyClaimsMetric() {
 								size="small"
 								sx={{
 									border: 'none',
-									backgroundColor: theme.palette.warning.light,
+									backgroundColor: 'var(--status-warning)',
 									color: 'white',
 									fontSize: 12,
 									'& .MuiChip-label': {
@@ -67,7 +68,7 @@ export default function MyClaimsMetric() {
 								size="small"
 								sx={{
 									border: 'none',
-									backgroundColor: theme.palette.error.light,
+									backgroundColor: 'var(--status-error)',
 									color: 'white',
 									fontSize: 12,
 									'& .MuiChip-label': {

@@ -1,19 +1,9 @@
 'use client';
-
-import {
-	Box,
-	Skeleton,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Typography,
-} from '@mui/material';
+import Skeleton from '@/components/ui/Skeleton';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import type { RecoverySummaryByCoverage } from '@/hooks/trpc/useRecoveryTrpc';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 
 interface RecoverySummaryTableProps {
 	data: RecoverySummaryByCoverage[];
@@ -62,43 +52,43 @@ export default function RecoverySummaryTable({
 
 	if (isLoading) {
 		return (
-			<Box>
-				<Skeleton variant="rectangular" height={120} />
-			</Box>
+			<div>
+				<Skeleton variant="rect" height={120} />
+			</div>
 		);
 	}
 
 	if (data.length === 0) {
 		return (
-			<Typography fontSize={12} color="text.secondary" fontStyle="italic" textAlign="center" py={2}>
+			<span style={{  fontSize: 12,  color: 'var(--text-secondary)',  fontStyle: 'italic', textAlign: 'center', paddingTop: 16, paddingBottom: 16  }}>
 				No coverage data available
-			</Typography>
+			</span>
 		);
 	}
 
 	return (
 		<TableContainer>
-			<Table size="small" sx={{ '& td, & th': { fontSize: 12, py: 1, px: 1.5 } }}>
+			<Table size="small" style={{ }}>
 				<TableHead>
 					<TableRow>
-						<TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Coverage</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 600, color: 'text.secondary' }}>Amount</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+						<TableCell style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Coverage</TableCell>
+						<TableCell align="right" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Amount</TableCell>
+						<TableCell align="right" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
 							Expected
 							<br />
 							Recovery
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+						<TableCell align="right" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
 							Actual
 							<br />
 							Recovery
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+						<TableCell align="right" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
 							Expected
 							<br />
 							Recovery Balance
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+						<TableCell align="right" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
 							Recovery
 							<br />
 							Rate
@@ -111,7 +101,7 @@ export default function RecoverySummaryTable({
 							<TableCell>{formatCoverageType(row.loss_type)}</TableCell>
 							<TableCell align="right">{formatCurrencyExact(row.amount)}</TableCell>
 							<TableCell align="right">{formatCurrencyExact(row.expectedRecovery)}</TableCell>
-							<TableCell align="right" sx={{ color: 'success.main' }}>
+							<TableCell align="right" style={{ color: 'var(--status-success)' }}>
 								{formatCurrencyExact(row.actualRecovery)}
 							</TableCell>
 							<TableCell align="right">{formatCurrencyExact(row.balance)}</TableCell>
@@ -121,21 +111,21 @@ export default function RecoverySummaryTable({
 						</TableRow>
 					))}
 					{/* Totals row */}
-					<TableRow sx={{ '& td': { borderTop: '2px solid', borderColor: 'divider' } }}>
-						<TableCell sx={{ fontWeight: 700, color: 'primary.main' }}>Totals</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 700 }}>
+					<TableRow style={{ }}>
+						<TableCell style={{ fontWeight: 700, color: 'var(--text-accent)' }}>Totals</TableCell>
+						<TableCell align="right" style={{ fontWeight: 700 }}>
 							{formatCurrencyExact(totals.amount)}
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 700 }}>
+						<TableCell align="right" style={{ fontWeight: 700 }}>
 							{formatCurrencyExact(totals.expectedRecovery)}
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 700, color: 'success.main' }}>
+						<TableCell align="right" style={{ fontWeight: 700, color: 'var(--status-success)' }}>
 							{formatCurrencyExact(totals.actualRecovery)}
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 700 }}>
+						<TableCell align="right" style={{ fontWeight: 700 }}>
 							{formatCurrencyExact(totals.balance)}
 						</TableCell>
-						<TableCell align="right" sx={{ fontWeight: 700 }}>
+						<TableCell align="right" style={{ fontWeight: 700 }}>
 							{totals.expectedRecovery > 0 ? `${Math.round(totalRate)}%` : '—'}
 						</TableCell>
 					</TableRow>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import SearchInput from '@/components/common/SearchInput';
 import { useCallback, useState } from 'react';
@@ -16,6 +16,7 @@ import useDebounce from '@/lib/utils/useDebounce';
 import ClaimFilter from '@/components/common/ClaimFilter';
 import { Claim } from '@/hooks/trpc/useClaimTrpc';
 import { GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
+import Divider from '@/components/ui/Divider';
 
 export default function UserActivityView() {
 	const router = useRouter();

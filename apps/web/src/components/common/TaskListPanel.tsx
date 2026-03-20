@@ -1,14 +1,11 @@
 'use client';
 
-import { Box, Typography, Chip, Stack, Button, CircularProgress, Tooltip, IconButton } from '@mui/material';
+import { Chip, CircularProgress, Tooltip, IconButton } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams, gridClasses } from '@mui/x-data-grid-pro';
-import AddTask from '@mui/icons-material/AddTask';
-import PlayArrow from '@mui/icons-material/PlayArrow';
-import Settings from '@mui/icons-material/Settings';
-import Stop from '@mui/icons-material/Stop';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Cancel from '@mui/icons-material/Cancel';
-import PersonAdd from '@mui/icons-material/PersonAdd';
+import {
+	IconSubtask, IconPlayerPlay, IconSettings, IconPlayerStop,
+	IconCircleCheck, IconX, IconUserPlus,
+} from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
 import { TaskStatus, TaskType } from '@/config/enums';
@@ -16,11 +13,12 @@ import { useAlertStore } from '@/stores/useAlertStore';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
+import Button from '@/components/ui/Button';
 import BasicButtonStyled from './BasicButtonStyled';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskCompletionDialog from './TaskCompletionDialog';
 import TaskCancellationDialog from './TaskCancellationDialog';
-import theme, { dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 
 interface TaskListPanelProps {
 	claimId: number;
@@ -108,10 +106,10 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 				const config = TASK_TYPE_CONFIG[taskType];
 				if (!config) return params.value || '-';
 				return (
-					<Stack direction="row" spacing={1} alignItems="center">
+					<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
 						{config.icon}
-						<Typography variant="body2">{config.label}</Typography>
-					</Stack>
+						<span style={{ fontSize: 14 }}>{config.label}</span>
+					</div>
 				);
 			},
 		},
@@ -137,9 +135,9 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 			headerName: 'Work Units',
 			width: 100,
 			renderCell: (params: GridRenderCellParams) => (
-				<Typography variant="body2">
+				<span style={{ fontSize: 14 }}>
 					{params.value} ({params.value * 5} min)
-				</Typography>
+				</span>
 			),
 		},
 		{
@@ -172,7 +170,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 				const isAssigned = !!task.assigned_to;
 
 				return (
-					<Stack direction="row" spacing={0.5} justifyContent="flex-end" width="100%">
+					<div style={{ display: 'flex', flexDirection: 'row', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
 						{/* Unassigned + PENDING: Assign to Me */}
 						{status === TaskStatus.PENDING && !isAssigned && (
 							<BasicButtonStyled
@@ -181,7 +179,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 									disabled: assigning,
 								}}
 								tooltipProps={{ title: 'Assign task to yourself' }}
-								icon={<PersonAdd sx={{ fontSize: 15, color: theme.palette.primary.main }} />}
+								icon={<IconUserPlus size={15} style={{ color: 'var(--text-accent)' }} />}
 							/>
 						)}
 						{/* Assigned to me + PENDING: Start */}
@@ -192,7 +190,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 									disabled: starting,
 								}}
 								tooltipProps={{ title: 'Start working on this task' }}
-								icon={<PlayArrow sx={{ fontSize: 15, color: theme.palette.primary.main }} />}
+								icon={<IconPlayerPlay size={15} style={{ color: 'var(--text-accent)' }} />}
 							/>
 						)}
 						{/* Assigned to me + PENDING or IN_PROGRESS: Release */}
@@ -203,7 +201,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 									disabled: unassigning,
 								}}
 								tooltipProps={{ title: 'Release task back to queue' }}
-								icon={<Stop sx={{ fontSize: 15, color: theme.palette.warning.main }} />}
+								icon={<IconPlayerStop size={15} style={{ color: 'var(--status-warning)' }} />}
 							/>
 						)}
 						{/* Assigned to me (or admin) + IN_PROGRESS: Complete */}
@@ -213,7 +211,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 									onClick: () => setCompletingTask(task),
 								}}
 								tooltipProps={{ title: 'Mark task as complete' }}
-								icon={<CheckCircle sx={{ fontSize: 15, color: theme.palette.success.main }} />}
+								icon={<IconCircleCheck size={15} style={{ color: 'var(--status-success)' }} />}
 							/>
 						)}
 						{/* Admin only: Cancel (pending or in progress) */}
@@ -223,10 +221,10 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 									onClick: () => setCancellingTask(task),
 								}}
 								tooltipProps={{ title: 'Cancel task' }}
-								icon={<Cancel sx={{ fontSize: 15, color: theme.palette.error.main }} />}
+								icon={<IconX size={15} style={{ color: 'var(--status-error)' }} />}
 							/>
 						)}
-					</Stack>
+					</div>
 				);
 				},
 			});
@@ -237,21 +235,21 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 
 	if (isLoading) {
 		return (
-			<Box display="flex" justifyContent="center" alignItems="center" p={3}>
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
 				<CircularProgress size={24} />
-			</Box>
+			</div>
 		);
 	}
 
 	return (
-		<Box>
-			<Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-				<Typography variant="subtitle1" fontWeight={500}>
+		<div>
+			<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+				<span style={{ fontSize: 16, fontWeight: 500 }}>
 					Tasks ({tasks.length})
-				</Typography>
-				<Stack direction="row" spacing={1} alignItems="center">
+				</span>
+				<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
 					{showCreateButton && (
-						<Button startIcon={<AddTask />} size="small" onClick={() => setShowCreateDialog(true)}>
+						<Button size="sm" variant="text" startIcon={<IconSubtask size={18} />} onClick={() => setShowCreateDialog(true)}>
 							Create Task
 						</Button>
 					)}
@@ -261,16 +259,16 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 							onClick={() => setIsManageMode(!isManageMode)}
 							sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
 						>
-							<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
+							<IconSettings size={18} style={{ color: isManageMode ? 'var(--text-accent)' : undefined }} />
 						</IconButton>
 					</Tooltip>
-				</Stack>
-			</Stack>
+				</div>
+			</div>
 
 			{tasks.length === 0 ? (
-				<Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
+				<p style={{ fontSize: 14, color: 'var(--text-secondary)', textAlign: 'center', padding: '24px 0' }}>
 					No tasks for this claim
-				</Typography>
+				</p>
 			) : (
 				<DataGridPro
 					rows={tasks}
@@ -313,6 +311,6 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 					onCancelled={refetch}
 				/>
 			)}
-		</Box>
+		</div>
 	);
 }

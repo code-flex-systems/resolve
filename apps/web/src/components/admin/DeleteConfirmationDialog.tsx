@@ -1,10 +1,9 @@
 'use client';
 
-import { Typography, Box } from '@mui/material';
+import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
 import BasicDialog from '../common/BasicDialog';
-import DeleteIcon from '@mui/icons-material/Delete';
-import WarningIcon from '@mui/icons-material/Warning';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
+import { Dialog } from '@mui/material';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
 
@@ -38,7 +37,7 @@ export default function DeleteConfirmationDialog({
 			primaryAction={{
 				label: 'Delete',
 				onClick: handleConfirm,
-				icon: <DeleteIcon />,
+				icon: <IconTrash size={20} />,
 				color: 'error',
 			}}
 			secondaryActions={[
@@ -51,70 +50,70 @@ export default function DeleteConfirmationDialog({
 			width={450}
 		>
 			{hasNonEmptyFolders && (
-				<Box
-					sx={{
+				<div
+					style={{
 						display: 'flex',
 						alignItems: 'flex-start',
-						gap: 1,
-						mb: 2,
-						p: 1.5,
-						bgcolor: 'warning.light',
-						borderRadius: 1,
+						gap: 8,
+						marginBottom: 16,
+						padding: 12,
+						backgroundColor: 'var(--status-warning-bg)',
+						borderRadius: 4,
 					}}
 				>
-					<WarningIcon sx={{ color: 'warning.main', mt: 0.5 }} />
-					<Box>
-						<Typography fontSize={13} fontWeight={600} color="warning.dark" mb={0.5}>
+					<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)', marginTop: 4 }} />
+					<div>
+						<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-warning)', display: 'block', marginBottom: 4 }}>
 							Warning: Non-empty folders
-						</Typography>
-						<Typography fontSize={12} color="warning.dark">
+						</span>
+						<span style={{ fontSize: 12, color: 'var(--status-warning)' }}>
 							You are about to delete {docsInFolders} document{docsInFolders !== 1 ? 's' : ''} contained
 							in the selected folder{folders.length !== 1 ? 's' : ''}.
-						</Typography>
-					</Box>
-				</Box>
+						</span>
+					</div>
+				</div>
 			)}
 
-			<Typography fontSize={13} mb={2}>
+			<p style={{ fontSize: 13, marginBottom: 16 }}>
 				Are you sure you want to delete the following items?
-			</Typography>
+			</p>
 
-			<Box mb={2}>
+			<div style={{ marginBottom: 16 }}>
 				{folders.length > 0 && (
-					<Box mb={1}>
-						<Typography fontSize={12} fontWeight={600} color="text.secondary">
+					<div style={{ marginBottom: 8 }}>
+						<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
 							Folders ({folders.length}):
-						</Typography>
-						<Box component="ul" sx={{ m: '4px 0', pl: 2.5 }}>
+						</span>
+						<ul style={{ margin: '4px 0', paddingLeft: 20 }}>
 							{folders.map((folder) => (
 								<li key={folder.data.id}>
-									<Typography fontSize={12}>{folder.data.name}</Typography>
+									<span style={{ fontSize: 12 }}>{folder.data.name}</span>
 								</li>
 							))}
-						</Box>
-					</Box>
+						</ul>
+					</div>
 				)}
 
 				{documents.length > 0 && (
-					<Box>
-						<Typography fontSize={12} fontWeight={600} color="text.secondary">
+					<div>
+						<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
 							Documents ({documents.length}):
-						</Typography>
-						<Box component="ul" sx={{ m: '4px 0', pl: 2.5 }}>
+						</span>
+						<ul style={{ margin: '4px 0', paddingLeft: 20 }}>
 							{documents.map((doc) => (
 								<li key={doc.data.id}>
-									<Typography fontSize={12}>{doc.data.title || doc.data.alias}</Typography>
+									<span style={{ fontSize: 12 }}>{doc.data.title || doc.data.alias}</span>
 								</li>
 							))}
-						</Box>
-					</Box>
+						</ul>
+					</div>
 				)}
-			</Box>
+			</div>
 
-			<Typography fontSize={12} color="error" fontWeight={600}>
+			<span style={{ fontSize: 12, color: 'var(--status-error)', fontWeight: 600 }}>
 				This action cannot be undone.
 				{totalDocs > 0 && ` ${totalDocs} document${totalDocs !== 1 ? 's' : ''} will be permanently deleted.`}
-			</Typography>
+			</span>
 		</BasicDialog>
 	);
 }

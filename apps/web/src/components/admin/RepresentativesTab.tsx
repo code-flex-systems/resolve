@@ -1,19 +1,20 @@
 'use client';
 
+import { IconAlertTriangle, IconSettings, IconSquarePlus, IconUser } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Person from '@mui/icons-material/Person';
-import Warning from '@mui/icons-material/Warning';
-import Settings from '@mui/icons-material/Settings';
 import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -22,6 +23,7 @@ import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import { formatPhoneDisplay } from '@/lib/utils/utils';
 import { formatAddressInline } from '@/schemas/addressSchemas';
+import { Dialog } from '@mui/material';
 
 interface RepresentativesTabProps {
 	isAdminContext?: boolean;
@@ -34,8 +36,8 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 		renderCell: ({ row }) => (
 			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
-					<Tooltip title="Party is archived" placement="right">
-						<Warning sx={{ fontSize: 16, color: 'warning.main' }} />
+					<Tooltip content="Party is archived" position="right">
+						<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 					</Tooltip>
 				)}
 				<span>{row.party_name}</span>
@@ -87,8 +89,8 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 			return (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 					{row.address_deleted_at && (
-						<Tooltip title="Address is archived" placement="right">
-							<Warning sx={{ fontSize: 16, color: 'info.main' }} />
+						<Tooltip content="Address is archived" position="right">
+							<IconAlertTriangle size={16} style={{ color: 'var(--status-info)' }} />
 						</Tooltip>
 					)}
 					<span>{formattedAddress || '—'}</span>
@@ -100,7 +102,7 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): GridColDef[
 	{
 		headerName: 'Primary',
 		field: 'is_primary',
-		renderCell: ({ row }) => (row.is_primary ? <Chip label="Primary" color="primary" size="small" /> : null),
+		renderCell: ({ row }) => (row.is_primary ? <Chip  color="info" size="sm">Primary</Chip> : null),
 		width: 90,
 	},
 	{
@@ -116,7 +118,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No representatives found"
-			icon={<Person sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconUser size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -206,25 +208,25 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading representatives...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
+								<span style={{ marginRight: '20px' }}>
 									Representatives
-								</Typography>
+								</span>
 								{isAdminContext && (
 									<>
 										<Switch
-											size="small"
+											size="sm"
 											checked={showArchivedRepresentatives}
-											onChange={(_, checked) => setParam('archived', checked)}
+											onChange={(checked) => setParam('archived', checked)}
 											color="warning"
-											sx={{ marginLeft: '10px' }}
+											style={{ marginLeft: '10px' }}
 										/>
-										<Typography fontSize={14} fontStyle="italic">
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 											Show Archived Only
-										</Typography>
+										</span>
 									</>
 								)}
 							</>
@@ -245,23 +247,19 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 								/>
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={toggleNewRepresentativeDialog}
-									sx={{ ml: 2 }}
+									style={{ marginLeft: 16 }}
 								>
 									Representative
 								</Button>
-								<Tooltip title="Manage">
-									<IconButton
-										size="small"
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 									>
-										<Settings
-											fontSize="small"
-											sx={{ color: isManageMode ? 'primary.main' : undefined }}
-										/>
-									</IconButton>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
 								</Tooltip>
 							</>
 						}
@@ -297,7 +295,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
-							sx={{
+							style={{
 								...styles.tableOverrides,
 								...dataGridFocusStyles,
 							}}
@@ -308,7 +306,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 					{editingRepresentativeFromUrl && (
 						<RepresentativeDialog representative={editingRepresentativeFromUrl} onClose={handleCloseEditDialog} />
 					)}
-				</Paper>
+				</div>
 			</div>
 		</PageTransitionWrapper>
 	);

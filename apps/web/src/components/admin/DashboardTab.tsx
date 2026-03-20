@@ -1,15 +1,10 @@
 'use client';
 
-import { Box, Collapse, Grid, Paper, Stack, Typography } from '@mui/material';
-import Checklist from '@mui/icons-material/Checklist';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import HorizontalSplit from '@mui/icons-material/HorizontalSplit';
-import People from '@mui/icons-material/People';
-import Replay from '@mui/icons-material/Replay';
-import RssFeed from '@mui/icons-material/RssFeed';
-import Timelapse from '@mui/icons-material/Timelapse';
+import { IconChecklist, IconFileSearch, IconHourglass, IconLayoutRows, IconReload, IconRss, IconUsers } from '@tabler/icons-react';
+import { Grid } from '@mui/material';
+import Card from '@/components/ui/Card';
+import Collapse from '@/components/ui/Collapse';
 import SimpleMetric from '../metrics/SimpleMetric';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, PURPLE, TEXT_MUTED } from '@/styles/theme';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
@@ -66,24 +61,17 @@ export default function DashboardTab() {
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading dashboard...">
-			<Box
-				width="100%"
-				flex={1}
-				display="flex"
-				justifyContent="flex-start"
-				alignContent="flex-start"
-				padding="10px 0px"
-				overflow="auto"
-			>
-				<Box display="flex" justifyContent="flex-start" alignContent="flex-start">
+			<div
+				style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'flex-start', padding: '10px 0px', overflow: 'auto' }}>
+				<div style={{ display: 'flex', justifyContent: 'flex-start' }}>
 					<FQStepper />
-					<Stack display="flex" justifyContent="flex-start" alignContent="flex-start" paddingTop="10px">
+					<div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '10px' }}>
 						<SimpleMetric
 							title="checklists"
 							onClick={() => router.push('/admin/workflow-configuration/checklists')}
 							onSelect={() => onSelect('checklists')}
-							icon={<Checklist sx={styles.simpleMetricIcon} />}
-							color={theme.palette.primary.main}
+							icon={<IconChecklist style={styles.simpleMetricIcon} />}
+							color={'var(--text-accent)'}
 							values={checklistCounts}
 							isLoading={isFetchingChecklists}
 							selected={selected === 'checklists'}
@@ -92,8 +80,8 @@ export default function DashboardTab() {
 							title="claims"
 							onClick={() => router.push('/admin/claims')}
 							onSelect={() => onSelect('claims')}
-							icon={<ContentPasteSearch sx={styles.simpleMetricIcon} />}
-							color={theme.palette.secondary.main}
+							icon={<IconFileSearch style={styles.simpleMetricIcon} />}
+							color={'var(--text-secondary)'}
 							values={claimCounts}
 							isLoading={isFetchingClaims}
 							selected={selected === 'claims'}
@@ -102,8 +90,8 @@ export default function DashboardTab() {
 							title="users"
 							onClick={() => router.push('/admin/user-management/users')}
 							onSelect={() => onSelect('users')}
-							icon={<People sx={styles.simpleMetricIcon} />}
-							color={theme.palette.warning.main}
+							icon={<IconUsers style={styles.simpleMetricIcon} />}
+							color={'var(--status-warning)'}
 							values={userCounts}
 							isLoading={isFetchingUsers}
 							selected={selected === 'users'}
@@ -112,35 +100,29 @@ export default function DashboardTab() {
 							title="feeds"
 							onClick={() => router.push('/admin/claims/feeds')}
 							onSelect={() => onSelect('feeds')}
-							icon={<RssFeed sx={styles.simpleMetricIcon} />}
-							color={PURPLE}
+							icon={<IconRss style={styles.simpleMetricIcon} />}
+							color={'#9c27b0'}
 							values={feedCounts}
 							isLoading={isFetchingFeedCounts}
 							selected={selected === 'feeds'}
 						/>
-					</Stack>
+					</div>
 					<Grid container marginTop="20px" alignContent="flex-start">
 						<Grid>
-							<Paper elevation={0} sx={styles.paper}>
-								<Typography fontSize={13} color={TEXT_MUTED} paddingTop="10px" paddingLeft="10px">
+							<div style={styles.paper}>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: '10px', paddingLeft: '10px' }}>
 									Quick Actions
-								</Typography>
-								<Box
-									width="fit-content"
-									display="flex"
-									justifyContent="space-around"
-									alignContent="center"
-									padding="10px 20px 20px"
-								>
+								</span>
+								<div
+									style={{ width: 'fit-content', display: 'flex', justifyContent: 'space-around', padding: '10px 20px 20px' }}>
 									{noQuickActions && (
-										<Typography fontSize={15} color="#d9d9d9">
+										<span style={{ fontSize: 15, color: '#d9d9d9' }}>
 											You're all caught up!
-										</Typography>
+										</span>
 									)}
 									<Collapse
-										in={claimStats.Submitted > 0 && !isFetchingClaimStats}
-										orientation="horizontal"
-									>
+										open={claimStats.Submitted > 0 && !isFetchingClaimStats}
+											>
 										<MetricAction
 											action={() => {
 												setClaimStatus(ClaimStatus.SUBMITTED);
@@ -153,9 +135,8 @@ export default function DashboardTab() {
 										/>
 									</Collapse>
 									<Collapse
-										in={inactiveUserCount.count > 0 && !isFetchingInactiveUserCount}
-										orientation="horizontal"
-									>
+										open={inactiveUserCount.count > 0 && !isFetchingInactiveUserCount}
+											>
 										<MetricAction
 											action={() => {
 												setShowInactiveUsers(true);
@@ -163,50 +144,45 @@ export default function DashboardTab() {
 											}}
 											actionText="Review inactive accounts"
 											actionValue={`${inactiveUserCount.count.toLocaleString()} users`}
-											color="warning.main"
+											color={'var(--status-warning)'}
 											loading={isFetchingInactiveUserCount}
 										/>
 									</Collapse>
-								</Box>
-							</Paper>
+								</div>
+							</div>
 						</Grid>
 						<Grid>
-							<Paper elevation={0} sx={styles.paper}>
-								<Typography fontSize={13} color={TEXT_MUTED} paddingTop="10px" paddingLeft="10px">
+							<div style={styles.paper}>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: '10px', paddingLeft: '10px' }}>
 									Quick Stats
-								</Typography>
-								<Box
-									width="fit-content"
-									display="flex"
-									justifyContent="space-around"
-									alignContent="center"
-									padding="20px"
-								>
+								</span>
+								<div
+									style={{ width: 'fit-content', display: 'flex', justifyContent: 'space-around', padding: '20px' }}>
 									<StackedMetric
-										icon={<Timelapse sx={{ fontSize: 25 }} />}
+										icon={<IconHourglass size={25} />}
 										value={`${getDaysToEndOfFiscalQuarter()}d`}
 										subtext="to end of quarter"
 										fontSize={25}
 										fontSizeSubtext={15}
 									/>
-									<Box padding="0px 20px">
+									<div style={{ padding: '0px 20px' }}>
 										<StackedMetric
-											icon={<HorizontalSplit sx={{ fontSize: 25 }} />}
+											icon={<IconLayoutRows size={25} />}
 											value={unprocessedClaimCount.toLocaleString()}
 											subtext="unprocessed claims"
 											fontSize={25}
 											fontSizeSubtext={15}
 										/>
-									</Box>
+									</div>
 									<StackedMetric
-										icon={<Replay sx={{ fontSize: 25, transform: 'scaleX(-1)' }} />}
+										icon={<IconReload style={{ fontSize: 25, transform: 'scaleX(-1)' }} />}
 										value={rolloverCount.count.toLocaleString()}
 										subtext="rollover claims"
 										fontSize={25}
 										fontSizeSubtext={15}
 									/>
-								</Box>
-							</Paper>
+								</div>
+							</div>
 						</Grid>
 						<Grid>
 							<UserActivityMetric />
@@ -221,8 +197,8 @@ export default function DashboardTab() {
 							<RecoveryMetricsChart />
 						</Grid>
 					</Grid>
-				</Box>
-			</Box>
+				</div>
+			</div>
 		</PageTransitionWrapper>
 	);
 }
@@ -232,9 +208,9 @@ const styles = {
 		width: 'fit-content',
 		minWidth: 300,
 		height: 145,
-		borderRadius: 3,
+		borderRadius: 12,
 		margin: '15px',
-		border: `1px solid ${BORDER_COLOR}`,
+		border: `1px solid ${'var(--border)'}`,
 		boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 		padding: '5px',
 	},

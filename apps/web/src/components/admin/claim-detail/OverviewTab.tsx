@@ -1,6 +1,8 @@
 'use client';
-
-import { Box, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
+import Chip from '@/components/ui/Chip';
 import { trpc } from '@/lib/trpc';
 import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
@@ -9,9 +11,10 @@ import { formatMDY } from '@/lib/utils/utils';
 import { ClaimStatus } from '@/config/enums';
 import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
 import { formatCityState } from '@/schemas/addressSchemas';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { Select } from '@mui/material';
 
 dayjs.extend(relativeTime);
 
@@ -28,42 +31,42 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 
 	if (claimLoading) {
 		return (
-			<Box p={3}>
-				<Stack spacing={2}>
-					<Skeleton variant="rectangular" height={120} />
-					<Skeleton variant="rectangular" height={200} />
-					<Skeleton variant="rectangular" height={300} />
-				</Stack>
-			</Box>
+			<div style={{ padding: 24 }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+					<Skeleton variant="rect" height={120} />
+					<Skeleton variant="rect" height={200} />
+					<Skeleton variant="rect" height={300} />
+				</div>
+			</div>
 		);
 	}
 
 	if (!claimDetail) {
 		return (
-			<Box p={3}>
-				<Typography color="text.secondary">Claim not found</Typography>
-			</Box>
+			<div style={{ padding: 24 }}>
+				<span style={{ color: 'var(--text-secondary)' }}>Claim not found</span>
+			</div>
 		);
 	}
 
 	const currentAssignment = claimDetail.checklistAssignments?.[0] ?? null;
 
 	return (
-		<Box p={3}>
-			<Stack spacing={3} maxWidth={1000} mx="auto">
+		<div style={{ padding: 24 }}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Contextual Summary */}
-				<Paper elevation={0} sx={styles.gradientPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.gradientPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Summary
-					</Typography>
-					<Stack spacing={1.5}>
+					</span>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 						{claimDetail.insured && (
-							<Typography fontSize={14}>
+							<span style={{ fontSize: 14 }}>
 								Claim filed for <Highlight>{claimDetail.insured}</Highlight>
-							</Typography>
+							</span>
 						)}
 						{(claimDetail.client_adjuster || claimDetail.client) && (
-							<Typography fontSize={14}>
+							<span style={{ fontSize: 14 }}>
 								{claimDetail.client_adjuster && (
 									<>
 										Representation by{' '}
@@ -80,10 +83,10 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 										of <Highlight>{claimDetail.client}</Highlight>
 									</>
 								)}
-							</Typography>
+							</span>
 						)}
 						{claimDetail.date_of_loss && (
-							<Typography fontSize={14}>
+							<span style={{ fontSize: 14 }}>
 								Loss occurred on <Highlight>{formatMDY(claimDetail.date_of_loss)}</Highlight>
 								{(claimDetail.loss_city || claimDetail.loss_state) && (
 									<>
@@ -91,272 +94,265 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 										in <Highlight>{formatCityState(claimDetail.loss_city, claimDetail.loss_state)}</Highlight>
 									</>
 								)}
-							</Typography>
+							</span>
 						)}
 						{currentAssignment && (
-							<Typography fontSize={14}>
+							<span style={{ fontSize: 14 }}>
 								Assigned to{' '}
 								<Highlight>
 									{currentAssignment.assignee_first_name} {currentAssignment.assignee_last_name}
 								</Highlight>{' '}
 								in <Highlight>{currentAssignment.checklist_name}</Highlight>
-							</Typography>
+							</span>
 						)}
 						{!currentAssignment && (
-							<Typography fontSize={14} color={BASE_COLOR_LIGHT} fontStyle="italic">
+							<span style={{ fontSize: 14, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								Not currently assigned to a checklist
-							</Typography>
+							</span>
 						)}
 						{claimDetail.substatus && (
-							<Box display="flex" alignItems="center" gap={0.5}>
-								<Typography fontSize={14}>Current workflow state:</Typography>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+								<span style={{ fontSize: 14 }}>Current workflow state:</span>
 								<ClaimSubstatusValue value={claimDetail.substatus} fontSize={14} />
-							</Box>
+							</div>
 						)}
-					</Stack>
-				</Paper>
+					</div>
+				</div>
 
 				{/* Claim Details */}
-				<Paper elevation={0} sx={styles.beveledPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.beveledPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Claim Details
-					</Typography>
-					<Stack spacing={1.5}>
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+					</span>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Claim Number:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13} fontWeight={600}>
+							</span>
+							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								{claimDetail.claim_number ?? 'N/A'}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 						<Divider />
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Insured:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>{claimDetail.insured ?? 'N/A'}</Typography>
-						</Box>
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>{claimDetail.insured ?? 'N/A'}</span>
+						</div>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Client:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>{claimDetail.client ?? 'N/A'}</Typography>
-						</Box>
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>{claimDetail.client ?? 'N/A'}</span>
+						</div>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Client Adjuster:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>
 								{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
 									? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
 									: claimDetail.client_adjuster ?? 'N/A'}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 						<Divider />
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Date of Loss:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>
 								{claimDetail.date_of_loss ? formatMDY(claimDetail.date_of_loss) : 'N/A'}
-							</Typography>
-						</Box>
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+							</span>
+						</div>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Loss Location:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>
 								{formatCityState(claimDetail.loss_city, claimDetail.loss_state) || 'N/A'}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 						<Divider />
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Created:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>
 								{claimDetail.created_at ? formatMDY(claimDetail.created_at) : 'N/A'}
-							</Typography>
-						</Box>
-						<Box display="flex" justifyContent="space-between">
-							<Typography fontSize={13}>
+							</span>
+						</div>
+						<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight color="secondary.main" bold={false}>
 									Last Updated:
 								</Highlight>
-							</Typography>
-							<Typography fontSize={13}>
+							</span>
+							<span style={{ fontSize: 13 }}>
 								{claimDetail.last_update ? formatMDY(claimDetail.last_update) : 'N/A'}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 						{claimDetail.feed_name && (
 							<>
 								<Divider />
-								<Box display="flex" justifyContent="space-between">
-									<Typography fontSize={13}>
+								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+									<span style={{ fontSize: 13 }}>
 										<Highlight color="secondary.main" bold={false}>
 											Feed Source:
 										</Highlight>
-									</Typography>
-									<Chip label={claimDetail.feed_name} size="small" variant="outlined" />
-								</Box>
+									</span>
+									<Chip  size="sm" variant="outlined">{claimDetail.feed_name}</Chip>
+								</div>
 							</>
 						)}
-					</Stack>
-				</Paper>
+					</div>
+				</div>
 
 				{/* Checklist Progress (if assigned) */}
 				{currentAssignment && (
-					<Paper elevation={0} sx={styles.beveledPaper}>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+					<div style={styles.beveledPaper}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 							Current Assignment
-						</Typography>
-						<Stack spacing={1.5}>
-							<Box display="flex" justifyContent="space-between">
-								<Typography fontSize={13}>
+						</span>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+							<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight color="secondary.main" bold={false}>
 										Checklist:
 									</Highlight>
-								</Typography>
-								<Typography fontSize={13} fontWeight={600}>
+								</span>
+								<span style={{ fontSize: 13, fontWeight: 600 }}>
 									{currentAssignment.checklist_name}
-								</Typography>
-							</Box>
-							<Box display="flex" justifyContent="space-between">
-								<Typography fontSize={13}>
+								</span>
+							</div>
+							<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight color="secondary.main" bold={false}>
 										Assignee:
 									</Highlight>
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									{currentAssignment.assignee_first_name} {currentAssignment.assignee_last_name}
-								</Typography>
-							</Box>
-							<Box display="flex" justifyContent="space-between" alignItems="center">
-								<Typography fontSize={13}>
+								</span>
+							</div>
+							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight color="secondary.main" bold={false}>
 										Status:
 									</Highlight>
-								</Typography>
-								<Box
-									display="flex"
-									alignItems="center"
-									padding="2px 8px"
-									border="1px solid #85D2FF"
-									bgcolor="white"
-									borderRadius={3}
-								>
+								</span>
+								<div style={{ display: 'flex', alignItems: 'center', padding: '2px 8px', border: '1px solid #85D2FF', backgroundColor: 'white', borderRadius: 12 }}>
 									<ClaimStatusIcon status={currentAssignment.status as ClaimStatus} fontSize={17} />
-									<Typography fontSize={14} color="primary" marginLeft="5px">
+									<span style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: '5px' }}>
 										{currentAssignment.status}
-									</Typography>
-								</Box>
-							</Box>
-							<Box display="flex" justifyContent="space-between">
-								<Typography fontSize={13}>
+									</span>
+								</div>
+							</div>
+							<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight color="secondary.main" bold={false}>
 										Last Opened:
 									</Highlight>
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									{dayjs(currentAssignment.last_opened).format('MMM D, YYYY [at] h:mm A')}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 							{currentAssignment.submitted_at && (
 								<>
-									<Box display="flex" justifyContent="space-between">
-										<Typography fontSize={13}>
+									<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+										<span style={{ fontSize: 13 }}>
 											<Highlight color="secondary.main" bold={false}>
 												Submitted:
 											</Highlight>
-										</Typography>
-										<Typography fontSize={13}>
+										</span>
+										<span style={{ fontSize: 13 }}>
 											{dayjs(currentAssignment.submitted_at).format('MMM D, YYYY [at] h:mm A')}
-										</Typography>
-									</Box>
+										</span>
+									</div>
 									{currentAssignment.time_to_resolution_days && (
-										<Box display="flex" justifyContent="space-between">
-											<Typography fontSize={13}>
+										<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+											<span style={{ fontSize: 13 }}>
 												<Highlight color="secondary.main" bold={false}>
 													Time to Resolution:
 												</Highlight>
-											</Typography>
-											<Typography fontSize={13}>
+											</span>
+											<span style={{ fontSize: 13 }}>
 												{currentAssignment.time_to_resolution_days} days
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									)}
 								</>
 							)}
-						</Stack>
-					</Paper>
+						</div>
+					</div>
 				)}
 
 				{/* Activity Timeline */}
-				<Paper elevation={0} sx={styles.beveledPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.beveledPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Activity Timeline
-					</Typography>
+					</span>
 					{logsLoading && (
-						<Stack spacing={1}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							<Skeleton variant="text" />
 							<Skeleton variant="text" />
 							<Skeleton variant="text" />
-						</Stack>
+						</div>
 					)}
 					{!logsLoading && adminLogs.length === 0 && (
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 							No activity recorded yet
-						</Typography>
+						</span>
 					)}
 					{!logsLoading && adminLogs.length > 0 && (
-						<Stack spacing={2}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 							{adminLogs.map((log) => (
-								<Box key={log.id} display="flex" gap={2}>
-									<Box
-										sx={{
+								<div key={log.id} style={{ display: 'flex', gap: 16 }}>
+									<div
+										style={{
 											width: 8,
 											height: 8,
 											borderRadius: '50%',
-											bgcolor: 'secondary.main',
+											backgroundColor: 'secondary.main',
 											marginTop: '6px',
 											flexShrink: 0,
 										}}
 									/>
-									<Box flex={1}>
-										<Typography fontSize={13}>
+									<div style={{ flex: 1 }}>
+										<span style={{ fontSize: 13 }}>
 											<Highlight color="secondary.main">
 												{log.first_name} {log.last_name}
 											</Highlight>{' '}
 											{log.action.toLowerCase()}d{' '}
 											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>
-										</Typography>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+										</span>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 											{dayjs(log.created_at).format('MMM D, YYYY [at] h:mm A')} (
 											{dayjs(log.created_at).fromNow()})
-										</Typography>
-									</Box>
-								</Box>
+										</span>
+									</div>
+								</div>
 							))}
-						</Stack>
+						</div>
 					)}
-				</Paper>
-			</Stack>
-		</Box>
+				</div>
+			</div>
+		</div>
 	);
 }
 

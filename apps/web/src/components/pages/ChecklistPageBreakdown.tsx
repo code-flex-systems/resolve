@@ -1,12 +1,10 @@
 'use client';
-import ArrowBack from '@mui/icons-material/ArrowBack';
-import FormatQuote from '@mui/icons-material/FormatQuote';
 import BreakdownNavigation from '@/components/breakdown/BreakdownNavigation';
 import Breakdown from '@/components/breakdown/Breakdown';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useEffect, useState } from 'react';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import { Box, Chip, Collapse, Divider, Stack } from '@mui/material';
+import { Box, Chip, Stack } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDateRangePicker from '../common/BasicDateRangePicker';
 import ClaimFilter from '../common/ClaimFilter';
@@ -20,7 +18,9 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ChecklistSelect from '../common/ChecklistSelect';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
-import theme from '@/styles/theme';
+import { IconArrowLeft, IconQuote } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
+import Divider from '@/components/ui/Divider';
 
 export default function ChecklistPageBreakdown() {
 	const searchParams = useSearchParams();
@@ -90,7 +90,7 @@ export default function ChecklistPageBreakdown() {
 				>
 					<Box marginRight="5px">
 						<BasicButtonStyled
-							icon={<ArrowBack />}
+							icon={<IconArrowLeft size={20} />}
 							buttonProps={{ onClick: () => router.push('/admin/workflow-configuration/checklists') }}
 							tooltipProps={{ title: 'Back to dashboard' }}
 						/>
@@ -106,7 +106,7 @@ export default function ChecklistPageBreakdown() {
 							clearable={false}
 						/>
 					</Box>
-					{/* <Collapse in={instanceId !== -1} orientation="horizontal" unmountOnExit> */}
+					{/* <Collapse open={instanceId !== -1}> */}
 					{instanceId !== -1 && (
 						<Box marginRight="5px">
 							<PageInstanceSelect
@@ -134,26 +134,26 @@ export default function ChecklistPageBreakdown() {
 						width="fit-content"
 						text="Filter by responder"
 					/>
-					<Collapse in={!!answerData} orientation="horizontal" unmountOnExit>
+					<Collapse open={!!answerData}>
 						<Box marginLeft="5px">
 							<Chip
 								label={`${answerData?.answer_text ?? ''} (p${pageId}.q${selectedQuestionId}.a${answerData?.answer_id ?? ''})`}
-								icon={<FormatQuote />}
+								icon={<IconQuote size={20} />}
 								sx={{
 									height: 30,
 									margin: '5px 0px',
 									'& .MuiChip-icon': {
-										color: theme.palette.primary.main,
+										color: 'var(--text-accent)',
 									},
 									'& .MuiChip-label': {
-										color: theme.palette.primary.main,
+										color: 'var(--text-accent)',
 									},
 								}}
 							/>
 						</Box>
 					</Collapse>
 				</Box>
-				<Divider flexItem />
+				<Divider />
 				<Box
 					width="100%"
 					height="calc(100vh - 70px)"

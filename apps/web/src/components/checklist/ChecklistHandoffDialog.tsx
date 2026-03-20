@@ -3,13 +3,13 @@
 import BasicDialog from '../common/BasicDialog';
 import UserSearch from './UserSearch';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import { Box, Chip, Collapse, Paper, Stack, Typography } from '@mui/material';
+import { Box, Chip, Paper, Stack, Typography } from '@mui/material';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import Handshake from '@mui/icons-material/Handshake';
-import Warning from '@mui/icons-material/Warning';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import { BASE_COLOR } from '@/styles/theme';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconAlertTriangle, IconHandStop } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
 
 export default function ChecklistHandoffDialog() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -27,7 +27,7 @@ export default function ChecklistHandoffDialog() {
 		<BasicDialog
 			primaryAction={{
 				label: selectedAssignee ? `Hand off to ${formattedAssignee}` : 'Hand off',
-				icon: <Handshake />,
+				icon: <IconHandStop size={20} />,
 				disabled: !selectedAssignee || isPending,
 				onClick: async () => {
 					try {
@@ -60,7 +60,7 @@ export default function ChecklistHandoffDialog() {
 				<Paper elevation={0} sx={styles.paper}>
 					{/* <Paper elevation={0} sx={styles.warning}> */}
 					<Box display="flex" justifyContent="flex-start" alignItems="center">
-						<Warning sx={{ color: BASE_COLOR, marginLeft: '5px' }} />
+						<IconAlertTriangle size={20} style={{ color: BASE_COLOR, marginLeft: '5px' }} />
 						<Stack display="flex" justifyContent="flex-start" alignItems="flex-start" marginLeft="10px">
 							<Typography fontSize={15}>
 								This action will transfer the claim to the selected assignee.
@@ -77,7 +77,7 @@ export default function ChecklistHandoffDialog() {
 							<UserSearch selectedUser={selectedAssignee} setSelectedUser={(user) => useChecklistStore.getState().updateSelectedAssignee(user)} />
 						</Box>
 
-						<Collapse in={!!selectedAssignee}>
+						<Collapse open={!!selectedAssignee}>
 							<Chip
 								label={`${formattedAssignee} <${selectedAssignee?.email}>`}
 								onDelete={() => useChecklistStore.getState().updateSelectedAssignee(null)}
@@ -98,7 +98,7 @@ const styles = {
 		padding: '20px 10px',
 	},
 	warning: {
-		bgcolor: theme.palette.warning.light,
+		bgcolor: 'var(--status-warning)',
 		padding: '5px',
 		borderRadius: 4,
 		marginBottom: '10px',

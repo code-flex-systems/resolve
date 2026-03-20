@@ -30,11 +30,11 @@ export const formatActionType = (type: WorkflowActionType): string => {
 	return map[type] || type;
 };
 
-export const EXECUTION_STATUS_CONFIG: Record<RuleExecutionStatus, { label: string; color: 'info' | 'success' | 'error' | 'default' }> = {
+export const EXECUTION_STATUS_CONFIG: Record<RuleExecutionStatus, { label: string; color: 'info' | 'success' | 'error' | 'neutral' }> = {
 	[RuleExecutionStatus.PENDING]: { label: 'Pending', color: 'info' },
 	[RuleExecutionStatus.EXECUTED]: { label: 'Executed', color: 'success' },
 	[RuleExecutionStatus.FAILED]: { label: 'Failed', color: 'error' },
-	[RuleExecutionStatus.SKIPPED]: { label: 'Skipped', color: 'default' },
+	[RuleExecutionStatus.SKIPPED]: { label: 'Skipped', color: 'neutral' },
 };
 
 export const getThresholdUnit = (type: WorkflowThresholdType): string => {

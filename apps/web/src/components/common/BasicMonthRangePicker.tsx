@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Box, Button, Chip, MenuItem, Paper, PopperProps, Select, Stack, Typography } from '@mui/material';
+import { Button, Chip, MenuItem, Paper, PopperProps, Select, Typography } from '@mui/material';
 import { DateRange } from '@mui/x-date-pickers-pro';
-import WatchLater from '@mui/icons-material/WatchLater';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import { IconClock } from '@tabler/icons-react';
+import { BASE_COLOR } from '@/styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';
@@ -28,8 +28,6 @@ const MONTHS = [
 	'December',
 ];
 
-// Use dayjs.utc() to avoid timezone issues where endOf('month') could
-// shift to the next month when converted to ISO string
 const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 	{
 		label: 'Last Quarter',
@@ -117,7 +115,6 @@ export default function BasicMonthRangePicker({
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 	const isEmpty = labelConfirmed === EMPTY_LABEL;
 
-	// Dropdown state - using month (0-11) and year as numbers
 	const [startMonth, setStartMonth] = useState<number>(range[0]?.month() ?? dayjs().month());
 	const [startYear, setStartYear] = useState<number>(range[0]?.year() ?? dayjs().year());
 	const [endMonth, setEndMonth] = useState<number>(range[1]?.month() ?? dayjs().month());
@@ -125,7 +122,6 @@ export default function BasicMonthRangePicker({
 
 	const shortcuts = useMemo(() => shortcutItems, []);
 
-	// Generate year options (last 5 years and next 2 years)
 	const yearOptions = useMemo(() => {
 		const currentYear = dayjs().year();
 		const years = [];
@@ -139,7 +135,6 @@ export default function BasicMonthRangePicker({
 		if (range.every((r) => r === null)) {
 			setLabel(EMPTY_LABEL);
 		} else {
-			// Update dropdown values when range changes
 			if (range[0]) {
 				setStartMonth(range[0].month());
 				setStartYear(range[0].year());
@@ -151,8 +146,6 @@ export default function BasicMonthRangePicker({
 		}
 	}, [range]);
 
-	// Update range when dropdowns change
-	// Use dayjs.utc() to avoid timezone issues
 	useEffect(() => {
 		const start = dayjs.utc().year(startYear).month(startMonth).startOf('month');
 		const end = dayjs.utc().year(endYear).month(endMonth).endOf('month');
@@ -163,7 +156,6 @@ export default function BasicMonthRangePicker({
 	const onClose = (newAnchor: PopperProps['anchorEl'] = null) => {
 		setLabel(defaultLabel);
 		setRange(defaultValue);
-		// Reset dropdowns to default values
 		if (defaultValue[0]) {
 			setStartMonth(defaultValue[0].month());
 			setStartYear(defaultValue[0].year());
@@ -181,7 +173,6 @@ export default function BasicMonthRangePicker({
 			setLabel(shortcut.label);
 		}
 		setRange(value);
-		// Update dropdowns
 		if (value[0]) {
 			setStartMonth(value[0].month());
 			setStartYear(value[0].year());
@@ -196,7 +187,7 @@ export default function BasicMonthRangePicker({
 		<>
 			<Chip
 				label={labelConfirmed}
-				icon={<WatchLater />}
+				icon={<IconClock size={20} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -215,10 +206,10 @@ export default function BasicMonthRangePicker({
 					...styles.chip,
 					height,
 					'& .MuiChip-icon': {
-						color: isEmpty ? undefined : theme.palette.secondary.main,
+						color: isEmpty ? undefined : 'var(--text-accent)',
 					},
 					'& .MuiChip-label': {
-						color: isEmpty ? undefined : theme.palette.secondary.main,
+						color: isEmpty ? undefined : 'var(--text-accent)',
 						fontStyle: isEmpty ? 'italic' : undefined,
 					},
 				}}
@@ -226,15 +217,9 @@ export default function BasicMonthRangePicker({
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
 					<Paper sx={styles.paper}>
-						<Stack display="flex" justifyContent="center" alignItems="flex-start">
-							<Box width="100%" display="flex" justifyContent="center" alignItems="flex-start">
-								<Stack
-									width={150}
-									display="flex"
-									justifyContent="flex-start"
-									alignItems="flex-start"
-									padding="10px"
-								>
+						<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
+							<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+								<div style={{ width: 150, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
 									{shortcuts.map((s, i) => (
 										<Chip
 											key={i}
@@ -244,24 +229,24 @@ export default function BasicMonthRangePicker({
 												margin: '5px 0px',
 												'& .MuiChip-icon': {
 													color:
-														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
+														s.label === label ? 'var(--text-accent)' : BASE_COLOR,
 												},
 												'& .MuiChip-label': {
 													color:
-														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
+														s.label === label ? 'var(--text-accent)' : BASE_COLOR,
 												},
 											}}
 										/>
 									))}
-								</Stack>
-								<Box padding="20px" width={320}>
-									<Stack spacing={2}>
+								</div>
+								<div style={{ padding: 20, width: 320 }}>
+									<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 										{/* Start Date */}
-										<Box>
-											<Typography variant="caption" fontSize={11} color="text.secondary" mb={0.5}>
+										<div>
+											<span style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
 												Start Month
-											</Typography>
-											<Box display="flex" gap={1}>
+											</span>
+											<div style={{ display: 'flex', gap: 8 }}>
 												<Select
 													value={startMonth}
 													onChange={(e) => setStartMonth(e.target.value as number)}
@@ -288,15 +273,15 @@ export default function BasicMonthRangePicker({
 														</MenuItem>
 													))}
 												</Select>
-											</Box>
-										</Box>
+											</div>
+										</div>
 
 										{/* End Date */}
-										<Box>
-											<Typography variant="caption" fontSize={11} color="text.secondary" mb={0.5}>
+										<div>
+											<span style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
 												End Month
-											</Typography>
-											<Box display="flex" gap={1}>
+											</span>
+											<div style={{ display: 'flex', gap: 8 }}>
 												<Select
 													value={endMonth}
 													onChange={(e) => setEndMonth(e.target.value as number)}
@@ -323,21 +308,23 @@ export default function BasicMonthRangePicker({
 														</MenuItem>
 													))}
 												</Select>
-											</Box>
-										</Box>
-									</Stack>
-								</Box>
-							</Box>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
 
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-								padding="10px"
+							<div
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+									padding: 10,
+								}}
 							>
-								<Box></Box>
-								<Box>
+								<div></div>
+								<div>
 									<Button
 										onClick={() => onClose()}
 										variant="outlined"
@@ -358,9 +345,9 @@ export default function BasicMonthRangePicker({
 									>
 										Apply
 									</Button>
-								</Box>
-							</Box>
-						</Stack>
+								</div>
+							</div>
+						</div>
 					</Paper>
 				</BasicPopper>
 			)}

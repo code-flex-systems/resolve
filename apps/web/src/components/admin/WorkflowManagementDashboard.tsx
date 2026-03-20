@@ -1,16 +1,13 @@
 'use client';
 
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { IconGauge, IconTrendingUp, IconUsers } from '@tabler/icons-react';
+import { Card, CircularProgress } from '@mui/material';
 import MetricCard from './MetricCard';
 import PendingExecutionsPanel from '@/components/admin/PendingExecutionsPanel';
 import SuggestionsPanel from './SuggestionsPanel';
 import { useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc';
 
 // Icons
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import PeopleIcon from '@mui/icons-material/People';
-import SpeedIcon from '@mui/icons-material/Speed';
-import { TEXT_PRIMARY } from '@/styles/theme';
 
 /**
  * WorkflowManagementDashboard - Main dashboard for workflow management analytics
@@ -50,8 +47,8 @@ export default function WorkflowManagementDashboard() {
 
 	if (isLoading) {
 		return (
-			<Box
-				sx={{
+			<div
+				style={{
 					display: 'flex',
 					justifyContent: 'center',
 					alignItems: 'center',
@@ -59,45 +56,44 @@ export default function WorkflowManagementDashboard() {
 				}}
 			>
 				<CircularProgress />
-			</Box>
+			</div>
 		);
 	}
 
 	return (
-		<Box>
+		<div>
 			{/* Page header */}
-			<Box sx={{ mb: 3 }}>
-				<Typography
-					variant="h4"
-					sx={{
+			<div style={{ marginBottom: 24 }}>
+				<span
+					style={{
 						fontWeight: 700,
-						color: TEXT_PRIMARY,
-						mb: 0.5,
+						color: 'var(--text-primary)',
+						marginBottom: 4,
 					}}
 				>
 					Workflow Management
-				</Typography>
-				<Typography
-					sx={{
+				</span>
+				<span
+					style={{
 						fontSize: 14,
-						color: 'text.secondary',
+						color: 'var(--text-secondary)',
 					}}
 				>
 					Real-time metrics and operational insights across all workflow stages
-				</Typography>
-			</Box>
+				</span>
+			</div>
 
 			{/* Metrics cards */}
-			<Box
-				sx={{
+			<div
+				style={{
 					display: 'flex',
-					gap: 2,
+					gap: 16,
 					flexWrap: 'wrap',
 				}}
 			>
 				{/* Total Workload metric */}
 				<MetricCard
-					icon={<TrendingUpIcon />}
+					icon={<IconTrendingUp size={20} />}
 					iconColor="#21B5FF"
 					iconBgColor="rgba(33, 181, 255, 0.1)"
 					value={totalClaims}
@@ -107,7 +103,7 @@ export default function WorkflowManagementDashboard() {
 
 				{/* Team Capacity metric */}
 				<MetricCard
-					icon={<PeopleIcon />}
+					icon={<IconUsers size={20} />}
 					iconColor="#10b981"
 					iconBgColor="rgba(16, 185, 129, 0.1)"
 					value={utilizationPercent !== null ? `${utilizationPercent}%` : 'N/A'}
@@ -117,7 +113,7 @@ export default function WorkflowManagementDashboard() {
 
 				{/* Throughput metric */}
 				<MetricCard
-					icon={<SpeedIcon />}
+					icon={<IconGauge size={20} />}
 					iconColor="#8b5cf6"
 					iconBgColor="rgba(139, 92, 246, 0.1)"
 					value={`${tasksCreated ? Math.floor((tasksCompleted / tasksCreated) * 100) : 0}%`}
@@ -127,24 +123,24 @@ export default function WorkflowManagementDashboard() {
 
 				{/* Open Work Units metric */}
 				<MetricCard
-					icon={<TrendingUpIcon />}
+					icon={<IconTrendingUp size={20} />}
 					iconColor="#f59e0b"
 					iconBgColor="rgba(245, 158, 11, 0.1)"
 					value={totalOpenWorkUnits}
 					label="Open Work Units"
 					subtitle={`${workUnitsCompleted} units completed today`}
 				/>
-			</Box>
+			</div>
 
 			{/* Pending executions panel */}
-			<Box sx={{ mt: 3 }}>
+			<div style={{ marginTop: 24 }}>
 				<PendingExecutionsPanel />
-			</Box>
+			</div>
 
 			{/* Suggestions panel */}
-			<Box sx={{ mt: 3 }}>
+			<div style={{ marginTop: 24 }}>
 				<SuggestionsPanel data={suggestionsData} isFetching={isFetchingSuggestions} refetch={refetchSuggestions} />
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }

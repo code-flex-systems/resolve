@@ -1,7 +1,9 @@
 'use client';
 
-import { Stack, TextField, Switch, FormControlLabel, Typography } from '@mui/material';
-import Send from '@mui/icons-material/Send';
+import { IconSend } from '@tabler/icons-react';
+import { FormControlLabel } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Switch from '@/components/ui/Switch';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { useReferenceDataTrpc, type ReferenceOption } from '@/hooks/trpc/useReferenceDataTrpc';
@@ -101,7 +103,7 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: onSubmit,
-				icon: isEditMode ? undefined : <Send />,
+				icon: isEditMode ? undefined : <IconSend size={20} />,
 				disabled:
 					isSubmitting ||
 					isPending ||
@@ -112,7 +114,7 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 			onClose={handleClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
 				<Controller
 					name="value"
 					control={control}
@@ -126,18 +128,15 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 						},
 					}}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Value (key)"
-							
 							placeholder="lowercase_value"
 							error={!!errors.value}
-							helperText={
-								errors.value?.message ||
-								'Unique identifier (lowercase, underscores only)'
-							}
+							errorText={errors.value?.message}
+							helperText={!errors.value ? 'Unique identifier (lowercase, underscores only)' : undefined}
 							{...field}
 							disabled={isSubmitting || isEditMode}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
@@ -151,15 +150,14 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 						maxLength: { value: 255, message: 'Display label must be 255 characters or less' },
 					}}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Display Label"
-							
 							placeholder="Human-readable label"
 							error={!!errors.display_label}
-							helperText={errors.display_label?.message}
+							errorText={errors.display_label?.message}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
@@ -171,17 +169,15 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 						maxLength: { value: 500, message: 'Description must be 500 characters or less' },
 					}}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							label="Description"
-							
 							placeholder="Optional description"
-							multiline
 							rows={2}
 							error={!!errors.description}
-							helperText={errors.description?.message}
+							errorText={errors.description?.message}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
@@ -193,15 +189,15 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 						maxLength: { value: 10, message: 'Emoji must be 10 characters or less' },
 					}}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Icon Emoji"
-							
 							placeholder="Optional emoji icon"
 							error={!!errors.icon_emoji}
-							helperText={errors.icon_emoji?.message || 'Single emoji for visual display'}
+							errorText={errors.icon_emoji?.message}
+							helperText={!errors.icon_emoji ? 'Single emoji for visual display' : undefined}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
@@ -211,19 +207,19 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 					control={control}
 					render={({ field }) => (
 						<FormControlLabel
-							control={<Switch {...field} checked={field.value} disabled={isSubmitting} />}
+							control={<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} />}
 							label="Active"
-							sx={{ width: 400, fontSize: 13 }}
+							style={{ width: 400, fontSize: 13 }}
 						/>
 					)}
 				/>
 
 				{option?.is_system_default && (
-					<Typography variant="caption" color="text.secondary" sx={{ width: 400 }}>
+					<span style={{  color: 'var(--text-secondary)' ,  width: 400  }}>
 						This is a system default option and cannot be deleted.
-					</Typography>
+					</span>
 				)}
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }
@@ -232,13 +228,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
 		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
 };

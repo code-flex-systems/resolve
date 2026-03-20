@@ -3,14 +3,15 @@ import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChe
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
-import { Collapse, Skeleton, Stack, Typography } from '@mui/material';
-import Warning from '@mui/icons-material/Warning';
+import { Stack, Typography } from '@mui/material';
 import BasicButton from '../common/BasicButton';
 import { useRouter } from 'next/navigation';
 import { OFFWHITE_COLOR } from '@/styles/theme';
-import { IconChartDonutFilled } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChartDonutFilled } from '@tabler/icons-react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
+import Skeleton from '@/components/ui/Skeleton';
+import Collapse from '@/components/ui/Collapse';
 
 export default function QuestionStatsDialog() {
 	const router = useRouter();
@@ -44,13 +45,13 @@ export default function QuestionStatsDialog() {
 			{loading && (
 				<Stack spacing={2} p={2}>
 					{[1, 2, 3].map((i) => (
-						<Skeleton key={i} variant="rounded" height={60} />
+						<Skeleton key={i} variant="rect" height={60} />
 					))}
 				</Stack>
 			)}
-			<Collapse in={!loading}>
+			<Collapse open={!loading}>
 				<div style={styles.row} className="flex-row-left">
-					<Warning sx={{ color: 'warning.main' }} />
+					<IconAlertTriangle size={20} style={{ color: 'warning.main' }} />
 					<Typography color="warning" fontStyle="italic" marginLeft="5px">
 						This summary only shows responses for the last <b>30</b> days.
 					</Typography>

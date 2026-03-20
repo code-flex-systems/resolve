@@ -1,11 +1,11 @@
 'use client';
 
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
-import { Box, Collapse, Divider, MenuItem, Stack, Typography } from '@mui/material';
-import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
+import { Collapse, MenuItem } from '@mui/material';
+import { IconArrowRight } from '@tabler/icons-react';
 import { TransitionGroup } from 'react-transition-group';
 import { formatMD, formatUser } from '@/lib/utils/utils';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { CommentFilters } from '@/types/types';
 import { useMemo } from 'react';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
@@ -49,9 +49,9 @@ export default function Comments({
 	}, [comments.rows, page, pageSize]);
 
 	return !comments.rows.length ? (
-		<Typography fontSize={15} color={BASE_COLOR_LIGHT} paddingTop="10px">
+		<span style={{ fontSize: 15, color: BASE_COLOR_LIGHT, paddingTop: 10, display: 'block' }}>
 			No comments
-		</Typography>
+		</span>
 	) : (
 		<TransitionGroup>
 			{pagedData.map((c, i) => {
@@ -76,82 +76,82 @@ export default function Comments({
 							}}
 							className="comment"
 						>
-							<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-								<Box padding="5px 10px" display="flex" justifyContent="flex-start" alignItems="center">
-									<Stack
-										width="100%"
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										padding="5px"
-									>
-										<Box width={width - 20} overflow="hidden" sx={{ textWrap: 'wrap' }}>
-											<Typography fontSize={13} lineHeight="17px" paddingBottom="2px">
+							<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+								<div style={{ padding: '5px 10px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+									<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 5 }}>
+										<div style={{ width: width - 20, overflow: 'hidden', textWrap: 'wrap' }}>
+											<span style={{ fontSize: 13, lineHeight: '17px', paddingBottom: 2 }}>
 												{c.body}
-											</Typography>
-										</Box>
+											</span>
+										</div>
 
-										<Box
-											width={width - 20}
-											display="flex"
-											justifyContent="space-between"
-											alignItems="center"
+										<div
+											style={{
+												width: width - 20,
+												display: 'flex',
+												justifyContent: 'space-between',
+												alignItems: 'center',
+											}}
 										>
-											<Box
-												width={width - 50}
-												display="flex"
-												justifyContent="flex-start"
-												alignItems="center"
-												overflow="hidden"
+											<div
+												style={{
+													width: width - 50,
+													display: 'flex',
+													justifyContent: 'flex-start',
+													alignItems: 'center',
+													overflow: 'hidden',
+												}}
 											>
-												<Typography
-													fontSize={12}
-													lineHeight="15px"
-													color={BASE_COLOR_LIGHT}
-													minWidth="fit-content"
-													noWrap
+												<span
+													style={{
+														fontSize: 12,
+														lineHeight: '15px',
+														color: BASE_COLOR_LIGHT,
+														minWidth: 'fit-content',
+														whiteSpace: 'nowrap',
+													}}
 												>
 													{formatUser(c, session?.user?.email)}
-												</Typography>
-												<div style={styles.divider} />
-												<Typography
-													fontSize={12}
-													lineHeight="15px"
-													color={BASE_COLOR_LIGHT}
-													minWidth="fit-content"
-													noWrap
+												</span>
+												<div style={dividerStyle} />
+												<span
+													style={{
+														fontSize: 12,
+														lineHeight: '15px',
+														color: BASE_COLOR_LIGHT,
+														minWidth: 'fit-content',
+														whiteSpace: 'nowrap',
+													}}
 												>
 													{formatMD(c.updated_at ?? c.created_at)}
-												</Typography>
+												</span>
 												{c.page_title && c.question_id && (
 													<>
-														<div style={styles.divider} />
-														<Typography
-															fontSize={12}
-															lineHeight="15px"
-															color={theme.palette.secondary.main}
-															textOverflow="ellipsis"
-															noWrap
+														<div style={dividerStyle} />
+														<span
+															style={{
+																fontSize: 12,
+																lineHeight: '15px',
+																color: 'var(--text-accent)',
+																textOverflow: 'ellipsis',
+																whiteSpace: 'nowrap',
+																overflow: 'hidden',
+															}}
 														>
 															{c.page_title} (Q{c.position})
-														</Typography>
+														</span>
 													</>
 												)}
-											</Box>
+											</div>
 											<div className="go-icon">
 												{canNavigate && (
-													<ArrowRightAlt sx={{ fontSize: 19, color: BASE_COLOR_LIGHT }} />
+													<IconArrowRight size={19} style={{ color: BASE_COLOR_LIGHT }} />
 												)}
 											</div>
-										</Box>
-									</Stack>
-								</Box>
-								{/* {i !== pagedData.length - 1 && (
-									<div style={styles.horizontalDiv}>
-										<Divider />
+										</div>
 									</div>
-								)} */}
-							</Stack>
+								</div>
+							</div>
 						</MenuItem>
 					</Collapse>
 				);
@@ -160,26 +160,16 @@ export default function Comments({
 	);
 }
 
+const dividerStyle: React.CSSProperties = {
+	minWidth: 5,
+	width: 5,
+	height: 5,
+	borderRadius: 10,
+	backgroundColor: '#d9d9d9',
+	margin: '0px 10px',
+};
+
 const styles = {
-	divider: {
-		minWidth: 5,
-		width: 5,
-		height: 5,
-		borderRadius: 10,
-		backgroundColor: '#d9d9d9',
-		margin: '0px 10px',
-	},
-	horizontalDiv: {
-		padding: 0,
-		height: 1,
-		width: '100%',
-	},
-	icon: {
-		marginRight: '5px',
-	},
-	link: {
-		padding: 10,
-	},
 	menuItem: {
 		flex: 1,
 		width: '100%',

@@ -1,20 +1,7 @@
 'use client';
-
-import {
-	Box,
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	Divider,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
 import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/config/enums';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import DateField from '@/components/common/DateField';
@@ -118,7 +105,7 @@ export default function SettlementFormDialog({
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
 			<DialogTitle>{isEditing ? 'Edit Settlement' : 'Add Settlement'}</DialogTitle>
 			<DialogContent>
-				<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 					<FormControl fullWidth required>
 						<InputLabel>Adverse Party</InputLabel>
 						<Select
@@ -283,9 +270,9 @@ export default function SettlementFormDialog({
 								</Select>
 							</FormControl>
 							{estimatedPayments && (
-								<Typography variant="body2" color="text.secondary">
+								<span style={{ color: 'var(--text-secondary)' }}>
 									Estimated payments: {estimatedPayments} installments
-								</Typography>
+								</span>
 							)}
 						</>
 					)}
@@ -320,7 +307,7 @@ export default function SettlementFormDialog({
 						rows={3}
 						placeholder="Additional details about this settlement demand..."
 					/>
-				</Box>
+				</div>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose}>Cancel</Button>

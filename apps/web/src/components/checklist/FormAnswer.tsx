@@ -5,26 +5,13 @@ import {
 	Box,
 	Button,
 	Checkbox,
-	Collapse,
-	Divider,
-	Fade,
 	IconButton,
 	InputAdornment,
 	MenuItem,
 	TextField,
-	Typography,
-} from '@mui/material';
+	Typography, Fade } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import Check from '@mui/icons-material/Check';
-import Clear from '@mui/icons-material/Clear';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import Delete from '@mui/icons-material/Delete';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Share from '@mui/icons-material/Share';
-import TaskAlt from '@mui/icons-material/TaskAlt';
-import Close from '@mui/icons-material/Close';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import Toolbar from '../common/Toolbar';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { Answer } from '@/types/types';
@@ -37,8 +24,7 @@ import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
-import FormatQuote from '@mui/icons-material/FormatQuote';
+import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -46,6 +32,9 @@ import ImageTooltip from '../common/ImageTooltip';
 import { getAllowedExtensions } from '@/config/allowedFileTypes';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconCheck, IconCircleCheck, IconCopy, IconPaperclip, IconQuote, IconShare, IconTrash, IconX } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
+import Divider from '@/components/ui/Divider';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -292,7 +281,7 @@ export default function FormAnswer() {
 			<Toolbar
 				left={
 					<>
-						<FormatQuote sx={{ color: theme.palette.warning.main, marginRight: '10px' }} />
+						<IconQuote size={20} style={{ color: 'var(--status-warning)', marginRight: '10px' }} />
 						<Typography color="warning" lineHeight={'21px'} fontSize={17}>
 							{answerText === '' && isPlaceholder ? 'New answer' : answerText}
 						</Typography>
@@ -302,8 +291,8 @@ export default function FormAnswer() {
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<Box sx={{ ml: 1.25 }} className="flex-row-left">
-								<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
-								<Typography color={theme.palette.success.light}>Saved!</Typography>
+								<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+								<Typography color={'var(--status-success)'}>Saved!</Typography>
 							</Box>
 						</Fade>
 					</>
@@ -318,7 +307,7 @@ export default function FormAnswer() {
 										onClick: onDelete,
 										disabled: inTransition || isFreeform,
 										sx: { height: 25, marginRight: '10px' },
-										startIcon: <Delete />,
+										startIcon: <IconTrash size={20} />,
 									}}
 									tooltipProps={{
 										title: isFreeform
@@ -333,7 +322,7 @@ export default function FormAnswer() {
 										onClick: onCopy,
 										disabled: inTransition || isFreeform,
 										sx: { height: 25, marginRight: '10px' },
-										startIcon: <ContentCopy />,
+										startIcon: <IconCopy size={20} />,
 									}}
 									tooltipProps={{
 										title: isFreeform
@@ -351,7 +340,7 @@ export default function FormAnswer() {
 								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
 								color: 'primary',
 								sx: { height: 25 },
-								startIcon: <CheckCircle />,
+								startIcon: <IconCircleCheck size={20} />,
 							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -399,11 +388,10 @@ export default function FormAnswer() {
 																	onClick={() => onCopyText(field.name, field.value)}
 																>
 																	{copiedField === field.name ? (
-																		<Check
-																			sx={{ color: theme.palette.success.light }}
+																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																		<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
 																<IconButton
@@ -411,7 +399,7 @@ export default function FormAnswer() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																	<IconX size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																</IconButton>
 															</InputAdornment>
 														),
@@ -443,11 +431,10 @@ export default function FormAnswer() {
 																	}
 																>
 																	{copiedField === field.name ? (
-																		<Check
-																			sx={{ color: theme.palette.success.light }}
+																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																		<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
 																<IconButton
@@ -455,7 +442,7 @@ export default function FormAnswer() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																	<IconX size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																</IconButton>
 															</InputAdornment>
 														),
@@ -552,7 +539,7 @@ export default function FormAnswer() {
 											variant="outlined"
 											color="primary"
 											size="small"
-											startIcon={<Share />}
+											startIcon={<IconShare size={20} />}
 											onClick={toggleActionDialog}
 										>
 											Configure User Actions
@@ -599,7 +586,7 @@ export default function FormAnswer() {
 									</Box>
 
 									{/* File Extensions (conditional) */}
-									<Collapse in={!!requiresUpload}>
+									<Collapse open={!!requiresUpload}>
 										<Controller
 											name="allowed_extensions"
 											control={control}
@@ -656,7 +643,7 @@ export default function FormAnswer() {
 									</Collapse>
 
 									{/* Additional Info Fields (conditional) */}
-									<Collapse in={!!hasAdditionalInfo}>
+									<Collapse open={!!hasAdditionalInfo}>
 										<Box sx={{ display: 'flex', gap: 2 }}>
 											<Controller
 												name="additional_info_placeholder"
@@ -683,19 +670,12 @@ export default function FormAnswer() {
 																			}
 																		>
 																			{copiedField === field.name ? (
-																				<Check
-																					sx={{
-																						color: theme.palette.success
-																							.light,
-																						fontSize: 16,
-																					}}
+																				<IconCheck size={20} style={{ color: 'var(--status-success-bg)',
+																						fontSize: 16, }}
 																				/>
 																			) : (
-																				<ContentCopy
-																					sx={{
-																						color: BASE_COLOR_LIGHT,
-																						fontSize: 16,
-																					}}
+																				<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT,
+																						fontSize: 16, }}
 																				/>
 																			)}
 																		</IconButton>
@@ -705,11 +685,8 @@ export default function FormAnswer() {
 																			onClick={() => field.onChange('')}
 																			disabled={!field.value}
 																		>
-																			<Clear
-																				sx={{
-																					color: BASE_COLOR_LIGHT,
-																					fontSize: 16,
-																				}}
+																			<IconX size={20} style={{ color: BASE_COLOR_LIGHT,
+																					fontSize: 16, }}
 																			/>
 																		</IconButton>
 																	</InputAdornment>
@@ -751,7 +728,7 @@ export default function FormAnswer() {
 									<Button
 										variant="outlined"
 										size="small"
-										startIcon={<AttachFileIcon />}
+										startIcon={<IconPaperclip size={20} />}
 										onClick={() => setShowDocSelector(true)}
 										disabled={inTransition || isPlaceholder}
 									>
@@ -776,7 +753,7 @@ export default function FormAnswer() {
 												disabled={inTransition}
 												sx={{ padding: '2px' }}
 											>
-												<Close sx={{ fontSize: 14 }} />
+												<IconX size={14} />
 											</IconButton>
 										</Box>
 									)}

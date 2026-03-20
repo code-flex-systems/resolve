@@ -1,22 +1,14 @@
 'use client';
 
+import { IconCircleX, IconDeviceFloppy } from '@tabler/icons-react';
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
+import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
 import { useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import {
-	Box,
-	Button,
-	Paper,
-	TextField,
-	Typography,
-	Divider,
-	Select,
-	MenuItem,
-	FormControl,
-	InputLabel,
-} from '@mui/material';
-import Save from '@mui/icons-material/Save';
-import Cancel from '@mui/icons-material/Cancel';
 import DateField from '../common/DateField';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { RecoveryStatus } from '@/config/enums';
@@ -178,58 +170,56 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 	const lineOfBusiness = watch('line_of_business');
 
 	return (
-		<Box sx={styles.container}>
+		<div style={styles.container}>
 			{isEditMode && isLoading ? (
-				<Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-					<Typography>Loading claim data...</Typography>
-				</Box>
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+					<span>Loading claim data...</span>
+				</div>
 			) : (
-				<Paper sx={styles.paper}>
-					<Box sx={styles.header}>
-						<Typography variant="h5">{isEditMode ? 'Edit Claim' : 'New Claim'}</Typography>
-						<Box display="flex" gap={2}>
-							<Button variant="outlined" startIcon={<Cancel />} onClick={handleCancel}>
+				<div style={styles.paper}>
+					<div style={styles.header}>
+						<span>{isEditMode ? 'Edit Claim' : 'New Claim'}</span>
+						<div style={{ display: 'flex', gap: 16 }}>
+							<Button variant="outlined" startIcon={<IconCircleX size={20} />} onClick={handleCancel}>
 								Cancel
 							</Button>
 							<Button
 								variant="contained"
-								startIcon={<Save />}
+								startIcon={<IconDeviceFloppy size={20} />}
 								onClick={onSubmit}
 								disabled={!isValid || isSubmitting || isCreating || isUpdating}
 							>
 								{isEditMode ? 'Save Changes' : 'Create Claim'}
 							</Button>
-						</Box>
-					</Box>
+						</div>
+					</div>
 
-					<Divider sx={{ mb: 2 }} />
+					<Divider />
 
 					<form onSubmit={onSubmit}>
-						<Box>
+						<div>
 							{/* Basic Information Section */}
-							<Typography variant="h6" sx={{ mb: 1.5 }}>
+							<span style={{ marginBottom: 12 }}>
 								Basic Information
-							</Typography>
+							</span>
 
-							<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>
-								<TextField
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+								<Input
 									id="claim_number"
 									label="Claim Number"
 									placeholder="OPV63SASBX"
 									error={!!errors.claim_number}
-									size="small"
 									disabled={!canEditRestrictedFields}
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+									style={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 									{...register('claim_number', { required: true })}
 								/>
 
-								<TextField
+								<Input
 									id="insured"
 									label="Insured"
 									placeholder="Rachel Anderson"
 									error={!!errors.insured}
-									size="small"
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+									style={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 									{...register('insured', { required: true })}
 								/>
 
@@ -247,13 +237,13 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 										/>
 									)}
 								/>
-							</Box>
+							</div>
 
 							{/* Loss Location */}
-							<Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'text.secondary' }}>
+							<span style={{ marginTop: 16, marginBottom: 8, color: 'var(--text-secondary)' }}>
 								Loss Location
-							</Typography>
-							<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>
+							</span>
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
 								<AddressFields
 									control={control}
 									errors={errors}
@@ -262,41 +252,39 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 									variant="loss"
 									width={300}
 								/>
-							</Box>
+							</div>
 
 							{/* Client Information */}
-							<Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'text.secondary' }}>
+							<span style={{ marginTop: 16, marginBottom: 8, color: 'var(--text-secondary)' }}>
 								Client Information
-							</Typography>
-							<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5}>
-								<TextField
+							</span>
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+								<Input
 									id="client"
 									label="Client"
 									placeholder="Liberty Mutual"
 									error={!!errors.client}
-									size="small"
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+									style={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 									{...register('client', { required: true })}
 								/>
 
-								<TextField
+								<Input
 									id="client_adjuster"
 									label="Client Adjuster"
 									placeholder="Matthew Howell"
 									error={!!errors.client_adjuster}
-									size="small"
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+									style={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 									{...register('client_adjuster', { required: true })}
 								/>
-							</Box>
+							</div>
 
 							{/* Classification Section */}
-							<Divider sx={{ my: 2.5 }} />
-							<Typography variant="h6" sx={{ mb: 1.5 }}>
+							<Divider />
+							<span style={{ marginBottom: 12 }}>
 								Classification
-							</Typography>
+							</span>
 
-							<Box display="flex" flexWrap="wrap" gap={1.5} mb={2.5} alignItems="center">
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20, alignItems: 'center' }}>
 								<LineOfBusinessSelect
 									lineOfBusiness={lineOfBusiness}
 									setLineOfBusiness={(value) => setValue('line_of_business', value)}
@@ -308,7 +296,7 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 
 								<FormControl
 									size="small"
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
+									style={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 									disabled={!canEditRestrictedFields}
 								>
 									<InputLabel>Recovery Status</InputLabel>
@@ -319,14 +307,14 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 									>
 										{Object.values(RecoveryStatus).map((status) => (
 											<MenuItem key={status} value={status}>
-												<Box display="flex" alignItems="center" gap={1}>
-													<Typography fontSize={14}>
+												<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+													<span style={{ fontSize: 14 }}>
 														{RECOVERY_STATUS_ICONS[status]}
-													</Typography>
-													<Typography fontSize={14}>
+													</span>
+													<span style={{ fontSize: 14 }}>
 														{formatRecoveryStatus(status)}
-													</Typography>
-												</Box>
+													</span>
+												</div>
 											</MenuItem>
 										))}
 									</Select>
@@ -341,12 +329,12 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 									disabled={!canEditRestrictedFields}
 									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
 								/>
-							</Box>
-						</Box>
+							</div>
+						</div>
 					</form>
-				</Paper>
+				</div>
 			)}
-		</Box>
+		</div>
 	);
 }
 
@@ -366,6 +354,6 @@ const styles = {
 		display: 'flex',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		mb: 2,
+		marginBottom: 16,
 	},
 };

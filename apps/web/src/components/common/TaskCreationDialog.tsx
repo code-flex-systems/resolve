@@ -1,7 +1,8 @@
 'use client';
 
-import { Stack, TextField, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
-import AddTask from '@mui/icons-material/AddTask';
+import { MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import { IconSubtask } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
 import DateField from './DateField';
 import { Controller, useForm } from 'react-hook-form';
@@ -93,7 +94,7 @@ export default function TaskCreationDialog({
 			primaryAction={{
 				label: 'Create Task',
 				onClick: onSubmit,
-				icon: <AddTask />,
+				icon: <IconSubtask size={18} />,
 				disabled: isPending || !deskLocationId || !watch('title'),
 			}}
 			secondaryActions={[
@@ -105,11 +106,11 @@ export default function TaskCreationDialog({
 			onClose={onClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
 				{claimNumber && (
-					<Typography variant="body2" color="text.secondary" sx={{ width: 400, marginBottom: 1 }}>
+					<p style={{ fontSize: 14, color: 'var(--text-secondary)', width: 400, marginBottom: 8 }}>
 						Creating task for claim: {claimNumber}
-					</Typography>
+					</p>
 				)}
 
 				<Controller
@@ -117,14 +118,13 @@ export default function TaskCreationDialog({
 					control={control}
 					rules={{ required: 'Title is required', minLength: 1 }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							{...field}
 							label="Task Title"
-							
 							required
 							error={!!errors.title}
-							helperText={errors.title?.message}
-							sx={{ width: 400 }}
+							errorText={errors.title?.message}
+							style={{ width: 400 }}
 							disabled={isPending}
 						/>
 					)}
@@ -134,13 +134,11 @@ export default function TaskCreationDialog({
 					name="description"
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							{...field}
 							label="Description (optional)"
-							
-							multiline
 							rows={2}
-							sx={{ width: 400 }}
+							style={{ width: 400 }}
 							disabled={isPending}
 						/>
 					)}
@@ -203,7 +201,7 @@ export default function TaskCreationDialog({
 						)}
 					/>
 				</FormControl>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

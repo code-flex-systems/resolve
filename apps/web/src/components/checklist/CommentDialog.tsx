@@ -3,14 +3,13 @@ import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import config from '@/config/config';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import AddCircle from '@mui/icons-material/AddCircle';
-import Delete from '@mui/icons-material/Delete';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { IconCirclePlus, IconTrash } from '@tabler/icons-react';
 
 export default function CommentDialog() {
 	const { data: session } = useClerkSession();
@@ -80,7 +79,7 @@ export default function CommentDialog() {
 												onClick: () => deleteComment().catch(console.error),
 												disabled: inTransition,
 											}}
-											icon={<Delete />}
+											icon={<IconTrash size={20} />}
 											tooltipProps={{ title: 'Delete comment' }}
 										/>
 									) : (
@@ -89,7 +88,7 @@ export default function CommentDialog() {
 												onClick: () => addComment().catch(console.error),
 												disabled: !comment || inTransition,
 											}}
-											icon={<AddCircle />}
+											icon={<IconCirclePlus size={20} />}
 											tooltipProps={{ title: 'Add comment' }}
 										/>
 									)}

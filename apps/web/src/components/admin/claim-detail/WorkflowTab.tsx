@@ -1,9 +1,12 @@
 'use client';
 
-import { Box, Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import OpenInNew from '@mui/icons-material/OpenInNew';
+import { IconExternalLink } from '@tabler/icons-react';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
+import Chip from '@/components/ui/Chip';
 import { trpc } from '@/lib/trpc';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import Highlight from '@/components/common/Highlight';
@@ -15,6 +18,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import TaskListPanel from '@/components/common/TaskListPanel';
+import { Select } from '@mui/material';
 
 dayjs.extend(relativeTime);
 
@@ -28,20 +32,20 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 
 	if (isLoading) {
 		return (
-			<Box p={3}>
-				<Stack spacing={2}>
-					<Skeleton variant="rectangular" height={200} />
-					<Skeleton variant="rectangular" height={300} />
-				</Stack>
-			</Box>
+			<div style={{ padding: 24 }}>
+				<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+					<Skeleton variant="rect" height={200} />
+					<Skeleton variant="rect" height={300} />
+				</div>
+			</div>
 		);
 	}
 
 	if (!claimDetail) {
 		return (
-			<Box p={3}>
-				<Typography color="text.secondary">Claim not found</Typography>
-			</Box>
+			<div style={{ padding: 24 }}>
+				<span style={{ color: 'var(--text-secondary)' }}>Claim not found</span>
+			</div>
 		);
 	}
 
@@ -53,140 +57,133 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 	};
 
 	return (
-		<Box p={3}>
-			<Stack spacing={3} maxWidth={1000} mx="auto">
+		<div style={{ padding: 24 }}>
+			<div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1000, margin: "0 auto" }}>
 				{/* Workflow Status */}
-				<Paper elevation={0} sx={styles.gradientPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.gradientPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 						Workflow Status
-					</Typography>
-					<Stack spacing={1.5}>
-						<Box display="flex" justifyContent="space-between" alignItems="center">
-							<Typography fontSize={13}>
+					</span>
+					<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight bold={false}>Recovery Status:</Highlight>
-							</Typography>
+							</span>
 							{claimDetail.recovery_status ? (
-								<Chip label={formatLabel(claimDetail.recovery_status)} size="small" color="primary" />
+								<Chip  size="sm" color="info">{formatLabel(claimDetail.recovery_status)}</Chip>
 							) : (
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 									N/A
-								</Typography>
+								</span>
 							)}
-						</Box>
-						<Box display="flex" justifyContent="space-between" alignItems="center">
-							<Typography fontSize={13}>
+						</div>
+						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+							<span style={{ fontSize: 13 }}>
 								<Highlight bold={false}>Substatus:</Highlight>
-							</Typography>
+							</span>
 							{claimDetail.substatus ? (
 								<ClaimSubstatusChip value={claimDetail.substatus} showEmoji={false} />
 							) : (
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 									N/A
-								</Typography>
+								</span>
 							)}
-						</Box>
-					</Stack>
-				</Paper>
+						</div>
+					</div>
+				</div>
 
 				{/* Current Assignment */}
 				{currentAssignment ? (
-					<Paper elevation={0} sx={styles.beveledPaper}>
-						<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+					<div style={styles.beveledPaper}>
+						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 								Current Assignment
-							</Typography>
+							</span>
 							<BasicButtonStyled
 								buttonProps={{
 									onClick: () => handleOpenChecklist(currentAssignment.checklist_id),
-									endIcon: <OpenInNew />,
+									endIcon: <IconExternalLink size={20} />,
 								}}
 							>
 								Open Checklist
 							</BasicButtonStyled>
-						</Box>
-						<Stack spacing={2}>
-							<Box>
-								<Typography fontSize={13}>
+						</div>
+						<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+							<div>
+								<span style={{ fontSize: 13 }}>
 									<Highlight>
 										{currentAssignment.assignee_first_name} {currentAssignment.assignee_last_name}
 									</Highlight>{' '}
 									is working through <Highlight>{currentAssignment.checklist_name}</Highlight>
-								</Typography>
-							</Box>
+								</span>
+							</div>
 							<Divider />
-							<Box display="flex" justifyContent="space-between" alignItems="center">
-								<Typography fontSize={13}>
+							<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Status:</Highlight>
-								</Typography>
-								<Box
-									display="flex"
-									alignItems="center"
-									padding="2px 8px"
-									border="1px solid #85D2FF"
-									bgcolor="white"
-									borderRadius={3}
-								>
+								</span>
+								<div style={{ display: 'flex', alignItems: 'center', padding: '2px 8px', border: '1px solid #85D2FF', backgroundColor: 'white', borderRadius: 12 }}>
 									<ClaimStatusIcon status={currentAssignment.status as ClaimStatus} fontSize={17} />
-									<Typography fontSize={14} color="primary" marginLeft="5px">
+									<span style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: '5px' }}>
 										{currentAssignment.status}
-									</Typography>
-								</Box>
-							</Box>
-							<Box display="flex" justifyContent="space-between">
-								<Typography fontSize={13}>
+									</span>
+								</div>
+							</div>
+							<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Last Opened:</Highlight>
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									{dayjs(currentAssignment.last_opened).format('MMM D, YYYY [at] h:mm A')}
-								</Typography>
-							</Box>
-							<Box display="flex" justifyContent="space-between">
-								<Typography fontSize={13}>
+								</span>
+							</div>
+							<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Created By:</Highlight>
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									{currentAssignment.creator_first_name} {currentAssignment.creator_last_name}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 							{currentAssignment.submitted_at && (
 								<>
 									<Divider />
-									<Box display="flex" justifyContent="space-between">
-										<Typography fontSize={13}>
+									<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+										<span style={{ fontSize: 13 }}>
 											<Highlight bold={false}>Submitted:</Highlight>
-										</Typography>
-										<Typography fontSize={13}>
+										</span>
+										<span style={{ fontSize: 13 }}>
 											{dayjs(currentAssignment.submitted_at).format('MMM D, YYYY [at] h:mm A')}
-										</Typography>
-									</Box>
+										</span>
+									</div>
 									{currentAssignment.submitted_by_first_name && (
-										<Box display="flex" justifyContent="space-between">
-											<Typography fontSize={13}>
+										<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+											<span style={{ fontSize: 13 }}>
 												<Highlight bold={false}>Submitted By:</Highlight>
-											</Typography>
-											<Typography fontSize={13}>
+											</span>
+											<span style={{ fontSize: 13 }}>
 												{currentAssignment.submitted_by_first_name}{' '}
 												{currentAssignment.submitted_by_last_name}
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									)}
 									{currentAssignment.time_to_resolution_days && (
-										<Box display="flex" justifyContent="space-between">
-											<Typography fontSize={13}>
+										<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+											<span style={{ fontSize: 13 }}>
 												<Highlight bold={false}>Time to Resolution:</Highlight>
-											</Typography>
-											<Typography fontSize={13} fontWeight={600}>
+											</span>
+											<span style={{ fontSize: 13, fontWeight: 600 }}>
 												{currentAssignment.time_to_resolution_days} days
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									)}
 								</>
 							)}
 							<Divider />
-							<Box>
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+							<div>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 									Progress
-								</Typography>
+								</span>
 								<ChecklistProgress
 									checklistId={currentAssignment.checklist_id}
 									claimId={claimId}
@@ -194,94 +191,88 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 									fontSize={13}
 									showInfo={false}
 								/>
-							</Box>
-						</Stack>
-					</Paper>
+							</div>
+						</div>
+					</div>
 				) : (
-					<Paper elevation={0} sx={styles.beveledPaper}>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+					<div style={styles.beveledPaper}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 							Current Assignment
-						</Typography>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+						</span>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 							This claim is not currently assigned to any checklist
-						</Typography>
-					</Paper>
+						</span>
+					</div>
 				)}
 
 				{/* Assignment History */}
 				{assignmentHistory.length > 0 && (
-					<Paper elevation={0} sx={styles.beveledPaper}>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+					<div style={styles.beveledPaper}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 							Assignment History ({assignmentHistory.length} assignment
 							{assignmentHistory.length !== 1 ? 's' : ''})
-						</Typography>
-						<Stack spacing={2}>
+						</span>
+						<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 							{assignmentHistory.map((assignment, index) => (
-								<Box key={`${assignment.checklist_id}-${assignment.claim_id}`}>
-									{index > 0 && <Divider sx={{ marginBottom: 2 }} />}
-									<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-										<Box flex={1}>
-											<Typography fontSize={13} fontWeight={600} marginBottom={0.5}>
+								<div key={`${assignment.checklist_id}-${assignment.claim_id}`}>
+									{index > 0 && <Divider />}
+									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+										<div style={{ flex: 1 }}>
+											<span style={{ fontSize: 13, fontWeight: 600 }}>
 												{assignment.checklist_name}
-											</Typography>
-											<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+											</span>
+											<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
 												Assigned to {assignment.assignee_first_name}{' '}
 												{assignment.assignee_last_name}
-											</Typography>
-											<Box
-												display="flex"
-												gap={1}
-												flexWrap="wrap"
-												marginBottom={1}
-												alignItems="center"
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													padding="2px 8px"
-													border="1px solid #85D2FF"
-													bgcolor="white"
-													borderRadius={3}
+											</span>
+											<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
+												<div
+													style={{
+														display: 'flex',
+														alignItems: 'center',
+														padding: '2px 8px',
+														border: '1px solid #85D2FF',
+														backgroundColor: 'white',
+														borderRadius: 12,
+													}}
 												>
 													<ClaimStatusIcon
 														status={assignment.status as ClaimStatus}
 														fontSize={17}
 													/>
-													<Typography fontSize={14} color="primary" marginLeft="5px">
+													<span style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: 5 }}>
 														{assignment.status}
-													</Typography>
-												</Box>
+													</span>
+												</div>
 												{assignment.submitted_at && assignment.time_to_resolution_days && (
-													<Chip
-														label={`Completed in ${assignment.time_to_resolution_days} days`}
-														size="small"
-														color="success"
-													/>
+													<Chip size="sm" color="success">
+														{`Completed in ${assignment.time_to_resolution_days} days`}
+													</Chip>
 												)}
-											</Box>
-											<Typography fontSize={11} color={BASE_COLOR_LIGHT}>
+											</div>
+											<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
 												Last opened {dayjs(assignment.last_opened).fromNow()}
-											</Typography>
-										</Box>
-									</Box>
-								</Box>
+											</span>
+										</div>
+									</div>
+								</div>
 							))}
-						</Stack>
-					</Paper>
+						</div>
+					</div>
 				)}
 
 				{/* Tasks */}
-				<Paper elevation={0} sx={styles.beveledPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<div style={styles.beveledPaper}>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 						Tasks
-					</Typography>
+					</span>
 					<TaskListPanel
 						claimId={claimId}
 						claimNumber={claimDetail.claim_number ?? undefined}
 					/>
-				</Paper>
-			</Stack>
-		</Box>
+				</div>
+			</div>
+		</div>
 	);
 }
 

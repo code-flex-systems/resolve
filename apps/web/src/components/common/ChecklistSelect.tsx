@@ -1,9 +1,8 @@
 import { GetChecklistOutput, useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import Checklist from '@mui/icons-material/Checklist';
-import theme from '@/styles/theme';
+import { IconChecklist } from '@tabler/icons-react';
 
 export default function ChecklistSelect({
 	checklist,
@@ -35,7 +34,7 @@ export default function ChecklistSelect({
 		<>
 			<Chip
 				label={options.find((o) => o.id === checklist?.id)?.name ?? text}
-				icon={<Checklist />}
+				icon={<IconChecklist size={20} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -46,10 +45,10 @@ export default function ChecklistSelect({
 					...styles.chip,
 					height,
 					'& .MuiChip-icon': {
-						color: checklist ? theme.palette.primary.main : undefined,
+						color: checklist ? 'var(--text-accent)' : undefined,
 					},
 					'& .MuiChip-label': {
-						color: checklist ? theme.palette.primary.main : undefined,
+						color: checklist ? 'var(--text-accent)' : undefined,
 					},
 				}}
 				disabled={disabled}
@@ -67,7 +66,7 @@ export default function ChecklistSelect({
 									setAnchorEl(null);
 								}}
 							>
-								<Typography fontSize={13}>{o.name}</Typography>
+								<span style={{ fontSize: 13 }}>{o.name}</span>
 							</MenuItem>
 						))}
 					</Paper>

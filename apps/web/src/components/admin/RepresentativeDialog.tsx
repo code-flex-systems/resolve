@@ -1,7 +1,8 @@
 'use client';
-
+import { Autocomplete, TextField } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Switch from '@/components/ui/Switch';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { Autocomplete, Switch, TextField, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
@@ -239,13 +240,13 @@ export default function RepresentativeDialog({
 								renderOption={(props, party: any) => (
 									<li {...props} key={String(party.id)}>
 										<div>
-											<Typography variant="body2" fontWeight="bold">
+											<span style={{ fontWeight: 'bold' }}>
 												{party.name}
-											</Typography>
+											</span>
 											{party.organization && (
-												<Typography variant="caption" color="text.secondary">
+												<span style={{ color: 'var(--text-secondary)' }}>
 													{party.organization}
-												</Typography>
+												</span>
 											)}
 										</div>
 									</li>
@@ -297,13 +298,13 @@ export default function RepresentativeDialog({
 									return (
 										<li {...props} key={String(address.id)}>
 											<div>
-												<Typography variant="body2" fontWeight="bold">
+												<span style={{ fontWeight: 'bold' }}>
 													{address.name || 'Unnamed address'}
-												</Typography>
+												</span>
 												{addressLine && (
-													<Typography variant="caption" color="text.secondary">
+													<span style={{ color: 'var(--text-secondary)' }}>
 														{addressLine}
-													</Typography>
+													</span>
 												)}
 											</div>
 										</li>
@@ -327,14 +328,13 @@ export default function RepresentativeDialog({
 					control={control}
 					rules={{ required: 'First name is required' }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							{...field}
 							label="First Name"
-							
 							fullWidth
 							required
 							error={!!errors.first_name}
-							helperText={errors.first_name?.message}
+							errorText={errors.first_name?.message}
 							placeholder="John"
 						/>
 					)}
@@ -346,14 +346,13 @@ export default function RepresentativeDialog({
 					control={control}
 					rules={{ required: 'Last name is required' }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							{...field}
 							label="Last Name"
-							
 							fullWidth
 							required
 							error={!!errors.last_name}
-							helperText={errors.last_name?.message}
+							errorText={errors.last_name?.message}
 							placeholder="Doe"
 						/>
 					)}
@@ -364,10 +363,9 @@ export default function RepresentativeDialog({
 					name="title"
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Input
 							{...field}
 							label="Title"
-							
 							fullWidth
 							placeholder="e.g., Claims Adjuster, Attorney"
 						/>
@@ -385,13 +383,12 @@ export default function RepresentativeDialog({
 						},
 					}}
 					render={({ field }) => (
-						<TextField
+						<Input
 							{...field}
 							label="Email"
-							
 							fullWidth
 							error={!!errors.email}
-							helperText={errors.email?.message}
+							errorText={errors.email?.message}
 							placeholder="john.doe@example.com"
 						/>
 					)}
@@ -401,7 +398,7 @@ export default function RepresentativeDialog({
 				<Controller
 					name="phone"
 					control={control}
-					render={({ field }) => <TextField {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />}
+					render={({ field }) => <Input {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />}
 				/>
 
 				{/* Mobile Phone */}
@@ -409,7 +406,7 @@ export default function RepresentativeDialog({
 					name="mobile_phone"
 					control={control}
 					render={({ field }) => (
-						<TextField {...field} label="Mobile Phone" fullWidth placeholder="(555) 987-6543" />
+						<Input {...field} label="Mobile Phone" fullWidth placeholder="(555) 987-6543" />
 					)}
 				/>
 
@@ -417,23 +414,23 @@ export default function RepresentativeDialog({
 				<Controller
 					name="fax"
 					control={control}
-					render={({ field }) => <TextField {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />}
+					render={({ field }) => <Input {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />}
 				/>
 
 				{/* Primary Representative */}
 				<div style={styles.switchContainer}>
-					<Typography variant="body2">Primary Representative</Typography>
+					<span>Primary Representative</span>
 					<Controller
 						name="is_primary"
 						control={control}
-						render={({ field }) => <Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />}
+						render={({ field }) => <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />}
 					/>
 				</div>
 
 				{!hasRequiredFields && (
-					<Typography variant="caption" color="error" fontStyle="italic">
+					<span style={{  color: 'var(--status-error)' ,  fontStyle: 'italic'  }}>
 						* First Name and Last Name are required
-					</Typography>
+					</span>
 				)}
 			</form>
 		</BasicDialog>

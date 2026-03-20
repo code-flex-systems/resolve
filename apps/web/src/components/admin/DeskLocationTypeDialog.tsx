@@ -1,7 +1,9 @@
 'use client';
 
-import { Checkbox, FormControlLabel, Stack, TextField } from '@mui/material';
-import Send from '@mui/icons-material/Send';
+import { IconSend } from '@tabler/icons-react';
+import { FormControlLabel } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Checkbox from '@/components/ui/Checkbox';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -82,27 +84,26 @@ export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocati
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: onSubmit,
-				icon: isEditMode ? undefined : <Send />,
+				icon: isEditMode ? undefined : <IconSend size={20} />,
 				disabled: isSubmitting || isPending || !isValid || (isEditMode && !isDirty),
 			}}
 			onClose={handleClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
 				<Controller
 					name="name"
 					control={control}
 					rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Name"
-							
 							placeholder="Desk location type name"
 							error={!!errors.name}
-							helperText={errors.name?.message}
+							errorText={errors.name?.message}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
@@ -113,14 +114,14 @@ export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocati
 						control={control}
 						render={({ field }) => (
 							<FormControlLabel
-								control={<Checkbox {...field} checked={field.value} disabled={isSubmitting} />}
+								control={<Checkbox checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} />}
 								label="Create default desk locations (Pending, Transactional, Closed, etc.)"
-								sx={{ width: 400, fontSize: 13 }}
+								style={{ width: 400, fontSize: 13 }}
 							/>
 						)}
 					/>
 				)}
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }
@@ -129,13 +130,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
 		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
 };

@@ -1,17 +1,14 @@
 'use client';
 
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import Unarchive from '@mui/icons-material/Unarchive';
+import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import DeskLocationDialog from './DeskLocationDialog';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import theme from '@/styles/theme';
+import { Dialog } from '@mui/material';
 
 interface DeskLocationActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;
@@ -69,28 +66,28 @@ export default function DeskLocationActionsCell(params: DeskLocationActionsCellP
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this desk location?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						{isArchived
 							? 'The desk location will be restored and become available for use.'
 							: 'This desk location cannot be archived if it has assigned claims.'}
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight="10px">
+				<div style={{ marginRight: '10px' }}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => setEditing(true),
 							disabled: isArchived,
 						}}
 						tooltipProps={{ title: isArchived ? 'Cannot edit archived desk location' : 'Make changes' }}
-						icon={<Edit sx={{ fontSize: 15 }} />}
+						icon={<IconEdit size={15} />}
 					/>
-				</Box>
+				</div>
 				<BasicButtonStyled
 					buttonProps={{
 						onClick: () => setShowActionConfirm(true),
@@ -99,9 +96,9 @@ export default function DeskLocationActionsCell(params: DeskLocationActionsCellP
 					tooltipProps={{ title: isArchived ? 'Restore desk location' : 'Archive desk location' }}
 					icon={
 						isArchived ? (
-							<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+							<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 						) : (
-							<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+							<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 						)
 					}
 				/>

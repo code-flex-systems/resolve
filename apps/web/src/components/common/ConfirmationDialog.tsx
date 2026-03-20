@@ -1,7 +1,8 @@
 'use client';
-import { Dialog, DialogActions } from '@mui/material';
-import { PropsWithChildren } from 'react';
-import BasicButton from './BasicButton';
+
+import { PropsWithChildren, useCallback, useEffect, useRef } from 'react';
+import Button from '@/components/ui/Button';
+import css from './ConfirmationDialog.module.css';
 
 export default function ConfirmationDialog(
 	props: {
@@ -11,55 +12,46 @@ export default function ConfirmationDialog(
 	} & PropsWithChildren
 ) {
 	const { onConfirm, onClose, negative = false } = props;
-	return (
-		<Dialog
-			open={true}
-			onClose={onClose}
-			sx={{
-				'& .MuiPaper-root': {
-					maxWidth: '100%',
-					borderColor: 'primary.main',
-					padding: '20px 20px 10px',
-				},
-			}}
-		>
-			<div style={styles.container}>{props.children}</div>
+	const dialogRef = useRef<HTMLDialogElement>(null);
 
-			<DialogActions style={{ justifyContent: 'center' }}>
-				<BasicButton
-					buttonProps={{
-						onClick: onClose,
-						variant: 'outlined',
-						color: 'primary',
-						sx: styles.button,
-					}}
-				>
+	useEffect(() => {
+		const dialog = dialogRef.current;
+		if (dialog && !dialog.open) {
+			dialog.showModal();
+		}
+	}, []);
+
+	useEffect(() => {
+		const dialog = dialogRef.current;
+		if (!dialog) return;
+		const handleClose = () => onClose();
+		dialog.addEventListener('close', handleClose);
+		return () => dialog.removeEventListener('close', handleClose);
+	}, [onClose]);
+
+	const handleClick = useCallback(
+		(e: React.MouseEvent<HTMLDialogElement>) => {
+			if (e.target === e.currentTarget) onClose();
+		},
+		[onClose]
+	);
+
+	return (
+		<dialog ref={dialogRef} className={css.dialog} onClick={handleClick}>
+			<div className={css.container}>{props.children}</div>
+			<div className={css.actions}>
+				<Button variant="outlined" onClick={onClose} size="sm">
 					Cancel
-				</BasicButton>
-				<BasicButton
-					buttonProps={{
-						onClick: onConfirm,
-						variant: 'outlined',
-						color: negative ? 'warning' : undefined,
-						sx: styles.button,
-					}}
+				</Button>
+				<Button
+					variant="outlined"
+					color={negative ? 'warning' : 'primary'}
+					onClick={onConfirm}
+					size="sm"
 				>
 					OK
-				</BasicButton>
-			</DialogActions>
-		</Dialog>
+				</Button>
+			</div>
+		</dialog>
 	);
 }
-
-const styles = {
-	button: {
-		fontSize: 13,
-	},
-	container: {
-		width: '100%',
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: '10px 0px',
-	},
-};

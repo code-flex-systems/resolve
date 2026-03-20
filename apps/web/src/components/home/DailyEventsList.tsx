@@ -1,9 +1,8 @@
 'use client';
 
-import { Box, Fade, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography , Fade } from '@mui/material';
 import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import { Dayjs } from 'dayjs';
-import theme from '@/styles/theme';
 import { useRouter } from 'next/navigation';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 
@@ -58,7 +57,7 @@ export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: D
 const styles = {
 	container: {
 		width: '100%',
-		borderTop: `1px solid ${theme.palette.divider}`,
+		borderTop: `1px solid ${'var(--border)'}`,
 		paddingTop: 2,
 		marginTop: 1,
 	},
@@ -78,14 +77,14 @@ const styles = {
 			width: '6px',
 		},
 		'&::-webkit-scrollbar-track': {
-			background: theme.palette.action.hover,
+			background: 'var(--bg-tertiary)',
 			borderRadius: '3px',
 		},
 		'&::-webkit-scrollbar-thumb': {
-			background: theme.palette.action.selected,
+			background: 'var(--bg-secondary)',
 			borderRadius: '3px',
 			'&:hover': {
-				background: theme.palette.action.disabled,
+				background: 'var(--bg-tertiary)',
 			},
 		},
 	},

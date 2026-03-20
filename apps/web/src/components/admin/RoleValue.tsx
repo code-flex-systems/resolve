@@ -1,18 +1,16 @@
 'use client';
 
 import config from '@/config/config';
-import theme from '@/styles/theme';
 import { Role } from '@/types/types';
-import { Typography } from '@mui/material';
 
 const getRoleColorInner = (role: Role) => {
 	switch (role) {
 		case config.ROLES.ADMIN:
-			return theme.palette.success.main;
+			return 'var(--status-success)';
 		case config.ROLES.CONTRIBUTOR:
-			return theme.palette.warning.main;
+			return 'var(--status-warning)';
 		case config.ROLES.SUPER_ADMIN:
-			return theme.palette.error.main;
+			return 'var(--status-error)';
 	}
 };
 
@@ -29,14 +27,8 @@ const getRoleColorOuter = (role: Role) => {
 
 export default function RoleValue({ role }: { role: Role }) {
 	return (
-		<Typography
-			fontSize={13}
-			color={getRoleColorInner(role)}
-			padding="2px 5px"
-			bgcolor={getRoleColorOuter(role)}
-			borderRadius={1}
-		>
+		<span style={{ fontSize: 13, color: getRoleColorInner(role), padding: '2px 5px', backgroundColor: getRoleColorOuter(role), borderRadius: 4 }}>
 			{role}
-		</Typography>
+		</span>
 	);
 }

@@ -6,23 +6,19 @@ import {
 	MenuItem,
 	Popper,
 	InputAdornment,
-	Collapse,
 	PopperProps,
 	TextFieldProps,
 	ClickAwayListener,
 	Typography,
-	Paper,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
+	Paper, Collapse } from '@mui/material';
 import { TransitionGroup } from 'react-transition-group';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
-import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { StackedRow } from '../common/StackedRow';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
+import { IconSearch, IconX } from '@tabler/icons-react';
 
 export default function UserSearch({
 	selectedUser,
@@ -92,16 +88,16 @@ export default function UserSearch({
 							input: {
 								startAdornment: (
 									<InputAdornment position="start">
-										<SearchIcon sx={{ fontSize: fontSize + 2 }} />
+										<IconSearch style={{ fontSize: fontSize + 2 }} />
 									</InputAdornment>
 								),
 								endAdornment: query && (
 									<InputAdornment position="end">
 										{searching ? (
-											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
+											<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
 										) : (
 											<IconButton size="small" onClick={handleClearInput}>
-												<ClearIcon sx={{ fontSize: fontSize + 2 }} />
+												<IconX style={{ fontSize: fontSize + 2 }} />
 											</IconButton>
 										)}
 									</InputAdornment>

@@ -1,17 +1,8 @@
 'use client';
+import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
-import {
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	Button,
-	Box,
-	Typography,
-	Divider,
-	Stack,
-} from '@mui/material';
-import { TEXT_PRIMARY, TEXT_SECONDARY } from '@/styles/theme';
 
 interface RuleExecutionSummaryDialogProps {
 	open: boolean;
@@ -40,8 +31,8 @@ export default function RuleExecutionSummaryDialog({
 	if (!summary) return null;
 
 	const stats = [
-		{ label: 'Rules Evaluated', value: summary.rulesEvaluated, color: TEXT_PRIMARY },
-		{ label: 'Claims Matched', value: summary.claimsMatched, color: TEXT_PRIMARY },
+		{ label: 'Rules Evaluated', value: summary.rulesEvaluated, color: 'var(--text-primary)' },
+		{ label: 'Claims Matched', value: summary.claimsMatched, color: 'var(--text-primary)' },
 		{ label: 'Actions Executed', value: summary.actionsExecuted, color: '#15803d' },
 		{ label: 'Actions Suggested', value: summary.actionsSuggested, color: '#1d4ed8' },
 	];
@@ -49,101 +40,100 @@ export default function RuleExecutionSummaryDialog({
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
 			<DialogTitle>
-				<Box>
-					<Typography sx={{ fontSize: 18, fontWeight: 600, color: TEXT_PRIMARY }}>
+				<div>
+					<span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>
 						Rule Execution Results
-					</Typography>
-					<Typography sx={{ fontSize: 13, color: TEXT_SECONDARY, mt: 0.5 }}>
+					</span>
+					<span style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
 						{ruleName}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 			</DialogTitle>
 
 			<Divider />
 
-			<DialogContent sx={{ pt: 3 }}>
+			<DialogContent style={{ paddingTop: 24 }}>
 				{/* Stats Row */}
-				<Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+				<div style={{ flexDirection: 'column', display: 'flex', gap: 16, marginBottom: 24 }}>
 					{stats.map((stat) => (
-						<Box
+						<div
 							key={stat.label}
-							sx={{
+							style={{
 								flex: 1,
 								border: '1px solid #e2e8f0',
-								borderRadius: 2,
-								p: 2,
+								borderRadius: 8,
+								padding: 16,
 								textAlign: 'center',
 							}}
 						>
-							<Typography sx={{ fontSize: 24, fontWeight: 700, color: stat.color }}>
+							<span style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>
 								{stat.value}
-							</Typography>
-							<Typography sx={{ fontSize: 12, color: TEXT_SECONDARY, mt: 0.5 }}>
+							</span>
+							<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
 								{stat.label}
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					))}
-				</Stack>
+				</div>
 
 				{/* Errors Section */}
 				{summary.errors.length > 0 && (
-					<Box sx={{ mb: 3 }}>
-						<Typography sx={{ fontSize: 15, fontWeight: 600, color: TEXT_PRIMARY, mb: 1.5 }}>
+					<div style={{ marginBottom: 24 }}>
+						<span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
 							Errors ({summary.errors.length})
-						</Typography>
+						</span>
 						{summary.errors.map((err, index) => (
-							<Box
+							<div
 								key={`${err.ruleId}-${err.claimId ?? 'no-claim'}-${index}`}
-								sx={{
-									px: 2,
-									py: 1.5,
-									mb: 1,
-									borderRadius: 1,
+								style={{
+									paddingInline: 16,
+									paddingBlock: 12,
+									marginBottom: 8,
+									borderRadius: 4,
 									backgroundColor: '#fee2e2',
 									border: '1px solid #fecaca',
 								}}
 							>
-								<Typography sx={{ fontSize: 14, fontWeight: 500, color: TEXT_PRIMARY }}>
+								<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
 									{err.ruleName}
 									{err.claimId != null && (
-										<Typography
-											component="span"
-											sx={{ fontSize: 13, color: TEXT_SECONDARY, ml: 1 }}
+										<span
+											style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 8 }}
 										>
 											(Claim #{err.claimId})
-										</Typography>
+										</span>
 									)}
-								</Typography>
-								<Typography sx={{ fontSize: 12, color: '#991b1b', mt: 0.5 }}>
+								</span>
+								<span style={{ fontSize: 12, color: '#991b1b', marginTop: 4 }}>
 									{err.error}
-								</Typography>
-							</Box>
+								</span>
+							</div>
 						))}
-					</Box>
+					</div>
 				)}
 
 				{/* No Claims Matched Note */}
 				{summary.claimsMatched === 0 && (
-					<Box
-						sx={{
-							p: 2,
-							borderRadius: 2,
+					<div
+						style={{
+							padding: 16,
+							borderRadius: 8,
 							backgroundColor: '#f8fafc',
 							border: '1px solid #e2e8f0',
 							textAlign: 'center',
 						}}
 					>
-						<Typography sx={{ fontSize: 13, color: TEXT_SECONDARY }}>
+						<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 							No claims matched the rule&apos;s conditions
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				)}
 			</DialogContent>
 
 			<Divider />
 
-			<DialogActions sx={{ px: 3, py: 2 }}>
-				<Button onClick={onClose} sx={{ textTransform: 'none' }}>
+			<DialogActions style={{ paddingInline: 24, paddingBlock: 16 }}>
+				<Button onClick={onClose} style={{ textTransform: 'none' }}>
 					Close
 				</Button>
 			</DialogActions>

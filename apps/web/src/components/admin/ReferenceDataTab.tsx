@@ -1,21 +1,22 @@
 'use client';
 
+import { IconCategory, IconSettings, IconSquarePlus, IconTag } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useMemo, useCallback, useState } from 'react';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
-import { Button, Chip, Fade, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRenderCellParams } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Category from '@mui/icons-material/Category';
-import Label from '@mui/icons-material/Label';
-import Settings from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import ReferenceOptionDialog from './ReferenceOptionDialog';
 import ReferenceOptionActionsCell from './ReferenceOptionActionsCell';
+import { Dialog } from '@mui/material';
 import {
 	KNOWN_REFERENCE_ENTITIES,
 	REFERENCE_ENTITY_DISPLAY,
@@ -33,7 +34,7 @@ const ENTITY_COLUMNS: GridColDef[] = [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Category style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<IconCategory style={{ color: 'var(--text-muted)' }} />} />
 		),
 		flex: 1,
 	},
@@ -55,7 +56,7 @@ const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Label style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />
 		),
 		flex: 1,
 		cellClassName: (params) => {
@@ -69,15 +70,13 @@ const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
 		field: 'is_active',
 		renderCell: ({ row }: GridRenderCellParams) => {
 			if (row.deleted_at) {
-				return <Chip label="Deactivated" size="small" color="error" variant="outlined" />;
+				return <Chip  size="sm" color="error" variant="outlined">Deactivated</Chip>;
 			}
 			return (
-				<Chip
-					label={row.is_active ? 'Active' : 'Inactive'}
-					size="small"
-					color={row.is_active ? 'success' : 'default'}
-					variant="outlined"
-				/>
+				<Chip 
+					size="sm"
+					color={row.is_active ? 'success' : 'neutral'}
+					variant="outlined">{row.is_active ? 'Active' : 'Inactive'}</Chip>
 			);
 		},
 		width: 110,
@@ -87,7 +86,7 @@ const getOptionColumns = (isManageMode: boolean): GridColDef[] => [
 		field: 'is_system_default',
 		renderCell: ({ row }: GridRenderCellParams) =>
 			row.is_system_default ? (
-				<Chip label="System" size="small" color="info" variant="outlined" />
+				<Chip  size="sm" color="info" variant="outlined">System</Chip>
 			) : null,
 		width: 90,
 	},
@@ -106,7 +105,7 @@ function NoEntitiesRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No reference data types found"
-			icon={<Category sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconCategory size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -116,14 +115,14 @@ function OptionsOverlay({ selectedEntity }: { selectedEntity: ReferenceEntity | 
 		return (
 			<CustomNoRowsOverlay
 				text="Select a reference type to see options"
-				icon={<Category sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconCategory size={35} style={{ color: 'var(--text-muted)' }} />}
 			/>
 		);
 	}
 	return (
 		<CustomNoRowsOverlay
 			text="No options found"
-			icon={<Label sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconTag size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -178,13 +177,13 @@ export default function ReferenceDataTab() {
 	);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<div>
 			<div style={styles.container}>
 				<div style={styles.panelContainer}>
 					{/* Left Panel: Reference Entity Types */}
-					<Paper sx={styles.leftPanel} className="flex-col-start">
+					<div style={styles.leftPanel} className="flex-col-start">
 						<Toolbar
-							left={<Typography variant="h6">Reference Data Types</Typography>}
+							left={<span>Reference Data Types</span>}
 							height={50}
 							padding={'0px 10px'}
 						/>
@@ -214,39 +213,38 @@ export default function ReferenceDataTab() {
 								disableColumnSelector
 								disableRowSelectionOnClick
 								disableColumnMenu
-								sx={styles.tableOverrides}
+								style={styles.tableOverrides}
 							/>
 						</div>
-					</Paper>
+					</div>
 
 					{/* Right Panel: Reference Options */}
-					<Paper sx={styles.rightPanel} className="flex-col-start">
+					<div style={styles.rightPanel} className="flex-col-start">
 						<Toolbar
 							left={
-								<Typography variant="h6">
+								<span>
 									{selectedReferenceEntity
 										? REFERENCE_ENTITY_DISPLAY[selectedReferenceEntity].label
 										: 'Options'}
-								</Typography>
+								</span>
 							}
 							right={
 								<>
 									<Button
 										variant="contained"
-										startIcon={<AddBox />}
+										startIcon={<IconSquarePlus size={20} />}
 										onClick={toggleNewReferenceOptionDialog}
 										disabled={selectedReferenceEntity === null}
 									>
 										Option
 									</Button>
-									<Tooltip title="Manage">
-										<IconButton
-											size="small"
+									<Tooltip content="Manage">
+										<Button variant="icon" size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
-											sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+											style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 										>
-											<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-										</IconButton>
+											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										</Button>
 									</Tooltip>
 								</>
 							}
@@ -275,15 +273,15 @@ export default function ReferenceDataTab() {
 								disableRowSelectionOnClick
 								disableColumnMenu
 								pinnedColumns={pinnedColumns}
-								sx={styles.tableOverrides}
+								style={styles.tableOverrides}
 							/>
 						</div>
-					</Paper>
+					</div>
 				</div>
 
 				{showNewReferenceOptionDialog && <ReferenceOptionDialog />}
 			</div>
-		</Fade>
+		</div>
 	);
 }
 

@@ -1,12 +1,12 @@
 'use client';
 
 import { LineChart } from '@mui/x-charts-pro';
-import theme from '@/styles/theme';
-import { Box, Skeleton, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function TeamRecoveryChart() {
 	const quarters = useMemo(() => getQuarterRanges(), []);
@@ -26,7 +26,7 @@ export default function TeamRecoveryChart() {
 		<Box width="100%" height="100%">
 			{isFetching && (
 				<Stack width="100%" spacing={1}>
-					<Skeleton variant="rounded" width="100%" height={130} />
+					<Skeleton variant="rect" width="100%" height={130} />
 				</Stack>
 			)}
 
@@ -56,7 +56,7 @@ export default function TeamRecoveryChart() {
 							{
 								data: expectedData,
 								label: 'Expected',
-								color: theme.palette.primary.main,
+								color: 'var(--text-accent)',
 								curve: 'linear',
 								valueFormatter: (value: number | null) =>
 									value !== null
@@ -66,7 +66,7 @@ export default function TeamRecoveryChart() {
 							{
 								data: actualData,
 								label: 'Actual',
-								color: theme.palette.success.main,
+								color: 'var(--status-success)',
 								curve: 'linear',
 								valueFormatter: (value: number | null) =>
 									value !== null

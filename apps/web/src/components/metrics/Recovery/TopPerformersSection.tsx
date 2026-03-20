@@ -1,12 +1,13 @@
 'use client';
 
-import { Box, Card, CardContent, Grid, Paper, Skeleton, Typography } from '@mui/material';
+import { Box, Card, CardContent, Grid, Paper, Typography } from '@mui/material';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import { containerStyles } from '@/styles/theme';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function TopPerformersSection({
 	range,
@@ -91,13 +92,13 @@ export default function TopPerformersSection({
 	if (isFetching) {
 		return (
 			<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
-				<Skeleton variant="text" width={150} height={32} sx={{ mb: 2 }} />
+				<Skeleton variant="text" width={150} height={32} />
 				<Grid container spacing={3}>
 					<Grid size={6}>
-						<Skeleton variant="rounded" height={250} />
+						<Skeleton variant="rect" height={250} />
 					</Grid>
 					<Grid size={6}>
-						<Skeleton variant="rounded" height={250} />
+						<Skeleton variant="rect" height={250} />
 					</Grid>
 				</Grid>
 			</Paper>

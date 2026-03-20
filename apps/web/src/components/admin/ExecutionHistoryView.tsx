@@ -1,20 +1,20 @@
 'use client';
 
-import { Box, Typography, Fade } from '@mui/material';
 import ExecutionHistoryTable from './ExecutionHistoryTable';
+import { Table } from '@mui/material';
 
 export default function ExecutionHistoryView() {
 	return (
-		<Fade in timeout={400}>
-			<Box sx={{ p: 4, width: '100%' }}>
-				<Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
+		<div>
+			<div style={{ padding: 32, width: '100%' }}>
+				<span style={{ fontWeight: 700, marginBottom: 8 }}>
 					Execution History
-				</Typography>
-				<Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+				</span>
+				<span style={{  color: 'var(--text-secondary)' ,  marginBottom: 24  }}>
 					View the history of all workflow rule executions
-				</Typography>
+				</span>
 				<ExecutionHistoryTable />
-			</Box>
-		</Fade>
+			</div>
+		</div>
 	);
 }

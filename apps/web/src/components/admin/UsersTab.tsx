@@ -1,15 +1,12 @@
 'use client';
 
+import { IconClockFilled, IconPhone, IconSettings, IconShield, IconUser, IconUserCircle, IconUserPlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, IconButton, Paper, Switch, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Phone from '@mui/icons-material/Phone';
-import Shield from '@mui/icons-material/Shield';
-import Person from '@mui/icons-material/Person';
-import Settings from '@mui/icons-material/Settings';
 import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -26,7 +23,7 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import SearchInput from '../common/SearchInput';
-import { TEXT_MUTED, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 
 const getColumns = (isManageMode: boolean): GridColDef[] => [
@@ -37,7 +34,7 @@ const getColumns = (isManageMode: boolean): GridColDef[] => [
 			<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: TEXT_MUTED }} />} />
+			<IconHeaderCell {...params} icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />} />
 		),
 		flex: 1,
 	},
@@ -51,14 +48,14 @@ const getColumns = (isManageMode: boolean): GridColDef[] => [
 				disabled={params.row.disabled}
 			/>
 		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone sx={{ color: TEXT_MUTED }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<IconPhone style={{ color: 'var(--text-muted)' }} />} />,
 		width: 180,
 	},
 	{
 		headerName: 'Role',
 		field: 'role',
 		renderCell: (params) => <RoleCell {...params} />,
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: TEXT_MUTED }} />} />,
+		renderHeader: (params) => <IconHeaderCell {...params} icon={<IconShield style={{ color: 'var(--text-muted)' }} />} />,
 		width: 180,
 	},
 	{
@@ -83,7 +80,7 @@ const getColumns = (isManageMode: boolean): GridColDef[] => [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: TEXT_MUTED }} />} />
+			<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
 		),
 		width: 180,
 	},
@@ -98,7 +95,7 @@ const getColumns = (isManageMode: boolean): GridColDef[] => [
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: TEXT_MUTED }} />} />
+		<CustomNoRowsOverlay text="No users found" icon={<IconUser size={35} style={{ color: 'var(--text-muted)' }} />} />
 	);
 }
 
@@ -150,33 +147,33 @@ export default function UsersTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading users...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
+								<span style={{ marginRight: '20px' }}>
 									Users
-								</Typography>
+								</span>
 								<Switch
-									size="small"
+									size="sm"
 									checked={showDisabled}
-									onChange={(_, checked) => setParam('disabled', checked)}
+									onChange={(checked) => setParam('disabled', checked)}
 									color="warning"
-									sx={{ marginLeft: '10px' }}
+									style={{ marginLeft: '10px' }}
 								/>
-								<Typography fontSize={14} fontStyle="italic">
+								<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 									Offboarded Accounts
-								</Typography>
+								</span>
 								<Switch
-									size="small"
+									size="sm"
 									checked={showInactiveUsers}
-									onChange={(_, checked) => setParam('inactive', checked)}
+									onChange={(checked) => setParam('inactive', checked)}
 									color="warning"
-									sx={{ marginLeft: '10px' }}
+									style={{ marginLeft: '10px' }}
 								/>
-								<Typography fontSize={14} fontStyle="italic">
+								<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 									Inactive Accounts
-								</Typography>
+								</span>
 							</>
 						}
 						right={
@@ -195,20 +192,19 @@ export default function UsersTab() {
 								/>
 								<Button
 									variant="contained"
-									startIcon={<PersonAdd />}
+									startIcon={<IconUserPlus size={20} />}
 									onClick={toggleInviteUserDialog}
-									sx={{ ml: 2 }}
+									style={{ marginLeft: 16 }}
 								>
 									Invite User
 								</Button>
-								<Tooltip title="Manage">
-									<IconButton
-										size="small"
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 									>
-										<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-									</IconButton>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
 								</Tooltip>
 							</>
 						}
@@ -248,10 +244,10 @@ export default function UsersTab() {
 							disableRowSelectionOnClick
 							disableColumnMenu
 							pinnedColumns={pinnedColumns}
-							sx={styles.tableOverrides}
+							style={styles.tableOverrides}
 						/>
 					</div>
-				</Paper>
+				</div>
 			</div>
 		</PageTransitionWrapper>
 	);

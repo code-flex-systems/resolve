@@ -1,7 +1,7 @@
 'use client';
 
+import { IconBinaryTree, IconBuilding, IconCashBanknote, IconChecklist, IconClipboard, IconClipboardCheck, IconCurrencyDollar, IconDesk, IconFileDescription, IconFileSearch, IconFolder, IconGavel, IconHistory, IconLayoutDashboard, IconList, IconListCheck, IconMapPin, IconRss, IconSettings, IconSubtask, IconTimeline, IconUser, IconUserCog, IconUsers, IconWaveSquare } from '@tabler/icons-react';
 import { PropsWithChildren, useEffect } from 'react';
-import { Box } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import AdminSidebar, { AdminNavCategory } from '@/components/admin/AdminSidebar';
 import NewUserDialog from '@/components/admin/NewUserDialog';
@@ -9,43 +9,19 @@ import { useAdminStore } from '@/stores/useAdminStore';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import config from '@/config/config';
+import { Dialog } from '@mui/material';
 
 // Icons
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PeopleIcon from '@mui/icons-material/People';
-import BusinessIcon from '@mui/icons-material/Business';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PersonIcon from '@mui/icons-material/Person';
-import FolderIcon from '@mui/icons-material/Folder';
-import SettingsIcon from '@mui/icons-material/Settings';
-import DescriptionIcon from '@mui/icons-material/Description';
-import ContentPasteSearchIcon from '@mui/icons-material/ContentPasteSearch';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
-import ChecklistIcon from '@mui/icons-material/Checklist';
-import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import RssFeedIcon from '@mui/icons-material/RssFeed';
-import DeskIcon from '@mui/icons-material/Desk';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import TaskIcon from '@mui/icons-material/Task';
-import ListIcon from '@mui/icons-material/List';
-import GavelIcon from '@mui/icons-material/Gavel';
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import HistoryIcon from '@mui/icons-material/History';
 
 const adminNavCategories: AdminNavCategory[] = [
 	{
 		label: 'Overview',
-		icon: <DashboardIcon fontSize="small" />,
+		icon: <IconLayoutDashboard size={20} />,
 		items: [
 			{
 				label: 'Overview',
 				route: '/admin/overview/dashboard',
-				icon: <DashboardIcon fontSize="small" />,
+				icon: <IconLayoutDashboard size={20} />,
 			},
 		],
 		defaultExpanded: false,
@@ -53,68 +29,68 @@ const adminNavCategories: AdminNavCategory[] = [
 	},
 	{
 		label: 'User Management',
-		icon: <ManageAccountsIcon fontSize="small" color="secondary" />,
+		icon: <IconUserCog fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Users',
 				route: '/admin/user-management/users',
-				icon: <PeopleIcon fontSize="small" />,
+				icon: <IconUsers size={20} />,
 			},
 			{
 				label: 'Activity',
 				route: '/admin/user-management/activity',
-				icon: <GraphicEqIcon fontSize="small" />,
+				icon: <IconWaveSquare size={20} />,
 			},
 		],
 		defaultExpanded: false,
 	},
 	{
 		label: 'Claim Management',
-		icon: <ContentPasteSearchIcon fontSize="small" color="secondary" />,
+		icon: <IconFileSearch fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'All Claims',
 				route: '/admin/claims',
-				icon: <ContentPasteSearchIcon fontSize="small" />,
+				icon: <IconFileSearch size={20} />,
 			},
 			{
 				label: 'Feeds',
 				route: '/admin/claims/feeds',
-				icon: <RssFeedIcon fontSize="small" />,
+				icon: <IconRss size={20} />,
 			},
 		],
 		defaultExpanded: false,
 	},
 	{
 		label: 'Workflow Configuration',
-		icon: <PlaylistAddCheckIcon fontSize="small" color="secondary" />,
+		icon: <IconListCheck fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Checklists',
 				route: '/admin/workflow-configuration/checklists',
-				icon: <ChecklistIcon fontSize="small" />,
+				icon: <IconChecklist size={20} />,
 			},
 			...(config.FEATURES.DESK_HIERARCHY
 				? [
 						{
 							label: 'Workflows',
 							route: '/admin/workflow-configuration/workflows',
-							icon: <AccountTreeIcon fontSize="small" />,
+							icon: <IconBinaryTree size={20} />,
 						},
 						{
 							label: 'Desk Locations',
 							route: '/admin/workflow-configuration/desk-locations',
-							icon: <DeskIcon fontSize="small" />,
+							icon: <IconDesk size={20} />,
 						},
 						{
 							label: 'Desk Assignments',
 							route: '/admin/workflow-configuration/desk-assignments',
-							icon: <AssignmentIcon fontSize="small" />,
+							icon: <IconClipboard size={20} />,
 						},
 						{
 							label: 'Tasks',
 							route: '/admin/workflow-configuration/tasks',
-							icon: <TaskIcon fontSize="small" />,
+							icon: <IconSubtask size={20} />,
 						},
 					]
 				: []),
@@ -125,17 +101,17 @@ const adminNavCategories: AdminNavCategory[] = [
 		? [
 				{
 					label: 'Workflow Management',
-					icon: <TimelineIcon fontSize="small" color="secondary" />,
+					icon: <IconTimeline fontSize="small" color="neutral" />,
 					items: [
 						{
 							label: 'Dashboard',
 							route: '/admin/workflow-management/dashboard',
-							icon: <TimelineIcon fontSize="small" />,
+							icon: <IconTimeline size={20} />,
 						},
 						{
 							label: 'Execution History',
 							route: '/admin/workflow-management/execution-history',
-							icon: <HistoryIcon fontSize="small" />,
+							icon: <IconHistory size={20} />,
 						},
 					],
 					defaultExpanded: false,
@@ -145,52 +121,52 @@ const adminNavCategories: AdminNavCategory[] = [
 		: []),
 	{
 		label: 'Party Management',
-		icon: <BusinessIcon fontSize="small" color="secondary" />,
+		icon: <IconBuilding fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Parties',
 				route: '/admin/party-management/parties',
-				icon: <BusinessIcon fontSize="small" />,
+				icon: <IconBuilding size={20} />,
 			},
 			{
 				label: 'Addresses',
 				route: '/admin/party-management/addresses',
-				icon: <LocationOnIcon fontSize="small" />,
+				icon: <IconMapPin size={20} />,
 			},
 			{
 				label: 'Representatives',
 				route: '/admin/party-management/representatives',
-				icon: <PersonIcon fontSize="small" />,
+				icon: <IconUser size={20} />,
 			},
 		],
 		defaultExpanded: false,
 	},
 	{
 		label: 'Financial',
-		icon: <AttachMoneyIcon fontSize="small" color="secondary" />,
+		icon: <IconCurrencyDollar fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Recovery',
 				route: '/admin/financial/recovery',
-				icon: <CurrencyExchangeIcon fontSize="small" />,
+				icon: <IconCashBanknote size={20} />,
 			},
 		],
 		defaultExpanded: false,
 	},
 	// {
 	// 	label: 'Litigation',
-	// 	icon: <GavelIcon fontSize="small" />,
+	// 	icon: <IconGavel size={20} />,
 	// 	items: [],
 	// 	defaultExpanded: false,
 	// },
 	{
 		label: 'Documents',
-		icon: <FolderIcon fontSize="small" color="secondary" />,
+		icon: <IconFolder fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Documents',
 				route: '/admin/documents/documents',
-				icon: <DescriptionIcon fontSize="small" />,
+				icon: <IconFileDescription size={20} />,
 			},
 		],
 		defaultExpanded: false,
@@ -203,32 +179,32 @@ const adminNavCategories: AdminNavCategory[] = [
 	// },
 	{
 		label: 'System',
-		icon: <SettingsIcon fontSize="small" color="secondary" />,
+		icon: <IconSettings fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Logs',
 				route: '/admin/system/logs',
-				icon: <ContentPasteSearchIcon fontSize="small" />,
+				icon: <IconFileSearch size={20} />,
 			},
 			{
 				label: 'Claim Activity Logs',
 				route: '/admin/system/claim-activity-logs',
-				icon: <AssignmentTurnedInIcon fontSize="small" />,
+				icon: <IconClipboardCheck size={20} />,
 			},
 			{
 				label: 'Reference Data',
 				route: '/admin/system/reference-data',
-				icon: <ListIcon fontSize="small" />,
+				icon: <IconList size={20} />,
 			},
 			{
 				label: 'Statute Rules',
 				route: '/admin/system/statute-rules',
-				icon: <GavelIcon fontSize="small" />,
+				icon: <IconGavel size={20} />,
 			},
 			{
 				label: 'Settings',
 				route: '/admin/system/settings',
-				icon: <SettingsIcon fontSize="small" />,
+				icon: <IconSettings size={20} />,
 			},
 		],
 		defaultExpanded: false,
@@ -268,10 +244,10 @@ export default function ClientAdminShell(props: PropsWithChildren) {
 
 	return (
 		<PageWrapper>
-			<Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
+			<div style={{ display: 'flex', height: '100%', width: '100%' }}>
 				<AdminSidebar title="Admin" categories={adminNavCategories} />
-				<Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>{props.children}</Box>
-			</Box>
+				<div style={{ flex: 1, padding: 24, overflowY: 'auto' }}>{props.children}</div>
+			</div>
 			{showNewUserDialog && <NewUserDialog />}
 		</PageWrapper>
 	);

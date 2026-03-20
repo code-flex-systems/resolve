@@ -1,9 +1,9 @@
-import { Box, Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
 import { useState } from 'react';
 import BasicPopper from './BasicPopper';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import Desk from '@mui/icons-material/Desk';
+import { IconLayoutBoard } from '@tabler/icons-react';
 
 interface DeskLocationTypeFilterProps {
 	value: number | null;
@@ -32,7 +32,7 @@ export default function DeskLocationTypeFilter({
 		<>
 			<Chip
 				label={displayLabel}
-				icon={<Desk sx={{ color: value ? undefined : BASE_COLOR_LIGHT }} />}
+				icon={<IconLayoutBoard size={20} style={{ color: value ? undefined : BASE_COLOR_LIGHT }} />}
 				onClick={(e) => {
 					if (!disabled && !isFetching) {
 						setAnchorEl(e.currentTarget);
@@ -63,10 +63,10 @@ export default function DeskLocationTypeFilter({
 									setAnchorEl(null);
 								}}
 							>
-								<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-									<Desk sx={{ fontSize: 16, color: BASE_COLOR_LIGHT, mr: 1 }} />
-									<Typography fontSize={13}>{type.name}</Typography>
-								</Box>
+								<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+									<IconLayoutBoard size={16} style={{ color: BASE_COLOR_LIGHT, marginRight: 8 }} />
+									<span style={{ fontSize: 13 }}>{type.name}</span>
+								</div>
 							</MenuItem>
 						))}
 					</Paper>

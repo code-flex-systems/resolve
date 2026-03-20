@@ -1,9 +1,6 @@
 'use client';
 
-import { Box, CardContent, Divider, Fade, Paper, Stack, Typography } from '@mui/material';
-import ArrowBack from '@mui/icons-material/ArrowBack';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import Subject from '@mui/icons-material/Subject';
+import { Box, CardContent, Paper, Stack, Typography , Fade } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useState } from 'react';
@@ -26,6 +23,8 @@ import { formatAmount, formatDateForSentence, formatMDY, getCurrentFiscalQuarter
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
+import { IconArrowLeft, IconCircleCheck, IconFileText } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 const Highlight = ({
 	children,
@@ -67,7 +66,7 @@ export default function ClaimsView() {
 				<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
 					<Box marginRight="5px">
 						<BasicButtonStyled
-							icon={<ArrowBack />}
+							icon={<IconArrowLeft size={20} />}
 							buttonProps={{ onClick: () => router.back() }}
 							tooltipProps={{ title: 'Back to dashboard' }}
 						/>
@@ -116,7 +115,7 @@ export default function ClaimsView() {
 								{claim ? (
 									<ClaimStatusIcon status={claim.status as ClaimStatus} fontSize={17} />
 								) : (
-									<CheckCircle sx={{ color: BASE_COLOR_LIGHT }} />
+									<IconCircleCheck size={20} style={{ color: BASE_COLOR_LIGHT }} />
 								)}
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginLeft="5px">
 									Progress through {checklist?.name ?? 'checklist'}
@@ -157,7 +156,7 @@ export default function ClaimsView() {
 								paddingTop="10px"
 								paddingLeft="10px"
 							>
-								<Subject sx={{ color: BASE_COLOR_LIGHT }} />
+								<IconFileText size={20} style={{ color: BASE_COLOR_LIGHT }} />
 								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginLeft="5px">
 									Details
 								</Typography>

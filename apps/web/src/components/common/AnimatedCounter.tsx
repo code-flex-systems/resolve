@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Typography } from '@mui/material';
 
 export interface AnimatedCounterProps {
 	value: number;
@@ -49,8 +48,8 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
 	const display = formatter ? formatter(count) : count;
 
 	return (
-		<Typography fontSize={fontSize} lineHeight={`${fontSize}px`}>
+		<span style={{ fontSize, lineHeight: `${fontSize}px` }}>
 			{display}
-		</Typography>
+		</span>
 	);
 };

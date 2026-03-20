@@ -30,13 +30,24 @@
 .inputWrapper {
 	display: flex;
 	align-items: center;
-	height: 36px;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-md);
 	background: var(--bg-white);
 	transition:
 		border-color var(--transition-fast),
 		box-shadow var(--transition-fast);
+}
+
+.size-sm {
+	height: 32px;
+}
+
+.size-md {
+	height: 36px;
+}
+
+.size-lg {
+	height: 42px;
 }
 
 .inputWrapper:focus-within {
@@ -162,4 +173,64 @@
 	font-family: var(--font-sans);
 	color: var(--status-error);
 	margin-top: var(--space-1);
+}
+
+/* =========================================================================
+   TEXTAREA WITH ADORNMENTS
+   ========================================================================= */
+
+.textareaWrapper {
+	display: flex;
+	align-items: flex-start;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	background: var(--bg-white);
+	min-height: 80px;
+	transition:
+		border-color var(--transition-fast),
+		box-shadow var(--transition-fast);
+}
+
+.textareaWrapper:focus-within {
+	border-color: var(--text-accent);
+	box-shadow: 0 0 0 3px var(--status-info-bg);
+}
+
+.textareaWrapper.error {
+	border-color: var(--status-error);
+}
+
+.textareaWrapper.error:focus-within {
+	border-color: var(--status-error);
+	box-shadow: 0 0 0 3px var(--status-error-bg);
+}
+
+.textareaWrapper.disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.textareaInner {
+	flex: 1;
+	padding: var(--space-2) var(--space-3);
+	border: none;
+	outline: none;
+	background: transparent;
+	font-size: var(--text-base);
+	font-family: var(--font-sans);
+	color: var(--text-primary);
+	min-height: inherit;
+	resize: vertical;
+}
+
+.textareaInner::placeholder {
+	color: var(--text-muted);
+}
+
+.textareaAdornment {
+	display: flex;
+	align-items: flex-start;
+	padding: var(--space-2);
+	color: var(--text-muted);
+	flex-shrink: 0;
 }

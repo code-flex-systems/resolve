@@ -1,39 +1,24 @@
-import { BORDER_COLOR, BORDER_LIGHT, BG_TERTIARY, TEXT_MUTED } from '@/styles/theme';
-import { IconButton, IconButtonProps } from '@mui/material';
+'use client';
 
-interface BasicIconButtonProps extends IconButtonProps {
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import css from './BasicIconButton.module.css';
+
+interface BasicIconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	compact?: boolean;
+	/** @deprecated kept for MUI compat — ignored */
+	sx?: unknown;
 }
 
-export default function BasicIconButton({ compact, ...props }: BasicIconButtonProps) {
-	return (
-		<IconButton
-			{...props}
-			sx={{
-				...styles.icon,
-				...(compact && styles.compact),
-				...props.sx,
-			}}
-		>
-			{props.children}
-		</IconButton>
-	);
-}
+const BasicIconButton = forwardRef<HTMLButtonElement, BasicIconButtonProps>(
+	({ compact, sx: _sx, className, ...props }, ref) => {
+		const classNames = [css.iconButton, compact && css.compact, className].filter(Boolean).join(' ');
+		return (
+			<button ref={ref} type="button" className={classNames} {...props}>
+				{props.children}
+			</button>
+		);
+	}
+);
 
-const styles = {
-	icon: {
-		bgcolor: '#ffffff',
-		border: `1px solid ${BORDER_COLOR}`,
-		'&.Mui-disabled': {
-			bgcolor: BG_TERTIARY,
-			borderColor: BORDER_LIGHT,
-			color: TEXT_MUTED,
-		},
-	},
-	compact: {
-		padding: '4px',
-		'& .MuiSvgIcon-root': {
-			fontSize: 18,
-		},
-	},
-};
+BasicIconButton.displayName = 'BasicIconButton';
+export default BasicIconButton;

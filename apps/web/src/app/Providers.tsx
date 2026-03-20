@@ -6,8 +6,6 @@ import { DehydratedState, HydrationBoundary, QueryClient, QueryClientProvider } 
 import { httpBatchLink } from '@trpc/client';
 import SuperJSON from 'superjson';
 import { trpc } from '@/lib/trpc';
-import { ThemeProvider } from '@mui/material';
-import theme from '@/styles/theme';
 import { ClerkProvider } from '@clerk/nextjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -48,7 +46,7 @@ export function Providers({ children, state }: { children: React.ReactNode; stat
 				<trpc.Provider client={trpcClient} queryClient={queryClient}>
 					<HydrationBoundary state={state}>
 						<LocalizationProvider dateAdapter={AdapterDayjs}>
-							<ThemeProvider theme={theme}>{children}</ThemeProvider>
+							{children}
 						</LocalizationProvider>
 					</HydrationBoundary>
 				</trpc.Provider>

@@ -1,16 +1,15 @@
 'use client';
 
+import { IconClipboard, IconEdit, IconSettings, IconUserCircle } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Box, Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import Assignment from '@mui/icons-material/Assignment';
-import Edit from '@mui/icons-material/Edit';
-import Settings from '@mui/icons-material/Settings';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -23,12 +22,13 @@ import CustomPagination from '../common/CustomPagination';
 import DeskLocationTypeFilter from '../common/DeskLocationTypeFilter';
 import DeskLocationFilter from '../common/DeskLocationFilter';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import { Dialog } from '@mui/material';
 
 function NoUsersRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No users found"
-			icon={<AccountCircle sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconUserCircle size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -92,7 +92,7 @@ export default function DeskAssignmentTab() {
 					<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 				),
 				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />
+					<IconHeaderCell {...params} icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />} />
 				),
 				flex: 1,
 			},
@@ -117,7 +117,7 @@ export default function DeskAssignmentTab() {
 									onClick: () => setEditingUserId(row.id),
 								}}
 								tooltipProps={{ title: 'Edit desk assignments' }}
-								icon={<Edit sx={{ fontSize: 15 }} />}
+								icon={<IconEdit size={15} />}
 							/>
 						</div>
 					);
@@ -134,43 +134,36 @@ export default function DeskAssignmentTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
-					<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
-						<Box display="flex" alignItems="center">
-							<Typography variant="h6" marginRight="20px">
+				<div style={styles.paper} className="flex-col-start">
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+						<div style={{ display: 'flex', alignItems: 'center' }}>
+							<span style={{ marginRight: '20px' }}>
 								Desk Assignments
-							</Typography>
-						</Box>
-						<Box display="flex" justifyContent="flex-end" alignItems="center">
+							</span>
+						</div>
+						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
 							<Button
 								variant="contained"
-								startIcon={<Assignment />}
+								startIcon={<IconClipboard size={20} />}
 								onClick={() => setShowBulkAssignDialog(true)}
 								disabled={selectedUserIds.length === 0}
-								sx={{ marginLeft: '10px' }}
+								style={{ marginLeft: '10px' }}
 							>
 								Assign to Desk ({selectedUserIds.length})
 							</Button>
-							<Tooltip title="Manage">
-								<IconButton
-									size="small"
+							<Tooltip content="Manage">
+								<Button variant="icon" size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
-									sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 								>
-									<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-								</IconButton>
+									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</Button>
 							</Tooltip>
-						</Box>
-					</Box>
-					<Box
-						width="100%"
-						display="flex"
-						justifyContent="space-between"
-						alignItems="center"
-						paddingTop="5px"
-					>
-						<Box></Box>
-						<Box display="flex" justifyContent="flex-end" alignItems="center" gap={1}>
+						</div>
+					</div>
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '5px' }}>
+						<div></div>
+						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
 							<DeskLocationTypeFilter
 								value={deskLocationTypeId}
 								onChange={(id: number | null) => {
@@ -199,8 +192,8 @@ export default function DeskAssignmentTab() {
 								}}
 								placeholder="Search users..."
 							/>
-						</Box>
-					</Box>
+						</div>
+					</div>
 					<div style={styles.table}>
 						<DataGridPro
 							columns={columns}
@@ -234,10 +227,10 @@ export default function DeskAssignmentTab() {
 							disableColumnSelector
 							disableColumnMenu
 							pinnedColumns={pinnedColumns}
-							sx={styles.tableOverrides}
+							style={styles.tableOverrides}
 						/>
 					</div>
-				</Paper>
+				</div>
 
 				{showBulkAssignDialog && (
 					<BulkDeskAssignmentDialog

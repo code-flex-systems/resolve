@@ -1,7 +1,7 @@
 'use client';
-
+import { Autocomplete, Dialog, InputAdornment, Select, TextField } from '@mui/material';
+import Chip from '@/components/ui/Chip';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, TextField, Autocomplete, Typography, InputAdornment, Chip } from '@mui/material';
 import BasicDialog from '@/components/common/BasicDialog';
 import { LossTypeSelect } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
@@ -448,7 +448,7 @@ export default function PartyLinkingDialog({
 			onClose={onClose}
 			width={600}
 		>
-			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 				{/* Parent Entity Selection - only for facilitator mode when no fixed parent */}
 				{isFacilitatorMode && !parentClaimPartyId && (
 					<Autocomplete
@@ -459,14 +459,14 @@ export default function PartyLinkingDialog({
 						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
 						renderOption={(props, option: any) => (
 							<li {...props} key={option.id}>
-								<Box>
-									<Typography>{option.party?.name}</Typography>
+								<div>
+									<span>{option.party?.name}</span>
 									{option.role && (
-										<Typography variant="caption" color="text.secondary">
+										<span style={{ color: 'var(--text-secondary)' }}>
 											{option.role}
-										</Typography>
+										</span>
 									)}
-								</Box>
+								</div>
 							</li>
 						)}
 						fullWidth
@@ -488,12 +488,10 @@ export default function PartyLinkingDialog({
 						value.map((option, index) => {
 							const { key, ...tagProps } = getTagProps({ index });
 							return (
-								<Chip
-									key={key}
-									label={option.display_label}
-									size="small"
-									{...tagProps}
-								/>
+								<Chip key={key}
+									
+									size="sm"
+									{...tagProps}>{option.display_label}</Chip>
 							);
 						})
 					}
@@ -509,7 +507,7 @@ export default function PartyLinkingDialog({
 				/>
 
 				{/* Party Selection */}
-				<Box>
+				<div>
 					<Autocomplete
 						options={partyAutocompleteOptions}
 						value={selectedParty}
@@ -531,12 +529,12 @@ export default function PartyLinkingDialog({
 									{option.id === -2 ? (
 										<em style={{ color: '#999' }}>{option.name}</em>
 									) : (
-										<Box>
-											<Typography variant="body2">{option.name}</Typography>
-											<Typography variant="caption" color="text.secondary" display="block">
+										<div>
+											<span>{option.name}</span>
+											<span style={{ color: 'var(--text-secondary)' }}>
 												{`${orgPart} • ${addressPart}`}
-											</Typography>
-										</Box>
+											</span>
+										</div>
 									)}
 								</li>
 							);
@@ -552,19 +550,17 @@ export default function PartyLinkingDialog({
 						)}
 					/>
 					{/* Add New Party Link */}
-					<Typography
-						variant="body2"
-						sx={{
-							color: 'primary.main',
+					<span
+						style={{
+							color: 'var(--text-accent)',
 							cursor: 'pointer',
-							'&:hover': { textDecoration: 'underline' },
-							mt: 0.5,
+							marginTop: 4,
 						}}
 						onClick={() => setShowCreatePartyDialog(true)}
 					>
 						+ Add new {isFacilitatorMode ? 'facilitator' : 'entity'}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
 				{/* Liability Percentage - only show on adverse parties tab for entities, positioned early in form */}
 				{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
@@ -596,7 +592,7 @@ export default function PartyLinkingDialog({
 
 				{/* Facilitator: Address Selection (Office) */}
 				{isFacilitatorMode && (
-					<Box>
+					<div>
 						<Autocomplete
 							options={addresses}
 							value={selectedAddress}
@@ -616,25 +612,23 @@ export default function PartyLinkingDialog({
 						/>
 						{/* Add New Address Link */}
 						{selectedParty && (
-							<Typography
-								variant="body2"
-								sx={{
-									color: 'primary.main',
+							<span
+								style={{
+									color: 'var(--text-accent)',
 									cursor: 'pointer',
-									'&:hover': { textDecoration: 'underline' },
-									mt: 0.5,
+									marginTop: 4,
 								}}
 								onClick={() => setShowCreateAddressDialog(true)}
 							>
 								+ Add new office
-							</Typography>
+							</span>
 						)}
-					</Box>
+					</div>
 				)}
 
 				{/* Facilitator: Representative Selection (global search or filtered by address) */}
 				{isFacilitatorMode && (
-					<Box>
+					<div>
 						<Autocomplete
 							options={representativeAutocompleteOptions}
 							value={selectedRepresentative}
@@ -659,23 +653,23 @@ export default function PartyLinkingDialog({
 							filterOptions={(options) => options} // Disable client-side filtering, server handles it
 							renderOption={(props, option: any) => (
 								<li {...props} key={option.id}>
-									<Box>
-										<Typography variant="body2">
+									<div>
+										<span>
 											{`${option.first_name} ${option.last_name}`}
 											{option.title && (
-												<Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+												<span style={{  color: 'var(--text-secondary)' ,  marginLeft: 8  }}>
 													({option.title})
-												</Typography>
+												</span>
 											)}
-										</Typography>
+										</span>
 										{/* Show party/address info in global search mode */}
 										{option.party_name && !selectedParty && (
-											<Typography variant="caption" color="text.secondary" display="block">
+											<span style={{ color: 'var(--text-secondary)' }}>
 												{option.party_name}
 												{option.address_city && ` • ${option.address_city}, ${option.address_state}`}
-											</Typography>
+											</span>
 										)}
-									</Box>
+									</div>
 								</li>
 							)}
 							fullWidth
@@ -696,20 +690,18 @@ export default function PartyLinkingDialog({
 						/>
 						{/* Add New Representative Link */}
 						{selectedAddress && (
-							<Typography
-								variant="body2"
-								sx={{
-									color: 'primary.main',
+							<span
+								style={{
+									color: 'var(--text-accent)',
 									cursor: 'pointer',
-									'&:hover': { textDecoration: 'underline' },
-									mt: 0.5,
+									marginTop: 4,
 								}}
 								onClick={() => setShowCreateRepDialog(true)}
 							>
 								+ Add new representative
-							</Typography>
+							</span>
 						)}
-					</Box>
+					</div>
 				)}
 
 				{/* Entity: Simplified Representative Field */}
@@ -769,7 +761,7 @@ export default function PartyLinkingDialog({
 								: "Additional notes about this entity's liability..."
 					}
 				/>
-			</Box>
+			</div>
 
 			{/* Nested Party Creation Dialog */}
 			{showCreatePartyDialog && (

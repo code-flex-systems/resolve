@@ -1,16 +1,15 @@
 'use client';
 
+import { IconDesk, IconMapPin, IconSettings, IconSquarePlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { useCallback, useMemo, useState } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { DataGridPro, GridColDef, GridPinnedColumnFields } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Desk from '@mui/icons-material/Desk';
-import LocationOn from '@mui/icons-material/LocationOn';
-import Settings from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
@@ -20,6 +19,7 @@ import DeskLocationDialog from './DeskLocationDialog';
 import DeskTypeActionsCell from './DeskTypeActionsCell';
 import DeskLocationActionsCell from './DeskLocationActionsCell';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import { Dialog } from '@mui/material';
 
 const getTypeColumns = (isManageMode: boolean): GridColDef[] => [
 	{
@@ -32,7 +32,7 @@ const getTypeColumns = (isManageMode: boolean): GridColDef[] => [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Desk style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<IconDesk style={{ color: 'var(--text-muted)' }} />} />
 		),
 		flex: 1,
 	},
@@ -64,7 +64,7 @@ const getLocationColumns = (isManageMode: boolean): GridColDef[] => [
 			/>
 		),
 		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<LocationOn style={{ color: BASE_COLOR_LIGHT }} />} />
+			<IconHeaderCell {...params} icon={<IconMapPin style={{ color: 'var(--text-muted)' }} />} />
 		),
 		flex: 1,
 		cellClassName: (params) => (!params.row.is_active ? 'inactive-cell' : ''),
@@ -98,7 +98,7 @@ function NoTypesRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No desk location types found"
-			icon={<Desk sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconDesk size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -108,14 +108,14 @@ function LocationsOverlay({ selectedTypeId }: { selectedTypeId: number | null })
 		return (
 			<CustomNoRowsOverlay
 				text="Select a desk type to see locations"
-				icon={<Desk sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconDesk size={35} style={{ color: 'var(--text-muted)' }} />}
 			/>
 		);
 	}
 	return (
 		<CustomNoRowsOverlay
 			text="No desk locations found"
-			icon={<LocationOn sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconMapPin size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -159,28 +159,27 @@ export default function DeskLocationsTab() {
 			<div style={styles.container}>
 				<div style={styles.panelContainer}>
 					{/* Left Panel: Desk Location Types */}
-					<Paper sx={styles.leftPanel} className="flex-col-start">
+					<div style={styles.leftPanel} className="flex-col-start">
 						<Toolbar
 							left={
-								<Typography variant="h6">Desk Location Types</Typography>
+								<span>Desk Location Types</span>
 							}
 							right={
 								<>
 									<Button
 										variant="contained"
-										startIcon={<AddBox />}
+										startIcon={<IconSquarePlus size={20} />}
 										onClick={toggleNewDeskLocationTypeDialog}
 									>
 										Type
 									</Button>
-									<Tooltip title="Manage">
-										<IconButton
-											size="small"
+									<Tooltip content="Manage">
+										<Button variant="icon" size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
-											sx={{ ml: 1, bgcolor: isManageMode ? 'action.selected' : undefined }}
+											style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 										>
-											<Settings fontSize="small" sx={{ color: isManageMode ? 'primary.main' : undefined }} />
-										</IconButton>
+											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										</Button>
 									</Tooltip>
 								</>
 							}
@@ -214,21 +213,21 @@ export default function DeskLocationsTab() {
 								disableRowSelectionOnClick
 								disableColumnMenu
 								pinnedColumns={pinnedColumns}
-								sx={styles.tableOverrides}
+								style={styles.tableOverrides}
 							/>
 						</div>
-					</Paper>
+					</div>
 
 					{/* Right Panel: Desk Locations */}
-					<Paper sx={styles.rightPanel} className="flex-col-start">
+					<div style={styles.rightPanel} className="flex-col-start">
 						<Toolbar
 							left={
-								<Typography variant="h6">Desk Locations</Typography>
+								<span>Desk Locations</span>
 							}
 							right={
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={toggleNewDeskLocationDialog}
 									disabled={selectedDeskLocationTypeId === null}
 								>
@@ -260,10 +259,10 @@ export default function DeskLocationsTab() {
 								disableRowSelectionOnClick
 								disableColumnMenu
 								pinnedColumns={pinnedColumns}
-								sx={styles.tableOverrides}
+								style={styles.tableOverrides}
 							/>
 						</div>
-					</Paper>
+					</div>
 				</div>
 
 				{showNewDeskLocationTypeDialog && <DeskLocationTypeDialog />}

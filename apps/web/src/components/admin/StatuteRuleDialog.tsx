@@ -1,25 +1,9 @@
 'use client';
 
+import { IconChevronDown, IconDeviceFloppy, IconPlus, IconTrash } from '@tabler/icons-react';
+import { Accordion, AccordionDetails, AccordionSummary, Dialog, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import Button from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
-import {
-	Box,
-	Button,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	Stack,
-	TextField,
-	Typography,
-	IconButton,
-	Accordion,
-	AccordionSummary,
-	AccordionDetails,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SaveIcon from '@mui/icons-material/Save';
 import BasicDialog from '../common/BasicDialog';
 import DateField from '../common/DateField';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
@@ -131,23 +115,23 @@ export default function StatuteRuleDialog() {
 			primaryAction={{
 				label: 'Save',
 				onClick: handleSave,
-				icon: <SaveIcon />,
+				icon: <IconDeviceFloppy size={20} />,
 				disabled: isPending,
 			}}
 			onClose={handleClose}
 			width={700}
 			maxHeight="80vh"
 		>
-			<Stack sx={{ pt: 1 }}>
+			<div style={{ paddingTop: 8 }}>
 				{/* Negligence Law Section */}
 				<Accordion defaultExpanded>
-					<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-						<Typography fontWeight={500}>Negligence Law</Typography>
+					<AccordionSummary expandIcon={<IconChevronDown size={20} />}>
+						<span style={{ fontWeight: 500 }}>Negligence Law</span>
 					</AccordionSummary>
 					<AccordionDetails>
-						<Stack spacing={2}>
-							<Box display="flex" alignItems="center" gap={2}>
-								<FormControl size="small" sx={{ minWidth: 200 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+								<FormControl size="small" style={{ minWidth: 200 }}>
 									<InputLabel>Negligence Type</InputLabel>
 									<Select
 										value={negligenceType ?? ''}
@@ -177,9 +161,9 @@ export default function StatuteRuleDialog() {
 											: ''
 									}
 									disabled
-									sx={{ width: 120 }}
+									style={{ width: 120 }}
 								/>
-							</Box>
+							</div>
 							<TextField
 								label="Notes"
 								size="small"
@@ -190,7 +174,7 @@ export default function StatuteRuleDialog() {
 								multiline
 								rows={2}
 							/>
-						</Stack>
+						</div>
 					</AccordionDetails>
 				</Accordion>
 
@@ -199,13 +183,13 @@ export default function StatuteRuleDialog() {
 					const config = getTortConfig(tort.value);
 					return (
 						<Accordion key={tort.value} defaultExpanded>
-							<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-								<Typography fontWeight={500}>{tort.label}</Typography>
+							<AccordionSummary expandIcon={<IconChevronDown size={20} />}>
+								<span style={{ fontWeight: 500 }}>{tort.label}</span>
 							</AccordionSummary>
 							<AccordionDetails>
-								<Stack spacing={2}>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									{/* Default Years */}
-									<Box display="flex" alignItems="center" gap={2}>
+									<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
 										<TextField
 											label="Default Years"
 											type="number"
@@ -219,41 +203,39 @@ export default function StatuteRuleDialog() {
 												});
 											}}
 											placeholder="N/A"
-											sx={{ width: 120 }}
+											style={{ width: 120 }}
 											InputProps={{ inputProps: { min: 0 } }}
 										/>
-										<Typography variant="body2" color="text.secondary">
+										<span style={{ color: 'var(--text-secondary)' }}>
 											Leave blank for N/A (no limit)
-										</Typography>
-									</Box>
+										</span>
+									</div>
 
 									{/* Conditional Rules */}
-									<Box>
-										<Typography variant="subtitle2" gutterBottom>
+									<div>
+										<span>
 											Conditional Rules
-										</Typography>
-										<Typography
-											variant="caption"
-											color="text.secondary"
-											sx={{ display: 'block', mb: 1 }}
+										</span>
+										<span
+											style={{  color: 'var(--text-secondary)' ,  display: 'block', marginBottom: 8  }}
 										>
 											Add rules for specific LOB or date ranges. First matching rule wins.
-										</Typography>
+										</span>
 										{config.rules.map((rule, idx) => (
-											<Box
+											<div
 												key={idx}
-												sx={{
+												style={{
 													display: 'flex',
 													alignItems: 'center',
-													gap: 1,
-													mb: 1,
-													p: 1,
-													bgcolor: 'grey.50',
-													borderRadius: 1,
+													gap: 8,
+													marginBottom: 8,
+													padding: 8,
+													backgroundColor: 'grey.50',
+													borderRadius: 4,
 													flexWrap: 'wrap',
 												}}
 											>
-												<FormControl size="small" sx={{ minWidth: 130 }}>
+												<FormControl size="small" style={{ minWidth: 130 }}>
 													<InputLabel>LOB</InputLabel>
 													<Select
 														value={rule.lob || ''}
@@ -304,32 +286,31 @@ export default function StatuteRuleDialog() {
 															years: parseInt(e.target.value, 10) || 0,
 														})
 													}
-													sx={{ width: 80 }}
+													style={{ width: 80 }}
 													InputProps={{ inputProps: { min: 0 } }}
 												/>
-												<IconButton
-													size="small"
+												<Button variant="icon" size="sm"
 													color="error"
 													onClick={() => removeConditionalRule(tort.value, idx)}
 												>
-													<DeleteIcon fontSize="small" />
-												</IconButton>
-											</Box>
+													<IconTrash size={20} />
+												</Button>
+											</div>
 										))}
 										<Button
-											size="small"
-											startIcon={<AddIcon />}
+											size="sm"
+											startIcon={<IconPlus size={20} />}
 											onClick={() => addConditionalRule(tort.value)}
 										>
 											Add Rule
 										</Button>
-									</Box>
-								</Stack>
+									</div>
+								</div>
 							</AccordionDetails>
 						</Accordion>
 					);
 				})}
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

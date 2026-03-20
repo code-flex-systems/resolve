@@ -1,22 +1,14 @@
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { Stack, Typography } from '@mui/material';
+import css from './StackedRow.module.css';
 
 export function StackedRow({ primary, secondary, fontSize = 15 }: { primary: any; secondary: any; fontSize?: number }) {
 	return (
-		<Stack
-			display="flex"
-			width="100%"
-			height="100%"
-			justifyContent="center"
-			alignItems="flex-start"
-			padding="5px 0px"
-		>
-			<Typography fontSize={fontSize} lineHeight="17px" paddingBottom="2px">
+		<div className={css.container}>
+			<span className={css.primary} style={{ fontSize }}>
 				{primary}
-			</Typography>
-			<Typography fontSize={fontSize - 2} lineHeight="15px" color={BASE_COLOR_LIGHT}>
+			</span>
+			<span className={css.secondary} style={{ fontSize: fontSize - 2 }}>
 				{secondary}
-			</Typography>
-		</Stack>
+			</span>
+		</div>
 	);
 }

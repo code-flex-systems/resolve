@@ -2,16 +2,12 @@
 import { Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
-import { Box, Divider, Fade, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography , Fade } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import Description from '@mui/icons-material/Description';
-import Replay from '@mui/icons-material/Replay';
-import Save from '@mui/icons-material/Save';
-import TaskAlt from '@mui/icons-material/TaskAlt';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
@@ -23,6 +19,9 @@ import CommentDialog from './CommentDialog';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
+import { IconCircleCheck, IconDeviceFloppy, IconFileDescription, IconRefresh } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
 	const defaults: Record<string, number[] | string | number | null> = {};
@@ -167,13 +166,13 @@ export default function Page() {
 								{[1, 2, 3, 4].map((i) => (
 									<Stack key={i} spacing={1}>
 										<Skeleton variant="text" width="40%" />
-										<Skeleton variant="rounded" height={48} />
+										<Skeleton variant="rect" height={48} />
 									</Stack>
 								))}
 							</Stack>
 						) : (
 							<Box width={200} display="flex" justifyContent="center" alignItems="center">
-								<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
+								<IconFileDescription size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
 								<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
 									No page selected
 								</Typography>
@@ -188,13 +187,13 @@ export default function Page() {
 								<>
 									<ExpandableTitle
 										title={selectedPageInfo.title}
-										icon={<Description />}
+										icon={<IconFileDescription size={20} />}
 										color="white"
 									/>
 									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
 										<Box sx={{ ml: 1.25 }} className="flex-row-left">
-											<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
-											<Typography color={theme.palette.success.light}>Saved!</Typography>
+											<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+											<Typography color={'var(--status-success)'}>Saved!</Typography>
 										</Box>
 									</Fade>
 								</>
@@ -210,7 +209,7 @@ export default function Page() {
 														{ ...generateDefaultValues(questions) },
 														{ keepDefaultValues: true }
 													),
-												startIcon: <Replay />,
+												startIcon: <IconRefresh size={20} />,
 												sx: { height: 25, marginRight: '10px' },
 											}}
 										>
@@ -227,7 +226,7 @@ export default function Page() {
 													}
 													onSubmit();
 												},
-												startIcon: <Save />,
+												startIcon: <IconDeviceFloppy size={20} />,
 												sx: { height: 25 },
 											}}
 										>

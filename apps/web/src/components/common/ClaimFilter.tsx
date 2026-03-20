@@ -2,10 +2,9 @@
 
 import { trpc } from '@/lib/trpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Box, Chip, Paper, PopperProps, TextField } from '@mui/material';
+import { Autocomplete, Chip, Paper, PopperProps, TextField } from '@mui/material';
 import BasicPopper from './BasicPopper';
-import theme from '@/styles/theme';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
+import { IconFileSearch } from '@tabler/icons-react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { StackedRow } from './StackedRow';
 import { ClaimSearch } from '@/config/enums';
@@ -46,7 +45,7 @@ export default function ClaimFilter({
 		<>
 			<Chip
 				label={claim ? claim.claim_number : 'Filter by claim'}
-				icon={<ContentPasteSearch />}
+				icon={<IconFileSearch size={20} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -57,17 +56,17 @@ export default function ClaimFilter({
 					...styles.chip,
 					height,
 					'& .MuiChip-icon': {
-						color: claim ? theme.palette.primary.main : undefined,
+						color: claim ? 'var(--text-accent)' : undefined,
 					},
 					'& .MuiChip-label': {
-						color: claim ? theme.palette.primary.main : undefined,
+						color: claim ? 'var(--text-accent)' : undefined,
 					},
 				}}
 			/>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={zIndex}>
 					<Paper sx={styles.paper}>
-						<Box display="flex" justifyContent="center" alignItems="center" padding="5px">
+						<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5 }}>
 							<Autocomplete
 								value={claim}
 								options={results}
@@ -106,7 +105,7 @@ export default function ClaimFilter({
 									...styles.textFieldOverrides,
 								}}
 							/>
-						</Box>
+						</div>
 					</Paper>
 				</BasicPopper>
 			)}

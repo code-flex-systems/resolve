@@ -1,13 +1,6 @@
-import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
-import Email from '@mui/icons-material/Email';
-import Event from '@mui/icons-material/Event';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import MarkunreadMailbox from '@mui/icons-material/MarkunreadMailbox';
-import Share from '@mui/icons-material/Share';
-import Troubleshoot from '@mui/icons-material/Troubleshoot';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import ExpandableTitle from '../common/ExpandableTitle';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
@@ -15,6 +8,9 @@ import { ActionType } from '@/config/enums';
 import { ActionDefinition } from '@/types/types';
 import dayjs from 'dayjs';
 import MetricValue from '../common/MetricValue';
+import { IconBug, IconCalendar, IconClipboardCheck, IconInfoCircle, IconMail, IconMailbox, IconShare } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -26,13 +22,13 @@ export default function ActionsMetric() {
 	const getActionIcon = (type: ActionType) => {
 		switch (type) {
 			case ActionType.EMAIL:
-				return <Email sx={{ fontSize: 25, color: 'primary.main' }} />;
+				return <IconMail size={25} style={{ color: 'primary.main' }} />;
 			case ActionType.EVENT:
-				return <Event />;
+				return <IconCalendar size={20} />;
 			case ActionType.LETTER:
-				return <MarkunreadMailbox />;
+				return <IconMailbox size={20} />;
 			case ActionType.TASK:
-				return <AssignmentTurnedIn />;
+				return <IconClipboardCheck size={20} />;
 		}
 	};
 
@@ -62,7 +58,7 @@ export default function ActionsMetric() {
 	return (
 		<Paper elevation={0} sx={styles.paper}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
+				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
 				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
 					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
@@ -80,7 +76,7 @@ export default function ActionsMetric() {
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
-										icon={<InfoOutlined />}
+										icon={<IconInfoCircle size={20} />}
 										tooltipProps={{
 											title: 'Actions are ranked by highest execution rate aross unique checklist + claim combinations.',
 										}}
@@ -91,10 +87,10 @@ export default function ActionsMetric() {
 										onClick: () => router.push('/metrics/user-actions'),
 									}}
 									icon={
-										<Troubleshoot
-											sx={{
+										<IconBug
+										 style={{
 												transform: 'scaleX(-1)',
-												color: theme.palette.primary.main,
+												color: 'var(--text-accent)',
 											}}
 										/>
 									}

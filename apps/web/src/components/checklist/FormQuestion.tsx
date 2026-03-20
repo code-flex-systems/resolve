@@ -3,8 +3,6 @@ import { Controller, Form, useForm } from 'react-hook-form';
 import {
 	Box,
 	Button,
-	Divider,
-	Fade,
 	FormControlLabel,
 	IconButton,
 	InputAdornment,
@@ -12,17 +10,7 @@ import {
 	Radio,
 	RadioGroup,
 	TextField,
-	Typography,
-} from '@mui/material';
-import Check from '@mui/icons-material/Check';
-import Clear from '@mui/icons-material/Clear';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import Delete from '@mui/icons-material/Delete';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import TaskAlt from '@mui/icons-material/TaskAlt';
-import HelpOutline from '@mui/icons-material/HelpOutline';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import Close from '@mui/icons-material/Close';
+	Typography, Fade } from '@mui/material';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
@@ -34,13 +22,15 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
+import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconCheck, IconCircleCheck, IconCopy, IconHelpCircle, IconPaperclip, IconTrash, IconX } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -222,7 +212,7 @@ export default function FormQuestion() {
 			<Toolbar
 				left={
 					<>
-						<HelpOutline sx={{ color: theme.palette.secondary.main, marginRight: '10px' }} />
+						<IconHelpCircle size={20} style={{ color: 'var(--text-accent)', marginRight: '10px' }} />
 						<Typography color="secondary" lineHeight={'21px'} fontSize={17}>
 							{questionText === '' && isPlaceholder ? 'New question' : questionText}
 						</Typography>
@@ -231,8 +221,8 @@ export default function FormQuestion() {
 						</Typography>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<Box sx={{ ml: 1.25 }} className="flex-row-left">
-								<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
-								<Typography color={theme.palette.success.light}>Saved!</Typography>
+								<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+								<Typography color={'var(--status-success)'}>Saved!</Typography>
 							</Box>
 						</Fade>
 					</>
@@ -253,7 +243,7 @@ export default function FormQuestion() {
 										},
 										disabled: inTransition,
 										sx: { height: 25, marginRight: '10px' },
-										startIcon: <Delete />,
+										startIcon: <IconTrash size={20} />,
 									}}
 								>
 									Delete
@@ -263,7 +253,7 @@ export default function FormQuestion() {
 										onClick: onCopy,
 										disabled: inTransition,
 										sx: { height: 25, marginRight: '10px' },
-										startIcon: <ContentCopy />,
+										startIcon: <IconCopy size={20} />,
 									}}
 								>
 									Copy
@@ -276,7 +266,7 @@ export default function FormQuestion() {
 								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
 								color: 'primary',
 								sx: { height: 25 },
-								startIcon: <CheckCircle />,
+								startIcon: <IconCircleCheck size={20} />,
 							}}
 						>
 							{isPlaceholder ? 'Add' : 'Save'}
@@ -318,11 +308,10 @@ export default function FormQuestion() {
 																	onClick={() => onCopyText(field.name, field.value)}
 																>
 																	{copiedField === field.name ? (
-																		<Check
-																			sx={{ color: theme.palette.success.light }}
+																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																		<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
 																<IconButton
@@ -330,7 +319,7 @@ export default function FormQuestion() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																	<IconX size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																</IconButton>
 															</InputAdornment>
 														),
@@ -363,11 +352,10 @@ export default function FormQuestion() {
 																	}
 																>
 																	{copiedField === field.name ? (
-																		<Check
-																			sx={{ color: theme.palette.success.light }}
+																		<IconCheck size={20} style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
+																		<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																	)}
 																</IconButton>
 																<IconButton
@@ -375,7 +363,7 @@ export default function FormQuestion() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
+																	<IconX size={20} style={{ color: BASE_COLOR_LIGHT }} />
 																</IconButton>
 															</InputAdornment>
 														),
@@ -488,7 +476,7 @@ export default function FormQuestion() {
 									<Button
 										variant="outlined"
 										size="small"
-										startIcon={<AttachFileIcon />}
+										startIcon={<IconPaperclip size={20} />}
 										onClick={() => setShowDocSelector(true)}
 										disabled={inTransition || isPlaceholder}
 									>
@@ -513,7 +501,7 @@ export default function FormQuestion() {
 												disabled={inTransition}
 												sx={{ padding: '2px' }}
 											>
-												<Close sx={{ fontSize: 14 }} />
+												<IconX size={14} />
 											</IconButton>
 										</Box>
 									)}

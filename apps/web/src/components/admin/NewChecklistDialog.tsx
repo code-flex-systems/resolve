@@ -1,9 +1,10 @@
 'use client';
 
-import { FormControl, FormLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { IconFileSearch } from '@tabler/icons-react';
+import { FormControl, FormLabel, MenuItem, Select } from '@mui/material';
+import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useRouter } from 'next/navigation';
@@ -47,33 +48,33 @@ export default function NewChecklistDialog() {
 			primaryAction={{
 				label: 'Create checklist',
 				onClick: onSubmit,
-				icon: <ContentPasteSearch />,
+				icon: <IconFileSearch size={20} />,
 				disabled: !name || isPending || isSubmitting,
 			}}
 			onClose={toggleNewChecklistDialog}
 			width={475}
 		>
-			<Typography fontStyle="italic" fontSize={13}>
+			<span style={{ fontStyle: 'italic' }}>
 				The new checklist will be unpublished by default.
-			</Typography>
-			<Typography fontStyle="italic" fontSize={13} paddingTop="10px">
+			</span>
+			<span style={{ fontStyle: 'italic' }}>
 				This gives you a chance to finalize pages, questions, and answers before making it available to users.
-			</Typography>
+			</span>
 			<form>
 				<div className="flex-row-left" style={styles.row}>
-					<TextField
+					<Input
 						id="name"
 						label="Name"
 						placeholder="Master Checklist"
 						error={!!errors.name}
-						helperText={errors.name?.message}
-						sx={{ width: 300 }}
+						errorText={errors.name?.message}
+						style={{ width: 300 }}
 						{...register('name', { required: 'Checklist name is required' })}
 					/>
 				</div>
 				<div className="flex-row-left" style={styles.row}>
 					<FormControl>
-						<FormLabel sx={styles.formLabel}>Choose a checklist to copy from (optional)</FormLabel>
+						<FormLabel style={styles.formLabel}>Choose a checklist to copy from (optional)</FormLabel>
 						<Select
 							variant="outlined"
 							displayEmpty
@@ -83,7 +84,7 @@ export default function NewChecklistDialog() {
 								if (value != null) return 'None';
 								return loadingChecklists ? 'Loading...' : 'Select';
 							}}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
 							disabled={loadingChecklists}
 						>
 							<MenuItem key="none" value={''}>
@@ -112,11 +113,5 @@ const styles = {
 	},
 	textFieldOverrides: {
 		width: 300,
-		'& .MuiInputBase-root': {
-			padding: '3px 5px',
 		},
-		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
-		},
-	},
 };

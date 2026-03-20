@@ -4,10 +4,10 @@ import { containerStyles } from '@/styles/theme';
 import Comments from '../common/Comments';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import './styles.css';
-import Sms from '@mui/icons-material/Sms';
 import { buildChecklistUrl } from '@/lib/utils/buildChecklistUrl';
 import { useRouter } from 'next/navigation';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
+import { IconMessage } from '@tabler/icons-react';
 
 export default function RecentComments() {
 	const router = useRouter();
@@ -19,7 +19,7 @@ export default function RecentComments() {
 	return (
 		<Box sx={{ ...containerStyles.section, ...styles.container }}>
 			<Typography sx={containerStyles.sectionTitle}>
-				<Sms sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+				<IconMessage style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				Recent Comments
 			</Typography>
 			<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>

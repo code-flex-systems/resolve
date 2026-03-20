@@ -6,17 +6,12 @@ import {
 	MenuItem,
 	Popper,
 	InputAdornment,
-	Collapse,
 	PopperProps,
 	TextFieldProps,
 	ClickAwayListener,
 	Typography,
 	Paper,
-	Box,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
-import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+	Box, Collapse } from '@mui/material';
 import { TransitionGroup } from 'react-transition-group';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Claim } from '@/types/types';
@@ -25,9 +20,9 @@ import ClaimMenuItem from './ClaimMenuItem';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
-import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
+import { IconSearch, IconUserSearch, IconX } from '@tabler/icons-react';
 
 interface ClaimsSearchProps {
 	showIcon?: boolean;
@@ -96,16 +91,16 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 							input: {
 								startAdornment: showIcon ? (
 									<InputAdornment position="start">
-										<SearchIcon />
+										<IconSearch size={20} />
 									</InputAdornment>
 								) : undefined,
 								endAdornment: (
 									<InputAdornment position="end">
 										{searching ? (
-											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
+											<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
 										) : query ? (
 											<IconButton size="small" onClick={handleClearInput}>
-												<ClearIcon sx={{ fontSize: 15 }} />
+												<IconX size={15} />
 											</IconButton>
 										) : (
 											<BasicButtonStyled
@@ -120,9 +115,9 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 												}}
 												icon={
 													type === ClaimSearch.CLAIM_NUMBER ? (
-														<PersonSearchIcon />
+														<IconUserSearch size={20} />
 													) : (
-														<SearchIcon />
+														<IconSearch size={20} />
 													)
 												}
 											/>

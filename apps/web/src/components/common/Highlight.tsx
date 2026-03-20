@@ -1,5 +1,3 @@
-import { Box } from '@mui/material';
-
 interface HighlightProps {
 	children: React.ReactNode;
 	color?: string;
@@ -12,8 +10,8 @@ interface HighlightProps {
  */
 export default function Highlight({ children, color = '', bold = true }: HighlightProps) {
 	return (
-		<Box component="span" sx={{ color, fontWeight: bold ? 600 : 'inherit' }}>
+		<span style={{ color, fontWeight: bold ? 600 : 'inherit' }}>
 			{children}
-		</Box>
+		</span>
 	);
 }

@@ -1,7 +1,8 @@
 'use client';
 
-import { Box, Drawer, IconButton, Typography } from '@mui/material';
-import Close from '@mui/icons-material/Close';
+import { IconX } from '@tabler/icons-react';
+import { Drawer } from '@mui/material';
+import Button from '@/components/ui/Button';
 import ClaimSummary from './ClaimSummary';
 
 interface ClaimDetailPanelProps {
@@ -17,27 +18,19 @@ export default function ClaimDetailPanel({ claimId, open, onClose, onStartCheckl
 			anchor="right"
 			open={open}
 			onClose={onClose}
-			sx={{
-				'& .MuiDrawer-paper': {
-					width: 450,
-					padding: '20px',
-					display: 'flex',
-					flexDirection: 'column',
-					borderTopRightRadius: 0,
-					borderBottomRightRadius: 0,
-				},
-			}}
+			style={{
+				}}
 		>
-			<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom="15px" flexShrink={0}>
-				<Typography variant="h6">Claim Details</Typography>
-				<IconButton onClick={onClose} size="small">
-					<Close />
-				</IconButton>
-			</Box>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexShrink: 0 }}>
+				<span>Claim Details</span>
+				<Button variant="icon" onClick={onClose} size="sm">
+					<IconX size={20} />
+				</Button>
+			</div>
 
-			<Box flex={1} overflow="hidden">
+			<div style={{ flex: 1, overflow: 'hidden' }}>
 				{claimId && <ClaimSummary claimId={claimId} onStartChecklist={onStartChecklist} />}
-			</Box>
+			</div>
 		</Drawer>
 	);
 }

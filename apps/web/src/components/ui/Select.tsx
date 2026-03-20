@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type SelectHTMLAttributes } from 'react';
+import { forwardRef, type SelectHTMLAttributes, type ReactNode, type ChangeEvent } from 'react';
 import styles from './Select.module.css';
 
 /* =========================================================================
@@ -10,12 +10,19 @@ import styles from './Select.module.css';
 export interface SelectOption {
 	value: string;
 	label: string;
+	disabled?: boolean;
 }
 
-export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
-	options: SelectOption[];
+export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'size'> {
+	/** Options array — simple rendering */
+	options?: SelectOption[];
+	/** Children-based options — for custom <option> or <optgroup> rendering */
+	children?: ReactNode;
 	value?: string;
-	onChange?: (value: string) => void;
+	/** Simplified onChange: receives the string value directly */
+	onChange?: (value: string, event: ChangeEvent<HTMLSelectElement>) => void;
+	/** Native onChange: receives the full event (for react-hook-form register()) */
+	onChangeNative?: (event: ChangeEvent<HTMLSelectElement>) => void;
 	label?: string;
 	helperText?: string;
 	error?: boolean;
@@ -23,6 +30,8 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
 	placeholder?: string;
 	fullWidth?: boolean;
 	disabled?: boolean;
+	/** Select height: sm=32px (default), md=36px */
+	selectSize?: 'sm' | 'md';
 	className?: string;
 }
 
@@ -30,8 +39,10 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 	(
 		{
 			options,
+			children,
 			value,
 			onChange,
+			onChangeNative,
 			label,
 			helperText,
 			error,
@@ -39,6 +50,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 			placeholder,
 			fullWidth,
 			disabled,
+			selectSize = 'sm',
 			className,
 			...props
 		},
@@ -50,14 +62,16 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
 		const selectClassNames = [
 			styles.select,
+			styles[`size-${selectSize}`],
 			error && styles.error,
 			disabled && styles.disabled,
 		]
 			.filter(Boolean)
 			.join(' ');
 
-		const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-			onChange?.(e.target.value);
+		const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
+			onChangeNative?.(e);
+			onChange?.(e.target.value, e);
 		};
 
 		return (
@@ -77,11 +91,13 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 								{placeholder}
 							</option>
 						)}
-						{options.map((option) => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
+						{options
+							? options.map((option) => (
+									<option key={option.value} value={option.value} disabled={option.disabled}>
+										{option.label}
+									</option>
+								))
+							: children}
 					</select>
 					<span className={styles.chevron} />
 				</div>

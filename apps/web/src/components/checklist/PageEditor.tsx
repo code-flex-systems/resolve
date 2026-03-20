@@ -1,27 +1,18 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
-import { Box, Divider, Fade, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
+import { Box, IconButton, InputAdornment, Link, TextField, Typography , Fade } from '@mui/material';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import CopyPageDialog from './CopyPageDialog';
-import Check from '@mui/icons-material/Check';
-import Clear from '@mui/icons-material/Clear';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import Delete from '@mui/icons-material/Delete';
-import East from '@mui/icons-material/East';
-import Description from '@mui/icons-material/Description';
-import Save from '@mui/icons-material/Save';
-import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
-import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, containerStyles } from '@/styles/theme';
-import HelpOutline from '@mui/icons-material/HelpOutline';
-import FormatQuote from '@mui/icons-material/FormatQuote';
+import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, containerStyles } from '@/styles/theme';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconArrowRight, IconCheck, IconCircleCheck, IconCopy, IconCornerDownRight, IconDeviceFloppy, IconFileDescription, IconHelpCircle, IconQuote, IconTrash, IconX } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 export default function PageEditor() {
 	const { checklistId = -1, claimId = -1 } = useChecklistParams();
@@ -193,7 +184,7 @@ export default function PageEditor() {
 							</Typography>
 							<Fade in={showUpdateMsg} timeout={500}>
 								<Box sx={{ ml: 1.5 }} className="flex-row-left">
-									<TaskAlt sx={{ color: 'success.main', fontSize: 18, mr: 0.5 }} />
+									<IconCircleCheck size={20} style={{ color: 'success.main', fontSize: 18, marginRight: 4 }} />
 									<Typography color="success.main" fontSize={13}>
 										Saved
 									</Typography>
@@ -234,15 +225,11 @@ export default function PageEditor() {
 														onClick={() => onCopyText('pageTitle', pageTitle)}
 													>
 														{copiedField === 'pageTitle' ? (
-															<Check
-																sx={{
-																	color: theme.palette.success.light,
-																	fontSize: 18,
-																}}
+															<IconCheck size={20} style={{ color: 'var(--status-success)',
+																	fontSize: 18, }}
 															/>
 														) : (
-															<ContentCopy
-																sx={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
+															<IconCopy size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
 															/>
 														)}
 													</IconButton>
@@ -252,7 +239,7 @@ export default function PageEditor() {
 														onClick={onClearField}
 														disabled={!pageTitle}
 													>
-														<Clear sx={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
+														<IconX size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
 													</IconButton>
 													<IconButton
 														disableRipple
@@ -264,16 +251,12 @@ export default function PageEditor() {
 															pageTitle === selectedPageInfo.title
 														}
 													>
-														<Save
-															sx={{
-																color:
-																	!updating &&
+														<IconDeviceFloppy size={20} style={{ color: !updating &&
 																	pageTitle &&
 																	pageTitle !== selectedPageInfo.title
-																		? theme.palette.primary.main
+																		? 'var(--text-accent)'
 																		: BASE_COLOR_LIGHT,
-																fontSize: 18,
-															}}
+																fontSize: 18, }}
 														/>
 													</IconButton>
 												</InputAdornment>
@@ -284,14 +267,14 @@ export default function PageEditor() {
 							</Box>
 							<Box sx={styles.statsRow}>
 								<Box sx={styles.statItem}>
-									<HelpOutline sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
+									<IconHelpCircle size={18} style={{ color: TEXT_SECONDARY }} />
 									<Typography fontSize={13}>
 										<strong>{questions.length}</strong>{' '}
 										{questions.length === 1 ? 'Question' : 'Questions'}
 									</Typography>
 								</Box>
 								<Box sx={styles.statItem}>
-									<FormatQuote sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
+									<IconQuote size={18} style={{ color: TEXT_SECONDARY }} />
 									<Typography fontSize={13}>
 										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
 									</Typography>
@@ -345,7 +328,7 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <ContentCopy sx={{ fontSize: 16 }} />,
+												startIcon: <IconCopy size={16} />,
 											}}
 										>
 											Copy template
@@ -359,7 +342,7 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <ContentCopy sx={{ fontSize: 16 }} />,
+												startIcon: <IconCopy size={16} />,
 											}}
 										>
 											Copy instance
@@ -379,7 +362,7 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <East sx={{ fontSize: 16 }} />,
+												startIcon: <IconArrowRight size={16} />,
 											}}
 										>
 											New sibling
@@ -393,7 +376,7 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <SubdirectoryArrowRight sx={{ fontSize: 16 }} />,
+												startIcon: <IconCornerDownRight size={16} />,
 											}}
 										>
 											New child
@@ -411,7 +394,7 @@ export default function PageEditor() {
 												variant: 'outlined',
 												color: 'error',
 												size: 'small',
-												startIcon: <Delete sx={{ fontSize: 16 }} />,
+												startIcon: <IconTrash size={16} />,
 											}}
 										>
 											Delete page
@@ -428,7 +411,7 @@ export default function PageEditor() {
 			{!selectedPageInstance && (
 				<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
 					<Box width={200} display="flex" justifyContent="center" alignItems="center">
-						<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
+						<IconFileDescription size={20} style={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
 						<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
 							No page selected
 						</Typography>

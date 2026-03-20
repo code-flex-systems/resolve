@@ -1,11 +1,8 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import theme, { BASE_COLOR, ORANGE } from '@/styles/theme';
-import { Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import Troubleshoot from '@mui/icons-material/Troubleshoot';
+import { BASE_COLOR, ORANGE } from '@/styles/theme';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import { PieChart } from '@mui/x-charts-pro';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -15,6 +12,9 @@ import { AnimatedCounter } from '../../common/AnimatedCounter';
 import BasicButtonStyled from '../../common/BasicButtonStyled';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { IconBug, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -27,11 +27,11 @@ function getProgressPercentage(completed: number, total: number) {
 function getStatusColor(status: ClaimStatus) {
 	switch (status) {
 		case ClaimStatus.SUBMITTED:
-			return theme.palette.success.main;
+			return 'var(--status-success)';
 		case ClaimStatus.IN_PROGRESS:
-			return theme.palette.warning.main;
+			return 'var(--status-warning)';
 		case ClaimStatus.UNWORKED:
-			return theme.palette.error.main;
+			return 'var(--status-error)';
 		case ClaimStatus.BLOCKED:
 			return ORANGE;
 	}
@@ -63,7 +63,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 	return (
 		<Paper elevation={0} sx={styles.paper}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
+				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
 				<Box display="flex" width={METRIC_WIDTH} height={METRIC_HEIGHT} borderRadius={3} padding="10px">
 					<Stack flex={1} display="flex" justifyContent="flex-start" alignItems="flex-start">
@@ -81,7 +81,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 								<Box marginRight="5px">
 									<BasicButtonStyled
 										buttonProps={{}}
-										icon={<InfoOutlined />}
+										icon={<IconInfoCircle size={20} />}
 										tooltipProps={{
 											title: 'A claim is considered complete if all necessary questions have been answered for the related checklist.',
 										}}
@@ -93,10 +93,10 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 											onClick: () => router.push('/metrics/claims'),
 										}}
 										icon={
-											<Troubleshoot
-												sx={{
+											<IconBug
+											 style={{
 													transform: 'scaleX(-1)',
-													color: theme.palette.primary.main,
+													color: 'var(--text-accent)',
 												}}
 											/>
 										}

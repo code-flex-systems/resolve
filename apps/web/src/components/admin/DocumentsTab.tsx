@@ -1,12 +1,10 @@
 'use client';
 
+import { IconFileUpload, IconFolderPlus, IconPackage, IconSettings } from '@tabler/icons-react';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
-import { Button, Paper, Typography } from '@mui/material';
 import { GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import SettingsIcon from '@mui/icons-material/Settings';
 import Toolbar from '../common/Toolbar';
 import { useState, useMemo } from 'react';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -15,6 +13,7 @@ import UploadDocumentDialog from './UploadDocumentDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import DocumentPreviewDialog from './DocumentPreviewDialog';
 import DocumentNavigationTable from './DocumentNavigationTable';
+import { Dialog, Table } from '@mui/material';
 
 export default function DocumentsTab() {
 	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
@@ -130,9 +129,9 @@ export default function DocumentsTab() {
 	}, [selectedRows, groups, docs, docCountsByFolder]);
 
 	return (
-		<Paper sx={styles.container}>
+		<div style={styles.container}>
 			<Toolbar
-				left={<Typography variant="h6">Documents</Typography>}
+				left={<span>Documents</span>}
 				right={
 					<div style={{ display: 'flex', gap: 8 }}>
 						{editMode ? (
@@ -141,7 +140,7 @@ export default function DocumentsTab() {
 									<Button
 										variant="outlined"
 										color="error"
-										startIcon={<InventoryIcon />}
+										startIcon={<IconPackage size={20} />}
 										onClick={handleDelete}
 									>
 										Archive ({selectedRows.length})
@@ -153,18 +152,18 @@ export default function DocumentsTab() {
 							</>
 						) : (
 							<>
-								<Button variant="outlined" startIcon={<SettingsIcon />} onClick={handleToggleEditMode}>
+								<Button variant="outlined" startIcon={<IconSettings size={20} />} onClick={handleToggleEditMode}>
 									Manage
 								</Button>
 								<Button
 									variant="outlined"
-									startIcon={<CreateNewFolderIcon />}
+									startIcon={<IconFolderPlus size={20} />}
 									onClick={handleAddFolder}
 									disabled={currentDepth >= 2} // Allow up to 2 levels (root + 2 levels of folders)
 								>
 									Add Folder
 								</Button>
-								<Button variant="contained" startIcon={<UploadFileIcon />} onClick={handleAddDocument}>
+								<Button variant="contained" startIcon={<IconFileUpload size={20} />} onClick={handleAddDocument}>
 									Add Document
 								</Button>
 							</>
@@ -210,7 +209,7 @@ export default function DocumentsTab() {
 			{previewDocument && (
 				<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
 			)}
-		</Paper>
+		</div>
 	);
 }
 

@@ -1,15 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Fade, MenuItem, Stack, Typography } from '@mui/material';
-import Checklist from '@mui/icons-material/Checklist';
-import Description from '@mui/icons-material/Description';
-import CheckCircle from '@mui/icons-material/CheckCircle';
+import { Fade, MenuItem } from '@mui/material';
+import { IconChecklist, IconFileDescription, IconCircleCheck } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import RingLoadingIndicator from './RingLoadingIndicator';
 import { useRouter } from 'next/navigation';
+import css from './ChecklistSelectionDialog.module.css';
 
 interface ChecklistSelectionDialogProps {
 	claimId: number;
@@ -57,23 +56,23 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 				},
 			]}
 		>
-			<Box sx={styles.container}>
+			<div className={css.container}>
 				{isLoading && (
-					<Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+					<div className={css.emptyState}>
 						<RingLoadingIndicator message="Loading checklists..." />
-					</Box>
+					</div>
 				)}
 
 				{!isLoading && checklists.length === 0 && (
-					<Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-						<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
+					<div className={css.emptyState}>
+						<span style={{ fontSize: 15, color: BASE_COLOR_LIGHT }}>
 							No checklists available
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				)}
 
 				{!isLoading && checklists.length > 0 && (
-					<Stack width="100%" spacing={0}>
+					<div style={{ width: '100%' }}>
 						{checklists.map((checklist) => {
 							const pageCount = parseInt(checklist.page_count?.toString() ?? '0');
 							const isSelected = selectedChecklist?.id === checklist.id;
@@ -82,118 +81,56 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 								<MenuItem
 									key={checklist.id}
 									onClick={() => handleSelectChecklist(checklist)}
-									sx={{
-										...styles.menuItem,
-										backgroundColor: isSelected ? '#F0F7F5 !important' : undefined,
-									}}
+									className={`${css.menuItem} ${isSelected ? css.menuItemSelected : ''}`}
 									disableRipple
 								>
-									<Stack width="100%" spacing={0.5}>
+									<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
 										{/* Name and Page Count */}
-										<Box display="flex" alignItems="center" justifyContent="space-between">
-											<Box display="flex" alignItems="center" gap={1}>
-												<Checklist sx={{ color: theme.palette.secondary.main, fontSize: 20 }} />
-												<Typography variant="subtitle1" fontSize={16} fontWeight={600}>
+										<div className={css.nameRow}>
+											<div className={css.nameGroup}>
+												<IconChecklist size={20} style={{ color: 'var(--text-accent)' }} />
+												<span style={{ fontSize: 16, fontWeight: 600 }}>
 													{checklist.name}
-												</Typography>
+												</span>
 												<Fade in={isSelected}>
-													<CheckCircle
-														sx={{ color: theme.palette.secondary.main, fontSize: 20 }}
-													/>
+													<span style={{ display: 'inline-flex' }}>
+														<IconCircleCheck
+															size={20}
+															style={{ color: 'var(--text-accent)' }}
+														/>
+													</span>
 												</Fade>
-											</Box>
-											<Box
-												px={1.5}
-												py={0.5}
-												borderRadius={2}
-												bgcolor={theme.palette.secondary.light}
-												display="flex"
-												alignItems="center"
-												gap={0.5}
+											</div>
+											<div
+												className={css.pageBadge}
+												style={{ backgroundColor: 'var(--status-info-bg)' }}
 											>
-												<Description sx={{ fontSize: 14, color: 'white' }} />
-												<Typography fontSize={12} fontWeight={600} color="white">
+												<IconFileDescription size={14} style={{ color: 'white' }} />
+												<span style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>
 													{pageCount} {pageCount === 1 ? 'page' : 'pages'}
-												</Typography>
-											</Box>
-										</Box>
+												</span>
+											</div>
+										</div>
 
 										{/* Description */}
 										{checklist.description && (
-											<Typography
-												variant="body2"
-												fontSize={13}
-												color="text.secondary"
-												sx={{
-													display: '-webkit-box',
-													WebkitLineClamp: 2,
-													WebkitBoxOrient: 'vertical',
-													overflow: 'hidden',
-													textOverflow: 'ellipsis',
-												}}
-											>
+											<p className={css.description}>
 												{checklist.description}
-											</Typography>
+											</p>
 										)}
 
 										{!checklist.description && (
-											<Typography
-												variant="caption"
-												fontSize={12}
-												color={BASE_COLOR_LIGHT}
-												fontStyle="italic"
-											>
+											<span className={css.noDescription}>
 												No description provided
-											</Typography>
+											</span>
 										)}
-									</Stack>
+									</div>
 								</MenuItem>
 							);
 						})}
-					</Stack>
+					</div>
 				)}
-			</Box>
+			</div>
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100%',
-		minHeight: 300,
-		maxHeight: 500,
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		'&::-webkit-scrollbar': {
-			width: '8px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: '#f1f1f1',
-			borderRadius: '4px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: '#888',
-			borderRadius: '4px',
-		},
-		'&::-webkit-scrollbar-thumb:hover': {
-			background: '#555',
-		},
-	},
-	menuItem: {
-		minHeight: 80,
-		padding: '16px',
-		borderBottom: '1px solid #f0f0f0',
-		transition: 'all 0.2s ease',
-		cursor: 'pointer',
-		'&:hover': {
-			backgroundColor: '#F0F7F5 !important',
-			transform: 'translateX(4px)',
-		},
-		'&:last-child': {
-			borderBottom: 'none',
-		},
-		'&.Mui-focused': {
-			backgroundColor: '#F0F7F5',
-		},
-	},
-};

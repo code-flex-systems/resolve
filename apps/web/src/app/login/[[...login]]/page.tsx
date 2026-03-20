@@ -1,10 +1,9 @@
 import { SignIn } from '@clerk/nextjs';
-import { Box } from '@mui/material';
 
 export default function SignInPage() {
 	return (
-		<Box
-			sx={{
+		<div
+			style={{
 				display: 'flex',
 				justifyContent: 'center',
 				alignItems: 'center',
@@ -13,6 +12,6 @@ export default function SignInPage() {
 			}}
 		>
 			<SignIn />
-		</Box>
+		</div>
 	);
 }

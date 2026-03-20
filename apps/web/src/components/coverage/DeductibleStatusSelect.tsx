@@ -1,4 +1,4 @@
-import { MenuItem, TextField } from '@mui/material';
+import Select from '@/components/ui/Select';
 import { DeductibleStatus } from '@/config/enums';
 
 interface DeductibleStatusSelectProps {
@@ -36,22 +36,19 @@ export default function DeductibleStatusSelect({
 	helperText,
 }: DeductibleStatusSelectProps) {
 	return (
-		<TextField
-			select
+		<Select
 			label="Deductible Status"
 			value={value}
-			onChange={(e) => onChange(e.target.value as DeductibleStatus)}
+			onChange={(val) => onChange(val as DeductibleStatus)}
 			required={required}
 			disabled={disabled}
 			error={error}
 			helperText={helperText}
 			fullWidth
-		>
-			{DEDUCTIBLE_STATUS_OPTIONS.map((option) => (
-				<MenuItem key={option.value} value={option.value}>
-					{option.label}
-				</MenuItem>
-			))}
-		</TextField>
+			options={DEDUCTIBLE_STATUS_OPTIONS.map((option) => ({
+				value: option.value,
+				label: option.label,
+			}))}
+		/>
 	);
 }

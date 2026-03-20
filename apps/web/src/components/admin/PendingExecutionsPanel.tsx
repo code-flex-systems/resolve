@@ -1,20 +1,13 @@
 'use client';
 
+import { IconCircleCheck, IconCircleX, IconHourglass } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useState } from 'react';
-import {
-	Box,
-	Typography,
-	Chip,
-	Skeleton,
-	Paper,
-	IconButton,
-	Button,
-	Tooltip,
-} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import { containerStyles, TEXT_PRIMARY, TEXT_SECONDARY } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import { useWorkflowTrpc, PendingExecutionList } from '@/hooks/trpc/useWorkflowTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { formatActionType, formatTriggerType } from '@/lib/utils/workflowUtils';
@@ -42,9 +35,9 @@ function formatRelativeTime(dateStr: string | Date): string {
 function CardSkeleton() {
 	return (
 		<Skeleton
-			variant="rounded"
+			variant="rect"
 			height={80}
-			sx={{ borderRadius: '8px' }}
+			className="rounded-lg"
 		/>
 	);
 }
@@ -94,182 +87,173 @@ export default function PendingExecutionsPanel() {
 	// Loading state for initial load
 	if (isLoading) {
 		return (
-			<Box sx={{ ...containerStyles.beveledCard, p: 3 }}>
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-					<Typography variant="h6" sx={{ fontWeight: 600, color: TEXT_PRIMARY }}>
+			<div style={{ ...containerStyles.beveledCard, padding: 24 }}>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+					<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
 						Pending Approvals
-					</Typography>
-					<Skeleton variant="rounded" width={40} height={24} />
-				</Box>
-				<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+					</span>
+					<Skeleton variant="rect" width={40} height={24} />
+				</div>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 					<CardSkeleton />
 					<CardSkeleton />
-				</Box>
-			</Box>
+				</div>
+			</div>
 		);
 	}
 
 	return (
-		<Box sx={{ ...containerStyles.beveledCard, p: 3 }}>
+		<div style={{ ...containerStyles.beveledCard, padding: 24 }}>
 			{/* Header */}
-			<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-				<Typography variant="h6" sx={{ fontWeight: 600, color: TEXT_PRIMARY }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+				<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
 					Pending Approvals
-				</Typography>
-				<Chip
-					label={totalCount}
-					size="small"
+				</span>
+				<Chip 
+					size="sm"
 					color="info"
-					sx={{ fontWeight: 600, minWidth: 28 }}
-				/>
-			</Box>
+					style={{ fontWeight: 600, minWidth: 28 }}>{totalCount}</Chip>
+			</div>
 
 			{/* Content */}
 			{rows.length === 0 ? (
 				/* Empty state */
-				<Box
-					sx={{
+				<div
+					style={{
 						display: 'flex',
 						flexDirection: 'column',
 						alignItems: 'center',
 						justifyContent: 'center',
-						py: 5,
-						gap: 1.5,
+						paddingBlock: 40,
+						gap: 12,
 					}}
 				>
-					<HourglassEmptyIcon sx={{ fontSize: 40, color: '#94a3b8' }} />
-					<Typography sx={{ fontSize: 14, color: TEXT_SECONDARY }}>
+					<IconHourglass size={40} style={{ color: '#94a3b8' }} />
+					<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
 						No pending executions
-					</Typography>
-				</Box>
+					</span>
+				</div>
 			) : (
-				<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 					{rows.map((execution: PendingExecution) => (
-						<Paper
+						<div
 							key={execution.id}
-							variant="outlined"
-							sx={{
-								p: 2,
+							style={{
+								padding: 16,
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'space-between',
-								gap: 2,
+								gap: 16,
 								opacity: isFetching ? 0.6 : 1,
 								transition: 'opacity 0.2s',
 							}}
 						>
 							{/* Left side: info */}
-							<Box sx={{ flex: 1, minWidth: 0 }}>
-								<Typography
-									sx={{
+							<div style={{ flex: 1, minWidth: 0 }}>
+								<span
+									style={{
 										fontSize: 14,
 										fontWeight: 600,
-										color: TEXT_PRIMARY,
+										color: 'var(--text-primary)',
 										whiteSpace: 'nowrap',
 										overflow: 'hidden',
 										textOverflow: 'ellipsis',
 									}}
 								>
 									{execution.rule_name}
-								</Typography>
-								<Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-									<Typography sx={{ fontSize: 13, color: TEXT_SECONDARY }}>
+								</span>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+									<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 										Claim {execution.claim_number}
-									</Typography>
-									<Typography sx={{ fontSize: 12, color: '#94a3b8' }}>
+									</span>
+									<span style={{ fontSize: 12, color: '#94a3b8' }}>
 										{formatRelativeTime(execution.created_at)}
-									</Typography>
-								</Box>
-							</Box>
+									</span>
+								</div>
+							</div>
 
 							{/* Chips */}
-							<Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0 }}>
-								<Chip
-									label={formatActionType(execution.action_type as WorkflowActionType)}
-									size="small"
-									sx={{
+							<div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+								<Chip 
+									size="sm"
+									style={{
 										fontSize: 11,
 										fontWeight: 500,
 										backgroundColor: '#e0f2fe',
 										color: '#075985',
-									}}
-								/>
-								<Chip
-									label={formatTriggerType(execution.trigger_type as WorkflowTriggerType)}
-									size="small"
-									sx={{
+									}}>{formatActionType(execution.action_type as WorkflowActionType)}</Chip>
+								<Chip 
+									size="sm"
+									style={{
 										fontSize: 11,
 										fontWeight: 500,
 										backgroundColor: '#f1f5f9',
 										color: '#475569',
-									}}
-								/>
-							</Box>
+									}}>{formatTriggerType(execution.trigger_type as WorkflowTriggerType)}</Chip>
+							</div>
 
 							{/* Action buttons */}
-							<Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-								<Tooltip title="Approve">
+							<div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+								<Tooltip content="Approve">
 									<span>
-										<IconButton
-											size="small"
+										<Button variant="icon" size="sm"
 											disabled={isMutating}
 											onClick={() => handleApprove(execution.id)}
-											sx={{ color: '#16a34a' }}
+											style={{ color: '#16a34a' }}
 										>
-											<CheckCircleIcon fontSize="small" />
-										</IconButton>
+											<IconCircleCheck size={20} />
+										</Button>
 									</span>
 								</Tooltip>
-								<Tooltip title="Reject">
+								<Tooltip content="Reject">
 									<span>
-										<IconButton
-											size="small"
+										<Button variant="icon" size="sm"
 											disabled={isMutating}
 											onClick={() => handleReject(execution.id)}
-											sx={{ color: '#dc2626' }}
+											style={{ color: '#dc2626' }}
 										>
-											<CancelIcon fontSize="small" />
-										</IconButton>
+											<IconCircleX size={20} />
+										</Button>
 									</span>
 								</Tooltip>
-							</Box>
-						</Paper>
+							</div>
+						</div>
 					))}
-				</Box>
+				</div>
 			)}
 
 			{/* Pagination */}
 			{totalCount > PAGE_SIZE && (
-				<Box
-					sx={{
+				<div
+					style={{
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
-						gap: 2,
-						mt: 2,
+						gap: 16,
+						marginTop: 16,
 					}}
 				>
 					<Button
-						size="small"
+						size="sm"
 						disabled={offset === 0 || isMutating}
 						onClick={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
-						sx={{ textTransform: 'none', fontWeight: 500, fontSize: 13 }}
+						style={{ textTransform: 'none', fontWeight: 500, fontSize: 13 }}
 					>
 						Previous
 					</Button>
-					<Typography sx={{ fontSize: 13, color: TEXT_SECONDARY }}>
+					<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 						Page {currentPage} of {totalPages}
-					</Typography>
+					</span>
 					<Button
-						size="small"
+						size="sm"
 						disabled={currentPage >= totalPages || isMutating}
 						onClick={() => setOffset((prev) => prev + PAGE_SIZE)}
-						sx={{ textTransform: 'none', fontWeight: 500, fontSize: 13 }}
+						style={{ textTransform: 'none', fontWeight: 500, fontSize: 13 }}
 					>
 						Next
 					</Button>
-				</Box>
+				</div>
 			)}
-		</Box>
+		</div>
 	);
 }

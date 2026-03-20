@@ -1,12 +1,13 @@
 'use client';
 
-import { Box, Link, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Link, Stack, Typography } from '@mui/material';
 import { containerStyles } from '@/styles/theme';
 import { useClaimTrpc, type MyDeskClaimListItem } from '@/hooks/trpc/useClaimTrpc';
 import ClaimDetailPanel from '../admin/ClaimDetailPanel';
 import { useState } from 'react';
 import ClaimListItem, { ClaimListItemData } from '@/components/common/ClaimListItem';
-import ListAlt from '@mui/icons-material/ListAlt';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconList } from '@tabler/icons-react';
 
 export default function MyQueue() {
 	const { data, isFetching } = useClaimTrpc().listMyDeskClaims(
@@ -51,7 +52,7 @@ export default function MyQueue() {
 		<>
 			<Box sx={{ ...containerStyles.section, ...styles.container }}>
 				<Typography sx={containerStyles.sectionTitle}>
-					<ListAlt sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
+					<IconList style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 					My Queue
 					{claims.length > 0 && (
 						<Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
@@ -61,7 +62,7 @@ export default function MyQueue() {
 				</Typography>
 				<Box sx={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
 					{isFetching ? (
-						<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 1 }} />
+						<Skeleton variant="rect" width="100%" height="100%" />
 					) : (
 						<Stack width="100%" height="100%" spacing={1}>
 							{/* Claims List */}

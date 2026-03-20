@@ -1,16 +1,14 @@
 'use client';
 
-import { Box, Button, CardContent, Chip, Divider, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import OpenInNew from '@mui/icons-material/OpenInNew';
-import ChecklistRtl from '@mui/icons-material/ChecklistRtl';
-import Edit from '@mui/icons-material/Edit';
-import Shield from '@mui/icons-material/Shield';
-import PlaylistAddCheck from '@mui/icons-material/PlaylistAddCheck';
-import Groups from '@mui/icons-material/Groups';
-import Task from '@mui/icons-material/Task';
-import CheckCircle from '@mui/icons-material/CheckCircle';
+import { IconChecklist, IconCircleCheck, IconEdit, IconExternalLink, IconListCheck, IconShield, IconSubtask, IconUsersGroup } from '@tabler/icons-react';
+import { CardContent, Select } from '@mui/material';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { BASE_COLOR_LIGHT, containerStyles } from '@/styles/theme';
+import { containerStyles } from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
@@ -79,49 +77,30 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 
 	if (claimLoading) {
 		return (
-			<Stack spacing={2}>
-				<Skeleton variant="rectangular" height={60} />
-				<Skeleton variant="rectangular" height={150} />
-				<Skeleton variant="rectangular" height={200} />
-			</Stack>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+				<Skeleton variant="rect" height={60} />
+				<Skeleton variant="rect" height={150} />
+				<Skeleton variant="rect" height={200} />
+			</div>
 		);
 	}
 
 	if (!claimDetail) {
 		return (
-			<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+			<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 				Claim not found
-			</Typography>
+			</span>
 		);
 	}
 
 	return (
-		<Fade in={true}>
-			<Box display="flex" flexDirection="column" minHeight="100%" maxHeight="100%">
+		<div>
+			<div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', maxHeight: '100%' }}>
 				{/* Scrollable Content */}
-				<Box
-					flex={1}
-					overflow="auto"
-					sx={{
-						'&::-webkit-scrollbar': {
-							width: '8px',
-						},
-						'&::-webkit-scrollbar-track': {
-							background: '#f1f1f1',
-							borderRadius: '4px',
-						},
-						'&::-webkit-scrollbar-thumb': {
-							background: '#888',
-							borderRadius: '4px',
-						},
-						'&::-webkit-scrollbar-thumb:hover': {
-							background: '#555',
-						},
-					}}
-				>
-					<Stack spacing={2} mr={1}>
+				<div style={{ flex: 1, overflow: 'auto' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginRight: 8 }}>
 						{/* Header with status badges */}
-						<Box display="flex" flexWrap="wrap" gap={1}>
+						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
 							{claimDetail.line_of_business && (
 								<LineOfBusinessChip value={claimDetail.line_of_business} />
 							)}
@@ -134,66 +113,66 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 								recoveryStatus={claimDetail.recovery_status}
 								substatus={claimDetail.substatus}
 							/>
-						</Box>
+						</div>
 
 						{/* Key Metrics Card */}
-						<Paper elevation={0} sx={styles.gradientPaper}>
-							<Typography variant="h5" color="primary" marginBottom="10px">
+						<div style={styles.gradientPaper}>
+							<span style={{ color: 'var(--text-accent)', marginBottom: '10px' }}>
 								{claimDetail.claim_number}
-							</Typography>
-							<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-								<CardContent sx={{ width: '50%', p: 1, '&:last-child': { pb: 1 } }}>
-									<Typography color={BASE_COLOR_LIGHT} fontSize={13} gutterBottom>
+							</span>
+							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+								<CardContent style={{ width: '50%', padding: 8, }}>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Claim Amount
-									</Typography>
-									<Typography variant="h6" fontSize={16}>
+									</span>
+									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
-									</Typography>
+									</span>
 								</CardContent>
-								<CardContent sx={{ width: '50%', p: 1, '&:last-child': { pb: 1 } }}>
-									<Typography color={BASE_COLOR_LIGHT} fontSize={13} gutterBottom>
+								<CardContent style={{ width: '50%', padding: 8, }}>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Total Incurred
-									</Typography>
-									<Typography variant="h6" fontSize={16}>
+									</span>
+									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
-									</Typography>
+									</span>
 								</CardContent>
-							</Box>
-							<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-								<CardContent sx={{ width: '50%', p: 1, '&:last-child': { pb: 1 } }}>
-									<Typography color={BASE_COLOR_LIGHT} fontSize={13} gutterBottom>
+							</div>
+							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+								<CardContent style={{ width: '50%', padding: 8, }}>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Expected Recovery
-									</Typography>
-									<Typography variant="h6" fontSize={16}>
+									</span>
+									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
-									</Typography>
+									</span>
 								</CardContent>
-								<CardContent sx={{ width: '50%', p: 1, '&:last-child': { pb: 1 } }}>
-									<Typography color={BASE_COLOR_LIGHT} fontSize={13} gutterBottom>
+								<CardContent style={{ width: '50%', padding: 8, }}>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Actual Recovery
-									</Typography>
-									<Typography variant="h6" fontSize={16}>
+									</span>
+									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.actual_recovery) || 0)}
-									</Typography>
+									</span>
 								</CardContent>
-							</Box>
-						</Paper>
+							</div>
+						</div>
 
 						{/* Quick Summary: Coverage, Parties, Tasks */}
-						<Paper elevation={0} sx={styles.beveledPaper}>
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
+						<div style={styles.beveledPaper}>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10, display: 'block' }}>
 								Quick Summary
-							</Typography>
-							<Stack spacing={1.5}>
+							</span>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 								{/* Coverage Summary - shows count of coverages and Entity parties */}
-								<Box display="flex" alignItems="center" gap={1}>
-									<Shield sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
-									<Typography fontSize={13}>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+									<IconShield size={18} style={{ color: 'var(--text-muted)' }} />
+									<span style={{ fontSize: 13 }}>
 										<Highlight bold={false}>Coverage:</Highlight>{' '}
 										{claimDetail.coverageSummary.count === 0 ? (
-											<Box component="span" fontStyle="italic" color={BASE_COLOR_LIGHT}>
+											<span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
 												None entered
-											</Box>
+											</span>
 										) : (
 											<>
 												{claimDetail.coverageSummary.count} coverage
@@ -202,40 +181,35 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 												{claimDetail.coverageSummary.partyCount === 1 ? 'y' : 'ies'}
 											</>
 										)}
-									</Typography>
-								</Box>
+									</span>
+								</div>
 
 								{/* Liability Summary - shows total liability % from entity parties */}
-								<Box display="flex" alignItems="center" gap={1}>
-									<Groups sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
-									<Typography fontSize={13} display="flex">
+								<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+									<IconUsersGroup size={18} style={{ color: 'var(--text-muted)' }} />
+									<span style={{ fontSize: 13, display: 'flex' }}>
 										<Highlight bold={false}>Liability:</Highlight>{' '}
 										{claimDetail.partySummary.count === 0 ? (
-											<Box component="span" fontStyle="italic" color={BASE_COLOR_LIGHT} ml={0.5}>
+											<span style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginLeft: 4 }}>
 												None linked
-											</Box>
+											</span>
 										) : (
-											<Box display="flex" alignItems="center" gap={1} ml={0.5}>
+											<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 4 }}>
 												{claimDetail.partySummary.totalLiability}% from{' '}
 												{claimDetail.partySummary.count} part
 												{claimDetail.partySummary.count === 1 ? 'y' : 'ies'}
 												{claimDetail.partySummary.totalLiability === 100 && (
-													<CheckCircle
-														sx={{
-															fontSize: 14,
-															color: 'success.main',
-														}}
-													/>
+													<IconCircleCheck size={14} style={{ color: 'var(--status-success)', }} />
 												)}
-											</Box>
+											</div>
 										)}
-									</Typography>
-								</Box>
+									</span>
+								</div>
 
 								{/* Task Summary */}
-								<Box display="flex" alignItems="center" gap={1}>
-									<Task sx={{ fontSize: 18, color: BASE_COLOR_LIGHT }} />
-									<Typography fontSize={13}>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+									<IconSubtask size={18} style={{ color: 'var(--text-muted)' }} />
+									<span style={{ fontSize: 13 }}>
 										<Highlight bold={false}>Tasks:</Highlight>{' '}
 										{(() => {
 											const totalTasks =
@@ -243,21 +217,17 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 												claimDetail.taskSummary.in_progress +
 												claimDetail.taskSummary.pending;
 											return totalTasks === 0 ? (
-												<Box component="span" fontStyle="italic" color={BASE_COLOR_LIGHT}>
+												<span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
 													None created
-												</Box>
+												</span>
 											) : (
 												<Link
 													href={`${getViewRoute()}?tab=workflow`}
 													style={{ textDecoration: 'none' }}
 												>
-													<Box
-														component="span"
-														sx={{
-															color: 'primary.main',
-															'&:hover': {
-																textDecoration: 'underline',
-															},
+													<div
+														style={{
+															color: 'var(--text-accent)',
 														}}
 													>
 														{claimDetail.taskSummary.completed > 0 && (
@@ -276,22 +246,22 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 														{claimDetail.taskSummary.pending > 0 && (
 															<>{claimDetail.taskSummary.pending} pending</>
 														)}
-													</Box>
+													</div>
 												</Link>
 											);
 										})()}
-									</Typography>
-								</Box>
-							</Stack>
-						</Paper>
+									</span>
+								</div>
+							</div>
+						</div>
 
 						{/* Checklist Progress (if applicable) */}
 						{showChecklistProgress && currentAssignment && (
-							<Paper elevation={0} sx={styles.beveledPaper}>
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
+							<div style={styles.beveledPaper}>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px' }}>
 									Progress through {currentAssignment.checklist_name}
-								</Typography>
-								<Box display="flex" justifyContent="center" paddingY="15px">
+								</span>
+								<div style={{ display: 'flex', justifyContent: 'center', paddingBlock: '15px' }}>
 									<ChecklistProgress
 										checklistId={currentAssignment.checklist_id}
 										claimId={claimId}
@@ -299,156 +269,151 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 										fontSize={14}
 										showInfo={false}
 									/>
-								</Box>
-								<Box display="flex" justifyContent="center" paddingTop="10px">
+								</div>
+								<div style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px' }}>
 									<Button
 										variant="outlined"
-										startIcon={<ChecklistRtl />}
+										startIcon={<IconChecklist size={20} />}
 										onClick={handleOpenInChecklist}
 										fullWidth
 									>
 										Open in Checklist
 									</Button>
-								</Box>
-							</Paper>
+								</div>
+							</div>
 						)}
 
 						{/* Contextual Info */}
-						<Paper elevation={0} sx={styles.beveledPaper}>
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
+						<div style={styles.beveledPaper}>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px' }}>
 								Information
-							</Typography>
-							<Stack spacing={1.5}>
+							</span>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 								{currentAssignment && (
-									<Typography fontSize={13}>
+									<span style={{ fontSize: 13 }}>
 										Assigned to{' '}
 										<Highlight>
 											{currentAssignment.assignee_first_name}{' '}
 											{currentAssignment.assignee_last_name}
 										</Highlight>{' '}
 										working through <Highlight>{currentAssignment.checklist_name}</Highlight>
-									</Typography>
+									</span>
 								)}
 								{!currentAssignment && (
-									<Box>
-										<Typography
-											fontSize={13}
-											color={BASE_COLOR_LIGHT}
-											fontStyle="italic"
-											marginBottom="10px"
-										>
+									<div>
+										<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px', fontStyle: 'italic' }}>
 											Not currently assigned to a checklist
-										</Typography>
+										</span>
 										{onStartChecklist && (
 											<Button
 												variant="outlined"
-												startIcon={<PlaylistAddCheck />}
+												startIcon={<IconListCheck size={20} />}
 												onClick={onStartChecklist}
-												size="small"
+												size="sm"
 												fullWidth
 												color="success"
 											>
 												Start a Checklist
 											</Button>
 										)}
-									</Box>
+									</div>
 								)}
 								<Divider />
-								<Typography fontSize={13}>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Insured:</Highlight> {claimDetail.insured ?? 'N/A'}
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Client Adjuster:</Highlight>{' '}
 									{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
 										? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
 										: (claimDetail.client_adjuster ?? 'N/A')}
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Date of Loss:</Highlight>{' '}
 									{claimDetail.date_of_loss ? formatMDY(claimDetail.date_of_loss?.toString()) : 'N/A'}
-								</Typography>
-								<Typography fontSize={13}>
+								</span>
+								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Loss Location:</Highlight>{' '}
 									{formatCityState(claimDetail.loss_city, claimDetail.loss_state) || 'N/A'}
-								</Typography>
+								</span>
 								{claimDetail.feed_name && (
 									<>
 										<Divider />
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} fontStyle="italic">
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 											Ingested from{' '}
-											<Box component="span" fontWeight={600}>
+											<div style={{ fontWeight: 600 }}>
 												{claimDetail.feed_name}
-											</Box>
-										</Typography>
+											</div>
+										</span>
 									</>
 								)}
-							</Stack>
-						</Paper>
+							</div>
+						</div>
 
 						{/* Recent Activity */}
-						<Paper elevation={0} sx={styles.beveledPaper}>
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom="10px">
+						<div style={styles.beveledPaper}>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px' }}>
 								Recent Activity
-							</Typography>
+							</span>
 							{logsLoading && (
-								<Stack spacing={1}>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 									<Skeleton variant="text" />
 									<Skeleton variant="text" />
 									<Skeleton variant="text" />
-								</Stack>
+								</div>
 							)}
 							{!logsLoading && adminLogs.length === 0 && (
-								<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+								<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 									No recent activity
-								</Typography>
+								</span>
 							)}
 							{!logsLoading && adminLogs.length > 0 && (
-								<Stack spacing={1}>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 									{adminLogs.map((log) => (
-										<Typography key={log.id} fontSize={13}>
+										<span key={log.id} style={{ fontSize: 13 }}>
 											<Highlight>
 												{log.first_name} {log.last_name}
 											</Highlight>{' '}
 											{log.action.toLowerCase()}d{' '}
 											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>{' '}
-											<Box component="span" color={BASE_COLOR_LIGHT}>
+											<div style={{ color: 'var(--text-muted)' }}>
 												{dayjs(log.created_at).fromNow()}
-											</Box>
-										</Typography>
+											</div>
+										</span>
 									))}
-								</Stack>
+								</div>
 							)}
-						</Paper>
-					</Stack>
-				</Box>
+						</div>
+					</div>
+				</div>
 
 				{/* Sticky Action Buttons */}
-				<Box
-					sx={{
+				<div
+					style={{
 						borderTop: '1px solid',
-						borderColor: 'divider',
+						borderColor: 'var(--border)',
 						backgroundColor: 'white',
 						padding: '16px',
 						marginTop: '10px',
 					}}
 				>
-					<Stack spacing={1.5}>
-						<Button variant="contained" startIcon={<OpenInNew />} onClick={handleViewFullDetails} fullWidth>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+						<Button variant="contained" startIcon={<IconExternalLink size={20} />} onClick={handleViewFullDetails} fullWidth>
 							View Full Details
 						</Button>
 						<Button
 							variant="outlined"
-							size="small"
-							startIcon={<Edit />}
+							size="sm"
+							startIcon={<IconEdit size={20} />}
 							onClick={handleEditClaim}
 							fullWidth
 						>
 							Edit
 						</Button>
-					</Stack>
-				</Box>
-			</Box>
-		</Fade>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

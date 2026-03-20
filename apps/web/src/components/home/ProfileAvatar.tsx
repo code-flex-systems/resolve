@@ -1,20 +1,18 @@
 'use client';
 import { useState } from 'react';
-import { Avatar, Box, Divider, Paper, PopperProps, Typography } from '@mui/material';
-import Email from '@mui/icons-material/Email';
-import Phone from '@mui/icons-material/Phone';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { Avatar, Box, Paper, PopperProps, Typography } from '@mui/material';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from '../common/BasicPopper';
 import { useClerk } from '@clerk/nextjs';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import Edit from '@mui/icons-material/Edit';
-import Logout from '@mui/icons-material/Logout';
 import UpdateUserDialog from './UpdateUserDialog';
 import RoleValue from '../admin/RoleValue';
 import { Role } from '@/types/types';
+import { IconEdit, IconLogout, IconMail, IconPhone } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
@@ -54,13 +52,13 @@ export default function ProfileAvatar() {
 							<Divider />
 						</Box>
 						<Box sx={{ ...styles.row, overflow: 'hidden', mt: 0.625 }}>
-							<Email sx={styles.icon} />
+							<IconMail style={styles.icon} />
 							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
 								{session?.user?.email ?? ''}
 							</Typography>
 						</Box>
 						<Box sx={{ ...styles.row, overflow: 'hidden', mt: 0.625 }}>
-							<Phone sx={styles.icon} />
+							<IconPhone style={styles.icon} />
 							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
 							</Typography>
@@ -75,7 +73,7 @@ export default function ProfileAvatar() {
 										},
 									}}
 									tooltipProps={{ title: 'Update my info' }}
-									icon={<Edit />}
+									icon={<IconEdit size={20} />}
 								/>
 							</Box>
 							<BasicButtonStyled
@@ -83,7 +81,7 @@ export default function ProfileAvatar() {
 									onClick: () => signOut({ redirectUrl: '/login' }),
 								}}
 								tooltipProps={{ title: 'Sign out' }}
-								icon={<Logout />}
+								icon={<IconLogout size={20} />}
 							/>
 						</Box>
 					</Paper>
@@ -99,7 +97,7 @@ const styles = {
 		width: 35,
 		height: 35,
 		fontSize: 15,
-		bgcolor: theme.palette.primary.main,
+		bgcolor: 'var(--text-accent)',
 		cursor: 'pointer',
 	},
 	divider: {

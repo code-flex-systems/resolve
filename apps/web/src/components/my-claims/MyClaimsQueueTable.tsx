@@ -13,9 +13,6 @@ import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicPopper from '@/components/common/BasicPopper';
 import Toolbar from '@/components/common/Toolbar';
 import SearchInput from '@/components/common/SearchInput';
-import FileDownload from '@mui/icons-material/FileDownload';
-import FilterList from '@mui/icons-material/FilterList';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatMDYAbv, formatUser } from '@/lib/utils/utils';
 import dayjs from 'dayjs';
@@ -23,6 +20,7 @@ import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import SubstatusSelect from '@/components/common/SubstatusSelect';
 import RecoveryStatusSelect from '@/components/common/RecoveryStatusSelect';
 import { ClaimSubstatus, RecoveryStatus } from '@/config/enums';
+import { IconClipboardSearch, IconDownload, IconFilter } from '@tabler/icons-react';
 
 export interface MyClaimListItem {
 	id: number;
@@ -175,7 +173,7 @@ export default function MyClaimsQueueTable({
 				renderHeader: (params) => (
 					<IconHeaderCell
 						{...(params as any)}
-						icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />}
+						icon={<IconClipboardSearch size={20} style={{ color: BASE_COLOR_LIGHT }} />}
 					/>
 				),
 				cellClassName: 'cell-bold',
@@ -249,7 +247,7 @@ export default function MyClaimsQueueTable({
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: handleOpenFilters,
-								endIcon: <FilterList />,
+								endIcon: <IconFilter size={20} />,
 							}}
 						>
 							Filters...
@@ -289,7 +287,7 @@ export default function MyClaimsQueueTable({
 				right={
 					<Button
 						variant="contained"
-						startIcon={<FileDownload />}
+						startIcon={<IconDownload size={20} />}
 						onClick={handleExport}
 						disabled={rows.length === 0}
 					>
@@ -352,7 +350,7 @@ export default function MyClaimsQueueTable({
 						noRowsOverlay: () => (
 							<CustomNoRowsOverlay
 								text={hasActiveFilters ? 'No claims match your filters' : 'No claims in this queue'}
-								icon={<ContentPasteSearch sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+								icon={<IconClipboardSearch size={35} style={{ color: BASE_COLOR_LIGHT }} />}
 							/>
 						),
 					}}

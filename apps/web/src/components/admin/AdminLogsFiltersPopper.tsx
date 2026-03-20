@@ -1,5 +1,4 @@
 'use client';
-
 import { PopperProps } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import type { EntityName } from '@/api/utils/activityLogger';

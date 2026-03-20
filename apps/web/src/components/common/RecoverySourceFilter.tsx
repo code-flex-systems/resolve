@@ -1,7 +1,7 @@
 import { Chip, Paper, PopperProps } from '@mui/material';
 import { useState } from 'react';
 import BasicPopper from './BasicPopper';
-import Search from '@mui/icons-material/Search';
+import { IconSearch } from '@tabler/icons-react';
 import { BASE_COLOR_LIGHT } from '@/styles/theme';
 
 export default function RecoverySourceFilter({
@@ -36,7 +36,7 @@ export default function RecoverySourceFilter({
 		<>
 			<Chip
 				label={recoverySource || text}
-				icon={<Search sx={{ color: BASE_COLOR_LIGHT }} />}
+				icon={<IconSearch size={20} style={{ color: BASE_COLOR_LIGHT }} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					setInputValue(recoverySource);

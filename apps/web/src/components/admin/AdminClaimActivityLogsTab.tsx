@@ -1,14 +1,12 @@
 'use client';
 
+import { IconClipboardCheck, IconClockFilled, IconFileSearch, IconFilter, IconUser } from '@tabler/icons-react';
+import { Dialog, PopperProps } from '@mui/material';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Chip, Paper, PopperProps, Typography } from '@mui/material';
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
 import dayjs, { Dayjs } from 'dayjs';
-import FilterList from '@mui/icons-material/FilterList';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Person from '@mui/icons-material/Person';
-import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
-import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
 import { useAdminLogsTrpc, ClaimActivityLogCursor } from '@/hooks/trpc/useAdminLogsTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import type { EntityName } from '@/api/utils/activityLogger';
@@ -21,7 +19,7 @@ import StackedHeaderCell from '@/components/common/StackedHeaderCell';
 import Toolbar from '@/components/common/Toolbar';
 import { useUserTrpc, GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useClaimTrpc, Claim } from '@/hooks/trpc/useClaimTrpc';
-import { dataGridFocusStyles, TEXT_MUTED } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import AdminLogSnapshotDialog from '@/components/admin/AdminLogSnapshotDialog';
 import ClaimActivityLogsFiltersPopper from '@/components/admin/ClaimActivityLogsFiltersPopper';
 import { formatEntityLabelForDisplay } from '@/components/admin/AdminLogsEntityFilter';
@@ -40,7 +38,7 @@ function NoRowsOverlay() {
 	return (
 		<CustomNoRowsOverlay
 			text="No claim activity logs found"
-			icon={<ContentPasteSearch sx={{ fontSize: 35, color: TEXT_MUTED }} />}
+			icon={<IconFileSearch size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -165,7 +163,7 @@ export default function AdminClaimActivityLogsTab() {
 				headerName: 'Timestamp',
 				field: 'created_at',
 				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: TEXT_MUTED }} />} />
+					<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
 				),
 				renderCell: ({ value }) => (
 					<StackedHeaderCell
@@ -180,7 +178,7 @@ export default function AdminClaimActivityLogsTab() {
 				headerName: 'Claim',
 				field: 'claim_number',
 				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: TEXT_MUTED }} />} />
+					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 				),
 				renderCell: ({ row }) => (
 					<StackedHeaderCell
@@ -194,7 +192,7 @@ export default function AdminClaimActivityLogsTab() {
 			{
 				headerName: 'User',
 				field: 'user',
-				renderHeader: (params) => <IconHeaderCell {...params} icon={<Person sx={{ color: TEXT_MUTED }} />} />,
+				renderHeader: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
 				renderCell: ({ row }) => (
 					<StackedHeaderCell primary={`${row.first_name} ${row.last_name}`} secondary={row.user_email} />
 				),
@@ -205,17 +203,15 @@ export default function AdminClaimActivityLogsTab() {
 				headerName: 'Actor',
 				field: 'actor_type',
 				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<AssignmentTurnedIn sx={{ color: TEXT_MUTED }} />} />
+					<IconHeaderCell {...params} icon={<IconClipboardCheck style={{ color: 'var(--text-muted)' }} />} />
 				),
 				renderCell: ({ value }) => {
 					const label = value === 'admin' ? 'Admin' : value === 'user' ? 'User' : 'Unknown';
 					return (
-						<Chip
-							label={label}
-							size="small"
-							color={value === 'admin' ? 'info' : 'default'}
-							variant="outlined"
-						/>
+						<Chip 
+							size="sm"
+							color={value === 'admin' ? 'info' : 'neutral'}
+							variant="outlined">{label}</Chip>
 					);
 				},
 				minWidth: 140,
@@ -238,7 +234,7 @@ export default function AdminClaimActivityLogsTab() {
 				headerName: 'Action',
 				field: 'action',
 				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: TEXT_MUTED }} />} />
+					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 				),
 				minWidth: 140,
 				flex: 0.5,
@@ -249,16 +245,12 @@ export default function AdminClaimActivityLogsTab() {
 				renderHeader: (params) => <IconHeaderCell {...params} />,
 				renderCell: ({ row }) => {
 					if (!hasValue(row.value)) {
-						return <Typography color="text.secondary">-</Typography>;
+						return <span style={{ color: 'var(--text-secondary)' }}>-</span>;
 					}
 
 					return (
-						<Chip
-							label="..."
-							size="small"
-							color="info"
-							variant="outlined"
-							sx={{ cursor: 'pointer' }}
+						<span
+							style={{ cursor: 'pointer' }}
 							onClick={(event) => {
 								event.stopPropagation();
 								setSelectedValue({
@@ -266,7 +258,13 @@ export default function AdminClaimActivityLogsTab() {
 									value: row.value,
 								});
 							}}
-						/>
+						>
+							<Chip
+								size="sm"
+								color="info"
+								variant="outlined"
+							>...</Chip>
+						</span>
 					);
 				},
 				minWidth: 120,
@@ -317,9 +315,9 @@ export default function AdminClaimActivityLogsTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claim activity logs...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<div style={styles.paper} className="flex-col-start">
 					<Toolbar
-						left={<Typography variant="h6">Claim Activity Logs</Typography>}
+						left={<span>Claim Activity Logs</span>}
 						right={<></>}
 						height={50}
 						padding={'0px 10px'}
@@ -327,16 +325,16 @@ export default function AdminClaimActivityLogsTab() {
 
 					<Toolbar
 						left={
-							<Box display="flex" gap={1} alignItems="center">
+							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 								<BasicButtonStyled
 									buttonProps={{
 										onClick: handleOpenFilters,
-										endIcon: <FilterList />,
+										endIcon: <IconFilter size={20} />,
 									}}
 								>
 									Filters...
 									{hasActiveFilters && (
-										<Box component="span" sx={styles.filterCountBadge}>
+										<div style={styles.filterCountBadge}>
 											{
 												[
 													appliedEntity,
@@ -347,7 +345,7 @@ export default function AdminClaimActivityLogsTab() {
 													normalizedClaimId,
 												].filter(Boolean).length
 											}
-										</Box>
+										</div>
 									)}
 								</BasicButtonStyled>
 								{hasActiveFilters && (
@@ -360,7 +358,7 @@ export default function AdminClaimActivityLogsTab() {
 										Clear all filters
 									</BasicButtonStyled>
 								)}
-							</Box>
+							</div>
 						}
 						leftWidth="100%"
 						rightWidth="0%"
@@ -414,10 +412,10 @@ export default function AdminClaimActivityLogsTab() {
 							disableColumnSelector
 							disableRowSelectionOnClick
 							disableColumnMenu
-							sx={styles.tableOverrides}
+							style={styles.tableOverrides}
 						/>
 					</div>
-				</Paper>
+				</div>
 			</div>
 
 			{selectedValue && (
@@ -449,8 +447,8 @@ const styles = {
 		height: 'calc(100% - 95px)',
 	},
 	filterCountBadge: {
-		ml: 0.5,
-		bgcolor: 'primary.main',
+		marginLeft: 4,
+		backgroundColor: 'primary.main',
 		color: 'white',
 		borderRadius: '50%',
 		width: 18,

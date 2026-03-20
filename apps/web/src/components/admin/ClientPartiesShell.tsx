@@ -1,35 +1,32 @@
 'use client';
 
+import { IconBuilding, IconMapPin, IconUser } from '@tabler/icons-react';
 import { PropsWithChildren, useEffect } from 'react';
-import { Box } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import AdminSidebar, { AdminNavCategory } from '@/components/admin/AdminSidebar';
 import { useAdminStore } from '@/stores/useAdminStore';
 
 // Icons
-import BusinessIcon from '@mui/icons-material/Business';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PersonIcon from '@mui/icons-material/Person';
 
 const partyNavCategories: AdminNavCategory[] = [
 	{
 		label: 'Party Management',
-		icon: <BusinessIcon fontSize="small" color="secondary" />,
+		icon: <IconBuilding fontSize="small" color="neutral" />,
 		items: [
 			{
 				label: 'Parties',
 				route: '/parties/parties',
-				icon: <BusinessIcon fontSize="small" />,
+				icon: <IconBuilding size={20} />,
 			},
 			{
 				label: 'Addresses',
 				route: '/parties/addresses',
-				icon: <LocationOnIcon fontSize="small" />,
+				icon: <IconMapPin size={20} />,
 			},
 			{
 				label: 'Representatives',
 				route: '/parties/representatives',
-				icon: <PersonIcon fontSize="small" />,
+				icon: <IconUser size={20} />,
 			},
 		],
 		defaultExpanded: true,
@@ -46,10 +43,10 @@ export default function ClientPartiesShell(props: PropsWithChildren) {
 
 	return (
 		<PageWrapper>
-			<Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
+			<div style={{ display: 'flex', height: '100%', width: '100%' }}>
 				<AdminSidebar title="Party Management" categories={partyNavCategories} />
-				<Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>{props.children}</Box>
-			</Box>
+				<div style={{ flex: 1, padding: 24, overflowY: 'auto' }}>{props.children}</div>
+			</div>
 		</PageWrapper>
 	);
 }

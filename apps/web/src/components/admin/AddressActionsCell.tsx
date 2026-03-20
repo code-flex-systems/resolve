@@ -1,17 +1,14 @@
 'use client';
 
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import Unarchive from '@mui/icons-material/Unarchive';
+import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import AddressDialog from './AddressDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import theme from '@/styles/theme';
+import { Dialog } from '@mui/material';
 
 interface AddressActionsCellProps extends GridRenderCellParams {
 	isAdminContext?: boolean;
@@ -71,24 +68,24 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this address?
-					</Typography>
+					</span>
 					{row.name && (
-						<Typography paddingTop="10px" fontStyle="italic">
+						<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 							Address: {row.name}
-						</Typography>
+						</span>
 					)}
 					{row.party_name && (
-						<Typography fontStyle="italic">
+						<span style={{ fontStyle: 'italic' }}>
 							Party: {row.party_name}
-						</Typography>
+						</span>
 					)}
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight={isAdminContext ? '5px' : undefined}>
+				<div style={{ marginRight: isAdminContext ? '5px' : undefined }}>
 					<BasicButtonStyled
 						buttonProps={{
 							onClick: () => setEditing(true),
@@ -101,9 +98,9 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 									? 'Cannot edit address - parent party is archived'
 									: 'Make changes',
 						}}
-						icon={<Edit sx={{ fontSize: 15 }} />}
+						icon={<IconEdit size={15} />}
 					/>
-				</Box>
+				</div>
 				{isAdminContext && (
 					<BasicButtonStyled
 						buttonProps={{
@@ -119,9 +116,9 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 						}}
 						icon={
 							isArchived ? (
-								<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 							)
 						}
 					/>

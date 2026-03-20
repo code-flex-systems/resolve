@@ -1,5 +1,6 @@
-import { Box, Card, CardContent, Grid, Skeleton, Typography } from '@mui/material';
+import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface MyClaimsMetricsProps {
 	count: number;
@@ -21,7 +22,7 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 						</Typography>
 						{isLoading ? (
 							<>
-								<Skeleton variant="text" width={40} height={24} sx={{ mb: 0.5 }} />
+								<Skeleton variant="text" width={40} height={24} />
 								<Skeleton variant="text" width={50} height={16} />
 							</>
 						) : (
@@ -47,7 +48,7 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 						</Typography>
 						{isLoading ? (
 							<>
-								<Skeleton variant="text" width={80} height={24} sx={{ mb: 0.5 }} />
+								<Skeleton variant="text" width={80} height={24} />
 								<Skeleton variant="text" width={90} height={16} />
 							</>
 						) : (
@@ -73,7 +74,7 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 						</Typography>
 						{isLoading ? (
 							<>
-								<Skeleton variant="text" width={70} height={24} sx={{ mb: 0.5 }} />
+								<Skeleton variant="text" width={70} height={24} />
 								<Skeleton variant="text" width={100} height={16} />
 							</>
 						) : (

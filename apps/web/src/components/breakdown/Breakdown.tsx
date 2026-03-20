@@ -2,7 +2,6 @@
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import { Box, Paper } from '@mui/material';
 import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
-import FormatQuote from '@mui/icons-material/FormatQuote';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import dayjs from 'dayjs';
@@ -11,12 +10,13 @@ import CustomPagination from '../common/CustomPagination';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
+import { IconQuote } from '@tabler/icons-react';
 
 function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="Select an answer to see responses"
-			icon={<FormatQuote sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconQuote size={35} style={{ color: BASE_COLOR_LIGHT }} />}
 		/>
 	);
 }
@@ -24,7 +24,7 @@ function NoResults() {
 	return (
 		<CustomNoRowsOverlay
 			text="No responses found"
-			icon={<FormatQuote sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconQuote size={35} style={{ color: BASE_COLOR_LIGHT }} />}
 		/>
 	);
 }

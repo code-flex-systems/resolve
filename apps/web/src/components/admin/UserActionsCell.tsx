@@ -1,16 +1,15 @@
 'use client';
 
+import { IconEdit, IconLogout } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { BASE_COLOR } from '@/styles/theme';
-import { Box, Button, Typography } from '@mui/material';
-import Edit from '@mui/icons-material/Edit';
-import Logout from '@mui/icons-material/Logout';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from '../home/UpdateUserDialog';
+import { Dialog } from '@mui/material';
 
 interface UserActionsCellProps extends GridRenderCellParams {
 	isManageMode?: boolean;
@@ -42,13 +41,13 @@ export default function UserActionsCell(params: UserActionsCellProps) {
 					onClose={() => setOnOffboarding(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {row.disabled ? 'onboard' : 'offboard'} this user?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						The user will receive an email informing them that their access to the application has been{' '}
 						{row.disabled ? 'reinstated' : 'terminated'}.
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 			{updating && <UpdateUserDialog user={row} onClose={() => setUpdating(false)} />}
@@ -60,19 +59,19 @@ export default function UserActionsCell(params: UserActionsCellProps) {
 						disabled: isPending,
 					}}
 					tooltipProps={{ title: 'Make changes' }}
-					icon={<Edit sx={{ fontSize: 15 }} />}
+					icon={<IconEdit size={15} />}
 				/>
 				{session?.user?.id !== row.id && (
-					<Box marginLeft="10px">
+					<div style={{ marginLeft: '10px' }}>
 						<BasicButtonStyled
 							buttonProps={{
 								onClick: () => setOnOffboarding(true),
 								disabled: isPending,
 							}}
 							tooltipProps={{ title: row.disabled ? 'Onboard' : 'Offboard' }}
-							icon={<Logout sx={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />}
+							icon={<IconLogout style={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />}
 						/>
-					</Box>
+					</div>
 				)}
 			</div>
 		</>

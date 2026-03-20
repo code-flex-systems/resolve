@@ -1,9 +1,8 @@
 'use client';
 
-import { InputAdornment, TextField, TextFieldProps } from '@mui/material';
-import Search from '@mui/icons-material/Search';
-import Close from '@mui/icons-material/Close';
-import { TEXT_SECONDARY } from '@/styles/theme';
+import Input from '@/components/ui/Input';
+import { IconSearch, IconX } from '@tabler/icons-react';
+import css from './SearchInput.module.css';
 
 export interface SearchInputProps {
 	value: string;
@@ -23,55 +22,30 @@ export default function SearchInput({
 	autoFocus = false,
 }: SearchInputProps) {
 	return (
-		<TextField
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			placeholder={placeholder}
-			size={size}
-			autoFocus={autoFocus}
-			sx={{
-				width,
-				'& .MuiOutlinedInput-root': {
-					backgroundColor: '#ffffff',
-					transition: 'all 0.2s ease',
-					'&:hover': {
-						backgroundColor: '#fafafa',
-					},
-					'&.Mui-focused': {
-						backgroundColor: '#ffffff',
-					},
-				},
-				'& .MuiOutlinedInput-input': {
+		<div style={{ width }}>
+			<Input
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				placeholder={placeholder}
+				autoFocus={autoFocus}
+				style={{
 					padding: size === 'small' ? '8px 12px' : '12px 14px',
 					fontSize: 13,
-					'&::placeholder': {
-						color: TEXT_SECONDARY,
-						opacity: 0.8,
-					},
-				},
-			}}
-			slotProps={{
-				input: {
-					startAdornment: (
-						<InputAdornment position="start">
-							<Search sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
-						</InputAdornment>
-					),
-					endAdornment: value ? (
-						<InputAdornment position="end">
-							<Close
-								sx={{
-									fontSize: 16,
-									color: TEXT_SECONDARY,
-									cursor: 'pointer',
-									'&:hover': { color: '#0f172a' },
-								}}
-								onClick={() => onChange('')}
-							/>
-						</InputAdornment>
-					) : null,
-				},
-			}}
-		/>
+				}}
+				startAdornment={<IconSearch size={18} className={css.searchIcon} />}
+				endAdornment={
+					value ? (
+						<button
+							type="button"
+							className={css.clearButton}
+							onClick={() => onChange('')}
+						>
+							<IconX size={16} />
+						</button>
+					) : undefined
+				}
+				fullWidth
+			/>
+		</div>
 	);
 }

@@ -3,14 +3,13 @@ import { Box, Button, IconButton, Typography } from '@mui/material';
 import { Answer } from '@/types/types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { useState, useEffect } from 'react';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import Close from '@mui/icons-material/Close';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { IconUpload, IconX } from '@tabler/icons-react';
 
 interface ChecklistAnswerFileUploadProps {
 	field: ControllerRenderProps<FieldValues, string>;
@@ -74,7 +73,7 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 				<Button
 					variant="outlined"
 					size="small"
-					startIcon={<UploadFileIcon />}
+					startIcon={<IconUpload size={20} />}
 					onClick={() => setShowDocSelector(true)}
 					disabled={disabled}
 					sx={{ height: 30 }}
@@ -92,7 +91,7 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 							disabled={disabled}
 							sx={{ ml: 0.5, padding: 0.5 }}
 						>
-							<Close sx={{ fontSize: 16 }} />
+							<IconX size={16} />
 						</IconButton>
 					</Box>
 				)}

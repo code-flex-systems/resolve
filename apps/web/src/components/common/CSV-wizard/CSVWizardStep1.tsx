@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Typography, Stack, Paper } from '@mui/material';
+import { Paper } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 
@@ -52,30 +52,30 @@ export function CSVStep1({ fields, onParsed }: Props) {
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'text/csv': ['.csv'] } });
 
 	return (
-		<Stack spacing={1} alignItems="left" sx={{ height: 350 }}>
-			<Typography fontSize={15} fontStyle="italic">
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start', height: 350 }}>
+			<p style={{ fontSize: 15, fontStyle: 'italic' }}>
 				The following columns are expected in your file:
-			</Typography>
-			<Typography fontSize={14} fontStyle="italic" fontWeight="bold" margin={0}>
+			</p>
+			<p style={{ fontSize: 14, fontStyle: 'italic', fontWeight: 'bold', margin: 0 }}>
 				{fields
 					.sort((a, b) => a.label.localeCompare(b.label))
 					.map((f) => f.label)
 					.join(', ')}
-			</Typography>
+			</p>
 			<Paper {...getRootProps({ style: { height: 300 } })} elevation={0} sx={styles.paper}>
 				<input {...getInputProps({ style: { height: 100, visibility: 'hidden' } })} />
-				<Typography>
+				<p>
 					{isDragActive ? 'Drop the CSV file here...' : 'Drag and drop a CSV file here, or click to select'}
-				</Typography>
+				</p>
 				{filename && (
-					<Typography variant="body2" mt={1}>
+					<p style={{ fontSize: 14, marginTop: 8 }}>
 						Selected: {filename}
-					</Typography>
+					</p>
 				)}
 			</Paper>
 
-			{error && <Typography color="error">{error}</Typography>}
-		</Stack>
+			{error && <p style={{ color: 'var(--color-error)' }}>{error}</p>}
+		</div>
 	);
 }
 

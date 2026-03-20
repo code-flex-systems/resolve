@@ -1,5 +1,5 @@
-import { Link, Skeleton, Stack } from '@mui/material';
-import Logout from '@mui/icons-material/Logout';
+import { IconLogout } from '@tabler/icons-react';
+import styles from './MetricAction.module.css';
 
 export default function MetricAction({
 	action,
@@ -15,22 +15,22 @@ export default function MetricAction({
 	loading?: boolean;
 }) {
 	return (
-		<Stack width={150} display="flex" justifyContent="flex-start" alignItems="flex-start" margin="0px 20px">
+		<div className={styles.container}>
 			{loading ? (
 				<>
-					<Skeleton width={130} height={5} variant="rounded" />
-					<Skeleton width={100} height={5} variant="rounded" sx={{ marginTop: '5px ' }} />
-					<Skeleton width={50} height={5} variant="rounded" sx={{ marginTop: '5px ' }} />
+					<div className={styles.skeleton} style={{ width: 130, height: 5 }} />
+					<div className={styles.skeleton} style={{ width: 100, height: 5, marginTop: 5 }} />
+					<div className={styles.skeleton} style={{ width: 50, height: 5, marginTop: 5 }} />
 				</>
 			) : (
 				<>
-					<Link onClick={action} fontSize={15} underline="hover" color={color}>
+					<a className={styles.link} onClick={action} style={{ fontSize: 15, color }}>
 						{actionText}
 						<br />({actionValue})
-					</Link>
-					<Logout sx={{ color, marginTop: '5px' }} />
+					</a>
+					<IconLogout size={20} style={{ color, marginTop: 5 }} />
 				</>
 			)}
-		</Stack>
+		</div>
 	);
 }

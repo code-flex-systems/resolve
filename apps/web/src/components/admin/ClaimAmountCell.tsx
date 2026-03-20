@@ -1,13 +1,12 @@
 'use client';
-import { Typography } from '@mui/material';
 import { formatAmount } from '@/lib/utils/utils';
 import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 
 export default function ClaimAmountCell(props: GridRenderCellParams) {
 	return (
 		<div style={styles.cell} className="flex-row-between">
-			<Typography fontSize={14}>$</Typography>
-			<Typography fontSize={14}>{props.value ? formatAmount(props.value) : '0.00'}</Typography>
+			<span style={{ fontSize: 14 }}>$</span>
+			<span style={{ fontSize: 14 }}>{props.value ? formatAmount(props.value) : '0.00'}</span>
 		</div>
 	);
 }

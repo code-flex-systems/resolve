@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, TextField, Typography } from '@mui/material';
-import Cancel from '@mui/icons-material/Cancel';
+import { Textarea } from '@/components/ui/Input';
+import { IconX } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
@@ -56,7 +56,7 @@ export default function TaskCancellationDialog({ task, onClose, onCancelled }: T
 			primaryAction={{
 				label: 'Cancel Task',
 				onClick: onSubmit,
-				icon: <Cancel />,
+				icon: <IconX size={18} />,
 				color: 'error',
 				disabled: isPending || !cancellationReason.trim(),
 			}}
@@ -69,15 +69,15 @@ export default function TaskCancellationDialog({ task, onClose, onCancelled }: T
 			onClose={onClose}
 			width={450}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
-				<Typography variant="body2" sx={{ width: 380, marginBottom: 1 }}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+				<p style={{ fontSize: 14, width: 380, marginBottom: 8 }}>
 					<strong>Task:</strong> {task.title}
-				</Typography>
+				</p>
 
 				{task.description && (
-					<Typography variant="body2" color="text.secondary" sx={{ width: 380 }}>
+					<p style={{ fontSize: 14, color: 'var(--text-secondary)', width: 380 }}>
 						{task.description}
-					</Typography>
+					</p>
 				)}
 
 				<Controller
@@ -85,22 +85,20 @@ export default function TaskCancellationDialog({ task, onClose, onCancelled }: T
 					control={control}
 					rules={{ required: 'Cancellation reason is required' }}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							{...field}
 							label="Cancellation Reason"
-							
-							multiline
 							rows={3}
-							sx={{ width: 380 }}
+							style={{ width: 380 }}
 							disabled={isPending}
 							required
 							error={!!errors.cancellationReason}
-							helperText={errors.cancellationReason?.message}
+							errorText={errors.cancellationReason?.message}
 							placeholder="Explain why this task is being cancelled..."
 						/>
 					)}
 				/>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

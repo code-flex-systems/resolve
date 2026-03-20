@@ -1,9 +1,7 @@
-import { GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
-import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
+import { Chip, MenuItem, Paper, PopperProps } from '@mui/material';
 import { useEffect, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import Description from '@mui/icons-material/Description';
-import theme from '@/styles/theme';
+import { IconFileDescription } from '@tabler/icons-react';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 
 export default function PageInstanceSelect({
@@ -44,7 +42,7 @@ export default function PageInstanceSelect({
 						? `${selectedOption.title} (p${selectedOption.id}.i${selectedOption.instance_id})`
 						: text
 				}
-				icon={<Description />}
+				icon={<IconFileDescription size={20} />}
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
@@ -55,10 +53,10 @@ export default function PageInstanceSelect({
 					...styles.chip,
 					height,
 					'& .MuiChip-icon': {
-						color: instanceId ? theme.palette.primary.main : undefined,
+						color: instanceId ? 'var(--text-accent)' : undefined,
 					},
 					'& .MuiChip-label': {
-						color: instanceId ? theme.palette.primary.main : undefined,
+						color: instanceId ? 'var(--text-accent)' : undefined,
 					},
 				}}
 				disabled={disabled}
@@ -76,9 +74,9 @@ export default function PageInstanceSelect({
 									setAnchorEl(null);
 								}}
 							>
-								<Typography fontSize={13}>
+								<span style={{ fontSize: 13 }}>
 									{o.title} (p{o.id}.i{o.instance_id})
-								</Typography>
+								</span>
 							</MenuItem>
 						))}
 					</Paper>

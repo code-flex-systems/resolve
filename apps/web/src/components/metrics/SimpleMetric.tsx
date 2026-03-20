@@ -1,11 +1,14 @@
 'use client';
 
 import { capitalize, formatMetric } from '@/lib/utils/utils';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
-import { Box, Collapse, Divider, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import ArrowCircleRight from '@mui/icons-material/ArrowCircleRight';
+import { BASE_COLOR, BASE_COLOR_LIGHT, OFFWHITE_COLOR } from '@/styles/theme';
+import { Box, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { JSX } from 'react';
 import './styles.css';
+import Skeleton from '@/components/ui/Skeleton';
+import Collapse from '@/components/ui/Collapse';
+import Divider from '@/components/ui/Divider';
+import { IconCircleArrowRight } from '@tabler/icons-react';
 
 const METRIC_WIDTH = 225;
 const METRIC_HEIGHT = 100;
@@ -56,7 +59,7 @@ export default function SimpleMetric({
 				}}
 			>
 				{isLoading ? (
-					<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} animation="wave" sx={styles.skeleton} />
+					<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 				) : (
 					<Box
 						width={METRIC_WIDTH}
@@ -104,7 +107,7 @@ export default function SimpleMetric({
 				)}
 			</Paper>
 			{hasDetail && (
-				<Collapse in={selected} unmountOnExit>
+				<Collapse open={selected}>
 					<Paper elevation={0} sx={styles.expandedPaper}>
 						<Stack width={METRIC_WIDTH} padding="5px 10px">
 							{Object.keys(values ?? {})
@@ -145,7 +148,7 @@ export default function SimpleMetric({
 							{onClick && (
 								<Box display="flex" justifyContent="flex-end" alignItems="center" paddingTop="5px">
 									<IconButton onClick={onClick} disableRipple>
-										<ArrowCircleRight sx={{ fontSize: 21, color: BASE_COLOR }} />
+										<IconCircleArrowRight size={21} style={{ color: BASE_COLOR }} />
 									</IconButton>
 								</Box>
 							)}
