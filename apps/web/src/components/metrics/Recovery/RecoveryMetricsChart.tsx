@@ -1,7 +1,6 @@
 'use client';
 import { LineChart } from '@mui/x-charts-pro';
-import { containerStyles } from '@/styles/theme';
-import { Card, CardContent, Grid } from '@mui/material';
+import Card from '@/components/ui/Card';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -93,18 +92,18 @@ export default function RecoveryMetricsChart({
 	const chartMargin = isBreakdown ? { left: 80, right: 20, top: 20, bottom: 60 } : { left: 60, right: 10, top: 10 };
 	const padding = isBreakdown ? '30px' : '20px';
 	const titleFontSize = isBreakdown ? 18 : 14;
-	const cardPadding = isBreakdown ? 2 : 1;
+	const cardPadding = isBreakdown ? 16 : 8;
 	const cardLabelSize = isBreakdown ? 13 : 12;
 	const cardValueSize = isBreakdown ? 24 : 16;
 	const cardSubtextSize = isBreakdown ? 13 : 12;
-	const spacing = isBreakdown ? 2 : 1;
-	const marginBottom = isBreakdown ? 3 : 1.5;
+	const spacing = isBreakdown ? 16 : 8;
+	const marginBottom = isBreakdown ? 24 : 12;
 
 	return (
 		<div style={{ width: containerWidth }}>
-			<div style={{ ...styles.paper, ...containerStyles.beveledCard, padding }}>
+			<Card variant="beveled" padding="none" style={{ ...styles.paper, padding }}>
 				<div
-style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: marginBottom * 8 }}>
+style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom }}>
 					<span style={{ fontSize: titleFontSize, fontWeight: 600 }}>
 						{isBreakdown
 							? 'Recovery Metrics'
@@ -139,7 +138,7 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 
 				{isLoading && (
 					<div style={{ width: '100%', gap: 16 }}>
-						<div style={{ display: 'flex', flexDirection: 'row', gap: spacing * 8 }}>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: spacing }}>
 							<Skeleton variant="rect" width="33%" height={80} />
 							<Skeleton variant="rect" width="33%" height={80} />
 							<Skeleton variant="rect" width="33%" height={80} />
@@ -151,75 +150,67 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 				{!isLoading && (
 					<>
 						{/* Summary Cards */}
-						<Grid container spacing={spacing} mb={marginBottom}>
-							<Grid>
-								<Card variant="outlined" sx={{ height: '100%' }}>
-									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-											Total Expected
-										</span>
-										<div style={{ fontSize: cardValueSize }}>
-											{formatCurrency(currentExpected)}
-										</div>
-										<span
+						<div style={{ display: 'flex', gap: spacing, marginBottom, width: '100%' }}>
+							<Card variant="beveled" padding="none" style={{ flex: 1 }}>
+								<div style={{ padding: cardPadding }}>
+									<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
+										Total Expected
+									</span>
+									<div style={{ fontSize: cardValueSize }}>
+										{formatCurrency(currentExpected)}
+									</div>
+									<span
 style={{ fontSize: cardSubtextSize, color: expectedChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
-											{expectedChange>= 0 ? '+' : ''}
-											{expectedChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-										</span>
-									</CardContent>
-								</Card>
-							</Grid>
-							<Grid>
-								<Card variant="outlined" sx={{ height: '100%' }}>
-									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
+										{expectedChange>= 0 ? '+' : ''}
+										{expectedChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
+									</span>
+								</div>
+							</Card>
+							<Card variant="beveled" padding="none" style={{ flex: 1 }}>
+								<div style={{ padding: cardPadding }}>
+									<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
+										Total Actual
+									</span>
+									<div style={{ fontSize: cardValueSize }}>
+										{formatCurrency(currentActual)}
+									</div>
+									<span
+style={{ fontSize: cardSubtextSize, color: actualChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
+										{actualChange>= 0 ? '+' : ''}
+										{actualChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
+									</span>
+								</div>
+							</Card>
+							<Card variant="beveled" padding="none" style={{ flex: 1 }}>
+								<div style={{ padding: cardPadding }}>
+									<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
+										Variance
+									</span>
+									<div style={{ fontSize: cardValueSize }}>
+										{formatCurrency(currentVariance)}
+									</div>
+									<span style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
+										{currentRate.toFixed(1)}% rate
+									</span>
+								</div>
+							</Card>
+							{isBreakdown && (
+								<Card variant="beveled" padding="none" style={{ flex: 1 }}>
+									<div style={{ padding: cardPadding }}>
 										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-											Total Actual
+											Recovery Rate
 										</span>
 										<div style={{ fontSize: cardValueSize }}>
-											{formatCurrency(currentActual)}
+											{currentRate.toFixed(1)}%
 										</div>
 										<span
-style={{ fontSize: cardSubtextSize, color: actualChange>= 0 ? 'var(--status-success)' : 'var(--status-error)' }}>
-											{actualChange>= 0 ? '+' : ''}
-											{actualChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-										</span>
-									</CardContent>
-								</Card>
-							</Grid>
-							<Grid>
-								<Card variant="outlined" sx={{ height: '100%' }}>
-									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-											Variance
-										</span>
-										<div style={{ fontSize: cardValueSize }}>
-											{formatCurrency(currentVariance)}
-										</div>
-										<span style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
-											{currentRate.toFixed(1)}% rate
-										</span>
-									</CardContent>
-								</Card>
-							</Grid>
-							{isBreakdown && (
-								<Grid>
-									<Card variant="outlined" sx={{ height: '100%' }}>
-										<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-											<span style={{ color: '#d9d9d9', fontSize: cardLabelSize }}>
-												Recovery Rate
-											</span>
-											<div style={{ fontSize: cardValueSize }}>
-												{currentRate.toFixed(1)}%
-											</div>
-											<span
 style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
-												actual / expected
-											</span>
-										</CardContent>
-									</Card>
-								</Grid>
+											actual / expected
+										</span>
+									</div>
+								</Card>
 							)}
-						</Grid>
+						</div>
 
 						{/* Line Chart */}
 						<div style={{ width: '100%', height: chartHeight }}>
@@ -276,7 +267,7 @@ style={{ fontSize: cardSubtextSize, color: 'var(--text-secondary)' }}>
 						</div>
 					</>
 				)}
-			</div>
+			</Card>
 		</div>
 	);
 }

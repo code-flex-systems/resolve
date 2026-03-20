@@ -94,7 +94,7 @@ export default function WorkflowManagementDashboard() {
 				{/* Total Workload metric */}
 				<MetricCard
 					icon={<IconTrendingUp size={20} />}
-					iconColor="#21B5FF"
+					iconColor="var(--text-accent)"
 					iconBgColor="rgba(33, 181, 255, 0.1)"
 					value={totalClaims}
 					label="Total Workload"

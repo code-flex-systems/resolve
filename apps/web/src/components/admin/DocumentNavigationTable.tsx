@@ -1,7 +1,6 @@
 'use client';
 
 import { IconFile, IconFolder, IconSettings } from '@tabler/icons-react';
-import { Breadcrumbs } from '@mui/material';
 import { DataGridPro, GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -244,25 +243,31 @@ export default function DocumentNavigationTable({
 		<>
 			{/* Breadcrumbs for navigation */}
 			{showBreadcrumbs && (
-				<Breadcrumbs style={{ padding: 16, paddingBottom: 8 }}>
+				<nav style={{ padding: 16, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
 					<button
 						onClick={() => onNavigate(null)}
-						style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'inherit', textDecoration: 'none' }}
+						style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'var(--text-secondary)', textDecoration: 'none' }}
 					>
 						{breadcrumbRootLabel}
 					</button>
 					{parentFolder && parentFolder.id !== hiddenBreadcrumbFolderId && (
-						<button
-							onClick={() => onNavigate(parentFolder.id)}
-							style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'inherit', textDecoration: 'none' }}
-						>
-							{parentFolder.name}
-						</button>
+						<>
+							<span style={{ color: 'var(--text-muted)' }}>/</span>
+							<button
+								onClick={() => onNavigate(parentFolder.id)}
+								style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-secondary)', textDecoration: 'none' }}
+							>
+								{parentFolder.name}
+							</button>
+						</>
 					)}
 					{currentFolder && currentFolder.id !== hiddenBreadcrumbFolderId && (
-					<span style={{ color: 'var(--text-primary)' }}>{currentFolder.name}</span>
-				)}
-				</Breadcrumbs>
+						<>
+							<span style={{ color: 'var(--text-muted)' }}>/</span>
+							<span style={{ color: 'var(--text-primary)' }}>{currentFolder.name}</span>
+						</>
+					)}
+				</nav>
 			)}
 
 			<DataGridPro

@@ -405,7 +405,7 @@ const styles = {
 		minWidth: 120,
 	},
 	checklistCard: {
-		bgcolor: '#ffffff',
+		bgcolor: 'var(--bg-white)',
 		p: 0.5,
 		px: 1,
 	},
@@ -432,13 +432,13 @@ const styles = {
 		width: '100%',
 		overflow: 'auto',
 		p: 1.5,
-		bgcolor: '#ffffff',
+		bgcolor: 'var(--bg-white)',
 		borderRadius: 2,
 		flex: 1,
 		mb: 1,
 	},
 	toggleButtonGroup: {
-		bgcolor: '#ffffff',
+		bgcolor: 'var(--bg-white)',
 		borderRadius: 'var(--radius-lg)',
 	},
 	toggleButton: {

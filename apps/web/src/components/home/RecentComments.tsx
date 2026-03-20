@@ -1,5 +1,5 @@
 'use client';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import Comments from '../common/Comments';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import './styles.css';
@@ -16,12 +16,12 @@ export default function RecentComments() {
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({ filters: { userId } });
 
 	return (
-		<div style={{ ...containerStyles.section, ...styles.container }}>
-			<span style={containerStyles.sectionTitle}>
+		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 				<IconMessage style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				Recent Comments
-			</span>
-			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+			</div>
+			<div style={{ ...styles.contentContainer, padding: 16 }}>
 				<div
 					style={{
 						width: '100%',
@@ -55,7 +55,7 @@ export default function RecentComments() {
 					}}
 				/>
 			</div>
-		</div>
+		</Card>
 	);
 }
 

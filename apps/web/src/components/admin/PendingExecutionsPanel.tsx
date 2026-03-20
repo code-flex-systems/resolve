@@ -7,7 +7,6 @@ import Skeleton from '@/components/ui/Skeleton';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import { useState } from 'react';
-import { containerStyles } from '@/styles/theme';
 import { useWorkflowTrpc, PendingExecutionList } from '@/hooks/trpc/useWorkflowTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { formatActionType, formatTriggerType } from '@/lib/utils/workflowUtils';
@@ -87,7 +86,7 @@ export default function PendingExecutionsPanel() {
 	// Loading state for initial load
 	if (isLoading) {
 		return (
-			<div style={{ ...containerStyles.beveledCard, padding: 24 }}>
+			<Card variant="beveled" padding="lg">
 				<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
 					<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
 						Pending Approvals
@@ -98,12 +97,12 @@ export default function PendingExecutionsPanel() {
 					<CardSkeleton />
 					<CardSkeleton />
 				</div>
-			</div>
+			</Card>
 		);
 	}
 
 	return (
-		<div style={{ ...containerStyles.beveledCard, padding: 24 }}>
+		<Card variant="beveled" padding="lg">
 			{/* Header */}
 			<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
 				<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -128,7 +127,7 @@ export default function PendingExecutionsPanel() {
 						gap: 12,
 					}}
 				>
-					<IconHourglass size={40} style={{ color: '#94a3b8' }} />
+					<IconHourglass size={40} style={{ color: 'var(--text-muted)' }} />
 					<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
 						No pending executions
 					</span>
@@ -166,7 +165,7 @@ export default function PendingExecutionsPanel() {
 									<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 										Claim {execution.claim_number}
 									</span>
-									<span style={{ fontSize: 12, color: '#94a3b8' }}>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 										{formatRelativeTime(execution.created_at)}
 									</span>
 								</div>
@@ -199,7 +198,7 @@ export default function PendingExecutionsPanel() {
 										<Button variant="icon" size="sm"
 											disabled={isMutating}
 											onClick={() => handleApprove(execution.id)}
-											style={{ color: '#16a34a' }}
+											style={{ color: 'var(--status-success)' }}
 										>
 											<IconCircleCheck size={20} />
 										</Button>
@@ -210,7 +209,7 @@ export default function PendingExecutionsPanel() {
 										<Button variant="icon" size="sm"
 											disabled={isMutating}
 											onClick={() => handleReject(execution.id)}
-											style={{ color: '#dc2626' }}
+											style={{ color: 'var(--status-error)' }}
 										>
 											<IconCircleX size={20} />
 										</Button>
@@ -254,6 +253,6 @@ export default function PendingExecutionsPanel() {
 					</Button>
 				</div>
 			)}
-		</div>
+		</Card>
 	);
 }

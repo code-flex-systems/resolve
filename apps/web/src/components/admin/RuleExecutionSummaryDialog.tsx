@@ -58,7 +58,7 @@ export default function RuleExecutionSummaryDialog({
 						key={stat.label}
 						style={{
 							flex: 1,
-							border: '1px solid #e2e8f0',
+							border: '1px solid var(--border)',
 							borderRadius: 8,
 							padding: 16,
 							textAlign: 'center',
@@ -116,8 +116,8 @@ export default function RuleExecutionSummaryDialog({
 					style={{
 						padding: 16,
 						borderRadius: 8,
-						backgroundColor: '#f8fafc',
-						border: '1px solid #e2e8f0',
+						backgroundColor: 'var(--bg-secondary)',
+						border: '1px solid var(--border)',
 						textAlign: 'center',
 					}}
 				>

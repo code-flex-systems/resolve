@@ -14,7 +14,7 @@ import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { dateSortComparator, numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
-import { containerStyles, dataGridFocusStyles } from '@/styles/theme';
+import { dataGridFocusStyles } from '@/styles/theme';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -301,7 +301,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 		<div style={{ padding: 24 }}>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Summary */}
-				<div style={styles.gradientPaper}>
+				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Payments Summary
 					</span>
@@ -351,10 +351,10 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 							</span>
 						</div>
 					</div>
-				</div>
+				</Card>
 
 				{/* Payments List */}
-				<div style={styles.beveledPaper}>
+				<Card variant="beveled" padding="lg">
 					{/* Header */}
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
@@ -412,7 +412,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 							}}
 						/>
 					)}
-				</div>
+				</Card>
 			</div>
 
 			{/* Dialogs */}
@@ -465,14 +465,3 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 		</div>
 	);
 }
-
-const styles = {
-	gradientPaper: {
-		...containerStyles.gradientCard,
-		padding: '24px',
-	},
-	beveledPaper: {
-		...containerStyles.beveledCard,
-		padding: '24px',
-	},
-};

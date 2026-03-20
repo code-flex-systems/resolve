@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 
 interface MetricCardProps {
 	icon: ReactNode;
@@ -30,10 +30,10 @@ export default function MetricCard({
 	trend,
 }: MetricCardProps) {
 	return (
-		<div
+		<Card
+			variant="beveled"
+			padding="lg"
 			style={{
-				...containerStyles.beveledCard,
-				padding: 24,
 				display: 'flex',
 				alignItems: 'center',
 				gap: 20,
@@ -102,13 +102,13 @@ export default function MetricCard({
 						style={{
 							fontSize: 16,
 							fontWeight: 600,
-							color: trend.isPositive ? '#10b981' : '#ef4444',
+							color: trend.isPositive ? 'var(--status-success)' : 'var(--status-error)',
 						}}
 					>
 						{trend.value}
 					</span>
 				</div>
 			)}
-		</div>
+		</Card>
 	);
 }

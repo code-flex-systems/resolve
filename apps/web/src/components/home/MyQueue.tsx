@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import { useClaimTrpc, type MyDeskClaimListItem } from '@/hooks/trpc/useClaimTrpc';
 import ClaimDetailPanel from '../admin/ClaimDetailPanel';
 import { useState } from 'react';
@@ -50,8 +50,8 @@ export default function MyQueue() {
 
 	return (
 		<>
-			<div style={{ ...containerStyles.section, ...styles.container }}>
-				<span style={containerStyles.sectionTitle}>
+			<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+				<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 					<IconList style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 					My Queue
 					{claims.length> 0 && (
@@ -59,8 +59,8 @@ export default function MyQueue() {
 							({claims.length})
 						</span>
 					)}
-				</span>
-				<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+				</div>
+				<div style={{ ...styles.contentContainer, padding: 16 }}>
 					{isFetching ? (
 						<Skeleton variant="rect" width="100%" height="100%" />
 					) : (
@@ -104,7 +104,7 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center
 						</div>
 					)}
 				</div>
-			</div>
+			</Card>
 
 			{/* Claim Detail Panel */}
 			<ClaimDetailPanel claimId={selectedClaimId} open={panelOpen} onClose={handlePanelClose} />

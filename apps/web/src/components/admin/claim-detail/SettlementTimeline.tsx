@@ -9,7 +9,6 @@ import Highlight from '@/components/common/Highlight';
 import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
-import { containerStyles } from '@/styles/theme';
 import { SettlementStructure, PaymentFrequency } from '@/config/enums';
 import dayjs from 'dayjs';
 
@@ -219,13 +218,13 @@ export default function SettlementTimeline({
 							{/* Expanded details */}
 							<Collapse open={isActive}>
 								<div style={{ marginTop: 8 }}>
-									<div style={styles.detailCard}>
+									<Card variant="beveled" padding="md" style={{ backgroundColor: '#fafafa' }}>
 										{isSettlement ? (
 											<SettlementDetails settlement={settlement} />
 										) : (
 											<RecoveryDetails recovery={recovery} relatedSettlement={relatedSettlement} />
 										)}
-									</div>
+									</Card>
 								</div>
 							</Collapse>
 						</div>
@@ -365,11 +364,3 @@ function RecoveryDetails({ recovery, relatedSettlement }: { recovery: any; relat
 		</>
 	);
 }
-
-const styles = {
-	detailCard: {
-		...containerStyles.beveledCard,
-		padding: '16px',
-		backgroundColor: '#fafafa',
-	},
-};

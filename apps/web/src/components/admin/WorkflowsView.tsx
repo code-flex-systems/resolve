@@ -13,7 +13,6 @@ import WorkflowDetailPanel from '@/components/admin/WorkflowDetailPanel';
 import WorkflowDefinitionFormDialog from '@/components/admin/WorkflowDefinitionFormDialog';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
-import { containerStyles } from '@/styles/theme';
 
 export default function WorkflowsView() {
 	const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
@@ -41,9 +40,10 @@ export default function WorkflowsView() {
 	return (
 		<div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 			{/* Left Panel - Workflow List */}
-			<div
+			<Card
+				variant="beveled"
+				padding="none"
 				style={{
-					...containerStyles.beveledCard,
 					width: 320,
 					marginRight: 16,
 				}}
@@ -166,7 +166,7 @@ export default function WorkflowsView() {
 						</div>
 					)}
 				</div>
-			</div>
+			</Card>
 
 			{/* Right Panel - Workflow Detail */}
 			<div style={{ flex: 1, overflowY: 'auto',

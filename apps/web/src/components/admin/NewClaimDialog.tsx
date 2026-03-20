@@ -1,7 +1,6 @@
 'use client';
 
 import { IconFileSearch, IconInfoCircle } from '@tabler/icons-react';
-import { Grid } from '@mui/material';
 import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import DateField from '../common/DateField';
@@ -61,8 +60,8 @@ export default function NewClaimDialog() {
 			</div>
 
 			<form style={styles.form} className="flex-col-start">
-				<Grid container spacing={2}>
-					<Grid style={styles.row}>
+				<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+					<div style={styles.row}>
 						<Input
 							id="claim_number"
 							label="Claim Number"
@@ -71,8 +70,8 @@ export default function NewClaimDialog() {
 							style={{ width: 200 }}
 							{...register('claim_number', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<Input
 							id="client"
 							label="Client"
@@ -81,8 +80,8 @@ export default function NewClaimDialog() {
 							style={{ width: 200 }}
 							{...register('client', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<Input
 							id="client_adjuster"
 							label="Client Adjuster"
@@ -91,8 +90,8 @@ export default function NewClaimDialog() {
 							style={{ width: 200 }}
 							{...register('client_adjuster', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<Controller
 							name="date_of_loss"
 							control={control}
@@ -107,8 +106,8 @@ export default function NewClaimDialog() {
 								/>
 							)}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<Input
 							id="insured"
 							label="Insured"
@@ -117,8 +116,8 @@ export default function NewClaimDialog() {
 							style={{ width: 200 }}
 							{...register('insured', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<Controller
 							name="last_update"
 							control={control}
@@ -133,8 +132,8 @@ export default function NewClaimDialog() {
 								/>
 							)}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<Input
 							id="last_updated_by"
 							label="Updater"
@@ -143,8 +142,8 @@ export default function NewClaimDialog() {
 							style={{ width: 200 }}
 							{...register('last_updated_by', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
+					</div>
+					<div style={styles.row}>
 						<span style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>
 							Loss Location
 						</span>
@@ -158,9 +157,9 @@ export default function NewClaimDialog() {
 								width={200}
 							/>
 						</div>
-					</Grid>
+					</div>
 					{/* Note: Total Incurred is now a calculated field from claim_coverage.amount_reserved */}
-				</Grid>
+				</div>
 			</form>
 		</BasicDialog>
 	);

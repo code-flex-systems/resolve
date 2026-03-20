@@ -10,7 +10,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY } from '@/styles/theme';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 import { IconArrowRight, IconCheck, IconCircleCheck, IconCopy, IconCornerDownRight, IconDeviceFloppy, IconFileDescription, IconHelpCircle, IconQuote, IconTrash, IconX } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
@@ -198,9 +199,9 @@ export default function PageEditor() {
 					</div>
 
 					{/* Page Information Section */}
-					<div style={styles.section}>
-						<span style={styles.sectionTitle}>Information</span>
-						<div style={styles.sectionContent}>
+					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Information</div>
+						<div style={{ padding: 16 }}>
 							<div style={styles.fieldRow}>
 								<TextField
 									label="Page title"
@@ -279,13 +280,13 @@ export default function PageEditor() {
 								</div>
 							</div>
 						</div>
-					</div>
+					</Card>
 
 					{/* Related Instances Section */}
 					{otherInstances.length> 0 && (
-						<div style={styles.section}>
-							<span style={styles.sectionTitle}>Related Instances</span>
-							<div style={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Related Instances</div>
+							<div style={{ padding: 16 }}>
 								<span style={{ fontSize: 13, color: 'text.secondary', marginBottom: 8 }}>
 									{otherInstances.length === 1
 										? 'Another page uses this template:'
@@ -305,13 +306,13 @@ export default function PageEditor() {
 									))}
 								</div>
 							</div>
-						</div>
+						</Card>
 					)}
 
 					{/* Actions Section */}
-					<div style={styles.section}>
-						<span style={styles.sectionTitle}>Actions</span>
-						<div style={styles.sectionContent}>
+					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Actions</div>
+						<div style={{ padding: 16 }}>
 							<div style={styles.actionsGrid}>
 								<div style={styles.actionGroup}>
 									<span style={styles.actionGroupTitle}>Copy</span>
@@ -395,7 +396,7 @@ export default function PageEditor() {
 								</div>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 			)}
 			{!!selectedQuestion && !selectedAnswer && <FormQuestion />}
@@ -470,12 +471,6 @@ paddingLeft: 8, paddingRight: 8,
 	fieldRow: {
 		marginBottom: 16,
 	},
-	section: {
-		...containerStyles.section,
-		maxWidth: 600,
-	},
-	sectionTitle: containerStyles.sectionTitle,
-	sectionContent: containerStyles.sectionContent,
 	statsRow: {
 		display: 'flex',
 		gap: 24,

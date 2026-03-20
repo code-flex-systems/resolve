@@ -1,7 +1,6 @@
 'use client';
 
 import { IconFile, IconFolder } from '@tabler/icons-react';
-import { Breadcrumbs } from '@mui/material';
 import Card from '@/components/ui/Card';
 import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro';
 import IconHeaderCell from '../common/IconHeaderCell';
@@ -153,30 +152,32 @@ export default function CompactDocumentBrowser({
 		<div style={{ ...styles.container, height }}>
 			{/* Breadcrumbs for navigation - hidden in userFilteredMode */}
 			{!userFilteredMode && (
-				<Breadcrumbs style={{ padding: 16, paddingBottom: 8 }}>
+				<nav style={{ padding: 16, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
 					<button
 						onClick={() => !disabled && setCurrentFolderId(null)}
-						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'inherit', textDecoration: 'none' }}
+						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'var(--text-secondary)', textDecoration: 'none' }}
 					>
 						Documents
 					</button>
 					{breadcrumbTrail.map((folder, index) => {
 						const isLast = index === breadcrumbTrail.length - 1;
-						return isLast ? (
-							<span key={folder.id} style={{ color: 'var(--text-primary)' }}>
-								{folder.name}
+						return (
+							<span key={folder.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+								<span style={{ color: 'var(--text-muted)' }}>/</span>
+								{isLast ? (
+									<span style={{ color: 'var(--text-primary)' }}>{folder.name}</span>
+								) : (
+									<button
+										onClick={() => !disabled && setCurrentFolderId(folder.id)}
+										style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-secondary)', textDecoration: 'none' }}
+									>
+										{folder.name}
+									</button>
+								)}
 							</span>
-						) : (
-							<button
-								key={folder.id}
-								onClick={() => !disabled && setCurrentFolderId(folder.id)}
-								style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'inherit', textDecoration: 'none' }}
-							>
-								{folder.name}
-							</button>
 						);
 					})}
-				</Breadcrumbs>
+				</nav>
 			)}
 
 			<DataGridPro

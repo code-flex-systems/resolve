@@ -1,0 +1,42 @@
+.backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1200;
+	background: var(--surface-overlay);
+	animation: backdropIn var(--transition-normal) ease-out;
+}
+
+@keyframes backdropIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+.drawer {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	background: var(--bg-white);
+	box-shadow: var(--shadow-lg);
+	overflow-y: auto;
+	z-index: 1201;
+}
+
+.right {
+	right: 0;
+	animation: slideInRight var(--transition-normal) ease-out;
+}
+
+.left {
+	left: 0;
+	animation: slideInLeft var(--transition-normal) ease-out;
+}
+
+@keyframes slideInRight {
+	from { transform: translateX(100%); }
+	to { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(0); }
+}

@@ -17,7 +17,8 @@ import TaskCancellationDialog from './TaskCancellationDialog';
 import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
 import { DeadlineEntityType, DeadlineStatus, TaskStatus, TaskType } from '@/config/enums';
-import { containerStyles, BASE_COLOR_LIGHT } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import { BASE_COLOR_LIGHT } from '@/styles/theme';
 import { formatDeadlineType } from './DeadlineListItem';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -188,12 +189,12 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 					onClose={onClose}
 					width={480}
 				>
-					<div style={containerStyles.section as React.CSSProperties}>
-						<div style={containerStyles.sectionTitle as React.CSSProperties}>
+					<Card variant="beveled" padding="none" style={{ overflow: 'hidden' }}>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 							<IconClipboard size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
 							{task.title}
 						</div>
-						<div style={containerStyles.sectionContent as React.CSSProperties}>
+						<div style={{ padding: 16 }}>
 							<DetailRow
 								label="Type"
 								value={
@@ -318,7 +319,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 								</>
 							)}
 						</div>
-					</div>
+					</Card>
 				</BasicDialog>
 
 				{/* Task Completion Dialog */}
@@ -350,12 +351,12 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 			onClose={onClose}
 			width={480}
 		>
-			<div style={containerStyles.section as React.CSSProperties}>
-				<div style={containerStyles.sectionTitle as React.CSSProperties}>
+			<Card variant="beveled" padding="none" style={{ overflow: 'hidden' }}>
+				<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 					<IconCalendar size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
 					{formatDeadlineType(deadline.deadline_type)}
 				</div>
-				<div style={containerStyles.sectionContent as React.CSSProperties}>
+				<div style={{ padding: 16 }}>
 					<DetailRow
 						label="Due Date"
 						value={
@@ -377,7 +378,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 						value={<ClaimLink claimId={deadline.claim_id} claimNumber={deadline.claim_number} />}
 					/>
 				</div>
-			</div>
+			</Card>
 		</BasicDialog>
 	);
 }

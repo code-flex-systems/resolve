@@ -6,7 +6,6 @@ import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 import Chip from '@/components/ui/Chip';
 import { trpc } from '@/lib/trpc';
-import { containerStyles } from '@/styles/theme';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import Highlight from '@/components/common/Highlight';
@@ -59,7 +58,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 		<div style={{ padding: 24 }}>
 			<div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1000, margin: "0 auto" }}>
 				{/* Workflow Status */}
-				<div style={styles.gradientPaper}>
+				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 						Workflow Status
 					</span>
@@ -89,11 +88,11 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 							)}
 						</div>
 					</div>
-				</div>
+				</Card>
 
 				{/* Current Assignment */}
 				{currentAssignment ? (
-					<div style={styles.beveledPaper}>
+					<Card variant="beveled" padding="lg">
 						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
 							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 								Current Assignment
@@ -192,21 +191,21 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 								/>
 							</div>
 						</div>
-					</div>
+					</Card>
 				) : (
-					<div style={styles.beveledPaper}>
+					<Card variant="beveled" padding="lg">
 						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 							Current Assignment
 						</span>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 							This claim is not currently assigned to any checklist
 						</span>
-					</div>
+					</Card>
 				)}
 
 				{/* Assignment History */}
 				{assignmentHistory.length > 0 && (
-					<div style={styles.beveledPaper}>
+					<Card variant="beveled" padding="lg">
 						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 							Assignment History ({assignmentHistory.length} assignment
 							{assignmentHistory.length !== 1 ? 's' : ''})
@@ -257,11 +256,11 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 								</div>
 							))}
 						</div>
-					</div>
+					</Card>
 				)}
 
 				{/* Tasks */}
-				<div style={styles.beveledPaper}>
+				<Card variant="beveled" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
 						Tasks
 					</span>
@@ -269,19 +268,8 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 						claimId={claimId}
 						claimNumber={claimDetail.claim_number ?? undefined}
 					/>
-				</div>
+				</Card>
 			</div>
 		</div>
 	);
 }
-
-const styles = {
-	gradientPaper: {
-		...containerStyles.gradientCard,
-		padding: '24px',
-	},
-	beveledPaper: {
-		...containerStyles.beveledCard,
-		padding: '24px',
-	},
-};

@@ -8,7 +8,6 @@ import Divider from '@/components/ui/Divider';
 import Button from '@/components/ui/Button';
 import { useState, useMemo } from 'react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PartyLinkingDialog from './PartyLinkingDialog';
@@ -187,7 +186,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		<div style={{ padding: 24 }}>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Summary */}
-				<div style={styles.gradientPaper}>
+				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Liability Summary
 					</span>
@@ -215,10 +214,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							</span>
 						</div>
 					</div>
-				</div>
+				</Card>
 
 				{/* Party List */}
-				<div style={styles.beveledPaper}>
+				<Card variant="beveled" padding="lg">
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							Adverse Parties ({entities.length})
@@ -308,7 +307,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							))}
 						</div>
 					)}
-				</div>
+				</Card>
 			</div>
 
 			{/* Party Dialog */}
@@ -392,14 +391,3 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 		</div>
 	);
 }
-
-const styles = {
-	gradientPaper: {
-		...containerStyles.gradientCard,
-		padding: '24px',
-	},
-	beveledPaper: {
-		...containerStyles.beveledCard,
-		padding: '24px',
-	},
-};

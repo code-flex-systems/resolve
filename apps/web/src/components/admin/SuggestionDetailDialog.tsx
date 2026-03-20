@@ -106,7 +106,7 @@ export default function SuggestionDetailDialog({
 		<Dialog open={open} onClose={isBusy ? () => {} : onClose} size="md" footer={footer}>
 			{/* Header */}
 			<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-				<IconUsers size={28} style={{ color: '#21B5FF' }} />
+				<IconUsers size={28} style={{ color: 'var(--text-accent)' }} />
 				<div>
 					<span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
 						Reassign {assignments.length} user{assignments.length !== 1 ? 's' : ''} to{' '}
@@ -167,8 +167,8 @@ export default function SuggestionDetailDialog({
 								style={{
 									padding: '12px 16px',
 									borderRadius: 4,
-									backgroundColor: '#f8fafc',
-									border: '1px solid #e2e8f0',
+									backgroundColor: 'var(--bg-secondary)',
+									border: '1px solid var(--border)',
 								}}
 							>
 								<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

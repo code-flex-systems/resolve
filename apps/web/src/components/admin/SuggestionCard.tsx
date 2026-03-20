@@ -2,7 +2,7 @@
 
 import { IconArrowRight, IconCircleCheck } from '@tabler/icons-react';
 import Chip from '@/components/ui/Chip';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 
 interface SuggestionCardProps {
 	icon: React.ReactNode;
@@ -28,11 +28,11 @@ export default function SuggestionCard({
 	onClick,
 }: SuggestionCardProps) {
 	return (
-		<div
+		<Card
+			variant="beveled"
+			padding="md"
 			onClick={onClick}
 			style={{
-				...containerStyles.beveledCard,
-				padding: 20,
 				display: 'flex',
 				alignItems: 'flex-start',
 				gap: 16,
@@ -91,12 +91,12 @@ export default function SuggestionCard({
 
 				{/* Benefit (green check) */}
 				<div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-					<IconCircleCheck size={16} style={{ color: '#10b981' }} />
+					<IconCircleCheck size={16} style={{ color: 'var(--status-success)' }} />
 					<span
 						style={{
 							fontSize: 13,
 							fontWeight: 500,
-							color: '#10b981',
+							color: 'var(--status-success)',
 						}}
 					>
 						{benefit}
@@ -126,6 +126,6 @@ export default function SuggestionCard({
 					<IconArrowRight size={20} style={{ color: 'var(--text-secondary)' }} />
 				</div>
 			)}
-		</div>
+		</Card>
 	);
 }

@@ -1,14 +1,12 @@
 'use client';
 
 import { IconChecklist, IconCircleCheck, IconEdit, IconExternalLink, IconListCheck, IconShield, IconSubtask, IconUsersGroup } from '@tabler/icons-react';
-import { CardContent } from '@mui/material';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { containerStyles } from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { useAdminLogsTrpc } from '@/hooks/trpc/useAdminLogsTrpc';
 import ChecklistProgress from '@/components/checklist/ChecklistProgress';
@@ -116,50 +114,50 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 						</div>
 
 						{/* Key Metrics Card */}
-						<div style={styles.gradientPaper}>
+						<Card variant="float" padding="md" style={{ height: 'fit-content' }}>
 							<span style={{ color: 'var(--text-accent)', marginBottom: '10px' }}>
 								{claimDetail.claim_number}
 							</span>
 							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-								<CardContent style={{ width: '50%', padding: 8, }}>
+								<div style={{ width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Claim Amount
 									</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
 									</span>
-								</CardContent>
-								<CardContent style={{ width: '50%', padding: 8, }}>
+								</div>
+								<div style={{ width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Total Incurred
 									</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
 									</span>
-								</CardContent>
+								</div>
 							</div>
 							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-								<CardContent style={{ width: '50%', padding: 8, }}>
+								<div style={{ width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Expected Recovery
 									</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
 									</span>
-								</CardContent>
-								<CardContent style={{ width: '50%', padding: 8, }}>
+								</div>
+								<div style={{ width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Actual Recovery
 									</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.actual_recovery) || 0)}
 									</span>
-								</CardContent>
+								</div>
 							</div>
-						</div>
+						</Card>
 
 						{/* Quick Summary: Coverage, Parties, Tasks */}
-						<div style={styles.beveledPaper}>
+						<Card variant="beveled" padding="md" style={{ height: 'fit-content' }}>
 							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10, display: 'block' }}>
 								Quick Summary
 							</span>
@@ -253,11 +251,11 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									</span>
 								</div>
 							</div>
-						</div>
+						</Card>
 
 						{/* Checklist Progress (if applicable) */}
 						{showChecklistProgress && currentAssignment && (
-							<div style={styles.beveledPaper}>
+							<Card variant="beveled" padding="md" style={{ height: 'fit-content' }}>
 								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px' }}>
 									Progress through {currentAssignment.checklist_name}
 								</span>
@@ -280,11 +278,11 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 										Open in Checklist
 									</Button>
 								</div>
-							</div>
+							</Card>
 						)}
 
 						{/* Contextual Info */}
-						<div style={styles.beveledPaper}>
+						<Card variant="beveled" padding="md" style={{ height: 'fit-content' }}>
 							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px' }}>
 								Information
 							</span>
@@ -348,10 +346,10 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									</>
 								)}
 							</div>
-						</div>
+						</Card>
 
 						{/* Recent Activity */}
-						<div style={styles.beveledPaper}>
+						<Card variant="beveled" padding="md" style={{ height: 'fit-content' }}>
 							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px' }}>
 								Recent Activity
 							</span>
@@ -383,7 +381,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									))}
 								</div>
 							)}
-						</div>
+						</Card>
 					</div>
 				</div>
 
@@ -416,15 +414,3 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 		</div>
 	);
 }
-
-const styles = {
-	gradientPaper: {
-		...containerStyles.gradientCard,
-		height: 'fit-content',
-	},
-	beveledPaper: {
-		...containerStyles.beveledCard,
-		padding: '20px',
-		height: 'fit-content',
-	},
-};

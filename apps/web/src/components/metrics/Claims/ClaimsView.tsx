@@ -1,6 +1,5 @@
 'use client';
 
-import { CardContent } from '@mui/material';
 import PageWrapper from '@/components/common/PageWrapper';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useState } from 'react';
@@ -140,14 +139,14 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 												{claim.claim_number}
 											</span>
 											<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-												<CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+												<div style={{ padding: 8 }}>
 													<span style={{ color: '#d9d9d9', fontSize: 15 }}>
 														Actual Recovery
 													</span>
 													<span style={{ fontSize: 18 }}>
 														{formatAmount(claim.actual_recovery ?? 0, true)}
 													</span>
-												</CardContent>
+												</div>
 											</div>
 											<span style={{ fontSize: 14, marginTop: '10px' }}>
 												{claim.assignee === claim.created_by ? (

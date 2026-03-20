@@ -11,7 +11,8 @@ import IconHeaderCell from '@/components/common/IconHeaderCell';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
-import { containerStyles, dataGridFocusStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import { dataGridFocusStyles } from '@/styles/theme';
 
 const columns: GridColDef<RecoveryEventWithDetails>[] = [
 	{
@@ -152,7 +153,7 @@ export default function RecoveryEventsTable({
 	);
 
 	return (
-		<div style={{ ...styles.paper, ...containerStyles.beveledCard }}>
+		<Card variant="beveled" padding="lg" style={styles.paper}>
 			<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 				<span style={{ fontSize: 18, fontWeight: 600 }}>
 					Recovery Events
@@ -208,7 +209,7 @@ export default function RecoveryEventsTable({
 					disableColumnMenu
 				/>
 			</div>
-		</div>
+		</Card>
 	);
 }
 

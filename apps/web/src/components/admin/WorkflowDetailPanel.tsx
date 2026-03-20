@@ -22,7 +22,6 @@ import RuleExecutionSummaryDialog from '@/components/admin/RuleExecutionSummaryD
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import { containerStyles } from '@/styles/theme';
 import { formatThresholdType, getThresholdUnit } from '@/lib/utils/workflowUtils';
 import { formatMDY } from '@/lib/utils/utils';
 import type { WorkflowThreshold, WorkflowRule, RuleExecutionSummary } from '@/hooks/trpc/useWorkflowTrpc';
@@ -190,7 +189,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 		<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 				{/* Section 1: Workflow Definition (Gradient Container) */}
-				<div style={containerStyles.gradientCard}>
+				<Card variant="float" padding="md">
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							WORKFLOW DEFINITION
@@ -318,10 +317,10 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							</div>
 						</div>
 					)}
-				</div>
+				</Card>
 
 				{/* Section 2: Thresholds (Beveled Container with Table) */}
-				<div style={containerStyles.beveledCard}>
+				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
 						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
@@ -393,10 +392,10 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							</Table>
 						)}
 					</div>
-				</div>
+				</Card>
 
 				{/* Section 3: Rules (Beveled Container with Containerized Items) */}
-				<div style={containerStyles.beveledCard}>
+				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
 						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
@@ -434,10 +433,10 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							</div>
 						)}
 					</div>
-				</div>
+				</Card>
 
 				{/* Section 4: Execution History (Collapsible) */}
-				<div style={containerStyles.beveledCard}>
+				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
 						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -477,7 +476,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							</div>
 						</Collapse>
 					</div>
-				</div>
+				</Card>
 			</div>
 
 			{/* Dialogs */}

@@ -6,14 +6,13 @@ import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
 import Dialog from '@/components/ui/Dialog';
 import { useState } from 'react';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import SuggestionCard from './SuggestionCard';
 import SuggestionDetailDialog from './SuggestionDetailDialog';
 import { WorkflowSuggestionsResult, useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { getSeverityLabel, getSeverityColor } from '@/lib/workflow/suggestions';
 import { SuggestionStatus } from '@/config/enums';
-import { Card } from '@mui/material';
 
 type Resolution = NonNullable<WorkflowSuggestionsResult>['resolutions'][number];
 
@@ -30,8 +29,8 @@ function SummarySkeleton() {
 				marginBottom: 24,
 				padding: 16,
 				borderRadius: 8,
-				backgroundColor: '#f8fafc',
-				border: '1px solid #e2e8f0',
+				backgroundColor: 'var(--bg-secondary)',
+				border: '1px solid var(--border)',
 			}}
 		>
 			<Skeleton variant="text" width={200} height={13} />
@@ -47,10 +46,10 @@ function SummarySkeleton() {
 
 function CardSkeleton() {
 	return (
-		<div
+		<Card
+			variant="beveled"
+			padding="md"
 			style={{
-				...containerStyles.beveledCard,
-				padding: 20,
 				display: 'flex',
 				alignItems: 'flex-start',
 				gap: 16,
@@ -63,7 +62,7 @@ function CardSkeleton() {
 				<Skeleton variant="text" width="40%" height={13} />
 				<Skeleton variant="text" width="30%" height={13} />
 			</div>
-		</div>
+		</Card>
 	);
 }
 
@@ -190,7 +189,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 
 	if (!isFetching && data && data.breachesDetected === 0) {
 		return (
-			<div style={{ ...containerStyles.beveledCard, padding: 24 }}>
+			<Card variant="beveled" padding="lg">
 				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
 					<span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
 						Suggested Actions
@@ -200,7 +199,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 				<p style={{ fontSize: 14, color: 'var(--text-secondary)', textAlign: 'center', padding: '32px 0' }}>
 					All desk locations are within capacity. No bottlenecks detected.
 				</p>
-			</div>
+			</Card>
 		);
 	}
 
@@ -228,7 +227,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 	);
 
 	return (
-		<div style={{ ...containerStyles.beveledCard, padding: 24 }}>
+		<Card variant="beveled" padding="lg">
 			{/* Header */}
 			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -277,8 +276,8 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 						marginBottom: 24,
 						padding: 16,
 						borderRadius: 8,
-						backgroundColor: '#f8fafc',
-						border: '1px solid #e2e8f0',
+						backgroundColor: 'var(--bg-secondary)',
+						border: '1px solid var(--border)',
 					}}
 				>
 					<span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 12 }}>
@@ -343,7 +342,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 											right: 12,
 											zIndex: 1,
 											backgroundColor: '#f1f5f9',
-											color: '#64748b',
+											color: 'var(--text-secondary)',
 											fontSize: 10,
 											fontWeight: 700,
 											height: 20,
@@ -397,7 +396,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 						gap: 12,
 					}}
 				>
-					<IconAlertTriangle size={20} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 2 }} />
+					<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)', flexShrink: 0, marginTop: 2 }} />
 					<div>
 						<span style={{ fontSize: 13, fontWeight: 600, color: '#b45309', display: 'block', marginBottom: 4 }}>
 							Team Capacity Strain
@@ -461,6 +460,6 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 					</p>
 				)}
 			</Dialog>
-		</div>
+		</Card>
 	);
 }

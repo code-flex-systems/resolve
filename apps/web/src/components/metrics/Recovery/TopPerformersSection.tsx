@@ -1,12 +1,11 @@
 'use client';
 
-import { Card, CardContent, Grid } from '@mui/material';
+import Card from '@/components/ui/Card';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
-import { containerStyles } from '@/styles/theme';
 import Skeleton from '@/components/ui/Skeleton';
 
 export default function TopPerformersSection({
@@ -91,104 +90,88 @@ export default function TopPerformersSection({
 
 	if (isFetching) {
 		return (
-			<div style={{ ...styles.paper, ...containerStyles.beveledCard }}>
+			<Card variant="beveled" padding="lg" style={styles.paper}>
 				<Skeleton variant="text" width={150} height={32} />
-				<Grid container spacing={3}>
-					<Grid size={6}>
+				<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+					<div>
 						<Skeleton variant="rect" height={250} />
-					</Grid>
-					<Grid size={6}>
+					</div>
+					<div>
 						<Skeleton variant="rect" height={250} />
-					</Grid>
-				</Grid>
-			</div>
+					</div>
+				</div>
+			</Card>
 		);
 	}
 
 	return (
-		<div style={{ ...styles.paper, ...containerStyles.beveledCard }}>
+		<Card variant="beveled" padding="lg" style={styles.paper}>
 			<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
 				Top Performers
 			</span>
 
-			<Grid container spacing={3}>
+			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24, width: '100%' }}>
 				{/* Top Claims by Recovery Amount */}
-				<Grid size={6}>
-					<Card variant="outlined">
-						<CardContent>
-							<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-								Top Claims by Recovery Amount
-							</span>
-							{topClaims.length === 0 ? (
-								<span style={{ fontSize: 12, color: 'text.secondary' }}>
-									No data available
+				<Card variant="beveled" padding="md">
+					<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
+						Top Claims by Recovery Amount
+					</span>
+					{topClaims.length === 0 ? (
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							No data available
+						</span>
+					) : (
+						topClaims.map((claim, index) => (
+							<div
+								key={index}
+								style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
+								<div>
+									<span style={{ fontSize: 13, fontWeight: 500 }}>
+										{claim.claim_number || 'N/A'}
+									</span>
+									<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+										{claim.insured || 'Unknown'}
+									</span>
+								</div>
+								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--status-success)' }}>
+									{formatCurrency(claim.total)}
 								</span>
-							) : (
-								topClaims.map((claim, index) => (
-									<div
-key={index}
-										
-										
-										
-										
-										 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
-										<div>
-											<span style={{ fontSize: 13, fontWeight: 500 }}>
-												{claim.claim_number || 'N/A'}
-											</span>
-											<span style={{ fontSize: 11, color: 'text.secondary' }}>
-												{claim.insured || 'Unknown'}
-											</span>
-										</div>
-										<span style={{ fontSize: 14, fontWeight: 600, color: 'success.main' }}>
-											{formatCurrency(claim.total)}
-										</span>
-									</div>
-								))
-							)}
-						</CardContent>
-					</Card>
-				</Grid>
+							</div>
+						))
+					)}
+				</Card>
 
 				{/* Top Sources by Recovery Amount */}
-				<Grid size={6}>
-					<Card variant="outlined">
-						<CardContent>
-							<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-								Top Sources by Recovery Amount
-							</span>
-							{topSources.length === 0 ? (
-								<span style={{ fontSize: 12, color: 'text.secondary' }}>
-									No data available
+				<Card variant="beveled" padding="md">
+					<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
+						Top Sources by Recovery Amount
+					</span>
+					{topSources.length === 0 ? (
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							No data available
+						</span>
+					) : (
+						topSources.map((source, index) => (
+							<div
+								key={index}
+								style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
+								<div style={{ flex: 1 }}>
+									<span style={{ fontSize: 13, fontWeight: 500 }}>
+										{source.source}
+									</span>
+									<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+										{source.count} event{source.count !== 1 ? 's' : ''}
+									</span>
+								</div>
+								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-accent)' }}>
+									{formatCurrency(source.total)}
 								</span>
-							) : (
-								topSources.map((source, index) => (
-									<div
-key={index}
-										
-										
-										
-										
-										 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
-										<div style={{ flex: 1 }}>
-											<span style={{ fontSize: 13, fontWeight: 500 }}>
-												{source.source}
-											</span>
-											<span style={{ fontSize: 11, color: 'text.secondary' }}>
-												{source.count} event{source.count !== 1 ? 's' : ''}
-											</span>
-										</div>
-										<span style={{ fontSize: 14, fontWeight: 600, color: 'primary.main' }}>
-											{formatCurrency(source.total)}
-										</span>
-									</div>
-								))
-							)}
-						</CardContent>
-					</Card>
-				</Grid>
-			</Grid>
-		</div>
+							</div>
+						))
+					)}
+				</Card>
+			</div>
+		</Card>
 	);
 }
 

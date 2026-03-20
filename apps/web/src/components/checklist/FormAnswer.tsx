@@ -9,7 +9,7 @@ import {
 	InputAdornment,
 	MenuItem,
 	TextField,
-	Typography, Fade } from '@mui/material';
+	Fade } from '@mui/material';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
 import Toolbar from '../common/Toolbar';
@@ -24,7 +24,8 @@ import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED } from '@/styles/theme';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -41,9 +42,9 @@ function formatActionText(action: any | undefined) {
 	switch (action.type as ActionType) {
 		case ActionType.EMAIL:
 			return (
-				<Typography fontSize={15} marginLeft="5px">
+				<span style={{ fontSize: 15, marginLeft: 5 }}>
 					This answer currently sends an email to ({action.definition?.recipients?.length}) recipients.
-				</Typography>
+				</span>
 			);
 		case ActionType.EVENT:
 			return <></>;
@@ -282,17 +283,17 @@ export default function FormAnswer() {
 				left={
 					<>
 						<IconQuote size={20} style={{ color: 'var(--status-warning)', marginRight: '10px' }} />
-						<Typography color="warning" lineHeight={'21px'} fontSize={17}>
+						<span style={{ color: 'var(--status-warning)', lineHeight: '21px', fontSize: 17 }}>
 							{answerText === '' && isPlaceholder ? 'New answer' : answerText}
-						</Typography>
-						<Typography sx={styles.entityId}>
+						</span>
+						<span style={{ fontSize: 13, color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", padding: "2px 8px", borderRadius: 8, marginLeft: 8 }}>
 							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
 							{isPlaceholder ? '?' : selectedAnswerData.id}
-						</Typography>
+						</span>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<Box sx={{ ml: 1.25 }} className="flex-row-left">
 								<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
-								<Typography color={'var(--status-success)'}>Saved!</Typography>
+								<span style={{ color: 'var(--status-success)' }}>Saved!</span>
 							</Box>
 						</Fade>
 					</>
@@ -363,9 +364,9 @@ export default function FormAnswer() {
 				<Form control={control} style={{ width: '100%' }}>
 					<Box sx={styles.formContainer}>
 						{/* Basic Information Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Basic Information</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Basic Information</div>
+							<div style={{ padding: 16 }}>
 								<Box sx={styles.fieldRow}>
 									<Controller
 										name="text"
@@ -455,13 +456,13 @@ export default function FormAnswer() {
 										)}
 									/>
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Organization Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Organization</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Organization</div>
+							<div style={{ padding: 16 }}>
 								<Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
 									<Controller
 										name="position"
@@ -524,13 +525,13 @@ export default function FormAnswer() {
 										)}
 									/>
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Behavior Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Behavior</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Behavior</div>
+							<div style={{ padding: 16 }}>
 								<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 									{/* User Actions */}
 									<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -561,9 +562,9 @@ export default function FormAnswer() {
 														disabled={Boolean(requiresUpload)}
 														size="small"
 													/>
-													<Typography fontSize={13}>
+													<span style={{ fontSize: 13 }}>
 														Requires additional text input
-													</Typography>
+													</span>
 												</Box>
 											)}
 										/>
@@ -579,7 +580,7 @@ export default function FormAnswer() {
 														disabled={Boolean(hasAdditionalInfo)}
 														size="small"
 													/>
-													<Typography fontSize={13}>Requires file upload</Typography>
+													<span style={{ fontSize: 13 }}>Requires file upload</span>
 												</Box>
 											)}
 										/>
@@ -717,13 +718,13 @@ export default function FormAnswer() {
 										</Box>
 									</Collapse>
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Attachments Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Attachments</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Attachments</div>
+							<div style={{ padding: 16 }}>
 								<Box display="flex" alignItems="center" gap={1.5}>
 									<Button
 										variant="outlined"
@@ -736,9 +737,9 @@ export default function FormAnswer() {
 									</Button>
 									{attachedDoc && (
 										<Box sx={styles.attachmentChip}>
-											<Typography fontSize={12} color="text.secondary">
+											<span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
 												{attachedDoc.title || attachedDoc.alias}
-											</Typography>
+											</span>
 											{attachedDoc.mime_type?.startsWith('image/') ? (
 												<ImageTooltip
 													imageUrl={`/api/download?docId=${attachedDoc.id}`}
@@ -758,8 +759,8 @@ export default function FormAnswer() {
 										</Box>
 									)}
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 					</Box>
 				</Form>
 			</Fade>
@@ -792,27 +793,12 @@ const styles = {
 		width: '100%',
 		mb: 3,
 	},
-	entityId: {
-		fontSize: 13,
-		color: TEXT_MUTED,
-		bgcolor: BG_TERTIARY,
-		px: 1,
-		py: 0.25,
-		borderRadius: '4px',
-		ml: 1.5,
-	},
 	formContainer: {
 		display: 'flex',
 		flexDirection: 'column',
 		gap: 2.5,
 		width: '100%',
 	},
-	section: {
-		...containerStyles.section,
-		maxWidth: 600,
-	},
-	sectionTitle: containerStyles.sectionTitle,
-	sectionContent: containerStyles.sectionContent,
 	fieldRow: {
 		mb: 2,
 		'&:last-child': {

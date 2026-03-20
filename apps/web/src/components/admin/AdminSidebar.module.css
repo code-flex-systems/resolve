@@ -1,0 +1,120 @@
+.container {
+	height: 100vh;
+	background-color: var(--bg-white);
+	overflow-y: auto;
+	overflow-x: hidden;
+	flex-shrink: 0;
+	padding-top: var(--space-4);
+}
+
+.title {
+	padding: var(--space-1) var(--space-3);
+	font-weight: var(--font-bold);
+	font-size: var(--text-base);
+	color: var(--text-primary);
+}
+
+.list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+/* =========================================================================
+   CATEGORY HEADER
+   ========================================================================= */
+
+.categoryHeader {
+	display: flex;
+	align-items: center;
+	min-height: 36px;
+	padding: var(--space-1) var(--space-3);
+	border-radius: var(--radius-md);
+	cursor: pointer;
+	transition: background-color var(--transition-fast);
+	user-select: none;
+}
+
+.categoryHeader:hover {
+	background-color: var(--bg-secondary);
+}
+
+.categoryIcon {
+	display: inline-flex;
+	align-items: center;
+	margin-right: var(--space-2);
+	color: var(--text-secondary);
+	flex-shrink: 0;
+}
+
+.categoryLabel {
+	flex: 1;
+	font-size: var(--text-sm);
+	font-weight: var(--font-medium);
+	color: var(--text-primary);
+}
+
+.expandIcon {
+	color: var(--text-muted);
+	flex-shrink: 0;
+}
+
+/* =========================================================================
+   VERTICAL LINE
+   ========================================================================= */
+
+.verticalLine {
+	position: absolute;
+	left: 22px;
+	top: 0;
+	bottom: 8px;
+	width: 0;
+	border-left: 1px dashed var(--border);
+}
+
+/* =========================================================================
+   NAV ITEMS
+   ========================================================================= */
+
+.navItem {
+	display: flex;
+	align-items: center;
+	min-height: 32px;
+	margin-left: 32px;
+	padding: 2px var(--space-2) 2px var(--space-3);
+	border-radius: var(--radius-md);
+	position: relative;
+	text-decoration: none;
+	color: var(--text-secondary);
+	font-size: var(--text-sm);
+	transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.navItem:hover {
+	background-color: var(--bg-secondary);
+	color: var(--text-primary);
+}
+
+.navItemSelected {
+	background-color: var(--status-info-bg);
+	color: var(--text-accent);
+}
+
+.navItemLabel {
+	line-height: var(--leading-tight);
+}
+
+/* =========================================================================
+   SELECTED ACCENT BAR
+   ========================================================================= */
+
+.selectedAccent {
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 3px;
+	height: 16px;
+	background-color: var(--text-accent);
+	border-radius: var(--radius-sm);
+}

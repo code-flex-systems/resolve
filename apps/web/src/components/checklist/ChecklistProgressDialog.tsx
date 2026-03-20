@@ -3,7 +3,8 @@
 import BasicDialog from '../common/BasicDialog';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { BASE_COLOR, containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import { BASE_COLOR } from '@/styles/theme';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { ClaimStatus } from '@/config/enums';
@@ -154,7 +155,7 @@ export default function ChecklistProgressDialog() {
 			height={250}
 		>
 			<div     style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
-				<div style={styles.paper}>
+				<Card variant="float" padding="md" style={{ padding: '20px 10px', height: 120, minHeight: 120, maxHeight: 120 }}>
 					<div>
 						<div      style={{ width: '100%', display: 'flex', justifyContent: 'center', alignContent: 'center', height: '100%' }}>
 							{!confirmingStatus && (
@@ -182,18 +183,8 @@ export default function ChecklistProgressDialog() {
 							)}
 						</div>
 					</div>
-				</div>
+				</Card>
 			</div>
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	paper: {
-		...containerStyles.gradientCard,
-		padding: '20px 10px',
-		height: 120,
-		minHeight: 120,
-		maxHeight: 120,
-	},
-};

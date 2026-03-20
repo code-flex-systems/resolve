@@ -2,24 +2,24 @@
 
 import { useMemo } from 'react';
 import TeamRecoveryChart from './TeamRecoveryChart';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import { getQuarterRanges } from '@/lib/utils/recoveryUtils';
 
 export default function TeamRecoveryMetric() {
 	const quarters = useMemo(() => getQuarterRanges(), []);
 
 	return (
-		<div style={{ ...containerStyles.section, ...styles.container }}>
-			<span style={{ ...containerStyles.sectionTitle, justifyContent: 'space-between' }}>
+		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 				Team Recovery
 				<span style={{ marginLeft: 8, color: 'primary.main', fontWeight: 600 }}>
 					Q{quarters.currentQuarter}
 				</span>
-			</span>
-			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+			</div>
+			<div style={{ ...styles.contentContainer, padding: 16 }}>
 				<TeamRecoveryChart />
 			</div>
-		</div>
+		</Card>
 	);
 }
 

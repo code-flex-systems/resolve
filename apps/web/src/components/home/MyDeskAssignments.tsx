@@ -1,6 +1,6 @@
 'use client';
 
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
@@ -20,12 +20,12 @@ export default function MyDeskAssignments() {
 	}, [assignments]);
 
 	return (
-		<div style={{ ...containerStyles.section, ...styles.container }}>
-			<span style={containerStyles.sectionTitle}>
+		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 				<IconBriefcase style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				My Desk Assignments
-			</span>
-			<div style={{ ...containerStyles.sectionContent, ...styles.contentContainer }}>
+			</div>
+			<div style={{ ...styles.contentContainer, padding: 16 }}>
 				{isLoading ? (
 					<Skeleton variant="rect" width="100%" height="100%" />
 				) : assignments.length === 0 ? (
@@ -61,7 +61,7 @@ style={{ color: 'text.secondary', fontWeight: isPrimary ? 600 : 400 }}>
 					</>
 				)}
 			</div>
-		</div>
+		</Card>
 	);
 }
 

@@ -5,7 +5,7 @@ import Dropdown from '@/components/ui/Dropdown';
 import { useDeadlineTrpc, Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 import { useRouter } from 'next/navigation';
-import { containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import dayjs from 'dayjs';
 import { DeadlineStatus } from '@/config/enums';
 import { CalendarIcon } from '@mui/x-date-pickers-pro';
@@ -68,12 +68,12 @@ export default function MyClaimsDeadlines() {
 	}, [deadlines, filter]);
 
 	return (
-		<div style={{ ...containerStyles.section, ...styles.container }}>
-			<span style={containerStyles.sectionTitle}>
+		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
 				<CalendarIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'text-bottom' }} />
 				Related Deadlines
-			</span>
-			<div style={containerStyles.sectionContent}>
+			</div>
+			<div style={{ padding: 16 }}>
 				{isLoading ? (
 					<div style={{ gap: 8 }}>
 						<Skeleton variant="rect" height={40} />
@@ -128,7 +128,7 @@ style={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' as const, fo
 					</>
 				)}
 			</div>
-		</div>
+		</Card>
 	);
 }
 

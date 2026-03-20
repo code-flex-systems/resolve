@@ -1,7 +1,6 @@
 'use client';
 
 import { IconChecklist, IconFileSearch, IconHourglass, IconLayoutRows, IconReload, IconRss, IconUsers } from '@tabler/icons-react';
-import { Grid } from '@mui/material';
 import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
 import SimpleMetric from '../metrics/SimpleMetric';
@@ -107,8 +106,8 @@ export default function DashboardTab() {
 							selected={selected === 'feeds'}
 						/>
 					</div>
-					<Grid container marginTop="20px" alignContent="flex-start">
-						<Grid>
+					<div style={{ display: 'flex', flexWrap: 'wrap', marginTop: 20, alignContent: 'flex-start' }}>
+						<div>
 							<div style={styles.paper}>
 								<span style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: '10px', paddingLeft: '10px' }}>
 									Quick Actions
@@ -150,8 +149,8 @@ export default function DashboardTab() {
 									</Collapse>
 								</div>
 							</div>
-						</Grid>
-						<Grid>
+						</div>
+						<div>
 							<div style={styles.paper}>
 								<span style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: '10px', paddingLeft: '10px' }}>
 									Quick Stats
@@ -183,20 +182,20 @@ export default function DashboardTab() {
 									/>
 								</div>
 							</div>
-						</Grid>
-						<Grid>
+						</div>
+						<div>
 							<UserActivityMetric />
-						</Grid>
-						<Grid>
+						</div>
+						<div>
 							<ClaimsMetric checklistId={selectedChecklistId} />
-						</Grid>
-						<Grid>
+						</div>
+						<div>
 							<ActionsMetric />
-						</Grid>
-						<Grid margin="15px">
+						</div>
+						<div style={{ margin: 15 }}>
 							<RecoveryMetricsChart />
-						</Grid>
-					</Grid>
+						</div>
+					</div>
 				</div>
 			</div>
 		</PageTransitionWrapper>

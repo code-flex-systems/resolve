@@ -8,7 +8,7 @@ import type { TreeNode } from '@/types/types';
 import QuestionNode from './QuestionNode';
 import { ChecklistMode, PageInstanceStatus, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import { BORDER_LIGHT, containerStyles } from '@/styles/theme';
+import { BORDER_LIGHT } from '@/styles/theme';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
@@ -205,6 +205,6 @@ const styles = {
 	questionsContainer: {
 		borderBottomLeftRadius: 2,
 		borderBottomRightRadius: 2,
-		background: containerStyles.gradientCard.background,
+		background: 'linear-gradient(135deg, rgba(33, 181, 255, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%)',
 	} as React.CSSProperties,
 };

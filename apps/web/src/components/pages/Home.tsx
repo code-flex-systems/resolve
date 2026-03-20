@@ -1,6 +1,5 @@
 'use client';
 
-import { Grid } from '@mui/material';
 import { useEffect } from 'react';
 import MyQueue from '@/components/home/MyQueue';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
@@ -34,40 +33,35 @@ export default function Home() {
 
 			{/* Dashboard Content */}
 			<div
-				
-				
-				
-				
-				
 				 style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', overflow: 'auto' }}
 			>
-				<Grid container>
-					<Grid container direction="column">
-						{/* <Grid>
+				<div style={{ display: 'flex', flexWrap: 'wrap' }}>
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						{/* <div>
 							<MyClaimsMetric />
-						</Grid> */}
-						<Grid>
+						</div> */}
+						<div>
 							<MyDeskAssignments />
-						</Grid>
-						<Grid>
+						</div>
+						<div>
 							<TeamRecoveryMetric />
-						</Grid>
-						{/* <Grid>
+						</div>
+						{/* <div>
 							<RecentComments />
-						</Grid> */}
-					</Grid>
+						</div> */}
+					</div>
 
-					<Grid container direction="column">
-						<Grid>
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						<div>
 							<MyQueue />
-						</Grid>
-					</Grid>
-					<Grid container direction="column">
-						<Grid>
+						</div>
+					</div>
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						<div>
 							<MyDeadlinesMetric />
-						</Grid>
-					</Grid>
-				</Grid>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

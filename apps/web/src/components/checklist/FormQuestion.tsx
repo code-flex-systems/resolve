@@ -10,7 +10,7 @@ import {
 	Radio,
 	RadioGroup,
 	TextField,
-	Typography, Fade } from '@mui/material';
+	Fade } from '@mui/material';
 
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,7 +22,8 @@ import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import BasicButtonStyled from '../common/BasicButtonStyled';
-import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED } from '@/styles/theme';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
@@ -213,16 +214,16 @@ export default function FormQuestion() {
 				left={
 					<>
 						<IconHelpCircle size={20} style={{ color: 'var(--text-accent)', marginRight: '10px' }} />
-						<Typography color="secondary" lineHeight={'21px'} fontSize={17}>
+						<span style={{ color: 'var(--text-accent)', lineHeight: '21px', fontSize: 17 }}>
 							{questionText === '' && isPlaceholder ? 'New question' : questionText}
-						</Typography>
-						<Typography sx={styles.entityId}>
+						</span>
+						<span style={{ fontSize: 13, color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", padding: "2px 8px", borderRadius: 8, marginLeft: 8 }}>
 							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
-						</Typography>
+						</span>
 						<Fade in={showUpdateMsg} timeout={500}>
 							<Box sx={{ ml: 1.25 }} className="flex-row-left">
 								<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
-								<Typography color={'var(--status-success)'}>Saved!</Typography>
+								<span style={{ color: 'var(--status-success)' }}>Saved!</span>
 							</Box>
 						</Fade>
 					</>
@@ -284,9 +285,9 @@ export default function FormQuestion() {
 				<Form control={control} style={{ width: '100%' }}>
 					<Box sx={styles.formContainer}>
 						{/* Basic Information Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Basic Information</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Basic Information</div>
+							<div style={{ padding: 16 }}>
 								<Box sx={styles.fieldRow}>
 									<Controller
 										name="text"
@@ -376,13 +377,13 @@ export default function FormQuestion() {
 										)}
 									/>
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Question Type Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Response Type</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Response Type</div>
+							<div style={{ padding: 16 }}>
 								<Controller
 									name="type"
 									control={control}
@@ -391,38 +392,38 @@ export default function FormQuestion() {
 										<RadioGroup {...field} row sx={{ gap: 2 }}>
 											<FormControlLabel
 												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Single select</Typography>}
+												label={<span style={{ fontSize: 13 }}>Single select</span>}
 												value={QuestionType.SINGLE}
 												sx={styles.radioLabel}
 											/>
 											<FormControlLabel
 												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Multi select</Typography>}
+												label={<span style={{ fontSize: 13 }}>Multi select</span>}
 												value={QuestionType.MULTI}
 												sx={styles.radioLabel}
 											/>
 											<FormControlLabel
 												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Dropdown</Typography>}
+												label={<span style={{ fontSize: 13 }}>Dropdown</span>}
 												value={QuestionType.DROPDOWN}
 												sx={styles.radioLabel}
 											/>
 											<FormControlLabel
 												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Free-form text</Typography>}
+												label={<span style={{ fontSize: 13 }}>Free-form text</span>}
 												value={QuestionType.FREEFORM}
 												sx={styles.radioLabel}
 											/>
 										</RadioGroup>
 									)}
 								/>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Organization Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Organization</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Organization</div>
+							<div style={{ padding: 16 }}>
 								<Box sx={{ display: 'flex', gap: 2 }}>
 									<Controller
 										name="page_id"
@@ -465,13 +466,13 @@ export default function FormQuestion() {
 										)}
 									/>
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Attachments Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Attachments</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Attachments</div>
+							<div style={{ padding: 16 }}>
 								<Box display="flex" alignItems="center" gap={1.5}>
 									<Button
 										variant="outlined"
@@ -484,9 +485,9 @@ export default function FormQuestion() {
 									</Button>
 									{attachedDoc && (
 										<Box sx={styles.attachmentChip}>
-											<Typography fontSize={12} color="text.secondary">
+											<span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
 												{attachedDoc.title || attachedDoc.alias}
-											</Typography>
+											</span>
 											{attachedDoc.mime_type?.startsWith('image/') ? (
 												<ImageTooltip
 													imageUrl={`/api/download?docId=${attachedDoc.id}`}
@@ -506,8 +507,8 @@ export default function FormQuestion() {
 										</Box>
 									)}
 								</Box>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 					</Box>
 				</Form>
 			</Fade>
@@ -521,10 +522,10 @@ export default function FormQuestion() {
 					onClose={() => setShowDeleteDialog(false)}
 					negative
 				>
-					<Typography>
+					<span>
 						Deleting this question will also delete its <b>{selectedQuestionData.answers.length}</b>{' '}
 						answers.
-					</Typography>
+					</span>
 				</ConfirmationDialog>
 			)}
 
@@ -555,27 +556,12 @@ const styles = {
 		width: '100%',
 		mb: 3,
 	},
-	entityId: {
-		fontSize: 13,
-		color: TEXT_MUTED,
-		bgcolor: BG_TERTIARY,
-		px: 1,
-		py: 0.25,
-		borderRadius: '4px',
-		ml: 1.5,
-	},
 	formContainer: {
 		display: 'flex',
 		flexDirection: 'column',
 		gap: 2.5,
 		width: '100%',
 	},
-	section: {
-		...containerStyles.section,
-		maxWidth: 600,
-	},
-	sectionTitle: containerStyles.sectionTitle,
-	sectionContent: containerStyles.sectionContent,
 	fieldRow: {
 		mb: 2,
 		'&:last-child': {

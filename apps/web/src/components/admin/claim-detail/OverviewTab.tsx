@@ -11,7 +11,6 @@ import { formatMDY } from '@/lib/utils/utils';
 import { ClaimStatus } from '@/config/enums';
 import { ClaimSubstatusValue } from '@/components/common/ReferenceDataSelect';
 import { formatCityState } from '@/schemas/addressSchemas';
-import { containerStyles } from '@/styles/theme';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -54,7 +53,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 		<div style={{ padding: 24 }}>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Contextual Summary */}
-				<div style={styles.gradientPaper}>
+				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Summary
 					</span>
@@ -116,10 +115,10 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 							</div>
 						)}
 					</div>
-				</div>
+				</Card>
 
 				{/* Claim Details */}
-				<div style={styles.beveledPaper}>
+				<Card variant="beveled" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Claim Details
 					</span>
@@ -219,11 +218,11 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 							</>
 						)}
 					</div>
-				</div>
+				</Card>
 
 				{/* Checklist Progress (if assigned) */}
 				{currentAssignment && (
-					<div style={styles.beveledPaper}>
+					<Card variant="beveled" padding="lg">
 						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 							Current Assignment
 						</span>
@@ -298,11 +297,11 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 								</>
 							)}
 						</div>
-					</div>
+					</Card>
 				)}
 
 				{/* Activity Timeline */}
-				<div style={styles.beveledPaper}>
+				<Card variant="beveled" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Activity Timeline
 					</span>
@@ -349,19 +348,8 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 							))}
 						</div>
 					)}
-				</div>
+				</Card>
 			</div>
 		</div>
 	);
 }
-
-const styles = {
-	gradientPaper: {
-		...containerStyles.gradientCard,
-		padding: '24px',
-	},
-	beveledPaper: {
-		...containerStyles.beveledCard,
-		padding: '24px',
-	},
-};

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import dayjs from 'dayjs';
-import { containerStyles } from '@/styles/theme';
 import { DeadlineEntityType, DeadlineStatus } from '@/config/enums';
 import { IconCircleCheck, IconCircleX, IconCircle, IconCalendar } from '@tabler/icons-react';
 import DeadlineDetailDialog from './DeadlineDetailDialog';

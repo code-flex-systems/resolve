@@ -1,5 +1,5 @@
 'use client';
-import { Tab, Tabs } from '@mui/material';
+import { Tabs } from '@/components/ui/Tabs';
 import Card from '@/components/ui/Card';
 import PageTransitionWrapper from '../../common/PageTransitionWrapper';
 import { useState, useEffect } from 'react';
@@ -11,7 +11,6 @@ import ClaimantsCoverageTab from './ClaimantsCoverageTab';
 import SettlementRecoveryTab from './SettlementRecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
 import PaymentsTab from './PaymentsTab';
-import { containerStyles } from '@/styles/theme';
 
 /**
  * Reusable claim detail view component
@@ -42,32 +41,33 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claim details...">
-			<div
+			<Card
+				variant="beveled"
+				padding="none"
 				style={{
 					display: 'flex',
 					flexDirection: 'column',
 					height: 'calc(100vh - 50px)',
 					overflow: 'hidden',
-					...containerStyles.beveledCard,
 				}}
 			>
 				{/* Sticky Header */}
 				<ClaimHeader claimId={claimId} />
 
 				{/* Tab Navigation */}
-				<div style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', paddingInline: 8, paddingBottom: 1.6 }}>
+				<div style={{ paddingInline: 8 }}>
 					<Tabs
+						tabs={[
+							{ label: 'Overview' },
+							{ label: 'Workflow & Assignment' },
+							{ label: 'Claimants & Coverage' },
+							{ label: 'Adverse Parties & Liability' },
+							{ label: 'Payments' },
+							{ label: 'Settlement & Recovery' },
+						]}
 						value={currentTab}
-						onChange={(_, newValue) => setCurrentTab(newValue)}
-						aria-label="claim detail tabs"
-					>
-						<Tab label="Overview" />
-						<Tab label="Workflow & Assignment" />
-						<Tab label="Claimants & Coverage" />
-						<Tab label="Adverse Parties & Liability" />
-						<Tab label="Payments" />
-						<Tab label="Settlement & Recovery" />
-					</Tabs>
+						onChange={setCurrentTab}
+					/>
 				</div>
 
 				{/* Tab Content */}
@@ -85,7 +85,7 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 						</div>
 					</div>
 				</div>
-			</div>
+			</Card>
 		</PageTransitionWrapper>
 	);
 }
