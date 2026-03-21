@@ -222,6 +222,10 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 	return results;
 }
 
+export async function getChecklistRecentActivity(ctx: ProtectedContext) {
+	return await checklistQueries.getChecklistRecentActivity(ctx);
+}
+
 /**
  * Update checklist properties.
  *

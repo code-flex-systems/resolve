@@ -9,6 +9,7 @@ import {
 	getClaimCount,
 	getClaims,
 	getClaimDetail,
+	getClaimStatusBreakdown,
 	getNextClaimToAssign,
 	getRolloverClaimCount,
 	listMyClaims,
@@ -98,5 +99,10 @@ export const claimRouter = router({
 
 	listMyDeskClaims: protectedProcedure.input(listMyDeskClaimsInput).query(async ({ input, ctx }) => {
 		return listMyDeskClaims(ctx, input);
+	}),
+
+	getClaimStatusBreakdown: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getClaimStatusBreakdown(ctx);
 	}),
 });

@@ -1,5 +1,5 @@
 import DeskAssignmentTab from '@/components/admin/DeskAssignmentTab';
 
-export default function UserDeskAssignmentsPage() {
+export default function WorkflowManagementDeskAssignmentsPage() {
 	return <DeskAssignmentTab />;
 }

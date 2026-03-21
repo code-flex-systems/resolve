@@ -353,6 +353,10 @@ export function getOnboardingTemplate(): string {
 	return readFileSync(filePath, 'utf-8');
 }
 
+export async function getManagementStats(ctx: ProtectedContext) {
+	return userQueries.getUserManagementStats(ctx);
+}
+
 export function getAccountActivationTemplate(type: 'deactivation' | 'reactivation', email: string): string {
 	const filePath = path.join(process.cwd(), 'src/api/email-templates', `account-${type}-template.html`);
 	const template = readFileSync(filePath, 'utf-8');

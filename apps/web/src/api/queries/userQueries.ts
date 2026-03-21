@@ -484,3 +484,43 @@ export async function upsertUserFromClerk(
 		.returningAll()
 		.executeTakeFirst();
 }
+
+/**
+ * Get user management overview stats in a single DB round-trip.
+ * Returns totals, role breakdown, and recent signup count.
+ */
+export async function getUserManagementStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Single table scan with FILTER clauses + role breakdown in parallel
+	const [counts, byRole] = await Promise.all([
+		ctx.db
+			.selectFrom('users')
+			.where('client_id', '=', clientId)
+			.select(({ fn }) => [
+				fn.countAll<number>().as('total'),
+				sql<number>`count(*) filter (where not disabled)`.as('active'),
+				sql<number>`count(*) filter (where disabled)`.as('disabled'),
+				sql<number>`count(*) filter (where created_at >= now() - interval '30 days')`.as('recent_signups'),
+			])
+			.executeTakeFirstOrThrow(),
+		ctx.db
+			.selectFrom('users')
+			.where('client_id', '=', clientId)
+			.where('disabled', '=', false)
+			.groupBy('role')
+			.select(({ fn }) => [
+				'role',
+				fn.countAll<number>().as('count'),
+			])
+			.execute(),
+	]);
+
+	return {
+		total: Number(counts.total),
+		active: Number(counts.active),
+		disabled: Number(counts.disabled),
+		recentSignups: Number(counts.recent_signups),
+		byRole: byRole.map(r => ({ role: r.role ?? 'unknown', count: Number(r.count) })),
+	};
+}

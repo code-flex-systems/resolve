@@ -39,6 +39,8 @@ export function useClaimTrpc() {
 			},
 		}),
 
+		statusBreakdown: trpc.claim.getClaimStatusBreakdown.useQuery,
+
 		update: trpc.claim.updateClaim.useMutation({
 			onSuccess(_data, variables) {
 				// Invalidate claim queries

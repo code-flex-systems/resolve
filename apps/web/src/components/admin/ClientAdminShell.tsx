@@ -16,7 +16,6 @@ import {
 	IconHistory,
 	IconLayoutDashboard,
 	IconList,
-	IconListCheck,
 	IconMapPin,
 	IconRss,
 	IconSettings,
@@ -57,13 +56,35 @@ const adminNavCategories: AdminNavCategory[] = [
 		icon: <IconUserCog size={18} stroke={1.5} />,
 		items: [
 			{
+				label: 'Overview',
+				route: '/admin/user-management/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
+			{
 				label: 'Users',
 				route: '/admin/user-management/users',
 				icon: <IconUsers size={20} />,
 			},
+		],
+		defaultExpanded: false,
+	},
+	{
+		label: 'Checklists & Activity',
+		icon: <IconChecklist size={18} stroke={1.5} />,
+		items: [
+			{
+				label: 'Overview',
+				route: '/admin/checklists/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
+			{
+				label: 'Templates',
+				route: '/admin/checklists/templates',
+				icon: <IconChecklist size={20} />,
+			},
 			{
 				label: 'Activity',
-				route: '/admin/user-management/activity',
+				route: '/admin/checklists/activity',
 				icon: <IconWaveSquare size={20} />,
 			},
 		],
@@ -74,8 +95,13 @@ const adminNavCategories: AdminNavCategory[] = [
 		icon: <IconFileSearch size={18} stroke={1.5} />,
 		items: [
 			{
+				label: 'Overview',
+				route: '/admin/claims/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
+			{
 				label: 'All Claims',
-				route: '/admin/claims',
+				route: '/admin/claims/all',
 				icon: <IconFileSearch size={20} />,
 			},
 			{
@@ -87,67 +113,55 @@ const adminNavCategories: AdminNavCategory[] = [
 		defaultExpanded: false,
 	},
 	{
-		label: 'Workflow Configuration',
-		icon: <IconListCheck size={18} stroke={1.5} />,
+		label: 'Workflow Management',
+		icon: <IconTimeline size={18} stroke={1.5} />,
 		items: [
 			{
-				label: 'Checklists',
-				route: '/admin/workflow-configuration/checklists',
-				icon: <IconChecklist size={20} />,
+				label: 'Overview',
+				route: '/admin/workflow-management/overview',
+				icon: <IconLayoutDashboard size={20} />,
 			},
 			...(config.FEATURES.DESK_HIERARCHY
 				? [
 						{
 							label: 'Workflows',
-							route: '/admin/workflow-configuration/workflows',
+							route: '/admin/workflow-management/workflows',
 							icon: <IconBinaryTree size={20} />,
 						},
 						{
 							label: 'Desk Locations',
-							route: '/admin/workflow-configuration/desk-locations',
+							route: '/admin/workflow-management/desk-locations',
 							icon: <IconDesk size={20} />,
 						},
 						{
 							label: 'Desk Assignments',
-							route: '/admin/workflow-configuration/desk-assignments',
+							route: '/admin/workflow-management/desk-assignments',
 							icon: <IconClipboard size={20} />,
 						},
 						{
 							label: 'Tasks',
-							route: '/admin/workflow-configuration/tasks',
+							route: '/admin/workflow-management/tasks',
 							icon: <IconSubtask size={20} />,
-						},
-					]
-				: []),
-		],
-		defaultExpanded: false,
-	},
-	...(config.FEATURES.DESK_HIERARCHY
-		? [
-				{
-					label: 'Workflow Management',
-					icon: <IconTimeline size={18} stroke={1.5} />,
-					items: [
-						{
-							label: 'Dashboard',
-							route: '/admin/workflow-management/dashboard',
-							icon: <IconTimeline size={20} />,
 						},
 						{
 							label: 'Execution History',
 							route: '/admin/workflow-management/execution-history',
 							icon: <IconHistory size={20} />,
 						},
-					],
-					defaultExpanded: false,
-					hideHeader: false,
-				},
-			]
-		: []),
+					]
+				: []),
+		],
+		defaultExpanded: false,
+	},
 	{
 		label: 'Party Management',
 		icon: <IconBuilding size={18} stroke={1.5} />,
 		items: [
+			{
+				label: 'Overview',
+				route: '/admin/party-management/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
 			{
 				label: 'Parties',
 				route: '/admin/party-management/parties',
@@ -171,6 +185,11 @@ const adminNavCategories: AdminNavCategory[] = [
 		icon: <IconCurrencyDollar size={18} stroke={1.5} />,
 		items: [
 			{
+				label: 'Overview',
+				route: '/admin/financial/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
+			{
 				label: 'Recovery',
 				route: '/admin/financial/recovery',
 				icon: <IconCashBanknote size={20} />,
@@ -178,16 +197,15 @@ const adminNavCategories: AdminNavCategory[] = [
 		],
 		defaultExpanded: false,
 	},
-	// {
-	// 	label: 'Litigation',
-	// 	icon: <IconGavel size={20} />,
-	// 	items: [],
-	// 	defaultExpanded: false,
-	// },
 	{
 		label: 'Documents',
 		icon: <IconFolder size={18} stroke={1.5} />,
 		items: [
+			{
+				label: 'Overview',
+				route: '/admin/documents/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
 			{
 				label: 'Documents',
 				route: '/admin/documents/documents',
@@ -196,16 +214,15 @@ const adminNavCategories: AdminNavCategory[] = [
 		],
 		defaultExpanded: false,
 	},
-	// {
-	// 	label: 'Automation',
-	// 	icon: <SmartToyIcon fontSize="small" />,
-	// 	items: [],
-	// 	defaultExpanded: false,
-	// },
 	{
 		label: 'System',
 		icon: <IconSettings size={18} stroke={1.5} />,
 		items: [
+			{
+				label: 'Overview',
+				route: '/admin/system/overview',
+				icon: <IconLayoutDashboard size={20} />,
+			},
 			{
 				label: 'Logs',
 				route: '/admin/system/logs',

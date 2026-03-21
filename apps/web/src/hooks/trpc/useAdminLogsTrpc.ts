@@ -11,6 +11,7 @@ export type AdminConfigLogsInput = AdminLogsInput['listAdminConfigLogs'];
 export type ClaimActivityLogItem = AdminLogsOutput['listClaimActivityLogs']['rows'][number];
 export type ClaimActivityLogCursor = AdminLogsOutput['listClaimActivityLogs']['nextCursor'];
 export type ClaimActivityLogsInput = AdminLogsInput['listClaimActivityLogs'];
+export type SystemStats = AdminLogsOutput['getSystemStats'];
 
 export function useAdminLogsTrpc() {
 	return {
@@ -18,5 +19,6 @@ export function useAdminLogsTrpc() {
 		listByEntity: trpc.adminLogs.getAdminLogsByEntity.useQuery,
 		listConfigLogs: trpc.adminLogs.listAdminConfigLogs.useQuery,
 		listClaimActivityLogs: trpc.adminLogs.listClaimActivityLogs.useQuery,
+		getSystemStats: trpc.adminLogs.getSystemStats.useQuery,
 	};
 }

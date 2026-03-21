@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from '../trpc';
-import { getAdminLogsByClaim, getAdminLogsByEntity } from '@/api/queries/adminLogQueries';
+import { getAdminLogsByClaim, getAdminLogsByEntity, getSystemStats } from '@/api/queries/adminLogQueries';
 import { listClaimActivityLogs } from '@/api/queries/activityLogQueries';
 import {
 	getAdminLogsByClaimInput,
@@ -28,5 +28,10 @@ export const adminLogsRouter = router({
 	listClaimActivityLogs: protectedProcedure.input(listClaimActivityLogsInput).query(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return listClaimActivityLogs(ctx, input);
+	}),
+
+	getSystemStats: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getSystemStats(ctx);
 	}),
 });

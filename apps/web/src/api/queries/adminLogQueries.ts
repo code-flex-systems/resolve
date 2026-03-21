@@ -1,3 +1,4 @@
+import { sql } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { EntityName } from '@/api/utils/activityLogger';
 import type { ListAdminConfigLogsInput } from '@/schemas/adminLogSchemas';
@@ -194,5 +195,38 @@ export async function listAdminConfigLogs(ctx: ProtectedContext, input: ListAdmi
 		rows: trimmedRows,
 		nextCursor,
 		hasNextPage,
+	};
+}
+
+/**
+ * Get system overview stats in a single DB round-trip.
+ * Returns admin actions today, reference data entity count, and statute rule count.
+ */
+export async function getSystemStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	const counts = await ctx.db.selectNoFrom(({ selectFrom }) => [
+		// Admin config actions today
+		selectFrom('admin_config_logs')
+			.where('client_id', '=', clientId)
+			.where('created_at', '>=', sql<Date>`current_date`)
+			.select(({ fn }) => fn.countAll<number>().as('c'))
+			.as('admin_actions_today'),
+		// Reference data lists (client-scoped)
+		selectFrom('reference_list')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.select(({ fn }) => fn.countAll<number>().as('c'))
+			.as('reference_data_entities'),
+		// Statute rules (global table, no client_id)
+		selectFrom('statute_rule')
+			.select(({ fn }) => fn.countAll<number>().as('c'))
+			.as('active_statute_rules'),
+	]).executeTakeFirstOrThrow();
+
+	return {
+		adminActionsToday: Number(counts.admin_actions_today),
+		referenceDataEntities: Number(counts.reference_data_entities),
+		activeStatuteRules: Number(counts.active_statute_rules),
 	};
 }

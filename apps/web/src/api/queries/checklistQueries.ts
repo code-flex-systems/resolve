@@ -793,3 +793,48 @@ export async function modifyChecklist(ctx: ProtectedContext, checklistId: number
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
+
+/**
+ * Get the most recently active checklist instances with today's answer count.
+ * Returns the 5 checklist_claim records with the most recent last_opened,
+ * plus a count of question_response records created today for each.
+ */
+export async function getChecklistRecentActivity(ctx: ProtectedContext, limit: number = 5) {
+	const clientId = ctx.session.user.client_id!;
+
+	return await ctx.db
+		.selectFrom('checklist_claim')
+		.innerJoin('checklist', 'checklist.id', 'checklist_claim.checklist_id')
+		.innerJoin('claim', 'claim.id', 'checklist_claim.claim_id')
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('question_response')
+					.select([
+						'question_response.checklist_id',
+						'question_response.claim_id',
+						eb.fn.countAll<number>().as('answered_today'),
+					])
+					.where('question_response.created_at', '>=', sql<Date>`current_date`)
+					.groupBy(['question_response.checklist_id', 'question_response.claim_id'])
+					.as('today_responses'),
+			(join) =>
+				join
+					.onRef('today_responses.checklist_id', '=', 'checklist_claim.checklist_id')
+					.onRef('today_responses.claim_id', '=', 'checklist_claim.claim_id')
+		)
+		.select([
+			'checklist_claim.checklist_id',
+			'checklist_claim.claim_id',
+			'checklist_claim.status',
+			'checklist_claim.last_opened',
+			'checklist.name as checklist_name',
+			'claim.claim_number',
+			sql<number>`coalesce(today_responses.answered_today, 0)`.as('answered_today'),
+		])
+		.where('checklist.client_id', '=', clientId)
+		.where('checklist_claim.last_opened', 'is not', null)
+		.orderBy('checklist_claim.last_opened', 'desc')
+		.limit(limit)
+		.execute();
+}

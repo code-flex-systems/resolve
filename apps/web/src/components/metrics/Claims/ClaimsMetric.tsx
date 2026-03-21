@@ -11,6 +11,7 @@ import BasicButtonStyled from '../../common/BasicButtonStyled';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { IconBug, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
+import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 
@@ -70,105 +71,97 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 		});
 	}, [data]);
 
+	const total = data[ClaimStatus.SUBMITTED] + data[ClaimStatus.IN_PROGRESS] + data[ClaimStatus.UNWORKED];
+	const pct = getProgressPercentage(data[ClaimStatus.SUBMITTED], total);
+
 	return (
-		<div style={styles.paper}>
+		<Card variant="beveled" padding="md" style={{ width: METRIC_WIDTH, minHeight: METRIC_HEIGHT }}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
+				<Skeleton width={METRIC_WIDTH - 32} height={METRIC_HEIGHT - 32} />
 			) : (
-				<div style={{ display: 'flex', flexDirection: 'column' as const, width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
-					<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-						<div
-style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
-							<span style={{ fontSize: 14, fontWeight: 600 }}>
-								Claim Submission
-							</span>
-							<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-								<div style={{ marginRight: '5px' }}>
-									<BasicButtonStyled
-										buttonProps={{}}
-										icon={<IconInfoCircle size={20} />}
-										tooltipProps={{
-											title: 'A claim is considered complete if all necessary questions have been answered for the related checklist.',
-										}}
-									/>
-								</div>
-								{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: () => router.push('/metrics/claims'),
-										}}
-										icon={
-											<IconBug
-											 style={{
-													transform: 'scaleX(-1)',
-													color: 'var(--text-accent)',
-												}}
-											/>
-										}
-										tooltipProps={{ title: 'Open in Inspector' }}
-									/>
-								)}
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+					{/* Header */}
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							Claim Submission
+						</span>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+							<BasicButtonStyled
+								buttonProps={{}}
+								icon={<IconInfoCircle size={18} />}
+								tooltipProps={{
+									title: 'A claim is considered complete if all necessary questions have been answered for the related checklist.',
+								}}
+							/>
+							{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
+								<BasicButtonStyled
+									buttonProps={{ onClick: () => router.push('/metrics/claims') }}
+									icon={<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={18} />}
+									tooltipProps={{ title: 'Open in Inspector' }}
+								/>
+							)}
+						</div>
+					</div>
+
+					{/* Gauge chart */}
+					{(!checklistId || selectedChecklistOption) && (
+						<div style={{ position: 'relative', width: '100%', height: 200 }}>
+							<ResponsiveContainer width="100%" height={200}>
+								<PieChart>
+									<Pie
+										data={pieData}
+										dataKey="value"
+										nameKey="label"
+										innerRadius={65}
+										outerRadius={88}
+										paddingAngle={2}
+										cornerRadius={4}
+										startAngle={220}
+										endAngle={-40}
+										cx="50%"
+										cy="60%"
+									>
+										{pieData.map((entry, i) => (
+											<Cell key={i} fill={entry.color} />
+										))}
+									</Pie>
+									<Tooltip formatter={(value: any) => [`${value} claim(s)`]} />
+								</PieChart>
+							</ResponsiveContainer>
+							{/* Center label */}
+							<div style={{
+								position: 'absolute',
+								top: '50%',
+								left: '50%',
+								transform: 'translate(-50%, -30%)',
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								pointerEvents: 'none',
+							}}>
+								<span style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
+									{pct}%
+								</span>
+								<span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', marginTop: 2 }}>
+									Submitted
+								</span>
 							</div>
 						</div>
-						{(!checklistId || selectedChecklistOption) && (
-							<div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-								<ResponsiveContainer width="100%" height={225}>
-									<PieChart>
-										<Pie
-											data={pieData}
-											dataKey="value"
-											nameKey="label"
-											innerRadius={75}
-											outerRadius={100}
-											paddingAngle={2}
-											cornerRadius={5}
-											startAngle={250}
-											endAngle={-70}
-											cy="67%"
-										>
-											{pieData.map((entry, i) => (
-												<Cell key={i} fill={entry.color} />
-											))}
-										</Pie>
-										<Tooltip formatter={(value: any) => [`${value} claim(s)`]} />
-									</PieChart>
-								</ResponsiveContainer>
-								<div style={{ position: 'relative' }}>
-									<div
-style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'absolute', width: 80, left: -90, top: -120 }}>
-										<AnimatedCounter
-											value={getProgressPercentage(
-												data[ClaimStatus.SUBMITTED],
-												data[ClaimStatus.SUBMITTED] +
-													data[ClaimStatus.IN_PROGRESS] +
-													data[ClaimStatus.UNWORKED]
-											)}
-											formatter={(v) => `${v}%`}
-											fontSize={40}
-											duration={500}
-										/>
-										<span style={{ paddingTop: '5px', fontSize: 17, lineHeight: '17px', fontWeight: 'bold' }}>
-											Submitted
-										</span>
-									</div>
-								</div>
+					)}
+
+					{/* Legend */}
+					<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+						{pieData.map((entry) => (
+							<div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+								<div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entry.color }} />
+								<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+									{entry.label} ({entry.value})
+								</span>
 							</div>
-						)}
+						))}
 					</div>
 				</div>
 			)}
-		</div>
+		</Card>
 	);
 }
-
-const styles = {
-	paper: {
-		borderRadius: 3,
-		margin: '15px',
-		width: METRIC_WIDTH,
-		height: METRIC_HEIGHT,
-	},
-	skeleton: {
-		borderRadius: 3,
-	},
-};

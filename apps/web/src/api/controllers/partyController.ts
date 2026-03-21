@@ -1184,3 +1184,14 @@ export async function archiveClaimParty(
 
 	return result;
 }
+
+// ============================================================================
+// PARTY MANAGEMENT STATS
+// ============================================================================
+
+/**
+ * Get party management overview stats (admin KPIs)
+ */
+export async function getPartyManagementStats(ctx: ProtectedContext) {
+	return partyQueries.getPartyManagementStats(ctx);
+}

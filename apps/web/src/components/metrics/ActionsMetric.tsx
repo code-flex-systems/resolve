@@ -7,6 +7,7 @@ import { ActionDefinition } from '@/types/types';
 import dayjs from 'dayjs';
 import MetricValue from '../common/MetricValue';
 import { IconBug, IconCalendar, IconClipboardCheck, IconInfoCircle, IconMail, IconMailbox, IconShare } from '@tabler/icons-react';
+import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 
@@ -54,99 +55,64 @@ export default function ActionsMetric() {
 	};
 
 	return (
-		<div style={styles.paper}>
+		<Card variant="beveled" padding="md" style={{ width: METRIC_WIDTH, minHeight: METRIC_HEIGHT }}>
 			{isFetching ? (
-				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
+				<Skeleton width={METRIC_WIDTH - 32} height={METRIC_HEIGHT - 32} />
 			) : (
-				<div style={{ display: 'flex', flexDirection: 'column' as const, width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
-					<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-						<div
-style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
-							<span style={{ fontSize: 14, fontWeight: 600 }}>
-								Popular Actions
-							</span>
-							<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-								<div style={{ marginRight: '5px' }}>
-									<BasicButtonStyled
-										buttonProps={{}}
-										icon={<IconInfoCircle size={20} />}
-										tooltipProps={{
-											title: 'Actions are ranked by highest execution rate aross unique checklist + claim combinations.',
-										}}
-									/>
-								</div>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => router.push('/metrics/user-actions'),
-									}}
-									icon={
-										<IconBug
-										 style={{
-												transform: 'scaleX(-1)',
-												color: 'var(--text-accent)',
-											}}
-										/>
-									}
-									tooltipProps={{ title: 'Open in Inspector' }}
-								/>
-							</div>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+					{/* Header */}
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							Popular Actions
+						</span>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+							<BasicButtonStyled
+								buttonProps={{}}
+								icon={<IconInfoCircle size={18} />}
+								tooltipProps={{
+									title: 'Actions are ranked by highest execution rate across unique checklist + claim combinations.',
+								}}
+							/>
+							<BasicButtonStyled
+								buttonProps={{ onClick: () => router.push('/metrics/user-actions') }}
+								icon={<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={18} />}
+								tooltipProps={{ title: 'Open in Inspector' }}
+							/>
 						</div>
-						<div
-style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' as const, justifyContent: stats.length ? 'flex-start' : 'center', alignItems: stats.length ? 'flex-start' : 'center' }}>
-							{stats.length ? (
-								<>
-									{stats.map((s) => {
-										const type = s.type as ActionType;
-										return (
-											<div
-key={s.id}
-												
-												
-												
-												
-												
-												 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', height: 60, padding: '0px 10px' }}>
-												<div style={{ minWidth: 40, width: 40, paddingRight: '10px' }}>
-													{getActionIcon(type)}
-												</div>
+					</div>
 
-												<div style={{ display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', alignItems: 'flex-start', width: 290, minWidth: 0, overflow: 'hidden' as const, textOverflow: 'ellipsis' }}>
-													<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 14 }}>
-														{getActionPrimaryContent(type, s.definition)}
-													</span>
-													<span
-style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 13, color: 'var(--text-muted)' }}>
-														{getActionSecondaryContent(type, s.definition)}
-													</span>
-												</div>
-												<div style={{ minWidth: 30, paddingLeft: '10px' }}>
-													<MetricValue value={s.count.toLocaleString()} fontSize={13} />
-												</div>
-											</div>
-										);
-									})}
-								</>
-							) : (
-								<span style={{ fontSize: 15, color: '#d9d9d9' }}>
-									No actions
-								</span>
-							)}
-						</div>
+					{/* Action list */}
+					<div style={{ display: 'flex', flexDirection: 'column', justifyContent: stats.length ? 'flex-start' : 'center', alignItems: stats.length ? 'stretch' : 'center', minHeight: 200 }}>
+						{stats.length ? (
+							stats.map((s) => {
+								const type = s.type as ActionType;
+								return (
+									<div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border-primary)' }}>
+										<div style={{ minWidth: 32, color: 'var(--text-secondary)' }}>
+											{getActionIcon(type)}
+										</div>
+										<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+											<span style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
+												{getActionPrimaryContent(type, s.definition)}
+											</span>
+											<span style={{ fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-muted)' }}>
+												{getActionSecondaryContent(type, s.definition)}
+											</span>
+										</div>
+										<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', minWidth: 24, textAlign: 'right' }}>
+											{s.count.toLocaleString()}
+										</span>
+									</div>
+								);
+							})
+						) : (
+							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+								No actions
+							</span>
+						)}
 					</div>
 				</div>
 			)}
-		</div>
+		</Card>
 	);
 }
-
-const styles = {
-	paper: {
-		borderRadius: 3,
-		margin: '15px',
-		width: METRIC_WIDTH,
-		height: METRIC_HEIGHT,
-	},
-	skeleton: {
-		borderRadius: 3,
-	},
-};

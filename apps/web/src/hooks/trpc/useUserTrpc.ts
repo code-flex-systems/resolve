@@ -18,6 +18,7 @@ export function useUserTrpc() {
 		get: trpc.user.getUser.useQuery,
 		activity: trpc.user.getUserActivity.useQuery,
 		activityDetail: trpc.user.getUserActivityDetail.useQuery,
+		managementStats: trpc.user.getManagementStats.useQuery,
 
 		create: trpc.user.createUsers.useMutation({
 			onSuccess() {

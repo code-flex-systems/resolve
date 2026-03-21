@@ -92,6 +92,8 @@ export function useDocTrpc() {
 		getDocCountByGroupId: trpc.doc.getDocCountByGroupId.useQuery,
 
 		getDocCountsByGroupIds: trpc.doc.getDocCountsByGroupIds.useQuery,
+
+		getDocumentStats: trpc.doc.getDocumentStats.useQuery,
 	};
 }
 

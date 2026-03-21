@@ -994,3 +994,43 @@ export async function listMyDeskClaims(
 		},
 	};
 }
+
+/**
+ * Get claim status breakdown by recovery_status and substatus in parallel.
+ * Two GROUP BY queries in a single round-trip via Promise.all.
+ */
+export async function getClaimStatusBreakdown(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	const [byRecoveryStatus, bySubstatus] = await Promise.all([
+		ctx.db
+			.selectFrom('claim')
+			.where('client_id', '=', clientId)
+			.groupBy('recovery_status')
+			.select(({ fn }) => [
+				'recovery_status as status',
+				fn.countAll<number>().as('count'),
+			])
+			.execute(),
+		ctx.db
+			.selectFrom('claim')
+			.where('client_id', '=', clientId)
+			.groupBy('substatus')
+			.select(({ fn }) => [
+				'substatus',
+				fn.countAll<number>().as('count'),
+			])
+			.execute(),
+	]);
+
+	return {
+		byRecoveryStatus: byRecoveryStatus.map((r) => ({
+			status: r.status ?? 'unset',
+			count: Number(r.count),
+		})),
+		bySubstatus: bySubstatus.map((r) => ({
+			substatus: r.substatus ?? 'unset',
+			count: Number(r.count),
+		})),
+	};
+}

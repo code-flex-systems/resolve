@@ -1899,3 +1899,50 @@ export async function getClaimLiabilityPercentageTotal(ctx: ProtectedContext, cl
 
 	return result?.total_liability_percentage ? parseFloat(result.total_liability_percentage) : 0;
 }
+
+/**
+ * Get party management overview stats in a single DB round-trip.
+ * Returns party totals by type, plus address and representative counts.
+ */
+export async function getPartyManagementStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Party counts: single scan with FILTER; address/rep: subqueries (different tables)
+	const [partyCounts, addressRepCounts] = await Promise.all([
+		ctx.db
+			.selectFrom('party')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.select(() => [
+				sql<number>`count(*)`.as('total_parties'),
+				sql<number>`count(*) filter (where party_type = 'entity')`.as('entities'),
+				sql<number>`count(*) filter (where party_type = 'facilitator')`.as('facilitators'),
+			])
+			.executeTakeFirstOrThrow(),
+		ctx.db.selectNoFrom(({ selectFrom }) => [
+			selectFrom('party_address')
+				.innerJoin('party', 'party.id', 'party_address.party_id')
+				.where('party.client_id', '=', clientId)
+				.where('party.deleted_at', 'is', null)
+				.where('party_address.deleted_at', 'is', null)
+				.select(({ fn }) => fn.countAll<number>().as('c'))
+				.as('total_addresses'),
+			selectFrom('party_representative')
+				.innerJoin('party', 'party.id', 'party_representative.party_id')
+				.where('party.client_id', '=', clientId)
+				.where('party.deleted_at', 'is', null)
+				.where('party_representative.deleted_at', 'is', null)
+				.select(({ fn }) => fn.countAll<number>().as('c'))
+				.as('total_representatives'),
+		]).executeTakeFirstOrThrow(),
+	]);
+	const counts = { ...partyCounts, ...addressRepCounts };
+
+	return {
+		totalParties: Number(counts.total_parties),
+		entities: Number(counts.entities),
+		facilitators: Number(counts.facilitators),
+		totalAddresses: Number(counts.total_addresses),
+		totalRepresentatives: Number(counts.total_representatives),
+	};
+}

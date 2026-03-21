@@ -231,3 +231,7 @@ export async function listMyDeskClaims(
 	const results = await claimQueries.listMyDeskClaims(ctx, input);
 	return results;
 }
+
+export async function getClaimStatusBreakdown(ctx: ProtectedContext) {
+	return claimQueries.getClaimStatusBreakdown(ctx);
+}

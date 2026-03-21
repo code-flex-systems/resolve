@@ -426,3 +426,13 @@ export async function getDocCountsByGroupIds(
 ) {
 	return await docQueries.getDocCountsByGroupIds(ctx, groupIds);
 }
+
+/**
+ * Get document overview stats (total, recent uploads, breakdown by type).
+ *
+ * @param ctx - request context
+ * @returns document stats
+ */
+export async function getDocumentStats(ctx: ProtectedContext) {
+	return docQueries.getDocumentStats(ctx);
+}

@@ -24,6 +24,11 @@ export function usePartyTrpc() {
 		// ====================================================================
 
 		/**
+		 * Get party management overview stats (admin KPIs)
+		 */
+		managementStats: trpc.party.getManagementStats.useQuery,
+
+		/**
 		 * Get paginated list of parties
 		 */
 		list: trpc.party.getParties.useQuery,

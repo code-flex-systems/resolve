@@ -884,3 +884,40 @@ export async function getDocCountsByGroupIds(ctx: ProtectedContext, groupIds: nu
 
 	return results;
 }
+
+/**
+ * Get document overview stats in a single DB round-trip.
+ * Returns total count, breakdown by type, and recent upload count.
+ */
+export async function getDocumentStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Single scan for totals + type breakdown in parallel (type breakdown needs GROUP BY)
+	const [counts, byType] = await Promise.all([
+		ctx.db
+			.selectFrom('doc')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.select(({ fn }) => [
+				fn.countAll<number>().as('total'),
+				sql<number>`count(*) filter (where created_at >= now() - interval '7 days')`.as('recent_uploads'),
+			])
+			.executeTakeFirstOrThrow(),
+		ctx.db
+			.selectFrom('doc')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.groupBy('doc_type')
+			.select(({ fn }) => [
+				'doc_type',
+				fn.countAll<number>().as('count'),
+			])
+			.execute(),
+	]);
+
+	return {
+		total: Number(counts.total),
+		recentUploads: Number(counts.recent_uploads),
+		byType: byType.map(r => ({ type: r.doc_type, count: Number(r.count) })),
+	};
+}

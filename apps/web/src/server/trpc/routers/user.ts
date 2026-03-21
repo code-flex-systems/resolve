@@ -124,4 +124,9 @@ export const userRouter = router({
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		userController.deleteUser(ctx, input);
 	}),
+
+	getManagementStats: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return userController.getManagementStats(ctx);
+	}),
 });
