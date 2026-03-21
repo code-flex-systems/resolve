@@ -143,7 +143,7 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 				</div>
 
 				{isLoading && (
-					<div style={{ width: '100%', gap: 16 }}>
+					<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 16 }}>
 						<div style={{ display: 'flex', flexDirection: 'row', gap: spacing }}>
 							<Skeleton variant="rect" width="33%" height={80} />
 							<Skeleton variant="rect" width="33%" height={80} />

@@ -130,8 +130,11 @@ export default function DocumentsTab() {
 
 	return (
 		<Card variant="beveled" padding="md" style={styles.container}>
+			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+				Manage claim documents and files. Organize documents into folders and track document status.
+			</p>
 			<Toolbar
-				left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Documents</h5>}
+				left={undefined}
 				right={
 					<div style={{ display: 'flex', gap: 8 }}>
 						{editMode ? (

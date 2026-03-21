@@ -78,7 +78,7 @@ export default function ChecklistsTab() {
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
-						left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Checklists</h5>}
+						left={undefined}
 						right={
 							<>
 								<Button variant="contained" startIcon={<IconSquarePlus size={20} />} onClick={toggleNewChecklistDialog}>
@@ -97,6 +97,9 @@ export default function ChecklistsTab() {
 						height={50}
 						padding={'0px 10px'}
 					/>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Checklists are templates that guide adjusters through claim requirements. Published checklists are available to all users.
+					</p>
 					<div style={styles.table}>
 						<DataTable
 							columns={columns}

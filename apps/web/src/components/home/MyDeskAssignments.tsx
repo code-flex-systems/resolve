@@ -36,7 +36,7 @@ export default function MyDeskAssignments() {
 					</div>
 				) : (
 					<>
-						<div style={{ ...styles.listContainer, gap: 32 }}>
+						<div style={{ ...styles.listContainer, display: 'flex', flexDirection: 'column' as const, gap: 32 }}>
 							{assignments.map((assignment, index) => {
 								const isPrimary = assignment.priority === 1;
 								return (

@@ -24,7 +24,7 @@ export default function MyClaimsMetric() {
 				{isLoading ? (
 					<Skeleton variant="rect" width="100%" height="100%" />
 				) : (
-					<div style={{ width: '100%', height: '100%', gap: 16 }}>
+					<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', height: '100%', gap: 16 }}>
 						{/* Main Count */}
 						<div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
 							<span style={{ fontSize: 48, fontWeight: 700, color: 'primary' }}>

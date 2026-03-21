@@ -1,0 +1,70 @@
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 48px;
+	padding: 0 var(--space-5);
+	border-bottom: 1px solid var(--border);
+	background: var(--bg-white);
+	flex-shrink: 0;
+	position: sticky;
+	top: 0;
+	z-index: 100;
+}
+
+/* =========================================================================
+   BREADCRUMBS
+   ========================================================================= */
+
+.breadcrumbs {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.breadcrumbItem {
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.separator {
+	color: var(--text-muted);
+	margin: 0 var(--space-1);
+	flex-shrink: 0;
+}
+
+.breadcrumbLink {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	text-decoration: none;
+	transition: color var(--transition-fast);
+}
+
+.breadcrumbLink:hover {
+	color: var(--text-accent);
+}
+
+.breadcrumbText {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.currentPage {
+	font-size: var(--text-sm);
+	font-weight: var(--font-semibold);
+	color: var(--text-primary);
+}
+
+/* =========================================================================
+   ACTIONS (right side)
+   ========================================================================= */
+
+.actions {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	flex-shrink: 0;
+	margin-left: var(--space-4);
+}

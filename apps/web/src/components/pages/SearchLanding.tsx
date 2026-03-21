@@ -43,7 +43,7 @@ export default function SearchLanding() {
 		<>
 			<div style={styles.container}>
 				<div style={styles.paper}>
-					<div style={{ width: '100%', maxWidth: 700, gap: 32, marginLeft: 'auto', marginRight: 'auto' }}>
+					<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', maxWidth: 700, gap: 32, marginLeft: 'auto', marginRight: 'auto' }}>
 						{/* Hero Header */}
 						<div style={{ textAlign: 'center' }}>
 							<span style={{ fontSize: 48, fontWeight: 700, color: 'primary', marginBottom: 16 }}>

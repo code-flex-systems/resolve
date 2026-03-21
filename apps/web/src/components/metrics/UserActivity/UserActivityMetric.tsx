@@ -37,7 +37,7 @@ export default function UserActivityMetric() {
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
-				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
+				<div style={{ display: 'flex', flexDirection: 'column' as const, width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
 					<div
 style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative' as const }}>
 						<div

@@ -66,7 +66,7 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 
 				{/* Right: Key Metrics */}
 				<div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-					<div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Claim Amount
 						</span>
@@ -74,7 +74,7 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 							{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
 						</span>
 					</div>
-					<div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Total Incurred
 						</span>
@@ -82,7 +82,7 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 							{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
 						</span>
 					</div>
-					<div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Expected Recovery
 						</span>
@@ -90,7 +90,7 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 							{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
 						</span>
 					</div>
-					<div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Actual Recovery
 						</span>

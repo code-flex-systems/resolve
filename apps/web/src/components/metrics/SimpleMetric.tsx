@@ -85,7 +85,7 @@ export default function SimpleMetric({
 									{symbol}
 								</span>
 							)}
-							<div>
+							<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 								<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'end' }}>
 									<span     style={{ color: textColor, fontSize: 50, lineHeight: '50px', fontWeight: 'bold' }}>
 										{formattedMetric.value}

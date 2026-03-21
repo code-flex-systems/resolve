@@ -1,0 +1,200 @@
+/* =========================================================================
+   CONTAINER
+   ========================================================================= */
+
+.container {
+	display: flex;
+	width: 100%;
+	min-height: 400px;
+}
+
+/* =========================================================================
+   SIDEBAR (step list)
+   ========================================================================= */
+
+.sidebar {
+	width: 220px;
+	min-width: 220px;
+	padding: var(--space-5) var(--space-4);
+	border-right: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+/* =========================================================================
+   STEP ITEM
+   ========================================================================= */
+
+.step {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-3);
+	padding: var(--space-2) 0;
+	position: relative;
+}
+
+/* Line from bottom of this indicator to top of next indicator */
+.step:not(:last-child)::after {
+	content: '';
+	position: absolute;
+	left: 13px;
+	top: calc(var(--space-2) + 28px);
+	bottom: calc(-1 * var(--space-2));
+	width: 2px;
+	background: var(--border);
+}
+
+.step.stepCompleted:not(:last-child)::after {
+	background: var(--text-accent);
+}
+
+.step.stepActive:not(:last-child)::after {
+	background: var(--border);
+}
+
+.stepClickable {
+	cursor: pointer;
+}
+
+.stepClickable:hover .stepLabel {
+	color: var(--text-primary);
+}
+
+/* =========================================================================
+   CONNECTOR LINE (between steps)
+   ========================================================================= */
+
+
+/* =========================================================================
+   INDICATOR (circle with number/check)
+   ========================================================================= */
+
+.indicator {
+	width: 28px;
+	height: 28px;
+	min-width: 28px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: var(--font-semibold);
+	border: 2px solid var(--border);
+	color: var(--text-muted);
+	background: var(--bg-white);
+	transition: all var(--transition-normal);
+	flex-shrink: 0;
+	position: relative;
+	z-index: 1;
+}
+
+.indicatorActive {
+	border-color: var(--text-accent);
+	color: var(--text-accent);
+	background: var(--status-info-bg);
+}
+
+.indicatorCompleted {
+	border-color: var(--text-accent);
+	background: var(--text-accent);
+	color: white;
+}
+
+.indicatorNumber {
+	line-height: 1;
+}
+
+/* =========================================================================
+   STEP CONTENT (label + description)
+   ========================================================================= */
+
+.stepContent {
+	display: flex;
+	flex-direction: column;
+	padding-top: 4px;
+	min-width: 0;
+}
+
+.stepLabel {
+	font-size: var(--text-sm);
+	font-weight: var(--font-medium);
+	color: var(--text-secondary);
+	line-height: var(--leading-tight);
+	transition: color var(--transition-fast);
+}
+
+.stepActive .stepLabel {
+	color: var(--text-primary);
+	font-weight: var(--font-semibold);
+}
+
+.stepCompleted .stepLabel {
+	color: var(--text-accent);
+}
+
+.stepDescription {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	line-height: var(--leading-normal);
+	margin-top: 2px;
+}
+
+.optional {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	font-weight: var(--font-normal);
+	margin-left: var(--space-1);
+}
+
+/* =========================================================================
+   MAIN (content + footer)
+   ========================================================================= */
+
+.main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.content {
+	flex: 1;
+	padding: var(--space-5);
+	overflow-y: auto;
+	animation: stepFadeIn 200ms ease-out;
+}
+
+@keyframes stepFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+
+.footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--space-3) var(--space-5);
+	border-top: 1px solid var(--border);
+	flex-shrink: 0;
+}
+
+.footerLeft {
+	display: flex;
+	gap: var(--space-2);
+}
+
+.footerRight {
+	display: flex;
+	gap: var(--space-2);
+}

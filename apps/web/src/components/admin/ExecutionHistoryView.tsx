@@ -7,12 +7,9 @@ export default function ExecutionHistoryView() {
 	return (
 		<div style={{ padding: 32, width: '100%' }}>
 			<Card variant="beveled" padding="md" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-				<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, fontWeight: 700, marginBottom: 8 }}>
-					Execution History
-				</h5>
-				<span style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-					View the history of all workflow rule executions
-				</span>
+				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+					View the history of all workflow rule executions, including actions taken, pending approvals, and failures.
+				</p>
 				<ExecutionHistoryTable />
 			</Card>
 		</div>

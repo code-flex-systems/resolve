@@ -76,6 +76,7 @@
 		"immer": "10.1.1",
 		"ldrs": "1.1.7",
 		"libphonenumber-js": "1.12.8",
+		"motion": "12.38.0",
 		"mui-tel-input": "9.0.1",
 		"next": "15.3.7",
 		"papaparse": "5.5.3",

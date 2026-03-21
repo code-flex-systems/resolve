@@ -2,8 +2,10 @@
 import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Input from '@/components/ui/Input';
 import Dropdown from '@/components/ui/Dropdown';
+import { Textarea } from '@/components/ui/Input';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import BasicDialog from '../common/BasicDialog';
+import Dialog from '@/components/ui/Dialog';
+import StepperFlow from '@/components/ui/StepperFlow';
 import AddressFields from '../common/AddressFields';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
@@ -31,6 +33,7 @@ interface AddressFormData {
 	country: string | null;
 	address_type: string;
 	address_status: string;
+	notes: string;
 }
 
 interface AddressDialogProps {
@@ -48,6 +51,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 	const isEditMode = !!address?.id;
 	const [partySearchTerm, setPartySearchTerm] = useState('');
 	const [selectedParty, setSelectedParty] = useState<PartySearchResult | null>(null);
+	const [activeStep, setActiveStep] = useState(0);
 
 	// Party search with debounce
 	const { data: partyMatches = [] } = partyTrpc.search(
@@ -74,16 +78,22 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 			country: address?.country || '',
 			address_type: String(address?.address_type ?? AddressType.BUSINESS),
 			address_status: String(address?.address_status ?? AddressStatus.VALID),
+			notes: '',
 		},
 		mode: 'onChange',
 	});
 
-	const name = watch('name');
-	const street_address = watch('street_address');
+	const nameVal = watch('name');
+	const streetAddress = watch('street_address');
 	const city = watch('city');
+	const state = watch('state');
+	const postalCode = watch('postal_code');
+	const country = watch('country');
+	const addressType = watch('address_type');
+	const addressStatus = watch('address_status');
 
 	// At least one of name, street_address, or city is required
-	const hasRequiredField = name || street_address || city;
+	const hasRequiredField = nameVal || streetAddress || city;
 
 	const handleClose = (createdAddress?: PartyAddress) => {
 		if (onClose) {
@@ -155,132 +165,219 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 		? { value: selectedParty.id, label: selectedParty.name, description: selectedParty.organization ?? undefined }
 		: null;
 
-	return (
-		<BasicDialog
-			title={isEditMode ? `Edit Address${address?.party_name ? ` - ${address.party_name}` : ''}` : `New Address${address?.party_name ? ` - ${address.party_name}` : ''}`}
-			primaryAction={{
-				label: isEditMode ? 'Update' : 'Create',
-				onClick: handleSubmit(onSubmit),
-				disabled: !hasRequiredField || isSubmitting || creating || updating || (isEditMode && !isDirty),
-			}}
-			secondaryActions={[
-				{
-					label: 'Cancel',
-					onClick: handleClose,
-				},
-			]}
-			onClose={handleClose}
-			width={600}
-		>
-			<form style={styles.form}>
-				{/* Party Selection - Only shown when creating new address without a pre-selected party */}
-				{!isEditMode && !address?.party_id && (
-					<Controller
-						name="party_id"
-						control={control}
-						rules={{ required: 'Party is required' }}
-						render={({ field }) => (
-							<Combobox
-								options={partyOptions}
-								value={selectedPartyOption}
-								onChange={(opt) => {
-									const party = opt ? (partyMatches as PartySearchResult[]).find((p) => p.id === opt.value) ?? null : null;
-									setSelectedParty(party);
-									field.onChange(party?.id || null);
-								}}
-								onInputChange={(value) => {
-									debouncedPartySearch(value);
-								}}
-								filterDisabled
-								label="Party"
-								placeholder="Search for party..."
-								error={!!errors.party_id}
-								errorText={errors.party_id?.message}
-								renderOption={(option) => (
-									<div>
-										<span style={{ fontWeight: 'bold' }}>{option.label}</span>
-										{option.description && (
-											<span style={{ color: 'var(--text-secondary)' }}>{option.description}</span>
-										)}
-									</div>
-								)}
-								fullWidth
-							/>
-						)}
+	/* =========================================================================
+	   STEP CONTENT
+	   ========================================================================= */
+
+	const stepDetailsContent = (
+		<div style={styles.form}>
+			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>
+				Provide the address details including label, location, type, and status.
+			</p>
+
+			{/* Party Selection - Only shown when creating new address without a pre-selected party */}
+			{!isEditMode && !address?.party_id && (
+				<Controller
+					name="party_id"
+					control={control}
+					rules={{ required: 'Party is required' }}
+					render={({ field }) => (
+						<Combobox
+							options={partyOptions}
+							value={selectedPartyOption}
+							onChange={(opt) => {
+								const party = opt ? (partyMatches as PartySearchResult[]).find((p) => p.id === opt.value) ?? null : null;
+								setSelectedParty(party);
+								field.onChange(party?.id || null);
+							}}
+							onInputChange={(value) => {
+								debouncedPartySearch(value);
+							}}
+							filterDisabled
+							label="Party"
+							placeholder="Search for party..."
+							error={!!errors.party_id}
+							errorText={errors.party_id?.message}
+							renderOption={(option) => (
+								<div>
+									<span style={{ fontWeight: 'bold' }}>{option.label}</span>
+									{option.description && (
+										<span style={{ color: 'var(--text-secondary)' }}>{option.description}</span>
+									)}
+								</div>
+							)}
+							fullWidth
+						/>
+					)}
+				/>
+			)}
+
+			{/* Address Name (Label) */}
+			<Controller
+				name="name"
+				control={control}
+				render={({ field }) => (
+					<Input
+						{...field}
+						label="Address Label"
+						fullWidth
+						placeholder="e.g., Home, Work, Headquarters"
 					/>
 				)}
+			/>
 
-				{/* Address Name (Label) */}
+			{/* Address Fields */}
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+				<AddressFields
+					control={control}
+					errors={errors}
+					setValue={setValue}
+					disabled={isSubmitting}
+					width={552}
+				/>
+			</div>
+
+			{/* Address Type & Status Row */}
+			<div style={{ display: 'flex', gap: 16 }}>
 				<Controller
-					name="name"
+					name="address_type"
 					control={control}
 					render={({ field }) => (
-						<Input
-							{...field}
-							label="Address Label"
+						<Dropdown
+							value={field.value}
+							onChange={(val) => field.onChange(String(val))}
+							label="Address Type"
 							fullWidth
-							placeholder="e.g., Home, Work, Headquarters"
+							options={[
+								{ value: AddressType.HOME, label: 'Home' },
+								{ value: AddressType.BUSINESS, label: 'Business' },
+							]}
 						/>
 					)}
 				/>
 
-				{/* Address Fields */}
-				<div  style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-					<AddressFields
-						control={control}
-						errors={errors}
-						setValue={setValue}
+				<Controller
+					name="address_status"
+					control={control}
+					render={({ field }) => (
+						<Dropdown
+							value={field.value}
+							onChange={(val) => field.onChange(String(val))}
+							label="Address Status"
+							fullWidth
+							options={[
+								{ value: AddressStatus.VALID, label: 'Valid' },
+								{ value: AddressStatus.MAILING, label: 'Mailing' },
+								{ value: AddressStatus.UNDELIVERABLE, label: 'Undeliverable' },
+								{ value: AddressStatus.UNKNOWN, label: 'Unknown' },
+							]}
+						/>
+					)}
+				/>
+			</div>
+
+			{!hasRequiredField && (
+				<span style={{ color: 'var(--status-error)', fontStyle: 'italic' }}>
+					* At least one of: Address Label, City, or Street Address is required
+				</span>
+			)}
+		</div>
+	);
+
+	const addressTypeLabel = addressType === AddressType.HOME ? 'Home' : 'Business';
+	const addressStatusLabel =
+		addressStatus === AddressStatus.VALID ? 'Valid'
+		: addressStatus === AddressStatus.MAILING ? 'Mailing'
+		: addressStatus === AddressStatus.UNDELIVERABLE ? 'Undeliverable'
+		: 'Unknown';
+
+	const stepReviewContent = (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 520 }}>
+			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>
+				Review the address details below, then add any notes before submitting.
+			</p>
+
+			<div style={reviewStyles.section}>
+				<span style={reviewStyles.sectionTitle}>Address Details</span>
+				<div style={reviewStyles.grid}>
+					{nameVal && (
+						<div style={reviewStyles.field}>
+							<span style={reviewStyles.label}>Label</span>
+							<span style={reviewStyles.value}>{nameVal}</span>
+						</div>
+					)}
+					{(streetAddress || city || state || postalCode) && (
+						<div style={reviewStyles.field}>
+							<span style={reviewStyles.label}>Address</span>
+							<span style={reviewStyles.value}>
+								{[streetAddress, city, state, postalCode, country].filter(Boolean).join(', ') || '--'}
+							</span>
+						</div>
+					)}
+					<div style={reviewStyles.field}>
+						<span style={reviewStyles.label}>Type</span>
+						<span style={reviewStyles.value}>{addressTypeLabel}</span>
+					</div>
+					<div style={reviewStyles.field}>
+						<span style={reviewStyles.label}>Status</span>
+						<span style={reviewStyles.value}>{addressStatusLabel}</span>
+					</div>
+					{selectedParty && (
+						<div style={reviewStyles.field}>
+							<span style={reviewStyles.label}>Party</span>
+							<span style={reviewStyles.value}>{selectedParty.name}</span>
+						</div>
+					)}
+				</div>
+			</div>
+
+			{/* Notes */}
+			<Controller
+				name="notes"
+				control={control}
+				render={({ field }) => (
+					<Textarea
+						label="Notes (optional)"
+						placeholder="Additional notes about this address"
+						rows={3}
+						{...field}
 						disabled={isSubmitting}
-						width={552}
+						style={{ width: '100%' }}
 					/>
-				</div>
-
-				{/* Address Type & Status Row */}
-				<div  style={{ display: 'flex', gap: 16 }}>
-					<Controller
-						name="address_type"
-						control={control}
-						render={({ field }) => (
-							<Dropdown
-								value={field.value}
-								onChange={(val) => field.onChange(String(val))}
-								label="Address Type"
-								fullWidth
-								options={[
-									{ value: AddressType.HOME, label: 'Home' },
-									{ value: AddressType.BUSINESS, label: 'Business' },
-								]}
-							/>
-						)}
-					/>
-
-					<Controller
-						name="address_status"
-						control={control}
-						render={({ field }) => (
-							<Dropdown
-								value={field.value}
-								onChange={(val) => field.onChange(String(val))}
-								label="Address Status"
-								fullWidth
-								options={[
-									{ value: AddressStatus.VALID, label: 'Valid' },
-									{ value: AddressStatus.MAILING, label: 'Mailing' },
-									{ value: AddressStatus.UNDELIVERABLE, label: 'Undeliverable' },
-									{ value: AddressStatus.UNKNOWN, label: 'Unknown' },
-								]}
-							/>
-						)}
-					/>
-				</div>
-
-				{!hasRequiredField && (
-					<span  style={{  color: 'var(--status-error)' ,  fontStyle: 'italic'  }}>
-						* At least one of: Address Label, City, or Street Address is required
-					</span>
 				)}
-			</form>
-		</BasicDialog>
+			/>
+		</div>
+	);
+
+	const steps = [
+		{
+			key: 'details',
+			label: 'Address Details',
+			description: 'Name, location, type',
+			content: stepDetailsContent,
+			isValid: !!hasRequiredField,
+		},
+		{
+			key: 'review',
+			label: 'Review',
+			description: 'Confirm and submit',
+			content: stepReviewContent,
+			isValid: true,
+		},
+	];
+
+	return (
+		<Dialog open={true} onClose={() => handleClose()} size="lg">
+			<StepperFlow
+				steps={steps}
+				activeStep={activeStep}
+				onStepChange={setActiveStep}
+				onComplete={handleSubmit(onSubmit)}
+				onCancel={() => handleClose()}
+				completeLabel={isEditMode ? 'Update' : 'Create'}
+				loading={creating || updating}
+			/>
+		</Dialog>
 	);
 }
 
@@ -290,5 +387,40 @@ const styles = {
 		flexDirection: 'column' as const,
 		gap: '20px',
 		paddingTop: '10px',
+	},
+};
+
+const reviewStyles = {
+	section: {
+		display: 'flex' as const,
+		flexDirection: 'column' as const,
+		gap: 8,
+		padding: '12px 0',
+		borderBottom: '1px solid var(--border-color)',
+	},
+	sectionTitle: {
+		fontSize: 13,
+		fontWeight: 600,
+		color: 'var(--text-primary)',
+		textTransform: 'uppercase' as const,
+		letterSpacing: '0.5px',
+	},
+	grid: {
+		display: 'flex' as const,
+		flexDirection: 'column' as const,
+		gap: 8,
+	},
+	field: {
+		display: 'flex' as const,
+		flexDirection: 'column' as const,
+		gap: 2,
+	},
+	label: {
+		fontSize: 12,
+		color: 'var(--text-secondary)',
+	},
+	value: {
+		fontSize: 14,
+		color: 'var(--text-primary)',
 	},
 };

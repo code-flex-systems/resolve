@@ -15,6 +15,7 @@ import useIsAdmin from '@/hooks/useIsAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import AppHeader from './AppHeader';
 import css from './PageWrapper.module.css';
 
 export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } & PropsWithChildren) {
@@ -54,7 +55,10 @@ export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } 
 		>
 			<Sidebar items={navItems} />
 			<div className={css.main}>
-				{children}
+				<AppHeader />
+				<div className={css.content}>
+					{children}
+				</div>
 			</div>
 		</div>
 	);

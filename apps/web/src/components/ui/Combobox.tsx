@@ -296,7 +296,7 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 					className={styles.input}
 					value={displayValue}
 					onChange={(e) => handleInputChange(e.target.value)}
-					onFocus={openMenu}
+					onClick={openMenu}
 					onKeyDown={handleKeyDown}
 					placeholder={hasValue && !multiple ? '' : placeholder}
 					disabled={disabled}

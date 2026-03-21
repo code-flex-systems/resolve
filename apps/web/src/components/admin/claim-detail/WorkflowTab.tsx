@@ -215,7 +215,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 								<div key={`${assignment.checklist_id}-${assignment.claim_id}`}>
 									{index > 0 && <Divider />}
 									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-										<div style={{ flex: 1 }}>
+										<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
 											<span style={{ fontSize: 13, fontWeight: 600 }}>
 												{assignment.checklist_name}
 											</span>

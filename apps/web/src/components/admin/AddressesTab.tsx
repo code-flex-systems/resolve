@@ -194,12 +194,12 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading addresses...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Manage addresses associated with parties. Addresses are used for correspondence and location tracking.
+					</p>
 					<Toolbar
 						left={
 							<>
-								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
-									Addresses
-								</h5>
 								{isAdminContext && (
 									<>
 										<Switch

@@ -331,7 +331,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 											flexShrink: 0,
 										}}
 									/>
-									<div style={{ flex: 1 }}>
+									<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
 										<span style={{ fontSize: 13 }}>
 											<Highlight color="secondary.main">
 												{log.first_name} {log.last_name}

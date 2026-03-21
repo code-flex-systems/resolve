@@ -17,7 +17,7 @@ export default function StackedMetric({
 		<div    style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
 			<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 				{icon}
-				<div     style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}>
+				<div     style={{ display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}>
 					<span   style={{ fontSize: fontSize, lineHeight: '22px' }}>
 						{value}
 					</span>

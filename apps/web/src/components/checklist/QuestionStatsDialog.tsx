@@ -40,7 +40,7 @@ export default function QuestionStatsDialog() {
 			width={600}
 			maxHeight={600}>
 			{loading && (
-				<div style={{ gap: 16, padding: 16 }}>
+				<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, padding: 16 }}>
 					{[1, 2, 3].map((i) => (
 						<Skeleton key={i} variant="rect" height={60} />
 					))}

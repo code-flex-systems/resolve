@@ -229,8 +229,11 @@ export default function AdminLogsTab() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading logs...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Audit log of all administrative actions taken in the system. Filter by entity type, user, or date range.
+					</p>
 					<Toolbar
-						left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Admin Logs</h5>}
+						left={undefined}
 						right={<></>}
 						height={50}
 						padding={'0px 10px'}

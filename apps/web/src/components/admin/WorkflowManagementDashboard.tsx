@@ -82,6 +82,9 @@ export default function WorkflowManagementDashboard() {
 				>
 					Real-time metrics and operational insights across all workflow stages
 				</span>
+				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '8px 0 0', lineHeight: 1.5 }}>
+					Monitor workflow health and take action on suggested changes. KPIs show real-time workload and capacity metrics.
+				</p>
 			</div>
 
 			{/* Metrics cards */}

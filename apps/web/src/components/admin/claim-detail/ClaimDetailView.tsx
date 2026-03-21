@@ -71,10 +71,9 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 				</div>
 
 				{/* Tab Content */}
-				<div>
-					<div style={{ flex: 1, overflow: 'auto' }}>
-						<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-							<div style={{ width: '100%', maxWidth: 1400 }}>
+				<div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+					<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+						<div style={{ width: '100%', maxWidth: 1400 }}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
 								{currentTab === 2 && <ClaimantsCoverageTab claimId={claimId} />}
@@ -83,7 +82,6 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 								{currentTab === 5 && <SettlementRecoveryTab claimId={claimId} />}
 							</div>
 						</div>
-					</div>
 				</div>
 			</Card>
 		</PageTransitionWrapper>

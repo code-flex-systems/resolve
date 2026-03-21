@@ -196,12 +196,12 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading representatives...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Representatives are contacts at party organizations — attorneys, adjusters, and other professional contacts.
+					</p>
 					<Toolbar
 						left={
 							<>
-								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
-									Representatives
-								</h5>
 								{isAdminContext && (
 									<>
 										<Switch

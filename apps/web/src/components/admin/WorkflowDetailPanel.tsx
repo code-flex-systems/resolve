@@ -321,6 +321,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				{/* Section 2: Thresholds (Beveled Container with Table) */}
 				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
+						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+							Thresholds set SLA boundaries. When a claim exceeds these limits, it's flagged for attention.
+						</p>
 						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								SLA & Capacity Thresholds ({thresholds.length})
@@ -398,6 +401,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				{/* Section 3: Rules (Beveled Container with Containerized Items) */}
 				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
+						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+							Rules automate claim routing based on conditions. Rules in Suggest mode require admin approval before execution.
+						</p>
 						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								Automation Rules ({rules.length})

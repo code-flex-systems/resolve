@@ -33,7 +33,6 @@ const Dialog = forwardRef<HTMLDialogElement, DialogProps>(
 			}
 		}, [open, dialogRef]);
 
-		// Sync native close event (Escape key) with React state
 		useEffect(() => {
 			const dialog = dialogRef.current;
 			if (!dialog) return;
@@ -43,12 +42,8 @@ const Dialog = forwardRef<HTMLDialogElement, DialogProps>(
 			return () => dialog.removeEventListener('close', handleClose);
 		}, [onClose, dialogRef]);
 
-		// Close on backdrop click — detect clicks on the dialog element itself
-		// (the backdrop is part of the dialog element, but outside the inner content)
 		const handleClick = useCallback(
 			(e: React.MouseEvent<HTMLDialogElement>) => {
-				// Only close if the click target is the dialog element itself (the backdrop),
-				// not any of its children (the content)
 				if (e.target === e.currentTarget) {
 					onClose();
 				}
@@ -58,9 +53,6 @@ const Dialog = forwardRef<HTMLDialogElement, DialogProps>(
 
 		const classNames = [styles.dialog, styles[size]].filter(Boolean).join(' ');
 
-		// Don't render the dialog element at all when closed.
-		// Native <dialog> elements are visible in the document flow when not in modal state,
-		// which causes them to appear anchored on the page after closing.
 		if (!open) return null;
 
 		return (

@@ -64,7 +64,7 @@ export default function MyQueue() {
 					{isFetching ? (
 						<Skeleton variant="rect" width="100%" height="100%" />
 					) : (
-						<div style={{ width: '100%', height: '100%', gap: 8 }}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', height: '100%', gap: 8 }}>
 							{/* Claims List */}
 							<div style={styles.listContainer}>
 								{claims.length === 0 ? (

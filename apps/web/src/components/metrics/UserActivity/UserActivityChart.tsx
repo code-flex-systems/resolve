@@ -61,7 +61,7 @@ export default function UserActivityChart({
 				<div>
 					<div style={{ width: '100%' }}>
 						{isLoading && (
-							<div style={{ width: '100%', gap: 16, padding: 16 }}>
+							<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 16, padding: 16 }}>
 								<div style={{ display: 'flex', flexDirection: 'row', gap: 16 }}>
 									<Skeleton variant="rect" width="33%" height={80} />
 									<Skeleton variant="rect" width="33%" height={80} />

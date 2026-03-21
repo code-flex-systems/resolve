@@ -58,8 +58,8 @@ export default function ActionsMetric() {
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
-				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
-					<div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+				<div style={{ display: 'flex', flexDirection: 'column' as const, width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
+					<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 						<div
 style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
 							<span style={{ fontSize: 14, fontWeight: 600 }}>
@@ -92,7 +92,7 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 							</div>
 						</div>
 						<div
-style={{ width: '100%', height: '100%', display: 'flex', justifyContent: stats.length ? 'flex-start' : 'center', alignItems: stats.length ? 'flex-start' : 'center' }}>
+style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' as const, justifyContent: stats.length ? 'flex-start' : 'center', alignItems: stats.length ? 'flex-start' : 'center' }}>
 							{stats.length ? (
 								<>
 									{stats.map((s) => {
@@ -110,7 +110,7 @@ key={s.id}
 													{getActionIcon(type)}
 												</div>
 
-												<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: 290, minWidth: 0, overflow: 'hidden' as const, textOverflow: 'ellipsis' }}>
+												<div style={{ display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', alignItems: 'flex-start', width: 290, minWidth: 0, overflow: 'hidden' as const, textOverflow: 'ellipsis' }}>
 													<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 14 }}>
 														{getActionPrimaryContent(type, s.definition)}
 													</span>

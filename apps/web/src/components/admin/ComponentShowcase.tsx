@@ -7,6 +7,7 @@ import Card from '@/components/ui/Card';
 import Dialog from '@/components/ui/Dialog';
 import Input, { Textarea } from '@/components/ui/Input';
 import Dropdown from '@/components/ui/Dropdown';
+import StepperFlow, { type Step } from '@/components/ui/StepperFlow';
 import {
 	IconPlus,
 	IconArrowRight,
@@ -29,6 +30,7 @@ export default function ComponentShowcase() {
 	const [inputValue, setInputValue] = useState('');
 	const [dropdownValue, setDropdownValue] = useState<string | number | null>(null);
 	const [renderValueDemo, setRenderValueDemo] = useState<string | number | null>('high');
+	const [stepperStep, setStepperStep] = useState(0);
 	const [textareaValue, setTextareaValue] = useState('');
 
 	const selectOptions = [
@@ -531,6 +533,103 @@ export default function ComponentShowcase() {
 						</div>
 					</Card>
 				</div>
+			</section>
+
+			{/* ================================================================
+			    STEPPER FLOW
+			    ================================================================ */}
+			<section className={styles.section}>
+				<h2 className={styles.sectionTitle}>Stepper Flow</h2>
+				<p className={styles.sectionDescription}>
+					A multi-step flow with a step sidebar on the left. Can be used inside a Dialog
+					or standalone on a page. Steps show completion state and allow navigating back
+					to completed steps.
+				</p>
+
+				<Card variant="beveled" padding="none">
+					<StepperFlow
+						steps={[
+							{
+								key: 'info',
+								label: 'Basic Information',
+								description: 'Name and type',
+								content: (
+									<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+										<Input label="Name" placeholder="Enter a name..." fullWidth />
+										<Dropdown
+											label="Type"
+											options={[
+												{ value: 'type1', label: 'Type One' },
+												{ value: 'type2', label: 'Type Two' },
+											]}
+											placeholder="Select type..."
+											fullWidth
+										/>
+										<Textarea label="Description" placeholder="Optional description..." fullWidth minRows={3} />
+									</div>
+								),
+								isValid: true,
+							},
+							{
+								key: 'config',
+								label: 'Configuration',
+								description: 'Settings and options',
+								content: (
+									<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+										<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+											Configure the settings for this resource. Each field has validation
+											that must pass before you can proceed to the next step.
+										</p>
+										<Input label="Threshold" type="number" placeholder="0" fullWidth />
+										<Input label="Priority" type="number" placeholder="100" fullWidth />
+									</div>
+								),
+								isValid: true,
+							},
+							{
+								key: 'conditions',
+								label: 'Conditions',
+								description: 'When to apply',
+								isOptional: true,
+								content: (
+									<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+										<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+											Define conditions that determine when this rule applies. This step is optional.
+										</p>
+										<Card variant="surface" padding="md">
+											<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>No conditions configured. Click Next to skip.</span>
+										</Card>
+									</div>
+								),
+								isValid: true,
+							},
+							{
+								key: 'review',
+								label: 'Review & Submit',
+								content: (
+									<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+										<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+											Review your configuration before submitting.
+										</p>
+										<Card variant="surface" padding="md">
+											<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+												<div><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Name</span><br /><span>Example Resource</span></div>
+												<div><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Type</span><br /><span>Type One</span></div>
+												<div><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Conditions</span><br /><span style={{ color: 'var(--text-muted)' }}>None</span></div>
+											</div>
+										</Card>
+									</div>
+								),
+								isValid: true,
+							},
+						]}
+						activeStep={stepperStep}
+						onStepChange={setStepperStep}
+						onComplete={() => setStepperStep(0)}
+						onCancel={() => setStepperStep(0)}
+						completeLabel="Create Resource"
+					/>
+				</Card>
 			</section>
 
 			{/* ================================================================

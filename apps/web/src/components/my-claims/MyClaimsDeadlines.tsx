@@ -75,7 +75,7 @@ export default function MyClaimsDeadlines() {
 			</div>
 			<div style={{ padding: 16 }}>
 				{isLoading ? (
-					<div style={{ gap: 8 }}>
+					<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 						<Skeleton variant="rect" height={40} />
 						<Skeleton variant="rect" height={60} />
 						<Skeleton variant="rect" height={60} />
@@ -107,7 +107,7 @@ style={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' as const, fo
 									</span>
 								</div>
 							) : (
-								<div style={{ gap: 8 }}>
+								<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 									{filteredDeadlines.slice(0, 10).map((deadline) => (
 										<DeadlineListItem
 											key={deadline.id}

@@ -132,7 +132,7 @@ export default function MyDeadlinesMetric() {
 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
 									<IconAlertTriangle size={20} style={{ color: 'white', fontSize: 22 }} />
 								</div>
-								<div>
+								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 									<span style={{ fontSize: 24, fontWeight: 700, color: 'error' }}>
 										{overdueCount}
 									</span>
@@ -148,7 +148,7 @@ style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width:
 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
 									<IconClock size={20} style={{ color: 'white', fontSize: 22 }} />
 								</div>
-								<div>
+								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 									<span style={{ fontSize: 24, fontWeight: 700, color: 'warning.main' }}>
 										{upcomingCount}
 									</span>

@@ -325,7 +325,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 								}}
 							>
 								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-									<div style={{ flex: 1 }}>
+									<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
 										<span style={{ fontSize: 14, fontWeight: 600 }}>
 											{formatCoverageType(coverage.loss_type)}
 										</span>
@@ -420,7 +420,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						Coverage Summary
 					</span>
 					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Coverage Amount
 							</span>
@@ -431,7 +431,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 								{formatCurrencyExact(totalCoverageAmount)}
 							</span>
 						</div>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Amount Reserved
 							</span>
@@ -442,7 +442,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 								{formatCurrencyExact(totalAmountReserved)}
 							</span>
 						</div>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Linked Entities
 							</span>

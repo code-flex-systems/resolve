@@ -53,6 +53,9 @@ export default function WorkflowsView() {
 					<span>
 						Workflows ({definitions.length.toLocaleString()})
 					</span>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '8px 0 0', lineHeight: 1.5 }}>
+						Workflows define the stages claims move through. Each workflow can have thresholds for SLA monitoring and rules for automated routing.
+					</p>
 				</div>
 
 				{/* Search */}

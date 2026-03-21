@@ -159,10 +159,10 @@ export default function Page() {
 				{(selectedPageInstance === -1 || loading) && (
 					<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
 						{loading ? (
-							<div style={{ gap: 16, width: '100%', padding: 16 }}>
+							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, width: '100%', padding: 16 }}>
 								<Skeleton variant="text" width="60%" height={32} />
 								{[1, 2, 3, 4].map((i) => (
-									<div key={i}  style={{ gap: 8 }}>
+									<div key={i}  style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 										<Skeleton variant="text" width="40%" />
 										<Skeleton variant="rect" height={48} />
 									</div>

@@ -112,7 +112,7 @@ style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pa
 
 	return (
 		<div
-style={{ display: 'flex', width: '100%', minWidth: 'fit-content', height: '100%', justifyContent: 'center', alignItems: 'flex-start', padding: '10px 10px' }}>
+style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', minWidth: 'fit-content', height: '100%', justifyContent: 'center', alignItems: 'flex-start', padding: '10px 10px' }}>
 			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 				{getLogText()}
 			</div>

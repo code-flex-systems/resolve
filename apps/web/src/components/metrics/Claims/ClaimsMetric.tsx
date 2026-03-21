@@ -75,8 +75,8 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: num
 			{isFetching ? (
 				<Skeleton width={METRIC_WIDTH} height={METRIC_HEIGHT} />
 			) : (
-				<div style={{ display: 'flex', width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
-					<div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+				<div style={{ display: 'flex', flexDirection: 'column' as const, width: METRIC_WIDTH, height: METRIC_HEIGHT, padding: '10px' }}>
+					<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 						<div
 style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
 							<span style={{ fontSize: 14, fontWeight: 600 }}>

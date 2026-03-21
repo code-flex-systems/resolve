@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { useRef, useEffect, useState, useCallback, type ReactNode } from 'react';
 import styles from './Tabs.module.css';
 
 /* =========================================================================
@@ -21,9 +21,35 @@ export interface TabsProps {
 
 export function Tabs({ tabs, value, onChange, className }: TabsProps) {
 	const classNames = [styles.tabs, className].filter(Boolean).join(' ');
+	const tabsRef = useRef<HTMLDivElement>(null);
+	const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+	const updateIndicator = useCallback(() => {
+		if (!tabsRef.current) return;
+		const buttons = tabsRef.current.querySelectorAll('[role="tab"]');
+		const activeButton = buttons[value] as HTMLElement | undefined;
+		if (activeButton) {
+			const containerRect = tabsRef.current.getBoundingClientRect();
+			const buttonRect = activeButton.getBoundingClientRect();
+			setIndicator({
+				left: buttonRect.left - containerRect.left,
+				width: buttonRect.width,
+			});
+		}
+	}, [value]);
+
+	useEffect(() => {
+		updateIndicator();
+	}, [updateIndicator]);
+
+	// Also update on resize
+	useEffect(() => {
+		window.addEventListener('resize', updateIndicator);
+		return () => window.removeEventListener('resize', updateIndicator);
+	}, [updateIndicator]);
 
 	return (
-		<div className={classNames} role="tablist">
+		<div className={classNames} role="tablist" ref={tabsRef}>
 			{tabs.map((tab, index) => (
 				<button
 					key={index}
@@ -39,8 +65,8 @@ export function Tabs({ tabs, value, onChange, className }: TabsProps) {
 			<div
 				className={styles.indicator}
 				style={{
-					width: `${100 / tabs.length}%`,
-					transform: `translateX(${value * 100}%)`,
+					width: indicator.width,
+					transform: `translateX(${indicator.left}px)`,
 				}}
 			/>
 		</div>

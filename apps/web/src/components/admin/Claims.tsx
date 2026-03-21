@@ -258,8 +258,8 @@ export default function Claims() {
 	}, [searchParams]);
 
 	// Handle row click - update URL with selected claim ID
-	const handleRowClick = (params: any) => {
-		const claimId = params.row.id;
+	const handleRowClick = (row: any) => {
+		const claimId = row.id;
 		const newParams = new URLSearchParams(searchParams.toString());
 		newParams.set('selected', claimId.toString());
 		router.push(`${pathname}?${newParams.toString()}`);
@@ -349,9 +349,12 @@ export default function Claims() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
 				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						View and manage all claims across the organization. Click a claim to see its full details.
+					</p>
 					{/* Main Toolbar: Title and Actions */}
 					<Toolbar
-						left={<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>All Claims</h5>}
+						left={undefined}
 						right={
 							<>
 								<Button

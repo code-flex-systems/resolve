@@ -119,7 +119,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 								{claimDetail.claim_number}
 							</span>
 							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-								<div style={{ width: '50%', padding: 8 }}>
+								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Claim Amount
 									</span>
@@ -127,7 +127,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 										{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
 									</span>
 								</div>
-								<div style={{ width: '50%', padding: 8 }}>
+								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Total Incurred
 									</span>
@@ -137,7 +137,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 								</div>
 							</div>
 							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-								<div style={{ width: '50%', padding: 8 }}>
+								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Expected Recovery
 									</span>
@@ -145,7 +145,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 										{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
 									</span>
 								</div>
-								<div style={{ width: '50%', padding: 8 }}>
+								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Actual Recovery
 									</span>

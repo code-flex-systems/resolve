@@ -118,13 +118,10 @@ export default function DeskAssignmentTab() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-						<div style={{ display: 'flex', alignItems: 'center' }}>
-							<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '20px' }}>
-								Desk Assignments
-							</h5>
-						</div>
-						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Assign users to desk locations with priority levels. Lower priority numbers mean the user is assigned to that location first.
+					</p>
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
 							<Button
 								variant="contained"
 								startIcon={<IconClipboard size={20} />}
@@ -142,7 +139,6 @@ export default function DeskAssignmentTab() {
 									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
 								</Button>
 							</Tooltip>
-						</div>
 					</div>
 					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '5px' }}>
 						<div></div>

@@ -29,7 +29,7 @@ export default function TeamRecoveryChart() {
 	return (
 		<div style={{ width: '100%', height: '100%' }}>
 			{isFetching && (
-				<div style={{ width: '100%', gap: 8 }}>
+				<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 8 }}>
 					<Skeleton variant="rect" width="100%" height={130} />
 				</div>
 			)}

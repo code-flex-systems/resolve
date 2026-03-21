@@ -497,11 +497,11 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					onClose={() => setArchivingSettlement(null)}
 					width={450}
 				>
-					<div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this settlement?
 						</span>
-						<div style={{ backgroundColor: '#fff8e1', padding: 16, borderRadius: 4, marginBottom: 16 }}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, backgroundColor: '#fff8e1', padding: 16, borderRadius: 4, marginBottom: 16 }}>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								{archivingSettlement.party_name}
 							</span>
@@ -513,7 +513,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 0 && (
 							<div style={{ backgroundColor: '#fff3e0', padding: 16, borderRadius: 4, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
 								<IconAlertTriangle color="warning" style={{ fontSize: 20, marginTop: 2 }} />
-								<div>
+								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 									<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
 										This will also archive:
 									</span>
@@ -545,11 +545,11 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					onClose={() => setArchivingRecovery(null)}
 					width={450}
 				>
-					<div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this recovery event?
 						</span>
-						<div style={{ backgroundColor: '#e8f5e9', padding: 16, borderRadius: 4, marginBottom: 16 }}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, backgroundColor: '#e8f5e9', padding: 16, borderRadius: 4, marginBottom: 16 }}>
 							<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-success)'  }}>
 								{formatCurrencyExact(parseFloat(archivingRecovery.recovery_amount.toString()))}
 							</span>

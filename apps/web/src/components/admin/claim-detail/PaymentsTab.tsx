@@ -287,7 +287,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 						Payments Summary
 					</span>
 					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Payments
 							</span>
@@ -298,7 +298,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 								{formatCurrencyExact(summaryValues.totalPayments)}
 							</span>
 						</div>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Subrogable Amount
 							</span>
@@ -309,7 +309,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 								{formatCurrencyExact(summaryValues.subrogableAmount)}
 							</span>
 						</div>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Expenses
 							</span>
@@ -320,7 +320,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 								{formatCurrencyExact(summaryValues.expenseAmount)}
 							</span>
 						</div>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Credits
 							</span>

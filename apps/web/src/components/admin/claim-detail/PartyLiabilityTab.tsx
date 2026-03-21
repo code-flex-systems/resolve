@@ -191,7 +191,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 						Liability Summary
 					</span>
 					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Adverse Parties
 							</span>
@@ -202,7 +202,7 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 								{entities.length}
 							</span>
 						</div>
-						<div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Combined Liability
 							</span>

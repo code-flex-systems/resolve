@@ -147,7 +147,7 @@ export default function DeskLocationsTab() {
 					<Card variant="beveled" padding="md" style={styles.leftPanel}>
 						<Toolbar
 							left={
-								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Desk Location Types</h5>
+								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Desk Location Types</span>
 							}
 							right={
 								<>
@@ -171,6 +171,9 @@ export default function DeskLocationsTab() {
 							height={50}
 							padding={'0px 10px'}
 						/>
+						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5, padding: '0 10px' }}>
+							Desk location types represent workflow phases (e.g., Evaluation, Review). They group related desk locations.
+						</p>
 						<div style={styles.table}>
 							<DataTable
 								columns={typeColumns}
@@ -193,7 +196,7 @@ export default function DeskLocationsTab() {
 					<Card variant="beveled" padding="md" style={styles.rightPanel}>
 						<Toolbar
 							left={
-								<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Desk Locations</h5>
+								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Desk Locations</span>
 							}
 							right={
 								<Button
@@ -208,6 +211,9 @@ export default function DeskLocationsTab() {
 							height={50}
 							padding={'0px 10px'}
 						/>
+						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5, padding: '0 10px' }}>
+							Desk locations are specific work queues within a phase where claims are assigned and worked.
+						</p>
 						<div style={styles.table}>
 							<DataTable
 								columns={locationColumns}

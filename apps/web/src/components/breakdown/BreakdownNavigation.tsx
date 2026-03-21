@@ -78,7 +78,7 @@ export default function BreakdownNavigation() {
 				<div>
 						<div style={styles.contentPaper}>
 							{isLoading && (
-								<div    style={{ gap: 16, width: '100%', padding: 16 }}>
+								<div    style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, width: '100%', padding: 16 }}>
 									{[1, 2, 3, 4].map((i) => (
 										<Skeleton key={i} variant="rect" height={60} />
 									))}

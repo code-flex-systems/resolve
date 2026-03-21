@@ -384,6 +384,9 @@ export default function TasksTab() {
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
 					<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+							Tasks are work items assigned to desk locations. They track specific actions that need to be completed for claims.
+						</p>
 						{/* Metrics */}
 						<TaskMetrics
 							openTasks={metrics.openTasks}
@@ -397,9 +400,6 @@ export default function TasksTab() {
 							<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 								{/* Left: Week navigation */}
 								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-									<h5 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginRight: '40px' }}>
-										Tasks
-									</h5>
 									<Button variant="icon" size="sm" onClick={handlePreviousWeek}>
 										<IconChevronLeft size={20} />
 									</Button>

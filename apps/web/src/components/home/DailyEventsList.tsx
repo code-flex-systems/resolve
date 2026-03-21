@@ -35,7 +35,7 @@ export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: D
 							</span>
 						</div>
 					) : (
-						<div style={{ gap: 8 }}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 							{deadlines.map((deadline) => (
 								<DeadlineListItem
 									key={deadline.id}
