@@ -13,8 +13,8 @@ import { IconTrophy } from '@tabler/icons-react';
 
 export default function BreakdownNavigation() {
 	const searchParams = useSearchParams();
-	const pageId = +(searchParams.get('pageId') ?? '-1');
-	const instanceId = +(searchParams.get('instanceId') ?? '-1');
+	const pageId = searchParams.get('pageId') ?? '';
+	const instanceId = searchParams.get('instanceId') ?? '';
 
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
@@ -35,11 +35,11 @@ export default function BreakdownNavigation() {
 				users: breakdownUsers.map((u) => u.id),
 			},
 		},
-		{ enabled: pageId !== -1 }
+		{ enabled: !!pageId }
 	);
 	const { data: pageInstance, isFetching: loadingPage } = usePageTrpc().getInstance(
 		{ instanceId },
-		{ enabled: instanceId !== -1 }
+		{ enabled: !!instanceId }
 	);
 	const isLoading = loadingPage || loadingStats;
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -99,8 +99,8 @@ export default function BreakdownNavigation() {
 										expandedIdx={expandedIdx}
 										idx={i}
 										item={stat}
-										onAnswerClick={(id: number) => updateSelectedAnswerId(id)}
-										pageId={+pageId}
+										onAnswerClick={(id: string) => updateSelectedAnswerId(id)}
+										pageId={pageId}
 										selectedAnswerId={selectedAnswerId ?? undefined}
 										setExpandedIdx={(newIdx) => {
 											setExpandedIdx(newIdx);

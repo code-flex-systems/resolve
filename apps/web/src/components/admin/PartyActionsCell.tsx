@@ -33,10 +33,10 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreParty({ id: row.id as unknown as number });
+				await restoreParty({ id: row.id });
 				showAlert('Party restored successfully', 'success');
 			} else {
-				await archiveParty({ id: row.id as unknown as number });
+				await archiveParty({ id: row.id });
 				showAlert('Party archived successfully', 'success');
 			}
 			setShowActionConfirm(false);

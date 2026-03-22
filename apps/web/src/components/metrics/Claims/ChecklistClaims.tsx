@@ -58,7 +58,6 @@ const COLUMNS: ColumnDef<any, any>[] = [
 		cell: (info: any) => {
 			const params = { row: info.row.original, value: info.getValue() };
 			const user = formatUser({
-				id: params.value,
 				first: params.row.assignee_first,
 				last: params.row.assignee_last,
 				email: params.row.assignee_email,
@@ -96,7 +95,7 @@ export default function ChecklistClaims({
 	range,
 	setClaim,
 }: {
-	checklistId?: number;
+	checklistId?: string;
 	user: GetUserOutput | null;
 	range: DateRange<Dayjs>;
 	setClaim: (newClaim: ChecklistClaimsOutput[number] | null) => void;
@@ -175,10 +174,9 @@ export default function ChecklistClaims({
 				header: 'Current Assignee',
 				accessor: (row) =>
 					formatUser({
-						id: row.assignee,
-						first: row.assignee_first,
-						last: row.assignee_last,
-						email: row.assignee_email,
+						first: row.assignee_first ?? '',
+						last: row.assignee_last ?? '',
+						email: row.assignee_email ?? '',
 					}),
 			},
 			{

@@ -6,28 +6,28 @@ import BasicDialog from '../common/BasicDialog';
 
 interface CopyPageDialogProps {
 	onClose: () => void;
-	onCopy: (parentId: number | null, position: number) => Promise<void>;
+	onCopy: (parentId: string | null, position: number) => Promise<void>;
 	title: string;
 	tree: TreeNode[];
-	currentInstanceId: number;
-	currentParentId: number | null;
+	currentInstanceId: string;
+	currentParentId: string | null;
 	currentPosition: number;
 	isPending: boolean;
 }
 
 interface PageInstanceOption {
-	instanceId: number;
-	pageId: number;
+	instanceId: string;
+	pageId: string;
 	title: string;
 }
 
-function getPageInstancesFromTreeForDialog(tree: TreeNode[], currentInstanceId: number): PageInstanceOption[] {
+function getPageInstancesFromTreeForDialog(tree: TreeNode[], currentInstanceId: string): PageInstanceOption[] {
 	const instances: PageInstanceOption[] = [];
 	collectInstances(tree, currentInstanceId, instances);
 	return instances;
 }
 
-function collectInstances(tree: TreeNode[], currentInstanceId: number, instances: PageInstanceOption[]) {
+function collectInstances(tree: TreeNode[], currentInstanceId: string, instances: PageInstanceOption[]) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
 			instances.push({
@@ -45,7 +45,7 @@ function collectInstances(tree: TreeNode[], currentInstanceId: number, instances
 
 export default function CopyPageDialog(props: CopyPageDialogProps) {
 	const { onClose, onCopy, title, tree, currentInstanceId, currentParentId, currentPosition, isPending } = props;
-	const [selectedParentId, setSelectedParentId] = useState<number | null>(currentParentId);
+	const [selectedParentId, setSelectedParentId] = useState<string | null>(currentParentId);
 
 	const pageInstanceOptions = getPageInstancesFromTreeForDialog(tree, currentInstanceId);
 
@@ -53,8 +53,8 @@ export default function CopyPageDialog(props: CopyPageDialogProps) {
 		try {
 			// If "Copy as sibling" is selected, use current parent and position+1
 			// Otherwise, use selected parent as parent with position 1
-			const parentId = selectedParentId === -999 ? currentParentId : selectedParentId;
-			const position = selectedParentId === -999 ? currentPosition + 1 : 1;
+			const parentId = selectedParentId === '__sibling__' ? currentParentId : selectedParentId;
+			const position = selectedParentId === '__sibling__' ? currentPosition + 1 : 1;
 			await onCopy(parentId, position);
 			onClose();
 		} catch (e) {
@@ -86,17 +86,16 @@ export default function CopyPageDialog(props: CopyPageDialogProps) {
 			</span>
 			<Dropdown
 				options={[
-					{ value: -999, label: 'Copy as sibling' },
-					{ value: -1, label: 'Root level' },
+					{ value: '__sibling__', label: 'Copy as sibling' },
+					{ value: '__root__', label: 'Root level' },
 					...pageInstanceOptions
-						.sort((a, b) => a.pageId - b.pageId)
 						.map((o) => ({
 							value: o.instanceId,
 							label: `${o.title} (p${o.pageId}.i${o.instanceId})`,
 						})),
 				]}
-				value={selectedParentId ?? -999}
-				onChange={(v) => setSelectedParentId(Number(v) === -999 ? null : Number(v))}
+				value={selectedParentId ?? '__sibling__'}
+				onChange={(v) => setSelectedParentId(v === '__sibling__' ? null : v === '__root__' ? null : String(v))}
 				placeholder="Choose a parent"
 			/>
 		</BasicDialog>

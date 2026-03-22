@@ -18,11 +18,11 @@ export interface RuleExecutionInput {
 	/** The trigger that initiated evaluation */
 	triggerType: WorkflowTriggerType;
 	/** Optional: narrow scope to specific desk location */
-	deskLocationId?: number;
+	deskLocationId?: string;
 	/** Optional: narrow scope to specific claims (for event-driven triggers) */
-	claimIds?: number[];
+	claimIds?: string[];
 	/** Optional: run only a specific rule (for manual execution) */
-	ruleId?: number;
+	ruleId?: string;
 }
 
 export interface RuleExecutionSummary {
@@ -30,7 +30,7 @@ export interface RuleExecutionSummary {
 	claimsMatched: number;
 	actionsExecuted: number;
 	actionsSuggested: number;
-	errors: Array<{ ruleId: number; ruleName: string; claimId?: number; error: string }>;
+	errors: Array<{ ruleId: string; ruleName: string; claimId?: string; error: string }>;
 }
 
 // =============================================================================
@@ -161,11 +161,11 @@ export async function evaluateRules(
 // =============================================================================
 
 interface AutoActionInput {
-	rule: { id: number; name: string; trigger_type: string; action_type: string; execution_mode: string };
+	rule: { id: string; name: string; trigger_type: string; action_type: string; execution_mode: string };
 	actionType: WorkflowActionType;
 	actionConfig: Record<string, unknown>;
-	claimId: number;
-	currentDeskLocationId: number | null;
+	claimId: string;
+	currentDeskLocationId: string | null;
 	triggerType: WorkflowTriggerType;
 }
 

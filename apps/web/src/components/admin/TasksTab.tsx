@@ -100,8 +100,8 @@ export default function TasksTab() {
 
 		const overdueTasks = allTasks.filter(
 			(t) =>
-				t.due_date &&
-				dayjs(t.due_date).isBefore(today) &&
+				t.deadline_date &&
+				dayjs(t.deadline_date).isBefore(today) &&
 				t.status !== TaskStatus.COMPLETED &&
 				t.status !== TaskStatus.CANCELLED
 		).length;
@@ -205,7 +205,7 @@ export default function TasksTab() {
 	};
 
 	// Navigate to claim
-	const handleGoToClaim = (claimId: number) => {
+	const handleGoToClaim = (claimId: string) => {
 		window.open(`/admin/claims?selected=${claimId}`, '_blank');
 	};
 
@@ -262,11 +262,12 @@ export default function TasksTab() {
 				accessorKey: 'status',
 				header: 'Status',
 				size: 120,
-				cell: (params: { row: any; value?: any }) => (
-					<Chip
-						color={STATUS_COLORS[params.value as TaskStatus]}
-						size="sm">{STATUS_LABELS[params.value as TaskStatus]}</Chip>
-				),
+				cell: (info: any) => {
+					const status = info.getValue() as TaskStatus;
+					return (
+						<Chip color={STATUS_COLORS[status]} size="sm">{STATUS_LABELS[status]}</Chip>
+					);
+				},
 			},
 			{
 				accessorKey: 'due_date',
@@ -543,7 +544,7 @@ export default function TasksTab() {
 						{/* Bulk Cancellation Dialog */}
 						{showBulkCancel && Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
 							<TaskBulkCancellationDialog
-								taskIds={Object.keys(selectedRows).filter(k => selectedRows[k]).map(Number)}
+								taskIds={Object.keys(selectedRows).filter(k => selectedRows[k])}
 								onClose={() => setShowBulkCancel(false)}
 								onCancelled={handleBulkCancelComplete}
 							/>

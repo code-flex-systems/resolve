@@ -133,7 +133,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 
 	// Query to fetch representative by ID for deep linking (only when edit param is present)
 	const { data: representativeToEdit } = partyTrpc.getRepresentative(
-		{ id: editRepresentativeId ? parseInt(editRepresentativeId, 10) : 0 },
+		{ id: editRepresentativeId ?? '' },
 		{ enabled: !!editRepresentativeId && !editingRepresentativeFromUrl }
 	);
 

@@ -14,15 +14,15 @@ export default function ChecklistProgress({
 	fontSize = 17,
 	showInfo = true,
 }: {
-	checklistId: number;
-	claimId: number;
+	checklistId: string;
+	claimId: string;
 	width: number;
 	fontSize?: number;
 	showInfo?: boolean;
 }) {
 	const isAssigned = useIsAssigned();
 	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
-		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: checklistId !== -1 && claimId !== -1 });
+		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: !!checklistId && !!claimId });
 
 	const progressPercentage =
 		progress.totalQuestionCount > 0 ? Math.floor((progress.answerCount / progress.totalQuestionCount) * 100) : 0;

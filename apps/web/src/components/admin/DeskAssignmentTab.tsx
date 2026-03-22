@@ -43,9 +43,9 @@ export default function DeskAssignmentTab() {
 	// Filter states from URL params
 	const userSearchTerm = getParam('search') ?? '';
 	const deskLocationTypeIdStr = getParam('desk_type');
-	const deskLocationTypeId = deskLocationTypeIdStr ? Number(deskLocationTypeIdStr) : null;
+	const deskLocationTypeId = deskLocationTypeIdStr ?? null;
 	const deskLocationIdStr = getParam('desk_location');
-	const deskLocationId = deskLocationIdStr ? Number(deskLocationIdStr) : null;
+	const deskLocationId = deskLocationIdStr ?? null;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
@@ -145,7 +145,7 @@ export default function DeskAssignmentTab() {
 						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
 							<DeskLocationTypeFilter
 								value={deskLocationTypeId}
-								onChange={(id: number | null) => {
+								onChange={(id: string | null) => {
 									setParams({
 										desk_type: id?.toString() ?? null,
 										desk_location: null, // Clear desk location when type changes
@@ -155,7 +155,7 @@ export default function DeskAssignmentTab() {
 							/>
 							<DeskLocationFilter
 								value={deskLocationId}
-								onChange={(id: number | null) => setParam('desk_location', id?.toString() ?? null)}
+								onChange={(id: string | null) => setParam('desk_location', id ?? null)}
 								deskLocationTypeId={deskLocationTypeId ?? undefined}
 								label="Desk Location"
 							/>

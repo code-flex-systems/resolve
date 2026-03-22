@@ -19,7 +19,7 @@ import {
  */
 export async function validateDeskLocationBelongsToClient(
 	ctx: ProtectedContext,
-	deskLocationId: number
+	deskLocationId: string
 ): Promise<void> {
 	const deskLocation = await ctx.db
 		.selectFrom('desk_location')
@@ -43,7 +43,7 @@ export async function validateDeskLocationBelongsToClient(
  */
 export async function validateWorkflowDefinitionBelongsToClient(
 	ctx: ProtectedContext,
-	workflowDefinitionId: number
+	workflowDefinitionId: string
 ): Promise<void> {
 	const workflow = await ctx.db
 		.selectFrom('workflow_definition')
@@ -111,7 +111,7 @@ export async function getWorkflowDefinitions(
  * Get single workflow definition by ID.
  * Loads thresholds and rules in parallel for the detail view.
  */
-export async function getWorkflowDefinition(ctx: ProtectedContext, id: number) {
+export async function getWorkflowDefinition(ctx: ProtectedContext, id: string) {
 	const [definition, thresholds, rules] = await Promise.all([
 		ctx.db
 			.selectFrom('workflow_definition')
@@ -155,7 +155,7 @@ export async function createWorkflowDefinition(
 	params: {
 		name: string;
 		description?: string;
-		deskLocationId?: number;
+		deskLocationId?: string;
 	}
 ) {
 	// Validate desk location belongs to caller's tenant before inserting
@@ -193,11 +193,11 @@ export async function createWorkflowDefinition(
  */
 export async function updateWorkflowDefinition(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
 		description?: string;
-		deskLocationId?: number | null;
+		deskLocationId?: string | null;
 		isActive?: boolean;
 	}
 ) {
@@ -238,7 +238,7 @@ export async function updateWorkflowDefinition(
  * Soft delete a workflow definition.
  * Caller should cascade soft-delete child thresholds and rules in a transaction.
  */
-export async function archiveWorkflowDefinition(ctx: ProtectedContext, id: number) {
+export async function archiveWorkflowDefinition(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('workflow_definition')
 		.set({
@@ -256,7 +256,7 @@ export async function archiveWorkflowDefinition(ctx: ProtectedContext, id: numbe
  * Cascade soft-delete all thresholds for a workflow definition.
  * Returns the IDs of archived thresholds for admin logging.
  */
-export async function archiveWorkflowThresholdsByDefinition(ctx: ProtectedContext, workflowDefinitionId: number) {
+export async function archiveWorkflowThresholdsByDefinition(ctx: ProtectedContext, workflowDefinitionId: string) {
 	const archived = await ctx.db
 		.updateTable('workflow_threshold')
 		.set({
@@ -275,7 +275,7 @@ export async function archiveWorkflowThresholdsByDefinition(ctx: ProtectedContex
  * Cascade soft-delete all rules for a workflow definition.
  * Returns the IDs of archived rules for admin logging.
  */
-export async function archiveWorkflowRulesByDefinition(ctx: ProtectedContext, workflowDefinitionId: number) {
+export async function archiveWorkflowRulesByDefinition(ctx: ProtectedContext, workflowDefinitionId: string) {
 	const archived = await ctx.db
 		.updateTable('workflow_rule')
 		.set({
@@ -297,7 +297,7 @@ export async function archiveWorkflowRulesByDefinition(ctx: ProtectedContext, wo
 /**
  * Get all thresholds for a workflow definition.
  */
-export async function getWorkflowThresholds(ctx: ProtectedContext, workflowDefinitionId: number) {
+export async function getWorkflowThresholds(ctx: ProtectedContext, workflowDefinitionId: string) {
 	return await ctx.db
 		.selectFrom('workflow_threshold')
 		.select([
@@ -325,7 +325,7 @@ export async function getWorkflowThresholds(ctx: ProtectedContext, workflowDefin
 export async function createWorkflowThreshold(
 	ctx: ProtectedContext,
 	params: {
-		workflowDefinitionId: number;
+		workflowDefinitionId: string;
 		thresholdType: WorkflowThresholdType;
 		thresholdValue: number;
 	}
@@ -361,7 +361,7 @@ export async function createWorkflowThreshold(
  */
 export async function updateWorkflowThreshold(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		thresholdValue?: number;
 		isActive?: boolean;
@@ -395,7 +395,7 @@ export async function updateWorkflowThreshold(
 /**
  * Soft delete a workflow threshold.
  */
-export async function archiveWorkflowThreshold(ctx: ProtectedContext, id: number) {
+export async function archiveWorkflowThreshold(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('workflow_threshold')
 		.set({
@@ -416,7 +416,7 @@ export async function archiveWorkflowThreshold(ctx: ProtectedContext, id: number
 /**
  * Get all rules for a workflow definition.
  */
-export async function getWorkflowRules(ctx: ProtectedContext, workflowDefinitionId: number) {
+export async function getWorkflowRules(ctx: ProtectedContext, workflowDefinitionId: string) {
 	return await ctx.db
 		.selectFrom('workflow_rule')
 		.select([
@@ -451,7 +451,7 @@ export async function getWorkflowRules(ctx: ProtectedContext, workflowDefinition
 export async function createWorkflowRule(
 	ctx: ProtectedContext,
 	params: {
-		workflowDefinitionId: number;
+		workflowDefinitionId: string;
 		name: string;
 		description?: string;
 		triggerType: WorkflowTriggerType;
@@ -509,7 +509,7 @@ export async function createWorkflowRule(
  */
 export async function updateWorkflowRule(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
 		description?: string;
@@ -567,7 +567,7 @@ export async function updateWorkflowRule(
 /**
  * Soft delete a workflow rule.
  */
-export async function archiveWorkflowRule(ctx: ProtectedContext, id: number) {
+export async function archiveWorkflowRule(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('workflow_rule')
 		.set({
@@ -589,7 +589,7 @@ export async function archiveWorkflowRule(ctx: ProtectedContext, id: number) {
  * Resolve the workflow definition that applies to a desk location.
  * Returns location-specific workflow if one exists, otherwise falls back to global.
  */
-export async function resolveWorkflowForLocation(ctx: ProtectedContext, deskLocationId: number) {
+export async function resolveWorkflowForLocation(ctx: ProtectedContext, deskLocationId: string) {
 	return await ctx.db
 		.selectFrom('workflow_definition')
 		.select([
@@ -630,8 +630,8 @@ export async function getApplicableRules(
 	ctx: ProtectedContext,
 	params: {
 		triggerType: WorkflowTriggerType;
-		deskLocationId?: number;
-		ruleId?: number;
+		deskLocationId?: string;
+		ruleId?: string;
 	}
 ) {
 	let query = ctx.db
@@ -678,8 +678,8 @@ export async function getApplicableRules(
 export async function createRuleExecution(
 	ctx: ProtectedContext,
 	params: {
-		workflowRuleId: number;
-		claimId: number;
+		workflowRuleId: string;
+		claimId: string;
 		triggerType: string;
 		actionType: string;
 		actionConfig: Record<string, unknown>;
@@ -718,11 +718,11 @@ export async function createRuleExecution(
 export async function getRuleExecutions(
 	ctx: ProtectedContext,
 	params: {
-		ruleId?: number;
-		claimId?: number;
+		ruleId?: string;
+		claimId?: string;
 		status?: RuleExecutionStatus;
 		limit: number;
-		cursor?: { createdAt: string; id: number };
+		cursor?: { createdAt: string; id: string };
 	}
 ) {
 	const { limit, cursor } = params;
@@ -790,7 +790,7 @@ export async function getRuleExecutions(
 export async function getPendingRuleExecutions(
 	ctx: ProtectedContext,
 	params: {
-		ruleId?: number;
+		ruleId?: string;
 		limit: number;
 		offset: number;
 	}
@@ -826,7 +826,7 @@ export async function getPendingRuleExecutions(
  */
 export async function updateRuleExecution(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		status: RuleExecutionStatus;
 		resultData?: Record<string, unknown>;
@@ -852,7 +852,7 @@ export async function updateRuleExecution(
 /**
  * Get a single rule execution by ID.
  */
-export async function getRuleExecution(ctx: ProtectedContext, id: number) {
+export async function getRuleExecution(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('workflow_rule_execution')
 		.selectAll()

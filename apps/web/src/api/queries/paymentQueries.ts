@@ -20,7 +20,7 @@ dayjs.extend(utc);
  * @param params - payment parameters
  * @returns created payment
  */
-export async function createPayment(ctx: ProtectedContext, claimId: number, params: PaymentParams) {
+export async function createPayment(ctx: ProtectedContext, claimId: string, params: PaymentParams) {
 	const clientId = ctx.session.user.client_id!;
 
 	const payment = await ctx.db
@@ -69,7 +69,7 @@ export async function createPayment(ctx: ProtectedContext, claimId: number, para
  * @param claimId - claim identifier
  * @returns list of payments with coverage and payee details
  */
-export async function getPayments(ctx: ProtectedContext, claimId: number) {
+export async function getPayments(ctx: ProtectedContext, claimId: string) {
 	return await ctx.db
 		.selectFrom('claim_payment')
 		.innerJoin('claim_coverage', 'claim_payment.coverage_id', 'claim_coverage.id')
@@ -115,7 +115,7 @@ export async function getPayments(ctx: ProtectedContext, claimId: number) {
  */
 export async function updatePayment(
 	ctx: ProtectedContext,
-	paymentId: number,
+	paymentId: string,
 	params: PaymentUpdateParams
 ) {
 	const clientId = ctx.session.user.client_id!;
@@ -207,7 +207,7 @@ export async function updatePayment(
  * @param paymentId - payment identifier
  * @returns payment fields for logging
  */
-export async function getPaymentForArchive(ctx: ProtectedContext, paymentId: number) {
+export async function getPaymentForArchive(ctx: ProtectedContext, paymentId: string) {
 	return await ctx.db
 		.selectFrom('claim_payment')
 		.select([
@@ -235,7 +235,7 @@ export async function getPaymentForArchive(ctx: ProtectedContext, paymentId: num
  * @param claimId - claim identifier (for verification)
  * @returns archived payment
  */
-export async function archivePayment(ctx: ProtectedContext, paymentId: number, claimId: number) {
+export async function archivePayment(ctx: ProtectedContext, paymentId: string, claimId: string) {
 	const clientId = ctx.session.user.client_id!;
 
 	const archived = await ctx.db
@@ -285,7 +285,7 @@ export async function archivePayment(ctx: ProtectedContext, paymentId: number, c
  */
 export async function recalculateClaimAmount(
 	db: ProtectedContext['db'] | Transaction<DB>,
-	claimId: number,
+	claimId: string,
 	clientId: string
 ) {
 	// Sum all subrogable payments for this claim (excluding soft-deleted)

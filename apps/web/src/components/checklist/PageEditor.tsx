@@ -16,7 +16,7 @@ import { IconArrowRight, IconCheck, IconCircleCheck, IconCopy, IconCornerDownRig
 import Divider from '@/components/ui/Divider';
 
 export default function PageEditor() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
@@ -49,7 +49,7 @@ export default function PageEditor() {
 			checklistId,
 			claimId,
 		},
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	const answerCount = questions.reduce((prev, curr) => prev + (curr.answers?.length ?? 0), 0);
@@ -67,13 +67,13 @@ export default function PageEditor() {
 		);
 	}, [selectedPageInfo, data.tree]);
 
-	const onAddPage = async (passedParentId: number | null) => {
+	const onAddPage = async (passedParentId: string | null) => {
 		try {
 			const newInstance = await addPage({
 				checklistId,
 				params: {
 					title: 'New Page',
-					parentId: passedParentId ?? -1,
+					parentId: passedParentId ?? undefined,
 					position: selectedPageInfo.position + 1,
 				},
 			});
@@ -90,14 +90,14 @@ export default function PageEditor() {
 		}
 	};
 
-	const handleCopyWithParent = async (parentId: number | null, position: number) => {
+	const handleCopyWithParent = async (parentId: string | null, position: number) => {
 		try {
 			if (copyType === 'template') {
 				const newPage = await copyPageTemplate({
 					checklistId,
 					pageId: selectedPageInfo.pageId,
 					params: {
-						parentId: parentId ?? -1,
+						parentId: parentId ?? undefined,
 						position,
 					},
 				});
@@ -114,7 +114,7 @@ export default function PageEditor() {
 					checklistId,
 					pageId: selectedPageInfo.pageId,
 					params: {
-						parentId: parentId ?? -1,
+						parentId: parentId ?? undefined,
 						position,
 					},
 				});

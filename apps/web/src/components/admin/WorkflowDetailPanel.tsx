@@ -26,7 +26,7 @@ import { formatMDY } from '@/lib/utils/utils';
 import type { WorkflowThreshold, WorkflowRule, RuleExecutionSummary } from '@/hooks/trpc/useWorkflowTrpc';
 
 interface WorkflowDetailPanelProps {
-	workflowId: number;
+	workflowId: string;
 }
 
 export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelProps) {
@@ -37,17 +37,17 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 	const [editingRule, setEditingRule] = useState<WorkflowRule | null>(null);
 	const [archivingThreshold, setArchivingThreshold] = useState<WorkflowThreshold | null>(null);
 	const [archivingRule, setArchivingRule] = useState<WorkflowRule | null>(null);
-	const [runningRuleId, setRunningRuleId] = useState<number | null>(null);
+	const [runningRuleId, setRunningRuleId] = useState<string | null>(null);
 	const [executionSummary, setExecutionSummary] = useState<RuleExecutionSummary | null>(null);
 	const [summaryRuleName, setSummaryRuleName] = useState('');
 	const [historyExpanded, setHistoryExpanded] = useState(false);
-	const [historyRuleFilter, setHistoryRuleFilter] = useState<number | undefined>(undefined);
+	const [historyRuleFilter, setHistoryRuleFilter] = useState<string | undefined>(undefined);
 
 	const [formData, setFormData] = useState({
 		name: '',
 		description: '',
-		deskLocationTypeId: null as number | null,
-		deskLocationId: null as number | null,
+		deskLocationTypeId: null as string | null,
+		deskLocationId: null as string | null,
 		isActive: true,
 	});
 
@@ -80,7 +80,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				params: {
 					name: formData.name,
 					description: formData.description || undefined,
-					deskLocationId: formData.deskLocationId || undefined,
+					deskLocationId: formData.deskLocationId ?? undefined,
 					isActive: formData.isActive,
 				},
 			});
@@ -468,7 +468,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 										]}
 										value={historyRuleFilter ?? ''}
 										onChange={(v) => {
-											setHistoryRuleFilter(v === '' ? undefined : (v as number));
+											setHistoryRuleFilter(v === '' ? undefined : String(v));
 										}}
 										size="sm"
 									/>

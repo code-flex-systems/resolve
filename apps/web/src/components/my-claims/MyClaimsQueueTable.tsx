@@ -22,7 +22,7 @@ import { IconClipboardSearch, IconDownload, IconFilter } from '@tabler/icons-rea
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 export interface MyClaimListItem {
-	id: number;
+	id: string;
 	claim_number: string | null;
 	client: string | null;
 	insured: string | null;
@@ -35,7 +35,7 @@ export interface MyClaimListItem {
 	substatus?: string | null;
 	created_at: Date | null;
 	// Desk queue fields (listMyDeskClaims)
-	desk_location_id?: number | null;
+	desk_location_id?: string | null;
 	desk_priority?: number;
 	desk_location_name?: string | null;
 	// Checklist-based fields (listMyClaims) - optional for compatibility
@@ -239,7 +239,7 @@ style={{
 										marginLeft: 4,
 										color: 'white',
 										borderRadius: '50%',
-										size: 18,
+										width: 18,
 										height: 18,
 										display: 'inline-flex',
 										alignItems: 'center',

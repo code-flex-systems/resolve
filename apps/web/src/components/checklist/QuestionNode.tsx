@@ -10,8 +10,8 @@ import { IconCircleMinus, IconHelpCircle } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 
 export default function QuestionNode(props: {
-	pageId: number;
-	questionId: number;
+	pageId: string;
+	questionId: string;
 	questionText: string;
 	questionType?: QuestionType;
 	questionAnswers: Answer[];
@@ -24,7 +24,7 @@ export default function QuestionNode(props: {
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
 	const updateSelectedQuestion = useChecklistStore((state) => state.updateSelectedQuestion);
 	const selected = selectedQuestion === questionId;
-	const isPlaceholder = questionId === -1;
+	const isPlaceholder = questionId === '';
 
 	useEffect(() => setExpanded(expandAll), [expandAll]);
 
@@ -41,11 +41,11 @@ export default function QuestionNode(props: {
 						className={isPlaceholder ? 'node-p' : 'node-q'}
 						style={{ cursor: 'pointer', color: selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : '', fontWeight: isPlaceholder ? 'bold' : '', lineHeight: '19px' }}
 					>
-						{questionId !== -1 ? `${idx + 1}. ` : ''}
-						{questionText} (p{pageId}.q{questionId === -1 ? '?' : questionId})
+						{questionId !== '' ? `${idx + 1}. ` : ''}
+						{questionText} (p{pageId}.q{questionId === '' ? '?' : questionId})
 					</span>
 				</div>
-				{questionId === -1 || questionType === QuestionType.FREEFORM ? (
+				{questionId === '' || questionType === QuestionType.FREEFORM ? (
 					<div style={{ width: 25 }} />
 				) : (
 					<Button
@@ -81,12 +81,12 @@ export default function QuestionNode(props: {
 								level={level + 1}
 							/>
 						))}
-					{questionId !== -1 && questionType !== QuestionType.FREEFORM && (
+					{questionId !== '' && questionType !== QuestionType.FREEFORM && (
 						<AnswerNode
-							key={-1}
+							key="new"
 							pageId={pageId}
 							questionId={questionId}
-							answerId={-1}
+							answerId=""
 							answerText="New Answer"
 							level={level + 1}
 						/>

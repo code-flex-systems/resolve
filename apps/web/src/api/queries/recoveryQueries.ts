@@ -23,7 +23,7 @@ dayjs.extend(utc);
  */
 export async function createRecoveryEvent(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	params: Omit<RecoveryEventParams, 'claim_id'>
 ) {
 	const clientId = ctx.session.user.client_id!;
@@ -78,7 +78,7 @@ export async function createRecoveryEvent(
  * @param claimId - claim identifier
  * @returns list of recovery events
  */
-export async function getRecoveryEvents(ctx: ProtectedContext, claimId: number) {
+export async function getRecoveryEvents(ctx: ProtectedContext, claimId: string) {
 	return await ctx.db
 		.selectFrom('recovery_event')
 		.selectAll()
@@ -105,7 +105,7 @@ export async function listRecoveryEventsWithFilters(
 		range?: DateRangeStrict;
 		recoverySource?: string;
 		recoveryStatus?: string;
-		checklistId?: number;
+		checklistId?: string;
 	},
 	limit?: number,
 	offset?: number
@@ -188,7 +188,7 @@ export async function listRecoveryEventsWithFilters(
  * @param claimId - claim identifier for verification and recalculation
  * @returns archived recovery event with all fields needed for logging
  */
-export async function archiveRecoveryEvent(ctx: ProtectedContext, recoveryEventId: number, claimId: number) {
+export async function archiveRecoveryEvent(ctx: ProtectedContext, recoveryEventId: string, claimId: string) {
 	const clientId = ctx.session.user.client_id!;
 
 	// Soft delete and return all fields needed for logging via RETURNING
@@ -238,8 +238,8 @@ export async function archiveRecoveryEvent(ctx: ProtectedContext, recoveryEventI
  */
 export async function archiveRecoveryEventsForSettlement(
 	ctx: ProtectedContext,
-	settlementId: number,
-	claimId: number
+	settlementId: string,
+	claimId: string
 ) {
 	const clientId = ctx.session.user.client_id!;
 
@@ -292,7 +292,7 @@ export async function archiveRecoveryEventsForSettlement(
  */
 export async function updateRecoveryEvent(
 	ctx: ProtectedContext,
-	recoveryEventId: number,
+	recoveryEventId: string,
 	params: RecoveryEventUpdateParams
 ) {
 	const clientId = ctx.session.user.client_id!;
@@ -378,7 +378,7 @@ export async function exportRecoveryEvents(
 		range?: DateRangeStrict;
 		recoverySource?: string;
 		recoveryStatus?: string;
-		checklistId?: number;
+		checklistId?: string;
 	}
 ) {
 	let query = ctx.db
@@ -439,7 +439,7 @@ export async function exportRecoveryEvents(
  * @param claimId - claim identifier
  * @param clientId - client identifier
  */
-export async function recalculateClaimRecovery(trx: any, claimId: number, clientId: string) {
+export async function recalculateClaimRecovery(trx: any, claimId: string, clientId: string) {
 	// Sum all non-deleted recovery events for this claim
 	const result = await trx
 		.selectFrom('recovery_event')
@@ -482,7 +482,7 @@ export async function recalculateClaimRecovery(trx: any, claimId: number, client
  * @param claimId - claim identifier
  * @returns array of coverage summaries
  */
-export async function getRecoverySummaryByCoverage(ctx: ProtectedContext, claimId: number) {
+export async function getRecoverySummaryByCoverage(ctx: ProtectedContext, claimId: string) {
 	const clientId = ctx.session.user.client_id!;
 
 	// Use subqueries for aggregation to avoid Cartesian products
@@ -560,7 +560,7 @@ export async function getRecoveryMetricsSummary(
 	filters?: {
 		recoverySource?: string;
 		recoveryStatus?: string;
-		checklistId?: number;
+		checklistId?: string;
 	}
 ) {
 	const clientId = ctx.session.user.client_id;
@@ -665,7 +665,7 @@ export async function getRecoveryMetricsTimeSeries(
 	filters?: {
 		recoverySource?: string;
 		recoveryStatus?: string;
-		checklistId?: number;
+		checklistId?: string;
 	}
 ) {
 	const clientId = ctx.session.user.client_id;

@@ -2,14 +2,14 @@ import { z } from 'zod';
 import { EntityName } from '@/api/utils/activityLogger';
 
 export const getClaimActivityLogsInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 	actorType: z.enum(['admin', 'user']).optional(),
 	limit: z.number().int().min(1).max(500).optional().default(100),
 });
 export type GetClaimActivityLogsInput = z.infer<typeof getClaimActivityLogsInput>;
 
 export const getCompleteClaimTimelineInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 	limit: z.number().int().min(1).max(500).optional().default(100),
 });
 export type GetCompleteClaimTimelineInput = z.infer<typeof getCompleteClaimTimelineInput>;

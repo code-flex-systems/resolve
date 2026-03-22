@@ -4,14 +4,15 @@ import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
 import BasicDialog from '../common/BasicDialog';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
 
-type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
+type FolderRow = { type: 'folder'; data: DocGroupListItem };
+type DocumentRow = { type: 'document'; data: DocListItem };
 
 interface DeleteConfirmationDialogProps {
 	onClose: () => void;
 	onConfirm: () => Promise<void>;
 	itemsInfo: {
-		folders: GridRow[];
-		documents: GridRow[];
+		folders: FolderRow[];
+		documents: DocumentRow[];
 		docsInFolders: number;
 		totalDocs: number;
 	};

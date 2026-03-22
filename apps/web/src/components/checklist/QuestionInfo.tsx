@@ -11,7 +11,7 @@ import BasicPopper from '../common/BasicPopper';
 export default function QuestionInfo(props: {
 	description: string | null;
 	filename: string | null;
-	questionId: number;
+	questionId: string;
 }) {
 	const { description, questionId } = props;
 	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -19,7 +19,7 @@ export default function QuestionInfo(props: {
 	// Fetch attached document for this question
 	const { data: attachedDocsResult } = useDocTrpc().listDocs({
 		filters: { question_id: questionId },
-	}, { enabled: questionId !== -1 });
+	}, { enabled: !!questionId });
 	const attachedDocs = attachedDocsResult?.rows ?? [];
 
 	const attachedDoc = attachedDocs.length > 0 ? attachedDocs[0] : null;

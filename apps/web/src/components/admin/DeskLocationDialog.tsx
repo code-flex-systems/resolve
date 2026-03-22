@@ -12,7 +12,7 @@ import DeskLocationTypeSelect from '../common/DeskLocationTypeSelect';
 
 interface DeskLocationFormInputs {
 	name: string;
-	desk_location_type_id: number | null;
+	desk_location_type_id: string | null;
 	is_active: boolean;
 	capacity_threshold: number;
 }
@@ -42,7 +42,7 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 		defaultValues: deskLocation
 			? {
 					name: deskLocation.name,
-					desk_location_type_id: deskLocation.desk_location_type_id,
+					desk_location_type_id: deskLocation.desk_location_type_id as string,
 					is_active: Boolean(deskLocation.is_active),
 					capacity_threshold: Number(deskLocation.capacity_threshold),
 				}
@@ -69,7 +69,7 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 		try {
 			if (isEditMode) {
 				await updateLocation({
-					id: deskLocation.id as unknown as number,
+					id: String(deskLocation.id),
 					params: {
 						name: data.name,
 						desk_location_type_id: data.desk_location_type_id!,

@@ -1,8 +1,8 @@
 export function buildChecklistUrl(args: {
-	checklistId: number;
-	claimId?: number;
-	questionId?: number;
-	instanceId?: number;
+	checklistId: string;
+	claimId?: string;
+	questionId?: string;
+	instanceId?: string;
 	focus?: 'comments' | 'change-log';
 }) {
 	const { checklistId, claimId, questionId, instanceId, focus } = args;

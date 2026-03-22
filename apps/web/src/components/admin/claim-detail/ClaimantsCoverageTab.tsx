@@ -28,7 +28,7 @@ import Highlight from '@/components/common/Highlight';
 dayjs.extend(relativeTime);
 
 interface ClaimantsCoverageTabProps {
-	claimId: number;
+	claimId: string;
 }
 
 export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabProps) {
@@ -36,13 +36,13 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const [editingClaimParty, setEditingClaimParty] = useState<any | null>(null);
 	const [showCoverageDialog, setShowCoverageDialog] = useState(false);
 	const [editingCoverage, setEditingCoverage] = useState<any | null>(null);
-	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<number | null>(null);
-	const [archivingCoverage, setArchivingCoverage] = useState<{ id: number; coverageType: string | null } | null>(
+	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<string | null>(null);
+	const [archivingCoverage, setArchivingCoverage] = useState<{ id: string; coverageType: string | null } | null>(
 		null
 	);
 	const [archivingClaimParty, setArchivingClaimParty] = useState<any | null>(null);
 	const [isFacilitatorMode, setIsFacilitatorMode] = useState(false);
-	const [parentClaimPartyId, setParentClaimPartyId] = useState<number | null>(null);
+	const [parentClaimPartyId, setParentClaimPartyId] = useState<string | null>(null);
 	const [allExpanded, setAllExpanded] = useState(true);
 	const [viewingPartyDetails, setViewingPartyDetails] = useState<any | null>(null);
 	const [isManageMode, setIsManageMode] = useState(false);
@@ -60,7 +60,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	// Group parties into entities (root) and facilitators (nested under parent)
 	const { entities, facilitatorsByParent } = useMemo(() => {
 		const entitiesArray: any[] = [];
-		const facilitatorsMap: Record<number, any[]> = {};
+		const facilitatorsMap: Record<string, any[]> = {};
 
 		claimParties.forEach((cp) => {
 			if (cp.parent_claim_party_id) {
@@ -111,7 +111,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		setShowPartyDialog(true);
 	};
 
-	const handleOpenFacilitatorDialog = (parentId?: number | null, claimParty?: any) => {
+	const handleOpenFacilitatorDialog = (parentId?: string | null, claimParty?: any) => {
 		setIsFacilitatorMode(true);
 		setParentClaimPartyId(parentId || null);
 		if (claimParty) {
@@ -129,7 +129,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 		setParentClaimPartyId(null);
 	};
 
-	const handleOpenCoverageDialog = (claimPartyId: number, coverage?: any) => {
+	const handleOpenCoverageDialog = (claimPartyId: string, coverage?: any) => {
 		setSelectedClaimPartyId(claimPartyId);
 		if (coverage) {
 			setEditingCoverage(coverage);
@@ -147,14 +147,14 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 
 	const handlePartySubmit = async (data: {
 		role: string[];
-		party_id: number;
-		representative_id?: number | null;
-		address_id?: number | null;
+		party_id: string;
+		representative_id?: string | null;
+		address_id?: string | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
 		liability_percentage?: number | null;
 		notes?: string | null;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		// Facilitator-specific fields
 		loss_type?: string | null;
 		policy_limit?: number | null;

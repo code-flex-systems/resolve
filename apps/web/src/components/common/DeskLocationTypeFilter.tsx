@@ -4,8 +4,8 @@ import { IconLayoutBoard } from '@tabler/icons-react';
 import Dropdown from '@/components/ui/Dropdown';
 
 interface DeskLocationTypeFilterProps {
-	value: number | null;
-	onChange: (value: number | null) => void;
+	value: string | null;
+	onChange: (value: string | null) => void;
 	clearable?: boolean;
 	height?: number;
 	label?: string;
@@ -35,7 +35,7 @@ export default function DeskLocationTypeFilter({
 		<Dropdown
 			options={dropdownOptions}
 			value={value ?? ''}
-			onChange={(val) => onChange(val === '' ? null : Number(val))}
+			onChange={(val) => onChange(val === '' ? null : String(val))}
 			placeholder={label}
 			size="sm"
 			disabled={disabled || isFetching}

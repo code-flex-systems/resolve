@@ -17,7 +17,7 @@ import type { ListAdminConfigLogsInput } from '@/schemas/adminLogSchemas';
  */
 export async function getAdminLogsByClaim(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	limit: number = 10
 ) {
 	// Use the new claim_activity_logs table which has claim_id indexing

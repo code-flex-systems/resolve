@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EntityName } from '@/api/utils/activityLogger';
 
 export const getAdminLogsByClaimInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 	limit: z.number().int().min(1).max(100).optional().default(10),
 });
 export type GetAdminLogsByClaimInput = z.infer<typeof getAdminLogsByClaimInput>;
@@ -41,7 +41,7 @@ export const listClaimActivityLogsInput = z.object({
 	endDate: z.string().datetime().optional(),
 	entityName: z.nativeEnum(EntityName).optional(),
 	userId: z.string().optional(),
-	claimId: z.number().int().optional(),
+	claimId: z.string().uuid().optional(),
 	actorType: z.enum(['admin', 'user']).optional(),
 });
 export type ListClaimActivityLogsInput = z.infer<typeof listClaimActivityLogsInput>;

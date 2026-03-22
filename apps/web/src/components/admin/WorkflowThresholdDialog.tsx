@@ -11,7 +11,7 @@ import type { WorkflowThreshold } from '@/hooks/trpc/useWorkflowTrpc';
 
 interface WorkflowThresholdDialogProps {
 	onClose: () => void;
-	workflowId: number;
+	workflowId: string;
 	editingThreshold?: WorkflowThreshold | null;
 }
 

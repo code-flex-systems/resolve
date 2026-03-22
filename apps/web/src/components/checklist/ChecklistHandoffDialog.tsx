@@ -11,7 +11,7 @@ import { IconAlertTriangle, IconHandStop } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 
 export default function ChecklistHandoffDialog() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const selectedAssignee = useChecklistStore((state) => state.selectedAssignee);
 	const formattedAssignee = `${selectedAssignee?.first ?? ''} ${selectedAssignee?.last ?? ''}`.trim();
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
@@ -33,7 +33,7 @@ export default function ChecklistHandoffDialog() {
 						await updateChecklistClaim({ assignee: selectedAssignee?.email, checklistId, claimId });
 						showSuccess(
 							'assign',
-							`Checklist handed off to ${formattedAssignee || selectedAssignee?.email ?? 'new assignee'}`
+							`Checklist handed off to ${formattedAssignee || (selectedAssignee?.email ?? 'new assignee')}`
 						);
 					} catch (e) {
 						showError('assign', e, 'Failed to hand off checklist');

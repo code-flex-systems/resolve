@@ -8,17 +8,17 @@ type DeskLocationType = DeskLocationTypeList['rows'][number];
 interface DeskLocationState {
 	types: DeskLocationType[];
 	locations: DeskLocation[];
-	typesById: Map<number, DeskLocationType>;
-	locationsByType: Map<number, DeskLocation[]>;
-	locationsById: Map<number, DeskLocation>;
+	typesById: Map<string, DeskLocationType>;
+	locationsByType: Map<string, DeskLocation[]>;
+	locationsById: Map<string, DeskLocation>;
 }
 
 interface DeskLocationActions {
 	setTypes: (types: DeskLocationType[]) => void;
 	setLocations: (locations: DeskLocation[]) => void;
-	getTypeName: (typeId: number | null) => string;
-	getLocationName: (locationId: number | null) => string;
-	getLocationsByType: (typeId: number | null) => DeskLocation[];
+	getTypeName: (typeId: string | null) => string;
+	getLocationName: (locationId: string | null) => string;
+	getLocationsByType: (typeId: string | null) => DeskLocation[];
 	reset: () => void;
 }
 
@@ -48,7 +48,7 @@ export const useDeskLocationStore = create<DeskLocationStore>()(
 				state.locationsById = new Map(locations.map((l) => [l.id, l]));
 
 				// Group locations by type
-				const byType = new Map<number, DeskLocation[]>();
+				const byType = new Map<string, DeskLocation[]>();
 				locations.forEach((loc) => {
 					const typeId = loc.desk_location_type_id;
 					if (!byType.has(typeId)) {

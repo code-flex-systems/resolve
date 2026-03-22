@@ -11,9 +11,9 @@ export default function PageInstanceSelect({
 	text = 'Filter by page',
 	disabled = false,
 }: {
-	checklistId: number;
-	instanceId: number | null;
-	setInstanceId: (newInstanceId: number | null) => void;
+	checklistId: string;
+	instanceId: string | null;
+	setInstanceId: (newInstanceId: string | null) => void;
 	clearable?: boolean;
 	height?: number;
 	text?: string;
@@ -21,7 +21,7 @@ export default function PageInstanceSelect({
 }) {
 	const { data: options = [], isFetching } = usePageTrpc().listInstances(
 		{ checklistId },
-		{ enabled: checklistId !== -1 }
+		{ enabled: !!checklistId }
 	);
 
 	useEffect(() => {
@@ -42,7 +42,7 @@ export default function PageInstanceSelect({
 		<Dropdown
 			options={dropdownOptions}
 			value={instanceId ?? ''}
-			onChange={(val) => setInstanceId(val === '' ? null : Number(val))}
+			onChange={(val) => setInstanceId(val === '' ? null : String(val))}
 			placeholder={text}
 			size="sm"
 			disabled={disabled}

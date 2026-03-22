@@ -23,7 +23,7 @@ export default function RecoveryMetricsChart({
 	isBreakdown?: boolean;
 	recoveryStatus?: string | null;
 	recoverySource?: string;
-	checklistId?: number;
+	checklistId?: string;
 }) {
 	const router = useRouter();
 	const quarters = useMemo(() => getQuarterRanges(), []);

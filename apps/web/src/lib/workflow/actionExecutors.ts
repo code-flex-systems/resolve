@@ -11,13 +11,13 @@ export interface ActionExecutorInput {
 	/** Protected context — must be within a transaction for atomicity */
 	ctx: ProtectedContext;
 	/** The claim being acted on */
-	claimId: number;
+	claimId: string;
 	/** The claim's current desk location (may be null) */
-	currentDeskLocationId: number | null;
+	currentDeskLocationId: string | null;
 	/** Action-specific configuration from the workflow rule */
 	actionConfig: Record<string, unknown>;
 	/** The rule that triggered this action */
-	ruleId: number;
+	ruleId: string;
 	/** The rule name (for logging/templates) */
 	ruleName: string;
 	/** Pre-fetched claim number to avoid redundant DB lookups. If omitted, executors that need it will fetch. */
@@ -87,7 +87,7 @@ async function resolveClaimNumber(input: ActionExecutorInput): Promise<string> {
 // =============================================================================
 
 interface MoveClaimConfig {
-	destination_location_id: number;
+	destination_location_id: string;
 }
 
 /**
@@ -141,7 +141,7 @@ async function executeMoveClaim(input: ActionExecutorInput): Promise<ActionExecu
 
 interface CreateTaskConfig {
 	task_type?: string;
-	target_location_id: number;
+	target_location_id: string;
 	work_units?: number;
 	title_template: string;
 	description?: string;
@@ -225,7 +225,7 @@ async function executeNotifyUser(input: ActionExecutorInput): Promise<ActionExec
 
 interface UpdatePriorityConfig {
 	user_id: string;
-	desk_location_id: number;
+	desk_location_id: string;
 	new_priority: number;
 }
 

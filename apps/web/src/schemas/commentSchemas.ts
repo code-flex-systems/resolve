@@ -2,26 +2,26 @@ import { z } from 'zod';
 
 const commentFilters = z.object({
 	userId: z.string().optional(),
-	checklistId: z.number().optional(),
-	claimId: z.number().optional(),
-	instanceId: z.number().optional(),
-	questionId: z.number().optional(),
+	checklistId: z.string().uuid().optional(),
+	claimId: z.string().uuid().optional(),
+	instanceId: z.string().uuid().optional(),
+	questionId: z.string().uuid().optional(),
 });
 
 export const createCommentInput = z.object({
-	checklistId: z.number(),
-	claimId: z.number(),
-	instanceId: z.number().optional(),
-	questionId: z.number().optional(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
+	instanceId: z.string().uuid().optional(),
+	questionId: z.string().uuid().optional(),
 	body: z.string().max(500),
 });
 
 export const deleteCommentInput = z.object({
-	id: z.number(),
+	id: z.string().uuid(),
 });
 
 export const getCommentInput = z.object({
-	id: z.number(),
+	id: z.string().uuid(),
 });
 
 export const getCommentsInput = z.object({
@@ -35,7 +35,7 @@ export const getCommentCountInput = z.object({
 });
 
 export const getCommentsForPageInput = z.object({
-	checklistId: z.number(),
-	claimId: z.number(),
-	instanceId: z.number(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
+	instanceId: z.string().uuid(),
 });

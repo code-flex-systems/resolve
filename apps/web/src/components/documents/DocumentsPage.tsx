@@ -8,7 +8,7 @@ import DocumentPreviewDialog from '../admin/DocumentPreviewDialog';
 import Toolbar from '../common/Toolbar';
 
 export default function DocumentsPage() {
-	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+	const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 	const [previewDocument, setPreviewDocument] = useState<DocListItem | null>(null);
 
 	// Fetch all groups and filter to show only Shared folder and its children
@@ -35,7 +35,7 @@ export default function DocumentsPage() {
 		const descendants: typeof allGroups = [sharedFolder];
 
 		// Recursive function to find all descendants
-		const findDescendants = (parentId: number) => {
+		const findDescendants = (parentId: string) => {
 			allGroups.forEach((g) => {
 				if (g.parent_group_id === parentId) {
 					descendants.push(g);
@@ -64,7 +64,7 @@ export default function DocumentsPage() {
 	const isLoading = isFetchingGroups || isFetchingDocs;
 
 	// Override the onNavigate to start from inside the Shared folder
-	const handleNavigate = (folderId: number | null) => {
+	const handleNavigate = (folderId: string | null) => {
 		// If navigating to null (root), navigate back to Shared folder level
 		if (folderId === null && sharedFolder) {
 			setCurrentFolderId(sharedFolder.id); // This will show Shared folder's children

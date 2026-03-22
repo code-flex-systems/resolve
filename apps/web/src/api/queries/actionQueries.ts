@@ -7,7 +7,7 @@ import { TRPCError } from '@trpc/server';
 
 export async function upsertAction(
 	ctx: ProtectedContext,
-	answerId: number,
+	answerId: string,
 	type: ActionType,
 	definition: ActionDefinition
 ) {
@@ -32,7 +32,7 @@ export async function upsertAction(
 		.executeTakeFirstOrThrow();
 }
 
-export async function deleteAction(ctx: ProtectedContext, actionId: number) {
+export async function deleteAction(ctx: ProtectedContext, actionId: string) {
 	await ctx.db
 		.deleteFrom('action')
 		.where('id', '=', actionId)
@@ -44,7 +44,7 @@ export async function deleteAction(ctx: ProtectedContext, actionId: number) {
  * Get actions for given answer IDs
  * Only selects columns needed by executeActions to reduce payload
  */
-export async function getActions(ctx: ProtectedContext, answerIds: number[]) {
+export async function getActions(ctx: ProtectedContext, answerIds: string[]) {
 	return await ctx.db
 		.selectFrom('action')
 		.select(['id', 'type', 'definition'])
@@ -53,7 +53,7 @@ export async function getActions(ctx: ProtectedContext, answerIds: number[]) {
 		.execute();
 }
 
-export async function getAction(ctx: ProtectedContext, answerId: number) {
+export async function getAction(ctx: ProtectedContext, answerId: string) {
 	return await ctx.db
 		.selectFrom('action')
 		.selectAll()
@@ -85,7 +85,7 @@ export async function getActionStats(ctx: ProtectedContext) {
  */
 export async function getActionStatsDetail(
 	ctx: ProtectedContext,
-	filters: { checklistId?: number; claimId?: number; users?: string[]; range?: DateRange; searchTerm?: string }
+	filters: { checklistId?: string; claimId?: string; users?: string[]; range?: DateRange; searchTerm?: string }
 ) {
 	return await ctx.db
 		.selectFrom('action_log')
@@ -138,7 +138,7 @@ export async function getActionStatsDetail(
 		.execute();
 }
 
-export async function logAction(ctx: ProtectedContext, actionId: number, status: ActionLogStatus) {
+export async function logAction(ctx: ProtectedContext, actionId: string, status: ActionLogStatus) {
 	await ctx.db
 		.insertInto('action_log')
 		.values({ client_id: ctx.session.user.client_id!, action_id: actionId, status, created_by: ctx.session.user.id })
@@ -151,7 +151,7 @@ export async function logAction(ctx: ProtectedContext, actionId: number, status:
  */
 export async function logActions(
 	ctx: ProtectedContext,
-	logs: Array<{ actionId: number; status: ActionLogStatus }>
+	logs: Array<{ actionId: string; status: ActionLogStatus }>
 ) {
 	if (logs.length === 0) return;
 
@@ -167,7 +167,7 @@ export async function logActions(
 
 export async function updateAction(
 	ctx: ProtectedContext,
-	actionId: number,
+	actionId: string,
 	updates: {
 		type?: ActionType;
 		definition?: ActionDefinition;

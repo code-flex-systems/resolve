@@ -76,10 +76,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 	const { executeSuggestion, executeAllSuggestions, updateSuggestion } = useWorkflowAnalyticsTrpc();
 
 	const isBusy =
-		isFetching ||
-		executeSuggestion.isPending ||
-		executeAllSuggestions.isPending ||
-		updateSuggestion.isPending;
+		isFetching || executeSuggestion.isPending || executeAllSuggestions.isPending || updateSuggestion.isPending;
 
 	const resolutions = data?.resolutions ?? [];
 
@@ -190,7 +187,9 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 	if (!isFetching && data && data.breachesDetected === 0) {
 		return (
 			<Card variant="beveled" padding="lg">
-				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+				<div
+					style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}
+				>
 					<span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
 						Suggested Actions
 					</span>
@@ -221,7 +220,9 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 				color="success"
 				disabled={executeAllSuggestions.isPending}
 			>
-				{executeAllSuggestions.isPending ? 'Executing...' : `Execute ${pendingResolutions.length} Suggestion${pendingResolutions.length !== 1 ? 's' : ''}`}
+				{executeAllSuggestions.isPending
+					? 'Executing...'
+					: `Execute ${pendingResolutions.length} Suggestion${pendingResolutions.length !== 1 ? 's' : ''}`}
 			</Button>
 		</div>
 	);
@@ -270,34 +271,39 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 			{/* Analysis Summary */}
 			{isFetching ? (
 				<SummarySkeleton />
-			) : data && (
-				<div
-					style={{
-						marginBottom: 24,
-						padding: 16,
-						borderRadius: 8,
-						backgroundColor: 'var(--bg-secondary)',
-						border: '1px solid var(--border)',
-					}}
-				>
-					<span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 12 }}>
-						Last analysis: {new Date(data.generatedAt).toLocaleString()}
-					</span>
-					<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-						<Chip size="sm" style={{ backgroundColor: '#dcfce7', color: '#15803d' }}>
-							{data.breachesFullyResolved} fully resolved
-						</Chip>
-						<Chip size="sm" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-							{data.breachesPartiallyResolved} partially resolved
-						</Chip>
-						<Chip size="sm" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>
-							{data.summary.totalUnresolved} unresolved
-						</Chip>
-						<Chip size="sm" style={{ backgroundColor: '#e0f2fe', color: '#075985' }}>
-							{data.summary.totalAssignments} total assignment{data.summary.totalAssignments !== 1 ? 's' : ''}
-						</Chip>
+			) : (
+				data && (
+					<div
+						style={{
+							marginBottom: 24,
+							padding: 16,
+							borderRadius: 8,
+							backgroundColor: 'var(--bg-secondary)',
+							border: '1px solid var(--border)',
+						}}
+					>
+						<span
+							style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 12 }}
+						>
+							Last analysis: {new Date(data.generatedAt).toLocaleString()}
+						</span>
+						<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+							<Chip size="sm" style={{ backgroundColor: '#dcfce7', color: '#15803d' }}>
+								{data.breachesFullyResolved} fully resolved
+							</Chip>
+							<Chip size="sm" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+								{data.breachesPartiallyResolved} partially resolved
+							</Chip>
+							<Chip size="sm" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>
+								{data.summary.totalUnresolved} unresolved
+							</Chip>
+							<Chip size="sm" style={{ backgroundColor: '#e0f2fe', color: '#075985' }}>
+								{data.summary.totalAssignments} total assignment
+								{data.summary.totalAssignments !== 1 ? 's' : ''}
+							</Chip>
+						</div>
 					</div>
-				</div>
+				)
 			)}
 
 			{/* Suggestions list */}
@@ -312,7 +318,8 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 					displayedResolutions.map((resolution, index) => {
 						const { breach, assignments, shortfall, usersNeeded, status } = resolution;
 						const isIgnored = status === SuggestionStatus.IGNORED;
-						const reductionPercent = usersNeeded > 0 ? Math.round((assignments.length / usersNeeded) * 100) : 0;
+						const reductionPercent =
+							usersNeeded > 0 ? Math.round((assignments.length / usersNeeded) * 100) : 0;
 						const isFullyResolved = shortfall === 0;
 
 						const userNames = assignments.map((a) => a.userName).slice(0, 2);
@@ -396,14 +403,26 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 						gap: 12,
 					}}
 				>
-					<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)', flexShrink: 0, marginTop: 2 }} />
+					<IconAlertTriangle
+						size={20}
+						style={{ color: 'var(--status-warning)', flexShrink: 0, marginTop: 2 }}
+					/>
 					<div>
-						<span style={{ fontSize: 13, fontWeight: 600, color: '#b45309', display: 'block', marginBottom: 4 }}>
+						<span
+							style={{
+								fontSize: 13,
+								fontWeight: 600,
+								color: '#b45309',
+								display: 'block',
+								marginBottom: 4,
+							}}
+						>
 							Team Capacity Strain
 						</span>
 						<span style={{ fontSize: 13, color: '#92400e' }}>
-							{data.summary.totalUnresolved} breach{data.summary.totalUnresolved !== 1 ? 'es' : ''} could not be fully
-							resolved due to limited team availability. Consider adjusting workload or capacity thresholds.
+							{data.summary.totalUnresolved} breach{data.summary.totalUnresolved !== 1 ? 'es' : ''} could
+							not be fully resolved due to limited team availability. Consider adjusting workload or
+							capacity thresholds.
 						</span>
 					</div>
 				</div>
@@ -439,8 +458,8 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 				footer={executeAllFooter}
 			>
 				<p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
-					The following {pendingResolutions.length} suggestion{pendingResolutions.length !== 1 ? 's' : ''} will
-					be executed, applying priority changes to user desk assignments:
+					The following {pendingResolutions.length} suggestion{pendingResolutions.length !== 1 ? 's' : ''}{' '}
+					will be executed, applying priority changes to user desk assignments:
 				</p>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 					{pendingResolutions.map((res, idx) => (

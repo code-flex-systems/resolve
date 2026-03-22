@@ -21,8 +21,8 @@ import { IconCircleCheck, IconDeviceFloppy, IconFileDescription, IconRefresh } f
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 
-function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
-	const defaults: Record<string, number[] | string | number | null> = {};
+function generateDefaultValues(questions?: Question[], responses?: Record<string, QuestionResponse>) {
+	const defaults: Record<string, string[] | string | number | null> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
 		switch (q.type) {
@@ -58,8 +58,8 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 
 export default function Page() {
 	const isAssigned = useIsAssigned();
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance) ?? -1;
+	const { checklistId = '', claimId = '' } = useChecklistParams();
+	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance) ?? '';
 	const mode = useChecklistStore((state) => state.mode);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const questionCommentDialog = useChecklistStore((state) => state.questionCommentDialog);
@@ -75,14 +75,14 @@ export default function Page() {
 		formState: { isDirty, isSubmitting },
 	} = useForm({ mode: 'onChange' });
 
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
 	const { data: checklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { data: questions } = useQuestionTrpc().list(
 		{ pageId: selectedPageInfo.pageId },
-		{ enabled: selectedPageInfo.pageId !== -1 }
+		{ enabled: !!selectedPageInfo.pageId }
 	);
 	const {
 		isLoading: loading,
@@ -90,11 +90,11 @@ export default function Page() {
 		data: responses,
 	} = useResponseTrpc().list(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
-		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
+		{ enabled: !!checklistId && !!claimId && !!selectedPageInstance && mode === ChecklistMode.VIEW }
 	);
 	const { data: comments } = useCommentTrpc().listForPage(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
-		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
+		{ enabled: !!checklistId && !!claimId && !!selectedPageInstance && mode === ChecklistMode.VIEW }
 	);
 	const { mutate: evaluateResponses } = useEvaluateResponses();
 	const { mutateAsync: upsertResponses } = useResponseTrpc().createUpdateMany;
@@ -103,9 +103,9 @@ export default function Page() {
 
 	useEffect(() => {
 		if (
-			checklistId !== -1 &&
-			claimId !== -1 &&
-			selectedPageInstance !== -1 &&
+			!!checklistId &&
+			!!claimId &&
+			!!selectedPageInstance &&
 			selectedPageInfo.status === PageInstanceStatus.STALE
 		) {
 			evaluateResponses({ checklistId, claimId, instanceId: selectedPageInstance });
@@ -113,9 +113,9 @@ export default function Page() {
 	}, [checklistId, claimId, selectedPageInstance, selectedPageInfo.status]);
 
 	useEffect(() => {
-		if (loading || selectedPageInstance === -1) return;
+		if (loading || !selectedPageInstance) return;
 		reset({
-			...generateDefaultValues(questions, mode === ChecklistMode.VIEW ? responses : undefined),
+			...generateDefaultValues(questions, mode === ChecklistMode.VIEW ? responses as Record<string, QuestionResponse> : undefined),
 		});
 	}, [questions, responses, selectedPageInstance, mode, loading]);
 
@@ -125,12 +125,12 @@ export default function Page() {
 			const responses: QuestionResponse[] = Object.keys(data)
 				.filter((field) => !field.endsWith(QuestionType.FREEFORM) && !field.endsWith('-upload'))
 				.map((field) => {
-					const questionId = parseInt(field);
+					const questionId = field;
 					const question = questions?.find((q) => q.id === questionId);
 					const uploadAnswer = question?.answers?.find((a) => a.requires_upload);
 					const uploadFieldName = uploadAnswer ? `${questionId}-${uploadAnswer.id}-upload` : null;
 					const response: QuestionResponse = {
-						checklist_id: checklist?.id ?? -1,
+						checklist_id: checklist?.id ?? '',
 						instance_id: selectedPageInstance,
 						claim_id: claimId,
 						question_id: questionId,
@@ -156,7 +156,7 @@ export default function Page() {
 	return (
 		<>
 			<div style={styles.container}>
-				{(selectedPageInstance === -1 || loading) && (
+				{(!selectedPageInstance || loading) && (
 					<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
 						{loading ? (
 							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, width: '100%', padding: 16 }}>
@@ -178,7 +178,7 @@ export default function Page() {
 						)}
 					</div>
 				)}
-				{selectedPageInstance !== -1 && !loading && (
+				{!!selectedPageInstance && !loading && (
 					<>
 						<Toolbar
 							left={

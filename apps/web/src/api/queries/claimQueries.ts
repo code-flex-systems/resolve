@@ -15,7 +15,7 @@ import type { ClaimData } from '@/schemas/claimSchemas';
  * @param checklistId - checklist identifier to verify
  * @throws TRPCError if checklist is not found or not accessible
  */
-async function assertChecklistPublished(ctx: ProtectedContext, checklistId: number) {
+async function assertChecklistPublished(ctx: ProtectedContext, checklistId: string) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	const checklist = await ctx.db
 		.selectFrom('checklist')
@@ -32,7 +32,7 @@ async function assertChecklistPublished(ctx: ProtectedContext, checklistId: numb
 	}
 }
 
-export async function assignClaim(ctx: ProtectedContext, checklistId: number, claimId: number, assignee: string) {
+export async function assignClaim(ctx: ProtectedContext, checklistId: string, claimId: string, assignee: string) {
 	await assertChecklistPublished(ctx, checklistId);
 	return await ctx.db
 		.insertInto('checklist_claim')
@@ -55,7 +55,7 @@ export async function assignClaim(ctx: ProtectedContext, checklistId: number, cl
  * @param claimId - claim identifier
  * @returns claim record
  */
-export async function getClaim(ctx: ProtectedContext, claimId: number, checklistId?: number) {
+export async function getClaim(ctx: ProtectedContext, claimId: string, checklistId?: string) {
 	if (checklistId !== undefined) {
 		await assertChecklistPublished(ctx, checklistId);
 		await ctx.db
@@ -79,7 +79,7 @@ export async function getClaim(ctx: ProtectedContext, claimId: number, checklist
 		.executeTakeFirstOrThrow();
 }
 
-export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: number, offset = 0) {
+export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: string, offset = 0) {
 	const row = await ctx.db
 		.with('base', (qb) =>
 			qb
@@ -137,7 +137,7 @@ export async function getClaims(
 		limit,
 		offset,
 	}: {
-		feedId?: number | null;
+		feedId?: string | null;
 		searchTerm?: { value: string; type: ClaimSearch };
 		line_of_business?: string;
 		loss_type?: string;
@@ -337,7 +337,7 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  */
 export async function updateClaim(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	updates: Partial<{
 		claim_number: string | null;
 		client: string | null;
@@ -442,7 +442,7 @@ export async function createClaims(ctx: ProtectedContext, claims: ClaimData[]) {
  * Returns distinct loss types (from facilitators) and total liability percentage (from entities)
  * Note: loss_type is on claim_party for facilitators, liability_percentage is on claim_party for entities
  */
-export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: number) {
+export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: string) {
 	const result = await ctx.db
 		.selectFrom('claim_party')
 		.select(({ fn }) => [
@@ -489,7 +489,7 @@ export async function getClaimPartyAggregates(ctx: ProtectedContext, claimId: nu
  * @param claimId - claim identifier to recalculate
  * @returns the updated expected_recovery value
  */
-export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, claimId: number) {
+export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, claimId: string) {
 	// Get sum of liability percentages from entities only (entities have no parent_claim_party_id)
 	// Use COALESCE to handle NULL (no parties or all NULL liability_percentage)
 	const partyResult = await ctx.db
@@ -552,7 +552,7 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
  * @param claimId - claim to recalculate
  * @returns the new total_incurred value
  */
-export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: number) {
+export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: string) {
 	// Get sum of amount_reserved from all active (non-deleted) coverages for this claim
 	const result = await ctx.db
 		.selectFrom('claim_coverage')
@@ -582,7 +582,7 @@ export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: n
  * @param claimId - claim identifier
  * @returns detailed claim information
  */
-export async function getClaimDetail(ctx: ProtectedContext, claimId: number) {
+export async function getClaimDetail(ctx: ProtectedContext, claimId: string) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
 	// Get basic claim info with feed info and client adjuster name

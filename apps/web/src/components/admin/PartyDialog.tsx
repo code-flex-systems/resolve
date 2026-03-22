@@ -167,7 +167,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 		}
 	};
 
-	const currentPartyId = party ? (party.id as unknown as number) : null;
+	const currentPartyId = party ? party.id : null;
 
 	// Create stable debounced function
 	const debouncedSetSearchTerm = useDebounce((value: string) => {
@@ -277,7 +277,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				}
 
 				await updateParty({
-					id: party.id as unknown as number,
+					id: String(party.id),
 					params: updates,
 				});
 				showSuccess('update', 'Party updated');

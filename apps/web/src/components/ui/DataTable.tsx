@@ -206,8 +206,9 @@ export default function DataTable<T extends Record<string, any>>({
 		if (paginationMode === 'server' && rowCount != null && paginationModel) {
 			return Math.max(1, Math.ceil(rowCount / paginationModel.pageSize));
 		}
-		return table.getPageCount();
-	}, [paginationMode, rowCount, paginationModel, table]);
+		const count = table.getPageCount();
+		return count === 0 && rows.length > 0 ? 1 : count;
+	}, [paginationMode, rowCount, paginationModel, table, rows.length]);
 
 	const currentPage = paginationMode === 'server' && paginationModel
 		? paginationModel.page

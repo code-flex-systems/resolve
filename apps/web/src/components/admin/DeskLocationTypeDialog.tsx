@@ -59,7 +59,7 @@ export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocati
 		try {
 			if (isEditMode) {
 				await updateType({
-					id: deskLocationType.id as unknown as number,
+					id: String(deskLocationType.id),
 					params: {
 						name: data.name,
 					},

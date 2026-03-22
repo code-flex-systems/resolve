@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import styles from './PageDot.module.css';
 
-export default function PageDot(props: { id: number; onClick: () => void; filled?: boolean; disabled?: boolean }) {
+export default function PageDot(props: { id: string; onClick: () => void; filled?: boolean; disabled?: boolean }) {
 	const [hovered, setHovered] = useState(false);
 	const isFilled = props.filled || props.disabled || hovered;
 	return (

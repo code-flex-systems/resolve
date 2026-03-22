@@ -14,7 +14,7 @@ dayjs.extend(relativeTime);
  * Generic claim data interface that works for both search results and desk queue results
  */
 export interface ClaimListItemData {
-	id: number;
+	id: string;
 	claim_number: string | null;
 	client: string | null;
 	insured: string | null;

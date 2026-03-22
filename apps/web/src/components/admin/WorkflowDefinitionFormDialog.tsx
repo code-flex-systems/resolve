@@ -8,7 +8,7 @@ import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 
 interface WorkflowDefinitionFormDialogProps {
 	onClose: () => void;
-	onSuccess: (workflowId: number) => void;
+	onSuccess: (workflowId: string) => void;
 }
 
 export default function WorkflowDefinitionFormDialog({
@@ -18,8 +18,8 @@ export default function WorkflowDefinitionFormDialog({
 	const [formData, setFormData] = useState({
 		name: '',
 		description: '',
-		deskLocationTypeId: null as number | null,
-		deskLocationId: null as number | null,
+		deskLocationTypeId: null as string | null,
+		deskLocationId: null as string | null,
 	});
 
 	const { createDefinition } = useWorkflowTrpc();
@@ -41,7 +41,7 @@ export default function WorkflowDefinitionFormDialog({
 			const result = await createDefinition.mutateAsync({
 				name: formData.name,
 				description: formData.description || undefined,
-				deskLocationId: formData.deskLocationId || undefined,
+				deskLocationId: formData.deskLocationId ?? undefined,
 			});
 			onSuccess(result.id);
 			onClose();

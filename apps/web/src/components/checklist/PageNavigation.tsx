@@ -98,7 +98,7 @@ export default function PageNavigation() {
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const { checklistId = -1, claimId } = useChecklistParams();
+	const { checklistId = '', claimId } = useChecklistParams();
 	const showStatsDialog = useChecklistStore((state) => state.showStatsDialog);
 	const mode = useChecklistStore((state) => state.mode);
 	const expandAll = useChecklistStore((state) => state.expandAll);
@@ -111,21 +111,21 @@ export default function PageNavigation() {
 
 	const { data: checklist, isSuccess: isChSuccess } = useChecklistTrpc().get(
 		{ id: checklistId! },
-		{ enabled: checklistId !== -1 }
+		{ enabled: !!checklistId }
 	);
 	const { data: claim, isSuccess: isClSuccess } = useClaimTrpc().get(
 		{ checklistId, claimId: claimId! },
-		{ enabled: checklistId !== -1 && !!claimId }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId: claimId! },
-		{ enabled: checklistId !== -1 && !!claimId }
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate;
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
 		{ checklistId, claimId: claimId! },
-		{ enabled: checklistId !== -1 && !!claimId }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const {
 		data: navigation = { tree: [], maxPosition: 0 },
@@ -138,7 +138,7 @@ export default function PageNavigation() {
 			claimId,
 		},
 		{
-			enabled: checklistId !== -1,
+			enabled: !!checklistId,
 			select: (data = { tree: [], maxPosition: 0 }) => {
 				return {
 					maxPosition: data.maxPosition,
@@ -152,7 +152,7 @@ export default function PageNavigation() {
 	);
 	const { data: commentData } = useCommentTrpc().list(
 		{ filters: { checklistId, claimId }, limit: COMMENT_LIMIT, offset: commentOffset },
-		{ enabled: checklistId !== -1 && !!claimId }
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	useEffect(() => {
@@ -166,7 +166,7 @@ export default function PageNavigation() {
 			const newInstance = await addPage({
 				checklistId,
 				params: {
-					parentId: -1,
+					parentId: undefined,
 					title: 'New Page',
 					position: navigation.maxPosition + 1,
 				},

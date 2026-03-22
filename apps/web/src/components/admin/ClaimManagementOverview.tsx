@@ -61,11 +61,7 @@ export default function ClaimManagementOverview() {
 			id: 'assignee',
 			header: 'Assignee',
 			size: 140,
-			cell: ({ row }) => {
-				const first = row.original.adjusterFirstName;
-				const last = row.original.adjusterLastName;
-				return first ? `${first} ${last ?? ''}`.trim() : '—';
-			},
+			cell: ({ row }) => row.original.adjusterName || '—',
 		},
 		{
 			accessorKey: 'hoursRemaining',

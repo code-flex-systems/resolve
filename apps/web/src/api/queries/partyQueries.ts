@@ -137,7 +137,7 @@ export async function getParties(
 /**
  * Get single party by ID with primary contact info
  */
-export async function getParty(ctx: ProtectedContext, id: number) {
+export async function getParty(ctx: ProtectedContext, id: string) {
 	const result = await ctx.db
 		.selectFrom('party')
 		.leftJoin('party_email', (join) =>
@@ -296,7 +296,7 @@ export async function createParty(
  */
 export async function updateParty(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		party_type?: string;
 		is_business?: boolean;
@@ -354,7 +354,7 @@ export async function updateParty(
  * Check if party has active claim associations
  * Used before archiving to prevent data inconsistencies
  */
-export async function getActiveClaimAssociations(ctx: ProtectedContext, partyId: number) {
+export async function getActiveClaimAssociations(ctx: ProtectedContext, partyId: string) {
 	return await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
@@ -372,7 +372,7 @@ export async function getActiveClaimAssociations(ctx: ProtectedContext, partyId:
  * Cascades to party_address, party_phone, party_email, and party_representative
  * Prevents archiving if party has active claim associations
  */
-export async function archiveParty(ctx: ProtectedContext, id: number) {
+export async function archiveParty(ctx: ProtectedContext, id: string) {
 	// Check for active claim associations (business logic guard - Phase 5.1)
 	const activeClaims = await getActiveClaimAssociations(ctx, id);
 	if (activeClaims.length > 0) {
@@ -434,7 +434,7 @@ export async function archiveParty(ctx: ProtectedContext, id: number) {
  * Restore party (undo soft delete)
  * Cascades to party_address, party_phone, party_email, and party_representative
  */
-export async function restoreParty(ctx: ProtectedContext, id: number) {
+export async function restoreParty(ctx: ProtectedContext, id: string) {
 	// Restore party (existence check implicit in executeTakeFirstOrThrow - Phase 5.1 optimization)
 	const party = await ctx.db
 		.updateTable('party')
@@ -483,7 +483,7 @@ export async function restoreParty(ctx: ProtectedContext, id: number) {
 /**
  * Get all addresses for a party
  */
-export async function getPartyAddresses(ctx: ProtectedContext, partyId: number, showArchived?: boolean) {
+export async function getPartyAddresses(ctx: ProtectedContext, partyId: string, showArchived?: boolean) {
 	// Verify party belongs to client (via join)
 	let query = ctx.db
 		.selectFrom('party_address')
@@ -576,7 +576,7 @@ export async function getAllPartyAddresses(
 /**
  * Get single party address by ID
  */
-export async function getPartyAddress(ctx: ProtectedContext, id: number) {
+export async function getPartyAddress(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('party_address')
 		.innerJoin('party', 'party.id', 'party_address.party_id')
@@ -594,7 +594,7 @@ export async function getPartyAddress(ctx: ProtectedContext, id: number) {
 export async function createPartyAddress(
 	ctx: ProtectedContext,
 	params: {
-		party_id: number;
+		party_id: string;
 		name?: string;
 		street_address?: string | null;
 		city?: string | null;
@@ -652,7 +652,7 @@ export async function createPartyAddress(
  */
 export async function updatePartyAddress(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
 		street_address?: string | null;
@@ -716,7 +716,7 @@ export async function updatePartyAddress(
 /**
  * Archive party address (soft delete)
  */
-export async function archivePartyAddress(ctx: ProtectedContext, id: number) {
+export async function archivePartyAddress(ctx: ProtectedContext, id: string) {
 	const deletedAt = new Date();
 	const deletedBy = ctx.session.user.email!;
 
@@ -740,7 +740,7 @@ export async function archivePartyAddress(ctx: ProtectedContext, id: number) {
 /**
  * Restore party address (undo soft delete)
  */
-export async function restorePartyAddress(ctx: ProtectedContext, id: number) {
+export async function restorePartyAddress(ctx: ProtectedContext, id: string) {
 	// Restore address (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const address = await ctx.db
 		.updateTable('party_address')
@@ -765,7 +765,7 @@ export async function restorePartyAddress(ctx: ProtectedContext, id: number) {
 /**
  * Get all phones for a party
  */
-export async function getPartyPhones(ctx: ProtectedContext, partyId: number, showArchived?: boolean) {
+export async function getPartyPhones(ctx: ProtectedContext, partyId: string, showArchived?: boolean) {
 	let query = ctx.db
 		.selectFrom('party_phone')
 		.innerJoin('party', 'party.id', 'party_phone.party_id')
@@ -785,7 +785,7 @@ export async function getPartyPhones(ctx: ProtectedContext, partyId: number, sho
 /**
  * Get single party phone by ID
  */
-export async function getPartyPhone(ctx: ProtectedContext, id: number) {
+export async function getPartyPhone(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('party_phone')
 		.innerJoin('party', 'party.id', 'party_phone.party_id')
@@ -801,7 +801,7 @@ export async function getPartyPhone(ctx: ProtectedContext, id: number) {
 export async function createPartyPhone(
 	ctx: ProtectedContext,
 	params: {
-		party_id: number;
+		party_id: string;
 		country_code?: string;
 		area_code?: string;
 		phone_number: string;
@@ -844,7 +844,7 @@ export async function createPartyPhone(
  */
 export async function updatePartyPhone(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		country_code?: string;
 		area_code?: string;
@@ -878,7 +878,7 @@ export async function updatePartyPhone(
 /**
  * Archive party phone (soft delete)
  */
-export async function archivePartyPhone(ctx: ProtectedContext, id: number) {
+export async function archivePartyPhone(ctx: ProtectedContext, id: string) {
 	// Archive phone (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const phone = await ctx.db
 		.updateTable('party_phone')
@@ -895,7 +895,7 @@ export async function archivePartyPhone(ctx: ProtectedContext, id: number) {
 /**
  * Restore party phone (undo soft delete)
  */
-export async function restorePartyPhone(ctx: ProtectedContext, id: number) {
+export async function restorePartyPhone(ctx: ProtectedContext, id: string) {
 	// Restore phone (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const phone = await ctx.db
 		.updateTable('party_phone')
@@ -916,7 +916,7 @@ export async function restorePartyPhone(ctx: ProtectedContext, id: number) {
 /**
  * Get all emails for a party
  */
-export async function getPartyEmails(ctx: ProtectedContext, partyId: number, showArchived?: boolean) {
+export async function getPartyEmails(ctx: ProtectedContext, partyId: string, showArchived?: boolean) {
 	let query = ctx.db
 		.selectFrom('party_email')
 		.innerJoin('party', 'party.id', 'party_email.party_id')
@@ -936,7 +936,7 @@ export async function getPartyEmails(ctx: ProtectedContext, partyId: number, sho
 /**
  * Get single party email by ID
  */
-export async function getPartyEmail(ctx: ProtectedContext, id: number) {
+export async function getPartyEmail(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('party_email')
 		.innerJoin('party', 'party.id', 'party_email.party_id')
@@ -952,7 +952,7 @@ export async function getPartyEmail(ctx: ProtectedContext, id: number) {
 export async function createPartyEmail(
 	ctx: ProtectedContext,
 	params: {
-		party_id: number;
+		party_id: string;
 		email_address: string;
 		email_type?: string;
 	}
@@ -987,7 +987,7 @@ export async function createPartyEmail(
  */
 export async function updatePartyEmail(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		email_address?: string;
 		email_type?: string;
@@ -1013,7 +1013,7 @@ export async function updatePartyEmail(
 /**
  * Archive party email (soft delete)
  */
-export async function archivePartyEmail(ctx: ProtectedContext, id: number) {
+export async function archivePartyEmail(ctx: ProtectedContext, id: string) {
 	// Archive email (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const email = await ctx.db
 		.updateTable('party_email')
@@ -1030,7 +1030,7 @@ export async function archivePartyEmail(ctx: ProtectedContext, id: number) {
 /**
  * Restore party email (undo soft delete)
  */
-export async function restorePartyEmail(ctx: ProtectedContext, id: number) {
+export async function restorePartyEmail(ctx: ProtectedContext, id: string) {
 	// Restore email (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const email = await ctx.db
 		.updateTable('party_email')
@@ -1053,8 +1053,8 @@ export async function restorePartyEmail(ctx: ProtectedContext, id: number) {
  */
 export async function getPartyRepresentatives(
 	ctx: ProtectedContext,
-	partyId: number,
-	addressId?: number,
+	partyId: string,
+	addressId?: string,
 	showArchived?: boolean
 ) {
 	// Verify party belongs to client (via join)
@@ -1165,7 +1165,7 @@ export async function getAllPartyRepresentatives(
 /**
  * Get single party representative by ID with party and address information
  */
-export async function getPartyRepresentative(ctx: ProtectedContext, id: number) {
+export async function getPartyRepresentative(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('party_representative')
 		.innerJoin('party', 'party.id', 'party_representative.party_id')
@@ -1180,7 +1180,7 @@ export async function getPartyRepresentative(ctx: ProtectedContext, id: number) 
 /**
  * Archive party representative (soft delete)
  */
-export async function archivePartyRepresentative(ctx: ProtectedContext, id: number) {
+export async function archivePartyRepresentative(ctx: ProtectedContext, id: string) {
 	const representative = await getPartyRepresentative(ctx, id);
 	if (!representative) {
 		throw new Error('Representative not found');
@@ -1206,7 +1206,7 @@ export async function archivePartyRepresentative(ctx: ProtectedContext, id: numb
 /**
  * Restore party representative (undo soft delete)
  */
-export async function restorePartyRepresentative(ctx: ProtectedContext, id: number) {
+export async function restorePartyRepresentative(ctx: ProtectedContext, id: string) {
 	const representative = await getPartyRepresentative(ctx, id);
 	if (!representative) {
 		throw new Error('Representative not found');
@@ -1233,8 +1233,8 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, id: numb
 export async function createPartyRepresentative(
 	ctx: ProtectedContext,
 	params: {
-		party_id: number;
-		address_id?: number;
+		party_id: string;
+		address_id?: string;
 		first_name: string;
 		last_name: string;
 		title?: string;
@@ -1279,9 +1279,9 @@ export async function createPartyRepresentative(
  */
 export async function updatePartyRepresentative(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
-		address_id?: number;
+		address_id?: string;
 		first_name?: string;
 		last_name?: string;
 		title?: string;
@@ -1341,7 +1341,7 @@ export async function updatePartyRepresentative(
 /**
  * Get party representative for deletion (for admin logging)
  */
-export async function getPartyRepresentativeForDeletion(ctx: ProtectedContext, id: number) {
+export async function getPartyRepresentativeForDeletion(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('party_representative')
 		.innerJoin('party', 'party.id', 'party_representative.party_id')
@@ -1361,7 +1361,7 @@ export async function getPartyRepresentativeForDeletion(ctx: ProtectedContext, i
 /**
  * Delete party representative
  */
-export async function deletePartyRepresentative(ctx: ProtectedContext, id: number) {
+export async function deletePartyRepresentative(ctx: ProtectedContext, id: string) {
 	await ctx.db
 		.deleteFrom('party_representative')
 		.where('party_representative.id', '=', id)
@@ -1389,7 +1389,7 @@ export async function deletePartyRepresentative(ctx: ProtectedContext, id: numbe
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	options?: { partyType?: 'entity' | 'facilitator'; roleListEntity?: 'claimant_party_role' | 'adverse_party_role' }
 ) {
 	// Fetch claim parties with related data
@@ -1511,7 +1511,7 @@ export async function getClaimParties(
 			}
 			return acc;
 		},
-		{} as Record<number, typeof coverages>
+		{} as Record<string, typeof coverages>
 	);
 
 	// Transform results to nest party, representative, address, and coverages data
@@ -1580,13 +1580,13 @@ export async function getClaimParties(
  */
 export async function getPrimaryClaimParty(
 	ctx: ProtectedContext,
-	claimId: number
+	claimId: string
 ): Promise<{
-	id: number;
-	claim_id: number;
-	party_id: number;
+	id: string;
+	claim_id: string;
+	party_id: string;
 	role: string[];
-	representative_id: number | null;
+	representative_id: string | null;
 	is_primary: boolean;
 } | null> {
 	const result = await ctx.db
@@ -1616,8 +1616,8 @@ export async function getPrimaryClaimParty(
  */
 export async function getTotalLiabilityForClaim(
 	ctx: ProtectedContext,
-	claimId: number,
-	excludeClaimPartyId?: number
+	claimId: string,
+	excludeClaimPartyId?: string
 ): Promise<number> {
 	let query = ctx.db
 		.selectFrom('claim_party')
@@ -1646,12 +1646,12 @@ export async function getTotalLiabilityForClaim(
 export async function linkPartyToClaim(
 	ctx: ProtectedContext,
 	params: {
-		claim_id: number;
-		party_id: number;
+		claim_id: string;
+		party_id: string;
 		role: string[];
 		// Structured representative (facilitators)
-		representative_id?: number | null;
-		address_id?: number | null;
+		representative_id?: string | null;
+		address_id?: string | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
 		// Other fields
@@ -1659,7 +1659,7 @@ export async function linkPartyToClaim(
 		notes?: string;
 		external_reference?: string;
 		liability_percentage?: number;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		// Facilitator-specific fields
 		loss_type?: string | null;
 		policy_limit?: number | null;
@@ -1711,12 +1711,12 @@ export async function linkPartyToClaim(
  */
 export async function updateClaimParty(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		role?: string[];
 		// Structured representative (facilitators)
-		representative_id?: number | null;
-		address_id?: number | null;
+		representative_id?: string | null;
+		address_id?: string | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
 		// Other fields
@@ -1724,7 +1724,7 @@ export async function updateClaimParty(
 		notes?: string;
 		external_reference?: string;
 		liability_percentage?: number | null;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		// Facilitator-specific fields
 		loss_type?: string | null;
 		policy_limit?: number | null;
@@ -1789,7 +1789,7 @@ export async function updateClaimParty(
 /**
  * Get claim party for deletion (for admin logging)
  */
-export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number) {
+export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('party', 'party.id', 'claim_party.party_id')
@@ -1815,7 +1815,7 @@ export async function getClaimPartyForDeletion(ctx: ProtectedContext, id: number
  *
  * @returns claimId for controller to orchestrate recalculation
  */
-export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
+export async function archiveClaimParty(ctx: ProtectedContext, id: string) {
 	// Get claim_id before archiving (with client check)
 	const claimParty = await ctx.db
 		.selectFrom('claim_party')
@@ -1864,8 +1864,8 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: number) {
  * Get all claim_party IDs including children recursively
  * Uses recursive CTE to find all nested facilitators
  */
-async function getClaimPartyIdsWithChildren(ctx: ProtectedContext, rootId: number): Promise<number[]> {
-	const result = await sql<{ id: number }>`
+async function getClaimPartyIdsWithChildren(ctx: ProtectedContext, rootId: string): Promise<string[]> {
+	const result = await sql<{ id: string }>`
 		WITH RECURSIVE claim_party_tree AS (
 			-- Base case: the root claim_party
 			SELECT id FROM claim_party WHERE id = ${rootId} AND deleted_at IS NULL
@@ -1886,7 +1886,7 @@ async function getClaimPartyIdsWithChildren(ctx: ProtectedContext, rootId: numbe
  * Get total liability percentage for a claim (sum of all party liability_percentages)
  * Used to calculate "our liability" as (100 - total party liability percentage)
  */
-export async function getClaimLiabilityPercentageTotal(ctx: ProtectedContext, claimId: number) {
+export async function getClaimLiabilityPercentageTotal(ctx: ProtectedContext, claimId: string) {
 	const result = await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')

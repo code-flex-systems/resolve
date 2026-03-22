@@ -12,7 +12,7 @@ interface TaskBulkCancellationFormInputs {
 }
 
 interface TaskBulkCancellationDialogProps {
-	taskIds: number[];
+	taskIds: string[];
 	onClose: () => void;
 	onCancelled?: () => void;
 }

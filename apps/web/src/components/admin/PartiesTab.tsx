@@ -119,7 +119,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 	// Query to fetch party by ID for deep linking (only when edit param is present)
 	const { data: partyToEdit } = partyTrpc.get(
-		{ id: editPartyId ? parseInt(editPartyId, 10) : 0 },
+		{ id: editPartyId ?? '' },
 		{ enabled: !!editPartyId && !editingPartyFromUrl }
 	);
 

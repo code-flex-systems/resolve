@@ -13,8 +13,8 @@ type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; 
 interface DocumentNavigationTableProps {
 	groups: DocGroupListItem[];
 	docs: DocListItem[];
-	currentFolderId: number | null;
-	onNavigate: (folderId: number | null) => void;
+	currentFolderId: string | null;
+	onNavigate: (folderId: string | null) => void;
 	onDocumentPreview: (doc: DocListItem) => void;
 	loading?: boolean;
 	editMode?: boolean;
@@ -25,7 +25,7 @@ interface DocumentNavigationTableProps {
 	adminMode?: boolean; // Show system folder indicators
 	emptyRootText?: string; // Custom empty state text for root level
 	emptyFolderText?: string; // Custom empty state text for folders
-	hiddenBreadcrumbFolderId?: number; // Folder ID to hide from breadcrumbs (e.g., Shared folder)
+	hiddenBreadcrumbFolderId?: string; // Folder ID to hide from breadcrumbs (e.g., Shared folder)
 }
 
 export default function DocumentNavigationTable({

@@ -69,8 +69,8 @@ export async function getUsersWithDeskAssignments(
 		limit?: number;
 		offset?: number;
 		searchTerm?: string;
-		deskLocationTypeId?: number;
-		deskLocationId?: number;
+		deskLocationTypeId?: string;
+		deskLocationId?: string;
 	}
 ) {
 	return await userQueries.getUsersWithDeskAssignments(ctx, {
@@ -89,8 +89,8 @@ export async function getUserActivity(
 	}: {
 		filters: {
 			range: DateRangeStrict;
-			checklistId?: number;
-			claimId?: number;
+			checklistId?: string;
+			claimId?: string;
 			users?: string[];
 			searchTerm?: string;
 		};

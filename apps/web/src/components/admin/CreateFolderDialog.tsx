@@ -14,7 +14,7 @@ type CreateFolderFormInputs = {
 
 interface CreateFolderDialogProps {
 	onClose: () => void;
-	parentGroupId?: number | null;
+	parentGroupId?: string | null;
 }
 
 export default function CreateFolderDialog({ onClose, parentGroupId = null }: CreateFolderDialogProps) {

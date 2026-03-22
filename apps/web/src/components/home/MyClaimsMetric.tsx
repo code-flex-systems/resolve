@@ -9,7 +9,7 @@ import Skeleton from '@/components/ui/Skeleton';
 
 export default function MyClaimsMetric() {
 	const { data: session } = useClerkSession();
-	const { data: stats = [], isLoading } = useChecklistTrpc().stats(
+	const { data: stats = {} as Record<ClaimStatus, number>, isLoading } = useChecklistTrpc().stats(
 		{ users: session?.user?.id ? [session.user.id] : [] },
 		{ enabled: !!session?.user?.id }
 	);

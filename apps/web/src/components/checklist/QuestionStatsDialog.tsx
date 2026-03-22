@@ -16,7 +16,10 @@ export default function QuestionStatsDialog() {
 	const { checklistId = -1 } = useChecklistParams();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const toggleStatsDialog = useChecklistStore((state) => state.toggleStatsDialog);
-	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({ pageId: selectedPageInfo.pageId });
+	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({
+		pageId: selectedPageInfo.pageId,
+		filters: { range: ['01/01/2020', new Date().toLocaleDateString('en-US')] as [string, string] },
+	});
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 	return (
 		<BasicDialog

@@ -39,7 +39,7 @@ export async function getParties(
 /**
  * Get single party by ID
  */
-export async function getParty(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getParty(ctx: ProtectedContext, { id }: { id: string }) {
 	return await partyQueries.getParty(ctx, id);
 }
 
@@ -148,7 +148,7 @@ export async function updateParty(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			party_type?: string;
 			is_business?: boolean;
@@ -291,7 +291,7 @@ export async function updateParty(
  * Archive party with admin logging (soft delete)
  * Prevents archiving if party has active claim associations
  */
-export async function archiveParty(ctx: ProtectedContext, { id }: { id: number }) {
+export async function archiveParty(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const party = await partyQueries.archiveParty({ ...ctx, db: trx }, id);
 
@@ -315,7 +315,7 @@ export async function archiveParty(ctx: ProtectedContext, { id }: { id: number }
 /**
  * Restore party with admin logging (undo soft delete)
  */
-export async function restoreParty(ctx: ProtectedContext, { id }: { id: number }) {
+export async function restoreParty(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const party = await partyQueries.restoreParty({ ...ctx, db: trx }, id);
 
@@ -346,7 +346,7 @@ export async function restoreParty(ctx: ProtectedContext, { id }: { id: number }
  */
 export async function getPartyAddresses(
 	ctx: ProtectedContext,
-	{ partyId, showArchived }: { partyId: number; showArchived?: boolean }
+	{ partyId, showArchived }: { partyId: string; showArchived?: boolean }
 ) {
 	return await partyQueries.getPartyAddresses(ctx, partyId, showArchived);
 }
@@ -369,7 +369,7 @@ export async function getAllPartyAddresses(
 /**
  * Get single party address by ID
  */
-export async function getPartyAddress(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getPartyAddress(ctx: ProtectedContext, { id }: { id: string }) {
 	return await partyQueries.getPartyAddress(ctx, id);
 }
 
@@ -379,7 +379,7 @@ export async function getPartyAddress(ctx: ProtectedContext, { id }: { id: numbe
 export async function createPartyAddress(
 	ctx: ProtectedContext,
 	input: {
-		party_id: number;
+		party_id: string;
 		name?: string;
 		street_address?: string | null;
 		city?: string | null;
@@ -425,7 +425,7 @@ export async function updatePartyAddress(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			name?: string;
 			street_address?: string | null;
@@ -468,7 +468,7 @@ export async function updatePartyAddress(
 /**
  * Archive party address with admin logging (soft delete)
  */
-export async function archivePartyAddress(ctx: ProtectedContext, { id }: { id: number }) {
+export async function archivePartyAddress(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const address = await partyQueries.archivePartyAddress({ ...ctx, db: trx }, id);
 
@@ -493,7 +493,7 @@ export async function archivePartyAddress(ctx: ProtectedContext, { id }: { id: n
 /**
  * Restore party address with admin logging (undo soft delete)
  */
-export async function restorePartyAddress(ctx: ProtectedContext, { id }: { id: number }) {
+export async function restorePartyAddress(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const address = await partyQueries.restorePartyAddress({ ...ctx, db: trx }, id);
 
@@ -534,7 +534,7 @@ export const restorePartyOffice = restorePartyAddress;
  */
 export async function getPartyPhones(
 	ctx: ProtectedContext,
-	{ partyId, showArchived }: { partyId: number; showArchived?: boolean }
+	{ partyId, showArchived }: { partyId: string; showArchived?: boolean }
 ) {
 	return await partyQueries.getPartyPhones(ctx, partyId, showArchived);
 }
@@ -542,7 +542,7 @@ export async function getPartyPhones(
 /**
  * Get single party phone by ID
  */
-export async function getPartyPhone(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getPartyPhone(ctx: ProtectedContext, { id }: { id: string }) {
 	return await partyQueries.getPartyPhone(ctx, id);
 }
 
@@ -552,7 +552,7 @@ export async function getPartyPhone(ctx: ProtectedContext, { id }: { id: number 
 export async function createPartyPhone(
 	ctx: ProtectedContext,
 	input: {
-		party_id: number;
+		party_id: string;
 		country_code?: string;
 		area_code?: string;
 		phone_number: string;
@@ -593,7 +593,7 @@ export async function updatePartyPhone(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			country_code?: string;
 			area_code?: string;
@@ -634,7 +634,7 @@ export async function updatePartyPhone(
 /**
  * Archive party phone with admin logging (soft delete)
  */
-export async function archivePartyPhone(ctx: ProtectedContext, { id }: { id: number }) {
+export async function archivePartyPhone(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const phone = await partyQueries.archivePartyPhone({ ...ctx, db: trx }, id);
 
@@ -658,7 +658,7 @@ export async function archivePartyPhone(ctx: ProtectedContext, { id }: { id: num
 /**
  * Restore party phone with admin logging (undo soft delete)
  */
-export async function restorePartyPhone(ctx: ProtectedContext, { id }: { id: number }) {
+export async function restorePartyPhone(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const phone = await partyQueries.restorePartyPhone({ ...ctx, db: trx }, id);
 
@@ -689,7 +689,7 @@ export async function restorePartyPhone(ctx: ProtectedContext, { id }: { id: num
  */
 export async function getPartyEmails(
 	ctx: ProtectedContext,
-	{ partyId, showArchived }: { partyId: number; showArchived?: boolean }
+	{ partyId, showArchived }: { partyId: string; showArchived?: boolean }
 ) {
 	return await partyQueries.getPartyEmails(ctx, partyId, showArchived);
 }
@@ -697,7 +697,7 @@ export async function getPartyEmails(
 /**
  * Get single party email by ID
  */
-export async function getPartyEmail(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getPartyEmail(ctx: ProtectedContext, { id }: { id: string }) {
 	return await partyQueries.getPartyEmail(ctx, id);
 }
 
@@ -707,7 +707,7 @@ export async function getPartyEmail(ctx: ProtectedContext, { id }: { id: number 
 export async function createPartyEmail(
 	ctx: ProtectedContext,
 	input: {
-		party_id: number;
+		party_id: string;
 		email_address: string;
 		email_type?: string;
 	}
@@ -744,7 +744,7 @@ export async function updatePartyEmail(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			email_address?: string;
 			email_type?: string;
@@ -781,7 +781,7 @@ export async function updatePartyEmail(
 /**
  * Archive party email with admin logging (soft delete)
  */
-export async function archivePartyEmail(ctx: ProtectedContext, { id }: { id: number }) {
+export async function archivePartyEmail(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const email = await partyQueries.archivePartyEmail({ ...ctx, db: trx }, id);
 
@@ -805,7 +805,7 @@ export async function archivePartyEmail(ctx: ProtectedContext, { id }: { id: num
 /**
  * Restore party email with admin logging (undo soft delete)
  */
-export async function restorePartyEmail(ctx: ProtectedContext, { id }: { id: number }) {
+export async function restorePartyEmail(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const email = await partyQueries.restorePartyEmail({ ...ctx, db: trx }, id);
 
@@ -836,7 +836,7 @@ export async function restorePartyEmail(ctx: ProtectedContext, { id }: { id: num
  */
 export async function getPartyRepresentatives(
 	ctx: ProtectedContext,
-	{ partyId, addressId, showArchived }: { partyId: number; addressId?: number; showArchived?: boolean }
+	{ partyId, addressId, showArchived }: { partyId: string; addressId?: string; showArchived?: boolean }
 ) {
 	return await partyQueries.getPartyRepresentatives(ctx, partyId, addressId, showArchived);
 }
@@ -859,7 +859,7 @@ export async function getAllPartyRepresentatives(
 /**
  * Get single party representative by ID
  */
-export async function getPartyRepresentative(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getPartyRepresentative(ctx: ProtectedContext, { id }: { id: string }) {
 	return await partyQueries.getPartyRepresentative(ctx, id);
 }
 
@@ -869,8 +869,8 @@ export async function getPartyRepresentative(ctx: ProtectedContext, { id }: { id
 export async function createPartyRepresentative(
 	ctx: ProtectedContext,
 	input: {
-		party_id: number;
-		address_id?: number;
+		party_id: string;
+		address_id?: string;
 		first_name: string;
 		last_name: string;
 		title?: string;
@@ -915,9 +915,9 @@ export async function updatePartyRepresentative(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
-			address_id?: number;
+			address_id?: string;
 			first_name?: string;
 			last_name?: string;
 			title?: string;
@@ -959,7 +959,7 @@ export async function updatePartyRepresentative(
 /**
  * Archive party representative with admin logging (soft delete)
  */
-export async function archivePartyRepresentative(ctx: ProtectedContext, { id }: { id: number }) {
+export async function archivePartyRepresentative(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const representative = await partyQueries.archivePartyRepresentative({ ...ctx, db: trx }, id);
 
@@ -985,7 +985,7 @@ export async function archivePartyRepresentative(ctx: ProtectedContext, { id }: 
 /**
  * Restore party representative with admin logging (undo soft delete)
  */
-export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: { id: number }) {
+export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const representative = await partyQueries.restorePartyRepresentative({ ...ctx, db: trx }, id);
 
@@ -1019,7 +1019,7 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: 
 export async function getClaimParties(
 	ctx: ProtectedContext,
 	{ claimId, partyType, roleListEntity }: {
-		claimId: number;
+		claimId: string;
 		partyType?: 'entity' | 'facilitator';
 		roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
 	}
@@ -1034,18 +1034,18 @@ export async function getClaimParties(
 export async function linkPartyToClaim(
 	ctx: ProtectedContext,
 	input: {
-		claim_id: number;
-		party_id: number;
+		claim_id: string;
+		party_id: string;
 		role: string[];
-		representative_id?: number | null;
-		address_id?: number | null;
+		representative_id?: string | null;
+		address_id?: string | null;
 		// Free-form representative field (for entities)
 		representative_name?: string | null;
 		is_primary?: boolean;
 		notes?: string;
 		external_reference?: string;
 		liability_percentage?: number;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		// Facilitator-specific fields
 		loss_type?: string | null;
 		policy_limit?: number | null;
@@ -1091,18 +1091,18 @@ export async function updateClaimParty(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			role?: string[];
-			representative_id?: number | null;
-			address_id?: number | null;
+			representative_id?: string | null;
+			address_id?: string | null;
 			// Free-form representative field (for entities)
 			representative_name?: string | null;
 			is_primary?: boolean;
 			notes?: string;
 			external_reference?: string;
 			liability_percentage?: number | null;
-			parent_claim_party_id?: number | null;
+			parent_claim_party_id?: string | null;
 			// Facilitator-specific fields
 			loss_type?: string | null;
 			policy_limit?: number | null;
@@ -1150,7 +1150,7 @@ export async function updateClaimParty(
  */
 export async function archiveClaimParty(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
 		const claimPartyForLog = await partyQueries.getClaimPartyForDeletion(

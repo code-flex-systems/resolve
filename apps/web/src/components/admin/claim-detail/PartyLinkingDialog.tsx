@@ -18,16 +18,16 @@ import { trpc } from '@/lib/trpc';
 
 interface PartyLinkingFormData {
 	role: string[]; // Array of selected roles
-	party_id: number | null;
+	party_id: string | null;
 	// Structured representative (facilitators)
-	representative_id: number | null;
-	address_id: number | null;
+	representative_id: string | null;
+	address_id: string | null;
 	// Free-form representative (entities)
 	representative_name: string;
 	// Other fields
 	liability_percentage: string;
 	notes: string;
-	parent_claim_party_id: number | null;
+	parent_claim_party_id: string | null;
 	// Facilitator-specific fields
 	loss_type: string | null;
 	policy_limit: string;
@@ -38,16 +38,16 @@ interface PartyLinkingDialogProps {
 	onClose: () => void;
 	onSubmit: (data: {
 		role: string[]; // Array of roles
-		party_id: number;
+		party_id: string;
 		// Structured representative (facilitators)
-		representative_id?: number | null;
-		address_id?: number | null;
+		representative_id?: string | null;
+		address_id?: string | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
 		// Other fields
 		liability_percentage?: number | null;
 		notes?: string | null;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		// Facilitator-specific fields
 		loss_type?: string | null;
 		policy_limit?: number | null;
@@ -58,7 +58,7 @@ interface PartyLinkingDialogProps {
 	/** Reference entity for role selection ('claimant_party_role' or 'adverse_party_role') */
 	roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
 	/** Parent claim_party ID when adding a facilitator under an entity */
-	parentClaimPartyId?: number | null;
+	parentClaimPartyId?: string | null;
 	/** Whether this dialog is for adding/editing a facilitator (requires parent entity) */
 	isFacilitatorMode?: boolean;
 	/** Available parent entities for facilitator selection (only used when isFacilitatorMode=true and no parentClaimPartyId) */

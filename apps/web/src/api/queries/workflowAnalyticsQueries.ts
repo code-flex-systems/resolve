@@ -15,7 +15,7 @@ import type { DB } from '@/api/database/types';
  * Uses CTEs to resolve location-specific vs global SLA thresholds and
  * to determine the latest transition (current location) for each claim.
  */
-export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocationId?: number) {
+export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocationId?: string) {
 	const clientId = ctx.session.user.client_id;
 
 	const rows = await ctx.db
@@ -38,7 +38,7 @@ export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocat
 				)
 				.leftJoin('workflow_threshold as wt', (join) =>
 					join
-						.on('wt.workflow_definition_id', '=', sql<number>`COALESCE(wd_specific.id, wd_global.id)`)
+						.on('wt.workflow_definition_id', '=', sql<string>`COALESCE(wd_specific.id, wd_global.id)`)
 						.on('wt.threshold_type', '=', WorkflowThresholdType.LOCATION_AGE)
 						.on('wt.is_active', '=', true)
 						.on('wt.deleted_at', 'is', null)
@@ -150,7 +150,7 @@ export async function getDeskLocationQueueDepth(ctx: ProtectedContext, deskLocat
  *
  * Returns task counts and utilization ratio by desk location.
  */
-export async function getDeskLocationWorkLoad(ctx: ProtectedContext, deskLocationId?: number) {
+export async function getDeskLocationWorkLoad(ctx: ProtectedContext, deskLocationId?: string) {
 	const clientId = ctx.session.user.client_id;
 
 	const rows = await ctx.db
@@ -210,7 +210,7 @@ export async function getUserWorkloadAndCapacity(
 	ctx: ProtectedContext,
 	options?: {
 		userId?: string;
-		deskLocationId?: number;
+		deskLocationId?: string;
 		userDailyWorkUnits?: number;
 	}
 ) {
@@ -253,7 +253,7 @@ export async function getUserWorkloadAndCapacity(
 		.selectFrom('users as u')
 		.leftJoin('user_load as ul', 'ul.user_id', 'u.id')
 		.leftJoin('user_pending as up', 'up.user_id', 'u.id')
-		.leftJoin(
+		.leftJoinLateral(
 			(eb) =>
 				eb
 					.selectFrom('task as t')
@@ -339,7 +339,7 @@ export async function getClaimsApproachingSLABreach(ctx: ProtectedContext, limit
 				)
 				.leftJoin('workflow_threshold as wt', (join) =>
 					join
-						.on('wt.workflow_definition_id', '=', sql<number>`COALESCE(wd_specific.id, wd_global.id)`)
+						.on('wt.workflow_definition_id', '=', sql<string>`COALESCE(wd_specific.id, wd_global.id)`)
 						.on('wt.threshold_type', '=', WorkflowThresholdType.LOCATION_AGE)
 						.on('wt.is_active', '=', true)
 						.on('wt.deleted_at', 'is', null)
@@ -392,17 +392,13 @@ export async function getClaimsApproachingSLABreach(ctx: ProtectedContext, limit
 				.where('c.recovery_status', 'not in', ['closed_no_recovery', 'recovered'])
 		)
 		.selectFrom('claim_sla_status as css')
-		.leftJoin('users as u', (join) =>
-			join.onRef('u.id', '=', 'css.client_adjuster').on('u.client_id', '=', clientId)
-		)
 		.select([
 			'css.claim_id',
 			'css.claim_number',
 			'css.desk_location_id',
 			'css.desk_location_name',
 			'css.recovery_status',
-			'u.first as adjuster_first_name',
-			'u.last as adjuster_last_name',
+			'css.client_adjuster as adjuster_name',
 			'css.stage_entered_at',
 			'css.hours_in_stage',
 			'css.sla_hours',
@@ -425,8 +421,7 @@ export async function getClaimsApproachingSLABreach(ctx: ProtectedContext, limit
 		deskLocationId: row.desk_location_id,
 		deskLocationName: row.desk_location_name,
 		recoveryStatus: row.recovery_status,
-		adjusterFirstName: row.adjuster_first_name,
-		adjusterLastName: row.adjuster_last_name,
+		adjusterName: row.adjuster_name,
 		stageEnteredAt: row.stage_entered_at,
 		hoursInStage: Number(row.hours_in_stage),
 		slaHours: row.sla_hours!,
@@ -444,7 +439,7 @@ export async function getClaimsApproachingSLABreach(ctx: ProtectedContext, limit
 export async function getTaskThroughputToday(
 	ctx: ProtectedContext,
 	options?: {
-		deskLocationId?: number;
+		deskLocationId?: string;
 		userId?: string;
 	}
 ) {
@@ -511,7 +506,7 @@ export async function getTaskThroughputToday(
 						)
 				)
 				.select([
-					sql<number>`COALESCE(ct.desk_location_id, crt.desk_location_id)`.as('desk_location_id'),
+					sql<string>`COALESCE(ct.desk_location_id, crt.desk_location_id)`.as('desk_location_id'),
 					sql<string | null>`COALESCE(ct.assigned_to, crt.assigned_to)`.as('assigned_to'),
 					sql<string>`COALESCE(ct.tasks_completed, '0')`.as('tasks_completed'),
 					sql<string>`COALESCE(ct.work_units_completed, '0')`.as('work_units_completed'),
@@ -578,7 +573,7 @@ export async function getDeadlineStatusOverview(
 	options?: {
 		deadlineType?: string;
 		createdBy?: string;
-		claimId?: number;
+		claimId?: string;
 	}
 ) {
 	const clientId = ctx.session.user.client_id;
@@ -873,8 +868,8 @@ export async function getWorkflowStageMetrics(
 	options: {
 		startDate: string;
 		endDate: string;
-		deskLocationTypeId?: number;
-		deskLocationId?: number;
+		deskLocationTypeId?: string;
+		deskLocationId?: string;
 	}
 ) {
 	const clientId = ctx.session.user.client_id;

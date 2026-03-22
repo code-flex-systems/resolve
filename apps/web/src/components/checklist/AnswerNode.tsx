@@ -5,9 +5,9 @@ import './styles.css';
 import { IconQuote } from '@tabler/icons-react';
 
 export default function AnswerNode(props: {
-	pageId: number;
-	questionId: number;
-	answerId: number;
+	pageId: string;
+	questionId: string;
+	answerId: string;
 	answerText: string;
 	level: number;
 }) {
@@ -17,7 +17,7 @@ export default function AnswerNode(props: {
 	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
 	const updateSelectedAnswer = useChecklistStore((state) => state.updateSelectedAnswer);
 	const selected = selectedAnswer === answerId && selectedQuestion === questionId;
-	const isPlaceholder = answerId === -1;
+	const isPlaceholder = answerId === '';
 	return (
 		<div
 			style={{ ...styles.node, paddingLeft: level * 3.125 * 8 }}
@@ -31,7 +31,7 @@ export default function AnswerNode(props: {
 					className={isPlaceholder ? 'node-p' : 'node-a'}
 					style={{ cursor: 'pointer', color: selected ? 'var(--status-warning)' : isPlaceholder ? '#DAB0FF' : '', fontWeight: isPlaceholder ? 'bold' : '', lineHeight: '19px' }}
 				>
-					{answerText} (p{pageId}.q{questionId}.a{answerId === -1 ? '?' : answerId})
+					{answerText} (p{pageId}.q{questionId}.a{answerId === '' ? '?' : answerId})
 				</span>
 			</div>
 		</div>

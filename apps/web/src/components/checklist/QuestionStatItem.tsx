@@ -7,9 +7,9 @@ export default function QuestionStatItem(props: {
 	expandedIdx: number | null;
 	idx: number;
 	item: QuestionStat;
-	onAnswerClick: (id: number) => void;
-	pageId: number;
-	selectedAnswerId?: number;
+	onAnswerClick: (id: string) => void;
+	pageId: string;
+	selectedAnswerId?: string;
 	setExpandedIdx: (newIdx: number | null) => void;
 }) {
 	const { bgColor, expandedIdx, idx, item, onAnswerClick, pageId, selectedAnswerId, setExpandedIdx } = props;

@@ -86,7 +86,7 @@ export async function getDeskLocationTypes(
 /**
  * Get single desk location type by ID
  */
-export async function getDeskLocationType(ctx: ProtectedContext, id: number) {
+export async function getDeskLocationType(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('desk_location_type')
 		.selectAll()
@@ -139,7 +139,7 @@ export async function createDeskLocationType(
  */
 export async function updateDeskLocationType(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
 	}
@@ -163,7 +163,7 @@ export async function updateDeskLocationType(
  */
 export async function getDeskLocationTypeLocations(
 	ctx: ProtectedContext,
-	deskLocationTypeId: number
+	deskLocationTypeId: string
 ) {
 	return await ctx.db
 		.selectFrom('desk_location')
@@ -179,7 +179,7 @@ export async function getDeskLocationTypeLocations(
  */
 export async function archiveDeskLocationType(
 	ctx: ProtectedContext,
-	id: number
+	id: string
 ) {
 	const deskLocationType = await getDeskLocationType(ctx, id);
 	if (!deskLocationType) {
@@ -216,7 +216,7 @@ export async function archiveDeskLocationType(
  */
 export async function restoreDeskLocationType(
 	ctx: ProtectedContext,
-	id: number
+	id: string
 ) {
 	return await ctx.db
 		.updateTable('desk_location_type')
@@ -242,7 +242,7 @@ export async function restoreDeskLocationType(
  */
 export async function getDeskLocations(
 	ctx: ProtectedContext,
-	deskLocationTypeId?: number,
+	deskLocationTypeId?: string,
 	searchTerm?: string,
 	limit?: number,
 	offset?: number,
@@ -335,7 +335,7 @@ export async function getDeskLocations(
 /**
  * Get single desk location by ID
  */
-export async function getDeskLocation(ctx: ProtectedContext, id: number) {
+export async function getDeskLocation(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('desk_location')
 		.leftJoin(
@@ -369,7 +369,7 @@ export async function createDeskLocation(
 	ctx: ProtectedContext,
 	params: {
 		name: string;
-		desk_location_type_id: number;
+		desk_location_type_id: string;
 		is_active?: boolean;
 		capacity_threshold: number;
 	}
@@ -393,10 +393,10 @@ export async function createDeskLocation(
  */
 export async function updateDeskLocation(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
-		desk_location_type_id?: number;
+		desk_location_type_id?: string;
 		is_active?: boolean;
 		capacity_threshold?: number;
 	}
@@ -420,7 +420,7 @@ export async function updateDeskLocation(
  */
 export async function getDeskLocationClaimAssignments(
 	ctx: ProtectedContext,
-	deskLocationId: number
+	deskLocationId: string
 ) {
 	return await ctx.db
 		.selectFrom('claim')
@@ -435,7 +435,7 @@ export async function getDeskLocationClaimAssignments(
  * Prevents archival if location has assigned claims
  * Also removes all user assignments to this desk location
  */
-export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
+export async function archiveDeskLocation(ctx: ProtectedContext, id: string) {
 	// Validate desk location exists and belongs to client
 	const deskLocation = await getDeskLocation(ctx, id);
 	if (!deskLocation) {
@@ -495,7 +495,7 @@ export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
 /**
  * Restore archived desk location
  */
-export async function restoreDeskLocation(ctx: ProtectedContext, id: number) {
+export async function restoreDeskLocation(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('desk_location')
 		.set({
@@ -585,7 +585,7 @@ export async function getAllUserDeskAssignmentCounts(ctx: ProtectedContext) {
 /**
  * Get all users assigned to a specific desk location
  */
-export async function getDeskLocationUsers(ctx: ProtectedContext, deskLocationId: number) {
+export async function getDeskLocationUsers(ctx: ProtectedContext, deskLocationId: string) {
 	return await ctx.db
 		.selectFrom('user_desk_location')
 		.leftJoin('users', 'user_desk_location.user_id', 'users.id')
@@ -614,7 +614,7 @@ export async function assignUserToDeskLocation(
 	ctx: ProtectedContext,
 	params: {
 		userId: string;
-		deskLocationId: number;
+		deskLocationId: string;
 		priority: number;
 	}
 ) {
@@ -684,7 +684,7 @@ export async function bulkAssignUsersToDeskLocation(
 	ctx: ProtectedContext,
 	params: {
 		userIds: string[];
-		deskLocationId: number;
+		deskLocationId: string;
 		priority: number;
 	}
 ) {
@@ -755,7 +755,7 @@ export async function bulkAssignUsersToDeskLocation(
  */
 export async function updateUserDeskLocationPriority(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	newPriority: number
 ) {
 	// Helper function to perform the priority update
@@ -816,7 +816,7 @@ export async function updateUserDeskLocationPriority(
  */
 export async function removeUserFromDeskLocation(
 	ctx: ProtectedContext,
-	id: number
+	id: string
 ) {
 	return await ctx.db
 		.updateTable('user_desk_location')
@@ -838,7 +838,7 @@ export async function removeUserFromDeskLocation(
  */
 export async function updateUserDeskLocationPriorities(
 	ctx: ProtectedContext,
-	updates: Array<{ id: number; priority: number }>
+	updates: Array<{ id: string; priority: number }>
 ) {
 	if (updates.length === 0) {
 		return [];
@@ -910,7 +910,7 @@ export async function updateUsersDeskAssignments(
 	ctx: ProtectedContext,
 	updates: Array<{
 		userId: string;
-		assignments: Array<{ deskLocationId: number; priority: number }>;
+		assignments: Array<{ deskLocationId: string; priority: number }>;
 	}>
 ) {
 	if (updates.length === 0) {
@@ -934,7 +934,7 @@ export async function updateUsersDeskAssignments(
 	// Collect all insert values for batch insert
 	const insertValues: Array<{
 		user_id: string;
-		desk_location_id: number;
+		desk_location_id: string;
 		priority: number;
 		assigned_by: string;
 	}> = [];
@@ -1011,9 +1011,9 @@ export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext)
 export async function createClaimTransition(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
-		deskLocationId: number;
-		previousDeskLocationId?: number;
+		claimId: string;
+		deskLocationId: string;
+		previousDeskLocationId?: string;
 		enteredReason?: string;
 	}
 ) {
@@ -1044,7 +1044,7 @@ export async function createClaimTransition(
  * Get transition history for a claim, with desk location names.
  * Ordered most recent first.
  */
-export async function getClaimTransitions(ctx: ProtectedContext, claimId: number) {
+export async function getClaimTransitions(ctx: ProtectedContext, claimId: string) {
 	return await ctx.db
 		.selectFrom('claim_desk_location_transition as t')
 		.leftJoin('desk_location as to_loc', 'to_loc.id', 't.desk_location_id')
@@ -1074,8 +1074,8 @@ export async function getClaimTransitions(ctx: ProtectedContext, claimId: number
  */
 export async function updateClaimDeskLocation(
 	ctx: ProtectedContext,
-	claimId: number,
-	deskLocationId: number | null
+	claimId: string,
+	deskLocationId: string | null
 ) {
 	return await ctx.db
 		.updateTable('claim')

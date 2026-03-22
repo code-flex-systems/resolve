@@ -7,11 +7,11 @@ import ClaimSummaryDialog from '../admin/ClaimSummaryDialog';
 import { IconClipboardSearch } from '@tabler/icons-react';
 
 export default function ClaimInfo() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const { data: claim } = useClaimTrpc().get(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	if (!claim) return <></>;
@@ -27,7 +27,7 @@ export default function ClaimInfo() {
 				{claim.claim_number}
 			</BasicButtonStyled>
 			<ClaimSummaryDialog
-				claimId={claimId}
+				claimId={claimId ?? null}
 				open={dialogOpen}
 				onClose={() => setDialogOpen(false)}
 				showChecklistProgress={false}

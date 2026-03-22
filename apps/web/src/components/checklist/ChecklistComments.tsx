@@ -19,7 +19,7 @@ const pageSize = 3;
 export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	const [newComment, setNewComment] = useState('');
 	const [showNewComment, setShowNewComment] = useState(false);
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const [page, setPage] = useState(0);
 	const commentOffset = useChecklistStore((state) => state.commentOffset);
 	const updateCommentOffset = useChecklistStore((state) => state.updateCommentOffset);
@@ -30,7 +30,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 
 	const { data = { rows: [], count: 0 }, isFetching } = useCommentTrpc().list(
 		{ filters: { checklistId, claimId }, limit, offset: commentOffset },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { mutateAsync: createComment, isPending } = useCommentTrpc().create;
 

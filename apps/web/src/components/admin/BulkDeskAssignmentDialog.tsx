@@ -15,8 +15,8 @@ interface BulkDeskAssignmentDialogProps {
 }
 
 export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: BulkDeskAssignmentDialogProps) {
-	const [deskLocationTypeId, setDeskLocationTypeId] = useState<number | null>(null);
-	const [deskLocationId, setDeskLocationId] = useState<number | null>(null);
+	const [deskLocationTypeId, setDeskLocationTypeId] = useState<string | null>(null);
+	const [deskLocationId, setDeskLocationId] = useState<string | null>(null);
 	const [priority, setPriority] = useState<number>(1);
 
 	const showAlert = useAlertStore((state) => state.showAlert);

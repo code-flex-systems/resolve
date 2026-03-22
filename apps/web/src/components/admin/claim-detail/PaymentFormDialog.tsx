@@ -9,23 +9,23 @@ import { capitalize } from '@/lib/utils/utils';
 import DateField from '@/components/common/DateField';
 
 export interface PaymentFormData {
-	coverage_id: number | '';
+	coverage_id: string | '';
 	payment_date: string;
 	payment_amount: string;
 	is_subrogable: boolean;
 	is_expense: boolean;
-	payee_claim_party_id: number | '' | null;
+	payee_claim_party_id: string | '' | null;
 	description: string;
 }
 
 interface Coverage {
-	id: number;
+	id: string;
 	loss_type: string;
 	coverage_amount?: number | string | null;
 }
 
 interface ClaimParty {
-	id: number;
+	id: string;
 	party?: { name?: string };
 }
 
@@ -82,7 +82,7 @@ export default function PaymentFormDialog({
 							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
 						}))}
 						value={formData.coverage_id}
-						onChange={(v) => setFormData({ ...formData, coverage_id: Number(v) })}
+						onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
 						required
 						fullWidth
 					/>
@@ -134,7 +134,7 @@ export default function PaymentFormDialog({
 						onChange={(v) =>
 							setFormData({
 								...formData,
-								payee_claim_party_id: v === '' ? null : Number(v),
+								payee_claim_party_id: v === '' ? null : String(v),
 							})
 						}
 						fullWidth

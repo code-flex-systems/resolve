@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
 const cloneSearch = (sp: URLSearchParams) => new URLSearchParams(sp.toString());
-const toNum = (v: string | null) => (v && /^\d+$/.test(v) ? Number(v) : undefined);
+const toStr = (v: string | null) => (v || undefined);
 
 export function useChecklistDeepLink(initReady: boolean) {
 	const router = useRouter();
@@ -17,8 +17,8 @@ export function useChecklistDeepLink(initReady: boolean) {
 
 	// read stable primitives
 	const target = useMemo(() => {
-		const questionId = toNum(question);
-		const instanceId = toNum(instance);
+		const questionId = toStr(question);
+		const instanceId = toStr(instance);
 		return { questionId, instanceId, focus };
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [question, instance, focus]);

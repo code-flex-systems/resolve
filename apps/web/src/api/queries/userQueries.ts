@@ -72,8 +72,8 @@ export async function getUsersWithDeskAssignments(
 		limit?: number;
 		offset?: number;
 		searchTerm?: string;
-		deskLocationTypeId?: number;
-		deskLocationId?: number;
+		deskLocationTypeId?: string;
+		deskLocationId?: string;
 	}
 ) {
 	// Base query - all users with assignment counts
@@ -265,7 +265,7 @@ export async function getInactiveUserCount(ctx: ProtectedContext) {
 
 export async function getUserActivity(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
+	filters: { range: DateRangeStrict; checklistId?: string; claimId?: string; users?: string[]; searchTerm?: string }
 ) {
 	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
 	const startDate = filters.range[0].toISOString().split('T')[0];

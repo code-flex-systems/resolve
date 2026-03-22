@@ -9,7 +9,7 @@ type ResponseOutput = RouterOutput['response'];
 
 export function useResponseTrpc() {
 	const trpcUtils = trpc.useUtils();
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 
 	return {
 		list: trpc.response.getResponsesForPageInstance.useQuery,

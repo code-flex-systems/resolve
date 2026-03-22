@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button';
 import ClaimSummary from './ClaimSummary';
 
 interface ClaimDetailPanelProps {
-	claimId: number | null;
+	claimId: string | null;
 	open: boolean;
 	onClose: () => void;
 	onStartChecklist?: () => void;

@@ -15,11 +15,11 @@ import { useClerkSession } from '@/lib/auth/use-clerk-session';
  */
 export default function SearchLanding() {
 	const { data: session } = useClerkSession();
-	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
+	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 	const [showClaimDialog, setShowClaimDialog] = useState(false);
 	const [showChecklistDialog, setShowChecklistDialog] = useState(false);
 
-	const handleClaimSelect = (claimId: number) => {
+	const handleClaimSelect = (claimId: string) => {
 		setSelectedClaimId(claimId);
 		setShowClaimDialog(true);
 	};

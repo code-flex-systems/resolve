@@ -7,7 +7,7 @@ import ClaimListItem, { ClaimListItemData } from '@/components/common/ClaimListI
 export default function ClaimMenuItem(props: {
 	claim: Claim | null;
 	onClose?: () => void;
-	onSelect?: (claimId: number) => void;
+	onSelect?: (claimId: string) => void;
 	selected?: boolean;
 }) {
 	const { claim, onClose, onSelect, selected } = props;

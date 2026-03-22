@@ -62,9 +62,9 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 					<strong>Uploaded:</strong> {formatMDY(document.created_at)}
 				</span>
-				{document.description && (
+				{(document as any).description && (
 					<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-						<strong>Description:</strong> {document.description}
+						<strong>Description:</strong> {(document as any).description}
 					</span>
 				)}
 			</div>

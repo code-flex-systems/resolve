@@ -159,7 +159,7 @@ export default function WorkflowManagementOverview() {
 										<span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', minWidth: 100 }}>{item.claimNumber}</span>
 										<span style={{ fontSize: 12, color: 'var(--text-muted)', flex: 1 }}>{item.deskLocationName}</span>
 										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-											{item.adjusterFirstName} {item.adjusterLastName}
+											{item.adjusterName || '—'}
 										</span>
 										<span style={{ fontSize: 12, fontWeight: 600, color: item.hoursRemaining <= 0 ? 'var(--status-error)' : 'var(--text-secondary)', minWidth: 60, textAlign: 'right' }}>
 											{Math.round(item.hoursRemaining)}h left

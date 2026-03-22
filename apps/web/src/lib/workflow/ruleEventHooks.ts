@@ -32,7 +32,7 @@ const WORKFLOW_RELEVANT_CLAIM_FIELDS = new Set([
  */
 export async function onClaimFieldChange(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	changedFields: string[]
 ): Promise<void> {
 	try {
@@ -58,8 +58,8 @@ export async function onClaimFieldChange(
  */
 export async function onTaskCompleted(
 	ctx: ProtectedContext,
-	taskId: number,
-	claimId: number
+	taskId: string,
+	claimId: string
 ): Promise<void> {
 	try {
 		await evaluateRules(ctx, {

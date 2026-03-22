@@ -29,8 +29,8 @@ function formatAddressOption(address: PartyAddress): string {
 }
 
 interface RepresentativeFormData {
-	party_id: number | null;
-	address_id: number | null;
+	party_id: string | null;
+	address_id: string | null;
 	first_name: string;
 	last_name: string;
 	title: string;
@@ -44,7 +44,7 @@ interface RepresentativeFormData {
 
 interface RepresentativeDialogProps {
 	representative?: PartyRepresentative & { party_name?: string; address_name?: string };
-	partyId?: number;
+	partyId?: string;
 	lockParty?: boolean;
 	onClose?: (createdRep?: PartyRepresentative) => void;
 }
@@ -84,14 +84,14 @@ export default function RepresentativeDialog({
 	);
 
 	// Get addresses for the selected party (no search, just list all addresses for this party)
-	const effectivePartyId = (selectedParty?.id || representative?.party_id || partyId || 0) as number;
+	const effectivePartyId = String(selectedParty?.id ?? '') || representative?.party_id || partyId || '';
 	const { data: partyAddresses = [] } = partyTrpc.listAddresses(
 		{
 			partyId: effectivePartyId,
 			showArchived: false,
 		},
 		{
-			enabled: effectivePartyId > 0,
+			enabled: !!effectivePartyId,
 		}
 	);
 
@@ -166,7 +166,7 @@ export default function RepresentativeDialog({
 			if (isEditMode && representative) {
 				// Update existing representative
 				await updateRepresentative({
-					id: +representative.id,
+					id: String(representative.id),
 					params: {
 						address_id: data.address_id || undefined,
 						first_name: data.first_name,
@@ -214,7 +214,7 @@ export default function RepresentativeDialog({
 	}));
 
 	const selectedPartyOption: ComboboxOption | null = selectedParty
-		? { value: Number(selectedParty.id), label: (selectedParty as any).name, description: (selectedParty as any).organization ?? undefined }
+		? { value: String(selectedParty.id), label: (selectedParty as any).name, description: (selectedParty as any).organization ?? undefined }
 		: null;
 
 	// Map addresses to ComboboxOption
@@ -224,7 +224,7 @@ export default function RepresentativeDialog({
 	}));
 
 	const selectedAddressOption: ComboboxOption | null = selectedAddress
-		? { value: Number(selectedAddress.id), label: formatAddressOption(selectedAddress) }
+		? { value: String(selectedAddress.id), label: formatAddressOption(selectedAddress) }
 		: null;
 
 	/* =========================================================================

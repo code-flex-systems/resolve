@@ -21,7 +21,7 @@ export type GetDeskLocationTypesInput = z.infer<
  * Get single desk location type by ID
  */
 export const getDeskLocationTypeInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 export type GetDeskLocationTypeInput = z.infer<typeof getDeskLocationTypeInput>;
 
@@ -40,7 +40,7 @@ export type CreateDeskLocationTypeInput = z.infer<
  * Update desk location type input
  */
 export const updateDeskLocationTypeInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
 		name: z.string().min(1).max(255).optional(),
 	}),
@@ -53,7 +53,7 @@ export type UpdateDeskLocationTypeInput = z.infer<
  * Delete desk location type input (soft delete)
  */
 export const deleteDeskLocationTypeInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 export type DeleteDeskLocationTypeInput = z.infer<
 	typeof deleteDeskLocationTypeInput
@@ -67,7 +67,7 @@ export type DeleteDeskLocationTypeInput = z.infer<
  * Get desk locations list with pagination and search
  */
 export const getDeskLocationsInput = z.object({
-	deskLocationTypeId: z.number().int().positive().optional(),
+	deskLocationTypeId: z.string().uuid().optional(),
 	searchTerm: z.string().optional(),
 	limit: z.number().int().positive().optional(),
 	offset: z.number().int().nonnegative().optional(),
@@ -80,7 +80,7 @@ export type GetDeskLocationsInput = z.infer<typeof getDeskLocationsInput>;
  * Get single desk location by ID
  */
 export const getDeskLocationInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 export type GetDeskLocationInput = z.infer<typeof getDeskLocationInput>;
 
@@ -89,7 +89,7 @@ export type GetDeskLocationInput = z.infer<typeof getDeskLocationInput>;
  */
 export const createDeskLocationInput = z.object({
 	name: z.string().min(1).max(255),
-	desk_location_type_id: z.number().int().positive(),
+	desk_location_type_id: z.string().uuid(),
 	is_active: z.boolean().optional().default(true),
 	capacity_threshold: z.number().int().positive(),
 });
@@ -99,10 +99,10 @@ export type CreateDeskLocationInput = z.infer<typeof createDeskLocationInput>;
  * Update desk location input
  */
 export const updateDeskLocationInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
 		name: z.string().min(1).max(255).optional(),
-		desk_location_type_id: z.number().int().positive().optional(),
+		desk_location_type_id: z.string().uuid().optional(),
 		is_active: z.boolean().optional(),
 		capacity_threshold: z.number().int().positive().optional(),
 	}),
@@ -113,7 +113,7 @@ export type UpdateDeskLocationInput = z.infer<typeof updateDeskLocationInput>;
  * Delete desk location input (soft delete)
  */
 export const deleteDeskLocationInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 export type DeleteDeskLocationInput = z.infer<typeof deleteDeskLocationInput>;
 
@@ -152,7 +152,7 @@ export type GetUserDeskLocationsInput = z.infer<typeof getUserDeskLocationsInput
  * Get users assigned to a specific desk location
  */
 export const getDeskLocationUsersInput = z.object({
-	deskLocationId: z.number().int().positive(),
+	deskLocationId: z.string().uuid(),
 });
 export type GetDeskLocationUsersInput = z.infer<typeof getDeskLocationUsersInput>;
 
@@ -161,7 +161,7 @@ export type GetDeskLocationUsersInput = z.infer<typeof getDeskLocationUsersInput
  */
 export const assignUserToDeskLocationInput = z.object({
 	userId: z.string().uuid(),
-	deskLocationId: z.number().int().positive(),
+	deskLocationId: z.string().uuid(),
 	priority: z.number().int().min(1).max(5),
 });
 export type AssignUserToDeskLocationInput = z.infer<typeof assignUserToDeskLocationInput>;
@@ -172,7 +172,7 @@ export type AssignUserToDeskLocationInput = z.infer<typeof assignUserToDeskLocat
  */
 export const bulkAssignUsersToDeskLocationInput = z.object({
 	userIds: z.array(z.string().uuid()).min(1).max(50),
-	deskLocationId: z.number().int().positive(),
+	deskLocationId: z.string().uuid(),
 	priority: z.number().int().min(1).max(5),
 });
 export type BulkAssignUsersToDeskLocationInput = z.infer<typeof bulkAssignUsersToDeskLocationInput>;
@@ -181,7 +181,7 @@ export type BulkAssignUsersToDeskLocationInput = z.infer<typeof bulkAssignUsersT
  * Update user desk location assignment priority
  */
 export const updateUserDeskLocationPriorityInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	priority: z.number().int().min(1).max(5),
 });
 export type UpdateUserDeskLocationPriorityInput = z.infer<typeof updateUserDeskLocationPriorityInput>;
@@ -190,7 +190,7 @@ export type UpdateUserDeskLocationPriorityInput = z.infer<typeof updateUserDeskL
  * Remove user from desk location (soft delete)
  */
 export const removeUserFromDeskLocationInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 export type RemoveUserFromDeskLocationInput = z.infer<typeof removeUserFromDeskLocationInput>;
 
@@ -200,7 +200,7 @@ export type RemoveUserFromDeskLocationInput = z.infer<typeof removeUserFromDeskL
 export const updateUserDeskLocationPrioritiesInput = z.object({
 	updates: z.array(
 		z.object({
-			id: z.number().int().positive(),
+			id: z.string().uuid(),
 			priority: z.number().int().min(1).max(5),
 		})
 	),
@@ -217,7 +217,7 @@ export const updateUsersDeskAssignmentsInput = z.object({
 			userId: z.string().uuid(),
 			assignments: z.array(
 				z.object({
-					deskLocationId: z.number().int().positive(),
+					deskLocationId: z.string().uuid(),
 					priority: z.number().int().min(1).max(5),
 				})
 			).max(5), // Max 5 assignments per user
@@ -234,9 +234,9 @@ export type UpdateUsersDeskAssignmentsInput = z.infer<typeof updateUsersDeskAssi
  * Create a claim desk location transition record
  */
 export const createClaimTransitionInput = z.object({
-	claimId: z.number().int().positive(),
-	deskLocationId: z.number().int().positive(),
-	previousDeskLocationId: z.number().int().positive().optional(),
+	claimId: z.string().uuid(),
+	deskLocationId: z.string().uuid(),
+	previousDeskLocationId: z.string().uuid().optional(),
 	enteredReason: z.string().optional(),
 });
 export type CreateClaimTransitionInput = z.infer<typeof createClaimTransitionInput>;
@@ -245,6 +245,6 @@ export type CreateClaimTransitionInput = z.infer<typeof createClaimTransitionInp
  * Get claim desk location transitions for a specific claim
  */
 export const getClaimTransitionsInput = z.object({
-	claimId: z.number().int().positive(),
+	claimId: z.string().uuid(),
 });
 export type GetClaimTransitionsInput = z.infer<typeof getClaimTransitionsInput>;

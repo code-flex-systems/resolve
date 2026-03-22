@@ -13,7 +13,7 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 
-export default function ClaimHeader({ claimId }: { claimId: number }) {
+export default function ClaimHeader({ claimId }: { claimId: string }) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();

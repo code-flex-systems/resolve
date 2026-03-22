@@ -16,7 +16,7 @@ import PaymentsTab from './PaymentsTab';
  * Reusable claim detail view component
  * Can be used in both admin and standalone contexts
  */
-export default function ClaimDetailView({ claimId }: { claimId: number }) {
+export default function ClaimDetailView({ claimId }: { claimId: string }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
 

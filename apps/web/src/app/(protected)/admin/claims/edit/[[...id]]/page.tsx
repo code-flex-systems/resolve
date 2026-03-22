@@ -8,7 +8,7 @@ interface PageProps {
 
 export default async function ClaimChangesPage({ params }: PageProps) {
 	const resolvedParams = await params;
-	const claimId = resolvedParams.id?.[0] ? parseInt(resolvedParams.id[0], 10) : undefined;
+	const claimId = resolvedParams.id?.[0] ?? undefined;
 
 	return <ClaimChanges claimId={claimId} />;
 }

@@ -162,10 +162,12 @@ async function deriveClaimId(
 	ctx: ProtectedContext,
 	entityName: EntityName,
 	entityId: string | number
-): Promise<number | null> {
+): Promise<string | null> {
+	const id = entityId.toString();
+
 	// Direct claim reference
 	if (entityName === EntityName.CLAIM) {
-		return Number(entityId);
+		return id;
 	}
 
 	// For comment, check if it has a claim_id column
@@ -173,7 +175,7 @@ async function deriveClaimId(
 		const comment = await ctx.db
 			.selectFrom('comment')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return comment?.claim_id ?? null;
 	}
@@ -183,7 +185,7 @@ async function deriveClaimId(
 		const task = await ctx.db
 			.selectFrom('task')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return task?.claim_id ?? null;
 	}
@@ -193,7 +195,7 @@ async function deriveClaimId(
 		const deadline = await ctx.db
 			.selectFrom('deadline')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return deadline?.claim_id ?? null;
 	}
@@ -203,7 +205,7 @@ async function deriveClaimId(
 		const recoveryEvent = await ctx.db
 			.selectFrom('recovery_event')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return recoveryEvent?.claim_id ?? null;
 	}
@@ -213,7 +215,7 @@ async function deriveClaimId(
 		const settlement = await ctx.db
 			.selectFrom('settlement')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return settlement?.claim_id ?? null;
 	}
@@ -223,7 +225,7 @@ async function deriveClaimId(
 		const payment = await ctx.db
 			.selectFrom('claim_payment')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return payment?.claim_id ?? null;
 	}
@@ -233,7 +235,7 @@ async function deriveClaimId(
 		const claimCoverage = await ctx.db
 			.selectFrom('claim_coverage')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return claimCoverage?.claim_id ?? null;
 	}
@@ -243,7 +245,7 @@ async function deriveClaimId(
 		const claimParty = await ctx.db
 			.selectFrom('claim_party')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return claimParty?.claim_id ?? null;
 	}
@@ -253,7 +255,7 @@ async function deriveClaimId(
 		const doc = await ctx.db
 			.selectFrom('doc')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return doc?.claim_id ?? null;
 	}
@@ -283,7 +285,7 @@ export interface LogActionParams {
 	action: LogAction;
 	value?: any;
 	actorType?: ActorType; // Auto-detected if not provided
-	claimId?: number; // Auto-derived for claim entities if not provided
+	claimId?: string; // Auto-derived for claim entities if not provided
 }
 
 /**
@@ -379,9 +381,9 @@ export async function logAction(ctx: ProtectedContext, params: LogActionParams):
 export async function logUserWorkflowAction(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
+		claimId: string;
 		action: 'task_assign' | 'task_unassign' | 'task_start' | 'task_complete' | 'deadline_complete' | 'comment_create';
-		entityId: number;
+		entityId: string;
 		value?: any;
 	}
 ): Promise<void> {

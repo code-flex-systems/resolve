@@ -53,9 +53,9 @@ function formatActionText(action: any | undefined) {
 }
 
 export default function FormAnswer() {
-	const { checklistId = -1, claimId } = useChecklistParams();
+	const { checklistId = '', claimId } = useChecklistParams();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
-	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion) ?? -1;
+	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion) ?? '';
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedAnswerData = useSelectedAnswerData();
 	const showActionDialog = useChecklistStore((state) => state.showActionDialog);
@@ -68,28 +68,29 @@ export default function FormAnswer() {
 
 	const { data: answerAction, isFetching: fetchingAction } = useActionTrpc().get(
 		{ answerId: selectedAnswerData.id },
-		{ enabled: selectedAnswerData.id !== -1 && !!selectedAnswerData?.has_action }
+		{ enabled: !!selectedAnswerData.id && !!selectedAnswerData?.has_action }
 	);
 	const { create, copy, remove, update, getCallGraph } = useAnswerTrpc();
 	const { isPending: adding, mutateAsync: addAnswer } = create;
 	const { isPending: updating, mutateAsync: updateAnswer } = update;
 	const { isPending: copying, mutateAsync: copyAnswer } = copy;
 	const { isPending: deleting, mutateAsync: deleteAnswer } = remove;
-	const { isFetching: refetching } = useQuestionTrpc().list({
-		pageId: selectedPageInfo.pageId,
-	});
+	const { isFetching: refetching } = useQuestionTrpc().list(
+		{ pageId: selectedPageInfo.pageId },
+		{ enabled: !!selectedPageInfo.pageId }
+	);
 	const { data: navigation = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
 		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 }
+		{ enabled: !!checklistId }
 	);
-	const { data: callGraphData = [] } = getCallGraph({ checklistId }, { enabled: checklistId !== -1 });
+	const { data: callGraphData = [] } = getCallGraph({ checklistId }, { enabled: !!checklistId });
 
 	// Fetch attached image for current answer
 	const { data: attachedImagesResult } = useDocTrpc().listDocs(
 		{
 			filters: { answer_id: selectedAnswerData.id },
 		},
-		{ enabled: selectedAnswerData.id !== -1 }
+		{ enabled: !!selectedAnswerData.id }
 	);
 	const attachedImages = attachedImagesResult?.rows ?? [];
 
@@ -133,7 +134,7 @@ export default function FormAnswer() {
 		});
 	}, [allPageInstanceOptions, selectedPageInfo.instanceId, answerCallGraph, selectedAnswerData.calls_instance_id]);
 
-	const isPlaceholder = selectedAnswerData.id === -1;
+	const isPlaceholder = !selectedAnswerData.id;
 	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	const inTransition = isSubmitting || adding || copying || updating || deleting || refetching;
 	const scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
@@ -169,15 +170,15 @@ export default function FormAnswer() {
 				allowed_extensions: data.allowed_extensions,
 			};
 			const newAnswer =
-				selectedAnswerData.id === -1
+				!selectedAnswerData.id
 					? await addAnswer({ questionId: selectedQuestion, pageId: selectedPageInfo.pageId, params })
 					: await updateAnswer({ pageId: selectedPageInfo.pageId, answerId: selectedAnswerData.id, params });
 			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
-			showSuccess(selectedAnswerData.id === -1 ? 'create' : 'update');
+			showSuccess(!selectedAnswerData.id ? 'create' : 'update');
 		} catch (e) {
-			showError(selectedAnswerData.id === -1 ? 'create' : 'update', e, 'Failed to save answer');
+			showError(!selectedAnswerData.id ? 'create' : 'update', e, 'Failed to save answer');
 		}
 	});
 
@@ -417,12 +418,12 @@ export default function FormAnswer() {
 												<select
 													{...field}
 													value={field.value ?? ''}
-													onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+													onChange={(e) => field.onChange(e.target.value || null)}
 													style={{ minWidth: 200, padding: '8px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 14, backgroundColor: 'var(--bg-white)' }}
 												>
 													<option value="">None</option>
 													{pageInstanceOptions
-														.sort((a, b) => a.pageId - b.pageId)
+														.sort((a, b) => a.pageId.localeCompare(b.pageId))
 														.map((o) => (
 															<option key={o.instanceId} value={o.instanceId}>
 																{o.title} (p{o.pageId}.i{o.instanceId})

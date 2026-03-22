@@ -9,8 +9,8 @@ export default async function ChecklistPage({
 }: {
 	params: { checklistId: string; claimId: string };
 }) {
-	const checklistId = Number(params.checklistId);
-	const claimId = Number(params.claimId);
+	const checklistId = params.checklistId;
+	const claimId = params.claimId;
 	const helpers = await createServerHelpers();
 
 	await Promise.all([

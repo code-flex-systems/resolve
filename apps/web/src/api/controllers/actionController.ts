@@ -60,11 +60,11 @@ function validateActionDefinition(type: ActionType, definition: ActionDefinition
 	}
 }
 
-export async function executeActions(ctx: ProtectedContext, { answerIds }: { answerIds: number[] }) {
+export async function executeActions(ctx: ProtectedContext, { answerIds }: { answerIds: string[] }) {
 	const actions = await actionQueries.getActions(ctx, answerIds);
 
 	// Collect logs from all action executions
-	const logs: Array<{ actionId: number; status: ActionLogStatus }> = [];
+	const logs: Array<{ actionId: string; status: ActionLogStatus }> = [];
 
 	await Promise.all(
 		actions.map(async (action) => {
@@ -111,7 +111,7 @@ export async function executeActions(ctx: ProtectedContext, { answerIds }: { ans
 	actionQueries.logActions(ctx, logs).catch(console.error);
 }
 
-export async function getAction(ctx: ProtectedContext, { answerId }: { answerId: number }) {
+export async function getAction(ctx: ProtectedContext, { answerId }: { answerId: string }) {
 	const result = await actionQueries.getAction(ctx, answerId);
 	return result;
 }
@@ -125,7 +125,7 @@ export async function getActionStatsDetail(
 	ctx: ProtectedContext,
 	{
 		filters,
-	}: { filters: { checklistId?: number; claimId?: number; users?: string[]; range?: DateRange; searchTerm?: string } }
+	}: { filters: { checklistId?: string; claimId?: string; users?: string[]; range?: DateRange; searchTerm?: string } }
 ) {
 	const results = await actionQueries.getActionStatsDetail(ctx, filters);
 	return results;
@@ -133,7 +133,7 @@ export async function getActionStatsDetail(
 
 export async function upsertAction(
 	ctx: ProtectedContext,
-	{ answerId, type, definition }: { answerId: number; type: ActionType; definition: ActionDefinition }
+	{ answerId, type, definition }: { answerId: string; type: ActionType; definition: ActionDefinition }
 ) {
 	// Validate action definition before database write
 	validateActionDefinition(type, definition);

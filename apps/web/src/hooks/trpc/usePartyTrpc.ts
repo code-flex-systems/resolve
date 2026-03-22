@@ -8,7 +8,7 @@ export function usePartyTrpc() {
 	const utils = trpc.useUtils();
 
 	// Helper to update expected_recovery in cached claim detail
-	const updateClaimExpectedRecovery = (claimId: number, expectedRecovery: number) => {
+	const updateClaimExpectedRecovery = (claimId: string, expectedRecovery: number) => {
 		const currentData = utils.claim.getClaimDetail.getData({ claimId });
 		if (currentData) {
 			utils.claim.getClaimDetail.setData({ claimId }, {

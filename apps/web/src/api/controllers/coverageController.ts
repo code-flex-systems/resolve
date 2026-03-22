@@ -11,7 +11,7 @@ import type { CreateCoverageInput, UpdateCoverageInput } from '@/schemas/coverag
  * @param claimId - claim identifier
  * @returns array of coverages
  */
-export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId: number }) {
+export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	return await coverageQueries.getCoverages(ctx, claimId);
 }
 
@@ -22,7 +22,7 @@ export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId
  * @param claimPartyId - claim party identifier
  * @returns array of coverages
  */
-export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPartyId }: { claimPartyId: number }) {
+export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPartyId }: { claimPartyId: string }) {
 	return await coverageQueries.getCoveragesByClaimParty(ctx, claimPartyId);
 }
 
@@ -72,7 +72,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
  */
 export async function updateCoverage(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: Omit<UpdateCoverageInput, 'id'>
 ) {
 	// Update coverage and log admin action within transaction
@@ -104,10 +104,10 @@ export async function updateCoverage(
  * @param id - coverage identifier
  * @returns claimId and updated totalIncurred
  */
-export async function archiveCoverage(ctx: ProtectedContext, id: number) {
+export async function archiveCoverage(ctx: ProtectedContext, id: string) {
 	// Archive coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		let claimId: number;
+		let claimId: string;
 		let totalIncurred: number;
 
 		try {
@@ -146,10 +146,10 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
  * @param id - coverage identifier
  * @returns claimId and updated totalIncurred
  */
-export async function deleteCoverage(ctx: ProtectedContext, id: number) {
+export async function deleteCoverage(ctx: ProtectedContext, id: string) {
 	// Delete coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		let claimId: number;
+		let claimId: string;
 		let totalIncurred: number;
 
 		try {

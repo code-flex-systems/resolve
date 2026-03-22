@@ -10,9 +10,9 @@ const questionBaseParams = z
                 description_text: z.string().nullable().optional(),
                 description_image_url: z.string().nullable().optional(),
                 placeholder: z.string().nullable().optional(),
-                page_id: z.number().int().optional(),
+                page_id: z.string().uuid().optional(),
                 hidden: z.boolean().nullable().optional(),
-                id: z.number().int().optional(),
+                id: z.string().uuid().optional(),
         })
         .strict();
 
@@ -23,30 +23,30 @@ export const questionUpdateParams = questionBaseParams.partial();
 export type QuestionUpdateParams = z.infer<typeof questionUpdateParams>;
 
 export const createQuestionInput = z.object({
-	pageId: z.number().int(),
+	pageId: z.string().uuid(),
 	params: questionParams,
 });
 export type CreateQuestionInput = z.infer<typeof createQuestionInput>;
 
 export const copyQuestionInput = z.object({
-	pageId: z.number().int(),
-	questionId: z.number().int(),
+	pageId: z.string().uuid(),
+	questionId: z.string().uuid(),
 });
 export type CopyQuestionInput = z.infer<typeof copyQuestionInput>;
 
 export const deleteQuestionInput = z.object({
-	pageId: z.number().int(),
-	questionId: z.number().int(),
+	pageId: z.string().uuid(),
+	questionId: z.string().uuid(),
 });
 export type DeleteQuestionInput = z.infer<typeof deleteQuestionInput>;
 
 export const getQuestionInput = z.object({
-	id: z.number().int(),
+	id: z.string().uuid(),
 });
 export type GetQuestionInput = z.infer<typeof getQuestionInput>;
 
 export const getQuestionsInput = z.object({
-	pageId: z.number().int(),
+	pageId: z.string().uuid(),
 });
 export type GetQuestionsInput = z.infer<typeof getQuestionsInput>;
 
@@ -56,9 +56,9 @@ export const intervalSchema = z.object({
 });
 
 export const getQuestionStatsInput = z.object({
-	pageId: z.number().int(),
+	pageId: z.string().uuid(),
 	filters: z.object({
-		claimId: z.number().int().optional(),
+		claimId: z.string().uuid().optional(),
 		users: z.array(z.string()).optional(),
 		range: z.tuple([parseDate(), parseDate()]),
 	}),
@@ -66,8 +66,8 @@ export const getQuestionStatsInput = z.object({
 export type GetQuestionStatsInput = z.infer<typeof getQuestionStatsInput>;
 
 export const modifyQuestionInput = z.object({
-        pageId: z.number().int(),
-        questionId: z.number().int(),
+        pageId: z.string().uuid(),
+        questionId: z.string().uuid(),
         params: questionUpdateParams,
 });
 export type ModifyQuestionInput = z.infer<typeof modifyQuestionInput>;

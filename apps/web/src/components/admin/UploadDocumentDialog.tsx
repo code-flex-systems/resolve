@@ -21,7 +21,7 @@ type UploadDocumentFormInputs = {
 
 interface UploadDocumentDialogProps {
 	onClose: () => void;
-	currentFolderId?: number | null;
+	currentFolderId?: string | null;
 }
 
 export default function UploadDocumentDialog({ onClose, currentFolderId = null }: UploadDocumentDialogProps) {

@@ -23,7 +23,7 @@ import TaskCancellationDialog from './TaskCancellationDialog';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface TaskListPanelProps {
-	claimId: number;
+	claimId: string;
 	claimNumber?: string;
 	showCreateButton?: boolean;
 }
@@ -62,7 +62,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 
 	const tasks = data?.rows || [];
 
-	const handleStartTask = async (taskId: number) => {
+	const handleStartTask = async (taskId: string) => {
 		try {
 			await startTask({ id: taskId });
 			showAlert('Task started - you can now work on it', 'success');
@@ -71,7 +71,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 		}
 	};
 
-	const handleUnassignTask = async (taskId: number) => {
+	const handleUnassignTask = async (taskId: string) => {
 		try {
 			await unassignTask({ id: taskId });
 			showAlert('Task released back to queue', 'success');
@@ -80,7 +80,7 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 		}
 	};
 
-	const handleAssignToMe = async (taskId: number) => {
+	const handleAssignToMe = async (taskId: string) => {
 		try {
 			await assignTask({ id: taskId, userId: session!.user!.id });
 			showAlert('Task assigned to you', 'success');

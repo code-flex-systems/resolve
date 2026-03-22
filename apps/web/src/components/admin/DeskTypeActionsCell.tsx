@@ -32,10 +32,10 @@ export default function DeskTypeActionsCell(params: DeskTypeActionsCellProps) {
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreType({ id: row.id as unknown as number });
+				await restoreType({ id: row.id });
 				showAlert('Desk type restored successfully', 'success');
 			} else {
-				await archiveType({ id: row.id as unknown as number });
+				await archiveType({ id: row.id });
 				showAlert('Desk type archived successfully', 'success');
 			}
 			setShowActionConfirm(false);

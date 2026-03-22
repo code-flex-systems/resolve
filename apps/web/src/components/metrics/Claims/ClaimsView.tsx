@@ -105,8 +105,8 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 style={{ width: '100%', height: 150, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 									{!!claim && (
 										<ChecklistProgress
-											checklistId={checklist?.id ?? -1}
-											claimId={claim?.claim_id ?? -1}
+											checklistId={checklist?.id ?? ''}
+											claimId={claim?.claim_id ?? ''}
 											width={300}
 											fontSize={15}
 											showInfo={false}

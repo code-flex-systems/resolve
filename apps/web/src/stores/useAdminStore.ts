@@ -23,9 +23,9 @@ interface AdminState {
 		page: number;
 		pageSize: number;
 	};
-	selectedChecklistId: number | null;
-	selectedDeskLocationTypeId: number | null;
-	selectedFeedId: number | null | undefined;
+	selectedChecklistId: string | null;
+	selectedDeskLocationTypeId: string | null;
+	selectedFeedId: string | null | undefined;
 	selectedReferenceEntity: ReferenceEntity | null;
 	selectedReferenceOptionId: number | null;
 	selectedStatuteStateCode: string | null;
@@ -42,6 +42,7 @@ interface AdminState {
 	showNewRepresentativeDialog: boolean;
 	showNewUserDialog: boolean;
 	showStatuteRuleDialog: boolean;
+	showInactiveUsers: boolean;
 	userConstraints: {
 		page: number;
 		pageSize: number;
@@ -49,9 +50,9 @@ interface AdminState {
 }
 
 interface AdminActions {
-	setChecklistId: (newId: number | null) => void;
-	setDeskLocationTypeId: (newId: number | null) => void;
-	setFeedId: (newId: number | null | undefined) => void;
+	setChecklistId: (newId: string | null) => void;
+	setDeskLocationTypeId: (newId: string | null) => void;
+	setFeedId: (newId: string | null | undefined) => void;
 	setReferenceEntity: (entity: ReferenceEntity | null) => void;
 	setReferenceOptionId: (id: number | null) => void;
 	setStatuteStateCode: (code: string | null) => void;
@@ -68,6 +69,7 @@ interface AdminActions {
 	toggleNewRepresentativeDialog: () => void;
 	toggleNewUserDialog: () => void;
 	toggleStatuteRuleDialog: () => void;
+	setShowInactiveUsers: (show: boolean) => void;
 	updateClaimConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateDeskLocationTypeConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateAddressConstraints: (newConstraints: { page: number; pageSize: number }) => void;
@@ -119,6 +121,7 @@ const initialState: AdminState = {
 	showNewRepresentativeDialog: false,
 	showNewUserDialog: false,
 	showStatuteRuleDialog: false,
+	showInactiveUsers: false,
 	userConstraints: {
 		pageSize: 10,
 		page: 0,
@@ -223,6 +226,11 @@ export const useAdminStore = create<AdminStore>()(
 		toggleStatuteRuleDialog: () =>
 			set((state) => {
 				state.showStatuteRuleDialog = !state.showStatuteRuleDialog;
+			}),
+
+		setShowInactiveUsers: (show) =>
+			set((state) => {
+				state.showInactiveUsers = show;
 			}),
 
 		updateClaimConstraints: (newConstraints) =>

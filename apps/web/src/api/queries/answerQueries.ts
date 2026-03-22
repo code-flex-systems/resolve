@@ -15,8 +15,8 @@ import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
  */
 export async function createAnswer(
 	ctx: ProtectedContext,
-	pageId: number,
-	questionId: number,
+	pageId: string,
+	questionId: string,
 	params: AnswerParams
 ) {
 	// If this answer calls another instance, check for cycles across all checklists
@@ -53,9 +53,9 @@ export async function createAnswer(
  */
 export async function copyAnswer(
 	ctx: ProtectedContext,
-	pageId: number,
-	questionId: number,
-	answerId: number
+	pageId: string,
+	questionId: string,
+	answerId: string
 ) {
 	// Check if the source answer has calls_instance_id and validate cycles for target page
 	// Uses batched approach: one CTE per checklist instead of per instance
@@ -93,7 +93,7 @@ export async function copyAnswer(
 			eb
 				.selectFrom('answer as source')
 				.select([
-					eb.val(questionId).$castTo<number>().as('question_id'),
+					eb.val(questionId).$castTo<string>().as('question_id'),
 					sql<number>`COALESCE((
 						SELECT MAX(position) FROM answer
 						WHERE client_id = ${ctx.session.user.client_id}
@@ -136,7 +136,7 @@ export async function copyAnswer(
  * @param answerId - answer identifier
  * @returns the answer details
  */
-export async function getAnswerForDeletion(ctx: ProtectedContext, answerId: number) {
+export async function getAnswerForDeletion(ctx: ProtectedContext, answerId: string) {
 	return await ctx.db
 		.selectFrom('answer')
 		.select(['id', 'question_id', 'text', 'grade'])
@@ -152,7 +152,7 @@ export async function getAnswerForDeletion(ctx: ProtectedContext, answerId: numb
  * @param pageId - id of the page containing the answer
  * @param answerId - identifier of the answer to delete
  */
-export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answerId: number) {
+export async function deleteAnswer(ctx: ProtectedContext, pageId: string, answerId: string) {
 	const { position, question_id } = await ctx.db
 		.deleteFrom('answer')
 		.where('id', '=', answerId)
@@ -178,7 +178,7 @@ export async function deleteAnswer(ctx: ProtectedContext, pageId: number, answer
  * @param answerId - identifier of the desired answer
  * @returns the matching answer
  */
-export async function getAnswer(ctx: ProtectedContext, answerId: number) {
+export async function getAnswer(ctx: ProtectedContext, answerId: string) {
 	return await ctx.db
 		.selectFrom('answer')
 		.selectAll()
@@ -194,7 +194,7 @@ export async function getAnswer(ctx: ProtectedContext, answerId: number) {
  * @param questionId - question to look up answers for
  * @returns ordered list of answers
  */
-export async function getAnswers(ctx: ProtectedContext, questionId: number) {
+export async function getAnswers(ctx: ProtectedContext, questionId: string) {
 	// Select only UI-needed columns to reduce payload
 	return await ctx.db
 		.selectFrom('answer')
@@ -226,7 +226,7 @@ export async function getAnswers(ctx: ProtectedContext, questionId: number) {
  * @param questionId - question identifier
  * @returns number of answers
  */
-export async function getAnswerCount(ctx: ProtectedContext, questionId: number) {
+export async function getAnswerCount(ctx: ProtectedContext, questionId: string) {
 	const answerCountRecord = await ctx.db
 		.selectFrom('answer')
 		.select(({ fn }) => fn.countAll().as('count'))
@@ -244,7 +244,7 @@ export async function getAnswerCount(ctx: ProtectedContext, questionId: number) 
  * @param checklistId - checklist identifier
  * @returns Array of { from_instance_id, to_instance_id } representing answer calls
  */
-export async function getAnswerCallGraph(ctx: ProtectedContext, checklistId: number) {
+export async function getAnswerCallGraph(ctx: ProtectedContext, checklistId: string) {
 	return await ctx.db
 		.selectFrom('answer_call_edges')
 		.select(['from_instance_id', 'to_instance_id'])
@@ -263,14 +263,14 @@ export async function getAnswerCallGraph(ctx: ProtectedContext, checklistId: num
  * @param checklistId - checklist identifier
  * @param sourceInstanceIds - all instances where this answer template exists
  * @param targetInstanceId - instance the answer wants to call
- * @returns { hasCycle: boolean, conflictingInstanceId?: number } - whether cycle exists and which instance
+ * @returns { hasCycle: boolean, conflictingInstanceId?: string } - whether cycle exists and which instance
  */
 async function wouldCreateCycleForChecklist(
 	ctx: ProtectedContext,
-	checklistId: number,
-	sourceInstanceIds: number[],
-	targetInstanceId: number
-): Promise<{ hasCycle: boolean; conflictingInstanceId?: number }> {
+	checklistId: string,
+	sourceInstanceIds: string[],
+	targetInstanceId: string
+): Promise<{ hasCycle: boolean; conflictingInstanceId?: string }> {
 	// Check for self-referential calls (any source instance equals target)
 	const selfRef = sourceInstanceIds.find((id) => id === targetInstanceId);
 	if (selfRef !== undefined) {
@@ -282,7 +282,7 @@ async function wouldCreateCycleForChecklist(
 	}
 
 	// Use recursive CTE to find all reachable nodes from target, then check if any source is reachable
-	const result = await sql<{ conflicting_instance_id: number | null }>`
+	const result = await sql<{ conflicting_instance_id: string | null }>`
 		WITH RECURSIVE reachable AS (
 			-- Base case: start from the target instance
 			SELECT to_instance_id as instance_id, 1 as depth
@@ -303,7 +303,7 @@ async function wouldCreateCycleForChecklist(
 		)
 		SELECT instance_id as conflicting_instance_id
 		FROM reachable
-		WHERE instance_id = ANY(${sourceInstanceIds}::int[])
+		WHERE instance_id = ANY(${sourceInstanceIds}::uuid[])
 		LIMIT 1
 	`.execute(ctx.db);
 
@@ -327,8 +327,8 @@ async function wouldCreateCycleForChecklist(
  */
 async function checkCyclesForPage(
 	ctx: ProtectedContext,
-	pageId: number,
-	targetInstanceId: number
+	pageId: string,
+	targetInstanceId: string
 ): Promise<void> {
 	// Get all instances of this page template grouped by checklist
 	const pageInstances = await ctx.db
@@ -339,7 +339,7 @@ async function checkCyclesForPage(
 		.execute();
 
 	// Group by checklist
-	const checklistMap = new Map<number, number[]>();
+	const checklistMap = new Map<string, string[]>();
 	for (const { instance_id, checklist_id } of pageInstances) {
 		if (!checklistMap.has(checklist_id)) {
 			checklistMap.set(checklist_id, []);
@@ -370,8 +370,8 @@ async function checkCyclesForPage(
  */
 export async function modifyAnswer(
 	ctx: ProtectedContext,
-	pageId: number,
-	answerId: number,
+	pageId: string,
+	answerId: string,
 	params: AnswerUpdateParams
 ) {
 	const existingAnswer = await ctx.db
@@ -472,7 +472,7 @@ export async function modifyAnswer(
  * @param ctx - request context
  * @param pageId - page to bump
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: string) {
 	await ctx.db
 		.updateTable('page')
 		.set((eb) => ({ version: sql`${eb.ref('version')} + 1` }))
@@ -491,7 +491,7 @@ async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
  */
 async function createAnswerPrivate(
 	ctx: ProtectedContext,
-	questionId: number,
+	questionId: string,
 	params: AnswerParams
 ) {
 	await ctx.db
@@ -538,9 +538,9 @@ async function createAnswerPrivate(
  */
 export async function insertCallEdges(
 	ctx: ProtectedContext,
-	pageId: number,
-	answerId: number,
-	targetInstanceId: number
+	pageId: string,
+	answerId: string,
+	targetInstanceId: string
 ) {
 	// Insert edges for all instances of this page template across all checklists
 	await ctx.db
@@ -575,8 +575,8 @@ export async function insertCallEdges(
  */
 export async function insertCallEdgesBulk(
 	ctx: ProtectedContext,
-	pageId: number,
-	answers: Array<{ id: number; calls_instance_id: number }>
+	pageId: string,
+	answers: Array<{ id: string; calls_instance_id: string }>
 ) {
 	if (answers.length === 0) return;
 
@@ -597,7 +597,7 @@ export async function insertCallEdgesBulk(
 		FROM page_instance pi
 		CROSS JOIN LATERAL (
 			SELECT answer_id, target_instance_id
-			FROM unnest(${answerIds}::int[], ${targetInstanceIds}::int[])
+			FROM unnest(${answerIds}::uuid[], ${targetInstanceIds}::uuid[])
 				WITH ORDINALITY AS t(answer_id, target_instance_id, ord)
 		) a
 		WHERE pi.client_id = ${ctx.session.user.client_id}
@@ -618,9 +618,9 @@ export async function insertCallEdgesBulk(
  */
 export async function insertCallEdgesForInstance(
 	ctx: ProtectedContext,
-	instanceId: number,
-	checklistId: number,
-	pageId: number
+	instanceId: string,
+	checklistId: string,
+	pageId: string
 ) {
 	// Find all answers on this page that have calls_instance_id and insert edges
 	await ctx.db
@@ -652,7 +652,7 @@ export async function insertCallEdgesForInstance(
  * @param ctx - request context
  * @param answerId - the answer whose edges should be deleted
  */
-async function deleteCallEdges(ctx: ProtectedContext, answerId: number) {
+async function deleteCallEdges(ctx: ProtectedContext, answerId: string) {
 	await ctx.db
 		.deleteFrom('answer_call_edges')
 		.where('client_id', '=', ctx.session.user.client_id)

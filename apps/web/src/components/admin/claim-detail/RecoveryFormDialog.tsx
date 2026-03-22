@@ -13,7 +13,7 @@ const capitalize = (str: string | null | undefined) => {
 };
 
 export interface RecoveryFormData {
-	settlement_id: number | '';
+	settlement_id: string | '';
 	recovery_date: string;
 	recovery_amount: string;
 	recovery_source: string;
@@ -21,7 +21,7 @@ export interface RecoveryFormData {
 }
 
 interface SettlementOption {
-	id: number;
+	id: string;
 	party_name: string;
 	loss_type: string;
 	demand_amount: number | string;
@@ -75,7 +75,7 @@ export default function RecoveryFormDialog({
 							label: `${settlement.party_name} · ${capitalize(settlement.loss_type)} - ${formatCurrencyExact(Number(settlement.demand_amount))} (${dayjs(settlement.demand_date).format('MMM D')})`,
 						}))}
 						value={formData.settlement_id}
-						onChange={(v) => setFormData({ ...formData, settlement_id: Number(v) })}
+						onChange={(v) => setFormData({ ...formData, settlement_id: String(v) })}
 						required
 						fullWidth
 					/>

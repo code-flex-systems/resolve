@@ -26,7 +26,7 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 
 interface RecoveryTabProps {
-	claimId: number;
+	claimId: string;
 }
 
 const initialRecoveryForm: RecoveryFormData = {
@@ -138,7 +138,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 
 	// Pre-compute recovery counts by settlement to avoid O(N) filtering per call
 	const recoveryCounts = useMemo(() => {
-		const map = new Map<number, number>();
+		const map = new Map<string, number>();
 		recoveryEvents.forEach((r) => {
 			if (r.settlement_id) {
 				map.set(r.settlement_id, (map.get(r.settlement_id) ?? 0) + 1);
@@ -183,7 +183,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					recoveryEventId: editingRecovery.id,
 					claimId,
 					params: {
-						settlement_id: Number(recoveryForm.settlement_id),
+						settlement_id: recoveryForm.settlement_id,
 						recovery_date: recoveryForm.recovery_date,
 						recovery_amount: recoveryForm.recovery_amount,
 						recovery_source: recoveryForm.recovery_source || undefined,
@@ -195,7 +195,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await createRecoveryEvent.mutateAsync({
 					claimId,
 					params: {
-						settlement_id: Number(recoveryForm.settlement_id),
+						settlement_id: recoveryForm.settlement_id,
 						recovery_date: recoveryForm.recovery_date,
 						recovery_amount: recoveryForm.recovery_amount,
 						recovery_source: recoveryForm.recovery_source || undefined,
@@ -274,8 +274,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await updateSettlement.mutateAsync({
 					settlementId: editingSettlement.id,
 					params: {
-						claim_party_id: Number(settlementForm.claim_party_id),
-						coverage_id: Number(settlementForm.coverage_id),
+						claim_party_id: settlementForm.claim_party_id,
+						coverage_id: settlementForm.coverage_id,
 						demand_amount: settlementForm.demand_amount,
 						demand_date: settlementForm.demand_date,
 						status: settlementForm.status as SettlementStatus,
@@ -297,8 +297,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				await createSettlement.mutateAsync({
 					claimId,
 					params: {
-						claim_party_id: Number(settlementForm.claim_party_id),
-						coverage_id: Number(settlementForm.coverage_id),
+						claim_party_id: settlementForm.claim_party_id,
+						coverage_id: settlementForm.coverage_id,
 						demand_amount: settlementForm.demand_amount,
 						demand_date: settlementForm.demand_date,
 						notes: settlementForm.notes || undefined,

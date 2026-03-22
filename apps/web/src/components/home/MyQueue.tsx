@@ -21,10 +21,10 @@ export default function MyQueue() {
 
 	const claims = data?.rows ?? [];
 
-	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
+	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 	const [panelOpen, setPanelOpen] = useState(false);
 
-	const handleRowClick = (claimId: number) => {
+	const handleRowClick = (claimId: string) => {
 		setSelectedClaimId(claimId);
 		setPanelOpen(true);
 	};

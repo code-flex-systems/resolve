@@ -12,7 +12,7 @@ interface BreachResolution {
 	suggestionId?: string;
 	status?: SuggestionStatus;
 	breach: {
-		deskLocationId: number;
+		deskLocationId: string;
 		deskLocationName: string;
 		deskLocationTypeName: string;
 		excessUnits: number;
@@ -23,7 +23,7 @@ interface BreachResolution {
 	assignments: Array<{
 		userId: string;
 		userName: string;
-		deskLocationId: number;
+		deskLocationId: string;
 		deskLocationName: string;
 		newPriority: number;
 		previousPriority: number | null;
@@ -31,7 +31,7 @@ interface BreachResolution {
 	cascadedChanges: Array<{
 		userId: string;
 		userName: string;
-		deskLocationId: number;
+		deskLocationId: string;
 		deskLocationName: string;
 		previousPriority: number;
 		newPriority: number | null;

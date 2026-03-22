@@ -53,12 +53,12 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 		formState: { isDirty, isSubmitting, isValid, errors },
 	} = useForm<UserFormState>({
 		defaultValues: user
-			? { ...user, phone: user.phone ? parsePhoneNumber(user.phone) : undefined }
+			? { ...user, phone: user.phone ? parsePhoneNumber(user.phone) : '' }
 			: {
-					first: session?.user?.name?.split(' ')?.[0],
-					last: session?.user?.name?.split(' ')?.[1],
-					email: session?.user?.email,
-					phone: session?.user?.phone ? parsePhoneNumber(session.user.phone) : undefined,
+					first: session?.user?.name?.split(' ')?.[0] ?? '',
+					last: session?.user?.name?.split(' ')?.[1] ?? '',
+					email: session?.user?.email ?? '',
+					phone: session?.user?.phone ? parsePhoneNumber(session.user.phone) : '',
 					role: session?.user?.role ?? config.ROLES.CONTRIBUTOR,
 				},
 		mode: 'onChange',
@@ -70,7 +70,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 	const modifyUser = async (data: UserFormState) => {
 		try {
 			if (!userData) return;
-			const [first, last] = 'name' in userData ? userData.name.split(' ') : [userData.first, userData.last];
+			const [first, last] = 'name' in userData ? (userData.name ?? '').split(' ') : [userData.first, userData.last];
 			const phoneNumber = userData.phone ? parsePhoneNumber(userData.phone) : undefined;
 			const updates: UpdateUserInput['params'] = {
 				first: data.first !== first ? data.first : undefined,
@@ -87,7 +87,7 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 			showError('update', e, 'Failed to update user');
 		}
 	};
-	const onSubmit = handleSubmit(modifyUser);
+	const onSubmit = handleSubmit(modifyUser as any);
 
 	const dropdownRoleOptions = availableRoleOptions.map((o) => ({
 		value: o.value,

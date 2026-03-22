@@ -19,12 +19,12 @@ import { TRPCError } from '@trpc/server';
 export async function createDeadline(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
+		claimId: string;
 		deadlineType: string;
 		deadlineDate: string; // ISO date string
 		description?: string;
 		entityType?: DeadlineEntityType;
-		entityId?: number;
+		entityId?: string;
 	}
 ) {
 	return await ctx.db
@@ -49,7 +49,7 @@ export async function createDeadline(
 /**
  * Get single deadline by ID
  */
-export async function getDeadline(ctx: ProtectedContext, deadlineId: number) {
+export async function getDeadline(ctx: ProtectedContext, deadlineId: string) {
 	return await ctx.db
 		.selectFrom('deadline')
 		.innerJoin('claim', 'deadline.claim_id', 'claim.id')
@@ -66,7 +66,7 @@ export async function getDeadline(ctx: ProtectedContext, deadlineId: number) {
 export async function getDeadlinesByEntity(
 	ctx: ProtectedContext,
 	entityType: DeadlineEntityType,
-	entityId: number
+	entityId: string
 ) {
 	return await ctx.db
 		.selectFrom('deadline')
@@ -95,7 +95,7 @@ export async function getDeadlinesByEntity(
 export async function getDeadlines(
 	ctx: ProtectedContext,
 	filters: {
-		claimId?: number;
+		claimId?: string;
 		entityType?: DeadlineEntityType;
 		status?: DeadlineStatus;
 		dateRange?: DateRangeStrict;
@@ -193,7 +193,7 @@ export async function getDeadlines(
  */
 export async function syncDeadlineStatus(
 	ctx: ProtectedContext,
-	deadlineId: number,
+	deadlineId: string,
 	status: DeadlineStatus,
 	completedBy?: string
 ) {
@@ -230,7 +230,7 @@ export async function syncDeadlineStatus(
  */
 export async function cancelDeadline(
 	ctx: ProtectedContext,
-	deadlineId: number,
+	deadlineId: string,
 	cancellationReason: string
 ) {
 	const updated = await ctx.db
@@ -260,7 +260,7 @@ export async function cancelDeadline(
 /**
  * Fetch a deadline for logging before cancellation
  */
-export async function getDeadlineForLogging(ctx: ProtectedContext, deadlineId: number) {
+export async function getDeadlineForLogging(ctx: ProtectedContext, deadlineId: string) {
 	return await ctx.db
 		.selectFrom('deadline')
 		.select([
@@ -286,7 +286,7 @@ export const getDeadlineForDeletion = getDeadlineForLogging;
  */
 export async function updateDeadlineStatus(
 	ctx: ProtectedContext,
-	deadlineId: number,
+	deadlineId: string,
 	status: DeadlineStatus
 ) {
 	return await syncDeadlineStatus(ctx, deadlineId, status);
@@ -296,6 +296,6 @@ export async function updateDeadlineStatus(
  * Delete deadline by cancelling it (non-editable pattern)
  * This is a simplified version that doesn't require a cancellation reason
  */
-export async function deleteDeadline(ctx: ProtectedContext, deadlineId: number) {
+export async function deleteDeadline(ctx: ProtectedContext, deadlineId: string) {
 	return await cancelDeadline(ctx, deadlineId, 'Deleted by user');
 }

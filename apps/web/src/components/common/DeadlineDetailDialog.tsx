@@ -70,7 +70,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 	);
 }
 
-function ClaimLink({ claimId, claimNumber }: { claimId: number; claimNumber: string | null }) {
+function ClaimLink({ claimId, claimNumber }: { claimId: string; claimNumber: string | null }) {
 	const router = useRouter();
 
 	return (
@@ -100,7 +100,7 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 	const taskId = isTaskDeadline ? deadline.entity_id : null;
 
 	// Fetch task details if this deadline is linked to a task
-	const { data: task, isLoading: taskLoading } = useTaskTrpc().get({ id: taskId! }, { enabled: !!taskId });
+	const { data: task, isLoading: taskLoading } = useTaskTrpc().get({ id: String(taskId!) }, { enabled: !!taskId });
 
 	const { mutateAsync: startTask, isPending: isStarting } = useTaskTrpc().start;
 	const { mutateAsync: unassignTask, isPending: isUnassigning } = useTaskTrpc().unassign;

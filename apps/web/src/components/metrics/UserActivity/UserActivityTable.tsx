@@ -119,7 +119,7 @@ style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', minWi
 			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '5px', flexWrap: 'wrap' }}>
 				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'var(--text-muted)' }}>
-						{formatUser(row, session?.user?.email)}
+						{formatUser(row, session?.user?.email ?? undefined)}
 					</span>
 					<div style={styles.divider} />
 					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'primary' }}>
@@ -149,8 +149,8 @@ export default function UserActivityTable({
 	compact = false,
 	showPagination = true,
 }: {
-	checklistId?: number;
-	claimId?: number;
+	checklistId?: string;
+	claimId?: string;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
 	searchTerm?: string;
@@ -180,7 +180,7 @@ export default function UserActivityTable({
 			offset: constraints.page * constraints.pageSize,
 		},
 		{
-			enabled: checklistId !== -1 && claimId !== -1,
+			enabled: !!checklistId && !!claimId,
 		}
 	);
 
@@ -260,7 +260,7 @@ export default function UserActivityTable({
 			},
 			{
 				header: 'User',
-				accessor: (row) => formatUser(row, session?.user?.email),
+				accessor: (row) => formatUser({ email: row.email ?? '', first: row.first ?? '', last: row.last ?? '' }, session?.user?.email ?? undefined),
 			},
 			{
 				header: 'User Email',

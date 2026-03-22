@@ -15,10 +15,10 @@ import Divider from '@/components/ui/Divider';
 import Skeleton from '@/components/ui/Skeleton';
 
 export default function SummaryChart() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const { data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const selectedSummarySegment = useChecklistStore((state) => state.selectedSummarySegment);
 	const updateSelectedSegment = useChecklistStore((state) => state.updateSelectedSegment);
@@ -32,10 +32,10 @@ export default function SummaryChart() {
 		isFetching: loadingSummary,
 	} = useChecklistTrpc().getSummary(
 		{
-			checklistId,
-			claimId,
+			checklistId: checklistId!,
+			claimId: claimId!,
 		},
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	const outerData = useMemo(() => {

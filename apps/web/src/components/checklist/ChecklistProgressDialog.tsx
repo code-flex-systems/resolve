@@ -20,13 +20,13 @@ export default function ChecklistProgressDialog() {
 	const isAssigned = useIsAssigned();
 	const toggleChecklistHandoffDialog = useChecklistStore((state) => state.toggleChecklistHandoffDialog);
 	const toggleChecklistProgressDialog = useChecklistStore((state) => state.toggleChecklistProgressDialog);
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const { showSuccess, showError } = useCrudAlerts('checklist status');
 	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
-		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: checklistId !== -1 && claimId !== -1 });
+		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: !!checklistId && !!claimId });
 	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
 

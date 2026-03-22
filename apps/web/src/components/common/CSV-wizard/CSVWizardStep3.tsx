@@ -14,7 +14,7 @@ type Props = {
 	rows: ParsedRow[];
 	mapping: Record<string, string | null>;
 	fields: Field[];
-	validateRow?: (row: any) => { success: boolean; error?: string };
+	validateRow?: (row: any) => { success: boolean; error?: any };
 	onSubmit: (validRows: any[]) => Promise<any>;
 	submitting: boolean;
 	setValidRowCount: (count: number) => void;
@@ -111,7 +111,7 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 					<>
 						<div
 style={{
-								size: '100%',
+								width: '100%',
 								height: 30,
 								cursor: 'pointer',
 								marginTop: 8,

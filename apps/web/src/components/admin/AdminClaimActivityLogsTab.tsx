@@ -59,8 +59,7 @@ export default function AdminClaimActivityLogsTab() {
 	const appliedActorTypeParam = getParam('actor_type');
 	const appliedActorType = isActorType(appliedActorTypeParam) ? appliedActorTypeParam : null;
 	const appliedClaimIdParam = getParam('claim_id');
-	const appliedClaimId = appliedClaimIdParam ? Number(appliedClaimIdParam) : null;
-	const normalizedClaimId = Number.isFinite(appliedClaimId) ? appliedClaimId : null;
+	const normalizedClaimId = appliedClaimIdParam || null;
 
 	const appliedRange = useMemo(
 		() =>
@@ -78,7 +77,7 @@ export default function AdminClaimActivityLogsTab() {
 		}
 	);
 	const { data: appliedClaim } = getClaim(
-		{ claimId: normalizedClaimId ?? 0 },
+		{ claimId: normalizedClaimId ?? '' },
 		{
 			enabled: !!normalizedClaimId,
 		}

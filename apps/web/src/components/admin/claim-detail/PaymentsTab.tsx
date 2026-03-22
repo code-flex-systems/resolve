@@ -23,7 +23,7 @@ import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 dayjs.extend(utc);
 
 interface PaymentsTabProps {
-	claimId: number;
+	claimId: string;
 }
 
 const initialPaymentForm: PaymentFormData = {
@@ -37,14 +37,14 @@ const initialPaymentForm: PaymentFormData = {
 };
 
 interface PaymentRow {
-	id: number;
-	coverage_id: number;
+	id: string;
+	coverage_id: string;
 	payment_date: Date;
 	payment_amount: string;
 	is_subrogable: boolean;
 	is_expense: boolean;
 	loss_type: string;
-	payee_claim_party_id: number | null;
+	payee_claim_party_id: string | null;
 	payee_name: string | null;
 	description: string | null;
 }
@@ -144,13 +144,13 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 		try {
 			// Build params object (shared between create and update)
 			const params = {
-				coverage_id: Number(paymentForm.coverage_id),
+				coverage_id: paymentForm.coverage_id,
 				payment_date: paymentForm.payment_date,
 				payment_amount: paymentForm.payment_amount,
 				is_subrogable: paymentForm.is_subrogable,
 				is_expense: paymentForm.is_expense,
-				// Convert empty string to null for optional payee, otherwise convert to number
-				payee_claim_party_id: paymentForm.payee_claim_party_id === '' || paymentForm.payee_claim_party_id === null ? null : Number(paymentForm.payee_claim_party_id),
+				// Convert empty string to null for optional payee
+				payee_claim_party_id: paymentForm.payee_claim_party_id === '' || paymentForm.payee_claim_party_id === null ? null : paymentForm.payee_claim_party_id,
 				description: paymentForm.description || undefined,
 			};
 

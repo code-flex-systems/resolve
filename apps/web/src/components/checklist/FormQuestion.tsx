@@ -50,7 +50,7 @@ export default function FormQuestion() {
 
 	const { data: attachedDocsResult } = useDocTrpc().listDocs(
 		{ filters: { question_id: selectedQuestionData.id } },
-		{ enabled: selectedQuestionData.id !== -1 }
+		{ enabled: !!selectedQuestionData.id }
 	);
 	const attachedDocs = attachedDocsResult?.rows ?? [];
 
@@ -63,14 +63,14 @@ export default function FormQuestion() {
 		formState: { errors, isDirty, isValid, isSubmitting },
 		watch,
 	} = useForm<Omit<Question, 'answers'>>({
-		defaultValues: { ...getDefaults(selectedQuestionData) },
+		defaultValues: { ...getDefaults(selectedQuestionData as Question) },
 		mode: 'onChange',
 	});
 	const questionText = watch('text');
 
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
-	const isPlaceholder = selectedQuestionData.id === -1;
+	const isPlaceholder = !selectedQuestionData.id;
 	const inTransition = isSubmitting || adding || copying || updating || deleting || refetchingQuestions;
 
 	const onSubmit = handleSubmit(async (data) => {
@@ -87,7 +87,7 @@ export default function FormQuestion() {
 				id: data.id,
 			};
 			const newQuestion =
-				selectedQuestionData.id === -1
+				!selectedQuestionData.id
 					? await addQuestion({ pageId: selectedPageInfo.pageId, params })
 					: await updateQuestion({ questionId: selectedQuestionData.id, pageId: selectedPageInfo.pageId, params });
 			if (newQuestion.page_id === selectedPageInfo.pageId) {
@@ -95,9 +95,9 @@ export default function FormQuestion() {
 			}
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
-			showSuccess(selectedQuestionData.id === -1 ? 'create' : 'update');
+			showSuccess(!selectedQuestionData.id ? 'create' : 'update');
 		} catch (e) {
-			showError(selectedQuestionData.id === -1 ? 'create' : 'update', e, 'Failed to save question');
+			showError(!selectedQuestionData.id ? 'create' : 'update', e, 'Failed to save question');
 		}
 	});
 
@@ -151,7 +151,7 @@ export default function FormQuestion() {
 	};
 
 	useEffect(() => {
-		reset({ ...getDefaults(selectedQuestionData) });
+		reset({ ...getDefaults(selectedQuestionData as Question) });
 	}, [selectedQuestionData, selectedPageInfo.pageId]);
 
 	useEffect(() => {
@@ -352,7 +352,7 @@ export default function FormQuestion() {
 												<label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: 'var(--text-secondary)' }}>Assigned page</label>
 												<select
 													{...field}
-													onChange={(e) => field.onChange(Number(e.target.value))}
+													onChange={(e) => field.onChange(e.target.value)}
 													style={{ minWidth: 200, padding: '8px', borderRadius: 6, border: errors.page_id ? '1px solid var(--status-error)' : '1px solid var(--border)', fontSize: 14, backgroundColor: 'var(--bg-white)' }}
 												>
 													{pageTemplates.map((o) => (

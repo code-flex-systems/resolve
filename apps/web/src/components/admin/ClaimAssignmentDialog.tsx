@@ -30,7 +30,7 @@ export default function ClaimAssignmentDialog() {
 		isFetching: isFetchingNextClaim,
 		refetch,
 	} = useClaimTrpc().getNextToAssign(
-		{ feedId: selectedFeedId ?? -1, offset: progress },
+		{ feedId: selectedFeedId ?? '', offset: progress },
 		{ enabled: !!selectedFeedId, staleTime: 0 }
 	);
 	const { mutateAsync: assignClaim } = useClaimTrpc().assign;

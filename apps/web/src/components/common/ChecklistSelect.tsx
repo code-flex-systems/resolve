@@ -43,7 +43,7 @@ export default function ChecklistSelect({
 				if (val === '') {
 					setChecklist(null);
 				} else {
-					const selected = options.find((o) => o.id === Number(val));
+					const selected = options.find((o) => o.id === val);
 					if (selected) setChecklist(selected);
 				}
 			}}

@@ -2,11 +2,11 @@ import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import Dropdown from '@/components/ui/Dropdown';
 
 interface DeskLocationSelectProps {
-	value: number | null;
-	onChange: (value: number | null) => void;
-	deskLocationTypeId?: number | null;
+	value: string | null;
+	onChange: (value: string | null) => void;
+	deskLocationTypeId?: string | null;
 	showInactive?: boolean;
-	excludedLocationIds?: number[];
+	excludedLocationIds?: string[];
 	placeholder?: string;
 	disabled?: boolean;
 	required?: boolean;
@@ -51,7 +51,7 @@ export default function DeskLocationSelect({
 				label: `${location.name}${!location.is_active ? ' (Inactive)' : ''}`,
 			}))}
 			value={value}
-			onChange={(v) => onChange(Number(v))}
+			onChange={(v) => onChange(String(v))}
 			disabled={!deskLocationTypeId || isFetching || disabled}
 			placeholder={placeholder}
 			required={required}

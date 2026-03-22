@@ -13,7 +13,7 @@ import { EntityName } from '@/api/utils/activityLogger';
  */
 export async function createQuestion(
 	ctx: ProtectedContext,
-	{ pageId, params }: { pageId: number; params: QuestionParams }
+	{ pageId, params }: { pageId: string; params: QuestionParams }
 ) {
 	// Create question and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
@@ -41,7 +41,7 @@ export async function createQuestion(
  */
 export async function copyQuestion(
 	ctx: ProtectedContext,
-	{ pageId, questionId }: { pageId: number; questionId: number }
+	{ pageId, questionId }: { pageId: string; questionId: string }
 ) {
 	// Copy question and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
@@ -69,7 +69,7 @@ export async function copyQuestion(
  */
 export async function deleteQuestion(
 	ctx: ProtectedContext,
-	{ pageId, questionId }: { pageId: number; questionId: number }
+	{ pageId, questionId }: { pageId: string; questionId: string }
 ) {
 	// Delete question and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
@@ -97,7 +97,7 @@ export async function deleteQuestion(
  * @param ctx - request context
  * @param input - question id
  */
-export async function getQuestion(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getQuestion(ctx: ProtectedContext, { id }: { id: string }) {
 	const results = await questionQueries.getQuestion(ctx, id);
 	return results;
 }
@@ -108,7 +108,7 @@ export async function getQuestion(ctx: ProtectedContext, { id }: { id: number })
  * @param ctx - request context
  * @param input - page id
  */
-export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: number }) {
+export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: string }) {
 	const results = await questionQueries.getQuestions(ctx, pageId);
 	return results;
 }
@@ -121,11 +121,11 @@ export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: 
  */
 export async function getQuestionStats(
 	ctx: ProtectedContext,
-	{ pageId, filters }: { pageId: number; filters: { claimId?: number; range: DateRangeStrict; users?: string[] } }
+	{ pageId, filters }: { pageId: string; filters: { claimId?: string; range: DateRangeStrict; users?: string[] } }
 ) {
 	const results = await questionQueries.getQuestionStats(ctx, pageId, filters);
 	const formattedResults: QuestionStat[] = [];
-	const seenQuestionIds = new Set<number>();
+	const seenQuestionIds = new Set<string>();
 	// Aggregate answers under their respective questions
 	(results ?? []).forEach((row) => {
 		const answerStat: AnswerStat = {
@@ -161,8 +161,8 @@ export async function modifyQuestion(
 		questionId,
 		params,
 	}: {
-		pageId: number;
-		questionId: number;
+		pageId: string;
+		questionId: string;
 		params: QuestionUpdateParams;
 	}
 ) {

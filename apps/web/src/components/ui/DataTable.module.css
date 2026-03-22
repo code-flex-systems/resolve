@@ -140,10 +140,13 @@ th:hover .resizeHandle {
 	vertical-align: middle;
 	border-bottom: 1px solid var(--border);
 	color: var(--text-primary);
+	max-width: 0;
+}
+
+.table td > * {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	max-width: 0;
 }
 
 .table tbody tr {

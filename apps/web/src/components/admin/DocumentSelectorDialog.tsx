@@ -16,9 +16,9 @@ interface DocumentSelectorDialogProps {
 	filterByType?: 'image' | 'all';
 	title?: string;
 	relationshipData?: {
-		question_id?: number;
-		answer_id?: number;
-		response_doc_id?: number;
+		question_id?: string;
+		answer_id?: string;
+		response_doc_id?: string;
 	};
 	userFilteredMode?: boolean; // If true, filter library to show only user's documents
 	userId?: string; // User ID for filtering

@@ -43,7 +43,7 @@ const defaultData: Record<ClaimStatus, number> = {
 	[ClaimStatus.UNWORKED]: 0,
 };
 
-export default function ClaimsMetric({ checklistId, users }: { checklistId?: number | null; users?: string[] }) {
+export default function ClaimsMetric({ checklistId, users }: { checklistId?: string | null; users?: string[] }) {
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();

@@ -44,8 +44,8 @@ function SettlementStructureIcon({ structure, size = 'small' }: { structure: str
 }
 
 type TimelineItem =
-	| { type: 'settlement'; date: Date; data: any; settlementId: number }
-	| { type: 'recovery'; date: Date; data: any; settlementId: number };
+	| { type: 'settlement'; date: Date; data: any; settlementId: string }
+	| { type: 'recovery'; date: Date; data: any; settlementId: string };
 
 interface SettlementTimelineProps {
 	settlements: any[];
@@ -66,7 +66,7 @@ export default function SettlementTimeline({
 	onArchiveSettlement,
 	onArchiveRecovery,
 }: SettlementTimelineProps) {
-	const [activeSettlementId, setActiveSettlementId] = useState<number | null>(null);
+	const [activeSettlementId, setActiveSettlementId] = useState<string | null>(null);
 
 	// Pre-compute settlement lookup to avoid O(N) find per recovery item
 	const settlementMap = useMemo(
@@ -96,7 +96,7 @@ export default function SettlementTimeline({
 		});
 	}, [settlements, recoveryEvents]);
 
-	const handleItemClick = (settlementId: number) => {
+	const handleItemClick = (settlementId: string) => {
 		setActiveSettlementId((prev) => (prev === settlementId ? null : settlementId));
 	};
 

@@ -44,10 +44,10 @@ function NoRows() {
 
 interface FeedActionsCellProps {
 	row: {
-		id: number;
+		id: string;
 		status: FeedStatus;
 	};
-	mutate: (params: { id: number; params: { status: FeedStatus } }) => void;
+	mutate: (params: { id: string; params: { status: FeedStatus } }) => void;
 	isPending: boolean;
 	isManageMode: boolean;
 }
@@ -146,7 +146,7 @@ export default function Feeds() {
 					) : (
 						<div
 							style={{
-								size: 10,
+								width: 10,
 								height: 10,
 								borderRadius: '50%',
 								backgroundColor: getStatusColor(row.status),

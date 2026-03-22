@@ -62,7 +62,7 @@ export default function RecoveryEventsTable({
 	range: DateRange<Dayjs>;
 	recoveryStatus: string | null;
 	recoverySource: string;
-	checklistId?: number;
+	checklistId?: string;
 }) {
 	const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
 	const trpcUtils = trpc.useUtils();
@@ -145,10 +145,10 @@ export default function RecoveryEventsTable({
 						{(data?.count ?? 0).toLocaleString()} event{(data?.count ?? 0) !== 1 ? 's' : ''}
 					</span>
 					<ExportButton
-						onExport={async () => {
+						onExport={(async () => {
 							const result = await trpcUtils.recovery.exportRecoveryEvents.fetch({ filters });
 							return result;
-						}}
+						}) as any}
 						columns={csvColumns}
 						filename="recovery_events"
 						size="sm"

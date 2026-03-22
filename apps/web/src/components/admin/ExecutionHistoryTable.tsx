@@ -14,7 +14,7 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface ExecutionHistoryTableProps {
-	ruleId?: number;
+	ruleId?: string;
 	compact?: boolean;
 }
 
@@ -31,7 +31,7 @@ function NoRows() {
 
 export default function ExecutionHistoryTable({ ruleId, compact = false }: ExecutionHistoryTableProps) {
 	const [allRows, setAllRows] = useState<ExecutionRow[]>([]);
-	const [cursor, setCursor] = useState<{ createdAt: string; id: number } | undefined>();
+	const [cursor, setCursor] = useState<{ createdAt: string; id: string } | undefined>();
 	const [statusFilter, setStatusFilter] = useState<RuleExecutionStatus | ''>('');
 	const [detailRow, setDetailRow] = useState<ExecutionRow | null>(null);
 

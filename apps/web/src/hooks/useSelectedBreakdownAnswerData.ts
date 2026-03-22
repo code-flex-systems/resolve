@@ -11,7 +11,7 @@ export default function useSelectedBreakdownAnswerData() {
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
 	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
-	const pageId = +(searchParams.get('pageId') ?? '-1');
+	const pageId = searchParams.get('pageId') ?? '';
 	const today = dayjs().format('MM/DD/YYYY');
 	const { data: questionStats = [] } = useQuestionTrpc().getStats(
 		{
@@ -25,7 +25,7 @@ export default function useSelectedBreakdownAnswerData() {
 				users: breakdownUsers.map((u) => u.id),
 			},
 		},
-		{ enabled: pageId !== -1 }
+		{ enabled: !!pageId }
 	);
 
 	return useMemo(() => {

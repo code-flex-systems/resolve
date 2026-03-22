@@ -15,8 +15,8 @@ import {
  * Result of condition evaluation — a matching claim with its current desk location
  */
 export interface ConditionMatch {
-	claimId: number;
-	deskLocationId: number | null;
+	claimId: string;
+	deskLocationId: string | null;
 }
 
 /**
@@ -24,9 +24,9 @@ export interface ConditionMatch {
  */
 export interface ConditionScopeFilter {
 	/** Only evaluate claims at this desk location */
-	deskLocationId?: number;
+	deskLocationId?: string;
 	/** Only evaluate these specific claims */
-	claimIds?: number[];
+	claimIds?: string[];
 }
 
 // =============================================================================
@@ -173,7 +173,7 @@ export async function evaluateConditions(
 	// The query uses a LATERAL join to get the most recent transition per claim,
 	// which provides derived fields like hours_in_current_stage and previous_desk_location_id.
 	// The idx_cdlt_latest index on (client_id, claim_id, entered_at DESC) optimizes this.
-	const result = await sql<{ claim_id: number; desk_location_id: number | null }>`
+	const result = await sql<{ claim_id: string; desk_location_id: string | null }>`
 		SELECT c.id AS claim_id, c.desk_location_id
 		FROM claim c
 		LEFT JOIN LATERAL (

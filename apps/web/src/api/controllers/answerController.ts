@@ -19,8 +19,8 @@ export async function createAnswer(
 		questionId,
 		params,
 	}: {
-		pageId: number;
-		questionId: number;
+		pageId: string;
+		questionId: string;
 		params: AnswerParams;
 	}
 ) {
@@ -55,9 +55,9 @@ export async function copyAnswer(
 		questionId,
 		answerId,
 	}: {
-		pageId: number;
-		questionId: number;
-		answerId: number;
+		pageId: string;
+		questionId: string;
+		answerId: string;
 	}
 ) {
 	// Copy answer and log admin action within transaction
@@ -84,7 +84,7 @@ export async function copyAnswer(
  * @param ctx - request context
  * @param input - page and answer identifiers
  */
-export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: number; answerId: number }) {
+export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: string; answerId: string }) {
 	// Delete answer and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Fetch answer data BEFORE deletion for logging
@@ -111,7 +111,7 @@ export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: 
  * @param ctx - request context
  * @param input - answer id
  */
-export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getAnswer(ctx: ProtectedContext, { id }: { id: string }) {
 	return await answerQueries.getAnswer(ctx, id);
 }
 
@@ -121,7 +121,7 @@ export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
  * @param ctx - request context
  * @param input - question id
  */
-export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: number }) {
+export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: string }) {
 	return await answerQueries.getAnswers(ctx, questionId);
 }
 
@@ -134,7 +134,7 @@ export async function getAnswers(ctx: ProtectedContext, { questionId }: { questi
  */
 export async function modifyAnswer(
 	ctx: ProtectedContext,
-	{ pageId, answerId, params }: { pageId: number; answerId: number; params: AnswerUpdateParams }
+	{ pageId, answerId, params }: { pageId: string; answerId: string; params: AnswerUpdateParams }
 ) {
 	try {
 		// Update answer and log admin action within transaction
@@ -165,6 +165,6 @@ export async function modifyAnswer(
  * @param input - checklist id
  * @returns array of answer calls (from instance -> to instance)
  */
-export async function getAnswerCallGraph(ctx: ProtectedContext, { checklistId }: { checklistId: number }) {
+export async function getAnswerCallGraph(ctx: ProtectedContext, { checklistId }: { checklistId: string }) {
 	return await answerQueries.getAnswerCallGraph(ctx, checklistId);
 }

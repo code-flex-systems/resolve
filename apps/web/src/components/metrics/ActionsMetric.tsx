@@ -93,10 +93,10 @@ export default function ActionsMetric() {
 										</div>
 										<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 											<span style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
-												{getActionPrimaryContent(type, s.definition)}
+												{getActionPrimaryContent(type, s.definition as ActionDefinition)}
 											</span>
 											<span style={{ fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-muted)' }}>
-												{getActionSecondaryContent(type, s.definition)}
+												{getActionSecondaryContent(type, s.definition as ActionDefinition)}
 											</span>
 										</div>
 										<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', minWidth: 24, textAlign: 'right' }}>

@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
 
 export default function ChecklistChangeLog() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 	const debouncedSearch = useCallback(

@@ -22,7 +22,7 @@ export async function createRecoveryEvent(
 		claimId,
 		params,
 	}: {
-		claimId: number;
+		claimId: string;
 		params: Omit<RecoveryEventParams, 'claim_id'>;
 	}
 ) {
@@ -53,7 +53,7 @@ export async function createRecoveryEvent(
  */
 export async function listRecoveryEvents(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId }: { claimId: string }
 ) {
 	return await recoveryQueries.getRecoveryEvents(ctx, claimId);
 }
@@ -70,8 +70,8 @@ export async function deleteRecoveryEvent(
 		recoveryEventId,
 		claimId,
 	}: {
-		recoveryEventId: number;
-		claimId: number;
+		recoveryEventId: string;
+		claimId: string;
 	}
 ) {
 	// Archive recovery event and log admin action within transaction
@@ -107,7 +107,7 @@ export async function updateRecoveryEvent(
 		recoveryEventId,
 		params,
 	}: {
-		recoveryEventId: number;
+		recoveryEventId: string;
 		params: RecoveryEventUpdateParams;
 	}
 ) {
@@ -143,7 +143,7 @@ export async function listRecoveryEventsWithFilters(
 			range?: DateRangeStrict;
 			recoverySource?: string;
 			recoveryStatus?: string;
-			checklistId?: number;
+			checklistId?: string;
 		};
 		limit?: number;
 		offset?: number;
@@ -171,7 +171,7 @@ export async function exportRecoveryEvents(
 			range?: DateRangeStrict;
 			recoverySource?: string;
 			recoveryStatus?: string;
-			checklistId?: number;
+			checklistId?: string;
 		};
 	}
 ) {
@@ -191,7 +191,7 @@ export async function exportRecoveryEvents(
  */
 export async function getRecoverySummaryByCoverage(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId }: { claimId: string }
 ) {
 	return await recoveryQueries.getRecoverySummaryByCoverage(ctx, claimId);
 }
@@ -213,7 +213,7 @@ export async function getRecoveryMetricsSummary(
 		range: DateRangeStrict;
 		recoverySource?: string;
 		recoveryStatus?: string;
-		checklistId?: number;
+		checklistId?: string;
 	}
 ) {
 	const { range, ...filters } = input;
@@ -233,7 +233,7 @@ export async function getRecoveryMetricsTimeSeries(
 		range: DateRangeStrict;
 		recoverySource?: string;
 		recoveryStatus?: string;
-		checklistId?: number;
+		checklistId?: string;
 	}
 ) {
 	const { range, ...filters } = input;

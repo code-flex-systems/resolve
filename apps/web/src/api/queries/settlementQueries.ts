@@ -21,7 +21,7 @@ dayjs.extend(utc);
  */
 export async function createSettlement(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	params: SettlementParams
 ) {
 	const clientId = ctx.session.user.client_id!;
@@ -73,7 +73,7 @@ export async function createSettlement(
  * @param settlementId - settlement identifier
  * @returns settlement with party and coverage details
  */
-export async function getSettlement(ctx: ProtectedContext, settlementId: number) {
+export async function getSettlement(ctx: ProtectedContext, settlementId: string) {
 	return await ctx.db
 		.selectFrom('settlement')
 		.innerJoin('claim_party', 'settlement.claim_party_id', 'claim_party.id')
@@ -124,7 +124,7 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
  * @param claimId - claim identifier
  * @returns list of settlements with party and coverage details, filtered to adverse parties only
  */
-export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: number) {
+export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: string) {
 	const clientId = ctx.session.user.client_id;
 
 	// Use CTE to fetch adverse roles once per request instead of per row
@@ -195,7 +195,7 @@ export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: nu
  */
 export async function updateSettlement(
 	ctx: ProtectedContext,
-	settlementId: number,
+	settlementId: string,
 	params: SettlementUpdateParams
 ) {
 	const updateValues: Record<string, any> = {
@@ -276,8 +276,8 @@ export async function updateSettlement(
  */
 export async function archiveSettlement(
 	ctx: ProtectedContext,
-	settlementId: number,
-	claimId: number
+	settlementId: string,
+	claimId: string
 ) {
 	return await ctx.db
 		.updateTable('settlement')
@@ -301,7 +301,7 @@ export async function archiveSettlement(
  * @param claimId - claim identifier
  * @returns list of settlements with minimal info for dropdown, filtered to adverse parties only
  */
-export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: number) {
+export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: string) {
 	const clientId = ctx.session.user.client_id;
 
 	// Use CTE to fetch adverse roles once per request instead of per row

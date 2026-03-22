@@ -25,7 +25,7 @@ interface TableRow {
 	total_recovered?: number;
 	remaining_balance?: number;
 	originalData: any;
-	settlementId: number;
+	settlementId: string;
 }
 
 interface SettlementTableProps {

@@ -13,15 +13,15 @@ import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
 import ChecklistHandoffDialog from '../checklist/ChecklistHandoffDialog';
 
 export default function Checklist() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const mode = useChecklistStore((state) => state.mode);
 	const showChecklistHandoffDialog = useChecklistStore((state) => state.showChecklistHandoffDialog);
 	const showChecklistProgressDialog = useChecklistStore((state) => state.showChecklistProgressDialog);
 
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
 	const { data: claim } = useClaimTrpc().get(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	usePageTrpc().listTemplates();
 
@@ -29,7 +29,7 @@ export default function Checklist() {
 		return () => useChecklistStore.getState().reset();
 	}, []);
 
-	return !checklist || (claimId !== -1 && !claim) ? (
+	return !checklist || (claimId && !claim) ? (
 		<></>
 	) : (
 		<div      style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'stretch' }}>

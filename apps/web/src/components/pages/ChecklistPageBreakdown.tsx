@@ -25,12 +25,12 @@ import Divider from '@/components/ui/Divider';
 export default function ChecklistPageBreakdown() {
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
-	const instanceId = +(searchParams.get('instanceId') ?? -1);
-	const pageId = +(searchParams.get('pageId') ?? -1);
+	const instanceId = searchParams.get('instanceId') ?? '';
+	const pageId = searchParams.get('pageId') ?? '';
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const { checklistId = -1 } = useChecklistParams();
+	const { checklistId = '' } = useChecklistParams();
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
 	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
@@ -38,7 +38,7 @@ export default function ChecklistPageBreakdown() {
 	const answerData = useSelectedBreakdownAnswerData();
 	const [showPageSelect, setShowPageSelect] = useState(false);
 
-	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId }, { enabled: checklistId !== -1 });
+	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId }, { enabled: !!checklistId });
 	const { data: checklists = [] } = useChecklistTrpc().list({});
 	const selectedChecklist = checklists.find((c) => c.id === checklistId);
 
@@ -57,7 +57,7 @@ export default function ChecklistPageBreakdown() {
 		}
 	}, [searchParams.get('pageId'), searchParams.get('instanceId')]);
 
-	const setSearchParams = (newInstanceId: number | null) => {
+	const setSearchParams = (newInstanceId: string | null) => {
 		if (!newInstanceId) return;
 		const selectedPage = instances.find((i) => i.instance_id === newInstanceId);
 		if (!selectedPage) return;
@@ -107,7 +107,7 @@ export default function ChecklistPageBreakdown() {
 						/>
 					</div>
 					{/* <Collapse open={instanceId !== -1}> */}
-					{instanceId !== -1 && (
+					{!!instanceId && (
 						<div  style={{ marginRight: '5px' }}>
 							<PageInstanceSelect
 								checklistId={checklistId}

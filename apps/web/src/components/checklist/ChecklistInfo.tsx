@@ -12,8 +12,8 @@ import { IconChecklist } from '@tabler/icons-react';
 export default function ChecklistInfo() {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const { checklistId = -1 } = useChecklistParams();
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId }, { enabled: checklistId !== -1 });
+	const { checklistId } = useChecklistParams();
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
 	const [checklistAnchorEl, setChecklistAnchorEl] = useState<HTMLElement | null>(null);
 
 	if (!checklist) return <></>;

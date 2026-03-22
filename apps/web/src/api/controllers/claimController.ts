@@ -9,7 +9,7 @@ import { onClaimFieldChange } from '@/lib/workflow/ruleEventHooks';
 
 export async function assignClaim(
 	ctx: ProtectedContext,
-	{ checklistId, claimId, assignee }: { checklistId: number; claimId: number; assignee: string }
+	{ checklistId, claimId, assignee }: { checklistId: string; claimId: string; assignee: string }
 ) {
 	// Assign claim and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
@@ -40,7 +40,7 @@ export async function assignClaim(
  */
 export async function getClaim(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { claimId: number; checklistId?: number }
+	{ checklistId, claimId }: { claimId: string; checklistId?: string }
 ) {
 	const results = await claimQueries.getClaim(ctx, claimId, checklistId);
 	return results;
@@ -48,7 +48,7 @@ export async function getClaim(
 
 export async function getNextClaimToAssign(
 	ctx: ProtectedContext,
-	{ feedId, offset }: { feedId: number; offset?: number }
+	{ feedId, offset }: { feedId: string; offset?: number }
 ) {
 	const results = await claimQueries.getNextClaimToAssign(ctx, feedId, offset);
 	return results;
@@ -63,7 +63,7 @@ export async function getNextClaimToAssign(
 export async function getClaims(
 	ctx: ProtectedContext,
 	params: {
-		feedId?: number | null;
+		feedId?: string | null;
 		searchTerm?: { value: string; type: ClaimSearch };
 		line_of_business?: string;
 		loss_type?: string;
@@ -132,7 +132,7 @@ export async function createClaims(
 export async function updateClaim(
 	ctx: ProtectedContext,
 	input: {
-		claimId: number;
+		claimId: string;
 		claim_number?: string | null;
 		client?: string | null;
 		client_adjuster?: string | null;
@@ -184,7 +184,7 @@ export async function updateClaim(
  * @param ctx - request context
  * @param input - claim id
  */
-export async function getClaimDetail(ctx: ProtectedContext, { claimId }: { claimId: number }) {
+export async function getClaimDetail(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	const results = await claimQueries.getClaimDetail(ctx, claimId);
 	return results;
 }

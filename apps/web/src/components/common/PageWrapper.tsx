@@ -21,10 +21,10 @@ import css from './PageWrapper.module.css';
 export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const { data: claim } = useClaimTrpc().get(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	const navItems = useMemo(() => {

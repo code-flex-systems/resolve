@@ -17,7 +17,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
 interface OverviewTabProps {
-	claimId: number;
+	claimId: string;
 }
 
 export default function OverviewTab({ claimId }: OverviewTabProps) {

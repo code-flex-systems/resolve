@@ -12,9 +12,9 @@ interface RuleExecutionSummaryDialogProps {
 		actionsExecuted: number;
 		actionsSuggested: number;
 		errors: Array<{
-			ruleId: number;
+			ruleId: string;
 			ruleName: string;
-			claimId?: number;
+			claimId?: string;
 			error: string;
 		}>;
 	} | null;

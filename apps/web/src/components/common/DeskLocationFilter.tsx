@@ -4,11 +4,11 @@ import { IconMapPin } from '@tabler/icons-react';
 import Dropdown from '@/components/ui/Dropdown';
 
 interface DeskLocationFilterProps {
-	value: number | null;
-	onChange: (value: number | null) => void;
-	deskLocationTypeId?: number | null;
+	value: string | null;
+	onChange: (value: string | null) => void;
+	deskLocationTypeId?: string | null;
 	showInactive?: boolean;
-	excludedLocationIds?: number[];
+	excludedLocationIds?: string[];
 	clearable?: boolean;
 	height?: number;
 	label?: string;
@@ -58,7 +58,7 @@ export default function DeskLocationFilter({
 		<Dropdown
 			options={dropdownOptions}
 			value={value ?? ''}
-			onChange={(val) => onChange(val === '' ? null : Number(val))}
+			onChange={(val) => onChange(val === '' ? null : String(val))}
 			placeholder={label}
 			size="sm"
 			disabled={isDisabled}

@@ -17,14 +17,14 @@ interface TaskFormInputs {
 	title: string;
 	description: string;
 	taskType: TaskType;
-	deskLocationTypeId: number | null;
-	deskLocationId: number | null;
+	deskLocationTypeId: string | null;
+	deskLocationId: string | null;
 	dueDate: string | null;
 	workUnits: number;
 }
 
 interface TaskCreationDialogProps {
-	claimId: number;
+	claimId: string;
 	claimNumber?: string;
 	onClose: () => void;
 	onCreated?: () => void;

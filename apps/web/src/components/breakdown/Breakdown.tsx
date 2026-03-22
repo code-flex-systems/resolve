@@ -57,7 +57,7 @@ const COLUMNS: ColumnDef<any, any>[] = [
 
 export default function Breakdown() {
 	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
-	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? -1;
+	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? '';
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
 	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
@@ -77,7 +77,7 @@ export default function Breakdown() {
 			limit: constraints.pageSize,
 			offset: constraints.page * constraints.pageSize,
 		},
-		{ enabled: selectedAnswerId !== -1 }
+		{ enabled: !!selectedAnswerId }
 	);
 
 	useEffect(() => {

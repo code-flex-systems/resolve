@@ -13,7 +13,7 @@ import { SuggestionStatus } from '@/config/enums';
  */
 export async function getDeskLocationQueueDepth(
 	ctx: ProtectedContext,
-	input: { deskLocationId?: number }
+	input: { deskLocationId?: string }
 ) {
 	return await workflowAnalyticsQueries.getDeskLocationQueueDepth(ctx, input.deskLocationId);
 }
@@ -23,7 +23,7 @@ export async function getDeskLocationQueueDepth(
  */
 export async function getDeskLocationWorkLoad(
 	ctx: ProtectedContext,
-	input: { deskLocationId?: number }
+	input: { deskLocationId?: string }
 ) {
 	return await workflowAnalyticsQueries.getDeskLocationWorkLoad(ctx, input.deskLocationId);
 }
@@ -33,7 +33,7 @@ export async function getDeskLocationWorkLoad(
  */
 export async function getUserWorkloadAndCapacity(
 	ctx: ProtectedContext,
-	input: { userId?: string; deskLocationId?: number }
+	input: { userId?: string; deskLocationId?: string }
 ) {
 	return await workflowAnalyticsQueries.getUserWorkloadAndCapacity(ctx, {
 		userId: input.userId,
@@ -56,7 +56,7 @@ export async function getClaimsApproachingSLABreach(
  */
 export async function getTaskThroughputToday(
 	ctx: ProtectedContext,
-	input: { deskLocationId?: number; userId?: string }
+	input: { deskLocationId?: string; userId?: string }
 ) {
 	return await workflowAnalyticsQueries.getTaskThroughputToday(ctx, {
 		deskLocationId: input.deskLocationId,
@@ -69,7 +69,7 @@ export async function getTaskThroughputToday(
  */
 export async function getDeadlineStatusOverview(
 	ctx: ProtectedContext,
-	input: { deadlineType?: string; createdBy?: string; claimId?: number }
+	input: { deadlineType?: string; createdBy?: string; claimId?: string }
 ) {
 	return await workflowAnalyticsQueries.getDeadlineStatusOverview(ctx, {
 		deadlineType: input.deadlineType,
@@ -215,12 +215,17 @@ export async function getWorkflowSuggestions(ctx: ProtectedContext) {
 			resolution.status = SuggestionStatus.PENDING;
 		});
 
-		// 5. Append ignored suggestions from database
-		const ignoredResolutions = ignoredRows.map((row) => ({
-			...(row.suggestion_data as any),
-			suggestionId: row.id,
-			status: SuggestionStatus.IGNORED,
-		}));
+		// 5. Append ignored suggestions from database (validate shape before appending)
+		const ignoredResolutions = ignoredRows
+			.filter((row) => {
+				const data = row.suggestion_data as any;
+				return data && data.breach && Array.isArray(data.assignments);
+			})
+			.map((row) => ({
+				...(row.suggestion_data as any),
+				suggestionId: row.id,
+				status: SuggestionStatus.IGNORED,
+			}));
 
 		suggestion.resolutions = [...suggestion.resolutions, ...ignoredResolutions];
 
@@ -249,8 +254,8 @@ export async function executeSuggestion(
 			.executeTakeFirstOrThrow();
 
 		const data = suggestion.suggestion_data as {
-			assignments: Array<{ userId: string; deskLocationId: number; newPriority: number }>;
-			cascadedChanges: Array<{ userId: string; deskLocationId: number; newPriority: number | null }>;
+			assignments: Array<{ userId: string; deskLocationId: string; newPriority: number }>;
+			cascadedChanges: Array<{ userId: string; deskLocationId: string; newPriority: number | null }>;
 		};
 
 		// 2. Apply priority assignments and cascaded changes
@@ -318,8 +323,8 @@ export async function executeAllSuggestions(ctx: ProtectedContext) {
 		// 2. Apply all priority changes
 		for (const suggestion of pendingSuggestions) {
 			const data = suggestion.suggestion_data as {
-				assignments: Array<{ userId: string; deskLocationId: number; newPriority: number }>;
-				cascadedChanges: Array<{ userId: string; deskLocationId: number; newPriority: number | null }>;
+				assignments: Array<{ userId: string; deskLocationId: string; newPriority: number }>;
+				cascadedChanges: Array<{ userId: string; deskLocationId: string; newPriority: number | null }>;
 			};
 
 			const allChanges = [
@@ -405,7 +410,7 @@ export async function updateSuggestion(
  */
 export async function getWorkflowStageMetrics(
 	ctx: ProtectedContext,
-	input: { startDate: string; endDate: string; deskLocationTypeId?: number; deskLocationId?: number }
+	input: { startDate: string; endDate: string; deskLocationTypeId?: string; deskLocationId?: string }
 ) {
 	return await workflowAnalyticsQueries.getWorkflowStageMetrics(ctx, {
 		startDate: input.startDate,

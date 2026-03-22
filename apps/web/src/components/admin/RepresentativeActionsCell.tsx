@@ -38,10 +38,10 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreRepresentative({ id: row.id as unknown as number });
+				await restoreRepresentative({ id: row.id });
 				showAlert('Representative restored successfully', 'success');
 			} else {
-				await archiveRepresentative({ id: row.id as unknown as number });
+				await archiveRepresentative({ id: row.id });
 				showAlert('Representative archived successfully', 'success');
 			}
 			setShowActionConfirm(false);

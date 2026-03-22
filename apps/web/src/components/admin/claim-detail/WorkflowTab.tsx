@@ -21,7 +21,7 @@ import TaskListPanel from '@/components/common/TaskListPanel';
 dayjs.extend(relativeTime);
 
 interface WorkflowTabProps {
-	claimId: number;
+	claimId: string;
 }
 
 export default function WorkflowTab({ claimId }: WorkflowTabProps) {
@@ -50,7 +50,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 	const currentAssignment = claimDetail.checklistAssignments?.[0] ?? null;
 	const assignmentHistory = claimDetail.checklistAssignments ?? [];
 
-	const handleOpenChecklist = (checklistId: number) => {
+	const handleOpenChecklist = (checklistId: string) => {
 		router.push(`/checklist/${checklistId}/claim/${claimId}`);
 	};
 

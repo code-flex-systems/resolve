@@ -70,7 +70,7 @@ export async function createDoc(
  */
 export async function getDoc(
 	ctx: ProtectedContext,
-	{ docId }: { docId: number }
+	{ docId }: { docId: string }
 ) {
 	return await docQueries.getDoc(ctx, docId);
 }
@@ -87,13 +87,13 @@ export async function listDocs(
 	ctx: ProtectedContext,
 	input: {
 		filters?: {
-			claim_id?: number;
-			doc_group_id?: number | null;
+			claim_id?: string;
+			doc_group_id?: string | null;
 			doc_type?: string;
 			doc_status?: string;
 			is_current_version?: boolean;
-			question_id?: number;
-			answer_id?: number;
+			question_id?: string;
+			answer_id?: string;
 		};
 		limit?: number;
 		offset?: number;
@@ -115,7 +115,7 @@ export async function updateDoc(
 		docId,
 		params,
 	}: {
-		docId: number;
+		docId: string;
 		params: UpdateDocParams;
 	}
 ) {
@@ -146,7 +146,7 @@ export async function updateDoc(
  */
 export async function deleteDoc(
 	ctx: ProtectedContext,
-	{ docId }: { docId: number }
+	{ docId }: { docId: string }
 ) {
 	// Archive document and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
@@ -186,7 +186,7 @@ export async function deleteDoc(
  */
 export async function downloadDoc(
 	ctx: ProtectedContext,
-	{ docId }: { docId: number }
+	{ docId }: { docId: string }
 ) {
 	// Get document metadata
 	const doc = await docQueries.getDoc(ctx, docId);
@@ -248,7 +248,7 @@ export async function createDocGroup(
  */
 export async function getDocGroup(
 	ctx: ProtectedContext,
-	{ groupId }: { groupId: number }
+	{ groupId }: { groupId: string }
 ) {
 	return await docQueries.getDocGroup(ctx, groupId);
 }
@@ -286,7 +286,7 @@ export async function updateDocGroup(
 		groupId,
 		params,
 	}: {
-		groupId: number;
+		groupId: string;
 		params: UpdateDocGroupParams;
 	}
 ) {
@@ -318,7 +318,7 @@ export async function updateDocGroup(
  */
 export async function deleteDocGroup(
 	ctx: ProtectedContext,
-	{ groupId }: { groupId: number }
+	{ groupId }: { groupId: string }
 ) {
 	// Archive doc group and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
@@ -394,7 +394,7 @@ export async function deleteDocGroup(
  */
 export async function getDocCountByClaimId(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId }: { claimId: string }
 ) {
 	return await docQueries.getDocCountByClaimId(ctx, claimId);
 }
@@ -408,7 +408,7 @@ export async function getDocCountByClaimId(
  */
 export async function getDocCountByGroupId(
 	ctx: ProtectedContext,
-	{ groupId }: { groupId: number }
+	{ groupId }: { groupId: string }
 ) {
 	return await docQueries.getDocCountByGroupId(ctx, groupId);
 }
@@ -422,7 +422,7 @@ export async function getDocCountByGroupId(
  */
 export async function getDocCountsByGroupIds(
 	ctx: ProtectedContext,
-	{ groupIds }: { groupIds: number[] }
+	{ groupIds }: { groupIds: string[] }
 ) {
 	return await docQueries.getDocCountsByGroupIds(ctx, groupIds);
 }

@@ -17,8 +17,8 @@ const capitalize = (str: string | null | undefined) => {
 const DROP_CHECK_VALUE = 'DROP_CHECK';
 
 export interface SettlementFormData {
-	claim_party_id: number | '';
-	coverage_id: number | '';
+	claim_party_id: string | '';
+	coverage_id: string | '';
 	demand_amount: string;
 	demand_date: string;
 	status: string;
@@ -35,12 +35,12 @@ export interface SettlementFormData {
 }
 
 interface AdverseParty {
-	id: number;
+	id: string;
 	party?: { name?: string };
 }
 
 interface Coverage {
-	id: number;
+	id: string;
 	loss_type: string;
 	coverage_amount?: number | string | null;
 }
@@ -126,7 +126,7 @@ export default function SettlementFormDialog({
 							label: cp.party?.name || '',
 						}))}
 						value={formData.claim_party_id}
-						onChange={(v) => setFormData({ ...formData, claim_party_id: Number(v) })}
+						onChange={(v) => setFormData({ ...formData, claim_party_id: String(v) })}
 						required
 						fullWidth
 					/>
@@ -137,7 +137,7 @@ export default function SettlementFormDialog({
 							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
 						}))}
 						value={formData.coverage_id}
-						onChange={(v) => setFormData({ ...formData, coverage_id: Number(v) })}
+						onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
 						required
 						fullWidth
 					/>

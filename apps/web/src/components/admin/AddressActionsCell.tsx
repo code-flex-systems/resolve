@@ -34,10 +34,10 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreAddress({ id: row.id as unknown as number });
+				await restoreAddress({ id: row.id });
 				showAlert('Address restored successfully', 'success');
 			} else {
-				await archiveAddress({ id: row.id as unknown as number });
+				await archiveAddress({ id: row.id });
 				showAlert('Address archived successfully', 'success');
 			}
 			setShowActionConfirm(false);

@@ -3,7 +3,7 @@ import ClaimDetailView from '@/components/admin/claim-detail/ClaimDetailView';
 import { createServerHelpers } from '@/server/trpc/createServerHelpers';
 
 export default async function ClaimDetailPage({ params }: { params: { claimId: string } }) {
-	const claimId = Number(params.claimId);
+	const claimId = params.claimId;
 	const helpers = await createServerHelpers();
 
 	await helpers.claim.getClaimDetail.prefetch({ claimId });

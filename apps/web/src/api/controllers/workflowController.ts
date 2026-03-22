@@ -33,7 +33,7 @@ export async function getWorkflowDefinitions(
 
 export async function getWorkflowDefinition(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	return await workflowQueries.getWorkflowDefinition(ctx, id);
 }
@@ -43,7 +43,7 @@ export async function createWorkflowDefinition(
 	input: {
 		name: string;
 		description?: string;
-		deskLocationId?: number;
+		deskLocationId?: string;
 	}
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
@@ -75,11 +75,11 @@ export async function updateWorkflowDefinition(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			name?: string;
 			description?: string;
-			deskLocationId?: number | null;
+			deskLocationId?: string | null;
 			isActive?: boolean;
 		};
 	}
@@ -114,7 +114,7 @@ export async function updateWorkflowDefinition(
 
 export async function archiveWorkflowDefinition(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -161,7 +161,7 @@ export async function archiveWorkflowDefinition(
 
 export async function getWorkflowThresholds(
 	ctx: ProtectedContext,
-	{ workflowDefinitionId }: { workflowDefinitionId: number }
+	{ workflowDefinitionId }: { workflowDefinitionId: string }
 ) {
 	return await workflowQueries.getWorkflowThresholds(ctx, workflowDefinitionId);
 }
@@ -169,7 +169,7 @@ export async function getWorkflowThresholds(
 export async function createWorkflowThreshold(
 	ctx: ProtectedContext,
 	input: {
-		workflowDefinitionId: number;
+		workflowDefinitionId: string;
 		thresholdType: WorkflowThresholdType;
 		thresholdValue: number;
 	}
@@ -204,7 +204,7 @@ export async function updateWorkflowThreshold(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			thresholdValue?: number;
 			isActive?: boolean;
@@ -241,7 +241,7 @@ export async function updateWorkflowThreshold(
 
 export async function archiveWorkflowThreshold(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const result = await workflowQueries.archiveWorkflowThreshold(
@@ -269,7 +269,7 @@ export async function archiveWorkflowThreshold(
 
 export async function getWorkflowRules(
 	ctx: ProtectedContext,
-	{ workflowDefinitionId }: { workflowDefinitionId: number }
+	{ workflowDefinitionId }: { workflowDefinitionId: string }
 ) {
 	return await workflowQueries.getWorkflowRules(ctx, workflowDefinitionId);
 }
@@ -277,7 +277,7 @@ export async function getWorkflowRules(
 export async function createWorkflowRule(
 	ctx: ProtectedContext,
 	input: {
-		workflowDefinitionId: number;
+		workflowDefinitionId: string;
 		name: string;
 		description?: string;
 		triggerType: WorkflowTriggerType;
@@ -331,7 +331,7 @@ export async function updateWorkflowRule(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			name?: string;
 			description?: string;
@@ -387,7 +387,7 @@ export async function updateWorkflowRule(
 
 export async function archiveWorkflowRule(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const result = await workflowQueries.archiveWorkflowRule(
@@ -415,7 +415,7 @@ export async function archiveWorkflowRule(
 
 export async function resolveWorkflowForLocation(
 	ctx: ProtectedContext,
-	{ deskLocationId }: { deskLocationId: number }
+	{ deskLocationId }: { deskLocationId: string }
 ) {
 	return await workflowQueries.resolveWorkflowForLocation(ctx, deskLocationId);
 }
@@ -431,7 +431,7 @@ export async function resolveWorkflowForLocation(
  */
 export async function executeRule(
 	ctx: ProtectedContext,
-	{ ruleId, deskLocationId }: { ruleId: number; deskLocationId?: number }
+	{ ruleId, deskLocationId }: { ruleId: string; deskLocationId?: string }
 ) {
 	const summary = await evaluateRules(ctx, {
 		triggerType: WorkflowTriggerType.MANUAL,
@@ -465,7 +465,7 @@ export async function evaluateRulesByTrigger(
 		deskLocationId,
 	}: {
 		triggerType: WorkflowTriggerType;
-		deskLocationId?: number;
+		deskLocationId?: string;
 	}
 ) {
 	const summary = await evaluateRules(ctx, {
@@ -493,7 +493,7 @@ export async function evaluateRulesByTrigger(
  */
 export async function approvePendingExecution(
 	ctx: ProtectedContext,
-	{ executionId }: { executionId: number }
+	{ executionId }: { executionId: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -608,7 +608,7 @@ export async function approvePendingExecution(
  */
 export async function rejectPendingExecution(
 	ctx: ProtectedContext,
-	{ executionId }: { executionId: number }
+	{ executionId }: { executionId: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -653,7 +653,7 @@ export async function rejectPendingExecution(
  */
 export async function getPendingExecutions(
 	ctx: ProtectedContext,
-	{ ruleId, limit, offset }: { ruleId?: number; limit: number; offset: number }
+	{ ruleId, limit, offset }: { ruleId?: string; limit: number; offset: number }
 ) {
 	return await workflowQueries.getPendingRuleExecutions(ctx, {
 		ruleId,
@@ -668,11 +668,11 @@ export async function getPendingExecutions(
 export async function getRuleExecutionHistory(
 	ctx: ProtectedContext,
 	input: {
-		ruleId?: number;
-		claimId?: number;
+		ruleId?: string;
+		claimId?: string;
 		status?: RuleExecutionStatus;
 		limit: number;
-		cursor?: { createdAt: string; id: number };
+		cursor?: { createdAt: string; id: string };
 	}
 ) {
 	return await workflowQueries.getRuleExecutions(ctx, input);

@@ -20,7 +20,7 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import type { CountryCode } from '@/config/addressConstants';
 
 interface ClaimChangesProps {
-	claimId?: number;
+	claimId?: string;
 }
 
 interface ClaimFormData {
@@ -285,14 +285,15 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 							</span>
 
 							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20, alignItems: 'center' }}>
-								<LineOfBusinessSelect
-									lineOfBusiness={lineOfBusiness}
-									setLineOfBusiness={(value) => setValue('line_of_business', value)}
-									clearable={true}
-									isFilter={false}
-									label="Line of Business"
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								/>
+								<div style={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
+									<LineOfBusinessSelect
+										lineOfBusiness={lineOfBusiness}
+										setLineOfBusiness={(value) => setValue('line_of_business', value)}
+										clearable={true}
+										isFilter={false}
+										label="Line of Business"
+									/>
+								</div>
 
 								<div style={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
 									<Dropdown
@@ -309,15 +310,16 @@ export default function ClaimChanges({ claimId }: ClaimChangesProps) {
 									/>
 								</div>
 
-								<ClaimSubstatusSelect
-									substatus={substatus}
-									setSubstatus={(value) => setValue('substatus', value)}
-									clearable={false}
-									isFilter={false}
-									label="Substatus"
-									disabled={!canEditRestrictedFields}
-									sx={{ minWidth: 200, flex: 1, maxWidth: 300 }}
-								/>
+								<div style={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
+									<ClaimSubstatusSelect
+										substatus={substatus}
+										setSubstatus={(value) => setValue('substatus', value)}
+										clearable={false}
+										isFilter={false}
+										label="Substatus"
+										disabled={!canEditRestrictedFields}
+									/>
+								</div>
 							</div>
 						</div>
 					</form>

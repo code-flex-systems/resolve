@@ -10,7 +10,7 @@ import css from './DeadlineListItem.module.css';
 
 interface DeadlineListItemProps {
 	deadline: Deadline;
-	onClaimClick: (claimId: number) => void;
+	onClaimClick: (claimId: string) => void;
 	showTime?: boolean;
 	showDate?: boolean;
 }

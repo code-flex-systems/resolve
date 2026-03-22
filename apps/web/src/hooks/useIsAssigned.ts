@@ -8,13 +8,13 @@ export default function useIsAssigned(includeOwner?: boolean) {
 	const { session } = useSessionContext();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const { data: checklistClaim } = useChecklistTrpc().getForClaim(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	if (!checklistClaim || !session?.user.id) return false;
-	const allowedUsers: string[] = [checklistClaim.assignee];
+	const allowedUsers: string[] = checklistClaim.assignee ? [checklistClaim.assignee] : [];
 	if (includeOwner) allowedUsers.push(checklistClaim.created_by);
 	return isAdmin || isSuperAdmin || allowedUsers.includes(session.user.id);
 }

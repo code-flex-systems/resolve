@@ -17,7 +17,7 @@ interface DailyEventsListProps {
 export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: DailyEventsListProps) {
 	const router = useRouter();
 
-	const handleClaimClick = (claimId: number) => {
+	const handleClaimClick = (claimId: string) => {
 		router.push(`/my-claims/${claimId}`);
 	};
 

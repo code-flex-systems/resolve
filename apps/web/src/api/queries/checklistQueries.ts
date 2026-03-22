@@ -18,7 +18,7 @@ const MAX_TREE_DEPTH = 30;
  * @param existingChecklistId - if provided, page instances are copied from this checklist
  * @returns the created checklist record
  */
-export async function createChecklist(ctx: ProtectedContext, name: string, existingChecklistId?: number) {
+export async function createChecklist(ctx: ProtectedContext, name: string, existingChecklistId?: string) {
 	const newChecklist = await ctx.db
 		.insertInto('checklist')
 		.values({
@@ -59,7 +59,7 @@ export async function createChecklist(ctx: ProtectedContext, name: string, exist
  * @param checklistId - checklist identifier
  * @returns the checklist details
  */
-export async function getChecklistForDeletion(ctx: ProtectedContext, checklistId: number) {
+export async function getChecklistForDeletion(ctx: ProtectedContext, checklistId: string) {
 	return await ctx.db
 		.selectFrom('checklist')
 		.select(['id', 'name', 'published'])
@@ -74,7 +74,7 @@ export async function getChecklistForDeletion(ctx: ProtectedContext, checklistId
  * @param ctx - request context
  * @param checklistId - identifier of the checklist
  */
-export async function deleteChecklist(ctx: ProtectedContext, checklistId: number) {
+export async function deleteChecklist(ctx: ProtectedContext, checklistId: string) {
 	await ctx.db
 		.deleteFrom('checklist')
 		.where('id', '=', checklistId)
@@ -84,8 +84,8 @@ export async function deleteChecklist(ctx: ProtectedContext, checklistId: number
 
 export async function modifyChecklistClaim(
 	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
+	checklistId: string,
+	claimId: string,
 	status?: ClaimStatus,
 	assignee?: string
 ) {
@@ -130,7 +130,7 @@ export async function modifyChecklistClaim(
  * @param checklistId - checklist identifier
  * @returns the checklist record
  */
-export async function getChecklist(ctx: ProtectedContext, checklistId: number) {
+export async function getChecklist(ctx: ProtectedContext, checklistId: string) {
 	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	return await ctx.db
 		.selectFrom('checklist')
@@ -218,7 +218,7 @@ export async function getChecklistCount(ctx: ProtectedContext, clientId: string)
  * @param claimId - claim identifier
  * @returns the checklist_claim row
  */
-export async function getChecklistClaim(ctx: ProtectedContext, checklistId: number, claimId: number) {
+export async function getChecklistClaim(ctx: ProtectedContext, checklistId: string, claimId: string) {
 	// Update last_opened timestamp whenever a checklist claim is accessed
 	await ctx.db
 		.updateTable('checklist_claim')
@@ -239,7 +239,7 @@ export async function getChecklistClaim(ctx: ProtectedContext, checklistId: numb
 		.executeTakeFirst();
 }
 
-export async function getChecklistClaimProgress(ctx: ProtectedContext, checklistId: number, claimId: number) {
+export async function getChecklistClaimProgress(ctx: ProtectedContext, checklistId: string, claimId: string) {
 	const unlockedPages = ctx.db.withRecursive('unlocked_pages', (db) =>
 		db
 			.selectFrom('page_instance')
@@ -332,7 +332,7 @@ export async function getChecklistClaimProgress(ctx: ProtectedContext, checklist
 	return { answerCount, totalQuestionCount };
 }
 
-export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?: number, users?: string[]) {
+export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?: string, users?: string[]) {
 	return await ctx.db
 		.selectFrom('checklist_claim')
 		.innerJoin('checklist', 'checklist_claim.checklist_id', 'checklist.id')
@@ -364,7 +364,7 @@ export async function getChecklistClaimStats(ctx: ProtectedContext, checklistId?
  * @param claimId - claim identifier
  * @returns totals for answered, known and unknown answers
  */
-export async function getChecklistSummary(ctx: ProtectedContext, checklistId: number, claimId: number) {
+export async function getChecklistSummary(ctx: ProtectedContext, checklistId: string, claimId: string) {
 	// Aggregate counts for a claim across all questions on the checklist
 	return await ctx.db
 		.selectFrom('page_instance')
@@ -451,8 +451,8 @@ export async function getChecklistSummaryDetail(
 		limit,
 		offset,
 	}: {
-		checklistId: number;
-		claimId: number;
+		checklistId: string;
+		claimId: string;
 		segment: SummarySegment;
 		limit?: number;
 		offset?: number;
@@ -624,7 +624,7 @@ export async function getChecklistSummaryDetail(
 
 export async function getChecklistClaims(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus },
+	filters: { range: DateRangeStrict; checklistId?: string; users?: string[]; claimStatus?: ClaimStatus },
 	limit: number,
 	offset: number
 ) {
@@ -686,7 +686,7 @@ export async function getChecklistClaims(
  */
 export async function exportChecklistClaims(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus }
+	filters: { range: DateRangeStrict; checklistId?: string; users?: string[]; claimStatus?: ClaimStatus }
 ) {
 	const query = ctx.db
 		.selectFrom('checklist')
@@ -778,7 +778,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  * @param params - fields to change
  * @returns the updated checklist
  */
-export async function modifyChecklist(ctx: ProtectedContext, checklistId: number, params: ChecklistParams) {
+export async function modifyChecklist(ctx: ProtectedContext, checklistId: string, params: ChecklistParams) {
 	const updates = Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined));
 
 	return await ctx.db

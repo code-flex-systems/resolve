@@ -9,16 +9,16 @@ interface BreakdownState {
 	breakdownClaim: Claim | null;
 	breakdownRange: DateRange<Dayjs>;
 	breakdownUsers: GetUserOutput[];
-	selectedAnswerId: number | null;
-	selectedQuestionId: number | null;
+	selectedAnswerId: string | null;
+	selectedQuestionId: string | null;
 }
 
 interface BreakdownActions {
 	updateBreakdownClaim: (newClaim: Claim | null) => void;
 	updateBreakdownRange: (newRange: DateRange<Dayjs>) => void;
 	updateBreakdownUsers: (newUser: GetUserOutput[]) => void;
-	updateSelectedAnswerId: (newId: number | null) => void;
-	updateSelectedQuestionId: (newId: number | null) => void;
+	updateSelectedAnswerId: (newId: string | null) => void;
+	updateSelectedQuestionId: (newId: string | null) => void;
 	reset: (partialState?: Partial<BreakdownState>) => void;
 }
 

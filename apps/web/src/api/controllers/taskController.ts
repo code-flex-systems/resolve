@@ -17,8 +17,8 @@ import { onTaskCompleted } from '@/lib/workflow/ruleEventHooks';
 export async function getTasks(
 	ctx: ProtectedContext,
 	params: {
-		deskLocationId?: number;
-		claimId?: number;
+		deskLocationId?: string;
+		claimId?: string;
 		status?: TaskStatus;
 		taskType?: TaskType;
 		assignedTo?: string;
@@ -34,7 +34,7 @@ export async function getTasks(
 /**
  * Get single task by ID
  */
-export async function getTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getTask(ctx: ProtectedContext, { id }: { id: string }) {
 	return await taskQueries.getTask(ctx, id);
 }
 
@@ -47,7 +47,7 @@ export async function getTasksByClaim(
 		claimId,
 		showCancelled,
 	}: {
-		claimId: number;
+		claimId: string;
 		showCancelled?: boolean;
 	}
 ) {
@@ -66,7 +66,7 @@ export async function getTasksByDeskLocation(
 		limit,
 		offset,
 	}: {
-		deskLocationId: number;
+		deskLocationId: string;
 		status?: TaskStatus;
 		showCancelled?: boolean;
 		limit?: number;
@@ -101,7 +101,7 @@ export async function getTasksForUser(
  */
 export async function getDeskCapacity(
 	ctx: ProtectedContext,
-	{ deskLocationId, date }: { deskLocationId: number; date?: string }
+	{ deskLocationId, date }: { deskLocationId: string; date?: string }
 ) {
 	return await taskQueries.getDeskCapacity(ctx, deskLocationId, date);
 }
@@ -111,7 +111,7 @@ export async function getDeskCapacity(
  */
 export async function getTaskCountsByStatus(
 	ctx: ProtectedContext,
-	{ deskLocationId }: { deskLocationId: number }
+	{ deskLocationId }: { deskLocationId: string }
 ) {
 	return await taskQueries.getTaskCountsByStatus(ctx, deskLocationId);
 }
@@ -126,7 +126,7 @@ export async function getTaskCountsByStatus(
  * Throws NOT_FOUND if the task doesn't exist in this client.
  * Throws FORBIDDEN if the task is unassigned or the caller isn't authorized.
  */
-export async function requireTaskOwnership(ctx: ProtectedContext, taskId: number) {
+export async function requireTaskOwnership(ctx: ProtectedContext, taskId: string) {
 	const task = await taskQueries.getTaskOwnership(ctx, taskId);
 	if (!task) {
 		throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found' });
@@ -179,8 +179,8 @@ async function requireSameClientUser(ctx: ProtectedContext, userId: string) {
 export async function createTask(
 	ctx: ProtectedContext,
 	input: {
-		claimId: number;
-		deskLocationId: number;
+		claimId: string;
+		deskLocationId: string;
 		taskType?: TaskType;
 		title: string;
 		description?: string;
@@ -226,13 +226,13 @@ export async function updateTask(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			title?: string;
 			description?: string;
 			dueDate?: string | null;
 			workUnits?: number;
-			deskLocationId?: number;
+			deskLocationId?: string;
 		};
 	}
 ) {
@@ -257,7 +257,7 @@ export async function updateTask(
  * Non-admins can only assign unassigned tasks (prevents stealing from another user).
  * Logs user workflow action to claim_activity_logs
  */
-export async function assignTask(ctx: ProtectedContext, { id, userId }: { id: number; userId: string }) {
+export async function assignTask(ctx: ProtectedContext, { id, userId }: { id: string; userId: string }) {
 	await requireSameClientUser(ctx, userId);
 
 	// Check current task state to prevent non-admins from stealing assignments
@@ -294,7 +294,7 @@ export async function assignTask(ctx: ProtectedContext, { id, userId }: { id: nu
  * Unassign task (clear assignment)
  * Logs user workflow action to claim_activity_logs
  */
-export async function unassignTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function unassignTask(ctx: ProtectedContext, { id }: { id: string }) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.unassignTask(trxCtx, id);
@@ -313,7 +313,7 @@ export async function unassignTask(ctx: ProtectedContext, { id }: { id: number }
  * Start task (begin working on it)
  * Logs user workflow action to claim_activity_logs
  */
-export async function startTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function startTask(ctx: ProtectedContext, { id }: { id: string }) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.startTask(trxCtx, id);
@@ -334,7 +334,7 @@ export async function startTask(ctx: ProtectedContext, { id }: { id: number }) {
  */
 export async function completeTask(
 	ctx: ProtectedContext,
-	{ id, completionNotes }: { id: number; completionNotes?: string }
+	{ id, completionNotes }: { id: string; completionNotes?: string }
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -366,7 +366,7 @@ export async function completeTask(
  */
 export async function cancelTask(
 	ctx: ProtectedContext,
-	{ id, cancellationReason }: { id: number; cancellationReason: string }
+	{ id, cancellationReason }: { id: string; cancellationReason: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -409,7 +409,7 @@ export async function getTasksByDueDateWeek(
  */
 export async function bulkCancelTasks(
 	ctx: ProtectedContext,
-	{ ids, cancellationReason }: { ids: number[]; cancellationReason: string }
+	{ ids, cancellationReason }: { ids: string[]; cancellationReason: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };

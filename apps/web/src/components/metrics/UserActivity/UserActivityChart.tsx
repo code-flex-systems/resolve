@@ -18,8 +18,8 @@ export default function UserActivityChart({
 	range,
 	searchTerm,
 }: {
-	checklistId?: number;
-	claimId?: number;
+	checklistId?: string;
+	claimId?: string;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
 	searchTerm?: string;

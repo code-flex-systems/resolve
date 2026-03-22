@@ -16,7 +16,7 @@ import Input from '@/components/ui/Input';
 interface ClaimsSearchProps {
 	showIcon?: boolean;
 	heroMode?: boolean;
-	onClaimSelect?: (claimId: number) => void;
+	onClaimSelect?: (claimId: string) => void;
 }
 
 export default function ClaimsSearch({ showIcon = true, heroMode = false, onClaimSelect }: ClaimsSearchProps) {

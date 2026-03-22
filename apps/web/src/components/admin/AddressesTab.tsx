@@ -135,7 +135,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 
 	// Query to fetch address by ID for deep linking (only when edit param is present)
 	const { data: addressToEdit } = partyTrpc.getAddress(
-		{ id: editAddressId ? parseInt(editAddressId, 10) : 0 },
+		{ id: editAddressId ?? '' },
 		{ enabled: !!editAddressId && !editingAddressFromUrl }
 	);
 

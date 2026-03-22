@@ -16,10 +16,10 @@ interface EditUserDeskAssignmentsDialogProps {
 }
 
 interface DeskAssignment {
-	id: number | null; // null for new assignments
-	deskLocationTypeId: number | null;
-	deskLocationId: number | null;
-	originalDeskLocationId: number | null; // Track the original location for change detection
+	id: string | null; // null for new assignments
+	deskLocationTypeId: string | null;
+	deskLocationId: string | null;
+	originalDeskLocationId: string | null; // Track the original location for change detection
 	originalPriority: number | null; // Track the original priority for change detection
 	priority: number;
 }

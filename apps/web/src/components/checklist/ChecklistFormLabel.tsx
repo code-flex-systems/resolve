@@ -77,7 +77,7 @@ export default function ChecklistFormLabel(props: {
 			>
 				{idx + 1}. {question.text}
 			</span>
-			{(!!question.description_text || question.id !== -1) && (
+			{(!!question.description_text || !!question.id) && (
 				<QuestionInfo
 					description={question.description_text}
 					filename={question.description_image_url}

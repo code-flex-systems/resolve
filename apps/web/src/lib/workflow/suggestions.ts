@@ -20,7 +20,7 @@ import { SuggestionStatus } from '@/config/enums';
 
 /** Desk location with current load and capacity */
 export interface DeskLocationLoad {
-	deskLocationId: number;
+	deskLocationId: string;
 	deskLocationName: string;
 	deskLocationTypeName: string;
 	openTaskUnits: number;
@@ -31,7 +31,7 @@ export interface DeskLocationLoad {
 export interface UserDeskAssignment {
 	userId: string;
 	userName: string;
-	deskLocationId: number;
+	deskLocationId: string;
 	deskLocationName: string;
 	priority: number | null; // null = eligible but not currently prioritized
 }
@@ -39,14 +39,14 @@ export interface UserDeskAssignment {
 /** User's current task (if any) */
 export interface UserCurrentTask {
 	userId: string;
-	taskId: number;
+	taskId: string;
 	totalWorkUnits: number;
 	startedAt: Date | null;
 }
 
 /** Calculated breach at a desk location */
 export interface Breach {
-	deskLocationId: number;
+	deskLocationId: string;
 	deskLocationName: string;
 	deskLocationTypeName: string;
 	openTaskUnits: number;
@@ -60,15 +60,15 @@ export interface ScoredUser {
 	userId: string;
 	userName: string;
 	availabilityScore: number; // lower = sooner available (0 = immediately)
-	currentPriorities: Map<number, number>; // locationId -> priority
-	eligibleLocationIds: Set<number>; // all locations they can work
+	currentPriorities: Map<string, number>; // locationId -> priority
+	eligibleLocationIds: Set<string>; // all locations they can work
 }
 
 /** A single priority assignment in the suggestion */
 export interface PriorityAssignment {
 	userId: string;
 	userName: string;
-	deskLocationId: number;
+	deskLocationId: string;
 	deskLocationName: string;
 	newPriority: number;
 	previousPriority: number | null;
@@ -78,7 +78,7 @@ export interface PriorityAssignment {
 export interface CascadedChange {
 	userId: string;
 	userName: string;
-	deskLocationId: number;
+	deskLocationId: string;
 	deskLocationName: string;
 	previousPriority: number;
 	newPriority: number | null; // null if dropped (pushed past P5)
@@ -103,7 +103,7 @@ export interface BreachResolution {
 /** Full desired assignment state for a single user after algorithm runs */
 export interface UserAssignmentState {
 	userId: string;
-	assignments: Array<{ deskLocationId: number; priority: number | null }>;
+	assignments: Array<{ deskLocationId: string; priority: number | null }>;
 }
 
 /** Full output of the suggestion algorithm */
@@ -233,8 +233,8 @@ export function buildScoredUsers(
 		const currentTask = taskByUser.get(userId) ?? null;
 		const availabilityScore = calculateAvailabilityScore(currentTask, now, config);
 
-		const currentPriorities = new Map<number, number>();
-		const eligibleLocationIds = new Set<number>();
+		const currentPriorities = new Map<string, number>();
+		const eligibleLocationIds = new Set<string>();
 
 		for (const assign of userAssigns) {
 			eligibleLocationIds.add(assign.deskLocationId);
@@ -262,11 +262,11 @@ export function buildScoredUsers(
 /** Mutable state tracking assignments made during suggestion generation */
 interface AssignmentState {
 	/** userId -> (locationId -> priority) for new/updated assignments */
-	userPriorities: Map<string, Map<number, number>>;
+	userPriorities: Map<string, Map<string, number>>;
 }
 
 function createAssignmentState(scoredUsers: ScoredUser[]): AssignmentState {
-	const userPriorities = new Map<string, Map<number, number>>();
+	const userPriorities = new Map<string, Map<string, number>>();
 
 	for (const user of scoredUsers) {
 		userPriorities.set(user.userId, new Map(user.currentPriorities));
@@ -279,7 +279,7 @@ function createAssignmentState(scoredUsers: ScoredUser[]): AssignmentState {
  * Finds the lowest available priority slot for a user at a given location.
  * Returns null if no slot available (all P1-P5 occupied by other locations).
  */
-function findLowestAvailablePriority(userId: string, targetLocationId: number, state: AssignmentState): number | null {
+function findLowestAvailablePriority(userId: string, targetLocationId: string, state: AssignmentState): number | null {
 	const userPriorities = state.userPriorities.get(userId);
 	if (!userPriorities) return 1; // No assignments, P1 is open
 
@@ -311,18 +311,18 @@ function findLowestAvailablePriority(userId: string, targetLocationId: number, s
 function assignWithCascade(
 	userId: string,
 	userName: string,
-	targetLocationId: number,
+	targetLocationId: string,
 	targetLocationName: string,
 	targetPriority: number,
 	state: AssignmentState,
-	locationNames: Map<number, string>
+	locationNames: Map<string, string>
 ): { assignment: PriorityAssignment; cascaded: CascadedChange[] } {
 	const userPriorities = state.userPriorities.get(userId) ?? new Map();
 	const previousPriority = userPriorities.get(targetLocationId) ?? null;
 	const cascaded: CascadedChange[] = [];
 
 	// Build list of assignments to cascade (those at or below target priority)
-	const toShift: Array<{ locationId: number; currentPriority: number }> = [];
+	const toShift: Array<{ locationId: string; currentPriority: number }> = [];
 
 	for (const [locId, priority] of userPriorities) {
 		if (locId !== targetLocationId && priority >= targetPriority) {
@@ -388,7 +388,7 @@ function resolveBreach(
 	breach: Breach,
 	scoredUsers: ScoredUser[],
 	state: AssignmentState,
-	locationNames: Map<number, string>
+	locationNames: Map<string, string>
 ): BreachResolution {
 	// Get eligible users for this location
 	// Users already assigned to this location ARE eligible for reassignment to a different priority
@@ -483,7 +483,7 @@ export function generateWorkflowSuggestions(
 	}
 
 	// Step 2: Build location name lookup (for cascade change labeling)
-	const locationNames = new Map<number, string>();
+	const locationNames = new Map<string, string>();
 	for (const loc of locations) {
 		locationNames.set(loc.deskLocationId, loc.deskLocationName);
 	}
@@ -498,7 +498,7 @@ export function generateWorkflowSuggestions(
 	const scoredUsers = buildScoredUsers(assignments, currentTasks, now, config);
 
 	// Step 4: Initialize assignment state (snapshot of current priorities)
-	const initialState = new Map<string, Map<number, number>>();
+	const initialState = new Map<string, Map<string, number>>();
 	for (const user of scoredUsers) {
 		initialState.set(user.userId, new Map(user.currentPriorities));
 	}
@@ -572,7 +572,7 @@ export function generateWorkflowSuggestions(
  */
 function buildAffectedUserAssignments(
 	scoredUsers: ScoredUser[],
-	initialState: Map<string, Map<number, number>>,
+	initialState: Map<string, Map<string, number>>,
 	finalState: AssignmentState
 ): UserAssignmentState[] {
 	const result: UserAssignmentState[] = [];
@@ -587,7 +587,7 @@ function buildAffectedUserAssignments(
 		}
 
 		// Build full assignment list from eligible locations + final priorities
-		const assignments: Array<{ deskLocationId: number; priority: number | null }> = [];
+		const assignments: Array<{ deskLocationId: string; priority: number | null }> = [];
 		for (const locId of user.eligibleLocationIds) {
 			const priority = final?.get(locId) ?? null;
 			assignments.push({ deskLocationId: locId, priority });
@@ -601,8 +601,8 @@ function buildAffectedUserAssignments(
 
 /** Compares two priority maps to detect changes */
 function hasStateChanged(
-	initial: Map<number, number> | undefined,
-	final: Map<number, number> | undefined
+	initial: Map<string, number> | undefined,
+	final: Map<string, number> | undefined
 ): boolean {
 	if (!initial && !final) return false;
 	if (!initial || !final) return true;

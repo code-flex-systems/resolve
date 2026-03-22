@@ -31,20 +31,20 @@ const COLUMNS: ColumnDef<any, any>[] = [
 ];
 
 export default function SummaryDetails() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const selectedSummarySegment = useChecklistStore((state) => state.selectedSummarySegment);
 	const checklistSummaryContraints = useChecklistStore((state) => state.checklistSummaryContraints);
 	const updateChecklistSummaryConstraints = useChecklistStore((state) => state.updateChecklistSummaryConstraints);
 	const { data: summaryDetails = { rows: [], count: undefined }, isFetching: isLoadingDetails } =
 		useChecklistTrpc().getSummaryDetail(
 			{
-				checklistId,
-				claimId,
+				checklistId: checklistId!,
+				claimId: claimId!,
 				segment: selectedSummarySegment,
 				limit: checklistSummaryContraints.pageSize,
 				offset: checklistSummaryContraints.page * checklistSummaryContraints.pageSize,
 			},
-			{ enabled: checklistId !== -1 && claimId !== -1 }
+			{ enabled: !!checklistId && !!claimId }
 		);
 
 	const columns = useMemo(() => {

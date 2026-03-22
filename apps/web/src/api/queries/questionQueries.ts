@@ -15,7 +15,7 @@ import { insertCallEdgesBulk } from './answerQueries';
  * @param params - question fields
  * @returns newly created question
  */
-export async function createQuestion(ctx: ProtectedContext, pageId: number, params: QuestionParams) {
+export async function createQuestion(ctx: ProtectedContext, pageId: string, params: QuestionParams) {
 	await ctx.db
 		.updateTable('question')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
@@ -54,7 +54,7 @@ export async function createQuestion(ctx: ProtectedContext, pageId: number, para
  * @param questionId - question to copy
  * @returns new question
  */
-export async function copyQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
+export async function copyQuestion(ctx: ProtectedContext, pageId: string, questionId: string) {
 	// Insert with position computed inline via COALESCE subquery (single query)
 	const newQuestion = await ctx.db
 		.insertInto('question')
@@ -147,7 +147,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
 	// Bulk insert call edges for all copied answers that have calls_instance_id
 	// Uses single INSERT...SELECT instead of N separate queries
 	const answersWithCalls = copiedAnswers
-		.filter((a): a is { id: number; calls_instance_id: number } => a.calls_instance_id !== null)
+		.filter((a): a is { id: string; calls_instance_id: string } => a.calls_instance_id !== null)
 		.map((a) => ({ id: a.id, calls_instance_id: a.calls_instance_id }));
 
 	if (answersWithCalls.length > 0) {
@@ -166,7 +166,7 @@ export async function copyQuestion(ctx: ProtectedContext, pageId: number, questi
  * @param questionId - question identifier
  * @returns the question details
  */
-export async function getQuestionForDeletion(ctx: ProtectedContext, questionId: number) {
+export async function getQuestionForDeletion(ctx: ProtectedContext, questionId: string) {
 	return await ctx.db
 		.selectFrom('question')
 		.select(['id', 'page_id', 'text', 'type'])
@@ -182,7 +182,7 @@ export async function getQuestionForDeletion(ctx: ProtectedContext, questionId: 
  * @param pageId - page containing the question
  * @param questionId - identifier of the question to delete
  */
-export async function deleteQuestion(ctx: ProtectedContext, pageId: number, questionId: number) {
+export async function deleteQuestion(ctx: ProtectedContext, pageId: string, questionId: string) {
 	const { position } = await ctx.db
 		.deleteFrom('question')
 		.where('id', '=', questionId)
@@ -208,7 +208,7 @@ export async function deleteQuestion(ctx: ProtectedContext, pageId: number, ques
  * @param questionId - identifier of the question
  * @returns the question row
  */
-export async function getQuestion(ctx: ProtectedContext, questionId: number) {
+export async function getQuestion(ctx: ProtectedContext, questionId: string) {
 	return await ctx.db
 		.selectFrom('question')
 		.selectAll()
@@ -224,7 +224,7 @@ export async function getQuestion(ctx: ProtectedContext, questionId: number) {
  * @param pageId - page identifier
  * @returns number of questions
  */
-export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
+export async function getQuestionCount(ctx: ProtectedContext, pageId: string) {
 	const countRow = await ctx.db
 		.selectFrom('question')
 		.select(({ fn }) => fn.countAll().as('count'))
@@ -241,7 +241,7 @@ export async function getQuestionCount(ctx: ProtectedContext, pageId: number) {
  * @param pageId - page identifier
  * @returns array of questions with answers
  */
-export async function getQuestions(ctx: ProtectedContext, pageId: number) {
+export async function getQuestions(ctx: ProtectedContext, pageId: string) {
 	// Pull questions with their aggregated answers for the given page
 	// Use EXISTS subquery for has_action instead of joining action table
 	const results = await ctx.db
@@ -291,8 +291,8 @@ export async function getQuestions(ctx: ProtectedContext, pageId: number) {
  */
 export async function getQuestionStats(
 	ctx: ProtectedContext,
-	pageId: number,
-	filters: { claimId?: number; range: DateRangeStrict; users?: string[] }
+	pageId: string,
+	filters: { claimId?: string; range: DateRangeStrict; users?: string[] }
 ) {
 	// Collect answer counts for each question over the specified interval
 	// Join once with simple FK relationship, apply filters in conditional COUNT
@@ -359,8 +359,8 @@ export async function getQuestionStats(
  */
 export async function modifyQuestion(
 	ctx: ProtectedContext,
-	pageId: number,
-	questionId: number,
+	pageId: string,
+	questionId: string,
 	params: QuestionUpdateParams
 ) {
 	const existingQuestion = await ctx.db
@@ -447,7 +447,7 @@ export async function modifyQuestion(
  * @param ctx - request context
  * @param pageId - page to bump
  */
-async function bumpPageVersion(ctx: ProtectedContext, pageId: number) {
+async function bumpPageVersion(ctx: ProtectedContext, pageId: string) {
 	await ctx.db
 		.updateTable('page')
 		.set((eb) => ({

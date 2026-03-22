@@ -19,7 +19,7 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 		.executeTakeFirstOrThrow();
 }
 
-export async function deleteComment(ctx: ProtectedContext, id: number) {
+export async function deleteComment(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.deleteFrom('comment')
 		.where('id', '=', id)
@@ -28,7 +28,7 @@ export async function deleteComment(ctx: ProtectedContext, id: number) {
 		.executeTakeFirstOrThrow();
 }
 
-export async function getComment(ctx: ProtectedContext, id: number) {
+export async function getComment(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('comment')
 		.innerJoin('users', 'comment.created_by', 'users.id')
@@ -113,9 +113,9 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 
 export async function getCommentsForPage(
 	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	instanceId: number
+	checklistId: string,
+	claimId: string,
+	instanceId: string
 ) {
 	return await ctx.db
 		.selectFrom('comment')

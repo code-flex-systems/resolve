@@ -71,7 +71,7 @@ export async function refreshDailyWorkflowSnapshot(
 						.on(
 							'wt.workflow_definition_id',
 							'=',
-							sql<number>`COALESCE(wd_specific.id, wd_global.id)`
+							sql<string>`COALESCE(wd_specific.id, wd_global.id)`
 						)
 						.on('wt.threshold_type', '=', WorkflowThresholdType.LOCATION_AGE)
 						.on('wt.is_active', '=', true)

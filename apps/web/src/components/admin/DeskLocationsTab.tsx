@@ -90,7 +90,7 @@ function NoTypesRows() {
 	);
 }
 
-function LocationsOverlay({ selectedTypeId }: { selectedTypeId: number | null }) {
+function LocationsOverlay({ selectedTypeId }: { selectedTypeId: string | null }) {
 	if (selectedTypeId === null) {
 		return (
 			<CustomNoRowsOverlay

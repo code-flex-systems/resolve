@@ -22,9 +22,9 @@ interface PartyCardProps {
 	facilitators?: any[];
 	onEditParty: (claimParty: any) => void;
 	onArchiveParty?: (claimParty: any) => void;
-	onAddFacilitator?: (parentClaimPartyId: number) => void;
-	onEditFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
-	onArchiveFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
+	onAddFacilitator?: (parentClaimPartyId: string) => void;
+	onEditFacilitator?: (parentClaimPartyId: string, facilitator: any) => void;
+	onArchiveFacilitator?: (parentClaimPartyId: string, facilitator: any) => void;
 	onViewDetails?: (claimParty: any) => void;
 	renderTabContent?: (claimParty: any) => React.ReactNode;
 	showLiabilityPercentage?: boolean;

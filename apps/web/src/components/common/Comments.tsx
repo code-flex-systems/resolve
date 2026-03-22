@@ -27,7 +27,7 @@ export default function Comments({
 	pageSize?: number;
 	width: number;
 	viewingInChecklist?: boolean;
-	onNavigate: (args: { checklistId?: number; claimId?: number; instanceId?: number; questionId?: number }) => void;
+	onNavigate: (args: { checklistId?: string; claimId?: string; instanceId?: string; questionId?: string }) => void;
 }) {
 	const router = useRouter();
 	const { data: session } = useClerkSession();
@@ -37,7 +37,7 @@ export default function Comments({
 		{ filters, limit, offset },
 		{
 			enabled:
-				(!filters.checklistId || filters.checklistId !== -1) && (!filters.claimId || filters.claimId !== -1),
+				(!filters.checklistId || !!filters.checklistId) && (!filters.claimId || !!filters.claimId),
 		}
 	);
 
@@ -105,7 +105,7 @@ style={{
 														minWidth: 'fit-content',
 														whiteSpace: 'nowrap',
 													}}>
-													{formatUser(c, session?.user?.email)}
+													{formatUser(c, session?.user?.email ?? undefined)}
 												</span>
 												<div style={dividerStyle} />
 												<span

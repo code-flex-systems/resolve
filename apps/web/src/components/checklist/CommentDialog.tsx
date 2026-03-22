@@ -16,7 +16,7 @@ export default function CommentDialog() {
 	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
 	const clearExistingComment = useChecklistStore((state) => state.clearExistingComment);
 	const [comment, setComment] = useState(existingComment?.body ?? '');
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const { mutateAsync: createComment, isPending } = useCommentTrpc().create;
 	const { mutateAsync: removeComment, isPending: isDeleting } = useCommentTrpc().remove;
 	const inTransition = isPending || isDeleting;

@@ -14,7 +14,7 @@ import Divider from '@/components/ui/Divider';
 export default function Summary() {
 	const router = useRouter();
 	const { checklistId } = useChecklistParams();
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
 
 	return (
 		<div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}>

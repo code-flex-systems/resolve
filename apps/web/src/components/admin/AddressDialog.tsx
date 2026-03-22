@@ -18,13 +18,13 @@ import { AddressType, AddressStatus } from '@/schemas/partySchemas';
 
 /** Type for party search results from tRPC */
 interface PartySearchResult {
-	id: number;
+	id: string;
 	name: string;
 	organization: string | null;
 }
 
 interface AddressFormData {
-	party_id: number | null;
+	party_id: string | null;
 	name: string;
 	street_address: string | null;
 	city: string | null;
@@ -113,7 +113,7 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 			if (isEditMode && address) {
 				// Update existing address
 				await updateAddress({
-					id: +address.id,
+					id: String(address.id),
 					params: {
 						name: data.name || undefined,
 						street_address: data.street_address || null,

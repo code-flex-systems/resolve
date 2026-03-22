@@ -27,8 +27,8 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 	const [attachedDoc, setAttachedDoc] = useState<DocListItem | null>(null);
 
 	const { data: doc } = useDocTrpc().getDoc(
-		{ docId: Number(field.value) },
-		{ enabled: !!field.value && !isNaN(Number(field.value)) }
+		{ docId: field.value },
+		{ enabled: !!field.value }
 	);
 
 	// Sync attached document when doc is fetched or field value changes

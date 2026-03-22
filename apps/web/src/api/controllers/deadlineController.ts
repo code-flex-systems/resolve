@@ -23,7 +23,7 @@ export async function createDeadline(
 		claimId,
 		params,
 	}: {
-		claimId: number;
+		claimId: string;
 		params: Omit<DeadlineParams, 'claimId'>;
 	}
 ) {
@@ -66,7 +66,7 @@ export async function createDeadline(
 export async function listDeadlines(
 	ctx: ProtectedContext,
 	filters: {
-		claimId?: number;
+		claimId?: string;
 		status?: DeadlineStatus;
 		dateRange?: DateRangeStrict;
 		personalOnly?: boolean;
@@ -92,7 +92,7 @@ export async function updateDeadlineStatus(
 		deadlineId,
 		status,
 	}: {
-		deadlineId: number;
+		deadlineId: string;
 		status: DeadlineStatus;
 	}
 ) {
@@ -135,7 +135,7 @@ export async function updateDeadlineStatus(
  * @param ctx - request context
  * @param input - deadline id
  */
-export async function deleteDeadline(ctx: ProtectedContext, { deadlineId }: { deadlineId: number }) {
+export async function deleteDeadline(ctx: ProtectedContext, { deadlineId }: { deadlineId: string }) {
 	// Delete deadline and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Fetch deadline data BEFORE deletion for logging

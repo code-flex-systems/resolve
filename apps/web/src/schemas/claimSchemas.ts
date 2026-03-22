@@ -4,29 +4,29 @@ import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 import { lossAddressSchema } from './addressSchemas';
 
 export const assignClaimInput = z.object({
-	checklistId: z.number().int(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
 	assignee: z.string(),
 });
 
 export const getClaimInput = z.object({
-	checklistId: z.number().int().optional(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid().optional(),
+	claimId: z.string().uuid(),
 });
 export type GetClaimInput = z.infer<typeof getClaimInput>;
 
 export const getClaimDetailInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 });
 export type GetClaimDetailInput = z.infer<typeof getClaimDetailInput>;
 
 export const getNextClaimToAssignInput = z.object({
-	feedId: z.number().int(),
+	feedId: z.string().uuid(),
 	offset: z.number().int().optional(),
 });
 
 export const getClaimsInput = z.object({
-	feedId: z.number().nullable().optional(),
+	feedId: z.string().uuid().nullable().optional(),
 	searchTerm: z
 		.object({
 			value: z.string(),
@@ -72,7 +72,7 @@ export type CreateClaimInput = z.infer<typeof createClaimInput>;
 // Note: All amount fields (claim_amount, total_incurred, expected_recovery) are now calculated
 export const updateClaimInput = z
 	.object({
-		claimId: z.number().int(),
+		claimId: z.string().uuid(),
 		claim_number: z.string().nullable().optional(),
 		client: z.string().nullable().optional(),
 		client_adjuster: z.string().nullable().optional(),
@@ -87,7 +87,7 @@ export type UpdateClaimInput = z.infer<typeof updateClaimInput>;
 
 // Recovery tracking schemas
 export const updateClaimRecoveryInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 	recovery_status: z.nativeEnum(RecoveryStatus).optional(),
 	// actual_recovery is calculated from recovery_event records, not set directly
 });

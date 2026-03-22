@@ -16,8 +16,8 @@ function AnswerWithImage(props: {
 	questionType: QuestionType;
 	field: ControllerRenderProps<FieldValues, string>;
 	disabled?: boolean;
-	visibleInstanceIds: number[];
-	goToPage: (instanceId: number, tree: any[]) => void;
+	visibleInstanceIds: string[];
+	goToPage: (instanceId: string, tree: any[]) => void;
 	tree: any[];
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
@@ -30,7 +30,7 @@ function AnswerWithImage(props: {
 		{
 			filters: { answer_id: a.id },
 		},
-		{ enabled: a.id !== -1 }
+		{ enabled: !!a.id }
 	);
 	const attachedImages = attachedImagesResult?.rows ?? [];
 
@@ -121,15 +121,15 @@ export default function ChecklistAnswerRadio(props: {
 	watch: UseFormWatch<FieldValues>;
 }) {
 	const { field, question, disabled, watch } = props;
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const goToPage = useChecklistStore((state) => state.goToPage);
 	const { data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	return (
 		<div     style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: '0px 10px' }}>

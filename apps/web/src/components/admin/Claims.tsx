@@ -164,7 +164,7 @@ export default function Claims() {
 	const [debouncedInsuredSearch, setDebouncedInsuredSearch] = useState('');
 	const [debouncedClientSearch, setDebouncedClientSearch] = useState('');
 
-	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
+	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 
 	const { data: feeds = [] } = useFeedTrpc().list();
@@ -248,10 +248,7 @@ export default function Claims() {
 	useEffect(() => {
 		const selected = searchParams.get('selected');
 		if (selected) {
-			const claimId = parseInt(selected, 10);
-			if (!isNaN(claimId)) {
-				setSelectedClaimId(claimId);
-			}
+			setSelectedClaimId(selected);
 		} else {
 			setSelectedClaimId(null);
 		}
@@ -405,7 +402,7 @@ export default function Claims() {
 												backgroundColor: 'primary.main',
 												color: 'white',
 												borderRadius: '50%',
-												size: 18,
+												width: 18,
 												height: 18,
 												display: 'inline-flex',
 												alignItems: 'center',
@@ -485,7 +482,6 @@ export default function Claims() {
 											lineOfBusiness={draftLob}
 											setLineOfBusiness={setDraftLob}
 											clearable={true}
-											height={32}
 										/>
 									</div>
 									<div>

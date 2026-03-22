@@ -34,7 +34,7 @@ export default function MyClaims() {
 	const [searchTerm, setSearchTerm] = useState('');
 
 	// Selected claim for detail panel
-	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
+	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
 	// Filters popper
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
@@ -56,10 +56,7 @@ export default function MyClaims() {
 	useEffect(() => {
 		const selected = searchParams.get('selected');
 		if (selected) {
-			const claimId = parseInt(selected, 10);
-			if (!isNaN(claimId)) {
-				setSelectedClaimId(claimId);
-			}
+			setSelectedClaimId(selected);
 		} else {
 			setSelectedClaimId(null);
 		}

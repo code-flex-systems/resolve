@@ -23,7 +23,7 @@ export async function getFeedCount(ctx: ProtectedContext, { clientId }: { client
  * @param ctx - request context
  * @param input - feed id
  */
-export async function getFeed(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getFeed(ctx: ProtectedContext, { id }: { id: string }) {
 	return await feedQueries.getFeed(ctx, id);
 }
 
@@ -92,7 +92,7 @@ export async function updateFeed(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: Partial<{
 			name: string;
 			schedule: number;
@@ -127,7 +127,7 @@ export async function updateFeed(
  * @param ctx - request context
  * @param input - feed id
  */
-export async function deleteFeed(ctx: ProtectedContext, { id }: { id: number }) {
+export async function deleteFeed(ctx: ProtectedContext, { id }: { id: string }) {
 	// Delete feed and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Fetch feed data BEFORE deletion for logging

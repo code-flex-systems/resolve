@@ -72,8 +72,8 @@ const derivedStatusFromDeadline = sql<string>`
 export async function getTasks(
 	ctx: ProtectedContext,
 	params: {
-		deskLocationId?: number;
-		claimId?: number;
+		deskLocationId?: string;
+		claimId?: string;
 		status?: TaskStatus;
 		taskType?: TaskType;
 		assignedTo?: string;
@@ -174,7 +174,7 @@ export async function getTasks(
 /**
  * Get single task by ID
  */
-export async function getTask(ctx: ProtectedContext, id: number) {
+export async function getTask(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
@@ -225,7 +225,7 @@ export async function getTask(ctx: ProtectedContext, id: number) {
  */
 export async function getTasksByClaim(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	showCancelled?: boolean
 ) {
 	return await getTasks(ctx, {
@@ -239,7 +239,7 @@ export async function getTasksByClaim(
  */
 export async function getTasksByDeskLocation(
 	ctx: ProtectedContext,
-	deskLocationId: number,
+	deskLocationId: string,
 	params?: {
 		status?: TaskStatus;
 		showCancelled?: boolean;
@@ -358,8 +358,8 @@ export async function getTasksForUser(
 export async function createTask(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
-		deskLocationId: number;
+		claimId: string;
+		deskLocationId: string;
 		taskType?: TaskType;
 		title: string;
 		description?: string;
@@ -423,7 +423,7 @@ export async function createTask(
  * Assign task to a user
  * Sets assigned_to without changing task status
  */
-export async function assignTask(ctx: ProtectedContext, id: number, userId: string) {
+export async function assignTask(ctx: ProtectedContext, id: string, userId: string) {
 	return await ctx.db
 		.updateTable('task')
 		.set({
@@ -440,7 +440,7 @@ export async function assignTask(ctx: ProtectedContext, id: number, userId: stri
  * Get task ownership info for authorization checks
  * Lightweight query that only fetches fields needed for ownership verification
  */
-export async function getTaskOwnership(ctx: ProtectedContext, id: number) {
+export async function getTaskOwnership(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('task')
 		.select(['task.id', 'task.assigned_to', 'task.status'])
@@ -453,7 +453,7 @@ export async function getTaskOwnership(ctx: ProtectedContext, id: number) {
  * Unassign task (clear assigned_to)
  * Only allowed on pending tasks
  */
-export async function unassignTask(ctx: ProtectedContext, id: number) {
+export async function unassignTask(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('task')
 		.set({
@@ -478,7 +478,7 @@ export async function unassignTask(ctx: ProtectedContext, id: number) {
  * Start task (begin working on it)
  * Sets status to IN_PROGRESS
  */
-export async function startTask(ctx: ProtectedContext, id: number) {
+export async function startTask(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('task')
 		.set({
@@ -501,13 +501,13 @@ export async function startTask(ctx: ProtectedContext, id: number) {
  */
 export async function updateTask(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		title?: string;
 		description?: string;
 		dueDate?: string | null;
 		workUnits?: number;
-		deskLocationId?: number;
+		deskLocationId?: string;
 	}
 ) {
 	const executeOperation = async (db: typeof ctx.db) => {
@@ -572,7 +572,7 @@ export async function updateTask(
  */
 export async function completeTask(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	completionNotes?: string
 ) {
 	const executeOperation = async (db: typeof ctx.db) => {
@@ -626,7 +626,7 @@ export async function completeTask(
  */
 export async function cancelTask(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	cancellationReason: string
 ) {
 	// Update task status to cancelled
@@ -666,7 +666,7 @@ export async function cancelTask(
  */
 export async function getDeskCapacity(
 	ctx: ProtectedContext,
-	deskLocationId: number,
+	deskLocationId: string,
 	date?: string
 ) {
 	const targetDate = date || new Date().toISOString().split('T')[0];
@@ -720,7 +720,7 @@ export async function getDeskCapacity(
 /**
  * Get task counts by derived status for a desk location
  */
-export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationId: number) {
+export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationId: string) {
 	const result = await ctx.db
 		.selectFrom('task')
 		.leftJoin('deadline', (join) =>
@@ -826,7 +826,7 @@ export async function getTasksByDueDateWeek(
 export async function bulkCancelTasks(
 	ctx: ProtectedContext,
 	params: {
-		ids: number[];
+		ids: string[];
 		cancellationReason: string;
 	}
 ) {

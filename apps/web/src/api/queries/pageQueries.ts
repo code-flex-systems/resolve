@@ -16,7 +16,7 @@ import { insertCallEdgesBulk, insertCallEdgesForInstance } from './answerQueries
  * @param params - title and positioning info
  * @returns ids for the new page and instance
  */
-export async function createPage(ctx: ProtectedContext, checklistId: number, params: PageParams) {
+export async function createPage(ctx: ProtectedContext, checklistId: string, params: PageParams) {
 	const newPage = await ctx.db
 		.insertInto('page')
 		.values({
@@ -52,9 +52,9 @@ export async function createPage(ctx: ProtectedContext, checklistId: number, par
  */
 export async function copyPageTemplate(
 	ctx: ProtectedContext,
-	checklistId: number,
-	pageId: number,
-	params: { parentId: number; position: number }
+	checklistId: string,
+	pageId: string,
+	params: { parentId?: string | null; position: number }
 ) {
 	// First, get original question IDs to build the mapping after insert
 	const originalQuestions = await ctx.db
@@ -87,7 +87,7 @@ export async function copyPageTemplate(
 			eb
 				.selectFrom('question')
 				.select((eb) => [
-					eb.val(newPage.id).$castTo<number>().as('page_id'),
+					eb.val(newPage.id).$castTo<string>().as('page_id'),
 					'description_text',
 					'text',
 					'type',
@@ -113,7 +113,7 @@ export async function copyPageTemplate(
 	// Build mapping of old question ID -> new question ID using position as join key
 	if (newQuestions.length > 0) {
 		const positionToNewId = new Map(newQuestions.map((q) => [q.position, q.id]));
-		const questionIdMapping: Array<{ oldId: number; newId: number }> = [];
+		const questionIdMapping: Array<{ oldId: string; newId: string }> = [];
 		for (const orig of originalQuestions) {
 			const newId = positionToNewId.get(orig.position);
 			if (newId !== undefined) {
@@ -163,7 +163,7 @@ export async function copyPageTemplate(
 							${ctx.session.user.id} AS created_by
 						FROM answer
 						INNER JOIN (VALUES ${sql.join(
-							questionIdMapping.map((m) => sql`(${m.oldId}::int, ${m.newId}::int)`),
+							questionIdMapping.map((m) => sql`(${m.oldId}::uuid, ${m.newId}::uuid)`),
 							sql`, `
 						)}) AS qmap(old_question_id, new_question_id)
 						ON answer.question_id = qmap.old_question_id
@@ -175,7 +175,7 @@ export async function copyPageTemplate(
 
 			// Populate answer_call_edges for copied answers with calls_instance_id
 			const answersWithCalls = copiedAnswers
-				.filter((a): a is { id: number; calls_instance_id: number } => a.calls_instance_id !== null)
+				.filter((a): a is { id: string; calls_instance_id: string } => a.calls_instance_id !== null)
 				.map((a) => ({ id: a.id, calls_instance_id: a.calls_instance_id }));
 
 			if (answersWithCalls.length > 0) {
@@ -201,8 +201,8 @@ export async function copyPageTemplate(
 export async function createPageInstance(
 	ctx: ProtectedContext,
 	params: {
-		checklistId: number;
-		pageId: number;
+		checklistId: string;
+		pageId: string;
 	} & PageInstanceParams
 ) {
 	return await createPageInstancePrivate(ctx, params);
@@ -215,7 +215,7 @@ export async function createPageInstance(
  * @param instanceId - instance identifier
  * @returns the page instance details
  */
-export async function getPageInstanceForDeletion(ctx: ProtectedContext, instanceId: number) {
+export async function getPageInstanceForDeletion(ctx: ProtectedContext, instanceId: string) {
 	return await ctx.db
 		.selectFrom('page_instance')
 		.innerJoin('page', 'page.id', 'page_instance.page_id')
@@ -236,7 +236,7 @@ export async function getPageInstanceForDeletion(ctx: ProtectedContext, instance
  * @param ctx - request context
  * @param instanceId - instance identifier to remove
  */
-export async function deletePageInstance(ctx: ProtectedContext, instanceId: number) {
+export async function deletePageInstance(ctx: ProtectedContext, instanceId: string) {
 	await ctx.db
 		.updateTable('answer')
 		.set({ calls_instance_id: null, updated_by: ctx.session.user.id, updated_at: sql`now()` })
@@ -281,7 +281,7 @@ export async function deletePageInstance(ctx: ProtectedContext, instanceId: numb
  * @param pageId - page identifier
  * @returns the page template
  */
-export async function getPage(ctx: ProtectedContext, pageId: number) {
+export async function getPage(ctx: ProtectedContext, pageId: string) {
 	return await ctx.db
 		.selectFrom('page')
 		.selectAll()
@@ -312,7 +312,7 @@ export async function getPages(ctx: ProtectedContext) {
  * @param instanceId - page instance identifier
  * @returns the template with instance info
  */
-export async function getPageInstance(ctx: ProtectedContext, instanceId: number) {
+export async function getPageInstance(ctx: ProtectedContext, instanceId: string) {
 	return await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
@@ -331,7 +331,7 @@ export async function getPageInstance(ctx: ProtectedContext, instanceId: number)
  * @param parentId - optional parent instance filter
  * @returns list of page instances
  */
-export async function getPageInstances(ctx: ProtectedContext, checklistId: number, parentId?: number) {
+export async function getPageInstances(ctx: ProtectedContext, checklistId: string, parentId?: string | null) {
 	return await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
@@ -347,7 +347,7 @@ export async function getPageInstances(ctx: ProtectedContext, checklistId: numbe
 		.where('page.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
-			if (parentId === -1) {
+			if (parentId === null) {
 				andClause.push(eb('page_instance.parent_instance_id', 'is', null));
 			} else if (parentId) {
 				andClause.push(eb('page_instance.parent_instance_id', '=', parentId));
@@ -369,9 +369,9 @@ export async function getPageInstances(ctx: ProtectedContext, checklistId: numbe
  */
 export async function getPageInstancesForClaim(
 	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	parentId?: number
+	checklistId: string,
+	claimId: string,
+	parentId?: string | null
 ) {
 	// Determine the latest status for each page instance on a claim
 	return await ctx.db
@@ -405,7 +405,7 @@ export async function getPageInstancesForClaim(
 		.where('page.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const andClause = [eb('page_instance.checklist_id', '=', checklistId)];
-			if (parentId === -1) {
+			if (parentId === null) {
 				andClause.push(eb('page_instance.parent_instance_id', 'is', null));
 			} else if (parentId) {
 				andClause.push(eb('page_instance.parent_instance_id', '=', parentId));
@@ -425,7 +425,7 @@ export async function getPageInstancesForClaim(
  * @param claimId - claim identifier
  * @returns list of visible instance ids
  */
-export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: number, claimId: number) {
+export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: string, claimId: string) {
 	// Page instances are visible if:
 	// 1. They are root instances (no parent)
 	// 2. OR an answer that unlocks them was selected in a question response
@@ -465,7 +465,7 @@ export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId
  * @param params - fields to modify
  * @returns the updated template
  */
-export async function modifyPage(ctx: ProtectedContext, pageId: number, params: PageUpdateParams) {
+export async function modifyPage(ctx: ProtectedContext, pageId: string, params: PageUpdateParams) {
 	const updates: UpdateObjectExpression<DB, 'page'> = {};
 	if (params.title !== undefined) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
@@ -492,8 +492,8 @@ export async function modifyPage(ctx: ProtectedContext, pageId: number, params: 
 export async function modifyPageInstanceStatus(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
-		instanceIds: number[];
+		claimId: string;
+		instanceIds: string[];
 		newStatus: PageInstanceStatus;
 		templateVersion: number;
 	}
@@ -536,10 +536,10 @@ async function createPageInstancePrivate(
 		pageId,
 		parentId,
 		position,
-	}: { checklistId: number; pageId: number } & PageInstanceParams
+	}: { checklistId: string; pageId: string } & PageInstanceParams
 ) {
-	// Normalize parentId: -1 means root level (null parent)
-	const normalizedParentId = parentId === -1 ? null : parentId;
+	// Normalize parentId: null means root level (null parent in DB), undefined also treated as null
+	const normalizedParentId = parentId ?? null;
 
 	// Update positions for sibling page instances at or below the insert position
 	await ctx.db

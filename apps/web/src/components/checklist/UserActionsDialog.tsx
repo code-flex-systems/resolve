@@ -72,7 +72,7 @@ export default function UserActionsDialog() {
 		watch,
 	} = useForm<
 		{
-			recipients: GetUserOutput[]; // Pull recipients out of def to handle user mapping
+			recipients: { email: string; first: string; last: string; id?: string; phone?: string | null }[];
 		} & ActionInput>({ mode: 'onChange' });
 	const recipients = watch('recipients');
 	const actionType = watch('type');
@@ -89,7 +89,7 @@ export default function UserActionsDialog() {
 				definition: {
 					...data.definition,
 					recipients: data.recipients.map((r) => r.email),
-				},
+				} as any,
 			});
 			showSuccess('update', 'Action saved');
 			toggleActionDialog();

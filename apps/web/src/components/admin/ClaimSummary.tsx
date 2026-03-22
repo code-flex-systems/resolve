@@ -25,7 +25,7 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 dayjs.extend(relativeTime);
 
 interface ClaimSummaryProps {
-	claimId: number;
+	claimId: string;
 	onStartChecklist?: () => void;
 	showChecklistProgress?: boolean;
 }

@@ -9,9 +9,9 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const pathname = usePathname();
-	const { checklistId = -1 } = useChecklistParams();
-	const [selectedInstanceId, setSelectedInstanceId] = useState<number | null>(null);
-	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId }, { enabled: checklistId !== -1 });
+	const { checklistId } = useChecklistParams();
+	const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId: checklistId! }, { enabled: !!checklistId });
 	const selectedPage = instances.find((i) => i.instance_id === selectedInstanceId);
 
 	const setSearchParams = () => {
@@ -53,7 +53,7 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 					label: `${o.title} (p${o.id}.i${o.instance_id})`,
 				}))}
 				value={selectedInstanceId}
-				onChange={(v) => setSelectedInstanceId(Number(v))}
+				onChange={(v) => setSelectedInstanceId(String(v))}
 				placeholder="Select page..."
 			/>
 		</BasicDialog>

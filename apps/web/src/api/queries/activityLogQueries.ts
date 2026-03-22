@@ -12,7 +12,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
  */
 export async function getClaimActivityLogs(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	options?: {
 		actorType?: 'admin' | 'user';
 		limit?: number;
@@ -60,7 +60,7 @@ export async function getClaimActivityLogs(
  */
 export async function getCompleteClaimTimeline(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	options?: { limit?: number }
 ) {
 	const limit = options?.limit || 100;
@@ -83,7 +83,7 @@ export async function getCompleteClaimTimeline(
 				'users.first as user_first_name',
 				'users.last as user_last_name',
 			])
-			.where('response_audit_logs.claim_id', '=', claimId)
+			.where('response_audit_logs.claim_id', '=', claimId as any)
 			.where('response_audit_logs.client_id', '=', ctx.session.user.client_id as string)
 			.orderBy('response_audit_logs.created_at', 'desc')
 			.limit(limit)
@@ -225,7 +225,7 @@ export async function listClaimActivityLogs(
 		endDate?: string;
 		entityName?: string;
 		userId?: string;
-		claimId?: number;
+		claimId?: string;
 		actorType?: 'admin' | 'user';
 	}
 ) {

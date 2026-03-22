@@ -63,7 +63,7 @@ export default function PendingExecutionsPanel() {
 
 	const isMutating = approvePendingExecution.isPending || rejectPendingExecution.isPending;
 
-	const handleApprove = (executionId: number) => {
+	const handleApprove = (executionId: string) => {
 		approvePendingExecution.mutate(
 			{ executionId },
 			{
@@ -73,7 +73,7 @@ export default function PendingExecutionsPanel() {
 		);
 	};
 
-	const handleReject = (executionId: number) => {
+	const handleReject = (executionId: string) => {
 		rejectPendingExecution.mutate(
 			{ executionId },
 			{

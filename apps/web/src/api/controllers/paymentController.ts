@@ -23,7 +23,7 @@ export async function createPayment(
 		claimId,
 		params,
 	}: {
-		claimId: number;
+		claimId: string;
 		params: PaymentParams;
 	}
 ) {
@@ -67,7 +67,7 @@ export async function createPayment(
  * @param input - claim id
  * @returns list of payments with coverage and payee details
  */
-export async function listPayments(ctx: ProtectedContext, { claimId }: { claimId: number }) {
+export async function listPayments(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	return await paymentQueries.getPayments(ctx, claimId);
 }
 
@@ -85,7 +85,7 @@ export async function updatePayment(
 		paymentId,
 		params,
 	}: {
-		paymentId: number;
+		paymentId: string;
 		params: PaymentUpdateParams;
 	}
 ) {
@@ -128,8 +128,8 @@ export async function archivePayment(
 		paymentId,
 		claimId,
 	}: {
-		paymentId: number;
-		claimId: number;
+		paymentId: string;
+		claimId: string;
 	}
 ) {
 	// Archive payment and log admin action within transaction

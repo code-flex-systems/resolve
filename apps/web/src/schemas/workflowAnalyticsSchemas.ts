@@ -10,7 +10,7 @@ import { SuggestionStatus } from '@/config/enums';
  * Returns claims count and SLA status breakdown by desk location
  */
 export const getDeskQueueDepthInput = z.object({
-	deskLocationId: z.number().int().positive().optional(),
+	deskLocationId: z.string().uuid().optional(),
 });
 export type GetDeskQueueDepthInput = z.infer<typeof getDeskQueueDepthInput>;
 
@@ -19,7 +19,7 @@ export type GetDeskQueueDepthInput = z.infer<typeof getDeskQueueDepthInput>;
  * Returns task counts and utilization by desk location
  */
 export const getDeskWorkLoadInput = z.object({
-	deskLocationId: z.number().int().positive().optional(),
+	deskLocationId: z.string().uuid().optional(),
 });
 export type GetDeskWorkLoadInput = z.infer<typeof getDeskWorkLoadInput>;
 
@@ -29,7 +29,7 @@ export type GetDeskWorkLoadInput = z.infer<typeof getDeskWorkLoadInput>;
  */
 export const getUserWorkloadInput = z.object({
 	userId: z.string().uuid().optional(),
-	deskLocationId: z.number().int().positive().optional(),
+	deskLocationId: z.string().uuid().optional(),
 });
 export type GetUserWorkloadInput = z.infer<typeof getUserWorkloadInput>;
 
@@ -47,7 +47,7 @@ export type GetClaimsApproachingSLABreachInput = z.infer<typeof getClaimsApproac
  * Returns completed task counts for today, optionally filtered
  */
 export const getTaskThroughputTodayInput = z.object({
-	deskLocationId: z.number().int().positive().optional(),
+	deskLocationId: z.string().uuid().optional(),
 	userId: z.string().uuid().optional(),
 });
 export type GetTaskThroughputTodayInput = z.infer<typeof getTaskThroughputTodayInput>;
@@ -59,7 +59,7 @@ export type GetTaskThroughputTodayInput = z.infer<typeof getTaskThroughputTodayI
 export const getDeadlineStatusOverviewInput = z.object({
 	deadlineType: z.string().optional(),
 	createdBy: z.string().uuid().optional(),
-	claimId: z.number().int().positive().optional(),
+	claimId: z.string().uuid().optional(),
 });
 export type GetDeadlineStatusOverviewInput = z.infer<typeof getDeadlineStatusOverviewInput>;
 
@@ -74,8 +74,8 @@ export type GetDeadlineStatusOverviewInput = z.infer<typeof getDeadlineStatusOve
 export const getWorkflowStageMetricsInput = z.object({
 	startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
 	endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
-	deskLocationTypeId: z.number().int().positive().optional(),
-	deskLocationId: z.number().int().positive().optional(),
+	deskLocationTypeId: z.string().uuid().optional(),
+	deskLocationId: z.string().uuid().optional(),
 });
 export type GetWorkflowStageMetricsInput = z.infer<typeof getWorkflowStageMetricsInput>;
 

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import css from './ChecklistSelectionDialog.module.css';
 
 interface ChecklistSelectionDialogProps {
-	claimId: number;
+	claimId: string;
 	open: boolean;
 	onClose: () => void;
 }

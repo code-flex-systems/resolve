@@ -15,7 +15,7 @@ import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 
 export default function WorkflowsView() {
-	const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+	const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isActive, setIsActive] = useState(true);
@@ -33,7 +33,7 @@ export default function WorkflowsView() {
 		return allDefinitions.filter((def) => def.name.toLowerCase().includes(term));
 	}, [allDefinitions, searchTerm]);
 
-	const handleCreateSuccess = (workflowId: number) => {
+	const handleCreateSuccess = (workflowId: string) => {
 		setSelectedWorkflowId(workflowId);
 	};
 

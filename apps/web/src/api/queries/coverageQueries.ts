@@ -17,7 +17,7 @@ import { DeductibleStatus } from '@/config/enums';
  * @param claimId - claim identifier
  * @returns array of coverages for the claim
  */
-export async function getCoverages(ctx: ProtectedContext, claimId: number) {
+export async function getCoverages(ctx: ProtectedContext, claimId: string) {
 	return await ctx.db
 		.selectFrom('claim_coverage')
 		.selectAll()
@@ -35,7 +35,7 @@ export async function getCoverages(ctx: ProtectedContext, claimId: number) {
  * @param claimPartyId - claim_party identifier
  * @returns array of coverages for the claim party
  */
-export async function getCoveragesByClaimParty(ctx: ProtectedContext, claimPartyId: number) {
+export async function getCoveragesByClaimParty(ctx: ProtectedContext, claimPartyId: string) {
 	return await ctx.db
 		.selectFrom('claim_coverage')
 		.selectAll()
@@ -144,7 +144,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
  */
 export async function updateCoverage(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: Omit<UpdateCoverageInput, 'id'>
 ) {
 	// Get old coverage values for delta calculation
@@ -251,7 +251,7 @@ export async function updateCoverage(
  * @param id - coverage identifier
  * @returns claimId and updated total_incurred
  */
-export async function archiveCoverage(ctx: ProtectedContext, id: number) {
+export async function archiveCoverage(ctx: ProtectedContext, id: string) {
 	// Archive coverage and get needed fields via RETURNING
 	const coverage = await ctx.db
 		.updateTable('claim_coverage')
@@ -310,7 +310,7 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
  * @param id - coverage identifier
  * @returns claimId and updated total_incurred
  */
-export async function deleteCoverage(ctx: ProtectedContext, id: number) {
+export async function deleteCoverage(ctx: ProtectedContext, id: string) {
 	// Delete coverage and get needed fields via RETURNING
 	const coverage = await ctx.db
 		.deleteFrom('claim_coverage')
@@ -364,7 +364,7 @@ export async function deleteCoverage(ctx: ProtectedContext, id: number) {
  * @param claimId - claim identifier
  * @returns total reserved amount as a number
  */
-export async function getCoverageReservedTotal(ctx: ProtectedContext, claimId: number) {
+export async function getCoverageReservedTotal(ctx: ProtectedContext, claimId: string) {
 	const result = await ctx.db
 		.selectFrom('claim_coverage')
 		.select(({ fn }) => fn.sum<string>('amount_reserved').as('total_reserved'))
@@ -384,7 +384,7 @@ export async function getCoverageReservedTotal(ctx: ProtectedContext, claimId: n
  * @param ctx - request context
  * @param claimPartyId - claim_party identifier
  */
-export async function archiveCoveragesByClaimParty(ctx: ProtectedContext, claimPartyId: number) {
+export async function archiveCoveragesByClaimParty(ctx: ProtectedContext, claimPartyId: string) {
 	await ctx.db
 		.updateTable('claim_coverage')
 		.set({
@@ -405,7 +405,7 @@ export async function archiveCoveragesByClaimParty(ctx: ProtectedContext, claimP
  */
 export async function archiveCoveragesByClaimPartyIds(
 	ctx: ProtectedContext,
-	claimPartyIds: number[]
+	claimPartyIds: string[]
 ): Promise<void> {
 	if (claimPartyIds.length === 0) return;
 

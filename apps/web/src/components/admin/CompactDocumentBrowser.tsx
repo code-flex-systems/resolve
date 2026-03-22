@@ -31,7 +31,7 @@ export default function CompactDocumentBrowser({
 	allowedExtensions = null,
 	disabled = false,
 }: CompactDocumentBrowserProps) {
-	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+	const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 
 	const { data: groups = [], isFetching: isFetchingGroups } = useDocTrpc().listDocGroups();
 	const { data: docsResult, isFetching: isFetchingDocs } = useDocTrpc().listDocs({
@@ -56,7 +56,7 @@ export default function CompactDocumentBrowser({
 		if (!currentFolderId) return [];
 
 		const trail: DocGroupListItem[] = [];
-		let folderId: number | null = currentFolderId;
+		let folderId: string | null = currentFolderId;
 
 		// Walk up the tree to build the trail
 		while (folderId !== null) {

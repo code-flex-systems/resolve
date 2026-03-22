@@ -32,10 +32,10 @@ export default function DeskLocationActionsCell(params: DeskLocationActionsCellP
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreLocation({ id: row.id as unknown as number });
+				await restoreLocation({ id: row.id });
 				showAlert('Desk location restored successfully', 'success');
 			} else {
-				await archiveLocation({ id: row.id as unknown as number });
+				await archiveLocation({ id: row.id });
 				showAlert('Desk location archived successfully', 'success');
 			}
 			setShowActionConfirm(false);

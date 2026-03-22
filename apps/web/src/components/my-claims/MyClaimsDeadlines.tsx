@@ -22,7 +22,7 @@ export default function MyClaimsDeadlines() {
 	);
 	const deadlines = data.rows;
 
-	const handleClaimClick = (claimId: number) => {
+	const handleClaimClick = (claimId: string) => {
 		router.push(`/my-claims/${claimId}`);
 	};
 

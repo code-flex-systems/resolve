@@ -17,23 +17,23 @@ interface ChecklistState {
 	};
 	commentOffset: number;
 	expandAll: boolean;
-	expandedBranch: Set<number>;
-	highlightedQuestion: number | null;
+	expandedBranch: Set<string>;
+	highlightedQuestion: string | null;
 	mode: ChecklistMode;
-	selectedAnswer: number | null;
+	selectedAnswer: string | null;
 	selectedAssignee: GetUserOutput | null;
-	selectedPageInstance: number | null;
+	selectedPageInstance: string | null;
 	selectedPageInfo: TreeNode | null;
 	selectedSummarySegment: SummarySegment;
-	selectedQuestion: number | null;
+	selectedQuestion: string | null;
 	// dialogs
 	showActionDialog: boolean;
 	showChecklistHandoffDialog: boolean;
 	showChecklistProgressDialog: boolean;
 	showStatsDialog: boolean;
 	questionCommentDialog: {
-		instanceId?: number;
-		questionId?: number;
+		instanceId?: string;
+		questionId?: string;
 		existingComment?: GetCommentOutput;
 		show: boolean;
 	};
@@ -46,34 +46,34 @@ interface ChecklistState {
 interface ChecklistActions {
 	clearExistingComment: () => void;
 	clearExpandedBranch: () => void;
-	goToPage: (instanceId: number, tree: TreeNode[]) => void;
+	goToPage: (instanceId: string, tree: TreeNode[]) => void;
 	toggleExpandAll: () => void;
 	toggleActionDialog: () => void;
 	toggleChangeLog: () => void;
 	toggleChecklistHandoffDialog: () => void;
 	toggleChecklistProgressDialog: (v: boolean) => void;
 	toggleComments: () => void;
-	toggleHighlightedQuestion: (highlightedId: number) => void;
+	toggleHighlightedQuestion: (highlightedId: string) => void;
 	toggleStatsDialog: () => void;
 	toggleQuestionCommentDialog: (
-		instanceId?: number,
-		questionId?: number,
+		instanceId?: string,
+		questionId?: string,
 		existingComment?: GetCommentOutput
 	) => void;
 	toggleUpdateSubmittedDialog: (action?: (e?: React.BaseSyntheticEvent) => Promise<void>) => void;
 	updateChecklistSummaryConstraints: (newConstraints: { page: number; pageSize: number }) => void;
 	updateCommentOffset: (direction: number) => void;
-	updateExpandedBranch: (id: number, reset?: boolean) => void;
+	updateExpandedBranch: (id: string, reset?: boolean) => void;
 	updateMode: (newMode: ChecklistMode) => void;
-	updateSelectedAnswer: (questionId: number, answerId: number | null) => void;
+	updateSelectedAnswer: (questionId: string, answerId: string | null) => void;
 	updateSelectedAssignee: (newUser: GetUserOutput | null) => void;
-	updateSelectedPage: (instanceId: number | null) => void;
+	updateSelectedPage: (instanceId: string | null) => void;
 	updateSelectedPageInfo: (pageInfo: TreeNode | null) => void;
 	updateSelectedPageInfoStatus: (newStatus: PageInstanceStatus) => void;
-	updateSelectedPageInfoSearch: (instanceId: number, tree: TreeNode[]) => void;
-	updateSelectedPageTitle: (instanceId: number, newTitle: string, tree: TreeNode[]) => void;
+	updateSelectedPageInfoSearch: (instanceId: string, tree: TreeNode[]) => void;
+	updateSelectedPageTitle: (instanceId: string, newTitle: string, tree: TreeNode[]) => void;
 	updateSelectedSegment: (newSegment: SummarySegment) => void;
-	updateSelectedQuestion: (questionId: number | null) => void;
+	updateSelectedQuestion: (questionId: string | null) => void;
 	reset: (partialState?: Partial<ChecklistState>) => void;
 }
 
@@ -86,7 +86,7 @@ const initialState: ChecklistState = {
 	},
 	commentOffset: 0,
 	expandAll: true,
-	expandedBranch: new Set<number>(),
+	expandedBranch: new Set<string>(),
 	highlightedQuestion: null,
 	mode: ChecklistMode.VIEW,
 	selectedAnswer: null,
@@ -110,7 +110,7 @@ const initialState: ChecklistState = {
 };
 
 // Helper functions
-function findTreeNode(instanceId: number, tree: TreeNode[]): TreeNode | undefined {
+function findTreeNode(instanceId: string, tree: TreeNode[]): TreeNode | undefined {
 	for (const p of tree) {
 		const treeNode = findTreeNodePrivate(instanceId, p);
 		if (treeNode) return treeNode;
@@ -118,7 +118,7 @@ function findTreeNode(instanceId: number, tree: TreeNode[]): TreeNode | undefine
 	return;
 }
 
-function findTreeNodePrivate(instanceId: number, treeNode: TreeNode): TreeNode | undefined {
+function findTreeNodePrivate(instanceId: string, treeNode: TreeNode): TreeNode | undefined {
 	if (treeNode.instanceId === instanceId) return treeNode;
 	if (!treeNode.children) return;
 	for (const c of treeNode.children) {
@@ -128,7 +128,7 @@ function findTreeNodePrivate(instanceId: number, treeNode: TreeNode): TreeNode |
 }
 
 // Find all instances that share the same template (pageId) in the tree
-function findInstancesWithSameTemplate(pageId: number, tree: TreeNode[]): TreeNode[] {
+function findInstancesWithSameTemplate(pageId: string, tree: TreeNode[]): TreeNode[] {
 	const instances: TreeNode[] = [];
 
 	function searchTree(node: TreeNode) {
@@ -345,6 +345,6 @@ export const getSelectedPageInfoOrDefault = () => {
 };
 
 // Export utility function to find all instances with the same template
-export const findInstancesByTemplateId = (pageId: number, tree: TreeNode[]): TreeNode[] => {
+export const findInstancesByTemplateId = (pageId: string, tree: TreeNode[]): TreeNode[] => {
 	return findInstancesWithSameTemplate(pageId, tree);
 };

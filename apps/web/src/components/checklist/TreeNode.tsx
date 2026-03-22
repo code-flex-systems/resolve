@@ -15,7 +15,7 @@ import { IconAdjustments, IconAlertCircle, IconChevronRight, IconCircle, IconCir
 import Collapse from '@/components/ui/Collapse';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const { level, instanceId, pageId, status, title, children = [] } = props;
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
 	const mode = useChecklistStore((state) => state.mode);
@@ -31,8 +31,8 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 
 	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected });
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const filteredChildren =
 		mode === ChecklistMode.VIEW ? children.filter((c) => visibleInstanceIds.includes(c.instanceId)) : children;
@@ -161,9 +161,9 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							/>
 						))}
 						<QuestionNode
-							key={-1}
+							key="new"
 							pageId={pageId}
-							questionId={-1}
+							questionId={''}
 							questionText="New Question"
 							questionType={undefined}
 							questionAnswers={[]}

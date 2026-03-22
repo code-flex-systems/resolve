@@ -27,7 +27,7 @@ import Chip from '@/components/ui/Chip';
 
 interface WorkflowRuleDialogProps {
 	onClose: () => void;
-	workflowId: number;
+	workflowId: string;
 	editingRule?: WorkflowRule | null;
 }
 
@@ -324,7 +324,7 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								{formData.actionType === WorkflowActionType.MOVE_CLAIM && (
 									<div style={{ display: 'flex', gap: 16 }}>
 										<DeskLocationTypeSelect
-											value={(formData.actionConfig.targetLocationTypeId as number) || null}
+											value={(formData.actionConfig.targetLocationTypeId as string) || null}
 											onChange={(id) =>
 												setFormData({
 													...formData,
@@ -335,14 +335,14 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 											fullWidth
 										/>
 										<DeskLocationSelect
-											value={(formData.actionConfig.targetLocationId as number) || null}
+											value={(formData.actionConfig.targetLocationId as string) || null}
 											onChange={(id) =>
 												setFormData({
 													...formData,
 													actionConfig: { ...formData.actionConfig, targetLocationId: id },
 												})
 											}
-											deskLocationTypeId={(formData.actionConfig.targetLocationTypeId as number) || null}
+											deskLocationTypeId={(formData.actionConfig.targetLocationTypeId as string) || null}
 											label="Target Desk Location"
 											fullWidth
 										/>

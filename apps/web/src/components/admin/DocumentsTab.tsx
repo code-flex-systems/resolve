@@ -14,7 +14,7 @@ import DocumentPreviewDialog from './DocumentPreviewDialog';
 import DocumentNavigationTable from './DocumentNavigationTable';
 
 export default function DocumentsTab() {
-	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+	const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 	const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
 	const [showUploadDocumentDialog, setShowUploadDocumentDialog] = useState(false);
 	const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
@@ -49,7 +49,7 @@ export default function DocumentsTab() {
 
 	// Build doc counts map from server-side batch query
 	const docCountsByFolder = useMemo(() => {
-		const map = new Map<number, number>();
+		const map = new Map<string, number>();
 		docCounts.forEach((r) => {
 			if (r.doc_group_id !== null) {
 				map.set(r.doc_group_id, Number(r.count));
@@ -84,9 +84,9 @@ export default function DocumentsTab() {
 			for (const rowId of selectedKeys) {
 				const [type, id] = String(rowId).split('-');
 				if (type === 'folder') {
-					await deleteDocGroup({ groupId: Number(id) });
+					await deleteDocGroup({ groupId: id });
 				} else if (type === 'document') {
-					await deleteDoc({ docId: Number(id) });
+					await deleteDoc({ docId: id });
 				}
 			}
 			setSelectedRows({});
@@ -106,10 +106,10 @@ export default function DocumentsTab() {
 		selectedKeys.forEach((rowId) => {
 			const [type, id] = String(rowId).split('-');
 			if (type === 'folder') {
-				const folder = groups.find((g) => g.id === Number(id));
+				const folder = groups.find((g) => g.id === id);
 				if (folder) folders.push({ type: 'folder', data: folder });
 			} else if (type === 'document') {
-				const doc = docs.find((d) => d.id === Number(id));
+				const doc = docs.find((d) => d.id === id);
 				if (doc) documents.push({ type: 'document', data: doc });
 			}
 		});
