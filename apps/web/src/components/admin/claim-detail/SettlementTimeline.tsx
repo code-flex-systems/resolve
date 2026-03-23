@@ -6,11 +6,11 @@ import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
 import { useMemo, useState } from 'react';
 import Highlight from '@/components/common/Highlight';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { SettlementStructure, PaymentFrequency } from '@/config/enums';
 import dayjs from 'dayjs';
+import Button from '@/components/ui/Button';
 
 // Helper to format payment frequency for display
 const formatPaymentFrequency = (frequency: string | null | undefined) => {
@@ -194,23 +194,16 @@ export default function SettlementTimeline({
 								{/* Edit/Archive buttons */}
 								{isManageMode && (
 									<div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => (isSettlement ? onEditSettlement(settlement) : onEditRecovery(recovery)),
-											}}
-											tooltipProps={{ title: `Edit ${isSettlement ? 'settlement' : 'recovery'}` }}
-											icon={<IconEdit size={20} />}
-											compact
-										/>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () =>
-													isSettlement ? onArchiveSettlement(settlement) : onArchiveRecovery(recovery),
-											}}
-											tooltipProps={{ title: `Archive ${isSettlement ? 'settlement' : 'recovery'}` }}
-											icon={<IconArchive style={{ color: 'var(--status-error)' }} />}
-											compact
-										/>
+										<Tooltip content="`Edit ${isSettlement ? 'settlement' : 'recovery'}`">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+										<Tooltip content="`Archive ${isSettlement ? 'settlement' : 'recovery'}`">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconArchive style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
 									</div>
 								)}
 							</div>

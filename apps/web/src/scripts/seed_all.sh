@@ -18,4 +18,8 @@ do
   echo "  Running $script..."
   psql "$DB_URL" -f "$SCRIPT_DIR/$script"
 done
+
+echo "  Running seed_checklists.ts..."
+cd "$SCRIPT_DIR/../.." && npx tsx src/scripts/seed_checklists.ts
+
 echo "Done!"

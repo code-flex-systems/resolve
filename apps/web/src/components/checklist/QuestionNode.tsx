@@ -1,5 +1,4 @@
 'use client';
-import Button from '@/components/ui/Button';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import './styles.css';
 import AnswerNode from './AnswerNode';
@@ -10,7 +9,7 @@ import { IconCircleMinus, IconHelpCircle } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 
 export default function QuestionNode(props: {
-	pageId: string;
+	pagePosition: number;
 	questionId: string;
 	questionText: string;
 	questionType?: QuestionType;
@@ -18,7 +17,7 @@ export default function QuestionNode(props: {
 	level: number;
 	idx: number;
 }) {
-	const { pageId, questionId, questionText, questionType, questionAnswers, level, idx } = props;
+	const { pagePosition, questionId, questionText, questionType, questionAnswers, level, idx } = props;
 	const [expanded, setExpanded] = useState(false);
 	const expandAll = useChecklistStore((state) => state.expandAll);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
@@ -39,18 +38,17 @@ export default function QuestionNode(props: {
 					<IconHelpCircle size={16} style={{ marginRight: '10px', color: selected ? 'var(--text-accent)' : '' }} />
 					<span
 						className={isPlaceholder ? 'node-p' : 'node-q'}
-						style={{ cursor: 'pointer', color: selected ? '#5BBEAE' : isPlaceholder ? '#DAB0FF' : '', fontWeight: isPlaceholder ? 'bold' : '', lineHeight: '19px' }}
+						style={{ cursor: 'pointer', color: selected ? 'var(--status-success)' : isPlaceholder ? 'var(--text-muted)' : '', fontWeight: isPlaceholder ? 'bold' : '', fontStyle: isPlaceholder ? 'italic' : undefined, lineHeight: '19px' }}
 					>
 						{questionId !== '' ? `${idx + 1}. ` : ''}
-						{questionText} (p{pageId}.q{questionId === '' ? '?' : questionId})
+						{questionText} (p{pagePosition}.q{questionId === '' ? '?' : idx + 1})
 					</span>
 				</div>
 				{questionId === '' || questionType === QuestionType.FREEFORM ? (
 					<div style={{ width: 25 }} />
 				) : (
-					<Button
-						variant="icon"
-						size="sm"
+					<button
+						style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
 						onClick={(e) => {
 							setExpanded((prev) => !prev);
 							e.stopPropagation();
@@ -58,13 +56,14 @@ export default function QuestionNode(props: {
 						}}
 					>
 						<IconCircleMinus
-						 style={{
+							size={14}
+							style={{
 								transform: expanded === true ? 'rotate(90deg)' : undefined,
 								transition: 'transform 100ms ease',
-								fontSize: 17,
+								color: 'var(--text-muted)',
 							}}
 						/>
-					</Button>
+					</button>
 				)}
 			</div>
 			<Collapse open={expanded}>
@@ -74,7 +73,9 @@ export default function QuestionNode(props: {
 						.map((a, i) => (
 							<AnswerNode
 								key={i}
-								pageId={pageId}
+								pagePosition={pagePosition}
+								questionPosition={idx + 1}
+								answerPosition={i + 1}
 								questionId={questionId}
 								answerId={a.id}
 								answerText={a.text}
@@ -84,7 +85,9 @@ export default function QuestionNode(props: {
 					{questionId !== '' && questionType !== QuestionType.FREEFORM && (
 						<AnswerNode
 							key="new"
-							pageId={pageId}
+							pagePosition={pagePosition}
+							questionPosition={idx + 1}
+							answerPosition={0}
 							questionId={questionId}
 							answerId=""
 							answerText="New Answer"

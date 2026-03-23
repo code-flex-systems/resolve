@@ -22,7 +22,6 @@ import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import { LineOfBusinessSelect } from '../common/ReferenceDataSelect';
 import RecoveryStatusSelect from '../common/RecoveryStatusSelect';
 import SubstatusSelect from '../common/SubstatusSelect';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import { RecoveryStatus, ClaimSearch, ClaimSubstatus } from '@/config/enums';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -388,12 +387,7 @@ export default function Claims() {
 									placeholder="Search by claim number..."
 									width={280}
 								/>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: handleOpenFilters,
-										endIcon: <IconFilter size={20} />,
-									}}
-								>
+								<Button variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
 									Filters...
 									{hasActiveFilters && (
 										<div
@@ -424,16 +418,11 @@ export default function Claims() {
 											}
 										</div>
 									)}
-								</BasicButtonStyled>
+								</Button>
 								{hasActiveFilters && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: handleClearAllFilters,
-											size: 'small',
-										}}
-									>
+									<Button variant="outlined" onClick={handleClearAllFilters} size="sm">
 										Clear all filters
-									</BasicButtonStyled>
+									</Button>
 								)}
 								<Collapse open={!!selectedFeed}>
 									<div style={{ display: 'flex', alignItems: 'center', marginLeft: '5px' }}>

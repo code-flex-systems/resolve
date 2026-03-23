@@ -2,13 +2,14 @@ import { Textarea } from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import config from '@/config/config';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { IconCirclePlus, IconTrash } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function CommentDialog() {
 	const { data: session } = useClerkSession();
@@ -67,23 +68,17 @@ export default function CommentDialog() {
 					!existingComment || session?.user.id === existingComment.created_by ? (
 						<span style={{ marginTop: 90, marginRight: 5 }}>
 							{existingComment ? (
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => deleteComment().catch(console.error),
-										disabled: inTransition,
-									}}
-									icon={<IconTrash size={20} />}
-									tooltipProps={{ title: 'Delete comment' }}
-								/>
+								<Tooltip content="Delete comment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => deleteComment().catch(console.error)} disabled={inTransition}>
+							<IconTrash size={16} />
+						</Button>
+						</Tooltip>
 							) : (
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => addComment().catch(console.error),
-										disabled: !comment || inTransition,
-									}}
-									icon={<IconCirclePlus size={20} />}
-									tooltipProps={{ title: 'Add comment' }}
-								/>
+								<Tooltip content="Add comment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => addComment().catch(console.error)} disabled={!comment || inTransition}>
+							<IconCirclePlus size={16} />
+						</Button>
+						</Tooltip>
 							)}
 						</span>
 					) : undefined

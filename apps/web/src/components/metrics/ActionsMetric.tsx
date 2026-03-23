@@ -1,5 +1,4 @@
 import ExpandableTitle from '../common/ExpandableTitle';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import { ActionType } from '@/config/enums';
@@ -10,6 +9,8 @@ import { IconBug, IconCalendar, IconClipboardCheck, IconInfoCircle, IconMail, Ic
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -66,18 +67,16 @@ export default function ActionsMetric() {
 							Popular Actions
 						</span>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-							<BasicButtonStyled
-								buttonProps={{}}
-								icon={<IconInfoCircle size={18} />}
-								tooltipProps={{
-									title: 'Actions are ranked by highest execution rate across unique checklist + claim combinations.',
-								}}
-							/>
-							<BasicButtonStyled
-								buttonProps={{ onClick: () => router.push('/metrics/user-actions') }}
-								icon={<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={18} />}
-								tooltipProps={{ title: 'Open in Inspector' }}
-							/>
+							<Tooltip content="Actions are ranked by highest execution rate across unique checklist + claim combinations.">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconInfoCircle size={16} />
+						</Button>
+						</Tooltip>
+							<Tooltip content="Open in Inspector">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={16} />
+						</Button>
+						</Tooltip>
 						</div>
 					</div>
 

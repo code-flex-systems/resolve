@@ -8,7 +8,6 @@ import IconHeaderCell from '@/components/common/IconHeaderCell';
 import StackedHeaderCell from '@/components/common/StackedHeaderCell';
 import { formatClaimStatus } from '@/lib/utils/claimUtils';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicPopper from '@/components/common/BasicPopper';
 import Toolbar from '@/components/common/Toolbar';
 import SearchInput from '@/components/common/SearchInput';
@@ -227,11 +226,7 @@ export default function MyClaimsQueueTable({
 							placeholder="Search by claim number, insured, or client..."
 							width={350}
 						/>
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: handleOpenFilters,
-								endIcon: <IconFilter size={20} />,
-							}}>
+						<CustomButton variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
 							Filters...
 							{hasActiveFilters && (
 								<div
@@ -250,15 +245,11 @@ style={{
 									{[appliedSubstatus, appliedRecoveryStatus, appliedSearch].filter(Boolean).length}
 								</div>
 							)}
-						</BasicButtonStyled>
+						</CustomButton>
 						{hasActiveFilters && (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: handleClearAllFilters,
-									size: 'small',
-								}}>
+							<CustomButton variant="outlined" onClick={handleClearAllFilters} size="sm">
 								Clear all filters
-							</BasicButtonStyled>
+							</CustomButton>
 						)}
 					</div>
 				}

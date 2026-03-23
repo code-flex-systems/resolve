@@ -5,7 +5,6 @@ import { formatMDY } from '@/lib/utils/utils';
 import { useRouter } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import ExpandableTitle from '@/components/common/ExpandableTitle';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import dayjs from 'dayjs';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import MetricValue from '@/components/common/MetricValue';
@@ -13,6 +12,7 @@ import UserActivitySummary from './UserActivitySummary';
 import { IconBug, IconChartBar, IconInfoCircle } from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -52,29 +52,22 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 									</span>
 								</div>
 								<div style={{ marginRight: '5px' }}>
-									<BasicButtonStyled
-										buttonProps={{}}
-										icon={<IconInfoCircle size={20} />}
-										tooltipProps={{
-											title: 'Engagement is measured by the number of users generating activity logs for a given day.',
-										}}
-									/>
+									<Tooltip content="Engagement is measured by the number of users generating activity logs for a given day.">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconInfoCircle size={16} />
+						</Button>
+						</Tooltip>
 								</div>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => router.push('/admin/user-management/activity'),
-										sx: { marginLeft: '5px' },
-									}}
-									icon={
-										<IconBug
+								<Tooltip content="Open in Inspector">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => router.push('/admin/user-management/activity')}>
+							<IconBug
 										 style={{
 												transform: 'scaleX(-1)',
 												color: 'var(--text-accent)',
 											}}
 										/>
-									}
-									tooltipProps={{ title: 'Open in Inspector' }}
-								/>
+						</Button>
+						</Tooltip>
 							</div>
 						</div>
 						<div

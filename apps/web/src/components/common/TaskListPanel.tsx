@@ -3,7 +3,7 @@
 import Chip from '@/components/ui/Chip';
 import { Spinner } from '@/components/ui/Progress';
 import Tooltip from '@/components/ui/Tooltip';
-import UIButton from '@/components/ui/Button';
+
 import {
 	IconSubtask, IconPlayerPlay, IconSettings, IconPlayerStop,
 	IconCircleCheck, IconX, IconUserPlus,
@@ -16,7 +16,6 @@ import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import Button from '@/components/ui/Button';
-import BasicButtonStyled from './BasicButtonStyled';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskCompletionDialog from './TaskCompletionDialog';
 import TaskCancellationDialog from './TaskCancellationDialog';
@@ -170,56 +169,43 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 					<div style={{ display: 'flex', flexDirection: 'row', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
 						{/* Unassigned + PENDING: Assign to Me */}
 						{status === TaskStatus.PENDING && !isAssigned && (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => handleAssignToMe(task.id),
-									disabled: assigning,
-								}}
-								tooltipProps={{ title: 'Assign task to yourself' }}
-								icon={<IconUserPlus size={15} style={{ color: 'var(--text-accent)' }} />}
-							/>
+							<Tooltip content="Assign task to yourself">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => handleAssignToMe(task.id)} disabled={assigning}>
+							<IconUserPlus size={15} style={{ color: 'var(--text-accent)' }} />
+						</Button>
+						</Tooltip>
 						)}
 						{/* Assigned to me + PENDING: Start */}
 						{status === TaskStatus.PENDING && isAssignedToMe && (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => handleStartTask(task.id),
-									disabled: starting,
-								}}
-								tooltipProps={{ title: 'Start working on this task' }}
-								icon={<IconPlayerPlay size={15} style={{ color: 'var(--text-accent)' }} />}
-							/>
+							<Tooltip content="Start working on this task">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => handleStartTask(task.id)} disabled={starting}>
+							<IconPlayerPlay size={15} style={{ color: 'var(--text-accent)' }} />
+						</Button>
+						</Tooltip>
 						)}
 						{/* Assigned to me + PENDING or IN_PROGRESS: Release */}
 						{(status === TaskStatus.PENDING || status === TaskStatus.IN_PROGRESS) && isAssignedToMe && (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => handleUnassignTask(task.id),
-									disabled: unassigning,
-								}}
-								tooltipProps={{ title: 'Release task back to queue' }}
-								icon={<IconPlayerStop size={15} style={{ color: 'var(--status-warning)' }} />}
-							/>
+							<Tooltip content="Release task back to queue">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => handleUnassignTask(task.id)} disabled={unassigning}>
+							<IconPlayerStop size={15} style={{ color: 'var(--status-warning)' }} />
+						</Button>
+						</Tooltip>
 						)}
 						{/* Assigned to me (or admin) + IN_PROGRESS: Complete */}
 						{status === TaskStatus.IN_PROGRESS && (isAdmin || isAssignedToMe) && (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => setCompletingTask(task),
-								}}
-								tooltipProps={{ title: 'Mark task as complete' }}
-								icon={<IconCircleCheck size={15} style={{ color: 'var(--status-success)' }} />}
-							/>
+							<Tooltip content="Mark task as complete">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconCircleCheck size={15} style={{ color: 'var(--status-success)' }} />
+						</Button>
+						</Tooltip>
 						)}
 						{/* Admin only: Cancel (pending or in progress) */}
 						{(status === TaskStatus.PENDING || status === TaskStatus.IN_PROGRESS) && isAdmin && (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => setCancellingTask(task),
-								}}
-								tooltipProps={{ title: 'Cancel task' }}
-								icon={<IconX size={15} style={{ color: 'var(--status-error)' }} />}
-							/>
+							<Tooltip content="Cancel task">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconX size={15} style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
 						)}
 					</div>
 				);
@@ -251,13 +237,13 @@ export default function TaskListPanel({ claimId, claimNumber, showCreateButton =
 						</Button>
 					)}
 					<Tooltip content="Manage">
-						<UIButton
+						<Button
 							variant="icon"
 							size="sm"
 							onClick={() => setIsManageMode(!isManageMode)}
 						>
 							<IconSettings size={18} style={{ color: isManageMode ? 'var(--text-accent)' : undefined }} />
-						</UIButton>
+						</Button>
 					</Tooltip>
 				</div>
 			</div>

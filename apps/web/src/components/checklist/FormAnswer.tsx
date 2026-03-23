@@ -3,7 +3,6 @@ import { Controller, Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ActionType, QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import Toolbar from '../common/Toolbar';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { Answer } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
@@ -14,8 +13,6 @@ import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 import UserActionsDialog from './UserActionsDialog';
 import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import BasicIconButton from '../common/BasicIconButton';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import CustomCheckbox from '@/components/ui/Checkbox';
@@ -26,11 +23,11 @@ import ImageTooltip from '../common/ImageTooltip';
 import { getAllowedExtensions } from '@/config/allowedFileTypes';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { IconCheck, IconCircleCheck, IconCopy, IconPaperclip, IconQuote, IconShare, IconTrash, IconX } from '@tabler/icons-react';
+import { IconCheck, IconCircleCheck, IconCopy, IconPaperclip, IconShare, IconTrash, IconX } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
-import Divider from '@/components/ui/Divider';
 import Input from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Input';
+import Tooltip from '@/components/ui/Tooltip';
 
 function formatActionText(action: any | undefined) {
 	if (!action) return <></>;
@@ -137,7 +134,7 @@ export default function FormAnswer() {
 	const isPlaceholder = !selectedAnswerData.id;
 	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
 	const inTransition = isSubmitting || adding || copying || updating || deleting || refetching;
-	const scopedQuestionId = `p${selectedPageInfo.pageId}.q${selectedQuestion}`;
+	const scopedQuestionId = `p${selectedPageInfo.position + 1}.q${selectedQuestionData.position + 1}`;
 
 	useEffect(() => {
 		reset({ ...selectedAnswerData });
@@ -169,10 +166,9 @@ export default function FormAnswer() {
 				requires_upload: data.requires_upload,
 				allowed_extensions: data.allowed_extensions,
 			};
-			const newAnswer =
-				!selectedAnswerData.id
-					? await addAnswer({ questionId: selectedQuestion, pageId: selectedPageInfo.pageId, params })
-					: await updateAnswer({ pageId: selectedPageInfo.pageId, answerId: selectedAnswerData.id, params });
+			const newAnswer = !selectedAnswerData.id
+				? await addAnswer({ questionId: selectedQuestion, pageId: selectedPageInfo.pageId, params })
+				: await updateAnswer({ pageId: selectedPageInfo.pageId, answerId: selectedAnswerData.id, params });
 			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
@@ -248,65 +244,97 @@ export default function FormAnswer() {
 	}, [selectedQuestionData, isPlaceholder]);
 
 	return (
-		<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: 20, minWidth: 500, overflow: 'auto' }}>
-			<Toolbar
-				left={
+		<div
+			style={{
+				width: '100%',
+				height: '100%',
+				display: 'flex',
+				flexDirection: 'column',
+				padding: 20,
+				minWidth: 500,
+				overflow: 'auto',
+			}}
+		>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'flex-end',
+					gap: 8,
+					marginBottom: 16,
+					flexShrink: 0,
+				}}
+			>
+				{showUpdateMsg && (
+					<span style={{ marginRight: 'auto' }} className="flex-row-left">
+						<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+						<span style={{ color: 'var(--status-success)' }}>Saved!</span>
+					</span>
+				)}
+				{!isPlaceholder && (
 					<>
-						<IconQuote size={20} style={{ color: 'var(--status-warning)', marginRight: '10px' }} />
-						<span style={{ color: 'var(--status-warning)', lineHeight: '21px', fontSize: 17 }}>
-							{answerText === '' && isPlaceholder ? 'New answer' : answerText}
-						</span>
-						<span style={{ fontSize: 13, color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", padding: "2px 8px", borderRadius: 8, marginLeft: 8 }}>
-							p{selectedPageInfo.pageId}.q{selectedQuestion}.a
-							{isPlaceholder ? '?' : selectedAnswerData.id}
-						</span>
-						{showUpdateMsg && (
-							<span style={{ marginLeft: 10 }} className="flex-row-left">
-								<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
-								<span style={{ color: 'var(--status-success)' }}>Saved!</span>
-							</span>
-						)}
-					</>
-				}
-				leftWidth="60%"
-				right={
-					<>
-						{!isPlaceholder && (
-							<>
-								<BasicButtonStyled
-									buttonProps={{ onClick: onDelete, disabled: inTransition || isFreeform, startIcon: <IconTrash size={20} /> }}
-									tooltipProps={{ title: isFreeform ? `Question ${scopedQuestionId} is free-form. Please change the question type to remove this answer.` : '' }}
-								>
-									Delete
-								</BasicButtonStyled>
-								<BasicButtonStyled
-									buttonProps={{ onClick: onCopy, disabled: inTransition || isFreeform, startIcon: <IconCopy size={20} /> }}
-									tooltipProps={{ title: isFreeform ? `Question ${scopedQuestionId} is free-form. Please change the question type to copy this answer.` : '' }}
-								>
-									Copy
-								</BasicButtonStyled>
-							</>
-						)}
-						<BasicButtonStyled
-							buttonProps={{ onClick: onSubmit, disabled: inTransition || (isPlaceholder ? !isValid : !isDirty), color: 'primary', startIcon: <IconCircleCheck size={20} /> }}
+						<Tooltip
+							content={
+								isFreeform
+									? `Question ${scopedQuestionId} is free-form. Please change the question type to remove this answer.`
+									: ''
+							}
 						>
-							{isPlaceholder ? 'Add' : 'Save'}
-						</BasicButtonStyled>
+							<Button
+								variant="outlined"
+								onClick={onDelete}
+								disabled={inTransition || isFreeform}
+								startIcon={<IconTrash size={16} />}
+							>
+								Delete
+							</Button>
+						</Tooltip>
+						<Tooltip
+							content={
+								isFreeform
+									? `Question ${scopedQuestionId} is free-form. Please change the question type to copy this answer.`
+									: ''
+							}
+						>
+							<Button
+								variant="outlined"
+								onClick={onCopy}
+								disabled={inTransition || isFreeform}
+								startIcon={<IconCopy size={16} />}
+							>
+								Copy
+							</Button>
+						</Tooltip>
 					</>
-				}
-				rightWidth="40%"
-				height={60}
-				padding={'10px 0px'}
-			/>
-			<div style={{ width: '100%', marginBottom: 24 }}>
-				<Divider />
+				)}
+				<Button
+					variant="outlined"
+					onClick={onSubmit}
+					disabled={inTransition || (isPlaceholder ? !isValid : !isDirty)}
+					startIcon={<IconCircleCheck size={16} />}
+				>
+					{isPlaceholder ? 'Add' : 'Save'}
+				</Button>
 			</div>
 			{!!selectedAnswerData.id && !fetchingAction && (
 				<Form control={control} style={{ width: '100%' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
 						{/* Basic Information Section */}
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Basic Information</div>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Basic Information
+							</div>
 							<div style={{ padding: 16 }}>
 								<div style={{ marginBottom: 16 }}>
 									<Controller
@@ -322,16 +350,33 @@ export default function FormAnswer() {
 												{...field}
 												endAdornment={
 													<>
-														<BasicIconButton onClick={() => onCopyText(field.name, field.value)}>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => onCopyText(field.name, field.value)}
+														>
 															{copiedField === field.name ? (
-																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
+																<IconCheck
+																	size={20}
+																	style={{ color: 'var(--status-success)' }}
+																/>
 															) : (
-																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
+																<IconCopy
+																	size={20}
+																	style={{ color: 'var(--text-muted)' }}
+																/>
 															)}
-														</BasicIconButton>
-														<BasicIconButton onClick={() => field.onChange('')} disabled={!field.value}>
+														</Button>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => field.onChange('')}
+															disabled={!field.value}
+														>
 															<IconX size={20} style={{ color: 'var(--text-muted)' }} />
-														</BasicIconButton>
+														</Button>
 													</>
 												}
 											/>
@@ -352,16 +397,33 @@ export default function FormAnswer() {
 												minRows={3}
 												endAdornment={
 													<>
-														<BasicIconButton onClick={() => onCopyText(field.name, field.value ?? '')}>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => onCopyText(field.name, field.value ?? '')}
+														>
 															{copiedField === field.name ? (
-																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
+																<IconCheck
+																	size={20}
+																	style={{ color: 'var(--status-success)' }}
+																/>
 															) : (
-																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
+																<IconCopy
+																	size={20}
+																	style={{ color: 'var(--text-muted)' }}
+																/>
 															)}
-														</BasicIconButton>
-														<BasicIconButton onClick={() => field.onChange('')} disabled={!field.value}>
+														</Button>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => field.onChange('')}
+															disabled={!field.value}
+														>
 															<IconX size={20} style={{ color: 'var(--text-muted)' }} />
-														</BasicIconButton>
+														</Button>
 													</>
 												}
 											/>
@@ -373,7 +435,20 @@ export default function FormAnswer() {
 
 						{/* Organization Section */}
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Organization</div>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Organization
+							</div>
 							<div style={{ padding: 16 }}>
 								<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
 									<Controller
@@ -382,14 +457,34 @@ export default function FormAnswer() {
 										rules={{ required: true }}
 										render={({ field }) => (
 											<div>
-												<label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: 'var(--text-secondary)' }}>Display order</label>
+												<label
+													style={{
+														display: 'block',
+														fontSize: 12,
+														marginBottom: 4,
+														color: 'var(--text-secondary)',
+													}}
+												>
+													Display order
+												</label>
 												<select
 													{...field}
 													onChange={(e) => field.onChange(Number(e.target.value))}
-													style={{ width: 100, padding: '8px', borderRadius: 6, border: errors.position ? '1px solid var(--status-error)' : '1px solid var(--border)', fontSize: 14, backgroundColor: 'var(--bg-white)' }}
+													style={{
+														width: 100,
+														padding: '8px',
+														borderRadius: 6,
+														border: errors.position
+															? '1px solid var(--status-error)'
+															: '1px solid var(--border)',
+														fontSize: 14,
+														backgroundColor: 'var(--bg-white)',
+													}}
 												>
 													{positionOptions.map((o) => (
-														<option key={o} value={o}>{o}</option>
+														<option key={o} value={o}>
+															{o}
+														</option>
 													))}
 												</select>
 											</div>
@@ -414,19 +509,35 @@ export default function FormAnswer() {
 										control={control}
 										render={({ field }) => (
 											<div>
-												<label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: 'var(--text-secondary)' }}>Navigates to page</label>
+												<label
+													style={{
+														display: 'block',
+														fontSize: 12,
+														marginBottom: 4,
+														color: 'var(--text-secondary)',
+													}}
+												>
+													Navigates to page
+												</label>
 												<select
 													{...field}
 													value={field.value ?? ''}
 													onChange={(e) => field.onChange(e.target.value || null)}
-													style={{ minWidth: 200, padding: '8px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 14, backgroundColor: 'var(--bg-white)' }}
+													style={{
+														minWidth: 200,
+														padding: '8px',
+														borderRadius: 6,
+														border: '1px solid var(--border)',
+														fontSize: 14,
+														backgroundColor: 'var(--bg-white)',
+													}}
 												>
 													<option value="">None</option>
 													{pageInstanceOptions
 														.sort((a, b) => a.pageId.localeCompare(b.pageId))
 														.map((o) => (
 															<option key={o.instanceId} value={o.instanceId}>
-																{o.title} (p{o.pageId}.i{o.instanceId})
+																{o.title} (p{o.position + 1})
 															</option>
 														))}
 												</select>
@@ -439,7 +550,20 @@ export default function FormAnswer() {
 
 						{/* Behavior Section */}
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Behavior</div>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Behavior
+							</div>
 							<div style={{ padding: 16 }}>
 								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -494,17 +618,44 @@ export default function FormAnswer() {
 
 												return (
 													<div>
-														<label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: 'var(--text-secondary)' }}>Allowed file extensions</label>
-														<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxWidth: 350 }}>
+														<label
+															style={{
+																display: 'block',
+																fontSize: 12,
+																marginBottom: 4,
+																color: 'var(--text-secondary)',
+															}}
+														>
+															Allowed file extensions
+														</label>
+														<div
+															style={{
+																display: 'flex',
+																flexWrap: 'wrap',
+																gap: 8,
+																maxWidth: 350,
+															}}
+														>
 															{allExtensions.map((ext) => (
-																<label key={ext} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
+																<label
+																	key={ext}
+																	style={{
+																		display: 'flex',
+																		alignItems: 'center',
+																		gap: 4,
+																		fontSize: 13,
+																		cursor: 'pointer',
+																	}}
+																>
 																	<input
 																		type="checkbox"
 																		checked={selectedExtensions.includes(ext)}
 																		onChange={(e) => {
 																			const newExts = e.target.checked
 																				? [...selectedExtensions, ext]
-																				: selectedExtensions.filter((x: string) => x !== ext);
+																				: selectedExtensions.filter(
+																						(x: string) => x !== ext
+																					);
 																			field.onChange(newExts.join(','));
 																		}}
 																	/>
@@ -513,7 +664,9 @@ export default function FormAnswer() {
 															))}
 														</div>
 														{selectedExtensions.length === 0 && (
-															<em style={{ fontSize: 12, color: '#999' }}>All file types allowed</em>
+															<em style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+																All file types allowed
+															</em>
 														)}
 													</div>
 												);
@@ -535,16 +688,38 @@ export default function FormAnswer() {
 														style={{ width: 300 }}
 														endAdornment={
 															<>
-																<BasicIconButton onClick={() => onCopyText(field.name, field.value ?? '')}>
+																<Button
+																	variant="icon"
+																	size="sm"
+																	color="neutral"
+																	onClick={() =>
+																		onCopyText(field.name, field.value ?? '')
+																	}
+																>
 																	{copiedField === field.name ? (
-																		<IconCheck size={16} style={{ color: 'var(--status-success)' }} />
+																		<IconCheck
+																			size={14}
+																			style={{ color: 'var(--status-success)' }}
+																		/>
 																	) : (
-																		<IconCopy size={16} style={{ color: 'var(--text-muted)' }} />
+																		<IconCopy
+																			size={14}
+																			style={{ color: 'var(--text-muted)' }}
+																		/>
 																	)}
-																</BasicIconButton>
-																<BasicIconButton onClick={() => field.onChange('')} disabled={!field.value}>
-																	<IconX size={16} style={{ color: 'var(--text-muted)' }} />
-																</BasicIconButton>
+																</Button>
+																<Button
+																	variant="icon"
+																	size="sm"
+																	color="neutral"
+																	onClick={() => field.onChange('')}
+																	disabled={!field.value}
+																>
+																	<IconX
+																		size={16}
+																		style={{ color: 'var(--text-muted)' }}
+																	/>
+																</Button>
 															</>
 														}
 													/>
@@ -572,7 +747,20 @@ export default function FormAnswer() {
 
 						{/* Attachments Section */}
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Attachments</div>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Attachments
+							</div>
 							<div style={{ padding: 16 }}>
 								<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
 									<Button
@@ -585,8 +773,18 @@ export default function FormAnswer() {
 										{attachedDoc ? 'Change Document' : 'Add Document'}
 									</Button>
 									{attachedDoc && (
-										<div style={{ display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '6px 12px' }}>
-											<span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: 8,
+												backgroundColor: 'var(--bg-secondary)',
+												border: '1px solid var(--border-strong)',
+												borderRadius: 8,
+												padding: '6px 12px',
+											}}
+										>
+											<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 												{attachedDoc.title || attachedDoc.alias}
 											</span>
 											{attachedDoc.mime_type?.startsWith('image/') ? (
@@ -597,9 +795,15 @@ export default function FormAnswer() {
 											) : (
 												<DocumentIconWithPreview document={attachedDoc} />
 											)}
-											<BasicIconButton onClick={handleRemoveDocument} disabled={inTransition}>
+											<Button
+												variant="icon"
+												size="sm"
+												color="neutral"
+												onClick={handleRemoveDocument}
+												disabled={inTransition}
+											>
 												<IconX size={14} />
-											</BasicIconButton>
+											</Button>
 										</div>
 									)}
 								</div>

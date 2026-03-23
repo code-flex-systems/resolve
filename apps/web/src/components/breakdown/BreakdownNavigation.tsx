@@ -15,6 +15,7 @@ export default function BreakdownNavigation() {
 	const searchParams = useSearchParams();
 	const pageId = searchParams.get('pageId') ?? '';
 	const instanceId = searchParams.get('instanceId') ?? '';
+	const pagePosition = Number(searchParams.get('pagePosition') ?? '0');
 
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
@@ -100,7 +101,7 @@ export default function BreakdownNavigation() {
 										idx={i}
 										item={stat}
 										onAnswerClick={(id: string) => updateSelectedAnswerId(id)}
-										pageId={pageId}
+										pagePosition={pagePosition}
 										selectedAnswerId={selectedAnswerId ?? undefined}
 										setExpandedIdx={(newIdx) => {
 											setExpandedIdx(newIdx);

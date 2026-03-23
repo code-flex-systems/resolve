@@ -1,6 +1,5 @@
 'use client';
 import { Spinner } from '@/components/ui/Progress';
-import Button from '@/components/ui/Button';
 import Tooltip from '@/components/ui/Tooltip';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import './styles.css';
@@ -16,7 +15,7 @@ import Collapse from '@/components/ui/Collapse';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
 	const { checklistId, claimId } = useChecklistParams();
-	const { level, instanceId, pageId, status, title, children = [] } = props;
+	const { level, instanceId, pageId, position, status, title, children = [] } = props;
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
 	const mode = useChecklistStore((state) => state.mode);
 	const expandAll = useChecklistStore((state) => state.expandAll);
@@ -29,7 +28,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const selected = selectedPageInstance === instanceId;
 	const childIds = children.map((c) => c.instanceId);
 
-	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected });
+	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected && !!pageId });
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
 		{ checklistId: checklistId!, claimId: claimId! },
 		{ enabled: !!checklistId && !!claimId }
@@ -57,31 +56,31 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	}, [selectedPageInstance, props]);
 
 	const statusIcon = useMemo(() => {
-		const iconColor = selected ? 'white' : 'var(--text-accent)';
+		const iconColor = selected ? 'var(--text-accent)' : 'var(--text-muted)';
 		const iconClassname = selected ? 'node-selected-inner' : '';
 		switch (status) {
 			case PageInstanceStatus.UNSTARTED:
 				return (
 					<Tooltip content="Unstarted">
-						<IconCircle size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircle size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
 					<Tooltip content="Started">
-						<IconAdjustments size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconAdjustments size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.COMPLETE:
 				return (
 					<Tooltip content="Complete">
-						<IconCircleCheck style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircleCheck size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip content="This page has changed">
-						<IconAlertCircle size={20} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconAlertCircle size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
 					</Tooltip>
 				);
 		}
@@ -105,9 +104,8 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			>
 				<div className="flex-row-left">
 					{!!filteredChildren.length ? (
-						<Button
-							variant="icon"
-							size="sm"
+						<button
+							style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: 4 }}
 							onClick={(e) => {
 								setExpanded((prev) => !prev);
 								clearExpandedBranch();
@@ -116,22 +114,23 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							}}
 						>
 							<IconChevronRight
-							 style={{
+								size={14}
+								style={{
 									transform: expanded ? 'rotate(90deg)' : undefined,
 									transition: 'transform 100ms ease',
+									color: selected ? 'var(--text-accent)' : 'var(--text-muted)',
 								}}
-								className={selected ? 'node-selected-inner' : ''}
 							/>
-						</Button>
+						</button>
 					) : (
-						<div style={{ width: 30, minWidth: 30 }} />
+						<div style={{ width: 20, minWidth: 20 }} />
 					)}
 					<span
 						className={selected ? 'node-selected-inner' : ''}
-						style={{ maxWidth: 350, color: selected ? 'white' : '' }}
+						style={{ maxWidth: 350 }}
 					>
 						{title}
-						{mode === ChecklistMode.EDIT ? ` (p${pageId}.i${instanceId})` : ''}
+						{mode === ChecklistMode.EDIT ? ` (p${position + 1})` : ''}
 					</span>
 				</div>
 				{(mode === ChecklistMode.VIEW || isFetching) && (
@@ -151,7 +150,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						{questions.map((q, i) => (
 							<QuestionNode
 								key={i}
-								pageId={pageId}
+								pagePosition={position + 1}
 								questionId={q.id}
 								questionText={q.text}
 								questionType={q.type as QuestionType}
@@ -162,7 +161,7 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 						))}
 						<QuestionNode
 							key="new"
-							pageId={pageId}
+							pagePosition={position + 1}
 							questionId={''}
 							questionText="New Question"
 							questionType={undefined}
@@ -204,6 +203,6 @@ const styles = {
 	questionsContainer: {
 		borderBottomLeftRadius: 2,
 		borderBottomRightRadius: 2,
-		background: 'linear-gradient(135deg, rgba(33, 181, 255, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%)',
+		background: 'rgba(0, 0, 0, 0.02)',
 	} as React.CSSProperties,
 };

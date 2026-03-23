@@ -18,7 +18,6 @@ import PartyLinkingDialog from './PartyLinkingDialog';
 import PartyDetailDialog from './PartyDetailDialog';
 import CoverageFormDialog from '../../coverage/CoverageFormDialog';
 import PartyCard from './PartyCard';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { DeductibleStatus } from '@/config/enums';
@@ -379,26 +378,16 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 									</div>
 									{isManageMode && (
 										<div style={{ display: 'flex', gap: 4 }}>
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () => handleOpenCoverageDialog(claimParty.id, coverage),
-												}}
-												tooltipProps={{ title: 'Edit coverage' }}
-												icon={<IconEdit size={20} />}
-												compact
-											/>
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () =>
-														setArchivingCoverage({
-															id: coverage.id,
-															coverageType: coverage.loss_type,
-														}),
-												}}
-												tooltipProps={{ title: 'Archive coverage' }}
-												icon={<IconArchive style={{ color: 'var(--status-error)' }} />}
-												compact
-											/>
+											<Tooltip content="Edit coverage">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+											<Tooltip content="Archive coverage">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconArchive style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
 										</div>
 									)}
 								</div>

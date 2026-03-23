@@ -2,11 +2,12 @@
 
 import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { useState } from 'react';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import AddressDialog from './AddressDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface AddressActionsCellProps {
 	row: any;
@@ -87,42 +88,30 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 
 			<div style={styles.container}>
 				<div style={{ marginRight: isAdminContext ? '5px' : undefined }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isArchived || isPartyArchived,
-						}}
-						tooltipProps={{
-							title: isArchived
+					<Tooltip content="isArchived
 								? 'Cannot edit archived address'
 								: isPartyArchived
 									? 'Cannot edit address - parent party is archived'
-									: 'Make changes',
-						}}
-						icon={<IconEdit size={15} />}
-					/>
+									: 'Make changes'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived || isPartyArchived}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				</div>
 				{isAdminContext && (
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowActionConfirm(true),
-							disabled: isPending || isPartyArchived,
-						}}
-						tooltipProps={{
-							title: isPartyArchived
+					<Tooltip content="isPartyArchived
 								? 'Cannot modify address - parent party is archived'
 								: isArchived
 									? 'Restore address'
-									: 'Archive address',
-						}}
-						icon={
+									: 'Archive address'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending || isPartyArchived}>
 							isArchived ? (
 								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
 								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 							)
-						}
-					/>
+						</Button>
+						</Tooltip>
 				)}
 			</div>
 		</>

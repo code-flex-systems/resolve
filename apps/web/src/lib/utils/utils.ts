@@ -307,7 +307,7 @@ export const dateSortComparator = (v1: unknown, v2: unknown): number => {
 function getInstances(tree: TreeNode[], currentInstanceId: string, instances: InstanceListItem[]) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
-			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId });
+			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId, position: node.position });
 		}
 
 		if (node.children) {

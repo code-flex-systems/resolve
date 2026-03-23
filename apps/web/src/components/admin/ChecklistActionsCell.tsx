@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
 interface ChecklistActionsCellProps {
@@ -29,43 +28,28 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 	return (
 		<>
 			<div style={styles.container} className="flex-row-right">
-				<BasicButtonStyled
-					buttonProps={{
-						disabled: isPending,
-						onClick: () => setUpdating(true),
-					}}
-					tooltipProps={{
-						title: `${published ? 'Unpublish' : 'Publish'}`,
-					}}
-					icon={
-						published ? (
+				<Tooltip content="`${published ? 'Unpublish' : 'Publish'}`">
+							<Button variant="icon" size="sm" color="neutral" disabled={isPending}>
+							published ? (
 							<IconArchive style={{ ...styles.icon, color: 'var(--status-error)' }} />
 						) : (
 							<IconArchiveOff style={{ ...styles.icon, color: 'var(--status-success)' }} />
 						)
-					}
-				/>
+						</Button>
+						</Tooltip>
 				<div style={{ marginLeft: '10px' }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => router.push(`/checklist/${params.id}/breakdown`),
-						}}
-						tooltipProps={{
-							title: 'Go to breakdown...',
-						}}
-						icon={<IconChartBar style={{ ...styles.icon, transform: 'rotate(90deg)' }} />}
-					/>
+					<Tooltip content="Go to breakdown...">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconChartBar style={{ ...styles.icon, transform: 'rotate(90deg)' }} />
+						</Button>
+						</Tooltip>
 				</div>
 				<div style={{ marginLeft: '10px' }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => router.push(`/checklist/${params.id}`),
-						}}
-						tooltipProps={{
-							title: 'Open checklist...',
-						}}
-						icon={<IconExternalLink style={styles.icon} />}
-					/>
+					<Tooltip content="Open checklist...">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconExternalLink style={styles.icon} />
+						</Button>
+						</Tooltip>
 				</div>
 			</div>
 

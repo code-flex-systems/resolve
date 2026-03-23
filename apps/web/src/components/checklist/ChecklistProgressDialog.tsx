@@ -153,34 +153,47 @@ export default function ChecklistProgressDialog() {
 			width={500}
 			height={250}
 		>
-			<div     style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
-				<Card variant="float" padding="md" style={{ padding: '20px 10px', height: 120, minHeight: 120, maxHeight: 120 }}>
-					<div>
-						<div      style={{ width: '100%', display: 'flex', justifyContent: 'center', alignContent: 'center', height: '100%' }}>
-							{!confirmingStatus && (
-								<ChecklistProgress checklistId={checklistId} claimId={claimId} width={400} />
-							)}
+			<div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
+				<Card
+					variant="float"
+					padding="md"
+					style={{ padding: '20px', height: 120, minHeight: 120, maxHeight: 120 }}
+				>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'center',
+							alignContent: 'center',
+							flexDirection: 'column',
+							height: '100%',
+						}}
+					>
+						{!confirmingStatus && (
+							<ChecklistProgress checklistId={checklistId} claimId={claimId} width={400} />
+						)}
 
-							{!!confirmingStatus && (
-								<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-									<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)' }} />
-									<div
-										
-										
-										
-										 style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}
-									>
-										{getStatusConfirmationMsg()
-											.split('|')
-											.map((part, i) => (
-												<span key={i}  style={{ fontSize: 15 }}>
-													{part}
-												</span>
-											))}
-									</div>
+						{!!confirmingStatus && (
+							<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+								<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)' }} />
+								<div
+									style={{
+										display: 'flex',
+										justifyContent: 'flex-start',
+										alignItems: 'flex-start',
+										marginLeft: '10px',
+									}}
+								>
+									{getStatusConfirmationMsg()
+										.split('|')
+										.map((part, i) => (
+											<span key={i} style={{ fontSize: 15 }}>
+												{part}
+											</span>
+										))}
 								</div>
-							)}
-						</div>
+							</div>
+						)}
 					</div>
 				</Card>
 			</div>

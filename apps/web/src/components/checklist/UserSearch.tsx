@@ -8,7 +8,7 @@ import { StackedRow } from '../common/StackedRow';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import Input from '@/components/ui/Input';
-import BasicIconButton from '../common/BasicIconButton';
+import Button from '@/components/ui/Button';
 
 export default function UserSearch({
 	selectedUser,
@@ -86,9 +86,9 @@ export default function UserSearch({
 							searching ? (
 								<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
 							) : (
-								<BasicIconButton onClick={handleClearInput}>
+								<Button variant="icon" size="sm" color="neutral" onClick={handleClearInput}>
 									<IconX size={fontSize + 2} />
-								</BasicIconButton>
+								</Button>
 							)
 						) : undefined
 					}

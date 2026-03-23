@@ -7,13 +7,13 @@ import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../../common/ExpandableTitle';
 import { usePathname, useRouter } from 'next/navigation';
 import { AnimatedCounter } from '../../common/AnimatedCounter';
-import BasicButtonStyled from '../../common/BasicButtonStyled';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { IconBug, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -86,19 +86,17 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 							Claim Submission
 						</span>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-							<BasicButtonStyled
-								buttonProps={{}}
-								icon={<IconInfoCircle size={18} />}
-								tooltipProps={{
-									title: 'A claim is considered complete if all necessary questions have been answered for the related checklist.',
-								}}
-							/>
+							<Tooltip content="A claim is considered complete if all necessary questions have been answered for the related checklist.">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconInfoCircle size={16} />
+						</Button>
+						</Tooltip>
 							{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
-								<BasicButtonStyled
-									buttonProps={{ onClick: () => router.push('/metrics/claims') }}
-									icon={<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={18} />}
-									tooltipProps={{ title: 'Open in Inspector' }}
-								/>
+								<Tooltip content="Open in Inspector">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={16} />
+						</Button>
+						</Tooltip>
 							)}
 						</div>
 					</div>

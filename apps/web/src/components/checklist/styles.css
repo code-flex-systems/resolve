@@ -19,11 +19,11 @@
 }
 
 .info {
-	color: #21B5FF;
+	color: var(--text-accent);
 }
 
 .info:hover {
-	color: #21B5FF;
+	color: var(--text-accent);
 	transition: color 0.15s ease;
 	cursor: pointer;
 }
@@ -38,56 +38,57 @@
 }
 
 .list-item-outer:hover .list-button-inner {
-	color: #21B5FF;
+	color: var(--text-accent);
 	transition: color 0.15s ease;
 }
 
 .node {
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 }
 
 .node:hover {
-	background-color: rgba(33, 181, 255, 0.04);
+	background-color: var(--bg-secondary);
 	transition: background-color 0.15s ease;
 	cursor: pointer;
 }
 
 .node-selected {
-	background: linear-gradient(180deg, #21B5FF 0%, #1a9fd9 100%);
-	box-shadow: 0 1px 2px 0 rgba(33, 181, 255, 0.3);
+	background: var(--bg-tertiary);
+	border-left: 2px solid var(--text-accent);
 	transition: all 0.15s ease;
 	cursor: pointer;
 }
 
 .node-selected:hover {
-	background: linear-gradient(180deg, #1a9fd9 0%, #158abf 100%);
-	box-shadow: 0 2px 4px 0 rgba(33, 181, 255, 0.35);
+	background: var(--bg-tertiary);
+	border-left: 2px solid var(--text-accent);
 	transition: all 0.15s ease;
 	cursor: pointer;
 }
 
 .node-selected-inner {
-	color: #ffffff;
+	color: var(--text-accent);
+	font-weight: var(--font-semibold);
 }
 
 .node-text-selected-color {
-	color: #ffffff;
+	color: var(--text-accent);
 }
 
 .node:hover .node-text-selected-color {
-	color: #0f172a;
+	color: var(--text-primary);
 }
 
 .node-a:hover {
-	color: #f59e0b;
+	color: var(--status-warning);
 }
 
 .node-q:hover {
-	color: #10b981;
+	color: var(--status-success);
 }
 
 .node-p:hover {
-	color: #ca8eff;
+	color: var(--text-accent);
 }
 
 .popper {
@@ -100,10 +101,10 @@
 }
 
 .text-hover:hover {
-	outline: 1px solid #21B5FF;
-	border-radius: 4px;
+	outline: 1px solid var(--text-accent);
+	border-radius: var(--radius-sm);
 }
 
 .text-hover {
-	padding: 4px 8px;
+	padding: var(--space-1) var(--space-2);
 }

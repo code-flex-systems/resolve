@@ -34,7 +34,7 @@ export default function PageInstanceSelect({
 		...(clearable ? [{ value: '', label: 'All' }] : []),
 		...options.map((o) => ({
 			value: o.instance_id,
-			label: `${o.title} (p${o.id}.i${o.instance_id})`,
+			label: `${o.title} (p${o.position + 1})`,
 		})),
 	];
 

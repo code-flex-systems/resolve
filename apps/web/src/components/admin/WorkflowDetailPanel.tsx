@@ -9,7 +9,6 @@ import Collapse from '@/components/ui/Collapse';
 import Skeleton from '@/components/ui/Skeleton';
 import Chip from '@/components/ui/Chip';
 import { useState, useEffect, useMemo } from 'react';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDialog from '@/components/common/BasicDialog';
 import DeskLocationTypeSelect from '@/components/common/DeskLocationTypeSelect';
 import DeskLocationSelect from '@/components/common/DeskLocationSelect';
@@ -24,6 +23,7 @@ import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { formatThresholdType, getThresholdUnit } from '@/lib/utils/workflowUtils';
 import { formatMDY } from '@/lib/utils/utils';
 import type { WorkflowThreshold, WorkflowRule, RuleExecutionSummary } from '@/hooks/trpc/useWorkflowTrpc';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface WorkflowDetailPanelProps {
 	workflowId: string;
@@ -194,12 +194,11 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							WORKFLOW DEFINITION
 						</span>
 						{!isEditing && (
-							<BasicButtonStyled
-								icon={<IconEdit size={20} />}
-								tooltipProps={{ title: 'Edit Workflow' }}
-								compact
-								buttonProps={{ onClick: () => setIsEditing(true) }}
-							/>
+							<Tooltip content="Edit Workflow">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
 						)}
 					</div>
 
@@ -241,21 +240,10 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							/>
 
 							<div style={{ display: 'flex', gap: 8 }}>
-								<BasicButtonStyled
-									buttonProps={{
-										variant: 'contained',
-										size: 'small',
-										onClick: handleSave,
-										disabled: !formData.name.trim() || updateDefinition.isPending,
-									}}
-								>
+								<Button variant="contained" onClick={handleSave} disabled={!formData.name.trim() || updateDefinition.isPending} size="sm">
 									Save
-								</BasicButtonStyled>
-								<BasicButtonStyled
-									buttonProps={{
-										variant: 'outlined',
-										size: 'small',
-										onClick: () => {
+								</Button>
+								<Button variant="outlined" onClick={() => {
 											setIsEditing(false);
 											const loc = locations.find((l) => l.id === workflow.desk_location_id);
 											setFormData({
@@ -265,11 +253,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 												deskLocationId: workflow.desk_location_id,
 												isActive: workflow.is_active,
 											});
-										},
-									}}
-								>
+										}} size="sm">
 									Cancel
-								</BasicButtonStyled>
+								</Button>
 							</div>
 						</div>
 					) : (
@@ -328,17 +314,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								SLA & Capacity Thresholds ({thresholds.length})
 							</span>
-							<BasicButtonStyled
-								buttonProps={{
-									variant: 'outlined',
-									size: 'small',
-									onClick: () => setShowThresholdDialog(true),
-									startIcon: <IconPlus size={20} />,
-									color: 'inherit',
-								}}
-							>
+							<Button variant="outlined" onClick={() => setShowThresholdDialog(true)} startIcon={<IconPlus size={16} />} size="sm">
 								Threshold
-							</BasicButtonStyled>
+							</Button>
 						</div>
 
 						{thresholds.length === 0 ? (
@@ -373,20 +351,16 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 												</td>
 												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
 													<div style={{ display: 'flex', gap: 4 }}>
-														<BasicButtonStyled
-															icon={<IconEdit size={20} />}
-															compact
-															buttonProps={{ onClick: () => handleEditThreshold(threshold) }}
-															tooltipProps={{ title: 'Edit Threshold' }}
-														/>
-														<BasicButtonStyled
-															icon={<IconArchive size={20} />}
-															compact
-															buttonProps={{
-																onClick: () => handleArchiveThreshold(threshold),
-															}}
-															tooltipProps={{ title: 'Archive Threshold' }}
-														/>
+														<Tooltip content="Edit Threshold">
+															<Button variant="icon" size="sm" color="neutral" onClick={() => handleEditThreshold(threshold)}>
+															<IconEdit size={16} />
+														</Button>
+														</Tooltip>
+														<Tooltip content="Archive Threshold">
+															<Button variant="icon" size="sm" color="neutral" onClick={() => handleArchiveThreshold(threshold)}>
+															<IconArchive size={16} />
+														</Button>
+														</Tooltip>
 													</div>
 												</td>
 											</tr>
@@ -408,17 +382,9 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								Automation Rules ({rules.length})
 							</span>
-							<BasicButtonStyled
-								buttonProps={{
-									variant: 'outlined',
-									size: 'small',
-									onClick: () => setShowRuleDialog(true),
-									startIcon: <IconPlus size={20} />,
-									color: 'inherit',
-								}}
-							>
+							<Button variant="outlined" onClick={() => setShowRuleDialog(true)} startIcon={<IconPlus size={16} />} size="sm">
 								Rule
-							</BasicButtonStyled>
+							</Button>
 						</div>
 
 						{rules.length === 0 ? (

@@ -1,13 +1,13 @@
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useState } from 'react';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import { StackedRow } from '../common/StackedRow';
 import { formatMDY } from '@/lib/utils/utils';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { IconChecklist } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 
 export default function ChecklistInfo() {
 	const isAdmin = useIsAdmin();
@@ -19,14 +19,9 @@ export default function ChecklistInfo() {
 	if (!checklist) return <></>;
 	return (
 		<div className="flex-row-left">
-			<BasicButtonStyled
-				buttonProps={{
-					onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => setChecklistAnchorEl(e.currentTarget),
-					onMouseLeave: () => setChecklistAnchorEl(null),
-					startIcon: <IconChecklist size={20} />,
-				}}>
+			<Button variant="outlined" onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => setChecklistAnchorEl(e.currentTarget)} onMouseLeave={() => setChecklistAnchorEl(null)} startIcon={<IconChecklist size={16} />}>
 				{checklist.name}
-			</BasicButtonStyled>
+			</Button>
 			<BasicPopper
 				anchorEl={checklistAnchorEl}
 				setAnchorEl={setChecklistAnchorEl}

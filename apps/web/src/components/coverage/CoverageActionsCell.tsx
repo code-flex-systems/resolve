@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import { useCoverageTrpc, CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface CoverageActionsCellProps {
 	row: any;
@@ -63,23 +64,17 @@ export default function CoverageActionsCell({ row, onEdit }: CoverageActionsCell
 			)}
 
 			<div style={styles.container}>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => onEdit(coverage),
-						disabled: isPending,
-					}}
-					tooltipProps={{ title: 'Edit coverage' }}
-					icon={<IconEdit size={15} />}
-				/>
+				<Tooltip content="Edit coverage">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => onEdit(coverage)} disabled={isPending}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				<div  style={{ marginLeft: '10px' }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowDeleteDialog(true),
-							disabled: isPending,
-						}}
-						tooltipProps={{ title: 'Delete coverage' }}
-						icon={<IconTrash size={15} />}
-					/>
+					<Tooltip content="Delete coverage">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowDeleteDialog(true)} disabled={isPending}>
+							<IconTrash size={15} />
+						</Button>
+						</Tooltip>
 				</div>
 			</div>
 		</>

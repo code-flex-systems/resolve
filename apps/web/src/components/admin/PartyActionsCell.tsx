@@ -2,11 +2,12 @@
 
 import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { useState } from 'react';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import PartyDialog from './PartyDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface PartyActionsCellProps {
 	row: any;
@@ -81,30 +82,22 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 
 			<div style={styles.container}>
 				<div style={{ marginRight: isAdminContext ? '10px' : undefined }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isArchived,
-						}}
-						tooltipProps={{ title: isArchived ? 'Cannot edit archived party' : 'Make changes' }}
-						icon={<IconEdit size={15} />}
-					/>
+					<Tooltip content="isArchived ? 'Cannot edit archived party' : 'Make changes'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				</div>
 				{isAdminContext && (
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowActionConfirm(true),
-							disabled: isPending,
-						}}
-						tooltipProps={{ title: isArchived ? 'Restore party' : 'Archive party' }}
-						icon={
+					<Tooltip content="isArchived ? 'Restore party' : 'Archive party'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending}>
 							isArchived ? (
 								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
 								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 							)
-						}
-					/>
+						</Button>
+						</Tooltip>
 				)}
 			</div>
 		</>

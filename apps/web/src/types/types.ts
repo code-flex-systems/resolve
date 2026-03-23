@@ -150,6 +150,7 @@ export interface InstanceListItem {
 	title: string;
 	instanceId: string;
 	pageId: string;
+	position: number;
 }
 
 export type Interval<T> = {

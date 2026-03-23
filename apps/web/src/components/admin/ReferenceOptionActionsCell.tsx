@@ -2,11 +2,12 @@
 
 import { IconEdit, IconTrash, IconTrashOff } from '@tabler/icons-react';
 import { useState } from 'react';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import ReferenceOptionDialog from './ReferenceOptionDialog';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface ReferenceOptionActionsCellProps {
 	row: any;
@@ -81,35 +82,25 @@ export default function ReferenceOptionActionsCell(params: ReferenceOptionAction
 
 			<div style={styles.container}>
 				<div style={{ marginRight: '10px' }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isDeleted,
-						}}
-						tooltipProps={{ title: isDeleted ? 'Cannot edit deactivated option' : 'Edit option' }}
-						icon={<IconEdit size={15} />}
-					/>
+					<Tooltip content="isDeleted ? 'Cannot edit deactivated option' : 'Edit option'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isDeleted}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				</div>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setShowDeleteConfirm(true),
-						disabled: isPending || (!isDeleted && isSystemDefault),
-					}}
-					tooltipProps={{
-						title: isSystemDefault && !isDeleted
+				<Tooltip content="isSystemDefault && !isDeleted
 							? 'Cannot deactivate system default'
 							: isDeleted
 								? 'Reactivate option'
-								: 'Deactivate option',
-					}}
-					icon={
-						isDeleted ? (
+								: 'Deactivate option'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowDeleteConfirm(true)} disabled={isPending || (!isDeleted && isSystemDefault)}>
+							isDeleted ? (
 							<IconTrashOff size={15} style={{ color: 'var(--status-success)' }} />
 						) : (
 							<IconTrash size={15} style={{ color: isSystemDefault ? '#bdbdbd' : 'var(--status-error)', }} />
 						)
-					}
-				/>
+						</Button>
+						</Tooltip>
 			</div>
 		</>
 	);

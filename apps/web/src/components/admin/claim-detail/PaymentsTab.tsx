@@ -16,8 +16,6 @@ import { dateSortComparator, numericSortComparator, stringSortComparator } from 
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import BasicIconButton from '@/components/common/BasicIconButton';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 dayjs.extend(utc);
@@ -252,24 +250,16 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => handleOpenPaymentDialog(params.row),
-									sx: { padding: '3px', },
-								}}
-								tooltipProps={{ title: 'Edit payment' }}
-								icon={<IconEdit size={20} />}
-								compact
-							/>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => setArchivingPayment(params.row),
-									sx: { padding: '3px', },
-								}}
-								tooltipProps={{ title: 'Archive payment' }}
-								icon={<IconArchive style={{ color: 'var(--status-error)' }} />}
-								compact
-							/>
+							<Tooltip content="Edit payment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => handleOpenPaymentDialog(params.row)}>
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+							<Tooltip content="Archive payment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setArchivingPayment(params.row)}>
+							<IconArchive style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
 						</div>
 					);
 				},

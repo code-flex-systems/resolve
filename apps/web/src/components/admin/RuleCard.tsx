@@ -4,11 +4,12 @@ import { IconArchive, IconBolt, IconCircleCheck, IconCircleX, IconCurrentLocatio
 import { Spinner } from '@/components/ui/Progress';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatTriggerType, formatActionType } from '@/lib/utils/workflowUtils';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 import { WorkflowActionType } from '@/config/enums';
 import type { WorkflowRule } from '@/hooks/trpc/useWorkflowTrpc';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface RuleCardProps {
 	rule: WorkflowRule;
@@ -105,35 +106,22 @@ export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning }: 
 				{/* Action buttons */}
 				<div style={{ display: 'flex', gap: 4 }}>
 					{rule.is_active && onRun && (
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: () => onRun(rule),
-								sx: { backgroundColor: 'var(--bg-tertiary)' },
-								disabled: isRunning,
-							}}
-							icon={isRunning ? <Spinner size="sm" /> : <IconPlayerPlay size={20} />}
-							compact
-							tooltipProps={{ title: 'Run Rule' }}
-						/>
+						<Tooltip content="Run Rule">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => onRun(rule)} disabled={isRunning}>
+							isRunning ? <Spinner size="sm" /> : <IconPlayerPlay size={16} />
+						</Button>
+						</Tooltip>
 					)}
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => onEdit(rule),
-							sx: { backgroundColor: 'var(--bg-tertiary)' },
-						}}
-						icon={<IconEdit size={20} />}
-						compact
-						tooltipProps={{ title: 'Edit Rule' }}
-					/>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => onArchive(rule),
-							sx: { backgroundColor: 'var(--bg-tertiary)' },
-						}}
-						icon={<IconArchive size={20} />}
-						compact
-						tooltipProps={{ title: 'Archive Rule' }}
-					/>
+					<Tooltip content="Edit Rule">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => onEdit(rule)}>
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+					<Tooltip content="Archive Rule">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => onArchive(rule)}>
+							<IconArchive size={16} />
+						</Button>
+						</Tooltip>
 				</div>
 			</div>
 		</div>

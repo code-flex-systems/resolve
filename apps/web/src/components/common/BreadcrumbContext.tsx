@@ -14,18 +14,31 @@ export interface BreadcrumbSegment {
 
 interface BreadcrumbContextValue {
 	segments: BreadcrumbSegment[];
-	/** Set custom breadcrumb segments (overrides auto-generated ones) */
+	/**
+	 * Replace auto-generated segments entirely (legacy — prefer setDynamicSegments).
+	 */
 	setSegments: (segments: BreadcrumbSegment[]) => void;
-	/** Append a segment to the auto-generated trail */
-	pushSegment: (segment: BreadcrumbSegment) => void;
-	/** Clear custom segments (reverts to auto-generated) */
+	/**
+	 * Set dynamic segments that are appended after auto-generated route segments.
+	 * Replaces any previous dynamic segments. Use this for page-specific context
+	 * like entity names, selected items, etc.
+	 *
+	 * The auto-generated segments from the URL path are preserved.
+	 * Dynamic segments replace UUID path segments and add context.
+	 *
+	 * Example: On /checklist/[id]/claim/[id], auto segments = ["Checklist"].
+	 * Call setDynamicSegments([{ label: "Auto Claims" }, { label: "Page 3" }])
+	 * Result: ["Checklist", "Auto Claims", "Page 3"]
+	 */
+	setDynamicSegments: (segments: BreadcrumbSegment[]) => void;
+	/** Clear all custom/dynamic segments (reverts to auto-generated) */
 	clearSegments: () => void;
 }
 
 const BreadcrumbCtx = createContext<BreadcrumbContextValue>({
 	segments: [],
 	setSegments: () => {},
-	pushSegment: () => {},
+	setDynamicSegments: () => {},
 	clearSegments: () => {},
 });
 
@@ -75,6 +88,15 @@ const ROUTE_LABELS: Record<string, string> = {
 	summary: 'Summary',
 };
 
+/** Check if a path segment is a dynamic ID (UUID or numeric) */
+function isDynamicSegment(part: string): boolean {
+	// UUID pattern
+	if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part)) return true;
+	// Pure numeric
+	if (/^\d+$/.test(part)) return true;
+	return false;
+}
+
 function buildSegmentsFromPath(pathname: string): BreadcrumbSegment[] {
 	const parts = pathname.split('/').filter(Boolean);
 	const segments: BreadcrumbSegment[] = [];
@@ -82,8 +104,8 @@ function buildSegmentsFromPath(pathname: string): BreadcrumbSegment[] {
 
 	for (const part of parts) {
 		href += `/${part}`;
-		// Skip dynamic segments like [claimId] — they'll be overridden by page context
-		if (part.startsWith('[') || /^\d+$/.test(part)) continue;
+		// Skip dynamic segments (UUIDs, numbers) — they'll be replaced by dynamic segments from pages
+		if (isDynamicSegment(part)) continue;
 		const label = ROUTE_LABELS[part] ?? part.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 		segments.push({ label, href });
 	}
@@ -98,32 +120,34 @@ function buildSegmentsFromPath(pathname: string): BreadcrumbSegment[] {
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
 	const pathname = usePathname();
 	const [customSegments, setCustomSegments] = useState<BreadcrumbSegment[] | null>(null);
-	const [extraSegments, setExtraSegments] = useState<BreadcrumbSegment[]>([]);
+	const [dynamicSegments, setDynamic] = useState<BreadcrumbSegment[]>([]);
 
-	// Reset custom segments on route change
+	// Reset all custom/dynamic segments on route change
 	useEffect(() => {
 		setCustomSegments(null);
-		setExtraSegments([]);
+		setDynamic([]);
 	}, [pathname]);
 
 	const autoSegments = buildSegmentsFromPath(pathname);
-	const segments = customSegments ?? [...autoSegments, ...extraSegments];
+
+	// Final segments: custom override OR (auto + dynamic appended)
+	const segments = customSegments ?? [...autoSegments, ...dynamicSegments];
 
 	const setSegments = useCallback((segs: BreadcrumbSegment[]) => {
 		setCustomSegments(segs);
 	}, []);
 
-	const pushSegment = useCallback((seg: BreadcrumbSegment) => {
-		setExtraSegments((prev) => [...prev, seg]);
+	const setDynamicSegments = useCallback((segs: BreadcrumbSegment[]) => {
+		setDynamic(segs);
 	}, []);
 
 	const clearSegments = useCallback(() => {
 		setCustomSegments(null);
-		setExtraSegments([]);
+		setDynamic([]);
 	}, []);
 
 	return (
-		<BreadcrumbCtx.Provider value={{ segments, setSegments, pushSegment, clearSegments }}>
+		<BreadcrumbCtx.Provider value={{ segments, setSegments, setDynamicSegments, clearSegments }}>
 			{children}
 		</BreadcrumbCtx.Provider>
 	);

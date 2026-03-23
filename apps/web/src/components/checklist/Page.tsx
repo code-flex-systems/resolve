@@ -12,7 +12,7 @@ import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 import ExpandableTitle from '../common/ExpandableTitle';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import Button from '@/components/ui/Button';
 import CommentDialog from './CommentDialog';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 import useIsAssigned from '@/hooks/useIsAssigned';
@@ -20,6 +20,7 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { IconCircleCheck, IconDeviceFloppy, IconFileDescription, IconRefresh } from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
+import Card from '../ui/Card';
 
 function generateDefaultValues(questions?: Question[], responses?: Record<string, QuestionResponse>) {
 	const defaults: Record<string, string[] | string | number | null> = {};
@@ -115,7 +116,10 @@ export default function Page() {
 	useEffect(() => {
 		if (loading || !selectedPageInstance) return;
 		reset({
-			...generateDefaultValues(questions, mode === ChecklistMode.VIEW ? responses as Record<string, QuestionResponse> : undefined),
+			...generateDefaultValues(
+				questions,
+				mode === ChecklistMode.VIEW ? (responses as Record<string, QuestionResponse>) : undefined
+			),
 		});
 	}, [questions, responses, selectedPageInstance, mode, loading]);
 
@@ -159,17 +163,27 @@ export default function Page() {
 				{(!selectedPageInstance || loading) && (
 					<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
 						{loading ? (
-							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, width: '100%', padding: 16 }}>
+							<div
+								style={{
+									display: 'flex',
+									flexDirection: 'column' as const,
+									gap: 16,
+									width: '100%',
+									padding: 16,
+								}}
+							>
 								<Skeleton variant="text" width="60%" height={32} />
 								{[1, 2, 3, 4].map((i) => (
-									<div key={i}  style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+									<div key={i} style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 										<Skeleton variant="text" width="40%" />
 										<Skeleton variant="rect" height={48} />
 									</div>
 								))}
 							</div>
 						) : (
-							<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+							<div
+								style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+							>
 								<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
 								<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 									No page selected
@@ -180,79 +194,85 @@ export default function Page() {
 				)}
 				{!!selectedPageInstance && !loading && (
 					<>
-						<Toolbar
-							left={
-								<>
-									<ExpandableTitle
-										title={selectedPageInfo.title}
-										icon={<IconFileDescription size={20} />}
-										color="white"
-									/>
-									{showUpdateMsg && (
-										<div className="flex-row-left" style={{ marginLeft: 10 }}>
-											<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
-											<span style={{ color: 'var(--status-success)' }}>Saved!</span>
-										</div>
-									)}
-								</>
-							}
-							leftWidth="70%"
-							right={
-								mode === ChecklistMode.VIEW && isAssigned ? (
-									<div className="flex-row-right">
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () =>
+						<Card variant="surface" style={{ width: '100%', padding: 5, marginBottom: 10 }}>
+							<Toolbar
+								left={
+									<>
+										<IconFileDescription size={20} />
+										<h3>{selectedPageInfo.title}</h3>
+										{showUpdateMsg && (
+											<div className="flex-row-left" style={{ marginLeft: 10 }}>
+												<IconCircleCheck
+													size={20}
+													style={{ color: 'var(--status-success)', marginRight: '5px' }}
+												/>
+												<span style={{ color: 'var(--status-success)' }}>Saved!</span>
+											</div>
+										)}
+									</>
+								}
+								leftWidth="70%"
+								right={
+									mode === ChecklistMode.VIEW && isAssigned ? (
+										<div className="flex-row-right" style={{ gap: 8 }}>
+											<Button
+												variant="outlined"
+												color="warning"
+												size="sm"
+												onClick={() =>
 													reset(
 														{ ...generateDefaultValues(questions) },
 														{ keepDefaultValues: true }
-													),
-												startIcon: <IconRefresh size={20} />,
-												sx: { height: 25, marginRight: '10px' },
-											}}>
-											Reset
-										</BasicButtonStyled>
-										<BasicButtonStyled
-											buttonProps={{
-												color: 'primary',
-												disabled: !isDirty || fetching || isSubmitting,
-												onClick: () => {
+													)
+												}
+												startIcon={<IconRefresh size={16} />}
+											>
+												Reset
+											</Button>
+											<Button
+												variant="contained"
+												size="sm"
+												onClick={() => {
 													if (checklistClaim?.status === ClaimStatus.SUBMITTED) {
 														toggleUpdateSubmittedDialog(onSubmit);
 														return;
 													}
 													onSubmit();
-												},
-												startIcon: <IconDeviceFloppy size={20} />,
-												sx: { height: 25 },
-											}}>
-											Save
-										</BasicButtonStyled>
-									</div>
-								) : undefined
-							}
-							rightWidth="30%"
-							height={60}
-							padding={'10px 0px'}
-						/>
-						<div style={styles.divider}>
+												}}
+												disabled={!isDirty || fetching || isSubmitting}
+												startIcon={<IconDeviceFloppy size={16} />}
+											>
+												Save
+											</Button>
+										</div>
+									) : undefined
+								}
+								rightWidth="30%"
+								// height={60}
+								// padding={'10px 0px'}
+							/>
+						</Card>
+						{/* <div style={styles.divider}>
 							<Divider />
-						</div>
+						</div> */}
 						<div style={styles.formWrapper}>
-							<Form control={control} style={{ width: '100%' }}>
-									{(questions ?? []).map((question, i) => (
-										<ChecklistQuestion
-											key={question.id}
-											control={control}
-											setValue={setValue}
-											watch={watch}
-											question={question}
-											comment={comments?.[question.id]}
-											disabled={isSubmitting}
-											idx={i}
-										/>
-									))}
-								</Form>
+							<Form
+								control={control}
+								style={{ width: '100%', display: 'flex', flexDirection: 'column' as const, gap: 16 }}
+							>
+								{(questions ?? []).map((question, i) => (
+									<ChecklistQuestion
+										key={question.id}
+										control={control}
+										setValue={setValue}
+										watch={watch}
+										question={question}
+										comment={comments?.[question.id]}
+										disabled={isSubmitting}
+										idx={i}
+									/>
+								))}
+							</Form>
 						</div>
 					</>
 				)}

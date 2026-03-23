@@ -5,7 +5,6 @@ import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useState } from 'react';
 import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import ChecklistSelect from '@/components/common/ChecklistSelect';
 import BasicDateRangePicker from '@/components/common/BasicDateRangePicker';
@@ -23,6 +22,8 @@ import { useMetricsStore } from '@/stores/useMetricsStore';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import { IconArrowLeft, IconCircleCheck, IconFileText } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 const Highlight = ({
 	children,
@@ -57,11 +58,11 @@ export default function ClaimsView() {
 style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}>
 				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 					<div style={{ marginRight: '5px' }}>
-						<BasicButtonStyled
-							icon={<IconArrowLeft size={20} />}
-							buttonProps={{ onClick: () => router.back() }}
-							tooltipProps={{ title: 'Back to dashboard' }}
-						/>
+						<Tooltip content="Back to dashboard">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconArrowLeft size={16} />
+						</Button>
+						</Tooltip>
 					</div>
 					<div style={{ marginRight: '5px' }}>
 						<BasicDateRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
@@ -197,36 +198,27 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 												)}
 											</span>
 											<div style={{ paddingTop: '20px' }}>
-												<BasicButtonStyled
-													buttonProps={{
-														onClick: () => {
+												<Button variant="outlined" onClick={() => {
 															router.push(
 																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}`
 															);
-														},
-													}}>
+														}}>
 													Open in checklist...
-												</BasicButtonStyled>
+												</Button>
 											</div>
 											<div style={{ paddingTop: '10px' }}>
-												<BasicButtonStyled
-													buttonProps={{
-														onClick: () => {
+												<Button variant="outlined" onClick={() => {
 															router.push(
 																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}/summary`
 															);
-														},
-													}}>
+														}}>
 													Go to checklist summary...
-												</BasicButtonStyled>
+												</Button>
 											</div>
 											<div style={{ paddingTop: '10px' }}>
-												<BasicButtonStyled
-													buttonProps={{
-														onClick: () => {},
-													}}>
+												<Button variant="outlined" onClick={() => {}}>
 													See activity...
-												</BasicButtonStyled>
+												</Button>
 											</div>
 										</div>
 									)}

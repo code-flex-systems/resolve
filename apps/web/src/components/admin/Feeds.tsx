@@ -11,7 +11,6 @@ import Toolbar from '../common/Toolbar';
 import { useState } from 'react';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import IconHeaderCell from '../common/IconHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
@@ -196,14 +195,11 @@ export default function Feeds() {
 					left={undefined}
 					right={
 						<>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: onTest,
-									disabled: testing || !feeds.length,
-								}}
-								icon={<IconNetwork size={20} />}
-								tooltipProps={{ title: 'Test all connections' }}
-							/>
+							<Tooltip content="Test all connections">
+							<Button variant="icon" size="sm" color="neutral" onClick={onTest} disabled={testing || !feeds.length}>
+							<IconNetwork size={16} />
+						</Button>
+						</Tooltip>
 							<Tooltip content="Manage">
 								<Button variant="icon" size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}

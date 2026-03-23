@@ -23,7 +23,7 @@ export default function QuestionStatsDialog() {
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 	return (
 		<BasicDialog
-			title={`Breakdown for ${selectedPageInfo.title} (p${selectedPageInfo.pageId})`}
+			title={`Breakdown for ${selectedPageInfo.title} (p${selectedPageInfo.position + 1})`}
 			iconActions={[
 				<BasicButton
 					buttonProps={{
@@ -62,7 +62,7 @@ export default function QuestionStatsDialog() {
 						expandedIdx={expandedIdx}
 						idx={i}
 						item={stat}
-						pageId={selectedPageInfo.pageId}
+						pagePosition={selectedPageInfo.position + 1}
 						onAnswerClick={() => {}}
 						setExpandedIdx={setExpandedIdx}
 						bgColor={'var(--bg-primary)'}

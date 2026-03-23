@@ -27,7 +27,7 @@ export default function ChecklistFormLabel(props: {
 	const isAssigned = useIsAssigned();
 	const isEmpty = Array.isArray(value) ? !value.length : !value;
 	return (
-		<label style={{ marginLeft: 0, paddingLeft: 0, display: 'flex', alignItems: 'center' }} className="flex-row-left">
+		<label style={{ marginLeft: 0, paddingLeft: 0, display: 'flex', alignItems: 'center', margin: '20px 0px' }}>
 			{isAssigned && (
 				<Tooltip content="Reset question">
 					<span>
@@ -59,21 +59,23 @@ export default function ChecklistFormLabel(props: {
 							disabled={disabled}
 							style={{ marginRight: '10px' }}
 						>
-							<IconMessage size={17} style={{ color: comment ? 'var(--text-accent)' : undefined }}
-							/>
+							<IconMessage size={17} style={{ color: comment ? 'var(--text-accent)' : undefined }} />
 						</Button>
 					</span>
 				</Tooltip>
 			)}
 
 			<span
-				
-				
-				 style={{ fontSize: 14, color: isEmpty && mode === ChecklistMode.VIEW
-						? 'error.light'
-						: highlightedQuestion === question.id
-							? 'secondary'
-							: undefined, fontWeight: 'bold' }}
+				style={{
+					fontSize: 14,
+					color:
+						isEmpty && mode === ChecklistMode.VIEW
+							? 'error.light'
+							: highlightedQuestion === question.id
+								? 'secondary'
+								: undefined,
+					fontWeight: 'bold',
+				}}
 			>
 				{idx + 1}. {question.text}
 			</span>

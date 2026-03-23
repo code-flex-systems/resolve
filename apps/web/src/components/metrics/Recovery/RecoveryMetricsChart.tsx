@@ -5,12 +5,12 @@ import KpiCard from '@/components/ui/KpiCard';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import BasicButtonStyled from '../../common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
 import type { DateRange } from '@/types/dateTypes';
 import Skeleton from '@/components/ui/Skeleton';
 import { IconBug } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 
 export default function RecoveryMetricsChart({
 	range,
@@ -124,20 +124,16 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 							<span style={{ fontSize: 13, color: '#d9d9d9', marginRight: '15px' }}>
 								vs Q{quarters.lastQuarter} {quarters.lastYear}
 							</span>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => router.push('/admin/financial/recovery'),
-								}}
-								icon={
-									<IconBug
+							<Tooltip content="Open in Inspector">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconBug
 									 style={{
 											transform: 'scaleX(-1)',
 											color: 'var(--text-accent)',
 										}}
 									/>
-								}
-								tooltipProps={{ title: 'Open in Inspector' }}
-							/>
+						</Button>
+						</Tooltip>
 						</div>
 					)}
 				</div>

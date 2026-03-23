@@ -8,21 +8,21 @@ export default function QuestionStatItem(props: {
 	idx: number;
 	item: QuestionStat;
 	onAnswerClick: (id: string) => void;
-	pageId: string;
+	pagePosition: number;
 	selectedAnswerId?: string;
 	setExpandedIdx: (newIdx: number | null) => void;
 }) {
-	const { bgColor, expandedIdx, idx, item, onAnswerClick, pageId, selectedAnswerId, setExpandedIdx } = props;
+	const { bgColor, expandedIdx, idx, item, onAnswerClick, pagePosition, selectedAnswerId, setExpandedIdx } = props;
 	const { question_id, question_text, answers } = item;
 	const expanded = expandedIdx === idx;
 
 	return (
 		<div style={{ backgroundColor: bgColor, borderTopLeftRadius: idx === 0 ? 6 : undefined, borderTopRightRadius: idx === 0 ? 6 : undefined }}>
 			<Accordion
-				title={`${question_text} (p${pageId}.q${question_id})`}
+				title={`${question_text} (p${pagePosition}.q${idx + 1})`}
 				defaultOpen={false}
 			>
-				{answers.map((a) => (
+				{answers.map((a, ai) => (
 					<div key={a.answer_id} className="flex-col-left" style={styles.container}>
 						<div className="flex-row-left" style={styles.container}>
 							<div
@@ -46,11 +46,11 @@ export default function QuestionStatItem(props: {
 									style={{ marginLeft: '10px', background: 'none', border: 'none', padding: 0, font: 'inherit', color: selectedAnswerId === a.answer_id ? 'var(--status-success)' : 'var(--text-accent)', cursor: 'pointer' }}
 									onClick={() => onAnswerClick(a.answer_id)}
 								>
-									{a.answer_text} (p{pageId}.q{question_id}.a{a.answer_id})
+									{a.answer_text} (p{pagePosition}.q{idx + 1}.a{ai + 1})
 								</button>
 							) : (
 								<span style={{ marginLeft: '10px' }}>
-									{a.answer_text} (p{pageId}.q{question_id}.a{a.answer_id})
+									{a.answer_text} (p{pagePosition}.q{idx + 1}.a{ai + 1})
 								</span>
 							)}
 						</div>

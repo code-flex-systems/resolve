@@ -5,18 +5,20 @@ import './styles.css';
 import { IconQuote } from '@tabler/icons-react';
 
 export default function AnswerNode(props: {
-	pageId: string;
+	pagePosition: number;
+	questionPosition: number;
+	answerPosition: number;
 	questionId: string;
 	answerId: string;
 	answerText: string;
 	level: number;
 }) {
-	const { pageId, questionId, answerId, answerText, level } = props;
+	const { pagePosition, questionPosition, answerPosition, questionId, answerId, answerText, level } = props;
 	const mode = useChecklistStore((state) => state.mode);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
 	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
 	const updateSelectedAnswer = useChecklistStore((state) => state.updateSelectedAnswer);
-	const selected = selectedAnswer === answerId && selectedQuestion === questionId;
+	const selected = selectedAnswer === answerId;
 	const isPlaceholder = answerId === '';
 	return (
 		<div
@@ -29,9 +31,9 @@ export default function AnswerNode(props: {
 				/>
 				<span
 					className={isPlaceholder ? 'node-p' : 'node-a'}
-					style={{ cursor: 'pointer', color: selected ? 'var(--status-warning)' : isPlaceholder ? '#DAB0FF' : '', fontWeight: isPlaceholder ? 'bold' : '', lineHeight: '19px' }}
+					style={{ cursor: 'pointer', color: selected ? 'var(--status-warning)' : isPlaceholder ? 'var(--text-muted)' : '', fontWeight: isPlaceholder ? 'bold' : '', fontStyle: isPlaceholder ? 'italic' : undefined, lineHeight: '19px' }}
 				>
-					{answerText} (p{pageId}.q{questionId}.a{answerId === '' ? '?' : answerId})
+					{answerText} (p{pagePosition}.q{questionPosition}.a{answerId === '' ? '?' : answerPosition})
 				</span>
 			</div>
 		</div>

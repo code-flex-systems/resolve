@@ -4,12 +4,13 @@ import Toolbar from '@/components/common/Toolbar';
 import SummaryChart from '@/components//summary/SummaryChart';
 import ClaimInfo from '@/components/checklist/ClaimInfo';
 import SummaryDetails from '@/components/summary/SummaryDetails';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import ChecklistInfo from '../checklist/ChecklistInfo';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { IconArrowLeft, IconChecklist } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function Summary() {
 	const router = useRouter();
@@ -22,11 +23,11 @@ export default function Summary() {
 				left={
 					<>
 						<div style={{ marginRight: '5px' }}>
-							<BasicButtonStyled
-								icon={<IconArrowLeft size={20} />}
-								buttonProps={{ onClick: () => router.back() }}
-								tooltipProps={{ title: 'Back to checklist' }}
-							/>
+							<Tooltip content="Back to checklist">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconArrowLeft size={16} />
+						</Button>
+						</Tooltip>
 						</div>
 						<IconChecklist size={20} />
 						<span style={{ marginLeft: 4, marginRight: 8 }}>

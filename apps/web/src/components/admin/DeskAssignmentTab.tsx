@@ -11,7 +11,6 @@ import { useEffect, useMemo, useState } from 'react';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BulkDeskAssignmentDialog from './BulkDeskAssignmentDialog';
 import EditUserDeskAssignmentsDialog from './EditUserDeskAssignmentsDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
@@ -97,13 +96,11 @@ export default function DeskAssignmentTab() {
 					if (!isManageMode) return null;
 					return (
 						<div style={styles.actionsContainer}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => setEditingUserId(row.id),
-								}}
-								tooltipProps={{ title: 'Edit desk assignments' }}
-								icon={<IconEdit size={15} />}
-							/>
+							<Tooltip content="Edit desk assignments">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 						</div>
 					);
 				},

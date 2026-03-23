@@ -6,8 +6,8 @@ import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from '../home/UpdateUserDialog';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface UserActionsCellProps {
 	row: any;
@@ -54,24 +54,18 @@ export default function UserActionsCell(params: UserActionsCellProps) {
 			{updating && <UpdateUserDialog user={row} onClose={() => setUpdating(false)} />}
 
 			<div style={styles.container}>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setUpdating(true),
-						disabled: isPending,
-					}}
-					tooltipProps={{ title: 'Make changes' }}
-					icon={<IconEdit size={15} />}
-				/>
+				<Tooltip content="Make changes">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setUpdating(true)} disabled={isPending}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				{session?.user?.id !== row.id && (
 					<div style={{ marginLeft: '10px' }}>
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: () => setOnOffboarding(true),
-								disabled: isPending,
-							}}
-							tooltipProps={{ title: row.disabled ? 'Onboard' : 'Offboard' }}
-							icon={<IconLogout style={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />}
-						/>
+						<Tooltip content="row.disabled ? 'Onboard' : 'Offboard'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setOnOffboarding(true)} disabled={isPending}>
+							<IconLogout style={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />
+						</Button>
+						</Tooltip>
 					</div>
 				)}
 			</div>

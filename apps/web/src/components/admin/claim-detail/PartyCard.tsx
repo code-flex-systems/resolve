@@ -12,7 +12,6 @@ import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatAddressInline } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 
 dayjs.extend(relativeTime);
 
@@ -151,21 +150,13 @@ export default function PartyCard({
 								</div>
 								{isManageMode && (
 									<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => onEditParty(claimParty),
-											}}
-											icon={<IconEdit size={20} />}
-											compact
-										/>
+										<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
 										{onArchiveParty && (
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () => onArchiveParty(claimParty),
-												}}
-												icon={<IconArchive size={20} />}
-												compact
-											/>
+											<Button variant="icon" size="sm" color="neutral">
+							<IconArchive size={16} />
+						</Button>
 										)}
 									</div>
 								)}

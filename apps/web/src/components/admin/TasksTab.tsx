@@ -16,7 +16,6 @@ import { TaskStatus, TaskType } from '@/config/enums';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import TaskMetrics from './TaskMetrics';
 import TaskBulkCancellationDialog from './TaskBulkCancellationDialog';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
@@ -309,16 +308,11 @@ export default function TasksTab() {
 
 					return (
 						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => {
-										setSelectedRows({ [task.id]: true });
-										setShowBulkCancel(true);
-									},
-								}}
-								tooltipProps={{ title: 'Cancel task' }}
-								icon={<IconCircleX size={15} style={{ color: 'var(--status-error)' }} />}
-							/>
+							<Tooltip content="Cancel task">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconCircleX size={15} style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
 						</div>
 					);
 				},

@@ -33,8 +33,8 @@ export function ChecklistQuestion(props: {
 
 	return (
 		<div
-			
-			className="flex-col-left" style={{
+			className="flex-col-left"
+			style={{
 				...styles.container,
 				backgroundColor: highlightedQuestion === question.id ? 'rgba(50, 174, 153, 0.1)' : undefined,
 			}}
@@ -124,7 +124,7 @@ export function ChecklistQuestion(props: {
 const styles = {
 	container: {
 		width: '100%',
-		py: 1.25,
+		py: 10,
 		transition: 'background-color 300ms ease',
 	},
 };

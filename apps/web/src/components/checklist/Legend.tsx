@@ -1,4 +1,4 @@
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import Button from '@/components/ui/Button';
 import BasicPopper from '../common/BasicPopper';
 import { useState } from 'react';
 import { IconAdjustments, IconAlertCircle, IconCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
@@ -8,17 +8,39 @@ export default function Legend() {
 	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	return (
 		<>
-			<BasicButtonStyled
-				buttonProps={{
-					onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(e.currentTarget),
-					onMouseLeave: () => setAnchorEl(null),
-				}}
-				icon={<IconInfoCircle size={20} />}
-				compact
-			/>
-			<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={100}>
-				<div style={{ width: 'fit-content', padding: '10px 20px', height: 'fit-content', marginTop: 5, backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-					<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+			<Button
+				variant="icon"
+				size="sm"
+				color="neutral"
+				onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(e.currentTarget)}
+				onMouseLeave={() => setAnchorEl(null)}
+			>
+				<IconInfoCircle size={16} />
+			</Button>
+			<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={1300}>
+				<div
+					style={{
+						width: 'fit-content',
+						padding: '10px 20px',
+						height: 'fit-content',
+						marginTop: 5,
+						backgroundColor: 'var(--bg-primary)',
+						borderRadius: 'var(--radius-lg)',
+						boxShadow: 'var(--shadow-md)',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'flex-start',
+					}}
+				>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							flexDirection: 'column',
+							justifyContent: 'flex-start',
+							alignItems: 'flex-start',
+						}}
+					>
 						<span style={{ marginBottom: '5px' }}>Legend</span>
 						<Divider />
 						<div style={{ display: 'flex', alignItems: 'center', padding: '2px', marginTop: '10px' }}>

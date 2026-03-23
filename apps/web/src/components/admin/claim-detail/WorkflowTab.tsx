@@ -15,8 +15,8 @@ import { ClaimSubstatusChip } from '@/components/common/ReferenceDataSelect';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import TaskListPanel from '@/components/common/TaskListPanel';
+import Button from '@/components/ui/Button';
 
 dayjs.extend(relativeTime);
 
@@ -97,14 +97,9 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 								Current Assignment
 							</span>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => handleOpenChecklist(currentAssignment.checklist_id),
-									endIcon: <IconExternalLink size={20} />,
-								}}
-							>
+							<Button variant="outlined" onClick={() => handleOpenChecklist(currentAssignment.checklist_id)} endIcon={<IconExternalLink size={16} />}>
 								Open Checklist
-							</BasicButtonStyled>
+							</Button>
 						</div>
 						<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 							<div>

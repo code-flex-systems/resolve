@@ -8,11 +8,11 @@ import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 import Chip from '@/components/ui/Chip';
 import { useState, useMemo } from 'react';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import WorkflowDetailPanel from '@/components/admin/WorkflowDetailPanel';
 import WorkflowDefinitionFormDialog from '@/components/admin/WorkflowDefinitionFormDialog';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
+import Button from '@/components/ui/Button';
 
 export default function WorkflowsView() {
 	const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
@@ -83,17 +83,9 @@ export default function WorkflowsView() {
 						/>
 					</div>
 
-					<BasicButtonStyled
-						buttonProps={{
-							variant: 'contained',
-							size: 'small',
-							onClick: () => setShowCreateDialog(true),
-							startIcon: <IconPlus size={20} />,
-							sx: { height: 35 },
-						}}
-					>
+					<Button variant="contained" onClick={() => setShowCreateDialog(true)} startIcon={<IconPlus size={16} />} size="sm">
 						Workflow
-					</BasicButtonStyled>
+					</Button>
 				</div>
 
 				<div style={{ padding: '0px 10px 10px' }}>

@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import ClaimSummaryDialog from '../admin/ClaimSummaryDialog';
-import { IconClipboardSearch } from '@tabler/icons-react';
+import { IconFileText } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 
 export default function ClaimInfo() {
 	const { checklistId, claimId } = useChecklistParams();
@@ -16,22 +16,22 @@ export default function ClaimInfo() {
 
 	if (!claim) return <></>;
 	return (
-		<div  style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<BasicButtonStyled
-				buttonProps={{
-					onClick: () => setDialogOpen(true),
-					startIcon: <IconClipboardSearch size={20} style={{ color: 'primary.main' }} />,
-					sx: { mr: 0.5 },
-				}}
+		<>
+			<Button
+				variant="ghost"
+				color="neutral"
+				size="sm"
+				startIcon={<IconFileText size={14} />}
+				onClick={() => setDialogOpen(true)}
 			>
 				{claim.claim_number}
-			</BasicButtonStyled>
+			</Button>
 			<ClaimSummaryDialog
 				claimId={claimId ?? null}
 				open={dialogOpen}
 				onClose={() => setDialogOpen(false)}
 				showChecklistProgress={false}
 			/>
-		</div>
+		</>
 	);
 }

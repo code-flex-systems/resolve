@@ -2,11 +2,12 @@
 
 import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { useState } from 'react';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import DeskLocationTypeDialog from './DeskLocationTypeDialog';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface DeskTypeActionsCellProps {
 	row: any;
@@ -80,29 +81,21 @@ export default function DeskTypeActionsCell(params: DeskTypeActionsCellProps) {
 
 			<div style={styles.container}>
 				<div style={{ marginRight: '10px' }}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isArchived,
-						}}
-						tooltipProps={{ title: isArchived ? 'Cannot edit archived desk type' : 'Make changes' }}
-						icon={<IconEdit size={15} />}
-					/>
+					<Tooltip content="isArchived ? 'Cannot edit archived desk type' : 'Make changes'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				</div>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setShowActionConfirm(true),
-						disabled: isPending,
-					}}
-					tooltipProps={{ title: isArchived ? 'Restore desk type' : 'Archive desk type' }}
-					icon={
-						isArchived ? (
+				<Tooltip content="isArchived ? 'Restore desk type' : 'Archive desk type'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending}>
+							isArchived ? (
 							<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 						) : (
 							<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 						)
-					}
-				/>
+						</Button>
+						</Tooltip>
 			</div>
 		</>
 	);

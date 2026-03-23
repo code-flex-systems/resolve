@@ -3,13 +3,13 @@
 import { IconArchive, IconCalendarRepeat, IconCash, IconEdit } from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
 import { useMemo } from 'react';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
 import { SettlementStructure } from '@/config/enums';
 import dayjs from 'dayjs';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
+import Button from '@/components/ui/Button';
 interface TableRow {
 	id: string;
 	hierarchy: string[];
@@ -218,30 +218,22 @@ export default function SettlementTable({
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () =>
+							<Tooltip content="`Edit ${params.row.type}`">
+							<Button variant="icon" size="sm" color="neutral" onClick={() =>
 										params.row.type === 'settlement'
 											? onEditSettlement(params.row.originalData)
-											: onEditRecovery(params.row.originalData),
-									sx: { padding: '3px', },
-								}}
-								tooltipProps={{ title: `Edit ${params.row.type}` }}
-								icon={<IconEdit size={20} />}
-								compact
-							/>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () =>
+											: onEditRecovery(params.row.originalData)}>
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+							<Tooltip content="`Archive ${params.row.type}`">
+							<Button variant="icon" size="sm" color="neutral" onClick={() =>
 										params.row.type === 'settlement'
 											? onArchiveSettlement(params.row.originalData)
-											: onArchiveRecovery(params.row.originalData),
-									sx: { padding: '3px', },
-								}}
-								tooltipProps={{ title: `Archive ${params.row.type}` }}
-								icon={<IconArchive style={{ color: 'var(--status-error)' }} />}
-								compact
-							/>
+											: onArchiveRecovery(params.row.originalData)}>
+							<IconArchive style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
 						</div>
 					);
 				},

@@ -3,12 +3,12 @@ import Card from '@/components/ui/Card';
 import { ReactNode } from 'react';
 import { Dayjs } from 'dayjs';
 import BasicPopper from '@/components/common/BasicPopper';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import BasicDateRangePicker from '@/components/common/BasicDateRangePicker';
 import UserFilter from '@/components/common/UserFilter';
 import type { EntityName } from '@/api/utils/activityLogger';
 import type { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import AdminLogsEntityFilter from '@/components/admin/AdminLogsEntityFilter';
+import Button from '@/components/ui/Button';
 
 export default function LogsFiltersPopperBase({
 	anchorEl,
@@ -80,14 +80,9 @@ export default function LogsFiltersPopperBase({
 					</div>
 					{children}
 					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: onApply,
-								size: 'small',
-							}}
-						>
+						<Button variant="outlined" onClick={onApply} size="sm">
 							Apply filters
-						</BasicButtonStyled>
+						</Button>
 					</div>
 				</div>
 			</div>

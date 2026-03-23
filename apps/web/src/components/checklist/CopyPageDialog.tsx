@@ -19,6 +19,7 @@ interface PageInstanceOption {
 	instanceId: string;
 	pageId: string;
 	title: string;
+	position: number;
 }
 
 function getPageInstancesFromTreeForDialog(tree: TreeNode[], currentInstanceId: string): PageInstanceOption[] {
@@ -34,6 +35,7 @@ function collectInstances(tree: TreeNode[], currentInstanceId: string, instances
 				instanceId: node.instanceId,
 				pageId: node.pageId,
 				title: node.title,
+				position: node.position,
 			});
 		}
 
@@ -91,7 +93,7 @@ export default function CopyPageDialog(props: CopyPageDialogProps) {
 					...pageInstanceOptions
 						.map((o) => ({
 							value: o.instanceId,
-							label: `${o.title} (p${o.pageId}.i${o.instanceId})`,
+							label: `${o.title} (p${o.position + 1})`,
 						})),
 				]}
 				value={selectedParentId ?? '__sibling__'}

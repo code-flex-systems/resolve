@@ -64,7 +64,18 @@ function AnswerWithImage(props: {
 			{a.calls_instance_id &&
 			visibleInstanceIds.includes(a.calls_instance_id) &&
 			(answerComplete || mode === ChecklistMode.TEST) ? (
-				<button onClick={() => goToPage(a.calls_instance_id!, tree)} style={{ fontSize: 13, color: 'var(--text-accent)', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
+				<button
+					onClick={() => goToPage(a.calls_instance_id!, tree)}
+					style={{
+						fontSize: 13,
+						color: 'var(--text-accent)',
+						background: 'none',
+						border: 'none',
+						padding: 0,
+						font: 'inherit',
+						cursor: 'pointer',
+					}}
+				>
 					{a.text}
 				</button>
 			) : (
@@ -96,7 +107,9 @@ function AnswerWithImage(props: {
 					label={a.text}
 				/>
 			) : (
-				<label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'default' : 'pointer' }}>
+				<label
+					style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'default' : 'pointer' }}
+				>
 					<input
 						type="radio"
 						checked={!!field.value?.includes(a.id)}
@@ -132,7 +145,7 @@ export default function ChecklistAnswerRadio(props: {
 		{ enabled: !!checklistId && !!claimId }
 	);
 	return (
-		<div     style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: '0px 10px' }}>
+		<div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 15, padding: '0px 10px' }}>
 			{(question.answers ?? []).map((a) => (
 				<AnswerWithImage
 					key={a.id}

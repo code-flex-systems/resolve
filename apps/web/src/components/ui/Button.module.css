@@ -126,6 +126,69 @@
 }
 
 /* =========================================================================
+   VARIANT: GHOST — lightweight, thin border, muted text
+   ========================================================================= */
+
+.ghost {
+	background: transparent;
+	border: 1px solid var(--border);
+	font-weight: var(--font-medium);
+}
+
+.ghost:not(:disabled):hover {
+	background: var(--bg-secondary);
+	border-color: var(--border-strong);
+}
+
+.ghost:not(:disabled):active {
+	background: var(--bg-tertiary);
+}
+
+/* =========================================================================
+   VARIANT: COMPACT — low-profile pill with icon + label, minimal chrome
+   ========================================================================= */
+
+.compact {
+	background: var(--bg-secondary);
+	border: 1px solid var(--border);
+	font-weight: var(--font-medium);
+	gap: var(--space-1);
+}
+
+.compact.sm {
+	height: 24px;
+	padding: 0 var(--space-2);
+	font-size: 11px;
+	border-radius: var(--radius-full);
+}
+
+.compact.md {
+	height: 28px;
+	padding: 0 var(--space-2);
+	font-size: var(--text-xs);
+	border-radius: var(--radius-full);
+}
+
+.compact.lg {
+	height: 32px;
+	padding: 0 var(--space-3);
+	font-size: var(--text-sm);
+	border-radius: var(--radius-full);
+}
+
+.compact:not(:disabled):hover {
+	background: var(--bg-tertiary);
+	border-color: var(--border-strong);
+	transform: translateY(-1px);
+	box-shadow: var(--shadow-sm);
+}
+
+.compact:not(:disabled):active {
+	transform: translateY(0) scale(0.97);
+	box-shadow: none;
+}
+
+/* =========================================================================
    VARIANT: ICON (outline by default, filled with iconFilled prop)
    ========================================================================= */
 
@@ -204,6 +267,27 @@ button.icon.iconFilled.color-neutral { background: var(--bg-tertiary); color: va
 .color-error.text { color: var(--status-error); }
 .color-warning.text { color: var(--status-warning); }
 .color-neutral.text { color: var(--text-secondary); }
+
+/* =========================================================================
+   COLORS — Ghost
+   ========================================================================= */
+
+.color-primary.ghost { color: var(--text-accent); border-color: var(--text-accent); }
+.color-primary.ghost:not(:disabled):hover { background: rgba(var(--text-accent-rgb, 59, 130, 246), 0.06); }
+.color-success.ghost { color: var(--status-success); border-color: var(--status-success); }
+.color-error.ghost { color: var(--status-error); border-color: var(--status-error); }
+.color-warning.ghost { color: var(--status-warning); border-color: var(--status-warning); }
+.color-neutral.ghost { color: var(--text-secondary); }
+
+/* =========================================================================
+   COLORS — Compact
+   ========================================================================= */
+
+.color-primary.compact { color: var(--text-accent); }
+.color-success.compact { color: var(--status-success); }
+.color-error.compact { color: var(--status-error); }
+.color-warning.compact { color: var(--status-warning); }
+.color-neutral.compact { color: var(--text-secondary); }
 
 /* =========================================================================
    COLORS — Icon

@@ -5,12 +5,13 @@ import { useClerk } from '@clerk/nextjs';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from './UpdateUserDialog';
 import RoleValue from '../admin/RoleValue';
 import { Role } from '@/types/types';
 import { IconEdit, IconLogout, IconMail, IconPhone } from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -63,24 +64,17 @@ style={{
 						</div>
 						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
 							<div style={{ marginRight: '10px' }}>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => {
-											setDialogOpen(true);
-											setAnchorEl(null);
-										},
-									}}
-									tooltipProps={{ title: 'Update my info' }}
-									icon={<IconEdit size={20} />}
-								/>
+								<Tooltip content="Update my info">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
 							</div>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => signOut({ redirectUrl: '/login' }),
-								}}
-								tooltipProps={{ title: 'Sign out' }}
-								icon={<IconLogout size={20} />}
-							/>
+							<Tooltip content="Sign out">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconLogout size={16} />
+						</Button>
+						</Tooltip>
 						</div>
 					</div>
 				</BasicPopper>

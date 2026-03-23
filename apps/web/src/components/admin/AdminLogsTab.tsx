@@ -8,7 +8,6 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useAdminLogsTrpc, AdminConfigLogCursor } from '@/hooks/trpc/useAdminLogsTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import type { EntityName } from '@/api/utils/activityLogger';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import CustomNoRowsOverlay from '@/components/common/CustomNoRowsOverlay';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import PageTransitionWrapper from '@/components/common/PageTransitionWrapper';
@@ -20,6 +19,7 @@ import AdminLogsFiltersPopper from '@/components/admin/AdminLogsFiltersPopper';
 import { formatEntityLabelForDisplay } from '@/components/admin/AdminLogsEntityFilter';
 import useCursorPagination from '@/hooks/useCursorPagination';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
+import Button from '@/components/ui/Button';
 
 function formatTimestamp(value?: string) {
 	if (!value) return '';
@@ -242,12 +242,7 @@ export default function AdminLogsTab() {
 					<Toolbar
 						left={
 							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: handleOpenFilters,
-										endIcon: <IconFilter size={20} />,
-									}}
-								>
+								<Button variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
 									Filters...
 									{hasActiveFilters && (
 										<div style={styles.filterCountBadge}>
@@ -257,16 +252,11 @@ export default function AdminLogsTab() {
 											}
 										</div>
 									)}
-								</BasicButtonStyled>
+								</Button>
 								{hasActiveFilters && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: handleClearFilters,
-											size: 'small',
-										}}
-									>
+									<Button variant="outlined" onClick={handleClearFilters} size="sm">
 										Clear all filters
-									</BasicButtonStyled>
+									</Button>
 								)}
 							</div>
 						}

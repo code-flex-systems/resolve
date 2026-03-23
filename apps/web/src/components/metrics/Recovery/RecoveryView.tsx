@@ -6,7 +6,6 @@ import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 import { useRouter } from 'next/navigation';
 import ChecklistSelect from '@/components/common/ChecklistSelect';
 import BasicMonthRangePicker from '@/components/common/BasicMonthRangePicker';
@@ -18,6 +17,7 @@ import RecoveryEventsTable from './RecoveryEventsTable';
 import TopPerformersSection from './TopPerformersSection';
 import Divider from '@/components/ui/Divider';
 import { IconArrowLeft } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 
 dayjs.extend(quarterOfYear);
 dayjs.extend(utc);

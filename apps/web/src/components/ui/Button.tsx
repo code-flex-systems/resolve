@@ -4,7 +4,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import styles from './Button.module.css';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-	variant?: 'contained' | 'outlined' | 'text' | 'solid' | 'icon';
+	variant?: 'contained' | 'outlined' | 'text' | 'solid' | 'icon' | 'ghost' | 'compact';
 	size?: 'sm' | 'md' | 'lg';
 	color?: 'primary' | 'success' | 'error' | 'warning' | 'neutral';
 	/** Whether the icon button should use a filled style vs outline (default) */

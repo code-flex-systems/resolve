@@ -8,10 +8,10 @@ import { useChecklistsStore } from '@/stores/useChecklistsStore';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
 import { trpc } from '@/lib/trpc';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import BasicIconButton from '../common/BasicIconButton';
 import { IconSearch, IconUserSearch, IconX } from '@tabler/icons-react';
 import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface ClaimsSearchProps {
 	showIcon?: boolean;
@@ -93,28 +93,21 @@ export default function ClaimsSearch({ showIcon = true, heroMode = false, onClai
 						searching ? (
 							<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
 						) : query ? (
-							<BasicIconButton onClick={handleClearInput}>
+							<Button variant="icon" size="sm" color="neutral" onClick={handleClearInput}>
 								<IconX size={15} />
-							</BasicIconButton>
+							</Button>
 						) : (
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: handleSwitchSearch,
-								}}
-								tooltipProps={{
-									title:
-										type === ClaimSearch.CLAIM_NUMBER
+							<Tooltip content="type === ClaimSearch.CLAIM_NUMBER
 											? 'Search by insured'
-											: 'Search by claim number',
-								}}
-								icon={
-									type === ClaimSearch.CLAIM_NUMBER ? (
-										<IconUserSearch size={20} />
+											: 'Search by claim number'">
+							<Button variant="icon" size="sm" color="neutral">
+							type === ClaimSearch.CLAIM_NUMBER ? (
+										<IconUserSearch size={16} />
 									) : (
-										<IconSearch size={20} />
+										<IconSearch size={16} />
 									)
-								}
-							/>
+						</Button>
+						</Tooltip>
 						)
 					}
 				/>

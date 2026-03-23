@@ -5,7 +5,6 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useEffect, useState } from 'react';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import CustomChip from '@/components/ui/Chip';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDateRangePicker from '../common/BasicDateRangePicker';
 import ClaimFilter from '../common/ClaimFilter';
 import UserFilter from '../common/UserFilter';
@@ -21,12 +20,15 @@ import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerDa
 import { IconArrowLeft, IconQuote } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function ChecklistPageBreakdown() {
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
 	const instanceId = searchParams.get('instanceId') ?? '';
 	const pageId = searchParams.get('pageId') ?? '';
+	const pagePosition = Number(searchParams.get('pagePosition') ?? '0');
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
@@ -89,11 +91,11 @@ export default function ChecklistPageBreakdown() {
 					 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', overflow: 'auto', padding: '0px 2px' }}
 				>
 					<div  style={{ marginRight: '5px' }}>
-						<BasicButtonStyled
-							icon={<IconArrowLeft size={20} />}
-							buttonProps={{ onClick: () => router.push('/admin/workflow-configuration/checklists') }}
-							tooltipProps={{ title: 'Back to dashboard' }}
-						/>
+						<Tooltip content="Back to dashboard">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconArrowLeft size={16} />
+						</Button>
+						</Tooltip>
 					</div>
 					<div  style={{ marginRight: '5px' }}>
 						<ChecklistSelect
@@ -138,7 +140,7 @@ export default function ChecklistPageBreakdown() {
 						<div  style={{ marginLeft: '5px' }}>
 							<CustomChip color="info" size="sm">
 								<IconQuote size={16} style={{ color: 'var(--text-accent)' }} />
-								<span style={{ color: 'var(--text-accent)' }}>{`${answerData?.answer_text ?? ''} (p${pageId}.q${selectedQuestionId}.a${answerData?.answer_id ?? ''})`}</span>
+								<span style={{ color: 'var(--text-accent)' }}>{`${answerData?.answer_text ?? ''} (p${pagePosition})`}</span>
 							</CustomChip>
 						</div>
 					</Collapse>

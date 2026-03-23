@@ -12,8 +12,7 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import Card from '@/components/ui/Card';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { IconArrowRight, IconCheck, IconCircleCheck, IconCopy, IconCornerDownRight, IconDeviceFloppy, IconFileDescription, IconHelpCircle, IconQuote, IconTrash, IconX } from '@tabler/icons-react';
-import Divider from '@/components/ui/Divider';
+import { IconArrowRight, IconCheck, IconCopy, IconCornerDownRight, IconDeviceFloppy, IconFileDescription, IconHelpCircle, IconQuote, IconTrash, IconX } from '@tabler/icons-react';
 
 export default function PageEditor() {
 	const { checklistId = '', claimId = '' } = useChecklistParams();
@@ -27,12 +26,12 @@ export default function PageEditor() {
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
-	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
+
 	const [copyDialogOpen, setCopyDialogOpen] = useState(false);
 	const [copyType, setCopyType] = useState<'template' | 'instance'>('template');
 	const [copiedField, setCopiedField] = useState<string | null>(null);
 
-	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
+	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId }, { enabled: !!selectedPageInfo.pageId });
 	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
 		usePageTrpc();
 	const { mutateAsync: addPage, isPending: adding } = createTemplate;
@@ -153,8 +152,6 @@ export default function PageEditor() {
 				if (freshData) {
 					updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, freshData.tree);
 				}
-				setShowUpdateMsg(true);
-				setTimeout(() => setShowUpdateMsg(false), 1000);
 				showSuccess('update', 'Page updated');
 			}
 		} catch (e) {
@@ -176,28 +173,6 @@ export default function PageEditor() {
 		<div style={pageStyles.container}>
 			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
 				<div style={pageStyles.formContainer}>
-					{/* Page Header */}
-					<div style={pageStyles.headerSection}>
-						<div style={pageStyles.titleRow}>
-							<span style={pageStyles.pageTitle}>{pageTitle}</span>
-							<span style={pageStyles.pageId}>
-								p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
-							</span>
-							{showUpdateMsg && (
-								<div className="flex-row-left" style={{ marginLeft: 12 }}>
-									<IconCircleCheck size={20} style={{ color: 'success.main', fontSize: 18, marginRight: 4 }} />
-									<span style={{ color: 'success.main', fontSize: 13 }}>
-										Saved
-									</span>
-								</div>
-							)}
-						</div>
-					</div>
-					<div style={pageStyles.divider}>
-						<Divider />
-					</div>
-
-					{/* Page Information Section */}
 					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
 						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Information</div>
 						<div style={{ padding: 16 }}>
@@ -437,30 +412,6 @@ const pageStyles = {
 		gap: 20,
 		padding: 20,
 		width: '100%',
-	},
-	headerSection: {
-		marginBottom: 0,
-	},
-	divider: {
-		width: '100%',
-		marginBottom: 24,
-	},
-	titleRow: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 12,
-	},
-	pageTitle: {
-		fontSize: 20,
-		fontWeight: 600,
-		color: 'var(--text-primary)',
-	},
-	pageId: {
-		fontSize: 13,
-		color: 'var(--text-muted)',
-paddingLeft: 8, paddingRight: 8,
-		paddingTop: 2, paddingBottom: 2,
-		borderRadius: '4px',
 	},
 	fieldRow: {
 		marginBottom: 16,

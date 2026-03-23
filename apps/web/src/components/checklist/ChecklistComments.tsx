@@ -3,7 +3,6 @@ import Comments from '../common/Comments';
 import { useState, useRef, useEffect } from 'react';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import config from '@/config/config';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { TreeNode } from '@/types/types';
@@ -12,6 +11,8 @@ import Skeleton from '@/components/ui/Skeleton';
 import Collapse from '@/components/ui/Collapse';
 import Divider from '@/components/ui/Divider';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 const limit = 30;
 const pageSize = 3;
@@ -74,7 +75,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	}, [showNewComment]);
 
 	return (
-		<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white' }}>
+		<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'var(--bg-primary)' }}>
 			<div
 				style={{
 					width: '100%',
@@ -90,13 +91,11 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				</Badge>
 
 				{isAssigned && (
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowNewComment(true),
-						}}
-						icon={<IconMessage style={{ transform: 'scaleX(-1)' }} />}
-						tooltipProps={{ title: 'New comment' }}
-					/>
+					<Tooltip content="New comment">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconMessage style={{ transform: 'scaleX(-1)' }} />
+						</Button>
+						</Tooltip>
 				)}
 			</div>
 
@@ -134,14 +133,11 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 							}}
 						/>
 						<div style={{ position: 'absolute', bottom: 8, right: 8 }}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => addComment().catch(console.error),
-									disabled: !newComment || isPending,
-								}}
-								icon={<IconCirclePlus size={20} />}
-								tooltipProps={{ title: 'Add comment' }}
-							/>
+							<Tooltip content="Add comment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => addComment().catch(console.error)} disabled={!newComment || isPending}>
+							<IconCirclePlus size={16} />
+						</Button>
+						</Tooltip>
 						</div>
 					</div>
 					<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 2 }}>

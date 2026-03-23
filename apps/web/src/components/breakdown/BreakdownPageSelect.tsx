@@ -19,6 +19,7 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 		const params = new URLSearchParams(searchParams.toString());
 		params.set('pageId', selectedPage.id.toString());
 		params.set('instanceId', selectedPage.instance_id.toString());
+		params.set('pagePosition', String(selectedPage.position + 1));
 		router.replace(`${pathname}?${params.toString()}`);
 	};
 
@@ -50,7 +51,7 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 			<Dropdown
 				options={instances.map((o) => ({
 					value: o.instance_id,
-					label: `${o.title} (p${o.id}.i${o.instance_id})`,
+					label: `${o.title} (p${o.position + 1})`,
 				}))}
 				value={selectedInstanceId}
 				onChange={(v) => setSelectedInstanceId(String(v))}

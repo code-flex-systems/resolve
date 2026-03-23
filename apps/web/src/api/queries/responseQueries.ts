@@ -187,9 +187,8 @@ export async function getResponseAuditLogs(
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
-			// Note: response_audit_logs has checklist_id/claim_id as legacy integer columns
-			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId as any));
-			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId as any));
+			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
+			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
 			if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
 			if (filters.range && filters.range.some((d) => !!d)) {
 				if (filters.range[0]) {
@@ -267,9 +266,8 @@ export async function exportResponseAuditLogs(
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
-			// Note: response_audit_logs has checklist_id/claim_id as legacy integer columns
-			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId as any));
-			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId as any));
+			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
+			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
 			if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
 			if (filters.range && filters.range.some((d) => !!d)) {
 				if (filters.range[0]) {

@@ -816,8 +816,8 @@ export interface ReferenceOption {
 
 export interface ResponseAuditLogs {
   action: string;
-  checklist_id: number | null;
-  claim_id: number | null;
+  checklist_id: string | null;
+  claim_id: string | null;
   client_id: string;
   created_at: Generated<Timestamp>;
   /**
