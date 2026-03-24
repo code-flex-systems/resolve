@@ -248,7 +248,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 const styles = {
 	container: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
@@ -261,7 +261,7 @@ const styles = {
 		minHeight: 0,
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100% - 50px)',
 		overflow: 'hidden',
 	},

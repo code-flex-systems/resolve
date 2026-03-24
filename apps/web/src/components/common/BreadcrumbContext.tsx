@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation';
 export interface BreadcrumbSegment {
 	label: string;
 	href?: string;
+	onClick?: () => void;
 }
 
 interface BreadcrumbContextValue {
@@ -52,7 +53,7 @@ const ROUTE_LABELS: Record<string, string> = {
 	'my-claims': 'My Claims',
 	documents: 'Documents',
 	parties: 'Parties',
-	checklist: 'Checklist',
+	checklists: 'Checklists',
 	metrics: 'Metrics',
 	claims: 'Claims',
 	recovery: 'Recovery',
@@ -63,7 +64,6 @@ const ROUTE_LABELS: Record<string, string> = {
 	activity: 'Activity',
 	'claim-management': 'Claim Management',
 	feeds: 'Feeds',
-	checklists: 'Checklists & Activity',
 	templates: 'Templates',
 	all: 'All Claims',
 	workflows: 'Workflows',

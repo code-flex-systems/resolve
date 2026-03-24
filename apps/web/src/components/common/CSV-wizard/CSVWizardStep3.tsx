@@ -101,7 +101,6 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 						headerHeight={35}
 						rowHeight={35}
 						rows={validRows.map((r, i) => ({ id: i, ...r }))}
-						getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
 						columns={gridColumns}
 						hideFooter
 					/>

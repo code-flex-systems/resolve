@@ -592,7 +592,6 @@ export default function Claims() {
 							paginationModel={claimConstraints}
 							onPaginationModelChange={updateClaimConstraints}
 							onRowClick={handleRowClick}
-							getRowClassName={(row, index) => (index % 2 === 0 ? 'striped' : '')}
 						/>
 					</div>
 				</Card>
@@ -614,7 +613,7 @@ const styles = {
 		flexDirection: 'column' as const,
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100% - 95px)', // Account for two toolbars (50px + 45px)
 	},
 	filtersPaper: {

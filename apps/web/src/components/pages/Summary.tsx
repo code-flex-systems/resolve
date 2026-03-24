@@ -16,11 +16,20 @@ export default function Summary() {
 	const router = useRouter();
 	const { checklistId, claimId } = useChecklistParams();
 	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
-	const { setDynamicSegments } = useBreadcrumbs();
+	const { setSegments } = useBreadcrumbs();
 
+	// Breadcrumbs: Checklist > [name] (clickable) > Summary
+	// Clicking [name] navigates back to checklist, preserving any open claim
 	useEffect(() => {
-		setDynamicSegments([{ label: checklist?.name ?? 'Loading...' }]);
-	}, [checklist?.name, setDynamicSegments]);
+		const checklistUrl = claimId
+			? `/checklists/${checklistId}/claim/${claimId}`
+			: `/checklists/${checklistId}`;
+		setSegments([
+			{ label: 'Checklists', href: '/checklists' },
+			{ label: checklist?.name ?? 'Loading...', href: checklistUrl },
+			{ label: 'Summary' },
+		]);
+	}, [checklist?.name, checklistId, claimId, setSegments]);
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>

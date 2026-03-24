@@ -200,7 +200,7 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 											<div style={{ paddingTop: '20px' }}>
 												<Button variant="outlined" onClick={() => {
 															router.push(
-																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}`
+																`/checklists/${claim.checklist_id}/claim/${claim.claim_id}`
 															);
 														}}>
 													Open in checklist...
@@ -209,7 +209,7 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 											<div style={{ paddingTop: '10px' }}>
 												<Button variant="outlined" onClick={() => {
 															router.push(
-																`/checklist/${claim.checklist_id}/claim/${claim.claim_id}/summary`
+																`/checklists/${claim.checklist_id}/claim/${claim.claim_id}/summary`
 															);
 														}}>
 													Go to checklist summary...

@@ -385,7 +385,7 @@ export default function AdminClaimActivityLogsTab() {
 
 const styles = {
 	container: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
@@ -398,7 +398,7 @@ const styles = {
 		minHeight: 0,
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100% - 95px)',
 	},
 	filterCountBadge: {

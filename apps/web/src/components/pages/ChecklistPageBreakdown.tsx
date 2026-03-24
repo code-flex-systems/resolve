@@ -102,7 +102,7 @@ export default function ChecklistPageBreakdown() {
 							checklist={selectedChecklist ?? null}
 							setChecklist={(newChecklist) => {
 								if (!newChecklist) return;
-								router.push(`/checklist/${newChecklist.id}/breakdown`);
+								router.push(`/checklists/${newChecklist.id}/breakdown`);
 							}}
 							showEmpty
 							clearable={false}

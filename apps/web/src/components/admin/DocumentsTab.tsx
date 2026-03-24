@@ -5,8 +5,9 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import Toolbar from '../common/Toolbar';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
+import { useBreadcrumbs } from '@/components/common/BreadcrumbContext';
 import CreateFolderDialog from './CreateFolderDialog';
 import UploadDocumentDialog from './UploadDocumentDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
@@ -14,6 +15,7 @@ import DocumentPreviewDialog from './DocumentPreviewDialog';
 import DocumentNavigationTable from './DocumentNavigationTable';
 
 export default function DocumentsTab() {
+	const { setDynamicSegments, setSegments } = useBreadcrumbs();
 	const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 	const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
 	const [showUploadDocumentDialog, setShowUploadDocumentDialog] = useState(false);
@@ -46,6 +48,31 @@ export default function DocumentsTab() {
 		if (!currentFolder.parent_group_id) return 1;
 		return 2;
 	}, [currentFolderId, groups]);
+
+	// Build folder breadcrumb path for the app header
+	const currentFolder = useMemo(() => {
+		return currentFolderId ? groups.find((g) => g.id === currentFolderId) : null;
+	}, [currentFolderId, groups]);
+
+	const parentFolder = useMemo(() => {
+		if (!currentFolder?.parent_group_id) return null;
+		return groups.find((g) => g.id === currentFolder.parent_group_id) ?? null;
+	}, [currentFolder, groups]);
+
+	useEffect(() => {
+		const segments: { label: string; onClick?: () => void }[] = [
+			{ label: 'Admin', href: '/admin' } as any,
+			{ label: 'Documents', onClick: () => setCurrentFolderId(null) },
+		];
+		if (parentFolder) {
+			const folderId = parentFolder.id;
+			segments.push({ label: parentFolder.name, onClick: () => setCurrentFolderId(folderId) });
+		}
+		if (currentFolder) {
+			segments.push({ label: currentFolder.name });
+		}
+		setSegments(segments);
+	}, [currentFolder?.name, parentFolder?.name, setSegments]);
 
 	// Build doc counts map from server-side batch query
 	const docCountsByFolder = useMemo(() => {
@@ -175,20 +202,20 @@ export default function DocumentsTab() {
 				}
 			/>
 
-			<DocumentNavigationTable
-				groups={groups}
-				docs={docs}
-				currentFolderId={currentFolderId}
-				onNavigate={setCurrentFolderId}
-				onDocumentPreview={setPreviewDocument}
-				loading={isInTransition}
-				editMode={editMode}
-				selectedRows={selectedRows}
-				onRowSelectionChange={setSelectedRows}
-				showBreadcrumbs={true}
-				breadcrumbRootLabel="Documents"
-				adminMode={true}
-			/>
+			<div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+				<DocumentNavigationTable
+					groups={groups}
+					docs={docs}
+					currentFolderId={currentFolderId}
+					onNavigate={setCurrentFolderId}
+					onDocumentPreview={setPreviewDocument}
+					loading={isInTransition}
+					editMode={editMode}
+					selectedRows={selectedRows}
+					onRowSelectionChange={setSelectedRows}
+					adminMode={true}
+				/>
+			</div>
 
 			{showCreateFolderDialog && (
 				<CreateFolderDialog onClose={() => setShowCreateFolderDialog(false)} parentGroupId={currentFolderId} />
@@ -222,6 +249,7 @@ const styles = {
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '20px',
+		minHeight: 0,
+		overflow: 'hidden',
 	},
 };

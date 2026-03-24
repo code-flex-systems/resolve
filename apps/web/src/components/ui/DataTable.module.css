@@ -153,6 +153,10 @@ th:hover .resizeHandle {
 	transition: background-color var(--transition-fast);
 }
 
+.table tbody tr:nth-child(even) {
+	background-color: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+}
+
 .table tbody tr:hover {
 	background-color: var(--bg-secondary);
 }

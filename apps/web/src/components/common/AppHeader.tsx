@@ -32,6 +32,14 @@ export default function AppHeader() {
 								<Link href={segment.href} className={styles.breadcrumbLink}>
 									{segment.label}
 								</Link>
+							) : segment.onClick ? (
+								<button
+									onClick={segment.onClick}
+									className={styles.breadcrumbLink}
+									style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}
+								>
+									{segment.label}
+								</button>
 							) : (
 								<span className={styles.breadcrumbText}>{segment.label}</span>
 							)}

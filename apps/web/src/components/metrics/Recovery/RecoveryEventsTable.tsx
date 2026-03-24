@@ -177,7 +177,7 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		size: '100%',
+		width: '100%',
 		padding: '24px',
 	},
 };

@@ -29,7 +29,7 @@ export default function QuestionStatsDialog() {
 					buttonProps={{
 						onClick: () => {
 							router.push(
-								`/checklist/${checklistId}/pages/${selectedPageInfo.pageId}/page-instances/${selectedPageInfo.instanceId}`
+								`/checklists/${checklistId}/pages/${selectedPageInfo.pageId}/page-instances/${selectedPageInfo.instanceId}`
 							);
 						},
 					}}

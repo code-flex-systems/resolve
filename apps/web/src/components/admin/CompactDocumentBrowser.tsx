@@ -260,7 +260,7 @@ const COLUMNS: ColumnDef<GridRow, any>[] = [
 
 const styles = {
 	container: {
-		size: '100%',
+		width: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		border: '1px solid #e0e0e0',

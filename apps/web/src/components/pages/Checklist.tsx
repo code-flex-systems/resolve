@@ -35,7 +35,7 @@ export default function Checklist() {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const [modeHandleOpen, setModeHandleOpen] = useState(false);
-	const { setDynamicSegments } = useBreadcrumbs();
+	const { setSegments } = useBreadcrumbs();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
 	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
@@ -53,10 +53,13 @@ export default function Checklist() {
 		return () => useChecklistStore.getState().reset();
 	}, []);
 
-	// Breadcrumbs: checklist name > page > question > answer
+	// Breadcrumbs: Checklist > [name] > page > question > answer
+	// Uses setSegments (full override) to hide "claim" from URL and control the full chain
 	useEffect(() => {
-		const segments: { label: string; href?: string }[] = [];
-		segments.push({ label: checklist?.name ?? 'Loading...' });
+		const segments: { label: string; href?: string }[] = [
+			{ label: 'Checklists', href: '/checklists' },
+			{ label: checklist?.name ?? 'Loading...' },
+		];
 		if (selectedPageInfo?.title) {
 			segments.push({ label: `${selectedPageInfo.title} (p${selectedPageInfo.position + 1})` });
 		}
@@ -66,7 +69,7 @@ export default function Checklist() {
 		if (selectedAnswer && selectedAnswerData?.text) {
 			segments.push({ label: `${selectedAnswerData.text} (a${selectedAnswerData.position + 1})` });
 		}
-		setDynamicSegments(segments);
+		setSegments(segments);
 	}, [checklist?.name, selectedPageInfo?.title, selectedPageInfo?.position, selectedQuestion, selectedQuestionData?.text, selectedAnswer, selectedAnswerData?.text]);
 
 	const availableModes = MODE_CONFIG.filter((m) => !m.requiresClaim || !!claimId);

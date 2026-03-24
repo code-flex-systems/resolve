@@ -56,7 +56,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 	const handleOpenInChecklist = () => {
 		const mostRecentAssignment = claimDetail?.checklistAssignments?.[0];
 		if (mostRecentAssignment) {
-			router.push(`/checklist/${mostRecentAssignment.checklist_id}/claim/${claimId}`);
+			router.push(`/checklists/${mostRecentAssignment.checklist_id}/claim/${claimId}`);
 		}
 	};
 

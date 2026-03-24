@@ -277,7 +277,7 @@ const styles = {
 		minHeight: 0,
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100vh - 190px)',
 	},
 };

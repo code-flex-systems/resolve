@@ -124,15 +124,33 @@ export default function MyClaims() {
 				<MyClaimsDeadlines />
 			</div>
 			<div style={{ flex: 1, minWidth: 0, height: '100%' }}>
-				<Card variant="beveled" padding="none" style={{ width: '100%', height: '100%', padding: '24px 24px 0px' }} className="flex-col-start">
+				<Card
+					variant="beveled"
+					padding="none"
+					style={{
+						width: '100%',
+						height: '100%',
+						padding: '24px 24px 0px',
+						display: 'flex',
+						flexDirection: 'column',
+						overflow: 'hidden',
+					}}
+				>
 					{/* Title */}
 					<div style={{ width: '100%', padding: '10px 10px 0px', marginBottom: 24 }}>
-						<span>My Queue</span>
+						<h4>My Queue</h4>
 					</div>
 
 					{/* Metrics and Legend */}
 					<div
-style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0px 10px' }}>
+						style={{
+							width: '100%',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
+							padding: '0px 10px',
+						}}
+					>
 						<MyClaimsMetrics
 							count={count}
 							totalValue={metrics.totalValue}
@@ -144,15 +162,15 @@ style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: '
 								LAST ACTIVITY
 							</span>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-								<div style={{ ...myClaimsStyles.indicator, }} />
+								<div style={{ ...myClaimsStyles.indicator }} />
 								<span style={{ fontSize: 12 }}>Today</span>
 							</div>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-								<div style={{ ...myClaimsStyles.indicator, }} />
+								<div style={{ ...myClaimsStyles.indicator }} />
 								<span style={{ fontSize: 12 }}>Within 7 days</span>
 							</div>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-								<div style={{ ...myClaimsStyles.indicator, }} />
+								<div style={{ ...myClaimsStyles.indicator }} />
 								<span style={{ fontSize: 12 }}>Over 7 days</span>
 							</div>
 						</div>

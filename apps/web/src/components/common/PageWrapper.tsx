@@ -38,7 +38,7 @@ export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } 
 		if (claim) {
 			items.push({
 				label: claim.claim_number ?? '',
-				route: '/checklist',
+				route: '/checklists',
 				icon: <IconFileSearch size={23} />,
 			});
 		}

@@ -95,7 +95,6 @@ export default function Breakdown() {
 						rows={breakdown}
 						rowCount={answerData?.answer_count ?? 0}
 						rowHeight={40}
-						getRowClassName={(row, index) => index % 2 === 0 ? 'striped hovered-row' : 'hovered-row'}
 						paginationMode="server"
 						paginationModel={constraints}
 						onPaginationModelChange={setContraints}
@@ -108,12 +107,12 @@ export default function Breakdown() {
 
 const styles = {
 	paper: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		padding: '15px 15px 0px',
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 	},
 };

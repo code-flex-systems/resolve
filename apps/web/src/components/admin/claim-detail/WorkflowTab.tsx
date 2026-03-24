@@ -51,7 +51,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 	const assignmentHistory = claimDetail.checklistAssignments ?? [];
 
 	const handleOpenChecklist = (checklistId: string) => {
-		router.push(`/checklist/${checklistId}/claim/${claimId}`);
+		router.push(`/checklists/${checklistId}/claim/${claimId}`);
 	};
 
 	return (

@@ -29,7 +29,7 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 
 	const handleConfirm = () => {
 		if (selectedChecklist) {
-			router.push(`/checklist/${selectedChecklist.id}/claim/${claimId}`);
+			router.push(`/checklists/${selectedChecklist.id}/claim/${claimId}`);
 			onClose();
 		}
 	};

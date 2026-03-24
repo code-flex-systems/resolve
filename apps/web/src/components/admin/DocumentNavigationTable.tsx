@@ -20,12 +20,9 @@ interface DocumentNavigationTableProps {
 	editMode?: boolean;
 	selectedRows?: Record<string, boolean>;
 	onRowSelectionChange?: (selection: Record<string, boolean>) => void;
-	showBreadcrumbs?: boolean;
-	breadcrumbRootLabel?: string;
-	adminMode?: boolean; // Show system folder indicators
-	emptyRootText?: string; // Custom empty state text for root level
-	emptyFolderText?: string; // Custom empty state text for folders
-	hiddenBreadcrumbFolderId?: string; // Folder ID to hide from breadcrumbs (e.g., Shared folder)
+	adminMode?: boolean;
+	emptyRootText?: string;
+	emptyFolderText?: string;
 }
 
 export default function DocumentNavigationTable({
@@ -38,23 +35,10 @@ export default function DocumentNavigationTable({
 	editMode = false,
 	selectedRows = {},
 	onRowSelectionChange,
-	showBreadcrumbs = true,
-	breadcrumbRootLabel = 'Documents',
 	adminMode = false,
 	emptyRootText = 'No folders or documents yet. Click "Add Folder" or "Add Document" to get started.',
 	emptyFolderText = 'No documents in this folder yet. Click "Add Document" to upload.',
-	hiddenBreadcrumbFolderId,
 }: DocumentNavigationTableProps) {
-	// Get current folder for breadcrumbs
-	const currentFolder = useMemo(() => {
-		return currentFolderId ? groups.find((g) => g.id === currentFolderId) : null;
-	}, [currentFolderId, groups]);
-
-	// Get parent folder for breadcrumbs (for two-level navigation)
-	const parentFolder = useMemo(() => {
-		if (!currentFolder?.parent_group_id) return null;
-		return groups.find((g) => g.id === currentFolder.parent_group_id) || null;
-	}, [currentFolder, groups]);
 
 	// Memoized overlay to avoid remounting on every render
 	const noRowsOverlay = useCallback(
@@ -232,50 +216,18 @@ export default function DocumentNavigationTable({
 	);
 
 	return (
-		<>
-			{/* Breadcrumbs for navigation */}
-			{showBreadcrumbs && (
-				<nav style={{ padding: 16, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
-					<button
-						onClick={() => onNavigate(null)}
-						style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'var(--text-secondary)', textDecoration: 'none' }}
-					>
-						{breadcrumbRootLabel}
-					</button>
-					{parentFolder && parentFolder.id !== hiddenBreadcrumbFolderId && (
-						<>
-							<span style={{ color: 'var(--text-muted)' }}>/</span>
-							<button
-								onClick={() => onNavigate(parentFolder.id)}
-								style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-secondary)', textDecoration: 'none' }}
-							>
-								{parentFolder.name}
-							</button>
-						</>
-					)}
-					{currentFolder && currentFolder.id !== hiddenBreadcrumbFolderId && (
-						<>
-							<span style={{ color: 'var(--text-muted)' }}>/</span>
-							<span style={{ color: 'var(--text-primary)' }}>{currentFolder.name}</span>
-						</>
-					)}
-				</nav>
-			)}
-
+		<div style={{ flex: 1, minHeight: 0 }}>
 			<DataTable
-				rows={rows}
-				loading={loading}
-				columns={columns}
-				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowDoubleClick={handleRowDoubleClick}
-				checkboxSelection={editMode}
-				rowSelection={selectedRows}
-				onRowSelectionChange={onRowSelectionChange}
-				hideFooter
-			/>
-		</>
+					rows={rows}
+					loading={loading}
+					columns={columns}
+					getRowId={(row) => `${row.type}-${row.data.id}`}
+					onRowDoubleClick={handleRowDoubleClick}
+					checkboxSelection={editMode}
+					rowSelection={selectedRows}
+					onRowSelectionChange={onRowSelectionChange}
+					hideFooter
+				/>
+		</div>
 	);
 }
-
-const styles = {
-};

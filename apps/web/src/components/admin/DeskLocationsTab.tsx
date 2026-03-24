@@ -266,13 +266,13 @@ export default function DeskLocationsTab() {
 
 const styles = {
 	container: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	panelContainer: {
-		size: '100%',
+		width: '100%',
 		display: 'flex',
 		gap: '15px',
 		minHeight: 0,
@@ -290,7 +290,7 @@ const styles = {
 		minHeight: 0,
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100vh - 190px)',
 	},
 };

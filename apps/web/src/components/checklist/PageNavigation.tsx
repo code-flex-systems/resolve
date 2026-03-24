@@ -202,7 +202,7 @@ export default function PageNavigation() {
 												</svg>
 											}
 											onClick={() =>
-												router.push(`/checklist/${checklistId}/claim/${claimId}/summary`)
+												router.push(`/checklists/${checklistId}/claim/${claimId}/summary`)
 											}
 										>
 											Summary

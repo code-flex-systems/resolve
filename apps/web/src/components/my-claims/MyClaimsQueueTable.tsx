@@ -148,9 +148,9 @@ export default function MyClaimsQueueTable({
 	const getActivityIndicator = (lastUpdate: string | null) => {
 		if (!lastUpdate) return null;
 		const daysSince = dayjs().diff(dayjs(lastUpdate), 'day');
-		if (daysSince === 0) return <div style={{ ...queueStyles.indicator, }} />;
-		if (daysSince <= 7) return <div style={{ ...queueStyles.indicator, }} />;
-		return <div style={{ ...queueStyles.indicator, }} />;
+		if (daysSince === 0) return <div style={{ ...queueStyles.indicator }} />;
+		if (daysSince <= 7) return <div style={{ ...queueStyles.indicator }} />;
+		return <div style={{ ...queueStyles.indicator }} />;
 	};
 
 	// DataGrid columns
@@ -159,9 +159,12 @@ export default function MyClaimsQueueTable({
 			{
 				accessorKey: 'status',
 				header: (ctx) => <IconHeaderCell {...ctx} />,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-					<ClaimStatusChip recoveryStatus={params.row.recovery_status} substatus={params.row.substatus} />
-				); },
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
+					return (
+						<ClaimStatusChip recoveryStatus={params.row.recovery_status} substatus={params.row.substatus} />
+					);
+				},
 				size: 200,
 			},
 			{
@@ -188,13 +191,19 @@ export default function MyClaimsQueueTable({
 			{
 				accessorKey: 'expected_recovery',
 				header: (ctx) => <IconHeaderCell {...ctx} />,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return formatCurrencyExact(parseFloat(params.value?.toString() || '0')); },
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
+					return formatCurrencyExact(parseFloat(params.value?.toString() || '0'));
+				},
 				size: 130,
 			},
 			{
 				accessorKey: 'actual_recovery',
 				header: (ctx) => <IconHeaderCell {...ctx} />,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return formatCurrencyExact(parseFloat(params.value?.toString() || '0')); },
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
+					return formatCurrencyExact(parseFloat(params.value?.toString() || '0'));
+				},
 				size: 130,
 			}
 		);
@@ -202,12 +211,15 @@ export default function MyClaimsQueueTable({
 		baseColumns.push({
 			accessorKey: 'last_update',
 			header: (ctx) => <IconHeaderCell {...ctx} />,
-			cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-					{getActivityIndicator(params.value)}
-					{formatMDYAbv(params.value)}
-				</div>
-			); },
+			cell: (info: any) => {
+				const params = { row: info.row.original, value: info.getValue() };
+				return (
+					<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+						{getActivityIndicator(params.value)}
+						{formatMDYAbv(params.value)}
+					</div>
+				);
+			},
 			size: 140,
 		});
 
@@ -230,7 +242,7 @@ export default function MyClaimsQueueTable({
 							Filters...
 							{hasActiveFilters && (
 								<div
-style={{
+									style={{
 										marginLeft: 4,
 										color: 'white',
 										borderRadius: '50%',
@@ -241,7 +253,8 @@ style={{
 										justifyContent: 'center',
 										fontSize: 11,
 										fontWeight: 600,
-									}}>
+									}}
+								>
 									{[appliedSubstatus, appliedRecoveryStatus, appliedSearch].filter(Boolean).length}
 								</div>
 							)}
@@ -258,7 +271,8 @@ style={{
 						variant="contained"
 						startIcon={<IconDownload size={20} />}
 						onClick={handleExport}
-						disabled={rows.length === 0}>
+						disabled={rows.length === 0}
+					>
 						Export
 					</CustomButton>
 				}
@@ -268,11 +282,24 @@ style={{
 
 			{/* Filters Popper */}
 			{!!filtersAnchorEl && (
-				<BasicPopper anchorEl={filtersAnchorEl} setAnchorEl={() => handleCloseFilters()} placement="bottom-start">
-					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 24, marginTop: 5, minWidth: 300, maxWidth: 400 }}>
-						<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
-							Filter Claims
-						</span>
+				<BasicPopper
+					anchorEl={filtersAnchorEl}
+					setAnchorEl={() => handleCloseFilters()}
+					placement="bottom-start"
+				>
+					<div
+						style={{
+							background: 'var(--bg-white)',
+							border: '1px solid var(--border)',
+							borderRadius: 'var(--radius-lg)',
+							boxShadow: 'var(--shadow-lg)',
+							padding: 24,
+							marginTop: 5,
+							minWidth: 300,
+							maxWidth: 400,
+						}}
+					>
+						<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>Filter Claims</span>
 						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
 							<SubstatusSelect
 								substatus={draftSubstatus as ClaimSubstatus | null}
@@ -308,12 +335,12 @@ style={{
 					onRowClick={handleRowClick}
 					getRowClassName={() => 'cursor-pointer'}
 					hideFooter={true}
-				emptyState={
-					<CustomNoRowsOverlay
-						text={hasActiveFilters ? 'No claims match your filters' : 'No claims in this queue'}
-						icon={<IconClipboardSearch size={35} style={{ color: 'var(--text-muted)' }} />}
-					/>
-				}
+					emptyState={
+						<CustomNoRowsOverlay
+							text={hasActiveFilters ? 'No claims match your filters' : 'No claims in this queue'}
+							icon={<IconClipboardSearch size={35} style={{ color: 'var(--text-muted)' }} />}
+						/>
+					}
 				/>
 			</div>
 		</>
@@ -322,11 +349,12 @@ style={{
 
 const queueStyles = {
 	table: {
-		size: '100%',
-		height: 'calc(100% - 250px)', // Account for toolbar
+		width: '100%',
+		height: 'calc(100vh - 350px)',
+		minHeight: 0,
 	},
 	indicator: {
-		size: 8,
+		width: 8,
 		height: 8,
 		borderRadius: '50%',
 		marginLeft: 1,

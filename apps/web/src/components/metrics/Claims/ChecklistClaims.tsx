@@ -243,12 +243,12 @@ const styles = {
 		marginLeft: 20,
 	},
 	paper: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		padding: '24px 24px 0px',
 	},
 	table: {
-		size: '100%',
+		width: '100%',
 		height: 'calc(100% - 40px)',
 	},
 };

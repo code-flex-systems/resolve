@@ -36,7 +36,7 @@ export default function NewChecklistDialog() {
 				existingChecklistId: typeof data.from === 'number' ? data.from : undefined,
 			});
 			showSuccess('create', 'Checklist created');
-			router.push(`/checklist/${newChecklist.id}`);
+			router.push(`/checklists/${newChecklist.id}`);
 		} catch (e) {
 			showError('create', e, 'Failed to create checklist');
 		}

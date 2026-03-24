@@ -69,7 +69,18 @@ export default function MyClaimsDeadlines() {
 
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
-			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					padding: '12px 16px',
+					fontSize: 13,
+					fontWeight: 600,
+					color: 'var(--text-primary)',
+					backgroundColor: 'var(--bg-secondary)',
+					borderBottom: '1px solid var(--border)',
+				}}
+			>
 				<IconCalendar size={16} style={{ marginRight: 8 }} />
 				Related Deadlines
 			</div>
@@ -102,7 +113,13 @@ export default function MyClaimsDeadlines() {
 							{filteredDeadlines.length === 0 ? (
 								<div style={styles.emptyState}>
 									<span
-style={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' as const, fontStyle: 'italic' }}>
+										style={{
+											fontSize: 13,
+											color: 'text.secondary',
+											textAlign: 'center' as const,
+											fontStyle: 'italic',
+										}}
+									>
 										{filter === 'all' ? 'No deadlines for your claims' : `No ${filter} deadlines`}
 									</span>
 								</div>
@@ -120,8 +137,15 @@ style={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' as const, fo
 								</div>
 							)}
 						</div>
-						{filteredDeadlines.length> 10 && (
-							<span style={{ fontSize: 11, color: 'text.secondary', textAlign: 'center' as const, marginTop: 1 }}>
+						{filteredDeadlines.length > 10 && (
+							<span
+								style={{
+									fontSize: 11,
+									color: 'text.secondary',
+									textAlign: 'center' as const,
+									marginTop: 1,
+								}}
+							>
 								Showing 10 of {filteredDeadlines.length} deadlines
 							</span>
 						)}
@@ -138,7 +162,7 @@ const styles = {
 		width: 300,
 	},
 	scrollContainer: {
-		height: 'calc(100% - 90px)',
+		height: 'calc(100vh - 240px)',
 		overflowY: 'auto' as const,
 		overflowX: 'hidden' as const,
 		paddingRight: 8,

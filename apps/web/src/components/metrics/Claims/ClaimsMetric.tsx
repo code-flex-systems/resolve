@@ -83,20 +83,23 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 					{/* Header */}
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-							Claim Submission
+							Checklist Progress
 						</span>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 							<Tooltip content="A claim is considered complete if all necessary questions have been answered for the related checklist.">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconInfoCircle size={16} />
-						</Button>
-						</Tooltip>
+								<Button variant="icon" size="sm" color="neutral">
+									<IconInfoCircle size={16} />
+								</Button>
+							</Tooltip>
 							{(isAdmin || isSuperAdmin) && pathname.startsWith('/admin') && (
 								<Tooltip content="Open in Inspector">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={16} />
-						</Button>
-						</Tooltip>
+									<Button variant="icon" size="sm" color="neutral">
+										<IconBug
+											style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }}
+											size={16}
+										/>
+									</Button>
+								</Tooltip>
 							)}
 						</div>
 					</div>
@@ -127,20 +130,36 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 								</PieChart>
 							</ResponsiveContainer>
 							{/* Center label */}
-							<div style={{
-								position: 'absolute',
-								top: '50%',
-								left: '50%',
-								transform: 'translate(-50%, -30%)',
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								pointerEvents: 'none',
-							}}>
-								<span style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
+							<div
+								style={{
+									position: 'absolute',
+									top: '50%',
+									left: '50%',
+									transform: 'translate(-50%, -30%)',
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									pointerEvents: 'none',
+								}}
+							>
+								<span
+									style={{
+										fontSize: 32,
+										fontWeight: 700,
+										color: 'var(--text-primary)',
+										lineHeight: 1,
+									}}
+								>
 									{pct}%
 								</span>
-								<span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', marginTop: 2 }}>
+								<span
+									style={{
+										fontSize: 12,
+										fontWeight: 500,
+										color: 'var(--text-secondary)',
+										marginTop: 2,
+									}}
+								>
 									Submitted
 								</span>
 							</div>
@@ -151,7 +170,9 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 					<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
 						{pieData.map((entry) => (
 							<div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-								<div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entry.color }} />
+								<div
+									style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entry.color }}
+								/>
 								<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 									{entry.label} ({entry.value})
 								</span>

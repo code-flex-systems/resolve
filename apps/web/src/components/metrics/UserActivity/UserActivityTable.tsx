@@ -421,7 +421,6 @@ export default function UserActivityTable({
 					loading={isFetchingLogs}
 					rows={logs.rows}
 					rowCount={logs.count ?? 0}
-					getRowClassName={(row, index) => (index % 2 === 0 ? 'striped' : '')}
 					hideFooter={!showPagination}
 					paginationMode="server"
 					paginationModel={constraints}
