@@ -2,134 +2,109 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatMD } from '@/lib/utils/utils';
 import dayjs, { Dayjs } from 'dayjs';
-import { GetUserOutput, useUserTrpc } from '@/hooks/trpc/useUserTrpc';
+import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import type { DateRange } from '@/types/dateTypes';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useMemo } from 'react';
-import MetricValue from '@/components/common/MetricValue';
 import UserActivitySummary from './UserActivitySummary';
 import Skeleton from '@/components/ui/Skeleton';
 import Card from '@/components/ui/Card';
 
 export default function UserActivityChart({
-	checklistId,
-	claimId,
 	users,
 	range,
-	searchTerm,
 }: {
-	checklistId?: string;
-	claimId?: string;
 	users: GetUserOutput[];
 	range: DateRange<Dayjs>;
-	searchTerm?: string;
 }) {
 	const today = dayjs().format('MM/DD/YYYY');
-	const filters = useMemo(
+
+	const checklistFilters = useMemo(
 		() => ({
-			checklistId,
-			claimId,
-			range: [range[0]?.toString() ?? today, range[1]?.toString() ?? today] as [string, string],
-			users: users.map((u) => u.id),
-			searchTerm,
+			filters: {
+				range: [range[0]?.toString() ?? today, range[1]?.toString() ?? today] as [string, string],
+				users: users.length > 0 ? users.map((u) => u.id) : undefined,
+			},
 		}),
-		[checklistId, claimId, range, users, searchTerm]
+		[range, users]
 	);
 
-	const { data = [], isFetching } = useUserTrpc().activity({ filters }, { enabled: range.every((r) => !!r) });
-	const { data: stats = { avg: 0, total: 0, maxRow: null }, isFetching: isFetchingStats } =
-		useResponseTrpc().listLogStats({ filters }, { enabled: range.every((r) => !!r) });
+	const enabled = range.every((r) => !!r);
+	const { data: checklistData = [], isFetching: fetchingChecklist } = useResponseTrpc().checklistActivity(
+		checklistFilters,
+		{ enabled }
+	);
+	const { data: stats = { avg: 0, total: 0, maxRow: null }, isFetching: fetchingStats } =
+		useResponseTrpc().listLogStats(checklistFilters, { enabled });
 
-	const isLoading = isFetching || isFetchingStats;
-	const formattedData = data.map((r) => ({ ...r, active_users: parseInt(r.active_users ?? '0') }));
-	const chartData = formattedData.map((r) => ({
+	const isLoading = fetchingChecklist || fetchingStats;
+
+	const checklistChartData = checklistData.map((r) => ({
 		name: r.activity_date,
-		active_users: r.active_users,
+		event_count: r.event_count,
 	}));
-	const maxUserRow = formattedData.find((u) => u.activity_date === stats.maxRow?.activity_date);
-	const maxY = maxUserRow ? Math.ceil(maxUserRow.active_users / 10) * 10 : 10;
+
+	const maxY = Math.max(...checklistChartData.map((d) => d.event_count), 1);
 
 	return (
 		<Card variant="beveled" padding="lg" style={{ width: '100%' }}>
-			<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%' }}>
-				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-					<span style={{ fontSize: 18, fontWeight: 600 }}>
-						User Activity
-					</span>
-				</div>
+			<div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+				<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
+					Checklist Activity
+				</span>
 
-				<div>
-					<div style={{ width: '100%' }}>
-						{isLoading && (
-							<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 16, padding: 16 }}>
-								<div style={{ display: 'flex', flexDirection: 'row', gap: 16 }}>
-									<Skeleton variant="rect" width="33%" height={80} />
-									<Skeleton variant="rect" width="33%" height={80} />
-									<Skeleton variant="rect" width="33%" height={80} />
-								</div>
-								<Skeleton variant="rect" width="100%" height={350} />
-							</div>
-						)}
-						{!isLoading && (
-							<>
-								<UserActivitySummary
-									totalEvents={stats.total}
-									avgEvents={stats.avg}
-									maxEventsRow={stats.maxRow}
-									isBreakdown={true}
-								/>
-								<div style={{ width: '100%', height: 380, padding: '20px' }}>
-									<ResponsiveContainer width="100%" height="100%">
-										<BarChart data={chartData} margin={{ left: 0, right: 30, top: 20, bottom: 10 }}>
-											<XAxis
-												dataKey="name"
-												tickFormatter={(v) => formatMD(v)}
-												tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
-												stroke="var(--border)"
-												angle={45}
-												textAnchor="start"
-												height={50}
-											/>
-											<YAxis
-												domain={[0, maxY]}
-												allowDecimals={false}
-												tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
-												stroke="var(--border)"
-											/>
-											<Tooltip
-												formatter={(value: any) => [value, 'Active users']}
-												labelFormatter={(label) => formatMD(label as string)}
-											/>
-											<Bar
-												dataKey="active_users"
-												fill="var(--text-accent)"
-												radius={[3, 3, 0, 0]}
-											/>
-										</BarChart>
-									</ResponsiveContainer>
-								</div>
-							</>
-						)}
+				{isLoading ? (
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 16 }}>
+						<div style={{ display: 'flex', gap: 16 }}>
+							<Skeleton variant="rect" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
+						</div>
+						<Skeleton variant="rect" width="100%" height={300} />
 					</div>
-				</div>
+				) : (
+					<>
+						<UserActivitySummary
+							totalEvents={stats.total}
+							avgEvents={stats.avg}
+							maxEventsRow={stats.maxRow}
+							isBreakdown={true}
+						/>
+						<div style={{ width: '100%', height: 350, padding: '10px 0' }}>
+							<ResponsiveContainer width="100%" height="100%">
+								<BarChart data={checklistChartData} margin={{ left: 0, right: 30, top: 10, bottom: 10 }}>
+									<XAxis
+										dataKey="name"
+										tickFormatter={(v) => formatMD(v)}
+										tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+										stroke="var(--border)"
+										angle={45}
+										textAnchor="start"
+										height={50}
+									/>
+									<YAxis
+										domain={[0, Math.ceil(maxY / 10) * 10 || 10]}
+										allowDecimals={false}
+										tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+										stroke="var(--border)"
+									/>
+									<Tooltip
+										contentStyle={{
+											background: 'var(--bg-secondary, #1e1e1e)',
+											border: '1px solid var(--border-primary, #333)',
+											borderRadius: 8,
+											color: 'var(--text-primary, #e0e0e0)',
+										}}
+										formatter={(value: any) => [value, 'Response events']}
+										labelFormatter={(label) => formatMD(label as string)}
+									/>
+									<Bar dataKey="event_count" fill="var(--text-accent)" radius={[3, 3, 0, 0]} />
+								</BarChart>
+							</ResponsiveContainer>
+						</div>
+					</>
+				)}
 			</div>
 		</Card>
 	);
 }
-
-const styles = {
-	paper: {
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		minWidth: 'fit-content',
-		width: '100%',
-		height: '100%',
-		padding: '24px',
-	},
-	row: {
-		width: '100%',
-		padding: 12,
-	},
-};

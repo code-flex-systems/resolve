@@ -30,6 +30,7 @@ export default function SubstatusSelect({
 
 	return (
 		<Dropdown
+			label="Claim Substatus"
 			options={dropdownOptions}
 			value={substatus ?? ''}
 			onChange={(val) => setSubstatus(val === '' ? null : (String(val) as ClaimSubstatus))}

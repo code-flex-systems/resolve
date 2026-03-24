@@ -15,40 +15,40 @@ import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 const columns: ColumnDef<RecoveryEventWithDetails, any>[] = [
 	{
 		accessorKey: 'recovery_date',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 120,
 		cell: ({ getValue }) => dayjs(getValue()).format('MMM DD, YYYY'),
 	},
 	{
 		accessorKey: 'claim_number',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 150,
 	},
 	{
 		accessorKey: 'insured',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 200,
 	},
 	{
 		accessorKey: 'recovery_amount',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 130,
 		cell: ({ getValue }) => { const value = getValue(); return formatCurrency(parseFloat(value)); },
 	},
 	{
 		accessorKey: 'recovery_source',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 180,
 	},
 	{
 		accessorKey: 'recovery_status',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 150,
 		cell: ({ getValue }) => { const value = getValue(); return formatRecoveryStatus(value); },
 	},
 	{
 		accessorKey: 'notes',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		minSize: 200,
 	},
 ];

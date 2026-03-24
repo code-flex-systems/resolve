@@ -272,7 +272,7 @@ export default function UserActivityTable({
 			offset: constraints.page * constraints.pageSize,
 		},
 		{
-			enabled: !!checklistId && !!claimId,
+			enabled: range.every((r) => !!r),
 		}
 	);
 

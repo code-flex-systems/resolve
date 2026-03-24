@@ -33,6 +33,7 @@ export default function DeskLocationTypeFilter({
 
 	return (
 		<Dropdown
+			label="Desk Location Type"
 			options={dropdownOptions}
 			value={value ?? ''}
 			onChange={(val) => onChange(val === '' ? null : String(val))}

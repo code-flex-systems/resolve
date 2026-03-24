@@ -28,6 +28,7 @@ export default function RecoveryStatusSelect({
 
 	return (
 		<Dropdown
+			label="Recovery Status"
 			options={dropdownOptions}
 			value={recoveryStatus ?? ''}
 			onChange={(val) => setRecoveryStatus(val === '' ? null : String(val))}

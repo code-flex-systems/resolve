@@ -87,12 +87,11 @@ export default function RecoveryMetricsChart({
 	const lastExpected = lastQuarterSummary?.total_expected ?? 0;
 	const lastActual = lastQuarterSummary?.total_actual ?? 0;
 
-	const expectedChange = lastExpected> 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
-	const actualChange = lastActual> 0 ? ((currentActual - lastActual) / lastActual) * 100 : 0;
+	const expectedChange = lastExpected > 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
+	const actualChange = lastActual > 0 ? ((currentActual - lastActual) / lastActual) * 100 : 0;
 
 	const containerWidth = isBreakdown ? '100%' : 600;
 	const chartHeight = isBreakdown ? 400 : 260;
-	const chartMargin = isBreakdown ? { left: 80, right: 20, top: 20, bottom: 60 } : { left: 60, right: 10, top: 10, bottom: 20 };
 	const padding = isBreakdown ? '30px' : '20px';
 	const titleFontSize = isBreakdown ? 18 : 14;
 	const cardPadding = isBreakdown ? 16 : 8;
@@ -102,14 +101,20 @@ export default function RecoveryMetricsChart({
 	const spacing = isBreakdown ? 16 : 8;
 	const marginBottom = isBreakdown ? 24 : 12;
 
-	const formatTooltipValue = (value: number) =>
-		`$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+	const formatTooltipValue = (value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 	return (
 		<div style={{ width: containerWidth }}>
 			<Card variant="beveled" padding="none" style={{ ...styles.paper, padding }}>
 				<div
-style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom }}>
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						marginBottom,
+					}}
+				>
 					<span style={{ fontSize: titleFontSize, fontWeight: 600 }}>
 						{isBreakdown
 							? 'Recovery Metrics'
@@ -125,15 +130,15 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 								vs Q{quarters.lastQuarter} {quarters.lastYear}
 							</span>
 							<Tooltip content="Open in Inspector">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconBug
-									 style={{
+								<Button variant="icon" size="sm" color="neutral">
+									<IconBug
+										style={{
 											transform: 'scaleX(-1)',
 											color: 'var(--text-accent)',
 										}}
 									/>
-						</Button>
-						</Tooltip>
+								</Button>
+							</Tooltip>
 						</div>
 					)}
 				</div>
@@ -153,25 +158,29 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 					<>
 						{/* Summary Cards */}
 						<div style={{ display: 'flex', gap: spacing, marginBottom, width: '100%' }}>
-							<KpiCard size="sm"
+							<KpiCard
+								size="sm"
 								value={formatCurrency(currentExpected)}
 								label="Total Expected"
 								subtitle={`${expectedChange >= 0 ? '+' : ''}${expectedChange.toFixed(1)}%${isBreakdown ? ' vs last quarter' : ''}`}
 								subtitleColor={expectedChange >= 0 ? 'positive' : 'negative'}
 							/>
-							<KpiCard size="sm"
+							<KpiCard
+								size="sm"
 								value={formatCurrency(currentActual)}
 								label="Total Actual"
 								subtitle={`${actualChange >= 0 ? '+' : ''}${actualChange.toFixed(1)}%${isBreakdown ? ' vs last quarter' : ''}`}
 								subtitleColor={actualChange >= 0 ? 'positive' : 'negative'}
 							/>
-							<KpiCard size="sm"
+							<KpiCard
+								size="sm"
 								value={formatCurrency(currentVariance)}
 								label="Variance"
 								subtitle={`${currentRate.toFixed(1)}% rate`}
 							/>
 							{isBreakdown && (
-								<KpiCard size="sm"
+								<KpiCard
+									size="sm"
 									value={`${currentRate.toFixed(1)}%`}
 									label="Recovery Rate"
 									subtitle="actual / expected"
@@ -182,7 +191,7 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 						{/* Line Chart */}
 						<div style={{ width: '100%', height: chartHeight }}>
 							<ResponsiveContainer width="100%" height={chartHeight}>
-								<LineChart data={chartData} margin={chartMargin}>
+								<LineChart data={chartData}>
 									<XAxis
 										dataKey="name"
 										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
@@ -194,13 +203,12 @@ style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignI
 										stroke="var(--border)"
 									/>
 									<Tooltip
-										formatter={(value: any, name: any) => [formatTooltipValue(value as number), name]}
+										formatter={(value: any, name: any) => [
+											formatTooltipValue(value as number),
+											name,
+										]}
 									/>
-									<Legend
-										verticalAlign="bottom"
-										align="center"
-										layout="horizontal"
-									/>
+									<Legend verticalAlign="bottom" align="center" layout="horizontal" />
 									<Line
 										type="linear"
 										dataKey="expected"

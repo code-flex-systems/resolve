@@ -44,42 +44,44 @@ export default function CapUtilizationChart({ data }: Props) {
 	const totalCount = useMemo(() => data.reduce((s, d) => s + d.count, 0), [data]);
 
 	return (
-		<ResponsiveContainer width="100%" minWidth={350} height={350}>
-			<PieChart>
-				<Pie
-					data={data}
-					dataKey="count"
-					nameKey="category"
-					cx="50%"
-					cy="50%"
-					innerRadius={80}
-					outerRadius={130}
-					paddingAngle={2}
-				>
-					{data.map((entry, i) => (
-						<Cell key={i} fill={getCategoryColor(entry.category)} />
-					))}
-				</Pie>
-				<Tooltip content={<CustomTooltip />} />
-				<text
-					x="50%"
-					y="48%"
-					textAnchor="middle"
-					dominantBaseline="middle"
-					style={{ fontSize: 28, fontWeight: 700, fill: 'var(--color-text-primary)' }}
-				>
-					{totalCount}
-				</text>
-				<text
-					x="50%"
-					y="58%"
-					textAnchor="middle"
-					dominantBaseline="middle"
-					style={{ fontSize: 12, fill: 'var(--color-text-secondary)' }}
-				>
-					Total
-				</text>
-			</PieChart>
-		</ResponsiveContainer>
+		<Card variant="beveled" padding="none">
+			<ResponsiveContainer width="100%" minWidth={350} height={325}>
+				<PieChart>
+					<Pie
+						data={data}
+						dataKey="count"
+						nameKey="category"
+						cx="50%"
+						cy="50%"
+						innerRadius={80}
+						outerRadius={130}
+						paddingAngle={2}
+					>
+						{data.map((entry, i) => (
+							<Cell key={i} fill={getCategoryColor(entry.category)} />
+						))}
+					</Pie>
+					<Tooltip content={<CustomTooltip />} />
+					<text
+						x="50%"
+						y="48%"
+						textAnchor="middle"
+						dominantBaseline="middle"
+						style={{ fontSize: 28, fontWeight: 700, fill: 'var(--text-primary)' }}
+					>
+						{totalCount}
+					</text>
+					<text
+						x="50%"
+						y="58%"
+						textAnchor="middle"
+						dominantBaseline="middle"
+						style={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+					>
+						Total
+					</text>
+				</PieChart>
+			</ResponsiveContainer>
+		</Card>
 	);
 }

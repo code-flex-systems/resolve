@@ -143,7 +143,7 @@ export default function AdminLogsTab() {
 			},
 			{
 				accessorKey: 'entity_name',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell
 						primary={formatEntityLabelForDisplay(row.entity_name)}
@@ -161,7 +161,7 @@ export default function AdminLogsTab() {
 			},
 			{
 				accessorKey: 'value',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: ({ row: { original: row } }) => {
 					if (!hasValue(row.value)) {
 						return <span style={{ color: 'var(--text-secondary)' }}>-</span>;
@@ -325,8 +325,8 @@ const styles = {
 	},
 	filterCountBadge: {
 		marginLeft: 4,
-		backgroundColor: 'primary.main',
-		color: 'white',
+		backgroundColor: 'var(--text-accent)',
+		color: 'var(--bg-primary)',
 		borderRadius: '50%',
 		size: 18,
 		height: 18,

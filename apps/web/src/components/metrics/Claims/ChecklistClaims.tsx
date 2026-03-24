@@ -26,24 +26,24 @@ const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
 const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'status',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ClaimStatusCell {...params} />; },
 		size: 150,
 	},
 	{
 		accessorKey: 'claim_number',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />; },
 		size: 220,
 	},
 	{
 		accessorKey: 'client',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 200,
 	},
 	{
 		accessorKey: 'expected_recovery',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 			<StackedHeaderCell
 				primary={formatAmount(params.row.actual_recovery ?? 0, true)}
@@ -54,7 +54,7 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	},
 	{
 		accessorKey: 'assignee',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		cell: (info: any) => {
 			const params = { row: info.row.original, value: info.getValue() };
 			const user = formatUser({
@@ -69,7 +69,7 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	// {
 	// 	header: 'Initial assignee',
 	// 	accessorKey: 'created_by',
-	// 	header: () => <IconHeaderCell />,
+	// 	header: (ctx) => <IconHeaderCell {...ctx} />,
 	// 	cell: (info: any) => { const params = { row: info.row.original, value: info.getValue(), id: info.row.id }; {
 	// 		const user = formatUser({
 	// 			id: params.value,
@@ -83,7 +83,7 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	// },
 	{
 		accessorKey: 'updated_at',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		cell: (info: any) => { const value = info.getValue(); const row = info.row.original; return formatMDY(value ?? row.created_at); },
 		size: 130,
 	},

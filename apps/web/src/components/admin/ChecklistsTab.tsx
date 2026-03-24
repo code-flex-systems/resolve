@@ -22,29 +22,35 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
 		accessorKey: 'name',
 		header: '',
-		// header: (params) => (
-		// 	<ExpandableHeaderCell {...params} icon={<IconFileSearch size={17} style={{ color: white }} />} />
-		// ),
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />;
+		},
 		size: 200,
 		enableSorting: false,
 	},
 	{
 		accessorKey: 'page_count',
 		header: '',
-		cell: ({ getValue }) => { const value = getValue(); return `${value?.toLocaleString() ?? ''} pages`; },
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return `${value?.toLocaleString() ?? ''} pages`;
+		},
 		size: 120,
 		enableSorting: false,
 	},
 	{
 		accessorKey: 'dates',
-		header: () => <IconHeaderCell />,
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-			<StackedHeaderCell
-				primary={params.row.updated_at ? `Last updated ${formatMDY(params.row.updated_at)}` : ''}
-				secondary={`Created ${formatMDY(params.row.created_at)}`}
-			/>
-		); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return (
+				<StackedHeaderCell
+					primary={params.row.updated_at ? `Last updated ${formatMDY(params.row.updated_at)}` : ''}
+					secondary={`Created ${formatMDY(params.row.created_at)}`}
+				/>
+			);
+		},
 		size: 250,
 		enableSorting: false,
 	},
@@ -53,7 +59,10 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 		header: '',
 		minSize: 200,
 		enableSorting: false,
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ChecklistActionsCell {...params} isManageMode={isManageMode} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <ChecklistActionsCell {...params} isManageMode={isManageMode} />;
+		},
 	},
 ];
 
@@ -78,28 +87,49 @@ export default function ChecklistsTab() {
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
-						left={undefined}
+						left={
+							<p
+								style={{
+									color: 'var(--text-secondary)',
+									fontSize: 13,
+									margin: '0 0 12px',
+									lineHeight: 1.5,
+								}}
+							>
+								Checklists are templates that guide adjusters through claim requirements. Published
+								checklists are available to all users.
+							</p>
+						}
 						right={
 							<>
-								<Button variant="contained" startIcon={<IconSquarePlus size={20} />} onClick={toggleNewChecklistDialog}>
+								<Button
+									variant="contained"
+									startIcon={<IconSquarePlus size={20} />}
+									onClick={toggleNewChecklistDialog}
+								>
 									Checklist
 								</Button>
 								<Tooltip content="Manage">
-									<Button variant="icon" size="sm"
+									<Button
+										variant="icon"
+										size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+										style={{
+											marginLeft: 8,
+											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+										}}
 									>
-										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										<IconSettings
+											size={20}
+											style={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
 									</Button>
 								</Tooltip>
 							</>
 						}
-						height={50}
 						padding={'0px 10px'}
 					/>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Checklists are templates that guide adjusters through claim requirements. Published checklists are available to all users.
-					</p>
+
 					<div style={styles.table}>
 						<DataTable
 							columns={columns}

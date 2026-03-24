@@ -3,16 +3,26 @@
 import { Spinner } from '@/components/ui/Progress';
 import KpiCard from '@/components/ui/KpiCard';
 import Card from '@/components/ui/Card';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import dayjs from 'dayjs';
+import { useMemo } from 'react';
 import { IconUsers, IconUserPlus, IconShield } from '@tabler/icons-react';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
 
 export default function UserManagementOverview() {
 	const { data, isLoading } = useUserTrpc().managementStats(undefined);
-	const thirtyDaysAgo = dayjs().subtract(30, 'day').toISOString();
-	const today = new Date().toISOString();
-	const { data: activityData } = useUserTrpc().activity({ filters: { range: [thirtyDaysAgo, today] } });
+	const activityFilters = useMemo(
+		() => ({
+			filters: {
+				range: [
+					dayjs().subtract(90, 'day').startOf('day').toISOString(),
+					dayjs().endOf('day').toISOString(),
+				] as [string, string],
+			},
+		}),
+		[]
+	);
+	const { data: activityData } = useUserTrpc().activity(activityFilters);
 
 	if (isLoading || !data) {
 		return (
@@ -73,29 +83,53 @@ export default function UserManagementOverview() {
 				</>
 			)}
 
-			{/* Activity Trend */}
-			<Card variant="beveled" padding="md">
+			{/* Login Activity */}
+			<Card variant="beveled" padding="md" style={{ maxWidth: 1000 }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-						Daily Active Users (30 days)
+						User Logins (90 days)
 					</span>
 					{activityData && activityData.length > 0 ? (
-						<ResponsiveContainer width="100%" height={160}>
-							<AreaChart data={activityData.map(d => ({ date: dayjs(d.activity_date).format('MMM D'), users: Number(d.active_users) }))}>
-								<defs>
-									<linearGradient id="activeUsersGradient" x1="0" y1="0" x2="0" y2="1">
-										<stop offset="0%" stopColor="var(--text-accent)" stopOpacity={0.15} />
-										<stop offset="100%" stopColor="var(--text-accent)" stopOpacity={0} />
-									</linearGradient>
-								</defs>
-								<XAxis dataKey="date" fontSize={11} tick={{ fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} />
-								<YAxis fontSize={11} tick={{ fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-								<Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }} />
-								<Area type="monotone" dataKey="users" stroke="var(--text-accent)" strokeWidth={2} fill="url(#activeUsersGradient)" />
-							</AreaChart>
+						<ResponsiveContainer width="100%" height={200}>
+							<BarChart
+								data={activityData.map((d) => ({
+									date: dayjs(d.activity_date).format('MMM D'),
+									users: Number(d.active_users),
+								}))}
+								margin={{ left: 0, right: 10, top: 10, bottom: 10 }}
+							>
+								<XAxis
+									dataKey="date"
+									fontSize={11}
+									tick={{ fill: 'var(--text-muted)' }}
+									tickLine={false}
+									axisLine={false}
+									interval={6}
+								/>
+								<YAxis
+									fontSize={11}
+									tick={{ fill: 'var(--text-muted)' }}
+									tickLine={false}
+									axisLine={false}
+									allowDecimals={false}
+								/>
+								<Tooltip
+									contentStyle={{
+										fontSize: 12,
+										borderRadius: 8,
+										border: '1px solid var(--border-primary, #333)',
+										background: 'var(--bg-secondary, #1e1e1e)',
+										color: 'var(--text-primary, #e0e0e0)',
+									}}
+									formatter={(value: any) => [value, 'Unique logins']}
+								/>
+								<Bar dataKey="users" fill="#4fc3f7" radius={[2, 2, 0, 0]} />
+							</BarChart>
 						</ResponsiveContainer>
 					) : (
-						<span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '20px 0' }}>No activity data available</span>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '20px 0' }}>
+							No login data available
+						</span>
 					)}
 				</div>
 			</Card>

@@ -1,14 +1,6 @@
 'use client';
 
-import {
-	AreaChart,
-	Area,
-	XAxis,
-	YAxis,
-	Tooltip,
-	ResponsiveContainer,
-	Line,
-} from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Line } from 'recharts';
 import Card from '@/components/ui/Card';
 import type { PaymentToRecoveryTimeline } from '@/hooks/trpc/useFinancialReportingTrpc';
 
@@ -32,9 +24,6 @@ export default function CycleTimeChart({ data }: CycleTimeChartProps) {
 
 	return (
 		<Card variant="beveled" padding="none" style={{ padding: '24px' }}>
-			<h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>
-				Payment to Recovery Cycle Time
-			</h3>
 			<ResponsiveContainer width="100%" height={350}>
 				<AreaChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
 					<XAxis dataKey="periodLabel" tick={{ fontSize: 11 }} />
@@ -86,11 +75,30 @@ export default function CycleTimeChart({ data }: CycleTimeChartProps) {
 			</ResponsiveContainer>
 			<div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 12 }}>
 				<span>
-					<span style={{ display: 'inline-block', width: 16, height: 2, background: '#4fc3f7', marginRight: 4, verticalAlign: 'middle' }} />
+					<span
+						style={{
+							display: 'inline-block',
+							width: 16,
+							height: 2,
+							background: '#4fc3f7',
+							marginRight: 4,
+							verticalAlign: 'middle',
+						}}
+					/>
 					Avg Days
 				</span>
 				<span>
-					<span style={{ display: 'inline-block', width: 16, height: 2, background: '#ba68c8', borderTop: '2px dashed #ba68c8', marginRight: 4, verticalAlign: 'middle' }} />
+					<span
+						style={{
+							display: 'inline-block',
+							width: 16,
+							height: 2,
+							background: '#ba68c8',
+							borderTop: '2px dashed #ba68c8',
+							marginRight: 4,
+							verticalAlign: 'middle',
+						}}
+					/>
 					Median Days
 				</span>
 			</div>

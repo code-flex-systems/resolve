@@ -23,4 +23,7 @@ done
 echo "  Running seed_checklists.ts..."
 cd "$SCRIPT_DIR/../.." && npx tsx src/scripts/seed_checklists.ts
 
+echo "  Running seed_response_audit_logs.sql..."
+psql "$DB_URL" -f "$SCRIPT_DIR/seed_response_audit_logs.sql"
+
 echo "Done!"

@@ -1,15 +1,6 @@
 'use client';
 
-import {
-	BarChart,
-	Bar,
-	XAxis,
-	YAxis,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
-	CartesianGrid,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import type { RecoveryAgingBreakdown } from '@/hooks/trpc/useFinancialReportingTrpc';
@@ -22,7 +13,16 @@ function CustomTooltip({ active, payload, label }: any) {
 	if (!active || !payload?.length) return null;
 	const row = payload[0]?.payload as RecoveryAgingBreakdown;
 	return (
-		<div style={{ background: 'var(--bg-secondary, #1e1e1e)', border: '1px solid var(--border-primary, #333)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: 'var(--text-primary, #e0e0e0)' }}>
+		<div
+			style={{
+				background: 'var(--bg-secondary, #1e1e1e)',
+				border: '1px solid var(--border-primary, #333)',
+				borderRadius: 8,
+				padding: '8px 12px',
+				fontSize: 12,
+				color: 'var(--text-primary, #e0e0e0)',
+			}}
+		>
 			<p style={{ margin: 0, fontWeight: 600 }}>{label}</p>
 			{payload.map((entry: any) => (
 				<p key={entry.dataKey} style={{ margin: '4px 0 0', color: entry.color }}>
@@ -39,7 +39,6 @@ function CustomTooltip({ active, payload, label }: any) {
 export default function RecoveryAgingChart({ data }: Props) {
 	return (
 		<Card variant="beveled" padding="none" style={{ padding: '24px' }}>
-			<h3 style={{ margin: '0 0 16px' }}>Recovery Aging Breakdown</h3>
 			<ResponsiveContainer width="100%" height={350}>
 				<BarChart data={data}>
 					<CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />

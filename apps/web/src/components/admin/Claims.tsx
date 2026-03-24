@@ -47,66 +47,90 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	},
 	{
 		accessorKey: 'client_adjuster',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 150,
 	},
 	{
 		accessorKey: 'insured',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 150,
 	},
 	{
 		accessorKey: 'date_of_loss',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const value = getValue(); return formatMDYAbv(value); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return formatMDYAbv(value);
+		},
 		size: 150,
 	},
 	{
 		accessorKey: 'loss_city',
-		header: () => <IconHeaderCell headerName='Loss Location' />,
+		header: (ctx) => <IconHeaderCell {...ctx} headerName="Loss Location" />,
 		size: 150,
 	},
 	{
 		accessorKey: 'line_of_business',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const v = getValue(); return formatLineOfBusiness(v); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const v = getValue();
+			return formatLineOfBusiness(v);
+		},
 		size: 150,
 	},
 	{
 		accessorKey: 'recovery_status',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const v = getValue(); return formatRecoveryStatus(v); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const v = getValue();
+			return formatRecoveryStatus(v);
+		},
 		size: 150,
 	},
 	{
 		accessorKey: 'substatus',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const v = getValue(); return formatLabel(v); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const v = getValue();
+			return formatLabel(v);
+		},
 		size: 150,
 	},
 	// Amount fields grouped at end (ClaimHeader order)
 	{
 		accessorKey: 'claim_amount',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
 		size: 130,
 	},
 	{
 		accessorKey: 'total_incurred',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
 		size: 130,
 	},
 	{
 		accessorKey: 'expected_recovery',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
 		size: 140,
 	},
 	{
 		accessorKey: 'actual_recovery',
-		header: () => <IconHeaderCell />,
-		cell: ({ getValue }) => { const value = getValue(); return (value ? `$${formatAmount(value)}` : '$0.00'); },
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
 		size: 130,
 	},
 ];
@@ -338,7 +362,9 @@ export default function Claims() {
 	const insuredComboboxOptions: ComboboxOption[] = insuredOptions.map((s) => ({ value: s, label: s }));
 	const clientComboboxOptions: ComboboxOption[] = clientOptions.map((s) => ({ value: s, label: s }));
 
-	const selectedInsuredOption: ComboboxOption | null = draftInsured ? { value: draftInsured, label: draftInsured } : null;
+	const selectedInsuredOption: ComboboxOption | null = draftInsured
+		? { value: draftInsured, label: draftInsured }
+		: null;
 	const selectedClientOption: ComboboxOption | null = draftClient ? { value: draftClient, label: draftClient } : null;
 
 	return (
@@ -348,34 +374,6 @@ export default function Claims() {
 					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
 						View and manage all claims across the organization. Click a claim to see its full details.
 					</p>
-					{/* Main Toolbar: Title and Actions */}
-					<Toolbar
-						left={undefined}
-						right={
-							<>
-								<Button
-									variant="contained"
-									color="neutral"
-									startIcon={<IconUpload size={20} />}
-									onClick={toggleImportClaimsDialog}
-									style={{ marginRight: '10px' }}
-								>
-									Import
-								</Button>
-								<Button
-									variant="contained"
-									startIcon={<IconSquarePlus size={20} />}
-									onClick={() => router.push('/admin/claims/edit')}
-								>
-									Claim
-								</Button>
-							</>
-						}
-						leftWidth="70%"
-						rightWidth="30%"
-						height={40}
-						padding={'0px 10px'}
-					/>
 
 					{/* Search and Filters Toolbar */}
 					<Toolbar
@@ -387,7 +385,11 @@ export default function Claims() {
 									placeholder="Search by claim number..."
 									width={280}
 								/>
-								<Button variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
+								<Button
+									variant="outlined"
+									onClick={handleOpenFilters}
+									endIcon={<IconFilter size={16} />}
+								>
 									Filters...
 									{hasActiveFilters && (
 										<div
@@ -437,6 +439,26 @@ export default function Claims() {
 								</Collapse>
 							</div>
 						}
+						right={
+							<>
+								<Button
+									variant="contained"
+									color="neutral"
+									startIcon={<IconUpload size={20} />}
+									onClick={toggleImportClaimsDialog}
+									style={{ marginRight: '10px' }}
+								>
+									Import
+								</Button>
+								<Button
+									variant="contained"
+									startIcon={<IconSquarePlus size={20} />}
+									onClick={() => router.push('/admin/claims/edit')}
+								>
+									Claim
+								</Button>
+							</>
+						}
 						leftWidth="100%"
 						rightWidth="0%"
 						height={55}
@@ -451,9 +473,7 @@ export default function Claims() {
 							placement="bottom-start"
 						>
 							<div style={styles.filtersPaper}>
-								<span style={{ fontSize: 14, fontWeight: 600 }}>
-									Filter Claims
-								</span>
+								<span style={{ fontSize: 14, fontWeight: 600 }}>Filter Claims</span>
 								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 									<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 										<Switch
@@ -542,7 +562,15 @@ export default function Claims() {
 										/>
 									</div>
 								</div>
-								<div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, paddingTop: 16, borderTop: '1px solid #e0e0e0' }}>
+								<div
+									style={{
+										display: 'flex',
+										justifyContent: 'flex-end',
+										marginTop: 16,
+										paddingTop: 16,
+										borderTop: '1px solid #e0e0e0',
+									}}
+								>
 									<Button variant="contained" onClick={handleApplyFilters} size="sm">
 										Apply
 									</Button>
@@ -554,7 +582,7 @@ export default function Claims() {
 					<div style={styles.table}>
 						<DataTable
 							columns={COLUMNS}
-						pinnedLeft={['claim_number']}
+							pinnedLeft={['claim_number']}
 							headerHeight={45}
 							loading={isFetching}
 							rows={Array.isArray(data.rows) ? data.rows : []}
@@ -564,7 +592,7 @@ export default function Claims() {
 							paginationModel={claimConstraints}
 							onPaginationModelChange={updateClaimConstraints}
 							onRowClick={handleRowClick}
-							getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
+							getRowClassName={(row, index) => (index % 2 === 0 ? 'striped' : '')}
 						/>
 					</div>
 				</Card>

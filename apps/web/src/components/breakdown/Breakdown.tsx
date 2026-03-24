@@ -30,28 +30,28 @@ function NoResults() {
 const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'claim_number',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 150,
 	},
 	{
 		accessorKey: 'client',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 200,
 	},
 	{
 		accessorKey: 'responder',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 200,
 	},
 	{
 		accessorKey: 'created_at',
 		cell: ({ getValue }) => dayjs(getValue()).format('hh:mm A MMM D, YYYY'),
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 200,
 	},
 	{
 		accessorKey: 'additional_info',
-		header: () => <IconHeaderCell />,
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 	},
 ];
 

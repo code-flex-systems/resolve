@@ -97,10 +97,10 @@ export default function DeskAssignmentTab() {
 					return (
 						<div style={styles.actionsContainer}>
 							<Tooltip content="Edit desk assignments">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconEdit size={15} />
-						</Button>
-						</Tooltip>
+								<Button variant="icon" size="sm" color="neutral">
+									<IconEdit size={15} />
+								</Button>
+							</Tooltip>
 						</div>
 					);
 				},
@@ -116,30 +116,19 @@ export default function DeskAssignmentTab() {
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
 					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Assign users to desk locations with priority levels. Lower priority numbers mean the user is assigned to that location first.
+						Assign users to desk locations with priority levels. Lower priority numbers mean the user is
+						assigned to that location first.
 					</p>
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-							<Button
-								variant="contained"
-								startIcon={<IconClipboard size={20} />}
-								onClick={() => setShowBulkAssignDialog(true)}
-								disabled={Object.keys(selectedUserIds).filter(k => selectedUserIds[k]).length === 0}
-								style={{ marginLeft: '10px' }}
-							>
-								Assign to Desk ({Object.keys(selectedUserIds).filter(k => selectedUserIds[k]).length})
-							</Button>
-							<Tooltip content="Manage">
-								<Button variant="icon" size="sm"
-									onClick={() => setIsManageMode(!isManageMode)}
-									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
-								>
-									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
-								</Button>
-							</Tooltip>
-					</div>
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '5px' }}>
-						<div></div>
-						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							padding: '5px 0px',
+						}}
+					>
+						<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
 							<DeskLocationTypeFilter
 								value={deskLocationTypeId}
 								onChange={(id: string | null) => {
@@ -169,6 +158,33 @@ export default function DeskAssignmentTab() {
 								placeholder="Search users..."
 							/>
 						</div>
+						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+							<Button
+								variant="contained"
+								startIcon={<IconClipboard size={20} />}
+								onClick={() => setShowBulkAssignDialog(true)}
+								disabled={Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length === 0}
+								style={{ marginLeft: '10px' }}
+							>
+								Assign to Desk ({Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length})
+							</Button>
+							<Tooltip content="Manage">
+								<Button
+									variant="icon"
+									size="sm"
+									onClick={() => setIsManageMode(!isManageMode)}
+									style={{
+										marginLeft: 8,
+										backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+									}}
+								>
+									<IconSettings
+										size={20}
+										style={{ color: isManageMode ? 'primary.main' : undefined }}
+									/>
+								</Button>
+							</Tooltip>
+						</div>
 					</div>
 					<div style={styles.table}>
 						<DataTable
@@ -193,7 +209,7 @@ export default function DeskAssignmentTab() {
 
 				{showBulkAssignDialog && (
 					<BulkDeskAssignmentDialog
-						selectedUserIds={Object.keys(selectedUserIds).filter(k => selectedUserIds[k])}
+						selectedUserIds={Object.keys(selectedUserIds).filter((k) => selectedUserIds[k])}
 						onClose={() => {
 							setShowBulkAssignDialog(false);
 							setSelectedUserIds({});

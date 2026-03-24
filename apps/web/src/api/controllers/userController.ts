@@ -89,10 +89,7 @@ export async function getUserActivity(
 	}: {
 		filters: {
 			range: DateRangeStrict;
-			checklistId?: string;
-			claimId?: string;
 			users?: string[];
-			searchTerm?: string;
 		};
 	}
 ) {

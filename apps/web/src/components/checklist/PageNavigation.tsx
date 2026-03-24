@@ -25,6 +25,7 @@ import Collapse from '@/components/ui/Collapse';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '../ui/Card';
+import Divider from '../ui/Divider';
 
 const COMMENT_LIMIT = 30;
 
@@ -244,12 +245,13 @@ export default function PageNavigation() {
 						) : undefined
 					}
 					rightWidth="100%"
-					padding={0}
+					padding={'0px 0px 8px'}
 					height={36}
 				/>
+				<Divider />
 				<div
 					style={{
-						marginTop: 8,
+						marginTop: 4,
 						width: '100%',
 						overflowY: 'auto',
 						overflowX: 'hidden',

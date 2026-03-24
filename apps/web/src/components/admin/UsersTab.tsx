@@ -27,7 +27,9 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 		accessorKey: 'name',
 		header: 'Name',
 		cell: ({ row: { original: row } }) => (
-			<span style={{ fontWeight: 500 }}>{row.first} {row.last}</span>
+			<span style={{ fontWeight: 500 }}>
+				{row.first} {row.last}
+			</span>
 		),
 		size: 200,
 	},
@@ -66,10 +68,10 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 						: (row.email_verified ?? row.created_at)
 			);
 			return (
-				<span>
-					{statusText}
-					{statusDate && <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: 12 }}>{statusDate}</span>}
-				</span>
+				<div style={{ display: 'flex', flexDirection: 'column' }}>
+					<span style={{ fontSize: 14 }}>{statusText}</span>
+					{statusDate && <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{statusDate}</span>}
+				</div>
 			);
 		},
 		size: 200,
@@ -85,7 +87,10 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No users found" icon={<IconUser size={35} style={{ color: 'var(--text-muted)' }} />} />
+		<CustomNoRowsOverlay
+			text="No users found"
+			icon={<IconUser size={35} style={{ color: 'var(--text-muted)' }} />}
+		/>
 	);
 }
 
@@ -129,7 +134,8 @@ export default function UsersTab() {
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
 					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Manage user accounts and permissions. Invite new users by email — they'll create their own account when they accept.
+						Manage user accounts and permissions. Invite new users by email — they'll create their own
+						account when they accept.
 					</p>
 					<Toolbar
 						left={
@@ -141,7 +147,7 @@ export default function UsersTab() {
 									color="warning"
 									style={{ marginLeft: '10px' }}
 								/>
-								<span style={{ fontSize: 14, fontStyle: 'italic' }}>
+								<span style={{ fontSize: 14, fontStyle: 'italic', marginRight: 10 }}>
 									Offboarded Accounts
 								</span>
 								<Switch
@@ -151,9 +157,7 @@ export default function UsersTab() {
 									color="warning"
 									style={{ marginLeft: '10px' }}
 								/>
-								<span style={{ fontSize: 14, fontStyle: 'italic' }}>
-									Inactive Accounts
-								</span>
+								<span style={{ fontSize: 14, fontStyle: 'italic' }}>Inactive Accounts</span>
 							</>
 						}
 						right={
@@ -179,11 +183,19 @@ export default function UsersTab() {
 									Invite User
 								</Button>
 								<Tooltip content="Manage">
-									<Button variant="icon" size="sm"
+									<Button
+										variant="icon"
+										size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+										style={{
+											marginLeft: 8,
+											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+										}}
 									>
-										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										<IconSettings
+											size={20}
+											style={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
 									</Button>
 								</Tooltip>
 							</>
@@ -209,7 +221,7 @@ export default function UsersTab() {
 							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
-			</Card>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);

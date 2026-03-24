@@ -22,6 +22,8 @@ export function useResponseTrpc() {
 
 		listLogStats: trpc.response.getResponseAuditLogStats.useQuery,
 
+		checklistActivity: trpc.response.getChecklistActivity.useQuery,
+
 		evaluate: trpc.response.evaluateResponses.useMutation,
 
 		createUpdateMany: trpc.response.upsertQuestionResponses.useMutation({

@@ -40,7 +40,9 @@ export default function DeskLocationFilter({
 
 	// Filter out excluded locations (but keep the currently selected one)
 	if (excludedLocationIds.length > 0) {
-		filteredLocations = filteredLocations.filter((loc) => loc.id === value || !excludedLocationIds.includes(loc.id));
+		filteredLocations = filteredLocations.filter(
+			(loc) => loc.id === value || !excludedLocationIds.includes(loc.id)
+		);
 	}
 
 	const isDisabled = disabled || isFetching || !deskLocationTypeId;
@@ -56,6 +58,7 @@ export default function DeskLocationFilter({
 
 	return (
 		<Dropdown
+			label="Desk Location"
 			options={dropdownOptions}
 			value={value ?? ''}
 			onChange={(val) => onChange(val === '' ? null : String(val))}

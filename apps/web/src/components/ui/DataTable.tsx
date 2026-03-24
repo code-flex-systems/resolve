@@ -70,6 +70,8 @@ export interface DataTableProps<T> {
 	// --- Row behavior ---
 	/** Row click handler */
 	onRowClick?: (row: T) => void;
+	/** Row double-click handler */
+	onRowDoubleClick?: (row: T) => void;
 	/** Row class name function */
 	getRowClassName?: (row: T, index: number) => string;
 	/** Custom row ID accessor (default uses 'id' field) */
@@ -119,6 +121,7 @@ export default function DataTable<T extends Record<string, any>>({
 	pinnedLeft = [],
 	pinnedRight = [],
 	onRowClick,
+	onRowDoubleClick,
 	getRowClassName,
 	getRowId,
 	loading = false,
@@ -351,13 +354,14 @@ export default function DataTable<T extends Record<string, any>>({
 								: displayRows.map((row, rowIndex) => {
 									const rowData = row.original;
 									const rowClass = getRowClassName?.(rowData, rowIndex) ?? '';
-									const isClickable = !!onRowClick;
+									const isClickable = !!onRowClick || !!onRowDoubleClick;
 
 									return (
 										<tr
 											key={row.id}
 											className={`${rowClass} ${isClickable ? styles.clickableRow : ''} ${row.getIsSelected() ? styles.selectedRow : ''}`}
-											onClick={isClickable ? () => onRowClick!(rowData) : undefined}
+											onClick={onRowClick ? () => onRowClick(rowData) : undefined}
+											onDoubleClick={onRowDoubleClick ? () => onRowDoubleClick(rowData) : undefined}
 										>
 											{checkboxSelection && (
 												<td className={styles.checkboxCell} style={{ height: rowHeight }}>

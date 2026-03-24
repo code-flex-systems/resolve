@@ -10,6 +10,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';
 import Dropdown from '@/components/ui/Dropdown';
+import Button from '@/components/ui/Button';
+import Divider from '../ui/Divider';
 
 dayjs.extend(quarterOfYear);
 dayjs.extend(utc);
@@ -42,7 +44,11 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 			}
 			const startMonth = (quarter - 1) * 3;
 			const start = dayjs.utc().year(year).month(startMonth).startOf('month');
-			const end = dayjs.utc().year(year).month(startMonth + 2).endOf('month');
+			const end = dayjs
+				.utc()
+				.year(year)
+				.month(startMonth + 2)
+				.endOf('month');
 			return [start, end];
 		},
 	},
@@ -53,7 +59,10 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 			const quarter = now.quarter();
 			const startMonth = (quarter - 1) * 3;
 			const start = dayjs.utc().month(startMonth).startOf('month');
-			const end = dayjs.utc().month(startMonth + 2).endOf('month');
+			const end = dayjs
+				.utc()
+				.month(startMonth + 2)
+				.endOf('month');
 			return [start, end];
 		},
 	},
@@ -202,22 +211,80 @@ export default function BasicMonthRangePicker({
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', height }}
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: 4,
+					cursor: 'pointer',
+					margin: '5px 0px',
+					height,
+				}}
 			>
-				<CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
-					<IconClock size={16} style={{ color: isEmpty ? undefined : 'var(--text-accent)' }} />
-					<span style={{ color: isEmpty ? undefined : 'var(--text-accent)', fontStyle: isEmpty ? 'italic' : undefined }}>{labelConfirmed}</span>
-				</CustomChip>
+				{/* <CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
+					<span
+						style={{
+							color: isEmpty ? undefined : 'var(--text-accent)',
+							fontStyle: isEmpty ? 'italic' : undefined,
+						}}
+					>
+						{labelConfirmed}
+					</span>
+				</CustomChip> */}
+				<Button variant="ghost" color="neutral" startIcon={<IconClock size={16} />}>
+					{labelConfirmed}
+				</Button>
 				{!isEmpty && clearable && (
-					<button onClick={(e) => { e.stopPropagation(); setRange([null, null]); setLabelConfirmed(EMPTY_LABEL); onConfirm(range); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							setRange([null, null]);
+							setLabelConfirmed(EMPTY_LABEL);
+							onConfirm(range);
+						}}
+						style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}
+					>
+						x
+					</button>
 				)}
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
-					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5 }}>
-						<div  style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
-							<div  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-								<div  style={{ width: 150, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
+					<div
+						style={{
+							background: 'var(--bg-white)',
+							border: '1px solid var(--border)',
+							borderRadius: 'var(--radius-lg)',
+							boxShadow: 'var(--shadow-lg)',
+							padding: 8,
+							marginTop: 5,
+						}}
+					>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								justifyContent: 'center',
+								alignItems: 'flex-start',
+							}}
+						>
+							<div
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'center',
+									alignItems: 'flex-start',
+								}}
+							>
+								<div
+									style={{
+										width: 150,
+										display: 'flex',
+										flexDirection: 'column',
+										justifyContent: 'flex-start',
+										alignItems: 'flex-start',
+										padding: 10,
+									}}
+								>
 									{shortcuts.map((s, i) => (
 										<span key={i} style={{ margin: '5px 0px', cursor: 'pointer' }}>
 											<CustomChip
@@ -230,14 +297,21 @@ export default function BasicMonthRangePicker({
 										</span>
 									))}
 								</div>
-								<div  style={{ padding: 20, width: 320 }}>
-									<div  style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+								<div style={{ padding: 20, width: 320 }}>
+									<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 										{/* Start Date */}
 										<div>
-											<span  style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+											<span
+												style={{
+													fontSize: 11,
+													color: 'var(--text-secondary)',
+													marginBottom: 4,
+													display: 'block',
+												}}
+											>
 												Start Month
 											</span>
-											<div  style={{ display: 'flex', gap: 8 }}>
+											<div style={{ display: 'flex', gap: 8 }}>
 												<div style={{ flex: 2 }}>
 													<Dropdown
 														options={monthDropdownOptions}
@@ -261,10 +335,17 @@ export default function BasicMonthRangePicker({
 
 										{/* End Date */}
 										<div>
-											<span  style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+											<span
+												style={{
+													fontSize: 11,
+													color: 'var(--text-secondary)',
+													marginBottom: 4,
+													display: 'block',
+												}}
+											>
 												End Month
 											</span>
-											<div  style={{ display: 'flex', gap: 8 }}>
+											<div style={{ display: 'flex', gap: 8 }}>
 												<div style={{ flex: 2 }}>
 													<Dropdown
 														options={monthDropdownOptions}
@@ -290,7 +371,7 @@ export default function BasicMonthRangePicker({
 							</div>
 
 							<div
-								 style={{
+								style={{
 									width: '100%',
 									display: 'flex',
 									justifyContent: 'space-between',
@@ -303,6 +384,7 @@ export default function BasicMonthRangePicker({
 									<CustomButton
 										onClick={() => onClose()}
 										variant="outlined"
+										color="neutral"
 										size="sm"
 										style={{ marginRight: '10px' }}
 									>
@@ -314,8 +396,7 @@ export default function BasicMonthRangePicker({
 											onConfirm(range);
 											setAnchorEl(null);
 										}}
-										variant="contained"
-										color="success"
+										variant="outlined"
 										size="sm"
 										disabled={!clearable && range.some((r) => !r)}
 									>

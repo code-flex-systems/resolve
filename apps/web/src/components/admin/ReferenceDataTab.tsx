@@ -25,10 +25,7 @@ const ENTITY_COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'display_name',
 		cell: ({ row: { original: row } }) => (
-			<StackedHeaderCell
-				primary={row.display_name}
-				secondary={row.description || row.entity}
-			/>
+			<StackedHeaderCell primary={row.display_name} secondary={row.description || row.entity} />
 		),
 		header: (params) => (
 			<IconHeaderCell {...params} icon={<IconCategory style={{ color: 'var(--text-muted)' }} />} />
@@ -50,22 +47,23 @@ const getOptionColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 				secondary={row.value}
 			/>
 		),
-		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />
-		),
+		header: (params) => <IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />,
 	},
 	{
 		header: 'Status',
 		accessorKey: 'is_active',
 		cell: ({ row: { original: row } }: any) => {
 			if (row.deleted_at) {
-				return <Chip  size="sm" color="error" variant="outlined">Deactivated</Chip>;
+				return (
+					<Chip size="sm" color="error" variant="outlined">
+						Deactivated
+					</Chip>
+				);
 			}
 			return (
-				<Chip 
-					size="sm"
-					color={row.is_active ? 'success' : 'neutral'}
-					variant="outlined">{row.is_active ? 'Active' : 'Inactive'}</Chip>
+				<Chip size="sm" color={row.is_active ? 'success' : 'neutral'} variant="outlined">
+					{row.is_active ? 'Active' : 'Inactive'}
+				</Chip>
 			);
 		},
 		size: 110,
@@ -75,14 +73,19 @@ const getOptionColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 		accessorKey: 'is_system_default',
 		cell: ({ row: { original: row } }: any) =>
 			row.is_system_default ? (
-				<Chip  size="sm" color="info" variant="outlined">System</Chip>
+				<Chip size="sm" color="info" variant="outlined">
+					System
+				</Chip>
 			) : null,
 		size: 90,
 	},
 	{
 		header: 'Actions',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ReferenceOptionActionsCell {...params} isManageMode={isManageMode} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <ReferenceOptionActionsCell {...params} isManageMode={isManageMode} />;
+		},
 		size: 100,
 		enableSorting: false,
 	},
@@ -166,12 +169,8 @@ export default function ReferenceDataTab() {
 			<div style={styles.container}>
 				<div style={styles.panelContainer}>
 					{/* Left Panel: Reference Entity Types */}
-					<div style={styles.leftPanel} className="flex-col-start">
-						<Toolbar
-							left={<span>Reference Data Types</span>}
-							height={50}
-							padding={'0px 10px'}
-						/>
+					<Card variant="beveled" padding="md" style={styles.leftPanel}>
+						<Toolbar left={<span>Reference Data Types</span>} height={50} padding={'0px 10px'} />
 						<div style={styles.table}>
 							<DataTable
 								columns={ENTITY_COLUMNS}
@@ -187,10 +186,10 @@ export default function ReferenceDataTab() {
 								}}
 							/>
 						</div>
-					</div>
+					</Card>
 
 					{/* Right Panel: Reference Options */}
-					<div style={styles.rightPanel} className="flex-col-start">
+					<Card variant="beveled" padding="md" style={styles.rightPanel}>
 						<Toolbar
 							left={
 								<span>
@@ -210,11 +209,19 @@ export default function ReferenceDataTab() {
 										Option
 									</Button>
 									<Tooltip content="Manage">
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
-											style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+											style={{
+												marginLeft: 8,
+												backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+											}}
 										>
-											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+											<IconSettings
+												size={20}
+												style={{ color: isManageMode ? 'var(--text-accent)' : undefined }}
+											/>
 										</Button>
 									</Tooltip>
 								</>
@@ -233,7 +240,7 @@ export default function ReferenceDataTab() {
 								pinnedRight={isManageMode ? ['actions'] : []}
 							/>
 						</div>
-					</div>
+					</Card>
 				</div>
 
 				{showNewReferenceOptionDialog && <ReferenceOptionDialog />}
@@ -244,33 +251,33 @@ export default function ReferenceDataTab() {
 
 const styles = {
 	container: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
 	},
 	panelContainer: {
-		size: '100%',
+		width: '100%',
 		display: 'flex',
 		gap: '15px',
 		minHeight: 0,
+		flex: 1,
 	},
 	leftPanel: {
-		size: '40%',
+		width: '40%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	rightPanel: {
-		size: '60%',
+		width: '60%',
 		display: 'flex',
+		flex: 1,
 		flexDirection: 'column' as const,
-		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	table: {
 		size: '100%',
-		height: 'calc(100% - 50px)',
+		height: 'calc(100vh - 190px)',
 	},
 };

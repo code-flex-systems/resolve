@@ -40,6 +40,7 @@ export default function ClaimStatusSelect({
 
 	return (
 		<Dropdown
+			label="Claim Status"
 			options={dropdownOptions}
 			value={claimStatus ?? ''}
 			onChange={(val) => setClaimStatus(val === '' ? null : (String(val) as ClaimStatus))}

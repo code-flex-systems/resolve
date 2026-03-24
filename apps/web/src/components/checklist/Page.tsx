@@ -199,7 +199,7 @@ export default function Page() {
 								left={
 									<>
 										<IconFileDescription size={20} />
-										<h3>{selectedPageInfo.title}</h3>
+										<h4>{selectedPageInfo.title}</h4>
 										{showUpdateMsg && (
 											<div className="flex-row-left" style={{ marginLeft: 10 }}>
 												<IconCircleCheck
@@ -217,7 +217,6 @@ export default function Page() {
 										<div className="flex-row-right" style={{ gap: 8 }}>
 											<Button
 												variant="outlined"
-												color="warning"
 												size="sm"
 												onClick={() =>
 													reset(
@@ -248,13 +247,8 @@ export default function Page() {
 									) : undefined
 								}
 								rightWidth="30%"
-								// height={60}
-								// padding={'10px 0px'}
 							/>
 						</Card>
-						{/* <div style={styles.divider}>
-							<Divider />
-						</div> */}
 						<div style={styles.formWrapper}>
 							<Form
 								control={control}

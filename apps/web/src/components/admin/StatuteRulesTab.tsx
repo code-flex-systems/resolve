@@ -24,11 +24,7 @@ import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
  */
 function renderTortCell(rules: StatuteRules | undefined, tortType: string): React.ReactNode {
 	if (!rules || !rules[tortType]) {
-		return (
-			<span style={{ color: 'var(--text-secondary)', height: '100%' }}>
-				-
-			</span>
-		);
+		return <span style={{ color: 'var(--text-secondary)', height: '100%' }}>-</span>;
 	}
 
 	const config = rules[tortType] as TortTypeConfig;
@@ -36,11 +32,7 @@ function renderTortCell(rules: StatuteRules | undefined, tortType: string): Reac
 
 	// No default and no rules = unconfigured
 	if (config.default_years === null && !hasConditionalRules) {
-		return (
-			<span style={{ color: 'var(--text-secondary)', height: '100%' }}>
-				N/A
-			</span>
-		);
+		return <span style={{ color: 'var(--text-secondary)', height: '100%' }}>N/A</span>;
 	}
 
 	// Has conditional rules - show as chip with tooltip
@@ -63,7 +55,9 @@ function renderTortCell(rules: StatuteRules | undefined, tortType: string): Reac
 					</div>
 				}
 			>
-				<Chip  size="sm" color="info" variant="outlined" style={{ cursor: 'pointer' }}>...</Chip>
+				<Chip size="sm" color="info" variant="outlined" style={{ cursor: 'pointer' }}>
+					...
+				</Chip>
 			</Tooltip>
 		);
 	}
@@ -82,11 +76,7 @@ function renderNegligenceCell(
 	notes: string | null
 ): React.ReactNode {
 	if (!type) {
-		return (
-			<span style={{ color: 'var(--text-secondary)', height: '100%' }}>
-				-
-			</span>
-		);
+		return <span style={{ color: 'var(--text-secondary)', height: '100%' }}>-</span>;
 	}
 
 	const label = getNegligenceTypeLabel(type);
@@ -201,8 +191,18 @@ export default function StatuteRulesTab() {
 				cell: ({ row: { original: row } }: any) => {
 					if (!isManageMode) return null;
 					return (
-						<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-							<Button variant="icon" size="sm"
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: '100%',
+								height: '100%',
+							}}
+						>
+							<Button
+								variant="icon"
+								size="sm"
 								onClick={(e) => {
 									e.stopPropagation();
 									setStatuteStateCode(row.state_code);
@@ -221,16 +221,24 @@ export default function StatuteRulesTab() {
 	return (
 		<div>
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
 						left={<span>Statute of Limitations Rules</span>}
 						right={
 							<Tooltip content="Manage">
-								<Button variant="icon" size="sm"
+								<Button
+									variant="icon"
+									size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
-									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+									style={{
+										marginLeft: 8,
+										backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+									}}
 								>
-									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									<IconSettings
+										size={20}
+										style={{ color: isManageMode ? 'var(--text-accent)' : undefined }}
+									/>
 								</Button>
 							</Tooltip>
 						}
@@ -248,7 +256,7 @@ export default function StatuteRulesTab() {
 							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
-				</div>
+				</Card>
 
 				{showStatuteRuleDialog && <StatuteRuleDialog />}
 			</div>
@@ -258,7 +266,7 @@ export default function StatuteRulesTab() {
 
 const styles = {
 	container: {
-		size: '100%',
+		width: '100%',
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
@@ -266,11 +274,12 @@ const styles = {
 	paper: {
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '15px 15px 0px',
+		width: '100%',
+		height: '100%',
 		minHeight: 0,
 	},
 	table: {
-		size: '100%',
-		height: 'calc(100% - 50px)',
+		width: '100%',
+		height: 'calc(100vh - 190px)',
 	},
 };

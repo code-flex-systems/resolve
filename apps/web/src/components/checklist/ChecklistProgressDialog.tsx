@@ -151,7 +151,7 @@ export default function ChecklistProgressDialog() {
 			secondaryActions={secondaryActions}
 			onClose={() => toggleChecklistProgressDialog(false)}
 			width={500}
-			height={250}
+			height={275}
 		>
 			<div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
 				<Card

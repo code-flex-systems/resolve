@@ -1,7 +1,8 @@
 'use client';
-import Card from '@/components/ui/Card';
-import Skeleton from '@/components/ui/Skeleton';
 
+import KpiCard from '@/components/ui/KpiCard';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconSubtask, IconAlertTriangle, IconClock } from '@tabler/icons-react';
 
 interface TaskMetricsProps {
 	openTasks: number;
@@ -16,81 +17,46 @@ export default function TaskMetrics({
 	avgCompletionDays,
 	isLoading,
 }: TaskMetricsProps) {
+	if (isLoading) {
+		return (
+			<div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
+				<Skeleton variant="rect" width="33%" height={80} />
+				<Skeleton variant="rect" width="33%" height={80} />
+				<Skeleton variant="rect" width="33%" height={80} />
+			</div>
+		);
+	}
+
 	return (
-		<div style={{ display: 'flex', flexDirection: 'row', gap: 16, marginBottom: 12 }}>
-			{/* Open Tasks */}
-			<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-				<div style={{ padding: 8, display: 'flex', flexDirection: 'column' }}>
-					<span style={{ color: '#d9d9d9', fontSize: 12 }}>
-						Open Tasks
-					</span>
-					{isLoading ? (
-						<>
-							<Skeleton variant="text" width={40} height={24} />
-							<Skeleton variant="text" width={80} height={16} />
-						</>
-					) : (
-						<>
-							<span style={{ fontSize: 16 }}>
-								{openTasks}
-							</span>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-								pending + in progress
-							</span>
-						</>
-					)}
-				</div>
-			</Card>
-
-			{/* Overdue Tasks */}
-			<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-				<div style={{ padding: 8, display: 'flex', flexDirection: 'column' }}>
-					<span style={{ color: '#d9d9d9', fontSize: 12 }}>
-						Overdue
-					</span>
-					{isLoading ? (
-						<>
-							<Skeleton variant="text" width={40} height={24} />
-							<Skeleton variant="text" width={70} height={16} />
-						</>
-					) : (
-						<>
-							<span
-								style={{ fontSize: 16, color: overdueTasks > 0 ? 'var(--status-error)' : 'inherit' }}
-							>
-								{overdueTasks}
-							</span>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-								past due date
-							</span>
-						</>
-					)}
-				</div>
-			</Card>
-
-			{/* Average Completion Time */}
-			<Card variant="beveled" padding="none" style={{ flex: 1 }}>
-				<div style={{ padding: 8, display: 'flex', flexDirection: 'column' }}>
-					<span style={{ color: '#d9d9d9', fontSize: 12 }}>
-						Avg Completion
-					</span>
-					{isLoading ? (
-						<>
-							<Skeleton variant="text" width={60} height={24} />
-							<Skeleton variant="text" width={90} height={16} />
-						</>
-					) : (
-						<>
-							<span style={{ fontSize: 16 }}>
-								{avgCompletionDays !== null ? `${avgCompletionDays.toFixed(1)} days` : '-'}
-							</span>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-								create to complete
-							</span>
-						</>
-					)}
-				</div>
-			</Card>
+		<div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
+			<KpiCard
+				icon={<IconSubtask size={16} />}
+				iconColor="var(--text-accent)"
+				iconBgColor="var(--status-info-bg)"
+				value={openTasks}
+				label="Open Tasks"
+				subtitle="pending + in progress"
+				size="sm"
+			/>
+			<KpiCard
+				icon={<IconAlertTriangle size={16} />}
+				iconColor={overdueTasks > 0 ? 'var(--status-error)' : 'var(--text-secondary)'}
+				iconBgColor={overdueTasks > 0 ? 'var(--status-error-bg)' : 'var(--bg-tertiary)'}
+				value={overdueTasks}
+				label="Overdue"
+				subtitle="past due date"
+				subtitleColor={overdueTasks > 0 ? 'negative' : 'default'}
+				size="sm"
+			/>
+			<KpiCard
+				icon={<IconClock size={16} />}
+				iconColor="var(--text-secondary)"
+				iconBgColor="var(--bg-tertiary)"
+				value={avgCompletionDays !== null ? `${avgCompletionDays.toFixed(1)} days` : '-'}
+				label="Avg Completion"
+				subtitle="create to complete"
+				size="sm"
+			/>
 		</div>
 	);
 }

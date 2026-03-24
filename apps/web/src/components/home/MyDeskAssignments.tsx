@@ -21,7 +21,18 @@ export default function MyDeskAssignments() {
 
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
-			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					padding: '12px 16px',
+					fontSize: 13,
+					fontWeight: 600,
+					color: 'var(--text-primary)',
+					backgroundColor: 'var(--bg-secondary)',
+					borderBottom: '1px solid var(--border)',
+				}}
+			>
 				<IconBriefcase style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				My Desk Assignments
 			</div>
@@ -30,23 +41,25 @@ export default function MyDeskAssignments() {
 					<Skeleton variant="rect" width="100%" height="100%" />
 				) : assignments.length === 0 ? (
 					<div style={styles.emptyState}>
-						<span style={{ color: 'text.secondary' }}>
-							No desk assignments
-						</span>
+						<span style={{ color: 'text.secondary' }}>No desk assignments</span>
 					</div>
 				) : (
 					<>
-						<div style={{ ...styles.listContainer, display: 'flex', flexDirection: 'column' as const, gap: 32 }}>
+						<div
+							style={{
+								...styles.listContainer,
+								display: 'flex',
+								flexDirection: 'column' as const,
+							}}
+						>
 							{assignments.map((assignment, index) => {
 								const isPrimary = assignment.priority === 1;
 								return (
 									<div key={assignment.id} style={styles.assignmentRow}>
-										<span
-style={{ ...styles.deskName, fontWeight: isPrimary ? 700 : 400 }}>
+										<span style={{ ...styles.deskName, fontWeight: isPrimary ? 700 : 400 }}>
 											{index + 1}. {assignment.desk_location_name}
 										</span>
-										<span
-style={{ color: 'text.secondary', fontWeight: isPrimary ? 600 : 400 }}>
+										<span style={{ color: 'text.secondary', fontWeight: isPrimary ? 600 : 400 }}>
 											({Number(assignment.claim_count)} claims)
 										</span>
 									</div>

@@ -26,10 +26,7 @@ export const getUserInput = z.object({ id: z.string() });
 export const getUserActivityInput = z.object({
 	filters: z.object({
 		range: z.tuple([parseDate(), parseDate()]),
-		checklistId: z.string().uuid().optional(),
-		claimId: z.string().uuid().optional(),
 		users: z.array(z.string()).optional(),
-		searchTerm: z.string().optional(),
 	}),
 });
 

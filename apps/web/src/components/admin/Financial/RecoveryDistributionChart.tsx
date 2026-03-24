@@ -14,13 +14,17 @@ const BUCKET_COLORS = ['#4caf50', '#8bc34a', '#ffb74d', '#ff9800', '#f44336', '#
 export default function RecoveryDistributionChart({ data }: RecoveryDistributionChartProps) {
 	return (
 		<Card variant="beveled" padding="none" style={{ padding: '24px' }}>
-			<h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>
-				Recovery Time Distribution
-			</h3>
 			<ResponsiveContainer width="100%" height={350}>
 				<BarChart data={data} barCategoryGap="15%">
-					<XAxis dataKey="bucket" tick={{ fontSize: 11 }} label={{ value: 'Days', position: 'insideBottom', offset: -2, fontSize: 12 }} />
-					<YAxis tick={{ fontSize: 11 }} label={{ value: 'Count', angle: -90, position: 'insideLeft', fontSize: 12 }} />
+					<XAxis
+						dataKey="bucket"
+						tick={{ fontSize: 11 }}
+						label={{ value: 'Days', position: 'insideBottom', offset: -2, fontSize: 12 }}
+					/>
+					<YAxis
+						tick={{ fontSize: 11 }}
+						label={{ value: 'Count', angle: -90, position: 'insideLeft', fontSize: 12 }}
+					/>
 					<Tooltip
 						content={({ active, payload }) => {
 							if (!active || !payload?.length) return null;

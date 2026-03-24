@@ -92,11 +92,11 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 	}
 
 	return (
-		<div>
-			<div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', maxHeight: '100%' }}>
+		<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+			<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 				{/* Scrollable Content */}
-				<div style={{ flex: 1, overflow: 'auto' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginRight: 8 }}>
+				<div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingRight: 4, paddingBottom: 8 }}>
 						{/* Header with status badges */}
 						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
 							{claimDetail.line_of_business && (
@@ -388,11 +388,10 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 				{/* Sticky Action Buttons */}
 				<div
 					style={{
-						borderTop: '1px solid',
-						borderColor: 'var(--border)',
-						backgroundColor: 'white',
-						padding: '16px',
-						marginTop: '10px',
+						flexShrink: 0,
+						borderTop: '1px solid var(--border)',
+						padding: '16px 0',
+						marginTop: 'auto',
 					}}
 				>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

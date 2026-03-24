@@ -208,7 +208,7 @@ export default function AdminClaimActivityLogsTab() {
 			},
 			{
 				accessorKey: 'entity_name',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell
 						primary={formatEntityLabelForDisplay(row.entity_name)}
@@ -226,7 +226,7 @@ export default function AdminClaimActivityLogsTab() {
 			},
 			{
 				accessorKey: 'value',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: ({ row: { original: row } }) => {
 					if (!hasValue(row.value)) {
 						return <span style={{ color: 'var(--text-secondary)' }}>-</span>;
@@ -299,7 +299,7 @@ export default function AdminClaimActivityLogsTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claim activity logs...">
 			<div style={styles.container}>
-				<div style={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
 						left={<span>Claim Activity Logs</span>}
 						right={<></>}
@@ -369,7 +369,7 @@ export default function AdminClaimActivityLogsTab() {
 							onPaginationModelChange={setPaginationModel}
 						/>
 					</div>
-				</div>
+				</Card>
 			</div>
 
 			{selectedValue && (
@@ -391,8 +391,10 @@ const styles = {
 		flexDirection: 'column' as const,
 	},
 	paper: {
-		size: '100%',
-		padding: '24px 24px 0px',
+		display: 'flex',
+		flexDirection: 'column' as const,
+		width: '100%',
+		height: '100%',
 		minHeight: 0,
 	},
 	table: {
@@ -401,8 +403,8 @@ const styles = {
 	},
 	filterCountBadge: {
 		marginLeft: 4,
-		backgroundColor: 'primary.main',
-		color: 'white',
+		backgroundColor: 'var(--text-accent)',
+		color: 'var(--bg-primary)',
 		borderRadius: '50%',
 		size: 18,
 		height: 18,

@@ -158,7 +158,7 @@ export default function MyClaimsQueueTable({
 		const baseColumns: ColumnDef<MyClaimListItem, any>[] = [
 			{
 				accessorKey: 'status',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 					<ClaimStatusChip recoveryStatus={params.row.recovery_status} substatus={params.row.substatus} />
 				); },
@@ -166,7 +166,7 @@ export default function MyClaimsQueueTable({
 			},
 			{
 				accessorKey: 'claim_number',
-				header: () => <IconHeaderCell icon={<IconClipboardSearch size={20} />} />,
+				header: (ctx) => <IconHeaderCell {...ctx} icon={<IconClipboardSearch size={20} />} />,
 				size: 220,
 			},
 		];
@@ -174,7 +174,7 @@ export default function MyClaimsQueueTable({
 		if (showDeskColumn) {
 			baseColumns.push({
 				accessorKey: 'desk_location_name',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				size: 180,
 			});
 		}
@@ -182,18 +182,18 @@ export default function MyClaimsQueueTable({
 		baseColumns.push(
 			{
 				accessorKey: 'insured',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				size: 180,
 			},
 			{
 				accessorKey: 'expected_recovery',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return formatCurrencyExact(parseFloat(params.value?.toString() || '0')); },
 				size: 130,
 			},
 			{
 				accessorKey: 'actual_recovery',
-				header: () => <IconHeaderCell />,
+				header: (ctx) => <IconHeaderCell {...ctx} />,
 				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return formatCurrencyExact(parseFloat(params.value?.toString() || '0')); },
 				size: 130,
 			}
@@ -201,7 +201,7 @@ export default function MyClaimsQueueTable({
 
 		baseColumns.push({
 			accessorKey: 'last_update',
-			header: () => <IconHeaderCell />,
+			header: (ctx) => <IconHeaderCell {...ctx} />,
 			cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{getActivityIndicator(params.value)}

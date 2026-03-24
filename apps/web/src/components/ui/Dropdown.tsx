@@ -1,14 +1,6 @@
 'use client';
 
-import {
-	forwardRef,
-	useState,
-	useRef,
-	useEffect,
-	useCallback,
-	useImperativeHandle,
-	type ReactNode,
-} from 'react';
+import { forwardRef, useState, useRef, useEffect, useCallback, useImperativeHandle, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { IconChevronDown } from '@tabler/icons-react';
 import { getPortalTarget } from './usePortalTarget';
@@ -142,10 +134,7 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 		useEffect(() => {
 			if (!open) return;
 			const handleClickOutside = (e: MouseEvent) => {
-				if (
-					triggerRef.current?.contains(e.target as Node) ||
-					menuRef.current?.contains(e.target as Node)
-				) {
+				if (triggerRef.current?.contains(e.target as Node) || menuRef.current?.contains(e.target as Node)) {
 					return;
 				}
 				closeMenu();
@@ -225,16 +214,17 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 			displayContent = (
 				<span className={styles.selectedContent}>
 					{selectedOption.icon && <span className={styles.selectedIcon}>{selectedOption.icon}</span>}
-					<span>{selectedOption.label}</span>
+					<span>
+						{label ? `${label}: ` : ''}
+						{selectedOption.label}
+					</span>
 				</span>
 			);
 		} else if (displayEmpty || !hasValue) {
-			displayContent = <span className={styles.placeholder}>{placeholder}</span>;
+			displayContent = <span className={styles.placeholder}>{label}</span>;
 		}
 
-		const wrapperClassNames = [styles.wrapper, fullWidth && styles.fullWidth, className]
-			.filter(Boolean)
-			.join(' ');
+		const wrapperClassNames = [styles.wrapper, fullWidth && styles.fullWidth, className].filter(Boolean).join(' ');
 
 		const triggerClassNames = [
 			styles.trigger,
@@ -248,12 +238,12 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 
 		return (
 			<div className={wrapperClassNames}>
-				{label && (
+				{/* {label && (
 					<label className={styles.label}>
 						{label}
 						{required && <span className={styles.required}> *</span>}
 					</label>
-				)}
+				)} */}
 
 				{/* Hidden input for form submission / react-hook-form */}
 				{name && <input type="hidden" name={name} value={value ?? ''} />}
@@ -326,9 +316,7 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 									</div>
 								);
 							})}
-							{options.length === 0 && (
-								<div className={styles.emptyState}>No options</div>
-							)}
+							{options.length === 0 && <div className={styles.emptyState}>No options</div>}
 						</div>,
 						getPortalTarget(triggerRef)
 					)}

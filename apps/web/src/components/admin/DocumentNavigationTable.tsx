@@ -94,13 +94,13 @@ export default function DocumentNavigationTable({
 		return result;
 	}, [currentFolderId, groups, docs]);
 
-	const handleRowDoubleClick = (params: { row: GridRow }) => {
+	const handleRowDoubleClick = (row: GridRow) => {
 		if (editMode) return; // Don't navigate in edit mode
 
-		if (params.row.type === 'folder') {
-			onNavigate(params.row.data.id);
+		if (row.type === 'folder') {
+			onNavigate(row.data.id);
 		} else {
-			onDocumentPreview(params.row.data);
+			onDocumentPreview(row.data);
 		}
 	};
 
@@ -267,7 +267,7 @@ export default function DocumentNavigationTable({
 				loading={loading}
 				columns={columns}
 				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowClick={handleRowDoubleClick as any}
+				onRowDoubleClick={handleRowDoubleClick}
 				checkboxSelection={editMode}
 				rowSelection={selectedRows}
 				onRowSelectionChange={onRowSelectionChange}

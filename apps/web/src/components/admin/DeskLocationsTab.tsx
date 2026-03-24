@@ -28,9 +28,7 @@ const getTypeColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 				secondary={`${row.location_count ?? 0} location${row.location_count === 1 ? '' : 's'}`}
 			/>
 		),
-		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconDesk style={{ color: 'var(--text-muted)' }} />} />
-		),
+		header: (params) => <IconHeaderCell {...params} icon={<IconDesk style={{ color: 'var(--text-muted)' }} />} />,
 	},
 	{
 		header: 'Created',
@@ -41,7 +39,10 @@ const getTypeColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
 		header: 'Actions',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <DeskTypeActionsCell {...params} isManageMode={isManageMode} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <DeskTypeActionsCell {...params} isManageMode={isManageMode} />;
+		},
 		size: 100,
 		enableSorting: false,
 	},
@@ -51,14 +52,9 @@ const getLocationColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
 		accessorKey: 'name',
 		cell: ({ row: { original: row } }) => (
-			<StackedHeaderCell
-				primary={row.name}
-				secondary={row.is_active ? 'Active' : 'Inactive'}
-			/>
+			<StackedHeaderCell primary={row.name} secondary={row.is_active ? 'Active' : 'Inactive'} />
 		),
-		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconMapPin style={{ color: 'var(--text-muted)' }} />} />
-		),
+		header: (params) => <IconHeaderCell {...params} icon={<IconMapPin style={{ color: 'var(--text-muted)' }} />} />,
 	},
 	{
 		header: 'Users',
@@ -75,7 +71,10 @@ const getLocationColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
 		header: 'Actions',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <DeskLocationActionsCell {...params} isManageMode={isManageMode} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <DeskLocationActionsCell {...params} isManageMode={isManageMode} />;
+		},
 		size: 100,
 		enableSorting: false,
 	},
@@ -123,15 +122,16 @@ export default function DeskLocationsTab() {
 	const { data: typesData = { rows: [], count: undefined }, isFetching: typesFetching } = useDeskTrpc().listTypes({});
 
 	// Fetch desk locations for selected type (only when type is selected)
-	const { data: locationsData = { rows: [], count: undefined }, isFetching: locationsFetching } = useDeskTrpc().listLocations(
-		{
-			deskLocationTypeId: selectedDeskLocationTypeId ?? undefined,
-			showInactive: true, // Show both active and inactive locations
-		},
-		{
-			enabled: selectedDeskLocationTypeId !== null,
-		}
-	);
+	const { data: locationsData = { rows: [], count: undefined }, isFetching: locationsFetching } =
+		useDeskTrpc().listLocations(
+			{
+				deskLocationTypeId: selectedDeskLocationTypeId ?? undefined,
+				showInactive: true, // Show both active and inactive locations
+			},
+			{
+				enabled: selectedDeskLocationTypeId !== null,
+			}
+		);
 
 	// Memoized overlay for right panel
 	const locationsOverlay = useCallback(
@@ -147,7 +147,9 @@ export default function DeskLocationsTab() {
 					<Card variant="beveled" padding="md" style={styles.leftPanel}>
 						<Toolbar
 							left={
-								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Desk Location Types</span>
+								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+									Desk Location Types
+								</span>
 							}
 							right={
 								<>
@@ -159,11 +161,19 @@ export default function DeskLocationsTab() {
 										Type
 									</Button>
 									<Tooltip content="Manage">
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
-											style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+											style={{
+												marginLeft: 8,
+												backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+											}}
 										>
-											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+											<IconSettings
+												size={20}
+												style={{ color: isManageMode ? 'primary.main' : undefined }}
+											/>
 										</Button>
 									</Tooltip>
 								</>
@@ -171,8 +181,17 @@ export default function DeskLocationsTab() {
 							height={50}
 							padding={'0px 10px'}
 						/>
-						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5, padding: '0 10px' }}>
-							Desk location types represent workflow phases (e.g., Evaluation, Review). They group related desk locations.
+						<p
+							style={{
+								color: 'var(--text-secondary)',
+								fontSize: 13,
+								margin: '0 0 12px',
+								lineHeight: 1.5,
+								padding: '0 10px',
+							}}
+						>
+							Desk location types represent workflow phases (e.g., Evaluation, Review). They group related
+							desk locations.
 						</p>
 						<div style={styles.table}>
 							<DataTable
@@ -196,7 +215,9 @@ export default function DeskLocationsTab() {
 					<Card variant="beveled" padding="md" style={styles.rightPanel}>
 						<Toolbar
 							left={
-								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Desk Locations</span>
+								<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+									Desk Locations
+								</span>
 							}
 							right={
 								<Button
@@ -211,7 +232,15 @@ export default function DeskLocationsTab() {
 							height={50}
 							padding={'0px 10px'}
 						/>
-						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5, padding: '0 10px' }}>
+						<p
+							style={{
+								color: 'var(--text-secondary)',
+								fontSize: 13,
+								margin: '0 0 12px',
+								lineHeight: 1.5,
+								padding: '0 10px',
+							}}
+						>
 							Desk locations are specific work queues within a phase where claims are assigned and worked.
 						</p>
 						<div style={styles.table}>
@@ -262,6 +291,6 @@ const styles = {
 	},
 	table: {
 		size: '100%',
-		height: 'calc(100% - 50px)',
+		height: 'calc(100vh - 190px)',
 	},
 };

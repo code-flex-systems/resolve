@@ -134,3 +134,59 @@ BEGIN
 
   RAISE NOTICE 'Seeded 100 admin config logs and 500 claim activity logs for client %', v_client_id;
 END $$;
+
+-- =========================================================================
+-- AUTH EVENTS (login sessions)
+-- Generate 5-15 login events per user per month for last 6 months
+-- =========================================================================
+DO $$
+DECLARE
+  v_client_id CONSTANT uuid := '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+  v_user RECORD;
+  v_user_int int;
+  v_month int;
+  v_logins_this_month int;
+  v_day int;
+  v_login_ts timestamp;
+  i int;
+BEGIN
+  DELETE FROM auth_events;
+
+  FOR v_user IN SELECT id FROM users WHERE client_id = v_client_id LOOP
+    v_user_int := abs(('x' || right(v_user.id::text, 8))::bit(32)::int);
+
+    -- For each of the last 6 months
+    FOR v_month IN 0..5 LOOP
+      -- 5-15 logins per month (varies by user)
+      v_logins_this_month := 5 + (v_user_int + v_month) % 11;
+
+      FOR i IN 1..v_logins_this_month LOOP
+        -- Spread logins across the month (weekdays more likely)
+        v_day := 1 + ((v_user_int + i * 3 + v_month * 7) % 28);
+        v_login_ts := (date_trunc('month', now()) - (v_month || ' months')::interval + (v_day || ' days')::interval)::timestamp
+          + ((8 + (v_user_int + i) % 10) || ' hours')::interval
+          + ((v_user_int + i * 13) % 60 || ' minutes')::interval;
+
+        -- Don't insert future dates
+        IF v_login_ts > now() THEN
+          CONTINUE;
+        END IF;
+
+        INSERT INTO auth_events (user_id, event_type, event_details, created_at)
+        VALUES (
+          v_user.id,
+          'login',
+          jsonb_build_object('source', 'clerk_webhook', 'session_type', 'browser'),
+          v_login_ts
+        );
+      END LOOP;
+    END LOOP;
+  END LOOP;
+
+  RAISE NOTICE 'Seeded auth_events (login sessions) for all users';
+END $$;
+
+SELECT 'Auth events:', count(*) FROM auth_events;
+SELECT 'Auth events by month:' AS info;
+SELECT to_char(created_at, 'YYYY-MM') AS month, count(*) AS logins, count(DISTINCT user_id) AS unique_users
+FROM auth_events GROUP BY 1 ORDER BY 1;

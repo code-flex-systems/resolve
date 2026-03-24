@@ -25,7 +25,9 @@
 }
 
 .button:focus-visible {
-	box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-accent);
+	box-shadow:
+		0 0 0 2px var(--bg-primary),
+		0 0 0 4px var(--text-accent);
 }
 
 .button:disabled {
@@ -130,7 +132,7 @@
    ========================================================================= */
 
 .ghost {
-	background: transparent;
+	background: var(--bg-white);
 	border: 1px solid var(--border);
 	font-weight: var(--font-medium);
 }
@@ -232,72 +234,159 @@ button.iconFilled:not(:disabled):hover {
 	filter: brightness(1.08);
 }
 
-button.icon.iconFilled.color-primary { background: var(--text-accent); color: var(--text-on-accent); }
-button.icon.iconFilled.color-success { background: var(--status-success); color: var(--text-on-accent); }
-button.icon.iconFilled.color-error { background: var(--status-error); color: var(--text-on-accent); }
-button.icon.iconFilled.color-warning { background: var(--status-warning); color: var(--text-on-accent); }
-button.icon.iconFilled.color-neutral { background: var(--bg-tertiary); color: var(--text-primary); }
+button.icon.iconFilled.color-primary {
+	background: var(--text-accent);
+	color: var(--text-on-accent);
+}
+button.icon.iconFilled.color-success {
+	background: var(--status-success);
+	color: var(--text-on-accent);
+}
+button.icon.iconFilled.color-error {
+	background: var(--status-error);
+	color: var(--text-on-accent);
+}
+button.icon.iconFilled.color-warning {
+	background: var(--status-warning);
+	color: var(--text-on-accent);
+}
+button.icon.iconFilled.color-neutral {
+	background: var(--bg-tertiary);
+	color: var(--text-primary);
+}
 
 /* =========================================================================
    COLORS — Contained
    ========================================================================= */
 
-.color-primary.contained { background: var(--text-accent); }
-.color-success.contained { background: var(--status-success); }
-.color-error.contained { background: var(--status-error); }
-.color-warning.contained { background: var(--status-warning); }
-.color-neutral.contained { background: var(--bg-tertiary); color: var(--text-primary); }
+.color-primary.contained {
+	background: var(--text-accent);
+}
+.color-success.contained {
+	background: var(--status-success);
+}
+.color-error.contained {
+	background: var(--status-error);
+}
+.color-warning.contained {
+	background: var(--status-warning);
+}
+.color-neutral.contained {
+	background: var(--bg-tertiary);
+	color: var(--text-primary);
+}
 
 /* =========================================================================
    COLORS — Outlined
    ========================================================================= */
 
-.color-primary.outlined { color: var(--text-accent); border-color: var(--text-accent); }
-.color-success.outlined { color: var(--status-success); border-color: var(--status-success); }
-.color-error.outlined { color: var(--status-error); border-color: var(--status-error); }
-.color-warning.outlined { color: var(--status-warning); border-color: var(--status-warning); }
-.color-neutral.outlined { color: var(--text-secondary); border-color: var(--border); }
+.color-primary.outlined {
+	color: var(--text-accent);
+	border-color: var(--text-accent);
+}
+.color-success.outlined {
+	color: var(--status-success);
+	border-color: var(--status-success);
+}
+.color-error.outlined {
+	color: var(--status-error);
+	border-color: var(--status-error);
+}
+.color-warning.outlined {
+	color: var(--status-warning);
+	border-color: var(--status-warning);
+}
+.color-neutral.outlined {
+	color: var(--text-secondary);
+	border-color: var(--border);
+}
 
 /* =========================================================================
    COLORS — Text
    ========================================================================= */
 
-.color-primary.text { color: var(--text-accent); }
-.color-success.text { color: var(--status-success); }
-.color-error.text { color: var(--status-error); }
-.color-warning.text { color: var(--status-warning); }
-.color-neutral.text { color: var(--text-secondary); }
+.color-primary.text {
+	color: var(--text-accent);
+}
+.color-success.text {
+	color: var(--status-success);
+}
+.color-error.text {
+	color: var(--status-error);
+}
+.color-warning.text {
+	color: var(--status-warning);
+}
+.color-neutral.text {
+	color: var(--text-secondary);
+}
 
 /* =========================================================================
    COLORS — Ghost
    ========================================================================= */
 
-.color-primary.ghost { color: var(--text-accent); border-color: var(--text-accent); }
-.color-primary.ghost:not(:disabled):hover { background: rgba(var(--text-accent-rgb, 59, 130, 246), 0.06); }
-.color-success.ghost { color: var(--status-success); border-color: var(--status-success); }
-.color-error.ghost { color: var(--status-error); border-color: var(--status-error); }
-.color-warning.ghost { color: var(--status-warning); border-color: var(--status-warning); }
-.color-neutral.ghost { color: var(--text-secondary); }
+.color-primary.ghost {
+	color: var(--text-accent);
+	border-color: var(--text-accent);
+}
+.color-primary.ghost:not(:disabled):hover {
+	background: rgba(var(--text-accent-rgb, 59, 130, 246), 0.06);
+}
+.color-success.ghost {
+	color: var(--status-success);
+	border-color: var(--status-success);
+}
+.color-error.ghost {
+	color: var(--status-error);
+	border-color: var(--status-error);
+}
+.color-warning.ghost {
+	color: var(--status-warning);
+	border-color: var(--status-warning);
+}
+.color-neutral.ghost {
+	color: var(--text-secondary);
+}
 
 /* =========================================================================
    COLORS — Compact
    ========================================================================= */
 
-.color-primary.compact { color: var(--text-accent); }
-.color-success.compact { color: var(--status-success); }
-.color-error.compact { color: var(--status-error); }
-.color-warning.compact { color: var(--status-warning); }
-.color-neutral.compact { color: var(--text-secondary); }
+.color-primary.compact {
+	color: var(--text-accent);
+}
+.color-success.compact {
+	color: var(--status-success);
+}
+.color-error.compact {
+	color: var(--status-error);
+}
+.color-warning.compact {
+	color: var(--status-warning);
+}
+.color-neutral.compact {
+	color: var(--text-secondary);
+}
 
 /* =========================================================================
    COLORS — Icon
    ========================================================================= */
 
-.color-primary.icon { color: var(--text-accent); }
-.color-success.icon { color: var(--status-success); }
-.color-error.icon { color: var(--status-error); }
-.color-warning.icon { color: var(--status-warning); }
-.color-neutral.icon { color: var(--text-secondary); }
+.color-primary.icon {
+	color: var(--text-accent);
+}
+.color-success.icon {
+	color: var(--status-success);
+}
+.color-error.icon {
+	color: var(--status-error);
+}
+.color-warning.icon {
+	color: var(--status-warning);
+}
+.color-neutral.icon {
+	color: var(--text-secondary);
+}
 
 /* =========================================================================
    LABEL & ICON SLOT HELPERS

@@ -265,27 +265,26 @@ export async function getInactiveUserCount(ctx: ProtectedContext) {
 
 export async function getUserActivity(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: string; claimId?: string; users?: string[]; searchTerm?: string }
+	filters: { range: DateRangeStrict; users?: string[] }
 ) {
-	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
+	// Count login sessions per day from auth_events (populated by Clerk webhooks).
+	// Join through users table for client scoping since auth_events has no client_id.
 	const startDate = filters.range[0].toISOString().split('T')[0];
 	const endDate = filters.range[1].toISOString().split('T')[0];
 
 	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
         select
             gs.day::date as activity_date,
-            coalesce(count(distinct r.user_id), 0) as active_users
+            coalesce(count(distinct ae.user_id), 0) as active_users
         from generate_series(
             ${startDate}::date,
             ${endDate}::date,
             interval '1 day'
         ) as gs(day)
-        left join response_audit_logs r on date(r.created_at) = gs.day::date
-            and r.client_id = ${ctx.session.user.client_id}
-            ${sqlFilters.eq('r.checklist_id', filters.checklistId)}
-            ${sqlFilters.eq('r.claim_id', filters.claimId)}
-            ${sqlFilters.inArray('r.user_id', filters.users)}
-            ${sqlFilters.ilike('r.question_text', filters.searchTerm)}
+        left join auth_events ae on date(ae.created_at) = gs.day::date
+            and ae.event_type = 'login'
+            and ae.user_id in (select id from users where client_id = ${ctx.session.user.client_id})
+            ${sqlFilters.inArray('ae.user_id', filters.users)}
         group by gs.day
         order by gs.day
     `.compile(ctx.db);

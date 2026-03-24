@@ -137,13 +137,13 @@ export default function CompactDocumentBrowser({
 		return result;
 	}, [currentFolderId, groups, docs, filterByType, userFilteredMode, userId, allowedExtensions]);
 
-	const handleRowDoubleClick = (params: { row: GridRow }) => {
+	const handleRowDoubleClick = (row: GridRow) => {
 		if (disabled) return; // Prevent interactions when disabled
 
-		if (params.row.type === 'folder') {
-			setCurrentFolderId(params.row.data.id);
+		if (row.type === 'folder') {
+			setCurrentFolderId(row.data.id);
 		} else {
-			onSelectDocument(params.row.data);
+			onSelectDocument(row.data);
 		}
 	};
 
@@ -184,7 +184,7 @@ export default function CompactDocumentBrowser({
 				loading={isLoading}
 				columns={COLUMNS}
 				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowClick={handleRowDoubleClick as any}
+				onRowDoubleClick={handleRowDoubleClick}
 				hideFooter
 			/>
 

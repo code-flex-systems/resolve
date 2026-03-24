@@ -132,12 +132,12 @@ export default function Feeds() {
 		{
 			accessorKey: 'name',
 			minSize: 200,
-			header: () => <IconHeaderCell />,
+			header: (ctx) => <IconHeaderCell {...ctx} />,
 		},
 		{
 			accessorKey: 'status',
 			size: 130,
-			header: () => <IconHeaderCell />,
+			header: (ctx) => <IconHeaderCell {...ctx} />,
 			cell: ({ row: { original: row } }: any) => (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{testing ? (
