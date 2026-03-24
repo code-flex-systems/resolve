@@ -698,12 +698,12 @@ export default function FormAnswer() {
 																>
 																	{copiedField === field.name ? (
 																		<IconCheck
-																			size={14}
+																			size={12}
 																			style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
 																		<IconCopy
-																			size={14}
+																			size={12}
 																			style={{ color: 'var(--text-muted)' }}
 																		/>
 																	)}
@@ -716,7 +716,7 @@ export default function FormAnswer() {
 																	disabled={!field.value}
 																>
 																	<IconX
-																		size={16}
+																		size={12}
 																		style={{ color: 'var(--text-muted)' }}
 																	/>
 																</Button>

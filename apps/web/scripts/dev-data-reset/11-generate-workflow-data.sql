@@ -13,55 +13,58 @@ DECLARE
     v_user_ids UUID[];
 
     -- Desk location type IDs
-    v_subrog_type_id INT;
-    v_docdmd_type_id INT;
-    v_adverse_type_id INT;
+    v_subrog_type_id UUID;
+    v_docdmd_type_id UUID;
+    v_adverse_type_id UUID;
 
     -- Subrogation Investigation locations
-    v_subrog_pending_id INT;
-    v_subrog_transactional_id INT;
-    v_subrog_rfi_id INT;
-    v_subrog_review_id INT;
-    v_subrog_closed_id INT;
+    v_subrog_pending_id UUID;
+    v_subrog_transactional_id UUID;
+    v_subrog_rfi_id UUID;
+    v_subrog_review_id UUID;
+    v_subrog_closed_id UUID;
 
     -- Documentation and Demand Packages locations
-    v_docdmd_pending_id INT;
-    v_docdmd_transactional_id INT;
-    v_docdmd_rfi_id INT;
-    v_docdmd_review_id INT;
-    v_docdmd_closed_id INT;
+    v_docdmd_pending_id UUID;
+    v_docdmd_transactional_id UUID;
+    v_docdmd_rfi_id UUID;
+    v_docdmd_review_id UUID;
+    v_docdmd_closed_id UUID;
 
     -- Adverse Coverage Verification locations
-    v_adverse_pending_id INT;
-    v_adverse_transactional_id INT;
-    v_adverse_rfi_id INT;
-    v_adverse_review_id INT;
-    v_adverse_closed_id INT;
+    v_adverse_pending_id UUID;
+    v_adverse_transactional_id UUID;
+    v_adverse_rfi_id UUID;
+    v_adverse_review_id UUID;
+    v_adverse_closed_id UUID;
 
     -- Workflow definition IDs
-    v_def_id INT;
-    v_subrog_pending_def INT;
-    v_subrog_transactional_def INT;
-    v_subrog_rfi_def INT;
-    v_subrog_review_def INT;
-    v_subrog_closed_def INT;
-    v_docdmd_pending_def INT;
-    v_docdmd_transactional_def INT;
-    v_docdmd_rfi_def INT;
-    v_docdmd_review_def INT;
-    v_docdmd_closed_def INT;
-    v_adverse_pending_def INT;
-    v_adverse_transactional_def INT;
-    v_adverse_rfi_def INT;
+    v_def_id UUID;
+    v_subrog_pending_def UUID;
+    v_subrog_transactional_def UUID;
+    v_subrog_rfi_def UUID;
+    v_subrog_review_def UUID;
+    v_subrog_closed_def UUID;
+    v_docdmd_pending_def UUID;
+    v_docdmd_transactional_def UUID;
+    v_docdmd_rfi_def UUID;
+    v_docdmd_review_def UUID;
+    v_docdmd_closed_def UUID;
+    v_adverse_pending_def UUID;
+    v_adverse_transactional_def UUID;
+    v_adverse_rfi_def UUID;
 
     -- Loop variables
-    v_task_id INT;
-    v_claim_id INT;
+    v_task_id UUID;
+    v_claim_id UUID;
     v_user_idx INT;
-    v_loc_id INT;
+    v_loc_id UUID;
     v_i INT;
     v_day INT;
     v_snapshot_date DATE;
+
+    -- Claim IDs array (ordered by claim_number, positions 1-50)
+    v_claim_ids UUID[];
 BEGIN
 
     -- =====================================================
@@ -72,6 +75,11 @@ BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
     SELECT id INTO v_admin_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
     SELECT ARRAY_AGG(id ORDER BY email) INTO v_user_ids FROM users WHERE disabled = false;
+
+    -- Load all 50 claim IDs ordered by claim_number into an array
+    -- This maps position 1-50 to the actual UUID claim IDs
+    SELECT ARRAY_AGG(id ORDER BY claim_number) INTO v_claim_ids
+    FROM claim WHERE client_id = v_client_id;
 
     -- Look up desk location types
     SELECT id INTO v_subrog_type_id FROM desk_location_type
@@ -435,37 +443,58 @@ BEGIN
     RAISE NOTICE 'Section 5: Creating tasks...';
 
     -- Helper: assign desk_location_id to claims 1-50 for workflow context
+    -- Using v_claim_ids array where position matches the original claim numbering
     -- Claims 1-10: Subrogation Pending
-    UPDATE claim SET desk_location_id = v_subrog_pending_id WHERE id BETWEEN 1 AND 10 AND client_id = v_client_id;
+    FOR v_i IN 1..10 LOOP
+        UPDATE claim SET desk_location_id = v_subrog_pending_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 11-18: Subrogation Transactional
-    UPDATE claim SET desk_location_id = v_subrog_transactional_id WHERE id BETWEEN 11 AND 18 AND client_id = v_client_id;
+    FOR v_i IN 11..18 LOOP
+        UPDATE claim SET desk_location_id = v_subrog_transactional_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 19-24: Subrogation RFI
-    UPDATE claim SET desk_location_id = v_subrog_rfi_id WHERE id BETWEEN 19 AND 24 AND client_id = v_client_id;
+    FOR v_i IN 19..24 LOOP
+        UPDATE claim SET desk_location_id = v_subrog_rfi_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 25-28: Subrogation Review
-    UPDATE claim SET desk_location_id = v_subrog_review_id WHERE id BETWEEN 25 AND 28 AND client_id = v_client_id;
+    FOR v_i IN 25..28 LOOP
+        UPDATE claim SET desk_location_id = v_subrog_review_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 29-30: Subrogation Closed
-    UPDATE claim SET desk_location_id = v_subrog_closed_id WHERE id BETWEEN 29 AND 30 AND client_id = v_client_id;
+    FOR v_i IN 29..30 LOOP
+        UPDATE claim SET desk_location_id = v_subrog_closed_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 31-36: Doc/Demand Pending
-    UPDATE claim SET desk_location_id = v_docdmd_pending_id WHERE id BETWEEN 31 AND 36 AND client_id = v_client_id;
+    FOR v_i IN 31..36 LOOP
+        UPDATE claim SET desk_location_id = v_docdmd_pending_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 37-40: Doc/Demand Transactional
-    UPDATE claim SET desk_location_id = v_docdmd_transactional_id WHERE id BETWEEN 37 AND 40 AND client_id = v_client_id;
+    FOR v_i IN 37..40 LOOP
+        UPDATE claim SET desk_location_id = v_docdmd_transactional_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 41-44: Doc/Demand RFI
-    UPDATE claim SET desk_location_id = v_docdmd_rfi_id WHERE id BETWEEN 41 AND 44 AND client_id = v_client_id;
+    FOR v_i IN 41..44 LOOP
+        UPDATE claim SET desk_location_id = v_docdmd_rfi_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 45-46: Doc/Demand Review
-    UPDATE claim SET desk_location_id = v_docdmd_review_id WHERE id BETWEEN 45 AND 46 AND client_id = v_client_id;
+    FOR v_i IN 45..46 LOOP
+        UPDATE claim SET desk_location_id = v_docdmd_review_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 47-48: Doc/Demand Closed
-    UPDATE claim SET desk_location_id = v_docdmd_closed_id WHERE id BETWEEN 47 AND 48 AND client_id = v_client_id;
+    FOR v_i IN 47..48 LOOP
+        UPDATE claim SET desk_location_id = v_docdmd_closed_id WHERE id = v_claim_ids[v_i] AND client_id = v_client_id;
+    END LOOP;
     -- Claims 49-50: Adverse Pending
-    UPDATE claim SET desk_location_id = v_adverse_pending_id WHERE id = 49 AND client_id = v_client_id;
-    UPDATE claim SET desk_location_id = v_adverse_pending_id WHERE id = 50 AND client_id = v_client_id;
+    UPDATE claim SET desk_location_id = v_adverse_pending_id WHERE id = v_claim_ids[49] AND client_id = v_client_id;
+    UPDATE claim SET desk_location_id = v_adverse_pending_id WHERE id = v_claim_ids[50] AND client_id = v_client_id;
 
     -- ---- BREACH-CREATING TASKS ----
-    -- Subrogation Pending (threshold=30): 8 open tasks × 5-10 work_units = 40-80 total (BREACH)
+    -- Subrogation Pending (threshold=30): 8 open tasks x 5-10 work_units = 40-80 total (BREACH)
     FOR v_i IN 1..8 LOOP
         INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
         VALUES (
             v_client_id,
-            (v_i % 10) + 1,  -- claims 1-10
+            v_claim_ids[(v_i % 10) + 1],  -- claims 1-10
             v_subrog_pending_id,
             CASE v_i % 3 WHEN 0 THEN 'review' WHEN 1 THEN 'follow_up' ELSE 'generic' END,
             'pending',
@@ -478,12 +507,12 @@ BEGIN
         );
     END LOOP;
 
-    -- Doc/Demand RFI (threshold=25): 6 open tasks × 5-8 units = 30-48 total (BREACH)
+    -- Doc/Demand RFI (threshold=25): 6 open tasks x 5-8 units = 30-48 total (BREACH)
     FOR v_i IN 1..6 LOOP
         INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
         VALUES (
             v_client_id,
-            40 + (v_i % 4) + 1,  -- claims 41-44
+            v_claim_ids[40 + (v_i % 4) + 1],  -- claims 41-44
             v_docdmd_rfi_id,
             CASE v_i % 2 WHEN 0 THEN 'follow_up' ELSE 'request_document' END,
             'pending',
@@ -496,12 +525,12 @@ BEGIN
         );
     END LOOP;
 
-    -- Adverse Pending (threshold=20): 5 open tasks × 5-10 units = 25-50 total (SEVERE BREACH)
+    -- Adverse Pending (threshold=20): 5 open tasks x 5-10 units = 25-50 total (SEVERE BREACH)
     FOR v_i IN 1..5 LOOP
         INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
         VALUES (
             v_client_id,
-            49 + (v_i % 2),  -- claims 49-50
+            v_claim_ids[49 + (v_i % 2)],  -- claims 49-50
             v_adverse_pending_id,
             CASE v_i % 2 WHEN 0 THEN 'review' ELSE 'outbound_call' END,
             'pending',
@@ -518,91 +547,91 @@ BEGIN
     -- User 1 (admin): 2 in_progress tasks with high remaining work units
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, created_at)
     VALUES
-        (v_client_id, 11, v_subrog_transactional_id, 'send_demand', 'in_progress', 'Prepare subrogation demand letter', 'Draft and review demand letter for adverse carrier with supporting documentation', 8, v_user_ids[1], NOW() - INTERVAL '1 hour', NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '2 days'),
-        (v_client_id, 12, v_subrog_transactional_id, 'review', 'in_progress', 'Review settlement offer response', 'Analyze adverse carrier settlement counter-offer and prepare recommendation', 6, v_user_ids[1], NOW() - INTERVAL '2 hours', NOW() - INTERVAL '1 hour', NOW() - INTERVAL '3 days');
+        (v_client_id, v_claim_ids[11], v_subrog_transactional_id, 'send_demand', 'in_progress', 'Prepare subrogation demand letter', 'Draft and review demand letter for adverse carrier with supporting documentation', 8, v_user_ids[1], NOW() - INTERVAL '1 hour', NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '2 days'),
+        (v_client_id, v_claim_ids[12], v_subrog_transactional_id, 'review', 'in_progress', 'Review settlement offer response', 'Analyze adverse carrier settlement counter-offer and prepare recommendation', 6, v_user_ids[1], NOW() - INTERVAL '2 hours', NOW() - INTERVAL '1 hour', NOW() - INTERVAL '3 days');
 
     -- User 2: 1 in_progress, nearly done (low remaining work)
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, created_at)
-    VALUES (v_client_id, 13, v_subrog_transactional_id, 'outbound_call', 'in_progress', 'Contact adverse adjuster', 'Follow-up call with adverse carrier adjuster regarding pending demand', 2, v_user_ids[2], NOW() - INTERVAL '3 hours', NOW() - INTERVAL '2 hours 50 minutes', NOW() - INTERVAL '1 day');
+    VALUES (v_client_id, v_claim_ids[13], v_subrog_transactional_id, 'outbound_call', 'in_progress', 'Contact adverse adjuster', 'Follow-up call with adverse carrier adjuster regarding pending demand', 2, v_user_ids[2], NOW() - INTERVAL '3 hours', NOW() - INTERVAL '2 hours 50 minutes', NOW() - INTERVAL '1 day');
 
     -- User 3: NO in_progress tasks (immediately available, availability score=0)
     -- Only completed tasks for user 3
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, completed_at, completion_notes, created_at)
-    VALUES (v_client_id, 14, v_subrog_transactional_id, 'letter', 'completed', 'Send acknowledgment letter', 'Send initial claim acknowledgment letter to insured', 2, v_user_ids[3], NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '4 days', 'Letter sent via certified mail', NOW() - INTERVAL '6 days');
+    VALUES (v_client_id, v_claim_ids[14], v_subrog_transactional_id, 'letter', 'completed', 'Send acknowledgment letter', 'Send initial claim acknowledgment letter to insured', 2, v_user_ids[3], NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '4 days', 'Letter sent via certified mail', NOW() - INTERVAL '6 days');
 
     -- User 4: 1 in_progress, medium remaining work
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, created_at)
-    VALUES (v_client_id, 15, v_subrog_transactional_id, 'generic', 'in_progress', 'Prepare demand package exhibits', 'Compile and organize supporting exhibits for subrogation demand', 5, v_user_ids[4], NOW() - INTERVAL '4 hours', NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 days');
+    VALUES (v_client_id, v_claim_ids[15], v_subrog_transactional_id, 'generic', 'in_progress', 'Prepare demand package exhibits', 'Compile and organize supporting exhibits for subrogation demand', 5, v_user_ids[4], NOW() - INTERVAL '4 hours', NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 days');
 
     -- Users 5-7: Assigned pending tasks only (not started)
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
     VALUES
-        (v_client_id, 16, v_subrog_transactional_id, 'request_document', 'pending', 'Request police report', 'Obtain official police report for subrogation claim', 3, v_user_ids[5], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
-        (v_client_id, 17, v_subrog_transactional_id, 'follow_up', 'pending', 'Follow up with insured on damages', 'Contact insured to clarify reported damage amounts', 2, v_user_ids[6], NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-        (v_client_id, 18, v_subrog_transactional_id, 'review', 'pending', 'Review liability determination', 'Review and validate liability determination for subrogation potential', 4, v_user_ids[7], NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days');
+        (v_client_id, v_claim_ids[16], v_subrog_transactional_id, 'request_document', 'pending', 'Request police report', 'Obtain official police report for subrogation claim', 3, v_user_ids[5], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+        (v_client_id, v_claim_ids[17], v_subrog_transactional_id, 'follow_up', 'pending', 'Follow up with insured on damages', 'Contact insured to clarify reported damage amounts', 2, v_user_ids[6], NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+        (v_client_id, v_claim_ids[18], v_subrog_transactional_id, 'review', 'pending', 'Review liability determination', 'Review and validate liability determination for subrogation potential', 4, v_user_ids[7], NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days');
 
     -- Users 8-10: Mix of completed and pending
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, completed_at, completion_notes, created_at)
     VALUES
-        (v_client_id, 31, v_docdmd_pending_id, 'review', 'completed', 'Review demand package completeness', 'Verify all required documents are included in demand package', 3, v_user_ids[8], NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '5 days', 'All documents verified present', NOW() - INTERVAL '8 days'),
-        (v_client_id, 32, v_docdmd_pending_id, 'generic', 'completed', 'Organize claim documentation', 'Sort and index all claim-related documentation for package assembly', 4, v_user_ids[9], NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days', NOW() - INTERVAL '4 days', 'Documents indexed and organized by category', NOW() - INTERVAL '7 days'),
-        (v_client_id, 33, v_docdmd_pending_id, 'send_document', 'completed', 'Send preliminary demand draft', 'Send preliminary demand letter draft for internal review', 2, v_user_ids[10], NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '3 days', 'Draft sent to supervisor for review', NOW() - INTERVAL '6 days');
+        (v_client_id, v_claim_ids[31], v_docdmd_pending_id, 'review', 'completed', 'Review demand package completeness', 'Verify all required documents are included in demand package', 3, v_user_ids[8], NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '5 days', 'All documents verified present', NOW() - INTERVAL '8 days'),
+        (v_client_id, v_claim_ids[32], v_docdmd_pending_id, 'generic', 'completed', 'Organize claim documentation', 'Sort and index all claim-related documentation for package assembly', 4, v_user_ids[9], NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days', NOW() - INTERVAL '4 days', 'Documents indexed and organized by category', NOW() - INTERVAL '7 days'),
+        (v_client_id, v_claim_ids[33], v_docdmd_pending_id, 'send_document', 'completed', 'Send preliminary demand draft', 'Send preliminary demand letter draft for internal review', 2, v_user_ids[10], NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '3 days', 'Draft sent to supervisor for review', NOW() - INTERVAL '6 days');
 
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
     VALUES
-        (v_client_id, 34, v_docdmd_pending_id, 'request_document', 'pending', 'Request repair estimates', 'Obtain itemized repair estimates from contractor', 3, v_user_ids[8], NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-        (v_client_id, 35, v_docdmd_pending_id, 'letter', 'pending', 'Send status update to insured', 'Prepare and mail claim status update letter to insured', 2, v_user_ids[9], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day');
+        (v_client_id, v_claim_ids[34], v_docdmd_pending_id, 'request_document', 'pending', 'Request repair estimates', 'Obtain itemized repair estimates from contractor', 3, v_user_ids[8], NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+        (v_client_id, v_claim_ids[35], v_docdmd_pending_id, 'letter', 'pending', 'Send status update to insured', 'Prepare and mail claim status update letter to insured', 2, v_user_ids[9], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day');
 
     -- ---- ADDITIONAL DISTRIBUTED TASKS ----
     -- In-progress tasks across various locations
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, created_at)
     VALUES
-        (v_client_id, 19, v_subrog_rfi_id, 'outbound_call', 'in_progress', 'Call adverse carrier claims dept', 'Contact adverse carrier to request status update on information request', 2, v_user_ids[2], NOW() - INTERVAL '1 day', NOW() - INTERVAL '12 hours', NOW() - INTERVAL '2 days'),
-        (v_client_id, 20, v_subrog_rfi_id, 'follow_up', 'in_progress', 'Follow up on medical records request', 'Contact medical provider for outstanding records request', 3, v_user_ids[4], NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '4 days'),
-        (v_client_id, 37, v_docdmd_transactional_id, 'send_demand', 'in_progress', 'Finalize demand package submission', 'Complete final review and submit demand package to adverse carrier', 5, v_user_ids[1], NOW() - INTERVAL '2 days', NOW() - INTERVAL '6 hours', NOW() - INTERVAL '3 days'),
-        (v_client_id, 38, v_docdmd_transactional_id, 'review', 'in_progress', 'Review adverse response to demand', 'Analyze adverse carrier response to submitted demand package', 4, v_user_ids[4], NOW() - INTERVAL '1 day', NOW() - INTERVAL '4 hours', NOW() - INTERVAL '2 days');
+        (v_client_id, v_claim_ids[19], v_subrog_rfi_id, 'outbound_call', 'in_progress', 'Call adverse carrier claims dept', 'Contact adverse carrier to request status update on information request', 2, v_user_ids[2], NOW() - INTERVAL '1 day', NOW() - INTERVAL '12 hours', NOW() - INTERVAL '2 days'),
+        (v_client_id, v_claim_ids[20], v_subrog_rfi_id, 'follow_up', 'in_progress', 'Follow up on medical records request', 'Contact medical provider for outstanding records request', 3, v_user_ids[4], NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '4 days'),
+        (v_client_id, v_claim_ids[37], v_docdmd_transactional_id, 'send_demand', 'in_progress', 'Finalize demand package submission', 'Complete final review and submit demand package to adverse carrier', 5, v_user_ids[1], NOW() - INTERVAL '2 days', NOW() - INTERVAL '6 hours', NOW() - INTERVAL '3 days'),
+        (v_client_id, v_claim_ids[38], v_docdmd_transactional_id, 'review', 'in_progress', 'Review adverse response to demand', 'Analyze adverse carrier response to submitted demand package', 4, v_user_ids[4], NOW() - INTERVAL '1 day', NOW() - INTERVAL '4 hours', NOW() - INTERVAL '2 days');
 
     -- Completed tasks across various locations (some today for throughput query 0.6)
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, started_at, completed_at, completion_notes, created_at)
     VALUES
         -- Completed TODAY (throughput)
-        (v_client_id, 25, v_subrog_review_id, 'review', 'completed', 'Final subrogation file review', 'Complete final quality review of subrogation file before closure', 3, v_user_ids[3], NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 hours', 'File review complete, all documentation in order', NOW() - INTERVAL '4 days'),
-        (v_client_id, 26, v_subrog_review_id, 'generic', 'completed', 'Verify recovery amounts', 'Cross-reference recovery amounts with settlement records', 2, v_user_ids[5], NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 hour', 'Recovery amounts verified and reconciled', NOW() - INTERVAL '3 days'),
-        (v_client_id, 39, v_docdmd_transactional_id, 'send_document', 'completed', 'Send demand letter to adverse', 'Transmit finalized demand letter and supporting documentation', 3, v_user_ids[6], NOW() - INTERVAL '4 days', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 hours', 'Demand letter sent via certified mail', NOW() - INTERVAL '5 days'),
-        (v_client_id, 40, v_docdmd_transactional_id, 'outbound_call', 'completed', 'Confirm demand receipt', 'Call adverse carrier to confirm receipt of demand package', 1, v_user_ids[7], NOW() - INTERVAL '1 day', NOW() - INTERVAL '12 hours', NOW() - INTERVAL '30 minutes', 'Adverse confirmed receipt, assigned to their adjuster', NOW() - INTERVAL '2 days'),
-        (v_client_id, 21, v_subrog_rfi_id, 'follow_up', 'completed', 'Adverse carrier RFI follow-up', 'Follow up on outstanding RFI sent to adverse carrier 2 weeks ago', 2, v_user_ids[8], NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '4 hours', 'Adverse carrier provided requested documentation', NOW() - INTERVAL '4 days'),
-        (v_client_id, 45, v_docdmd_review_id, 'review', 'completed', 'Package completeness verification', 'Verify demand package contains all required documents and exhibits', 3, v_user_ids[9], NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '5 hours', 'Package verified complete with all exhibits', NOW() - INTERVAL '3 days'),
+        (v_client_id, v_claim_ids[25], v_subrog_review_id, 'review', 'completed', 'Final subrogation file review', 'Complete final quality review of subrogation file before closure', 3, v_user_ids[3], NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 hours', 'File review complete, all documentation in order', NOW() - INTERVAL '4 days'),
+        (v_client_id, v_claim_ids[26], v_subrog_review_id, 'generic', 'completed', 'Verify recovery amounts', 'Cross-reference recovery amounts with settlement records', 2, v_user_ids[5], NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 hour', 'Recovery amounts verified and reconciled', NOW() - INTERVAL '3 days'),
+        (v_client_id, v_claim_ids[39], v_docdmd_transactional_id, 'send_document', 'completed', 'Send demand letter to adverse', 'Transmit finalized demand letter and supporting documentation', 3, v_user_ids[6], NOW() - INTERVAL '4 days', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 hours', 'Demand letter sent via certified mail', NOW() - INTERVAL '5 days'),
+        (v_client_id, v_claim_ids[40], v_docdmd_transactional_id, 'outbound_call', 'completed', 'Confirm demand receipt', 'Call adverse carrier to confirm receipt of demand package', 1, v_user_ids[7], NOW() - INTERVAL '1 day', NOW() - INTERVAL '12 hours', NOW() - INTERVAL '30 minutes', 'Adverse confirmed receipt, assigned to their adjuster', NOW() - INTERVAL '2 days'),
+        (v_client_id, v_claim_ids[21], v_subrog_rfi_id, 'follow_up', 'completed', 'Adverse carrier RFI follow-up', 'Follow up on outstanding RFI sent to adverse carrier 2 weeks ago', 2, v_user_ids[8], NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '4 hours', 'Adverse carrier provided requested documentation', NOW() - INTERVAL '4 days'),
+        (v_client_id, v_claim_ids[45], v_docdmd_review_id, 'review', 'completed', 'Package completeness verification', 'Verify demand package contains all required documents and exhibits', 3, v_user_ids[9], NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '5 hours', 'Package verified complete with all exhibits', NOW() - INTERVAL '3 days'),
         -- Completed RECENTLY (not today)
-        (v_client_id, 22, v_subrog_rfi_id, 'request_document', 'completed', 'Request adverse policy declaration', 'Request copy of adverse carrier policy declarations page', 2, v_user_ids[2], NOW() - INTERVAL '8 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '3 days', 'Policy declarations received and filed', NOW() - INTERVAL '9 days'),
-        (v_client_id, 23, v_subrog_rfi_id, 'letter', 'completed', 'Send second RFI notice', 'Send follow-up notice for outstanding information request', 1, v_user_ids[6], NOW() - INTERVAL '10 days', NOW() - INTERVAL '9 days', NOW() - INTERVAL '5 days', 'Second notice sent, response received within 48 hours', NOW() - INTERVAL '11 days'),
-        (v_client_id, 27, v_subrog_review_id, 'generic', 'completed', 'Reconcile payment records', 'Reconcile all payments and recoveries before closure', 4, v_user_ids[3], NOW() - INTERVAL '6 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '2 days', 'All payments reconciled, net recovery calculated', NOW() - INTERVAL '7 days'),
-        (v_client_id, 46, v_docdmd_review_id, 'generic', 'completed', 'Final document index review', 'Review document index for completeness and accuracy', 2, v_user_ids[10], NOW() - INTERVAL '5 days', NOW() - INTERVAL '4 days', NOW() - INTERVAL '2 days', 'Document index verified accurate', NOW() - INTERVAL '6 days');
+        (v_client_id, v_claim_ids[22], v_subrog_rfi_id, 'request_document', 'completed', 'Request adverse policy declaration', 'Request copy of adverse carrier policy declarations page', 2, v_user_ids[2], NOW() - INTERVAL '8 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '3 days', 'Policy declarations received and filed', NOW() - INTERVAL '9 days'),
+        (v_client_id, v_claim_ids[23], v_subrog_rfi_id, 'letter', 'completed', 'Send second RFI notice', 'Send follow-up notice for outstanding information request', 1, v_user_ids[6], NOW() - INTERVAL '10 days', NOW() - INTERVAL '9 days', NOW() - INTERVAL '5 days', 'Second notice sent, response received within 48 hours', NOW() - INTERVAL '11 days'),
+        (v_client_id, v_claim_ids[27], v_subrog_review_id, 'generic', 'completed', 'Reconcile payment records', 'Reconcile all payments and recoveries before closure', 4, v_user_ids[3], NOW() - INTERVAL '6 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '2 days', 'All payments reconciled, net recovery calculated', NOW() - INTERVAL '7 days'),
+        (v_client_id, v_claim_ids[46], v_docdmd_review_id, 'generic', 'completed', 'Final document index review', 'Review document index for completeness and accuracy', 2, v_user_ids[10], NOW() - INTERVAL '5 days', NOW() - INTERVAL '4 days', NOW() - INTERVAL '2 days', 'Document index verified accurate', NOW() - INTERVAL '6 days');
 
     -- Created TODAY tasks (throughput - created_at today)
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
     VALUES
-        (v_client_id, 2, v_subrog_pending_id, 'review', 'pending', 'New subrogation intake assessment', 'Assess newly received subrogation referral for viability', 4, v_user_ids[5], NOW(), NOW()),
-        (v_client_id, 3, v_subrog_pending_id, 'generic', 'pending', 'Verify adverse insurance coverage', 'Confirm adverse party has active insurance coverage', 3, v_user_ids[6], NOW(), NOW()),
-        (v_client_id, 36, v_docdmd_pending_id, 'request_document', 'pending', 'Request updated medical bills', 'Request current medical billing statements from provider', 2, v_user_ids[7], NOW(), NOW()),
-        (v_client_id, 41, v_docdmd_rfi_id, 'follow_up', 'pending', 'Follow up on repair authorization', 'Contact contractor regarding outstanding repair authorization', 2, v_user_ids[8], NOW(), NOW()),
-        (v_client_id, 49, v_adverse_pending_id, 'outbound_call', 'pending', 'Call adverse carrier for policy info', 'Contact adverse carrier to obtain policy coverage details', 3, v_user_ids[9], NOW(), NOW()),
-        (v_client_id, 50, v_adverse_pending_id, 'review', 'pending', 'Review adverse declarations page', 'Analyze adverse carrier declarations page for coverage limits', 3, v_user_ids[10], NOW(), NOW());
+        (v_client_id, v_claim_ids[2], v_subrog_pending_id, 'review', 'pending', 'New subrogation intake assessment', 'Assess newly received subrogation referral for viability', 4, v_user_ids[5], NOW(), NOW()),
+        (v_client_id, v_claim_ids[3], v_subrog_pending_id, 'generic', 'pending', 'Verify adverse insurance coverage', 'Confirm adverse party has active insurance coverage', 3, v_user_ids[6], NOW(), NOW()),
+        (v_client_id, v_claim_ids[36], v_docdmd_pending_id, 'request_document', 'pending', 'Request updated medical bills', 'Request current medical billing statements from provider', 2, v_user_ids[7], NOW(), NOW()),
+        (v_client_id, v_claim_ids[41], v_docdmd_rfi_id, 'follow_up', 'pending', 'Follow up on repair authorization', 'Contact contractor regarding outstanding repair authorization', 2, v_user_ids[8], NOW(), NOW()),
+        (v_client_id, v_claim_ids[49], v_adverse_pending_id, 'outbound_call', 'pending', 'Call adverse carrier for policy info', 'Contact adverse carrier to obtain policy coverage details', 3, v_user_ids[9], NOW(), NOW()),
+        (v_client_id, v_claim_ids[50], v_adverse_pending_id, 'review', 'pending', 'Review adverse declarations page', 'Analyze adverse carrier declarations page for coverage limits', 3, v_user_ids[10], NOW(), NOW());
 
     -- Cancelled tasks
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
     VALUES
-        (v_client_id, 29, v_subrog_closed_id, 'follow_up', 'cancelled', 'Reopen review - superseded', 'Previously scheduled reopen review, superseded by manager decision', 2, v_user_ids[1], NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
-        (v_client_id, 30, v_subrog_closed_id, 'letter', 'cancelled', 'Send closure notification - duplicate', 'Duplicate closure notification task, cancelled', 1, v_user_ids[2], NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
-        (v_client_id, 47, v_docdmd_closed_id, 'send_document', 'cancelled', 'Send archive confirmation - cancelled', 'Archive confirmation cancelled due to file reopening', 2, v_user_ids[3], NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-        (v_client_id, 48, v_docdmd_closed_id, 'generic', 'cancelled', 'Retention review - rescheduled', 'Retention review rescheduled to next quarter', 3, v_user_ids[4], NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days');
+        (v_client_id, v_claim_ids[29], v_subrog_closed_id, 'follow_up', 'cancelled', 'Reopen review - superseded', 'Previously scheduled reopen review, superseded by manager decision', 2, v_user_ids[1], NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
+        (v_client_id, v_claim_ids[30], v_subrog_closed_id, 'letter', 'cancelled', 'Send closure notification - duplicate', 'Duplicate closure notification task, cancelled', 1, v_user_ids[2], NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
+        (v_client_id, v_claim_ids[47], v_docdmd_closed_id, 'send_document', 'cancelled', 'Send archive confirmation - cancelled', 'Archive confirmation cancelled due to file reopening', 2, v_user_ids[3], NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+        (v_client_id, v_claim_ids[48], v_docdmd_closed_id, 'generic', 'cancelled', 'Retention review - rescheduled', 'Retention review rescheduled to next quarter', 3, v_user_ids[4], NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days');
 
     -- Additional pending tasks for various locations (non-breach, under threshold)
     INSERT INTO task (client_id, claim_id, desk_location_id, task_type, status, title, description, work_units, assigned_to, assigned_at, created_at)
     VALUES
-        (v_client_id, 25, v_subrog_review_id, 'review', 'pending', 'Pre-closure checklist verification', 'Verify all closure checklist items are completed', 3, v_user_ids[5], NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-        (v_client_id, 28, v_subrog_review_id, 'generic', 'pending', 'Calculate net recovery', 'Calculate final net recovery amount for closure report', 2, v_user_ids[6], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
-        (v_client_id, 37, v_docdmd_transactional_id, 'follow_up', 'pending', 'Demand response follow-up', 'Follow up with adverse carrier on demand package response', 2, v_user_ids[7], NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
-        (v_client_id, 45, v_docdmd_review_id, 'review', 'pending', 'Final package sign-off', 'Complete final review and sign-off on closed document package', 3, v_user_ids[8], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day');
+        (v_client_id, v_claim_ids[25], v_subrog_review_id, 'review', 'pending', 'Pre-closure checklist verification', 'Verify all closure checklist items are completed', 3, v_user_ids[5], NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+        (v_client_id, v_claim_ids[28], v_subrog_review_id, 'generic', 'pending', 'Calculate net recovery', 'Calculate final net recovery amount for closure report', 2, v_user_ids[6], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+        (v_client_id, v_claim_ids[37], v_docdmd_transactional_id, 'follow_up', 'pending', 'Demand response follow-up', 'Follow up with adverse carrier on demand package response', 2, v_user_ids[7], NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+        (v_client_id, v_claim_ids[45], v_docdmd_review_id, 'review', 'pending', 'Final package sign-off', 'Complete final review and sign-off on closed document package', 3, v_user_ids[8], NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day');
 
     -- =====================================================
     -- Section 6: Deadlines (~80 total)
@@ -612,7 +641,7 @@ BEGIN
 
     -- Overdue deadlines (past deadline_date, status='pending')
     FOR v_i IN 1..10 LOOP
-        v_claim_id := (v_i % 10) + 1;
+        v_claim_id := v_claim_ids[(v_i % 10) + 1];
         INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, created_by, created_at)
         VALUES (
             v_client_id, v_claim_id,
@@ -627,7 +656,7 @@ BEGIN
 
     -- Due today deadlines
     FOR v_i IN 1..5 LOOP
-        v_claim_id := 10 + v_i;
+        v_claim_id := v_claim_ids[10 + v_i];
         INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, created_by, created_at)
         VALUES (
             v_client_id, v_claim_id,
@@ -642,7 +671,7 @@ BEGIN
 
     -- Due next 7 days
     FOR v_i IN 1..15 LOOP
-        v_claim_id := 15 + (v_i % 20) + 1;
+        v_claim_id := v_claim_ids[15 + (v_i % 20) + 1];
         INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, created_by, created_at)
         VALUES (
             v_client_id, v_claim_id,
@@ -657,7 +686,7 @@ BEGIN
 
     -- Met deadlines
     FOR v_i IN 1..25 LOOP
-        v_claim_id := (v_i % 50) + 1;
+        v_claim_id := v_claim_ids[(v_i % 50) + 1];
         INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, completed_at, completed_by, created_by, created_at)
         VALUES (
             v_client_id, v_claim_id,
@@ -674,7 +703,7 @@ BEGIN
 
     -- Missed deadlines
     FOR v_i IN 1..10 LOOP
-        v_claim_id := 20 + (v_i % 20) + 1;
+        v_claim_id := v_claim_ids[20 + (v_i % 20) + 1];
         INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, completed_at, completed_by, created_by, created_at)
         VALUES (
             v_client_id, v_claim_id,
@@ -691,7 +720,7 @@ BEGIN
 
     -- Cancelled deadlines
     FOR v_i IN 1..8 LOOP
-        v_claim_id := 30 + (v_i % 15) + 1;
+        v_claim_id := v_claim_ids[30 + (v_i % 15) + 1];
         INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, cancelled_at, cancelled_by, cancellation_reason, created_by, created_at)
         VALUES (
             v_client_id, v_claim_id,
@@ -710,13 +739,13 @@ BEGIN
     -- Standalone claim deadlines (entity_type='claim')
     INSERT INTO deadline (client_id, claim_id, deadline_date, deadline_type, description, status, entity_type, entity_id, created_by, created_at)
     VALUES
-        (v_client_id, 1, NOW() + INTERVAL '30 days', 'regulatory', '30-day statutory acknowledgment letter required by state regulations', 'pending', 'claim', 1, v_admin_user_id, NOW() - INTERVAL '5 days'),
-        (v_client_id, 5, NOW() + INTERVAL '60 days', 'litigation', 'Discovery response deadline for pending litigation', 'pending', 'claim', 5, v_admin_user_id, NOW() - INTERVAL '10 days'),
-        (v_client_id, 11, NOW() + INTERVAL '14 days', 'negotiation', 'Settlement negotiation response window', 'pending', 'claim', 11, v_admin_user_id, NOW() - INTERVAL '3 days'),
-        (v_client_id, 19, NOW() + INTERVAL '21 days', 'regulatory', 'State insurance department filing deadline', 'pending', 'claim', 19, v_admin_user_id, NOW() - INTERVAL '7 days'),
-        (v_client_id, 31, NOW() + INTERVAL '45 days', 'review', 'Quarterly file review deadline', 'pending', 'claim', 31, v_admin_user_id, NOW() - INTERVAL '15 days'),
-        (v_client_id, 41, NOW() + INTERVAL '10 days', 'follow_up', 'Adverse carrier response follow-up deadline', 'pending', 'claim', 41, v_admin_user_id, NOW() - INTERVAL '5 days'),
-        (v_client_id, 49, NOW() + INTERVAL '7 days', 'review', 'Adverse coverage verification completion target', 'pending', 'claim', 49, v_admin_user_id, NOW() - INTERVAL '2 days');
+        (v_client_id, v_claim_ids[1], NOW() + INTERVAL '30 days', 'regulatory', '30-day statutory acknowledgment letter required by state regulations', 'pending', 'claim', v_claim_ids[1], v_admin_user_id, NOW() - INTERVAL '5 days'),
+        (v_client_id, v_claim_ids[5], NOW() + INTERVAL '60 days', 'litigation', 'Discovery response deadline for pending litigation', 'pending', 'claim', v_claim_ids[5], v_admin_user_id, NOW() - INTERVAL '10 days'),
+        (v_client_id, v_claim_ids[11], NOW() + INTERVAL '14 days', 'negotiation', 'Settlement negotiation response window', 'pending', 'claim', v_claim_ids[11], v_admin_user_id, NOW() - INTERVAL '3 days'),
+        (v_client_id, v_claim_ids[19], NOW() + INTERVAL '21 days', 'regulatory', 'State insurance department filing deadline', 'pending', 'claim', v_claim_ids[19], v_admin_user_id, NOW() - INTERVAL '7 days'),
+        (v_client_id, v_claim_ids[31], NOW() + INTERVAL '45 days', 'review', 'Quarterly file review deadline', 'pending', 'claim', v_claim_ids[31], v_admin_user_id, NOW() - INTERVAL '15 days'),
+        (v_client_id, v_claim_ids[41], NOW() + INTERVAL '10 days', 'follow_up', 'Adverse carrier response follow-up deadline', 'pending', 'claim', v_claim_ids[41], v_admin_user_id, NOW() - INTERVAL '5 days'),
+        (v_client_id, v_claim_ids[49], NOW() + INTERVAL '7 days', 'review', 'Adverse coverage verification completion target', 'pending', 'claim', v_claim_ids[49], v_admin_user_id, NOW() - INTERVAL '2 days');
 
     -- =====================================================
     -- Section 7: Claim Desk Location Transitions
@@ -724,9 +753,9 @@ BEGIN
     -- =====================================================
     RAISE NOTICE 'Section 7: Creating claim desk location transitions...';
 
-    -- 1-2 days ago (healthy for most SLAs) — claims 1-20
+    -- 1-2 days ago (healthy for most SLAs) -- claims 1-20
     FOR v_i IN 1..20 LOOP
-        v_claim_id := v_i;
+        v_claim_id := v_claim_ids[v_i];
         SELECT desk_location_id INTO v_loc_id FROM claim WHERE id = v_claim_id AND client_id = v_client_id;
         IF v_loc_id IS NOT NULL THEN
             INSERT INTO claim_desk_location_transition (client_id, claim_id, desk_location_id, entered_at, entered_by, entered_reason, previous_desk_location_id, created_at)
@@ -741,9 +770,9 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- 3-5 days ago (warning for tight SLAs) — claims 21-32
+    -- 3-5 days ago (warning for tight SLAs) -- claims 21-32
     FOR v_i IN 21..32 LOOP
-        v_claim_id := v_i;
+        v_claim_id := v_claim_ids[v_i];
         SELECT desk_location_id INTO v_loc_id FROM claim WHERE id = v_claim_id AND client_id = v_client_id;
         IF v_loc_id IS NOT NULL THEN
             INSERT INTO claim_desk_location_transition (client_id, claim_id, desk_location_id, entered_at, entered_by, entered_reason, previous_desk_location_id, created_at)
@@ -758,9 +787,9 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- 6-10 days ago (breached for tight SLAs) — claims 33-42
+    -- 6-10 days ago (breached for tight SLAs) -- claims 33-42
     FOR v_i IN 33..42 LOOP
-        v_claim_id := v_i;
+        v_claim_id := v_claim_ids[v_i];
         SELECT desk_location_id INTO v_loc_id FROM claim WHERE id = v_claim_id AND client_id = v_client_id;
         IF v_loc_id IS NOT NULL THEN
             INSERT INTO claim_desk_location_transition (client_id, claim_id, desk_location_id, entered_at, entered_by, entered_reason, previous_desk_location_id, created_at)
@@ -775,9 +804,9 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- 12-20 days ago (breached for most SLAs) — claims 43-50
+    -- 12-20 days ago (breached for most SLAs) -- claims 43-50
     FOR v_i IN 43..50 LOOP
-        v_claim_id := v_i;
+        v_claim_id := v_claim_ids[v_i];
         SELECT desk_location_id INTO v_loc_id FROM claim WHERE id = v_claim_id AND client_id = v_client_id;
         IF v_loc_id IS NOT NULL THEN
             INSERT INTO claim_desk_location_transition (client_id, claim_id, desk_location_id, entered_at, entered_by, entered_reason, previous_desk_location_id, created_at)
@@ -792,10 +821,10 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- Multi-transition claims (movement history) — claims 11-25
+    -- Multi-transition claims (movement history) -- claims 11-25
     -- These get a second (earlier) transition showing where they came from
     FOR v_i IN 11..25 LOOP
-        v_claim_id := v_i;
+        v_claim_id := v_claim_ids[v_i];
         SELECT desk_location_id INTO v_loc_id FROM claim WHERE id = v_claim_id AND client_id = v_client_id;
         IF v_loc_id IS NOT NULL THEN
             INSERT INTO claim_desk_location_transition (client_id, claim_id, desk_location_id, entered_at, entered_by, entered_reason, previous_desk_location_id, created_at)
@@ -818,7 +847,7 @@ BEGIN
     END LOOP;
 
     -- =====================================================
-    -- Section 8: Analytics Snapshots (30 days × 13 locations)
+    -- Section 8: Analytics Snapshots (30 days x 13 locations)
     -- Deterministic patterns for query 1.6
     -- =====================================================
     RAISE NOTICE 'Section 8: Creating analytics snapshots...';

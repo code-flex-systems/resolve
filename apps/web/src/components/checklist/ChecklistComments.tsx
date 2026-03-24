@@ -13,6 +13,7 @@ import Divider from '@/components/ui/Divider';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Tooltip from '@/components/ui/Tooltip';
+import Card from '../ui/Card';
 
 const limit = 30;
 const pageSize = 3;
@@ -75,7 +76,17 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 	}, [showNewComment]);
 
 	return (
-		<div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'var(--bg-primary)' }}>
+		<Card
+			variant="surface"
+			style={{
+				width: '100%',
+				display: 'flex',
+				flexDirection: 'column',
+				justifyContent: 'flex-start',
+				alignItems: 'flex-start',
+				padding: 5,
+			}}
+		>
 			<div
 				style={{
 					width: '100%',
@@ -86,16 +97,16 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 					padding: '5px 10px',
 				}}
 			>
-				<Badge content={(data?.count ?? 0) || undefined} color="primary">
-					<span style={{ fontSize: 15 }}>Comments</span>
+				<Badge active={Boolean(data?.count)} content={(data?.count ?? 0) || undefined} color="primary">
+					<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Comments</span>
 				</Badge>
 
 				{isAssigned && (
 					<Tooltip content="New comment">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconMessage style={{ transform: 'scaleX(-1)' }} />
+						<Button variant="icon" size="sm" color="neutral">
+							<IconMessage size={16} style={{ transform: 'scaleX(-1)' }} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				)}
 			</div>
 
@@ -134,17 +145,32 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 						/>
 						<div style={{ position: 'absolute', bottom: 8, right: 8 }}>
 							<Tooltip content="Add comment">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => addComment().catch(console.error)} disabled={!newComment || isPending}>
-							<IconCirclePlus size={16} />
-						</Button>
-						</Tooltip>
+								<Button
+									variant="icon"
+									size="sm"
+									color="neutral"
+									onClick={() => addComment().catch(console.error)}
+									disabled={!newComment || isPending}
+								>
+									<IconCirclePlus size={16} />
+								</Button>
+							</Tooltip>
 						</div>
 					</div>
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 2 }}>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'flex-end',
+							alignItems: 'center',
+							paddingTop: 2,
+						}}
+					>
 						<span
 							style={{
 								fontSize: 12,
-								color: newComment.length === config.MAX_COMMENT_SIZE ? 'var(--status-error)' : undefined,
+								color:
+									newComment.length === config.MAX_COMMENT_SIZE ? 'var(--status-error)' : undefined,
 							}}
 						>
 							Max characters: {newComment.length}/{config.MAX_COMMENT_SIZE}
@@ -187,22 +213,51 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				)}
 			</div>
 
-			<div style={{ width: '100%', height: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5px 10px' }}>
+			<div
+				style={{
+					width: '100%',
+					height: 40,
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					padding: '5px 10px',
+				}}
+			>
 				<button
 					onClick={() => updatePage(-1)}
 					disabled={isFetching || (page === 0 && commentOffset === 0)}
-					style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isFetching || (page === 0 && commentOffset === 0) ? 0.4 : 1 }}
+					style={{
+						background: 'none',
+						border: 'none',
+						cursor: 'pointer',
+						padding: 8,
+						borderRadius: '50%',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						opacity: isFetching || (page === 0 && commentOffset === 0) ? 0.4 : 1,
+					}}
 				>
 					<IconChevronLeft size={20} />
 				</button>
 				<button
 					onClick={() => updatePage(1)}
 					disabled={isFetching || commentOffset + page + pageSize >= data.count}
-					style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isFetching || commentOffset + page + pageSize >= data.count ? 0.4 : 1 }}
+					style={{
+						background: 'none',
+						border: 'none',
+						cursor: 'pointer',
+						padding: 8,
+						borderRadius: '50%',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						opacity: isFetching || commentOffset + page + pageSize >= data.count ? 0.4 : 1,
+					}}
 				>
 					<IconChevronRight size={20} />
 				</button>
 			</div>
-		</div>
+		</Card>
 	);
 }

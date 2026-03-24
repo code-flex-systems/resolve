@@ -2,7 +2,8 @@
 -- 10-generate-tasks-deadlines.sql
 -- Generate tasks and deadlines for selected claims
 -- Focus on user: owenfarthing@craig680.onmicrosoft.com
--- Claims selected: 3, 15, 28, 40, 48 (spread across distribution)
+-- Claims selected by claim_number (spread across distribution):
+--   PROP-2024-00003, GL-2024-00015, WC-2024-00028, PL-2024-00040, GL-2024-00048
 -- Distribution:
 --   - Each claim gets 2-4 tasks in various statuses
 --   - Each task has a linked deadline (entity_type='task')
@@ -13,10 +14,10 @@ DO $$
 DECLARE
     v_client_id UUID;
     v_user_id UUID;
-    v_desk_location_id INT;
-    v_desk_location_type_id INT;
-    v_claim_id INT;
-    v_task_id INT;
+    v_desk_location_id UUID;
+    v_desk_location_type_id UUID;
+    v_claim_id UUID;
+    v_task_id UUID;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
     SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
@@ -54,7 +55,7 @@ BEGIN
     -- 2 tasks: 1 pending, 1 completed on time
     -- Plus 1 standalone claim deadline (regulatory)
     -- =====================================================
-    v_claim_id := 3;
+    SELECT id INTO v_claim_id FROM claim WHERE claim_number = 'PROP-2024-00003' AND client_id = v_client_id;
 
     -- Task 1: Pending review task (future deadline)
     INSERT INTO task (
@@ -114,7 +115,7 @@ BEGIN
     -- 3 tasks: 1 in_progress, 1 completed late, 1 cancelled
     -- Plus 1 standalone deadline
     -- =====================================================
-    v_claim_id := 15;
+    SELECT id INTO v_claim_id FROM claim WHERE claim_number = 'GL-2024-00015' AND client_id = v_client_id;
 
     -- Task 1: In progress - send demand
     INSERT INTO task (
@@ -197,7 +198,7 @@ BEGIN
     -- CLAIM 28: Recovery Focus claim (WC-2024-00028)
     -- 3 tasks: 2 pending (1 overdue), 1 completed
     -- =====================================================
-    v_claim_id := 28;
+    SELECT id INTO v_claim_id FROM claim WHERE claim_number = 'WC-2024-00028' AND client_id = v_client_id;
 
     -- Task 1: Pending - overdue (deadline already passed)
     INSERT INTO task (
@@ -267,7 +268,7 @@ BEGIN
     -- 4 tasks: various types and statuses
     -- Plus 2 standalone deadlines
     -- =====================================================
-    v_claim_id := 40;
+    SELECT id INTO v_claim_id FROM claim WHERE claim_number = 'PL-2024-00040' AND client_id = v_client_id;
 
     -- Task 1: Pending generic task
     INSERT INTO task (
@@ -376,7 +377,7 @@ BEGIN
     -- CLAIM 48: Edge case - Closed with full recovery (GL-2024-00048)
     -- 2 completed tasks (all met), no pending items
     -- =====================================================
-    v_claim_id := 48;
+    SELECT id INTO v_claim_id FROM claim WHERE claim_number = 'GL-2024-00048' AND client_id = v_client_id;
 
     -- Task 1: Completed - send document
     INSERT INTO task (
@@ -432,7 +433,7 @@ SELECT 'Tasks by type and status:' AS info;
 SELECT status, task_type, COUNT(*) as count
 FROM task t
 JOIN claim c ON t.claim_id = c.id
-WHERE c.id IN (3, 15, 28, 40, 48)
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048')
 GROUP BY status, task_type
 ORDER BY status, task_type;
 
@@ -440,21 +441,23 @@ SELECT 'Task status summary:' AS info;
 SELECT status, COUNT(*) as count
 FROM task t
 JOIN claim c ON t.claim_id = c.id
-WHERE c.id IN (3, 15, 28, 40, 48)
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048')
 GROUP BY status
 ORDER BY count DESC;
 
 SELECT 'Deadlines by status and entity type:' AS info;
 SELECT status, entity_type, COUNT(*) as count
 FROM deadline d
-WHERE d.claim_id IN (3, 15, 28, 40, 48)
+JOIN claim c ON d.claim_id = c.id
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048')
 GROUP BY status, entity_type
 ORDER BY status, entity_type;
 
 SELECT 'Deadline status summary:' AS info;
 SELECT status, COUNT(*) as count
 FROM deadline d
-WHERE d.claim_id IN (3, 15, 28, 40, 48)
+JOIN claim c ON d.claim_id = c.id
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048')
 GROUP BY status
 ORDER BY count DESC;
 
@@ -468,9 +471,9 @@ SELECT
     COUNT(CASE WHEN t.status = 'cancelled' THEN 1 END) as cancelled
 FROM claim c
 LEFT JOIN task t ON c.id = t.claim_id
-WHERE c.id IN (3, 15, 28, 40, 48)
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048')
 GROUP BY c.id, c.claim_number
-ORDER BY c.id;
+ORDER BY c.claim_number;
 
 SELECT 'Deadlines by claim:' AS info;
 SELECT
@@ -482,9 +485,13 @@ SELECT
     COUNT(CASE WHEN d.status = 'cancelled' THEN 1 END) as cancelled
 FROM claim c
 LEFT JOIN deadline d ON c.id = d.claim_id
-WHERE c.id IN (3, 15, 28, 40, 48)
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048')
 GROUP BY c.id, c.claim_number
-ORDER BY c.id;
+ORDER BY c.claim_number;
 
-SELECT 'Total tasks created:', COUNT(*) FROM task WHERE claim_id IN (3, 15, 28, 40, 48);
-SELECT 'Total deadlines created:', COUNT(*) FROM deadline WHERE claim_id IN (3, 15, 28, 40, 48);
+SELECT 'Total tasks created:', COUNT(*)
+FROM task t JOIN claim c ON t.claim_id = c.id
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048');
+SELECT 'Total deadlines created:', COUNT(*)
+FROM deadline d JOIN claim c ON d.claim_id = c.id
+WHERE c.claim_number IN ('PROP-2024-00003', 'GL-2024-00015', 'WC-2024-00028', 'PL-2024-00040', 'GL-2024-00048');

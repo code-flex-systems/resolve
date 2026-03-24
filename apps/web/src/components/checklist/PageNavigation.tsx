@@ -293,7 +293,11 @@ export default function PageNavigation() {
 											style={{ color: showChangeLog ? 'var(--text-accent)' : undefined }}
 										/>
 									</Button>
-									<Badge content={(commentData?.count ?? 0) || undefined} color="primary">
+									<Badge
+										active={Boolean(commentData?.count)}
+										content={(commentData?.count ?? 0) || undefined}
+										color="primary"
+									>
 										<Button
 											variant="icon"
 											size="sm"

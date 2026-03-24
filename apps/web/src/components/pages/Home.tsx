@@ -10,10 +10,12 @@ import MyDeadlinesMetric from '../home/MyDeadlinesMetric';
 import TeamRecoveryMetric from '../home/TeamRecoveryMetric';
 import MyDeskAssignments from '../home/MyDeskAssignments';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useBreadcrumbs } from '../common/BreadcrumbContext';
 
 export default function Home() {
 	const { data: session } = useClerkSession();
 	const resetChecklistsStore = useChecklistsStore((state) => state.reset);
+	const { setDynamicSegments } = useBreadcrumbs();
 
 	useEffect(() => {
 		return () => {
@@ -21,19 +23,22 @@ export default function Home() {
 		};
 	}, []);
 
+	useEffect(() => {
+		if (session?.user?.name) setDynamicSegments([{ label: `Welcome, ${session.user.name.split(' ')[0]}!` }]);
+	}, [session?.user]);
+
 	return (
 		<div style={styles.container}>
-			{/* Toolbar */}
-			<div      style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-				<span   style={{ fontSize: 20, fontWeight: 'bold' }}>
-					Welcome back, {session?.user?.name?.split(' ')?.[0] ?? ''}!
-				</span>
-				<ProfileAvatar />
-			</div>
-
 			{/* Dashboard Content */}
 			<div
-				 style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', overflow: 'auto' }}
+				style={{
+					width: '100%',
+					height: '100%',
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+					overflow: 'auto',
+				}}
 			>
 				<div style={{ display: 'flex', flexWrap: 'wrap' }}>
 					<div style={{ display: 'flex', flexDirection: 'column' }}>

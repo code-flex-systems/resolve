@@ -10,7 +10,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import { IconAdjustments, IconAlertCircle, IconChevronRight, IconCircle, IconCircleCheck, IconFileDescription } from '@tabler/icons-react';
+import {
+	IconCircleHalf2,
+	IconAlertCircle,
+	IconChevronRight,
+	IconCircle,
+	IconCircleCheck,
+	IconFileDescription,
+} from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 
 export default function TreeNode(props: TreeNode & { level: number }) {
@@ -68,19 +75,31 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			case PageInstanceStatus.IN_PROGRESS:
 				return (
 					<Tooltip content="Started">
-						<IconAdjustments size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircleHalf2
+							size={16}
+							style={{ color: iconColor, ...styles.icon, transform: 'scaleX(-1)' }}
+							className={iconClassname}
+						/>
 					</Tooltip>
 				);
 			case PageInstanceStatus.COMPLETE:
 				return (
 					<Tooltip content="Complete">
-						<IconCircleCheck size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircleCheck
+							size={16}
+							style={{ color: iconColor, ...styles.icon }}
+							className={iconClassname}
+						/>
 					</Tooltip>
 				);
 			case PageInstanceStatus.STALE:
 				return (
 					<Tooltip content="This page has changed">
-						<IconAlertCircle size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconAlertCircle
+							size={16}
+							style={{ color: iconColor, ...styles.icon }}
+							className={iconClassname}
+						/>
 					</Tooltip>
 				);
 		}
@@ -105,7 +124,15 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 				<div className="flex-row-left">
 					{!!filteredChildren.length ? (
 						<button
-							style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: 4 }}
+							style={{
+								background: 'none',
+								border: 'none',
+								padding: '2px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'center',
+								marginRight: 4,
+							}}
 							onClick={(e) => {
 								setExpanded((prev) => !prev);
 								clearExpandedBranch();
@@ -125,22 +152,13 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 					) : (
 						<div style={{ width: 20, minWidth: 20 }} />
 					)}
-					<span
-						className={selected ? 'node-selected-inner' : ''}
-						style={{ maxWidth: 350 }}
-					>
+					<span className={selected ? 'node-selected-inner' : ''} style={{ maxWidth: 350 }}>
 						{title}
 						{mode === ChecklistMode.EDIT ? ` (p${position + 1})` : ''}
 					</span>
 				</div>
 				{(mode === ChecklistMode.VIEW || isFetching) && (
-					<span>
-						{isFetching ? (
-							<Spinner size="sm" className="" />
-						) : (
-							statusIcon
-						)}
-					</span>
+					<span>{isFetching ? <Spinner size="sm" className="" /> : statusIcon}</span>
 				)}
 			</div>
 

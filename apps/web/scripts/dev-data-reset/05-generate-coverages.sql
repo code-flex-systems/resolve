@@ -13,6 +13,7 @@ DECLARE
     v_client_id UUID;
     v_user_id UUID;
     v_claim RECORD;
+    v_claim_int INTEGER;
     v_prop_types TEXT[] := ARRAY['dwelling', 'personal_property', 'loss_of_use'];
     v_gl_types TEXT[] := ARRAY['liability', 'medical_payments', 'other'];
     v_wc_types TEXT[] := ARRAY['medical_payments', 'liability', 'other'];
@@ -25,8 +26,11 @@ BEGIN
     SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
 
     FOR v_claim IN SELECT id, claim_number, claim_amount FROM claim ORDER BY id LOOP
+        -- Derive a deterministic integer from the UUID
+        v_claim_int := abs(('x' || right(v_claim.id::text, 8))::bit(32)::int);
+
         -- Determine number of coverages (1-3 based on claim pattern)
-        v_num_coverages := 1 + (v_claim.id % 3);
+        v_num_coverages := 1 + (v_claim_int % 3);
 
         FOR i IN 1..v_num_coverages LOOP
             -- Select coverage type based on claim LOB (from claim_number prefix)
@@ -49,11 +53,11 @@ BEGIN
                 v_coverage_type,
                 -- Coverage amount varies by type and claim
                 CASE
-                    WHEN v_coverage_type = 'dwelling' THEN (100000 + v_claim.id * 2000)::NUMERIC
-                    WHEN v_coverage_type = 'personal_property' THEN (50000 + v_claim.id * 1000)::NUMERIC
-                    WHEN v_coverage_type = 'liability' THEN (100000 + v_claim.id * 1500)::NUMERIC
-                    WHEN v_coverage_type = 'medical_payments' THEN (25000 + v_claim.id * 500)::NUMERIC
-                    ELSE (10000 + v_claim.id * 200)::NUMERIC
+                    WHEN v_coverage_type = 'dwelling' THEN (100000 + v_claim_int % 50000 * 2)::NUMERIC
+                    WHEN v_coverage_type = 'personal_property' THEN (50000 + v_claim_int % 30000)::NUMERIC
+                    WHEN v_coverage_type = 'liability' THEN (100000 + v_claim_int % 40000)::NUMERIC
+                    WHEN v_coverage_type = 'medical_payments' THEN (25000 + v_claim_int % 15000)::NUMERIC
+                    ELSE (10000 + v_claim_int % 8000)::NUMERIC
                 END,
                 -- Amount reserved (portion of claim being worked)
                 CASE
@@ -64,7 +68,7 @@ BEGIN
                 -- Deductible (varies by coverage type)
                 CASE
                     WHEN v_coverage_type IN ('dwelling', 'personal_property') THEN
-                        CASE (v_claim.id % 4)
+                        CASE (v_claim_int % 4)
                             WHEN 0 THEN 500
                             WHEN 1 THEN 1000
                             WHEN 2 THEN 2500
@@ -74,16 +78,16 @@ BEGIN
                 END,
                 -- Deductible status
                 CASE
-                    WHEN (v_claim.id % 3) = 0 THEN 'waived'
-                    WHEN (v_claim.id % 3) = 1 THEN 'not_confirmed'
+                    WHEN (v_claim_int % 3) = 0 THEN 'waived'
+                    WHEN (v_claim_int % 3) = 1 THEN 'not_confirmed'
                     ELSE 'applies'
                 END,
                 -- Statute preserved (most are)
-                (v_claim.id % 10) != 0,
+                (v_claim_int % 10) != 0,
                 -- Subro applicable (property and liability generally are)
                 v_coverage_type IN ('dwelling', 'personal_property', 'liability'),
                 v_user_id,
-                NOW() - INTERVAL '1 day' * (v_claim.id % 100)
+                NOW() - INTERVAL '1 day' * (v_claim_int % 100)
             );
         END LOOP;
     END LOOP;

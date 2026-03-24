@@ -10,6 +10,7 @@ for script in \
   seed_desk_workflow.sql \
   seed_parties_coverage.sql \
   seed_tasks_recovery.sql \
+  seed_payments.sql \
   seed_documents.sql \
   seed_workflow_rules.sql \
   seed_logs.sql \

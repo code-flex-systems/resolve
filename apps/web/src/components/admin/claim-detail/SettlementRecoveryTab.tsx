@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
+import { useFinancialReportingInvalidation } from '@/hooks/trpc/useFinancialReportingTrpc';
 import BasicDialog from '@/components/common/BasicDialog';
 import SettlementFormDialog, { SettlementFormData, DROP_CHECK_VALUE } from './SettlementFormDialog';
 import RecoveryFormDialog, { RecoveryFormData } from './RecoveryFormDialog';
@@ -70,6 +71,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 	const [archivingRecovery, setArchivingRecovery] = useState<any | null>(null);
 
 	const utils = trpc.useUtils();
+	const reportingInvalidation = useFinancialReportingInvalidation();
 	const showAlert = useAlertStore((state) => state.showAlert);
 
 	// Data queries
@@ -111,12 +113,14 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 		onSuccess: () => {
 			utils.settlement.listSettlements.invalidate({ claimId });
 			utils.settlement.getSettlementsForDropdown.invalidate({ claimId });
+			reportingInvalidation.onSettlementMutate();
 		},
 	});
 	const updateSettlement = trpc.settlement.updateSettlement.useMutation({
 		onSuccess: () => {
 			utils.settlement.listSettlements.invalidate({ claimId });
 			utils.settlement.getSettlementsForDropdown.invalidate({ claimId });
+			reportingInvalidation.onSettlementMutate();
 		},
 	});
 	const deleteSettlement = trpc.settlement.deleteSettlement.useMutation({
@@ -133,6 +137,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 			utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
 			// Invalidate claim detail to update actual_recovery totals
 			utils.claim.getClaimDetail.invalidate({ claimId });
+			reportingInvalidation.onSettlementMutate();
 		},
 	});
 

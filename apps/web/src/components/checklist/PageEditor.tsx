@@ -12,7 +12,18 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import Card from '@/components/ui/Card';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { IconArrowRight, IconCheck, IconCopy, IconCornerDownRight, IconDeviceFloppy, IconFileDescription, IconHelpCircle, IconQuote, IconTrash, IconX } from '@tabler/icons-react';
+import {
+	IconArrowRight,
+	IconCheck,
+	IconCopy,
+	IconCornerDownRight,
+	IconDeviceFloppy,
+	IconFileDescription,
+	IconHelpCircle,
+	IconQuote,
+	IconTrash,
+	IconX,
+} from '@tabler/icons-react';
 
 export default function PageEditor() {
 	const { checklistId = '', claimId = '' } = useChecklistParams();
@@ -31,7 +42,10 @@ export default function PageEditor() {
 	const [copyType, setCopyType] = useState<'template' | 'instance'>('template');
 	const [copiedField, setCopiedField] = useState<string | null>(null);
 
-	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId }, { enabled: !!selectedPageInfo.pageId });
+	const { data: questions = [] } = useQuestionTrpc().list(
+		{ pageId: selectedPageInfo.pageId },
+		{ enabled: !!selectedPageInfo.pageId }
+	);
 	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
 		usePageTrpc();
 	const { mutateAsync: addPage, isPending: adding } = createTemplate;
@@ -174,7 +188,20 @@ export default function PageEditor() {
 			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
 				<div style={pageStyles.formContainer}>
 					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Information</div>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								padding: '12px 16px',
+								fontSize: 13,
+								fontWeight: 600,
+								color: 'var(--text-primary)',
+								backgroundColor: 'var(--bg-secondary)',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Information
+						</div>
 						<div style={{ padding: 16 }}>
 							<div style={pageStyles.fieldRow}>
 								<Input
@@ -195,13 +222,17 @@ export default function PageEditor() {
 											<Button
 												variant="icon"
 												size="sm"
-												onClick={() => onCopyText('pageTitle', pageTitle)}>
+												onClick={() => onCopyText('pageTitle', pageTitle)}
+											>
 												{copiedField === 'pageTitle' ? (
-													<IconCheck size={20} style={{ color: 'var(--status-success)',
-															fontSize: 18, }}
+													<IconCheck
+														size={20}
+														style={{ color: 'var(--status-success)', fontSize: 18 }}
 													/>
 												) : (
-													<IconCopy size={20} style={{ color: 'var(--text-muted)', fontSize: 18 }}
+													<IconCopy
+														size={20}
+														style={{ color: 'var(--text-muted)', fontSize: 18 }}
 													/>
 												)}
 											</Button>
@@ -209,7 +240,8 @@ export default function PageEditor() {
 												variant="icon"
 												size="sm"
 												onClick={onClearField}
-												disabled={!pageTitle}>
+												disabled={!pageTitle}
+											>
 												<IconX size={20} style={{ color: 'var(--text-muted)', fontSize: 18 }} />
 											</Button>
 											<Button
@@ -217,16 +249,20 @@ export default function PageEditor() {
 												size="sm"
 												onClick={() => onModifyPage()}
 												disabled={
-													updating ||
-													!pageTitle ||
-													pageTitle === selectedPageInfo.title
-												}>
-												<IconDeviceFloppy size={20} style={{ color: !updating &&
+													updating || !pageTitle || pageTitle === selectedPageInfo.title
+												}
+											>
+												<IconDeviceFloppy
+													size={20}
+													style={{
+														color:
+															!updating &&
 															pageTitle &&
 															pageTitle !== selectedPageInfo.title
 																? 'var(--text-accent)'
 																: 'var(--text-muted)',
-														fontSize: 18, }}
+														fontSize: 18,
+													}}
 												/>
 											</Button>
 										</span>
@@ -252,9 +288,22 @@ export default function PageEditor() {
 					</Card>
 
 					{/* Related Instances Section */}
-					{otherInstances.length> 0 && (
+					{otherInstances.length > 0 && (
 						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-							<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Related Instances</div>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Related Instances
+							</div>
 							<div style={{ padding: 16 }}>
 								<span style={{ fontSize: 13, color: 'text.secondary', marginBottom: 8 }}>
 									{otherInstances.length === 1
@@ -269,7 +318,20 @@ export default function PageEditor() {
 												updateSelectedPage(node.instanceId);
 												updateSelectedPageInfo(node);
 											}}
-											style={{ fontSize: 13, paddingLeft: 12, paddingRight: 12, paddingTop: 4, paddingBottom: 4, borderRadius: '6px', cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-accent)', font: 'inherit' }}>
+											style={{
+												fontSize: 13,
+												paddingLeft: 12,
+												paddingRight: 12,
+												paddingTop: 4,
+												paddingBottom: 4,
+												borderRadius: '6px',
+												cursor: 'pointer',
+												background: 'none',
+												border: 'none',
+												color: 'var(--text-accent)',
+												font: 'inherit',
+											}}
+										>
 											p{node.pageId}.i{node.instanceId}
 										</button>
 									))}
@@ -280,7 +342,20 @@ export default function PageEditor() {
 
 					{/* Actions Section */}
 					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
-						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>Actions</div>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								padding: '12px 16px',
+								fontSize: 13,
+								fontWeight: 600,
+								color: 'var(--text-primary)',
+								backgroundColor: 'var(--bg-secondary)',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Actions
+						</div>
 						<div style={{ padding: 16 }}>
 							<div style={pageStyles.actionsGrid}>
 								<div style={pageStyles.actionGroup}>
@@ -296,7 +371,8 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconCopy size={16} />,
-											}}>
+											}}
+										>
 											Copy template
 										</BasicButton>
 										<BasicButton
@@ -309,7 +385,8 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconCopy size={16} />,
-											}}>
+											}}
+										>
 											Copy instance
 										</BasicButton>
 									</div>
@@ -328,7 +405,8 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconArrowRight size={16} />,
-											}}>
+											}}
+										>
 											New sibling
 										</BasicButton>
 										<BasicButton
@@ -341,7 +419,8 @@ export default function PageEditor() {
 												variant: 'outlined',
 												size: 'small',
 												startIcon: <IconCornerDownRight size={16} />,
-											}}>
+											}}
+										>
 											New child
 										</BasicButton>
 									</div>
@@ -358,7 +437,8 @@ export default function PageEditor() {
 												color: 'error',
 												size: 'small',
 												startIcon: <IconTrash size={16} />,
-											}}>
+											}}
+										>
 											Delete page
 										</BasicButton>
 									</div>
@@ -402,7 +482,7 @@ const pageStyles = {
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: 20,
+		padding: '0px 20px',
 		minWidth: 500,
 		overflow: 'auto' as const,
 	},
@@ -410,7 +490,6 @@ const pageStyles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		gap: 20,
-		padding: 20,
 		width: '100%',
 	},
 	fieldRow: {
@@ -427,11 +506,13 @@ const pageStyles = {
 	},
 	instanceLink: {
 		fontSize: 13,
-paddingLeft: 12, paddingRight: 12,
-		paddingTop: 4, paddingBottom: 4,
+		paddingLeft: 12,
+		paddingRight: 12,
+		paddingTop: 4,
+		paddingBottom: 4,
 		borderRadius: '6px',
 		cursor: 'pointer',
-},
+	},
 	actionsGrid: {
 		display: 'flex',
 		flexDirection: 'column' as const,

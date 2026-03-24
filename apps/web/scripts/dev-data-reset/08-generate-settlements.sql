@@ -20,6 +20,8 @@ DECLARE
     v_demand_amount NUMERIC;
     v_settlement_amount NUMERIC;
     v_status TEXT;
+    v_claim_int INTEGER;
+    v_row_num INTEGER := 0;
     i INT;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
@@ -30,16 +32,19 @@ BEGIN
         FROM claim c
         ORDER BY c.id
     LOOP
+        v_row_num := v_row_num + 1;
+        v_claim_int := abs(('x' || right(v_claim.id::text, 8))::bit(32)::int);
+
         -- Determine number of settlements based on claim category
         v_num_settlements := CASE
-            WHEN v_claim.id <= 10 THEN 0 -- Simple claims - no settlements yet
-            WHEN v_claim.id <= 25 THEN 1 + (v_claim.id % 2) -- Active - 1-2 settlements
-            WHEN v_claim.id <= 35 THEN 1 + (v_claim.id % 2) -- Recovery focus - 1-2 settlements
-            WHEN v_claim.id <= 45 THEN v_claim.id % 2 -- Party variations - 0-1
-            WHEN v_claim.id = 46 THEN 2 -- High value - multiple settlements
-            WHEN v_claim.id = 47 THEN 0 -- Minimal data - no settlements
-            WHEN v_claim.id = 48 THEN 1 -- Closed recovered - 1 settlement
-            WHEN v_claim.id = 49 THEN 1 -- Closed no recovery - 1 failed settlement
+            WHEN v_row_num <= 10 THEN 0 -- Simple claims - no settlements yet
+            WHEN v_row_num <= 25 THEN 1 + (v_claim_int % 2) -- Active - 1-2 settlements
+            WHEN v_row_num <= 35 THEN 1 + (v_claim_int % 2) -- Recovery focus - 1-2 settlements
+            WHEN v_row_num <= 45 THEN v_claim_int % 2 -- Party variations - 0-1
+            WHEN v_row_num = 46 THEN 2 -- High value - multiple settlements
+            WHEN v_row_num = 47 THEN 0 -- Minimal data - no settlements
+            WHEN v_row_num = 48 THEN 1 -- Closed recovered - 1 settlement
+            WHEN v_row_num = 49 THEN 1 -- Closed no recovery - 1 failed settlement
             ELSE 2 -- Complex claim - 2 settlements
         END;
 
@@ -87,7 +92,7 @@ BEGIN
 
             -- Settlement amount only if accepted/paid
             v_settlement_amount := CASE
-                WHEN v_status IN ('accepted', 'paid') THEN (v_demand_amount * (0.6 + (v_claim.id % 4) * 0.1))::NUMERIC(12,2)
+                WHEN v_status IN ('accepted', 'paid') THEN (v_demand_amount * (0.6 + (v_claim_int % 4) * 0.1))::NUMERIC(12,2)
                 ELSE NULL
             END;
 
@@ -104,22 +109,22 @@ BEGIN
                 v_coverage.id,
                 v_claim_party.id,
                 v_demand_amount,
-                (v_claim.date_of_loss + INTERVAL '1 day' * (15 + i * 5 + (v_claim.id % 10)))::DATE,
+                (v_claim.date_of_loss + INTERVAL '1 day' * (15 + i * 5 + (v_claim_int % 10)))::DATE,
                 v_settlement_amount,
                 CASE WHEN v_settlement_amount IS NOT NULL
-                    THEN (v_claim.date_of_loss + INTERVAL '1 day' * (30 + i * 5 + (v_claim.id % 15)))::DATE
+                    THEN (v_claim.date_of_loss + INTERVAL '1 day' * (30 + i * 5 + (v_claim_int % 15)))::DATE
                     ELSE NULL
                 END,
                 v_status,
                 CASE WHEN v_status IN ('accepted', 'paid') THEN
-                    (50 + (v_claim.id % 5) * 10)::NUMERIC
+                    (50 + (v_claim_int % 5) * 10)::NUMERIC
                     ELSE NULL
                 END,
                 'lump_sum',
-                (v_claim.id % 5) = 0, -- 20% are drop checks
+                (v_claim_int % 5) = 0, -- 20% are drop checks
                 'Settlement ' || i || ' for claim ' || v_claim.claim_number,
                 v_user_id,
-                NOW() - INTERVAL '1 day' * (v_claim.id + i * 10)
+                NOW() - INTERVAL '1 day' * (v_row_num + i * 10)
             );
         END LOOP;
     END LOOP;

@@ -17,6 +17,8 @@ DECLARE
     v_coverage RECORD;
     v_num_payments INT;
     v_payment_amount NUMERIC;
+    v_claim_int INTEGER;
+    v_row_num INTEGER := 0;
     i INT;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
@@ -27,16 +29,19 @@ BEGIN
         FROM claim c
         ORDER BY c.id
     LOOP
+        v_row_num := v_row_num + 1;
+        v_claim_int := abs(('x' || right(v_claim.id::text, 8))::bit(32)::int);
+
         -- Determine number of payments based on claim category
         v_num_payments := CASE
-            WHEN v_claim.id <= 10 THEN v_claim.id % 2 -- 0-1 for simple
-            WHEN v_claim.id <= 25 THEN 1 + (v_claim.id % 3) -- 1-3 for active
-            WHEN v_claim.id <= 35 THEN 2 + (v_claim.id % 3) -- 2-4 for recovery
-            WHEN v_claim.id <= 45 THEN 1 + (v_claim.id % 2) -- 1-2 for party variations
-            WHEN v_claim.id = 47 THEN 0 -- Minimal data claim - no payments
-            WHEN v_claim.id = 48 THEN 3 -- Closed with full recovery - multiple payments
-            WHEN v_claim.id = 49 THEN 1 -- Closed no recovery - one payment
-            ELSE 2 + (v_claim.id % 3) -- Edge cases
+            WHEN v_row_num <= 10 THEN v_claim_int % 2 -- 0-1 for simple
+            WHEN v_row_num <= 25 THEN 1 + (v_claim_int % 3) -- 1-3 for active
+            WHEN v_row_num <= 35 THEN 2 + (v_claim_int % 3) -- 2-4 for recovery
+            WHEN v_row_num <= 45 THEN 1 + (v_claim_int % 2) -- 1-2 for party variations
+            WHEN v_row_num = 47 THEN 0 -- Minimal data claim - no payments
+            WHEN v_row_num = 48 THEN 3 -- Closed with full recovery - multiple payments
+            WHEN v_row_num = 49 THEN 1 -- Closed no recovery - one payment
+            ELSE 2 + (v_claim_int % 3) -- Edge cases
         END;
 
         -- Get first coverage for this claim
@@ -59,7 +64,7 @@ BEGIN
                 v_claim.id,
                 v_coverage.id,
                 v_payment_amount,
-                (v_claim.date_of_loss + INTERVAL '1 day' * (5 + i * 5 + (v_claim.id % 10)))::DATE,
+                (v_claim.date_of_loss + INTERVAL '1 day' * (5 + i * 5 + (v_claim_int % 10)))::DATE,
                 CASE (i % 5)
                     WHEN 1 THEN 'IND' -- Indemnity
                     WHEN 2 THEN 'EXP' -- Expense
@@ -77,7 +82,7 @@ BEGIN
                 (i % 5) IN (2, 4), -- Expenses and legal are expense payments
                 (i % 5) IN (1, 3), -- Indemnity and medical are subrogable
                 v_user_id,
-                NOW() - INTERVAL '1 day' * (v_claim.id + i * 5)
+                NOW() - INTERVAL '1 day' * (v_row_num + i * 5)
             );
         END LOOP;
     END LOOP;

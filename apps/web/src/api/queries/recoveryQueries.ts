@@ -600,30 +600,37 @@ export async function getRecoveryMetricsSummary(
 			)
 		);
 
-	// ===== ACTUAL RECOVERY QUERY (from recovery_events) =====
-	// Keep as-is: uses recovery_date for filtering (not claim.actual_recovery which is lifetime total)
-	const needsClaimJoin = !!(filters?.recoveryStatus || filters?.checklistId);
-	const needsChecklistJoin = !!filters?.checklistId;
-
+	// ===== ACTUAL RECOVERY QUERY (from claim.actual_recovery) =====
+	// Uses the cached claim-level total for consistency with expected_recovery.
+	// Both are claim cohort metrics: "for claims created in this period, what is the full picture?"
+	// Individual recovery_event dates are only relevant for event-level table views.
 	const actualQuery = ctx.db
-		.selectFrom('recovery_event')
-		.$if(needsClaimJoin, (qb) => qb.innerJoin('claim', 'recovery_event.claim_id', 'claim.id'))
-		.$if(needsChecklistJoin, (qb) =>
-			qb.innerJoin('checklist_claim', 'checklist_claim.claim_id', 'recovery_event.claim_id')
+		.selectFrom('claim')
+		.$if(!!filters?.checklistId, (qb) =>
+			qb.innerJoin('checklist_claim', 'checklist_claim.claim_id', 'claim.id')
 		)
-		.select(({ fn }) => fn.sum('recovery_amount').as('total_actual'))
-		.where('recovery_event.client_id', '=', clientId)
-		.where('recovery_event.deleted_at', 'is', null)
-		.where('recovery_event.recovery_date', '>=', range[0])
-		.where('recovery_event.recovery_date', '<=', range[1])
+		.select(({ fn }) =>
+			fn.coalesce(fn.sum<string>('claim.actual_recovery'), sql<string>`'0'`).as('total_actual')
+		)
+		.where('claim.client_id', '=', clientId)
+		.where('claim.created_at', '>=', range[0])
+		.where('claim.created_at', '<=', range[1])
 		.$if(!!filters?.recoverySource, (qb) =>
-			qb.where('recovery_event.recovery_source', 'ilike', `${filters!.recoverySource}%`)
+			qb.where(({ exists, selectFrom }) =>
+				exists(
+					selectFrom('recovery_event')
+						.select(sql`1`.as('one'))
+						.whereRef('recovery_event.claim_id', '=', 'claim.id')
+						.where('recovery_event.deleted_at', 'is', null)
+						.where('recovery_event.recovery_source', 'ilike', `${filters!.recoverySource}%`)
+				)
+			)
 		)
 		.$if(!!filters?.recoveryStatus, (qb) =>
-			qb.where(sql`claim.recovery_status = ${filters!.recoveryStatus}` as any)
+			qb.where('claim.recovery_status', '=', filters!.recoveryStatus!)
 		)
 		.$if(!!filters?.checklistId, (qb) =>
-			qb.where(sql`checklist_claim.checklist_id = ${filters!.checklistId}` as any)
+			qb.where('checklist_claim.checklist_id' as any, '=', filters!.checklistId!)
 		);
 
 	// Run both queries in parallel
@@ -731,35 +738,38 @@ export async function getRecoveryMetricsTimeSeries(
 
 	const expectedByMonth = expectedBaseQuery.groupBy(sql`date_trunc('month', c.created_at)`).as('expected_by_month');
 
-	// ===== ACTUAL BY MONTH CTE (from recovery_events) =====
+	// ===== ACTUAL BY MONTH CTE (from claim.actual_recovery) =====
+	// Uses the cached claim-level total, grouped by claim.created_at month.
+	// Consistent with expected: both are claim cohort metrics.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let actualQuery: any = ctx.db.selectFrom('recovery_event as re');
+	let actualQuery: any = ctx.db.selectFrom('claim as c2');
 
-	// Add conditional joins based on filters
-	const needsClaimJoin = filters?.recoveryStatus || filters?.checklistId;
-	const needsChecklistJoin = !!filters?.checklistId;
-
-	if (needsClaimJoin) {
-		actualQuery = actualQuery.innerJoin('claim as c2', 'c2.id', 're.claim_id');
-	}
-	if (needsChecklistJoin) {
+	const needsChecklistJoinActual = !!filters?.checklistId;
+	if (needsChecklistJoinActual) {
 		actualQuery = actualQuery.innerJoin('checklist_claim as cc2', 'cc2.claim_id', 'c2.id');
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let actualBaseQuery: any = actualQuery
 		.select([
-			sql<string>`date_trunc('month', re.recovery_date)::date`.as('month_start'),
-			sql<number>`COALESCE(SUM(re.recovery_amount), 0)::numeric`.as('total_actual'),
+			sql<string>`date_trunc('month', c2.created_at)::date`.as('month_start'),
+			sql<number>`COALESCE(SUM(c2.actual_recovery), 0)::numeric`.as('total_actual'),
 		])
-		.where('re.client_id', '=', clientId)
-		.where('re.deleted_at', 'is', null)
-		.where('re.recovery_date', '>=', range[0])
-		.where('re.recovery_date', '<=', range[1]);
+		.where('c2.client_id', '=', clientId)
+		.where('c2.created_at', '>=', range[0])
+		.where('c2.created_at', '<=', range[1]);
 
 	// Add conditional filters
 	if (filters?.recoverySource) {
-		actualBaseQuery = actualBaseQuery.where('re.recovery_source', 'ilike', `${filters.recoverySource}%`);
+		actualBaseQuery = actualBaseQuery.where(({ exists, selectFrom }: any) =>
+			exists(
+				selectFrom('recovery_event as re_sub')
+					.select(sql`1`.as('one'))
+					.whereRef('re_sub.claim_id', '=', 'c2.id')
+					.where('re_sub.deleted_at', 'is', null)
+					.where('re_sub.recovery_source', 'ilike', `${filters.recoverySource}%`)
+			)
+		);
 	}
 	if (filters?.recoveryStatus) {
 		actualBaseQuery = actualBaseQuery.where(sql.ref('c2.recovery_status'), '=', filters.recoveryStatus);
@@ -768,7 +778,7 @@ export async function getRecoveryMetricsTimeSeries(
 		actualBaseQuery = actualBaseQuery.where(sql.ref('cc2.checklist_id'), '=', filters.checklistId);
 	}
 
-	const actualByMonth = actualBaseQuery.groupBy(sql`date_trunc('month', re.recovery_date)`).as('actual_by_month');
+	const actualByMonth = actualBaseQuery.groupBy(sql`date_trunc('month', c2.created_at)`).as('actual_by_month');
 
 	// Join monthly_series with both expected_by_month and actual_by_month
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

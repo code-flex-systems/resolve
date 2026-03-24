@@ -11,6 +11,7 @@ import { coverageRouter } from './routers/coverage';
 import { deadlineRouter } from './routers/deadline';
 import { deskRouter } from './routers/desk';
 import { docRouter } from './routers/doc';
+import { financialReportingRouter } from './routers/financialReporting';
 import { feedRouter } from './routers/feed';
 import { pageRouter } from './routers/page';
 import { partyRouter } from './routers/party';
@@ -39,6 +40,7 @@ export const appRouter = router({
 	desk: deskRouter,
 	doc: docRouter,
 	feed: feedRouter,
+	financialReporting: financialReportingRouter,
 	page: pageRouter,
 	party: partyRouter,
 	payment: paymentRouter,

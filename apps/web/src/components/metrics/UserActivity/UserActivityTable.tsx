@@ -21,14 +21,28 @@ function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact
 				return (
 					<>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
 							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Responded to the question
 							</span>
 							<Chip size="sm">{row.question_text}</Chip>
 						</div>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
 							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								with answer(s)
 							</span>
@@ -36,7 +50,9 @@ style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pa
 								<Chip size="sm">{row.new_response_text}</Chip>
 							) : (
 								row.new_answers.map((a: any, i: number) => (
-									<Chip key={i} size="sm">{a.label}</Chip>
+									<Chip key={i} size="sm">
+										{a.label}
+									</Chip>
 								))
 							)}
 						</div>
@@ -46,14 +62,28 @@ style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pa
 				return (
 					<>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
 							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Changed their response to the question
 							</span>
 							<Chip size="sm">{row.question_text}</Chip>
 						</div>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
 							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								from answer(s)
 							</span>
@@ -61,20 +91,29 @@ style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pa
 								<Chip size="sm">{row.old_response_text}</Chip>
 							) : (
 								row.old_answers.map((a: any, i: number) => (
-									<Chip key={i} size="sm">{a.label}</Chip>
+									<Chip key={i} size="sm">
+										{a.label}
+									</Chip>
 								))
 							)}
 						</div>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
-							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
-								to answer(s)
-							</span>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>to answer(s)</span>
 							{row.new_response_text ? (
 								<Chip size="sm">{row.new_response_text}</Chip>
 							) : (
 								row.new_answers.map((a: any, i: number) => (
-									<Chip key={i} size="sm">{a.label}</Chip>
+									<Chip key={i} size="sm">
+										{a.label}
+									</Chip>
 								))
 							)}
 						</div>
@@ -84,22 +123,36 @@ style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pa
 				return (
 					<>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
 							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
 								Cleared their response to the question
 							</span>
 							<Chip size="sm">{row.question_text}</Chip>
 						</div>
 						<div
-style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '2px 0px', flexWrap: 'wrap' }}>
-							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
-								Answers were{' '}
-							</span>
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								padding: '2px 0px',
+								flexWrap: 'wrap',
+							}}
+						>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>Answers were </span>
 							{row.old_response_text ? (
 								<Chip size="sm">{row.old_response_text}</Chip>
 							) : (
 								row.old_answers.map((a: any, i: number) => (
-									<Chip key={i} size="sm">{a.label}</Chip>
+									<Chip key={i} size="sm">
+										{a.label}
+									</Chip>
 								))
 							)}
 						</div>
@@ -112,23 +165,62 @@ style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pa
 
 	return (
 		<div
-style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', minWidth: 'fit-content', height: '100%', justifyContent: 'center', alignItems: 'flex-start', padding: '10px 10px' }}>
+			style={{
+				display: 'flex',
+				flexDirection: 'column' as const,
+				width: '100%',
+				minWidth: 'fit-content',
+				height: '100%',
+				justifyContent: 'center',
+				alignItems: 'flex-start',
+				padding: '10px 10px',
+			}}
+		>
 			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 				{getLogText()}
 			</div>
-			<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '5px', flexWrap: 'wrap' }}>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'flex-start',
+					alignItems: 'center',
+					paddingTop: '5px',
+					flexWrap: 'wrap',
+				}}
+			>
 				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'var(--text-muted)' }}>
+					<span
+						style={{
+							...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+							fontSize: 12,
+							lineHeight: '17px',
+							color: 'var(--text-muted)',
+						}}
+					>
 						{formatUser(row, session?.user?.email ?? undefined)}
 					</span>
 					<div style={styles.divider} />
-					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'primary' }}>
+					<span
+						style={{
+							...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+							fontSize: 12,
+							lineHeight: '17px',
+							color: 'primary',
+						}}
+					>
 						{row.page_label}
 					</span>
 				</div>
 				<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 					<div style={styles.divider} />
-					<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }, fontSize: 12, lineHeight: '17px', color: 'var(--text-muted)' }}>
+					<span
+						style={{
+							...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+							fontSize: 12,
+							lineHeight: '17px',
+							color: 'var(--text-muted)',
+						}}
+					>
 						{compact
 							? dayjs(row.created_at).format('MM/DD/YY hh:mm A')
 							: dayjs(row.created_at).format('MMMM D, YYYY hh:mm A')}
@@ -189,7 +281,10 @@ export default function UserActivityTable({
 			{
 				accessorKey: 'desc',
 				header: '',
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <DescriptionCell compact={compact} {...params} />; },
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
+					return <DescriptionCell compact={compact} {...params} />;
+				},
 			},
 		];
 		return gridColumns;
@@ -260,7 +355,11 @@ export default function UserActivityTable({
 			},
 			{
 				header: 'User',
-				accessor: (row) => formatUser({ email: row.email ?? '', first: row.first ?? '', last: row.last ?? '' }, session?.user?.email ?? undefined),
+				accessor: (row) =>
+					formatUser(
+						{ email: row.email ?? '', first: row.first ?? '', last: row.last ?? '' },
+						session?.user?.email ?? undefined
+					),
 			},
 			{
 				header: 'User Email',
@@ -279,7 +378,7 @@ export default function UserActivityTable({
 		<div style={{ width: '100%', height: '100%', position: 'relative' }}>
 			{showPagination && !compact && (
 				<div
-style={{
+					style={{
 						display: 'flex',
 						justifyContent: 'flex-end',
 						alignItems: 'center',
@@ -287,7 +386,8 @@ style={{
 						top: -45,
 						right: 0,
 						zIndex: 1,
-					}}>
+					}}
+				>
 					<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
 						{(logs.count ?? 0).toLocaleString()} event{(logs.count ?? 0) !== 1 ? 's' : ''}
 					</span>
@@ -302,18 +402,32 @@ style={{
 					/>
 				</div>
 			)}
-			<DataTable
-				columns={columns}
-				headerHeight={0}
-				loading={isFetchingLogs}
-				rows={logs.rows}
-				rowCount={logs.count ?? 0}
-				getRowClassName={(row, index) => index % 2 === 0 ? 'striped' : ''}
-				hideFooter={!showPagination}
-				paginationMode="server"
-				paginationModel={constraints}
-				onPaginationModelChange={setConstraints}
-			/>
+			{!isFetchingLogs && !logs.count ? (
+				<div
+					style={{
+						width: '100%',
+						padding: 10,
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center',
+					}}
+				>
+					<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No activity</span>
+				</div>
+			) : (
+				<DataTable
+					columns={columns}
+					headerHeight={0}
+					loading={isFetchingLogs}
+					rows={logs.rows}
+					rowCount={logs.count ?? 0}
+					getRowClassName={(row, index) => (index % 2 === 0 ? 'striped' : '')}
+					hideFooter={!showPagination}
+					paginationMode="server"
+					paginationModel={constraints}
+					onPaginationModelChange={setConstraints}
+				/>
+			)}
 		</div>
 	);
 }

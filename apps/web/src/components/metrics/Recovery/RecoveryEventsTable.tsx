@@ -60,8 +60,8 @@ export default function RecoveryEventsTable({
 	checklistId,
 }: {
 	range: DateRange<Dayjs>;
-	recoveryStatus: string | null;
-	recoverySource: string;
+	recoveryStatus?: string | null;
+	recoverySource?: string;
 	checklistId?: string;
 }) {
 	const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });

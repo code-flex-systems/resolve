@@ -293,7 +293,7 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		padding: 20,
+		padding: '0px 20px',
 		overflow: 'hidden' as const,
 	},
 	divider: {
@@ -306,5 +306,6 @@ const styles = {
 		width: '100%',
 		minHeight: 0,
 		overflow: 'auto' as const,
+		backgroundColor: 'var(--bg-white)',
 	},
 };

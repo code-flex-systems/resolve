@@ -15,8 +15,8 @@ export default function TopPerformersSection({
 	checklistId,
 }: {
 	range: DateRange<Dayjs>;
-	recoveryStatus: string | null;
-	recoverySource: string;
+	recoveryStatus?: string | null;
+	recoverySource?: string;
 	checklistId?: string;
 }) {
 	// Convert DateRange to ISO strings for tRPC

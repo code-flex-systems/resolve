@@ -11,14 +11,15 @@ DECLARE
     v_client_id UUID;
     v_user_id UUID;
     v_claim RECORD;
-    v_entity_parties INT[];
-    v_facilitator_parties INT[];
-    v_party_id INT;
-    v_coverage_id INT;
-    v_address_id INT;
-    v_rep_id INT;
+    v_claim_int INTEGER;
+    v_entity_parties UUID[];
+    v_facilitator_parties UUID[];
+    v_party_id UUID;
+    v_coverage_id UUID;
+    v_address_id UUID;
+    v_rep_id UUID;
     v_num_facilitators INT;
-    v_responsible_party_claim_party_id INT;
+    v_responsible_party_claim_party_id UUID;
     i INT;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
@@ -33,9 +34,11 @@ BEGIN
     FROM party WHERE party_type = 'facilitator';
 
     FOR v_claim IN SELECT id, claim_number FROM claim ORDER BY id LOOP
+        -- Derive a deterministic integer from the UUID
+        v_claim_int := abs(('x' || right(v_claim.id::text, 8))::bit(32)::int);
 
         -- Add primary entity party (insured/claimant)
-        v_party_id := v_entity_parties[1 + (v_claim.id % array_length(v_entity_parties, 1))];
+        v_party_id := v_entity_parties[1 + (v_claim_int % array_length(v_entity_parties, 1))];
 
         INSERT INTO claim_party (
             client_id, claim_id, party_id, role, is_primary,
@@ -49,13 +52,13 @@ BEGIN
             NULL, -- Primary party typically doesn't have liability
             'Primary insured party',
             v_user_id,
-            NOW() - INTERVAL '1 day' * (v_claim.id % 100)
+            NOW() - INTERVAL '1 day' * (v_claim_int % 100)
         );
 
         -- Add adverse entity party for ~70% of claims
         v_responsible_party_claim_party_id := NULL;
-        IF (v_claim.id % 10) < 7 THEN
-            v_party_id := v_entity_parties[1 + ((v_claim.id + 3) % array_length(v_entity_parties, 1))];
+        IF (v_claim_int % 10) < 7 THEN
+            v_party_id := v_entity_parties[1 + ((v_claim_int + 3) % array_length(v_entity_parties, 1))];
 
             INSERT INTO claim_party (
                 client_id, claim_id, party_id, role, is_primary,
@@ -67,7 +70,7 @@ BEGIN
                 ARRAY['responsible_party'],
                 false,
                 -- Liability percentage for responsible party
-                CASE (v_claim.id % 4)
+                CASE (v_claim_int % 4)
                     WHEN 0 THEN 100
                     WHEN 1 THEN 75
                     WHEN 2 THEN 50
@@ -75,16 +78,16 @@ BEGIN
                 END,
                 'Responsible party - at fault',
                 v_user_id,
-                NOW() - INTERVAL '1 day' * (v_claim.id % 100)
+                NOW() - INTERVAL '1 day' * (v_claim_int % 100)
             )
             RETURNING id INTO v_responsible_party_claim_party_id;
         END IF;
 
         -- Add facilitator parties (insurance carriers, law firms) - nested under responsible_party
-        v_num_facilitators := CASE WHEN v_responsible_party_claim_party_id IS NOT NULL THEN v_claim.id % 3 ELSE 0 END;
+        v_num_facilitators := CASE WHEN v_responsible_party_claim_party_id IS NOT NULL THEN v_claim_int % 3 ELSE 0 END;
 
         FOR i IN 1..v_num_facilitators LOOP
-            v_party_id := v_facilitator_parties[1 + ((v_claim.id + i) % array_length(v_facilitator_parties, 1))];
+            v_party_id := v_facilitator_parties[1 + ((v_claim_int + i) % array_length(v_facilitator_parties, 1))];
 
             -- Get address and rep for this facilitator
             SELECT id INTO v_address_id FROM party_address WHERE party_id = v_party_id LIMIT 1;
@@ -109,14 +112,14 @@ BEGIN
                 v_responsible_party_claim_party_id,
                 v_address_id,
                 v_rep_id,
-                CASE WHEN i = 1 THEN (50000 + v_claim.id * 1000)::NUMERIC ELSE NULL END,
+                CASE WHEN i = 1 THEN (50000 + v_claim_int % 30000)::NUMERIC ELSE NULL END,
                 CASE WHEN i = 1 THEN 'property_damage' ELSE NULL END,
                 CASE
                     WHEN i = 1 THEN 'Adverse carrier for liability coverage'
                     ELSE 'Legal representation'
                 END,
                 v_user_id,
-                NOW() - INTERVAL '1 day' * ((v_claim.id + i) % 100)
+                NOW() - INTERVAL '1 day' * ((v_claim_int + i) % 100)
             );
         END LOOP;
     END LOOP;
