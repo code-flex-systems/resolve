@@ -987,6 +987,17 @@ export interface UserDeskLocation {
   user_id: string;
 }
 
+export interface UserRecentResource {
+  client_id: string;
+  id: Generated<string>;
+  resource_id: string;
+  resource_label: string | null;
+  resource_type: string;
+  resource_url: string;
+  user_id: string;
+  visited_at: Generated<Timestamp>;
+}
+
 export interface Users {
   client_id: string | null;
   created_at: Generated<Timestamp>;
@@ -1132,6 +1143,7 @@ export interface DB {
   statute_rule: StatuteRule;
   task: Task;
   user_desk_location: UserDeskLocation;
+  user_recent_resource: UserRecentResource;
   users: Users;
   workflow_definition: WorkflowDefinition;
   workflow_rule: WorkflowRule;

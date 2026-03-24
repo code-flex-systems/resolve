@@ -11,6 +11,8 @@ import {
 	getUsersPaginatedInput,
 	getUsersWithDeskAssignmentsInput,
 } from '@/schemas/userSchemas';
+import { trackResourceVisitInput, getRecentResourcesInput } from '@/schemas/recentResourceSchemas';
+import { trackResourceVisit, getRecentResources } from '@/api/queries/recentResourceQueries';
 import { protectedProcedure, router } from '../trpc';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
@@ -129,4 +131,16 @@ export const userRouter = router({
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return userController.getManagementStats(ctx);
 	}),
+
+	trackResourceVisit: protectedProcedure
+		.input(trackResourceVisitInput)
+		.mutation(async ({ input, ctx }) => {
+			return trackResourceVisit(ctx, input);
+		}),
+
+	getRecentResources: protectedProcedure
+		.input(getRecentResourcesInput)
+		.query(async ({ input, ctx }) => {
+			return getRecentResources(ctx, input.limit);
+		}),
 });

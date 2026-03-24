@@ -1,4 +1,5 @@
 import * as workflowAnalyticsController from '@/api/controllers/workflowAnalyticsController';
+import { getOverviewCounts } from '@/api/queries/overviewQueries';
 import { requireRole } from '@/lib/auth/requireRole';
 import config from '@/config/config';
 import { protectedProcedure, router } from '../trpc';
@@ -14,7 +15,22 @@ import {
 	updateSuggestionInput,
 } from '@/schemas/workflowAnalyticsSchemas';
 
+const adminRoles = [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN];
+
 export const workflowAnalyticsRouter = router({
+	// ========================================================================
+	// OVERVIEW DASHBOARD
+	// ========================================================================
+
+	/**
+	 * Get aggregated counts for the admin overview dashboard.
+	 * Returns SLA breach/warning counts, pending suggestions, and pending approvals.
+	 */
+	getOverviewCounts: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, adminRoles);
+		return getOverviewCounts(ctx);
+	}),
+
 	// ========================================================================
 	// TIER 0 OPERATIONAL QUERIES
 	// ========================================================================

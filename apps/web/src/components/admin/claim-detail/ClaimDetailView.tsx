@@ -4,6 +4,8 @@ import Card from '@/components/ui/Card';
 import PageTransitionWrapper from '../../common/PageTransitionWrapper';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { trpc } from '@/lib/trpc';
+import { useTrackResource } from '@/hooks/useTrackResource';
 import ClaimHeader from './ClaimHeader';
 import OverviewTab from './OverviewTab';
 import WorkflowTab from './WorkflowTab';
@@ -19,6 +21,8 @@ import PaymentsTab from './PaymentsTab';
 export default function ClaimDetailView({ claimId }: { claimId: string }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
+	const { data: claimDetail } = trpc.claim.getClaimDetail.useQuery({ claimId }, { enabled: !!claimId });
+	useTrackResource('claim', claimId, claimDetail?.claim_number ?? null, `/admin/claims/${claimId}`, !!claimId);
 
 	// Support pre-selecting tab via URL parameter (e.g., ?tab=claimants-coverage)
 	useEffect(() => {

@@ -3,6 +3,7 @@ import PageNavigation from '@/components/checklist/PageNavigation';
 import Page from '@/components/checklist/Page';
 import PageEditor from '@/components/checklist/PageEditor';
 import { useChecklistStore } from '@/stores/useChecklistStore';
+import { useTrackResource } from '@/hooks/useTrackResource';
 import { ChecklistMode } from '@/config/enums';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
@@ -48,6 +49,11 @@ export default function Checklist() {
 		{ enabled: !!checklistId && !!claimId }
 	);
 	usePageTrpc().listTemplates();
+
+	const checklistUrl = claimId
+		? `/checklists/${checklistId}/claim/${claimId}`
+		: `/checklists/${checklistId}`;
+	useTrackResource('checklist', checklistId ?? null, checklist?.name ?? null, checklistUrl, !!checklistId);
 
 	useEffect(() => {
 		return () => useChecklistStore.getState().reset();
