@@ -814,6 +814,20 @@ export interface ReferenceOption {
   value: string;
 }
 
+export interface ResourceIndex {
+  client_id: string;
+  id: Generated<string>;
+  label: string;
+  linked_resource_id: string | null;
+  linked_resource_type: string | null;
+  metadata: Generated<Json>;
+  resource_id: string;
+  resource_type: string;
+  secondary_label: string | null;
+  updated_at: Generated<Timestamp>;
+  url: string;
+}
+
 export interface ResponseAuditLogs {
   action: string;
   checklist_id: string | null;
@@ -1138,6 +1152,7 @@ export interface DB {
   recovery_event: RecoveryEvent;
   reference_list: ReferenceList;
   reference_option: ReferenceOption;
+  resource_index: ResourceIndex;
   response_audit_logs: ResponseAuditLogs;
   settlement: Settlement;
   statute_rule: StatuteRule;

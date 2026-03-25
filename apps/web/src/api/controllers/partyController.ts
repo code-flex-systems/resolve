@@ -4,6 +4,22 @@ import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
 import { EntityName } from '@/api/utils/activityLogger';
 import { TRPCError } from '@trpc/server';
 import type { InlineContact } from '@/schemas/partySchemas';
+import { upsertResourceIndex } from '@/api/queries/resourceIndexQueries';
+
+/** Build resource index entry for a party (DRY helper) */
+function indexParty(db: any, clientId: string, party: { id: string; name: string | null; is_business: boolean }) {
+	upsertResourceIndex(db, {
+		client_id: clientId,
+		resource_type: 'party',
+		resource_id: party.id,
+		label: party.name ?? '',
+		secondary_label: null,
+		metadata: {
+			'Type': party.is_business ? 'Business' : 'Individual',
+		},
+		url: `/admin/party-management/parties?selected=${party.id}`,
+	}).catch((err: any) => console.error('[resource-index] Failed to index party:', err));
+}
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -134,6 +150,9 @@ export async function createParty(
 
 		return party;
 	});
+
+	// Fire-and-forget: index new party for global search
+	indexParty(ctx.db, ctx.session.user.client_id!, created);
 
 	return created;
 }
@@ -283,6 +302,9 @@ export async function updateParty(
 
 		return party;
 	});
+
+	// Fire-and-forget: update resource index
+	indexParty(ctx.db, ctx.session.user.client_id!, { id, name: updated.name, is_business: updated.is_business });
 
 	return updated;
 }

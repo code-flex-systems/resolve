@@ -26,4 +26,7 @@ cd "$SCRIPT_DIR/../.." && npx tsx src/scripts/seed_checklists.ts
 echo "  Running seed_response_audit_logs.sql..."
 psql "$DB_URL" -f "$SCRIPT_DIR/seed_response_audit_logs.sql"
 
+echo "  Running seed_resource_index.sql..."
+psql "$DB_URL" -f "$SCRIPT_DIR/seed_resource_index.sql"
+
 echo "Done!"

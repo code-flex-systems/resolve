@@ -9,7 +9,8 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { trpc } from '@/lib/trpc';
 import ChecklistProgressDialog from '../checklist/ChecklistProgressDialog';
 import ChecklistHandoffDialog from '../checklist/ChecklistHandoffDialog';
 import useIsAdmin from '@/hooks/useIsAdmin';
@@ -22,8 +23,8 @@ import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { useSelectedAnswerData } from '@/hooks/useSelectedAnswerData';
 
 const MODE_CONFIG = [
-	{ mode: ChecklistMode.VIEW, label: 'View', icon: IconEye, requiresClaim: false },
-	{ mode: ChecklistMode.TEST, label: 'Test', icon: IconPlayerPlay, requiresClaim: true },
+	{ mode: ChecklistMode.VIEW, label: 'View', icon: IconEye, requiresClaim: true },
+	{ mode: ChecklistMode.TEST, label: 'Test', icon: IconPlayerPlay, requiresClaim: false },
 	{ mode: ChecklistMode.EDIT, label: 'Edit', icon: IconEdit, requiresClaim: false },
 ] as const;
 
@@ -50,10 +51,44 @@ export default function Checklist() {
 	);
 	usePageTrpc().listTemplates();
 
-	const checklistUrl = claimId
-		? `/checklists/${checklistId}/claim/${claimId}`
-		: `/checklists/${checklistId}`;
+	const checklistUrl = claimId ? `/checklists/${checklistId}/claim/${claimId}` : `/checklists/${checklistId}`;
 	useTrackResource('checklist', checklistId ?? null, checklist?.name ?? null, checklistUrl, !!checklistId);
+
+	// Index checklist for global search (standalone entry)
+	const indexMutation = trpc.user.indexResource.useMutation();
+	const indexedStandalone = useRef(false);
+	const indexedLinked = useRef(false);
+
+	useEffect(() => {
+		if (!checklistId || !checklist?.name || indexedStandalone.current) return;
+		indexedStandalone.current = true;
+		indexMutation.mutate({
+			resource_type: 'checklist',
+			resource_id: checklistId,
+			label: checklist.name,
+			metadata: {},
+			url: `/checklists/${checklistId}`,
+		});
+	}, [checklistId, checklist?.name]);
+
+	// Index checklist+claim linked entry (separate effect so it doesn't race with standalone)
+	useEffect(() => {
+		if (!checklistId || !claimId || !checklist?.name || !claim?.claim_number || indexedLinked.current) return;
+		indexedLinked.current = true;
+		indexMutation.mutate({
+			resource_type: 'checklist',
+			resource_id: checklistId,
+			linked_resource_type: 'claim',
+			linked_resource_id: claimId,
+			label: checklist.name,
+			secondary_label: claim.claim_number,
+			metadata: {
+				'Claim': claim.claim_number,
+				'Insured': claim.insured ?? 'N/A',
+			},
+			url: `/checklists/${checklistId}/claim/${claimId}`,
+		});
+	}, [checklistId, claimId, checklist?.name, claim?.claim_number]);
 
 	useEffect(() => {
 		return () => useChecklistStore.getState().reset();
@@ -76,7 +111,15 @@ export default function Checklist() {
 			segments.push({ label: `${selectedAnswerData.text} (a${selectedAnswerData.position + 1})` });
 		}
 		setSegments(segments);
-	}, [checklist?.name, selectedPageInfo?.title, selectedPageInfo?.position, selectedQuestion, selectedQuestionData?.text, selectedAnswer, selectedAnswerData?.text]);
+	}, [
+		checklist?.name,
+		selectedPageInfo?.title,
+		selectedPageInfo?.position,
+		selectedQuestion,
+		selectedQuestionData?.text,
+		selectedAnswer,
+		selectedAnswerData?.text,
+	]);
 
 	const availableModes = MODE_CONFIG.filter((m) => !m.requiresClaim || !!claimId);
 	const currentModeConfig = MODE_CONFIG.find((m) => m.mode === mode);
@@ -171,7 +214,13 @@ export default function Checklist() {
 							>
 								<CurrentIcon size={13} />
 								<span>{currentModeConfig?.label}</span>
-								<IconChevronDown size={11} style={{ transition: 'transform 200ms ease', transform: modeHandleOpen ? 'rotate(180deg)' : undefined }} />
+								<IconChevronDown
+									size={11}
+									style={{
+										transition: 'transform 200ms ease',
+										transform: modeHandleOpen ? 'rotate(180deg)' : undefined,
+									}}
+								/>
 							</button>
 						)}
 					</div>

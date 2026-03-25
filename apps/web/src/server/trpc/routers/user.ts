@@ -13,7 +13,9 @@ import {
 } from '@/schemas/userSchemas';
 import { trackResourceVisitInput, getRecentResourcesInput } from '@/schemas/recentResourceSchemas';
 import { trackResourceVisit, getRecentResources } from '@/api/queries/recentResourceQueries';
+import { searchResourceIndex, upsertResourceIndex } from '@/api/queries/resourceIndexQueries';
 import { protectedProcedure, router } from '../trpc';
+import { z } from 'zod';
 import config from '@/config/config';
 import { requireRole } from '@/lib/auth/requireRole';
 import { checkRole } from '@/lib/auth/checkRole';
@@ -142,5 +144,29 @@ export const userRouter = router({
 		.input(getRecentResourcesInput)
 		.query(async ({ input, ctx }) => {
 			return getRecentResources(ctx, input.limit);
+		}),
+
+	globalSearch: protectedProcedure
+		.input(z.object({ term: z.string().min(1).max(100) }))
+		.query(async ({ input, ctx }) => {
+			return searchResourceIndex(ctx.db, ctx.session.user.client_id!, input.term);
+		}),
+
+	indexResource: protectedProcedure
+		.input(z.object({
+			resource_type: z.string().max(50),
+			resource_id: z.string().uuid(),
+			linked_resource_type: z.string().max(50).nullable().optional(),
+			linked_resource_id: z.string().uuid().nullable().optional(),
+			label: z.string(),
+			secondary_label: z.string().nullable().optional(),
+			metadata: z.record(z.string()).optional(),
+			url: z.string(),
+		}))
+		.mutation(async ({ input, ctx }) => {
+			return upsertResourceIndex(ctx.db, {
+				client_id: ctx.session.user.client_id!,
+				...input,
+			});
 		}),
 });

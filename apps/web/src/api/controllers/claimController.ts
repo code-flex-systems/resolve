@@ -6,6 +6,24 @@ import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminA
 import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateClaimInput, ClaimData } from '@/schemas/claimSchemas';
 import { onClaimFieldChange } from '@/lib/workflow/ruleEventHooks';
+import { upsertResourceIndex } from '@/api/queries/resourceIndexQueries';
+
+/** Build resource index entry for a claim (DRY helper) */
+function indexClaim(db: any, claim: { id: string; client_id: string; claim_number: string | null; insured: string | null; claim_amount: any; recovery_status: string | null }) {
+	upsertResourceIndex(db, {
+		client_id: claim.client_id,
+		resource_type: 'claim',
+		resource_id: claim.id,
+		label: claim.claim_number ?? 'Unknown',
+		secondary_label: claim.insured ?? null,
+		metadata: {
+			'Insured': claim.insured ?? 'N/A',
+			'Amount': claim.claim_amount ? `$${claim.claim_amount}` : 'N/A',
+			'Status': claim.recovery_status ?? 'N/A',
+		},
+		url: `/admin/claims?selected=${claim.id}`,
+	}).catch((err: any) => console.error('[resource-index] Failed to index claim:', err));
+}
 
 export async function assignClaim(
 	ctx: ProtectedContext,
@@ -118,6 +136,9 @@ export async function createClaims(
 		return newClaims;
 	});
 
+	// Fire-and-forget: index new claims for global search
+	created.forEach((claim) => indexClaim(ctx.db, claim));
+
 	return created;
 }
 
@@ -170,6 +191,9 @@ export async function updateClaim(
 
 		return updatedClaim;
 	});
+
+	// Fire-and-forget: update resource index
+	indexClaim(ctx.db, { ...updated, client_id: ctx.session.user.client_id! });
 
 	// Fire-and-forget: check if any FIELD_CHANGE workflow rules should trigger
 	const changedFields = Object.keys(updates);

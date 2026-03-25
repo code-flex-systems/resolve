@@ -5,7 +5,6 @@ import Sidebar, { NavItem } from './Sidebar';
 import {
 	IconFileSearch,
 	IconLayoutDashboard,
-	IconSearch,
 	IconShield,
 	IconFolder,
 	IconBuilding,
@@ -29,8 +28,7 @@ export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } 
 
 	const navItems = useMemo(() => {
 		const items: NavItem[] = [
-			{ label: 'Home', route: '/home', icon: <IconSearch size={23} /> },
-			{ label: 'Dashboard', route: '/dashboard', icon: <IconLayoutDashboard size={23} /> },
+			{ label: 'Home', route: '/home', icon: <IconLayoutDashboard size={23} /> },
 			{ label: 'My Claims', route: '/my-claims', icon: <ClaimsStackIcon /> },
 			{ label: 'Documents', route: '/documents', icon: <IconFolder size={23} /> },
 			{ label: 'Parties', route: '/parties', icon: <IconBuilding size={23} /> },

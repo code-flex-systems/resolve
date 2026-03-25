@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { IconChevronRight } from '@tabler/icons-react';
 import { useBreadcrumbs } from './BreadcrumbContext';
 import ProfileAvatar from '../home/ProfileAvatar';
+import CommandPalette from './CommandPalette';
 import styles from './AppHeader.module.css';
 
 export default function AppHeader() {
@@ -49,6 +50,7 @@ export default function AppHeader() {
 			</nav>
 
 			<div className={styles.actions}>
+				<CommandPalette />
 				<ProfileAvatar />
 			</div>
 		</header>
