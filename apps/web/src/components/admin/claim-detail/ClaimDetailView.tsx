@@ -6,7 +6,9 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useTrackResource } from '@/hooks/useTrackResource';
+import { useBreadcrumbs } from '@/components/common/BreadcrumbContext';
 import ClaimHeader from './ClaimHeader';
+import ClaimEditDialog from './ClaimEditDialog';
 import OverviewTab from './OverviewTab';
 import WorkflowTab from './WorkflowTab';
 import ClaimantsCoverageTab from './ClaimantsCoverageTab';
@@ -21,8 +23,16 @@ import PaymentsTab from './PaymentsTab';
 export default function ClaimDetailView({ claimId }: { claimId: string }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
+	const [showEditDialog, setShowEditDialog] = useState(false);
 	const { data: claimDetail } = trpc.claim.getClaimDetail.useQuery({ claimId }, { enabled: !!claimId });
+	const { setDynamicSegments } = useBreadcrumbs();
 	useTrackResource('claim', claimId, claimDetail?.claim_number ?? null, `/admin/claims/${claimId}`, !!claimId);
+
+	useEffect(() => {
+		if (claimDetail?.claim_number) {
+			setDynamicSegments([{ label: claimDetail.claim_number }]);
+		}
+	}, [claimDetail?.claim_number, setDynamicSegments]);
 
 	// Support pre-selecting tab via URL parameter (e.g., ?tab=claimants-coverage)
 	useEffect(() => {
@@ -56,7 +66,7 @@ export default function ClaimDetailView({ claimId }: { claimId: string }) {
 				}}
 			>
 				{/* Sticky Header */}
-				<ClaimHeader claimId={claimId} />
+				<ClaimHeader claimId={claimId} onEdit={() => setShowEditDialog(true)} />
 
 				{/* Tab Navigation */}
 				<div style={{ paddingInline: 8 }}>
@@ -88,6 +98,10 @@ export default function ClaimDetailView({ claimId }: { claimId: string }) {
 						</div>
 				</div>
 			</Card>
+
+			{showEditDialog && (
+				<ClaimEditDialog claimId={claimId} onClose={() => setShowEditDialog(false)} />
+			)}
 		</PageTransitionWrapper>
 	);
 }

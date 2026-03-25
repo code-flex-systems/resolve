@@ -28,7 +28,7 @@ export default function CoverageTypeSelect({
 	}
 
 	return (
-		<Dropdown
+		<Dropdown inlineLabel
 			label={label}
 			options={options.map((option) => ({
 				value: option.value,

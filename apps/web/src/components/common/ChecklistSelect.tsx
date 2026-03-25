@@ -36,7 +36,7 @@ export default function ChecklistSelect({
 	];
 
 	return (
-		<Dropdown
+		<Dropdown inlineLabel
 			options={dropdownOptions}
 			value={checklist?.id ?? ''}
 			onChange={(val) => {

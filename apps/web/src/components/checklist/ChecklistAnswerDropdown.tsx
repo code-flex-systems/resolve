@@ -44,7 +44,7 @@ export default function ChecklistAnswerDropdown(props: {
 	const { field, question, disabled } = props;
 	return (
 		<div style={{ marginTop: 5, marginLeft: 10 }}>
-			<Dropdown
+			<Dropdown inlineLabel
 				options={question.answers.map((a) => ({
 					value: a.id,
 					label: a.text,

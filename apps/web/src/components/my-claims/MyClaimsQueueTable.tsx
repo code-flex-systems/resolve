@@ -96,10 +96,9 @@ export default function MyClaimsQueueTable({
 	const searchParams = useSearchParams();
 
 	// Handle row click - update URL with selected claim ID
-	const handleRowClick = (params: any) => {
-		const claimId = params.row.id;
+	const handleRowClick = (row: MyClaimListItem) => {
 		const newParams = new URLSearchParams(searchParams.toString());
-		newParams.set('selected', claimId.toString());
+		newParams.set('selected', row.id.toString());
 		router.push(`${pathname}?${newParams.toString()}`);
 	};
 
@@ -244,7 +243,8 @@ export default function MyClaimsQueueTable({
 								<div
 									style={{
 										marginLeft: 4,
-										color: 'white',
+										color: 'var(--text-accent)',
+										backgroundColor: 'var(--bg-primary)',
 										borderRadius: '50%',
 										width: 18,
 										height: 18,
@@ -260,7 +260,7 @@ export default function MyClaimsQueueTable({
 							)}
 						</CustomButton>
 						{hasActiveFilters && (
-							<CustomButton variant="outlined" onClick={handleClearAllFilters} size="sm">
+							<CustomButton variant="outlined" onClick={handleClearAllFilters}>
 								Clear all filters
 							</CustomButton>
 						)}

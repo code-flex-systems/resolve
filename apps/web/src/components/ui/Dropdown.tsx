@@ -25,8 +25,10 @@ export interface DropdownProps {
 	value?: string | number | null;
 	/** Change handler — receives the option value */
 	onChange?: (value: string | number) => void;
-	/** Label above the dropdown */
+	/** Label above the dropdown (form mode) */
 	label?: string;
+	/** Show label inline in the trigger display instead of above (filter/standalone mode) */
+	inlineLabel?: boolean;
 	/** Helper text below */
 	helperText?: string;
 	/** Error state */
@@ -69,6 +71,7 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 			value,
 			onChange,
 			label,
+			inlineLabel = false,
 			helperText,
 			error,
 			errorText,
@@ -215,13 +218,13 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 				<span className={styles.selectedContent}>
 					{selectedOption.icon && <span className={styles.selectedIcon}>{selectedOption.icon}</span>}
 					<span>
-						{label ? `${label}: ` : ''}
+						{inlineLabel && label ? `${label}: ` : ''}
 						{selectedOption.label}
 					</span>
 				</span>
 			);
 		} else if (displayEmpty || !hasValue) {
-			displayContent = <span className={styles.placeholder}>{label}</span>;
+			displayContent = <span className={styles.placeholder}>{inlineLabel && label ? label : placeholder}</span>;
 		}
 
 		const wrapperClassNames = [styles.wrapper, fullWidth && styles.fullWidth, className].filter(Boolean).join(' ');
@@ -238,12 +241,12 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 
 		return (
 			<div className={wrapperClassNames}>
-				{/* {label && (
+				{label && !inlineLabel && (
 					<label className={styles.label}>
 						{label}
 						{required && <span className={styles.required}> *</span>}
 					</label>
-				)} */}
+				)}
 
 				{/* Hidden input for form submission / react-hook-form */}
 				{name && <input type="hidden" name={name} value={value ?? ''} />}

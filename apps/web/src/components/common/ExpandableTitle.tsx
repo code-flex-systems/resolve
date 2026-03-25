@@ -6,7 +6,7 @@ import styles from './ExpandableTitle.module.css';
 export default function ExpandableTitle({
 	title,
 	icon,
-	color = 'var(--color-primary)',
+	color = 'var(--text-accent)',
 	bgcolor = '#F0F3F7',
 	padding,
 	size = 30,

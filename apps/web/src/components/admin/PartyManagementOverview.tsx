@@ -1,6 +1,6 @@
 'use client';
 
-import { Spinner } from '@/components/ui/Progress';
+import CardioLoadingIndicator from '@/components/common/CardioLoadingIndicator';
 import KpiCard from '@/components/ui/KpiCard';
 import { IconUsersGroup, IconMapPin, IconBriefcase } from '@tabler/icons-react';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
@@ -9,11 +9,7 @@ export default function PartyManagementOverview() {
 	const { data, isLoading } = usePartyTrpc().managementStats(undefined);
 
 	if (isLoading || !data) {
-		return (
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-				<Spinner size="lg" />
-			</div>
-		);
+		return <CardioLoadingIndicator message="Loading party data..." />;
 	}
 
 	return (

@@ -12,7 +12,6 @@ import { SettlementStructure, PaymentFrequency } from '@/config/enums';
 import dayjs from 'dayjs';
 import Button from '@/components/ui/Button';
 
-// Helper to format payment frequency for display
 const formatPaymentFrequency = (frequency: string | null | undefined) => {
 	switch (frequency) {
 		case PaymentFrequency.WEEKLY:
@@ -28,16 +27,15 @@ const formatPaymentFrequency = (frequency: string | null | undefined) => {
 	}
 };
 
-// Settlement structure icon component
-function SettlementStructureIcon({ structure, size = 'small' }: { structure: string | null | undefined; size?: 'small' | 'inherit' }) {
+function SettlementStructureIcon({ structure }: { structure: string | null | undefined }) {
 	if (!structure) return null;
 	const isPaymentPlan = structure === SettlementStructure.PAYMENT_PLAN;
 	return (
 		<Tooltip content={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'}>
 			{isPaymentPlan ? (
-				<IconCalendarRepeat fontSize={size} style={{ color: 'info.main' }} />
+				<IconCalendarRepeat size={16} style={{ color: 'var(--text-accent)' }} />
 			) : (
-				<IconCash fontSize={size} style={{ color: 'var(--text-secondary)' }} />
+				<IconCash size={16} style={{ color: 'var(--text-secondary)' }} />
 			)}
 		</Tooltip>
 	);
@@ -68,7 +66,6 @@ export default function SettlementTimeline({
 }: SettlementTimelineProps) {
 	const [activeSettlementId, setActiveSettlementId] = useState<string | null>(null);
 
-	// Pre-compute settlement lookup to avoid O(N) find per recovery item
 	const settlementMap = useMemo(
 		() => new Map(settlements.map((s) => [s.id, s])),
 		[settlements]
@@ -136,51 +133,47 @@ export default function SettlementTimeline({
 										flex: 1,
 										minHeight: 16,
 										width: 0,
-										borderLeft: `1px dashed ${'var(--border)'}`,
+										borderLeft: '1px dashed var(--border)',
 									}}
 								/>
 							)}
 						</div>
 
 						{/* Right column: content */}
-						<div style={{ flex: 1, paddingLeft: 16,
+						<div
+							style={{
+								flex: 1,
+								paddingLeft: 16,
 								paddingBottom: isLastItem ? 0 : 16,
 								opacity: isGrayedOut ? 0.4 : 1,
-								transition: 'opacity 0.3s ease', }}>
+								transition: 'opacity 0.3s ease',
+							}}
+						>
 							{/* Summary row - clickable */}
 							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
 								<div
 									onClick={() => handleItemClick(item.settlementId)}
-									style={{
-										cursor: 'pointer',
-										borderRadius: 4,
-										padding: 8,
-										marginLeft: -8,
-										flex: 1,
-									}}
+									style={{ cursor: 'pointer', borderRadius: 4, padding: 8, marginLeft: -8, flex: 1 }}
 								>
 									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-										<div>
+										<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 											<span style={{ fontSize: 14, fontWeight: 600 }}>
 												{dayjs(item.date).format('MMM D')}
 											</span>
 											{isSettlement ? (
-												<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 													{settlement.party_name}
 													{settlement.loss_type && <> · {formatCoverageType(settlement.loss_type)}</>}
 												</span>
 											) : (
-												<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 													{recovery.recovery_source || 'No source'}
 													{relatedSettlement && (
-														<>
-															{' '}· {relatedSettlement.party_name} · {formatCoverageType(relatedSettlement.loss_type)}
-														</>
+														<> · {relatedSettlement.party_name} · {formatCoverageType(relatedSettlement.loss_type)}</>
 													)}
 												</span>
 											)}
-											<span style={{ fontSize: 13, fontWeight: 600 }}
-											>
+											<span style={{ fontSize: 13, fontWeight: 600 }}>
 												{isSettlement
 													? formatCurrencyExact(parseFloat(settlement.demand_amount.toString()))
 													: formatCurrencyExact(parseFloat(recovery.recovery_amount.toString()))}
@@ -194,16 +187,26 @@ export default function SettlementTimeline({
 								{/* Edit/Archive buttons */}
 								{isManageMode && (
 									<div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
-										<Tooltip content="`Edit ${isSettlement ? 'settlement' : 'recovery'}`">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconEdit size={16} />
-						</Button>
-						</Tooltip>
-										<Tooltip content="`Archive ${isSettlement ? 'settlement' : 'recovery'}`">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconArchive style={{ color: 'var(--status-error)' }} />
-						</Button>
-						</Tooltip>
+										<Tooltip content={`Edit ${isSettlement ? 'settlement' : 'recovery'}`}>
+											<Button
+												variant="icon"
+												size="sm"
+												color="neutral"
+												onClick={() => isSettlement ? onEditSettlement(settlement) : onEditRecovery(recovery)}
+											>
+												<IconEdit size={16} />
+											</Button>
+										</Tooltip>
+										<Tooltip content={`Archive ${isSettlement ? 'settlement' : 'recovery'}`}>
+											<Button
+												variant="icon"
+												size="sm"
+												color="neutral"
+												onClick={() => isSettlement ? onArchiveSettlement(settlement) : onArchiveRecovery(recovery)}
+											>
+												<IconArchive size={16} style={{ color: 'var(--status-error)' }} />
+											</Button>
+										</Tooltip>
 									</div>
 								)}
 							</div>
@@ -211,7 +214,7 @@ export default function SettlementTimeline({
 							{/* Expanded details */}
 							<Collapse open={isActive}>
 								<div style={{ marginTop: 8 }}>
-									<Card variant="beveled" padding="md" style={{ backgroundColor: '#fafafa' }}>
+									<Card variant="beveled" padding="md">
 										{isSettlement ? (
 											<SettlementDetails settlement={settlement} />
 										) : (
@@ -228,132 +231,113 @@ export default function SettlementTimeline({
 	);
 }
 
+function DetailField({ label, children }: { label: string; children: React.ReactNode }) {
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+			<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
+			<span style={{ fontSize: 13 }}>{children}</span>
+		</div>
+	);
+}
+
 function SettlementDetails({ settlement }: { settlement: any }) {
 	return (
-		<>
-			<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
-				Settlement Details
-			</span>
-			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-				<div>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Party</span>
-					<span style={{ fontSize: 13 }}><Highlight>{settlement.party_name}</Highlight></span>
-				</div>
-				<div>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Coverage</span>
-					<span style={{ fontSize: 13 }}><Highlight>{formatCoverageType(settlement.loss_type)}</Highlight></span>
-				</div>
-				<div>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Demand Amount</span>
-					<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+			<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Settlement Details</span>
+			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+				<DetailField label="Party">
+					<Highlight>{settlement.party_name}</Highlight>
+				</DetailField>
+				<DetailField label="Coverage">
+					<Highlight>{formatCoverageType(settlement.loss_type)}</Highlight>
+				</DetailField>
+				<DetailField label="Demand Amount">
+					<span style={{ fontWeight: 600, color: 'var(--status-warning)' }}>
 						{formatCurrencyExact(parseFloat(settlement.demand_amount.toString()))}
 					</span>
-				</div>
-				<div>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Demand Date</span>
-					<span style={{ fontSize: 13 }}>{dayjs(settlement.demand_date).format('MMM D, YYYY')}</span>
-				</div>
+				</DetailField>
+				<DetailField label="Demand Date">
+					{dayjs(settlement.demand_date).format('MMM D, YYYY')}
+				</DetailField>
 				{settlement.settlement_amount && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Settlement Amount</span>
-						<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-success)'  }}>
+					<DetailField label="Settlement Amount">
+						<span style={{ fontWeight: 600, color: 'var(--status-success)' }}>
 							{formatCurrencyExact(parseFloat(settlement.settlement_amount.toString()))}
 						</span>
-					</div>
+					</DetailField>
 				)}
 				{settlement.agreed_liability_percentage && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Agreed Liability</span>
-						<span style={{ fontSize: 13 }}>{settlement.agreed_liability_percentage}%</span>
-					</div>
+					<DetailField label="Agreed Liability">
+						{settlement.agreed_liability_percentage}%
+					</DetailField>
 				)}
 				{settlement.settlement_date && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Settlement Date</span>
-						<span style={{ fontSize: 13 }}>{dayjs(settlement.settlement_date).format('MMM D, YYYY')}</span>
-					</div>
+					<DetailField label="Settlement Date">
+						{dayjs(settlement.settlement_date).format('MMM D, YYYY')}
+					</DetailField>
 				)}
 				{settlement.settlement_structure && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Structure</span>
+					<DetailField label="Structure">
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-							<SettlementStructureIcon structure={settlement.settlement_structure} size="inherit" />
-							<span style={{ fontSize: 13 }}>
-								{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
-							</span>
+							<SettlementStructureIcon structure={settlement.settlement_structure} />
+							{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
 						</div>
-					</div>
+					</DetailField>
 				)}
 				{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN && settlement.payment_amount && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Payment Amount</span>
-						<span style={{ fontSize: 13 }}>
-							{formatCurrencyExact(parseFloat(settlement.payment_amount.toString()))}
-							{settlement.payment_frequency && ` / ${formatPaymentFrequency(settlement.payment_frequency)}`}
-						</span>
-					</div>
+					<DetailField label="Payment Amount">
+						{formatCurrencyExact(parseFloat(settlement.payment_amount.toString()))}
+						{settlement.payment_frequency && ` / ${formatPaymentFrequency(settlement.payment_frequency)}`}
+					</DetailField>
 				)}
 			</div>
 			{settlement.notes && (
-				<div style={{ marginTop: 16 }}>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Notes</span>
-					<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>{settlement.notes}</span>
-				</div>
+				<DetailField label="Notes">
+					<span style={{ color: 'var(--text-secondary)' }}>{settlement.notes}</span>
+				</DetailField>
 			)}
-		</>
+		</div>
 	);
 }
 
 function RecoveryDetails({ recovery, relatedSettlement }: { recovery: any; relatedSettlement: any }) {
 	return (
-		<>
-			<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
-				Recovery Details
-			</span>
-			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-				<div>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Amount</span>
-					<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-success)'  }}>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+			<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Recovery Details</span>
+			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+				<DetailField label="Amount">
+					<span style={{ fontWeight: 600, color: 'var(--status-success)' }}>
 						{formatCurrencyExact(parseFloat(recovery.recovery_amount.toString()))}
 					</span>
-				</div>
-				<div>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Date</span>
-					<span style={{ fontSize: 13 }}>{dayjs(recovery.recovery_date).format('MMM D, YYYY')}</span>
-				</div>
+				</DetailField>
+				<DetailField label="Date">
+					{dayjs(recovery.recovery_date).format('MMM D, YYYY')}
+				</DetailField>
 				{recovery.recovery_source && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Source</span>
-						<span style={{ fontSize: 13 }}><Highlight>{recovery.recovery_source}</Highlight></span>
-					</div>
+					<DetailField label="Source">
+						<Highlight>{recovery.recovery_source}</Highlight>
+					</DetailField>
 				)}
 				{relatedSettlement && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Settlement</span>
-						<span style={{ fontSize: 13 }}>
-							{relatedSettlement.party_name} · {formatCoverageType(relatedSettlement.loss_type)} ·{' '}
-							{formatCurrencyExact(parseFloat(relatedSettlement.demand_amount.toString()))}
-						</span>
-					</div>
+					<DetailField label="Settlement">
+						{relatedSettlement.party_name} · {formatCoverageType(relatedSettlement.loss_type)} ·{' '}
+						{formatCurrencyExact(parseFloat(relatedSettlement.demand_amount.toString()))}
+					</DetailField>
 				)}
 				{relatedSettlement?.settlement_structure && (
-					<div>
-						<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Structure</span>
+					<DetailField label="Structure">
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-							<SettlementStructureIcon structure={relatedSettlement.settlement_structure} size="inherit" />
-							<span style={{ fontSize: 13 }}>
-								{relatedSettlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
-							</span>
+							<SettlementStructureIcon structure={relatedSettlement.settlement_structure} />
+							{relatedSettlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
 						</div>
-					</div>
+					</DetailField>
 				)}
 			</div>
 			{recovery.notes && (
-				<div style={{ marginTop: 16 }}>
-					<span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Notes</span>
-					<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>{recovery.notes}</span>
-				</div>
+				<DetailField label="Notes">
+					<span style={{ color: 'var(--text-secondary)' }}>{recovery.notes}</span>
+				</DetailField>
 			)}
-		</>
+		</div>
 	);
 }

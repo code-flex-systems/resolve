@@ -30,7 +30,7 @@ export default function DocumentIconWithPreview({
 		<>
 			<Tooltip content={tooltipText}>
 				<Button variant="icon" size="sm" onClick={handleClick}>
-					<IconPaperclip size={16} style={{ color: 'var(--color-primary)' }} />
+					<IconPaperclip size={16} style={{ color: 'var(--text-accent)' }} />
 				</Button>
 			</Tooltip>
 

@@ -77,7 +77,7 @@ function ClaimLink({ claimId, claimNumber }: { claimId: string; claimNumber: str
 		<span
 			style={{
 				fontSize: 13,
-				color: 'var(--color-primary)',
+				color: 'var(--text-accent)',
 				cursor: 'pointer',
 			}}
 			onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}

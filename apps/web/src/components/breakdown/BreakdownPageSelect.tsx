@@ -48,7 +48,7 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 			<span    style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
 				Choose a page instance to get started:
 			</span>
-			<Dropdown
+			<Dropdown inlineLabel
 				options={instances.map((o) => ({
 					value: o.instance_id,
 					label: `${o.title} (p${o.position + 1})`,

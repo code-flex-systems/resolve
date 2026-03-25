@@ -4,11 +4,7 @@ import Input from '@/components/ui/Input';
 import { Control, Controller, FieldErrors, useWatch, UseFormSetValue } from 'react-hook-form';
 import { useMemo, useEffect, useRef } from 'react';
 import Dropdown from '@/components/ui/Dropdown';
-import {
-	COUNTRIES,
-	getStatesForCountry,
-	type CountryCode,
-} from '@/config/addressConstants';
+import { COUNTRIES, getStatesForCountry, type CountryCode } from '@/config/addressConstants';
 
 interface AddressFieldsProps {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,7 +81,7 @@ export default function AddressFields({
 				control={control}
 				render={({ field }) => (
 					<Input
-						label="Street Address (optional)"
+						label="Street Address"
 						placeholder="123 Main St"
 						error={!!getError(fieldNames.street_address)}
 						{...field}
@@ -97,13 +93,13 @@ export default function AddressFields({
 			/>
 
 			{/* City and State on same row */}
-			<div  style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
+			<div style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
 				<Controller
 					name={fieldNames.city}
 					control={control}
 					render={({ field }) => (
 						<Input
-							label="City (optional)"
+							label="City"
 							placeholder="City"
 							error={!!getError(fieldNames.city)}
 							{...field}
@@ -120,7 +116,7 @@ export default function AddressFields({
 					render={({ field }) => (
 						<div style={{ flex: 1 }}>
 							<Dropdown
-								label="State/Province (optional)"
+								label="State/Province"
 								options={[
 									{ value: '', label: 'None' },
 									...stateOptions.map((state) => ({
@@ -141,13 +137,13 @@ export default function AddressFields({
 			</div>
 
 			{/* Postal Code and Country on same row */}
-			<div  style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
+			<div style={{ display: 'flex', flexDirection: 'row', gap: 16, width }}>
 				<Controller
 					name={fieldNames.postal_code}
 					control={control}
 					render={({ field }) => (
 						<Input
-							label="Postal Code (optional)"
+							label="Postal Code"
 							placeholder="12345"
 							error={!!getError(fieldNames.postal_code)}
 							{...field}
@@ -164,7 +160,7 @@ export default function AddressFields({
 					render={({ field }) => (
 						<div style={{ flex: 1 }}>
 							<Dropdown
-								label="Country (optional)"
+								label="Country"
 								options={[
 									{ value: '', label: 'None' },
 									...COUNTRIES.map((country) => ({

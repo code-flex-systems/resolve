@@ -21,6 +21,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { useState } from 'react';
+import ClaimEditDialog from './claim-detail/ClaimEditDialog';
 
 dayjs.extend(relativeTime);
 
@@ -36,6 +38,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const canEditClaim = isAdmin || isSuperAdmin;
+	const [showEditDialog, setShowEditDialog] = useState(false);
 	const { data: claimDetail, isLoading: claimLoading } = trpc.claim.getClaimDetail.useQuery(
 		{ claimId },
 		{ enabled: !!claimId }
@@ -61,13 +64,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 	};
 
 	const handleEditClaim = () => {
-		if (claimId) {
-			router.push(
-				pathname.startsWith('/admin') && (isAdmin || isSuperAdmin)
-					? `/admin/claims/edit/${claimId}`
-					: `/my-claims/edit/${claimId}`
-			);
-		}
+		setShowEditDialog(true);
 	};
 
 	// Get the most recently accessed checklist assignment
@@ -410,6 +407,10 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 					</div>
 				</div>
 			</div>
+
+			{showEditDialog && (
+				<ClaimEditDialog claimId={claimId} onClose={() => setShowEditDialog(false)} />
+			)}
 		</div>
 	);
 }

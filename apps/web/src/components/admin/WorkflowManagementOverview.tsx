@@ -1,7 +1,7 @@
 'use client';
 
 import { IconAlertTriangle, IconCircleCheck, IconGauge, IconShieldCheck, IconTrendingUp, IconUsers } from '@tabler/icons-react';
-import { Spinner } from '@/components/ui/Progress';
+import CardioLoadingIndicator from '@/components/common/CardioLoadingIndicator';
 import KpiCard from '@/components/ui/KpiCard';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
@@ -49,18 +49,7 @@ export default function WorkflowManagementOverview() {
 	const workUnitsCompleted = throughputData?.totals.workUnitsCompleted ?? 0;
 
 	if (isLoading) {
-		return (
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					height: '400px',
-				}}
-			>
-				<Spinner size="lg" />
-			</div>
-		);
+		return <CardioLoadingIndicator message="Loading workflow data..." />;
 	}
 
 	return (

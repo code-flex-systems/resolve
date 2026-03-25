@@ -39,7 +39,7 @@ export default function ClaimStatusSelect({
 	];
 
 	return (
-		<Dropdown
+		<Dropdown inlineLabel
 			label="Claim Status"
 			options={dropdownOptions}
 			value={claimStatus ?? ''}

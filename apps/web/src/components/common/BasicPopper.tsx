@@ -14,17 +14,18 @@ export default function BasicPopper(
 	const popperRef = useRef<HTMLDivElement>(null);
 
 	// Click-away listener
+	// Ignores clicks inside portal-rendered elements (e.g., Dropdown menus with role="listbox")
 	useEffect(() => {
 		if (!anchorEl) return;
 		const handler = (e: MouseEvent) => {
-			if (
-				popperRef.current &&
-				!popperRef.current.contains(e.target as Node) &&
-				anchorEl &&
-				!anchorEl.contains(e.target as Node)
-			) {
-				setAnchorEl(null);
-			}
+			const target = e.target as Node;
+			// Check if click is inside the popper itself
+			if (popperRef.current?.contains(target)) return;
+			// Check if click is on the anchor element
+			if (anchorEl.contains(target)) return;
+			// Check if click is inside a portal-rendered dropdown menu (role="listbox")
+			if (target instanceof HTMLElement && target.closest('[role="listbox"]')) return;
+			setAnchorEl(null);
 		};
 		document.addEventListener('mouseup', handler);
 		return () => document.removeEventListener('mouseup', handler);

@@ -72,7 +72,7 @@ export default function WorkflowsView() {
 				{/* Active/Inactive Filter and Add New Button */}
 				<div style={{ paddingInline: 16, paddingBottom: 8, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
 					<div style={{ minWidth: 100 }}>
-						<Dropdown
+						<Dropdown inlineLabel
 							options={[
 								{ value: 'active', label: 'Active' },
 								{ value: 'inactive', label: 'Inactive' },

@@ -1,6 +1,6 @@
 'use client';
 
-import { Spinner } from '@/components/ui/Progress';
+import CardioLoadingIndicator from '@/components/common/CardioLoadingIndicator';
 import KpiCard from '@/components/ui/KpiCard';
 import Card from '@/components/ui/Card';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
@@ -25,11 +25,7 @@ export default function UserManagementOverview() {
 	const { data: activityData } = useUserTrpc().activity(activityFilters);
 
 	if (isLoading || !data) {
-		return (
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-				<Spinner size="lg" />
-			</div>
-		);
+		return <CardioLoadingIndicator message="Loading user data..." />;
 	}
 
 	return (

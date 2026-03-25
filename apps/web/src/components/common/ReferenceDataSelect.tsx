@@ -56,7 +56,8 @@ export default function ReferenceDataSelect({
 			onChange={(val) => onChange(val === '' ? null : String(val))}
 			placeholder={placeholder}
 			disabled={disabled}
-			label={!isFilter ? label : undefined}
+			label={label}
+			inlineLabel={isFilter}
 			fullWidth={fullWidth}
 			renderValue={value ? (val, opt) => (
 				<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

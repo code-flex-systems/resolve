@@ -1,6 +1,6 @@
 'use client';
 
-import { Spinner } from '@/components/ui/Progress';
+import CardioLoadingIndicator from '@/components/common/CardioLoadingIndicator';
 import KpiCard from '@/components/ui/KpiCard';
 import Card from '@/components/ui/Card';
 import { IconActivity, IconDatabase, IconScale } from '@tabler/icons-react';
@@ -15,11 +15,7 @@ export default function SystemOverview() {
 	const { data: logsData } = useAdminLogsTrpc().listConfigLogs({ limit: 10 });
 
 	if (isLoading || !data) {
-		return (
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-				<Spinner size="lg" />
-			</div>
-		);
+		return <CardioLoadingIndicator message="Loading system data..." />;
 	}
 
 	return (

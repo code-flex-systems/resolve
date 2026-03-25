@@ -13,7 +13,7 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
 import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 
-export default function ClaimHeader({ claimId }: { claimId: string }) {
+export default function ClaimHeader({ claimId, onEdit }: { claimId: string; onEdit?: () => void }) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
@@ -21,12 +21,8 @@ export default function ClaimHeader({ claimId }: { claimId: string }) {
 	const { data: claimDetail, isLoading } = trpc.claim.getClaimDetail.useQuery({ claimId });
 
 	const handleEditClaim = () => {
-		if (claimId) {
-			router.push(
-				pathname.startsWith('/admin') && (isAdmin || isSuperAdmin)
-					? `/admin/claims/edit/${claimId}`
-					: `/my-claims/edit/${claimId}`
-			);
+		if (onEdit) {
+			onEdit();
 		}
 	};
 

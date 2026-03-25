@@ -75,7 +75,7 @@ export default function ImageTooltip({
 			}
 		>
 			<Button variant="icon" size="sm">
-				<IconInfoCircle size={16} style={{ color: imageLoaded ? 'var(--color-primary)' : 'var(--text-secondary)' }} />
+				<IconInfoCircle size={16} style={{ color: imageLoaded ? 'var(--text-accent)' : 'var(--text-secondary)' }} />
 			</Button>
 		</Tooltip>
 	);

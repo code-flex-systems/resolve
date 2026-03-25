@@ -68,7 +68,7 @@ export default function AdminLogsEntityFilter({
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={handleClose} placement="bottom-start">
 					<div  style={{ padding: 12, minWidth: 240 }}>
-						<Dropdown
+						<Dropdown inlineLabel
 							fullWidth
 							label="Entity"
 							value={value ?? ''}

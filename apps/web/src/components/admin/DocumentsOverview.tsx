@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Spinner } from '@/components/ui/Progress';
+import CardioLoadingIndicator from '@/components/common/CardioLoadingIndicator';
 import KpiCard from '@/components/ui/KpiCard';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
@@ -46,11 +46,7 @@ export default function DocumentsOverview() {
 	], []);
 
 	if (isLoading || !data) {
-		return (
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-				<Spinner size="lg" />
-			</div>
-		);
+		return <CardioLoadingIndicator message="Loading documents..." />;
 	}
 
 	return (

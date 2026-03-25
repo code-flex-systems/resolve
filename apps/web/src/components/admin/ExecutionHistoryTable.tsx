@@ -191,7 +191,7 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 						and failures.
 					</p>
 					<div style={{ minWidth: 160 }}>
-						<Dropdown
+						<Dropdown inlineLabel
 							label="Status"
 							options={[
 								{ value: '', label: 'All' },

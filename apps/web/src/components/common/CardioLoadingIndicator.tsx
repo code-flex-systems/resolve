@@ -28,7 +28,7 @@ export default function CardioLoadingIndicator({
 					{message}
 				</p>
 			)}
-			<Cardio size={size.toString()} stroke={stroke.toString()} speed={speed.toString()} color="var(--color-primary)" />
+			<Cardio size={size.toString()} stroke={stroke.toString()} speed={speed.toString()} color="var(--text-accent)" />
 		</>
 	);
 

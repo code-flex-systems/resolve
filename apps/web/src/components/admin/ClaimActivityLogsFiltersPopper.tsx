@@ -66,7 +66,7 @@ export default function ClaimActivityLogsFiltersPopper({
 				<span  style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 					Actor Type
 				</span>
-				<Dropdown
+				<Dropdown inlineLabel
 					fullWidth
 					value={draftActorType ?? ''}
 					onChange={(val) => {
