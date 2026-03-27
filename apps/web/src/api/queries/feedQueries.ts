@@ -189,10 +189,11 @@ export async function getFeedForDeletion(ctx: ProtectedContext, id: string) {
  * @param ctx - request context
  * @param id - feed identifier
  */
-export async function deleteFeed(ctx: ProtectedContext, id: string): Promise<void> {
-	await ctx.db
+export async function deleteFeed(ctx: ProtectedContext, id: string) {
+	return await ctx.db
 		.deleteFrom('feeds')
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.returning(['id', 'name', 'feed_type', 'status'])
+		.executeTakeFirstOrThrow();
 }

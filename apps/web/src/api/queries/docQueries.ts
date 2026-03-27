@@ -291,7 +291,16 @@ export async function getDocForDeletion(ctx: ProtectedContext, docId: string) {
  * @param docId - document identifier
  */
 export async function deleteDoc(ctx: ProtectedContext, docId: string) {
-	await ctx.db.deleteFrom('doc').where('id', '=', docId).where('client_id', '=', ctx.session.user.client_id).execute();
+	await ctx.db
+		.updateTable('doc')
+		.set({
+			deleted_at: new Date(),
+			deleted_by: ctx.session.user.id,
+		})
+		.where('id', '=', docId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('deleted_at', 'is', null)
+		.execute();
 }
 
 // =====================================================================
@@ -408,24 +417,13 @@ export async function getDocGroupHierarchy(ctx: ProtectedContext) {
  * @returns updated group
  */
 export async function updateDocGroup(ctx: ProtectedContext, groupId: string, params: UpdateDocGroupParams) {
-	// Check if this is a system folder
-	const group = await ctx.db
-		.selectFrom('doc_group')
-		.select(['system'])
-		.where('id', '=', groupId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (group?.system) {
-		throw new Error('Cannot update system folders');
-	}
-
 	// Validate new name if being changed
 	if (params.name) {
 		validateFolderName(params.name);
 	}
 
-	return await ctx.db
+	// Combine system check with update — WHERE system = false ensures system folders can't be updated
+	const updated = await ctx.db
 		.updateTable('doc_group')
 		.set({
 			...params,
@@ -434,8 +432,15 @@ export async function updateDocGroup(ctx: ProtectedContext, groupId: string, par
 		})
 		.where('id', '=', groupId)
 		.where('client_id', '=', ctx.session.user.client_id)
+		.where('system', '=', false)
 		.returningAll()
-		.executeTakeFirstOrThrow();
+		.executeTakeFirst();
+
+	if (!updated) {
+		throw new Error('Document group not found or cannot update system folders');
+	}
+
+	return updated;
 }
 
 /**
@@ -463,23 +468,18 @@ export async function getDocGroupForDeletion(ctx: ProtectedContext, groupId: str
  * @param groupId - group identifier
  */
 export async function deleteDocGroup(ctx: ProtectedContext, groupId: string) {
-	// Check if this is a system folder
-	const group = await ctx.db
-		.selectFrom('doc_group')
-		.select(['system'])
-		.where('id', '=', groupId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (group?.system) {
-		throw new Error('Cannot delete system folders');
-	}
-
-	await ctx.db
+	// Combine system check with delete — WHERE system = false ensures system folders can't be deleted
+	const deleted = await ctx.db
 		.deleteFrom('doc_group')
 		.where('id', '=', groupId)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('system', '=', false)
+		.returning('id')
+		.executeTakeFirst();
+
+	if (!deleted) {
+		throw new Error('Document group not found or cannot delete system folders');
+	}
 }
 
 /**

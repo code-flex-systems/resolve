@@ -2,10 +2,7 @@ import { sql, Transaction } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { PaymentParams, PaymentUpdateParams } from '@/schemas/paymentSchemas';
 import { DB } from '@/api/database/types.d';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-
-dayjs.extend(utc);
+import { formatDateForDB } from '@/api/utils/dateUtils';
 
 // =====================================================================
 // CLAIM PAYMENT QUERIES
@@ -30,7 +27,7 @@ export async function createPayment(ctx: ProtectedContext, claimId: string, para
 			client_id: clientId,
 			coverage_id: params.coverage_id,
 			// Format as YYYY-MM-DD string to avoid timezone conversion
-			payment_date: dayjs.utc(params.payment_date).format('YYYY-MM-DD'),
+			payment_date: formatDateForDB(params.payment_date),
 			payment_amount: params.payment_amount.toString(),
 			is_subrogable: params.is_subrogable,
 			is_expense: params.is_expense,
@@ -143,7 +140,7 @@ export async function updatePayment(
 		updateValues.coverage_id = params.coverage_id;
 	}
 	if (params.payment_date !== undefined) {
-		updateValues.payment_date = dayjs.utc(params.payment_date).format('YYYY-MM-DD');
+		updateValues.payment_date = formatDateForDB(params.payment_date);
 	}
 	if (params.payment_amount !== undefined) {
 		updateValues.payment_amount = params.payment_amount.toString();

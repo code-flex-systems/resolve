@@ -3,6 +3,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
 import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateCoverageInput, UpdateCoverageInput } from '@/schemas/coverageSchemas';
+import { NoResultError } from 'kysely';
 
 /**
  * Get all coverages for a specific claim.
@@ -114,8 +115,8 @@ export async function archiveCoverage(ctx: ProtectedContext, id: string) {
 			const archived = await coverageQueries.archiveCoverage({ ...ctx, db: trx }, id);
 			claimId = archived.claimId;
 			totalIncurred = archived.totalIncurred;
-		} catch (error: any) {
-			if (error.message?.includes('no result')) {
+		} catch (error: unknown) {
+			if (error instanceof NoResultError) {
 				throw new Error('Coverage not found or you do not have permission to access it');
 			}
 			throw error;
@@ -156,8 +157,8 @@ export async function deleteCoverage(ctx: ProtectedContext, id: string) {
 			const deleted = await coverageQueries.deleteCoverage({ ...ctx, db: trx }, id);
 			claimId = deleted.claimId;
 			totalIncurred = deleted.totalIncurred;
-		} catch (error: any) {
-			if (error.message?.includes('no result')) {
+		} catch (error: unknown) {
+			if (error instanceof NoResultError) {
 				throw new Error('Coverage not found or you do not have permission to access it');
 			}
 			throw error;

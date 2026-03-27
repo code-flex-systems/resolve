@@ -103,32 +103,18 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Update claim.total_incurred using delta increment with combined delta
-	let totalIncurred = 0;
-	if (totalDelta !== 0) {
-		const updated = await ctx.db
-			.updateTable('claim')
-			.set({
-				// Use ::numeric casting to preserve precision in PostgreSQL
-				total_incurred: sql`COALESCE(total_incurred::numeric, 0) + ${totalDelta}::numeric`,
-			})
-			.where('id', '=', params.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id!)
-			.returning('total_incurred')
-			.executeTakeFirstOrThrow();
+	// Update claim.total_incurred using delta increment (no-op if delta is 0, but still returns current value)
+	const updated = await ctx.db
+		.updateTable('claim')
+		.set({
+			total_incurred: sql`COALESCE(total_incurred::numeric, 0) + ${totalDelta}::numeric`,
+		})
+		.where('id', '=', params.claim_id)
+		.where('client_id', '=', ctx.session.user.client_id!)
+		.returning('total_incurred')
+		.executeTakeFirstOrThrow();
 
-		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
-	} else {
-		// No delta, fetch current total_incurred
-		const currentClaim = await ctx.db
-			.selectFrom('claim')
-			.select('total_incurred')
-			.where('id', '=', params.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id!)
-			.executeTakeFirstOrThrow();
-
-		totalIncurred = currentClaim.total_incurred ? parseFloat(currentClaim.total_incurred) : 0;
-	}
+	const totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
 
 	return { coverage, totalIncurred };
 }
@@ -211,34 +197,20 @@ export async function updateCoverage(
 		.returningAll()
 		.executeTakeFirstOrThrow();
 
-	// Update claim.total_incurred only if deltas are non-zero
+	// Update claim.total_incurred using delta increment (no-op if delta is 0, but still returns current value)
 	const totalDelta = reserveDelta + deductibleDelta;
 
-	let totalIncurred = 0;
-	if (totalDelta !== 0) {
-		const updated = await ctx.db
-			.updateTable('claim')
-			.set({
-				// Use ::numeric casting to preserve precision in PostgreSQL
-				total_incurred: sql`COALESCE(total_incurred::numeric, 0) + ${totalDelta}::numeric`,
-			})
-			.where('id', '=', oldCoverage.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id)
-			.returning('total_incurred')
-			.executeTakeFirstOrThrow();
+	const updated = await ctx.db
+		.updateTable('claim')
+		.set({
+			total_incurred: sql`COALESCE(total_incurred::numeric, 0) + ${totalDelta}::numeric`,
+		})
+		.where('id', '=', oldCoverage.claim_id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returning('total_incurred')
+		.executeTakeFirstOrThrow();
 
-		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
-	} else {
-		// No delta, fetch current total_incurred
-		const claim = await ctx.db
-			.selectFrom('claim')
-			.select('total_incurred')
-			.where('id', '=', oldCoverage.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id)
-			.executeTakeFirstOrThrow();
-
-		totalIncurred = claim.total_incurred ? parseFloat(claim.total_incurred) : 0;
-	}
+	const totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
 
 	return { coverage, totalIncurred };
 }
@@ -272,32 +244,18 @@ export async function archiveCoverage(ctx: ProtectedContext, id: string) {
 		: 0;
 	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);
 
-	// Update claim.total_incurred by removing both impacts
-	let totalIncurred = 0;
-	if (totalImpact !== 0) {
-		const updated = await ctx.db
-			.updateTable('claim')
-			.set({
-				// Use ::numeric casting to preserve precision in PostgreSQL
-				total_incurred: sql`COALESCE(total_incurred::numeric, 0) - ${totalImpact}::numeric`,
-			})
-			.where('id', '=', coverage.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id)
-			.returning('total_incurred')
-			.executeTakeFirstOrThrow();
+	// Update claim.total_incurred by removing both impacts (no-op if 0, but still returns current value)
+	const updated = await ctx.db
+		.updateTable('claim')
+		.set({
+			total_incurred: sql`COALESCE(total_incurred::numeric, 0) - ${totalImpact}::numeric`,
+		})
+		.where('id', '=', coverage.claim_id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returning('total_incurred')
+		.executeTakeFirstOrThrow();
 
-		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
-	} else {
-		// No impact, fetch current total_incurred
-		const claim = await ctx.db
-			.selectFrom('claim')
-			.select('total_incurred')
-			.where('id', '=', coverage.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id)
-			.executeTakeFirstOrThrow();
-
-		totalIncurred = claim.total_incurred ? parseFloat(claim.total_incurred) : 0;
-	}
+	const totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
 
 	return { claimId: coverage.claim_id, totalIncurred };
 }
@@ -326,32 +284,18 @@ export async function deleteCoverage(ctx: ProtectedContext, id: string) {
 		: 0;
 	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);
 
-	// Update claim.total_incurred by removing both impacts
-	let totalIncurred = 0;
-	if (totalImpact !== 0) {
-		const updated = await ctx.db
-			.updateTable('claim')
-			.set({
-				// Use ::numeric casting to preserve precision in PostgreSQL
-				total_incurred: sql`COALESCE(total_incurred::numeric, 0) - ${totalImpact}::numeric`,
-			})
-			.where('id', '=', coverage.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id)
-			.returning('total_incurred')
-			.executeTakeFirstOrThrow();
+	// Update claim.total_incurred by removing both impacts (no-op if 0, but still returns current value)
+	const updated = await ctx.db
+		.updateTable('claim')
+		.set({
+			total_incurred: sql`COALESCE(total_incurred::numeric, 0) - ${totalImpact}::numeric`,
+		})
+		.where('id', '=', coverage.claim_id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returning('total_incurred')
+		.executeTakeFirstOrThrow();
 
-		totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
-	} else {
-		// No impact, fetch current total_incurred
-		const claim = await ctx.db
-			.selectFrom('claim')
-			.select('total_incurred')
-			.where('id', '=', coverage.claim_id)
-			.where('client_id', '=', ctx.session.user.client_id)
-			.executeTakeFirstOrThrow();
-
-		totalIncurred = claim.total_incurred ? parseFloat(claim.total_incurred) : 0;
-	}
+	const totalIncurred = updated.total_incurred ? parseFloat(updated.total_incurred) : 0;
 
 	return { claimId: coverage.claim_id, totalIncurred };
 }

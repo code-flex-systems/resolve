@@ -153,22 +153,24 @@ export async function getAnswerForDeletion(ctx: ProtectedContext, answerId: stri
  * @param answerId - identifier of the answer to delete
  */
 export async function deleteAnswer(ctx: ProtectedContext, pageId: string, answerId: string) {
-	const { position, question_id } = await ctx.db
+	const deleted = await ctx.db
 		.deleteFrom('answer')
 		.where('id', '=', answerId)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.returning(['position', 'question_id'])
+		.returning(['position', 'question_id', 'text', 'grade'])
 		.executeTakeFirstOrThrow();
 
 	await ctx.db
 		.updateTable('answer')
 		.set((eb) => ({ position: sql`${eb.ref('position')} - 1` }))
 		.where('client_id', '=', ctx.session.user.client_id)
-		.where('question_id', '=', question_id)
-		.where('position', '>', position)
+		.where('question_id', '=', deleted.question_id)
+		.where('position', '>', deleted.position)
 		.execute();
 
 	await bumpPageVersion(ctx, pageId);
+
+	return deleted;
 }
 
 /**

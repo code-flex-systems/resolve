@@ -2,10 +2,7 @@ import { sql } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { SettlementParams, SettlementUpdateParams } from '@/schemas/settlementSchemas';
 import { SettlementStatus, SettlementStructure } from '@/config/enums';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-
-dayjs.extend(utc);
+import { formatDateForDB } from '@/api/utils/dateUtils';
 
 // =====================================================================
 // SETTLEMENT QUERIES
@@ -35,7 +32,7 @@ export async function createSettlement(
 			coverage_id: params.coverage_id,
 			demand_amount: params.demand_amount.toString(),
 			// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
-			demand_date: dayjs.utc(params.demand_date).format('YYYY-MM-DD'),
+			demand_date: formatDateForDB(params.demand_date),
 			status: params.status || SettlementStatus.SENT,
 			created_by: ctx.session.user.id,
 			created_at: sql`now()`,
@@ -48,7 +45,7 @@ export async function createSettlement(
 					settlement_amount: params.settlement_amount.toString(),
 				}),
 			...(params.settlement_date && {
-				settlement_date: dayjs.utc(params.settlement_date).format('YYYY-MM-DD'),
+				settlement_date: formatDateForDB(params.settlement_date),
 			}),
 			...(params.notes && { notes: params.notes }),
 			// New fields
@@ -214,7 +211,7 @@ export async function updateSettlement(
 	}
 	if (params.demand_date !== undefined) {
 		// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
-		updateValues.demand_date = dayjs.utc(params.demand_date).format('YYYY-MM-DD');
+		updateValues.demand_date = formatDateForDB(params.demand_date);
 	}
 	if (params.agreed_liability_percentage !== undefined) {
 		updateValues.agreed_liability_percentage =
@@ -226,7 +223,7 @@ export async function updateSettlement(
 	if (params.settlement_date !== undefined) {
 		// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
 		updateValues.settlement_date = params.settlement_date
-			? dayjs.utc(params.settlement_date).format('YYYY-MM-DD')
+			? formatDateForDB(params.settlement_date)
 			: null;
 	}
 	if (params.status !== undefined) {

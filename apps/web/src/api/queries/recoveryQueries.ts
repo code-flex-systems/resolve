@@ -5,9 +5,7 @@ import { DateRangeStrict } from '@/types/types';
 import { TRPCError } from '@trpc/server';
 import { getFiscalYearStart } from '@/config/config';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-
-dayjs.extend(utc);
+import { formatDateForDB } from '@/api/utils/dateUtils';
 
 // =====================================================================
 // RECOVERY EVENT QUERIES
@@ -40,7 +38,7 @@ export async function createRecoveryEvent(
 				client_id: clientId,
 				settlement_id: params.settlement_id,
 				// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
-				recovery_date: dayjs.utc(params.recovery_date).format('YYYY-MM-DD'),
+				recovery_date: formatDateForDB(params.recovery_date),
 				recovery_amount: params.recovery_amount.toString(),
 				created_by: ctx.session.user.id,
 				created_at: sql`now()`,
@@ -213,11 +211,10 @@ export async function archiveRecoveryEvent(ctx: ProtectedContext, recoveryEventI
 	}
 
 	// Decrement claim's actual_recovery by the archived amount (delta approach)
-	const archivedAmount = parseFloat(archived.recovery_amount);
 	await ctx.db
 		.updateTable('claim')
 		.set({
-			actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${archivedAmount}`,
+			actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) - ${archived.recovery_amount}::numeric`,
 		})
 		.where('claim.id', '=', claimId)
 		.where('claim.client_id', '=', clientId)
@@ -323,7 +320,7 @@ export async function updateRecoveryEvent(
 	}
 	if (params.recovery_date !== undefined) {
 		// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
-		updateValues.recovery_date = dayjs.utc(params.recovery_date).format('YYYY-MM-DD');
+		updateValues.recovery_date = formatDateForDB(params.recovery_date);
 	}
 	if (params.recovery_amount !== undefined) {
 		updateValues.recovery_amount = params.recovery_amount.toString();
@@ -347,14 +344,12 @@ export async function updateRecoveryEvent(
 
 	// Update claim's actual_recovery by delta if amount changed
 	if (params.recovery_amount !== undefined) {
-		const oldAmount = parseFloat(existing.recovery_amount);
-		const newAmount = params.recovery_amount;
-		const delta = newAmount - oldAmount;
+		const newAmount = params.recovery_amount.toString();
 
 		await ctx.db
 			.updateTable('claim')
 			.set({
-				actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) + ${delta}`,
+				actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) + (${newAmount}::numeric - ${existing.recovery_amount}::numeric)`,
 			})
 			.where('claim.id', '=', existing.claim_id)
 			.where('claim.client_id', '=', clientId)

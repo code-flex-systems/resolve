@@ -87,21 +87,16 @@ export async function copyAnswer(
 export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: string; answerId: string }) {
 	// Delete answer and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch answer data BEFORE deletion for logging
-		const answer = await answerQueries.getAnswerForDeletion({ ...ctx, db: trx }, answerId);
-
-		// Delete the answer
-		await answerQueries.deleteAnswer({ ...ctx, db: trx }, pageId, answerId);
+		// Delete the answer (uses RETURNING to get fields for logging)
+		const deleted = await answerQueries.deleteAnswer({ ...ctx, db: trx }, pageId, answerId);
 
 		// Log admin action for answer deletion
-		if (answer) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: answerId,
-				entityName: EntityName.ANSWER,
-				action: AdminAction.DELETE,
-				value: { text: answer.text, grade: answer.grade, questionId: answer.question_id },
-			});
-		}
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: answerId,
+			entityName: EntityName.ANSWER,
+			action: AdminAction.DELETE,
+			value: { text: deleted.text, grade: deleted.grade, questionId: deleted.question_id },
+		});
 	});
 }
 
@@ -136,26 +131,22 @@ export async function modifyAnswer(
 	ctx: ProtectedContext,
 	{ pageId, answerId, params }: { pageId: string; answerId: string; params: AnswerUpdateParams }
 ) {
-	try {
-		// Update answer and log admin action within transaction
-		const results = await ctx.db.transaction().execute(async (trx) => {
-			const updated = await answerQueries.modifyAnswer({ ...ctx, db: trx }, pageId, answerId, params);
+	// Update answer and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const updated = await answerQueries.modifyAnswer({ ...ctx, db: trx }, pageId, answerId, params);
 
-			// Log admin action for answer update
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: answerId,
-				entityName: EntityName.ANSWER,
-				action: AdminAction.UPDATE,
-				value: params,
-			});
-
-			return updated;
+		// Log admin action for answer update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: answerId,
+			entityName: EntityName.ANSWER,
+			action: AdminAction.UPDATE,
+			value: params,
 		});
 
-		return results;
-	} catch (e) {
-		console.error(e);
-	}
+		return updated;
+	});
+
+	return results;
 }
 
 /**

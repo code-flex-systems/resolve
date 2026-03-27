@@ -250,7 +250,7 @@ export async function getDeskLocations(
 	showInactive?: boolean
 ) {
 	// Base query with client scoping
-	// Uses window function for user_count to avoid expensive derived table join
+	// Uses pre-aggregated subquery for user_count to avoid row expansion and DISTINCT ON
 	let query = ctx.db
 		.selectFrom('desk_location')
 		.leftJoin(
@@ -258,10 +258,18 @@ export async function getDeskLocations(
 			'desk_location.desk_location_type_id',
 			'desk_location_type.id'
 		)
-		.leftJoin('user_desk_location', (join) =>
-			join
-				.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
-				.on('user_desk_location.removed_at', 'is', null)
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('user_desk_location')
+					.select([
+						'user_desk_location.desk_location_id',
+						eb.fn.countAll<number>().as('user_count'),
+					])
+					.where('user_desk_location.removed_at', 'is', null)
+					.groupBy('user_desk_location.desk_location_id')
+					.as('udl_counts'),
+			(join) => join.onRef('udl_counts.desk_location_id', '=', 'desk_location.id')
 		)
 		.select([
 			'desk_location.id',
@@ -278,7 +286,7 @@ export async function getDeskLocations(
 			'desk_location_type.name as desk_location_type_name',
 		])
 		.select(
-			sql<number>`COUNT(user_desk_location.id) OVER (PARTITION BY desk_location.id)`.as('user_count')
+			sql<number>`COALESCE(udl_counts.user_count, 0)`.as('user_count')
 		)
 		.where('desk_location.client_id', '=', ctx.session.user.client_id)
 		.orderBy('desk_location_type.name asc')
@@ -315,13 +323,8 @@ export async function getDeskLocations(
 	}
 
 	// Single query with COUNT(*) OVER() for total count
-	// Use DISTINCT ON to dedupe rows expanded by the user_desk_location join
-	const rowsWithCount = await ctx.db
-		.selectFrom(query.as('filtered'))
-		.distinctOn(['filtered.id'])
-		.selectAll('filtered')
+	const rowsWithCount = await query
 		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
-		.orderBy('filtered.id')
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();

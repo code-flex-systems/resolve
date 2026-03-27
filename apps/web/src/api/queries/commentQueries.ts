@@ -99,7 +99,7 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 	// Count query
 	const countQuery = baseQuery.select(({ fn }) => fn.countAll().as('count'));
 
-	// Only run count query when paginating
+	// Only run count query when paginating (caller should pass offset: 0 explicitly to paginate)
 	const [data, count] = await Promise.all([
 		dataQuery.execute(),
 		offset != null ? countQuery.executeTakeFirstOrThrow() : Promise.resolve({ count: 0 }),

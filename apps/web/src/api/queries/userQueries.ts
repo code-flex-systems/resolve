@@ -4,6 +4,19 @@ import { DateRangeStrict } from '@/types/types';
 import { CompiledQuery, sql } from 'kysely';
 import { sqlFilters } from '@/api/utils/utils';
 
+/** Build a user name/email search filter for prefix matching */
+function buildUserSearchFilter(eb: any, searchTerm: string, tablePrefix: string = 'users') {
+	const term = searchTerm.toLowerCase();
+	return eb.or([
+		eb(
+			sql`concat(lower(${eb.ref(`${tablePrefix}.first`)}), ' ', lower(${eb.ref(`${tablePrefix}.last`)}))`,
+			'like',
+			`${term}%`
+		),
+		eb(sql`lower(${eb.ref(`${tablePrefix}.email`)})`, 'like', `${term}%`),
+	]);
+}
+
 /**
  * Retrieve users for the current client with optional pagination.
  *
@@ -35,7 +48,7 @@ export async function getUsersPaginated(
 					eb(
 						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
 						'like',
-						`%${searchTerm.toLowerCase()}%`
+						`${searchTerm.toLowerCase()}%`
 					)
 				);
 			}
@@ -94,21 +107,13 @@ export async function getUsersWithDeskAssignments(
 		)
 		.selectAll('users')
 		.select(sql<number>`MAX(COALESCE(assignment_counts.assignment_count, 0))`.as('assignment_count'))
+		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
 		.where('users.client_id', '=', ctx.session.user.client_id)
 		.where('users.disabled', '=', false);
 
 	// Apply search filter
 	if (searchTerm) {
-		query = query.where((eb) =>
-			eb.or([
-				eb(
-					sql`concat(lower(${eb.ref('users.first')}), ' ', lower(${eb.ref('users.last')}))`,
-					'like',
-					`%${searchTerm.toLowerCase()}%`
-				),
-				eb(sql`lower(${eb.ref('users.email')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-			])
-		);
+		query = query.where((eb) => buildUserSearchFilter(eb, searchTerm));
 	}
 
 	// If desk filters are provided, filter to users with at least one matching assignment
@@ -135,58 +140,6 @@ export async function getUsersWithDeskAssignments(
 		}
 	}
 
-	// Build count query using subquery to count distinct users matching filters
-	// This avoids TypeScript issues with changing query types when adding joins
-	const buildCountQuery = async () => {
-		// Build a subquery to find matching user IDs
-		let userIdsQuery = ctx.db
-			.selectFrom('users')
-			.select('users.id')
-			.where('users.client_id', '=', ctx.session.user.client_id)
-			.where('users.disabled', '=', false);
-
-		if (searchTerm) {
-			userIdsQuery = userIdsQuery.where((eb) =>
-				eb.or([
-					eb(
-						sql`concat(lower(${eb.ref('users.first')}), ' ', lower(${eb.ref('users.last')}))`,
-						'like',
-						`%${searchTerm.toLowerCase()}%`
-					),
-					eb(sql`lower(${eb.ref('users.email')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-				])
-			);
-		}
-
-		if (deskLocationId !== undefined) {
-			userIdsQuery = userIdsQuery.innerJoin('user_desk_location', (join) =>
-				join
-					.onRef('users.id', '=', 'user_desk_location.user_id')
-					.on('user_desk_location.removed_at', 'is', null)
-					.on('user_desk_location.desk_location_id', '=', deskLocationId)
-			) as typeof userIdsQuery;
-		} else if (deskLocationTypeId !== undefined) {
-			userIdsQuery = userIdsQuery
-				.innerJoin('user_desk_location', (join) =>
-					join.onRef('users.id', '=', 'user_desk_location.user_id').on('user_desk_location.removed_at', 'is', null)
-				)
-				.innerJoin('desk_location', (join) =>
-					join
-						.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
-						.on('desk_location.deleted_at', 'is', null)
-						.on('desk_location.desk_location_type_id', '=', deskLocationTypeId)
-				) as typeof userIdsQuery;
-		}
-
-		// Count distinct user IDs
-		const result = await ctx.db
-			.selectFrom(userIdsQuery.distinct().as('filtered_users'))
-			.select(({ fn }) => fn.countAll<number>().as('count'))
-			.executeTakeFirst();
-
-		return result;
-	};
-
 	// Always group by user columns to support assignment count aggregation
 	query = query.groupBy([
 		'users.id',
@@ -208,19 +161,17 @@ export async function getUsersWithDeskAssignments(
 	]);
 
 	// Data query with pagination
-	const rowsQuery = query
+	const results = await query
 		.orderBy(['users.last', 'users.first'])
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();
 
-	// Execute in parallel
-	const [countResult, rows] = await Promise.all([buildCountQuery(), rowsQuery]);
+	// Extract total count from window function, then strip it from rows
+	const count = results.length > 0 ? Number(results[0].total_count) : 0;
+	const rows = results.map(({ total_count, ...row }) => row);
 
-	return {
-		rows,
-		count: countResult?.count ? Number(countResult.count) : 0,
-	};
+	return { rows, count };
 }
 
 export async function getUsers(ctx: ProtectedContext, searchTerm?: string, role?: string) {
@@ -329,7 +280,7 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, in
 					eb(
 						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
 						'like',
-						`%${searchTerm.toLowerCase()}%`
+						`${searchTerm.toLowerCase()}%`
 					)
 				);
 			}

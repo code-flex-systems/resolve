@@ -498,26 +498,28 @@ export async function modifyPageInstanceStatus(
 		templateVersion: number;
 	}
 ) {
-	for (const id of params.instanceIds) {
-		await ctx.db
-			.insertInto('page_instance_status')
-			.values({
+	if (params.instanceIds.length === 0) return;
+
+	await ctx.db
+		.insertInto('page_instance_status')
+		.values(
+			params.instanceIds.map((id) => ({
 				claim_id: params.claimId,
 				page_instance_id: id,
 				status: params.newStatus,
 				template_version: params.templateVersion,
 				updated_at: sql`now()`,
 				client_id: ctx.session.user.client_id!,
+			}))
+		)
+		.onConflict((oc) =>
+			oc.columns(['claim_id', 'page_instance_id']).doUpdateSet({
+				status: params.newStatus,
+				template_version: params.templateVersion,
+				updated_at: sql`now()`,
 			})
-			.onConflict((oc) =>
-				oc.columns(['claim_id', 'page_instance_id']).doUpdateSet({
-					status: params.newStatus,
-					template_version: params.templateVersion,
-					updated_at: sql`now()`,
-				})
-			)
-			.executeTakeFirstOrThrow();
-	}
+		)
+		.execute();
 }
 
 // private methods

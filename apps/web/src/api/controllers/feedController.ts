@@ -130,20 +130,15 @@ export async function updateFeed(
 export async function deleteFeed(ctx: ProtectedContext, { id }: { id: string }) {
 	// Delete feed and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch feed data BEFORE deletion for logging
-		const feed = await feedQueries.getFeedForDeletion({ ...ctx, db: trx }, id);
-
-		// Delete the feed
-		await feedQueries.deleteFeed({ ...ctx, db: trx }, id);
+		// Delete the feed (uses RETURNING to get fields for logging)
+		const deleted = await feedQueries.deleteFeed({ ...ctx, db: trx }, id);
 
 		// Log admin action for feed deletion
-		if (feed) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: id,
-				entityName: EntityName.FEED,
-				action: AdminAction.DELETE,
-				value: { name: feed.name, feed_type: feed.feed_type, status: feed.status },
-			});
-		}
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: id,
+			entityName: EntityName.FEED,
+			action: AdminAction.DELETE,
+			value: { name: deleted.name, feed_type: deleted.feed_type, status: deleted.status },
+		});
 	});
 }

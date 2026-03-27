@@ -138,29 +138,24 @@ export async function updateDeadlineStatus(
 export async function deleteDeadline(ctx: ProtectedContext, { deadlineId }: { deadlineId: string }) {
 	// Delete deadline and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch deadline data BEFORE deletion for logging
-		const deadline = await deadlineQueries.getDeadlineForDeletion({ ...ctx, db: trx }, deadlineId);
-
-		// Delete the deadline
-		await deadlineQueries.deleteDeadline({ ...ctx, db: trx }, deadlineId);
+		// Delete the deadline (uses RETURNING to get all fields for logging)
+		const cancelled = await deadlineQueries.deleteDeadline({ ...ctx, db: trx }, deadlineId);
 
 		// Log admin action for deadline deletion
-		if (deadline) {
-			await logAdminAction(
-				{ ...ctx, db: trx },
-				{
-					entityId: deadlineId,
-					entityName: EntityName.DEADLINE,
-					action: AdminAction.DELETE,
-					value: {
-						claimId: deadline.claim_id,
-						deadline_date: deadline.deadline_date,
-						deadline_type: deadline.deadline_type,
-						status: deadline.status,
-						description: deadline.description,
-					},
-				}
-			);
-		}
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: deadlineId,
+				entityName: EntityName.DEADLINE,
+				action: AdminAction.DELETE,
+				value: {
+					claimId: cancelled.claim_id,
+					deadline_date: cancelled.deadline_date,
+					deadline_type: cancelled.deadline_type,
+					status: cancelled.status,
+					description: cancelled.description,
+				},
+			}
+		);
 	});
 }

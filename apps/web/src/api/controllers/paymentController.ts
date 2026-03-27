@@ -134,35 +134,30 @@ export async function archivePayment(
 ) {
 	// Archive payment and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch payment data BEFORE archiving for logging
-		const payment = await paymentQueries.getPaymentForArchive({ ...ctx, db: trx }, paymentId);
-
-		// Archive the payment
-		await paymentQueries.archivePayment({ ...ctx, db: trx }, paymentId, claimId);
+		// Archive the payment (uses RETURNING to get all fields for logging)
+		const archived = await paymentQueries.archivePayment({ ...ctx, db: trx }, paymentId, claimId);
 
 		// Log admin action for payment archive
-		if (payment) {
-			await logAdminAction(
-				{ ...ctx, db: trx },
-				{
-					entityId: paymentId,
-					entityName: EntityName.CLAIM_PAYMENT,
-					action: AdminAction.DELETE,
-					value: {
-						claimId: payment.claim_id,
-						coverage_id: payment.coverage_id,
-						payment_date: payment.payment_date,
-						payment_amount: payment.payment_amount,
-						is_subrogable: payment.is_subrogable,
-						is_expense: payment.is_expense,
-					},
-				}
-			);
-
-			// Recalculate expected_recovery if this was a subrogable payment (affects claim_amount)
-			if (payment.is_subrogable) {
-				await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: paymentId,
+				entityName: EntityName.CLAIM_PAYMENT,
+				action: AdminAction.DELETE,
+				value: {
+					claimId: archived.claim_id,
+					coverage_id: archived.coverage_id,
+					payment_date: archived.payment_date,
+					payment_amount: archived.payment_amount,
+					is_subrogable: archived.is_subrogable,
+					is_expense: archived.is_expense,
+				},
 			}
+		);
+
+		// Recalculate expected_recovery if this was a subrogable payment (affects claim_amount)
+		if (archived.is_subrogable) {
+			await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
 		}
 	});
 }

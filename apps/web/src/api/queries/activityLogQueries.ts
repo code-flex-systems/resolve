@@ -1,3 +1,4 @@
+import { sql } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 
 /**
@@ -48,10 +49,24 @@ export async function getClaimActivityLogs(
 		.execute();
 }
 
+export type TimelineEntry = {
+	id: number;
+	claim_id: string;
+	type: 'activity' | 'response_audit';
+	action: string;
+	user_id: string;
+	user_first: string;
+	user_last: string;
+	created_at: Date;
+	value: unknown | null;
+};
+
 /**
  * Get complete claim timeline (activity logs + response audit logs)
  *
- * Merges claim_activity_logs and response_audit_logs to provide a complete timeline.
+ * Uses SQL UNION ALL to merge claim_activity_logs and response_audit_logs into a single
+ * sorted result set. Both queries are normalized to the same column shape, combined,
+ * and ordered by created_at desc in the database — enabling future pagination.
  *
  * @param ctx - Protected context
  * @param claimId - The claim ID to get timeline for
@@ -62,41 +77,55 @@ export async function getCompleteClaimTimeline(
 	ctx: ProtectedContext,
 	claimId: string,
 	options?: { limit?: number }
-) {
+): Promise<TimelineEntry[]> {
 	const limit = options?.limit || 100;
+	const clientId = ctx.session.user.client_id as string;
 
-	const [activityLogs, responseLogs] = await Promise.all([
-		getClaimActivityLogs(ctx, claimId, { limit }),
-		ctx.db
-			.selectFrom('response_audit_logs')
-			.innerJoin('users', 'users.id', 'response_audit_logs.user_id')
-			.select([
-				'response_audit_logs.id',
-				'response_audit_logs.client_id',
-				'response_audit_logs.claim_id',
-				'response_audit_logs.user_id',
-				'response_audit_logs.question_id',
-				'response_audit_logs.question_text',
-				'response_audit_logs.new_response_text',
-				'response_audit_logs.action',
-				'response_audit_logs.created_at',
-				'users.first as user_first_name',
-				'users.last as user_last_name',
-			])
-			.where('response_audit_logs.claim_id', '=', claimId as any)
-			.where('response_audit_logs.client_id', '=', ctx.session.user.client_id as string)
-			.orderBy('response_audit_logs.created_at', 'desc')
-			.limit(limit)
-			.execute(),
-	]);
+	const activityQuery = ctx.db
+		.selectFrom('claim_activity_logs')
+		.innerJoin('users', 'users.id', 'claim_activity_logs.user_id')
+		.select([
+			'claim_activity_logs.id',
+			'claim_activity_logs.claim_id',
+			sql.lit('activity').as('type'),
+			'claim_activity_logs.action',
+			'claim_activity_logs.user_id',
+			'users.first as user_first',
+			'users.last as user_last',
+			'claim_activity_logs.created_at',
+			'claim_activity_logs.value',
+		])
+		.where('claim_activity_logs.claim_id', '=', claimId)
+		.where('claim_activity_logs.client_id', '=', clientId);
 
-	// Merge and sort by timestamp
-	const combined = [...activityLogs, ...responseLogs].sort(
-		(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-	);
+	const responseQuery = ctx.db
+		.selectFrom('response_audit_logs')
+		.innerJoin('users', 'users.id', 'response_audit_logs.user_id')
+		.select([
+			'response_audit_logs.id',
+			sql<string>`response_audit_logs.claim_id`.as('claim_id'),
+			sql.lit('response_audit').as('type'),
+			'response_audit_logs.action',
+			sql<string>`response_audit_logs.user_id`.as('user_id'),
+			'users.first as user_first',
+			'users.last as user_last',
+			'response_audit_logs.created_at',
+			sql<unknown>`jsonb_build_object(
+				'question_id', response_audit_logs.question_id,
+				'question_text', response_audit_logs.question_text,
+				'new_response_text', response_audit_logs.new_response_text
+			)`.as('value'),
+		])
+		.where('response_audit_logs.claim_id', '=', claimId)
+		.where('response_audit_logs.client_id', '=', clientId);
 
-	// Apply limit to combined results
-	return combined.slice(0, limit);
+	const rows = await activityQuery
+		.unionAll(responseQuery as any)
+		.orderBy('created_at', 'desc')
+		.limit(limit)
+		.execute();
+
+	return rows as unknown as TimelineEntry[];
 }
 
 /**
