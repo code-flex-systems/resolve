@@ -29,7 +29,7 @@ export default function QuestionInfo(props: {
 			{/* Show info icon with description tooltip if there's a description */}
 			{description && (
 				<>
-					<Tooltip content={description ?? ''} position="top">
+					<Tooltip content={description} position="top">
 						<IconInfoCircle
 							onMouseEnter={(e) => setAnchorEl(e.currentTarget as unknown as HTMLElement)}
 							onMouseLeave={() => setAnchorEl(null)}
