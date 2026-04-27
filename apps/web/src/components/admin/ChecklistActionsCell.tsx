@@ -28,7 +28,7 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 	return (
 		<>
 			<div style={styles.container} className="flex-row-right">
-				<Tooltip content="`${published ? 'Unpublish' : 'Publish'}`">
+				<Tooltip content={published ? 'Unpublish' : 'Publish'}>
 							<Button variant="icon" size="sm" color="neutral" disabled={isPending}>
 							published ? (
 							<IconArchive style={{ ...styles.icon, color: 'var(--status-error)' }} />
