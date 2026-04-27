@@ -297,7 +297,7 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(getDoc(ctx, 999999)).rejects.toThrow();
+			await expect(getDoc(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -612,7 +612,7 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDoc(ctx, 999999, { title: 'New' })).rejects.toThrow();
+			await expect(updateDoc(ctx, '00000000-0000-0000-0000-000000000000', { title: 'New' })).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -662,7 +662,7 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDocForDeletion(ctx, 999999);
+			const result = await getDocForDeletion(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -942,7 +942,7 @@ describe('docQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			await expect(updateDocGroup(ctx, systemGroup.id, { name: 'Renamed' })).rejects.toThrow(
-				'Cannot update system folders'
+				'cannot update system folders'
 			);
 		});
 
@@ -966,7 +966,7 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDocGroup(ctx, 999999, { name: 'New Name' })).rejects.toThrow();
+			await expect(updateDocGroup(ctx, '00000000-0000-0000-0000-000000000000', { name: 'New Name' })).rejects.toThrow();
 		});
 	});
 
@@ -1020,7 +1020,7 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(deleteDocGroup(ctx, systemGroup.id)).rejects.toThrow('Cannot delete system folders');
+			await expect(deleteDocGroup(ctx, systemGroup.id)).rejects.toThrow('cannot delete system folders');
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -1032,8 +1032,8 @@ describe('docQueries integration', () => {
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
-			// Should silently fail (no rows deleted due to tenant filter)
-			await deleteDocGroup(ctx2, group.id);
+			// Should throw (no matching row due to tenant filter)
+			await expect(deleteDocGroup(ctx2, group.id)).rejects.toThrow();
 
 			// Group should still exist
 			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
@@ -1088,6 +1088,127 @@ describe('docQueries integration', () => {
 			const result = await getDocsInGroupRecursive(ctx, group.id);
 
 			expect(result.length).toBe(0);
+		});
+
+		it('should NOT return docs from sibling/unrelated groups', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const targetGroup = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Target ${Date.now()}`,
+			});
+			const siblingGroup = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Sibling ${Date.now()}`,
+			});
+
+			// Doc in target group (control)
+			const targetDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: targetGroup.id,
+				filename: 'target-doc.pdf',
+			});
+			// Doc in sibling group (should be excluded)
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: siblingGroup.id,
+				filename: 'sibling-doc.pdf',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDocsInGroupRecursive(ctx, targetGroup.id);
+
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(targetDoc.id);
+		});
+
+		it('should exclude soft-deleted groups from recursive traversal', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const parent = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Parent ${Date.now()}`,
+			});
+			const child = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Deleted Child ${Date.now()}`,
+				parent_group_id: parent.id,
+			});
+
+			// Doc in parent (control - should be returned)
+			const parentDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: parent.id,
+			});
+			// Doc in soft-deleted child group (should be excluded because group is deleted)
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: child.id,
+			});
+
+			// Soft-delete the child group
+			await db
+				.updateTable('doc_group')
+				.set({ deleted_at: new Date(), deleted_by: user.id })
+				.where('id', '=', child.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDocsInGroupRecursive(ctx, parent.id);
+
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(parentDoc.id);
+		});
+
+		it('should exclude soft-deleted docs from results', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const group = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Group ${Date.now()}`,
+			});
+
+			// Active doc (control)
+			const activeDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: group.id,
+				filename: 'active.pdf',
+			});
+			// Soft-deleted doc
+			const deletedDoc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: group.id,
+				filename: 'deleted.pdf',
+			});
+
+			await db
+				.updateTable('doc')
+				.set({ deleted_at: new Date(), deleted_by: user.id })
+				.where('id', '=', deletedDoc.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDocsInGroupRecursive(ctx, group.id);
+
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(activeDoc.id);
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -1154,18 +1275,232 @@ describe('docQueries integration', () => {
 		});
 	});
 
-	describe('archiveDoc', () => {
-		it('should archive a single document', async () => {
+	describe('archiveDocGroupRecursive', () => {
+		it('should archive the target group (set deleted_at)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const doc = await createTestDoc(db, { client_id: client.id, created_by: user.id, filename: 'archive-me.pdf' });
+
+			const group = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Target Archive ${Date.now()}`,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await archiveDocGroupRecursive(ctx, group.id);
+
+			expect(result).toHaveLength(1);
+			expect(result[0].id).toBe(group.id);
+
+			// Verify deleted_at is set in DB
+			const dbGroup = await db
+				.selectFrom('doc_group')
+				.select(['deleted_at', 'deleted_by'])
+				.where('id', '=', group.id)
+				.executeTakeFirst();
+			expect(dbGroup?.deleted_at).not.toBeNull();
+			expect(dbGroup?.deleted_by).toBe(user.id);
+		});
+
+		it('should archive all descendant groups recursively', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const parent = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Parent ${Date.now()}`,
+			});
+			const child = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Child ${Date.now()}`,
+				parent_group_id: parent.id,
+			});
+			const grandchild = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Grandchild ${Date.now()}`,
+				parent_group_id: child.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await archiveDocGroupRecursive(ctx, parent.id);
+
+			expect(result).toHaveLength(3);
+			const archivedIds = result.map((g) => g.id);
+			expect(archivedIds).toContain(parent.id);
+			expect(archivedIds).toContain(child.id);
+			expect(archivedIds).toContain(grandchild.id);
+		});
+
+		it('should return archived groups with fields for logging', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const parent = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Log Parent ${Date.now()}`,
+				group_type: DocGroupType.CUSTOM,
+			});
+			const child = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Log Child ${Date.now()}`,
+				group_type: DocGroupType.CUSTOM,
+				parent_group_id: parent.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await archiveDocGroupRecursive(ctx, parent.id);
+
+			// Verify returned fields include logging info
+			const parentResult = result.find((g) => g.id === parent.id);
+			expect(parentResult).toBeDefined();
+			expect(parentResult?.name).toBeDefined();
+			expect(parentResult?.group_type).toBe(DocGroupType.CUSTOM);
+			expect(parentResult?.parent_group_id).toBeNull();
+
+			const childResult = result.find((g) => g.id === child.id);
+			expect(childResult?.parent_group_id).toBe(parent.id);
+		});
+
+		it('should NOT archive sibling groups', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const target = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Target ${Date.now()}`,
+			});
+			const sibling = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Sibling ${Date.now()}`,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await archiveDocGroupRecursive(ctx, target.id);
+
+			// Sibling should still be active
+			const siblingGroup = await getDocGroup(ctx, sibling.id);
+			expect(siblingGroup.id).toBe(sibling.id);
+			expect(siblingGroup.deleted_at).toBeNull();
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const client1 = await createTestClient(db);
+			const client2 = await createTestClient(db);
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+
+			const group = await createTestDocGroup(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				name: `Tenant Isolated ${Date.now()}`,
+			});
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Attempt to archive from different tenant
+			const result = await archiveDocGroupRecursive(ctx2, group.id);
+
+			// Should not archive anything (empty result)
+			expect(result).toHaveLength(0);
+
+			// Verify group is unchanged
+			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
+			const unchanged = await getDocGroup(ctx1, group.id);
+			expect(unchanged.deleted_at).toBeNull();
+		});
+	});
+
+	describe('archiveDoc', () => {
+		it('should set deleted_at and deleted_by, and return storage_key', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const doc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				filename: 'archive-me.pdf',
+				storage_key: 'azure-key-for-cleanup',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			const archived = await archiveDoc(ctx, doc.id);
 
+			expect(archived).toBeDefined();
 			expect(archived?.id).toBe(doc.id);
+			expect(archived?.storage_key).toBe('azure-key-for-cleanup');
+
+			// Verify DB side effects
+			const dbDoc = await db
+				.selectFrom('doc')
+				.select(['deleted_at', 'deleted_by'])
+				.where('id', '=', doc.id)
+				.executeTakeFirst();
+			expect(dbDoc?.deleted_at).not.toBeNull();
+			expect(dbDoc?.deleted_by).toBe(user.id);
+
+			// Verify doc is no longer visible via normal queries
 			await expect(getDoc(ctx, doc.id)).rejects.toThrow();
+		});
+
+		it('should return undefined for already-archived doc (idempotency)', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const doc = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				filename: 'already-archived.pdf',
+			});
+
+			// Soft-delete the doc first
+			await db
+				.updateTable('doc')
+				.set({ deleted_at: new Date(), deleted_by: user.id })
+				.where('id', '=', doc.id)
+				.execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Archiving again should return undefined (WHERE deleted_at IS NULL won't match)
+			const result = await archiveDoc(ctx, doc.id);
+
+			expect(result).toBeUndefined();
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const client1 = await createTestClient(db);
+			const client2 = await createTestClient(db);
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+
+			const doc = await createTestDoc(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				filename: 'tenant-isolated.pdf',
+			});
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Attempt to archive from different tenant
+			const result = await archiveDoc(ctx2, doc.id);
+
+			expect(result).toBeUndefined();
+
+			// Verify doc is unchanged
+			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
+			const unchanged = await getDoc(ctx1, doc.id);
+			expect(unchanged.id).toBe(doc.id);
+			expect(unchanged.deleted_at).toBeNull();
 		});
 	});
 
@@ -1272,8 +1607,8 @@ describe('docQueries integration', () => {
 			const counts = await getDocCountsByGroupIds(ctx, [groupA.id, groupB.id, groupC.id]);
 			const countMap = new Map(counts.map((entry) => [entry.doc_group_id, entry.count]));
 
-			expect(countMap.get(groupA.id)).toBe(2);
-			expect(countMap.get(groupB.id)).toBe(1);
+			expect(Number(countMap.get(groupA.id))).toBe(2);
+			expect(Number(countMap.get(groupB.id))).toBe(1);
 			expect(countMap.get(groupC.id)).toBeUndefined();
 		});
 	});
@@ -1297,7 +1632,7 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const exists = await docExists(ctx, 999999);
+			const exists = await docExists(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(exists).toBe(false);
 		});
@@ -1330,7 +1665,7 @@ describe('docQueries integration', () => {
 
 			const folderId = await getOrCreateUsersFolder(ctx);
 
-			expect(folderId).toBeGreaterThan(0);
+			expect(folderId).toBeDefined();
 
 			// Verify the folder was created correctly
 			const folder = await getDocGroup(ctx, folderId);
@@ -1362,7 +1697,7 @@ describe('docQueries integration', () => {
 
 			const folderId = await getOrCreateUserFolder(ctx, user.id);
 
-			expect(folderId).toBeGreaterThan(0);
+			expect(folderId).toBeDefined();
 
 			const folder = await getDocGroup(ctx, folderId);
 			expect(folder.user_id).toBe(user.id);
@@ -1392,7 +1727,7 @@ describe('docQueries integration', () => {
 
 			const folderId = await getOrCreateSharedFolder(ctx);
 
-			expect(folderId).toBeGreaterThan(0);
+			expect(folderId).toBeDefined();
 
 			const folder = await getDocGroup(ctx, folderId);
 			expect(folder.name).toBe('Shared');

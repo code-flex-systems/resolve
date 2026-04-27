@@ -28,7 +28,7 @@ export async function createTestParty(
 ) {
 	const data = {
 		client_id: overrides.client_id,
-		name: overrides.name || `Test Party ${Date.now()}`,
+		name: overrides.name || `Test Party ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 		party_type: overrides.party_type || 'facilitator',
 		is_business: overrides.is_business ?? true,
 		first_name: overrides.first_name ?? null,
@@ -42,11 +42,7 @@ export async function createTestParty(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('party')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('party').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -55,7 +51,7 @@ export async function createTestParty(
 export async function createTestPartyAddress(
 	db: Kysely<DB>,
 	overrides: {
-		party_id: number;
+		party_id: string;
 		created_by: string;
 		name?: string | null;
 		street_address?: string | null;
@@ -84,11 +80,7 @@ export async function createTestPartyAddress(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('party_address')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('party_address').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -97,7 +89,7 @@ export async function createTestPartyAddress(
 export async function createTestPartyPhone(
 	db: Kysely<DB>,
 	overrides: {
-		party_id: number;
+		party_id: string;
 		client_id: string;
 		created_by: string;
 		phone_number?: string;
@@ -124,11 +116,7 @@ export async function createTestPartyPhone(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('party_phone')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('party_phone').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -137,7 +125,7 @@ export async function createTestPartyPhone(
 export async function createTestPartyEmail(
 	db: Kysely<DB>,
 	overrides: {
-		party_id: number;
+		party_id: string;
 		client_id: string;
 		created_by: string;
 		email_address?: string;
@@ -156,11 +144,7 @@ export async function createTestPartyEmail(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('party_email')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('party_email').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -169,9 +153,9 @@ export async function createTestPartyEmail(
 export async function createTestPartyRepresentative(
 	db: Kysely<DB>,
 	overrides: {
-		party_id: number;
+		party_id: string;
 		created_by: string;
-		address_id?: number | null;
+		address_id?: string | null;
 		first_name?: string;
 		last_name?: string;
 		title?: string | null;
@@ -200,11 +184,7 @@ export async function createTestPartyRepresentative(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('party_representative')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('party_representative').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -213,17 +193,17 @@ export async function createTestPartyRepresentative(
 export async function createTestClaimParty(
 	db: Kysely<DB>,
 	overrides: {
-		claim_id: number;
-		party_id: number;
+		claim_id: string;
+		party_id: string;
 		client_id: string;
 		created_by: string;
 		role?: string[];
-		representative_id?: number | null;
+		representative_id?: string | null;
 		is_primary?: boolean;
 		notes?: string | null;
 		external_reference?: string | null;
 		liability_percentage?: string | null;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		loss_type?: string | null;
 		policy_limit?: string | null;
 		deleted_at?: Date | null;
@@ -248,9 +228,5 @@ export async function createTestClaimParty(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('claim_party')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('claim_party').values(data).returningAll().executeTakeFirstOrThrow();
 }

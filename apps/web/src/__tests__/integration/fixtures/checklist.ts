@@ -26,11 +26,7 @@ export async function createTestChecklist(
 		created_by: overrides.created_by,
 	};
 
-	return db
-		.insertInto('checklist')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('checklist').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -40,8 +36,8 @@ export async function createTestChecklistClaim(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		checklist_id: number;
-		claim_id: number;
+		checklist_id: string;
+		claim_id: string;
 		created_by: string;
 		assignee?: string | null;
 		status?: string;
@@ -56,9 +52,5 @@ export async function createTestChecklistClaim(
 		status: overrides.status || 'in_progress',
 	};
 
-	return db
-		.insertInto('checklist_claim')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('checklist_claim').values(data).returningAll().executeTakeFirstOrThrow();
 }

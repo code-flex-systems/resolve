@@ -34,10 +34,10 @@ export async function createTestPageInstance(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		page_id: number;
-		checklist_id: number;
+		page_id: string;
+		checklist_id: string;
 		created_by: string;
-		parent_instance_id?: number | null;
+		parent_instance_id?: string | null;
 		position?: number;
 	}
 ) {
@@ -60,7 +60,7 @@ export async function createTestQuestion(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		page_id: number;
+		page_id: string;
 		created_by: string;
 		text?: string;
 		position?: number;
@@ -88,7 +88,7 @@ export async function createTestAnswer(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		question_id: number;
+		question_id: string;
 		created_by: string;
 		text?: string;
 		position?: number;
@@ -96,7 +96,7 @@ export async function createTestAnswer(
 		has_additional_info?: boolean;
 		additional_info_num_lines?: number | null;
 		additional_info_placeholder?: string | null;
-		calls_instance_id?: number | null;
+		calls_instance_id?: string | null;
 		requires_upload?: boolean;
 		hidden?: boolean;
 	}
@@ -126,11 +126,11 @@ export async function createTestQuestionResponse(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		checklist_id: number;
-		instance_id: number;
-		claim_id: number;
+		checklist_id: string;
+		instance_id: string;
+		claim_id: string;
 		created_by: string;
-		question_id?: number | null;
+		question_id?: string | null;
 		response_text?: string | null;
 		response_doc_id?: number | null;
 	}
@@ -155,8 +155,8 @@ export async function createTestQuestionResponse(
 export async function createTestQuestionResponseAnswer(
 	db: Kysely<DB>,
 	overrides: {
-		response_id: number;
-		answer_id?: number | null;
+		response_id: string;
+		answer_id?: string | null;
 		additional_info?: string | null;
 	}
 ) {
@@ -176,10 +176,10 @@ export async function createTestAnswerCallEdge(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		checklist_id: number;
-		from_instance_id: number;
-		to_instance_id: number;
-		answer_id: number;
+		checklist_id: string;
+		from_instance_id: string;
+		to_instance_id: string;
+		answer_id: string;
 	}
 ) {
 	const data = {

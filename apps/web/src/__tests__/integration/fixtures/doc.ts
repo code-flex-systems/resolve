@@ -24,13 +24,13 @@ export async function createTestDoc(
 		file_size?: number | null;
 		mime_type?: string | null;
 		preview_url?: string | null;
-		doc_group_id?: number | null;
-		claim_id?: number | null;
-		recovery_event_id?: number | null;
-		deadline_id?: number | null;
-		page_instance_id?: number | null;
-		question_id?: number | null;
-		answer_id?: number | null;
+		doc_group_id?: string | null;
+		claim_id?: string | null;
+		recovery_event_id?: string | null;
+		deadline_id?: string | null;
+		page_instance_id?: string | null;
+		question_id?: string | null;
+		answer_id?: string | null;
 		version?: number;
 		is_current_version?: boolean;
 	}
@@ -73,9 +73,9 @@ export async function createTestDocGroup(
 		created_by: string;
 		name?: string;
 		description?: string | null;
-		parent_group_id?: number | null;
+		parent_group_id?: string | null;
 		group_type?: string;
-		claim_id?: number | null;
+		claim_id?: string | null;
 		color?: string | null;
 		icon?: string | null;
 		sort_order?: number;

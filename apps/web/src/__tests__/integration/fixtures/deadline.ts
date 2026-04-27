@@ -12,14 +12,14 @@ export async function createTestDeadline(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
+		claim_id: string;
 		created_by: string;
 		deadline_type?: string;
 		deadline_date?: Date | string;
 		description?: string | null;
 		status?: string;
 		entity_type?: string;
-		entity_id?: number;
+		entity_id?: string;
 	}
 ) {
 	const data = {

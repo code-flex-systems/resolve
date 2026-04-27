@@ -13,9 +13,9 @@ export async function createTestSettlement(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
-		claim_party_id: number;
-		coverage_id: number;
+		claim_id: string;
+		claim_party_id: string;
+		coverage_id: string;
 		created_by: string;
 		demand_amount?: string | number;
 		demand_date?: Date | string;

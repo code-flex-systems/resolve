@@ -12,14 +12,14 @@ export async function createTestPayment(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
-		coverage_id: number;
+		claim_id: string;
+		coverage_id: string;
 		created_by: string;
 		payment_date?: Date | string;
 		payment_amount?: string | number;
 		is_subrogable?: boolean;
 		is_expense?: boolean;
-		payee_claim_party_id?: number | null;
+		payee_claim_party_id?: string | null;
 		description?: string | null;
 		external_reference?: string | null;
 		feed_id?: string | null;

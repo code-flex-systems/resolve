@@ -1032,7 +1032,7 @@ describe('taskQueries integration', () => {
 			expect(result.title).toBe('New Task');
 			expect(result.description).toBe('Task description');
 			expect(result.status).toBe(TaskStatus.PENDING);
-			expect(result.assigned_to).toBe(user.id);
+			expect(result.assigned_to).toBeNull();
 			expect(result.client_id).toBe(client.id);
 			expect(result.task_type).toBe(TaskType.GENERIC);
 		});
@@ -1101,6 +1101,104 @@ describe('taskQueries integration', () => {
 			// Assert
 			expect(result.task_type).toBe(TaskType.REVIEW);
 			expect(result.work_units).toBe(5);
+		});
+
+		it('should NOT create a deadline when deadlineDate is not provided', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const task = await createTask(ctx, {
+				claimId: claim.id,
+				deskLocationId: desk.id,
+				title: 'Task Without Deadline',
+			});
+
+			// Assert - No deadline should exist for this task
+			const deadline = await db
+				.selectFrom('deadline')
+				.selectAll()
+				.where('entity_type', '=', DeadlineEntityType.TASK)
+				.where('entity_id', '=', task.id)
+				.executeTakeFirst();
+
+			expect(deadline).toBeUndefined();
+		});
+
+		it('should default deadline description to task title when not provided', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const deadlineDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.split('T')[0];
+
+			// Act - Create task with deadline but NO deadlineDescription
+			const task = await createTask(ctx, {
+				claimId: claim.id,
+				deskLocationId: desk.id,
+				title: 'My Important Task',
+				deadlineDate,
+				// no deadlineDescription provided
+			});
+
+			// Assert - Deadline description should default to task title
+			const deadline = await db
+				.selectFrom('deadline')
+				.select(['description', 'entity_type', 'status'])
+				.where('entity_type', '=', DeadlineEntityType.TASK)
+				.where('entity_id', '=', task.id)
+				.executeTakeFirst();
+
+			expect(deadline).toBeDefined();
+			expect(deadline?.description).toBe('My Important Task');
+			expect(deadline?.entity_type).toBe(DeadlineEntityType.TASK);
+			expect(deadline?.status).toBe(DeadlineStatus.PENDING);
+		});
+
+		it('should use correct defaults: status=PENDING, work_units=2, task_type=GENERIC', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const task = await createTask(ctx, {
+				claimId: claim.id,
+				deskLocationId: desk.id,
+				title: 'Default Values Task',
+			});
+
+			// Assert
+			expect(task.status).toBe(TaskStatus.PENDING);
+			expect(task.work_units).toBe(2);
+			expect(task.task_type).toBe(TaskType.GENERIC);
+			expect(task.completed_at).toBeNull();
+			expect(task.started_at).toBeNull();
 		});
 	});
 
@@ -1589,7 +1687,7 @@ describe('taskQueries integration', () => {
 	});
 
 	describe('cancelTask', () => {
-		it('should cancel a task and its linked deadline', async () => {
+		it('should cancel a pending task with linked deadline and set cancellation reason', async () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
@@ -1600,24 +1698,19 @@ describe('taskQueries integration', () => {
 			});
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			const task = await createTestTask(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				desk_location_id: desk.id,
-				assigned_to: user.id,
-				status: TaskStatus.PENDING,
-			});
-
-			await createTestDeadline(db, {
-				client_id: client.id,
-				claim_id: claim.id,
-				created_by: user.id,
-				entity_type: DeadlineEntityType.TASK,
-				entity_id: task.id,
-				status: DeadlineStatus.PENDING,
-			});
-
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Use createTask from source to create task with linked deadline atomically
+			const deadlineDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.split('T')[0];
+			const task = await createTask(ctx, {
+				claimId: claim.id,
+				deskLocationId: desk.id,
+				title: 'Task to Cancel',
+				deadlineDate,
+				deadlineDescription: 'Deadline for cancellation test',
+			});
 
 			// Act
 			const result = await cancelTask(ctx, task.id, 'No longer needed');
@@ -1625,7 +1718,7 @@ describe('taskQueries integration', () => {
 			// Assert - Task should be cancelled
 			expect(result.status).toBe(TaskStatus.CANCELLED);
 
-			// Assert - Deadline should be cancelled
+			// Assert - Deadline should be cancelled with the same cancellation reason
 			const deadline = await db
 				.selectFrom('deadline')
 				.select(['status', 'cancellation_reason'])
@@ -2098,6 +2191,28 @@ describe('taskQueries integration', () => {
 
 			// Assert - Should only count client1's tasks
 			expect(result.available).toBe(3);
+		});
+
+		it('should return 0 for all statuses when desk location has no tasks', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getTaskCountsByStatus(ctx, desk.id);
+
+			// Assert
+			expect(result.available).toBe(0);
+			expect(result.in_progress).toBe(0);
+			expect(result.completed_on_time).toBe(0);
+			expect(result.completed_late).toBe(0);
 		});
 	});
 

@@ -12,8 +12,8 @@ export async function createTestTask(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
-		desk_location_id: number;
+		claim_id: string;
+		desk_location_id: string;
 		assigned_to?: string | null;
 		title?: string;
 		description?: string | null;

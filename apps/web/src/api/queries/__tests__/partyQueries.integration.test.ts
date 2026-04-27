@@ -555,7 +555,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveParty(ctx, 999999)).rejects.toThrow('no result');
+			await expect(archiveParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
 		});
 	});
 
@@ -620,7 +620,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreParty(ctx, 999999)).rejects.toThrow('no result');
+			await expect(restoreParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
 		});
 	});
 
@@ -988,7 +988,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPartyAddress(ctx, 999999);
+			const result = await getPartyAddress(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -1043,7 +1043,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archivePartyAddress(ctx, 999999)).rejects.toThrow('no result');
+			await expect(archivePartyAddress(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
 		});
 
 		it('should throw error when restoring non-existent address', async () => {
@@ -1052,7 +1052,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restorePartyAddress(ctx, 999999)).rejects.toThrow('no result');
+			await expect(restorePartyAddress(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
 		});
 	});
 
@@ -1435,7 +1435,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPartyRepresentative(ctx, 999999);
+			const result = await getPartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -1492,7 +1492,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archivePartyRepresentative(ctx, 999999)).rejects.toThrow('Representative not found');
+			await expect(archivePartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Representative not found');
 		});
 
 		it('should throw error when restoring non-existent representative', async () => {
@@ -1501,7 +1501,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restorePartyRepresentative(ctx, 999999)).rejects.toThrow('Representative not found');
+			await expect(restorePartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Representative not found');
 		});
 	});
 
@@ -1760,7 +1760,7 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveClaimParty(ctx, 999999)).rejects.toThrow('Claim party not found');
+			await expect(archiveClaimParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Claim party not found');
 		});
 	});
 
@@ -3511,6 +3511,476 @@ describe('partyQueries integration', () => {
 
 			expect(updated.loss_type).toBe('property_damage');
 			expect(parseFloat(updated.policy_limit!)).toBe(250000);
+		});
+	});
+
+	// ============================================================================
+	// TIER 2: archiveClaimParty
+	// ============================================================================
+
+	describe('archiveClaimParty', () => {
+		it('should soft-delete claim_party and return claimId', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await archiveClaimParty(ctx, claimParty.id);
+			expect(result.claimId).toBe(claim.id);
+
+			// Verify deleted_at is set in DB
+			const archived = await db
+				.selectFrom('claim_party')
+				.select(['id', 'deleted_at'])
+				.where('id', '=', claimParty.id)
+				.executeTakeFirstOrThrow();
+			expect(archived.deleted_at).not.toBeNull();
+
+			// Verify archived claim_party is NOT returned by the read path
+			const claimParties = await getClaimParties(ctx, claim.id);
+			expect(claimParties.every((cp) => cp.id !== claimParty.id)).toBe(true);
+		});
+
+		it('should cascade archive to child claim_party records', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const parentParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: `CascadeParent ${Date.now()}` });
+			const childParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'facilitator', name: `CascadeChild ${Date.now()}` });
+
+			const parentClaimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: parentParty.id,
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const childClaimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: childParty.id,
+				client_id: client.id,
+				created_by: user.id,
+				parent_claim_party_id: parentClaimParty.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await archiveClaimParty(ctx, parentClaimParty.id);
+
+			// Both parent and child should be archived
+			const [archivedParent, archivedChild] = await Promise.all([
+				db.selectFrom('claim_party').select(['id', 'deleted_at']).where('id', '=', parentClaimParty.id).executeTakeFirstOrThrow(),
+				db.selectFrom('claim_party').select(['id', 'deleted_at']).where('id', '=', childClaimParty.id).executeTakeFirstOrThrow(),
+			]);
+			expect(archivedParent.deleted_at).not.toBeNull();
+			expect(archivedChild.deleted_at).not.toBeNull();
+		});
+
+		it('should cascade archive to coverages linked to the claim_party', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+				claim_party_id: claimParty.id,
+				coverage_amount: 5000,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await archiveClaimParty(ctx, claimParty.id);
+
+			// Coverage should be soft-deleted
+			const archivedCoverage = await db
+				.selectFrom('claim_coverage')
+				.select(['id', 'deleted_at', 'claim_party_id'])
+				.where('id', '=', coverage.id)
+				.executeTakeFirstOrThrow();
+			expect(archivedCoverage.deleted_at).not.toBeNull();
+			// claim_party_id is nullified per archiveCoveragesByClaimPartyIds
+			expect(archivedCoverage.claim_party_id).toBeNull();
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const client1 = await createTestClient(db, { name: 'Client A' });
+			const client2 = await createTestClient(db, { name: 'Client B' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client1.id });
+			const party = await createTestParty(db, { client_id: client1.id, created_by: user1.id, party_type: 'entity' });
+			const claimParty = await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client1.id,
+				created_by: user1.id,
+			});
+
+			// User from client2 should not be able to archive client1's claim_party
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			await expect(archiveClaimParty(ctx2, claimParty.id)).rejects.toThrow();
+		});
+	});
+
+	// ============================================================================
+	// TIER 2: getTotalLiabilityForClaim
+	// ============================================================================
+
+	describe('getTotalLiabilityForClaim', () => {
+		it('should sum liability_percentage from multiple entity parties', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Entity A' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Entity B' });
+
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: party1.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '30',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: party2.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '25',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const total = await getTotalLiabilityForClaim(ctx, claim.id);
+			expect(total).toBe(55);
+		});
+
+		it('should exclude deleted claim_parties from the sum', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const activeParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Active' });
+			const deletedParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Deleted' });
+
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: activeParty.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '40',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: deletedParty.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '20', deleted_at: new Date(), deleted_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const total = await getTotalLiabilityForClaim(ctx, claim.id);
+			// Only the active party's 40% should count, deleted party excluded
+			expect(total).toBe(40);
+		});
+
+		it('should exclude non-entity (facilitator) parties from the sum', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const entityParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Entity' });
+			const facilitatorParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'facilitator', name: 'Facilitator' });
+
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: entityParty.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '50',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: facilitatorParty.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '30',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const total = await getTotalLiabilityForClaim(ctx, claim.id);
+			// Only entity party's 50% should count
+			expect(total).toBe(50);
+		});
+
+		it('should exclude specified claim_party via excludeClaimPartyId', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+
+			const cp1 = await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: party1.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '30',
+			});
+			await createTestClaimParty(db, {
+				claim_id: claim.id, party_id: party2.id, client_id: client.id,
+				created_by: user.id, liability_percentage: '20',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const total = await getTotalLiabilityForClaim(ctx, claim.id, cp1.id);
+			// Should only count party2's 20%
+			expect(total).toBe(20);
+		});
+
+		it('should return 0 when no parties exist', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+			const total = await getTotalLiabilityForClaim(ctx, claim.id);
+			expect(total).toBe(0);
+		});
+	});
+
+	// ============================================================================
+	// TIER 2: linkPartyToClaim
+	// ============================================================================
+
+	describe('linkPartyToClaim', () => {
+		it('should create claim_party with role array and liability', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const { claimParty } = await linkPartyToClaim(ctx, {
+				claim_id: claim.id,
+				party_id: party.id,
+				role: ['insured', 'claimant'],
+				liability_percentage: 45,
+			});
+
+			expect(claimParty.claim_id).toBe(claim.id);
+			expect(claimParty.party_id).toBe(party.id);
+			expect(claimParty.role).toEqual(['insured', 'claimant']);
+			expect(parseFloat(claimParty.liability_percentage!)).toBe(45);
+			expect(claimParty.client_id).toBe(client.id);
+		});
+
+		it('should reject when total liability would exceed 100%', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P1' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P2' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create first with 70% liability
+			await linkPartyToClaim(ctx, {
+				claim_id: claim.id,
+				party_id: party1.id,
+				role: ['adverse_carrier'],
+				liability_percentage: 70,
+			});
+
+			// Attempt to add another with 40% should fail (total 110%)
+			await expect(
+				linkPartyToClaim(ctx, {
+					claim_id: claim.id,
+					party_id: party2.id,
+					role: ['adverse_carrier'],
+					liability_percentage: 40,
+				})
+			).rejects.toThrow(/100%/);
+		});
+
+		it('should allow null liability without validation', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P1' });
+			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P2' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create first with 90% liability
+			await linkPartyToClaim(ctx, {
+				claim_id: claim.id,
+				party_id: party1.id,
+				role: ['adverse_carrier'],
+				liability_percentage: 90,
+			});
+
+			// null liability should skip validation entirely
+			const { claimParty } = await linkPartyToClaim(ctx, {
+				claim_id: claim.id,
+				party_id: party2.id,
+				role: ['adverse_carrier'],
+			});
+
+			expect(claimParty.liability_percentage).toBeNull();
+		});
+
+		it('should enforce tenant isolation on liability validation', async () => {
+			const client1 = await createTestClient(db, { name: 'Link Client 1' });
+			const client2 = await createTestClient(db, { name: 'Link Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const claim1 = await createTestClaim(db, { client_id: client1.id });
+			const claim2 = await createTestClaim(db, { client_id: client2.id });
+			const party1 = await createTestParty(db, { client_id: client1.id, created_by: user1.id, party_type: 'entity' });
+			const party2 = await createTestParty(db, { client_id: client2.id, created_by: user2.id, party_type: 'entity' });
+
+			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Both clients add 80% to their own claims -- should work independently
+			await linkPartyToClaim(ctx1, {
+				claim_id: claim1.id, party_id: party1.id, role: ['insured'], liability_percentage: 80,
+			});
+			const { claimParty: cp2 } = await linkPartyToClaim(ctx2, {
+				claim_id: claim2.id, party_id: party2.id, role: ['insured'], liability_percentage: 80,
+			});
+
+			expect(cp2.liability_percentage).not.toBeNull();
+			expect(parseFloat(cp2.liability_percentage!)).toBe(80);
+		});
+	});
+
+	// ============================================================================
+	// TIER 2: archiveParty
+	// ============================================================================
+
+	describe('archiveParty', () => {
+		it('should cascade soft-delete to address, phone, email, and representative', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
+
+			const address = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id });
+			const phone = await createTestPartyPhone(db, { party_id: party.id, client_id: client.id, created_by: user.id });
+			const email = await createTestPartyEmail(db, { party_id: party.id, client_id: client.id, created_by: user.id });
+			const rep = await createTestPartyRepresentative(db, { party_id: party.id, created_by: user.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin', email: 'test@test.com' });
+
+			const result = await archiveParty(ctx, party.id);
+			expect(result.deleted_at).not.toBeNull();
+
+			// Verify all sub-entities are soft-deleted
+			const [addrRow, phoneRow, emailRow, repRow] = await Promise.all([
+				db.selectFrom('party_address').select(['id', 'deleted_at']).where('id', '=', address.id).executeTakeFirstOrThrow(),
+				db.selectFrom('party_phone').select(['id', 'deleted_at']).where('id', '=', phone.id).executeTakeFirstOrThrow(),
+				db.selectFrom('party_email').select(['id', 'deleted_at']).where('id', '=', email.id).executeTakeFirstOrThrow(),
+				db.selectFrom('party_representative').select(['id', 'deleted_at']).where('id', '=', rep.id).executeTakeFirstOrThrow(),
+			]);
+			expect(addrRow.deleted_at).not.toBeNull();
+			expect(phoneRow.deleted_at).not.toBeNull();
+			expect(emailRow.deleted_at).not.toBeNull();
+			expect(repRow.deleted_at).not.toBeNull();
+		});
+
+		it('should throw when party has active claim associations', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const claim = await createTestClaim(db, { client_id: client.id, substatus: 'Open' });
+			await createTestClaimParty(db, {
+				claim_id: claim.id,
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin', email: 'test@test.com' });
+
+			await expect(archiveParty(ctx, party.id)).rejects.toThrow(/active claim/i);
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const client1 = await createTestClient(db, { name: 'Archive Client 1' });
+			const client2 = await createTestClient(db, { name: 'Archive Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const party = await createTestParty(db, { client_id: client1.id, created_by: user1.id });
+
+			// User from client2 should not be able to archive client1's party
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin', email: 'test2@test.com' });
+
+			// getActiveClaimAssociations scoped to client2 returns empty, so guard passes,
+			// but the update query scoped to client2 won't match client1's party -> throws
+			await expect(archiveParty(ctx2, party.id)).rejects.toThrow();
+		});
+	});
+
+	// ============================================================================
+	// TIER 2: restoreParty
+	// ============================================================================
+
+	describe('restoreParty', () => {
+		it('should clear deleted_at on party and all 4 sub-entity tables', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin', email: 'test@test.com' });
+
+			// Create party with all 4 sub-entity types
+			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Restore Full Test' });
+			const address = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id, name: 'Office' });
+			const phone = await createTestPartyPhone(db, { party_id: party.id, client_id: client.id, created_by: user.id, phone_number: '555-1234' });
+			const email = await createTestPartyEmail(db, { party_id: party.id, client_id: client.id, created_by: user.id, email_address: 'test@example.com' });
+			const rep = await createTestPartyRepresentative(db, { party_id: party.id, created_by: user.id });
+
+			// Archive the party (cascades to all sub-entities)
+			await archiveParty(ctx, party.id);
+
+			// Verify everything is archived
+			const archivedParty = await db.selectFrom('party').select(['deleted_at']).where('id', '=', party.id).executeTakeFirstOrThrow();
+			expect(archivedParty.deleted_at).not.toBeNull();
+
+			// Act - restore the party
+			await restoreParty(ctx, party.id);
+
+			// Assert - party is restored
+			const restoredParty = await getParty(ctx, party.id);
+			expect(restoredParty?.deleted_at).toBeNull();
+
+			// Assert - address is restored
+			const addresses = await getPartyAddresses(ctx, party.id);
+			expect(addresses.some((a) => a.id === address.id)).toBe(true);
+
+			// Assert - phone is restored
+			const phones = await getPartyPhones(ctx, party.id);
+			expect(phones.some((p) => p.id === phone.id)).toBe(true);
+
+			// Assert - email is restored
+			const emails = await getPartyEmails(ctx, party.id);
+			expect(emails.some((e) => e.id === email.id)).toBe(true);
+
+			// Assert - representative is restored
+			const reps = await getPartyRepresentatives(ctx, party.id);
+			expect(reps.some((r) => r.id === rep.id)).toBe(true);
+		});
+
+		it('should enforce tenant isolation - cannot restore another client party', async () => {
+			const client1 = await createTestClient(db, { name: 'Restore Client 1' });
+			const client2 = await createTestClient(db, { name: 'Restore Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+
+			// Create and archive a party belonging to client1
+			const party = await createTestParty(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				deleted_at: new Date(),
+				deleted_by: user1.email!,
+			});
+
+			// User from client2 should not be able to restore client1's party
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			await expect(restoreParty(ctx2, party.id)).rejects.toThrow();
 		});
 	});
 });

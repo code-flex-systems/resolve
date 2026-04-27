@@ -35,6 +35,12 @@ let testDb: Kysely<DB> | null = null;
 export function getTestDb(): Kysely<DB> {
 	if (!testDb) {
 		testPool = new Pool(TEST_DB_CONFIG);
+		// Set search_path on every new connection so raw SQL fragments resolve
+		// unqualified table names against the test schema (Kysely's withSchema
+		// only applies to the query builder, not raw `sql` template literals).
+		testPool.on('connect', (client) => {
+			client.query(`SET search_path TO ${TEST_SCHEMA}, public`);
+		});
 		testDb = new Kysely<DB>({
 			dialect: new PostgresDialect({ pool: testPool }),
 		}).withSchema(TEST_SCHEMA);

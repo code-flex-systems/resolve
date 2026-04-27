@@ -32,8 +32,8 @@ export async function createTestClaim(
 		recovery_status?: string | null;
 		substatus?: string | null;
 		created_by?: string | null;
-		desk_location_id?: number | null;
-		feed_id?: number | null;
+		desk_location_id?: string | null;
+		feed_id?: string | null;
 	}
 ) {
 	claimCounter++;
@@ -76,8 +76,8 @@ export async function createTestClaimCoverage(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
-		claim_party_id?: number | null;
+		claim_id: string;
+		claim_party_id?: string | null;
 		loss_type: string;
 		coverage_amount?: number | string | null;
 		amount_reserved?: number | string | null;

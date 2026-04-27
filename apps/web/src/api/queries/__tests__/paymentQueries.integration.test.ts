@@ -702,7 +702,7 @@ describe('paymentQueries integration', () => {
 			// Act & Assert
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return updatePayment({ ...ctx, db: trx }, 999999, { payment_amount: 1000 });
+					return updatePayment({ ...ctx, db: trx }, '00000000-0000-0000-0000-000000000000', { payment_amount: 1000 });
 				})
 			).rejects.toThrow('Payment not found');
 		});
@@ -810,7 +810,7 @@ describe('paymentQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await getPaymentForArchive(ctx, 999999);
+			const result = await getPaymentForArchive(ctx, '00000000-0000-0000-0000-000000000000');
 
 			// Assert
 			expect(result).toBeUndefined();
@@ -870,6 +870,102 @@ describe('paymentQueries integration', () => {
 
 			// Assert
 			expect(result).toBeUndefined();
+		});
+	});
+
+	describe('archivePayment', () => {
+		it('should not change claim_amount when archiving non-subrogable payment', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			// Create a subrogable payment so claim_amount has a value
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '5000',
+				is_subrogable: true,
+			});
+
+			// Create a non-subrogable payment to archive
+			const nonSubrogablePayment = await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '3000',
+				is_subrogable: false,
+			});
+
+			// Set claim_amount to reflect the subrogable payment only
+			await db.updateTable('claim').set({ claim_amount: '5000' }).where('id', '=', claim.id).execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - archive the non-subrogable payment
+			await db.transaction().execute(async (trx) => {
+				return archivePayment({ ...ctx, db: trx }, nonSubrogablePayment.id, claim.id);
+			});
+
+			// Assert - claim_amount should remain unchanged at 5000
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(5000);
+		});
+
+		it('should set deleted_at and exclude archived payment from getPayments', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const payment = await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				description: 'To be archived',
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				description: 'Stays active',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await db.transaction().execute(async (trx) => {
+				return archivePayment({ ...ctx, db: trx }, payment.id, claim.id);
+			});
+
+			// Assert - returned payment has deleted_at set
+			expect(result.deleted_at).not.toBeNull();
+			expect(result.deleted_by).toBe(user.id);
+
+			// Assert - archived payment excluded from getPayments, active one remains
+			const payments = await getPayments(ctx, claim.id);
+			expect(payments).toHaveLength(1);
+			expect(payments[0].description).toBe('Stays active');
 		});
 	});
 
@@ -967,7 +1063,7 @@ describe('paymentQueries integration', () => {
 			// Act & Assert
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return archivePayment({ ...ctx, db: trx }, 999999, claim.id);
+					return archivePayment({ ...ctx, db: trx }, '00000000-0000-0000-0000-000000000000', claim.id);
 				})
 			).rejects.toThrow();
 		});
@@ -1036,6 +1132,165 @@ describe('paymentQueries integration', () => {
 					return archivePayment({ ...ctx2, db: trx }, payment.id, claim.id);
 				})
 			).rejects.toThrow();
+		});
+	});
+
+	describe('recalculateClaimAmount', () => {
+		it('should set claim_amount to null when no payments exist', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Set a non-null claim_amount to verify it gets cleared
+			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+
+			// Act - no payments exist for this claim
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(updatedClaim?.claim_amount).toBeNull();
+		});
+
+		it('should set claim_amount to null when only non-subrogable payments exist', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '5000',
+				is_subrogable: false,
+			});
+
+			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert - no subrogable payments, so sum is null
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(updatedClaim?.claim_amount).toBeNull();
+		});
+
+		it('should handle decimal precision correctly', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '1234.56',
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '7890.99',
+				is_subrogable: true,
+			});
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert - should preserve decimal precision: 1234.56 + 7890.99 = 9125.55
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(9125.55);
+		});
+
+		it('should only count subrogable payments in mix of subrogable and non-subrogable', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const coverage = await createTestCoverage(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '1000',
+				is_subrogable: true,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '2000',
+				is_subrogable: false,
+			});
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '3000',
+				is_subrogable: true,
+			});
+			// Deleted subrogable payment should be excluded
+			await createTestPayment(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				coverage_id: coverage.id,
+				created_by: user.id,
+				payment_amount: '5000',
+				is_subrogable: true,
+				deleted_at: new Date(),
+				deleted_by: user.id,
+			});
+
+			// Act
+			await recalculateClaimAmount(db, claim.id, client.id);
+
+			// Assert - only active subrogable: 1000 + 3000 = 4000
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['claim_amount'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+
+			expect(parseFloat(updatedClaim?.claim_amount as string)).toBe(4000);
 		});
 	});
 

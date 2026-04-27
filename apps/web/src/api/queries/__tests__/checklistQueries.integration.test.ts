@@ -38,6 +38,7 @@ import {
 	getChecklistClaimProgress,
 	getChecklistClaimStats,
 	getChecklistSummary,
+	getChecklistSummaryDetail,
 	getChecklistClaims,
 	exportChecklistClaims,
 	getRecentChecklistClaims,
@@ -45,7 +46,7 @@ import {
 } from '../checklistQueries';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
-import { ClaimStatus } from '@/config/enums';
+import { ClaimStatus, SummarySegment } from '@/config/enums';
 
 describe('checklistQueries integration', () => {
 	let db: Kysely<DB>;
@@ -677,10 +678,7 @@ describe('checklistQueries integration', () => {
 		});
 	});
 
-	// Note: getChecklistClaimProgress tests are skipped because the function uses raw SQL
-	// with unqualified table names that don't work with the test schema isolation pattern.
-	// The raw SQL references 'question_response_answer' without the 'test.' schema prefix.
-	describe.skip('getChecklistClaimProgress', () => {
+	describe('getChecklistClaimProgress', () => {
 		it('should return zero progress for checklist with no responses', async () => {
 			// Arrange
 			const client = await createTestClient(db);
@@ -820,32 +818,1028 @@ describe('checklistQueries integration', () => {
 			expect(result.totalQuestionCount).toBe(1);
 			expect(result.answerCount).toBe(1);
 		});
-	});
 
-	// Note: getChecklistSummary and getChecklistSummaryDetail tests are skipped because
-	// they use raw SQL with unqualified table names that don't work with the test schema
-	// isolation pattern (same issue as getChecklistClaimProgress).
-	describe.skip('getChecklistSummary', () => {
-		it('should return summary counts for a checklist claim', async () => {
-			// This test would verify:
-			// - total_questions count
-			// - total_answered count
-			// - total_action_required count
-			// - total_unknown count
+		it('should not count questions on locked child pages until parent answer unlocks them', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Parent page with one question and two answers (one of which unlocks a child page)
+			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const parentInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+			const parentQuestion = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				created_by: user.id,
+			});
+
+			// Child page (locked until parent answer is selected)
+			const childPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const childInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				checklist_id: checklist.id,
+				parent_instance_id: parentInstance.id,
+				created_by: user.id,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				created_by: user.id,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				created_by: user.id,
+			});
+
+			// Answer that unlocks the child page
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: parentQuestion.id,
+				created_by: user.id,
+				text: 'Yes - unlock child',
+				calls_instance_id: childInstance.id,
+			});
+			// Answer that does NOT unlock the child page
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: parentQuestion.id,
+				created_by: user.id,
+				text: 'No',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - no responses yet, child page should be locked
+			const result = await getChecklistClaimProgress(ctx, checklist.id, claim.id);
+
+			// Assert - only parent's 1 question counted, child's 2 questions are hidden
+			expect(result.totalQuestionCount).toBe(1);
+			expect(result.answerCount).toBe(0);
+		});
+
+		it('should unlock child page questions when an unlocking answer is selected', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const parentInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+			const parentQuestion = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				created_by: user.id,
+			});
+
+			const childPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const childInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				checklist_id: checklist.id,
+				parent_instance_id: parentInstance.id,
+				created_by: user.id,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				created_by: user.id,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				created_by: user.id,
+			});
+
+			const unlockingAnswer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: parentQuestion.id,
+				created_by: user.id,
+				calls_instance_id: childInstance.id,
+			});
+
+			// User selects the unlocking answer on the parent question
+			const response = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: parentInstance.id,
+				claim_id: claim.id,
+				question_id: parentQuestion.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, {
+				response_id: response.id,
+				answer_id: unlockingAnswer.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistClaimProgress(ctx, checklist.id, claim.id);
+
+			// Assert - parent (1) + unlocked child (2) = 3 total, 1 answered (the unlocking answer)
+			expect(result.totalQuestionCount).toBe(3);
+			expect(result.answerCount).toBe(1);
+		});
+
+		it('should recursively unlock grandchild pages through nested answers', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// 3-level tree: parent -> child -> grandchild
+			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const parentInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+			const parentQuestion = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: parentPage.id,
+				created_by: user.id,
+			});
+
+			const childPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const childInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				checklist_id: checklist.id,
+				parent_instance_id: parentInstance.id,
+				created_by: user.id,
+			});
+			const childQuestion = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: childPage.id,
+				created_by: user.id,
+			});
+
+			const grandchildPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const grandchildInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: grandchildPage.id,
+				checklist_id: checklist.id,
+				parent_instance_id: childInstance.id,
+				created_by: user.id,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: grandchildPage.id,
+				created_by: user.id,
+			});
+
+			// Parent answer unlocks child
+			const parentAnswer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: parentQuestion.id,
+				created_by: user.id,
+				calls_instance_id: childInstance.id,
+			});
+			// Child answer unlocks grandchild
+			const childAnswer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: childQuestion.id,
+				created_by: user.id,
+				calls_instance_id: grandchildInstance.id,
+			});
+
+			// User selects parent's unlocking answer -> child unlocks
+			const parentResponse = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: parentInstance.id,
+				claim_id: claim.id,
+				question_id: parentQuestion.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, {
+				response_id: parentResponse.id,
+				answer_id: parentAnswer.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - first check: only parent + child unlocked, grandchild still locked
+			let result = await getChecklistClaimProgress(ctx, checklist.id, claim.id);
+			expect(result.totalQuestionCount).toBe(2); // parent + child
+			expect(result.answerCount).toBe(1);
+
+			// User selects child's unlocking answer -> grandchild unlocks
+			const childResponse = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: childInstance.id,
+				claim_id: claim.id,
+				question_id: childQuestion.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, {
+				response_id: childResponse.id,
+				answer_id: childAnswer.id,
+			});
+
+			// Act - second check: all 3 levels unlocked
+			result = await getChecklistClaimProgress(ctx, checklist.id, claim.id);
+			expect(result.totalQuestionCount).toBe(3);
+			expect(result.answerCount).toBe(2);
+		});
+
+		it('should not lock up on cycles (answer A unlocks page B, answer in B unlocks back to A)', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Two top-level page instances
+			const pageA = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const instanceA = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageA.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+			const questionA = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: pageA.id,
+				created_by: user.id,
+			});
+
+			const pageB = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const instanceB = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: pageB.id,
+				checklist_id: checklist.id,
+				parent_instance_id: instanceA.id,
+				created_by: user.id,
+			});
+			const questionB = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: pageB.id,
+				created_by: user.id,
+			});
+
+			// Cycle: answer in A calls B, answer in B calls A (would cycle without protection)
+			const answerA = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: questionA.id,
+				created_by: user.id,
+				calls_instance_id: instanceB.id,
+			});
+			const answerB = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: questionB.id,
+				created_by: user.id,
+				calls_instance_id: instanceA.id,
+			});
+
+			// Select both answers - the recursive CTE must detect the cycle and not loop
+			const responseA = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: instanceA.id,
+				claim_id: claim.id,
+				question_id: questionA.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, {
+				response_id: responseA.id,
+				answer_id: answerA.id,
+			});
+			const responseB = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: instanceB.id,
+				claim_id: claim.id,
+				question_id: questionB.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, {
+				response_id: responseB.id,
+				answer_id: answerB.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - this would hang or error without cycle detection in the CTE
+			const result = await getChecklistClaimProgress(ctx, checklist.id, claim.id);
+
+			// Assert - both questions counted exactly once despite the cycle
+			expect(result.totalQuestionCount).toBe(2);
+			expect(result.answerCount).toBe(2);
+		});
+
+		it('should enforce tenant isolation', async () => {
+			// Arrange - client A has a populated checklist
+			const clientA = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id, role: 'Admin' });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				published: true,
+			});
+			const claimA = await createTestClaim(db, { client_id: clientA.id });
+			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
+			await createTestPageInstance(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				checklist_id: checklistA.id,
+				created_by: userA.id,
+			});
+			await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+
+			// Client B tries to query client A's checklist+claim
+			const clientB = await createTestClient(db);
+			const userB = await createTestUser(db, { client_id: clientB.id, role: 'Admin' });
+			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistClaimProgress(ctxB, checklistA.id, claimA.id);
+
+			// Assert - client B sees nothing for client A's data
+			expect(result.totalQuestionCount).toBe(0);
+			expect(result.answerCount).toBe(0);
 		});
 	});
 
-	describe.skip('getChecklistSummaryDetail', () => {
-		it('should return detail rows for answered segment', async () => {
-			// This test would verify segment filtering for ANSWERED
+	describe('getChecklistSummary', () => {
+		it('should return all four counts populated correctly', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Q1: regular answer (answered, not action-required)
+			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q1Answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q1.id,
+				created_by: user.id,
+				text: 'Yes',
+			});
+			const r1 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q1.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: q1Answer.id });
+
+			// Q2: "Unknown" answer (answered AND action-required AND unknown)
+			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q2Answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q2.id,
+				created_by: user.id,
+				text: 'Unknown',
+			});
+			const r2 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q2.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r2.id, answer_id: q2Answer.id });
+
+			// Q3: unanswered
+			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummary(ctx, checklist.id, claim.id);
+
+			// Assert
+			expect(Number(result.total_questions)).toBe(3);
+			expect(Number(result.total_answered)).toBe(2);
+			expect(Number(result.total_action_required)).toBe(1);
+			expect(Number(result.total_unknown)).toBe(1);
 		});
 
-		it('should return detail rows for unanswered segment', async () => {
-			// This test would verify segment filtering for UNANSWERED
+		it('should count text-only responses as answered', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+			const q = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				type: 'freeform',
+			});
+			await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q.id,
+				created_by: user.id,
+				response_text: 'Some free-form answer',
+			});
+			// Control: a second unanswered question to confirm we count "1 answered" exactly
+			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummary(ctx, checklist.id, claim.id);
+
+			// Assert
+			expect(Number(result.total_questions)).toBe(2);
+			expect(Number(result.total_answered)).toBe(1);
+			expect(Number(result.total_action_required)).toBe(0);
+			expect(Number(result.total_unknown)).toBe(0);
 		});
 
-		it('should return count when mode is count', async () => {
-			// This test would verify count mode
+		it('should NOT count requires_upload responses without doc as answered', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Q1 (control): regular answer that IS counted as answered
+			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const a1 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q1.id,
+				created_by: user.id,
+				text: 'Yes',
+			});
+			const r1 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q1.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: a1.id });
+
+			// Q2: requires_upload answer selected, but no response_doc_id - should NOT count
+			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const a2 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q2.id,
+				created_by: user.id,
+				text: 'Upload required',
+				requires_upload: true,
+			});
+			const r2 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q2.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r2.id, answer_id: a2.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummary(ctx, checklist.id, claim.id);
+
+			// Assert
+			expect(Number(result.total_questions)).toBe(2);
+			expect(Number(result.total_answered)).toBe(1);
+		});
+
+		it('should count action-required answers via action table OR has_additional_info empty', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Q1: answer with an associated action - action_required
+			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const a1 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q1.id,
+				created_by: user.id,
+				text: 'Has action',
+			});
+			await db
+				.insertInto('action')
+				.values({
+					answer_id: a1.id,
+					client_id: client.id,
+					type: 'task',
+					definition: JSON.stringify({ title: 'Do something' }),
+					created_by: user.id,
+				})
+				.execute();
+			const r1 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q1.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: a1.id });
+
+			// Q2: has_additional_info=true with empty additional_info - action_required
+			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const a2 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q2.id,
+				created_by: user.id,
+				text: 'Needs detail',
+				has_additional_info: true,
+			});
+			const r2 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q2.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, {
+				response_id: r2.id,
+				answer_id: a2.id,
+				additional_info: '',
+			});
+
+			// Q3 (control): a plain answer that is NOT action-required
+			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const a3 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q3.id,
+				created_by: user.id,
+				text: 'Plain answer',
+			});
+			const r3 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q3.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r3.id, answer_id: a3.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummary(ctx, checklist.id, claim.id);
+
+			// Assert
+			expect(Number(result.total_questions)).toBe(3);
+			expect(Number(result.total_answered)).toBe(3);
+			expect(Number(result.total_action_required)).toBe(2);
+			expect(Number(result.total_unknown)).toBe(0);
+		});
+
+		it('should isolate by client_id', async () => {
+			// Arrange - client A has data, client B queries for the same checklist+claim ids
+			const clientA = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id, role: 'Admin' });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				published: true,
+			});
+			const claimA = await createTestClaim(db, { client_id: clientA.id });
+			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
+			await createTestPageInstance(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				checklist_id: checklistA.id,
+				created_by: userA.id,
+			});
+			await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+			await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+
+			const clientB = await createTestClient(db);
+			const userB = await createTestUser(db, { client_id: clientB.id, role: 'Admin' });
+			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, role: 'Admin' });
+
+			// Act - client B queries client A's IDs
+			const result = await getChecklistSummary(ctxB, checklistA.id, claimA.id);
+
+			// Assert - all zeros because page_instance.client_id is filtered by client B
+			expect(Number(result.total_questions)).toBe(0);
+			expect(Number(result.total_answered)).toBe(0);
+			expect(Number(result.total_action_required)).toBe(0);
+			expect(Number(result.total_unknown)).toBe(0);
+		});
+	});
+
+	describe('getChecklistSummaryDetail', () => {
+		it('ANSWERED segment returns only questions with responses', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Detail Page' });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Answered question
+			const qAnswered = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Answered question',
+			});
+			const ans = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: qAnswered.id,
+				created_by: user.id,
+				text: 'Yes',
+			});
+			const resp = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: qAnswered.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: resp.id, answer_id: ans.id });
+
+			// Unanswered question (control)
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Unanswered question',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummaryDetail(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				segment: SummarySegment.ANSWERED,
+			});
+
+			// Assert
+			expect(result.count).toBe(1);
+			expect(result.rows).toHaveLength(1);
+			expect(result.rows[0].question_text).toBe('Answered question');
+			expect(result.rows[0].answer_texts).toBe('Yes');
+		});
+
+		it('UNANSWERED segment returns only questions without responses', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'P' });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Answered question (control)
+			const qAnswered = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Answered Q',
+			});
+			const ans = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: qAnswered.id,
+				created_by: user.id,
+				text: 'Yes',
+			});
+			const resp = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: qAnswered.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: resp.id, answer_id: ans.id });
+
+			// Unanswered question
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Unanswered Q',
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummaryDetail(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				segment: SummarySegment.UNANSWERED,
+			});
+
+			// Assert
+			expect(result.count).toBe(1);
+			expect(result.rows).toHaveLength(1);
+			expect(result.rows[0].question_text).toBe('Unanswered Q');
+		});
+
+		it('ACTION_REQUIRED segment returns only action-required answers', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'P' });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// Q1: action-required via attached action
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1 with action',
+			});
+			const a1 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q1.id,
+				created_by: user.id,
+				text: 'Yes',
+			});
+			await db
+				.insertInto('action')
+				.values({
+					answer_id: a1.id,
+					client_id: client.id,
+					type: 'task',
+					definition: JSON.stringify({ title: 'Follow-up' }),
+					created_by: user.id,
+				})
+				.execute();
+			const r1 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q1.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: a1.id });
+
+			// Q2 (control): plain answered, NOT action-required
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2 plain',
+			});
+			const a2 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: q2.id,
+				created_by: user.id,
+				text: 'No',
+			});
+			const r2 = await createTestQuestionResponse(db, {
+				client_id: client.id,
+				checklist_id: checklist.id,
+				instance_id: pageInstance.id,
+				claim_id: claim.id,
+				question_id: q2.id,
+				created_by: user.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: r2.id, answer_id: a2.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const result = await getChecklistSummaryDetail(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				segment: SummarySegment.ACTION_REQUIRED,
+			});
+
+			// Assert
+			expect(result.count).toBe(1);
+			expect(result.rows).toHaveLength(1);
+			expect(result.rows[0].question_text).toBe('Q1 with action');
+		});
+
+		it('respects limit and offset, returns total via window function', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: true,
+			});
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'P' });
+			const pageInstance = await createTestPageInstance(db, {
+				client_id: client.id,
+				page_id: page.id,
+				checklist_id: checklist.id,
+				created_by: user.id,
+			});
+
+			// 3 unanswered questions
+			for (let i = 0; i < 3; i++) {
+				await createTestQuestion(db, {
+					client_id: client.id,
+					page_id: page.id,
+					created_by: user.id,
+					text: `Q${i}`,
+					position: i,
+				});
+			}
+
+			// Avoid no-unused-vars: pageInstance is referenced via the join in the source
+			void pageInstance;
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - page 1: limit 2
+			const page1 = await getChecklistSummaryDetail(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				segment: SummarySegment.UNANSWERED,
+				limit: 2,
+				offset: 0,
+			});
+
+			// Page 2: limit 2 offset 2
+			const page2 = await getChecklistSummaryDetail(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+				segment: SummarySegment.UNANSWERED,
+				limit: 2,
+				offset: 2,
+			});
+
+			// Assert
+			expect(page1.count).toBe(3);
+			expect(page1.rows).toHaveLength(2);
+			expect(page2.count).toBe(3);
+			expect(page2.rows).toHaveLength(1);
+		});
+
+		it('isolates by client_id', async () => {
+			// Arrange - client A has answered data
+			const clientA = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id, role: 'Admin' });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				published: true,
+			});
+			const claimA = await createTestClaim(db, { client_id: clientA.id });
+			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
+			const piA = await createTestPageInstance(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				checklist_id: checklistA.id,
+				created_by: userA.id,
+			});
+			const qA = await createTestQuestion(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				created_by: userA.id,
+			});
+			const ansA = await createTestAnswer(db, {
+				client_id: clientA.id,
+				question_id: qA.id,
+				created_by: userA.id,
+			});
+			const respA = await createTestQuestionResponse(db, {
+				client_id: clientA.id,
+				checklist_id: checklistA.id,
+				instance_id: piA.id,
+				claim_id: claimA.id,
+				question_id: qA.id,
+				created_by: userA.id,
+			});
+			await createTestQuestionResponseAnswer(db, { response_id: respA.id, answer_id: ansA.id });
+
+			const clientB = await createTestClient(db);
+			const userB = await createTestUser(db, { client_id: clientB.id, role: 'Admin' });
+			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, role: 'Admin' });
+
+			// Act - client B requests detail for client A's IDs
+			const result = await getChecklistSummaryDetail(ctxB, {
+				checklistId: checklistA.id,
+				claimId: claimA.id,
+				segment: SummarySegment.ANSWERED,
+			});
+
+			// Assert
+			expect(result.count).toBe(0);
+			expect(result.rows).toEqual([]);
 		});
 	});
 

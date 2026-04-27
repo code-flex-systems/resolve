@@ -54,7 +54,7 @@ async function createSettlementChain(
 		created_by,
 	}: {
 		client_id: string;
-		claim_id: number;
+		claim_id: string;
 		created_by: string;
 	}
 ) {
@@ -969,11 +969,7 @@ describe('recoveryQueries integration', () => {
 			});
 
 			// Manually update claim actual_recovery to simulate creation
-			await db
-				.updateTable('claim')
-				.set({ actual_recovery: '5000' })
-				.where('id', '=', claim.id)
-				.execute();
+			await db.updateTable('claim').set({ actual_recovery: '5000' }).where('id', '=', claim.id).execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -999,7 +995,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert
-			await expect(archiveRecoveryEvent(ctx, 999999, claim.id)).rejects.toThrow(
+			await expect(archiveRecoveryEvent(ctx, '00000000-0000-0000-0000-000000000000', claim.id)).rejects.toThrow(
 				'Recovery event not found'
 			);
 		});
@@ -1026,9 +1022,7 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert - Wrong claim ID should fail
-			await expect(archiveRecoveryEvent(ctx, event.id, claim2.id)).rejects.toThrow(
-				'Recovery event not found'
-			);
+			await expect(archiveRecoveryEvent(ctx, event.id, claim2.id)).rejects.toThrow('Recovery event not found');
 
 			// Verify event still exists
 			const stillExists = await db
@@ -1062,9 +1056,7 @@ describe('recoveryQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act & Assert - Other client should not be able to delete
-			await expect(archiveRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow(
-				'Recovery event not found'
-			);
+			await expect(archiveRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow('Recovery event not found');
 		});
 	});
 
@@ -1141,11 +1133,7 @@ describe('recoveryQueries integration', () => {
 				recovery_amount: '2500',
 			});
 
-			await db
-				.updateTable('claim')
-				.set({ actual_recovery: '0' })
-				.where('id', '=', claim.id)
-				.execute();
+			await db.updateTable('claim').set({ actual_recovery: '0' }).where('id', '=', claim.id).execute();
 
 			// Act
 			await db.transaction().execute(async (trx) => {
@@ -1709,11 +1697,9 @@ describe('recoveryQueries integration', () => {
 			rangeEnd.setDate(today.getDate() + 1);
 
 			// Act
-			const result = await getRecoveryMetricsSummary(
-				ctx,
-				[rangeStart, rangeEnd],
-				{ recoverySource: 'insurance' }
-			);
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd], {
+				recoverySource: 'insurance',
+			});
 
 			// Assert - only Insurance Payment (1000)
 			expect(result.total_actual).toBe(1000);
@@ -1769,11 +1755,9 @@ describe('recoveryQueries integration', () => {
 			rangeEnd.setDate(today.getDate() + 1);
 
 			// Act
-			const result = await getRecoveryMetricsSummary(
-				ctx,
-				[rangeStart, rangeEnd],
-				{ recoveryStatus: 'in_progress' }
-			);
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd], {
+				recoveryStatus: 'in_progress',
+			});
 
 			// Assert - only in_progress claim (1000)
 			expect(result.total_actual).toBe(1000);
@@ -1834,11 +1818,7 @@ describe('recoveryQueries integration', () => {
 			rangeEnd.setDate(today.getDate() + 1);
 
 			// Act
-			const result = await getRecoveryMetricsSummary(
-				ctx,
-				[rangeStart, rangeEnd],
-				{ checklistId: checklist1.id }
-			);
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd], { checklistId: checklist1.id });
 
 			// Assert - only checklist1's claim (1000)
 			expect(result.total_actual).toBe(1000);
@@ -2124,6 +2104,525 @@ describe('recoveryQueries integration', () => {
 			expect(result1[0]?.expected_recovery).toBe(3000);
 			expect(result2[0]?.actual_recovery).toBe(5000);
 			expect(result2[0]?.expected_recovery).toBe(10000);
+		});
+	});
+
+	describe('archiveRecoveryEvent (extended)', () => {
+		it('should throw NOT_FOUND when archiving an already-archived event', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const event = await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				recovery_amount: '1000',
+			});
+
+			// Set claim actual_recovery to match
+			await db.updateTable('claim').set({ actual_recovery: '1000' }).where('id', '=', claim.id).execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act - first archive succeeds
+			await archiveRecoveryEvent(ctx, event.id, claim.id);
+
+			// Act & Assert - second archive should throw NOT_FOUND (already soft-deleted)
+			await expect(archiveRecoveryEvent(ctx, event.id, claim.id)).rejects.toThrow('Recovery event not found');
+		});
+
+		it('should correctly decrement claim.actual_recovery after multiple sequential archives', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create 3 events via createRecoveryEvent (which also increments actual_recovery)
+			const event1 = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 1000,
+			});
+			const event2 = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 2000,
+			});
+			const event3 = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 3000,
+			});
+
+			// Verify starting state: actual_recovery = 6000
+			let updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('6000');
+
+			// Act - archive event1 (1000)
+			await archiveRecoveryEvent(ctx, event1.id, claim.id);
+
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('5000');
+
+			// Act - archive event3 (3000)
+			await archiveRecoveryEvent(ctx, event3.id, claim.id);
+
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('2000');
+
+			// Act - archive event2 (2000)
+			await archiveRecoveryEvent(ctx, event2.id, claim.id);
+
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('0');
+		});
+	});
+
+	describe('updateRecoveryEvent (extended)', () => {
+		it('should not change claim.actual_recovery when updating non-amount fields', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 5000,
+				recovery_source: 'Original Source',
+				notes: 'Original notes',
+			});
+
+			// Verify starting state
+			let updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('5000');
+
+			// Get the event to update
+			const events = await getRecoveryEvents(ctx, claim.id);
+			const eventId = events[0].id;
+
+			// Act - update only notes and source (not amount)
+			const updated = await updateRecoveryEvent(ctx, eventId, {
+				notes: 'Updated notes',
+				recovery_source: 'Updated Source',
+			});
+
+			// Assert - fields updated
+			expect(updated.notes).toBe('Updated notes');
+			expect(updated.recovery_source).toBe('Updated Source');
+
+			// Assert - actual_recovery unchanged
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('5000');
+		});
+
+		it('should throw NOT_FOUND when updating a non-existent event', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act & Assert
+			await expect(
+				updateRecoveryEvent(ctx, '00000000-0000-0000-0000-000000000000', { notes: 'Should fail' })
+			).rejects.toThrow('Recovery event not found');
+		});
+
+		it('should enforce tenant isolation', async () => {
+			// Arrange
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client1.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
+
+			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
+
+			const event = await createRecoveryEvent(ctx1, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 1000,
+			});
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Act & Assert - other client cannot update the event
+			await expect(updateRecoveryEvent(ctx2, event.id, { notes: 'Hacked' })).rejects.toThrow(
+				'Recovery event not found'
+			);
+		});
+
+		it('should apply correct delta when updating recovery_amount', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create two events: 3000 + 2000 = 5000 total
+			const event1 = await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 3000,
+			});
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 2000,
+			});
+
+			// Act - decrease event1 from 3000 to 1000 (delta = -2000)
+			await updateRecoveryEvent(ctx, event1.id, { recovery_amount: 1000 });
+
+			// Assert - claim should be 5000 + (1000 - 3000) = 3000
+			let updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('3000');
+
+			// Act - increase event1 from 1000 to 4000 (delta = +3000)
+			await updateRecoveryEvent(ctx, event1.id, { recovery_amount: 4000 });
+
+			// Assert - claim should be 3000 + (4000 - 1000) = 6000
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('6000');
+		});
+	});
+
+	describe('archiveRecoveryEventsForSettlement', () => {
+		it('should soft-delete all recovery events for a settlement and decrement claim.actual_recovery', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create 3 events totaling 6000
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 1000,
+			});
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 2000,
+			});
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 3000,
+			});
+
+			// Verify starting state
+			let updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('6000');
+
+			// Act
+			const archived = await archiveRecoveryEventsForSettlement(ctx, settlement.id, claim.id);
+
+			// Assert - all 3 events returned
+			expect(archived).toHaveLength(3);
+
+			// Assert - all events are soft-deleted
+			const remainingEvents = await getRecoveryEvents(ctx, claim.id);
+			expect(remainingEvents).toHaveLength(0);
+
+			// Assert - claim.actual_recovery decremented by total (6000)
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('0');
+		});
+
+		it('should return empty array and not update claim when settlement has no recovery events', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			// Set a known actual_recovery value
+			await db.updateTable('claim').set({ actual_recovery: '5000' }).where('id', '=', claim.id).execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Act
+			const archived = await archiveRecoveryEventsForSettlement(ctx, settlement.id, claim.id);
+
+			// Assert - no events archived
+			expect(archived).toHaveLength(0);
+
+			// Assert - claim.actual_recovery unchanged (totalAmount is null, so no update)
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('5000');
+		});
+
+		it('should enforce tenant isolation', async () => {
+			// Arrange
+			const client1 = await createTestClient(db, { name: 'Client 1' });
+			const client2 = await createTestClient(db, { name: 'Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client1.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client1.id,
+				claim_id: claim.id,
+				created_by: user1.id,
+			});
+
+			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
+
+			await createRecoveryEvent(ctx1, claim.id, {
+				settlement_id: settlement.id,
+				recovery_date: new Date(),
+				recovery_amount: 3000,
+			});
+
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			// Act - other client tries to archive
+			const archived = await archiveRecoveryEventsForSettlement(ctx2, settlement.id, claim.id);
+
+			// Assert - no events archived (wrong client_id)
+			expect(archived).toHaveLength(0);
+
+			// Assert - original events still exist
+			const events = await getRecoveryEvents(ctx1, claim.id);
+			expect(events).toHaveLength(1);
+		});
+
+		it('should only archive events for the specified settlement, not other settlements on the same claim', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Create two settlements on the same claim
+			const { settlement: settlement1 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+			const { settlement: settlement2 } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Create events for settlement1
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement1.id,
+				recovery_date: new Date(),
+				recovery_amount: 1000,
+			});
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement1.id,
+				recovery_date: new Date(),
+				recovery_amount: 2000,
+			});
+
+			// Create events for settlement2
+			await createRecoveryEvent(ctx, claim.id, {
+				settlement_id: settlement2.id,
+				recovery_date: new Date(),
+				recovery_amount: 4000,
+			});
+
+			// Total actual_recovery = 7000
+			let updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('7000');
+
+			// Act - archive only settlement1's events
+			const archived = await archiveRecoveryEventsForSettlement(ctx, settlement1.id, claim.id);
+
+			// Assert - only 2 events archived (settlement1)
+			expect(archived).toHaveLength(2);
+
+			// Assert - settlement2's event still exists
+			const remainingEvents = await getRecoveryEvents(ctx, claim.id);
+			expect(remainingEvents).toHaveLength(1);
+			expect(remainingEvents[0].recovery_amount).toBe('4000');
+
+			// Assert - claim.actual_recovery decremented by 3000 (settlement1 total), leaving 4000
+			updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('4000');
+		});
+	});
+
+	describe('recalculateClaimRecovery (extended)', () => {
+		it('should set actual_recovery to sum of remaining events after some are archived', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+			const { settlement } = await createSettlementChain(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				created_by: user.id,
+			});
+
+			const event1 = await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				recovery_amount: '1000',
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				recovery_amount: '2000',
+			});
+			await createTestRecoveryEvent(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				settlement_id: settlement.id,
+				created_by: user.id,
+				recovery_amount: '3000',
+			});
+
+			// Soft-delete event1
+			await db
+				.updateTable('recovery_event')
+				.set({ deleted_at: new Date(), deleted_by: user.id })
+				.where('id', '=', event1.id)
+				.execute();
+
+			// Set actual_recovery to a wrong value to verify recalculation corrects it
+			await db.updateTable('claim').set({ actual_recovery: '9999' }).where('id', '=', claim.id).execute();
+
+			// Act
+			await db.transaction().execute(async (trx) => {
+				await recalculateClaimRecovery(trx, claim.id, client.id);
+			});
+
+			// Assert - should be sum of non-deleted events: 2000 + 3000 = 5000
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBe('5000');
+		});
+
+		it('should set actual_recovery to null when no active events exist', async () => {
+			// Arrange
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const claim = await createTestClaim(db, { client_id: client.id });
+
+			// Set actual_recovery to a non-zero value
+			await db.updateTable('claim').set({ actual_recovery: '5000' }).where('id', '=', claim.id).execute();
+
+			// Act - no recovery events exist at all
+			await db.transaction().execute(async (trx) => {
+				await recalculateClaimRecovery(trx, claim.id, client.id);
+			});
+
+			// Assert - should be null (no events to sum)
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.select(['actual_recovery'])
+				.where('id', '=', claim.id)
+				.executeTakeFirst();
+			expect(updatedClaim?.actual_recovery).toBeNull();
 		});
 	});
 
