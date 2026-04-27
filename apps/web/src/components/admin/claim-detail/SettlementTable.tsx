@@ -218,7 +218,7 @@ export default function SettlementTable({
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
-							<Tooltip content="`Edit ${params.row.type}`">
+							<Tooltip content={`Edit ${params.row.type}`}>
 							<Button variant="icon" size="sm" color="neutral" onClick={() =>
 										params.row.type === 'settlement'
 											? onEditSettlement(params.row.originalData)
@@ -226,7 +226,7 @@ export default function SettlementTable({
 							<IconEdit size={16} />
 						</Button>
 						</Tooltip>
-							<Tooltip content="`Archive ${params.row.type}`">
+							<Tooltip content={`Archive ${params.row.type}`}>
 							<Button variant="icon" size="sm" color="neutral" onClick={() =>
 										params.row.type === 'settlement'
 											? onArchiveSettlement(params.row.originalData)
