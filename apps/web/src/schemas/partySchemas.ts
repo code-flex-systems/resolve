@@ -88,7 +88,7 @@ export const getPartiesInput = z.object({
  * Get single party by ID
  */
 export const getPartyInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
@@ -141,7 +141,7 @@ export type CreatePartyInput = z.infer<typeof createPartyInput>;
  * Update party input
  */
 export const updatePartyInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
 		party_type: z.nativeEnum(PartyType).optional(),
 		is_business: z.boolean().optional(),
@@ -166,7 +166,7 @@ export type UpdatePartyInput = z.infer<typeof updatePartyInput>;
  * Delete party input
  */
 export const deletePartyInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 // ============================================================================
@@ -177,7 +177,7 @@ export const deletePartyInput = z.object({
  * Get party addresses
  */
 export const getPartyAddressesInput = z.object({
-	partyId: z.number().int().positive(),
+	partyId: z.string().uuid(),
 	showArchived: z.boolean().optional(),
 });
 
@@ -195,7 +195,7 @@ export const getAllPartyAddressesInput = z.object({
  * Get single party address by ID
  */
 export const getPartyAddressInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
@@ -203,7 +203,7 @@ export const getPartyAddressInput = z.object({
  */
 export const createPartyAddressInput = z
 	.object({
-		party_id: z.number().int().positive(),
+		party_id: z.string().uuid(),
 		name: z.string().max(255).optional(), // Label like "Home", "Work", "Headquarters"
 		address_type: addressTypeSchema.default('business'),
 		address_status: addressStatusSchema.default('valid'),
@@ -216,7 +216,7 @@ export type CreatePartyAddressInput = z.infer<typeof createPartyAddressInput>;
  * Update party address input
  */
 export const updatePartyAddressInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z
 		.object({
 			name: z.string().max(255).optional(),
@@ -232,14 +232,14 @@ export type UpdatePartyAddressInput = z.infer<typeof updatePartyAddressInput>;
  * Archive party address input (soft delete)
  */
 export const archivePartyAddressInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
  * Restore party address input
  */
 export const restorePartyAddressInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 // Legacy aliases for backwards compatibility
@@ -258,7 +258,7 @@ export const deletePartyOfficeInput = archivePartyAddressInput;
  * Get party phones
  */
 export const getPartyPhonesInput = z.object({
-	partyId: z.number().int().positive(),
+	partyId: z.string().uuid(),
 	showArchived: z.boolean().optional(),
 });
 
@@ -266,7 +266,7 @@ export const getPartyPhonesInput = z.object({
  * Create party phone input
  */
 export const createPartyPhoneInput = z.object({
-	party_id: z.number().int().positive(),
+	party_id: z.string().uuid(),
 	country_code: z.string().max(5).optional(),
 	area_code: z.string().max(10).optional(),
 	phone_number: z.string().min(1).max(20),
@@ -281,7 +281,7 @@ export type CreatePartyPhoneInput = z.infer<typeof createPartyPhoneInput>;
  * Update party phone input
  */
 export const updatePartyPhoneInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
 		country_code: z.string().max(5).optional(),
 		area_code: z.string().max(10).optional(),
@@ -298,14 +298,14 @@ export type UpdatePartyPhoneInput = z.infer<typeof updatePartyPhoneInput>;
  * Archive party phone input
  */
 export const archivePartyPhoneInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
  * Restore party phone input
  */
 export const restorePartyPhoneInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 // ============================================================================
@@ -316,7 +316,7 @@ export const restorePartyPhoneInput = z.object({
  * Get party emails
  */
 export const getPartyEmailsInput = z.object({
-	partyId: z.number().int().positive(),
+	partyId: z.string().uuid(),
 	showArchived: z.boolean().optional(),
 });
 
@@ -324,7 +324,7 @@ export const getPartyEmailsInput = z.object({
  * Create party email input
  */
 export const createPartyEmailInput = z.object({
-	party_id: z.number().int().positive(),
+	party_id: z.string().uuid(),
 	email_address: z.string().email(),
 	email_type: emailTypeSchema.default('business'),
 });
@@ -335,7 +335,7 @@ export type CreatePartyEmailInput = z.infer<typeof createPartyEmailInput>;
  * Update party email input
  */
 export const updatePartyEmailInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
 		email_address: z.string().email().optional(),
 		email_type: emailTypeSchema.optional(),
@@ -348,14 +348,14 @@ export type UpdatePartyEmailInput = z.infer<typeof updatePartyEmailInput>;
  * Archive party email input
  */
 export const archivePartyEmailInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
  * Restore party email input
  */
 export const restorePartyEmailInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 // ============================================================================
@@ -366,8 +366,8 @@ export const restorePartyEmailInput = z.object({
  * Get party representatives
  */
 export const getPartyRepresentativesInput = z.object({
-	partyId: z.number().int().positive(),
-	addressId: z.number().int().positive().optional(), // Renamed from officeId
+	partyId: z.string().uuid(),
+	addressId: z.string().uuid().optional(), // Renamed from officeId
 	showArchived: z.boolean().optional(),
 });
 
@@ -385,8 +385,8 @@ export const getAllPartyRepresentativesInput = z.object({
  * Create party representative input
  */
 export const createPartyRepresentativeInput = z.object({
-	party_id: z.number().int().positive(),
-	address_id: z.number().int().positive().optional(), // Renamed from office_id
+	party_id: z.string().uuid(),
+	address_id: z.string().uuid().optional(), // Renamed from office_id
 	first_name: z.string().min(1).max(100),
 	last_name: z.string().min(1).max(100),
 	title: z.string().max(100).optional(),
@@ -401,9 +401,9 @@ export const createPartyRepresentativeInput = z.object({
  * Update party representative input
  */
 export const updatePartyRepresentativeInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
-		address_id: z.number().int().positive().optional(), // Renamed from office_id
+		address_id: z.string().uuid().optional(), // Renamed from office_id
 		first_name: z.string().min(1).max(100).optional(),
 		last_name: z.string().min(1).max(100).optional(),
 		title: z.string().max(100).optional(),
@@ -419,14 +419,14 @@ export const updatePartyRepresentativeInput = z.object({
  * Archive party representative input (soft delete)
  */
 export const archivePartyRepresentativeInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
  * Restore party representative input
  */
 export const restorePartyRepresentativeInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 /**
@@ -442,7 +442,7 @@ export const deletePartyRepresentativeInput = archivePartyRepresentativeInput;
  * Get claim parties
  */
 export const getClaimPartiesInput = z.object({
-	claimId: z.number().int().positive(),
+	claimId: z.string().uuid(),
 	partyType: z.nativeEnum(PartyType).optional(),
 	roleListEntity: z.enum(['claimant_party_role', 'adverse_party_role']).optional(),
 });
@@ -454,12 +454,12 @@ export const getClaimPartiesInput = z.object({
  * Note: Free-form representative fields for entities, structured (representative_id + address_id) for facilitators
  */
 export const linkPartyToClaimInput = z.object({
-	claim_id: z.number().int().positive(),
-	party_id: z.number().int().positive(),
+	claim_id: z.string().uuid(),
+	party_id: z.string().uuid(),
 	role: z.array(z.string()).min(1), // Array of roles for this party on this claim
 	// Structured representative (for facilitators)
-	representative_id: z.number().int().positive().nullable().optional(),
-	address_id: z.number().int().positive().nullable().optional(),
+	representative_id: z.string().uuid().nullable().optional(),
+	address_id: z.string().uuid().nullable().optional(),
 	// Free-form representative field (for entities)
 	representative_name: z.string().max(200).nullable().optional(),
 	// Other fields
@@ -467,7 +467,7 @@ export const linkPartyToClaimInput = z.object({
 	liability_percentage: z.number().min(0).max(100).optional(),
 	notes: z.string().max(2000).optional(),
 	external_reference: z.string().max(255).optional(),
-	parent_claim_party_id: z.number().int().positive().nullable().optional(),
+	parent_claim_party_id: z.string().uuid().nullable().optional(),
 	// Facilitator-specific fields
 	loss_type: z.nativeEnum(LossType).nullable().optional(),
 	policy_limit: z.number().min(0).nullable().optional(),
@@ -480,12 +480,12 @@ export const linkPartyToClaimInput = z.object({
  * Note: Free-form representative fields for entities, structured (representative_id + address_id) for facilitators
  */
 export const updateClaimPartyInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 	params: z.object({
 		role: z.array(z.string()).min(1).optional(),
 		// Structured representative (for facilitators)
-		representative_id: z.number().int().positive().nullable().optional(),
-		address_id: z.number().int().positive().nullable().optional(),
+		representative_id: z.string().uuid().nullable().optional(),
+		address_id: z.string().uuid().nullable().optional(),
 		// Free-form representative field (for entities)
 		representative_name: z.string().max(200).nullable().optional(),
 		// Other fields
@@ -493,7 +493,7 @@ export const updateClaimPartyInput = z.object({
 		liability_percentage: z.number().min(0).max(100).nullable().optional(),
 		notes: z.string().max(2000).optional(),
 		external_reference: z.string().max(255).optional(),
-		parent_claim_party_id: z.number().int().positive().nullable().optional(),
+		parent_claim_party_id: z.string().uuid().nullable().optional(),
 		// Facilitator-specific fields
 		loss_type: z.nativeEnum(LossType).nullable().optional(),
 		policy_limit: z.number().min(0).nullable().optional(),
@@ -504,7 +504,7 @@ export const updateClaimPartyInput = z.object({
  * Unlink party from claim input
  */
 export const unlinkPartyFromClaimInput = z.object({
-	id: z.number().int().positive(),
+	id: z.string().uuid(),
 });
 
 // ============================================================================

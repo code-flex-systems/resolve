@@ -1,5 +1,6 @@
 'use client';
-import { Box, Checkbox, FormControlLabel, Link, Radio, Stack, Tooltip, Typography } from '@mui/material';
+import CheckboxUi from '@/components/ui/Checkbox';
+import Tooltip from '@/components/ui/Tooltip';
 import { ChecklistMode, QuestionType } from '@/config/enums';
 import { Question } from '@/types/types';
 import { ControllerRenderProps, FieldValues, UseFormWatch } from 'react-hook-form';
@@ -15,8 +16,8 @@ function AnswerWithImage(props: {
 	questionType: QuestionType;
 	field: ControllerRenderProps<FieldValues, string>;
 	disabled?: boolean;
-	visibleInstanceIds: number[];
-	goToPage: (instanceId: number, tree: any[]) => void;
+	visibleInstanceIds: string[];
+	goToPage: (instanceId: string, tree: any[]) => void;
 	tree: any[];
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
@@ -29,7 +30,7 @@ function AnswerWithImage(props: {
 		{
 			filters: { answer_id: a.id },
 		},
-		{ enabled: a.id !== -1 }
+		{ enabled: !!a.id }
 	);
 	const attachedImages = attachedImagesResult?.rows ?? [];
 
@@ -58,56 +59,70 @@ function AnswerWithImage(props: {
 
 	const answerComplete = isAnswerComplete();
 
+	const labelContent = (
+		<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+			{a.calls_instance_id &&
+			visibleInstanceIds.includes(a.calls_instance_id) &&
+			(answerComplete || mode === ChecklistMode.TEST) ? (
+				<button
+					onClick={() => goToPage(a.calls_instance_id!, tree)}
+					style={{
+						fontSize: 13,
+						color: 'var(--text-accent)',
+						background: 'none',
+						border: 'none',
+						padding: 0,
+						font: 'inherit',
+						cursor: 'pointer',
+					}}
+				>
+					{a.text}
+				</button>
+			) : (
+				<span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 13 }}>
+					{a.text}
+				</span>
+			)}
+			{attachedImage && (
+				<ImageTooltip
+					imageUrl={`/api/download?docId=${attachedImage.id}`}
+					description={attachedImage.title ?? undefined}
+				/>
+			)}
+		</div>
+	);
+
 	return (
-		<Tooltip key={a.id} placement="top" title={a.description_text ?? ''} arrow>
-			<FormControlLabel
-				control={
-					questionType === QuestionType.MULTI ? (
-						<Checkbox
-							checked={!!field.value?.includes(a.id)}
-							onChange={(e) => {
-								const newValue = e.target.checked
-									? [...(field.value ?? []), a.id]
-									: field.value?.filter((value: any) => value !== a.id);
-								field.onChange(newValue);
-							}}
-							disabled={disabled}
-							color="primary"
-						/>
-					) : (
-						<Radio
-							checked={!!field.value?.includes(a.id)}
-							onChange={(e) => {
-								const newValue = e.target.checked ? [a.id] : [];
-								field.onChange(newValue);
-							}}
-							disabled={disabled}
-							color="primary"
-						/>
-					)
-				}
-				label={
-					<Box display="flex" alignItems="center" gap={0.5}>
-						{a.calls_instance_id &&
-						visibleInstanceIds.includes(a.calls_instance_id) &&
-						(answerComplete || mode === ChecklistMode.TEST) ? (
-							<Link fontSize={13} color="info" onClick={() => goToPage(a.calls_instance_id!, tree)}>
-								{a.text}
-							</Link>
-						) : (
-							<Typography fontSize={13} noWrap>
-								{a.text}
-							</Typography>
-						)}
-						{attachedImage && (
-							<ImageTooltip
-								imageUrl={`/api/download?docId=${attachedImage.id}`}
-								description={attachedImage.title ?? undefined}
-							/>
-						)}
-					</Box>
-				}
-			/>
+		<Tooltip key={a.id} position="top" content={a.description_text ?? ''}>
+			{questionType === QuestionType.MULTI ? (
+				<CheckboxUi
+					checked={!!field.value?.includes(a.id)}
+					onChange={(checked) => {
+						const newValue = checked
+							? [...(field.value ?? []), a.id]
+							: field.value?.filter((value: any) => value !== a.id);
+						field.onChange(newValue);
+					}}
+					disabled={disabled}
+					label={a.text}
+				/>
+			) : (
+				<label
+					style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'default' : 'pointer' }}
+				>
+					<input
+						type="radio"
+						checked={!!field.value?.includes(a.id)}
+						onChange={(e) => {
+							const newValue = e.target.checked ? [a.id] : [];
+							field.onChange(newValue);
+						}}
+						disabled={disabled}
+						style={{ accentColor: 'var(--text-accent)' }}
+					/>
+					{labelContent}
+				</label>
+			)}
 		</Tooltip>
 	);
 }
@@ -119,18 +134,18 @@ export default function ChecklistAnswerRadio(props: {
 	watch: UseFormWatch<FieldValues>;
 }) {
 	const { field, question, disabled, watch } = props;
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const goToPage = useChecklistStore((state) => state.goToPage);
 	const { data = { tree: [], maxPosition: 0 } } = usePageTrpc().getInstanceTree(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 	return (
-		<Stack direction="row" flexWrap="wrap" spacing={0.5} useFlexGap padding="0px 10px">
+		<div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 15, padding: '0px 10px' }}>
 			{(question.answers ?? []).map((a) => (
 				<AnswerWithImage
 					key={a.id}
@@ -145,6 +160,6 @@ export default function ChecklistAnswerRadio(props: {
 					question={question}
 				/>
 			))}
-		</Stack>
+		</div>
 	);
 }

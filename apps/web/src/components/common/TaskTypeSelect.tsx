@@ -1,8 +1,8 @@
 'use client';
 
-import { FormControl, InputLabel, MenuItem, Select, ListItemIcon, ListItemText } from '@mui/material';
 import { TaskType } from '@/config/enums';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
+import Dropdown from '@/components/ui/Dropdown';
 
 interface TaskTypeSelectProps {
 	value: TaskType | null;
@@ -20,25 +20,24 @@ export default function TaskTypeSelect({
 	width = 400,
 }: TaskTypeSelectProps) {
 	return (
-		<FormControl sx={{ width }} required={required}>
-			<InputLabel>Task Type</InputLabel>
-			<Select
-				value={value ?? ''}
-				onChange={(e) => onChange(e.target.value as TaskType)}
-				disabled={disabled}
-				renderValue={(selected) => {
-					if (!selected) return '';
-					const config = TASK_TYPE_CONFIG[selected as TaskType];
-					return config?.label ?? selected;
-				}}
-			>
-				{Object.entries(TASK_TYPE_CONFIG).map(([type, config]) => (
-					<MenuItem key={type} value={type}>
-						<ListItemIcon sx={{ minWidth: 36 }}>{config.icon}</ListItemIcon>
-						<ListItemText primary={config.label} secondary={config.description} />
-					</MenuItem>
-				))}
-			</Select>
-		</FormControl>
+		<Dropdown inlineLabel
+			label="Task Type"
+			options={Object.entries(TASK_TYPE_CONFIG).map(([type, config]) => ({
+				value: type,
+				label: config.label,
+				icon: config.icon,
+				description: config.description,
+			}))}
+			value={value ?? ''}
+			onChange={(v) => onChange(v as TaskType)}
+			disabled={disabled}
+			required={required}
+			className={`task-type-select`}
+			renderValue={(val) => {
+				if (!val) return <span></span>;
+				const config = TASK_TYPE_CONFIG[val as TaskType];
+				return <span>{config?.label ?? String(val)}</span>;
+			}}
+		/>
 	);
 }

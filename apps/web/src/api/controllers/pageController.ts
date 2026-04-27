@@ -2,7 +2,8 @@ import * as pageQueries from '@/api/queries/pageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { TreeNode } from '@/types/types';
 import type { PageInstanceParams, PageParams, PageUpdateParams } from '@/schemas/pageSchemas';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Create a page template and attach an instance.
@@ -13,7 +14,7 @@ import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/
  */
 export async function createPage(
 	ctx: ProtectedContext,
-	{ checklistId, params }: { checklistId: number; params: PageParams }
+	{ checklistId, params }: { checklistId: string; params: PageParams }
 ) {
 	// Create page and instance, log admin actions within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
@@ -55,9 +56,9 @@ export async function copyPageTemplate(
 		pageId,
 		params,
 	}: {
-		checklistId: number;
-		pageId: number;
-		params: { parentId: number; position: number };
+		checklistId: string;
+		pageId: string;
+		params: { parentId?: string | null; position: number };
 	}
 ) {
 	// Copy page template and log admin action within transaction
@@ -91,8 +92,8 @@ export async function createPageInstance(
 		pageId,
 		params,
 	}: {
-		checklistId: number;
-		pageId: number;
+		checklistId: string;
+		pageId: string;
 		params: PageInstanceParams;
 	}
 ) {
@@ -125,7 +126,7 @@ export async function createPageInstance(
  * @param ctx - request context
  * @param input - instance id
  */
-export async function deletePageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: number }) {
+export async function deletePageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: string }) {
 	// Delete page instance and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Fetch instance data BEFORE deletion for logging
@@ -152,7 +153,7 @@ export async function deletePageInstance(ctx: ProtectedContext, { instanceId }: 
  * @param ctx - request context
  * @param input - page id
  */
-export async function getPage(ctx: ProtectedContext, { pageId }: { pageId: number }) {
+export async function getPage(ctx: ProtectedContext, { pageId }: { pageId: string }) {
 	const results = await pageQueries.getPage(ctx, pageId);
 	return results;
 }
@@ -173,7 +174,7 @@ export async function getPages(ctx: ProtectedContext) {
  * @param ctx - request context
  * @param input - instance id
  */
-export async function getPageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: number }) {
+export async function getPageInstance(ctx: ProtectedContext, { instanceId }: { instanceId: string }) {
 	const results = await pageQueries.getPageInstance(ctx, instanceId);
 	return results;
 }
@@ -186,7 +187,7 @@ export async function getPageInstance(ctx: ProtectedContext, { instanceId }: { i
  */
 export async function getPageInstances(
 	ctx: ProtectedContext,
-	{ checklistId, parentId }: { checklistId: number; parentId?: number }
+	{ checklistId, parentId }: { checklistId: string; parentId?: string | null }
 ) {
 	const results = await pageQueries.getPageInstances(ctx, checklistId, parentId);
 	return results;
@@ -201,7 +202,7 @@ export async function getPageInstances(
  */
 export async function getPageInstanceTree(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { checklistId: number; claimId?: number }
+	{ checklistId, claimId }: { checklistId: string; claimId?: string }
 ) {
 	// Fetch all page instances for the checklist or claim
 	const results =
@@ -210,7 +211,7 @@ export async function getPageInstanceTree(
 			: await pageQueries.getPageInstances(ctx, checklistId)) ?? [];
 
 	// Build adjacency map for O(1) child lookups instead of O(n) filter per node
-	const childrenByParent = new Map<number | null, typeof results>();
+	const childrenByParent = new Map<string | null, typeof results>();
 	for (const row of results) {
 		const parentId = row.parent_instance_id;
 		if (!childrenByParent.has(parentId)) {
@@ -221,7 +222,7 @@ export async function getPageInstanceTree(
 
 	// Recursively build tree node using O(1) lookups
 	function buildNode(row: (typeof results)[0]): TreeNode {
-		// instance_id is already a number from the DB, use it directly as map key
+		// instance_id is a UUID string, use it directly as map key
 		const instanceId = row.instance_id;
 		const children = childrenByParent.get(instanceId) ?? [];
 		return {
@@ -251,7 +252,7 @@ export async function getPageInstanceTree(
  */
 export async function getVisiblePageInstances(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { checklistId: number; claimId: number }
+	{ checklistId, claimId }: { checklistId: string; claimId: string }
 ) {
 	const results = await pageQueries.getVisiblePageInstances(ctx, checklistId, claimId);
 	return results;
@@ -265,7 +266,7 @@ export async function getVisiblePageInstances(
  */
 export async function modifyPage(
 	ctx: ProtectedContext,
-	{ id, params }: { id: number; params: PageUpdateParams }
+	{ id, params }: { id: string; params: PageUpdateParams }
 ) {
 	// Update page and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {

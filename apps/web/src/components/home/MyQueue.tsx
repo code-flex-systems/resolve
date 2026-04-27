@@ -1,26 +1,30 @@
 'use client';
-import { Box, Link, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
+
+import Link from 'next/link';
+import Card from '@/components/ui/Card';
+import { useClaimTrpc, type MyDeskClaimListItem } from '@/hooks/trpc/useClaimTrpc';
 import ClaimDetailPanel from '../admin/ClaimDetailPanel';
 import { useState } from 'react';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import ClaimStatusCell from '../metrics/Claims/ClaimStatusCell';
-
-dayjs.extend(relativeTime);
+import ClaimListItem, { ClaimListItemData } from '@/components/common/ClaimListItem';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconList } from '@tabler/icons-react';
 
 export default function MyQueue() {
-	const { isFetching, data: recentChecklistClaims = [] } = useChecklistTrpc().listRecents(undefined, {
-		refetchOnMount: 'always',
-		refetchOnWindowFocus: true,
-		staleTime: 0, // Always consider data stale
-	});
+	const { data, isFetching } = useClaimTrpc().listMyDeskClaims(
+		{ limit: 25 },
+		{
+			refetchOnMount: 'always',
+			refetchOnWindowFocus: true,
+			staleTime: 0,
+		}
+	);
 
-	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
+	const claims = data?.rows ?? [];
+
+	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 	const [panelOpen, setPanelOpen] = useState(false);
 
-	const handleRowClick = (claimId: number) => {
+	const handleRowClick = (claimId: string) => {
 		setSelectedClaimId(claimId);
 		setPanelOpen(true);
 	};
@@ -30,156 +34,77 @@ export default function MyQueue() {
 		setTimeout(() => setSelectedClaimId(null), 300); // Clear after animation
 	};
 
+	// Map MyDeskClaimListItem to ClaimListItemData
+	const mapToClaimListItemData = (claim: MyDeskClaimListItem): ClaimListItemData => ({
+		id: claim.id,
+		claim_number: claim.claim_number,
+		client: claim.client,
+		insured: claim.insured,
+		claim_amount: claim.claim_amount,
+		date_of_loss: claim.date_of_loss,
+		recovery_status: claim.recovery_status,
+		substatus: claim.substatus,
+		last_update: claim.last_update,
+		desk_location_name: claim.desk_location_name,
+	});
+
 	return (
 		<>
-			<Paper elevation={0} sx={styles.container}>
-				{isFetching ? (
-					<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 4 }} />
-				) : (
-					<Stack width="100%" height="100%" spacing={1}>
-						{/* Header */}
-						<Box width="100%" height={40} display="flex" justifyContent="space-between" alignItems="center">
-							<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
-								My Queue
-							</Typography>
-							{recentChecklistClaims.length > 0 && (
-								<Typography variant="caption" color="text.secondary">
-									{recentChecklistClaims.length}{' '}
-									{recentChecklistClaims.length === 1 ? 'claim' : 'claims'}
-								</Typography>
+			<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+				<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+					<IconList style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
+					My Queue
+					{claims.length> 0 && (
+						<span style={{ ...{ marginLeft: 8 }, color: 'text.secondary' }}>
+							({claims.length})
+						</span>
+					)}
+				</div>
+				<div style={{ ...styles.contentContainer, padding: 16 }}>
+					{isFetching ? (
+						<Skeleton variant="rect" width="100%" height="100%" />
+					) : (
+						<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', height: '100%', gap: 8 }}>
+							{/* Claims List */}
+							<div style={styles.listContainer}>
+								{claims.length === 0 ? (
+									<div
+style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+										<span style={{ fontSize: 13, color: 'text.secondary', fontStyle: 'italic' }}>
+											No claims in queue
+										</span>
+									</div>
+								) : (
+									<div style={{ width: '100%', gap: 0 }}>
+										{claims.map((claim, index) => (
+											<ClaimListItem
+												key={claim.id}
+												claim={mapToClaimListItemData(claim)}
+												onClick={() => handleRowClick(claim.id)}
+												showStatusChip={true}
+												showAmount={false}
+												showLastUpdate={true}
+												showDeskLocation={true}
+												variant="listRow"
+												index={index}
+											/>
+										))}
+									</div>
+								)}
+							</div>
+
+							{/* Footer */}
+							{claims.length> 0 && (
+								<div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: 1 }}>
+									<Link href="/my-claims" style={{ fontSize: 12, color: 'var(--text-accent)', textDecoration: 'none', cursor: 'pointer' }}>
+										View All My Claims
+									</Link>
+								</div>
 							)}
-						</Box>
-
-						{/* Claims List */}
-						<Box sx={styles.listContainer}>
-							{recentChecklistClaims.length === 0 ? (
-								<Box
-									width="100%"
-									height="100%"
-									display="flex"
-									justifyContent="center"
-									alignItems="center"
-								>
-									<Typography fontSize={15} color={BASE_COLOR_LIGHT}>
-										No recent claims
-									</Typography>
-								</Box>
-							) : (
-								<Stack width="100%" spacing={0}>
-									{recentChecklistClaims.map((claim, index) => (
-										<Box
-											key={`${claim.claim_id}-${claim.checklist_id}`}
-											onClick={() => handleRowClick(claim.claim_id)}
-											sx={{
-												...styles.row,
-												backgroundColor: index % 2 === 0 ? 'white' : '#FAFAFA',
-											}}
-										>
-											{/* Main content */}
-											<Stack width="100%" spacing={0.5}>
-												{/* Top row: Claim number, LOB, Recovery Status */}
-												<Box
-													width="100%"
-													display="flex"
-													justifyContent="space-between"
-													alignItems="center"
-												>
-													<Typography
-														variant="body1"
-														fontSize={15}
-														// fontWeight={600}
-														color="primary"
-														sx={{
-															cursor: 'pointer',
-															'&:hover': { textDecoration: 'underline' },
-														}}
-														mr={1}
-													>
-														{claim.claim_number || 'N/A'}
-													</Typography>
-
-													{/* Status Dot */}
-													<Box width="fit-content">
-														<ClaimStatusCell row={{ status: claim.status }} fontSize={12} />
-													</Box>
-												</Box>
-
-												{/* Middle row: Client & Insured */}
-												<Box display="flex" alignItems="center" gap={1}>
-													{claim.client && (
-														<Typography variant="body2" fontSize={13} color="text.primary">
-															{claim.client}
-														</Typography>
-													)}
-													{claim.client && claim.insured && (
-														<Box
-															width={4}
-															height={4}
-															borderRadius="50%"
-															bgcolor={BASE_COLOR_LIGHT}
-														/>
-													)}
-													{claim.insured && (
-														<Typography
-															variant="body2"
-															fontSize={13}
-															color="text.secondary"
-														>
-															{claim.insured}
-														</Typography>
-													)}
-												</Box>
-
-												{/* Bottom row: Checklist name & Last opened */}
-												<Box display="flex" alignItems="center" gap={1}>
-													<Typography
-														variant="caption"
-														fontSize={12}
-														color={BASE_COLOR_LIGHT}
-														noWrap
-													>
-														{claim.checklist_name}
-													</Typography>
-													<Box
-														width={4}
-														height={4}
-														borderRadius="50%"
-														bgcolor={BASE_COLOR_LIGHT}
-													/>
-													<Typography
-														variant="caption"
-														fontSize={12}
-														color={BASE_COLOR_LIGHT}
-													>
-														{claim.last_opened
-															? dayjs(claim.last_opened).fromNow()
-															: 'Never'}
-													</Typography>
-												</Box>
-											</Stack>
-										</Box>
-									))}
-								</Stack>
-							)}
-						</Box>
-
-						{/* Footer */}
-						{recentChecklistClaims.length > 0 && (
-							<Box width="100%" display="flex" justifyContent="center" paddingTop={1}>
-								<Link
-									href="/my-claims"
-									underline="hover"
-									fontSize={12}
-									color="primary"
-									sx={{ cursor: 'pointer' }}
-								>
-									View All My Claims
-								</Link>
-							</Box>
-						)}
-					</Stack>
-				)}
-			</Paper>
+						</div>
+					)}
+				</div>
+			</Card>
 
 			{/* Claim Detail Panel */}
 			<ClaimDetailPanel claimId={selectedClaimId} open={panelOpen} onClose={handlePanelClose} />
@@ -191,58 +116,17 @@ const styles = {
 	container: {
 		width: 550,
 		minWidth: 550,
-		height: 'calc(100vh - 320px)',
-		padding: '24px',
-		overflow: 'hidden',
-		borderRadius: 4,
+		height: 'calc(100vh - 140px)',
 		margin: '15px',
+	},
+	contentContainer: {
+		height: 'calc(100% - 45px)',
+		overflow: 'hidden' as const,
 	},
 	listContainer: {
 		width: '100%',
-		// height: 'calc(100% - 110px)', // Account for header and footer
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		'&::-webkit-scrollbar': {
-			width: '8px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: '#f1f1f1',
-			borderRadius: '4px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: '#888',
-			borderRadius: '4px',
-		},
-		'&::-webkit-scrollbar-thumb:hover': {
-			background: '#555',
-		},
-	},
-	row: {
-		width: '100%',
-		padding: '12px 16px',
-		cursor: 'pointer',
-		transition: 'all 0.2s ease',
-		borderBottom: '1px solid #f0f0f0',
-		'&:hover': {
-			backgroundColor: '#F0F7F5 !important',
-			transform: 'translateX(4px)',
-		},
-		'&:last-child': {
-			borderBottom: 'none',
-		},
-	},
-	lobChip: {
-		height: 20,
-		fontSize: 11,
-		color: 'white',
-		fontWeight: 500,
-		border: `1px solid ${theme.palette.primary.main}`,
-	},
-	recoveryChip: {
-		height: 20,
-		fontSize: 11,
-		color: 'white',
-		fontWeight: 500,
-		border: `1px solid ${theme.palette.secondary.main}`,
+		height: '100%',
+		overflowY: 'auto' as const,
+		overflowX: 'hidden' as const,
 	},
 };

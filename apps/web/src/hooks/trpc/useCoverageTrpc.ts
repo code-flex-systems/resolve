@@ -9,24 +9,24 @@ export function useCoverageTrpc() {
 	const utils = trpc.useUtils();
 
 	// Helper to update total_incurred in cached claim detail
-	const updateClaimTotalIncurred = (claimId: number, totalIncurred: number) => {
+	const updateClaimTotalIncurred = (claimId: string, totalIncurred: number) => {
 		const currentData = utils.claim.getClaimDetail.getData({ claimId });
 		if (currentData) {
 			utils.claim.getClaimDetail.setData(
 				{ claimId },
 				{
 					...currentData,
-					total_incurred: totalIncurred,
+					total_incurred: totalIncurred.toString(),
 				}
 			);
 		}
 	};
 
 	return {
-		list: (input: { claimId: number }, options?: { enabled?: boolean }) =>
+		list: (input: { claimId: string }, options?: { enabled?: boolean }) =>
 			trpc.coverage.getCoverages.useQuery(input, options),
 
-		listByClaimParty: (input: { claimPartyId: number }, options?: { enabled?: boolean }) =>
+		listByClaimParty: (input: { claimPartyId: string }, options?: { enabled?: boolean }) =>
 			trpc.coverage.getCoveragesByClaimParty.useQuery(input, options),
 
 		create: trpc.coverage.createCoverage.useMutation({

@@ -1,40 +1,124 @@
 'use client';
 
+import { IconBell, IconBellOff, IconClock, IconNetwork, IconPower, IconTowerOff, IconRefresh, IconRss, IconSettings } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
 import { FeedStatus } from '@/config/enums';
-import theme, { BG_SECONDARY } from '@/styles/theme';
-import { Box, Button, Collapse, Divider, IconButton, List, MenuItem, Paper, Tooltip, Typography } from '@mui/material';
 import { Ping } from 'ldrs/react';
 import 'ldrs/react/Ping.css';
 import Toolbar from '../common/Toolbar';
 import { useState } from 'react';
-import NetworkCheck from '@mui/icons-material/NetworkCheck';
-import Notifications from '@mui/icons-material/Notifications';
-import NotificationsOff from '@mui/icons-material/NotificationsOff';
-import Power from '@mui/icons-material/Power';
-import PowerOff from '@mui/icons-material/PowerOff';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
-import { useAdminStore } from '@/stores/useAdminStore';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import ClaimAssignmentDialog from './ClaimAssignmentDialog';
+import IconHeaderCell from '../common/IconHeaderCell';
+import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 const getStatusColor = (status: FeedStatus) => {
 	switch (status) {
 		case FeedStatus.OFFLINE:
-			return theme.palette.error.main;
+			return 'var(--status-error)';
 		case FeedStatus.ONLINE:
-			return theme.palette.success.light;
+			return 'var(--status-success)';
 		case FeedStatus.MUTED:
-			return theme.palette.warning.light;
+			return 'var(--status-warning-bg)';
 	}
 };
 
+const formatStatus = (status: FeedStatus) => {
+	switch (status) {
+		case FeedStatus.OFFLINE:
+			return 'Offline';
+		case FeedStatus.ONLINE:
+			return 'Online';
+		case FeedStatus.MUTED:
+			return 'Muted';
+	}
+};
+
+function NoRows() {
+	return <CustomNoRowsOverlay text="No feeds found" icon={<IconRss size={35} style={{ color: 'var(--text-muted)' }} />} />;
+}
+
+interface FeedActionsCellProps {
+	row: {
+		id: string;
+		status: FeedStatus;
+	};
+	mutate: (params: { id: string; params: { status: FeedStatus } }) => void;
+	isPending: boolean;
+	isManageMode: boolean;
+}
+
+function FeedActionsCell({ row, mutate, isPending, isManageMode }: FeedActionsCellProps) {
+	if (!isManageMode) return null;
+	return (
+		<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+			<Tooltip
+				content={row.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
+			>
+				<span>
+					<Button variant="icon" disabled={row.status === FeedStatus.OFFLINE || isPending} size="sm">
+						<IconNetwork size={20} />
+					</Button>
+				</span>
+			</Tooltip>
+			<Tooltip
+				content={
+					row.status === FeedStatus.OFFLINE
+						? 'Feed is offline'
+						: row.status === FeedStatus.MUTED
+							? 'Unmute'
+							: 'Mute'
+				}
+			>
+				<span>
+					<Button variant="icon"
+						onClick={() =>
+							mutate({
+								id: row.id,
+								params: {
+									status: row.status === FeedStatus.MUTED ? FeedStatus.ONLINE : FeedStatus.MUTED,
+								},
+							})
+						}
+						disabled={row.status === FeedStatus.OFFLINE || isPending}
+						size="sm"
+					>
+						{row.status === FeedStatus.MUTED ? (
+							<IconBell size={20} />
+						) : (
+							<IconBellOff size={20} />
+						)}
+					</Button>
+				</span>
+			</Tooltip>
+			<Tooltip content={row.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'}>
+				<span>
+					<Button variant="icon"
+						onClick={() =>
+							mutate({
+								id: row.id,
+								params: {
+									status: row.status === FeedStatus.OFFLINE ? FeedStatus.ONLINE : FeedStatus.OFFLINE,
+								},
+							})
+						}
+						disabled={isPending}
+						size="sm"
+					>
+						{row.status === FeedStatus.OFFLINE ? <IconPower size={20} /> : <IconTowerOff size={20} />}
+					</Button>
+				</span>
+			</Tooltip>
+		</div>
+	);
+}
+
 export default function Feeds() {
 	const [testing, setTesting] = useState(false);
-	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
-	const showClaimAssignmentDialog = useAdminStore((state) => state.showClaimAssignmentDialog);
-	const setFeedId = useAdminStore((state) => state.setFeedId);
-	const toggleClaimAssignmentDialog = useAdminStore((state) => state.toggleClaimAssignmentDialog);
+	const [isManageMode, setIsManageMode] = useState(false);
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
 
@@ -44,195 +128,101 @@ export default function Feeds() {
 		setTimeout(() => setTesting(false), 5000);
 	};
 
-	return (
-		<Box sx={{ width: 'fit-content', height: '100%', mr: 2, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<Paper sx={{ minWidth: 325, height: '100%', p: 2 }}>
-				<Toolbar
-					left={<Typography variant="h6">Feeds</Typography>}
-					right={
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: onTest,
-								disabled: testing || !feeds.length,
+	const columns: ColumnDef<any, any>[] = [
+		{
+			accessorKey: 'name',
+			minSize: 200,
+			header: (ctx) => <IconHeaderCell {...ctx} />,
+		},
+		{
+			accessorKey: 'status',
+			size: 130,
+			header: (ctx) => <IconHeaderCell {...ctx} />,
+			cell: ({ row: { original: row } }: any) => (
+				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+					{testing ? (
+						<Ping size="20" speed="2" color={getStatusColor(row.status)} />
+					) : (
+						<div
+							style={{
+								width: 10,
+								height: 10,
+								borderRadius: '50%',
+								backgroundColor: getStatusColor(row.status),
 							}}
-							icon={<NetworkCheck />}
-							tooltipProps={{ title: 'Test connection' }}
 						/>
+					)}
+					<span style={{ fontSize: 13 }}>{formatStatus(row.status)}</span>
+				</div>
+			),
+		},
+		{
+			accessorKey: 'schedule',
+			size: 150,
+			header: (params) => <IconHeaderCell {...params} icon={<IconClock style={{ color: 'var(--text-muted)' }} />} />,
+			cell: ({ row: { original: row } }: any) => (
+				<span style={{ fontSize: 13 }}>
+					{formatHour(row.schedule)} {row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
+				</span>
+			),
+		},
+		{
+			accessorKey: 'last_synced_at',
+			size: 150,
+			header: (params) => <IconHeaderCell {...params} icon={<IconRefresh style={{ color: 'var(--text-muted)' }} />} />,
+			cell: ({ row: { original: row } }: any) => (
+				<span style={{ fontSize: 13 }}>{formatMDYAbv(row.last_synced_at?.toString())}</span>
+			),
+		},
+		{
+			header: '',
+			accessorKey: 'actions',
+			size: 130,
+			enableSorting: false,
+			cell: ({ row: { original: row } }: any) => (
+				<FeedActionsCell row={row} mutate={mutate} isPending={isPending} isManageMode={isManageMode} />
+			),
+		},
+	];
+
+	return (
+		<div style={{ width: '100%', height: '100%' }}>
+			<Card variant="beveled" padding="md" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+					Feeds are data sources that import claims into the system. Configure feed connections and monitor their status.
+				</p>
+				<Toolbar
+					left={undefined}
+					right={
+						<>
+							<Tooltip content="Test all connections">
+							<Button variant="icon" size="sm" color="neutral" onClick={onTest} disabled={testing || !feeds.length}>
+							<IconNetwork size={16} />
+						</Button>
+						</Tooltip>
+							<Tooltip content="Manage">
+								<Button variant="icon" size="sm"
+									onClick={() => setIsManageMode(!isManageMode)}
+									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+								>
+									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</Button>
+							</Tooltip>
+						</>
 					}
 					height={50}
 					padding={0}
 				/>
-				<Divider />
-				<List disablePadding sx={{ pt: 0.5 }}>
-					{!feeds.length && !isFetching && (
-						<Box sx={{ width: 300, mt: 0.5 }}>
-							<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontStyle="italic" fontSize={13}>
-								No feeds found
-							</Typography>
-						</Box>
-					)}
-					{feeds.map((f) => [
-						<MenuItem
-							key={f.id}
-							selected={selectedFeedId === f.id}
-							onClick={() => setFeedId(selectedFeedId === f.id ? undefined : f.id)}
-							disableRipple
-							sx={{
-								width: 300,
-								mt: 0.5,
-								...(selectedFeedId === f.id
-									? { border: '1px solid', borderColor: 'primary.main', borderBottom: 'none' }
-									: {}),
-							}}
-						>
-							<Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-								<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-									<Typography width={200} lineHeight="19px" whiteSpace="wrap" fontSize={13}>
-										{f.name}
-									</Typography>
-								</Box>
-
-								{testing ? (
-									<Ping size="30" speed="2" color={getStatusColor(f.status)} />
-								) : (
-									<Box sx={{ width: 30, height: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-										<Box sx={{ width: 10, height: 10, borderRadius: 5, bgcolor: getStatusColor(f.status) }} />
-									</Box>
-								)}
-							</Box>
-						</MenuItem>,
-						<Collapse key={`${f.id}-content`} in={selectedFeedId === f.id} unmountOnExit>
-							<Box
-								sx={{
-									width: '100%',
-									display: 'flex',
-									flexDirection: 'column',
-									justifyContent: 'flex-start',
-									alignItems: 'center',
-									height: 'fit-content',
-									p: '10px 15px',
-									bgcolor: BG_SECONDARY,
-									...(selectedFeedId === f.id
-										? { border: '1px solid', borderColor: 'primary.main', borderTop: 'none' }
-										: {}),
-								}}
-							>
-								<Box sx={{ width: '100%', pb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
-										Status
-									</Typography>
-									<Typography fontStyle="italic" fontSize={13}>
-										{f.status}
-									</Typography>
-								</Box>
-								<Box sx={{ width: '100%', pb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
-										Schedule
-									</Typography>
-									<Typography fontStyle="italic" fontSize={13}>
-										{formatHour(f.schedule)}{' '}
-										{f.schedule < 5 || f.schedule >= 19 ? '(nightly)' : '(daily)'}
-									</Typography>
-								</Box>
-								<Box sx={{ width: '100%', pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Typography fontStyle="italic" fontWeight={500} fontSize={13}>
-										Last published
-									</Typography>
-									<Typography fontStyle="italic" fontSize={13}>
-										{formatMDYAbv(f.last_synced_at?.toString())}
-									</Typography>
-								</Box>
-								<Box sx={{ width: '100%', pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<Button
-										onClick={() => toggleClaimAssignmentDialog()}
-										variant="contained"
-										color="primary"
-										sx={{ width: '100%' }}
-									>
-										Assign claims
-									</Button>
-								</Box>
-								<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-									<Tooltip
-										title={f.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
-										enterDelay={500}
-										arrow
-									>
-										<span>
-											<IconButton
-												disabled={f.status === FeedStatus.OFFLINE || isPending}
-												sx={{ mr: 0.5 }}
-											>
-												<NetworkCheck />
-											</IconButton>
-										</span>
-									</Tooltip>
-									<Tooltip
-										title={
-											f.status === FeedStatus.OFFLINE
-												? 'Feed is offline'
-												: f.status === FeedStatus.MUTED
-													? 'Unmute'
-													: 'Mute'
-										}
-										enterDelay={500}
-										arrow
-									>
-										<span>
-											<IconButton
-												onClick={() =>
-													mutate({
-														id: f.id,
-														params: {
-															status:
-																f.status === FeedStatus.MUTED
-																	? FeedStatus.ONLINE
-																	: FeedStatus.MUTED,
-														},
-													})
-												}
-												disabled={f.status === FeedStatus.OFFLINE || isPending}
-												sx={{ mr: 0.5 }}
-											>
-												{f.status === FeedStatus.MUTED ? (
-													<Notifications />
-												) : (
-													<NotificationsOff />
-												)}
-											</IconButton>
-										</span>
-									</Tooltip>
-									<Tooltip
-										title={f.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'}
-										enterDelay={500}
-										arrow
-									>
-										<span>
-											<IconButton
-												onClick={() =>
-													mutate({
-														id: f.id,
-														params: {
-															status:
-																f.status === FeedStatus.OFFLINE
-																	? FeedStatus.ONLINE
-																	: FeedStatus.OFFLINE,
-														},
-													})
-												}
-												disabled={isPending}
-											>
-												{f.status === FeedStatus.OFFLINE ? <Power /> : <PowerOff />}
-											</IconButton>
-										</span>
-									</Tooltip>
-								</Box>
-							</Box>
-						</Collapse>,
-					])}
-				</List>
-			</Paper>
-			{showClaimAssignmentDialog && <ClaimAssignmentDialog />}
-		</Box>
+				<div style={{ height: 'calc(100% - 60px)', width: '100%' }}>
+					<DataTable
+						rows={feeds}
+						columns={columns}
+						loading={isFetching}
+						hideFooter
+						pinnedRight={isManageMode ? ['actions'] : []}
+					/>
+				</div>
+			</Card>
+		</div>
 	);
 }

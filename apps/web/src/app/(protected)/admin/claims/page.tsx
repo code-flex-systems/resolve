@@ -1,7 +1,5 @@
-'use client';
-
-import Claims from '@/components/admin/Claims';
+import { redirect } from 'next/navigation';
 
 export default function AdminPageClaims() {
-	return <Claims />;
+	redirect('/admin/claims/overview');
 }

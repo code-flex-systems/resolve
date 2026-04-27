@@ -31,11 +31,20 @@ export const lossAddressSchema = z.object({
 
 export type LossAddress = z.infer<typeof lossAddressSchema>;
 
+// Flexible address type for formatting functions (accepts any string for country)
+interface FlexibleAddress {
+	street_address?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postal_code?: string | null;
+	country?: string | null;
+}
+
 /**
  * Format an address for single-line display.
  * Example: "123 Main St, Springfield, IL 62701, US"
  */
-export function formatAddressInline(addr: Partial<Address> | null | undefined): string {
+export function formatAddressInline(addr: FlexibleAddress | null | undefined): string {
 	if (!addr) return '';
 
 	const parts: string[] = [];
@@ -91,7 +100,7 @@ export function formatLossAddressInline(addr: Partial<LossAddress> | null | unde
  * Format an address for multi-line display.
  * Returns an array of lines.
  */
-export function formatAddressMultiline(addr: Partial<Address> | null | undefined): string[] {
+export function formatAddressMultiline(addr: FlexibleAddress | null | undefined): string[] {
 	if (!addr) return [];
 
 	const lines: string[] = [];

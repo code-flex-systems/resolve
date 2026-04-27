@@ -1,12 +1,13 @@
 'use client';
 
-import { Box, Grid, InputAdornment, TextField, Typography, Stack } from '@mui/material';
+import { IconFileSearch, IconInfoCircle } from '@tabler/icons-react';
+import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
-import { useForm } from 'react-hook-form';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Info from '@mui/icons-material/Info';
+import DateField from '../common/DateField';
+import { useForm, Controller } from 'react-hook-form';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
+import { formatDateToISO } from '@/lib/utils/utils';
 import AddressFields from '../common/AddressFields';
 import type { ClaimData } from '@/schemas/claimSchemas';
 
@@ -23,14 +24,13 @@ export default function NewClaimDialog() {
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			// Note: total_incurred is now a calculated field
 			await createClaims({
 				claims: [
 					{
 						...data,
-						claim_amount: data.claim_amount?.toString() ?? null,
-						date_of_loss: data.date_of_loss?.toString() ?? null,
-						last_update: data.last_update?.toString() ?? null,
+						date_of_loss: formatDateToISO(data.date_of_loss),
+						last_update: formatDateToISO(data.last_update),
+						line_of_business: null,
 					},
 				],
 			});
@@ -46,128 +46,108 @@ export default function NewClaimDialog() {
 			primaryAction={{
 				label: 'Create claim',
 				onClick: onSubmit,
-				icon: <ContentPasteSearch />,
+				icon: <IconFileSearch size={20} />,
 				disabled: isSubmitting || isPending,
 			}}
 			onClose={toggleNewClaimDialog}
 			width={700}
 		>
-			<Box display="flex" alignItems="center" justifyContent="flex-start" paddingBottom="10px">
-				<Info sx={{ color: 'primary.main' }} />
-				<Typography marginLeft="5px">
+			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingBottom: '10px' }}>
+				<IconInfoCircle style={{ color: 'var(--text-accent)' }} />
+				<span style={{ marginLeft: '5px' }}>
 					Toggle <b>Only Manual Claims</b> to filter by claims created here.
-				</Typography>
-			</Box>
+				</span>
+			</div>
 
 			<form style={styles.form} className="flex-col-start">
-				<Grid container spacing={2}>
-					<Grid style={styles.row}>
-						<TextField
+				<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+					<div style={styles.row}>
+						<Input
 							id="claim_number"
 							label="Claim Number"
 							placeholder="OPV63SASBX"
 							error={!!errors.claim_number}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('claim_number', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="claim_amount"
-							label="Claim Amount"
-							placeholder="75496.66"
-							error={!!errors.claim_amount}
-							type="number"
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">$</InputAdornment>,
-								},
-							}}
-							sx={{
-								width: 200,
-							}}
-							{...register('claim_amount', { required: true })}
-						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
+					</div>
+					<div style={styles.row}>
+						<Input
 							id="client"
 							label="Client"
 							placeholder="Liberty Mutual"
 							error={!!errors.client}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('client', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
+					</div>
+					<div style={styles.row}>
+						<Input
 							id="client_adjuster"
 							label="Client Adjuster"
 							placeholder="Matthew Howell"
 							error={!!errors.client_adjuster}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('client_adjuster', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="date_of_loss"
-							label="Date of Loss"
-							error={!!errors.date_of_loss}
-							type="date"
-							sx={{
-								width: 200,
-							}}
-							{...register('date_of_loss', { required: true })}
+					</div>
+					<div style={styles.row}>
+						<Controller
+							name="date_of_loss"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<DateField
+									label="Date of Loss"
+									value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+									onChange={(val) => field.onChange(val ? new Date(val) : null)}
+									error={!!errors.date_of_loss}
+									sx={{ width: 200 }}
+								/>
+							)}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
+					</div>
+					<div style={styles.row}>
+						<Input
 							id="insured"
 							label="Insured"
 							placeholder="Rachel Anderson"
 							error={!!errors.insured}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('insured', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
-							id="last_update"
-							label="Last Update"
-							error={!!errors.last_update}
-							type="date"
-							sx={{
-								width: 200,
-							}}
-							{...register('last_update', { required: true })}
+					</div>
+					<div style={styles.row}>
+						<Controller
+							name="last_update"
+							control={control}
+							rules={{ required: true }}
+							render={({ field }) => (
+								<DateField
+									label="Last Update"
+									value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+									onChange={(val) => field.onChange(val ? new Date(val) : null)}
+									error={!!errors.last_update}
+									sx={{ width: 200 }}
+								/>
+							)}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<TextField
+					</div>
+					<div style={styles.row}>
+						<Input
 							id="last_updated_by"
 							label="Updater"
 							placeholder="Bridget Lubowitz-Nader"
 							error={!!errors.last_updated_by}
-							sx={{
-								width: 200,
-							}}
+							style={{ width: 200 }}
 							{...register('last_updated_by', { required: true })}
 						/>
-					</Grid>
-					<Grid style={styles.row}>
-						<Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+					</div>
+					<div style={styles.row}>
+						<span style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>
 							Loss Location
-						</Typography>
-						<Stack spacing={1}>
+						</span>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							<AddressFields
 								control={control}
 								errors={errors}
@@ -176,10 +156,10 @@ export default function NewClaimDialog() {
 								variant="loss"
 								width={200}
 							/>
-						</Stack>
-					</Grid>
+						</div>
+					</div>
 					{/* Note: Total Incurred is now a calculated field from claim_coverage.amount_reserved */}
-				</Grid>
+				</div>
 			</form>
 		</BasicDialog>
 	);

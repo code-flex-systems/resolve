@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, CircularProgress } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import Button from '@/components/ui/Button';
+import { IconFileDownload } from '@tabler/icons-react';
 import { useState } from 'react';
 import { downloadCSV, generateCSV, CsvColumn, generateFilenameWithTimestamp } from '@/lib/utils/exportUtils';
 
@@ -15,36 +15,15 @@ export interface ExportButtonProps<T = any> {
 	/** Button text (default: "Export CSV") */
 	buttonText?: string;
 	/** Button variant (default: "outlined") */
-	variant?: 'text' | 'outlined' | 'contained';
-	/** Button size (default: "medium") */
-	size?: 'small' | 'medium' | 'large';
+	variant?: 'outlined' | 'contained' | 'text';
+	/** Button size (default: "md") */
+	size?: 'sm' | 'md' | 'lg';
 	/** Disable button */
 	disabled?: boolean;
 }
 
 /**
  * Reusable export button component for generating CSV files
- *
- * Handles:
- * - Loading state during export
- * - Error handling
- * - CSV generation and download
- * - Automatic timestamp in filename
- *
- * @example
- * ```tsx
- * <ExportButton
- *   onExport={async () => {
- *     const result = await trpc.recovery.exportRecoveryEvents.query({ filters });
- *     return result.rows;
- *   }}
- *   columns={[
- *     { header: 'Date', accessor: 'recovery_date' },
- *     { header: 'Amount', accessor: 'recovery_amount' }
- *   ]}
- *   filename="recovery_events"
- * />
- * ```
  */
 export default function ExportButton<T = any>({
 	onExport,
@@ -52,7 +31,7 @@ export default function ExportButton<T = any>({
 	filename,
 	buttonText = 'Export CSV',
 	variant = 'outlined',
-	size = 'medium',
+	size = 'md',
 	disabled = false,
 }: ExportButtonProps<T>) {
 	const [isExporting, setIsExporting] = useState(false);
@@ -89,7 +68,8 @@ export default function ExportButton<T = any>({
 			size={size}
 			onClick={handleExport}
 			disabled={disabled || isExporting}
-			startIcon={isExporting ? <CircularProgress size={16} /> : <FileDownloadIcon />}
+			loading={isExporting}
+			startIcon={<IconFileDownload size={16} />}
 		>
 			{isExporting ? 'Exporting...' : buttonText}
 		</Button>

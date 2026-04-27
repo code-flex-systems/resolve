@@ -1,19 +1,24 @@
 'use client';
 
+import { IconEdit, IconLogout } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { BASE_COLOR } from '@/styles/theme';
-import { Box, Button, Typography } from '@mui/material';
-import Edit from '@mui/icons-material/Edit';
-import Logout from '@mui/icons-material/Logout';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import UpdateUserDialog from '../home/UpdateUserDialog';
+import Tooltip from '@/components/ui/Tooltip';
 
-export default function UserActionsCell(params: GridRenderCellParams) {
-	const { row } = params;
+interface UserActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
+	isManageMode?: boolean;
+}
+
+export default function UserActionsCell(params: UserActionsCellProps) {
+	const { row, isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { mutate, isPending } = useUserTrpc().update;
 	const { data: session } = useClerkSession();
 	const [onOffboarding, setOnOffboarding] = useState(false);
@@ -37,37 +42,31 @@ export default function UserActionsCell(params: GridRenderCellParams) {
 					onClose={() => setOnOffboarding(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {row.disabled ? 'onboard' : 'offboard'} this user?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						The user will receive an email informing them that their access to the application has been{' '}
 						{row.disabled ? 'reinstated' : 'terminated'}.
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 			{updating && <UpdateUserDialog user={row} onClose={() => setUpdating(false)} />}
 
 			<div style={styles.container}>
-				<BasicButtonStyled
-					buttonProps={{
-						onClick: () => setUpdating(true),
-						disabled: isPending,
-					}}
-					tooltipProps={{ title: 'Make changes' }}
-					icon={<Edit sx={{ fontSize: 15 }} />}
-				/>
+				<Tooltip content="Make changes">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setUpdating(true)} disabled={isPending}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
 				{session?.user?.id !== row.id && (
-					<Box marginLeft="10px">
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: () => setOnOffboarding(true),
-								disabled: isPending,
-							}}
-							tooltipProps={{ title: row.disabled ? 'Onboard' : 'Offboard' }}
-							icon={<Logout sx={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />}
-						/>
-					</Box>
+					<div style={{ marginLeft: '10px' }}>
+						<Tooltip content="row.disabled ? 'Onboard' : 'Offboard'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setOnOffboarding(true)} disabled={isPending}>
+							<IconLogout style={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />
+						</Button>
+						</Tooltip>
+					</div>
 				)}
 			</div>
 		</>

@@ -18,9 +18,9 @@ import { DB } from '../database/types';
  */
 export async function getResponseCount(
 	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	instanceId: number
+	checklistId: string,
+	claimId: string,
+	instanceId: string
 ) {
 	const countRow = await ctx.db
 		.selectFrom('question_response')
@@ -69,8 +69,8 @@ export async function getResponseCount(
  */
 export async function getResponsesForAnswer(
 	ctx: ProtectedContext,
-	answerId: number,
-	filters: { claimId?: number; range: DateRangeStrict; checklistId?: number; users?: string[] },
+	answerId: string,
+	filters: { claimId?: string; range: DateRangeStrict; checklistId?: string; users?: string[] },
 	limit: number,
 	offset: number
 ) {
@@ -130,9 +130,9 @@ export async function getResponsesForAnswer(
  */
 export async function getResponsesForPageInstance(
 	ctx: ProtectedContext,
-	checklistId: number,
-	claimId: number,
-	instanceId: number
+	checklistId: string,
+	claimId: string,
+	instanceId: string
 ) {
 	// Fetch all responses for the given page instance
 	const responses = await ctx.db
@@ -164,8 +164,8 @@ export async function getResponsesForPageInstance(
 		.orderBy('question_response.instance_id')
 		.execute();
 	// Build map keyed by question_id, excluding nulls
-	type ResponseWithNonNullQuestionId = Omit<(typeof responses)[0], 'question_id'> & { question_id: number };
-	const responseMap: Record<number, ResponseWithNonNullQuestionId> = {};
+	type ResponseWithNonNullQuestionId = Omit<(typeof responses)[0], 'question_id'> & { question_id: string };
+	const responseMap: Record<string, ResponseWithNonNullQuestionId> = {};
 	responses.forEach((r) => {
 		if (r.question_id !== null) {
 			responseMap[r.question_id] = r as ResponseWithNonNullQuestionId;
@@ -176,7 +176,7 @@ export async function getResponsesForPageInstance(
 
 export async function getResponseAuditLogs(
 	ctx: ProtectedContext,
-	filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string },
+	filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string },
 	limit: number,
 	offset: number
 ) {
@@ -222,7 +222,7 @@ export async function getResponseAuditLogs(
 
 export async function getResponseAuditLogStats(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
+	filters: { range: DateRangeStrict; checklistId?: string; claimId?: string; users?: string[]; searchTerm?: string }
 ) {
 	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
 	const startDate = filters.range[0].toISOString().split('T')[0];
@@ -258,7 +258,7 @@ export async function getResponseAuditLogStats(
  */
 export async function exportResponseAuditLogs(
 	ctx: ProtectedContext,
-	filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string }
+	filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string }
 ) {
 	const query = ctx.db
 		.selectFrom('response_audit_logs')
@@ -333,7 +333,7 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 			: [];
 
 	// Group answers by response_id
-	const answersByResponseId = new Map<number, typeof existingAnswers>();
+	const answersByResponseId = new Map<string, typeof existingAnswers>();
 	for (const ans of existingAnswers) {
 		if (!answersByResponseId.has(ans.response_id)) {
 			answersByResponseId.set(ans.response_id, []);
@@ -351,14 +351,14 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 		response: QuestionResponse;
 		oldRow: (typeof existingResponses)[0] | undefined;
 		oldAnswerSnapshots: AuditAnswerSnapshot[];
-		oldDocId: number | null;
-		newDocId: number | null;
+		oldDocId: string | null;
+		newDocId: string | null;
 	};
 
 	const toDelete: DeleteInfo[] = [];
 	const toUpsert: UpsertInfo[] = [];
-	const docsToUnlink: number[] = [];
-	const docsToLink: { docId: number; questionId: number }[] = [];
+	const docsToUnlink: string[] = [];
+	const docsToLink: { docId: string; questionId: string }[] = [];
 
 	for (const response of responses) {
 		const oldRow = existingByQuestionId.get(response.question_id);
@@ -367,7 +367,8 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 		const newText = response.response_text ?? null;
 		const oldText = oldRow?.response_text ?? null;
 		const newDocId = response.response_doc_id ?? null;
-		const oldDocId = oldRow?.response_doc_id ?? null;
+		// response_doc_id is a legacy integer column in the DB; normalize to string for comparison
+		const oldDocId = oldRow?.response_doc_id != null ? String(oldRow.response_doc_id) : null;
 
 		// Check if unchanged
 		if (
@@ -420,13 +421,13 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 
 	// 5. Batch upsert responses
 	let savedResponses: {
-		id: number;
-		question_id: number | null;
-		checklist_id: number;
-		instance_id: number;
-		claim_id: number;
+		id: string;
+		question_id: string | null;
+		checklist_id: string;
+		instance_id: string;
+		claim_id: string;
 		response_text: string | null;
-		response_doc_id: number | null;
+		response_doc_id: string | null;
 		created_by: string;
 		updated_by: string | null;
 		client_id: string;
@@ -440,13 +441,14 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 			claim_id: u.response.claim_id,
 			question_id: u.response.question_id,
 			response_text: u.response.response_text ?? null,
-			response_doc_id: u.response.response_doc_id ?? null,
+			// response_doc_id is a legacy integer column; cast to any for type compatibility
+			response_doc_id: (u.response.response_doc_id ?? null) as any,
 			client_id: clientId as string,
 			created_by: userId as string,
 		}));
 		savedResponses = (await ctx.db
 			.insertInto('question_response')
-			.values(insertValues)
+			.values(insertValues as any)
 			.onConflict((oc) =>
 				oc.columns(['checklist_id', 'instance_id', 'claim_id', 'question_id']).doUpdateSet({
 					response_text: sql`excluded.response_text`,
@@ -469,7 +471,7 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 	}
 
 	// 7. Batch insert new answers
-	const allNewAnswers: { response_id: number; answer_id: number; additional_info: string | null }[] = [];
+	const allNewAnswers: { response_id: string; answer_id: string; additional_info: string | null }[] = [];
 	for (const u of toUpsert) {
 		const saved = savedByQuestionId.get(u.response.question_id);
 		if (saved && u.response.selected_answers?.length) {
@@ -539,7 +541,7 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 					.where('question_response_answer.response_id', 'in', upsertResponseIds)
 					.execute()
 			: [];
-	const newAnswerLabelsByResponseId = new Map<number, AuditAnswerSnapshot[]>();
+	const newAnswerLabelsByResponseId = new Map<string, AuditAnswerSnapshot[]>();
 	for (const ans of newAnswerLabels) {
 		if (!newAnswerLabelsByResponseId.has(ans.response_id)) {
 			newAnswerLabelsByResponseId.set(ans.response_id, []);
@@ -551,22 +553,9 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 	}
 
 	// 12. Batch insert audit logs
-	const auditEntries: {
-		client_id: string;
-		user_id: string;
-		checklist_id: number;
-		instance_id: number;
-		claim_id: number;
-		response_id: number;
-		question_id: number;
-		question_text: string;
-		page_label: string;
-		action: 'insert' | 'update' | 'delete';
-		old_response_text: string | null;
-		new_response_text: string | null;
-		old_answers: string;
-		new_answers: string;
-	}[] = [];
+	// Note: response_audit_logs has checklist_id/claim_id as legacy integer columns,
+	// but the main tables now use UUIDs. We cast to any for these FK mismatches.
+	const auditEntries: any[] = [];
 
 	// Add delete audit entries
 	for (const d of toDelete) {
@@ -688,11 +677,11 @@ export interface AuditAnswerSnapshot {
 export interface ResponseAuditInput {
 	clientId: string;
 	userId: string;
-	checklistId: number;
-	instanceId: number;
-	claimId: number;
-	responseId: number;
-	questionId: number;
+	checklistId: string;
+	instanceId: string;
+	claimId: string;
+	responseId: string;
+	questionId: string;
 	action: 'insert' | 'update' | 'delete';
 	oldResponseText: string | null;
 	newResponseText: string | null;

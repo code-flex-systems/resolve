@@ -15,6 +15,7 @@ import {
 	getDocCountByClaimId,
 	getDocCountByGroupId,
 	getDocCountsByGroupIds,
+	getDocumentStats,
 } from '@/api/controllers/docController';
 import {
 	createDocInput,
@@ -118,4 +119,9 @@ export const docRouter = router({
 		.query(async ({ input, ctx }) => {
 			return getDocCountsByGroupIds(ctx, input);
 		}),
+
+	getDocumentStats: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getDocumentStats(ctx);
+	}),
 });

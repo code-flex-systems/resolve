@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Box, Button, Chip, Paper, PopperProps, Stack } from '@mui/material';
-import { DateRange, DateRangeCalendar } from '@mui/x-date-pickers-pro';
-import WatchLater from '@mui/icons-material/WatchLater';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import CustomChip from '@/components/ui/Chip';
+import CustomButton from '@/components/ui/Button';
+import type { DateRange } from '@/types/dateTypes';
+import { IconClock } from '@tabler/icons-react';
 import dayjs, { Dayjs } from 'dayjs';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/style.css';
 
 const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 	{
@@ -96,7 +98,7 @@ export default function BasicDateRangePicker({
 	const [label, setLabel] = useState(defaultLabel);
 	const [labelConfirmed, setLabelConfirmed] = useState(defaultLabel);
 	const [range, setRange] = useState<DateRange<Dayjs>>(defaultValue);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const isEmpty = labelConfirmed === EMPTY_LABEL;
 
 	const shortcuts = useMemo(() => {
@@ -111,131 +113,111 @@ export default function BasicDateRangePicker({
 		if (range.every((r) => r === null)) setLabel(EMPTY_LABEL);
 	}, [range]);
 
-	const onClose = (newAnchor: PopperProps['anchorEl'] = null) => {
+	const onClose = (newAnchor: HTMLElement | null = null) => {
 		setLabel(defaultLabel);
 		setRange(defaultValue);
 		setAnchorEl(newAnchor);
 	};
 
+	const selectedRange =
+		range[0] && range[1]
+			? { from: range[0].toDate(), to: range[1].toDate() }
+			: range[0]
+				? { from: range[0].toDate(), to: undefined }
+				: undefined;
+
 	return (
 		<>
-			<Chip
-				label={labelConfirmed}
-				icon={<WatchLater />}
+			<span
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={
-					isEmpty || !clearable
-						? undefined
-						: () => {
-								setRange([null, null]);
-								setLabelConfirmed(EMPTY_LABEL);
-								onConfirm(range);
-							}
-				}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: isEmpty ? undefined : theme.palette.secondary.main,
-					},
-					'& .MuiChip-label': {
-						color: isEmpty ? undefined : theme.palette.secondary.main,
-						fontStyle: isEmpty ? 'italic' : undefined,
-					},
-				}}
-			/>
+				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', height }}
+			>
+				<CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
+					<IconClock size={16} style={{ color: isEmpty ? undefined : 'var(--text-accent)' }} />
+					<span style={{ color: isEmpty ? undefined : 'var(--text-accent)', fontStyle: isEmpty ? 'italic' : undefined }}>{labelConfirmed}</span>
+				</CustomChip>
+				{!isEmpty && clearable && (
+					<button onClick={(e) => { e.stopPropagation(); setRange([null, null]); setLabelConfirmed(EMPTY_LABEL); onConfirm(range); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						<Stack display="flex" justifyContent="center" alignItems="flex-start">
-							<Box width="100%" display="flex" justifyContent="center" alignItems="flex-start">
-								<Stack
-									width={130}
-									display="flex"
-									justifyContent="flex-start"
-									alignItems="flex-start"
-									padding="10px"
-								>
+					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
+							<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+								<div style={{ width: 130, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
 									{shortcuts.map((s, i) => (
-										<Chip
-											key={i}
-											label={s.label}
-											onClick={() => {
-												if (s.label !== 'Reset') setLabel(s.label);
-												setRange(s.getValue());
-											}}
-											sx={{
-												margin: '5px 0px',
-												'& .MuiChip-icon': {
-													color:
-														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
-												},
-												'& .MuiChip-label': {
-													color:
-														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
-												},
-											}}
-										/>
+										<span key={i} style={{ margin: '5px 0px', cursor: 'pointer' }}>
+											<CustomChip
+												color={s.label === label ? 'info' : 'neutral'}
+												size="sm"
+												onClick={() => {
+													if (s.label !== 'Reset') setLabel(s.label);
+													setRange(s.getValue());
+												}}
+											>
+												{s.label}
+											</CustomChip>
+										</span>
 									))}
-								</Stack>
-								<DateRangeCalendar
-									value={range}
-									onChange={(v) => {
-										setLabel(formatDateLabel(v));
-										setRange(v);
+								</div>
+								<DayPicker
+									mode="range"
+									selected={selectedRange}
+									onSelect={(newRange) => {
+										const from = newRange?.from ? dayjs(newRange.from) : null;
+										const to = newRange?.to ? dayjs(newRange.to) : null;
+										const newDateRange: DateRange<Dayjs> = [from, to];
+										setLabel(formatDateLabel(newDateRange));
+										setRange(newDateRange);
 									}}
-									disableFuture={disableFuture}
+									disabled={disableFuture ? { after: new Date() } : undefined}
+									numberOfMonths={2}
 								/>
-							</Box>
+							</div>
 
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-								padding="10px"
+							<div
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+									padding: 10,
+								}}
 							>
-								<Box></Box>
-								<Box>
-									<Button
+								<div></div>
+								<div>
+									<CustomButton
 										onClick={() => onClose()}
 										variant="outlined"
-										sx={{ height: 30, marginRight: '10px' }}
+										size="sm"
+										style={{ marginRight: '10px' }}
 									>
 										Cancel
-									</Button>
-									<Button
+									</CustomButton>
+									<CustomButton
 										onClick={() => {
 											setLabelConfirmed(label);
 											onConfirm(range);
 											setAnchorEl(null);
 										}}
 										variant="contained"
-										color="secondary"
-										sx={{ height: 30 }}
+										color="success"
+										size="sm"
 										disabled={!clearable && range.some((r) => !r)}
 									>
 										Apply
-									</Button>
-								</Box>
-							</Box>
-						</Stack>
-					</Paper>
+									</CustomButton>
+								</div>
+							</div>
+						</div>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-	},
-};

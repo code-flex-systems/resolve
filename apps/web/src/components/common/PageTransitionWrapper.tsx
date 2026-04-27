@@ -1,9 +1,9 @@
 'use client';
 
-import { Box, Fade } from '@mui/material';
 import { ReactNode } from 'react';
 import CardioLoadingIndicator from './CardioLoadingIndicator';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import styles from './PageTransitionWrapper.module.css';
 
 interface PageTransitionWrapperProps {
 	/** Is critical data loaded? */
@@ -41,31 +41,16 @@ export default function PageTransitionWrapper({
 	});
 
 	return (
-		<Box width="100%" height="100%" position="relative">
+		<div className={styles.wrapper} style={{ '--fade-timeout': `${fadeTimeout}ms` } as React.CSSProperties}>
 			{/* Loading State */}
-			<Fade in={isLoading} timeout={fadeTimeout} unmountOnExit>
-				<Box
-					width="100%"
-					height="100%"
-					display="flex"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					position="absolute"
-					top={0}
-					left={0}
-					zIndex={1}
-				>
-					{loadingComponent ?? <CardioLoadingIndicator message={loadingMessage} />}
-				</Box>
-			</Fade>
+			<div className={`${styles.loading} ${isLoading ? styles.loadingVisible : ''}`}>
+				{loadingComponent ?? <CardioLoadingIndicator message={loadingMessage} />}
+			</div>
 
 			{/* Content */}
-			<Fade in={isReady} timeout={fadeTimeout}>
-				<Box width="100%" height="100%" display="flex" flexDirection="column">
-					{children}
-				</Box>
-			</Fade>
-		</Box>
+			<div className={`${styles.content} ${isReady ? styles.contentVisible : ''}`}>
+				{children}
+			</div>
+		</div>
 	);
 }

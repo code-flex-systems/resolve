@@ -7,12 +7,12 @@ export async function createComment(ctx: ProtectedContext, comment: Comment) {
 	return result;
 }
 
-export async function deleteComment(ctx: ProtectedContext, { id }: { id: number }) {
+export async function deleteComment(ctx: ProtectedContext, { id }: { id: string }) {
 	const result = await commentQueries.deleteComment(ctx, id);
 	return result;
 }
 
-export async function getComment(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getComment(ctx: ProtectedContext, { id }: { id: string }) {
 	const result = await commentQueries.getComment(ctx, id);
 	return result;
 }
@@ -32,10 +32,10 @@ export async function getCommentCount(ctx: ProtectedContext, { filters }: { filt
 
 export async function getCommentsForPage(
 	ctx: ProtectedContext,
-	{ checklistId, claimId, instanceId }: { checklistId: number; claimId: number; instanceId: number }
+	{ checklistId, claimId, instanceId }: { checklistId: string; claimId: string; instanceId: string }
 ) {
 	const result = await commentQueries.getCommentsForPage(ctx, checklistId, claimId, instanceId);
-	const commentsMap: Record<number, (typeof result)[0]> = {};
+	const commentsMap: Record<string, (typeof result)[0]> = {};
 	result.forEach((c) => {
 		commentsMap[c.question_id!] = c;
 	});

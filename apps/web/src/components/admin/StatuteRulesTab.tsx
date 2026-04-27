@@ -1,22 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
+import { IconGavel, IconInfoCircle, IconSettings } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
+import { useMemo, useState } from 'react';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { STATUTE_TORT_TYPES } from '@/config/statuteConfig';
-import { Chip, Fade, Paper, Tooltip, Typography, Box, IconButton } from '@mui/material';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
-import GavelIcon from '@mui/icons-material/Gavel';
-import SettingsIcon from '@mui/icons-material/Settings';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useAdminStore } from '@/stores/useAdminStore';
 import StatuteRuleDialog from './StatuteRuleDialog';
 import { US_JURISDICTIONS } from '@/config/usJurisdictions';
 import type { StatuteRules, TortTypeConfig, NegligenceType } from '@/schemas/statuteSchemas';
 import { getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 /**
  * Render cell value for a tort type column.
@@ -24,11 +24,7 @@ import { getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
  */
 function renderTortCell(rules: StatuteRules | undefined, tortType: string): React.ReactNode {
 	if (!rules || !rules[tortType]) {
-		return (
-			<Typography color="text.secondary" height="100%">
-				-
-			</Typography>
-		);
+		return <span style={{ color: 'var(--text-secondary)', height: '100%' }}>-</span>;
 	}
 
 	const config = rules[tortType] as TortTypeConfig;
@@ -36,40 +32,38 @@ function renderTortCell(rules: StatuteRules | undefined, tortType: string): Reac
 
 	// No default and no rules = unconfigured
 	if (config.default_years === null && !hasConditionalRules) {
-		return (
-			<Typography color="text.secondary" height="100%">
-				N/A
-			</Typography>
-		);
+		return <span style={{ color: 'var(--text-secondary)', height: '100%' }}>N/A</span>;
 	}
 
 	// Has conditional rules - show as chip with tooltip
 	if (hasConditionalRules) {
 		return (
 			<Tooltip
-				title={
-					<Box>
+				content={
+					<div>
 						{config.default_years !== null && (
-							<Typography color="white">Default: {config.default_years} years</Typography>
+							<span style={{ color: 'white' }}>Default: {config.default_years} years</span>
 						)}
 						{config.rules.map((rule, idx) => (
-							<Typography key={idx} color="white">
+							<span key={idx} style={{ color: 'white' }}>
 								{rule.lob && `LOB: ${rule.lob}`}
 								{rule.date_from && ` From: ${rule.date_from}`}
 								{rule.date_to && ` To: ${rule.date_to}`}
 								{` = ${rule.years} years`}
-							</Typography>
+							</span>
 						))}
-					</Box>
+					</div>
 				}
 			>
-				<Chip label="..." size="small" color="info" variant="outlined" sx={{ cursor: 'pointer' }} />
+				<Chip size="sm" color="info" variant="outlined" style={{ cursor: 'pointer' }}>
+					...
+				</Chip>
 			</Tooltip>
 		);
 	}
 
 	// Simple default years
-	return <Typography>{config.default_years} yrs</Typography>;
+	return <span>{config.default_years} yrs</span>;
 }
 
 /**
@@ -82,27 +76,23 @@ function renderNegligenceCell(
 	notes: string | null
 ): React.ReactNode {
 	if (!type) {
-		return (
-			<Typography color="text.secondary" height="100%">
-				-
-			</Typography>
-		);
+		return <span style={{ color: 'var(--text-secondary)', height: '100%' }}>-</span>;
 	}
 
 	const label = getNegligenceTypeLabel(type);
 	const barText = barPercent !== null ? `${barPercent}% bars` : 'varies';
 
 	return (
-		<Box display="flex" alignItems="center" gap={1} height="100%">
-			<Typography variant="body2">
+		<div style={{ display: 'flex', alignItems: 'center', gap: 8, height: '100%' }}>
+			<span>
 				{label}, {barText}
-			</Typography>
+			</span>
 			{notes && (
-				<Tooltip title={notes}>
-					<InfoOutlinedIcon fontSize="small" sx={{ color: 'warning.main', cursor: 'pointer' }} />
+				<Tooltip content={notes}>
+					<IconInfoCircle size={20} style={{ color: 'var(--status-warning)', cursor: 'pointer' }} />
 				</Tooltip>
 			)}
-		</Box>
+		</div>
 	);
 }
 
@@ -110,7 +100,7 @@ function NoRowsOverlay() {
 	return (
 		<CustomNoRowsOverlay
 			text="No statute rules found"
-			icon={<GavelIcon sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconGavel size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -119,6 +109,8 @@ export default function StatuteRulesTab() {
 	const showStatuteRuleDialog = useAdminStore((state) => state.showStatuteRuleDialog);
 	const setStatuteStateCode = useAdminStore((state) => state.setStatuteStateCode);
 	const toggleStatuteRuleDialog = useAdminStore((state) => state.toggleStatuteRuleDialog);
+
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	const { list } = useStatuteTrpc();
 
@@ -153,109 +145,122 @@ export default function StatuteRulesTab() {
 	);
 
 	// Build dynamic columns for each tort type (using hardcoded config)
-	const columns = useMemo<GridColDef[]>(() => {
-		const tortColumns: GridColDef[] = STATUTE_TORT_TYPES.map((tort) => ({
-			headerName: tort.label,
+	const columns = useMemo<ColumnDef<any, any>[]>(() => {
+		const tortColumns: ColumnDef<any, any>[] = STATUTE_TORT_TYPES.map((tort) => ({
+			header: tort.label,
 			field: tort.value,
-			width: 130,
-			renderCell: ({ row }: GridRenderCellParams) => (
-				<Box display="flex" alignItems="center" height="100%">
+			size: 130,
+			cell: ({ row: { original: row } }: any) => (
+				<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 					{renderTortCell(row.rules, tort.value)}
-				</Box>
+				</div>
 			),
-			sortable: false,
+			enableSorting: false,
 		}));
 
 		return [
 			{
-				headerName: 'State',
-				field: 'state_name',
-				width: 200,
-				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<GavelIcon style={{ color: BASE_COLOR_LIGHT }} />} />
+				accessorKey: 'state_name',
+				size: 200,
+				header: (params) => (
+					<IconHeaderCell {...params} icon={<IconGavel style={{ color: 'var(--text-muted)' }} />} />
 				),
 			},
 			{
-				headerName: 'Code',
-				field: 'state_code',
-				width: 70,
+				header: 'Code',
+				accessorKey: 'state_code',
+				size: 70,
 			},
 			...tortColumns,
 			{
-				headerName: 'Negligence Law',
-				field: 'negligence',
-				width: 220,
-				sortable: false,
-				renderCell: ({ row }: GridRenderCellParams) => (
-					<Box display="flex" alignItems="center" height="100%">
+				header: 'Negligence Law',
+				accessorKey: 'negligence',
+				size: 220,
+				enableSorting: false,
+				cell: ({ row: { original: row } }: any) => (
+					<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 						{renderNegligenceCell(row.negligence_type, row.negligence_bar_percent, row.negligence_notes)}
-					</Box>
+					</div>
 				),
 			},
 			{
-				headerName: '',
-				field: 'actions',
-				width: 60,
-				sortable: false,
-				filterable: false,
-				disableColumnMenu: true,
-				renderCell: ({ row }: GridRenderCellParams) => (
-					<Box display="flex" alignItems="center" justifyContent="center" width="100%" height="100%">
-						<IconButton
-							size="small"
-							onClick={(e) => {
-								e.stopPropagation();
-								setStatuteStateCode(row.state_code);
-								toggleStatuteRuleDialog();
+				header: '',
+				accessorKey: 'actions',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row: { original: row } }: any) => {
+					if (!isManageMode) return null;
+					return (
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: '100%',
+								height: '100%',
 							}}
 						>
-							<SettingsIcon fontSize="small" />
-						</IconButton>
-					</Box>
-				),
+							<Button
+								variant="icon"
+								size="sm"
+								onClick={(e) => {
+									e.stopPropagation();
+									setStatuteStateCode(row.state_code);
+									toggleStatuteRuleDialog();
+								}}
+							>
+								<IconSettings size={20} />
+							</Button>
+						</div>
+					);
+				},
 			},
 		];
-	}, [setStatuteStateCode, toggleStatuteRuleDialog]);
+	}, [isManageMode, setStatuteStateCode, toggleStatuteRuleDialog]);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<div>
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
 					<Toolbar
-						left={<Typography variant="h6">Statute of Limitations Rules</Typography>}
+						left={<span>Statute of Limitations Rules</span>}
+						right={
+							<Tooltip content="Manage">
+								<Button
+									variant="icon"
+									size="sm"
+									onClick={() => setIsManageMode(!isManageMode)}
+									style={{
+										marginLeft: 8,
+										backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+									}}
+								>
+									<IconSettings
+										size={20}
+										style={{ color: isManageMode ? 'var(--text-accent)' : undefined }}
+									/>
+								</Button>
+							</Tooltip>
+						}
 						height={50}
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={rulesFetching}
-							slots={{
-								noRowsOverlay: NoRowsOverlay,
-								noResultsOverlay: NoRowsOverlay,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={rows}
 							rowHeight={50}
 							hideFooter
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							pinnedColumns={{ right: ['actions'] }}
-							sx={styles.tableOverrides}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
-				</Paper>
+				</Card>
 
 				{showStatuteRuleDialog && <StatuteRuleDialog />}
 			</div>
-		</Fade>
+		</div>
 	);
 }
 
@@ -267,18 +272,14 @@ const styles = {
 		flexDirection: 'column' as const,
 	},
 	paper: {
-		flex: 1,
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '15px 15px 0px',
+		width: '100%',
+		height: '100%',
 		minHeight: 0,
 	},
 	table: {
 		width: '100%',
-		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
+		height: 'calc(100vh - 190px)',
 	},
 };

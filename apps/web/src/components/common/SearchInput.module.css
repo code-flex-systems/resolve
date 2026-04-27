@@ -1,0 +1,21 @@
+.searchIcon {
+	color: var(--text-secondary);
+	flex-shrink: 0;
+}
+
+.clearButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: var(--text-secondary);
+	transition: color 0.2s ease;
+	flex-shrink: 0;
+}
+
+.clearButton:hover {
+	color: var(--text-primary);
+}

@@ -1,21 +1,21 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Box, Fade, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import QuestionStatItem from '../checklist/QuestionStatItem';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import Leaderboard from '@mui/icons-material/Leaderboard';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useSearchParams } from 'next/navigation';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import dayjs, { Dayjs } from 'dayjs';
-import { TEXT_MUTED } from '@/styles/theme';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconTrophy } from '@tabler/icons-react';
 
 export default function BreakdownNavigation() {
 	const searchParams = useSearchParams();
-	const pageId = +(searchParams.get('pageId') ?? '-1');
-	const instanceId = +(searchParams.get('instanceId') ?? '-1');
+	const pageId = searchParams.get('pageId') ?? '';
+	const instanceId = searchParams.get('instanceId') ?? '';
+	const pagePosition = Number(searchParams.get('pagePosition') ?? '0');
 
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
@@ -36,11 +36,11 @@ export default function BreakdownNavigation() {
 				users: breakdownUsers.map((u) => u.id),
 			},
 		},
-		{ enabled: pageId !== -1 }
+		{ enabled: !!pageId }
 	);
 	const { data: pageInstance, isFetching: loadingPage } = usePageTrpc().getInstance(
 		{ instanceId },
-		{ enabled: instanceId !== -1 }
+		{ enabled: !!instanceId }
 	);
 	const isLoading = loadingPage || loadingStats;
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -48,50 +48,49 @@ export default function BreakdownNavigation() {
 	useEffect(() => {});
 
 	return (
-		<Stack
-			width={600}
-			minWidth={600}
-			height="100%"
-			display="flex"
-			justifyContent="flex-start"
-			alignItems="flex-start"
-			pr={2.5}
+		<div
+			
+			
+			
+			
+			
+			
+			 style={{ width: 600, minWidth: 600, height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingRight: 20 }}
 		>
-			<Paper elevation={0} sx={styles.paper}>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="center"
-					pt={1.5}
-					pl={1.5}
+			<div style={styles.paper}>
+				<div
+					
+					
+					
+					
+					
+					 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 12, paddingLeft: 12 }}
 				>
-					<Leaderboard sx={{ color: TEXT_MUTED, transform: 'rotate(90deg)' }} />
-					<Typography fontSize={14} color={TEXT_MUTED} ml={1.5}>
+					<IconTrophy size={20} style={{ color: 'var(--text-muted)', transform: 'rotate(90deg)' }} />
+					<span    style={{ fontSize: 14, color: 'var(--text-muted)', marginLeft: 12 }}>
 						{pageInstance
 							? `Breakdown for ${pageInstance.title}`
 							: isLoading
 								? 'Loading questions...'
 								: 'Waiting for selection...'}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
-				<Fade key={isLoading ? 'loading' : 'data'} in={true}>
-					<span>
-						<Paper elevation={0} sx={styles.contentPaper}>
+				<div>
+						<div style={styles.contentPaper}>
 							{isLoading && (
-								<Stack spacing={2} width="100%" p={2}>
+								<div    style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, width: '100%', padding: 16 }}>
 									{[1, 2, 3, 4].map((i) => (
-										<Skeleton key={i} variant="rounded" height={60} />
+										<Skeleton key={i} variant="rect" height={60} />
 									))}
-								</Stack>
+								</div>
 							)}
 							{!isLoading && !questionStats.length && (
-								<Box sx={styles.loadingContainer} className="flex-col-center">
-									<Typography color={TEXT_MUTED} fontSize={18}>
+								<div  className="flex-col-center" style={styles.loadingContainer}>
+									<span   style={{ color: 'var(--text-muted)', fontSize: 18 }}>
 										No response data found
-									</Typography>
-								</Box>
+									</span>
+								</div>
 							)}
 							{!isLoading &&
 								!!questionStats.length &&
@@ -101,8 +100,8 @@ export default function BreakdownNavigation() {
 										expandedIdx={expandedIdx}
 										idx={i}
 										item={stat}
-										onAnswerClick={(id: number) => updateSelectedAnswerId(id)}
-										pageId={+pageId}
+										onAnswerClick={(id: string) => updateSelectedAnswerId(id)}
+										pagePosition={pagePosition}
 										selectedAnswerId={selectedAnswerId ?? undefined}
 										setExpandedIdx={(newIdx) => {
 											setExpandedIdx(newIdx);
@@ -110,11 +109,10 @@ export default function BreakdownNavigation() {
 										}}
 									/>
 								))}
-						</Paper>
-					</span>
-				</Fade>
-			</Paper>
-		</Stack>
+						</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

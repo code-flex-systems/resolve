@@ -1,10 +1,7 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as deskQueries from '@/api/queries/deskQueries';
-import {
-	logAdminAction,
-	AdminAction,
-	EntityName,
-} from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import { TRPCError } from '@trpc/server';
 
 // ============================================================================
@@ -42,7 +39,7 @@ export async function getDeskLocationTypes(
  */
 export async function getDeskLocationType(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	return await deskQueries.getDeskLocationType(ctx, id);
 }
@@ -92,7 +89,7 @@ export async function updateDeskLocationType(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			name?: string;
 		};
@@ -134,7 +131,7 @@ export async function updateDeskLocationType(
  */
 export async function archiveDeskLocationType(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const deskLocationType = await deskQueries.archiveDeskLocationType(
@@ -165,7 +162,7 @@ export async function archiveDeskLocationType(
  */
 export async function restoreDeskLocationType(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const deskLocationType = await deskQueries.restoreDeskLocationType(
@@ -209,7 +206,7 @@ export async function getDeskLocations(
 		showDeleted,
 		showInactive,
 	}: {
-		deskLocationTypeId?: number;
+		deskLocationTypeId?: string;
 		searchTerm?: string;
 		limit?: number;
 		offset?: number;
@@ -233,7 +230,7 @@ export async function getDeskLocations(
  */
 export async function getDeskLocation(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	return await deskQueries.getDeskLocation(ctx, id);
 }
@@ -245,8 +242,9 @@ export async function createDeskLocation(
 	ctx: ProtectedContext,
 	input: {
 		name: string;
-		desk_location_type_id: number;
+		desk_location_type_id: string;
 		is_active?: boolean;
+		capacity_threshold: number;
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
@@ -284,10 +282,10 @@ export async function updateDeskLocation(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			name?: string;
-			desk_location_type_id?: number;
+			desk_location_type_id?: string;
 			is_active?: boolean;
 		};
 	}
@@ -328,7 +326,7 @@ export async function updateDeskLocation(
  */
 export async function archiveDeskLocation(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const deskLocation = await deskQueries.archiveDeskLocation(
@@ -360,7 +358,7 @@ export async function archiveDeskLocation(
  */
 export async function restoreDeskLocation(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const deskLocation = await deskQueries.restoreDeskLocation(
@@ -407,7 +405,7 @@ export async function getUserDeskLocations(
  */
 export async function getDeskLocationUsers(
 	ctx: ProtectedContext,
-	{ deskLocationId }: { deskLocationId: number }
+	{ deskLocationId }: { deskLocationId: string }
 ) {
 	return await deskQueries.getDeskLocationUsers(ctx, deskLocationId);
 }
@@ -419,7 +417,7 @@ export async function assignUserToDeskLocation(
 	ctx: ProtectedContext,
 	input: {
 		userId: string;
-		deskLocationId: number;
+		deskLocationId: string;
 		priority: number;
 	}
 ) {
@@ -457,7 +455,7 @@ export async function bulkAssignUsersToDeskLocation(
 	ctx: ProtectedContext,
 	input: {
 		userIds: string[];
-		deskLocationId: number;
+		deskLocationId: string;
 		priority: number;
 	}
 ) {
@@ -491,7 +489,7 @@ export async function updateUserDeskLocationPriority(
 		id,
 		priority,
 	}: {
-		id: number;
+		id: string;
 		priority: number;
 	}
 ) {
@@ -525,7 +523,7 @@ export async function updateUserDeskLocationPriority(
  */
 export async function removeUserFromDeskLocation(
 	ctx: ProtectedContext,
-	{ id }: { id: number }
+	{ id }: { id: string }
 ) {
 	const removed = await ctx.db.transaction().execute(async (trx) => {
 		const assignment = await deskQueries.removeUserFromDeskLocation(
@@ -557,7 +555,7 @@ export async function removeUserFromDeskLocation(
  */
 export async function updateUserDeskLocationPriorities(
 	ctx: ProtectedContext,
-	{ updates }: { updates: Array<{ id: number; priority: number }> }
+	{ updates }: { updates: Array<{ id: string; priority: number }> }
 ) {
 	const updated = await ctx.db.transaction().execute(async (trx) => {
 		const assignments = await deskQueries.updateUserDeskLocationPriorities(
@@ -605,7 +603,7 @@ export async function updateUsersDeskAssignments(
 	}: {
 		updates: Array<{
 			userId: string;
-			assignments: Array<{ deskLocationId: number; priority: number }>;
+			assignments: Array<{ deskLocationId: string; priority: number }>;
 		}>;
 	}
 ) {
@@ -637,4 +635,42 @@ export async function updateUsersDeskAssignments(
 	});
 
 	return updated;
+}
+
+/**
+ * Get current user's desk assignments with claim counts
+ * Used for the My Desk Assignments dashboard metric
+ */
+export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext) {
+	return await deskQueries.getMyDeskAssignmentsWithClaimCounts(ctx);
+}
+
+// ============================================================================
+// CLAIM DESK LOCATION TRANSITION CONTROLLERS
+// ============================================================================
+
+/**
+ * Record a claim transition to a new desk location.
+ * No admin logging since this is an append-only audit trail.
+ */
+export async function createClaimTransition(
+	ctx: ProtectedContext,
+	input: {
+		claimId: string;
+		deskLocationId: string;
+		previousDeskLocationId?: string;
+		enteredReason?: string;
+	}
+) {
+	return await deskQueries.createClaimTransition(ctx, input);
+}
+
+/**
+ * Get transition history for a claim.
+ */
+export async function getClaimTransitions(
+	ctx: ProtectedContext,
+	{ claimId }: { claimId: string }
+) {
+	return await deskQueries.getClaimTransitions(ctx, claimId);
 }

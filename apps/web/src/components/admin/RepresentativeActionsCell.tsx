@@ -1,24 +1,27 @@
 'use client';
 
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import Unarchive from '@mui/icons-material/Unarchive';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import RepresentativeDialog from './RepresentativeDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import theme from '@/styles/theme';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
-interface RepresentativeActionsCellProps extends GridRenderCellParams {
+interface RepresentativeActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isAdminContext?: boolean;
+	isManageMode?: boolean;
 }
 
 export default function RepresentativeActionsCell(params: RepresentativeActionsCellProps) {
-	const { isAdminContext = true } = params;
+	const { isAdminContext = true, isManageMode = true } = params;
+
+	// Hide actions when not in manage mode
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
@@ -36,10 +39,10 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreRepresentative({ id: row.id as unknown as number });
+				await restoreRepresentative({ id: row.id });
 				showAlert('Representative restored successfully', 'success');
 			} else {
-				await archiveRepresentative({ id: row.id as unknown as number });
+				await archiveRepresentative({ id: row.id });
 				showAlert('Representative archived successfully', 'success');
 			}
 			setShowActionConfirm(false);
@@ -71,58 +74,46 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this representative?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						Representative: {representativeName}
-					</Typography>
+					</span>
 					{row.party_name && (
-						<Typography fontStyle="italic">
+						<span style={{ fontStyle: 'italic' }}>
 							Party: {row.party_name}
-						</Typography>
+						</span>
 					)}
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight={isAdminContext ? '5px' : undefined}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isArchived || isPartyArchived,
-						}}
-						tooltipProps={{
-							title: isArchived
+				<div style={{ marginRight: isAdminContext ? '5px' : undefined }}>
+					<Tooltip content="isArchived
 								? 'Cannot edit archived representative'
 								: isPartyArchived
 									? 'Cannot edit representative - parent party is archived'
-									: 'Make changes',
-						}}
-						icon={<Edit sx={{ fontSize: 15 }} />}
-					/>
-				</Box>
+									: 'Make changes'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived || isPartyArchived}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
+				</div>
 				{isAdminContext && (
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowActionConfirm(true),
-							disabled: isPending || isPartyArchived,
-						}}
-						tooltipProps={{
-							title: isPartyArchived
+					<Tooltip content="isPartyArchived
 								? 'Cannot modify representative - parent party is archived'
 								: isArchived
 									? 'Restore representative'
-									: 'Archive representative',
-						}}
-						icon={
+									: 'Archive representative'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending || isPartyArchived}>
 							isArchived ? (
-								<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 							)
-						}
-					/>
+						</Button>
+						</Tooltip>
 				)}
 			</div>
 		</>

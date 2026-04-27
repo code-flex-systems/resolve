@@ -1,10 +1,10 @@
 'use client';
-import { Box, Dialog, DialogActions, DialogContent, Divider, Fade, IconButton, Paper, Typography } from '@mui/material';
-import { JSX, PropsWithChildren } from 'react';
+
+import { JSX, PropsWithChildren, useCallback, useEffect, useRef } from 'react';
 import BasicButton from './BasicButton';
 import { DialogAction } from '@/types/types';
-import Cancel from '@mui/icons-material/Cancel';
-import CheckCircle from '@mui/icons-material/CheckCircle';
+import { IconX, IconCircleCheck } from '@tabler/icons-react';
+import css from './BasicDialog.module.css';
 
 export default function BasicDialog(
 	props: {
@@ -30,133 +30,124 @@ export default function BasicDialog(
 		primaryAction,
 		secondaryActions = [],
 		iconActions = [],
-		width = 'fit-content',
-		height = 'fit-content',
+		width = 500,
+		height,
 		maxHeight,
 		showCloseButton = true,
 		showOverflow = false,
 	} = props;
-	const iconActionsPercentage = 10 * (iconActions.length + 1);
+
+	const dialogRef = useRef<HTMLDialogElement>(null);
+
+	useEffect(() => {
+		const dialog = dialogRef.current;
+		if (dialog && !dialog.open) {
+			dialog.showModal();
+		}
+	}, []);
+
+	useEffect(() => {
+		const dialog = dialogRef.current;
+		if (!dialog) return;
+		const handleClose = () => {
+			if (!closeDisabled) onClose();
+		};
+		dialog.addEventListener('close', handleClose);
+		return () => dialog.removeEventListener('close', handleClose);
+	}, [onClose, closeDisabled]);
+
+	const handleClick = useCallback(
+		(e: React.MouseEvent<HTMLDialogElement>) => {
+			if (e.target === e.currentTarget && !closeDisabled) {
+				onClose();
+			}
+		},
+		[onClose, closeDisabled]
+	);
+
 	return (
-		<Dialog
-			open={true}
-			onClose={closeDisabled ? undefined : onClose}
-			sx={{
-				overflow: showOverflow ? 'visible' : undefined,
-				'& .MuiPaper-root': {
-					maxWidth: '100%',
-					width: width,
-					height: height,
-					maxHeight,
-				},
-			}}
+		<dialog
+			ref={dialogRef}
+			className={css.dialog}
+			onClick={handleClick}
 		>
-			{(!!title || !!iconActions.length || showCloseButton) && (
-				<Box
-					sx={{
-						width: '100%',
-						minHeight: titleHeight,
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						pt: 2,
-						px: 2.5,
-						pb: 1,
-						flexShrink: 0,
-					}}
-				>
-					<Box
-						sx={{
-							display: 'flex',
-							alignItems: 'center',
-							flex: 1,
-							minWidth: 0,
-							overflow: 'hidden',
-							justifyContent: 'flex-start',
-						}}
-					>
-						{typeof title === 'string' ? (
-							// <Paper
-							// 	elevation={0}
-							// 	sx={{
-							// 		bgcolor: 'var(--color-bg-tertiary)',
-							// 		py: 0.5,
-							// 		px: 1.5,
-							// 		borderRadius: 2,
-							// 		maxWidth: 'fit-content',
-							// 	}}
-							// >
-							<Typography variant="h6" noWrap>
-								{title}
-							</Typography>
-						) : (
-							// </Paper>
-							<>{title ?? <></>}</>
-						)}
-					</Box>
-					<Box
-						sx={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'flex-end',
-							flexShrink: 0,
-							gap: 0.5,
-						}}
-					>
-						{...iconActions}
-						{showCloseButton && (
-							<IconButton onClick={onClose} disabled={closeDisabled}>
-								<Cancel sx={{ fontSize: 19 }} />
-							</IconButton>
-						)}
-					</Box>
-				</Box>
-			)}
-			<Divider />
-
-			<DialogContent sx={{ overflow: showOverflow ? 'visible' : 'auto', height: 'calc(100% - 90px)', px: 2.5 }}>
-				{props.children}
-			</DialogContent>
-
-			{(primaryAction || secondaryActions.length > 0) && (
-				<DialogActions sx={{ px: 2.5, pb: 2, pt: 1 }}>
-					{secondaryActions.reverse().map((action) => (
-						<Fade key={action.label} in={action.hidden === undefined ? true : !action.hidden}>
-							<span>
-								<BasicButton
-									buttonProps={{
-										onClick: action.onClick,
-										variant: 'outlined',
-										disabled: action.disabled,
-										color: action.color,
-										startIcon: action.icon,
-									}}
+			<div
+				className={css.inner}
+				style={{
+					width: typeof width === 'number' ? `min(${width}px, 90vw)` : width,
+					height,
+					maxHeight: maxHeight ?? '85vh',
+				}}
+			>
+				{(!!title || !!iconActions.length || showCloseButton) && (
+					<div className={css.header} style={{ minHeight: titleHeight }}>
+						<div className={css.titleArea}>
+							{typeof title === 'string' ? (
+								<h6 className={css.title}>{title}</h6>
+							) : (
+								<>{title ?? <></>}</>
+							)}
+						</div>
+						<div className={css.headerActions}>
+							{...iconActions}
+							{showCloseButton && (
+								<button
+									className={css.closeButton}
+									onClick={onClose}
+									disabled={closeDisabled}
+									type="button"
 								>
-									{action.label}
-								</BasicButton>
-							</span>
-						</Fade>
-					))}
+									<IconX size={19} stroke={1.5} />
+								</button>
+							)}
+						</div>
+					</div>
+				)}
+				<div className={css.divider} />
 
-					{primaryAction && (
-						<Fade key="primary" in={primaryAction.hidden === undefined ? true : !primaryAction.hidden}>
-							<span>
+				<div className={[css.content, showOverflow ? css.contentOverflow : ''].filter(Boolean).join(' ')}>
+					{props.children}
+				</div>
+
+				{(primaryAction || secondaryActions.length > 0) && (
+					<>
+						<div className={css.divider} />
+						<div className={css.actions}>
+							{secondaryActions.reverse().map((action) =>
+								action.hidden ? null : (
+									<BasicButton
+										key={action.label}
+										buttonProps={{
+											onClick: action.onClick,
+											variant: 'outlined',
+											disabled: action.disabled,
+											color: action.color,
+											startIcon: action.icon,
+										}}
+									>
+										{action.label}
+									</BasicButton>
+								)
+							)}
+
+							{primaryAction && !primaryAction.hidden && (
 								<BasicButton
+									key="primary"
 									buttonProps={{
 										onClick: primaryAction.onClick,
 										variant: 'contained',
 										disabled: primaryAction.disabled,
 										color: primaryAction.color,
-										startIcon: primaryAction.icon ?? <CheckCircle />,
+										startIcon: primaryAction.icon ?? <IconCircleCheck size={18} />,
 									}}
 								>
 									{primaryAction.label}
 								</BasicButton>
-							</span>
-						</Fade>
-					)}
-				</DialogActions>
-			)}
-		</Dialog>
+							)}
+						</div>
+					</>
+				)}
+			</div>
+		</dialog>
 	);
 }

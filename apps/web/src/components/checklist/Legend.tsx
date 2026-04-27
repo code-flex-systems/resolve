@@ -1,73 +1,72 @@
-import theme from '@/styles/theme';
-import { Box, Divider, Fade, Paper, Popper, PopperProps, Stack, Typography } from '@mui/material';
-import Adjust from '@mui/icons-material/Adjust';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import PanoramaFishEye from '@mui/icons-material/PanoramaFishEye';
-import Error from '@mui/icons-material/Error';
-import Info from '@mui/icons-material/Info';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import Button from '@/components/ui/Button';
+import BasicPopper from '../common/BasicPopper';
 import { useState } from 'react';
+import { IconAdjustments, IconAlertCircle, IconCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
 
 export default function Legend() {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	return (
 		<>
-			<BasicButtonStyled
-				buttonProps={{
-					onMouseEnter: (e) => setAnchorEl(e.currentTarget),
-					onMouseLeave: () => setAnchorEl(null),
-				}}
-				icon={<Info />}
-				compact
-			/>
-			<Popper open={!!anchorEl} anchorEl={anchorEl} placement="bottom-start" sx={{ zIndex: 100 }} transition>
-				{({ TransitionProps }) => (
-					<Fade {...TransitionProps} timeout={350}>
-						<span>
-							<Paper sx={styles.container} className="flex-col-start">
-								<Stack width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start">
-									<Typography marginBottom="5px">Legend</Typography>
-									<Divider flexItem />
-									<Box display="flex" alignItems="center" padding="2px" marginTop="10px">
-										<PanoramaFishEye sx={styles.icon} />
-										<Typography fontSize={14}>The page hasn't been started yet</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="2px">
-										<Adjust sx={styles.icon} />
-										<Typography fontSize={14}>The page is partially complete</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="2px">
-										<CheckCircle sx={styles.icon} />
-										<Typography fontSize={14}>The page is complete</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="2px">
-										<Error sx={styles.icon} />
-										<Typography fontSize={14}>The page has been changed</Typography>
-									</Box>
-									<Box display="flex" alignItems="center" padding="5px 2px 2px">
-										<Typography fontSize={14} color="error.light">
-											Unanswered questions show in red
-										</Typography>
-									</Box>
-								</Stack>
-							</Paper>
-						</span>
-					</Fade>
-				)}
-			</Popper>
+			<Button
+				variant="icon"
+				size="sm"
+				color="neutral"
+				onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(e.currentTarget)}
+				onMouseLeave={() => setAnchorEl(null)}
+			>
+				<IconInfoCircle size={16} />
+			</Button>
+			<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={1300}>
+				<div
+					style={{
+						width: 'fit-content',
+						padding: '10px 20px',
+						height: 'fit-content',
+						marginTop: 5,
+						backgroundColor: 'var(--bg-primary)',
+						borderRadius: 'var(--radius-lg)',
+						boxShadow: 'var(--shadow-md)',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'flex-start',
+					}}
+				>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							flexDirection: 'column',
+							justifyContent: 'flex-start',
+							alignItems: 'flex-start',
+						}}
+					>
+						<span style={{ marginBottom: '5px' }}>Legend</span>
+						<Divider />
+						<div style={{ display: 'flex', alignItems: 'center', padding: '2px', marginTop: '10px' }}>
+							<IconCircle style={{ color: 'var(--text-accent)', marginRight: 10 }} />
+							<span style={{ fontSize: 14 }}>The page hasn&apos;t been started yet</span>
+						</div>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '2px' }}>
+							<IconAdjustments style={{ color: 'var(--text-accent)', marginRight: 10 }} />
+							<span style={{ fontSize: 14 }}>The page is partially complete</span>
+						</div>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '2px' }}>
+							<IconCircleCheck style={{ color: 'var(--text-accent)', marginRight: 10 }} />
+							<span style={{ fontSize: 14 }}>The page is complete</span>
+						</div>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '2px' }}>
+							<IconAlertCircle style={{ color: 'var(--text-accent)', marginRight: 10 }} />
+							<span style={{ fontSize: 14 }}>The page has been changed</span>
+						</div>
+						<div style={{ display: 'flex', alignItems: 'center', padding: '5px 2px 2px' }}>
+							<span style={{ fontSize: 14, color: 'var(--status-error)' }}>
+								Unanswered questions show in red
+							</span>
+						</div>
+					</div>
+				</div>
+			</BasicPopper>
 		</>
 	);
 }
-
-const styles = {
-	container: {
-		width: 'fit-content',
-		p: '10px 20px',
-		height: 'fit-content',
-		mt: 0.625,
-	},
-	icon: {
-		color: theme.palette.primary.main,
-		mr: 1.25,
-	},
-};

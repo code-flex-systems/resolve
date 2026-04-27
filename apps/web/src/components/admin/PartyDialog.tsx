@@ -1,11 +1,11 @@
 'use client';
 
-import { MenuItem, Stack, TextField, Typography, Box, FormControlLabel, Switch } from '@mui/material';
-import Send from '@mui/icons-material/Send';
-import Business from '@mui/icons-material/Business';
-import Person from '@mui/icons-material/Person';
-import SupportAgent from '@mui/icons-material/SupportAgent';
-import BasicDialog from '../common/BasicDialog';
+import { IconBuilding, IconHeadset, IconSend, IconUser } from '@tabler/icons-react';
+import Input, { Textarea } from '@/components/ui/Input';
+import Dropdown from '@/components/ui/Dropdown';
+import Switch from '@/components/ui/Switch';
+import Dialog from '@/components/ui/Dialog';
+import StepperFlow from '@/components/ui/StepperFlow';
 import AddressFields from '../common/AddressFields';
 import { Controller, useForm } from 'react-hook-form';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
@@ -66,6 +66,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	const { mutateAsync: updateParty, isPending: updating } = partyTrpc.update;
 	const [searchTerm, setSearchTerm] = useState('');
 	const [duplicateMatches, setDuplicateMatches] = useState<any[]>([]);
+	const [activeStep, setActiveStep] = useState(0);
 	const { showSuccess, showError } = useCrudAlerts('party');
 
 	const isEditMode = !!party;
@@ -129,6 +130,17 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	const name = watch('name');
 	const firstName = watch('first_name');
 	const lastName = watch('last_name');
+	const organization = watch('organization');
+	const contactEmail = watch('contact_email');
+	const contactPhone = watch('contact_phone');
+	const contactPhoneType = watch('contact_phone_type');
+	const contactStreetAddress = watch('contact_street_address');
+	const contactCity = watch('contact_city');
+	const contactState = watch('contact_state');
+	const contactPostalCode = watch('contact_postal_code');
+	const contactCountry = watch('contact_country');
+	const contactAddressType = watch('contact_address_type');
+	const notes = watch('notes');
 
 	// Compute display name for duplicate checking
 	const displayName = useMemo(() => {
@@ -149,13 +161,13 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	const getPartyTypeIcon = (type: PartyType) => {
 		switch (type) {
 			case PartyType.ENTITY:
-				return <Business sx={{ fontSize: 18 }} />;
+				return <IconBuilding size={18} />;
 			case PartyType.FACILITATOR:
-				return <SupportAgent sx={{ fontSize: 18 }} />;
+				return <IconHeadset size={18} />;
 		}
 	};
 
-	const currentPartyId = party ? (party.id as unknown as number) : null;
+	const currentPartyId = party ? party.id : null;
 
 	// Create stable debounced function
 	const debouncedSetSearchTerm = useDebounce((value: string) => {
@@ -265,7 +277,7 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				}
 
 				await updateParty({
-					id: party.id as unknown as number,
+					id: String(party.id),
 					params: updates,
 				});
 				showSuccess('update', 'Party updated');
@@ -297,328 +309,457 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 		}
 	});
 
-	return (
-		<BasicDialog
-			title={isEditMode ? 'Edit Party' : 'New Party'}
-			primaryAction={{
-				label: isEditMode ? 'Update' : 'Create',
-				onClick: onSubmit,
-				icon: isEditMode ? undefined : <Send />,
-				disabled:
-					!hasRequiredName ||
-					isSubmitting ||
-					isPending ||
-					!isValid ||
-					(isEditMode && !isDirty) ||
-					duplicateMatches.length > 0,
-			}}
-			onClose={handleClose}
-			width={500}
-		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
-				<Controller
-					name="party_type"
-					control={control}
-					rules={{ required: true }}
-					render={({ field }) => (
-						<TextField
+	/* =========================================================================
+	   STEP CONTENT
+	   ========================================================================= */
+
+	const stepIdentityContent = (
+		<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0, width: 400 }}>
+				Choose a party type and provide identity details.
+			</p>
+
+			<Controller
+				name="party_type"
+				control={control}
+				rules={{ required: true }}
+				render={({ field }) => (
+					<div style={fieldStyles.textFieldOverrides}>
+						<Dropdown
 							label="Type"
-							select
 							error={!!errors.party_type}
-							{...field}
+							value={field.value}
+							onChange={(val) => field.onChange(String(val))}
 							disabled={isSubmitting || !!lockedType}
-							sx={styles.textFieldOverrides}
-						>
-							<MenuItem value={PartyType.ENTITY}>
-								<Box display="flex" alignItems="center" gap={1}>
-									{getPartyTypeIcon(PartyType.ENTITY)}
-									<Typography fontSize={13}>Entity</Typography>
-								</Box>
-							</MenuItem>
-							<MenuItem value={PartyType.FACILITATOR}>
-								<Box display="flex" alignItems="center" gap={1}>
-									{getPartyTypeIcon(PartyType.FACILITATOR)}
-									<Typography fontSize={13}>Facilitator</Typography>
-								</Box>
-							</MenuItem>
-						</TextField>
-					)}
-				/>
-
-				{/* Business/Individual Toggle */}
-				<Controller
-					name="is_business"
-					control={control}
-					render={({ field }) => (
-						<Box
-							sx={{
-								width: 400,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'space-between',
-								px: 1,
-							}}
-						>
-							<Box display="flex" alignItems="center" gap={1}>
-								{field.value ? (
-									<Business sx={{ fontSize: 18, color: 'text.secondary' }} />
-								) : (
-									<Person sx={{ fontSize: 18, color: 'text.secondary' }} />
-								)}
-								<Typography variant="body2" color="text.secondary">
-									{field.value ? 'Business' : 'Individual'}
-								</Typography>
-							</Box>
-							<FormControlLabel
-								control={
-									<Switch
-										checked={field.value}
-										onChange={(e) => field.onChange(e.target.checked)}
-										disabled={isSubmitting}
-									/>
-								}
-								label=""
-							/>
-						</Box>
-					)}
-				/>
-
-				{/* Conditional Name Fields */}
-				{isBusiness ? (
-					<Controller
-						name="name"
-						control={control}
-						rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
-						render={({ field }) => (
-							<TextField
-								label="Business Name"
-								placeholder="Business or organization name"
-								error={!!errors.name || duplicateMatches.length > 0}
-								helperText={
-									duplicateMatches.length > 0
-										? `A party named "${duplicateMatches[0].name}" already exists`
-										: errors.name?.message
-								}
-								{...field}
-								disabled={isSubmitting}
-								sx={styles.textFieldOverrides}
-							/>
-						)}
-					/>
-				) : (
-					<>
-						<Stack direction="row" spacing={1} width={400}>
-							<Controller
-								name="first_name"
-								control={control}
-								rules={{ required: 'First name is required', maxLength: 100 }}
-								render={({ field }) => (
-									<TextField
-										label="First Name"
-										placeholder="First name"
-										error={!!errors.first_name}
-										helperText={errors.first_name?.message}
-										{...field}
-										disabled={isSubmitting}
-										sx={{ flex: 1 }}
-									/>
-								)}
-							/>
-							<Controller
-								name="middle_name"
-								control={control}
-								rules={{ maxLength: 100 }}
-								render={({ field }) => (
-									<TextField
-										label="Middle"
-										placeholder="Middle"
-										error={!!errors.middle_name}
-										{...field}
-										disabled={isSubmitting}
-										sx={{ width: 100 }}
-									/>
-								)}
-							/>
-						</Stack>
-						<Stack direction="row" spacing={1} width={400}>
-							<Controller
-								name="last_name"
-								control={control}
-								rules={{ required: 'Last name is required', maxLength: 100 }}
-								render={({ field }) => (
-									<TextField
-										label="Last Name"
-										placeholder="Last name"
-										error={!!errors.last_name || duplicateMatches.length > 0}
-										helperText={
-											duplicateMatches.length > 0
-												? `A party named "${duplicateMatches[0].name}" already exists`
-												: errors.last_name?.message
-										}
-										{...field}
-										disabled={isSubmitting}
-										sx={{ flex: 1 }}
-									/>
-								)}
-							/>
-							<Controller
-								name="suffix"
-								control={control}
-								rules={{ maxLength: 20 }}
-								render={({ field }) => (
-									<TextField
-										label="Suffix"
-										placeholder="Jr., Sr."
-										error={!!errors.suffix}
-										{...field}
-										disabled={isSubmitting}
-										sx={{ width: 100 }}
-									/>
-								)}
-							/>
-						</Stack>
-					</>
+							fullWidth
+							options={[
+								{ value: PartyType.ENTITY, label: 'Entity' },
+								{ value: PartyType.FACILITATOR, label: 'Facilitator' },
+							]}
+						/>
+					</div>
 				)}
+			/>
 
+			{/* Business/Individual Toggle */}
+			<Controller
+				name="is_business"
+				control={control}
+				render={({ field }) => (
+					<div
+						style={{
+							width: 400,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
+							paddingInline: 8,
+						}}
+					>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+							{field.value ? (
+								<IconBuilding size={18} style={{ color: 'var(--text-secondary)' }} />
+							) : (
+								<IconUser size={18} style={{ color: 'var(--text-secondary)' }} />
+							)}
+							<span style={{ color: 'var(--text-secondary)' }}>
+								{field.value ? 'Business' : 'Individual'}
+							</span>
+						</div>
+						<Switch
+							checked={field.value}
+							onChange={(checked) => field.onChange(checked)}
+							disabled={isSubmitting}
+						/>
+					</div>
+				)}
+			/>
+
+			{/* Conditional Name Fields */}
+			{isBusiness ? (
 				<Controller
-					name="organization"
+					name="name"
 					control={control}
-					rules={{ maxLength: 255 }}
+					rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
 					render={({ field }) => (
-						<TextField
-							label="Organization (optional)"
-							placeholder="Organization name"
-							error={!!errors.organization}
+						<Input
+							label="Business Name"
+							placeholder="Business or organization name"
+							error={!!errors.name || duplicateMatches.length > 0}
+							errorText={
+								duplicateMatches.length > 0
+									? `A party named "${duplicateMatches[0].name}" already exists`
+									: errors.name?.message
+							}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={fieldStyles.textFieldOverrides}
 						/>
 					)}
 				/>
-
-				{/* Contact Information Section */}
-				<Typography variant="caption" color="text.secondary" sx={{ width: 400, pt: 1 }}>
-					Contact Information (optional)
-				</Typography>
-
-				<Controller
-					name="contact_email"
-					control={control}
-					rules={{
-						pattern: {
-							value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-							message: 'Invalid email address',
-						},
-					}}
-					render={({ field }) => (
-						<TextField
-							label="Email"
-							placeholder="email@example.com"
-							type="email"
-							error={!!errors.contact_email}
-							helperText={errors.contact_email?.message}
-							{...field}
-							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+			) : (
+				<>
+					<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
+						<Controller
+							name="first_name"
+							control={control}
+							rules={{ required: 'First name is required', maxLength: 100 }}
+							render={({ field }) => (
+								<Input
+									label="First Name"
+									placeholder="First name"
+									error={!!errors.first_name}
+									errorText={errors.first_name?.message}
+									{...field}
+									disabled={isSubmitting}
+									style={{ flex: 1 }}
+								/>
+							)}
 						/>
-					)}
-				/>
+						<Controller
+							name="middle_name"
+							control={control}
+							rules={{ maxLength: 100 }}
+							render={({ field }) => (
+								<Input
+									label="Middle"
+									placeholder="Middle"
+									error={!!errors.middle_name}
+									{...field}
+									disabled={isSubmitting}
+									style={{ width: 100 }}
+								/>
+							)}
+						/>
+					</div>
+					<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
+						<Controller
+							name="last_name"
+							control={control}
+							rules={{ required: 'Last name is required', maxLength: 100 }}
+							render={({ field }) => (
+								<Input
+									label="Last Name"
+									placeholder="Last name"
+									error={!!errors.last_name || duplicateMatches.length > 0}
+									errorText={
+										duplicateMatches.length > 0
+											? `A party named "${duplicateMatches[0].name}" already exists`
+											: errors.last_name?.message
+									}
+									{...field}
+									disabled={isSubmitting}
+									style={{ flex: 1 }}
+								/>
+							)}
+						/>
+						<Controller
+							name="suffix"
+							control={control}
+							rules={{ maxLength: 20 }}
+							render={({ field }) => (
+								<Input
+									label="Suffix"
+									placeholder="Jr., Sr."
+									error={!!errors.suffix}
+									{...field}
+									disabled={isSubmitting}
+									style={{ width: 100 }}
+								/>
+							)}
+						/>
+					</div>
+				</>
+			)}
 
-				<Stack direction="row" spacing={1} width={400}>
-					<Controller
-						name="contact_phone"
-						control={control}
-						rules={{ maxLength: 50 }}
-						render={({ field }) => (
-							<TextField
-								label="Phone"
-								placeholder="Phone number"
-								error={!!errors.contact_phone}
-								{...field}
-								disabled={isSubmitting}
-								sx={{ flex: 1 }}
-							/>
-						)}
+			<Controller
+				name="organization"
+				control={control}
+				rules={{ maxLength: 255 }}
+				render={({ field }) => (
+					<Input
+						label="Organization (optional)"
+						placeholder="Organization name"
+						error={!!errors.organization}
+						{...field}
+						disabled={isSubmitting}
+						style={fieldStyles.textFieldOverrides}
 					/>
-					<Controller
-						name="contact_phone_type"
-						control={control}
-						render={({ field }) => (
-							<TextField
+				)}
+			/>
+		</div>
+	);
+
+	const stepContactContent = (
+		<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0, width: 400 }}>
+				Add contact information and address details. All fields are optional.
+			</p>
+
+			<Controller
+				name="contact_email"
+				control={control}
+				rules={{
+					pattern: {
+						value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+						message: 'Invalid email address',
+					},
+				}}
+				render={({ field }) => (
+					<Input
+						label="Email"
+						placeholder="email@example.com"
+						type="email"
+						error={!!errors.contact_email}
+						errorText={errors.contact_email?.message}
+						{...field}
+						disabled={isSubmitting}
+						style={fieldStyles.textFieldOverrides}
+					/>
+				)}
+			/>
+
+			<div style={{ flexDirection: 'column', display: 'flex', gap: 8, width: 400 }}>
+				<Controller
+					name="contact_phone"
+					control={control}
+					rules={{ maxLength: 50 }}
+					render={({ field }) => (
+						<Input
+							label="Phone"
+							placeholder="Phone number"
+							error={!!errors.contact_phone}
+							{...field}
+							disabled={isSubmitting}
+							style={{ flex: 1 }}
+						/>
+					)}
+				/>
+				<Controller
+					name="contact_phone_type"
+					control={control}
+					render={({ field }) => (
+						<div style={{ width: 120 }}>
+							<Dropdown
 								label="Type"
-								select
-								{...field}
+								value={field.value ?? ''}
+								onChange={(val) => field.onChange(String(val))}
 								disabled={isSubmitting}
-								sx={{ width: 120 }}
-							>
-								<MenuItem value="work">Work</MenuItem>
-								<MenuItem value="mobile">Mobile</MenuItem>
-								<MenuItem value="home">Home</MenuItem>
-								<MenuItem value="fax">Fax</MenuItem>
-							</TextField>
-						)}
-					/>
-				</Stack>
-
-				<AddressFields
-					control={control}
-					errors={errors}
-					setValue={setValue}
-					disabled={isSubmitting}
-					width={400}
-					prefix="contact_"
+								fullWidth
+								options={[
+									{ value: 'work', label: 'Work' },
+									{ value: 'mobile', label: 'Mobile' },
+									{ value: 'home', label: 'Home' },
+									{ value: 'fax', label: 'Fax' },
+								]}
+							/>
+						</div>
+					)}
 				/>
+			</div>
 
-				<Controller
-					name="contact_address_type"
-					control={control}
-					render={({ field }) => (
-						<TextField
+			<AddressFields
+				control={control}
+				errors={errors}
+				setValue={setValue}
+				disabled={isSubmitting}
+				width={400}
+				prefix="contact_"
+			/>
+
+			<Controller
+				name="contact_address_type"
+				control={control}
+				render={({ field }) => (
+					<div style={fieldStyles.textFieldOverrides}>
+						<Dropdown
 							label="Address Type"
-							select
-							{...field}
+							value={field.value ?? ''}
+							onChange={(val) => field.onChange(String(val))}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
-						>
-							<MenuItem value="business">Business</MenuItem>
-							<MenuItem value="home">Home</MenuItem>
-						</TextField>
-					)}
-				/>
-
-				<Controller
-					name="notes"
-					control={control}
-					rules={{ maxLength: 2000 }}
-					render={({ field }) => (
-						<TextField
-							label="Notes (optional)"
-							placeholder="Additional notes"
-							error={!!errors.notes}
-							multiline
-							rows={3}
-							{...field}
-							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							fullWidth
+							options={[
+								{ value: 'business', label: 'Business' },
+								{ value: 'home', label: 'Home' },
+							]}
 						/>
+					</div>
+				)}
+			/>
+		</div>
+	);
+
+	const stepReviewContent = (
+		<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 480 }}>
+			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>
+				Review the party details below, then add any notes before submitting.
+			</p>
+
+			{/* Identity Summary */}
+			<div style={fieldStyles.reviewSection}>
+				<span style={fieldStyles.reviewSectionTitle}>Identity</span>
+				<div style={fieldStyles.reviewGrid}>
+					<div style={fieldStyles.reviewField}>
+						<span style={fieldStyles.reviewLabel}>Type</span>
+						<span style={fieldStyles.reviewValue}>{partyType === PartyType.ENTITY ? 'Entity' : 'Facilitator'}</span>
+					</div>
+					<div style={fieldStyles.reviewField}>
+						<span style={fieldStyles.reviewLabel}>Classification</span>
+						<span style={fieldStyles.reviewValue}>{isBusiness ? 'Business' : 'Individual'}</span>
+					</div>
+					{isBusiness ? (
+						<div style={fieldStyles.reviewField}>
+							<span style={fieldStyles.reviewLabel}>Business Name</span>
+							<span style={fieldStyles.reviewValue}>{name || '--'}</span>
+						</div>
+					) : (
+						<>
+							<div style={fieldStyles.reviewField}>
+								<span style={fieldStyles.reviewLabel}>Name</span>
+								<span style={fieldStyles.reviewValue}>{[firstName, watch('middle_name'), lastName].filter(Boolean).join(' ') || '--'}</span>
+							</div>
+							{watch('suffix') && (
+								<div style={fieldStyles.reviewField}>
+									<span style={fieldStyles.reviewLabel}>Suffix</span>
+									<span style={fieldStyles.reviewValue}>{watch('suffix')}</span>
+								</div>
+							)}
+						</>
 					)}
-				/>
-			</Stack>
-		</BasicDialog>
+					{organization && (
+						<div style={fieldStyles.reviewField}>
+							<span style={fieldStyles.reviewLabel}>Organization</span>
+							<span style={fieldStyles.reviewValue}>{organization}</span>
+						</div>
+					)}
+				</div>
+			</div>
+
+			{/* Contact Summary */}
+			{(contactEmail || contactPhone || contactStreetAddress || contactCity) && (
+				<div style={fieldStyles.reviewSection}>
+					<span style={fieldStyles.reviewSectionTitle}>Contact & Address</span>
+					<div style={fieldStyles.reviewGrid}>
+						{contactEmail && (
+							<div style={fieldStyles.reviewField}>
+								<span style={fieldStyles.reviewLabel}>Email</span>
+								<span style={fieldStyles.reviewValue}>{contactEmail}</span>
+							</div>
+						)}
+						{contactPhone && (
+							<div style={fieldStyles.reviewField}>
+								<span style={fieldStyles.reviewLabel}>Phone ({contactPhoneType || 'work'})</span>
+								<span style={fieldStyles.reviewValue}>{contactPhone}</span>
+							</div>
+						)}
+						{(contactStreetAddress || contactCity || contactState || contactPostalCode) && (
+							<div style={fieldStyles.reviewField}>
+								<span style={fieldStyles.reviewLabel}>Address ({contactAddressType || 'business'})</span>
+								<span style={fieldStyles.reviewValue}>
+									{[contactStreetAddress, contactCity, contactState, contactPostalCode, contactCountry]
+										.filter(Boolean)
+										.join(', ') || '--'}
+								</span>
+							</div>
+						)}
+					</div>
+				</div>
+			)}
+
+			{/* Notes */}
+			<Controller
+				name="notes"
+				control={control}
+				rules={{ maxLength: 2000 }}
+				render={({ field }) => (
+					<Textarea
+						label="Notes (optional)"
+						placeholder="Additional notes"
+						error={!!errors.notes}
+						rows={3}
+						{...field}
+						disabled={isSubmitting}
+						style={{ width: '100%' }}
+					/>
+				)}
+			/>
+		</div>
+	);
+
+	const steps = [
+		{
+			key: 'identity',
+			label: 'Identity',
+			description: 'Type and name',
+			content: stepIdentityContent,
+			isValid: !!hasRequiredName && !duplicateMatches.length,
+		},
+		{
+			key: 'contact',
+			label: 'Contact & Address',
+			description: 'Email, phone, address',
+			content: stepContactContent,
+			isOptional: true,
+			isValid: true,
+		},
+		{
+			key: 'review',
+			label: 'Review',
+			description: 'Confirm and submit',
+			content: stepReviewContent,
+			isValid: true,
+		},
+	];
+
+	return (
+		<Dialog open={true} onClose={handleClose} size="lg">
+			<StepperFlow
+				steps={steps}
+				activeStep={activeStep}
+				onStepChange={setActiveStep}
+				onComplete={onSubmit}
+				onCancel={handleClose}
+				completeLabel={isEditMode ? 'Update' : 'Create'}
+				loading={isPending}
+			/>
+		</Dialog>
 	);
 }
 
-const styles = {
+const fieldStyles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
+	},
+	reviewSection: {
+		display: 'flex' as const,
+		flexDirection: 'column' as const,
+		gap: 8,
+		padding: '12px 0',
+		borderBottom: '1px solid var(--border-color)',
+	},
+	reviewSectionTitle: {
+		fontSize: 13,
+		fontWeight: 600,
+		color: 'var(--text-primary)',
+		textTransform: 'uppercase' as const,
+		letterSpacing: '0.5px',
+	},
+	reviewGrid: {
+		display: 'flex' as const,
+		flexDirection: 'column' as const,
+		gap: 8,
+	},
+	reviewField: {
+		display: 'flex' as const,
+		flexDirection: 'column' as const,
+		gap: 2,
+	},
+	reviewLabel: {
+		fontSize: 12,
+		color: 'var(--text-secondary)',
+	},
+	reviewValue: {
+		fontSize: 14,
+		color: 'var(--text-primary)',
 	},
 };

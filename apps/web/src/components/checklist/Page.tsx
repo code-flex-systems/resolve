@@ -2,30 +2,28 @@
 import { Form, useForm } from 'react-hook-form';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { ChecklistMode, ClaimStatus, PageInstanceStatus, QuestionType } from '@/config/enums';
-import { Box, Divider, Fade, Skeleton, Stack, Typography } from '@mui/material';
 import { Question, QuestionResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
 import Toolbar from '../common/Toolbar';
 import { ChecklistQuestion } from './ChecklistQuestion';
-import Description from '@mui/icons-material/Description';
-import Replay from '@mui/icons-material/Replay';
-import Save from '@mui/icons-material/Save';
-import TaskAlt from '@mui/icons-material/TaskAlt';
-import theme, { BASE_COLOR, BASE_COLOR_LIGHT } from '@/styles/theme';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useEvaluateResponses } from '@/hooks/useEvaluateResponses';
 import ExpandableTitle from '../common/ExpandableTitle';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import Button from '@/components/ui/Button';
 import CommentDialog from './CommentDialog';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
+import { IconCircleCheck, IconDeviceFloppy, IconFileDescription, IconRefresh } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+import Divider from '@/components/ui/Divider';
+import Card from '../ui/Card';
 
-function generateDefaultValues(questions?: Question[], responses?: Record<number, QuestionResponse>) {
-	const defaults: Record<string, number[] | string | number | null> = {};
+function generateDefaultValues(questions?: Question[], responses?: Record<string, QuestionResponse>) {
+	const defaults: Record<string, string[] | string | number | null> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
 		switch (q.type) {
@@ -61,8 +59,8 @@ function generateDefaultValues(questions?: Question[], responses?: Record<number
 
 export default function Page() {
 	const isAssigned = useIsAssigned();
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
-	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance) ?? -1;
+	const { checklistId = '', claimId = '' } = useChecklistParams();
+	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance) ?? '';
 	const mode = useChecklistStore((state) => state.mode);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const questionCommentDialog = useChecklistStore((state) => state.questionCommentDialog);
@@ -78,14 +76,14 @@ export default function Page() {
 		formState: { isDirty, isSubmitting },
 	} = useForm({ mode: 'onChange' });
 
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
 	const { data: checklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { data: questions } = useQuestionTrpc().list(
 		{ pageId: selectedPageInfo.pageId },
-		{ enabled: selectedPageInfo.pageId !== -1 }
+		{ enabled: !!selectedPageInfo.pageId }
 	);
 	const {
 		isLoading: loading,
@@ -93,11 +91,11 @@ export default function Page() {
 		data: responses,
 	} = useResponseTrpc().list(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
-		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
+		{ enabled: !!checklistId && !!claimId && !!selectedPageInstance && mode === ChecklistMode.VIEW }
 	);
 	const { data: comments } = useCommentTrpc().listForPage(
 		{ checklistId, claimId, instanceId: selectedPageInstance },
-		{ enabled: checklistId !== -1 && claimId !== -1 && selectedPageInstance !== -1 && mode === ChecklistMode.VIEW }
+		{ enabled: !!checklistId && !!claimId && !!selectedPageInstance && mode === ChecklistMode.VIEW }
 	);
 	const { mutate: evaluateResponses } = useEvaluateResponses();
 	const { mutateAsync: upsertResponses } = useResponseTrpc().createUpdateMany;
@@ -106,9 +104,9 @@ export default function Page() {
 
 	useEffect(() => {
 		if (
-			checklistId !== -1 &&
-			claimId !== -1 &&
-			selectedPageInstance !== -1 &&
+			!!checklistId &&
+			!!claimId &&
+			!!selectedPageInstance &&
 			selectedPageInfo.status === PageInstanceStatus.STALE
 		) {
 			evaluateResponses({ checklistId, claimId, instanceId: selectedPageInstance });
@@ -116,9 +114,12 @@ export default function Page() {
 	}, [checklistId, claimId, selectedPageInstance, selectedPageInfo.status]);
 
 	useEffect(() => {
-		if (loading || selectedPageInstance === -1) return;
+		if (loading || !selectedPageInstance) return;
 		reset({
-			...generateDefaultValues(questions, mode === ChecklistMode.VIEW ? responses : undefined),
+			...generateDefaultValues(
+				questions,
+				mode === ChecklistMode.VIEW ? (responses as Record<string, QuestionResponse>) : undefined
+			),
 		});
 	}, [questions, responses, selectedPageInstance, mode, loading]);
 
@@ -128,12 +129,12 @@ export default function Page() {
 			const responses: QuestionResponse[] = Object.keys(data)
 				.filter((field) => !field.endsWith(QuestionType.FREEFORM) && !field.endsWith('-upload'))
 				.map((field) => {
-					const questionId = parseInt(field);
+					const questionId = field;
 					const question = questions?.find((q) => q.id === questionId);
 					const uploadAnswer = question?.answers?.find((a) => a.requires_upload);
 					const uploadFieldName = uploadAnswer ? `${questionId}-${uploadAnswer.id}-upload` : null;
 					const response: QuestionResponse = {
-						checklist_id: checklist?.id ?? -1,
+						checklist_id: checklist?.id ?? '',
 						instance_id: selectedPageInstance,
 						claim_id: claimId,
 						question_id: questionId,
@@ -158,112 +159,118 @@ export default function Page() {
 
 	return (
 		<>
-			<Box sx={styles.container}>
-				{(selectedPageInstance === -1 || loading) && (
-					<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
+			<div style={styles.container}>
+				{(!selectedPageInstance || loading) && (
+					<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
 						{loading ? (
-							<Stack spacing={2} width="100%" p={2}>
+							<div
+								style={{
+									display: 'flex',
+									flexDirection: 'column' as const,
+									gap: 16,
+									width: '100%',
+									padding: 16,
+								}}
+							>
 								<Skeleton variant="text" width="60%" height={32} />
 								{[1, 2, 3, 4].map((i) => (
-									<Stack key={i} spacing={1}>
+									<div key={i} style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 										<Skeleton variant="text" width="40%" />
-										<Skeleton variant="rounded" height={48} />
-									</Stack>
+										<Skeleton variant="rect" height={48} />
+									</div>
 								))}
-							</Stack>
+							</div>
 						) : (
-							<Box width={200} display="flex" justifyContent="center" alignItems="center">
-								<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
-								<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
+							<div
+								style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+							>
+								<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
+								<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 									No page selected
-								</Typography>
-							</Box>
+								</span>
+							</div>
 						)}
-					</Box>
+					</div>
 				)}
-				{selectedPageInstance !== -1 && !loading && (
+				{!!selectedPageInstance && !loading && (
 					<>
-						<Toolbar
-							left={
-								<>
-									<ExpandableTitle
-										title={selectedPageInfo.title}
-										icon={<Description />}
-										color="white"
-									/>
-									<Fade in={showUpdateMsg} timeout={500} unmountOnExit>
-										<Box sx={{ ml: 1.25 }} className="flex-row-left">
-											<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
-											<Typography color={theme.palette.success.light}>Saved!</Typography>
-										</Box>
-									</Fade>
-								</>
-							}
-							leftWidth="70%"
-							right={
-								<Fade in={mode === ChecklistMode.VIEW && isAssigned} unmountOnExit>
-									<Box className="flex-row-right">
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () =>
+						<Card variant="surface" style={{ width: '100%', padding: 5, marginBottom: 10 }}>
+							<Toolbar
+								left={
+									<>
+										<IconFileDescription size={20} />
+										<h4>{selectedPageInfo.title}</h4>
+										{showUpdateMsg && (
+											<div className="flex-row-left" style={{ marginLeft: 10 }}>
+												<IconCircleCheck
+													size={20}
+													style={{ color: 'var(--status-success)', marginRight: '5px' }}
+												/>
+												<span style={{ color: 'var(--status-success)' }}>Saved!</span>
+											</div>
+										)}
+									</>
+								}
+								leftWidth="70%"
+								right={
+									mode === ChecklistMode.VIEW && isAssigned ? (
+										<div className="flex-row-right" style={{ gap: 8 }}>
+											<Button
+												variant="outlined"
+												size="sm"
+												onClick={() =>
 													reset(
 														{ ...generateDefaultValues(questions) },
 														{ keepDefaultValues: true }
-													),
-												startIcon: <Replay />,
-												sx: { height: 25, marginRight: '10px' },
-											}}
-										>
-											Reset
-										</BasicButtonStyled>
-										<BasicButtonStyled
-											buttonProps={{
-												color: 'primary',
-												disabled: !isDirty || fetching || isSubmitting,
-												onClick: () => {
+													)
+												}
+												startIcon={<IconRefresh size={16} />}
+											>
+												Reset
+											</Button>
+											<Button
+												variant="contained"
+												size="sm"
+												onClick={() => {
 													if (checklistClaim?.status === ClaimStatus.SUBMITTED) {
 														toggleUpdateSubmittedDialog(onSubmit);
 														return;
 													}
 													onSubmit();
-												},
-												startIcon: <Save />,
-												sx: { height: 25 },
-											}}
-										>
-											Save
-										</BasicButtonStyled>
-									</Box>
-								</Fade>
-							}
-							rightWidth="30%"
-							height={60}
-							padding={'10px 0px'}
-						/>
-						<Box sx={styles.divider}>
-							<Divider />
-						</Box>
-						<Box sx={styles.formWrapper}>
-							<Fade key={selectedPageInstance} in={!loading} timeout={500} unmountOnExit>
-								<Form control={control} style={{ width: '100%' }}>
-									{(questions ?? []).map((question, i) => (
-										<ChecklistQuestion
-											key={question.id}
-											control={control}
-											setValue={setValue}
-											watch={watch}
-											question={question}
-											comment={comments?.[question.id]}
-											disabled={isSubmitting}
-											idx={i}
-										/>
-									))}
-								</Form>
-							</Fade>
-						</Box>
+												}}
+												disabled={!isDirty || fetching || isSubmitting}
+												startIcon={<IconDeviceFloppy size={16} />}
+											>
+												Save
+											</Button>
+										</div>
+									) : undefined
+								}
+								rightWidth="30%"
+							/>
+						</Card>
+						<div style={styles.formWrapper}>
+							<Form
+								control={control}
+								style={{ width: '100%', display: 'flex', flexDirection: 'column' as const, gap: 16 }}
+							>
+								{(questions ?? []).map((question, i) => (
+									<ChecklistQuestion
+										key={question.id}
+										control={control}
+										setValue={setValue}
+										watch={watch}
+										question={question}
+										comment={comments?.[question.id]}
+										disabled={isSubmitting}
+										idx={i}
+									/>
+								))}
+							</Form>
+						</div>
 					</>
 				)}
-			</Box>
+			</div>
 			{questionCommentDialog.show && <CommentDialog />}
 			{!!updateSubmittedDialogAction && <UpdateSubmittedDialog />}
 		</>
@@ -277,21 +284,22 @@ const styles = {
 		width: '100%',
 		height: '100%',
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		p: 2.5,
-		overflow: 'hidden',
+		padding: '0px 20px',
+		overflow: 'hidden' as const,
 	},
 	divider: {
 		width: '100%',
-		mb: 0.625,
+		marginBottom: 5,
 		flexShrink: 0,
 	},
 	formWrapper: {
 		flex: 1,
 		width: '100%',
 		minHeight: 0,
-		overflow: 'auto',
+		overflow: 'auto' as const,
+		backgroundColor: 'var(--bg-white)',
 	},
 };

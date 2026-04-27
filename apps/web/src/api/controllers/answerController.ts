@@ -1,7 +1,8 @@
 import * as answerQueries from '@/api/queries/answerQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { AnswerParams, AnswerUpdateParams } from '@/schemas/answerSchemas';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Create an answer for a question.
@@ -18,8 +19,8 @@ export async function createAnswer(
 		questionId,
 		params,
 	}: {
-		pageId: number;
-		questionId: number;
+		pageId: string;
+		questionId: string;
 		params: AnswerParams;
 	}
 ) {
@@ -54,9 +55,9 @@ export async function copyAnswer(
 		questionId,
 		answerId,
 	}: {
-		pageId: number;
-		questionId: number;
-		answerId: number;
+		pageId: string;
+		questionId: string;
+		answerId: string;
 	}
 ) {
 	// Copy answer and log admin action within transaction
@@ -83,24 +84,19 @@ export async function copyAnswer(
  * @param ctx - request context
  * @param input - page and answer identifiers
  */
-export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: number; answerId: number }) {
+export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: string; answerId: string }) {
 	// Delete answer and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch answer data BEFORE deletion for logging
-		const answer = await answerQueries.getAnswerForDeletion({ ...ctx, db: trx }, answerId);
-
-		// Delete the answer
-		await answerQueries.deleteAnswer({ ...ctx, db: trx }, pageId, answerId);
+		// Delete the answer (uses RETURNING to get fields for logging)
+		const deleted = await answerQueries.deleteAnswer({ ...ctx, db: trx }, pageId, answerId);
 
 		// Log admin action for answer deletion
-		if (answer) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: answerId,
-				entityName: EntityName.ANSWER,
-				action: AdminAction.DELETE,
-				value: { text: answer.text, grade: answer.grade, questionId: answer.question_id },
-			});
-		}
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: answerId,
+			entityName: EntityName.ANSWER,
+			action: AdminAction.DELETE,
+			value: { text: deleted.text, grade: deleted.grade, questionId: deleted.question_id },
+		});
 	});
 }
 
@@ -110,7 +106,7 @@ export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: 
  * @param ctx - request context
  * @param input - answer id
  */
-export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getAnswer(ctx: ProtectedContext, { id }: { id: string }) {
 	return await answerQueries.getAnswer(ctx, id);
 }
 
@@ -120,7 +116,7 @@ export async function getAnswer(ctx: ProtectedContext, { id }: { id: number }) {
  * @param ctx - request context
  * @param input - question id
  */
-export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: number }) {
+export async function getAnswers(ctx: ProtectedContext, { questionId }: { questionId: string }) {
 	return await answerQueries.getAnswers(ctx, questionId);
 }
 
@@ -133,28 +129,24 @@ export async function getAnswers(ctx: ProtectedContext, { questionId }: { questi
  */
 export async function modifyAnswer(
 	ctx: ProtectedContext,
-	{ pageId, answerId, params }: { pageId: number; answerId: number; params: AnswerUpdateParams }
+	{ pageId, answerId, params }: { pageId: string; answerId: string; params: AnswerUpdateParams }
 ) {
-	try {
-		// Update answer and log admin action within transaction
-		const results = await ctx.db.transaction().execute(async (trx) => {
-			const updated = await answerQueries.modifyAnswer({ ...ctx, db: trx }, pageId, answerId, params);
+	// Update answer and log admin action within transaction
+	const results = await ctx.db.transaction().execute(async (trx) => {
+		const updated = await answerQueries.modifyAnswer({ ...ctx, db: trx }, pageId, answerId, params);
 
-			// Log admin action for answer update
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: answerId,
-				entityName: EntityName.ANSWER,
-				action: AdminAction.UPDATE,
-				value: params,
-			});
-
-			return updated;
+		// Log admin action for answer update
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: answerId,
+			entityName: EntityName.ANSWER,
+			action: AdminAction.UPDATE,
+			value: params,
 		});
 
-		return results;
-	} catch (e) {
-		console.error(e);
-	}
+		return updated;
+	});
+
+	return results;
 }
 
 /**
@@ -164,6 +156,6 @@ export async function modifyAnswer(
  * @param input - checklist id
  * @returns array of answer calls (from instance -> to instance)
  */
-export async function getAnswerCallGraph(ctx: ProtectedContext, { checklistId }: { checklistId: number }) {
+export async function getAnswerCallGraph(ctx: ProtectedContext, { checklistId }: { checklistId: string }) {
 	return await answerQueries.getAnswerCallGraph(ctx, checklistId);
 }

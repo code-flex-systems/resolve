@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import type { Context } from '@/server/trpc/context';
 import { db } from '@/api/database/kysely';
 
-export async function requireOwnership(ctx: Context, checklistId: number, claimId: number) {
+export async function requireOwnership(ctx: Context, checklistId: string, claimId: string) {
 	const checklistClaim = await db
 		.selectFrom('checklist_claim')
 		.select(['created_by', 'assignee'])

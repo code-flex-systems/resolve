@@ -1,103 +1,111 @@
 'use client';
 
+import { IconAlertTriangle, IconSettings, IconSquarePlus, IconUser } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Paper, Switch, Tooltip, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Person from '@mui/icons-material/Person';
-import Warning from '@mui/icons-material/Warning';
-import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import RepresentativeActionsCell from './RepresentativeActionsCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import RepresentativeDialog from './RepresentativeDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { formatPhoneDisplay } from '@/lib/utils/utils';
+import PhoneCell from './PhoneCell';
+import EmailCell from './EmailCell';
+import { formatAddressInline } from '@/schemas/addressSchemas';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface RepresentativesTabProps {
 	isAdminContext?: boolean;
 }
 
-const getColumns = (isAdminContext: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Party',
-		field: 'party_name',
-		renderCell: ({ row }) => (
+		header: 'Party',
+		accessorKey: 'party_name',
+		cell: ({ row: { original: row } }) => (
 			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 				{row.party_deleted_at && (
-					<Tooltip title="Party is archived" placement="right">
-						<Warning sx={{ fontSize: 16, color: 'warning.main' }} />
+					<Tooltip content="Party is archived" position="right">
+						<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 					</Tooltip>
 				)}
 				<span>{row.party_name}</span>
 			</div>
 		),
-		flex: 1,
-		minWidth: 150,
+		minSize: 150,
 	},
 	{
-		headerName: 'First Name',
-		field: 'first_name',
-		width: 120,
+		header: 'First Name',
+		accessorKey: 'first_name',
+		size: 120,
 	},
 	{
-		headerName: 'Last Name',
-		field: 'last_name',
-		width: 120,
+		header: 'Last Name',
+		accessorKey: 'last_name',
+		size: 120,
 	},
 	{
-		headerName: 'Title',
-		field: 'title',
-		renderCell: ({ row }) => row.title || '—',
-		width: 130,
+		header: 'Title',
+		accessorKey: 'title',
+		cell: ({ row: { original: row } }) => row.title || '—',
+		size: 130,
 	},
 	{
-		headerName: 'Email',
-		field: 'email',
-		renderCell: ({ row }) => row.email || '—',
-		flex: 1,
-		minWidth: 180,
+		header: 'Email',
+		accessorKey: 'email',
+		cell: ({ row: { original: row } }) => <EmailCell value={row.email} />,
+		minSize: 180,
 	},
 	{
-		headerName: 'Phone',
-		field: 'phone',
-		renderCell: ({ row }) => formatPhoneDisplay(row.phone) || formatPhoneDisplay(row.mobile_phone) || '—',
-		width: 140,
+		header: 'Phone',
+		accessorKey: 'phone',
+		cell: ({ row: { original: row } }) => <PhoneCell value={row.phone || row.mobile_phone} />,
+		size: 140,
 	},
 	{
-		headerName: 'Address',
-		field: 'address_name',
-		renderCell: ({ row }) => (
-			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-				{row.address_deleted_at && (
-					<Tooltip title="Address is archived" placement="right">
-						<Warning sx={{ fontSize: 16, color: 'info.main' }} />
-					</Tooltip>
-				)}
-				<span>{row.address_name || '—'}</span>
-			</div>
-		),
-		width: 140,
+		header: 'Address',
+		accessorKey: 'address_city',
+		cell: ({ row: { original: row } }) => {
+			const formattedAddress = formatAddressInline({
+				street_address: row.address_street_address,
+				city: row.address_city,
+				state: row.address_state,
+				postal_code: row.address_postal_code,
+				country: row.address_country,
+			});
+			return (
+				<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+					{row.address_deleted_at && (
+						<Tooltip content="Address is archived" position="right">
+							<IconAlertTriangle size={16} style={{ color: 'var(--status-info)' }} />
+						</Tooltip>
+					)}
+					<span>{formattedAddress || '—'}</span>
+				</div>
+			);
+		},
+		size: 220,
 	},
 	{
-		headerName: 'Primary',
-		field: 'is_primary',
-		renderCell: ({ row }) => (row.is_primary ? <Chip label="Primary" color="primary" size="small" /> : null),
-		width: 90,
+		header: 'Primary',
+		accessorKey: 'is_primary',
+		cell: ({ row: { original: row } }) => (row.is_primary ? <Chip  color="info" size="sm">Primary</Chip> : null),
+		size: 90,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} />,
-		width: isAdminContext ? 100 : 50,
-		resizable: false,
+		header: '',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />; },
+		size: isAdminContext ? 100 : 50,
 	},
 ];
 
@@ -105,7 +113,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No representatives found"
-			icon={<Person sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconUser size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -125,7 +133,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 
 	// Query to fetch representative by ID for deep linking (only when edit param is present)
 	const { data: representativeToEdit } = partyTrpc.getRepresentative(
-		{ id: editRepresentativeId ? parseInt(editRepresentativeId, 10) : 0 },
+		{ id: editRepresentativeId ?? '' },
 		{ enabled: !!editRepresentativeId && !editingRepresentativeFromUrl }
 	);
 
@@ -140,6 +148,9 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
 
+	// Manage mode state for showing/hiding action buttons
+	const [isManageMode, setIsManageMode] = useState(false);
+
 	// Handler to close the edit dialog and clear URL param
 	const handleCloseEditDialog = () => {
 		setEditingRepresentativeFromUrl(null);
@@ -150,8 +161,14 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		router.replace(newUrl, { scroll: false });
 	};
 
-	// Memoize columns based on isAdminContext
-	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+	// Memoize columns based on isAdminContext and isManageMode
+	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+
+	// Pinned columns - pin actions to right when in manage mode
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
+		() => (isManageMode ? { right: ['actions'] } : {}),
+		[isManageMode]
+	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.listAllRepresentatives({
 		limit: representativeConstraints.pageSize,
@@ -159,14 +176,6 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		searchTerm: representativeSearchTerm,
 		showArchived: showArchivedRepresentatives,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Effect to set editing representative from dedicated query when data is loaded
 	useEffect(() => {
@@ -186,25 +195,25 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading representatives...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Representatives are contacts at party organizations — attorneys, adjusters, and other professional contacts.
+					</p>
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
-									Representatives
-								</Typography>
 								{isAdminContext && (
 									<>
 										<Switch
-											size="small"
+											size="sm"
 											checked={showArchivedRepresentatives}
-											onChange={(_, checked) => setParam('archived', checked)}
+											onChange={(checked) => setParam('archived', checked)}
 											color="warning"
-											sx={{ marginLeft: '10px' }}
+											style={{ marginLeft: '10px' }}
 										/>
-										<Typography fontSize={14} fontStyle="italic">
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 											Show Archived Only
-										</Typography>
+										</span>
 									</>
 								)}
 							</>
@@ -225,53 +234,37 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 								/>
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={toggleNewRepresentativeDialog}
-									sx={{ ml: 2 }}
+									style={{ marginLeft: 16 }}
 								>
 									Representative
 								</Button>
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
+										onClick={() => setIsManageMode(!isManageMode)}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+									>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
+								</Tooltip>
 							</>
 						}
 						height={50}
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={45}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={representativeConstraints}
 							onPaginationModelChange={updateRepresentativeConstraints}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							sx={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-								'& .MuiDataGrid-cell': {
-									display: 'flex',
-									alignItems: 'center',
-								},
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 
@@ -279,7 +272,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 					{editingRepresentativeFromUrl && (
 						<RepresentativeDialog representative={editingRepresentativeFromUrl} onClose={handleCloseEditDialog} />
 					)}
-				</Paper>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -294,16 +287,14 @@ const styles = {
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
 		overflow: 'hidden',
-	},
-	tableOverrides: {
-		border: 'none',
 	},
 };

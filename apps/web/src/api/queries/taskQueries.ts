@@ -44,16 +44,16 @@ const derivedStatusFromTaskStatus = sql<string>`
  * - deadline.status = 'cancelled' → cancelled
  * - task.completed_at IS NOT NULL AND deadline.status = 'met' → completed_on_time
  * - task.completed_at IS NOT NULL AND deadline.status = 'missed' → completed_late
- * - task.claimed_by IS NOT NULL AND deadline.status = 'pending' → in_progress
- * - task.claimed_by IS NULL AND deadline.status = 'pending' → available
+ * - task.status = 'in_progress' AND deadline.status = 'pending' → in_progress
+ * - task.status = 'pending' AND deadline.status = 'pending' → available
  */
 const derivedStatusFromDeadline = sql<string>`
 	CASE
 		WHEN deadline.status = 'cancelled' THEN 'cancelled'
 		WHEN task.completed_at IS NOT NULL AND deadline.status = 'met' THEN 'completed_on_time'
 		WHEN task.completed_at IS NOT NULL AND deadline.status = 'missed' THEN 'completed_late'
-		WHEN task.claimed_by IS NOT NULL AND deadline.status = 'pending' THEN 'in_progress'
-		WHEN task.claimed_by IS NULL AND deadline.status = 'pending' THEN 'available'
+		WHEN task.status = 'in_progress' AND deadline.status = 'pending' THEN 'in_progress'
+		WHEN task.status = 'pending' AND deadline.status = 'pending' THEN 'available'
 		ELSE 'available'
 	END
 `;
@@ -72,12 +72,11 @@ const derivedStatusFromDeadline = sql<string>`
 export async function getTasks(
 	ctx: ProtectedContext,
 	params: {
-		deskLocationId?: number;
-		claimId?: number;
+		deskLocationId?: string;
+		claimId?: string;
 		status?: TaskStatus;
 		taskType?: TaskType;
-		assignedBy?: string;
-		claimedBy?: string;
+		assignedTo?: string;
 		searchTerm?: string;
 		limit?: number;
 		offset?: number;
@@ -88,8 +87,7 @@ export async function getTasks(
 	let baseQuery = ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
-		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
-		.leftJoin('users as claimed_user', 'task.claimed_by', 'claimed_user.id')
+		.leftJoin('users as assigned_user', 'task.assigned_to', 'assigned_user.id')
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
 		.leftJoin('deadline', (join) =>
 			join
@@ -116,11 +114,8 @@ export async function getTasks(
 	if (params.taskType !== undefined) {
 		baseQuery = baseQuery.where('task.task_type', '=', params.taskType);
 	}
-	if (params.assignedBy !== undefined) {
-		baseQuery = baseQuery.where('task.assigned_by', '=', params.assignedBy);
-	}
-	if (params.claimedBy !== undefined) {
-		baseQuery = baseQuery.where('task.claimed_by', '=', params.claimedBy);
+	if (params.assignedTo !== undefined) {
+		baseQuery = baseQuery.where('task.assigned_to', '=', params.assignedTo);
 	}
 	// Prefix search for index usage (term% instead of %term%)
 	if (params.searchTerm !== undefined) {
@@ -139,20 +134,16 @@ export async function getTasks(
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.assigned_by',
+			'task.assigned_to',
 			'task.assigned_at',
-			'task.claimed_by',
-			'task.claimed_at',
-			'task.completed_by',
+			'task.started_at',
 			'task.completed_at',
 			'task.completion_notes',
 			'task.created_at',
 			'task.updated_at',
 			'desk_location.name as desk_location_name',
-			'assigned_user.first as assigned_by_first',
-			'assigned_user.last as assigned_by_last',
-			'claimed_user.first as claimed_by_first',
-			'claimed_user.last as claimed_by_last',
+			'assigned_user.first as assigned_to_first',
+			'assigned_user.last as assigned_to_last',
 			'claim.claim_number',
 			// Deadline fields
 			'deadline.id as deadline_id',
@@ -183,12 +174,11 @@ export async function getTasks(
 /**
  * Get single task by ID
  */
-export async function getTask(ctx: ProtectedContext, id: number) {
+export async function getTask(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
-		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
-		.leftJoin('users as claimed_user', 'task.claimed_by', 'claimed_user.id')
+		.leftJoin('users as assigned_user', 'task.assigned_to', 'assigned_user.id')
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
 		.leftJoin('deadline', (join) =>
 			join
@@ -205,20 +195,16 @@ export async function getTask(ctx: ProtectedContext, id: number) {
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.assigned_by',
+			'task.assigned_to',
 			'task.assigned_at',
-			'task.claimed_by',
-			'task.claimed_at',
-			'task.completed_by',
+			'task.started_at',
 			'task.completed_at',
 			'task.completion_notes',
 			'task.created_at',
 			'task.updated_at',
 			'desk_location.name as desk_location_name',
-			'assigned_user.first as assigned_by_first',
-			'assigned_user.last as assigned_by_last',
-			'claimed_user.first as claimed_by_first',
-			'claimed_user.last as claimed_by_last',
+			'assigned_user.first as assigned_to_first',
+			'assigned_user.last as assigned_to_last',
 			'claim.claim_number',
 			// Deadline fields
 			'deadline.id as deadline_id',
@@ -239,7 +225,7 @@ export async function getTask(ctx: ProtectedContext, id: number) {
  */
 export async function getTasksByClaim(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	showCancelled?: boolean
 ) {
 	return await getTasks(ctx, {
@@ -253,7 +239,7 @@ export async function getTasksByClaim(
  */
 export async function getTasksByDeskLocation(
 	ctx: ProtectedContext,
-	deskLocationId: number,
+	deskLocationId: string,
 	params?: {
 		status?: TaskStatus;
 		showCancelled?: boolean;
@@ -330,10 +316,9 @@ export async function getTasksForUser(
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.assigned_by',
+			'task.assigned_to',
 			'task.assigned_at',
-			'task.claimed_by',
-			'task.claimed_at',
+			'task.started_at',
 			'task.created_at',
 			'desk_location.name as desk_location_name',
 			'user_desk_location.priority as user_priority',
@@ -373,11 +358,12 @@ export async function getTasksForUser(
 export async function createTask(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
-		deskLocationId: number;
+		claimId: string;
+		deskLocationId: string;
 		taskType?: TaskType;
 		title: string;
 		description?: string;
+		assignedTo?: string;
 		workUnits?: number;
 		deadlineDate?: string;
 		deadlineDescription?: string;
@@ -400,7 +386,7 @@ export async function createTask(
 				title: params.title,
 				description: params.description,
 				work_units: params.workUnits || 2,
-				assigned_by: ctx.session.user.id,
+				assigned_to: params.assignedTo,
 			})
 			.returningAll()
 			.executeTakeFirstOrThrow();
@@ -434,43 +420,76 @@ export async function createTask(
 }
 
 /**
- * Claim task (start working on it)
- * Sets status to IN_PROGRESS
+ * Assign task to a user
+ * Sets assigned_to without changing task status
  */
-export async function claimTask(ctx: ProtectedContext, id: number) {
+export async function assignTask(ctx: ProtectedContext, id: string, userId: string) {
 	return await ctx.db
 		.updateTable('task')
 		.set({
-			status: TaskStatus.IN_PROGRESS,
-			claimed_by: ctx.session.user.id,
-			claimed_at: sql`now()`,
+			assigned_to: userId,
 			updated_at: sql`now()`,
 		})
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.status', '=', TaskStatus.PENDING) // Only claim if pending
-		.where('task.claimed_by', 'is', null) // Only claim if not already claimed
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
 
 /**
- * Unclaim task (release it back to queue)
- * Sets status back to PENDING
+ * Get task ownership info for authorization checks
+ * Lightweight query that only fetches fields needed for ownership verification
  */
-export async function unclaimTask(ctx: ProtectedContext, id: number) {
+export async function getTaskOwnership(ctx: ProtectedContext, id: string) {
+	return await ctx.db
+		.selectFrom('task')
+		.select(['task.id', 'task.assigned_to', 'task.status'])
+		.where('task.id', '=', id)
+		.where('task.client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+}
+
+/**
+ * Unassign task (clear assigned_to)
+ * Only allowed on pending tasks
+ */
+export async function unassignTask(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('task')
 		.set({
+			assigned_to: null,
+			started_at: null,
 			status: TaskStatus.PENDING,
-			claimed_by: null,
-			claimed_at: null,
 			updated_at: sql`now()`,
 		})
 		.where('task.id', '=', id)
 		.where('task.client_id', '=', ctx.session.user.client_id)
-		.where('task.claimed_by', '=', ctx.session.user.id) // Only unclaim your own tasks
-		.where('task.status', '=', TaskStatus.IN_PROGRESS) // Only unclaim if in progress
+		.where((eb) =>
+			eb.or([
+				eb('task.status', '=', TaskStatus.PENDING),
+				eb('task.status', '=', TaskStatus.IN_PROGRESS),
+			])
+		)
+		.returningAll()
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Start task (begin working on it)
+ * Sets status to IN_PROGRESS
+ */
+export async function startTask(ctx: ProtectedContext, id: string) {
+	return await ctx.db
+		.updateTable('task')
+		.set({
+			status: TaskStatus.IN_PROGRESS,
+			started_at: sql`now()`,
+			updated_at: sql`now()`,
+		})
+		.where('task.id', '=', id)
+		.where('task.client_id', '=', ctx.session.user.client_id)
+		.where('task.status', '=', TaskStatus.PENDING)
+		.where('task.started_at', 'is', null)
 		.returningAll()
 		.executeTakeFirstOrThrow();
 }
@@ -482,13 +501,13 @@ export async function unclaimTask(ctx: ProtectedContext, id: number) {
  */
 export async function updateTask(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		title?: string;
 		description?: string;
 		dueDate?: string | null;
 		workUnits?: number;
-		deskLocationId?: number;
+		deskLocationId?: string;
 	}
 ) {
 	const executeOperation = async (db: typeof ctx.db) => {
@@ -553,7 +572,7 @@ export async function updateTask(
  */
 export async function completeTask(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	completionNotes?: string
 ) {
 	const executeOperation = async (db: typeof ctx.db) => {
@@ -562,7 +581,6 @@ export async function completeTask(
 			.updateTable('task')
 			.set({
 				status: TaskStatus.COMPLETED,
-				completed_by: ctx.session.user.id,
 				completed_at: sql`now()`,
 				completion_notes: completionNotes,
 				updated_at: sql`now()`,
@@ -608,7 +626,7 @@ export async function completeTask(
  */
 export async function cancelTask(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	cancellationReason: string
 ) {
 	// Update task status to cancelled
@@ -648,7 +666,7 @@ export async function cancelTask(
  */
 export async function getDeskCapacity(
 	ctx: ProtectedContext,
-	deskLocationId: number,
+	deskLocationId: string,
 	date?: string
 ) {
 	const targetDate = date || new Date().toISOString().split('T')[0];
@@ -665,8 +683,7 @@ export async function getDeskCapacity(
 		throw new Error('Desk location not found');
 	}
 
-	// Get current usage (sum of work units for available/in_progress tasks assigned on target date)
-	// Available = claimed_by IS NULL, In Progress = claimed_by IS NOT NULL
+	// Get current usage (sum of work units for pending/in_progress tasks assigned on target date)
 	// Both must have completed_at IS NULL and deadline.status = 'pending'
 	const usageResult = await ctx.db
 		.selectFrom('task')
@@ -703,7 +720,7 @@ export async function getDeskCapacity(
 /**
  * Get task counts by derived status for a desk location
  */
-export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationId: number) {
+export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationId: string) {
 	const result = await ctx.db
 		.selectFrom('task')
 		.leftJoin('deadline', (join) =>
@@ -755,8 +772,7 @@ export async function getTasksByDueDateWeek(
 	const rows = await ctx.db
 		.selectFrom('task')
 		.leftJoin('desk_location', 'task.desk_location_id', 'desk_location.id')
-		.leftJoin('users as assigned_user', 'task.assigned_by', 'assigned_user.id')
-		.leftJoin('users as claimed_user', 'task.claimed_by', 'claimed_user.id')
+		.leftJoin('users as assigned_user', 'task.assigned_to', 'assigned_user.id')
 		.leftJoin('claim', 'task.claim_id', 'claim.id')
 		.leftJoin('deadline', (join) =>
 			join
@@ -773,20 +789,16 @@ export async function getTasksByDueDateWeek(
 			'task.work_units',
 			'task.title',
 			'task.description',
-			'task.assigned_by',
+			'task.assigned_to',
 			'task.assigned_at',
-			'task.claimed_by',
-			'task.claimed_at',
-			'task.completed_by',
+			'task.started_at',
 			'task.completed_at',
 			'task.completion_notes',
 			'task.created_at',
 			'task.updated_at',
 			'desk_location.name as desk_location_name',
-			'assigned_user.first as assigned_by_first',
-			'assigned_user.last as assigned_by_last',
-			'claimed_user.first as claimed_by_first',
-			'claimed_user.last as claimed_by_last',
+			'assigned_user.first as assigned_to_first',
+			'assigned_user.last as assigned_to_last',
 			'claim.claim_number',
 			// Deadline fields
 			'deadline.id as deadline_id',
@@ -814,7 +826,7 @@ export async function getTasksByDueDateWeek(
 export async function bulkCancelTasks(
 	ctx: ProtectedContext,
 	params: {
-		ids: number[];
+		ids: string[];
 		cancellationReason: string;
 	}
 ) {

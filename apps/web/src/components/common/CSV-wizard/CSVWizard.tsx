@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { DialogContent, DialogActions, Stepper, Step, StepLabel, Button, Box, Fade } from '@mui/material';
+import CustomButton from '@/components/ui/Button';
 import { CSVStep1 } from './CSVWizardStep1';
 import { CSVStep2ColumnMapping, Step2RefHandle } from './CSVWizardStep2';
 import { CSVStep3Preview, Step3RefHandle } from './CSVWizardStep3';
-import BasicDialog from '../BasicDialog';
+import Dialog from '@/components/ui/Dialog';
 
 type Field = {
 	key: string;
@@ -78,81 +78,97 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 	};
 
 	return (
-		<BasicDialog title="Import Wizard" onClose={handleClose} width={700} height={600}>
-			<DialogContent dividers>
-				<Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
-					{steps.map((label) => (
-						<Step key={label}>
-							<StepLabel>{label}</StepLabel>
-						</Step>
-					))}
-				</Stepper>
+		<Dialog
+			open={true}
+			onClose={handleClose}
+			title="Import Wizard"
+			size="lg"
+			footer={
+				<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+					{activeStep > 0 && (
+						<CustomButton variant="text" disabled={submitting} onClick={handleBack}>
+							Back
+						</CustomButton>
+					)}
 
-				<Box sx={{ position: 'relative', height: 350 }}>
-					<Fade in={activeStep === 0} timeout={400} unmountOnExit>
-						<Box key="step1" sx={{ position: 'absolute', width: '100%' }}>
-							<CSVStep1 fields={fields} onParsed={handleFileParsed} />
-						</Box>
-					</Fade>
-					<Fade in={activeStep === 1} timeout={400} unmountOnExit>
-						<Box key="step2" sx={{ position: 'absolute', width: '100%' }}>
-							<CSVStep2ColumnMapping
-								ref={step2Ref}
-								headers={headers}
-								fields={fields}
-								onMapped={handleMappingComplete}
-								setContinueEnabled={setContinueEnabled}
-							/>
-						</Box>
-					</Fade>
-					<Fade in={activeStep === 2} timeout={400} unmountOnExit>
-						<Box key="step3" sx={{ position: 'absolute', width: '100%' }}>
-							<CSVStep3Preview
-								ref={step3Ref}
-								rows={parsedRows}
-								mapping={mapping}
-								fields={fields}
-								validateRow={validateRow}
-								onSubmit={onSubmit}
-								submitting={submitting}
-								setValidRowCount={setValidRowCount}
-							/>
-						</Box>
-					</Fade>
-				</Box>
-			</DialogContent>
+					{activeStep === 1 && (
+						<CustomButton
+							variant="contained"
+							onClick={() => {
+								step2Ref.current?.onNext?.();
+								setActiveStep((prev) => prev + 1);
+							}}
+							disabled={!continueEnabled}
+						>
+							Continue
+						</CustomButton>
+					)}
 
-			<DialogActions>
-				{activeStep > 0 && (
-					<Button disabled={submitting} onClick={handleBack}>
-						Back
-					</Button>
+					{activeStep === 2 && (
+						<CustomButton
+							variant="contained"
+							onClick={() => step3Ref.current?.submit()}
+							disabled={submitting || validRowCount === 0}
+						>
+							Import {validRowCount} row
+							{validRowCount === 1 ? '' : 's'}
+						</CustomButton>
+					)}
+				</div>
+			}
+		>
+			<div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+				{steps.map((label, index) => (
+					<div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+						<div style={{
+							width: 24, height: 24, borderRadius: '50%',
+							display: 'flex', alignItems: 'center', justifyContent: 'center',
+							fontSize: 12, fontWeight: 600,
+							backgroundColor: index <= activeStep ? 'var(--text-accent)' : 'var(--bg-tertiary)',
+							color: index <= activeStep ? 'white' : 'var(--text-muted)',
+						}}>
+							{index + 1}
+						</div>
+						<span style={{ fontSize: 13, color: index <= activeStep ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+							{label}
+						</span>
+						{index < steps.length - 1 && <div style={{ width: 24, height: 1, backgroundColor: 'var(--border)' }} />}
+					</div>
+				))}
+			</div>
+
+			<div style={{ position: 'relative', height: 350 }}>
+				{activeStep === 0 && (
+					<div style={{ position: 'absolute', width: '100%' }}>
+						<CSVStep1 fields={fields} onParsed={handleFileParsed} />
+					</div>
 				)}
-
 				{activeStep === 1 && (
-					<Button
-						variant="contained"
-						onClick={() => {
-							step2Ref.current?.onNext?.();
-							setActiveStep((prev) => prev + 1);
-						}}
-						disabled={!continueEnabled}
-					>
-						Continue
-					</Button>
+					<div style={{ position: 'absolute', width: '100%' }}>
+						<CSVStep2ColumnMapping
+							ref={step2Ref}
+							headers={headers}
+							fields={fields}
+							onMapped={handleMappingComplete}
+							setContinueEnabled={setContinueEnabled}
+						/>
+					</div>
 				)}
-
 				{activeStep === 2 && (
-					<Button
-						variant="contained"
-						onClick={() => step3Ref.current?.submit()}
-						disabled={submitting || validRowCount === 0}
-					>
-						Import {validRowCount} row
-						{validRowCount === 1 ? '' : 's'}
-					</Button>
+					<div style={{ position: 'absolute', width: '100%' }}>
+						<CSVStep3Preview
+							ref={step3Ref}
+							rows={parsedRows}
+							mapping={mapping}
+							fields={fields}
+							validateRow={validateRow}
+							onSubmit={onSubmit}
+							submitting={submitting}
+							setValidRowCount={setValidRowCount}
+						/>
+					</div>
 				)}
-			</DialogActions>
-		</BasicDialog>
+			</div>
+		</Dialog>
 	);
 }

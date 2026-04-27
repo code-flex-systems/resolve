@@ -1,20 +1,11 @@
-import { Box, Typography } from '@mui/material';
+import styles from './MetricValue.module.css';
 
 export default function MetricValue({ value, fontSize = 15 }: { value: string | number; fontSize?: number }) {
 	return (
-		<Box display="flex" justifyContent="center" alignItems="center" style={styles.dot} bgcolor="#F0F3F7">
-			<Typography fontSize={fontSize} noWrap>
+		<div className={styles.dot}>
+			<span style={{ fontSize, whiteSpace: 'nowrap' }}>
 				{value}
-			</Typography>
-		</Box>
+			</span>
+		</div>
 	);
 }
-
-const styles = {
-	dot: {
-		padding: '0px 5px',
-		height: 21,
-		borderRadius: 5,
-		cursor: 'pointer',
-	},
-};

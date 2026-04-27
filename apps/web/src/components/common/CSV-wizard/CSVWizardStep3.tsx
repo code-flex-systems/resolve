@@ -1,10 +1,10 @@
 'use client';
 
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Typography, LinearProgress, Box, Alert, Collapse } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import { dataGridFocusStyles } from '@/styles/theme';
+import { ProgressBar } from '@/components/ui/Progress';
+import Collapse from '@/components/ui/Collapse';
+import { IconChevronDown } from '@tabler/icons-react';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 type ParsedRow = Record<string, string>;
 
@@ -14,7 +14,7 @@ type Props = {
 	rows: ParsedRow[];
 	mapping: Record<string, string | null>;
 	fields: Field[];
-	validateRow?: (row: any) => { success: boolean; error?: string };
+	validateRow?: (row: any) => { success: boolean; error?: any };
 	onSubmit: (validRows: any[]) => Promise<any>;
 	submitting: boolean;
 	setValidRowCount: (count: number) => void;
@@ -76,65 +76,65 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 			},
 		}));
 
-		const gridColumns: GridColDef[] = fields.map((f) => ({
+		const gridColumns: ColumnDef<any, any>[] = fields.map((f) => ({
 			field: f.key,
-			headerName: f.label,
-			width: 120,
+			header: f.label,
+			size: 120,
 		}));
 
 		return (
 			<>
-				{submitting && <LinearProgress />}
-				{submitSuccess === true && <Alert severity="success">Import successful!</Alert>}
-				{submitSuccess === false && <Alert severity="error">Import failed. Please try again.</Alert>}
+				{submitting && <ProgressBar />}
+				{submitSuccess === true && (
+					<div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--status-success-bg)', color: 'var(--status-success)', fontSize: 13 }}>
+						Import successful!
+					</div>
+				)}
+				{submitSuccess === false && (
+					<div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--status-error-bg)', color: 'var(--status-error)', fontSize: 13 }}>
+						Import failed. Please try again.
+					</div>
+				)}
 
-				<Box height={250} minHeight={250}>
-					<DataGridPro
-						columnHeaderHeight={35}
+				<div style={{ height: 250, minHeight: 250 }}>
+					<DataTable
+						headerHeight={35}
 						rowHeight={35}
 						rows={validRows.map((r, i) => ({ id: i, ...r }))}
-						getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
 						columns={gridColumns}
-						disableRowSelectionOnClick
-						disableColumnMenu
-						disableColumnSorting
 						hideFooter
-						sx={dataGridFocusStyles}
 					/>
-				</Box>
+				</div>
 
-				{skippedRows.length > 0 && (
+				{skippedRows.length> 0 && (
 					<>
-						<Box
-							sx={{
+						<div
+style={{
 								width: '100%',
 								height: 30,
 								cursor: 'pointer',
-								mt: 1,
+								marginTop: 8,
 								display: 'flex',
 								justifyContent: 'flex-start',
 								alignItems: 'center',
 							}}
-							onClick={() => setSkippedRowsExpanded((prev) => !prev)}
-						>
-							<ExpandMoreIcon
-								sx={{
-									mr: 0.5,
+							onClick={() => setSkippedRowsExpanded((prev) => !prev)}>
+							<IconChevronDown
+								size={20}
+								style={{
+									marginRight: 4,
 									transform: skippedRowsExpanded ? undefined : 'rotate(-90deg)',
 									transition: 'transform 100ms ease',
 								}}
 							/>
-							<Typography fontSize={13}>{skippedRows.length} skipped row(s)</Typography>
-						</Box>
+							<span style={{ fontSize: 13 }}>{skippedRows.length} skipped row(s)</span>
+						</div>
 						<Collapse
-							in={skippedRowsExpanded}
-							sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-							unmountOnExit
-						>
+							open={skippedRowsExpanded}>
 							{skippedRows.map((row, idx) => (
-								<Typography key={idx} fontSize={13} py={0.5}>
+								<p key={idx} style={{ fontSize: 13, padding: '4px 0' }}>
 									<b>Row {row.rowIndex}:</b> Invalid entry for <b>{row.reason}</b>
-								</Typography>
+								</p>
 							))}
 						</Collapse>
 					</>

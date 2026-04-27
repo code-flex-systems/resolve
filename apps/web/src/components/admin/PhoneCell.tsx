@@ -1,21 +1,17 @@
 'use client';
 
-import { Box, Link } from '@mui/material';
+import { formatPhoneDisplay } from '@/lib/utils/utils';
 
 export default function PhoneCell({
 	value,
-	verified,
-	disabled,
 }: {
-	value: string;
-	verified: boolean;
-	disabled: boolean;
+	value: string | null | undefined;
+	verified?: boolean;
+	disabled?: boolean;
 }) {
-	return value ? (
-		<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<Link sx={{ ml: 0.5 }}>{value}</Link>
-		</Box>
-	) : (
-		<>-</>
-	);
+	const formatted = formatPhoneDisplay(value);
+	if (!formatted) {
+		return <span style={{ color: 'var(--text-muted)' }}>—</span>;
+	}
+	return <span>{formatted}</span>;
 }

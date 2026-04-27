@@ -1,16 +1,15 @@
-import { Box, InputAdornment, TextField, Typography } from '@mui/material';
+import { Textarea } from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import config from '@/config/config';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import AddCircle from '@mui/icons-material/AddCircle';
-import Delete from '@mui/icons-material/Delete';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { IconCirclePlus, IconTrash } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function CommentDialog() {
 	const { data: session } = useClerkSession();
@@ -18,7 +17,7 @@ export default function CommentDialog() {
 	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
 	const clearExistingComment = useChecklistStore((state) => state.clearExistingComment);
 	const [comment, setComment] = useState(existingComment?.body ?? '');
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const { mutateAsync: createComment, isPending } = useCommentTrpc().create;
 	const { mutateAsync: removeComment, isPending: isDeleting } = useCommentTrpc().remove;
 	const inTransition = isPending || isDeleting;
@@ -56,75 +55,49 @@ export default function CommentDialog() {
 			title={existingComment ? `${formatUser(existingComment)} said...` : 'Add a comment...'}
 			onClose={() => toggleQuestionCommentDialog()}
 			closeDisabled={inTransition}
-			width={400}
-		>
-			<TextField
+			width={400}>
+			<Textarea
 				value={comment}
 				placeholder="New comment..."
 				onChange={(e) => {
 					if (e.target.value.length <= config.MAX_COMMENT_SIZE) setComment(e.target.value);
 				}}
-				multiline
 				rows={5}
-				variant="outlined"
-				sx={styles.textField}
 				fullWidth
-				slotProps={{
-					input: {
-						endAdornment:
-							!existingComment || session?.user.id === existingComment.created_by ? (
-								<InputAdornment sx={{ marginTop: '90px', marginRight: '5px' }} position="end">
-									{existingComment ? (
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => deleteComment().catch(console.error),
-												disabled: inTransition,
-											}}
-											icon={<Delete />}
-											tooltipProps={{ title: 'Delete comment' }}
-										/>
-									) : (
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => addComment().catch(console.error),
-												disabled: !comment || inTransition,
-											}}
-											icon={<AddCircle />}
-											tooltipProps={{ title: 'Add comment' }}
-										/>
-									)}
-								</InputAdornment>
-							) : undefined,
-					},
-				}}
+				endAdornment={
+					!existingComment || session?.user.id === existingComment.created_by ? (
+						<span style={{ marginTop: 90, marginRight: 5 }}>
+							{existingComment ? (
+								<Tooltip content="Delete comment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => deleteComment().catch(console.error)} disabled={inTransition}>
+							<IconTrash size={16} />
+						</Button>
+						</Tooltip>
+							) : (
+								<Tooltip content="Add comment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => addComment().catch(console.error)} disabled={!comment || inTransition}>
+							<IconCirclePlus size={16} />
+						</Button>
+						</Tooltip>
+							)}
+						</span>
+					) : undefined
+				}
 				autoFocus
 				disabled={comment.length >= config.MAX_COMMENT_SIZE || !!existingComment || inTransition}
 			/>
-			<Box width="100%" display="flex" justifyContent="flex-end" alignItems="center" paddingTop="2px">
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '2px' }}>
 				{!!existingComment && (
-					<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						{formatMDY(existingComment.created_at)}
-					</Typography>
+					</span>
 				)}
 				{!existingComment && (
-					<Typography fontSize={12} color={comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined}>
+					<span style={{ fontSize: 12, color: comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined }}>
 						Max characters: {comment.length}/{config.MAX_COMMENT_SIZE}
-					</Typography>
+					</span>
 				)}
-			</Box>
+			</div>
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	textField: {
-		'& .MuiOutlinedInput-root': {
-			padding: '5px',
-			borderRadius: 3,
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
-};

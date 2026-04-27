@@ -1,7 +1,4 @@
-import theme from '@/styles/theme';
-import { SvgIcon, SvgIconProps } from '@mui/material';
-
-export default function CheckGradient(props: SvgIconProps) {
+export default function CheckGradient(props: React.SVGProps<SVGSVGElement>) {
 	const pathD = `
     M13,2.03V2.05L13,4.05
     C17.39,4.59 20.5,8.58 19.96,12.97
@@ -23,7 +20,7 @@ export default function CheckGradient(props: SvgIconProps) {
   `;
 
 	return (
-		<SvgIcon {...props} viewBox="0 0 24 24">
+		<svg {...props} viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" style={{ fontSize: 'inherit', ...props.style }}>
 			<defs>
 				<clipPath id="halfLeft">
 					<rect x="0" y="0" width="12" height="24" />
@@ -34,10 +31,10 @@ export default function CheckGradient(props: SvgIconProps) {
 			</defs>
 
 			{/* Left half in red */}
-			<path clipPath="url(#halfLeft)" fill={theme.palette.error.main} d={pathD} />
+			<path clipPath="url(#halfLeft)" fill="var(--color-error)" d={pathD} />
 
 			{/* Right half in green */}
-			<path clipPath="url(#halfRight)" fill={theme.palette.success.main} d={pathD} />
-		</SvgIcon>
+			<path clipPath="url(#halfRight)" fill="var(--color-success)" d={pathD} />
+		</svg>
 	);
 }

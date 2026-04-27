@@ -1,44 +1,41 @@
 'use client';
 
-import { Box, Fade, Stack, Typography } from '@mui/material';
 import { Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import { Dayjs } from 'dayjs';
-import theme from '@/styles/theme';
 import { useRouter } from 'next/navigation';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 
 interface DailyEventsListProps {
 	deadlines: Deadline[];
 	selectedDate: Dayjs | null;
+	flexGrow?: boolean;
 }
 
 /**
  * Displays a scrollable list of deadlines for the selected day
  */
-export default function DailyEventsList({ deadlines, selectedDate }: DailyEventsListProps) {
+export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: DailyEventsListProps) {
 	const router = useRouter();
 
-	const handleClaimClick = (claimId: number) => {
-		// Navigate to claim detail (could also open in a dialog/panel)
-		router.push(`/claims/${claimId}`);
+	const handleClaimClick = (claimId: string) => {
+		router.push(`/my-claims/${claimId}`);
 	};
 
 	return (
-		<Box sx={styles.container}>
-			<Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={1.5}>
+		<div style={{ ...styles.container, ...(flexGrow && styles.flexContainer) }}>
+			<span style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
 				{selectedDate ? selectedDate.format('MMMM D, YYYY') : 'Select a date'}
-			</Typography>
+			</span>
 
-			<Fade key={selectedDate?.toString() ?? 'empty'} in={true} timeout={1000}>
-				<Box sx={styles.scrollContainer}>
+			<div style={{ ...styles.scrollContainer, ...(flexGrow && styles.flexScrollContainer) }}>
 					{deadlines.length === 0 ? (
-						<Box sx={styles.emptyState}>
-							<Typography variant="body2" color="text.secondary" textAlign="center">
+						<div style={styles.emptyState}>
+							<span style={{ color: 'text.secondary', textAlign: 'center' as const }}>
 								No deadlines for this day
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					) : (
-						<Stack spacing={1}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 							{deadlines.map((deadline) => (
 								<DeadlineListItem
 									key={deadline.id}
@@ -47,40 +44,36 @@ export default function DailyEventsList({ deadlines, selectedDate }: DailyEvents
 									showTime={true}
 								/>
 							))}
-						</Stack>
+						</div>
 					)}
-				</Box>
-			</Fade>
-		</Box>
+				</div>
+		</div>
 	);
 }
 
 const styles = {
 	container: {
 		width: '100%',
-		borderTop: `1px solid ${theme.palette.divider}`,
+		borderTop: `1px solid ${'var(--border)'}`,
 		paddingTop: 2,
 		marginTop: 1,
 	},
+	flexContainer: {
+		flex: 1,
+		display: 'flex',
+		flexDirection: 'column' as const,
+		minHeight: 0,
+		overflow: 'hidden' as const,
+	},
 	scrollContainer: {
 		maxHeight: 220,
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		paddingRight: 1,
-		'&::-webkit-scrollbar': {
-			width: '6px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: theme.palette.action.hover,
-			borderRadius: '3px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: theme.palette.action.selected,
-			borderRadius: '3px',
-			'&:hover': {
-				background: theme.palette.action.disabled,
-			},
-		},
+		overflowY: 'auto' as const,
+		overflowX: 'hidden' as const,
+		paddingRight: 8,
+	},
+	flexScrollContainer: {
+		flex: 1,
+		maxHeight: 'none',
 	},
 	emptyState: {
 		padding: 4,

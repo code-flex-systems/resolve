@@ -1,5 +1,3 @@
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
-import { Box, Stack, Typography } from '@mui/material';
 import { JSX } from 'react';
 
 export default function StackedMetric({
@@ -16,24 +14,24 @@ export default function StackedMetric({
 	fontSizeSubtext?: number;
 }) {
 	return (
-		<Stack display="flex" justifyContent="center" alignItems="flex-start">
-			<Box display="flex" justifyContent="flex-start" alignItems="center">
+		<div    style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+			<div    style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 				{icon}
-				<Stack display="flex" justifyContent="flex-start" alignItems="flex-start" marginLeft="10px">
-					<Typography fontSize={fontSize} lineHeight="22px">
+				<div     style={{ display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}>
+					<span   style={{ fontSize: fontSize, lineHeight: '22px' }}>
 						{value}
-					</Typography>
-					<Box maxWidth={100} paddingTop="2px">
-						<Typography
-							fontSize={fontSizeSubtext}
-							lineHeight={`${fontSizeSubtext + 2}px`}
-							color={BASE_COLOR_LIGHT}
+					</span>
+					<div   style={{ maxWidth: 100, paddingTop: '2px' }}>
+						<span
+							
+							
+							 style={{ fontSize: fontSizeSubtext, lineHeight: `${fontSizeSubtext + 2}px`, color: 'var(--text-muted)' }}
 						>
 							{subtext}
-						</Typography>
-					</Box>
-				</Stack>
-			</Box>
-		</Stack>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }

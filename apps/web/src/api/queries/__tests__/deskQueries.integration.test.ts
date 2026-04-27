@@ -223,7 +223,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocationType(ctx, 999999);
+			const result = await getDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -337,7 +337,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDeskLocationType(ctx, 999999, { name: 'Test' })).rejects.toThrow();
+			await expect(updateDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000', { name: 'Test' })).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -427,7 +427,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveDeskLocationType(ctx, 999999)).rejects.toThrow('Desk location type not found');
+			await expect(archiveDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Desk location type not found');
 		});
 
 		it('should throw if type has active locations', async () => {
@@ -491,7 +491,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreDeskLocationType(ctx, 999999)).rejects.toThrow();
+			await expect(restoreDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -722,7 +722,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocation(ctx, 999999);
+			const result = await getDeskLocation(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -769,6 +769,7 @@ describe('deskQueries integration', () => {
 			const result = await createDeskLocation(ctx, {
 				name: 'New Location',
 				desk_location_type_id: deskType.id,
+				capacity_threshold: 100,
 			});
 
 			expect(result.name).toBe('New Location');
@@ -789,6 +790,7 @@ describe('deskQueries integration', () => {
 				name: 'Inactive Location',
 				desk_location_type_id: deskType.id,
 				is_active: false,
+				capacity_threshold: 100,
 			});
 
 			expect(result.is_active).toBe(false);
@@ -837,7 +839,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDeskLocation(ctx, 999999, { name: 'Test' })).rejects.toThrow();
+			await expect(updateDeskLocation(ctx, '00000000-0000-0000-0000-000000000000', { name: 'Test' })).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -956,7 +958,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveDeskLocation(ctx, 999999)).rejects.toThrow('Desk location not found');
+			await expect(archiveDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Desk location not found');
 		});
 
 		it('should throw if location has assigned claims', async () => {
@@ -1015,7 +1017,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreDeskLocation(ctx, 999999)).rejects.toThrow();
+			await expect(restoreDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -1298,7 +1300,7 @@ describe('deskQueries integration', () => {
 			await expect(
 				assignUserToDeskLocation(ctx, {
 					userId: user.id,
-					deskLocationId: 999999,
+					deskLocationId: '00000000-0000-0000-0000-000000000000',
 					priority: 1,
 				})
 			).rejects.toThrow('Desk location not found');
@@ -1395,7 +1397,7 @@ describe('deskQueries integration', () => {
 			await expect(
 				bulkAssignUsersToDeskLocation(ctx, {
 					userIds: [user.id],
-					deskLocationId: 999999,
+					deskLocationId: '00000000-0000-0000-0000-000000000000',
 					priority: 1,
 				})
 			).rejects.toThrow('Desk location not found');
@@ -1455,7 +1457,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateUserDeskLocationPriority(ctx, 999999, 2)).rejects.toThrow('Assignment not found');
+			await expect(updateUserDeskLocationPriority(ctx, '00000000-0000-0000-0000-000000000000', 2)).rejects.toThrow('Assignment not found');
 		});
 
 		it('should handle updating to same priority (no-op)', async () => {
@@ -1544,7 +1546,7 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(removeUserFromDeskLocation(ctx, 999999)).rejects.toThrow();
+			await expect(removeUserFromDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should throw if assignment already removed', async () => {
@@ -1706,6 +1708,304 @@ describe('deskQueries integration', () => {
 
 			const assignments = await getUserDeskLocations(ctx, user.id);
 			expect(assignments.length).toBe(0);
+		});
+	});
+
+	// =====================================================================
+	// TIER 2: bulkAssignUsersToDeskLocation
+	// =====================================================================
+
+	describe('bulkAssignUsersToDeskLocation', () => {
+		it('should assign multiple users to a desk location', async () => {
+			const client = await createTestClient(db);
+			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+
+			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });
+
+			const result = await bulkAssignUsersToDeskLocation(ctx, {
+				userIds: [user1.id, user2.id],
+				deskLocationId: loc.id,
+				priority: 1,
+			});
+
+			expect(result).toHaveLength(2);
+			expect(result.map((r) => r.user_id).sort()).toEqual([user1.id, user2.id].sort());
+			expect(result.every((r) => r.desk_location_id === loc.id)).toBe(true);
+			expect(result.every((r) => r.priority === 1)).toBe(true);
+
+			// Verify assignments are actually queryable via the read path
+			const locUsers = await getDeskLocationUsers(ctx, loc.id);
+			expect(locUsers).toHaveLength(2);
+			expect(locUsers.map((u) => u.user_id).sort()).toEqual([user1.id, user2.id].sort());
+		});
+
+		it('should replace existing assignments at the same priority', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc A' });
+			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc B' });
+
+			// Assign user to loc1 at priority 1
+			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Bulk assign the same user to loc2 at priority 1
+			const result = await bulkAssignUsersToDeskLocation(ctx, {
+				userIds: [user.id],
+				deskLocationId: loc2.id,
+				priority: 1,
+			});
+
+			expect(result).toHaveLength(1);
+			expect(result[0].desk_location_id).toBe(loc2.id);
+
+			// Old assignment should be soft-deleted (removed_at set)
+			const oldAssignments = await db
+				.selectFrom('user_desk_location')
+				.select(['id', 'removed_at'])
+				.where('user_id', '=', user.id)
+				.where('desk_location_id', '=', loc1.id)
+				.execute();
+			expect(oldAssignments.every((a) => a.removed_at !== null)).toBe(true);
+		});
+
+		it('should return empty array for empty userIds input', async () => {
+			const client = await createTestClient(db);
+			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+
+			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });
+
+			const result = await bulkAssignUsersToDeskLocation(ctx, {
+				userIds: [],
+				deskLocationId: loc.id,
+				priority: 1,
+			});
+
+			expect(result).toEqual([]);
+		});
+
+		it('should validate desk location belongs to client (tenant isolation)', async () => {
+			const client1 = await createTestClient(db, { name: 'Bulk Client 1' });
+			const client2 = await createTestClient(db, { name: 'Bulk Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
+			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+
+			// User from client2 tries to assign to client1's desk location
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			await expect(
+				bulkAssignUsersToDeskLocation(ctx2, {
+					userIds: [user2.id],
+					deskLocationId: loc.id,
+					priority: 1,
+				})
+			).rejects.toThrow(/not found/i);
+		});
+	});
+
+	// =====================================================================
+	// TIER 2: archiveDeskLocation
+	// =====================================================================
+
+	describe('archiveDeskLocation', () => {
+		it('should soft-delete the desk location', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await archiveDeskLocation(ctx, loc.id);
+			expect(result.deleted_at).not.toBeNull();
+
+			// Verify in DB
+			const archived = await db
+				.selectFrom('desk_location')
+				.select(['id', 'deleted_at'])
+				.where('id', '=', loc.id)
+				.executeTakeFirstOrThrow();
+			expect(archived.deleted_at).not.toBeNull();
+		});
+
+		it('should cascade soft-delete to user_desk_location assignments', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+
+			// Assign two users to the location
+			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const assignment1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			const assignment2 = await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc.id, priority: 1 });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await archiveDeskLocation(ctx, loc.id);
+
+			// Both assignments should have removed_at set
+			const [a1, a2] = await Promise.all([
+				db.selectFrom('user_desk_location').select(['id', 'removed_at']).where('id', '=', assignment1.id).executeTakeFirstOrThrow(),
+				db.selectFrom('user_desk_location').select(['id', 'removed_at']).where('id', '=', assignment2.id).executeTakeFirstOrThrow(),
+			]);
+			expect(a1.removed_at).not.toBeNull();
+			expect(a2.removed_at).not.toBeNull();
+
+			// Verify assignments are invisible to the read path
+			const user1Assignments = await getUserDeskLocations(ctx, user.id);
+			expect(user1Assignments.filter((a) => a.desk_location_id === loc.id)).toHaveLength(0);
+
+			const user2Assignments = await getUserDeskLocations(ctx, user2.id);
+			expect(user2Assignments.filter((a) => a.desk_location_id === loc.id)).toHaveLength(0);
+		});
+
+		it('should throw when claims are assigned to the location', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+
+			// Create a claim assigned to this desk location
+			await createTestClaim(db, { client_id: client.id, desk_location_id: loc.id });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			await expect(archiveDeskLocation(ctx, loc.id)).rejects.toThrow(/assigned claim/i);
+		});
+
+		it('should enforce tenant isolation', async () => {
+			const client1 = await createTestClient(db, { name: 'Archive Desk Client 1' });
+			const client2 = await createTestClient(db, { name: 'Archive Desk Client 2' });
+			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
+			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+
+			// User from client2 should not be able to archive client1's location
+			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
+
+			await expect(archiveDeskLocation(ctx2, loc.id)).rejects.toThrow(/not found/i);
+		});
+	});
+
+	// =====================================================================
+	// TIER 2: getDeskLocations
+	// =====================================================================
+
+	describe('getDeskLocations', () => {
+		it('should return correct user_count for locations with and without assignments', async () => {
+			const client = await createTestClient(db);
+			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: `DLTest ${Date.now()}` });
+			const locWithUsers = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `WithUsers ${Date.now()}` });
+			const locNoUsers = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `NoUsers ${Date.now()}` });
+
+			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: locWithUsers.id, priority: 1 });
+			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: locWithUsers.id, priority: 1 });
+
+			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, undefined, true);
+
+			const withUsers = result.rows.find((r) => r.id === locWithUsers.id);
+			const noUsers = result.rows.find((r) => r.id === locNoUsers.id);
+
+			expect(withUsers).toBeDefined();
+			expect(Number(withUsers!.user_count)).toBe(2);
+			expect(noUsers).toBeDefined();
+			expect(Number(noUsers!.user_count)).toBe(0);
+		});
+
+		it('should exclude removed user assignments from user_count', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const removedUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `CountTest ${Date.now()}` });
+
+			// Active assignment
+			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			// Removed assignment
+			await createTestUserDeskLocation(db, { user_id: removedUser.id, desk_location_id: loc.id, priority: 1, removed_at: new Date() });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, undefined, true);
+
+			const found = result.rows.find((r) => r.id === loc.id);
+			expect(found).toBeDefined();
+			expect(Number(found!.user_count)).toBe(1);
+		});
+
+		it('should filter by search term (prefix match)', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const ts = Date.now();
+			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `SearchAlpha ${ts}` });
+			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `SearchBeta ${ts}` });
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDeskLocations(ctx, undefined, `SearchAlpha`, undefined, undefined, undefined, true);
+
+			expect(result.rows.some((r) => r.id === loc1.id)).toBe(true);
+			expect(result.rows.every((r) => r.name!.startsWith('SearchAlpha'))).toBe(true);
+		});
+
+		it('should exclude deleted locations by default and show them with showDeleted=true', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const ts = Date.now();
+			const activeLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `DelTestActive ${ts}` });
+			const deletedLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `DelTestDeleted ${ts}` });
+
+			// Soft delete one
+			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deletedLoc.id).execute();
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			// Default: only active
+			const defaultResult = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, undefined, true);
+			expect(defaultResult.rows.some((r) => r.id === activeLoc.id)).toBe(true);
+			expect(defaultResult.rows.some((r) => r.id === deletedLoc.id)).toBe(false);
+
+			// showDeleted: only deleted
+			const deletedResult = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, true, true);
+			expect(deletedResult.rows.some((r) => r.id === activeLoc.id)).toBe(false);
+			expect(deletedResult.rows.some((r) => r.id === deletedLoc.id)).toBe(true);
+		});
+
+		it('should paginate correctly (count vs rows)', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const ts = Date.now();
+
+			// Create 3 locations
+			for (let i = 0; i < 3; i++) {
+				await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `PagTest${ts} ${i}` });
+			}
+
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
+
+			const result = await getDeskLocations(ctx, deskType.id, `PagTest${ts}`, 2, 0, undefined, true);
+
+			// Should return only 2 rows but count should reflect all 3
+			expect(result.rows).toHaveLength(2);
+			expect(result.count).toBe(3);
 		});
 	});
 });

@@ -316,8 +316,8 @@ BEGIN
             FOR i IN 1..(1 + (RANDOM() * 2)::INT) LOOP
                 INSERT INTO task (
                     claim_id, client_id, desk_location_id, title, description,
-                    task_type, status, due_date, assigned_by, work_units,
-                    claimed_by, claimed_at, completed_by, completed_at, completion_notes
+                    task_type, status, due_date, assigned_to, work_units,
+                    started_at, completed_at, completion_notes
                 ) VALUES (
                     v_claim_id,
                     v_client_id,
@@ -351,9 +351,7 @@ BEGIN
                     CURRENT_DATE + (RANDOM() * 30 - 10)::INT, -- Due date: -10 to +20 days from now
                     v_user_ids[1 + (RANDOM() * (array_length(v_user_ids, 1) - 1))::INT],
                     (1 + (RANDOM() * 5)::INT), -- Work units: 1-6 (5-30 minutes)
-                    CASE WHEN RANDOM() > 0.6 THEN v_user_ids[1 + (RANDOM() * (array_length(v_user_ids, 1) - 1))::INT] ELSE NULL END,
                     CASE WHEN RANDOM() > 0.6 THEN CURRENT_TIMESTAMP - INTERVAL '1 day' * (RANDOM() * 7)::INT ELSE NULL END,
-                    NULL,
                     NULL,
                     NULL
                 );
@@ -362,7 +360,6 @@ BEGIN
 
         -- Update completed tasks with completion info
         UPDATE task SET
-            completed_by = claimed_by,
             completed_at = CURRENT_TIMESTAMP - INTERVAL '1 day' * (RANDOM() * 5)::INT,
             completion_notes = (ARRAY[
                 'Task completed successfully',
@@ -371,13 +368,12 @@ BEGIN
                 'Contact made, follow-up scheduled',
                 'Payment processed'
             ])[1 + (RANDOM() * 4)::INT]
-        WHERE status = 'completed' AND claimed_by IS NOT NULL;
+        WHERE status = 'completed' AND started_at IS NOT NULL;
 
-        -- Update in_progress tasks to have claimed_by if not set
+        -- Update in_progress tasks to have started_at if not set
         UPDATE task SET
-            claimed_by = (SELECT id FROM users WHERE client_id = v_client_id ORDER BY RANDOM() LIMIT 1),
-            claimed_at = CURRENT_TIMESTAMP - INTERVAL '1 hour' * (RANDOM() * 48)::INT
-        WHERE status = 'in_progress' AND claimed_by IS NULL;
+            started_at = CURRENT_TIMESTAMP - INTERVAL '1 hour' * (RANDOM() * 48)::INT
+        WHERE status = 'in_progress' AND started_at IS NULL;
 
         -- Add some cancelled tasks with reasons
         UPDATE task SET
@@ -398,8 +394,8 @@ BEGIN
         WHERE status = 'completed' AND completed_at IS NOT NULL;
 
         UPDATE task
-        SET created_at = claimed_at - INTERVAL '1 day' * (1 + (RANDOM() * 5)::INT)
-        WHERE status = 'in_progress' AND claimed_at IS NOT NULL;
+        SET created_at = started_at - INTERVAL '1 day' * (1 + (RANDOM() * 5)::INT)
+        WHERE status = 'in_progress' AND started_at IS NOT NULL;
 
         UPDATE task
         SET created_at = cancelled_at - INTERVAL '1 day' * (1 + (RANDOM() * 7)::INT)

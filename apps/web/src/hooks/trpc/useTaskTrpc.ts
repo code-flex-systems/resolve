@@ -97,10 +97,10 @@ export function useTaskTrpc() {
 		}),
 
 		/**
-		 * Claim task (start working on it)
-		 * Invalidates task lists
+		 * Assign task to a user
+		 * Invalidates task lists and deadline queries
 		 */
-		claim: trpc.task.claimTask.useMutation({
+		assign: trpc.task.assignTask.useMutation({
 			onSuccess(data) {
 				utils.task.getTasks.invalidate();
 				utils.task.getTask.invalidate({ id: data.id });
@@ -114,14 +114,15 @@ export function useTaskTrpc() {
 				utils.task.getTaskCountsByStatus.invalidate({
 					deskLocationId: data.desk_location_id,
 				});
+				utils.deadline.listDeadlines.invalidate();
 			},
 		}),
 
 		/**
-		 * Unclaim task (release back to queue)
-		 * Invalidates task lists
+		 * Unassign task (clear assignment)
+		 * Invalidates task lists and deadline queries
 		 */
-		unclaim: trpc.task.unclaimTask.useMutation({
+		unassign: trpc.task.unassignTask.useMutation({
 			onSuccess(data) {
 				utils.task.getTasks.invalidate();
 				utils.task.getTask.invalidate({ id: data.id });
@@ -135,12 +136,35 @@ export function useTaskTrpc() {
 				utils.task.getTaskCountsByStatus.invalidate({
 					deskLocationId: data.desk_location_id,
 				});
+				utils.deadline.listDeadlines.invalidate();
+			},
+		}),
+
+		/**
+		 * Start task (begin working on it)
+		 * Invalidates task lists and deadline queries
+		 */
+		start: trpc.task.startTask.useMutation({
+			onSuccess(data) {
+				utils.task.getTasks.invalidate();
+				utils.task.getTask.invalidate({ id: data.id });
+				utils.task.getTasksByClaim.invalidate({
+					claimId: data.claim_id,
+				});
+				utils.task.getTasksByDeskLocation.invalidate({
+					deskLocationId: data.desk_location_id,
+				});
+				utils.task.getTasksForUser.invalidate();
+				utils.task.getTaskCountsByStatus.invalidate({
+					deskLocationId: data.desk_location_id,
+				});
+				utils.deadline.listDeadlines.invalidate();
 			},
 		}),
 
 		/**
 		 * Complete task
-		 * Invalidates task lists and capacity queries
+		 * Invalidates task lists, capacity queries, and deadline queries
 		 */
 		complete: trpc.task.completeTask.useMutation({
 			onSuccess(data) {
@@ -159,12 +183,14 @@ export function useTaskTrpc() {
 				utils.task.getTaskCountsByStatus.invalidate({
 					deskLocationId: data.desk_location_id,
 				});
+				// Invalidate deadline queries since completing a task may update deadline status
+				utils.deadline.listDeadlines.invalidate();
 			},
 		}),
 
 		/**
 		 * Cancel task (Admin only)
-		 * Invalidates task lists and capacity queries
+		 * Invalidates task lists, capacity queries, and deadline queries
 		 */
 		cancel: trpc.task.cancelTask.useMutation({
 			onSuccess(data) {
@@ -183,6 +209,8 @@ export function useTaskTrpc() {
 				utils.task.getTaskCountsByStatus.invalidate({
 					deskLocationId: data.desk_location_id,
 				});
+				// Invalidate deadline queries since cancelling a task may update deadline status
+				utils.deadline.listDeadlines.invalidate();
 			},
 		}),
 
@@ -198,7 +226,7 @@ export function useTaskTrpc() {
 
 		/**
 		 * Bulk cancel multiple tasks (Admin only)
-		 * Invalidates all task lists
+		 * Invalidates all task lists and deadline queries
 		 */
 		bulkCancel: trpc.task.bulkCancelTasks.useMutation({
 			onSuccess() {
@@ -208,6 +236,8 @@ export function useTaskTrpc() {
 				utils.task.getTasksByDeskLocation.invalidate();
 				utils.task.getTasksForUser.invalidate();
 				utils.task.getTasksByDueDateWeek.invalidate();
+				// Invalidate deadline queries since cancelling tasks may update deadline statuses
+				utils.deadline.listDeadlines.invalidate();
 			},
 		}),
 	};

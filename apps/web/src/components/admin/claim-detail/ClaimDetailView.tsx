@@ -1,25 +1,38 @@
 'use client';
-
-import { Box, Fade, Paper, Tab, Tabs } from '@mui/material';
+import { Tabs } from '@/components/ui/Tabs';
+import Card from '@/components/ui/Card';
 import PageTransitionWrapper from '../../common/PageTransitionWrapper';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { trpc } from '@/lib/trpc';
+import { useTrackResource } from '@/hooks/useTrackResource';
+import { useBreadcrumbs } from '@/components/common/BreadcrumbContext';
 import ClaimHeader from './ClaimHeader';
+import ClaimEditDialog from './ClaimEditDialog';
 import OverviewTab from './OverviewTab';
 import WorkflowTab from './WorkflowTab';
 import ClaimantsCoverageTab from './ClaimantsCoverageTab';
 import SettlementRecoveryTab from './SettlementRecoveryTab';
 import PartyLiabilityTab from './PartyLiabilityTab';
 import PaymentsTab from './PaymentsTab';
-import { containerStyles } from '@/styles/theme';
 
 /**
  * Reusable claim detail view component
  * Can be used in both admin and standalone contexts
  */
-export default function ClaimDetailView({ claimId }: { claimId: number }) {
+export default function ClaimDetailView({ claimId }: { claimId: string }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
+	const [showEditDialog, setShowEditDialog] = useState(false);
+	const { data: claimDetail } = trpc.claim.getClaimDetail.useQuery({ claimId }, { enabled: !!claimId });
+	const { setDynamicSegments } = useBreadcrumbs();
+	useTrackResource('claim', claimId, claimDetail?.claim_number ?? null, `/admin/claims/${claimId}`, !!claimId);
+
+	useEffect(() => {
+		if (claimDetail?.claim_number) {
+			setDynamicSegments([{ label: claimDetail.claim_number }]);
+		}
+	}, [claimDetail?.claim_number, setDynamicSegments]);
 
 	// Support pre-selecting tab via URL parameter (e.g., ?tab=claimants-coverage)
 	useEffect(() => {
@@ -42,50 +55,53 @@ export default function ClaimDetailView({ claimId }: { claimId: number }) {
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claim details...">
-			<Paper
-				sx={{
+			<Card
+				variant="beveled"
+				padding="none"
+				style={{
 					display: 'flex',
 					flexDirection: 'column',
 					height: 'calc(100vh - 50px)',
 					overflow: 'hidden',
-					...containerStyles.beveledCard,
 				}}
 			>
 				{/* Sticky Header */}
-				<ClaimHeader claimId={claimId} />
+				<ClaimHeader claimId={claimId} onEdit={() => setShowEditDialog(true)} />
 
 				{/* Tab Navigation */}
-				<Paper sx={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', px: 1, pb: 0.2 }}>
+				<div style={{ paddingInline: 8 }}>
 					<Tabs
+						tabs={[
+							{ label: 'Overview' },
+							{ label: 'Workflow & Assignment' },
+							{ label: 'Claimants & Coverage' },
+							{ label: 'Adverse Parties & Liability' },
+							{ label: 'Payments' },
+							{ label: 'Settlement & Recovery' },
+						]}
 						value={currentTab}
-						onChange={(_, newValue) => setCurrentTab(newValue)}
-						aria-label="claim detail tabs"
-					>
-						<Tab label="Overview" />
-						<Tab label="Workflow & Assignment" />
-						<Tab label="Claimants & Coverage" />
-						<Tab label="Adverse Parties & Liability" />
-						<Tab label="Payments" />
-						<Tab label="Settlement & Recovery" />
-					</Tabs>
-				</Paper>
+						onChange={setCurrentTab}
+					/>
+				</div>
 
 				{/* Tab Content */}
-				<Fade in={true} timeout={1000}>
-					<Box flex={1} overflow="auto">
-						<Box display="flex" justifyContent="center" width="100%">
-							<Box width="100%" maxWidth={1400}>
+				<div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+					<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+						<div style={{ width: '100%', maxWidth: 1400 }}>
 								{currentTab === 0 && <OverviewTab claimId={claimId} />}
 								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
 								{currentTab === 2 && <ClaimantsCoverageTab claimId={claimId} />}
 								{currentTab === 3 && <PartyLiabilityTab claimId={claimId} />}
 								{currentTab === 4 && <PaymentsTab claimId={claimId} />}
 								{currentTab === 5 && <SettlementRecoveryTab claimId={claimId} />}
-							</Box>
-						</Box>
-					</Box>
-				</Fade>
-			</Paper>
+							</div>
+						</div>
+				</div>
+			</Card>
+
+			{showEditDialog && (
+				<ClaimEditDialog claimId={claimId} onClose={() => setShowEditDialog(false)} />
+			)}
 		</PageTransitionWrapper>
 	);
 }

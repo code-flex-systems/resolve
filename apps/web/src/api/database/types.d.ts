@@ -28,19 +28,19 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Action {
-  answer_id: number;
+  answer_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
   definition: Json;
-  id: Generated<number>;
+  id: Generated<string>;
   type: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface ActionLog {
-  action_id: number;
+  action_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
@@ -59,6 +59,18 @@ export interface AdminConfigLogs {
   value: Json | null;
 }
 
+export interface AnalyticsDailyWorkflowStageSnapshot {
+  avg_hours_in_stage: Numeric | null;
+  claims_breaching_sla: Generated<number>;
+  claims_count: Generated<number>;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  desk_location_id: string;
+  id: Generated<number>;
+  median_hours_in_stage: Numeric | null;
+  snapshot_date: Timestamp;
+}
+
 export interface Answer {
   additional_info_num_lines: number | null;
   additional_info_placeholder: string | null;
@@ -66,7 +78,7 @@ export interface Answer {
    * Comma-separated list of allowed file extensions (e.g., '.pdf,.docx,.jpg'). NULL means all allowed file types are permitted
    */
   allowed_extensions: string | null;
-  calls_instance_id: number | null;
+  calls_instance_id: string | null;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
@@ -75,9 +87,9 @@ export interface Answer {
   grade: Numeric | null;
   has_additional_info: Generated<boolean | null>;
   hidden: Generated<boolean | null>;
-  id: Generated<number>;
+  id: Generated<string>;
   position: number;
-  question_id: number;
+  question_id: string;
   /**
    * When true, this answer requires the user to upload a file instead of providing free-form text
    */
@@ -88,12 +100,12 @@ export interface Answer {
 }
 
 export interface AnswerCallEdges {
-  answer_id: number;
-  checklist_id: number;
+  answer_id: string;
+  checklist_id: string;
   client_id: string;
-  from_instance_id: number;
-  id: Generated<number>;
-  to_instance_id: number;
+  from_instance_id: string;
+  id: Generated<string>;
+  to_instance_id: string;
 }
 
 export interface AuthEvents {
@@ -111,7 +123,7 @@ export interface Checklist {
   created_at: Generated<Timestamp>;
   created_by: string;
   description: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   name: string;
   published: Generated<boolean>;
   updated_at: Generated<Timestamp>;
@@ -120,8 +132,8 @@ export interface Checklist {
 
 export interface ChecklistClaim {
   assignee: string | null;
-  checklist_id: number;
-  claim_id: number;
+  checklist_id: string;
+  claim_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
@@ -157,13 +169,17 @@ export interface Claim {
   /**
    * Current desk location for workflow routing. Claims move through desk locations as they progress through the workflow.
    */
-  desk_location_id: number | null;
+  desk_location_id: string | null;
   expected_recovery: Numeric | null;
-  feed_id: number | null;
-  id: Generated<number>;
+  feed_id: string | null;
+  id: Generated<string>;
   insured: string | null;
   last_update: Timestamp | null;
   last_updated_by: string | null;
+  /**
+   * Line of business for this claim (values managed via reference_data)
+   */
+  line_of_business: string | null;
   loss_city: string | null;
   loss_country: string | null;
   loss_postal_code: string | null;
@@ -183,7 +199,7 @@ export interface Claim {
 export interface ClaimActivityLogs {
   action: string;
   actor_type: string;
-  claim_id: number;
+  claim_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   entity_id: string;
@@ -195,8 +211,8 @@ export interface ClaimActivityLogs {
 
 export interface ClaimCoverage {
   amount_reserved: Numeric | null;
-  claim_id: number;
-  claim_party_id: number | null;
+  claim_id: string;
+  claim_party_id: string | null;
   client_id: string;
   coverage_amount: Numeric | null;
   created_at: Generated<Timestamp | null>;
@@ -205,7 +221,7 @@ export interface ClaimCoverage {
   deductible_status: Generated<string>;
   deleted_at: Timestamp | null;
   deleted_by: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   /**
    * Type of coverage (CoverageType enum enforced in TypeScript)
    */
@@ -217,12 +233,26 @@ export interface ClaimCoverage {
   updated_by: string | null;
 }
 
+export interface ClaimDeskLocationTransition {
+  claim_id: string;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  desk_location_id: string;
+  entered_at: Generated<Timestamp>;
+  entered_by: string | null;
+  entered_reason: string | null;
+  id: Generated<string>;
+  previous_desk_location_id: string | null;
+}
+
 export interface ClaimParty {
   /**
    * Office/address for facilitator representatives (required when representative_id is set for facilitators)
    */
-  address_id: number | null;
-  claim_id: number;
+  address_id: string | null;
+  claim_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string | null;
@@ -238,7 +268,7 @@ export interface ClaimParty {
    * External ID from source system for feed matching
    */
   external_reference: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   is_primary: Generated<boolean>;
   liability_percentage: Numeric | null;
   /**
@@ -246,8 +276,8 @@ export interface ClaimParty {
    */
   loss_type: string | null;
   notes: string | null;
-  parent_claim_party_id: number | null;
-  party_id: number;
+  parent_claim_party_id: string | null;
+  party_id: string;
   /**
    * For facilitators: maximum amount the adverse carrier will pay (policy limit)
    */
@@ -255,7 +285,7 @@ export interface ClaimParty {
   /**
    * Specific representative from the party handling this claim (optional)
    */
-  representative_id: number | null;
+  representative_id: string | null;
   /**
    * Free-form representative name (entities only - for facilitators use representative_id)
    */
@@ -264,9 +294,9 @@ export interface ClaimParty {
 }
 
 export interface ClaimPayment {
-  claim_id: number;
+  claim_id: string;
   client_id: string;
-  coverage_id: number;
+  coverage_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
   deleted_at: Timestamp | null;
@@ -274,11 +304,11 @@ export interface ClaimPayment {
   description: string | null;
   external_reference: string | null;
   feed_id: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   is_expense: Generated<boolean>;
   is_subrogable: Generated<boolean>;
   manually_overridden: Generated<boolean | null>;
-  payee_claim_party_id: number | null;
+  payee_claim_party_id: string | null;
   payment_amount: Numeric;
   payment_code: string | null;
   payment_date: Timestamp;
@@ -294,14 +324,14 @@ export interface Client {
 
 export interface Comment {
   body: string;
-  checklist_id: number;
-  claim_id: number;
+  checklist_id: string;
+  claim_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
-  id: Generated<number>;
-  instance_id: number | null;
-  question_id: number | null;
+  id: Generated<string>;
+  instance_id: string | null;
+  question_id: string | null;
   updated_at: Timestamp | null;
 }
 
@@ -309,7 +339,7 @@ export interface Deadline {
   cancellation_reason: string | null;
   cancelled_at: Timestamp | null;
   cancelled_by: string | null;
-  claim_id: number;
+  claim_id: string;
   client_id: string;
   completed_at: Timestamp | null;
   completed_by: string | null;
@@ -318,15 +348,19 @@ export interface Deadline {
   deadline_date: Timestamp;
   deadline_type: string;
   description: string | null;
-  entity_id: number | null;
+  entity_id: string | null;
   entity_type: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   status: Generated<string>;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
 
 export interface DeskLocation {
+  /**
+   * Work unit threshold for this location. Used for capacity alerting and workflow analytics.
+   */
+  capacity_threshold: Generated<number>;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string | null;
@@ -341,11 +375,11 @@ export interface DeskLocation {
   /**
    * Parent desk location type
    */
-  desk_location_type_id: number;
+  desk_location_type_id: string;
   /**
    * Primary key
    */
-  id: Generated<number>;
+  id: Generated<string>;
   /**
    * Whether this desk location is currently active and accepting work
    */
@@ -369,7 +403,7 @@ export interface DeskLocationType {
   /**
    * Primary key
    */
-  id: Generated<number>;
+  id: Generated<string>;
   /**
    * Name of the desk location type (e.g., "Documentation and Demand Packages")
    */
@@ -380,16 +414,16 @@ export interface DeskLocationType {
 
 export interface Doc {
   alias: string;
-  answer_id: number | null;
-  claim_id: number | null;
+  answer_id: string | null;
+  claim_id: string | null;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
-  deadline_id: number | null;
+  deadline_id: string | null;
   deleted_at: Timestamp | null;
   deleted_by: string | null;
   description: string | null;
-  doc_group_id: number | null;
+  doc_group_id: string | null;
   /**
    * Workflow status: draft, pending_review, approved, archived
    */
@@ -400,24 +434,24 @@ export interface Doc {
   doc_type: Generated<string>;
   file_size: Int8 | null;
   filename: string;
-  id: Generated<number>;
+  id: Generated<string>;
   /**
    * Flag to identify the latest version
    */
   is_current_version: Generated<boolean | null>;
   mime_type: string | null;
-  page_instance_id: number | null;
+  page_instance_id: string | null;
   preview_url: string | null;
-  question_id: number | null;
-  recovery_event_id: number | null;
+  question_id: string | null;
+  recovery_event_id: string | null;
   /**
    * Previous version of this document (if applicable)
    */
-  replaces_doc_id: number | null;
+  replaces_doc_id: string | null;
   /**
    * Reference to question_response when this document is uploaded as part of a response to a question requiring file upload
    */
-  response_doc_id: number | null;
+  response_doc_id: string | null;
   /**
    * Azure Blob Storage key/path for the document
    */
@@ -435,7 +469,7 @@ export interface DocGroup {
   /**
    * Associated claim for auto-created claim folders
    */
-  claim_id: number | null;
+  claim_id: string | null;
   client_id: string;
   color: string | null;
   created_at: Generated<Timestamp>;
@@ -448,12 +482,12 @@ export interface DocGroup {
    */
   group_type: Generated<string>;
   icon: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   name: string;
   /**
    * Parent group for hierarchical folder structure
    */
-  parent_group_id: number | null;
+  parent_group_id: string | null;
   sort_order: Generated<number | null>;
   /**
    * System-managed folder that cannot be edited or deleted by regular admins
@@ -468,24 +502,24 @@ export interface DocGroup {
 }
 
 export interface DocRequirement {
-  checklist_id: number | null;
-  claim_id: number | null;
+  checklist_id: string | null;
+  claim_id: string | null;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
   description: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   is_required: Generated<boolean | null>;
   required_doc_type: string;
   requirement_name: string;
 }
 
 export interface DocRequirementFulfillment {
-  doc_id: number | null;
-  doc_requirement_id: number;
+  doc_id: string | null;
+  doc_requirement_id: string;
   fulfilled_at: Generated<Timestamp>;
   fulfilled_by: string;
-  id: Generated<number>;
+  id: Generated<string>;
   manually_marked_complete: Generated<boolean | null>;
   notes: string | null;
 }
@@ -496,7 +530,7 @@ export interface Feeds {
   created_at: Generated<Timestamp>;
   created_by: string;
   feed_type: string;
-  id: Generated<number>;
+  id: Generated<string>;
   last_synced_at: Timestamp | null;
   name: string;
   schedule: number;
@@ -510,7 +544,7 @@ export interface Page {
   created_at: Generated<Timestamp>;
   created_by: string;
   hidden: Generated<boolean>;
-  id: Generated<number>;
+  id: Generated<string>;
   title: string;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
@@ -518,23 +552,23 @@ export interface Page {
 }
 
 export interface PageInstance {
-  checklist_id: number;
+  checklist_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
-  id: Generated<number>;
-  page_id: number;
-  parent_instance_id: number | null;
+  id: Generated<string>;
+  page_id: string;
+  parent_instance_id: string | null;
   position: number;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
 }
 
 export interface PageInstanceStatus {
-  claim_id: number;
+  claim_id: string;
   client_id: string;
-  id: Generated<number>;
-  page_instance_id: number;
+  id: Generated<string>;
+  page_instance_id: string;
   status: string;
   template_version: number;
   updated_at: Generated<Timestamp | null>;
@@ -553,7 +587,7 @@ export interface Party {
    */
   deleted_by: string | null;
   first_name: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   is_business: Generated<boolean>;
   last_name: string | null;
   middle_name: string | null;
@@ -584,9 +618,9 @@ export interface PartyAddress {
    * Email of user who archived this office
    */
   deleted_by: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   name: string | null;
-  party_id: number;
+  party_id: string;
   postal_code: string | null;
   state: string | null;
   street_address: string | null;
@@ -604,8 +638,8 @@ export interface PartyEmail {
   email_type: Generated<string>;
   external_reference: string | null;
   feed_id: string | null;
-  id: Generated<number>;
-  party_id: number;
+  id: Generated<string>;
+  party_id: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -621,8 +655,8 @@ export interface PartyPhone {
   extension: string | null;
   external_reference: string | null;
   feed_id: string | null;
-  id: Generated<number>;
-  party_id: number;
+  id: Generated<string>;
+  party_id: string;
   phone_number: string;
   phone_status: Generated<string>;
   phone_type: string;
@@ -631,7 +665,7 @@ export interface PartyPhone {
 }
 
 export interface PartyRepresentative {
-  address_id: number | null;
+  address_id: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   /**
@@ -645,11 +679,11 @@ export interface PartyRepresentative {
   email: string | null;
   fax: string | null;
   first_name: string;
-  id: Generated<number>;
+  id: Generated<string>;
   is_primary: Generated<boolean>;
   last_name: string;
   mobile_phone: string | null;
-  party_id: number;
+  party_id: string;
   phone: string | null;
   title: string | null;
   updated_at: Timestamp | null;
@@ -663,8 +697,8 @@ export interface Question {
   description_image_url: string | null;
   description_text: string | null;
   hidden: Generated<boolean | null>;
-  id: Generated<number>;
-  page_id: number;
+  id: Generated<string>;
+  page_id: string;
   placeholder: string | null;
   position: number;
   text: string;
@@ -674,14 +708,14 @@ export interface Question {
 }
 
 export interface QuestionResponse {
-  checklist_id: number;
-  claim_id: number;
+  checklist_id: string;
+  claim_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
-  id: Generated<number>;
-  instance_id: number;
-  question_id: number | null;
+  id: Generated<string>;
+  instance_id: string;
+  question_id: string | null;
   /**
    * Reference to uploaded document when answer requires file upload
    */
@@ -693,24 +727,24 @@ export interface QuestionResponse {
 
 export interface QuestionResponseAnswer {
   additional_info: string | null;
-  answer_id: number | null;
-  id: Generated<number>;
-  response_id: number;
+  answer_id: string | null;
+  id: Generated<string>;
+  response_id: string;
 }
 
 export interface RecoveryEvent {
-  claim_id: number;
+  claim_id: string;
   client_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
   deleted_at: Timestamp | null;
   deleted_by: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   notes: string | null;
   recovery_amount: Numeric;
   recovery_date: Timestamp;
   recovery_source: string | null;
-  settlement_id: number;
+  settlement_id: string;
   updated_at: Timestamp | null;
   updated_by: string | null;
 }
@@ -780,10 +814,24 @@ export interface ReferenceOption {
   value: string;
 }
 
+export interface ResourceIndex {
+  client_id: string;
+  id: Generated<string>;
+  label: string;
+  linked_resource_id: string | null;
+  linked_resource_type: string | null;
+  metadata: Generated<Json>;
+  resource_id: string;
+  resource_type: string;
+  secondary_label: string | null;
+  updated_at: Generated<Timestamp>;
+  url: string;
+}
+
 export interface ResponseAuditLogs {
   action: string;
-  checklist_id: number | null;
-  claim_id: number | null;
+  checklist_id: string | null;
+  claim_id: string | null;
   client_id: string;
   created_at: Generated<Timestamp>;
   /**
@@ -799,32 +847,32 @@ export interface ResponseAuditLogs {
    */
   expert_flag: Generated<boolean>;
   id: Generated<number>;
-  instance_id: number | null;
+  instance_id: string | null;
   new_answers: Generated<Json>;
   new_response_text: string | null;
   old_answers: Generated<Json>;
   old_response_text: string | null;
   page_label: string;
-  question_id: number | null;
+  question_id: string | null;
   question_text: string;
-  response_id: number | null;
+  response_id: string | null;
   user_id: string | null;
 }
 
 export interface Settlement {
   adverse_party_reference: string | null;
   agreed_liability_percentage: Numeric | null;
-  claim_id: number;
-  claim_party_id: number;
+  claim_id: string;
+  claim_party_id: string;
   client_id: string;
-  coverage_id: number;
+  coverage_id: string;
   created_at: Generated<Timestamp>;
   created_by: string;
   deleted_at: Timestamp | null;
   deleted_by: string | null;
   demand_amount: Numeric;
   demand_date: Timestamp;
-  id: Generated<number>;
+  id: Generated<string>;
   is_drop_check: Generated<boolean | null>;
   notes: string | null;
   payment_amount: Numeric | null;
@@ -869,27 +917,18 @@ export interface StatuteRule {
 export interface Task {
   assigned_at: Generated<Timestamp>;
   /**
-   * User who created/assigned the task
+   * User this task is assigned to (nullable - unassigned tasks are available to anyone)
    */
-  assigned_by: string;
+  assigned_to: string | null;
   /**
    * The claim this task is associated with
    */
-  claim_id: number;
-  claimed_at: Timestamp | null;
-  /**
-   * User currently working on the task
-   */
-  claimed_by: string | null;
+  claim_id: string;
   /**
    * Client scope for multi-tenancy
    */
   client_id: string;
   completed_at: Timestamp | null;
-  /**
-   * User who completed the task
-   */
-  completed_by: string | null;
   /**
    * Notes added when completing the task
    */
@@ -902,11 +941,15 @@ export interface Task {
   /**
    * The desk location where this task should be worked
    */
-  desk_location_id: number;
+  desk_location_id: string;
   /**
    * Primary key
    */
-  id: Generated<number>;
+  id: Generated<string>;
+  /**
+   * When the user started working on the task
+   */
+  started_at: Timestamp | null;
   status: Generated<string>;
   /**
    * Type of task (enum value from TaskType)
@@ -935,15 +978,15 @@ export interface UserDeskLocation {
   /**
    * Desk location the user is assigned to
    */
-  desk_location_id: number;
+  desk_location_id: string;
   /**
    * Primary key
    */
-  id: Generated<number>;
+  id: Generated<string>;
   /**
    * Priority level (1-5) for this desk location assignment, 1 being highest
    */
-  priority: number;
+  priority: number | null;
   /**
    * Soft deletion timestamp - when assignment was removed
    */
@@ -956,6 +999,17 @@ export interface UserDeskLocation {
    * User assigned to this desk location
    */
   user_id: string;
+}
+
+export interface UserRecentResource {
+  client_id: string;
+  id: Generated<string>;
+  resource_id: string;
+  resource_label: string | null;
+  resource_type: string;
+  resource_url: string;
+  user_id: string;
+  visited_at: Generated<Timestamp>;
 }
 
 export interface Users {
@@ -977,10 +1031,92 @@ export interface Users {
   updated_by: string | null;
 }
 
+export interface WorkflowDefinition {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  description: string | null;
+  desk_location_id: string | null;
+  id: Generated<string>;
+  is_active: Generated<boolean>;
+  name: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+}
+
+export interface WorkflowRule {
+  action_config: Generated<Json>;
+  action_type: string;
+  client_id: string;
+  conditions: Generated<Json>;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  description: string | null;
+  execution_mode: Generated<string>;
+  id: Generated<string>;
+  is_active: Generated<boolean>;
+  name: string;
+  priority: Generated<number>;
+  trigger_type: string;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  workflow_definition_id: string;
+}
+
+export interface WorkflowRuleExecution {
+  action_config: Generated<Json>;
+  action_type: string;
+  claim_id: string;
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  error_message: string | null;
+  executed_at: Timestamp | null;
+  executed_by: string | null;
+  execution_mode: string;
+  id: Generated<string>;
+  result_data: Json | null;
+  status: Generated<string>;
+  trigger_type: string;
+  workflow_rule_id: string;
+}
+
+export interface WorkflowSuggestion {
+  client_id: string;
+  desk_location_id: string;
+  expires_at: Timestamp;
+  generated_at: Generated<Timestamp>;
+  id: Generated<string>;
+  resolved_at: Timestamp | null;
+  resolved_by: string | null;
+  status: Generated<string>;
+  suggestion_data: Json;
+}
+
+export interface WorkflowThreshold {
+  client_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deleted_at: Timestamp | null;
+  deleted_by: string | null;
+  id: Generated<string>;
+  is_active: Generated<boolean>;
+  threshold_type: string;
+  threshold_value: number;
+  updated_at: Timestamp | null;
+  updated_by: string | null;
+  workflow_definition_id: string;
+}
+
 export interface DB {
   action: Action;
   action_log: ActionLog;
   admin_config_logs: AdminConfigLogs;
+  "analytics.daily_workflow_stage_snapshot": AnalyticsDailyWorkflowStageSnapshot;
   answer: Answer;
   answer_call_edges: AnswerCallEdges;
   auth_events: AuthEvents;
@@ -989,6 +1125,7 @@ export interface DB {
   claim: Claim;
   claim_activity_logs: ClaimActivityLogs;
   claim_coverage: ClaimCoverage;
+  claim_desk_location_transition: ClaimDeskLocationTransition;
   claim_party: ClaimParty;
   claim_payment: ClaimPayment;
   client: Client;
@@ -1015,10 +1152,17 @@ export interface DB {
   recovery_event: RecoveryEvent;
   reference_list: ReferenceList;
   reference_option: ReferenceOption;
+  resource_index: ResourceIndex;
   response_audit_logs: ResponseAuditLogs;
   settlement: Settlement;
   statute_rule: StatuteRule;
   task: Task;
   user_desk_location: UserDeskLocation;
+  user_recent_resource: UserRecentResource;
   users: Users;
+  workflow_definition: WorkflowDefinition;
+  workflow_rule: WorkflowRule;
+  workflow_rule_execution: WorkflowRuleExecution;
+  workflow_suggestion: WorkflowSuggestion;
+  workflow_threshold: WorkflowThreshold;
 }

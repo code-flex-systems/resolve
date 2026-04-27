@@ -2,12 +2,15 @@ import * as claimQueries from '@/api/queries/claimQueries';
 import { ClaimSearch } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { Claim } from '@/types/types';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateClaimInput, ClaimData } from '@/schemas/claimSchemas';
+import { onClaimFieldChange } from '@/lib/workflow/ruleEventHooks';
+import { indexClaim } from '@/api/utils/resourceIndexHelpers';
 
 export async function assignClaim(
 	ctx: ProtectedContext,
-	{ checklistId, claimId, assignee }: { checklistId: number; claimId: number; assignee: string }
+	{ checklistId, claimId, assignee }: { checklistId: string; claimId: string; assignee: string }
 ) {
 	// Assign claim and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
@@ -38,7 +41,7 @@ export async function assignClaim(
  */
 export async function getClaim(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { claimId: number; checklistId?: number }
+	{ checklistId, claimId }: { claimId: string; checklistId?: string }
 ) {
 	const results = await claimQueries.getClaim(ctx, claimId, checklistId);
 	return results;
@@ -46,7 +49,7 @@ export async function getClaim(
 
 export async function getNextClaimToAssign(
 	ctx: ProtectedContext,
-	{ feedId, offset }: { feedId: number; offset?: number }
+	{ feedId, offset }: { feedId: string; offset?: number }
 ) {
 	const results = await claimQueries.getNextClaimToAssign(ctx, feedId, offset);
 	return results;
@@ -61,7 +64,7 @@ export async function getNextClaimToAssign(
 export async function getClaims(
 	ctx: ProtectedContext,
 	params: {
-		feedId?: number | null;
+		feedId?: string | null;
 		searchTerm?: { value: string; type: ClaimSearch };
 		line_of_business?: string;
 		loss_type?: string;
@@ -92,21 +95,11 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  * Bulk insert claims.
  *
  * @param ctx - request context
- * @param input - array of claim objects and optional party/representative linking
+ * @param input - array of claim objects
  */
 export async function createClaims(
 	ctx: ProtectedContext,
-	{
-		claims,
-		party_id,
-		representative_id,
-		role,
-	}: {
-		claims: ClaimData[];
-		party_id?: number | null;
-		representative_id?: number | null;
-		role?: string[] | null;
-	}
+	{ claims }: { claims: ClaimData[] }
 ) {
 	// Create claims and log admin actions within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
@@ -119,38 +112,17 @@ export async function createClaims(
 				entityId: claim.id,
 				entityName: EntityName.CLAIM,
 				action: AdminAction.CREATE,
-				value: { claim_number: claim.claim_number, insured: claim.insured, claim_amount: claim.claim_amount },
+				value: { claim_number: claim.claim_number, insured: claim.insured },
 			}))
 		);
 
-		// Link party to claims if party_id and role provided (batch operation)
-		if (party_id && role && newClaims.length > 0) {
-			// Batch create all claim_party relationships in single INSERT
-			const claimPartyValues = newClaims.map((claim) => ({
-				claim_id: claim.id!,
-				party_id,
-				role,
-				is_primary: true,
-				representative_id: representative_id ?? null,
-				client_id: ctx.session.user.client_id!,
-				created_by: ctx.session.user.id,
-			}));
-
-			await trx.insertInto('claim_party').values(claimPartyValues).execute();
-
-			// Batch log all admin actions in single INSERT
-			const adminLogActions = newClaims.map((claim) => ({
-				entityId: claim.id!,
-				entityName: EntityName.CLAIM,
-				action: AdminAction.UPDATE,
-				value: { party_id, representative_id, action: 'linked_party' },
-			}));
-
-			await logAdminActions({ ...ctx, db: trx }, adminLogActions);
-		}
-
 		return newClaims;
 	});
+
+	// Fire-and-forget: index new claims for global search
+	Promise.all(created.map((claim) => indexClaim(ctx.db, claim))).catch((err) =>
+		console.error('[resource-index] Failed to batch index claims:', err)
+	);
 
 	return created;
 }
@@ -158,6 +130,7 @@ export async function createClaims(
 /**
  * Update an existing claim.
  * Note: loss_type is no longer on the claim table - it's set per claim_liability
+ * Note: All amount fields are now calculated, not stored directly on the claim
  *
  * @param ctx - request context
  * @param input - claim ID and fields to update
@@ -165,36 +138,22 @@ export async function createClaims(
 export async function updateClaim(
 	ctx: ProtectedContext,
 	input: {
-		claimId: number;
+		claimId: string;
 		claim_number?: string | null;
 		client?: string | null;
 		client_adjuster?: string | null;
 		insured?: string | null;
-		claim_amount?: number | null;
 		date_of_loss?: Date | null;
-		loss_location?: string | null;
+		loss_street_address?: string | null;
+		loss_city?: string | null;
+		loss_state?: string | null;
+		loss_postal_code?: string | null;
+		loss_country?: string | null;
 		recovery_status?: string;
 		substatus?: string;
-		party_id?: number | null;
-		representative_id?: number | null;
-		role?: string[] | null;
 	}
 ) {
-	const {
-		claimId,
-		claim_amount,
-		party_id,
-		representative_id,
-		role,
-		...otherUpdates
-	} = input;
-
-	// Convert number amounts to strings for DB storage
-	// Note: total_incurred and expected_recovery are now calculated fields
-	const updates = {
-		...otherUpdates,
-		...(claim_amount !== undefined && { claim_amount: claim_amount?.toString() ?? null }),
-	};
+	const { claimId, ...updates } = input;
 
 	// Update claim and log admin action within transaction
 	const updated = await ctx.db.transaction().execute(async (trx) => {
@@ -215,130 +174,15 @@ export async function updateClaim(
 			}
 		);
 
-		// Handle party linking/unlinking/updating if party_id is provided in the input
-		// Track whether we need to recalculate expected_recovery (controller orchestration)
-		let needsRecalculation = false;
-
-		if (party_id !== undefined) {
-			const {
-				getPrimaryClaimParty,
-				linkPartyToClaim,
-				archiveClaimParty,
-				updateClaimParty,
-			} = await import('@/api/queries/partyQueries');
-
-			// Get existing primary party for this claim (lightweight query)
-			const existingPrimary = await getPrimaryClaimParty({ ...ctx, db: trx }, claimId);
-
-			if (party_id === null) {
-				// User wants to remove party - archive the primary party
-				if (existingPrimary) {
-					await archiveClaimParty({ ...ctx, db: trx }, existingPrimary.id);
-					needsRecalculation = true; // Archiving affects expected_recovery and total_incurred
-					await logAdminAction(
-						{ ...ctx, db: trx },
-						{
-							entityId: claimId,
-							entityName: EntityName.CLAIM,
-							action: AdminAction.UPDATE,
-							value: { action: 'archived_party', party_id: existingPrimary.party_id },
-						}
-					);
-				}
-			} else if (role) {
-				// User wants to set/update party (role is required for creating/updating)
-				const partyChanged = !existingPrimary || existingPrimary.party_id !== party_id;
-				const repChanged = !existingPrimary || existingPrimary.representative_id !== representative_id;
-				// Compare role arrays by value since arrays compare by reference
-				const existingRole = existingPrimary?.role ?? [];
-				const roleChanged =
-					!existingPrimary ||
-					existingRole.length !== role.length ||
-					!existingRole.every((r, i) => r === role[i]);
-
-				if (existingPrimary) {
-					// Update existing primary party
-					if (partyChanged || roleChanged) {
-						// Party or role changed - archive old and create new
-						await archiveClaimParty({ ...ctx, db: trx }, existingPrimary.id);
-						await linkPartyToClaim(
-							{ ...ctx, db: trx },
-							{
-								claim_id: claimId,
-								party_id,
-								role,
-								is_primary: true,
-								representative_id: representative_id ?? null,
-							}
-						);
-						needsRecalculation = true; // Archiving + linking affects expected_recovery
-						await logAdminAction(
-							{ ...ctx, db: trx },
-							{
-								entityId: claimId,
-								entityName: EntityName.CLAIM,
-								action: AdminAction.UPDATE,
-								value: {
-									action: 'replaced_party',
-									old_party_id: existingPrimary.party_id,
-									new_party_id: party_id,
-									representative_id,
-									role,
-								},
-							}
-						);
-					} else if (repChanged) {
-						// Only representative changed - update existing record
-						// Representative change doesn't affect expected_recovery, no recalc needed
-						await updateClaimParty({ ...ctx, db: trx }, existingPrimary.id, {
-							representative_id: representative_id ?? null,
-						});
-						await logAdminAction(
-							{ ...ctx, db: trx },
-							{
-								entityId: claimId,
-								entityName: EntityName.CLAIM,
-								action: AdminAction.UPDATE,
-								value: { action: 'updated_representative', representative_id },
-							}
-						);
-					}
-					// If both party and rep are same, no action needed
-				} else {
-					// No existing primary party - create new one
-					await linkPartyToClaim(
-						{ ...ctx, db: trx },
-						{
-							claim_id: claimId,
-							party_id,
-							role,
-							is_primary: true,
-							representative_id: representative_id ?? null,
-						}
-					);
-					// No recalc needed when linking without liability_percentage
-					await logAdminAction(
-						{ ...ctx, db: trx },
-						{
-							entityId: claimId,
-							entityName: EntityName.CLAIM,
-							action: AdminAction.UPDATE,
-							value: { action: 'linked_party', party_id, representative_id, role },
-						}
-					);
-				}
-			}
-		}
-
-		// Orchestrate single recalculation if any party operations occurred (controller responsibility)
-		if (needsRecalculation) {
-			const { recalculateClaimExpectedRecovery, recalculateTotalIncurred } = await import('@/api/queries/claimQueries');
-			await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
-			await recalculateTotalIncurred({ ...ctx, db: trx }, claimId);
-		}
-
 		return updatedClaim;
 	});
+
+	// Fire-and-forget: update resource index
+	indexClaim(ctx.db, { ...updated, client_id: ctx.session.user.client_id! });
+
+	// Fire-and-forget: check if any FIELD_CHANGE workflow rules should trigger
+	const changedFields = Object.keys(updates);
+	void onClaimFieldChange(ctx, claimId, changedFields);
 
 	return updated;
 }
@@ -349,7 +193,7 @@ export async function updateClaim(
  * @param ctx - request context
  * @param input - claim id
  */
-export async function getClaimDetail(ctx: ProtectedContext, { claimId }: { claimId: number }) {
+export async function getClaimDetail(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	const results = await claimQueries.getClaimDetail(ctx, claimId);
 	return results;
 }
@@ -395,4 +239,8 @@ export async function listMyDeskClaims(
 ) {
 	const results = await claimQueries.listMyDeskClaims(ctx, input);
 	return results;
+}
+
+export async function getClaimStatusBreakdown(ctx: ProtectedContext) {
+	return claimQueries.getClaimStatusBreakdown(ctx);
 }

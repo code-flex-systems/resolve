@@ -1,14 +1,9 @@
 'use client';
 
-import { Box, Fade, Paper, Stack, Typography } from '@mui/material';
 import BasicDialog from '../common/BasicDialog';
-import Handshake from '@mui/icons-material/Handshake';
-import PlayCircle from '@mui/icons-material/PlayCircle';
-import StopCircle from '@mui/icons-material/StopCircle';
-import Warning from '@mui/icons-material/Warning';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { BASE_COLOR, containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import ExpandableTitle from '../common/ExpandableTitle';
 import { ClaimStatus } from '@/config/enums';
@@ -18,19 +13,20 @@ import { DialogAction } from '@/types/types';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import ChecklistProgress from './ChecklistProgress';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconAlertTriangle, IconHandStop, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react';
 
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
 	const isAssigned = useIsAssigned();
 	const toggleChecklistHandoffDialog = useChecklistStore((state) => state.toggleChecklistHandoffDialog);
 	const toggleChecklistProgressDialog = useChecklistStore((state) => state.toggleChecklistProgressDialog);
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const { showSuccess, showError } = useCrudAlerts('checklist status');
 	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
-		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: checklistId !== -1 && claimId !== -1 });
+		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: !!checklistId && !!claimId });
 	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
 
@@ -97,12 +93,12 @@ export default function ChecklistProgressDialog() {
 					label: "I'm blocked",
 					onClick: () => setConfirmingStatus(ClaimStatus.BLOCKED),
 					color: 'error',
-					icon: <StopCircle />,
+					icon: <IconPlayerStop size={20} />,
 				},
 				{
 					label: 'Hand off',
 					onClick: toggleChecklistHandoffDialog,
-					icon: <Handshake />,
+					icon: <IconHandStop size={20} />,
 				},
 			];
 		}
@@ -111,7 +107,7 @@ export default function ChecklistProgressDialog() {
 				{
 					label: "I'm unblocked",
 					onClick: () => setConfirmingStatus(ClaimStatus.IN_PROGRESS),
-					icon: <PlayCircle />,
+					icon: <IconPlayerPlay size={20} />,
 				},
 			];
 		}
@@ -155,53 +151,52 @@ export default function ChecklistProgressDialog() {
 			secondaryActions={secondaryActions}
 			onClose={() => toggleChecklistProgressDialog(false)}
 			width={500}
-			height={250}
+			height={275}
 		>
-			<Stack display="flex" justifyContent="center" alignContent="center" height={120}>
-				<Paper elevation={0} sx={styles.paper}>
-					<Fade
-						key={confirmingStatus ?? 'none'}
-						in={true}
-						unmountOnExit
+			<div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
+				<Card
+					variant="float"
+					padding="md"
+					style={{ padding: '20px', height: 120, minHeight: 120, maxHeight: 120 }}
+				>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'center',
+							alignContent: 'center',
+							flexDirection: 'column',
+							height: '100%',
+						}}
 					>
-						<Stack width="100%" display="flex" justifyContent="center" alignContent="center" height="100%">
-							{!confirmingStatus && (
-								<ChecklistProgress checklistId={checklistId} claimId={claimId} width={400} />
-							)}
+						{!confirmingStatus && (
+							<ChecklistProgress checklistId={checklistId} claimId={claimId} width={400} />
+						)}
 
-							{!!confirmingStatus && (
-								<Box display="flex" justifyContent="flex-start" alignItems="center">
-									<Warning sx={{ color: BASE_COLOR }} />
-									<Stack
-										display="flex"
-										justifyContent="flex-start"
-										alignItems="flex-start"
-										marginLeft="10px"
-									>
-										{getStatusConfirmationMsg()
-											.split('|')
-											.map((part, i) => (
-												<Typography key={i} fontSize={15}>
-													{part}
-												</Typography>
-											))}
-									</Stack>
-								</Box>
-							)}
-						</Stack>
-					</Fade>
-				</Paper>
-			</Stack>
+						{!!confirmingStatus && (
+							<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+								<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)' }} />
+								<div
+									style={{
+										display: 'flex',
+										justifyContent: 'flex-start',
+										alignItems: 'flex-start',
+										marginLeft: '10px',
+									}}
+								>
+									{getStatusConfirmationMsg()
+										.split('|')
+										.map((part, i) => (
+											<span key={i} style={{ fontSize: 15 }}>
+												{part}
+											</span>
+										))}
+								</div>
+							</div>
+						)}
+					</div>
+				</Card>
+			</div>
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	paper: {
-		...containerStyles.gradientCard,
-		padding: '20px 10px',
-		height: 120,
-		minHeight: 120,
-		maxHeight: 120,
-	},
-};

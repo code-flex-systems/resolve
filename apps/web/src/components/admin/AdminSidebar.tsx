@@ -1,24 +1,10 @@
 'use client';
 
+import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-	Box,
-	List,
-	ListItem,
-	ListItemButton,
-	ListItemIcon,
-	ListItemText,
-	Collapse,
-	Typography,
-	Stack,
-} from '@mui/material';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import ChevronRight from '@mui/icons-material/ChevronRight';
-import { TEXT_PRIMARY, TEXT_SECONDARY, BORDER_COLOR, BG_TERTIARY } from '@/styles/theme';
-
-const ACCENT_COLOR = '#21B5FF';
+import styles from './AdminSidebar.module.css';
 
 export interface AdminNavItem {
 	label: string;
@@ -31,7 +17,6 @@ export interface AdminNavCategory {
 	icon: React.ReactNode;
 	items: AdminNavItem[];
 	defaultExpanded?: boolean;
-	/** If true, items are shown directly without a collapsible category header */
 	hideHeader?: boolean;
 }
 
@@ -51,12 +36,10 @@ export default function AdminSidebar({ title, categories, width = 240 }: AdminSi
 	});
 	const pathname = usePathname();
 
-	// Check if any item in a category is selected
 	const isCategoryActive = (category: AdminNavCategory) => {
 		return category.items.some((item) => pathname === item.route || pathname.startsWith(item.route + '/'));
 	};
 
-	// Auto-expand categories when a child route is active
 	useEffect(() => {
 		const newExpanded: Record<string, boolean> = {};
 		let hasChanges = false;
@@ -79,166 +62,63 @@ export default function AdminSidebar({ title, categories, width = 240 }: AdminSi
 	};
 
 	return (
-		<Stack pt={2} sx={styles.container} style={{ width }}>
+		<div className={styles.container} style={{ width }}>
 			{!!title && (
-				<Box padding="5px 10px">
-					<Typography fontWeight="bold">{title}</Typography>
-				</Box>
+				<div className={styles.title}>{title}</div>
 			)}
-			<List disablePadding sx={{ py: 0.5 }}>
+			<ul className={styles.list}>
 				{categories.map((category) => {
 					const isCategoryExpanded = expandedCategories[category.label];
 
 					return (
-						<Box key={category.label}>
-							{/* Category Header - Clickable to expand/collapse */}
+						<div key={category.label}>
 							{!category.hideHeader && (
-								<ListItem disablePadding sx={{ px: 0.75 }}>
-									<ListItemButton
+								<li>
+									<div
+										role="button"
+										tabIndex={0}
+										className={styles.categoryHeader}
 										onClick={() => toggleCategory(category.label)}
-										sx={styles.categoryHeader}
+										onKeyDown={(e) => e.key === 'Enter' && toggleCategory(category.label)}
 									>
-										<ListItemIcon sx={styles.categoryIcon}>{category.icon}</ListItemIcon>
-										<ListItemText
-											primary={category.label}
-											slotProps={{
-												primary: {
-													sx: styles.categoryLabel,
-												},
-											}}
-										/>
+										<span className={styles.categoryIcon}>{category.icon}</span>
+										<span className={styles.categoryLabel}>{category.label}</span>
 										{isCategoryExpanded ? (
-											<ExpandMore sx={styles.expandIcon} />
+											<IconChevronDown size={16} stroke={1.5} className={styles.expandIcon} />
 										) : (
-											<ChevronRight sx={styles.expandIcon} />
+											<IconChevronRight size={16} stroke={1.5} className={styles.expandIcon} />
 										)}
-									</ListItemButton>
-								</ListItem>
+									</div>
+								</li>
 							)}
 
-							{/* Category Items */}
-							<Collapse in={category.hideHeader || isCategoryExpanded} timeout="auto" unmountOnExit>
-								<List disablePadding sx={{ position: 'relative' }}>
-									{/* Vertical dotted line */}
-									<Box sx={styles.verticalLine} />
-
-									{category.items.map((item, index) => {
+							<Collapse open={category.hideHeader || isCategoryExpanded}>
+								<ul className={styles.list}>
+									<div className={styles.verticalLine} />
+									{category.items.map((item) => {
 										const matchingRoute = category.items
 											.filter((i) => pathname === i.route || pathname.startsWith(i.route + '/'))
 											.sort((a, b) => b.route.length - a.route.length)[0];
 										const selected = matchingRoute?.route === item.route;
-										const isLast = index === category.items.length - 1;
 
 										return (
-											<ListItem key={item.route} disablePadding sx={{ px: 0.75 }}>
-												<ListItemButton
-													component={Link}
+											<li key={item.route}>
+												<a
 													href={item.route}
-													sx={{
-														...styles.navItem,
-														...(selected && styles.navItemSelected),
-													}}
+													className={`${styles.navItem} ${selected ? styles.navItemSelected : ''}`}
 												>
-													{/* Accent bar for selected item */}
-													{selected && <Box sx={styles.selectedAccent} />}
-
-													<ListItemText
-														primary={item.label}
-														slotProps={{
-															primary: {
-																sx: {
-																	fontSize: 13,
-																	fontWeight: selected ? 500 : 400,
-																	color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
-																},
-															},
-														}}
-													/>
-												</ListItemButton>
-											</ListItem>
+													{selected && <div className={styles.selectedAccent} />}
+													<span className={styles.navItemLabel}>{item.label}</span>
+												</a>
+											</li>
 										);
 									})}
-								</List>
+								</ul>
 							</Collapse>
-						</Box>
+						</div>
 					);
 				})}
-			</List>
-		</Stack>
+			</ul>
+		</div>
 	);
 }
-
-const styles = {
-	container: {
-		height: '100vh',
-		bgcolor: '#ffffff',
-		// borderRight: `1px solid ${BORDER_COLOR}`,
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		flexShrink: 0,
-	},
-	categoryHeader: {
-		minHeight: 36,
-		px: 1.25,
-		py: 0.5,
-		borderRadius: 1.5,
-		transition: 'all 150ms ease',
-		'&:hover': {
-			bgcolor: BG_TERTIARY,
-		},
-	},
-	categoryIcon: {
-		minWidth: 0,
-		mr: 1.25,
-		'& .MuiSvgIcon-root': {
-			fontSize: 18,
-			color: TEXT_SECONDARY,
-		},
-	},
-	categoryLabel: {
-		fontSize: 13,
-		fontWeight: 500,
-		color: TEXT_PRIMARY,
-	},
-	expandIcon: {
-		fontSize: 18,
-		color: TEXT_SECONDARY,
-	},
-	verticalLine: {
-		position: 'absolute',
-		left: 22,
-		top: 0,
-		bottom: 8,
-		width: 0,
-		borderLeft: `1px dashed ${BORDER_COLOR}`,
-	},
-	navItem: {
-		minHeight: 32,
-		ml: 4,
-		pl: 1.5,
-		pr: 1,
-		py: 0.25,
-		borderRadius: 1.5,
-		position: 'relative',
-		transition: 'all 150ms ease',
-		'&:hover': {
-			bgcolor: BG_TERTIARY,
-		},
-	},
-	navItemSelected: {
-		bgcolor: 'rgba(33, 181, 255, 0.08)',
-		'&:hover': {
-			bgcolor: 'rgba(33, 181, 255, 0.12)',
-		},
-	},
-	selectedAccent: {
-		position: 'absolute',
-		left: 0,
-		top: '50%',
-		transform: 'translateY(-50%)',
-		width: 3,
-		height: 16,
-		bgcolor: ACCENT_COLOR,
-		borderRadius: 1,
-	},
-};

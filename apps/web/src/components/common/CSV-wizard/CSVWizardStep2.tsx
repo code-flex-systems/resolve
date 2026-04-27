@@ -1,8 +1,8 @@
 'use client';
 
 import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
-import { MenuItem, FormControl, InputLabel, Select } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
+import Dropdown from '@/components/ui/Dropdown';
 
 type MappingField = {
 	key: string;
@@ -68,38 +68,22 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 							required: field.required ? 'This field is required' : false,
 						}}
 						render={({ field: controllerField }) => (
-							<FormControl fullWidth error={!!errors[field.key]} sx={{ marginBottom: '15px' }}>
-								<InputLabel shrink>{field.label}</InputLabel>
-								<Select
+							<div style={{ marginBottom: 15 }}>
+								<Dropdown
 									label={field.label}
-									{...controllerField}
+									options={[
+										{ value: 'Unassigned', label: 'Unassigned' },
+										...headers.map((header) => ({
+											value: header,
+											label: header,
+										})),
+									]}
 									value={controllerField.value || 'Unassigned'}
-									
-									sx={{
-										width: 300,
-										marginTop: '5px',
-										padding: '2px 10px',
-										height: 30,
-										'& .MuiInputBase-root': {
-											borderRadius: 0,
-											padding: '2px 5px',
-										},
-										'& .MuiOutlinedInput-input': {
-											borderRadius: 0,
-											padding: '2px 5px',
-										},
-									}}
-								>
-									<MenuItem value="Unassigned">
-										<em>Unassigned</em>
-									</MenuItem>
-									{headers.map((header) => (
-										<MenuItem key={header} value={header}>
-											{header}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+									onChange={(v) => controllerField.onChange(String(v))}
+									error={!!errors[field.key]}
+									name={controllerField.name}
+								/>
+							</div>
 						)}
 					/>
 				))}

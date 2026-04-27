@@ -1,4 +1,5 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
+import config from '@/config/config';
 
 /**
  * Action types that can be logged across both admin and user workflows
@@ -12,8 +13,9 @@ export enum LogAction {
 	BULK_DELETE = 'BULK_DELETE',
 
 	// User workflow actions
-	CLAIM = 'CLAIM',
-	UNCLAIM = 'UNCLAIM',
+	ASSIGN = 'ASSIGN',
+	UNASSIGN = 'UNASSIGN',
+	START = 'START',
 	COMPLETE = 'COMPLETE',
 	CANCEL = 'CANCEL',
 }
@@ -58,21 +60,34 @@ export enum EntityName {
 
 	// Recovery & deadline entities
 	RECOVERY_EVENT = 'recovery_event',
+	SETTLEMENT = 'settlement',
+	CLAIM_PAYMENT = 'claim_payment',
 	DEADLINE = 'deadline',
 
 	// Party management entities
 	PARTY = 'party',
 	PARTY_ADDRESS = 'party_address',
+	PARTY_PHONE = 'party_phone',
+	PARTY_EMAIL = 'party_email',
 	PARTY_REPRESENTATIVE = 'party_representative',
 	CLAIM_PARTY = 'claim_party',
 
-	// Desk management entities
+	// Desk management entities (Phase 1+2)
 	DESK_LOCATION_TYPE = 'desk_location_type',
 	DESK_LOCATION = 'desk_location',
 	USER_DESK_LOCATION = 'user_desk_location',
 
-	// Workflow management entities
+	// Workflow management entities (Phase 3)
 	TASK = 'task',
+	WORKFLOW_DEFINITION = 'workflow_definition',
+	WORKFLOW_THRESHOLD = 'workflow_threshold',
+	WORKFLOW_RULE = 'workflow_rule',
+	WORKFLOW_RULE_EXECUTION = 'workflow_rule_execution',
+	CLAIM_DESK_LOCATION_TRANSITION = 'claim_desk_location_transition',
+
+	// Reference data management entities
+	REFERENCE_LIST = 'reference_list',
+	REFERENCE_OPTION = 'reference_option',
 
 	// Statute rules (global config entity)
 	STATUTE_RULE = 'statute_rule',
@@ -96,9 +111,16 @@ const CONFIG_ENTITIES: Set<EntityName> = new Set([
 	EntityName.USER_DESK_LOCATION,
 	EntityName.PARTY,
 	EntityName.PARTY_ADDRESS,
+	EntityName.PARTY_PHONE,
+	EntityName.PARTY_EMAIL,
 	EntityName.PARTY_REPRESENTATIVE,
 	EntityName.PAGE_INSTANCE,
 	EntityName.STATUTE_RULE,
+	EntityName.REFERENCE_LIST,
+	EntityName.REFERENCE_OPTION,
+	EntityName.WORKFLOW_DEFINITION,
+	EntityName.WORKFLOW_THRESHOLD,
+	EntityName.WORKFLOW_RULE,
 ]);
 
 /**
@@ -109,11 +131,14 @@ const CLAIM_ENTITIES: Set<EntityName> = new Set([
 	EntityName.TASK,
 	EntityName.DEADLINE,
 	EntityName.RECOVERY_EVENT,
+	EntityName.SETTLEMENT,
 	EntityName.CLAIM_COVERAGE,
 	EntityName.CLAIM_PARTY,
+	EntityName.CLAIM_PAYMENT,
 	EntityName.DOCUMENT,
 	EntityName.CHECKLIST_CLAIM,
 	EntityName.COMMENT,
+	EntityName.CLAIM_DESK_LOCATION_TRANSITION,
 ]);
 
 /**
@@ -137,10 +162,12 @@ async function deriveClaimId(
 	ctx: ProtectedContext,
 	entityName: EntityName,
 	entityId: string | number
-): Promise<number | null> {
+): Promise<string | null> {
+	const id = entityId.toString();
+
 	// Direct claim reference
 	if (entityName === EntityName.CLAIM) {
-		return Number(entityId);
+		return id;
 	}
 
 	// For comment, check if it has a claim_id column
@@ -148,7 +175,7 @@ async function deriveClaimId(
 		const comment = await ctx.db
 			.selectFrom('comment')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return comment?.claim_id ?? null;
 	}
@@ -158,7 +185,7 @@ async function deriveClaimId(
 		const task = await ctx.db
 			.selectFrom('task')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return task?.claim_id ?? null;
 	}
@@ -168,7 +195,7 @@ async function deriveClaimId(
 		const deadline = await ctx.db
 			.selectFrom('deadline')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return deadline?.claim_id ?? null;
 	}
@@ -178,9 +205,29 @@ async function deriveClaimId(
 		const recoveryEvent = await ctx.db
 			.selectFrom('recovery_event')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return recoveryEvent?.claim_id ?? null;
+	}
+
+	// Settlement -> claim_id
+	if (entityName === EntityName.SETTLEMENT) {
+		const settlement = await ctx.db
+			.selectFrom('settlement')
+			.select('claim_id')
+			.where('id', '=', id)
+			.executeTakeFirst();
+		return settlement?.claim_id ?? null;
+	}
+
+	// Claim payment -> claim_id
+	if (entityName === EntityName.CLAIM_PAYMENT) {
+		const payment = await ctx.db
+			.selectFrom('claim_payment')
+			.select('claim_id')
+			.where('id', '=', id)
+			.executeTakeFirst();
+		return payment?.claim_id ?? null;
 	}
 
 	// Claim coverage -> claim_id
@@ -188,7 +235,7 @@ async function deriveClaimId(
 		const claimCoverage = await ctx.db
 			.selectFrom('claim_coverage')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return claimCoverage?.claim_id ?? null;
 	}
@@ -198,7 +245,7 @@ async function deriveClaimId(
 		const claimParty = await ctx.db
 			.selectFrom('claim_party')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return claimParty?.claim_id ?? null;
 	}
@@ -208,7 +255,7 @@ async function deriveClaimId(
 		const doc = await ctx.db
 			.selectFrom('doc')
 			.select('claim_id')
-			.where('id', '=', Number(entityId))
+			.where('id', '=', id)
 			.executeTakeFirst();
 		return doc?.claim_id ?? null;
 	}
@@ -223,18 +270,13 @@ async function deriveClaimId(
 }
 
 /**
- * Detect actor type based on action
- * User workflow actions are always 'user', CRUD actions are always 'admin'
+ * Detect actor type based on user's role
+ * Admin and Super Admin users are logged as 'admin', all others as 'user'
  */
-function detectActorType(action: LogAction): ActorType {
-	const userActions = new Set([
-		LogAction.CLAIM,
-		LogAction.UNCLAIM,
-		LogAction.COMPLETE,
-		LogAction.CANCEL,
-	]);
-
-	return userActions.has(action) ? ActorType.USER : ActorType.ADMIN;
+function detectActorType(ctx: ProtectedContext): ActorType {
+	const role = ctx.session.user.role;
+	const isAdmin = role === config.ROLES.ADMIN || role === config.ROLES.SUPER_ADMIN;
+	return isAdmin ? ActorType.ADMIN : ActorType.USER;
 }
 
 export interface LogActionParams {
@@ -243,7 +285,7 @@ export interface LogActionParams {
 	action: LogAction;
 	value?: any;
 	actorType?: ActorType; // Auto-detected if not provided
-	claimId?: number; // Auto-derived for claim entities if not provided
+	claimId?: string; // Auto-derived for claim entities if not provided
 }
 
 /**
@@ -266,23 +308,20 @@ export interface LogActionParams {
  * @example
  * // User workflow action (within transaction)
  * await ctx.db.transaction().execute(async (trx) => {
- *   const task = await claimTask({ ...ctx, db: trx }, taskId);
+ *   const task = await startTask({ ...ctx, db: trx }, taskId);
  *   await logAction({ ...ctx, db: trx }, {
  *     entityId: taskId,
  *     entityName: EntityName.TASK,
- *     action: LogAction.CLAIM,
+ *     action: LogAction.START,
  *     claimId: task.claim_id // Optional, will be auto-derived
  *   });
  * });
  */
-export async function logAction(
-	ctx: ProtectedContext,
-	params: LogActionParams
-): Promise<void> {
+export async function logAction(ctx: ProtectedContext, params: LogActionParams): Promise<void> {
 	const { entityId, entityName, action, value } = params;
 
-	// Auto-detect actor type if not provided
-	const actorType = params.actorType ?? detectActorType(action);
+	// Auto-detect actor type if not provided (based on user's role)
+	const actorType = params.actorType ?? detectActorType(ctx);
 
 	// Route to appropriate table
 	if (isConfigEntity(entityName)) {
@@ -300,13 +339,10 @@ export async function logAction(
 			.execute();
 	} else if (isClaimEntity(entityName)) {
 		// Derive claim_id if not provided
-		const claimId =
-			params.claimId ?? (await deriveClaimId(ctx, entityName, entityId));
+		const claimId = params.claimId ?? (await deriveClaimId(ctx, entityName, entityId));
 
 		if (claimId === null) {
-			console.warn(
-				`Could not derive claim_id for ${entityName} ${entityId}. Skipping log.`
-			);
+			console.warn(`Could not derive claim_id for ${entityName} ${entityId}. Skipping log.`);
 			return;
 		}
 
@@ -338,22 +374,23 @@ export async function logAction(
  * @example
  * await logUserWorkflowAction(ctx, {
  *   claimId: 123,
- *   action: 'task_claim',
+ *   action: 'task_assign',
  *   entityId: taskId,
  * });
  */
 export async function logUserWorkflowAction(
 	ctx: ProtectedContext,
 	params: {
-		claimId: number;
-		action: 'task_claim' | 'task_unclaim' | 'task_complete' | 'deadline_complete' | 'comment_create';
-		entityId: number;
+		claimId: string;
+		action: 'task_assign' | 'task_unassign' | 'task_start' | 'task_complete' | 'deadline_complete' | 'comment_create';
+		entityId: string;
 		value?: any;
 	}
 ): Promise<void> {
 	const actionMap: Record<typeof params.action, { entityName: EntityName; logAction: LogAction }> = {
-		task_claim: { entityName: EntityName.TASK, logAction: LogAction.CLAIM },
-		task_unclaim: { entityName: EntityName.TASK, logAction: LogAction.UNCLAIM },
+		task_assign: { entityName: EntityName.TASK, logAction: LogAction.ASSIGN },
+		task_unassign: { entityName: EntityName.TASK, logAction: LogAction.UNASSIGN },
+		task_start: { entityName: EntityName.TASK, logAction: LogAction.START },
 		task_complete: { entityName: EntityName.TASK, logAction: LogAction.COMPLETE },
 		deadline_complete: { entityName: EntityName.DEADLINE, logAction: LogAction.COMPLETE },
 		comment_create: { entityName: EntityName.COMMENT, logAction: LogAction.CREATE },
@@ -366,7 +403,6 @@ export async function logUserWorkflowAction(
 		entityName,
 		action,
 		claimId: params.claimId,
-		actorType: ActorType.USER,
 		value: params.value,
 	});
 }
@@ -377,10 +413,7 @@ export async function logUserWorkflowAction(
  * @param ctx - The protected context containing user, client info, and db (with transaction if applicable)
  * @param logs - Array of log parameters
  */
-export async function logActions(
-	ctx: ProtectedContext,
-	logs: LogActionParams[]
-): Promise<void> {
+export async function logActions(ctx: ProtectedContext, logs: LogActionParams[]): Promise<void> {
 	if (logs.length === 0) return;
 
 	const allConfig = logs.every((log) => isConfigEntity(log.entityName));
@@ -420,7 +453,7 @@ export async function logActions(
 				return null;
 			}
 
-			const actorType = log.actorType ?? detectActorType(log.action);
+			const actorType = log.actorType ?? detectActorType(ctx);
 			return {
 				client_id: ctx.session.user.client_id as string,
 				user_id: ctx.session.user.id,

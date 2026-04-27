@@ -1,9 +1,10 @@
 'use client';
 
-import { FormControl, FormLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { IconFileSearch } from '@tabler/icons-react';
+import Dropdown from '@/components/ui/Dropdown';
+import Input from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useRouter } from 'next/navigation';
@@ -35,7 +36,7 @@ export default function NewChecklistDialog() {
 				existingChecklistId: typeof data.from === 'number' ? data.from : undefined,
 			});
 			showSuccess('create', 'Checklist created');
-			router.push(`/checklist/${newChecklist.id}`);
+			router.push(`/checklists/${newChecklist.id}`);
 		} catch (e) {
 			showError('create', e, 'Failed to create checklist');
 		}
@@ -47,55 +48,50 @@ export default function NewChecklistDialog() {
 			primaryAction={{
 				label: 'Create checklist',
 				onClick: onSubmit,
-				icon: <ContentPasteSearch />,
+				icon: <IconFileSearch size={20} />,
 				disabled: !name || isPending || isSubmitting,
 			}}
 			onClose={toggleNewChecklistDialog}
 			width={475}
 		>
-			<Typography fontStyle="italic" fontSize={13}>
+			<span style={{ fontStyle: 'italic' }}>
 				The new checklist will be unpublished by default.
-			</Typography>
-			<Typography fontStyle="italic" fontSize={13} paddingTop="10px">
+			</span>
+			<span style={{ fontStyle: 'italic' }}>
 				This gives you a chance to finalize pages, questions, and answers before making it available to users.
-			</Typography>
+			</span>
 			<form>
 				<div className="flex-row-left" style={styles.row}>
-					<TextField
+					<Input
 						id="name"
 						label="Name"
 						placeholder="Master Checklist"
 						error={!!errors.name}
-						helperText={errors.name?.message}
-						sx={{ width: 300 }}
+						errorText={errors.name?.message}
+						style={{ width: 300 }}
 						{...register('name', { required: 'Checklist name is required' })}
 					/>
 				</div>
 				<div className="flex-row-left" style={styles.row}>
-					<FormControl>
-						<FormLabel sx={styles.formLabel}>Choose a checklist to copy from (optional)</FormLabel>
-						<Select
-							variant="outlined"
-							displayEmpty
-							{...register('from')}
-							renderValue={(value) => {
-								if (value) return checklists.find((c) => c.id === value)?.name ?? '';
-								if (value != null) return 'None';
-								return loadingChecklists ? 'Loading...' : 'Select';
+					<div>
+						<label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Choose a checklist to copy from (optional)</label>
+						<Dropdown
+							options={[
+								{ value: '', label: 'None' },
+								...checklists.map((o) => ({
+									value: o.id,
+									label: o.name,
+								})),
+							]}
+							value={(watch('from') as any) ?? ''}
+							onChange={(v) => {
+								const event = { target: { name: 'from', value: v } };
+								register('from').onChange(event as any);
 							}}
-							sx={styles.textFieldOverrides}
 							disabled={loadingChecklists}
-						>
-							<MenuItem key="none" value={''}>
-								<i>None</i>
-							</MenuItem>
-							{checklists.map((o) => (
-								<MenuItem key={o.id} value={o.id}>
-									{o.name}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+							placeholder={loadingChecklists ? 'Loading...' : 'Select'}
+						/>
+					</div>
 				</div>
 			</form>
 		</BasicDialog>
@@ -103,20 +99,10 @@ export default function NewChecklistDialog() {
 }
 
 const styles = {
-	formLabel: {
-		fontSize: 12,
-		paddingBottom: '5px',
-	},
 	row: {
 		padding: '10px 0px',
 	},
 	textFieldOverrides: {
 		width: 300,
-		'& .MuiInputBase-root': {
-			padding: '3px 5px',
 		},
-		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
-		},
-	},
 };

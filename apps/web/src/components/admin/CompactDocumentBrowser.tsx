@@ -1,16 +1,14 @@
 'use client';
 
-import { Breadcrumbs, Link, Paper, Typography, Box } from '@mui/material';
-import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro';
-import FolderIcon from '@mui/icons-material/Folder';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { IconFile, IconFolder } from '@tabler/icons-react';
+import Card from '@/components/ui/Card';
 import IconHeaderCell from '../common/IconHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
 
@@ -33,7 +31,7 @@ export default function CompactDocumentBrowser({
 	allowedExtensions = null,
 	disabled = false,
 }: CompactDocumentBrowserProps) {
-	const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+	const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 
 	const { data: groups = [], isFetching: isFetchingGroups } = useDocTrpc().listDocGroups();
 	const { data: docsResult, isFetching: isFetchingDocs } = useDocTrpc().listDocs({
@@ -58,7 +56,7 @@ export default function CompactDocumentBrowser({
 		if (!currentFolderId) return [];
 
 		const trail: DocGroupListItem[] = [];
-		let folderId: number | null = currentFolderId;
+		let folderId: string | null = currentFolderId;
 
 		// Walk up the tree to build the trail
 		while (folderId !== null) {
@@ -84,7 +82,7 @@ export default function CompactDocumentBrowser({
 		return (
 			<CustomNoRowsOverlay
 				text={text}
-				icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconFile style={{ fontSize: 40, color: 'var(--text-muted)' }} />}
 			/>
 		);
 	}, [currentFolderId, filterByType]);
@@ -139,93 +137,84 @@ export default function CompactDocumentBrowser({
 		return result;
 	}, [currentFolderId, groups, docs, filterByType, userFilteredMode, userId, allowedExtensions]);
 
-	const handleRowDoubleClick = (params: GridRowParams<GridRow>) => {
+	const handleRowDoubleClick = (row: GridRow) => {
 		if (disabled) return; // Prevent interactions when disabled
 
-		if (params.row.type === 'folder') {
-			setCurrentFolderId(params.row.data.id);
+		if (row.type === 'folder') {
+			setCurrentFolderId(row.data.id);
 		} else {
-			onSelectDocument(params.row.data);
+			onSelectDocument(row.data);
 		}
 	};
 
 	return (
-		<Paper elevation={0} sx={{ ...styles.container, height }}>
+		<div style={{ ...styles.container, height }}>
 			{/* Breadcrumbs for navigation - hidden in userFilteredMode */}
 			{!userFilteredMode && (
-				<Breadcrumbs sx={{ p: 2, pb: 1 }}>
-					<Link
-						component="button"
-						underline="hover"
-						color={currentFolderId === null ? 'text.primary' : 'inherit'}
+				<nav style={{ padding: 16, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
+					<button
 						onClick={() => !disabled && setCurrentFolderId(null)}
-						sx={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'var(--text-secondary)', textDecoration: 'none' }}
 					>
 						Documents
-					</Link>
+					</button>
 					{breadcrumbTrail.map((folder, index) => {
 						const isLast = index === breadcrumbTrail.length - 1;
-						return isLast ? (
-							<Typography key={folder.id} color="text.primary">
-								{folder.name}
-							</Typography>
-						) : (
-							<Link
-								key={folder.id}
-								component="button"
-								underline="hover"
-								color="inherit"
-								onClick={() => !disabled && setCurrentFolderId(folder.id)}
-								sx={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
-							>
-								{folder.name}
-							</Link>
+						return (
+							<span key={folder.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+								<span style={{ color: 'var(--text-muted)' }}>/</span>
+								{isLast ? (
+									<span style={{ color: 'var(--text-primary)' }}>{folder.name}</span>
+								) : (
+									<button
+										onClick={() => !disabled && setCurrentFolderId(folder.id)}
+										style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-secondary)', textDecoration: 'none' }}
+									>
+										{folder.name}
+									</button>
+								)}
+							</span>
 						);
 					})}
-				</Breadcrumbs>
+				</nav>
 			)}
 
-			<DataGridPro
+			<DataTable
 				rows={rows}
 				loading={isLoading}
 				columns={COLUMNS}
 				getRowId={(row) => `${row.type}-${row.data.id}`}
 				onRowDoubleClick={handleRowDoubleClick}
-				slots={{
-					noRowsOverlay,
-				}}
-				sx={styles.dataGrid}
 				hideFooter
 			/>
 
-			<Box sx={{ p: 1, bgcolor: '#f5f5f5', borderTop: '1px solid #e0e0e0' }}>
-				<Typography fontSize={11} color="text.secondary">
+			<div style={{ padding: 8, backgroundColor: '#f5f5f5', borderTop: '1px solid #e0e0e0' }}>
+				<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 					Double-click a {filterByType === 'image' ? 'image' : 'document'} to select it
-				</Typography>
-			</Box>
-		</Paper>
+				</span>
+			</div>
+		</div>
 	);
 }
 
-const COLUMNS: GridColDef<GridRow>[] = [
+const COLUMNS: ColumnDef<GridRow, any>[] = [
 	{
-		headerName: 'Name',
-		field: 'name',
-		flex: 1,
-		renderCell: ({ row }) => {
+		header: 'Name',
+		accessorKey: 'name',
+		cell: ({ row: { original: row } }) => {
 			// For user folders, display user's full name and email
 			if (row.type === 'folder' && row.data.group_type === 'user' && row.data.user_first && row.data.user_last) {
 				return (
 					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<IconFolder style={{ color: 'var(--text-muted)' }} />
 						<div>
-							<Typography variant="body2">
+							<span>
 								{row.data.user_first} {row.data.user_last}
-							</Typography>
+							</span>
 							{row.data.user_email && (
-								<Typography variant="caption" color="text.secondary" display="block">
+								<span style={{ color: 'var(--text-secondary)' }}>
 									{row.data.user_email}
-								</Typography>
+								</span>
 							)}
 						</div>
 					</div>
@@ -236,38 +225,35 @@ const COLUMNS: GridColDef<GridRow>[] = [
 			return (
 				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 					{row.type === 'folder' ? (
-						<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<IconFolder style={{ color: 'var(--text-muted)' }} />
 					) : (
-						<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
+						<IconFile style={{ color: 'var(--text-muted)' }} />
 					)}
-					<Typography variant="body2">
+					<span>
 						{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
-					</Typography>
+					</span>
 				</div>
 			);
 		},
-		renderHeader: (params) => (
-			<IconHeaderCell {...(params as any)} icon={<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
 	},
 	{
-		headerName: 'Type',
-		field: 'type',
-		width: 150,
-		renderCell: ({ row }) => (
-			<Typography variant="body2" color="text.secondary">
+		header: 'Type',
+		accessorKey: 'type',
+		size: 150,
+		cell: ({ row: { original: row } }) => (
+			<span style={{ color: 'var(--text-secondary)' }}>
 				{row.type === 'folder' ? 'Folder' : capitalize(row.data.doc_type.replace('_', ' '))}
-			</Typography>
+			</span>
 		),
 	},
 	{
-		headerName: 'Date',
-		field: 'date',
-		width: 150,
-		renderCell: ({ row }) => (
-			<Typography variant="body2" color="text.secondary">
+		header: 'Date',
+		accessorKey: 'date',
+		size: 150,
+		cell: ({ row: { original: row } }) => (
+			<span style={{ color: 'var(--text-secondary)' }}>
 				{formatMDY(row.data.created_at)}
-			</Typography>
+			</span>
 		),
 	},
 ];
@@ -278,18 +264,6 @@ const styles = {
 		display: 'flex',
 		flexDirection: 'column' as const,
 		border: '1px solid #e0e0e0',
-		borderRadius: 1,
-	},
-	dataGrid: {
-		flex: 1,
-		border: 'none',
-		'& .MuiDataGrid-row': {
-			cursor: 'pointer',
-		},
-		'& .MuiDataGrid-cell': {
-			display: 'flex',
-			alignItems: 'center',
-		},
-		...dataGridFocusStyles,
+		borderRadius: 4,
 	},
 };

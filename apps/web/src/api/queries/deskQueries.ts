@@ -86,7 +86,7 @@ export async function getDeskLocationTypes(
 /**
  * Get single desk location type by ID
  */
-export async function getDeskLocationType(ctx: ProtectedContext, id: number) {
+export async function getDeskLocationType(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('desk_location_type')
 		.selectAll()
@@ -125,6 +125,7 @@ export async function createDeskLocationType(
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 			is_active: true,
+			capacity_threshold: 100,
 		}));
 
 		await ctx.db.insertInto('desk_location').values(defaultLocations).execute();
@@ -138,7 +139,7 @@ export async function createDeskLocationType(
  */
 export async function updateDeskLocationType(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
 	}
@@ -162,7 +163,7 @@ export async function updateDeskLocationType(
  */
 export async function getDeskLocationTypeLocations(
 	ctx: ProtectedContext,
-	deskLocationTypeId: number
+	deskLocationTypeId: string
 ) {
 	return await ctx.db
 		.selectFrom('desk_location')
@@ -178,7 +179,7 @@ export async function getDeskLocationTypeLocations(
  */
 export async function archiveDeskLocationType(
 	ctx: ProtectedContext,
-	id: number
+	id: string
 ) {
 	const deskLocationType = await getDeskLocationType(ctx, id);
 	if (!deskLocationType) {
@@ -215,7 +216,7 @@ export async function archiveDeskLocationType(
  */
 export async function restoreDeskLocationType(
 	ctx: ProtectedContext,
-	id: number
+	id: string
 ) {
 	return await ctx.db
 		.updateTable('desk_location_type')
@@ -241,7 +242,7 @@ export async function restoreDeskLocationType(
  */
 export async function getDeskLocations(
 	ctx: ProtectedContext,
-	deskLocationTypeId?: number,
+	deskLocationTypeId?: string,
 	searchTerm?: string,
 	limit?: number,
 	offset?: number,
@@ -249,7 +250,7 @@ export async function getDeskLocations(
 	showInactive?: boolean
 ) {
 	// Base query with client scoping
-	// Uses window function for user_count to avoid expensive derived table join
+	// Uses pre-aggregated subquery for user_count to avoid row expansion and DISTINCT ON
 	let query = ctx.db
 		.selectFrom('desk_location')
 		.leftJoin(
@@ -257,10 +258,18 @@ export async function getDeskLocations(
 			'desk_location.desk_location_type_id',
 			'desk_location_type.id'
 		)
-		.leftJoin('user_desk_location', (join) =>
-			join
-				.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
-				.on('user_desk_location.removed_at', 'is', null)
+		.leftJoin(
+			(eb) =>
+				eb
+					.selectFrom('user_desk_location')
+					.select([
+						'user_desk_location.desk_location_id',
+						eb.fn.countAll<number>().as('user_count'),
+					])
+					.where('user_desk_location.removed_at', 'is', null)
+					.groupBy('user_desk_location.desk_location_id')
+					.as('udl_counts'),
+			(join) => join.onRef('udl_counts.desk_location_id', '=', 'desk_location.id')
 		)
 		.select([
 			'desk_location.id',
@@ -268,6 +277,7 @@ export async function getDeskLocations(
 			'desk_location.desk_location_type_id',
 			'desk_location.client_id',
 			'desk_location.is_active',
+			'desk_location.capacity_threshold',
 			'desk_location.created_at',
 			'desk_location.created_by',
 			'desk_location.updated_at',
@@ -276,7 +286,7 @@ export async function getDeskLocations(
 			'desk_location_type.name as desk_location_type_name',
 		])
 		.select(
-			sql<number>`COUNT(user_desk_location.id) OVER (PARTITION BY desk_location.id)`.as('user_count')
+			sql<number>`COALESCE(udl_counts.user_count, 0)`.as('user_count')
 		)
 		.where('desk_location.client_id', '=', ctx.session.user.client_id)
 		.orderBy('desk_location_type.name asc')
@@ -313,13 +323,8 @@ export async function getDeskLocations(
 	}
 
 	// Single query with COUNT(*) OVER() for total count
-	// Use DISTINCT ON to dedupe rows expanded by the user_desk_location join
-	const rowsWithCount = await ctx.db
-		.selectFrom(query.as('filtered'))
-		.distinctOn(['filtered.id'])
-		.selectAll('filtered')
+	const rowsWithCount = await query
 		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
-		.orderBy('filtered.id')
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();
@@ -333,7 +338,7 @@ export async function getDeskLocations(
 /**
  * Get single desk location by ID
  */
-export async function getDeskLocation(ctx: ProtectedContext, id: number) {
+export async function getDeskLocation(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('desk_location')
 		.leftJoin(
@@ -347,6 +352,7 @@ export async function getDeskLocation(ctx: ProtectedContext, id: number) {
 			'desk_location.desk_location_type_id',
 			'desk_location.client_id',
 			'desk_location.is_active',
+			'desk_location.capacity_threshold',
 			'desk_location.created_at',
 			'desk_location.created_by',
 			'desk_location.updated_at',
@@ -366,8 +372,9 @@ export async function createDeskLocation(
 	ctx: ProtectedContext,
 	params: {
 		name: string;
-		desk_location_type_id: number;
+		desk_location_type_id: string;
 		is_active?: boolean;
+		capacity_threshold: number;
 	}
 ) {
 	return await ctx.db
@@ -376,6 +383,7 @@ export async function createDeskLocation(
 			name: params.name,
 			desk_location_type_id: params.desk_location_type_id,
 			is_active: params.is_active ?? true,
+			capacity_threshold: params.capacity_threshold,
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 		})
@@ -388,11 +396,12 @@ export async function createDeskLocation(
  */
 export async function updateDeskLocation(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: {
 		name?: string;
-		desk_location_type_id?: number;
+		desk_location_type_id?: string;
 		is_active?: boolean;
+		capacity_threshold?: number;
 	}
 ) {
 	return await ctx.db
@@ -414,7 +423,7 @@ export async function updateDeskLocation(
  */
 export async function getDeskLocationClaimAssignments(
 	ctx: ProtectedContext,
-	deskLocationId: number
+	deskLocationId: string
 ) {
 	return await ctx.db
 		.selectFrom('claim')
@@ -429,7 +438,7 @@ export async function getDeskLocationClaimAssignments(
  * Prevents archival if location has assigned claims
  * Also removes all user assignments to this desk location
  */
-export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
+export async function archiveDeskLocation(ctx: ProtectedContext, id: string) {
 	// Validate desk location exists and belongs to client
 	const deskLocation = await getDeskLocation(ctx, id);
 	if (!deskLocation) {
@@ -489,7 +498,7 @@ export async function archiveDeskLocation(ctx: ProtectedContext, id: number) {
 /**
  * Restore archived desk location
  */
-export async function restoreDeskLocation(ctx: ProtectedContext, id: number) {
+export async function restoreDeskLocation(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('desk_location')
 		.set({
@@ -579,7 +588,7 @@ export async function getAllUserDeskAssignmentCounts(ctx: ProtectedContext) {
 /**
  * Get all users assigned to a specific desk location
  */
-export async function getDeskLocationUsers(ctx: ProtectedContext, deskLocationId: number) {
+export async function getDeskLocationUsers(ctx: ProtectedContext, deskLocationId: string) {
 	return await ctx.db
 		.selectFrom('user_desk_location')
 		.leftJoin('users', 'user_desk_location.user_id', 'users.id')
@@ -608,7 +617,7 @@ export async function assignUserToDeskLocation(
 	ctx: ProtectedContext,
 	params: {
 		userId: string;
-		deskLocationId: number;
+		deskLocationId: string;
 		priority: number;
 	}
 ) {
@@ -678,7 +687,7 @@ export async function bulkAssignUsersToDeskLocation(
 	ctx: ProtectedContext,
 	params: {
 		userIds: string[];
-		deskLocationId: number;
+		deskLocationId: string;
 		priority: number;
 	}
 ) {
@@ -749,7 +758,7 @@ export async function bulkAssignUsersToDeskLocation(
  */
 export async function updateUserDeskLocationPriority(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	newPriority: number
 ) {
 	// Helper function to perform the priority update
@@ -810,7 +819,7 @@ export async function updateUserDeskLocationPriority(
  */
 export async function removeUserFromDeskLocation(
 	ctx: ProtectedContext,
-	id: number
+	id: string
 ) {
 	return await ctx.db
 		.updateTable('user_desk_location')
@@ -832,7 +841,7 @@ export async function removeUserFromDeskLocation(
  */
 export async function updateUserDeskLocationPriorities(
 	ctx: ProtectedContext,
-	updates: Array<{ id: number; priority: number }>
+	updates: Array<{ id: string; priority: number }>
 ) {
 	if (updates.length === 0) {
 		return [];
@@ -904,7 +913,7 @@ export async function updateUsersDeskAssignments(
 	ctx: ProtectedContext,
 	updates: Array<{
 		userId: string;
-		assignments: Array<{ deskLocationId: number; priority: number }>;
+		assignments: Array<{ deskLocationId: string; priority: number }>;
 	}>
 ) {
 	if (updates.length === 0) {
@@ -928,7 +937,7 @@ export async function updateUsersDeskAssignments(
 	// Collect all insert values for batch insert
 	const insertValues: Array<{
 		user_id: string;
-		desk_location_id: number;
+		desk_location_id: string;
 		priority: number;
 		assigned_by: string;
 	}> = [];
@@ -953,4 +962,129 @@ export async function updateUsersDeskAssignments(
 		userId,
 		assignmentsUpdated: assignments.length,
 	}));
+}
+
+/**
+ * Get current user's desk assignments with claim counts per desk location
+ * Used for the My Desk Assignments dashboard metric
+ */
+export async function getMyDeskAssignmentsWithClaimCounts(ctx: ProtectedContext) {
+	return await ctx.db
+		.selectFrom('user_desk_location')
+		.leftJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
+		.leftJoin('desk_location_type', 'desk_location.desk_location_type_id', 'desk_location_type.id')
+		.leftJoin('claim', (join) =>
+			join
+				.onRef('claim.desk_location_id', '=', 'desk_location.id')
+				.on('claim.client_id', '=', ctx.session.user.client_id)
+		)
+		.select([
+			'user_desk_location.id',
+			'user_desk_location.desk_location_id',
+			'user_desk_location.priority',
+			'user_desk_location.assigned_at',
+			'desk_location.name as desk_location_name',
+			'desk_location_type.name as desk_location_type_name',
+		])
+		.select((eb) => eb.fn.count('claim.id').as('claim_count'))
+		.where('user_desk_location.user_id', '=', ctx.session.user.id)
+		.where('user_desk_location.removed_at', 'is', null)
+		.where('desk_location.deleted_at', 'is', null)
+		.where('desk_location.client_id', '=', ctx.session.user.client_id)
+		.groupBy([
+			'user_desk_location.id',
+			'user_desk_location.desk_location_id',
+			'user_desk_location.priority',
+			'user_desk_location.assigned_at',
+			'desk_location.name',
+			'desk_location_type.name',
+		])
+		.orderBy('user_desk_location.priority asc')
+		.execute();
+}
+
+// ============================================================================
+// CLAIM DESK LOCATION TRANSITION OPERATIONS
+// ============================================================================
+
+/**
+ * Record a claim transition to a new desk location.
+ * This creates an append-only audit trail of claim movements.
+ */
+export async function createClaimTransition(
+	ctx: ProtectedContext,
+	params: {
+		claimId: string;
+		deskLocationId: string;
+		previousDeskLocationId?: string;
+		enteredReason?: string;
+	}
+) {
+	return await ctx.db
+		.insertInto('claim_desk_location_transition')
+		.values({
+			client_id: ctx.session.user.client_id!,
+			claim_id: params.claimId,
+			desk_location_id: params.deskLocationId,
+			previous_desk_location_id: params.previousDeskLocationId,
+			entered_by: ctx.session.user.id,
+			entered_reason: params.enteredReason,
+		})
+		.returning([
+			'id',
+			'claim_id',
+			'desk_location_id',
+			'previous_desk_location_id',
+			'entered_at',
+			'entered_by',
+			'entered_reason',
+			'created_at',
+		])
+		.executeTakeFirstOrThrow();
+}
+
+/**
+ * Get transition history for a claim, with desk location names.
+ * Ordered most recent first.
+ */
+export async function getClaimTransitions(ctx: ProtectedContext, claimId: string) {
+	return await ctx.db
+		.selectFrom('claim_desk_location_transition as t')
+		.leftJoin('desk_location as to_loc', 'to_loc.id', 't.desk_location_id')
+		.leftJoin('desk_location as from_loc', 'from_loc.id', 't.previous_desk_location_id')
+		.select([
+			't.id',
+			't.claim_id',
+			't.desk_location_id',
+			't.previous_desk_location_id',
+			't.entered_at',
+			't.entered_by',
+			't.entered_reason',
+			't.created_at',
+			'to_loc.name as desk_location_name',
+			'from_loc.name as previous_desk_location_name',
+		])
+		.where('t.client_id', '=', ctx.session.user.client_id)
+		.where('t.claim_id', '=', claimId)
+		.where('t.deleted_at', 'is', null)
+		.orderBy('t.entered_at desc')
+		.execute();
+}
+
+/**
+ * Update a claim's current desk location.
+ * Used by the workflow rule execution engine when moving claims between locations.
+ */
+export async function updateClaimDeskLocation(
+	ctx: ProtectedContext,
+	claimId: string,
+	deskLocationId: string | null
+) {
+	return await ctx.db
+		.updateTable('claim')
+		.set({ desk_location_id: deskLocationId })
+		.where('id', '=', claimId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.returning(['id', 'desk_location_id', 'claim_number'])
+		.executeTakeFirstOrThrow();
 }

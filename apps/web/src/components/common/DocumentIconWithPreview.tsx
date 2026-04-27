@@ -1,7 +1,8 @@
 'use client';
 
-import { IconButton, Tooltip } from '@mui/material';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
+import Tooltip from '@/components/ui/Tooltip';
+import Button from '@/components/ui/Button';
+import { IconPaperclip } from '@tabler/icons-react';
 import { useState } from 'react';
 import DocumentPreviewDialog from '../admin/DocumentPreviewDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -27,10 +28,10 @@ export default function DocumentIconWithPreview({
 
 	return (
 		<>
-			<Tooltip title={tooltipText} arrow>
-				<IconButton size="small" onClick={handleClick} sx={{ ml: 0.5, padding: 0.5 }}>
-					<AttachFileIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-				</IconButton>
+			<Tooltip content={tooltipText}>
+				<Button variant="icon" size="sm" onClick={handleClick}>
+					<IconPaperclip size={16} style={{ color: 'var(--text-accent)' }} />
+				</Button>
 			</Tooltip>
 
 			{showPreview && <DocumentPreviewDialog onClose={() => setShowPreview(false)} document={document} />}

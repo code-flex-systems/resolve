@@ -1,25 +1,25 @@
 'use client';
-import Info from '@mui/icons-material/Info';
 import './styles.css';
-import { Fade, Paper, Popper, Tooltip, Typography, Box } from '@mui/material';
-import { useRef } from 'react';
-import theme from '@/styles/theme';
+import Tooltip from '@/components/ui/Tooltip';
+import { useRef, useState } from 'react';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
+import { IconInfoCircle } from '@tabler/icons-react';
+import BasicPopper from '../common/BasicPopper';
 
 export default function QuestionInfo(props: {
 	description: string | null;
 	filename: string | null;
-	questionId: number;
+	questionId: string;
 }) {
 	const { description, questionId } = props;
-	const ref = useRef(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	// Fetch attached document for this question
 	const { data: attachedDocsResult } = useDocTrpc().listDocs({
 		filters: { question_id: questionId },
-	}, { enabled: questionId !== -1 });
+	}, { enabled: !!questionId });
 	const attachedDocs = attachedDocsResult?.rows ?? [];
 
 	const attachedDoc = attachedDocs.length > 0 ? attachedDocs[0] : null;
@@ -29,36 +29,33 @@ export default function QuestionInfo(props: {
 			{/* Show info icon with description tooltip if there's a description */}
 			{description && (
 				<>
-					<Tooltip title={description ?? ''} placement="top" arrow>
-						<Info ref={ref} sx={{ color: 'primary.main', marginLeft: '10px' }} className="info" />
+					<Tooltip content={description} position="top">
+						<IconInfoCircle
+							onMouseEnter={(e) => setAnchorEl(e.currentTarget as unknown as HTMLElement)}
+							onMouseLeave={() => setAnchorEl(null)}
+							style={{ color: 'var(--text-accent)', marginLeft: '10px' }}
+							className="info"
+						/>
 					</Tooltip>
 
-					<Popper
-						open={true}
-						anchorEl={ref.current}
+					<BasicPopper
+						anchorEl={anchorEl}
+						setAnchorEl={setAnchorEl}
 						placement="right"
-						className="popper"
-						sx={{ zIndex: 100 }}
-						transition
+						zIndex={100}
 					>
-						{({ TransitionProps }) => (
-							<Fade {...TransitionProps} timeout={350}>
-								<span>
-									<Paper sx={styles.paper}>
-										<Typography fontSize={17} fontWeight="bold">
-											{description}
-										</Typography>
-									</Paper>
-								</span>
-							</Fade>
-						)}
-					</Popper>
+						<div style={{ width: 250, height: 'fit-content', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10, marginTop: 5, backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)' }}>
+							<span style={{ fontSize: 17, fontWeight: 'bold' }}>
+								{description}
+							</span>
+						</div>
+					</BasicPopper>
 				</>
 			)}
 
 			{/* Show attached document/image */}
 			{attachedDoc && (
-				<Box display="inline-flex" ml={description ? 0 : 1}>
+				<div style={{ display: 'inline-flex', marginLeft: description ? 0 : 1 }}>
 					{attachedDoc.mime_type?.startsWith('image/') ? (
 						<ImageTooltip
 							imageUrl={`/api/download?docId=${attachedDoc.id}`}
@@ -67,21 +64,8 @@ export default function QuestionInfo(props: {
 					) : (
 						<DocumentIconWithPreview document={attachedDoc} />
 					)}
-				</Box>
+				</div>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	paper: {
-		width: 250,
-		height: 'fit-content',
-		display: 'flex',
-		flexDirection: 'column',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		p: 1.25,
-		mt: 0.625,
-	},
-};

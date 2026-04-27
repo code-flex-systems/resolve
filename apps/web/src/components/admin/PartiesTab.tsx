@@ -1,14 +1,15 @@
 'use client';
 
+import { IconBuilding, IconSettings, IconSquarePlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
-import { Button, Chip, Paper, Switch, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Business from '@mui/icons-material/Business';
-import CustomPagination from '../common/CustomPagination';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PartyActionsCell from './PartyActionsCell';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -17,69 +18,68 @@ import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PartyDialog from './PartyDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
-import { formatPhoneDisplay } from '@/lib/utils/utils';
+import PhoneCell from './PhoneCell';
+import EmailCell from './EmailCell';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 interface PartiesTabProps {
 	isAdminContext?: boolean;
 }
 
-const getColumns = (isAdminContext: boolean): GridColDef[] => [
+const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Name',
-		field: 'name',
-		flex: 1,
-		minWidth: 180,
+		header: 'Name',
+		accessorKey: 'name',
+		minSize: 180,
 	},
 	{
-		headerName: 'Type',
-		field: 'party_type',
-		renderCell: ({ row }) => (
+		header: 'Type',
+		accessorKey: 'party_type',
+		cell: ({ row: { original: row } }) => (
 			<Chip
-				label={row.party_type === 'entity' ? 'Entity' : 'Facilitator'}
-				size="small"
-				color={row.party_type === 'entity' ? 'primary' : 'secondary'}
-				variant="outlined"
-			/>
+				size="sm"
+				color={row.party_type === 'entity' ? 'info' : 'neutral'}
+				variant="outlined">{row.party_type === 'entity' ? 'Entity' : 'Facilitator'}</Chip>
 		),
-		width: 110,
+		size: 110,
 	},
 	{
-		headerName: 'Organization',
-		field: 'organization',
-		renderCell: ({ row }) => row.organization || '—',
-		width: 160,
+		header: 'Organization',
+		accessorKey: 'organization',
+		cell: ({ row: { original: row } }) => row.organization || '—',
+		size: 160,
 	},
 	{
-		headerName: 'Email',
-		field: 'primary_email',
-		renderCell: ({ row }) => row.primary_email || '—',
-		width: 200,
+		header: 'Email',
+		accessorKey: 'primary_email',
+		cell: ({ row: { original: row } }) => <EmailCell value={row.primary_email} />,
+		size: 200,
 	},
 	{
-		headerName: 'Phone',
-		field: 'primary_phone',
-		renderCell: ({ row }) => formatPhoneDisplay(row.primary_phone) || '—',
-		width: 140,
+		header: 'Phone',
+		accessorKey: 'primary_phone',
+		cell: ({ row: { original: row } }) => <PhoneCell value={row.primary_phone} />,
+		size: 140,
 	},
 	{
-		headerName: 'City',
-		field: 'primary_city',
-		renderCell: ({ row }) => row.primary_city || '—',
-		width: 120,
+		header: 'City',
+		accessorKey: 'primary_city',
+		cell: ({ row: { original: row } }) => row.primary_city || '—',
+		size: 120,
 	},
 	{
-		headerName: 'State',
-		field: 'primary_state',
-		renderCell: ({ row }) => row.primary_state || '—',
-		width: 80,
+		header: 'State',
+		accessorKey: 'primary_state',
+		cell: ({ row: { original: row } }) => row.primary_state || '—',
+		size: 80,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => <PartyActionsCell {...params} isAdminContext={isAdminContext} />,
-		width: isAdminContext ? 100 : 50,
-		resizable: false,
+		header: '',
+		accessorKey: 'actions',
+		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
+			<PartyActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
+		); },
+		size: isAdminContext ? 100 : 50,
 	},
 ];
 
@@ -87,7 +87,7 @@ function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No parties found"
-			icon={<Business sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconBuilding size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -115,10 +115,11 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	// Query to fetch party by ID for deep linking (only when edit param is present)
 	const { data: partyToEdit } = partyTrpc.get(
-		{ id: editPartyId ? parseInt(editPartyId, 10) : 0 },
+		{ id: editPartyId ?? '' },
 		{ enabled: !!editPartyId && !editingPartyFromUrl }
 	);
 
@@ -139,8 +140,12 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 		router.replace(newUrl, { scroll: false });
 	};
 
-	// Memoize columns based on isAdminContext
-	const columns = useMemo(() => getColumns(isAdminContext), [isAdminContext]);
+	// Memoize columns based on isAdminContext and isManageMode
+	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
+		() => (isManageMode ? { right: ['actions'] } : {}),
+		[isManageMode]
+	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = partyTrpc.list({
 		limit: partyConstraints.pageSize,
@@ -148,14 +153,6 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 		searchTerm: partySearchTerm,
 		showArchived: showArchivedParties,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -168,25 +165,25 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading parties...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Parties are individuals and organizations involved in claims — insureds, claimants, attorneys, contractors, and other entities.
+					</p>
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
-									Parties
-								</Typography>
 								{isAdminContext && (
 									<>
 										<Switch
-											size="small"
+											size="sm"
 											checked={showArchivedParties}
-											onChange={(_, checked) => setParam('archived', checked)}
+											onChange={(checked) => setParam('archived', checked)}
 											color="warning"
-											sx={{ marginLeft: '10px' }}
+											style={{ marginLeft: '10px' }}
 										/>
-										<Typography fontSize={14} fontStyle="italic">
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
 											Show Archived Only
-										</Typography>
+										</span>
 									</>
 								)}
 							</>
@@ -207,61 +204,43 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 								/>
 								<Button
 									variant="contained"
-									startIcon={<AddBox />}
+									startIcon={<IconSquarePlus size={20} />}
 									onClick={toggleNewPartyDialog}
-									sx={{ ml: 2 }}
+									style={{ marginLeft: 12 }}
 								>
 									Party
 								</Button>
+								<Tooltip content="Manage">
+									<Button variant="icon" size="sm"
+										onClick={() => setIsManageMode(!isManageMode)}
+										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+									>
+										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									</Button>
+								</Tooltip>
 							</>
 						}
 						height={50}
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={45}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={partyConstraints}
 							onPaginationModelChange={updatePartyConstraints}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							sx={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-								'& .MuiDataGrid-cell': {
-									display: 'flex',
-									alignItems: 'center',
-								},
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 
 					{showNewPartyDialog && <PartyDialog />}
-					{editingPartyFromUrl && (
-						<PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />
-					)}
-				</Paper>
+					{editingPartyFromUrl && <PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />}
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -276,16 +255,14 @@ const styles = {
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
 		overflow: 'hidden',
-	},
-	tableOverrides: {
-		border: 'none',
 	},
 };

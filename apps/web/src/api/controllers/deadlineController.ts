@@ -3,8 +3,8 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import type { DeadlineParams } from '@/schemas/deadlineSchemas';
 import { DeadlineStatus } from '@/config/enums';
 import { DateRangeStrict } from '@/types/types';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
-import { logUserWorkflowAction } from '@/api/utils/activityLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName, logUserWorkflowAction } from '@/api/utils/activityLogger';
 
 // =====================================================================
 // DEADLINE CONTROLLERS
@@ -23,7 +23,7 @@ export async function createDeadline(
 		claimId,
 		params,
 	}: {
-		claimId: number;
+		claimId: string;
 		params: Omit<DeadlineParams, 'claimId'>;
 	}
 ) {
@@ -66,7 +66,7 @@ export async function createDeadline(
 export async function listDeadlines(
 	ctx: ProtectedContext,
 	filters: {
-		claimId?: number;
+		claimId?: string;
 		status?: DeadlineStatus;
 		dateRange?: DateRangeStrict;
 		personalOnly?: boolean;
@@ -92,7 +92,7 @@ export async function updateDeadlineStatus(
 		deadlineId,
 		status,
 	}: {
-		deadlineId: number;
+		deadlineId: string;
 		status: DeadlineStatus;
 	}
 ) {
@@ -135,32 +135,27 @@ export async function updateDeadlineStatus(
  * @param ctx - request context
  * @param input - deadline id
  */
-export async function deleteDeadline(ctx: ProtectedContext, { deadlineId }: { deadlineId: number }) {
+export async function deleteDeadline(ctx: ProtectedContext, { deadlineId }: { deadlineId: string }) {
 	// Delete deadline and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch deadline data BEFORE deletion for logging
-		const deadline = await deadlineQueries.getDeadlineForDeletion({ ...ctx, db: trx }, deadlineId);
-
-		// Delete the deadline
-		await deadlineQueries.deleteDeadline({ ...ctx, db: trx }, deadlineId);
+		// Delete the deadline (uses RETURNING to get all fields for logging)
+		const cancelled = await deadlineQueries.deleteDeadline({ ...ctx, db: trx }, deadlineId);
 
 		// Log admin action for deadline deletion
-		if (deadline) {
-			await logAdminAction(
-				{ ...ctx, db: trx },
-				{
-					entityId: deadlineId,
-					entityName: EntityName.DEADLINE,
-					action: AdminAction.DELETE,
-					value: {
-						claimId: deadline.claim_id,
-						deadline_date: deadline.deadline_date,
-						deadline_type: deadline.deadline_type,
-						status: deadline.status,
-						description: deadline.description,
-					},
-				}
-			);
-		}
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: deadlineId,
+				entityName: EntityName.DEADLINE,
+				action: AdminAction.DELETE,
+				value: {
+					claimId: cancelled.claim_id,
+					deadline_date: cancelled.deadline_date,
+					deadline_type: cancelled.deadline_type,
+					status: cancelled.status,
+					description: cancelled.description,
+				},
+			}
+		);
 	});
 }

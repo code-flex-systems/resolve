@@ -1,19 +1,10 @@
 'use client';
-
-import {
-	Box,
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	TextField,
-} from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Dialog from '@/components/ui/Dialog';
+import Dropdown from '@/components/ui/Dropdown';
+import Button from '@/components/ui/Button';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
+import DateField from '@/components/common/DateField';
 import dayjs from 'dayjs';
 
 const capitalize = (str: string | null | undefined) => {
@@ -22,7 +13,7 @@ const capitalize = (str: string | null | undefined) => {
 };
 
 export interface RecoveryFormData {
-	settlement_id: number | '';
+	settlement_id: string | '';
 	recovery_date: string;
 	recovery_amount: string;
 	recovery_source: string;
@@ -30,7 +21,7 @@ export interface RecoveryFormData {
 }
 
 interface SettlementOption {
-	id: number;
+	id: string;
 	party_name: string;
 	loss_type: string;
 	demand_amount: number | string;
@@ -62,37 +53,39 @@ export default function RecoveryFormDialog({
 		formData.settlement_id !== '' && formData.recovery_amount && parseFloat(formData.recovery_amount) > 0;
 
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEditing ? 'Edit Recovery Event' : 'Add Recovery Event'}</DialogTitle>
-			<DialogContent>
-				<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
-					<FormControl fullWidth required>
-						<InputLabel>Settlement</InputLabel>
-						<Select
-							value={formData.settlement_id}
-							label="Settlement"
-							onChange={(e) => setFormData({ ...formData, settlement_id: Number(e.target.value) })}
-						>
-							{settlements.map((settlement) => (
-								<MenuItem key={settlement.id} value={settlement.id}>
-									{settlement.party_name} · {capitalize(settlement.loss_type)} -{' '}
-									{formatCurrencyExact(Number(settlement.demand_amount))} (
-									{dayjs(settlement.demand_date).format('MMM D')})
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					<TextField
-						label="Recovery Date"
-						type="date"
-						value={formData.recovery_date}
-						onChange={(e) => setFormData({ ...formData, recovery_date: e.target.value })}
+		<Dialog
+			open={open}
+			onClose={onClose}
+			title={isEditing ? 'Edit Recovery Event' : 'Add Recovery Event'}
+			size="sm"
+			footer={
+				<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
+						{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
+					</Button>
+				</div>
+			}
+		>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+				<Dropdown
+						label="Settlement"
+						options={settlements.map((settlement) => ({
+							value: settlement.id,
+							label: `${settlement.party_name} · ${capitalize(settlement.loss_type)} - ${formatCurrencyExact(Number(settlement.demand_amount))} (${dayjs(settlement.demand_date).format('MMM D')})`,
+						}))}
+						value={formData.settlement_id}
+						onChange={(v) => setFormData({ ...formData, settlement_id: String(v) })}
+						required
 						fullWidth
-						slotProps={{
-							inputLabel: { shrink: true },
-						}}
 					/>
-					<TextField
+					<DateField
+						label="Recovery Date"
+						value={formData.recovery_date || null}
+						onChange={(val) => setFormData({ ...formData, recovery_date: val ?? '' })}
+						fullWidth
+					/>
+					<Input
 						label="Recovery Amount"
 						type="number"
 						value={formData.recovery_amount}
@@ -100,34 +93,25 @@ export default function RecoveryFormDialog({
 						fullWidth
 						required
 						placeholder="0.00"
-						slotProps={{
-							htmlInput: { step: '0.01', min: '0' },
-						}}
+						step="0.01"
+						min="0"
 					/>
-					<TextField
+					<Input
 						label="Recovery Source"
 						value={formData.recovery_source}
 						onChange={(e) => setFormData({ ...formData, recovery_source: e.target.value })}
 						fullWidth
 						placeholder="e.g., Check, Wire Transfer, etc."
 					/>
-					<TextField
+					<Textarea
 						label="Notes"
 						value={formData.notes}
 						onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
 						fullWidth
-						multiline
 						rows={3}
 						placeholder="Additional details about this recovery..."
 					/>
-				</Box>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
-				<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
-					{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
-				</Button>
-			</DialogActions>
+				</div>
 		</Dialog>
 	);
 }

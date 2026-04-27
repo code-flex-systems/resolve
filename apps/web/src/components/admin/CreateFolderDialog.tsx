@@ -1,9 +1,9 @@
 'use client';
 
-import { TextField, Typography } from '@mui/material';
+import { IconFolderPlus } from '@tabler/icons-react';
+import Input, { Textarea } from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { useForm } from 'react-hook-form';
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import { DocGroupType } from '@/config/enums';
 
@@ -14,7 +14,7 @@ type CreateFolderFormInputs = {
 
 interface CreateFolderDialogProps {
 	onClose: () => void;
-	parentGroupId?: number | null;
+	parentGroupId?: string | null;
 }
 
 export default function CreateFolderDialog({ onClose, parentGroupId = null }: CreateFolderDialogProps) {
@@ -50,38 +50,34 @@ export default function CreateFolderDialog({ onClose, parentGroupId = null }: Cr
 			primaryAction={{
 				label: 'Create',
 				onClick: onSubmit,
-				icon: <CreateNewFolderIcon />,
+				icon: <IconFolderPlus size={20} />,
 				disabled: !name || isSubmitting || isPending,
 			}}
 			onClose={onClose}
 			width={450}
 		>
-			<Typography fontSize={13} mb={2}>
+			<span style={{ fontSize: 13 }}>
 				Create a new folder to organize your documents.
-			</Typography>
+			</span>
 			<form>
-				<TextField
+				<Input
 					id="name"
 					label="Folder Name"
 					placeholder="e.g., Police Reports"
 					fullWidth
-					variant="outlined"
 					error={!!errors.name}
-					helperText={errors.name?.message}
-					sx={{ ...styles.textFieldOverrides, mb: '20px' }}
+					errorText={errors.name?.message}
+					style={{ marginBottom: 20 }}
 					{...register('name', { required: 'Folder name is required' })}
 				/>
-				<TextField
+				<Textarea
 					id="description"
 					label="Description (optional)"
 					placeholder="Brief description of this folder"
 					fullWidth
-					multiline
 					rows={3}
-					variant="outlined"
 					error={!!errors.description}
-					helperText={errors.description?.message}
-					sx={styles.textFieldOverrides}
+					errorText={errors.description?.message}
 					{...register('description')}
 				/>
 			</form>
@@ -89,14 +85,4 @@ export default function CreateFolderDialog({ onClose, parentGroupId = null }: Cr
 	);
 }
 
-const styles = {
-	textFieldOverrides: {
-		'& .MuiInputBase-root': {
-			padding: '2px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 15,
-			padding: '2px 5px',
-		},
-	},
-};
+const styles = {};

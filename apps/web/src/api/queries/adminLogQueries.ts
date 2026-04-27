@@ -1,6 +1,7 @@
-import { ProtectedContext } from '@/server/trpc/trpc';
-import { EntityName } from '@/api/utils/adminActionLogger';
 import { sql } from 'kysely';
+import { ProtectedContext } from '@/server/trpc/trpc';
+import { EntityName } from '@/api/utils/activityLogger';
+import type { ListAdminConfigLogsInput } from '@/schemas/adminLogSchemas';
 
 /**
  * Get admin action logs for a specific claim.
@@ -16,7 +17,7 @@ import { sql } from 'kysely';
  */
 export async function getAdminLogsByClaim(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	limit: number = 10
 ) {
 	// Use the new claim_activity_logs table which has claim_id indexing
@@ -120,4 +121,112 @@ export async function getAdminLogsByEntity(
 			.limit(limit)
 			.execute();
 	}
+}
+
+export async function listAdminConfigLogs(ctx: ProtectedContext, input: ListAdminConfigLogsInput) {
+	const { limit, cursor, startDate, endDate, entityName, userId } = input;
+
+	let query = ctx.db
+		.selectFrom('admin_config_logs')
+		.innerJoin('users', 'admin_config_logs.user_id', 'users.id')
+		.select([
+			'admin_config_logs.id',
+			'admin_config_logs.entity_id',
+			'admin_config_logs.entity_name',
+			'admin_config_logs.action',
+			'admin_config_logs.created_at',
+			'admin_config_logs.value',
+			'users.id as user_id',
+			'users.first as first_name',
+			'users.last as last_name',
+			'users.email as user_email',
+		])
+		.where('admin_config_logs.client_id', '=', ctx.session.user.client_id);
+
+	if (entityName) {
+		query = query.where('admin_config_logs.entity_name', '=', entityName);
+	}
+
+	if (userId) {
+		query = query.where('admin_config_logs.user_id', '=', userId);
+	}
+
+	if (startDate) {
+		query = query.where('admin_config_logs.created_at', '>=', new Date(startDate));
+	}
+
+	if (endDate) {
+		query = query.where('admin_config_logs.created_at', '<=', new Date(endDate));
+	}
+
+	if (cursor) {
+		const cursorDate = new Date(cursor.createdAt);
+		query = query.where((eb) =>
+			eb.or([
+				eb('admin_config_logs.created_at', '<', cursorDate),
+				eb.and([
+					eb('admin_config_logs.created_at', '=', cursorDate),
+					eb('admin_config_logs.id', '<', cursor.id),
+				]),
+			])
+		);
+	}
+
+	const rows = await query
+		.orderBy('admin_config_logs.created_at', 'desc')
+		.orderBy('admin_config_logs.id', 'desc')
+		.limit(limit + 1)
+		.execute();
+
+	const hasNextPage = rows.length > limit;
+	const trimmedRows = hasNextPage ? rows.slice(0, limit) : rows;
+	const lastRow = trimmedRows[trimmedRows.length - 1];
+	const nextCursor = hasNextPage && lastRow
+		? {
+				createdAt:
+					lastRow.created_at instanceof Date
+						? lastRow.created_at.toISOString()
+						: new Date(lastRow.created_at).toISOString(),
+				id: lastRow.id,
+			}
+		: null;
+
+	return {
+		rows: trimmedRows,
+		nextCursor,
+		hasNextPage,
+	};
+}
+
+/**
+ * Get system overview stats in a single DB round-trip.
+ * Returns admin actions today, reference data entity count, and statute rule count.
+ */
+export async function getSystemStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	const counts = await ctx.db.selectNoFrom(({ selectFrom }) => [
+		// Admin config actions today
+		selectFrom('admin_config_logs')
+			.where('client_id', '=', clientId)
+			.where('created_at', '>=', sql<Date>`current_date`)
+			.select(({ fn }) => fn.countAll<number>().as('c'))
+			.as('admin_actions_today'),
+		// Reference data lists (client-scoped)
+		selectFrom('reference_list')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.select(({ fn }) => fn.countAll<number>().as('c'))
+			.as('reference_data_entities'),
+		// Statute rules (global table, no client_id)
+		selectFrom('statute_rule')
+			.select(({ fn }) => fn.countAll<number>().as('c'))
+			.as('active_statute_rules'),
+	]).executeTakeFirstOrThrow();
+
+	return {
+		adminActionsToday: Number(counts.admin_actions_today),
+		referenceDataEntities: Number(counts.reference_data_entities),
+		activeStatuteRules: Number(counts.active_statute_rules),
+	};
 }

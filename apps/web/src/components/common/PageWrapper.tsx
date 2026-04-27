@@ -1,77 +1,63 @@
 'use client';
+
 import { PropsWithChildren, useMemo } from 'react';
 import Sidebar, { NavItem } from './Sidebar';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import Dashboard from '@mui/icons-material/Dashboard';
-import Search from '@mui/icons-material/Search';
-import Security from '@mui/icons-material/Security';
-import FolderOpen from '@mui/icons-material/FolderOpen';
-import Business from '@mui/icons-material/Business';
+import {
+	IconFileSearch,
+	IconLayoutDashboard,
+	IconShield,
+	IconFolder,
+	IconBuilding,
+} from '@tabler/icons-react';
+import ClaimsStackIcon from './ClaimsStackIcon';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { Box } from '@mui/material';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
-import { BG_SECONDARY } from '@/styles/theme';
+import AppHeader from './AppHeader';
+import css from './PageWrapper.module.css';
 
-export default function PageWrapper({
-	bgcolor = BG_SECONDARY,
-	children,
-}: { bgcolor?: string } & PropsWithChildren) {
+export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const { data: claim } = useClaimTrpc().get(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	const navItems = useMemo(() => {
 		const items: NavItem[] = [
-			{ label: 'Home', route: '/home', icon: <Search sx={{ fontSize: 23 }} /> },
-			{ label: 'Dashboard', route: '/dashboard', icon: <Dashboard sx={{ fontSize: 23 }} /> },
-			{ label: 'Documents', route: '/documents', icon: <FolderOpen sx={{ fontSize: 23 }} /> },
-			{ label: 'Parties', route: '/parties', icon: <Business sx={{ fontSize: 23 }} /> },
+			{ label: 'Home', route: '/home', icon: <IconLayoutDashboard size={23} /> },
+			{ label: 'My Claims', route: '/my-claims', icon: <ClaimsStackIcon /> },
+			{ label: 'Documents', route: '/documents', icon: <IconFolder size={23} /> },
+			{ label: 'Parties', route: '/parties', icon: <IconBuilding size={23} /> },
 		];
 		if (claim) {
 			items.push({
 				label: claim.claim_number ?? '',
-				route: '/checklist',
-				icon: <ContentPasteSearch sx={{ fontSize: 23 }} />,
+				route: '/checklists',
+				icon: <IconFileSearch size={23} />,
 			});
 		}
 		if (isAdmin || isSuperAdmin) {
-			items.push({ label: 'Admin', route: '/admin', icon: <Security sx={{ fontSize: 23 }} /> });
+			items.push({ label: 'Admin', route: '/admin', icon: <IconShield size={23} /> });
 		}
 		return items;
 	}, [isAdmin, isSuperAdmin, claim]);
 
 	return (
-		<Box
-			sx={{
-				width: '100vw',
-				height: '100vh',
-				display: 'flex',
-				justifyContent: 'flex-start',
-				alignItems: 'flex-start',
-				bgcolor,
-			}}
+		<div
+			className={css.wrapper}
+			style={bgcolor ? { backgroundColor: bgcolor } : undefined}
 		>
 			<Sidebar items={navItems} />
-			<Box
-				sx={{
-					flex: 1,
-					minWidth: 0,
-					ml: '60px',
-					height: '100%',
-					display: 'flex',
-					flexDirection: 'column',
-					justifyContent: 'flex-start',
-					alignItems: 'flex-start',
-				}}
-			>
-				{children}
-			</Box>
-		</Box>
+			<div className={css.main}>
+				<AppHeader />
+				<div className={css.content}>
+					{children}
+				</div>
+			</div>
+		</div>
 	);
 }

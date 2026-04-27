@@ -1,6 +1,7 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as statuteQueries from '@/api/queries/statuteQueries';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import type { StatuteRules, NegligenceType } from '@/schemas/statuteSchemas';
 
 // ============================================================================

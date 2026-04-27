@@ -38,13 +38,7 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		const docId = parseInt(docIdStr, 10);
-		if (isNaN(docId)) {
-			return NextResponse.json(
-				{ error: 'Invalid document ID' },
-				{ status: 400 }
-			);
-		}
+		const docId = docIdStr;
 
 		// Get document from database and verify access
 		const doc = await db

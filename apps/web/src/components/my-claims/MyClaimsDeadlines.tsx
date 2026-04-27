@@ -1,121 +1,171 @@
 'use client';
 
-import { Box, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import { useDeadlineTrpc } from '@/hooks/trpc/useDeadlineTrpc';
+import { useState, useMemo } from 'react';
+import Dropdown from '@/components/ui/Dropdown';
+import { useDeadlineTrpc, Deadline } from '@/hooks/trpc/useDeadlineTrpc';
 import DeadlineListItem from '@/components/common/DeadlineListItem';
 import { useRouter } from 'next/navigation';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
+import Card from '@/components/ui/Card';
 import dayjs from 'dayjs';
-import WarningAmber from '@mui/icons-material/WarningAmber';
-import AccessTime from '@mui/icons-material/AccessTime';
+import { DeadlineStatus } from '@/config/enums';
+import { IconCalendar } from '@tabler/icons-react';
+import Skeleton from '@/components/ui/Skeleton';
+
+type DeadlineFilter = 'all' | 'pending' | 'completed' | 'overdue';
 
 export default function MyClaimsDeadlines() {
 	const router = useRouter();
+	const [filter, setFilter] = useState<DeadlineFilter>('all');
 	const { data = { rows: [], count: 0 }, isLoading } = useDeadlineTrpc().listDeadlines(
 		{ personalOnly: true },
 		{ refetchOnMount: 'always' }
 	);
 	const deadlines = data.rows;
 
-	const handleClaimClick = (claimId: number) => {
-		router.push(`/claims/${claimId}`);
+	const handleClaimClick = (claimId: string) => {
+		router.push(`/my-claims/${claimId}`);
 	};
 
-	// Calculate overdue and upcoming
-	const now = dayjs();
-	const overdue = deadlines.filter((d) => dayjs(d.deadline_date).isBefore(now));
-	const upcoming = deadlines.filter(
-		(d) => dayjs(d.deadline_date).isAfter(now) && dayjs(d.deadline_date).isBefore(now.add(7, 'days'))
-	);
+	const handleFilterChange = (value: string | number) => {
+		setFilter(value as DeadlineFilter);
+	};
+
+	// Calculate counts and filter deadlines
+	const { counts, filteredDeadlines } = useMemo(() => {
+		const now = dayjs();
+
+		const isOverdue = (d: Deadline) => d.status === DeadlineStatus.PENDING && dayjs(d.deadline_date).isBefore(now);
+		const isPending = (d: Deadline) => d.status === DeadlineStatus.PENDING && !dayjs(d.deadline_date).isBefore(now);
+		const isCompleted = (d: Deadline) => d.status === DeadlineStatus.MET || d.status === DeadlineStatus.MISSED;
+
+		const overdueList = deadlines.filter(isOverdue);
+		const pendingList = deadlines.filter(isPending);
+		const completedList = deadlines.filter(isCompleted);
+
+		const counts = {
+			all: deadlines.length,
+			pending: pendingList.length,
+			completed: completedList.length,
+			overdue: overdueList.length,
+		};
+
+		let filtered: Deadline[];
+		switch (filter) {
+			case 'overdue':
+				filtered = overdueList;
+				break;
+			case 'pending':
+				filtered = pendingList;
+				break;
+			case 'completed':
+				filtered = completedList;
+				break;
+			default:
+				filtered = deadlines;
+		}
+
+		return { counts, filteredDeadlines: filtered };
+	}, [deadlines, filter]);
 
 	return (
-		<Paper sx={styles.container}>
-			<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT} marginBottom={1.5}>
+		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					padding: '12px 16px',
+					fontSize: 13,
+					fontWeight: 600,
+					color: 'var(--text-primary)',
+					backgroundColor: 'var(--bg-secondary)',
+					borderBottom: '1px solid var(--border)',
+				}}
+			>
+				<IconCalendar size={16} style={{ marginRight: 8 }} />
 				Related Deadlines
-			</Typography>
+			</div>
+			<div style={{ padding: 16 }}>
+				{isLoading ? (
+					<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+						<Skeleton variant="rect" height={40} />
+						<Skeleton variant="rect" height={60} />
+						<Skeleton variant="rect" height={60} />
+					</div>
+				) : (
+					<>
+						{/* Filter Dropdown */}
+						<div style={{ marginBottom: 16, minWidth: 180 }}>
+							<Dropdown
+								options={[
+									{ value: 'all', label: `All (${counts.all})` },
+									{ value: 'pending', label: `Upcoming (${counts.pending})` },
+									{ value: 'overdue', label: `Overdue (${counts.overdue})` },
+									{ value: 'completed', label: `Completed (${counts.completed})` },
+								]}
+								value={filter}
+								onChange={handleFilterChange}
+								size="sm"
+							/>
+						</div>
 
-			{isLoading ? (
-				<Stack spacing={1}>
-					<Skeleton variant="rectangular" height={40} />
-					<Skeleton variant="rectangular" height={60} />
-					<Skeleton variant="rectangular" height={60} />
-				</Stack>
-			) : (
-				<>
-					{/* Deadline Counts */}
-					<Box display="flex" gap={2} marginBottom={2}>
-						<Box display="flex" alignItems="center" gap={0.5}>
-							<WarningAmber sx={{ fontSize: 16, color: theme.palette.error.main }} />
-							<Typography fontSize={12} color="text.secondary">
-								<strong>{overdue.length}</strong> Overdue
-							</Typography>
-						</Box>
-						<Box display="flex" alignItems="center" gap={0.5}>
-							<AccessTime sx={{ fontSize: 16, color: theme.palette.warning.main }} />
-							<Typography fontSize={12} color="text.secondary">
-								<strong>{upcoming.length}</strong> Upcoming
-							</Typography>
-						</Box>
-					</Box>
-
-					{/* Deadline List */}
-					<Box sx={styles.scrollContainer}>
-						{deadlines.length === 0 ? (
-							<Box sx={styles.emptyState}>
-								<Typography fontSize={13} color="text.secondary" textAlign="center" fontStyle="italic">
-									No deadlines for your claims
-								</Typography>
-							</Box>
-						) : (
-							<Stack spacing={1}>
-								{deadlines.slice(0, 10).map((deadline) => (
-									<DeadlineListItem
-										key={deadline.id}
-										deadline={deadline}
-										onClaimClick={handleClaimClick}
-										showTime={false}
-									/>
-								))}
-							</Stack>
+						{/* Deadline List */}
+						<div style={styles.scrollContainer}>
+							{filteredDeadlines.length === 0 ? (
+								<div style={styles.emptyState}>
+									<span
+										style={{
+											fontSize: 13,
+											color: 'text.secondary',
+											textAlign: 'center' as const,
+											fontStyle: 'italic',
+										}}
+									>
+										{filter === 'all' ? 'No deadlines for your claims' : `No ${filter} deadlines`}
+									</span>
+								</div>
+							) : (
+								<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+									{filteredDeadlines.slice(0, 10).map((deadline) => (
+										<DeadlineListItem
+											key={deadline.id}
+											deadline={deadline}
+											onClaimClick={handleClaimClick}
+											showTime={false}
+											showDate={true}
+										/>
+									))}
+								</div>
+							)}
+						</div>
+						{filteredDeadlines.length > 10 && (
+							<span
+								style={{
+									fontSize: 11,
+									color: 'text.secondary',
+									textAlign: 'center' as const,
+									marginTop: 1,
+								}}
+							>
+								Showing 10 of {filteredDeadlines.length} deadlines
+							</span>
 						)}
-					</Box>
-					{data.count > 10 && (
-						<Typography fontSize={11} color="text.secondary" textAlign="center" marginTop={1}>
-							Showing 10 of {data.count} deadlines
-						</Typography>
-					)}
-				</>
-			)}
-		</Paper>
+					</>
+				)}
+			</div>
+		</Card>
 	);
 }
 
 const styles = {
 	container: {
-		padding: '24px',
-		border: `1px solid ${theme.palette.divider}`,
 		height: '100%',
-		minWidth: 280,
+		width: 300,
 	},
 	scrollContainer: {
-		height: 'calc(100% - 90px)',
-		overflowY: 'auto',
-		overflowX: 'hidden',
-		paddingRight: 1,
-		'&::-webkit-scrollbar': {
-			width: '6px',
-		},
-		'&::-webkit-scrollbar-track': {
-			background: theme.palette.action.hover,
-			borderRadius: '3px',
-		},
-		'&::-webkit-scrollbar-thumb': {
-			background: theme.palette.action.selected,
-			borderRadius: '3px',
-			'&:hover': {
-				background: theme.palette.action.disabled,
-			},
-		},
+		height: 'calc(100vh - 240px)',
+		overflowY: 'auto' as const,
+		overflowX: 'hidden' as const,
+		paddingRight: 8,
 	},
 	emptyState: {
 		padding: 4,

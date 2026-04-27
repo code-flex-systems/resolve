@@ -1,0 +1,154 @@
+/* =========================================================================
+   TOOLTIP — Wrapper
+   ========================================================================= */
+
+.wrapper {
+	position: relative;
+	display: inline-flex;
+}
+
+/* =========================================================================
+   TOOLTIP — Legacy Content (kept for backwards compatibility)
+   ========================================================================= */
+
+.tooltip {
+	position: absolute;
+	pointer-events: none;
+	background: var(--text-primary);
+	color: var(--bg-primary);
+	border-radius: var(--radius-md);
+	padding: 4px 8px;
+	font-family: var(--font-sans);
+	font-size: var(--text-xs);
+	line-height: var(--leading-normal);
+	max-width: 200px;
+	width: max-content;
+	z-index: 9999;
+	opacity: 0;
+	transition: opacity var(--transition-normal);
+	white-space: normal;
+}
+
+.wrapper:hover .tooltip {
+	opacity: 1;
+}
+
+/* =========================================================================
+   TOOLTIP — Arrow (::after pseudo-element)
+   ========================================================================= */
+
+.tooltip::after {
+	content: '';
+	position: absolute;
+	border: 5px solid transparent;
+}
+
+/* =========================================================================
+   TOOLTIP — Positions (legacy absolute positioning)
+   ========================================================================= */
+
+.top {
+	transform: translate(-50%, -100%);
+}
+
+.bottom {
+	transform: translate(-50%, 0);
+}
+
+.left {
+	transform: translate(-100%, -50%);
+}
+
+.right {
+	transform: translate(0, -50%);
+}
+
+/* =========================================================================
+   TOOLTIP — Legacy position-specific arrow styles
+   ========================================================================= */
+
+.tooltip.top {
+	bottom: 100%;
+	left: 50%;
+	margin-bottom: 8px;
+}
+
+.tooltip.top::after {
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-top-color: var(--text-primary);
+}
+
+.tooltip.bottom {
+	top: 100%;
+	left: 50%;
+	margin-top: 8px;
+}
+
+.tooltip.bottom::after {
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-bottom-color: var(--text-primary);
+}
+
+.tooltip.left {
+	right: 100%;
+	top: 50%;
+	margin-right: 8px;
+}
+
+.tooltip.left::after {
+	left: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	border-left-color: var(--text-primary);
+}
+
+.tooltip.right {
+	left: 100%;
+	top: 50%;
+	margin-left: 8px;
+}
+
+.tooltip.right::after {
+	right: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	border-right-color: var(--text-primary);
+}
+
+/* =========================================================================
+   TOOLTIP — Fixed positioning (portal-based)
+   ========================================================================= */
+
+.tooltipFixed {
+	background: var(--text-primary);
+	color: var(--bg-primary);
+	border-radius: var(--radius-md);
+	padding: 4px 8px;
+	font-family: var(--font-sans);
+	font-size: var(--text-xs);
+	line-height: var(--leading-normal);
+	max-width: 200px;
+	width: max-content;
+	white-space: normal;
+	opacity: 1;
+}
+
+.tooltipFixed.top {
+	transform: translate(-50%, -100%);
+}
+
+.tooltipFixed.bottom {
+	transform: translate(-50%, 0);
+}
+
+.tooltipFixed.left {
+	transform: translate(-100%, -50%);
+}
+
+.tooltipFixed.right {
+	transform: translate(0, -50%);
+}

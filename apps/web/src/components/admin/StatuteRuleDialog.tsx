@@ -1,26 +1,13 @@
 'use client';
 
+import { IconChevronDown, IconDeviceFloppy, IconPlus, IconTrash } from '@tabler/icons-react';
+import Accordion from '@/components/ui/Accordion';
+import Input, { Textarea } from '@/components/ui/Input';
+import Dropdown from '@/components/ui/Dropdown';
+import Button from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
-import {
-	Box,
-	Button,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	Stack,
-	TextField,
-	Typography,
-	IconButton,
-	Accordion,
-	AccordionSummary,
-	AccordionDetails,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SaveIcon from '@mui/icons-material/Save';
 import BasicDialog from '../common/BasicDialog';
+import DateField from '../common/DateField';
 import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { STATUTE_TORT_TYPES, STATUTE_LOB_TYPES } from '@/config/statuteConfig';
@@ -130,215 +117,180 @@ export default function StatuteRuleDialog() {
 			primaryAction={{
 				label: 'Save',
 				onClick: handleSave,
-				icon: <SaveIcon />,
+				icon: <IconDeviceFloppy size={20} />,
 				disabled: isPending,
 			}}
 			onClose={handleClose}
 			width={700}
 			maxHeight="80vh"
 		>
-			<Stack sx={{ pt: 1 }}>
+			<div style={{ paddingTop: 8 }}>
 				{/* Negligence Law Section */}
-				<Accordion defaultExpanded>
-					<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-						<Typography fontWeight={500}>Negligence Law</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-						<Stack spacing={2}>
-							<Box display="flex" alignItems="center" gap={2}>
-								<FormControl size="small" sx={{ minWidth: 200 }}>
-									<InputLabel>Negligence Type</InputLabel>
-									<Select
-										value={negligenceType ?? ''}
-										label="Negligence Type"
-										onChange={(e) =>
-											setNegligenceType((e.target.value as NegligenceType) || null)
-										}
-									>
-										<MenuItem value="">
-											<em>Not Set</em>
-										</MenuItem>
-										{negligenceTypeOptions.map((opt) => (
-											<MenuItem key={opt.value} value={opt.value}>
-												{opt.label}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
-								<TextField
-									label="Bar Percentage"
-									size="small"
-									value={
-										negligenceType
-											? getBarPercentForType(negligenceType) !== null
-												? `${getBarPercentForType(negligenceType)}%`
-												: 'Varies'
-											: ''
-									}
-									disabled
-									sx={{ width: 120 }}
+				<Accordion title="Negligence Law" defaultOpen>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+							<div style={{ minWidth: 200 }}>
+								<Dropdown
+									label="Negligence Type"
+									options={[
+										{ value: '', label: 'Not Set' },
+										...negligenceTypeOptions.map((opt) => ({
+											value: opt.value,
+											label: opt.label,
+										})),
+									]}
+									value={negligenceType ?? ''}
+									onChange={(v) => setNegligenceType((String(v) as NegligenceType) || null)}
 								/>
-							</Box>
-							<TextField
-								label="Notes"
-								size="small"
-								value={negligenceNotes}
-								onChange={(e) => setNegligenceNotes(e.target.value)}
-								placeholder="Optional notes (e.g., date-based changes, special rules)"
-								fullWidth
-								multiline
-								rows={2}
+							</div>
+							<Input
+								label="Bar Percentage"
+								value={
+									negligenceType
+										? getBarPercentForType(negligenceType) !== null
+											? `${getBarPercentForType(negligenceType)}%`
+											: 'Varies'
+										: ''
+								}
+								disabled
+								style={{ width: 120 }}
 							/>
-						</Stack>
-					</AccordionDetails>
+						</div>
+						<Textarea
+							label="Notes"
+							value={negligenceNotes}
+							onChange={(e) => setNegligenceNotes(e.target.value)}
+							placeholder="Optional notes (e.g., date-based changes, special rules)"
+							fullWidth
+							rows={2}
+						/>
+					</div>
 				</Accordion>
 
 				{/* Tort Type Sections */}
 				{STATUTE_TORT_TYPES.map((tort) => {
 					const config = getTortConfig(tort.value);
 					return (
-						<Accordion key={tort.value} defaultExpanded>
-							<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-								<Typography fontWeight={500}>{tort.label}</Typography>
-							</AccordionSummary>
-							<AccordionDetails>
-								<Stack spacing={2}>
-									{/* Default Years */}
-									<Box display="flex" alignItems="center" gap={2}>
-										<TextField
-											label="Default Years"
-											type="number"
-											size="small"
-											value={config.default_years ?? ''}
-											onChange={(e) => {
-												const val = e.target.value;
-												updateTortConfig(tort.value, {
-													...config,
-													default_years: val === '' ? null : parseInt(val, 10),
-												});
-											}}
-											placeholder="N/A"
-											sx={{ width: 120 }}
-											InputProps={{ inputProps: { min: 0 } }}
-										/>
-										<Typography variant="body2" color="text.secondary">
-											Leave blank for N/A (no limit)
-										</Typography>
-									</Box>
+						<Accordion key={tort.value} title={tort.label} defaultOpen>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+								{/* Default Years */}
+								<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+									<Input
+										label="Default Years"
+										type="number"
+										value={config.default_years ?? ''}
+										onChange={(e) => {
+											const val = e.target.value;
+											updateTortConfig(tort.value, {
+												...config,
+												default_years: val === '' ? null : parseInt(val, 10),
+											});
+										}}
+										placeholder="N/A"
+										style={{ width: 120 }}
+										min={0}
+									/>
+									<span style={{ color: 'var(--text-secondary)' }}>
+										Leave blank for N/A (no limit)
+									</span>
+								</div>
 
-									{/* Conditional Rules */}
-									<Box>
-										<Typography variant="subtitle2" gutterBottom>
-											Conditional Rules
-										</Typography>
-										<Typography
-											variant="caption"
-											color="text.secondary"
-											sx={{ display: 'block', mb: 1 }}
+								{/* Conditional Rules */}
+								<div>
+									<span>
+										Conditional Rules
+									</span>
+									<span
+										style={{  color: 'var(--text-secondary)' ,  display: 'block', marginBottom: 8  }}
+									>
+										Add rules for specific LOB or date ranges. First matching rule wins.
+									</span>
+									{config.rules.map((rule, idx) => (
+										<div
+											key={idx}
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: 8,
+												marginBottom: 8,
+												padding: 8,
+												backgroundColor: 'var(--bg-secondary)',
+												borderRadius: 4,
+												flexWrap: 'wrap',
+											}}
 										>
-											Add rules for specific LOB or date ranges. First matching rule wins.
-										</Typography>
-										{config.rules.map((rule, idx) => (
-											<Box
-												key={idx}
-												sx={{
-													display: 'flex',
-													alignItems: 'center',
-													gap: 1,
-													mb: 1,
-													p: 1,
-													bgcolor: 'grey.50',
-													borderRadius: 1,
-													flexWrap: 'wrap',
-												}}
+											<div style={{ minWidth: 130 }}>
+												<Dropdown
+													label="LOB"
+													options={[
+														{ value: '', label: 'Any' },
+														...STATUTE_LOB_TYPES.map((lob) => ({
+															value: lob.value,
+															label: lob.label,
+														})),
+													]}
+													value={rule.lob || ''}
+													onChange={(v) =>
+														updateConditionalRule(tort.value, idx, {
+															lob: String(v) || undefined,
+														})
+													}
+													size="sm"
+												/>
+											</div>
+											<DateField
+												label="From Date"
+												value={rule.date_from ?? null}
+												onChange={(val) =>
+													updateConditionalRule(tort.value, idx, {
+														date_from: val || undefined,
+													})
+												}
+												sx={{ width: 150 }}
+											/>
+											<DateField
+												label="To Date"
+												value={rule.date_to ?? null}
+												onChange={(val) =>
+													updateConditionalRule(tort.value, idx, {
+														date_to: val || undefined,
+													})
+												}
+												sx={{ width: 150 }}
+											/>
+											<Input
+												label="Years"
+												type="number"
+												value={rule.years}
+												onChange={(e) =>
+													updateConditionalRule(tort.value, idx, {
+														years: parseInt(e.target.value, 10) || 0,
+													})
+												}
+												style={{ width: 80 }}
+												min={0}
+											/>
+											<Button variant="icon" size="sm"
+												color="error"
+												onClick={() => removeConditionalRule(tort.value, idx)}
 											>
-												<FormControl size="small" sx={{ minWidth: 130 }}>
-													<InputLabel>LOB</InputLabel>
-													<Select
-														value={rule.lob || ''}
-														label="LOB"
-														onChange={(e) =>
-															updateConditionalRule(tort.value, idx, {
-																lob: e.target.value || undefined,
-															})
-														}
-													>
-														<MenuItem value="">
-															<em>Any</em>
-														</MenuItem>
-														{STATUTE_LOB_TYPES.map((lob) => (
-															<MenuItem key={lob.value} value={lob.value}>
-																{lob.label}
-															</MenuItem>
-														))}
-													</Select>
-												</FormControl>
-												<TextField
-													label="From Date"
-													type="date"
-													size="small"
-													value={rule.date_from ?? ''}
-													onChange={(e) =>
-														updateConditionalRule(tort.value, idx, {
-															date_from: e.target.value || undefined,
-														})
-													}
-													slotProps={{
-														inputLabel: { shrink: true },
-													}}
-													sx={{ width: 150 }}
-												/>
-												<TextField
-													label="To Date"
-													type="date"
-													size="small"
-													value={rule.date_to ?? ''}
-													onChange={(e) =>
-														updateConditionalRule(tort.value, idx, {
-															date_to: e.target.value || undefined,
-														})
-													}
-													slotProps={{
-														inputLabel: { shrink: true },
-													}}
-													sx={{ width: 150 }}
-												/>
-												<TextField
-													label="Years"
-													type="number"
-													size="small"
-													value={rule.years}
-													onChange={(e) =>
-														updateConditionalRule(tort.value, idx, {
-															years: parseInt(e.target.value, 10) || 0,
-														})
-													}
-													sx={{ width: 80 }}
-													InputProps={{ inputProps: { min: 0 } }}
-												/>
-												<IconButton
-													size="small"
-													color="error"
-													onClick={() => removeConditionalRule(tort.value, idx)}
-												>
-													<DeleteIcon fontSize="small" />
-												</IconButton>
-											</Box>
-										))}
-										<Button
-											size="small"
-											startIcon={<AddIcon />}
-											onClick={() => addConditionalRule(tort.value)}
-										>
-											Add Rule
-										</Button>
-									</Box>
-								</Stack>
-							</AccordionDetails>
+												<IconTrash size={20} />
+											</Button>
+										</div>
+									))}
+									<Button
+										size="sm"
+										startIcon={<IconPlus size={20} />}
+										onClick={() => addConditionalRule(tort.value)}
+									>
+										Add Rule
+									</Button>
+								</div>
+							</div>
 						</Accordion>
 					);
 				})}
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

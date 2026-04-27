@@ -1,10 +1,7 @@
-import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
-import { useState } from 'react';
-import BasicPopper from './BasicPopper';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import React from 'react';
 import { RecoveryStatus } from '@/config/enums';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import AttachMoney from '@mui/icons-material/AttachMoney';
+import Dropdown from '@/components/ui/Dropdown';
 
 export default function RecoveryStatusSelect({
 	recoveryStatus,
@@ -21,59 +18,23 @@ export default function RecoveryStatusSelect({
 	text?: string;
 	disabled?: boolean;
 }) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
-
-	const displayLabel = recoveryStatus ? formatRecoveryStatus(recoveryStatus) : text;
+	const dropdownOptions = [
+		...(clearable ? [{ value: '', label: 'All' }] : []),
+		...Object.values(RecoveryStatus).map((status) => ({
+			value: status,
+			label: formatRecoveryStatus(status),
+		})),
+	];
 
 	return (
-		<>
-			<Chip
-				label={displayLabel}
-				icon={<AttachMoney sx={{ color: recoveryStatus ? undefined : BASE_COLOR_LIGHT }} />}
-				onClick={(e) => {
-					setAnchorEl(e.currentTarget);
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				onDelete={recoveryStatus && clearable ? () => setRecoveryStatus(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: recoveryStatus ? undefined : BASE_COLOR_LIGHT,
-					},
-				}}
-				disabled={disabled}
-			/>
-			{!!anchorEl && (
-				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						{Object.values(RecoveryStatus).map((status) => (
-							<MenuItem
-								key={status}
-								selected={recoveryStatus === status}
-								value={status}
-								onClick={() => {
-									setRecoveryStatus(status);
-									setAnchorEl(null);
-								}}
-							>
-								<Typography fontSize={13}>{formatRecoveryStatus(status)}</Typography>
-							</MenuItem>
-						))}
-					</Paper>
-				</BasicPopper>
-			)}
-		</>
+		<Dropdown inlineLabel
+			label="Recovery Status"
+			options={dropdownOptions}
+			value={recoveryStatus ?? ''}
+			onChange={(val) => setRecoveryStatus(val === '' ? null : String(val))}
+			placeholder={text}
+			size="sm"
+			disabled={disabled}
+		/>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-	},
-};

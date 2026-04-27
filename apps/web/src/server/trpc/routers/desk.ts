@@ -21,6 +21,8 @@ import {
 	removeUserFromDeskLocationInput,
 	updateUserDeskLocationPrioritiesInput,
 	updateUsersDeskAssignmentsInput,
+	createClaimTransitionInput,
+	getClaimTransitionsInput,
 } from '@/schemas/deskSchemas';
 
 export const deskRouter = router({
@@ -252,5 +254,38 @@ export const deskRouter = router({
 		.mutation(async ({ input, ctx }) => {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return deskController.updateUsersDeskAssignments(ctx, input);
+		}),
+
+	/**
+	 * Get current user's desk assignments with claim counts
+	 * Used for the My Desk Assignments dashboard metric
+	 * No admin role required - users can view their own assignments
+	 */
+	getMyDeskAssignments: protectedProcedure.query(async ({ ctx }) => {
+		return deskController.getMyDeskAssignmentsWithClaimCounts(ctx);
+	}),
+
+	// ========================================================================
+	// CLAIM DESK LOCATION TRANSITION OPERATIONS
+	// ========================================================================
+
+	/**
+	 * Record a claim transition to a new desk location (Admin only)
+	 */
+	createClaimTransition: protectedProcedure
+		.input(createClaimTransitionInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return deskController.createClaimTransition(ctx, input);
+		}),
+
+	/**
+	 * Get transition history for a claim (Admin only)
+	 */
+	getClaimTransitions: protectedProcedure
+		.input(getClaimTransitionsInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return deskController.getClaimTransitions(ctx, input);
 		}),
 });

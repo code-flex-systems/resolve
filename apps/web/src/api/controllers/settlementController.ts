@@ -2,7 +2,8 @@ import * as settlementQueries from '@/api/queries/settlementQueries';
 import * as recoveryQueries from '@/api/queries/recoveryQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import type { SettlementParams, SettlementUpdateParams } from '@/schemas/settlementSchemas';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 // =====================================================================
 // SETTLEMENT CONTROLLERS
@@ -21,7 +22,7 @@ export async function createSettlement(
 		claimId,
 		params,
 	}: {
-		claimId: number;
+		claimId: string;
 		params: SettlementParams;
 	}
 ) {
@@ -59,7 +60,7 @@ export async function createSettlement(
  */
 export async function getSettlement(
 	ctx: ProtectedContext,
-	{ settlementId }: { settlementId: number }
+	{ settlementId }: { settlementId: string }
 ) {
 	return await settlementQueries.getSettlement(ctx, settlementId);
 }
@@ -73,7 +74,7 @@ export async function getSettlement(
  */
 export async function listSettlements(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId }: { claimId: string }
 ) {
 	return await settlementQueries.getSettlementsByClaimId(ctx, claimId);
 }
@@ -87,7 +88,7 @@ export async function listSettlements(
  */
 export async function getSettlementsForDropdown(
 	ctx: ProtectedContext,
-	{ claimId }: { claimId: number }
+	{ claimId }: { claimId: string }
 ) {
 	return await settlementQueries.getSettlementsForDropdown(ctx, claimId);
 }
@@ -105,7 +106,7 @@ export async function updateSettlement(
 		settlementId,
 		params,
 	}: {
-		settlementId: number;
+		settlementId: string;
 		params: SettlementUpdateParams;
 	}
 ) {
@@ -140,8 +141,8 @@ export async function deleteSettlement(
 		settlementId,
 		claimId,
 	}: {
-		settlementId: number;
-		claimId: number;
+		settlementId: string;
+		claimId: string;
 	}
 ) {
 	await ctx.db.transaction().execute(async (trx) => {

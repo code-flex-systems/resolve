@@ -1,8 +1,10 @@
+import { IconFileSearch } from '@tabler/icons-react';
+import Card from '@/components/ui/Card';
+import Collapse from '@/components/ui/Collapse';
+import Chip from '@/components/ui/Chip';
 import { useAdminStore } from '@/stores/useAdminStore';
 import BasicDialog from '../common/BasicDialog';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { Box, Chip, Collapse, Fade, Paper, Stack, Typography } from '@mui/material';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { formatAmount, formatMDY } from '@/lib/utils/utils';
 import StackedMetric from '../checklist/StackedMetric';
 import ChecklistSelect from '../common/ChecklistSelect';
@@ -28,7 +30,7 @@ export default function ClaimAssignmentDialog() {
 		isFetching: isFetchingNextClaim,
 		refetch,
 	} = useClaimTrpc().getNextToAssign(
-		{ feedId: selectedFeedId ?? -1, offset: progress },
+		{ feedId: selectedFeedId ?? '', offset: progress },
 		{ enabled: !!selectedFeedId, staleTime: 0 }
 	);
 	const { mutateAsync: assignClaim } = useClaimTrpc().assign;
@@ -82,8 +84,8 @@ export default function ClaimAssignmentDialog() {
 			onClose={() => toggleClaimAssignmentDialog()}
 			width={550}
 		>
-			<Stack width="100%" height="100%" display="flex" justifyContent="center" alignItems="center">
-				<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pb: 1 }}>
+			<div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingBottom: 8 }}>
 					<ChecklistSelect
 						checklist={checklist}
 						setChecklist={setChecklist}
@@ -91,60 +93,54 @@ export default function ClaimAssignmentDialog() {
 						clearable={false}
 						disabled={!isFetchingNextClaim && !nextClaimData.claim}
 					/>
-				</Box>
-				<Paper
-					elevation={0}
-					sx={{
+				</div>
+				<div
+					style={{
 						height: 345,
-						borderRadius: 1.5,
+						borderRadius: 6,
 						borderColor: 'primary.main',
-						p: 2,
-						bgcolor: 'rgba(34, 180, 255, 0.05)',
+						padding: 16,
+						backgroundColor: 'rgba(34, 180, 255, 0.05)',
 					}}
 				>
-					<Fade key={isFetchingNextClaim ? 'loading' : 'data'} in={true} unmountOnExit timeout={800}>
-						<Stack width="100%" height="100%" display="flex" justifyContent="center" alignItems="center">
+					<div>
+						<div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 							{isFetchingNextClaim && (
-								<Typography fontStyle="italic" fontSize={13}>
+								<span style={{ fontStyle: 'italic' }}>
 									Loading next claim...
-								</Typography>
+								</span>
 							)}
 							{!isFetchingNextClaim && !nextClaimData.claim && (
-								<Typography fontSize={13}>You're all caught up!</Typography>
+								<span style={{ fontSize: 13 }}>You're all caught up!</span>
 							)}
 							{!isFetchingNextClaim && !!nextClaimData.claim && (
 								<>
-									<Box
-										sx={{
+									<div
+										style={{
 											width: '100%',
 											display: 'flex',
 											justifyContent: 'flex-start',
 											alignItems: 'flex-start',
-											px: 1,
-											pb: 2,
+											paddingInline: 8,
+											paddingBottom: 16,
 										}}
 									>
 										<StackedMetric
 											value={nextClaimData.claim.claim_number!}
 											subtext="Claim"
-											icon={<ContentPasteSearch sx={{ color: 'primary.main', fontSize: 20 }} />}
+											icon={<IconFileSearch size={20} style={{ color: 'var(--text-accent)' }} />}
 										/>
-									</Box>
-									<Box
-										sx={{
+									</div>
+									<div
+										style={{
 											width: '100%',
 											display: 'flex',
 											justifyContent: 'flex-start',
 											alignItems: 'flex-start',
-											px: 2,
+											paddingInline: 16,
 										}}
 									>
-										<Stack
-											width="50%"
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="flex-start"
-										>
+										<div style={{ width: '50%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 											<StackedRow primary="Client" secondary={nextClaimData.claim.client} />
 											<StackedRow
 												primary="Client Adjuster"
@@ -159,13 +155,8 @@ export default function ClaimAssignmentDialog() {
 												primary="Recovery Status"
 												secondary={formatRecoveryStatus(nextClaimData.claim.recovery_status)}
 											/>
-										</Stack>
-										<Stack
-											width="50%"
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="flex-start"
-										>
+										</div>
+										<div style={{ width: '50%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
 											<StackedRow
 												primary="Date of Loss"
 												secondary={formatMDY(
@@ -188,34 +179,32 @@ export default function ClaimAssignmentDialog() {
 														: '$0.00'
 												}
 											/>
-										</Stack>
-									</Box>
+										</div>
+									</div>
 								</>
 							)}
-						</Stack>
-					</Fade>
-				</Paper>
-				<Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pt: 1 }}>
-					<Stack width="100%" display="flex" justifyContent="center" alignItems="center">
-						<Box sx={{ bgcolor: 'white', m: 1, borderRadius: 1 }}>
+						</div>
+					</div>
+				</div>
+				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 8 }}>
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+						<div style={{ backgroundColor: 'white', margin: 8, borderRadius: 4 }}>
 							<UserSearch
 								selectedUser={user}
 								setSelectedUser={setUser}
 								disabled={!isFetchingNextClaim && !nextClaimData.claim}
 								fontSize={13}
 							/>
-						</Box>
+						</div>
 
-						<Collapse in={!!user}>
+						<Collapse open={!!user}>
 							<Chip
-								label={`${formattedAssignee} <${user?.email}>`}
-								onDelete={() => setUser(null)}
-								color="primary"
-							/>
+								color="info"
+						>{`${formattedAssignee} <${user?.email}>`}</Chip>
 						</Collapse>
-					</Stack>
-				</Box>
-			</Stack>
+					</div>
+				</div>
+			</div>
 		</BasicDialog>
 	);
 }

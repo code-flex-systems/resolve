@@ -1,8 +1,11 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as taskQueries from '@/api/queries/taskQueries';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
-import { logUserWorkflowAction } from '@/api/utils/activityLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName, LogAction, logAction, logUserWorkflowAction } from '@/api/utils/activityLogger';
 import { TaskStatus, TaskType } from '@/config/enums';
+import { TRPCError } from '@trpc/server';
+import config from '@/config/config';
+import { onTaskCompleted } from '@/lib/workflow/ruleEventHooks';
 
 // ============================================================================
 // TASK QUERY CONTROLLERS
@@ -14,12 +17,11 @@ import { TaskStatus, TaskType } from '@/config/enums';
 export async function getTasks(
 	ctx: ProtectedContext,
 	params: {
-		deskLocationId?: number;
-		claimId?: number;
+		deskLocationId?: string;
+		claimId?: string;
 		status?: TaskStatus;
 		taskType?: TaskType;
-		assignedBy?: string;
-		claimedBy?: string;
+		assignedTo?: string;
 		searchTerm?: string;
 		limit?: number;
 		offset?: number;
@@ -32,7 +34,7 @@ export async function getTasks(
 /**
  * Get single task by ID
  */
-export async function getTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getTask(ctx: ProtectedContext, { id }: { id: string }) {
 	return await taskQueries.getTask(ctx, id);
 }
 
@@ -45,7 +47,7 @@ export async function getTasksByClaim(
 		claimId,
 		showCancelled,
 	}: {
-		claimId: number;
+		claimId: string;
 		showCancelled?: boolean;
 	}
 ) {
@@ -64,7 +66,7 @@ export async function getTasksByDeskLocation(
 		limit,
 		offset,
 	}: {
-		deskLocationId: number;
+		deskLocationId: string;
 		status?: TaskStatus;
 		showCancelled?: boolean;
 		limit?: number;
@@ -99,7 +101,7 @@ export async function getTasksForUser(
  */
 export async function getDeskCapacity(
 	ctx: ProtectedContext,
-	{ deskLocationId, date }: { deskLocationId: number; date?: string }
+	{ deskLocationId, date }: { deskLocationId: string; date?: string }
 ) {
 	return await taskQueries.getDeskCapacity(ctx, deskLocationId, date);
 }
@@ -109,9 +111,61 @@ export async function getDeskCapacity(
  */
 export async function getTaskCountsByStatus(
 	ctx: ProtectedContext,
-	{ deskLocationId }: { deskLocationId: number }
+	{ deskLocationId }: { deskLocationId: string }
 ) {
 	return await taskQueries.getTaskCountsByStatus(ctx, deskLocationId);
+}
+
+// ============================================================================
+// TASK AUTHORIZATION HELPERS
+// ============================================================================
+
+/**
+ * Verify the task is assigned and the caller is the assigned user or an admin.
+ * Unassigned tasks can only be assigned or cancelled — not started, released, or completed.
+ * Throws NOT_FOUND if the task doesn't exist in this client.
+ * Throws FORBIDDEN if the task is unassigned or the caller isn't authorized.
+ */
+export async function requireTaskOwnership(ctx: ProtectedContext, taskId: string) {
+	const task = await taskQueries.getTaskOwnership(ctx, taskId);
+	if (!task) {
+		throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found' });
+	}
+	if (!task.assigned_to) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Task must be assigned before this action can be performed',
+		});
+	}
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	if (!isAdmin && task.assigned_to !== ctx.session.user.id) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Only the assigned user or an admin can perform this action',
+		});
+	}
+	return task;
+}
+
+/**
+ * Verify the target user belongs to the same client as the caller.
+ * Throws BAD_REQUEST if the user doesn't exist in this client.
+ */
+async function requireSameClientUser(ctx: ProtectedContext, userId: string) {
+	const user = await ctx.db
+		.selectFrom('users')
+		.select('users.id')
+		.where('users.id', '=', userId)
+		.where('users.client_id', '=', ctx.session.user.client_id)
+		.executeTakeFirst();
+	if (!user) {
+		throw new TRPCError({
+			code: 'BAD_REQUEST',
+			message: 'Target user does not belong to this organization',
+		});
+	}
 }
 
 // ============================================================================
@@ -125,16 +179,22 @@ export async function getTaskCountsByStatus(
 export async function createTask(
 	ctx: ProtectedContext,
 	input: {
-		claimId: number;
-		deskLocationId: number;
+		claimId: string;
+		deskLocationId: string;
 		taskType?: TaskType;
 		title: string;
 		description?: string;
 		deadlineDate?: string;
 		deadlineDescription?: string;
 		workUnits?: number;
+		assignedTo?: string;
 	}
 ) {
+	// Validate assignedTo user belongs to the same client (prevents cross-tenant assignment)
+	if (input.assignedTo) {
+		await requireSameClientUser(ctx, input.assignedTo);
+	}
+
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.createTask(trxCtx, input);
@@ -166,13 +226,13 @@ export async function updateTask(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: {
 			title?: string;
 			description?: string;
 			dueDate?: string | null;
 			workUnits?: number;
-			deskLocationId?: number;
+			deskLocationId?: string;
 		};
 	}
 ) {
@@ -192,17 +252,56 @@ export async function updateTask(
 }
 
 /**
- * Claim task (start working on it)
+ * Assign task to a user
+ * Validates target user belongs to the same client before assigning.
+ * Non-admins can only assign unassigned tasks (prevents stealing from another user).
  * Logs user workflow action to claim_activity_logs
  */
-export async function claimTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function assignTask(ctx: ProtectedContext, { id, userId }: { id: string; userId: string }) {
+	await requireSameClientUser(ctx, userId);
+
+	// Check current task state to prevent non-admins from stealing assignments
+	const task = await taskQueries.getTaskOwnership(ctx, id);
+	if (!task) {
+		throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found' });
+	}
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	if (!isAdmin && task.assigned_to) {
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'Task is already assigned to another user',
+		});
+	}
+
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
-		const task = await taskQueries.claimTask(trxCtx, id);
+		const task = await taskQueries.assignTask(trxCtx, id, userId);
 
 		await logUserWorkflowAction(trxCtx, {
 			claimId: task.claim_id!,
-			action: 'task_claim',
+			action: 'task_assign',
+			entityId: task.id,
+			value: { userId },
+		});
+
+		return task;
+	});
+}
+
+/**
+ * Unassign task (clear assignment)
+ * Logs user workflow action to claim_activity_logs
+ */
+export async function unassignTask(ctx: ProtectedContext, { id }: { id: string }) {
+	return await ctx.db.transaction().execute(async (trx) => {
+		const trxCtx = { ...ctx, db: trx };
+		const task = await taskQueries.unassignTask(trxCtx, id);
+
+		await logUserWorkflowAction(trxCtx, {
+			claimId: task.claim_id!,
+			action: 'task_unassign',
 			entityId: task.id,
 		});
 
@@ -211,17 +310,17 @@ export async function claimTask(ctx: ProtectedContext, { id }: { id: number }) {
 }
 
 /**
- * Unclaim task (release it back to queue)
+ * Start task (begin working on it)
  * Logs user workflow action to claim_activity_logs
  */
-export async function unclaimTask(ctx: ProtectedContext, { id }: { id: number }) {
+export async function startTask(ctx: ProtectedContext, { id }: { id: string }) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
-		const task = await taskQueries.unclaimTask(trxCtx, id);
+		const task = await taskQueries.startTask(trxCtx, id);
 
 		await logUserWorkflowAction(trxCtx, {
 			claimId: task.claim_id!,
-			action: 'task_unclaim',
+			action: 'task_start',
 			entityId: task.id,
 		});
 
@@ -235,9 +334,9 @@ export async function unclaimTask(ctx: ProtectedContext, { id }: { id: number })
  */
 export async function completeTask(
 	ctx: ProtectedContext,
-	{ id, completionNotes }: { id: number; completionNotes?: string }
+	{ id, completionNotes }: { id: string; completionNotes?: string }
 ) {
-	return await ctx.db.transaction().execute(async (trx) => {
+	const result = await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 		const task = await taskQueries.completeTask(trxCtx, id, completionNotes);
 
@@ -252,6 +351,13 @@ export async function completeTask(
 
 		return task;
 	});
+
+	// Fire-and-forget: check if any TASK_COMPLETED workflow rules should trigger
+	if (result.claim_id) {
+		void onTaskCompleted(ctx, result.id, result.claim_id);
+	}
+
+	return result;
 }
 
 /**
@@ -260,7 +366,7 @@ export async function completeTask(
  */
 export async function cancelTask(
 	ctx: ProtectedContext,
-	{ id, cancellationReason }: { id: number; cancellationReason: string }
+	{ id, cancellationReason }: { id: string; cancellationReason: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -303,7 +409,7 @@ export async function getTasksByDueDateWeek(
  */
 export async function bulkCancelTasks(
 	ctx: ProtectedContext,
-	{ ids, cancellationReason }: { ids: number[]; cancellationReason: string }
+	{ ids, cancellationReason }: { ids: string[]; cancellationReason: string }
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };

@@ -86,6 +86,7 @@ vi.mock('@/api/controllers/claimController', () => ({
 	getClaimCount: vi.fn(),
 	getRolloverClaimCount: vi.fn(),
 	createClaims: vi.fn(),
+	updateClaim: vi.fn(),
 }));
 
 vi.mock('@/api/controllers/feedController', () => ({
@@ -2549,6 +2550,112 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(caller.getNextClaimToAssign({ feedId: 1 })).rejects.toThrow(TRPCError);
+				});
+			});
+
+			describe('updateClaim - Field-Level Authorization', () => {
+				it('should allow admin to update all claim fields including restricted fields', async () => {
+					const adminCtx: Context = {
+						session: createMockSession({ role: config.ROLES.ADMIN }),
+						db,
+					};
+
+					const mockClaimController = await import('@/api/controllers/claimController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockClaimController.updateClaim).mockResolvedValue({} as any);
+
+					const caller = createCaller(claimRouter, adminCtx);
+					await expect(
+						caller.updateClaim({
+							claimId: 1,
+							claim_number: 'NEW-001',
+							recovery_status: 'in_progress',
+							substatus: 'under_review',
+							insured: 'Test Insured',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should allow contributor to update non-restricted claim fields', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const mockClaimController = await import('@/api/controllers/claimController');
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					vi.mocked(mockClaimController.updateClaim).mockResolvedValue({} as any);
+
+					const caller = createCaller(claimRouter, contributorCtx);
+					await expect(
+						caller.updateClaim({
+							claimId: 1,
+							insured: 'Updated Insured',
+							client: 'Updated Client',
+							client_adjuster: 'Updated Adjuster',
+						})
+					).resolves.toBeDefined();
+				});
+
+				it('should reject contributor updating claim_number', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(claimRouter, contributorCtx);
+					await expect(
+						caller.updateClaim({
+							claimId: 1,
+							claim_number: 'CHANGED-001',
+						})
+					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
+				});
+
+				it('should reject contributor updating recovery_status', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(claimRouter, contributorCtx);
+					await expect(
+						caller.updateClaim({
+							claimId: 1,
+							recovery_status: 'in_progress',
+						})
+					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
+				});
+
+				it('should reject contributor updating substatus', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(claimRouter, contributorCtx);
+					await expect(
+						caller.updateClaim({
+							claimId: 1,
+							substatus: 'under_review',
+						})
+					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
+				});
+
+				it('should reject contributor updating mix of restricted and non-restricted fields', async () => {
+					const contributorCtx: Context = {
+						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
+						db,
+					};
+
+					const caller = createCaller(claimRouter, contributorCtx);
+					await expect(
+						caller.updateClaim({
+							claimId: 1,
+							insured: 'Updated Insured', // allowed
+							claim_number: 'CHANGED-001', // restricted
+						})
+					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
 				});
 			});
 		});

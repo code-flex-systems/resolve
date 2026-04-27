@@ -1,29 +1,14 @@
 'use client';
 
+import { IconChevronLeft, IconChevronRight, IconCircleX, IconExternalLink, IconFilter, IconRefresh, IconSubtask } from '@tabler/icons-react';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useMemo, useState } from 'react';
-import {
-	Autocomplete,
-	Box,
-	Button,
-	Chip,
-	FormControlLabel,
-	IconButton,
-	Paper,
-	Stack,
-	Switch,
-	TextField,
-	Tooltip,
-	Typography,
-} from '@mui/material';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import { DataGridPro, GridColDef, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import ChevronLeft from '@mui/icons-material/ChevronLeft';
-import ChevronRight from '@mui/icons-material/ChevronRight';
-import Refresh from '@mui/icons-material/Refresh';
-import FilterList from '@mui/icons-material/FilterList';
-import Cancel from '@mui/icons-material/Cancel';
-import OpenInNew from '@mui/icons-material/OpenInNew';
-import TaskIcon from '@mui/icons-material/Task';
 import dayjs from 'dayjs';
 import { useTaskTrpc } from '@/hooks/trpc/useTaskTrpc';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
@@ -31,15 +16,14 @@ import { TaskStatus, TaskType } from '@/config/enums';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import TaskMetrics from './TaskMetrics';
 import TaskBulkCancellationDialog from './TaskBulkCancellationDialog';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicPopper from '../common/BasicPopper';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 // Status display config
-const STATUS_COLORS: Record<TaskStatus, 'default' | 'primary' | 'success' | 'error'> = {
-	[TaskStatus.PENDING]: 'default',
-	[TaskStatus.IN_PROGRESS]: 'primary',
+const STATUS_COLORS: Record<TaskStatus, 'neutral' | 'info' | 'success' | 'error'> = {
+	[TaskStatus.PENDING]: 'neutral',
+	[TaskStatus.IN_PROGRESS]: 'info',
 	[TaskStatus.COMPLETED]: 'success',
 	[TaskStatus.CANCELLED]: 'error',
 };
@@ -66,7 +50,7 @@ function getWeekEnd(weekStart: dayjs.Dayjs): dayjs.Dayjs {
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No tasks found" icon={<TaskIcon sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />} />
+		<CustomNoRowsOverlay text="No tasks found" icon={<IconSubtask size={35} style={{ color: 'var(--text-muted)' }} />} />
 	);
 }
 
@@ -77,7 +61,9 @@ export default function TasksTab() {
 
 	// Manage mode state
 	const [manageMode, setManageMode] = useState(false);
-	const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+	const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(() => (manageMode ? { right: ['actions'] } : {}), [manageMode]);
 
 	// Bulk cancellation dialog state
 	const [showBulkCancel, setShowBulkCancel] = useState(false);
@@ -88,11 +74,11 @@ export default function TasksTab() {
 	// URL filters
 	const { getParam, setParam, setParams, getBoolParam } = useUrlFilters();
 	const showOnlyOpen = getBoolParam('open') ?? true; // Default true (show pending + in progress)
-	const filterClaimedBy = getParam('claimedBy');
+	const filterAssignedTo = getParam('assignedTo');
 	const filterClaimNumber = getParam('claimNumber');
 
 	// Draft filter state for popper
-	const [draftClaimedBy, setDraftClaimedBy] = useState<string | null>(null);
+	const [draftAssignedTo, setDraftAssignedTo] = useState<string | null>(null);
 	const [draftClaimNumber, setDraftClaimNumber] = useState<string | null>(null);
 
 	// Fetch tasks for the week
@@ -113,8 +99,8 @@ export default function TasksTab() {
 
 		const overdueTasks = allTasks.filter(
 			(t) =>
-				t.due_date &&
-				dayjs(t.due_date).isBefore(today) &&
+				t.deadline_date &&
+				dayjs(t.deadline_date).isBefore(today) &&
 				t.status !== TaskStatus.COMPLETED &&
 				t.status !== TaskStatus.CANCELLED
 		).length;
@@ -142,11 +128,11 @@ export default function TasksTab() {
 		const claimNumbersSet = new Set<string>();
 
 		allTasks.forEach((task) => {
-			// Collect users who are working on tasks
-			if (task.claimed_by && task.claimed_by_first && task.claimed_by_last) {
-				usersMap.set(task.claimed_by, {
-					id: task.claimed_by,
-					name: `${task.claimed_by_first} ${task.claimed_by_last}`,
+			// Collect users who are assigned to tasks
+			if (task.assigned_to && task.assigned_to_first && task.assigned_to_last) {
+				usersMap.set(task.assigned_to, {
+					id: task.assigned_to,
+					name: `${task.assigned_to_first} ${task.assigned_to_last}`,
 				});
 			}
 			// Collect claim numbers
@@ -170,9 +156,9 @@ export default function TasksTab() {
 			tasks = tasks.filter((t) => t.status === TaskStatus.PENDING || t.status === TaskStatus.IN_PROGRESS);
 		}
 
-		// Filter by claimed by (user working on task)
-		if (filterClaimedBy) {
-			tasks = tasks.filter((t) => t.claimed_by === filterClaimedBy);
+		// Filter by assigned to (user assigned to task)
+		if (filterAssignedTo) {
+			tasks = tasks.filter((t) => t.assigned_to === filterAssignedTo);
 		}
 
 		// Filter by claim number
@@ -181,29 +167,29 @@ export default function TasksTab() {
 		}
 
 		return tasks;
-	}, [allTasks, showOnlyOpen, filterClaimedBy, filterClaimNumber]);
+	}, [allTasks, showOnlyOpen, filterAssignedTo, filterClaimNumber]);
 
 	// Week navigation handlers
 	const handlePreviousWeek = () => {
 		setWeekStart((prev) => prev.subtract(7, 'day'));
-		setSelectedRows([]);
+		setSelectedRows({});
 	};
 
 	const handleNextWeek = () => {
 		setWeekStart((prev) => prev.add(7, 'day'));
-		setSelectedRows([]);
+		setSelectedRows({});
 	};
 
 	const handleGoToCurrentWeek = () => {
 		setWeekStart(getWeekStart(dayjs()));
-		setSelectedRows([]);
+		setSelectedRows({});
 	};
 
 	// Manage mode handlers
 	const handleToggleManageMode = () => {
 		setManageMode(!manageMode);
 		if (manageMode) {
-			setSelectedRows([]);
+			setSelectedRows({});
 		}
 	};
 
@@ -213,82 +199,80 @@ export default function TasksTab() {
 
 	const handleBulkCancelComplete = () => {
 		setShowBulkCancel(false);
-		setSelectedRows([]);
+		setSelectedRows({});
 		refetch();
 	};
 
 	// Navigate to claim
-	const handleGoToClaim = (claimId: number) => {
+	const handleGoToClaim = (claimId: string) => {
 		window.open(`/admin/claims?selected=${claimId}`, '_blank');
 	};
 
 	// DataGrid columns (memoized)
-	const columns: GridColDef[] = useMemo(
+	const columns: ColumnDef<any, any>[] = useMemo(
 		() => [
 			{
-				field: 'title',
-				headerName: 'Title',
-				flex: 1,
-				minWidth: 200,
+				accessorKey: 'title',
+				header: 'Title',
+				minSize: 200,
 			},
 			{
-				field: 'task_type',
-				headerName: 'Type',
-				width: 150,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'task_type',
+				header: 'Type',
+				size: 150,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const taskType = params.value as TaskType;
 					const config = TASK_TYPE_CONFIG[taskType];
 					if (!config) return params.value || '-';
 					return (
-						<Stack direction="row" spacing={1} alignItems="center">
+						<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
 							{config.icon}
-							<Typography variant="body2">{config.label}</Typography>
-						</Stack>
+							<span>{config.label}</span>
+						</div>
 					);
 				},
 			},
 			{
-				field: 'claim_number',
-				headerName: 'Claim',
-				width: 150,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'claim_number',
+				header: 'Claim',
+				size: 150,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const claimId = params.row.claim_id;
 					return (
-						<Stack direction="row" spacing={0.5} alignItems="center">
-							<Typography variant="body2">{params.value || '-'}</Typography>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center' }}>
+							<span>{params.value || '-'}</span>
 							{claimId && (
-								<Tooltip title="Open claim in new tab">
-									<IconButton size="small" onClick={() => handleGoToClaim(claimId)}>
-										<OpenInNew sx={{ fontSize: 14 }} />
-									</IconButton>
+								<Tooltip content="Open claim in new tab">
+									<Button variant="icon" size="sm" onClick={() => handleGoToClaim(claimId)}>
+										<IconExternalLink size={14} />
+									</Button>
 								</Tooltip>
 							)}
-						</Stack>
+						</div>
 					);
 				},
 			},
 			{
-				field: 'desk_location_name',
-				headerName: 'Desk Location',
-				width: 160,
+				accessorKey: 'desk_location_name',
+				header: 'Desk Location',
+				size: 160,
 			},
 			{
-				field: 'status',
-				headerName: 'Status',
-				width: 120,
-				renderCell: (params: GridRenderCellParams) => (
-					<Chip
-						label={STATUS_LABELS[params.value as TaskStatus]}
-						color={STATUS_COLORS[params.value as TaskStatus]}
-						size="small"
-					/>
-				),
+				accessorKey: 'status',
+				header: 'Status',
+				size: 120,
+				cell: (info: any) => {
+					const status = info.getValue() as TaskStatus;
+					return (
+						<Chip color={STATUS_COLORS[status]} size="sm">{STATUS_LABELS[status]}</Chip>
+					);
+				},
 			},
 			{
-				field: 'due_date',
-				headerName: 'Due Date',
-				width: 110,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'due_date',
+				header: 'Due Date',
+				size: 110,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!params.value) return '-';
 					const dueDate = dayjs(params.value);
 					const isOverdue =
@@ -296,27 +280,24 @@ export default function TasksTab() {
 						params.row.status !== TaskStatus.COMPLETED &&
 						params.row.status !== TaskStatus.CANCELLED;
 					return (
-						<Typography variant="body2" color={isOverdue ? 'error.main' : 'inherit'}>
+						<span style={{ color: isOverdue ? 'error.main' : 'inherit' }}>
 							{dueDate.format('MMM D, YYYY')}
-						</Typography>
+						</span>
 					);
 				},
 			},
 			{
-				field: 'claimed_by_name',
-				headerName: 'Working By',
-				width: 140,
-				valueGetter: (_value, row) =>
-					row.claimed_by_first && row.claimed_by_last
-						? `${row.claimed_by_first} ${row.claimed_by_last}`
-						: '-',
+				accessorKey: 'assigned_to_name',
+				header: 'Assigned To',
+				size: 140,
+
 			},
 			{
-				field: 'actions',
-				headerName: '',
-				width: 60,
-				sortable: false,
-				renderCell: (params: GridRenderCellParams) => {
+				accessorKey: 'actions',
+				header: '',
+				size: 60,
+				enableSorting: false,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const task = params.row;
 					const status = task.status as TaskStatus;
 
@@ -326,18 +307,13 @@ export default function TasksTab() {
 					}
 
 					return (
-						<Stack direction="row" spacing={0.5} justifyContent="flex-end" width="100%">
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => {
-										setSelectedRows([task.id]);
-										setShowBulkCancel(true);
-									},
-								}}
-								tooltipProps={{ title: 'Cancel task' }}
-								icon={<Cancel sx={{ fontSize: 15, color: theme.palette.error.main }} />}
-							/>
-						</Stack>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
+							<Tooltip content="Cancel task">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconCircleX size={15} style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
+						</div>
 					);
 				},
 			},
@@ -350,11 +326,11 @@ export default function TasksTab() {
 	const isCurrentWeek = weekStart.isSame(getWeekStart(dayjs()), 'day');
 
 	// Filter count (only count filters in the popper, not the toggle)
-	const activeFilterCount = [filterClaimedBy, filterClaimNumber].filter(Boolean).length;
+	const activeFilterCount = [filterAssignedTo, filterClaimNumber].filter(Boolean).length;
 
 	// Handler for opening filters popper - sync draft with applied
 	const handleOpenFilters = (e: React.MouseEvent<HTMLElement>) => {
-		setDraftClaimedBy(filterClaimedBy);
+		setDraftAssignedTo(filterAssignedTo);
 		setDraftClaimNumber(filterClaimNumber);
 		setFiltersAnchorEl(e.currentTarget);
 	};
@@ -362,7 +338,7 @@ export default function TasksTab() {
 	// Handler for applying filters
 	const handleApplyFilters = () => {
 		setParams({
-			claimedBy: draftClaimedBy,
+			assignedTo: draftAssignedTo,
 			claimNumber: draftClaimNumber,
 		});
 		setFiltersAnchorEl(null);
@@ -370,20 +346,42 @@ export default function TasksTab() {
 
 	// Handler for clearing filters
 	const handleClearFilters = () => {
-		setDraftClaimedBy(null);
+		setDraftAssignedTo(null);
 		setDraftClaimNumber(null);
 		setParams({
-			claimedBy: null,
+			assignedTo: null,
 			claimNumber: null,
 		});
 		setFiltersAnchorEl(null);
 	};
 
+	// Map filter options to ComboboxOption
+	const userComboboxOptions: ComboboxOption[] = filterOptions.users.map((u) => ({
+		value: u.id,
+		label: u.name,
+	}));
+
+	const claimNumberComboboxOptions: ComboboxOption[] = filterOptions.claimNumbers.map((cn) => ({
+		value: cn,
+		label: cn,
+	}));
+
+	const selectedUserOption: ComboboxOption | null = draftAssignedTo
+		? userComboboxOptions.find((u) => u.value === draftAssignedTo) ?? null
+		: null;
+
+	const selectedClaimNumberOption: ComboboxOption | null = draftClaimNumber
+		? { value: draftClaimNumber, label: draftClaimNumber }
+		: null;
+
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading tasks...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
-					<Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+				<Card variant="beveled" padding="md" style={styles.paper}>
+					<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+							Tasks are work items assigned to desk locations. They track specific actions that need to be completed for claims.
+						</p>
 						{/* Metrics */}
 						<TaskMetrics
 							openTasks={metrics.openTasks}
@@ -393,98 +391,87 @@ export default function TasksTab() {
 						/>
 
 						{/* Toolbar */}
-						<Paper elevation={0} sx={{ p: 1.5, mb: 2 }}>
-							<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<div style={{ padding: 12, marginBottom: 16 }}>
+							<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 								{/* Left: Week navigation */}
-								<Stack direction="row" spacing={1} alignItems="center">
-									<Typography variant="h6" marginRight="40px">
-										Tasks
-									</Typography>
-									<IconButton size="small" onClick={handlePreviousWeek}>
-										<ChevronLeft />
-									</IconButton>
-									<Typography
-										fontSize={14}
-										fontWeight={500}
-										sx={{ minWidth: 160, textAlign: 'center', cursor: 'pointer' }}
+								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+									<Button variant="icon" size="sm" onClick={handlePreviousWeek}>
+										<IconChevronLeft size={20} />
+									</Button>
+									<span style={{  fontSize: 14, fontWeight: 500 ,  minWidth: 160, textAlign: 'center', cursor: 'pointer'  }}
 										onClick={handleGoToCurrentWeek}
 									>
 										{weekDisplay}
-									</Typography>
-									<IconButton size="small" onClick={handleNextWeek}>
-										<ChevronRight />
-									</IconButton>
+									</span>
+									<Button variant="icon" size="sm" onClick={handleNextWeek}>
+										<IconChevronRight size={20} />
+									</Button>
 									{!isCurrentWeek && (
-										<Button size="small" variant="text" onClick={handleGoToCurrentWeek}>
+										<Button size="sm" variant="text" onClick={handleGoToCurrentWeek}>
 											Today
 										</Button>
 									)}
-									<Tooltip title="Refresh">
-										<IconButton size="small" onClick={() => refetch()} disabled={isFetching}>
-											<Refresh sx={{ fontSize: 20 }} />
-										</IconButton>
+									<Tooltip content="Refresh">
+										<Button variant="icon" size="sm" onClick={() => refetch()} disabled={isFetching}>
+											<IconRefresh size={20} />
+										</Button>
 									</Tooltip>
-								</Stack>
+								</div>
 
 								{/* Right: Filters and manage */}
-								<Stack direction="row" spacing={1} alignItems="center">
+								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
 									{/* Show only open tasks toggle */}
-									<FormControlLabel
-										control={
-											<Switch
-												size="small"
-												checked={showOnlyOpen}
-												onChange={(e) => setParam('open', e.target.checked ? null : 'false')}
-											/>
-										}
-										label={<Typography variant="body2">Open only</Typography>}
-										sx={{ mr: 1 }}
-									/>
+									<div style={{ marginRight: 8 }}>
+										<Switch
+											size="sm"
+											checked={showOnlyOpen}
+											onChange={(checked) => setParam('open', checked ? null : 'false')}
+											label="Open only"
+										/>
+									</div>
 
 									{/* Filters button */}
 									<Button
-										size="small"
+										size="sm"
 										variant="outlined"
-										startIcon={<FilterList />}
+										startIcon={<IconFilter size={20} />}
 										onClick={handleOpenFilters}
 									>
 										Filters
 										{activeFilterCount > 0 && (
 											<Chip
-												label={activeFilterCount}
-												size="small"
-												color="primary"
-												sx={{ ml: 0.5, height: 18, fontSize: 11 }}
-											/>
+												size="sm"
+												color="info"
+												style={{ marginLeft: 4, height: 18, fontSize: 11 }}>{activeFilterCount}</Chip>
 										)}
 									</Button>
 
 									{/* Manage mode */}
 									{manageMode ? (
 										<>
-											{selectedRows.length > 0 && (
+											{Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
 												<Button
-													size="small"
+													size="sm"
 													variant="outlined"
 													color="error"
-													startIcon={<Cancel />}
+													startIcon={<IconCircleX size={20} />}
 													onClick={handleBulkCancel}
 												>
-													Cancel ({selectedRows.length})
+													Cancel ({Object.keys(selectedRows).filter(k => selectedRows[k]).length})
 												</Button>
 											)}
-											<Button size="small" variant="outlined" onClick={handleToggleManageMode}>
+											<Button size="sm" variant="outlined" onClick={handleToggleManageMode}>
 												Done
 											</Button>
 										</>
 									) : (
-										<Button size="small" variant="outlined" onClick={handleToggleManageMode}>
+										<Button size="sm" variant="outlined" onClick={handleToggleManageMode}>
 											Manage
 										</Button>
 									)}
-								</Stack>
-							</Stack>
-						</Paper>
+								</div>
+							</div>
+						</div>
 
 						{/* Filter Popper */}
 						<BasicPopper
@@ -492,118 +479,72 @@ export default function TasksTab() {
 							setAnchorEl={(el) => setFiltersAnchorEl(el as HTMLElement | null)}
 							placement="bottom-end"
 						>
-							<Paper sx={{ p: 2, minWidth: 300 }}>
-								<Typography variant="subtitle2" mb={2}>
+							<div style={{ padding: 16, minWidth: 300 }}>
+								<span>
 									Filter Tasks
-								</Typography>
+								</span>
 
-								<Stack spacing={2}>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									{/* User filter */}
-									<Autocomplete
-										size="small"
-										options={filterOptions.users}
-										getOptionLabel={(option) => option.name}
-										value={filterOptions.users.find((u) => u.id === draftClaimedBy) || null}
-										onChange={(_, newValue) => setDraftClaimedBy(newValue?.id || null)}
-										renderInput={(params) => (
-											<TextField
-												{...params}
-												placeholder="Select"
-												label="Working By"
-												variant="outlined"
-											/>
-										)}
-										isOptionEqualToValue={(option, value) => option.id === value.id}
+									<Combobox
+										options={userComboboxOptions}
+										value={selectedUserOption}
+										onChange={(opt) => setDraftAssignedTo(opt ? String(opt.value) : null)}
+										label="Assigned To"
+										placeholder="Select"
+										isOptionEqual={(a, b) => a.value === b.value}
+										fullWidth
 									/>
 
 									{/* Claim number filter */}
-									<Autocomplete
-										size="small"
-										options={filterOptions.claimNumbers}
-										value={draftClaimNumber}
-										onChange={(_, newValue) => setDraftClaimNumber(newValue)}
-										renderInput={(params) => (
-											<TextField
-												{...params}
-												placeholder="Select"
-												label="Claim Number"
-												variant="outlined"
-											/>
-										)}
+									<Combobox
+										options={claimNumberComboboxOptions}
+										value={selectedClaimNumberOption}
+										onChange={(opt) => setDraftClaimNumber(opt ? String(opt.value) : null)}
+										label="Claim Number"
+										placeholder="Select"
+										fullWidth
 									/>
 
-									<Stack direction="row" spacing={1} justifyContent="flex-end">
+									<div style={{ display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
 										<Button
-											size="small"
+											size="sm"
 											onClick={handleClearFilters}
-											disabled={!draftClaimedBy && !draftClaimNumber}
+											disabled={!draftAssignedTo && !draftClaimNumber}
 										>
 											Clear
 										</Button>
-										<Button size="small" variant="contained" onClick={handleApplyFilters}>
+										<Button size="sm" variant="contained" onClick={handleApplyFilters}>
 											Apply
 										</Button>
-									</Stack>
-								</Stack>
-							</Paper>
+									</div>
+								</div>
+							</div>
 						</BasicPopper>
 
 						{/* DataGrid */}
-						<Box sx={{ flex: 1, minHeight: 0 }}>
-							<DataGridPro
+						<div style={{ flex: 1, minHeight: 0 }}>
+							<DataTable
 								rows={filteredTasks}
 								columns={columns}
 								loading={isLoading}
 								checkboxSelection={manageMode}
-								rowSelectionModel={selectedRows}
-								onRowSelectionModelChange={setSelectedRows}
-								isRowSelectable={(params) =>
-									params.row.status === TaskStatus.PENDING ||
-									params.row.status === TaskStatus.IN_PROGRESS
-								}
-								disableColumnMenu
-								disableRowSelectionOnClick
-								pinnedColumns={{ right: ['actions'] }}
-								pageSizeOptions={[25, 50, 100]}
-								initialState={{
-									pagination: { paginationModel: { pageSize: 25 } },
-								}}
-								slots={{
-									noRowsOverlay: NoRows,
-									noResultsOverlay: NoRows,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
-								sx={{
-									height: '100%',
-									border: 'none',
-									'& .MuiDataGrid-cell': {
-										py: 1,
-										display: 'flex',
-										alignItems: 'center',
-									},
-									'& .MuiDataGrid-columnSeparator': {
-										display: 'none',
-									},
-									...dataGridFocusStyles,
-								}}
+								rowSelection={selectedRows}
+								onRowSelectionChange={setSelectedRows}
+								pinnedRight={manageMode ? ['actions'] : []}
 							/>
-						</Box>
+						</div>
 
 						{/* Bulk Cancellation Dialog */}
-						{showBulkCancel && selectedRows.length > 0 && (
+						{showBulkCancel && Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
 							<TaskBulkCancellationDialog
-								taskIds={selectedRows as number[]}
+								taskIds={Object.keys(selectedRows).filter(k => selectedRows[k])}
 								onClose={() => setShowBulkCancel(false)}
 								onCancelled={handleBulkCancelComplete}
 							/>
 						)}
-					</Box>
-				</Paper>
+					</div>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -619,7 +560,8 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
-		padding: '24px',
 	},
 };

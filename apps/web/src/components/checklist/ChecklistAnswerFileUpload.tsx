@@ -1,16 +1,15 @@
 'use client';
-import { Box, Button, IconButton, Typography } from '@mui/material';
+import Button from '@/components/ui/Button';
 import { Answer } from '@/types/types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { useState, useEffect } from 'react';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import Close from '@mui/icons-material/Close';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
+import { IconUpload, IconX } from '@tabler/icons-react';
 
 interface ChecklistAnswerFileUploadProps {
 	field: ControllerRenderProps<FieldValues, string>;
@@ -28,8 +27,8 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 	const [attachedDoc, setAttachedDoc] = useState<DocListItem | null>(null);
 
 	const { data: doc } = useDocTrpc().getDoc(
-		{ docId: Number(field.value) },
-		{ enabled: !!field.value && !isNaN(Number(field.value)) }
+		{ docId: field.value },
+		{ enabled: !!field.value }
 	);
 
 	// Sync attached document when doc is fetched or field value changes
@@ -70,38 +69,37 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 
 	return (
 		<>
-			<Box display="flex" alignItems="center" gap={1} sx={{ marginTop: '5px', padding: '0px 10px' }}>
+			<div     style={{ ...{ marginTop: '5px', padding: '0px 10px' }, display: 'flex', alignItems: 'center', gap: 8 }}>
 				<Button
 					variant="outlined"
-					size="small"
-					startIcon={<UploadFileIcon />}
+					size="sm"
+					startIcon={<IconUpload size={20} />}
 					onClick={() => setShowDocSelector(true)}
 					disabled={disabled}
-					sx={{ height: 30 }}
 				>
 					{attachedDoc ? 'Change File' : 'Upload File...'}
 				</Button>
 				{attachedDoc && (
-					<Box display="flex" alignItems="center" gap={1} bgcolor="#f5f5f5" p={1} borderRadius={1}>
-						<Typography fontSize={12} color="text.secondary">
+					<div       style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
+						<span   style={{ fontSize: 12, color: 'text.secondary' }}>
 							{attachedDoc.title || attachedDoc.alias}
-						</Typography>
-						<IconButton
-							size="small"
+						</span>
+						<Button
+							variant="icon"
+							size="sm"
 							onClick={handleRemoveDoc}
 							disabled={disabled}
-							sx={{ ml: 0.5, padding: 0.5 }}
 						>
-							<Close sx={{ fontSize: 16 }} />
-						</IconButton>
-					</Box>
+							<IconX size={16} />
+						</Button>
+					</div>
 				)}
 				{!attachedDoc && (
-					<Typography fontSize={12} color="error.main">
+					<span   style={{ fontSize: 12, color: 'error.main' }}>
 						Required
-					</Typography>
+					</span>
 				)}
-			</Box>
+			</div>
 
 			{showDocSelector && (
 				<DocumentSelectorDialog

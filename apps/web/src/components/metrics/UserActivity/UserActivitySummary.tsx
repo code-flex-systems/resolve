@@ -1,4 +1,4 @@
-import { Card, CardContent, Grid, Typography } from '@mui/material';
+import KpiCard from '@/components/ui/KpiCard';
 import dayjs from 'dayjs';
 
 export default function UserActivitySummary({
@@ -12,63 +12,26 @@ export default function UserActivitySummary({
 	maxEventsRow: { activity_date: string; event_count: number } | null;
 	isBreakdown?: boolean;
 }) {
-	const cardPadding = isBreakdown ? 2 : 1;
-	const cardLabelSize = isBreakdown ? 13 : 12;
-	const cardValueSize = isBreakdown ? 24 : 16;
-	const cardSubtextSize = isBreakdown ? 13 : 12;
-	const spacing = isBreakdown ? 2 : 1;
-
-	// Validate and format the busiest day date
 	const busiestDayDate = maxEventsRow?.activity_date ? dayjs(maxEventsRow.activity_date) : null;
 	const hasValidBusiestDay = busiestDayDate?.isValid() ?? false;
 
 	return (
-		<Grid container spacing={spacing} mb={isBreakdown ? 3 : 1.5} mt={isBreakdown ? 1 : 0}>
-			<Grid>
-				<Card variant="outlined" sx={{ height: '100%' }}>
-					<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-						<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-							Total Events
-						</Typography>
-						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
-							{totalEvents.toLocaleString()}
-						</Typography>
-						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary" maxWidth={100}>
-							{isBreakdown ? 'in selected range' : 'past 30 days'}
-						</Typography>
-					</CardContent>
-				</Card>
-			</Grid>
-			<Grid>
-				<Card variant="outlined" sx={{ height: '100%' }}>
-					<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-						<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-							Avg Events a Day
-						</Typography>
-						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
-							{avgEvents.toLocaleString()}
-						</Typography>
-						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
-							daily average
-						</Typography>
-					</CardContent>
-				</Card>
-			</Grid>
-			<Grid>
-				<Card variant="outlined" sx={{ height: '100%' }}>
-					<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-						<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-							Busiest Day
-						</Typography>
-						<Typography variant={isBreakdown ? 'h5' : 'h6'} fontSize={cardValueSize} component="div">
-							{hasValidBusiestDay ? busiestDayDate!.format('MMM D') : '-'}
-						</Typography>
-						<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
-							{hasValidBusiestDay ? `${maxEventsRow!.event_count.toLocaleString()} events` : 'no data'}
-						</Typography>
-					</CardContent>
-				</Card>
-			</Grid>
-		</Grid>
+		<div style={{ display: 'flex', gap: isBreakdown ? 16 : 8, marginBottom: isBreakdown ? 24 : 12, marginTop: isBreakdown ? 8 : 0 }}>
+			<KpiCard size="sm"
+				value={totalEvents.toLocaleString()}
+				label="Total Events"
+				subtitle={isBreakdown ? 'in selected range' : 'past 30 days'}
+			/>
+			<KpiCard size="sm"
+				value={avgEvents.toLocaleString()}
+				label="Avg Events a Day"
+				subtitle="daily average"
+			/>
+			<KpiCard size="sm"
+				value={hasValidBusiestDay ? busiestDayDate!.format('MMM D') : '-'}
+				label="Busiest Day"
+				subtitle={hasValidBusiestDay ? `${maxEventsRow!.event_count.toLocaleString()} events` : 'no data'}
+			/>
+		</div>
 	);
 }

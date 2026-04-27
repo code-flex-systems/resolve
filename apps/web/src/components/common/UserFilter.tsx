@@ -3,20 +3,14 @@
 import { trpc } from '@/lib/trpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import { useCallback, useState } from 'react';
-import { Autocomplete, Box, Chip, Paper, PopperProps, TextField } from '@mui/material';
-import BasicPopper from './BasicPopper';
-import theme from '@/styles/theme';
-import People from '@mui/icons-material/People';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import useDebounce from '@/lib/utils/useDebounce';
-import { StackedRow } from './StackedRow';
 
 export default function UserFilter({
 	users,
 	setUsers,
-	width = 500,
-	padding,
-	height = 30,
-	text = 'Filter by users',
+	width = '100%',
+	text = 'Search users...',
 	multi = true,
 }: {
 	users: GetUserOutput[];
@@ -30,7 +24,6 @@ export default function UserFilter({
 	const trpcUtils = trpc.useUtils();
 	const [results, setResults] = useState<GetUserOutput[]>([]);
 	const [searching, setSearching] = useState(false);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 
 	const debouncedSearch = useCallback(
 		useDebounce(async (query: string) => {
@@ -45,128 +38,75 @@ export default function UserFilter({
 		[]
 	);
 
-	return (
-		<>
-			<Box
-				width={width}
-				display="flex"
-				justifyContent="flex-start"
-				alignItems="center"
-				padding={padding}
-				flexWrap="wrap"
-				overflow="auto"
-			>
-				<Chip
-					label={users.length ? `Filtering on ${users.length} user${users.length > 1 ? 's' : ''}` : text}
-					icon={<People />}
-					onClick={(e) => {
-						setAnchorEl(e.currentTarget);
-						e.preventDefault();
-						e.stopPropagation();
-					}}
-					onDelete={users.length ? () => setUsers([]) : undefined}
-					sx={{
-						minWidth: 135,
-						height,
-						'& .MuiChip-icon': {
-							color: users.length ? theme.palette.primary.main : undefined,
-						},
-						'& .MuiChip-label': {
-							color: users.length ? theme.palette.primary.main : undefined,
-						},
-					}}
-				/>
-				{users.map((u) => (
-					<Chip
-						key={u.id}
-						label={`${u.first} ${u.last}`}
-						onDelete={() => {
-							const newUsers = users.filter((s) => s.email !== u.email);
-							setUsers(newUsers);
-						}}
-						sx={{
-							...styles.chip,
-							marginLeft: '5px',
-							height,
-							'& .MuiChip-label': {
-								color: theme.palette.primary.main,
-							},
-						}}
-					/>
-				))}
-			</Box>
+	const options: ComboboxOption[] = results.map((u) => ({
+		value: u.id,
+		label: `${u.first} ${u.last}`,
+		description: u.email,
+	}));
 
-			{!!anchorEl && (
-				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						<Box display="flex" justifyContent="center" alignItems="center" padding="5px">
-							<Autocomplete
-								multiple
-								value={users}
-								options={results}
-								getOptionLabel={(option) => option.last}
-								loading={searching}
-								filterOptions={(x) => x}
-								onInputChange={(_, value) => {
-									if (value) {
-										setSearching(true);
-										debouncedSearch(value);
-									}
-								}}
-								onChange={(_, newValue) =>
-									setUsers(multi ? newValue : newValue.length ? [newValue[newValue.length - 1]] : [])
-								}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant="outlined"
-										placeholder="Search by name"
-										type="text"
-										style={styles.textField}
-										sx={styles.textFieldOverrides}
-									/>
-								)}
-								renderTags={() => <></>}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<StackedRow
-											primary={`${option.first} ${option.last}`}
-											secondary={option.email}
-											fontSize={14}
-										/>
-									</li>
-								)}
-								sx={{
-									width: 300,
-									...styles.textFieldOverrides,
-								}}
-							/>
-						</Box>
-					</Paper>
-				</BasicPopper>
-			)}
-		</>
+	const selectedOptions: ComboboxOption[] = users.map((u) => ({
+		value: u.id,
+		label: `${u.first} ${u.last}`,
+		description: u.email,
+	}));
+
+	if (multi) {
+		return (
+			<div style={{ width }}>
+				<Combobox
+					multiple
+					options={options}
+					values={selectedOptions}
+					onChangeMultiple={(opts) => {
+						const newUsers = opts
+							.map((opt) => results.find((u) => u.id === opt.value) ?? users.find((u) => u.id === opt.value))
+							.filter(Boolean) as GetUserOutput[];
+						setUsers(newUsers);
+					}}
+					onInputChange={(value) => {
+						if (value) {
+							setSearching(true);
+							debouncedSearch(value);
+						}
+					}}
+					loading={searching}
+					filterDisabled
+					placeholder={text}
+					fullWidth
+				/>
+			</div>
+		);
+	}
+
+	// Single-select mode
+	const selectedOption = users.length > 0
+		? { value: users[0].id, label: `${users[0].first} ${users[0].last}`, description: users[0].email }
+		: null;
+
+	return (
+		<div style={{ width }}>
+			<Combobox
+				options={options}
+				value={selectedOption}
+				onChange={(opt) => {
+					if (!opt) {
+						setUsers([]);
+					} else {
+						const found = results.find((u) => u.id === opt.value) ?? users.find((u) => u.id === opt.value);
+						setUsers(found ? [found] : []);
+					}
+				}}
+				onInputChange={(value) => {
+					if (value) {
+						setSearching(true);
+						debouncedSearch(value);
+					}
+				}}
+				loading={searching}
+				filterDisabled
+				placeholder={text}
+				fullWidth
+			/>
+		</div>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-	},
-	textField: {
-		border: 'none',
-		outline: 'none',
-		padding: '2px 5px',
-	},
-	textFieldOverrides: {
-		'& .MuiInputBase-root': {
-			padding: '0px 10px',
-		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 13,
-		},
-	},
-};

@@ -134,51 +134,6 @@ describe('getQuarterlyRecoveryStats', () => {
 		});
 	});
 
-	describe('User Filtering', () => {
-		it('should filter by userId when provided', async () => {
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
-				q1: 3000,
-				q2: 2000,
-				q3: 1000,
-				q4: 4000,
-			});
-
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: mockWhere,
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
-
-			await getQuarterlyRecoveryStats(mockContext, { userId: 'user-456' });
-
-			// Should include created_by filter
-			expect(mockWhere).toHaveBeenCalledWith('created_by', '=', 'user-456');
-		});
-
-		it('should not filter by userId when not provided', async () => {
-			const mockWhere = vi.fn().mockReturnThis();
-			const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
-				q1: 3000,
-				q2: 2000,
-				q3: 1000,
-				q4: 4000,
-			});
-
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: mockWhere,
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
-
-			await getQuarterlyRecoveryStats(mockContext);
-
-			// Should NOT include created_by filter
-			const calls = mockWhere.mock.calls.map((c) => c[0]);
-			expect(calls).not.toContain('created_by');
-		});
-	});
-
 	describe('Client Scoping', () => {
 		it('should filter by client_id', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
@@ -301,7 +256,7 @@ describe('getQuarterlyRecoveryStats', () => {
  *
  * The function logic includes:
  * - generate_series for monthly intervals
- * - Dynamic filter clause building (recoverySource, recoveryStatus, checklistId, userId)
+ * - Dynamic filter clause building (recoverySource, recoveryStatus, checklistId)
  * - LEFT JOIN with actual recovery data
  * - Returning expected_recovery (always 0 for now) and actual_recovery per month
  */
@@ -407,16 +362,6 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 			expect(db.executeQuery).toHaveBeenCalled();
 		});
 
-		it('should apply userId filter', async () => {
-			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
-
-			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
-				userId: 'user-789',
-			});
-
-			expect(db.executeQuery).toHaveBeenCalled();
-		});
-
 		it('should apply multiple filters together', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
@@ -424,7 +369,6 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 				recoverySource: 'subrogation',
 				recoveryStatus: 'pending',
 				checklistId: 10,
-				userId: 'user-456',
 			});
 
 			expect(db.executeQuery).toHaveBeenCalled();

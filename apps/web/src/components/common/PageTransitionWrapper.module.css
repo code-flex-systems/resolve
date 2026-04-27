@@ -1,0 +1,39 @@
+.wrapper {
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+.loading {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	opacity: 0;
+	transition: opacity var(--fade-timeout) ease;
+	pointer-events: none;
+}
+
+.loadingVisible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.content {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	opacity: 0;
+	transition: opacity var(--fade-timeout) ease;
+}
+
+.contentVisible {
+	opacity: 1;
+}

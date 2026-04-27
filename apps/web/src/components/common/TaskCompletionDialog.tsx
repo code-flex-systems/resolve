@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, TextField, Typography } from '@mui/material';
-import CheckCircle from '@mui/icons-material/CheckCircle';
+import { Textarea } from '@/components/ui/Input';
+import { IconCircleCheck } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
@@ -56,7 +56,7 @@ export default function TaskCompletionDialog({
 			primaryAction={{
 				label: 'Complete Task',
 				onClick: onSubmit,
-				icon: <CheckCircle />,
+				icon: <IconCircleCheck size={18} />,
 				disabled: isPending,
 			}}
 			secondaryActions={[
@@ -68,34 +68,32 @@ export default function TaskCompletionDialog({
 			onClose={onClose}
 			width={450}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
-				<Typography variant="body2" sx={{ width: 380, marginBottom: 1 }}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+				<p style={{ fontSize: 14, width: 380, marginBottom: 8 }}>
 					<strong>Task:</strong> {task.title}
-				</Typography>
+				</p>
 
 				{task.description && (
-					<Typography variant="body2" color="text.secondary" sx={{ width: 380 }}>
+					<p style={{ fontSize: 14, color: 'var(--text-secondary)', width: 380 }}>
 						{task.description}
-					</Typography>
+					</p>
 				)}
 
 				<Controller
 					name="completionNotes"
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							{...field}
 							label="Completion Notes (optional)"
-							
-							multiline
 							rows={3}
-							sx={{ width: 380 }}
+							style={{ width: 380 }}
 							disabled={isPending}
 							placeholder="Add any notes about how the task was completed..."
 						/>
 					)}
 				/>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

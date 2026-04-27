@@ -1,4 +1,5 @@
 import { ProtectedContext } from '@/server/trpc/trpc';
+import { EntityName } from './activityLogger';
 
 /**
  * Admin action types that can be logged
@@ -9,66 +10,6 @@ export enum AdminAction {
 	DELETE = 'DELETE',
 	BULK_UPDATE = 'BULK_UPDATE',
 	BULK_DELETE = 'BULK_DELETE',
-}
-
-/**
- * Entity types that admin actions can be performed on
- */
-export enum EntityName {
-	// Core entities
-	USER = 'user',
-	CLIENT = 'client',
-	CHECKLIST = 'checklist',
-	CLAIM = 'claim',
-	CHECKLIST_CLAIM = 'checklist_claim',
-	CLAIM_COVERAGE = 'claim_coverage',
-
-	// Template entities
-	PAGE = 'page',
-	PAGE_INSTANCE = 'page_instance',
-	QUESTION = 'question',
-	ANSWER = 'answer',
-
-	// Response entities
-	QUESTION_RESPONSE = 'question_response',
-	COMMENT = 'comment',
-
-	// Configuration entities
-	FEED = 'feed',
-	ACTION = 'action',
-
-	// Document entities
-	DOCUMENT = 'document',
-	DOC_GROUP = 'doc_group',
-
-	// Recovery & deadline entities
-	RECOVERY_EVENT = 'recovery_event',
-	SETTLEMENT = 'settlement',
-	CLAIM_PAYMENT = 'claim_payment',
-	DEADLINE = 'deadline',
-
-	// Party management entities
-	PARTY = 'party',
-	PARTY_ADDRESS = 'party_address',
-	PARTY_PHONE = 'party_phone',
-	PARTY_EMAIL = 'party_email',
-	PARTY_REPRESENTATIVE = 'party_representative',
-	CLAIM_PARTY = 'claim_party',
-
-	// Desk management entities (Phase 1+2)
-	DESK_LOCATION_TYPE = 'desk_location_type',
-	DESK_LOCATION = 'desk_location',
-	USER_DESK_LOCATION = 'user_desk_location',
-
-	// Workflow management entities (Phase 3)
-	TASK = 'task',
-
-	// Reference data management entities
-	REFERENCE_LIST = 'reference_list',
-	REFERENCE_OPTION = 'reference_option',
-
-	// Statute rules (global config entity)
-	STATUTE_RULE = 'statute_rule',
 }
 
 export interface AdminActionLogParams {
@@ -105,10 +46,7 @@ export interface AdminActionLogParams {
  *   action: AdminAction.DELETE,
  * });
  */
-export async function logAdminAction(
-	ctx: ProtectedContext,
-	params: AdminActionLogParams
-): Promise<void> {
+export async function logAdminAction(ctx: ProtectedContext, params: AdminActionLogParams): Promise<void> {
 	// Import and use the new activity logger for auto-routing
 	const { logAction } = await import('./activityLogger');
 
@@ -126,10 +64,7 @@ export async function logAdminAction(
  * @param ctx - The protected context containing user, client info, and db (with transaction if applicable)
  * @param logs - Array of log parameters
  */
-export async function logAdminActions(
-	ctx: ProtectedContext,
-	logs: AdminActionLogParams[]
-): Promise<void> {
+export async function logAdminActions(ctx: ProtectedContext, logs: AdminActionLogParams[]): Promise<void> {
 	if (logs.length === 0) return;
 
 	// Import and use the new activity logger for auto-routing

@@ -1,24 +1,25 @@
 'use client';
 
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import Unarchive from '@mui/icons-material/Unarchive';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import AddressDialog from './AddressDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import theme from '@/styles/theme';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
-interface AddressActionsCellProps extends GridRenderCellParams {
+interface AddressActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isAdminContext?: boolean;
+	isManageMode?: boolean;
 }
 
 export default function AddressActionsCell(params: AddressActionsCellProps) {
-	const { isAdminContext = true } = params;
+	const { isAdminContext = true, isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
@@ -34,10 +35,10 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreAddress({ id: row.id as unknown as number });
+				await restoreAddress({ id: row.id });
 				showAlert('Address restored successfully', 'success');
 			} else {
-				await archiveAddress({ id: row.id as unknown as number });
+				await archiveAddress({ id: row.id });
 				showAlert('Address archived successfully', 'success');
 			}
 			setShowActionConfirm(false);
@@ -69,60 +70,48 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this address?
-					</Typography>
+					</span>
 					{row.name && (
-						<Typography paddingTop="10px" fontStyle="italic">
+						<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 							Address: {row.name}
-						</Typography>
+						</span>
 					)}
 					{row.party_name && (
-						<Typography fontStyle="italic">
+						<span style={{ fontStyle: 'italic' }}>
 							Party: {row.party_name}
-						</Typography>
+						</span>
 					)}
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight={isAdminContext ? '5px' : undefined}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isArchived || isPartyArchived,
-						}}
-						tooltipProps={{
-							title: isArchived
+				<div style={{ marginRight: isAdminContext ? '5px' : undefined }}>
+					<Tooltip content="isArchived
 								? 'Cannot edit archived address'
 								: isPartyArchived
 									? 'Cannot edit address - parent party is archived'
-									: 'Make changes',
-						}}
-						icon={<Edit sx={{ fontSize: 15 }} />}
-					/>
-				</Box>
+									: 'Make changes'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived || isPartyArchived}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
+				</div>
 				{isAdminContext && (
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowActionConfirm(true),
-							disabled: isPending || isPartyArchived,
-						}}
-						tooltipProps={{
-							title: isPartyArchived
+					<Tooltip content="isPartyArchived
 								? 'Cannot modify address - parent party is archived'
 								: isArchived
 									? 'Restore address'
-									: 'Archive address',
-						}}
-						icon={
+									: 'Archive address'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending || isPartyArchived}>
 							isArchived ? (
-								<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 							)
-						}
-					/>
+						</Button>
+						</Tooltip>
 				)}
 			</div>
 		</>

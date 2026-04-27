@@ -1,92 +1,82 @@
 'use client';
 import { useState } from 'react';
-import { Avatar, Box, Divider, Paper, PopperProps, Typography } from '@mui/material';
-import Email from '@mui/icons-material/Email';
-import Phone from '@mui/icons-material/Phone';
-import theme, { BASE_COLOR_LIGHT } from '@/styles/theme';
 import BasicPopper from '../common/BasicPopper';
 import { useClerk } from '@clerk/nextjs';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import Edit from '@mui/icons-material/Edit';
-import Logout from '@mui/icons-material/Logout';
 import UpdateUserDialog from './UpdateUserDialog';
 import RoleValue from '../admin/RoleValue';
 import { Role } from '@/types/types';
+import { IconEdit, IconLogout, IconMail, IconPhone } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function ProfileAvatar() {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const { data: session } = useClerkSession();
 	const { signOut } = useClerk();
 
 	return (
 		<>
-			<Box
-				id="avatar"
+			<div
+id="avatar"
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
-				}}
-			>
-				<Avatar sx={styles.avatar}>{getInitials(session?.user?.name)}</Avatar>
-			</Box>
+				}}>
+				<div style={{ width: 35, height: 35, borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+					{getInitials(session?.user?.name)}
+				</div>
+			</div>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
-					<Paper elevation={3} sx={styles.paper}>
-						<Box
-							sx={{
+					<div style={styles.paper}>
+						<div
+style={{
 								...styles.row,
 								justifyContent: 'space-between',
-								overflow: 'hidden',
-								m: '5px 0px 10px',
-							}}
-						>
-							<Typography fontSize={17} fontWeight="bold" textOverflow="ellipsis" noWrap>
+								overflow: 'hidden' as const,
+								margin: '5px 0px 10px',
+							}}>
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 17, fontWeight: 'bold' }}>
 								{session?.user?.name ?? ''}
-							</Typography>
+							</span>
 							{!!session?.user && <RoleValue role={session.user.role as Role} />}
-						</Box>
-						<Box sx={styles.divider}>
+						</div>
+						<div style={styles.divider}>
 							<Divider />
-						</Box>
-						<Box sx={{ ...styles.row, overflow: 'hidden', mt: 0.625 }}>
-							<Email sx={styles.icon} />
-							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
+						</div>
+						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
+							<IconMail style={styles.icon} />
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: 'var(--text-muted)' }}>
 								{session?.user?.email ?? ''}
-							</Typography>
-						</Box>
-						<Box sx={{ ...styles.row, overflow: 'hidden', mt: 0.625 }}>
-							<Phone sx={styles.icon} />
-							<Typography fontSize={15} color={BASE_COLOR_LIGHT} textOverflow="ellipsis" noWrap>
+							</span>
+						</div>
+						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
+							<IconPhone style={styles.icon} />
+							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: 'var(--text-muted)' }}>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
-							</Typography>
-						</Box>
-						<Box sx={{ ...styles.row, justifyContent: 'flex-end', mt: 0.625 }}>
-							<Box marginRight="10px">
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => {
-											setDialogOpen(true);
-											setAnchorEl(null);
-										},
-									}}
-									tooltipProps={{ title: 'Update my info' }}
-									icon={<Edit />}
-								/>
-							</Box>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => signOut({ redirectUrl: '/login' }),
-								}}
-								tooltipProps={{ title: 'Sign out' }}
-								icon={<Logout />}
-							/>
-						</Box>
-					</Paper>
+							</span>
+						</div>
+						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
+							<div style={{ marginRight: '10px' }}>
+								<Tooltip content="Update my info">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+							</div>
+							<Tooltip content="Sign out">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconLogout size={16} />
+						</Button>
+						</Tooltip>
+						</div>
+					</div>
 				</BasicPopper>
 			)}
 			{dialogOpen && <UpdateUserDialog onClose={() => setDialogOpen(false)} />}
@@ -95,30 +85,26 @@ export default function ProfileAvatar() {
 }
 
 const styles = {
-	avatar: {
-		width: 35,
-		height: 35,
-		fontSize: 15,
-		bgcolor: theme.palette.primary.main,
-		cursor: 'pointer',
-	},
 	divider: {
 		width: '100%',
 	},
 	icon: {
 		fontSize: 15,
 		marginRight: '10px',
-		color: BASE_COLOR_LIGHT,
+		color: 'var(--text-muted)',
 	},
 	paper: {
 		width: 350,
 		height: 'fit-content',
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		p: 1.25,
-		mt: 0.625,
+		padding: 10,
+		marginTop: 5,
+		backgroundColor: 'var(--bg-primary)',
+		borderRadius: 'var(--radius-lg)',
+		boxShadow: 'var(--shadow-md)',
 	},
 	row: {
 		width: '100%',

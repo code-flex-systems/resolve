@@ -1,7 +1,9 @@
 import * as coverageQueries from '@/api/queries/coverageQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import type { CreateCoverageInput, UpdateCoverageInput } from '@/schemas/coverageSchemas';
+import { NoResultError } from 'kysely';
 
 /**
  * Get all coverages for a specific claim.
@@ -10,7 +12,7 @@ import type { CreateCoverageInput, UpdateCoverageInput } from '@/schemas/coverag
  * @param claimId - claim identifier
  * @returns array of coverages
  */
-export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId: number }) {
+export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	return await coverageQueries.getCoverages(ctx, claimId);
 }
 
@@ -21,7 +23,7 @@ export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId
  * @param claimPartyId - claim party identifier
  * @returns array of coverages
  */
-export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPartyId }: { claimPartyId: number }) {
+export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPartyId }: { claimPartyId: string }) {
 	return await coverageQueries.getCoveragesByClaimParty(ctx, claimPartyId);
 }
 
@@ -71,7 +73,7 @@ export async function createCoverage(ctx: ProtectedContext, params: CreateCovera
  */
 export async function updateCoverage(
 	ctx: ProtectedContext,
-	id: number,
+	id: string,
 	params: Omit<UpdateCoverageInput, 'id'>
 ) {
 	// Update coverage and log admin action within transaction
@@ -103,18 +105,18 @@ export async function updateCoverage(
  * @param id - coverage identifier
  * @returns claimId and updated totalIncurred
  */
-export async function archiveCoverage(ctx: ProtectedContext, id: number) {
+export async function archiveCoverage(ctx: ProtectedContext, id: string) {
 	// Archive coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		let claimId: number;
+		let claimId: string;
 		let totalIncurred: number;
 
 		try {
 			const archived = await coverageQueries.archiveCoverage({ ...ctx, db: trx }, id);
 			claimId = archived.claimId;
 			totalIncurred = archived.totalIncurred;
-		} catch (error: any) {
-			if (error.message?.includes('no result')) {
+		} catch (error: unknown) {
+			if (error instanceof NoResultError) {
 				throw new Error('Coverage not found or you do not have permission to access it');
 			}
 			throw error;
@@ -145,18 +147,18 @@ export async function archiveCoverage(ctx: ProtectedContext, id: number) {
  * @param id - coverage identifier
  * @returns claimId and updated totalIncurred
  */
-export async function deleteCoverage(ctx: ProtectedContext, id: number) {
+export async function deleteCoverage(ctx: ProtectedContext, id: string) {
 	// Delete coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		let claimId: number;
+		let claimId: string;
 		let totalIncurred: number;
 
 		try {
 			const deleted = await coverageQueries.deleteCoverage({ ...ctx, db: trx }, id);
 			claimId = deleted.claimId;
 			totalIncurred = deleted.totalIncurred;
-		} catch (error: any) {
-			if (error.message?.includes('no result')) {
+		} catch (error: unknown) {
+			if (error instanceof NoResultError) {
 				throw new Error('Coverage not found or you do not have permission to access it');
 			}
 			throw error;

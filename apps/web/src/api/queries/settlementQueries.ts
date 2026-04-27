@@ -2,10 +2,7 @@ import { sql } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { SettlementParams, SettlementUpdateParams } from '@/schemas/settlementSchemas';
 import { SettlementStatus, SettlementStructure } from '@/config/enums';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-
-dayjs.extend(utc);
+import { formatDateForDB } from '@/api/utils/dateUtils';
 
 // =====================================================================
 // SETTLEMENT QUERIES
@@ -21,7 +18,7 @@ dayjs.extend(utc);
  */
 export async function createSettlement(
 	ctx: ProtectedContext,
-	claimId: number,
+	claimId: string,
 	params: SettlementParams
 ) {
 	const clientId = ctx.session.user.client_id!;
@@ -35,7 +32,7 @@ export async function createSettlement(
 			coverage_id: params.coverage_id,
 			demand_amount: params.demand_amount.toString(),
 			// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
-			demand_date: dayjs.utc(params.demand_date).format('YYYY-MM-DD'),
+			demand_date: formatDateForDB(params.demand_date),
 			status: params.status || SettlementStatus.SENT,
 			created_by: ctx.session.user.id,
 			created_at: sql`now()`,
@@ -48,7 +45,7 @@ export async function createSettlement(
 					settlement_amount: params.settlement_amount.toString(),
 				}),
 			...(params.settlement_date && {
-				settlement_date: dayjs.utc(params.settlement_date).format('YYYY-MM-DD'),
+				settlement_date: formatDateForDB(params.settlement_date),
 			}),
 			...(params.notes && { notes: params.notes }),
 			// New fields
@@ -73,7 +70,7 @@ export async function createSettlement(
  * @param settlementId - settlement identifier
  * @returns settlement with party and coverage details
  */
-export async function getSettlement(ctx: ProtectedContext, settlementId: number) {
+export async function getSettlement(ctx: ProtectedContext, settlementId: string) {
 	return await ctx.db
 		.selectFrom('settlement')
 		.innerJoin('claim_party', 'settlement.claim_party_id', 'claim_party.id')
@@ -124,7 +121,7 @@ export async function getSettlement(ctx: ProtectedContext, settlementId: number)
  * @param claimId - claim identifier
  * @returns list of settlements with party and coverage details, filtered to adverse parties only
  */
-export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: number) {
+export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: string) {
 	const clientId = ctx.session.user.client_id;
 
 	// Use CTE to fetch adverse roles once per request instead of per row
@@ -195,7 +192,7 @@ export async function getSettlementsByClaimId(ctx: ProtectedContext, claimId: nu
  */
 export async function updateSettlement(
 	ctx: ProtectedContext,
-	settlementId: number,
+	settlementId: string,
 	params: SettlementUpdateParams
 ) {
 	const updateValues: Record<string, any> = {
@@ -214,7 +211,7 @@ export async function updateSettlement(
 	}
 	if (params.demand_date !== undefined) {
 		// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
-		updateValues.demand_date = dayjs.utc(params.demand_date).format('YYYY-MM-DD');
+		updateValues.demand_date = formatDateForDB(params.demand_date);
 	}
 	if (params.agreed_liability_percentage !== undefined) {
 		updateValues.agreed_liability_percentage =
@@ -226,7 +223,7 @@ export async function updateSettlement(
 	if (params.settlement_date !== undefined) {
 		// Format as YYYY-MM-DD string to avoid timezone conversion when sending to PostgreSQL
 		updateValues.settlement_date = params.settlement_date
-			? dayjs.utc(params.settlement_date).format('YYYY-MM-DD')
+			? formatDateForDB(params.settlement_date)
 			: null;
 	}
 	if (params.status !== undefined) {
@@ -276,8 +273,8 @@ export async function updateSettlement(
  */
 export async function archiveSettlement(
 	ctx: ProtectedContext,
-	settlementId: number,
-	claimId: number
+	settlementId: string,
+	claimId: string
 ) {
 	return await ctx.db
 		.updateTable('settlement')
@@ -301,7 +298,7 @@ export async function archiveSettlement(
  * @param claimId - claim identifier
  * @returns list of settlements with minimal info for dropdown, filtered to adverse parties only
  */
-export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: number) {
+export async function getSettlementsForDropdown(ctx: ProtectedContext, claimId: string) {
 	const clientId = ctx.session.user.client_id;
 
 	// Use CTE to fetch adverse roles once per request instead of per row

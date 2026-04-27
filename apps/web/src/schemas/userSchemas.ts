@@ -18,18 +18,15 @@ export const getUsersWithDeskAssignmentsInput = z.object({
 	limit: z.number().optional(),
 	offset: z.number().optional(),
 	searchTerm: z.string().optional(),
-	deskLocationTypeId: z.number().int().optional(),
-	deskLocationId: z.number().int().optional(),
+	deskLocationTypeId: z.string().uuid().optional(),
+	deskLocationId: z.string().uuid().optional(),
 });
 export const getUserInput = z.object({ id: z.string() });
 
 export const getUserActivityInput = z.object({
 	filters: z.object({
 		range: z.tuple([parseDate(), parseDate()]),
-		checklistId: z.number().int().optional(),
-		claimId: z.number().int().optional(),
 		users: z.array(z.string()).optional(),
-		searchTerm: z.string().optional(),
 	}),
 });
 

@@ -103,12 +103,12 @@ export function formatMetric(
 	};
 }
 
-export function formatMD(date?: string) {
+export function formatMD(date?: string | Date) {
 	if (!date) return '';
 	return dayjs(date).format('MMM D');
 }
 
-export function formatMDY(date?: string) {
+export function formatMDY(date?: string | Date) {
 	if (!date) return '';
 	return dayjs(date).format('MMMM D, YYYY');
 }
@@ -117,12 +117,21 @@ export function formatDateForSentence(date: string) {
 	return date === 'Today' ? 'today' : `on ${date}`;
 }
 
-export function formatMDYAbv(date?: string) {
+export function formatMDYAbv(date?: string | Date) {
 	if (!date) return '';
 	return dayjs(date).format('MM/DD/YY');
 }
 
-export function formatUser<T extends GetUserOutput | undefined>(user: T, me?: string) {
+/**
+ * Format a Date object to ISO date string (YYYY-MM-DD).
+ * Useful for form submissions where the API expects ISO date strings.
+ */
+export function formatDateToISO(date: Date | null | undefined): string | null {
+	if (!date) return null;
+	return date.toISOString().split('T')[0];
+}
+
+export function formatUser<T extends { email: string; first: string; last: string } | undefined>(user: T, me?: string) {
 	if (!user) return '';
 	return user.email === me ? 'You' : `${user.first} ${user.last}`;
 }
@@ -144,7 +153,7 @@ export function getExtension(filename: string) {
 	return `.${parts[parts.length - 1]}`;
 }
 
-export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: number) {
+export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: string) {
 	const instances: InstanceListItem[] = [];
 	getInstances(tree, currentInstanceId, instances);
 	return instances;
@@ -157,11 +166,11 @@ export function getPageInstancesFromTree(tree: TreeNode[], currentInstanceId: nu
  * @param tree - The full tree of page instances
  * @returns Map of instanceId -> Set of instanceIds it can call
  */
-export function buildAnswerCallGraph(tree: TreeNode[]): Map<number, Set<number>> {
+export function buildAnswerCallGraph(tree: TreeNode[]): Map<string, Set<string>> {
 	// Note: This function builds a placeholder. The actual call graph
 	// needs to be populated with real answer data from the backend.
 	// This structure is here to show the intended data flow.
-	const graph = new Map<number, Set<number>>();
+	const graph = new Map<string, Set<string>>();
 
 	const initGraph = (nodes: TreeNode[]) => {
 		for (const node of nodes) {
@@ -189,9 +198,9 @@ export function buildAnswerCallGraph(tree: TreeNode[]): Map<number, Set<number>>
  * @returns true if selecting this would create a cycle, false if safe
  */
 export function wouldCreateCycle(
-	currentInstanceId: number,
-	targetInstanceId: number,
-	answerCallGraph: Map<number, Set<number>>
+	currentInstanceId: string,
+	targetInstanceId: string,
+	answerCallGraph: Map<string, Set<string>>
 ): boolean {
 	// If target doesn't call anything, no cycle possible
 	const targetCalls = answerCallGraph.get(targetInstanceId);
@@ -200,9 +209,9 @@ export function wouldCreateCycle(
 	}
 
 	// Use DFS to check if there's a path from target back to current
-	const visited = new Set<number>();
+	const visited = new Set<string>();
 
-	const hasPathTo = (from: number, to: number): boolean => {
+	const hasPathTo = (from: string, to: string): boolean => {
 		if (from === to) return true;
 		if (visited.has(from)) return false; // Already checked this node
 
@@ -234,7 +243,7 @@ export function isBetweenDates(fromDate: string, toDate: string) {
 
 export function updatePropertyInTree<T extends keyof TreeNode>(
 	nodes: TreeNode[],
-	instanceId: number,
+	instanceId: string,
 	key: T,
 	value: TreeNode[T]
 ): TreeNode[] {
@@ -295,10 +304,10 @@ export const dateSortComparator = (v1: unknown, v2: unknown): number => {
 
 // private methods
 
-function getInstances(tree: TreeNode[], currentInstanceId: number, instances: InstanceListItem[]) {
+function getInstances(tree: TreeNode[], currentInstanceId: string, instances: InstanceListItem[]) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
-			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId });
+			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId, position: node.position });
 		}
 
 		if (node.children) {

@@ -1,30 +1,32 @@
 'use client';
 import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
-import { Box, Divider, Fade, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 import FormQuestion from './FormQuestion';
 import FormAnswer from './FormAnswer';
 import CopyPageDialog from './CopyPageDialog';
-import Check from '@mui/icons-material/Check';
-import Clear from '@mui/icons-material/Clear';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import Delete from '@mui/icons-material/Delete';
-import East from '@mui/icons-material/East';
-import Description from '@mui/icons-material/Description';
-import Save from '@mui/icons-material/Save';
-import SubdirectoryArrowRight from '@mui/icons-material/SubdirectoryArrowRight';
-import TaskAlt from '@mui/icons-material/TaskAlt';
 import BasicButton from '../common/BasicButton';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, HOVERED_COLOR, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, containerStyles } from '@/styles/theme';
-import HelpOutline from '@mui/icons-material/HelpOutline';
-import FormatQuote from '@mui/icons-material/FormatQuote';
+import Card from '@/components/ui/Card';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import {
+	IconArrowRight,
+	IconCheck,
+	IconCopy,
+	IconCornerDownRight,
+	IconDeviceFloppy,
+	IconFileDescription,
+	IconHelpCircle,
+	IconQuote,
+	IconTrash,
+	IconX,
+} from '@tabler/icons-react';
 
 export default function PageEditor() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const selectedAnswer = useChecklistStore((state) => state.selectedAnswer);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
 	const selectedPageInstance = useChecklistStore((state) => state.selectedPageInstance);
@@ -35,12 +37,15 @@ export default function PageEditor() {
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
-	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
+
 	const [copyDialogOpen, setCopyDialogOpen] = useState(false);
 	const [copyType, setCopyType] = useState<'template' | 'instance'>('template');
 	const [copiedField, setCopiedField] = useState<string | null>(null);
 
-	const { data: questions = [] } = useQuestionTrpc().list({ pageId: selectedPageInfo.pageId });
+	const { data: questions = [] } = useQuestionTrpc().list(
+		{ pageId: selectedPageInfo.pageId },
+		{ enabled: !!selectedPageInfo.pageId }
+	);
 	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
 		usePageTrpc();
 	const { mutateAsync: addPage, isPending: adding } = createTemplate;
@@ -57,7 +62,7 @@ export default function PageEditor() {
 			checklistId,
 			claimId,
 		},
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	const answerCount = questions.reduce((prev, curr) => prev + (curr.answers?.length ?? 0), 0);
@@ -75,13 +80,13 @@ export default function PageEditor() {
 		);
 	}, [selectedPageInfo, data.tree]);
 
-	const onAddPage = async (passedParentId: number | null) => {
+	const onAddPage = async (passedParentId: string | null) => {
 		try {
 			const newInstance = await addPage({
 				checklistId,
 				params: {
 					title: 'New Page',
-					parentId: passedParentId ?? -1,
+					parentId: passedParentId ?? undefined,
 					position: selectedPageInfo.position + 1,
 				},
 			});
@@ -98,14 +103,14 @@ export default function PageEditor() {
 		}
 	};
 
-	const handleCopyWithParent = async (parentId: number | null, position: number) => {
+	const handleCopyWithParent = async (parentId: string | null, position: number) => {
 		try {
 			if (copyType === 'template') {
 				const newPage = await copyPageTemplate({
 					checklistId,
 					pageId: selectedPageInfo.pageId,
 					params: {
-						parentId: parentId ?? -1,
+						parentId: parentId ?? undefined,
 						position,
 					},
 				});
@@ -122,7 +127,7 @@ export default function PageEditor() {
 					checklistId,
 					pageId: selectedPageInfo.pageId,
 					params: {
-						parentId: parentId ?? -1,
+						parentId: parentId ?? undefined,
 						position,
 					},
 				});
@@ -161,8 +166,6 @@ export default function PageEditor() {
 				if (freshData) {
 					updateSelectedPageTitle(selectedPageInfo.instanceId, modifiedPage.title, freshData.tree);
 				}
-				setShowUpdateMsg(true);
-				setTimeout(() => setShowUpdateMsg(false), 1000);
 				showSuccess('update', 'Page updated');
 			}
 		} catch (e) {
@@ -181,39 +184,29 @@ export default function PageEditor() {
 	};
 
 	return (
-		<Box sx={styles.container}>
+		<div style={pageStyles.container}>
 			{!!selectedPageInstance && !selectedQuestion && !selectedAnswer && (
-				<Box sx={styles.formContainer}>
-					{/* Page Header */}
-					<Box sx={styles.headerSection}>
-						<Box sx={styles.titleRow}>
-							<Typography sx={styles.pageTitle}>{pageTitle}</Typography>
-							<Typography sx={styles.pageId}>
-								p{selectedPageInfo.pageId}.i{selectedPageInfo.instanceId}
-							</Typography>
-							<Fade in={showUpdateMsg} timeout={500}>
-								<Box sx={{ ml: 1.5 }} className="flex-row-left">
-									<TaskAlt sx={{ color: 'success.main', fontSize: 18, mr: 0.5 }} />
-									<Typography color="success.main" fontSize={13}>
-										Saved
-									</Typography>
-								</Box>
-							</Fade>
-						</Box>
-					</Box>
-					<Box sx={styles.divider}>
-						<Divider />
-					</Box>
-
-					{/* Page Information Section */}
-					<Box sx={styles.section}>
-						<Typography sx={styles.sectionTitle}>Information</Typography>
-						<Box sx={styles.sectionContent}>
-							<Box sx={styles.fieldRow}>
-								<TextField
+				<div style={pageStyles.formContainer}>
+					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								padding: '12px 16px',
+								fontSize: 13,
+								fontWeight: 600,
+								color: 'var(--text-primary)',
+								backgroundColor: 'var(--bg-secondary)',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Information
+						</div>
+						<div style={{ padding: 16 }}>
+							<div style={pageStyles.fieldRow}>
+								<Input
 									label="Page title"
 									placeholder="New Page"
-									variant="outlined"
 									fullWidth
 									value={pageTitle}
 									onChange={(e) => setPageTitle(e.target.value)}
@@ -224,118 +217,150 @@ export default function PageEditor() {
 									}}
 									disabled={updating}
 									error={pageTitle === ''}
-									slotProps={{
-										input: {
-											endAdornment: (
-												<InputAdornment position="end">
-													<IconButton
-														disableRipple
-														size="small"
-														onClick={() => onCopyText('pageTitle', pageTitle)}
-													>
-														{copiedField === 'pageTitle' ? (
-															<Check
-																sx={{
-																	color: theme.palette.success.light,
-																	fontSize: 18,
-																}}
-															/>
-														) : (
-															<ContentCopy
-																sx={{ color: BASE_COLOR_LIGHT, fontSize: 18 }}
-															/>
-														)}
-													</IconButton>
-													<IconButton
-														disableRipple
-														size="small"
-														onClick={onClearField}
-														disabled={!pageTitle}
-													>
-														<Clear sx={{ color: BASE_COLOR_LIGHT, fontSize: 18 }} />
-													</IconButton>
-													<IconButton
-														disableRipple
-														size="small"
-														onClick={() => onModifyPage()}
-														disabled={
-															updating ||
-															!pageTitle ||
-															pageTitle === selectedPageInfo.title
-														}
-													>
-														<Save
-															sx={{
-																color:
-																	!updating &&
-																	pageTitle &&
-																	pageTitle !== selectedPageInfo.title
-																		? theme.palette.primary.main
-																		: BASE_COLOR_LIGHT,
-																fontSize: 18,
-															}}
-														/>
-													</IconButton>
-												</InputAdornment>
-											),
-										},
-									}}
+									endAdornment={
+										<span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+											<Button
+												variant="icon"
+												size="sm"
+												onClick={() => onCopyText('pageTitle', pageTitle)}
+											>
+												{copiedField === 'pageTitle' ? (
+													<IconCheck
+														size={20}
+														style={{ color: 'var(--status-success)', fontSize: 18 }}
+													/>
+												) : (
+													<IconCopy
+														size={20}
+														style={{ color: 'var(--text-muted)', fontSize: 18 }}
+													/>
+												)}
+											</Button>
+											<Button
+												variant="icon"
+												size="sm"
+												onClick={onClearField}
+												disabled={!pageTitle}
+											>
+												<IconX size={20} style={{ color: 'var(--text-muted)', fontSize: 18 }} />
+											</Button>
+											<Button
+												variant="icon"
+												size="sm"
+												onClick={() => onModifyPage()}
+												disabled={
+													updating || !pageTitle || pageTitle === selectedPageInfo.title
+												}
+											>
+												<IconDeviceFloppy
+													size={20}
+													style={{
+														color:
+															!updating &&
+															pageTitle &&
+															pageTitle !== selectedPageInfo.title
+																? 'var(--text-accent)'
+																: 'var(--text-muted)',
+														fontSize: 18,
+													}}
+												/>
+											</Button>
+										</span>
+									}
 								/>
-							</Box>
-							<Box sx={styles.statsRow}>
-								<Box sx={styles.statItem}>
-									<HelpOutline sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
-									<Typography fontSize={13}>
+							</div>
+							<div style={pageStyles.statsRow}>
+								<div style={pageStyles.statItem}>
+									<IconHelpCircle size={18} style={{ color: 'var(--text-secondary)' }} />
+									<span style={{ fontSize: 13 }}>
 										<strong>{questions.length}</strong>{' '}
 										{questions.length === 1 ? 'Question' : 'Questions'}
-									</Typography>
-								</Box>
-								<Box sx={styles.statItem}>
-									<FormatQuote sx={{ fontSize: 18, color: TEXT_SECONDARY }} />
-									<Typography fontSize={13}>
+									</span>
+								</div>
+								<div style={pageStyles.statItem}>
+									<IconQuote size={18} style={{ color: 'var(--text-secondary)' }} />
+									<span style={{ fontSize: 13 }}>
 										<strong>{answerCount}</strong> {answerCount === 1 ? 'Answer' : 'Answers'}
-									</Typography>
-								</Box>
-							</Box>
-						</Box>
-					</Box>
+									</span>
+								</div>
+							</div>
+						</div>
+					</Card>
 
 					{/* Related Instances Section */}
 					{otherInstances.length > 0 && (
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Related Instances</Typography>
-							<Box sx={styles.sectionContent}>
-								<Typography fontSize={13} color="text.secondary" mb={1}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Related Instances
+							</div>
+							<div style={{ padding: 16 }}>
+								<span style={{ fontSize: 13, color: 'text.secondary', marginBottom: 8 }}>
 									{otherInstances.length === 1
 										? 'Another page uses this template:'
 										: `${otherInstances.length} other pages use this template:`}
-								</Typography>
-								<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+								</span>
+								<div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
 									{otherInstances.map((node) => (
-										<Link
+										<button
 											key={node.instanceId}
 											onClick={() => {
 												updateSelectedPage(node.instanceId);
 												updateSelectedPageInfo(node);
 											}}
-											sx={styles.instanceLink}
+											style={{
+												fontSize: 13,
+												paddingLeft: 12,
+												paddingRight: 12,
+												paddingTop: 4,
+												paddingBottom: 4,
+												borderRadius: '6px',
+												cursor: 'pointer',
+												background: 'none',
+												border: 'none',
+												color: 'var(--text-accent)',
+												font: 'inherit',
+											}}
 										>
 											p{node.pageId}.i{node.instanceId}
-										</Link>
+										</button>
 									))}
-								</Box>
-							</Box>
-						</Box>
+								</div>
+							</div>
+						</Card>
 					)}
 
 					{/* Actions Section */}
-					<Box sx={styles.section}>
-						<Typography sx={styles.sectionTitle}>Actions</Typography>
-						<Box sx={styles.sectionContent}>
-							<Box sx={styles.actionsGrid}>
-								<Box sx={styles.actionGroup}>
-									<Typography sx={styles.actionGroupTitle}>Copy</Typography>
-									<Box sx={styles.actionButtons}>
+					<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								padding: '12px 16px',
+								fontSize: 13,
+								fontWeight: 600,
+								color: 'var(--text-primary)',
+								backgroundColor: 'var(--bg-secondary)',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Actions
+						</div>
+						<div style={{ padding: 16 }}>
+							<div style={pageStyles.actionsGrid}>
+								<div style={pageStyles.actionGroup}>
+									<span style={pageStyles.actionGroupTitle}>Copy</span>
+									<div style={pageStyles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () => {
@@ -345,7 +370,7 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <ContentCopy sx={{ fontSize: 16 }} />,
+												startIcon: <IconCopy size={16} />,
 											}}
 										>
 											Copy template
@@ -359,17 +384,17 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <ContentCopy sx={{ fontSize: 16 }} />,
+												startIcon: <IconCopy size={16} />,
 											}}
 										>
 											Copy instance
 										</BasicButton>
-									</Box>
-								</Box>
+									</div>
+								</div>
 
-								<Box sx={styles.actionGroup}>
-									<Typography sx={styles.actionGroupTitle}>Create</Typography>
-									<Box sx={styles.actionButtons}>
+								<div style={pageStyles.actionGroup}>
+									<span style={pageStyles.actionGroupTitle}>Create</span>
+									<div style={pageStyles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () =>
@@ -379,7 +404,7 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <East sx={{ fontSize: 16 }} />,
+												startIcon: <IconArrowRight size={16} />,
 											}}
 										>
 											New sibling
@@ -393,17 +418,17 @@ export default function PageEditor() {
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
-												startIcon: <SubdirectoryArrowRight sx={{ fontSize: 16 }} />,
+												startIcon: <IconCornerDownRight size={16} />,
 											}}
 										>
 											New child
 										</BasicButton>
-									</Box>
-								</Box>
+									</div>
+								</div>
 
-								<Box sx={styles.actionGroup}>
-									<Typography sx={styles.actionGroupTitle}>Delete</Typography>
-									<Box sx={styles.actionButtons}>
+								<div style={pageStyles.actionGroup}>
+									<span style={pageStyles.actionGroupTitle}>Delete</span>
+									<div style={pageStyles.actionButtons}>
 										<BasicButton
 											buttonProps={{
 												onClick: () => onDeletePage().catch((e) => console.error(e)),
@@ -411,29 +436,29 @@ export default function PageEditor() {
 												variant: 'outlined',
 												color: 'error',
 												size: 'small',
-												startIcon: <Delete sx={{ fontSize: 16 }} />,
+												startIcon: <IconTrash size={16} />,
 											}}
 										>
 											Delete page
 										</BasicButton>
-									</Box>
-								</Box>
-							</Box>
-						</Box>
-					</Box>
-				</Box>
+									</div>
+								</div>
+							</div>
+						</div>
+					</Card>
+				</div>
 			)}
 			{!!selectedQuestion && !selectedAnswer && <FormQuestion />}
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
-				<Box sx={{ width: '100%', height: '100%' }} className="flex-col-center">
-					<Box width={200} display="flex" justifyContent="center" alignItems="center">
-						<Description sx={{ color: BASE_COLOR_LIGHT, fontSize: 25 }} />
-						<Typography color={BASE_COLOR_LIGHT} fontSize={15} paddingLeft="10px">
+				<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
+					<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+						<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
+						<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 							No page selected
-						</Typography>
-					</Box>
-				</Box>
+						</span>
+					</div>
+				</div>
 			)}
 			{copyDialogOpen && (
 				<CopyPageDialog
@@ -447,101 +472,67 @@ export default function PageEditor() {
 					isPending={inTransition}
 				/>
 			)}
-		</Box>
+		</div>
 	);
 }
 
-const styles = {
+const pageStyles = {
 	container: {
 		width: '100%',
 		height: '100%',
 		display: 'flex',
-		flexDirection: 'column',
-		p: 2.5,
+		flexDirection: 'column' as const,
+		padding: '0px 20px',
 		minWidth: 500,
-		overflow: 'auto',
+		overflow: 'auto' as const,
 	},
 	formContainer: {
 		display: 'flex',
-		flexDirection: 'column',
-		gap: 2.5,
-		p: 2.5,
+		flexDirection: 'column' as const,
+		gap: 20,
 		width: '100%',
-	},
-	headerSection: {
-		mb: 0,
-	},
-	divider: {
-		width: '100%',
-		mb: 3,
-	},
-	titleRow: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 1.5,
-	},
-	pageTitle: {
-		fontSize: 20,
-		fontWeight: 600,
-		color: TEXT_PRIMARY,
-	},
-	pageId: {
-		fontSize: 13,
-		color: TEXT_MUTED,
-		bgcolor: BG_TERTIARY,
-		px: 1,
-		py: 0.25,
-		borderRadius: '4px',
 	},
 	fieldRow: {
-		mb: 2,
+		marginBottom: 16,
 	},
-	section: {
-		...containerStyles.section,
-		maxWidth: 600,
-	},
-	sectionTitle: containerStyles.sectionTitle,
-	sectionContent: containerStyles.sectionContent,
 	statsRow: {
 		display: 'flex',
-		gap: 3,
+		gap: 24,
 	},
 	statItem: {
 		display: 'flex',
 		alignItems: 'center',
-		gap: 1,
+		gap: 8,
 	},
 	instanceLink: {
 		fontSize: 13,
-		bgcolor: BG_TERTIARY,
-		px: 1.5,
-		py: 0.5,
+		paddingLeft: 12,
+		paddingRight: 12,
+		paddingTop: 4,
+		paddingBottom: 4,
 		borderRadius: '6px',
 		cursor: 'pointer',
-		'&:hover': {
-			bgcolor: HOVERED_COLOR,
-		},
 	},
 	actionsGrid: {
 		display: 'flex',
-		flexDirection: 'column',
-		gap: 2.5,
+		flexDirection: 'column' as const,
+		gap: 20,
 	},
 	actionGroup: {
 		display: 'flex',
-		flexDirection: 'column',
-		gap: 1,
+		flexDirection: 'column' as const,
+		gap: 8,
 	},
 	actionGroupTitle: {
 		fontSize: 12,
 		fontWeight: 500,
-		color: TEXT_SECONDARY,
-		textTransform: 'uppercase',
+		color: 'var(--text-secondary)',
+		textTransform: 'uppercase' as const,
 		letterSpacing: '0.5px',
 	},
 	actionButtons: {
 		display: 'flex',
-		gap: 1,
-		flexWrap: 'wrap',
+		gap: 8,
+		flexWrap: 'wrap' as const,
 	},
 };

@@ -1,8 +1,29 @@
 'use client';
 
-import { Alert, Slide, Snackbar, Stack } from '@mui/material';
-import { useAlertStore } from '@/stores/useAlertStore';
+import { useAlertStore, type AlertSeverity } from '@/stores/useAlertStore';
 import { useEffect } from 'react';
+import {
+	IconCircleCheck,
+	IconAlertTriangle,
+	IconInfoCircle,
+	IconAlertCircle,
+	IconX,
+} from '@tabler/icons-react';
+import css from './AlertContainer.module.css';
+
+const severityClassMap: Record<AlertSeverity, string> = {
+	success: css.alertSuccess,
+	error: css.alertError,
+	warning: css.alertWarning,
+	info: css.alertInfo,
+};
+
+const severityIconMap: Record<AlertSeverity, React.ReactNode> = {
+	success: <IconCircleCheck size={20} />,
+	error: <IconAlertCircle size={20} />,
+	warning: <IconAlertTriangle size={20} />,
+	info: <IconInfoCircle size={20} />,
+};
 
 export default function AlertContainer() {
 	const alerts = useAlertStore((state) => state.alerts);
@@ -27,32 +48,20 @@ export default function AlertContainer() {
 	}, [alerts, hideAlert]);
 
 	return (
-		<Stack
-			spacing={1}
-			sx={{
-				position: 'fixed',
-				bottom: 20,
-				left: 20,
-				zIndex: 9999,
-				maxWidth: 400,
-			}}
-		>
+		<div className={css.container}>
 			{alerts.map((alert) => (
-				<Slide key={alert.id} direction="up" in={true} mountOnEnter unmountOnExit>
-					<Alert
-						severity={alert.severity}
-						onClose={() => hideAlert(alert.id)}
-						sx={{
-							boxShadow: 3,
-							'& .MuiAlert-message': {
-								fontSize: 14,
-							},
-						}}
+				<div key={alert.id} className={[css.alert, severityClassMap[alert.severity]].join(' ')}>
+					<span className={css.alertIcon}>{severityIconMap[alert.severity]}</span>
+					<span className={css.alertMessage}>{alert.message}</span>
+					<button
+						type="button"
+						className={css.closeButton}
+						onClick={() => hideAlert(alert.id)}
 					>
-						{alert.message}
-					</Alert>
-				</Slide>
+						<IconX size={16} />
+					</button>
+				</div>
 			))}
-		</Stack>
+		</div>
 	);
 }

@@ -1,10 +1,12 @@
 import { trpc } from '@/lib/trpc';
 import type { RouterOutput } from '@/types/routerTypes';
+import { useFinancialReportingInvalidation } from './useFinancialReportingTrpc';
 
 type RecoveryOutput = RouterOutput['recovery'];
 
 export function useRecoveryTrpc() {
 	const utils = trpc.useUtils();
+	const reportingInvalidation = useFinancialReportingInvalidation();
 
 	return {
 		// Recovery Event hooks
@@ -20,6 +22,7 @@ export function useRecoveryTrpc() {
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
 				// Invalidate claim detail to update actual_recovery totals
 				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
+				reportingInvalidation.onRecoveryEventMutate();
 			},
 		}),
 
@@ -41,6 +44,7 @@ export function useRecoveryTrpc() {
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
 				// Invalidate claim detail to update actual_recovery totals
 				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
+				reportingInvalidation.onRecoveryEventMutate();
 			},
 		}),
 
@@ -56,6 +60,7 @@ export function useRecoveryTrpc() {
 				utils.recovery.getRecoveryMetricsTimeSeries.invalidate();
 				// Invalidate claim detail to update actual_recovery totals
 				utils.claim.getClaimDetail.invalidate({ claimId: variables.claimId });
+				reportingInvalidation.onRecoveryEventMutate();
 			},
 		}),
 

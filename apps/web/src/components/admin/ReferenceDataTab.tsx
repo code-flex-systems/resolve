@@ -1,48 +1,42 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { IconCategory, IconSettings, IconSquarePlus, IconTag } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
+import { useMemo, useCallback, useState } from 'react';
 import { useReferenceDataTrpc } from '@/hooks/trpc/useReferenceDataTrpc';
-import { Button, Chip, Fade, Paper, Typography } from '@mui/material';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
-import AddBox from '@mui/icons-material/AddBox';
-import Category from '@mui/icons-material/Category';
-import Label from '@mui/icons-material/Label';
 import Toolbar from '../common/Toolbar';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import ReferenceOptionDialog from './ReferenceOptionDialog';
 import ReferenceOptionActionsCell from './ReferenceOptionActionsCell';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 import {
 	KNOWN_REFERENCE_ENTITIES,
 	REFERENCE_ENTITY_DISPLAY,
 	type ReferenceEntity,
 } from '@/schemas/referenceDataSchemas';
 
-const ENTITY_COLUMNS: GridColDef[] = [
+const ENTITY_COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Reference Data Type',
-		field: 'display_name',
-		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={row.display_name}
-				secondary={row.description || row.entity}
-			/>
+		accessorKey: 'display_name',
+		cell: ({ row: { original: row } }) => (
+			<StackedHeaderCell primary={row.display_name} secondary={row.description || row.entity} />
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Category style={{ color: BASE_COLOR_LIGHT }} />} />
+		header: (params) => (
+			<IconHeaderCell {...params} icon={<IconCategory style={{ color: 'var(--text-muted)' }} />} />
 		),
-		flex: 1,
 	},
 ];
 
-const OPTION_COLUMNS: GridColDef[] = [
+const getOptionColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'Option',
-		field: 'display_label',
-		renderCell: ({ row }) => (
+		accessorKey: 'display_label',
+		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell
 				primary={
 					<span>
@@ -53,51 +47,47 @@ const OPTION_COLUMNS: GridColDef[] = [
 				secondary={row.value}
 			/>
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<Label style={{ color: BASE_COLOR_LIGHT }} />} />
-		),
-		flex: 1,
-		cellClassName: (params) => {
-			if (params.row.deleted_at) return 'deleted-cell';
-			if (!params.row.is_active) return 'inactive-cell';
-			return '';
-		},
+		header: (params) => <IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />,
 	},
 	{
-		headerName: 'Status',
-		field: 'is_active',
-		renderCell: ({ row }: GridRenderCellParams) => {
+		header: 'Status',
+		accessorKey: 'is_active',
+		cell: ({ row: { original: row } }: any) => {
 			if (row.deleted_at) {
-				return <Chip label="Deactivated" size="small" color="error" variant="outlined" />;
+				return (
+					<Chip size="sm" color="error" variant="outlined">
+						Deactivated
+					</Chip>
+				);
 			}
 			return (
-				<Chip
-					label={row.is_active ? 'Active' : 'Inactive'}
-					size="small"
-					color={row.is_active ? 'success' : 'default'}
-					variant="outlined"
-				/>
+				<Chip size="sm" color={row.is_active ? 'success' : 'neutral'} variant="outlined">
+					{row.is_active ? 'Active' : 'Inactive'}
+				</Chip>
 			);
 		},
-		width: 110,
+		size: 110,
 	},
 	{
-		headerName: 'System',
-		field: 'is_system_default',
-		renderCell: ({ row }: GridRenderCellParams) =>
+		header: 'System',
+		accessorKey: 'is_system_default',
+		cell: ({ row: { original: row } }: any) =>
 			row.is_system_default ? (
-				<Chip label="System" size="small" color="info" variant="outlined" />
+				<Chip size="sm" color="info" variant="outlined">
+					System
+				</Chip>
 			) : null,
-		width: 90,
+		size: 90,
 	},
 	{
-		headerName: 'Actions',
-		field: 'actions',
-		renderCell: ReferenceOptionActionsCell,
-		width: 100,
-		sortable: false,
-		filterable: false,
-		disableColumnMenu: true,
+		header: 'Actions',
+		accessorKey: 'actions',
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <ReferenceOptionActionsCell {...params} isManageMode={isManageMode} />;
+		},
+		size: 100,
+		enableSorting: false,
 	},
 ];
 
@@ -105,7 +95,7 @@ function NoEntitiesRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No reference data types found"
-			icon={<Category sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconCategory size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -115,14 +105,14 @@ function OptionsOverlay({ selectedEntity }: { selectedEntity: ReferenceEntity | 
 		return (
 			<CustomNoRowsOverlay
 				text="Select a reference type to see options"
-				icon={<Category sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconCategory size={35} style={{ color: 'var(--text-muted)' }} />}
 			/>
 		);
 	}
 	return (
 		<CustomNoRowsOverlay
 			text="No options found"
-			icon={<Label sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconTag size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -133,6 +123,9 @@ export default function ReferenceDataTab() {
 	const toggleNewReferenceOptionDialog = useAdminStore((state) => state.toggleNewReferenceOptionDialog);
 	const setReferenceEntity = useAdminStore((state) => state.setReferenceEntity);
 
+	const [isManageMode, setIsManageMode] = useState(false);
+
+	const optionColumns = useMemo(() => getOptionColumns(isManageMode), [isManageMode]);
 	const { lists, options } = useReferenceDataTrpc();
 
 	// Fetch all reference lists
@@ -172,100 +165,87 @@ export default function ReferenceDataTab() {
 	);
 
 	return (
-		<Fade in={true} timeout={1000}>
+		<div>
 			<div style={styles.container}>
 				<div style={styles.panelContainer}>
 					{/* Left Panel: Reference Entity Types */}
-					<Paper sx={styles.leftPanel} className="flex-col-start">
-						<Toolbar
-							left={<Typography variant="h6">Reference Data Types</Typography>}
-							height={50}
-							padding={'0px 10px'}
-						/>
+					<Card variant="beveled" padding="md" style={styles.leftPanel}>
+						<Toolbar left={<span>Reference Data Types</span>} height={50} padding={'0px 10px'} />
 						<div style={styles.table}>
-							<DataGridPro
+							<DataTable
 								columns={ENTITY_COLUMNS}
-								columnHeaderHeight={45}
+								headerHeight={45}
 								loading={listsFetching}
-								slots={{
-									noRowsOverlay: NoEntitiesRows,
-									noResultsOverlay: NoEntitiesRows,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
 								rows={entityRows}
 								rowHeight={60}
 								hideFooter
-								onRowClick={(params) => setReferenceEntity(params.row.entity)}
-								getRowClassName={(params) => {
-									if (params.row.entity === selectedReferenceEntity) return 'selected-row';
+								onRowClick={(row) => setReferenceEntity(row.entity)}
+								getRowClassName={(row, index) => {
+									if (row.entity === selectedReferenceEntity) return 'selected-row';
 									return '';
 								}}
-								disableColumnSelector
-								disableRowSelectionOnClick
-								disableColumnMenu
-								sx={styles.tableOverrides}
 							/>
 						</div>
-					</Paper>
+					</Card>
 
 					{/* Right Panel: Reference Options */}
-					<Paper sx={styles.rightPanel} className="flex-col-start">
+					<Card variant="beveled" padding="md" style={styles.rightPanel}>
 						<Toolbar
 							left={
-								<Typography variant="h6">
+								<span>
 									{selectedReferenceEntity
 										? REFERENCE_ENTITY_DISPLAY[selectedReferenceEntity].label
 										: 'Options'}
-								</Typography>
+								</span>
 							}
 							right={
-								<Button
-									variant="contained"
-									startIcon={<AddBox />}
-									onClick={toggleNewReferenceOptionDialog}
-									disabled={selectedReferenceEntity === null}
-								>
-									Option
-								</Button>
+								<>
+									<Button
+										variant="contained"
+										startIcon={<IconSquarePlus size={20} />}
+										onClick={toggleNewReferenceOptionDialog}
+										disabled={selectedReferenceEntity === null}
+									>
+										Option
+									</Button>
+									<Tooltip content="Manage">
+										<Button
+											variant="icon"
+											size="sm"
+											onClick={() => setIsManageMode(!isManageMode)}
+											style={{
+												marginLeft: 8,
+												backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+											}}
+										>
+											<IconSettings
+												size={20}
+												style={{ color: isManageMode ? 'var(--text-accent)' : undefined }}
+											/>
+										</Button>
+									</Tooltip>
+								</>
 							}
 							height={50}
 							padding={'0px 10px'}
 						/>
 						<div style={styles.table}>
-							<DataGridPro
-								columns={OPTION_COLUMNS}
-								columnHeaderHeight={45}
+							<DataTable
+								columns={optionColumns}
+								headerHeight={45}
 								loading={optionsFetching}
-								slots={{
-									noRowsOverlay: optionsOverlay,
-									noResultsOverlay: optionsOverlay,
-								}}
-								slotProps={{
-									loadingOverlay: {
-										noRowsVariant: 'linear-progress',
-										variant: 'linear-progress',
-									},
-								}}
 								rows={optionsData}
 								rowHeight={60}
 								hideFooter
-								disableColumnSelector
-								disableRowSelectionOnClick
-								disableColumnMenu
-								sx={styles.tableOverrides}
+								pinnedRight={isManageMode ? ['actions'] : []}
 							/>
 						</div>
-					</Paper>
+					</Card>
 				</div>
 
 				{showNewReferenceOptionDialog && <ReferenceOptionDialog />}
 			</div>
-		</Fade>
+		</div>
 	);
 }
 
@@ -278,31 +258,26 @@ const styles = {
 	},
 	panelContainer: {
 		width: '100%',
-		flex: 1,
 		display: 'flex',
 		gap: '15px',
 		minHeight: 0,
+		flex: 1,
 	},
 	leftPanel: {
 		width: '40%',
 		display: 'flex',
 		flexDirection: 'column' as const,
-		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	rightPanel: {
 		width: '60%',
 		display: 'flex',
+		flex: 1,
 		flexDirection: 'column' as const,
-		padding: '15px 15px 0px',
 		minHeight: 0,
 	},
 	table: {
 		width: '100%',
-		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
+		height: 'calc(100vh - 190px)',
 	},
 };

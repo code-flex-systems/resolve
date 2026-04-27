@@ -1,42 +1,31 @@
 'use client';
-
-import {
-	Box,
-	Button,
-	Checkbox,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	FormControl,
-	FormControlLabel,
-	InputAdornment,
-	InputLabel,
-	MenuItem,
-	Select,
-	TextField,
-} from '@mui/material';
+import Input, { Textarea } from '@/components/ui/Input';
+import Dialog from '@/components/ui/Dialog';
+import Dropdown from '@/components/ui/Dropdown';
+import Checkbox from '@/components/ui/Checkbox';
+import Button from '@/components/ui/Button';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { capitalize } from '@/lib/utils/utils';
+import DateField from '@/components/common/DateField';
 
 export interface PaymentFormData {
-	coverage_id: number | '';
+	coverage_id: string | '';
 	payment_date: string;
 	payment_amount: string;
 	is_subrogable: boolean;
 	is_expense: boolean;
-	payee_claim_party_id: number | '' | null;
+	payee_claim_party_id: string | '' | null;
 	description: string;
 }
 
 interface Coverage {
-	id: number;
+	id: string;
 	loss_type: string;
 	coverage_amount?: number | string | null;
 }
 
 interface ClaimParty {
-	id: number;
+	id: string;
 	party?: { name?: string };
 }
 
@@ -71,41 +60,40 @@ export default function PaymentFormDialog({
 		!isNaN(parseFloat(formData.payment_amount));
 
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEditing ? 'Edit Payment' : 'Add Payment'}</DialogTitle>
-			<DialogContent>
-				<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
-					<FormControl fullWidth required>
-						<InputLabel>Coverage</InputLabel>
-						<Select
-							value={formData.coverage_id}
-							label="Coverage"
-							onChange={(e) =>
-								setFormData({ ...formData, coverage_id: Number(e.target.value) })
-							}
-						>
-							{coverages.map((coverage) => (
-								<MenuItem key={coverage.id} value={coverage.id}>
-									{capitalize(coverage.loss_type)}
-									{coverage.coverage_amount
-										? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}`
-										: ''}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					<TextField
+		<Dialog
+			open={open}
+			onClose={onClose}
+			title={isEditing ? 'Edit Payment' : 'Add Payment'}
+			size="sm"
+			footer={
+				<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
+						{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
+					</Button>
+				</div>
+			}
+		>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+				<Dropdown
+						label="Coverage"
+						options={coverages.map((coverage) => ({
+							value: coverage.id,
+							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
+						}))}
+						value={formData.coverage_id}
+						onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
+						required
+						fullWidth
+					/>
+					<DateField
 						label="Payment Date"
-						type="date"
-						value={formData.payment_date}
-						onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+						value={formData.payment_date || null}
+						onChange={(val) => setFormData({ ...formData, payment_date: val ?? '' })}
 						fullWidth
 						required
-						slotProps={{
-							inputLabel: { shrink: true },
-						}}
 					/>
-					<TextField
+					<Input
 						label="Payment Amount"
 						type="number"
 						value={formData.payment_amount}
@@ -114,76 +102,52 @@ export default function PaymentFormDialog({
 						required
 						placeholder="0.00"
 						helperText="Use negative values for credits or reversals"
-						slotProps={{
-							input: {
-								startAdornment: <InputAdornment position="start">$</InputAdornment>,
-							},
-							htmlInput: { step: '0.01' },
-						}}
+						startAdornment={<span style={{ color: 'var(--text-secondary)', marginRight: 4 }}>$</span>}
+						step="0.01"
 					/>
-					<Box display="flex" gap={2}>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={formData.is_subrogable}
-									onChange={(e) =>
-										setFormData({ ...formData, is_subrogable: e.target.checked })
-									}
-								/>
+					<div style={{ display: 'flex', gap: 16 }}>
+						<Checkbox
+							checked={formData.is_subrogable}
+							onChange={(checked) =>
+								setFormData({ ...formData, is_subrogable: checked })
 							}
 							label="Subrogable"
 						/>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={formData.is_expense}
-									onChange={(e) =>
-										setFormData({ ...formData, is_expense: e.target.checked })
-									}
-								/>
+						<Checkbox
+							checked={formData.is_expense}
+							onChange={(checked) =>
+								setFormData({ ...formData, is_expense: checked })
 							}
 							label="Expense"
 						/>
-					</Box>
-					<FormControl fullWidth>
-						<InputLabel>Payee (Optional)</InputLabel>
-						<Select
-							value={formData.payee_claim_party_id ?? ''}
-							label="Payee (Optional)"
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									payee_claim_party_id: e.target.value === '' ? null : Number(e.target.value),
-								})
-							}
-						>
-							<MenuItem value="">
-								<em>None</em>
-							</MenuItem>
-							{claimParties.map((cp) => (
-								<MenuItem key={cp.id} value={cp.id}>
-									{cp.party?.name}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					<TextField
+					</div>
+					<Dropdown
+						label="Payee (Optional)"
+						options={[
+							{ value: '', label: 'None' },
+							...claimParties.map((cp) => ({
+								value: cp.id,
+								label: cp.party?.name || '',
+							})),
+						]}
+						value={formData.payee_claim_party_id ?? ''}
+						onChange={(v) =>
+							setFormData({
+								...formData,
+								payee_claim_party_id: v === '' ? null : String(v),
+							})
+						}
+						fullWidth
+					/>
+					<Textarea
 						label="Description"
 						value={formData.description}
 						onChange={(e) => setFormData({ ...formData, description: e.target.value })}
 						fullWidth
-						multiline
 						rows={3}
 						placeholder="Optional details about this payment..."
 					/>
-				</Box>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
-				<Button onClick={onSubmit} variant="contained" disabled={!isValid || isSubmitting}>
-					{isSubmitting ? 'Saving...' : isEditing ? 'Save' : 'Create'}
-				</Button>
-			</DialogActions>
+				</div>
 		</Dialog>
 	);
 }

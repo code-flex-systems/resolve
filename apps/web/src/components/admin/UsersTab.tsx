@@ -1,103 +1,96 @@
 'use client';
 
+import { IconSettings, IconUser, IconUserPlus } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Switch from '@/components/ui/Switch';
+import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Button, Paper, Switch, Typography } from '@mui/material';
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
-import AccessTimeFilled from '@mui/icons-material/AccessTimeFilled';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Phone from '@mui/icons-material/Phone';
-import Shield from '@mui/icons-material/Shield';
-import Person from '@mui/icons-material/Person';
-import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
 import { formatMDY } from '@/lib/utils/utils';
-import parsePhoneNumberFromString from 'libphonenumber-js';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
+import EmailCell from './EmailCell';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import useDebounce from '@/lib/utils/useDebounce';
-import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import SearchInput from '../common/SearchInput';
-import { TEXT_MUTED, dataGridFocusStyles } from '@/styles/theme';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const COLUMNS: GridColDef[] = [
+const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 	{
-		headerName: 'User',
-		field: 'user',
-		renderCell: ({ row }) => (
-			<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
+		accessorKey: 'name',
+		header: 'Name',
+		cell: ({ row: { original: row } }) => (
+			<span style={{ fontWeight: 500 }}>
+				{row.first} {row.last}
+			</span>
 		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccountCircle sx={{ color: TEXT_MUTED }} />} />
-		),
-		flex: 1,
+		size: 200,
 	},
 	{
-		headerName: 'Phone',
-		field: 'phone',
-		renderCell: (params) => (
-			<PhoneCell
-				value={parsePhoneNumberFromString(params.value ?? '')?.formatNational() ?? ''}
-				verified={params.row.phone_verified}
-				disabled={params.row.disabled}
-			/>
-		),
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Phone sx={{ color: TEXT_MUTED }} />} />,
-		width: 180,
+		accessorKey: 'email',
+		header: 'Email',
+		cell: ({ row: { original: row } }) => <EmailCell value={row.email} />,
+		size: 280,
 	},
 	{
-		headerName: 'Role',
-		field: 'role',
-		renderCell: (params) => <RoleCell {...params} />,
-		renderHeader: (params) => <IconHeaderCell {...params} icon={<Shield sx={{ color: TEXT_MUTED }} />} />,
-		width: 180,
+		accessorKey: 'phone',
+		header: 'Phone',
+		cell: ({ row: { original: row } }) => <PhoneCell value={row.phone} />,
+		size: 160,
 	},
 	{
-		headerName: 'Status',
-		field: 'status',
-		renderCell: ({ row }) => (
-			<StackedHeaderCell
-				primary={
-					row.disabled
-						? 'Disabled'
-						: row.onboarding_email_sent && !row.email_verified
-							? 'Invited'
-							: 'Verified'
-				}
-				secondary={formatMDY(
-					row.disabled
-						? row.updated_at
-						: row.onboarding_email_sent && !row.email_verified
-							? (row.updated_at ?? row.created_at)
-							: (row.email_verified ?? row.created_at)
-				)}
-			/>
-		),
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<AccessTimeFilled sx={{ color: TEXT_MUTED }} />} />
-		),
-		width: 180,
+		accessorKey: 'role',
+		header: 'Role',
+		cell: ({ row: { original: row } }) => <RoleCell row={row} />,
+		size: 140,
 	},
 	{
-		headerName: '',
-		field: 'actions',
-		renderCell: (params) => <UserActionsCell {...params} />,
-		width: 120,
-		resizable: false,
+		accessorKey: 'status',
+		header: 'Status',
+		cell: ({ row: { original: row } }) => {
+			const statusText = row.disabled
+				? 'Disabled'
+				: row.onboarding_email_sent && !row.email_verified
+					? 'Invited'
+					: 'Verified';
+			const statusDate = formatMDY(
+				row.disabled
+					? row.updated_at
+					: row.onboarding_email_sent && !row.email_verified
+						? (row.updated_at ?? row.created_at)
+						: (row.email_verified ?? row.created_at)
+			);
+			return (
+				<div style={{ display: 'flex', flexDirection: 'column' }}>
+					<span style={{ fontSize: 14 }}>{statusText}</span>
+					{statusDate && <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{statusDate}</span>}
+				</div>
+			);
+		},
+		size: 200,
+	},
+	{
+		header: '',
+		accessorKey: 'actions',
+		cell: ({ row: { original: row } }) => <UserActionsCell row={row} isManageMode={isManageMode} />,
+		size: 100,
+		enableResizing: false,
 	},
 ];
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No users found" icon={<Person sx={{ fontSize: 35, color: TEXT_MUTED }} />} />
+		<CustomNoRowsOverlay
+			text="No users found"
+			icon={<IconUser size={35} style={{ color: 'var(--text-muted)' }} />}
+		/>
 	);
 }
 
@@ -117,7 +110,9 @@ export default function UsersTab() {
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
 
+	const columns = useMemo(() => getColumns(isManageMode), [isManageMode]);
 	const { data = { rows: [], count: undefined }, isFetching } = useUserTrpc().paginated({
 		disabled: showDisabled,
 		inactive: showInactiveUsers,
@@ -125,14 +120,6 @@ export default function UsersTab() {
 		offset: userConstraints.page * userConstraints.pageSize,
 		searchTerm: userSearchTerm,
 	});
-	const rowCountRef = useRef(data.count ?? 0);
-
-	const rowCount = useMemo(() => {
-		if (data.count !== undefined) {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Sync local search state with URL param changes
 	useEffect(() => {
@@ -145,33 +132,32 @@ export default function UsersTab() {
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading users...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
+				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Manage user accounts and permissions. Invite new users by email — they'll create their own
+						account when they accept.
+					</p>
 					<Toolbar
 						left={
 							<>
-								<Typography variant="h6" marginRight="20px">
-									Users
-								</Typography>
 								<Switch
-									size="small"
+									size="sm"
 									checked={showDisabled}
-									onChange={(_, checked) => setParam('disabled', checked)}
+									onChange={(checked) => setParam('disabled', checked)}
 									color="warning"
-									sx={{ marginLeft: '10px' }}
+									style={{ marginLeft: '10px' }}
 								/>
-								<Typography fontSize={14} fontStyle="italic">
+								<span style={{ fontSize: 14, fontStyle: 'italic', marginRight: 10 }}>
 									Offboarded Accounts
-								</Typography>
+								</span>
 								<Switch
-									size="small"
+									size="sm"
 									checked={showInactiveUsers}
-									onChange={(_, checked) => setParam('inactive', checked)}
+									onChange={(checked) => setParam('inactive', checked)}
 									color="warning"
-									sx={{ marginLeft: '10px' }}
+									style={{ marginLeft: '10px' }}
 								/>
-								<Typography fontSize={14} fontStyle="italic">
-									Inactive Accounts
-								</Typography>
+								<span style={{ fontSize: 14, fontStyle: 'italic' }}>Inactive Accounts</span>
 							</>
 						}
 						right={
@@ -190,53 +176,52 @@ export default function UsersTab() {
 								/>
 								<Button
 									variant="contained"
-									startIcon={<PersonAdd />}
+									startIcon={<IconUserPlus size={20} />}
 									onClick={toggleInviteUserDialog}
-									sx={{ ml: 2 }}
+									style={{ marginLeft: 16 }}
 								>
 									Invite User
 								</Button>
+								<Tooltip content="Manage">
+									<Button
+										variant="icon"
+										size="sm"
+										onClick={() => setIsManageMode(!isManageMode)}
+										style={{
+											marginLeft: 8,
+											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+										}}
+									>
+										<IconSettings
+											size={20}
+											style={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
+									</Button>
+								</Tooltip>
 							</>
 						}
 						height={50}
 						padding={'0px 10px'}
 					/>
 					<div style={styles.table}>
-						<DataGridPro
-							columns={COLUMNS}
-							columnHeaderHeight={45}
+						<DataTable
+							columns={columns}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={data.rows}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={60}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							getRowClassName={(params) => {
-								if (params.row.email === session?.user?.email) return 'user-row';
+							getRowClassName={(row, index) => {
+								if (row.email === session?.user?.email) return 'user-row';
 								return '';
 							}}
-							pagination
 							paginationMode="server"
 							paginationModel={userConstraints}
 							onPaginationModelChange={updateUserConstraints}
-							disableColumnSelector
-							disableRowSelectionOnClick
-							disableColumnMenu
-							sx={styles.tableOverrides}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
-				</Paper>
+				</Card>
 			</div>
 		</PageTransitionWrapper>
 	);
@@ -251,16 +236,13 @@ const styles = {
 	},
 	paper: {
 		width: '100%',
-		flex: 1,
-		padding: '24px 24px 0px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
 	},
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

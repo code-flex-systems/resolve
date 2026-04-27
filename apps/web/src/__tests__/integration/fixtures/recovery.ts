@@ -13,8 +13,8 @@ export async function createTestRecoveryEvent(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
-		settlement_id: number;
+		claim_id: string;
+		settlement_id: string;
 		created_by: string;
 		recovery_date?: Date | string;
 		recovery_amount?: string | number;
@@ -33,9 +33,5 @@ export async function createTestRecoveryEvent(
 		notes: overrides.notes ?? null,
 	};
 
-	return db
-		.insertInto('recovery_event')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('recovery_event').values(data).returningAll().executeTakeFirstOrThrow();
 }

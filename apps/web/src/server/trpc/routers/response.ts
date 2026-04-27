@@ -8,6 +8,7 @@ import {
 	getResponsesForPageInstance,
 	upsertQuestionResponses,
 } from '@/api/controllers/responseController';
+import { getResponseAuditLogStats as getResponseAuditLogTimeSeries } from '@/api/queries/responseQueries';
 import config from '@/config/config';
 import { checkRole } from '@/lib/auth/checkRole';
 import { requireAssigned } from '@/lib/auth/requireAssigned';
@@ -70,6 +71,12 @@ export const responseRouter = router({
 	getResponseAuditLogStats: protectedProcedure.input(getResponseAuditLogStatsInput).query(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return getResponseAuditLogStats(ctx, input);
+	}),
+
+	// Returns per-day event counts for checklist activity charting
+	getChecklistActivity: protectedProcedure.input(getResponseAuditLogStatsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getResponseAuditLogTimeSeries(ctx, input.filters);
 	}),
 
 	upsertQuestionResponses: protectedProcedure.input(upsertQuestionResponsesInput).mutation(async ({ input, ctx }) => {

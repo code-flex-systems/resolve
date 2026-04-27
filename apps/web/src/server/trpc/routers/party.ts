@@ -531,6 +531,14 @@ export const partyRouter = router({
 		}),
 
 	/**
+	 * Get party management overview stats (Admin only)
+	 */
+	getManagementStats: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getPartyManagementStats(ctx);
+	}),
+
+	/**
 	 * Archive claim party (soft delete) with cascade to facilitators, coverages, and liabilities (Admin only)
 	 */
 	archiveClaimParty: protectedProcedure

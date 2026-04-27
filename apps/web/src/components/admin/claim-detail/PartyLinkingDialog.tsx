@@ -1,12 +1,16 @@
 'use client';
-
+import Input, { Textarea } from '@/components/ui/Input';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
+import Dropdown from '@/components/ui/Dropdown';
+import Switch from '@/components/ui/Switch';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, TextField, Autocomplete, Typography, InputAdornment, Chip } from '@mui/material';
-import BasicDialog from '@/components/common/BasicDialog';
+import Dialog from '@/components/ui/Dialog';
+import StepperFlow, { type Step } from '@/components/ui/StepperFlow';
 import { LossTypeSelect } from '@/components/common/ReferenceDataSelect';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { PartyType } from '@/config/enums';
-import PartyDialog from '@/components/admin/PartyDialog';
 import AddressDialog from '@/components/admin/AddressDialog';
 import RepresentativeDialog from '@/components/admin/RepresentativeDialog';
 import type { Party } from '@/api/database/types';
@@ -14,16 +18,16 @@ import { trpc } from '@/lib/trpc';
 
 interface PartyLinkingFormData {
 	role: string[]; // Array of selected roles
-	party_id: number | null;
+	party_id: string | null;
 	// Structured representative (facilitators)
-	representative_id: number | null;
-	address_id: number | null;
+	representative_id: string | null;
+	address_id: string | null;
 	// Free-form representative (entities)
 	representative_name: string;
 	// Other fields
 	liability_percentage: string;
 	notes: string;
-	parent_claim_party_id: number | null;
+	parent_claim_party_id: string | null;
 	// Facilitator-specific fields
 	loss_type: string | null;
 	policy_limit: string;
@@ -34,16 +38,16 @@ interface PartyLinkingDialogProps {
 	onClose: () => void;
 	onSubmit: (data: {
 		role: string[]; // Array of roles
-		party_id: number;
+		party_id: string;
 		// Structured representative (facilitators)
-		representative_id?: number | null;
-		address_id?: number | null;
+		representative_id?: string | null;
+		address_id?: string | null;
 		// Free-form representative (entities)
 		representative_name?: string | null;
 		// Other fields
 		liability_percentage?: number | null;
 		notes?: string | null;
-		parent_claim_party_id?: number | null;
+		parent_claim_party_id?: string | null;
 		// Facilitator-specific fields
 		loss_type?: string | null;
 		policy_limit?: number | null;
@@ -54,7 +58,7 @@ interface PartyLinkingDialogProps {
 	/** Reference entity for role selection ('claimant_party_role' or 'adverse_party_role') */
 	roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
 	/** Parent claim_party ID when adding a facilitator under an entity */
-	parentClaimPartyId?: number | null;
+	parentClaimPartyId?: string | null;
 	/** Whether this dialog is for adding/editing a facilitator (requires parent entity) */
 	isFacilitatorMode?: boolean;
 	/** Available parent entities for facilitator selection (only used when isFacilitatorMode=true and no parentClaimPartyId) */
@@ -73,6 +77,7 @@ export default function PartyLinkingDialog({
 	isFacilitatorMode = false,
 	availableParentEntities = [],
 }: PartyLinkingDialogProps) {
+	const [activeStep, setActiveStep] = useState(0);
 	const [formData, setFormData] = useState<PartyLinkingFormData>({
 		role: [],
 		party_id: null,
@@ -95,10 +100,23 @@ export default function PartyLinkingDialog({
 	const [selectedAddress, setSelectedAddress] = useState<any | null>(null);
 	const [selectedRepresentative, setSelectedRepresentative] = useState<any | null>(null);
 	const [selectedParentEntity, setSelectedParentEntity] = useState<any | null>(null);
-	// Inline creation dialogs
-	const [showCreatePartyDialog, setShowCreatePartyDialog] = useState(false);
+	// Inline creation dialogs (kept for address/rep which are simple)
 	const [showCreateAddressDialog, setShowCreateAddressDialog] = useState(false);
 	const [showCreateRepDialog, setShowCreateRepDialog] = useState(false);
+
+	// Inline party creation (replaces the nested PartyDialog)
+	const [creatingNewParty, setCreatingNewParty] = useState(false);
+	const [newPartyData, setNewPartyData] = useState({
+		party_type: isFacilitatorMode ? PartyType.FACILITATOR : PartyType.ENTITY,
+		is_business: true,
+		name: '',
+		first_name: '',
+		last_name: '',
+		organization: '',
+		contact_email: '',
+		contact_phone: '',
+		notes: '',
+	});
 
 	const partyTrpc = usePartyTrpc();
 
@@ -242,6 +260,8 @@ export default function PartyLinkingDialog({
 		setSelectedAddress(null);
 		setSelectedRepresentative(null);
 		setRepSearchTerm('');
+		// If user selects an existing party while in creation mode, exit creation mode
+		if (party) setCreatingNewParty(false);
 		setFormData((prev) => ({
 			...prev,
 			party_id: party?.id || null,
@@ -324,18 +344,39 @@ export default function PartyLinkingDialog({
 		}));
 	}, []);
 
-	// Handle party creation from nested dialog
-	const handlePartyCreated = useCallback(
-		(createdParty?: Party) => {
-			setShowCreatePartyDialog(false);
-			if (createdParty) {
-				// Auto-select the newly created party
-				handlePartySelect(createdParty);
-				setPartySearchTerm(createdParty.name);
-			}
-		},
-		[handlePartySelect]
-	);
+	// Handle inline party creation — creates party via API, auto-selects, and returns to linking flow
+	const handleInlinePartyCreate = useCallback(async () => {
+		try {
+			const name = newPartyData.is_business
+				? newPartyData.name
+				: `${newPartyData.first_name} ${newPartyData.last_name}`.trim();
+
+			const createdParty = await partyTrpc.create.mutateAsync({
+				party_type: newPartyData.party_type,
+				is_business: newPartyData.is_business,
+				name,
+				first_name: !newPartyData.is_business ? newPartyData.first_name : undefined,
+				last_name: !newPartyData.is_business ? newPartyData.last_name : undefined,
+				organization: newPartyData.organization || undefined,
+				notes: newPartyData.notes || undefined,
+				...(newPartyData.contact_email || newPartyData.contact_phone ? {
+					contact: {
+						email: newPartyData.contact_email || undefined,
+						phone: newPartyData.contact_phone || undefined,
+					},
+				} : {}),
+			});
+
+			// Auto-select the created party and return to main flow
+			handlePartySelect(createdParty);
+			setPartySearchTerm(createdParty.name);
+			setCreatingNewParty(false);
+			// Jump to Role & Details (index 1 in the base flow without creation steps)
+			setActiveStep(1);
+		} catch (error) {
+			console.error('Failed to create party:', error);
+		}
+	}, [newPartyData, partyTrpc.create, handlePartySelect]);
 
 	// Handle address creation from nested dialog
 	const handleAddressCreated = useCallback(
@@ -421,8 +462,6 @@ export default function PartyLinkingDialog({
 		// For facilitators: require address and representative
 		(!isFacilitatorMode || (formData.address_id && formData.representative_id));
 
-	if (!open) return null;
-
 	// Determine dialog title based on mode
 	const getDialogTitle = () => {
 		if (editingClaimParty) {
@@ -431,374 +470,441 @@ export default function PartyLinkingDialog({
 		return isFacilitatorMode ? 'Add Facilitator' : 'Add Entity';
 	};
 
-	return (
-		<BasicDialog
-			title={getDialogTitle()}
-			primaryAction={{
-				label: editingClaimParty ? 'Update' : 'Add',
-				onClick: handleSubmit,
-				disabled: !isFormValid || isSubmitting,
-			}}
-			secondaryActions={[
-				{
-					label: 'Cancel',
-					onClick: onClose,
-				},
-			]}
-			onClose={onClose}
-			width={600}
-		>
-			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
-				{/* Parent Entity Selection - only for facilitator mode when no fixed parent */}
-				{isFacilitatorMode && !parentClaimPartyId && (
-					<Autocomplete
-						options={parentEntityOptions}
-						value={selectedParentEntity}
-						onChange={(_, newValue) => handleParentEntitySelect(newValue)}
-						getOptionLabel={(option: any) => option.party?.name || ''}
-						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-						renderOption={(props, option: any) => (
-							<li {...props} key={option.id}>
-								<Box>
-									<Typography>{option.party?.name}</Typography>
-									{option.role && (
-										<Typography variant="caption" color="text.secondary">
-											{option.role}
-										</Typography>
-									)}
-								</Box>
-							</li>
-						)}
-						fullWidth
-						renderInput={(params) => (
-							<TextField {...params} label="Parent Entity *" placeholder="Select parent entity..." required />
-						)}
+	// --- ComboboxOption mappings ---
+
+	// Parent entity options
+	const parentEntityComboboxOptions: ComboboxOption[] = parentEntityOptions.map((cp: any) => ({
+		value: cp.id,
+		label: cp.party?.name || '',
+		description: cp.role ?? undefined,
+	}));
+	const selectedParentEntityOption: ComboboxOption | null = selectedParentEntity
+		? { value: selectedParentEntity.id, label: selectedParentEntity.party?.name || '', description: selectedParentEntity.role ?? undefined }
+		: null;
+
+	// Role options (multi-select)
+	const roleComboboxOptions: ComboboxOption[] = roleOptions.map((opt) => ({
+		value: opt.value,
+		label: opt.display_label,
+	}));
+	const selectedRoleOptions: ComboboxOption[] = roleOptions
+		.filter((opt) => formData.role.includes(opt.value))
+		.map((opt) => ({ value: opt.value, label: opt.display_label }));
+
+	// Party options
+	const partyComboboxOptions: ComboboxOption[] = partyAutocompleteOptions.map((p: any) => ({
+		value: p.id,
+		label: p.name || '',
+		description: p.id === -2 ? undefined : `${p.organization || 'No organization'} • ${p.address_city ? (p.address_state ? `${p.address_city}, ${p.address_state}` : p.address_city) : 'No address'}`,
+		disabled: p.id === -2,
+	}));
+	const selectedPartyOption: ComboboxOption | null = selectedParty
+		? { value: selectedParty.id, label: selectedParty.name || '' }
+		: null;
+
+	// Address options (facilitators)
+	const addressComboboxOptions: ComboboxOption[] = (addresses as any[]).map((addr: any) => ({
+		value: addr.id,
+		label: addr.name || 'Unnamed Address',
+	}));
+	const selectedAddressOption: ComboboxOption | null = selectedAddress
+		? { value: selectedAddress.id, label: selectedAddress.name || 'Unnamed Address' }
+		: null;
+
+	// Representative options (facilitators)
+	const repComboboxOptions: ComboboxOption[] = representativeAutocompleteOptions.map((rep: any) => ({
+		value: rep.id,
+		label: `${rep.first_name} ${rep.last_name || ''}`.trim(),
+		description: !selectedParty && rep.party_name
+			? `${rep.party_name}${rep.address_city ? ` • ${rep.address_city}, ${rep.address_state}` : ''}`
+			: rep.title ? `(${rep.title})` : undefined,
+	}));
+	const selectedRepOption: ComboboxOption | null = selectedRepresentative
+		? { value: selectedRepresentative.id, label: `${selectedRepresentative.first_name} ${selectedRepresentative.last_name || ''}`.trim() }
+		: null;
+
+	if (!open) return null;
+
+	const step1Valid = creatingNewParty
+		? false // If creating, party selection isn't valid yet — user must complete creation steps
+		: !!formData.party_id && (!isFacilitatorMode || !!formData.parent_claim_party_id || !!parentClaimPartyId);
+	const newPartyNameValid = newPartyData.is_business ? !!newPartyData.name.trim() : !!(newPartyData.first_name.trim() && newPartyData.last_name.trim());
+	const step2Valid = formData.role.length > 0 && isValidLiabilityPercentage && !wouldExceedTotalLiability;
+	const step3Valid = !isFacilitatorMode || (!!formData.address_id && !!formData.representative_id);
+
+	// Build dynamic steps — inject party creation steps when creatingNewParty is true
+	const partyCreationSteps: Step[] = creatingNewParty ? [
+		{
+			key: 'new-party-info',
+			label: 'Party Details',
+			description: 'Name and type',
+			isValid: newPartyNameValid,
+			content: (
+				<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+						Enter the details for the new {isFacilitatorMode ? 'facilitator' : 'entity'}.
+					</p>
+					<Switch
+						checked={newPartyData.is_business}
+						onChange={(checked) => setNewPartyData({ ...newPartyData, is_business: checked, name: '', first_name: '', last_name: '' })}
+						label={newPartyData.is_business ? 'Business / Organization' : 'Individual'}
 					/>
-				)}
-
-				{/* Role Selection - multiselect for roles */}
-				<Autocomplete
-					multiple
-					options={roleOptions}
-					value={roleOptions.filter((opt) => formData.role.includes(opt.value))}
-					onChange={(_, newValue) => setFormData({ ...formData, role: newValue.map((v) => v.value) })}
-					getOptionLabel={(option) => option.display_label}
-					isOptionEqualToValue={(option, value) => option.value === value.value}
-					renderTags={(value, getTagProps) =>
-						value.map((option, index) => {
-							const { key, ...tagProps } = getTagProps({ index });
-							return (
-								<Chip
-									key={key}
-									label={option.display_label}
-									size="small"
-									{...tagProps}
-								/>
-							);
-						})
-					}
-					renderInput={(params) => (
-						<TextField
-							{...params}
-							label="Roles *"
-							placeholder={formData.role.length === 0 ? 'Select one or more roles...' : ''}
-							required
+					{newPartyData.is_business ? (
+						<Input
+							label="Business Name *"
+							value={newPartyData.name}
+							onChange={(e) => setNewPartyData({ ...newPartyData, name: e.target.value })}
+							fullWidth
+							placeholder="Enter business or organization name"
 						/>
-					)}
-					fullWidth
-				/>
-
-				{/* Party Selection */}
-				<Box>
-					<Autocomplete
-						options={partyAutocompleteOptions}
-						value={selectedParty}
-						onChange={(_, newValue) => handlePartySelect(newValue)}
-						inputValue={partySearchTerm}
-						onInputChange={(_, newValue) => setPartySearchTerm(newValue)}
-						getOptionLabel={(option: any) => option.name || ''}
-						isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-						getOptionDisabled={(option: any) => option.id === -2}
-						renderOption={(props, option: any) => {
-							// Build secondary info line
-							const orgPart = option.organization || 'No organization';
-							const addressPart = option.address_city
-								? (option.address_state ? `${option.address_city}, ${option.address_state}` : option.address_city)
-								: 'No address';
-
-							return (
-								<li {...props} key={option.id}>
-									{option.id === -2 ? (
-										<em style={{ color: '#999' }}>{option.name}</em>
-									) : (
-										<Box>
-											<Typography variant="body2">{option.name}</Typography>
-											<Typography variant="caption" color="text.secondary" display="block">
-												{`${orgPart} • ${addressPart}`}
-											</Typography>
-										</Box>
-									)}
-								</li>
-							);
-						}}
-						fullWidth
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
-								placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
-								required
+					) : (
+						<div style={{ display: 'flex', gap: 12 }}>
+							<Input
+								label="First Name *"
+								value={newPartyData.first_name}
+								onChange={(e) => setNewPartyData({ ...newPartyData, first_name: e.target.value })}
+								fullWidth
+								placeholder="First"
 							/>
-						)}
-					/>
-					{/* Add New Party Link */}
-					<Typography
-						variant="body2"
-						sx={{
-							color: 'primary.main',
-							cursor: 'pointer',
-							'&:hover': { textDecoration: 'underline' },
-							mt: 0.5,
-						}}
-						onClick={() => setShowCreatePartyDialog(true)}
-					>
-						+ Add new {isFacilitatorMode ? 'facilitator' : 'entity'}
-					</Typography>
-				</Box>
-
-				{/* Liability Percentage - only show on adverse parties tab for entities, positioned early in form */}
-				{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
-					<TextField
-						label="Liability Percentage"
-						type="number"
-						value={formData.liability_percentage}
-						onChange={(e) => setFormData({ ...formData, liability_percentage: e.target.value })}
+							<Input
+								label="Last Name *"
+								value={newPartyData.last_name}
+								onChange={(e) => setNewPartyData({ ...newPartyData, last_name: e.target.value })}
+								fullWidth
+								placeholder="Last"
+							/>
+						</div>
+					)}
+					<Input
+						label="Organization"
+						value={newPartyData.organization}
+						onChange={(e) => setNewPartyData({ ...newPartyData, organization: e.target.value })}
 						fullWidth
-						placeholder="Enter percentage (0-100)"
-						inputProps={{ step: '0.01', min: '0', max: '100' }}
-						slotProps={{
-							input: {
-								endAdornment: <InputAdornment position="end">%</InputAdornment>,
-							},
-						}}
-						error={!isValidLiabilityPercentage || wouldExceedTotalLiability}
-						helperText={
-							!isValidLiabilityPercentage
-								? 'Must be between 0 and 100'
-								: wouldExceedTotalLiability
-									? `Combined liability cannot exceed 100% (currently ${currentTotalLiability.toFixed(1)}% allocated to other parties)`
-									: currentTotalLiability > 0
-										? `Current total: ${currentTotalLiability.toFixed(1)}% • Available: ${(100 - currentTotalLiability).toFixed(1)}%`
-										: "This party's percentage of liability for the claim"
-						}
+						placeholder="Parent organization (optional)"
 					/>
-				)}
+				</div>
+			),
+		},
+		{
+			key: 'new-party-contact',
+			label: 'Contact Info',
+			description: 'Email and phone',
+			isOptional: true,
+			isValid: true,
+			content: (
+				<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+						Optionally add contact information. You can also add this later.
+					</p>
+					<Input
+						label="Email"
+						type="email"
+						value={newPartyData.contact_email}
+						onChange={(e) => setNewPartyData({ ...newPartyData, contact_email: e.target.value })}
+						fullWidth
+						placeholder="contact@example.com"
+					/>
+					<Input
+						label="Phone"
+						type="tel"
+						value={newPartyData.contact_phone}
+						onChange={(e) => setNewPartyData({ ...newPartyData, contact_phone: e.target.value })}
+						fullWidth
+						placeholder="(555) 555-5555"
+					/>
+					<Textarea
+						label="Notes"
+						value={newPartyData.notes}
+						onChange={(e) => setNewPartyData({ ...newPartyData, notes: e.target.value })}
+						fullWidth
+						rows={2}
+						placeholder="Any notes about this party..."
+					/>
+				</div>
+			),
+		},
+	] : [];
 
-				{/* Facilitator: Address Selection (Office) */}
-				{isFacilitatorMode && (
-					<Box>
-						<Autocomplete
-							options={addresses}
-							value={selectedAddress}
-							onChange={(_, newValue) => handleAddressSelect(newValue)}
-							getOptionLabel={(option: any) => option.name || 'Unnamed Address'}
-							isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-							disabled={!selectedParty}
-							fullWidth
-							renderInput={(params) => (
-								<TextField
-									{...params}
-									label="Office/Address *"
-									placeholder={selectedParty ? 'Select office...' : 'Select facilitator first'}
+	const dynamicSteps: Step[] = [
+					{
+						key: 'party',
+						label: isFacilitatorMode ? 'Facilitator' : 'Entity',
+						description: 'Search or create',
+						isValid: step1Valid,
+						content: (
+							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+								<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+									{isFacilitatorMode
+										? 'Search for an existing facilitator or create a new one.'
+										: 'Search for an existing entity or create a new one to link to this claim.'}
+								</p>
+								{isFacilitatorMode && !parentClaimPartyId && (
+									<Combobox
+										options={parentEntityComboboxOptions}
+										value={selectedParentEntityOption}
+										onChange={(opt) => {
+											const entity = opt ? parentEntityOptions.find((pe: any) => pe.id === opt.value) : null;
+											handleParentEntitySelect(entity);
+										}}
+										isOptionEqual={(a, b) => a.value === b.value}
+										label="Parent Entity *"
+										placeholder="Select parent entity..."
+										required
+										fullWidth
+									/>
+								)}
+								<Combobox
+									options={partyComboboxOptions}
+									value={selectedPartyOption}
+									onChange={(opt) => {
+										const party = opt ? partyAutocompleteOptions.find((p: any) => p.id === opt.value) : null;
+										handlePartySelect(party);
+									}}
+									onInputChange={(value) => setPartySearchTerm(value)}
+									isOptionEqual={(a, b) => a.value === b.value}
+									filterDisabled
+									label={isFacilitatorMode ? 'Facilitator *' : 'Entity *'}
+									placeholder={isFacilitatorMode ? 'Search facilitators...' : 'Search entities...'}
 									required
+									fullWidth
 								/>
-							)}
-						/>
-						{/* Add New Address Link */}
-						{selectedParty && (
-							<Typography
-								variant="body2"
-								sx={{
-									color: 'primary.main',
-									cursor: 'pointer',
-									'&:hover': { textDecoration: 'underline' },
-									mt: 0.5,
-								}}
-								onClick={() => setShowCreateAddressDialog(true)}
-							>
-								+ Add new office
-							</Typography>
-						)}
-					</Box>
-				)}
-
-				{/* Facilitator: Representative Selection (global search or filtered by address) */}
-				{isFacilitatorMode && (
-					<Box>
-						<Autocomplete
-							options={representativeAutocompleteOptions}
-							value={selectedRepresentative}
-							onChange={(_, newValue) => {
-								if (newValue?._isHint) return; // Ignore hint option clicks
-								handleRepresentativeSelect(newValue);
-							}}
-							onInputChange={(_, newValue, reason) => {
-								// Only update search term when typing (not when selecting)
-								if (!selectedParty && reason === 'input') {
-									setRepSearchTerm(newValue);
-								}
-							}}
-							getOptionLabel={(option: any) => {
-								if (!option || !option.first_name) return '';
-								return `${option.first_name} ${option.last_name || ''}`.trim();
-							}}
-							isOptionEqualToValue={(option: any, value: any) => {
-								if (!option || !value) return false;
-								return option.id === value.id;
-							}}
-							filterOptions={(options) => options} // Disable client-side filtering, server handles it
-							renderOption={(props, option: any) => (
-								<li {...props} key={option.id}>
-									<Box>
-										<Typography variant="body2">
-											{`${option.first_name} ${option.last_name}`}
-											{option.title && (
-												<Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-													({option.title})
-												</Typography>
+								<div style={{ marginTop: 12 }}>
+									<Button
+										variant="outlined"
+										size="sm"
+										onClick={() => {
+										handlePartySelect(null);
+										setCreatingNewParty(true);
+										setActiveStep(1);
+									}}
+									>
+										+ Create new {isFacilitatorMode ? 'facilitator' : 'entity'}
+									</Button>
+								</div>
+							</div>
+						),
+					},
+					{
+						key: 'details',
+						label: 'Role & Details',
+						description: 'Role, liability, type',
+						isValid: step2Valid,
+						content: (
+							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+								<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+									Select the role(s) for this party and configure additional details.
+								</p>
+								<Combobox
+									multiple
+									options={roleComboboxOptions}
+									values={selectedRoleOptions}
+									onChangeMultiple={(opts) => setFormData({ ...formData, role: opts.map((o) => String(o.value)) })}
+									isOptionEqual={(a, b) => a.value === b.value}
+									label="Roles *"
+									placeholder={formData.role.length === 0 ? 'Select one or more roles...' : ''}
+									required
+									fullWidth
+								/>
+								{roleListEntity === 'adverse_party_role' && !isFacilitatorMode && (
+									<Input
+										label="Liability Percentage"
+										type="number"
+										value={formData.liability_percentage}
+										onChange={(e) => setFormData({ ...formData, liability_percentage: e.target.value })}
+										fullWidth
+										placeholder="Enter percentage (0-100)"
+										endAdornment={<span style={{ color: 'var(--text-muted)' }}>%</span>}
+										error={!isValidLiabilityPercentage || wouldExceedTotalLiability}
+										errorText={
+											!isValidLiabilityPercentage ? 'Must be between 0 and 100'
+												: wouldExceedTotalLiability ? `Combined liability cannot exceed 100% (currently ${currentTotalLiability.toFixed(1)}% allocated)`
+												: undefined
+										}
+										helperText={
+											isValidLiabilityPercentage && !wouldExceedTotalLiability
+												? (currentTotalLiability > 0 ? `Current total: ${currentTotalLiability.toFixed(1)}% • Available: ${(100 - currentTotalLiability).toFixed(1)}%` : "This party's percentage of liability")
+												: undefined
+										}
+									/>
+								)}
+								{isFacilitatorMode && (
+									<LossTypeSelect lossType={formData.loss_type} setLossType={(lt) => setFormData({ ...formData, loss_type: lt })} clearable isFilter={false} label="Loss Type" />
+								)}
+								{isFacilitatorMode && roleListEntity === 'adverse_party_role' && (
+									<Input
+										label="Policy Limit"
+										type="number"
+										value={formData.policy_limit}
+										onChange={(e) => setFormData({ ...formData, policy_limit: e.target.value })}
+										fullWidth
+										placeholder="Maximum policy payout amount"
+										startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
+										helperText="Maximum amount this carrier will pay"
+									/>
+								)}
+							</div>
+						),
+					},
+					{
+						key: 'representative',
+						label: 'Representative',
+						description: isFacilitatorMode ? 'Office & contact' : 'Contact info',
+						isValid: step3Valid,
+						content: (
+							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+								<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+									{isFacilitatorMode
+										? 'Select the office and representative contact for this facilitator.'
+										: 'Optionally provide a representative name or contact for this entity.'}
+								</p>
+								{isFacilitatorMode && (
+									<>
+										<div>
+											<Combobox
+												options={addressComboboxOptions}
+												value={selectedAddressOption}
+												onChange={(opt) => {
+													const addr = opt ? (addresses as any[]).find((a: any) => a.id === opt.value) : null;
+													handleAddressSelect(addr);
+												}}
+												isOptionEqual={(a, b) => a.value === b.value}
+												disabled={!selectedParty}
+												label="Office/Address *"
+												placeholder={selectedParty ? 'Select office...' : 'Select facilitator first'}
+												required
+												fullWidth
+											/>
+											{selectedParty && (
+												<span style={{ color: 'var(--text-accent)', cursor: 'pointer', marginTop: 4, fontSize: 13 }} onClick={() => setShowCreateAddressDialog(true)}>
+													+ Add new office
+												</span>
 											)}
-										</Typography>
-										{/* Show party/address info in global search mode */}
-										{option.party_name && !selectedParty && (
-											<Typography variant="caption" color="text.secondary" display="block">
-												{option.party_name}
-												{option.address_city && ` • ${option.address_city}, ${option.address_state}`}
-											</Typography>
-										)}
-									</Box>
-								</li>
-							)}
-							fullWidth
-							renderInput={(params) => (
-								<TextField
-									{...params}
-									label="Representative *"
-									placeholder={
-										selectedAddress
-											? 'Select representative...'
-											: selectedParty
-												? 'Select office first'
-												: 'Search by name, title, or email...'
-									}
-									required
+										</div>
+										<div>
+											<Combobox
+												options={repComboboxOptions}
+												value={selectedRepOption}
+												onChange={(opt) => {
+													if (!opt) { handleRepresentativeSelect(null); return; }
+													const rep = representativeAutocompleteOptions.find((r: any) => r.id === opt.value);
+													if (rep?._isHint) return;
+													handleRepresentativeSelect(rep);
+												}}
+												onInputChange={(value) => { if (!selectedParty) setRepSearchTerm(value); }}
+												isOptionEqual={(a, b) => a.value === b.value}
+												filterDisabled
+												label="Representative *"
+												placeholder={selectedAddress ? 'Select representative...' : selectedParty ? 'Select office first' : 'Search by name...'}
+												required
+												fullWidth
+											/>
+											{selectedAddress && (
+												<span style={{ color: 'var(--text-accent)', cursor: 'pointer', marginTop: 4, fontSize: 13 }} onClick={() => setShowCreateRepDialog(true)}>
+													+ Add new representative
+												</span>
+											)}
+										</div>
+									</>
+								)}
+								{!isFacilitatorMode && (
+									<Input
+										label="Representative"
+										value={formData.representative_name}
+										onChange={(e) => setFormData({ ...formData, representative_name: e.target.value })}
+										fullWidth
+										placeholder="Enter representative name or contact info..."
+									/>
+								)}
+								<Textarea
+									label="Notes"
+									value={formData.notes}
+									onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+									fullWidth
+									rows={3}
+									placeholder={isFacilitatorMode ? 'Notes about this facilitator...' : roleListEntity === 'claimant_party_role' ? "Notes about this entity's coverage(s)..." : "Notes about this entity's liability..."}
 								/>
-							)}
-						/>
-						{/* Add New Representative Link */}
-						{selectedAddress && (
-							<Typography
-								variant="body2"
-								sx={{
-									color: 'primary.main',
-									cursor: 'pointer',
-									'&:hover': { textDecoration: 'underline' },
-									mt: 0.5,
-								}}
-								onClick={() => setShowCreateRepDialog(true)}
-							>
-								+ Add new representative
-							</Typography>
-						)}
-					</Box>
-				)}
+							</div>
+						),
+					},
+					{
+						key: 'review',
+						label: 'Review',
+						description: 'Confirm & save',
+						isValid: true,
+						content: (
+							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+								<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>Review the details before saving.</p>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>{isFacilitatorMode ? 'Facilitator' : 'Entity'}</span>
+									<div style={{ fontSize: 14, fontWeight: 500, marginTop: 2 }}>{selectedParty?.name ?? '—'}</div>
+								</div>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Roles</span>
+									<div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' as const }}>
+										{selectedRoleOptions.map((r) => <Chip key={String(r.value)} size="sm" color="info">{r.label}</Chip>)}
+										{selectedRoleOptions.length === 0 && <span style={{ color: 'var(--text-muted)' }}>—</span>}
+									</div>
+								</div>
+								{formData.liability_percentage && (
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Liability</span>
+										<div style={{ fontSize: 14, marginTop: 2 }}>{formData.liability_percentage}%</div>
+									</div>
+								)}
+								{isFacilitatorMode && (
+									<>
+										<div>
+											<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Office</span>
+											<div style={{ fontSize: 14, marginTop: 2 }}>{selectedAddress?.name ?? '—'}</div>
+										</div>
+										<div>
+											<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Representative</span>
+											<div style={{ fontSize: 14, marginTop: 2 }}>{selectedRepresentative ? `${selectedRepresentative.first_name} ${selectedRepresentative.last_name ?? ''}` : '—'}</div>
+										</div>
+									</>
+								)}
+								{!isFacilitatorMode && formData.representative_name && (
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Representative</span>
+										<div style={{ fontSize: 14, marginTop: 2 }}>{formData.representative_name}</div>
+									</div>
+								)}
+								{formData.notes && (
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Notes</span>
+										<div style={{ fontSize: 14, marginTop: 2 }}>{formData.notes}</div>
+									</div>
+								)}
+							</div>
+						),
+					},
+	];
 
-				{/* Entity: Simplified Representative Field */}
-				{!isFacilitatorMode && (
-					<TextField
-						label="Representative"
-						value={formData.representative_name}
-						onChange={(e) => setFormData({ ...formData, representative_name: e.target.value })}
-						fullWidth
-						placeholder="Enter representative name or contact info..."
-					/>
-				)}
+	// Inject party creation steps after the 'party' step when creating inline
+	const allSteps: Step[] = [
+		dynamicSteps[0],
+		...partyCreationSteps,
+		...dynamicSteps.slice(1),
+	];
 
-				{/* Loss Type - only show for facilitators */}
-				{isFacilitatorMode && (
-					<LossTypeSelect
-						lossType={formData.loss_type}
-						setLossType={(lossType) => setFormData({ ...formData, loss_type: lossType })}
-						clearable={true}
-						isFilter={false}
-						label="Loss Type"
-					/>
-				)}
+	return (
+		<Dialog open={open} onClose={onClose} size="lg">
+			<StepperFlow
+				steps={allSteps}
+				activeStep={activeStep}
+				onStepChange={setActiveStep}
+				onComplete={creatingNewParty ? handleInlinePartyCreate : handleSubmit}
+				onCancel={onClose}
+				completeLabel={creatingNewParty ? 'Create & Continue' : (editingClaimParty ? 'Update' : 'Add')}
+				loading={isSubmitting || partyTrpc.create.isPending}
+			/>
 
-				{/* Policy Limit - only show for facilitators on adverse parties tab */}
-				{isFacilitatorMode && roleListEntity === 'adverse_party_role' && (
-					<TextField
-						label="Policy Limit"
-						type="number"
-						value={formData.policy_limit}
-						onChange={(e) => setFormData({ ...formData, policy_limit: e.target.value })}
-						fullWidth
-						placeholder="Enter maximum policy payout amount"
-						inputProps={{ step: '0.01', min: '0' }}
-						slotProps={{
-							input: {
-								startAdornment: <InputAdornment position="start">$</InputAdornment>,
-							},
-						}}
-						helperText="Maximum amount this carrier will pay (their policy limit)"
-					/>
-				)}
-
-				{/* Notes */}
-				<TextField
-					label="Notes"
-					value={formData.notes}
-					onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-					fullWidth
-					multiline
-					rows={3}
-					placeholder={
-						isFacilitatorMode
-							? 'Notes about this facilitator...'
-							: roleListEntity === 'claimant_party_role'
-								? "Notes about this entity's coverage(s)..."
-								: "Additional notes about this entity's liability..."
-					}
-				/>
-			</Box>
-
-			{/* Nested Party Creation Dialog */}
-			{showCreatePartyDialog && (
-				<PartyDialog lockedType={isFacilitatorMode ? 'facilitator' : 'entity'} onClose={handlePartyCreated} />
-			)}
-
-			{/* Nested Address Creation Dialog */}
 			{showCreateAddressDialog && selectedParty && (
-				<AddressDialog
-					address={{
-						party_id: selectedParty.id,
-						party_name: selectedParty.name,
-					} as any}
-					onClose={handleAddressCreated}
-				/>
+				<AddressDialog address={{ party_id: selectedParty.id, party_name: selectedParty.name } as any} onClose={handleAddressCreated} />
 			)}
-
-			{/* Nested Representative Creation Dialog */}
 			{showCreateRepDialog && selectedParty && selectedAddress && (
-				<RepresentativeDialog
-					representative={{
-						party_id: selectedParty.id,
-						address_id: selectedAddress.id,
-						party_name: selectedParty.name,
-						address_name: selectedAddress.name,
-					} as any}
-					onClose={handleRepCreated}
-				/>
+				<RepresentativeDialog representative={{ party_id: selectedParty.id, address_id: selectedAddress.id, party_name: selectedParty.name, address_name: selectedAddress.name } as any} onClose={handleRepCreated} />
 			)}
-		</BasicDialog>
+		</Dialog>
 	);
 }

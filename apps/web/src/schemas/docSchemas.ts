@@ -20,14 +20,14 @@ export const docParams = z.object({
 	description: z.string().optional(),
 	doc_type: docTypeEnum.default(DocType.OTHER),
 	doc_status: docStatusEnum.default(DocStatus.APPROVED),
-	doc_group_id: z.number().int().positive().optional(),
-	claim_id: z.number().int().positive().optional(),
-	recovery_event_id: z.number().int().positive().optional(),
-	deadline_id: z.number().int().positive().optional(),
-	page_instance_id: z.number().int().positive().optional(),
-	question_id: z.number().int().positive().optional(),
-	answer_id: z.number().int().positive().optional(),
-	response_doc_id: z.number().int().positive().optional(),
+	doc_group_id: z.string().uuid().optional(),
+	claim_id: z.string().uuid().optional(),
+	recovery_event_id: z.string().uuid().optional(),
+	deadline_id: z.string().uuid().optional(),
+	page_instance_id: z.string().uuid().optional(),
+	question_id: z.string().uuid().optional(),
+	answer_id: z.string().uuid().optional(),
+	response_doc_id: z.string().uuid().optional(),
 	file_size: z.number().int().positive().optional(),
 	mime_type: z.string().optional(),
 	preview_url: z.string().url().optional(),
@@ -40,14 +40,14 @@ export const updateDocParams = z.object({
 	description: z.string().optional(),
 	doc_type: docTypeEnum.optional(),
 	doc_status: docStatusEnum.optional(),
-	doc_group_id: z.number().int().positive().nullable().optional(),
-	claim_id: z.number().int().positive().nullable().optional(),
-	recovery_event_id: z.number().int().positive().nullable().optional(),
-	deadline_id: z.number().int().positive().nullable().optional(),
-	page_instance_id: z.number().int().positive().nullable().optional(),
-	question_id: z.number().int().positive().nullable().optional(),
-	answer_id: z.number().int().positive().nullable().optional(),
-	response_doc_id: z.number().int().positive().nullable().optional(),
+	doc_group_id: z.string().uuid().nullable().optional(),
+	claim_id: z.string().uuid().nullable().optional(),
+	recovery_event_id: z.string().uuid().nullable().optional(),
+	deadline_id: z.string().uuid().nullable().optional(),
+	page_instance_id: z.string().uuid().nullable().optional(),
+	question_id: z.string().uuid().nullable().optional(),
+	answer_id: z.string().uuid().nullable().optional(),
+	response_doc_id: z.string().uuid().nullable().optional(),
 });
 export type UpdateDocParams = z.infer<typeof updateDocParams>;
 
@@ -59,35 +59,35 @@ export const createDocInput = z.object({
 export type CreateDocInput = z.infer<typeof createDocInput>;
 
 export const updateDocInput = z.object({
-	docId: z.number().int().positive(),
+	docId: z.string().uuid(),
 	params: updateDocParams,
 });
 export type UpdateDocInput = z.infer<typeof updateDocInput>;
 
 export const deleteDocInput = z.object({
-	docId: z.number().int().positive(),
+	docId: z.string().uuid(),
 });
 export type DeleteDocInput = z.infer<typeof deleteDocInput>;
 
 export const getDocInput = z.object({
-	docId: z.number().int().positive(),
+	docId: z.string().uuid(),
 });
 export type GetDocInput = z.infer<typeof getDocInput>;
 
 export const downloadDocInput = z.object({
-	docId: z.number().int().positive(),
+	docId: z.string().uuid(),
 });
 export type DownloadDocInput = z.infer<typeof downloadDocInput>;
 
 export const listDocsInput = z.object({
 	filters: z.object({
-		claim_id: z.number().int().positive().optional(),
-		doc_group_id: z.number().int().positive().nullable().optional(),
+		claim_id: z.string().uuid().optional(),
+		doc_group_id: z.string().uuid().nullable().optional(),
 		doc_type: docTypeEnum.optional(),
 		doc_status: docStatusEnum.optional(),
 		is_current_version: z.boolean().optional(),
-		question_id: z.number().int().positive().optional(),
-		answer_id: z.number().int().positive().optional(),
+		question_id: z.string().uuid().optional(),
+		answer_id: z.string().uuid().optional(),
 	}).optional(),
 	limit: z.number().int().positive().max(1000).optional(),
 	offset: z.number().int().nonnegative().optional(),
@@ -95,17 +95,17 @@ export const listDocsInput = z.object({
 export type ListDocsInput = z.infer<typeof listDocsInput>;
 
 export const getDocCountByClaimIdInput = z.object({
-	claimId: z.number().int().positive(),
+	claimId: z.string().uuid(),
 });
 export type GetDocCountByClaimIdInput = z.infer<typeof getDocCountByClaimIdInput>;
 
 export const getDocCountByGroupIdInput = z.object({
-	groupId: z.number().int().positive(),
+	groupId: z.string().uuid(),
 });
 export type GetDocCountByGroupIdInput = z.infer<typeof getDocCountByGroupIdInput>;
 
 export const getDocCountsByGroupIdsInput = z.object({
-	groupIds: z.array(z.number().int().positive()),
+	groupIds: z.array(z.string().uuid()),
 });
 export type GetDocCountsByGroupIdsInput = z.infer<typeof getDocCountsByGroupIdsInput>;
 
@@ -116,9 +116,9 @@ export type GetDocCountsByGroupIdsInput = z.infer<typeof getDocCountsByGroupIdsI
 export const docGroupParams = z.object({
 	name: z.string().min(1, 'Group name is required'),
 	description: z.string().optional(),
-	parent_group_id: z.number().int().positive().optional(),
+	parent_group_id: z.string().uuid().optional(),
 	group_type: docGroupTypeEnum.default(DocGroupType.CUSTOM),
-	claim_id: z.number().int().positive().optional(),
+	claim_id: z.string().uuid().optional(),
 	color: z.string().optional(),
 	icon: z.string().optional(),
 	sort_order: z.number().int().default(0),
@@ -130,7 +130,7 @@ export type DocGroupParams = z.infer<typeof docGroupParams>;
 export const updateDocGroupParams = z.object({
 	name: z.string().min(1).optional(),
 	description: z.string().optional(),
-	parent_group_id: z.number().int().positive().nullable().optional(),
+	parent_group_id: z.string().uuid().nullable().optional(),
 	color: z.string().optional(),
 	icon: z.string().optional(),
 	sort_order: z.number().int().optional(),
@@ -143,18 +143,18 @@ export const createDocGroupInput = z.object({
 export type CreateDocGroupInput = z.infer<typeof createDocGroupInput>;
 
 export const updateDocGroupInput = z.object({
-	groupId: z.number().int().positive(),
+	groupId: z.string().uuid(),
 	params: updateDocGroupParams,
 });
 export type UpdateDocGroupInput = z.infer<typeof updateDocGroupInput>;
 
 export const deleteDocGroupInput = z.object({
-	groupId: z.number().int().positive(),
+	groupId: z.string().uuid(),
 });
 export type DeleteDocGroupInput = z.infer<typeof deleteDocGroupInput>;
 
 export const getDocGroupInput = z.object({
-	groupId: z.number().int().positive(),
+	groupId: z.string().uuid(),
 });
 export type GetDocGroupInput = z.infer<typeof getDocGroupInput>;
 
@@ -169,11 +169,11 @@ export const fileUploadSchema = z.object({
 	description: z.string().optional(),
 	doc_type: docTypeEnum.default(DocType.OTHER),
 	doc_status: docStatusEnum.default(DocStatus.APPROVED),
-	doc_group_id: z.number().int().positive().optional(),
-	claim_id: z.number().int().positive().optional(),
-	recovery_event_id: z.number().int().positive().optional(),
-	deadline_id: z.number().int().positive().optional(),
-	page_instance_id: z.number().int().positive().optional(),
+	doc_group_id: z.string().uuid().optional(),
+	claim_id: z.string().uuid().optional(),
+	recovery_event_id: z.string().uuid().optional(),
+	deadline_id: z.string().uuid().optional(),
+	page_instance_id: z.string().uuid().optional(),
 });
 export type FileUploadSchema = z.infer<typeof fileUploadSchema>;
 
@@ -182,8 +182,8 @@ export type FileUploadSchema = z.infer<typeof fileUploadSchema>;
 // =====================================================================
 
 export const docFilterSchema = z.object({
-	claim_id: z.number().int().positive().optional(),
-	doc_group_id: z.number().int().positive().optional(),
+	claim_id: z.string().uuid().optional(),
+	doc_group_id: z.string().uuid().optional(),
 	doc_type: docTypeEnum.optional(),
 	doc_status: docStatusEnum.optional(),
 	is_current_version: z.boolean().optional(),
@@ -199,14 +199,14 @@ export const docRequirementParams = z.object({
 	description: z.string().optional(),
 	required_doc_type: docTypeEnum,
 	is_required: z.boolean().default(true),
-	checklist_id: z.number().int().positive().optional(),
-	claim_id: z.number().int().positive().optional(),
+	checklist_id: z.string().uuid().optional(),
+	claim_id: z.string().uuid().optional(),
 });
 export type DocRequirementParams = z.infer<typeof docRequirementParams>;
 
 export const docRequirementFulfillmentParams = z.object({
-	doc_requirement_id: z.number().int().positive(),
-	doc_id: z.number().int().positive().optional(),
+	doc_requirement_id: z.string().uuid(),
+	doc_id: z.string().uuid().optional(),
 	manually_marked_complete: z.boolean().default(false),
 	notes: z.string().optional(),
 });

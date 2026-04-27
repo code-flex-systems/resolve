@@ -1,35 +1,28 @@
 'use client';
 
-import { Breadcrumbs, Link, Typography } from '@mui/material';
-import { DataGridPro, GridColDef, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import FolderIcon from '@mui/icons-material/Folder';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { IconFile, IconFolder, IconSettings } from '@tabler/icons-react';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import IconHeaderCell from '../common/IconHeaderCell';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import { capitalize, formatMDY } from '@/lib/utils/utils';
 import { useMemo, useCallback } from 'react';
 import type { DocGroupListItem, DocListItem } from '@/hooks/trpc/useDocTrpc';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 type GridRow = { type: 'folder'; data: DocGroupListItem } | { type: 'document'; data: DocListItem };
 
 interface DocumentNavigationTableProps {
 	groups: DocGroupListItem[];
 	docs: DocListItem[];
-	currentFolderId: number | null;
-	onNavigate: (folderId: number | null) => void;
+	currentFolderId: string | null;
+	onNavigate: (folderId: string | null) => void;
 	onDocumentPreview: (doc: DocListItem) => void;
 	loading?: boolean;
 	editMode?: boolean;
-	selectedRows?: GridRowSelectionModel;
-	onRowSelectionChange?: (selection: GridRowSelectionModel) => void;
-	showBreadcrumbs?: boolean;
-	breadcrumbRootLabel?: string;
-	adminMode?: boolean; // Show system folder indicators
-	emptyRootText?: string; // Custom empty state text for root level
-	emptyFolderText?: string; // Custom empty state text for folders
-	hiddenBreadcrumbFolderId?: number; // Folder ID to hide from breadcrumbs (e.g., Shared folder)
+	selectedRows?: Record<string, boolean>;
+	onRowSelectionChange?: (selection: Record<string, boolean>) => void;
+	adminMode?: boolean;
+	emptyRootText?: string;
+	emptyFolderText?: string;
 }
 
 export default function DocumentNavigationTable({
@@ -40,32 +33,19 @@ export default function DocumentNavigationTable({
 	onDocumentPreview,
 	loading = false,
 	editMode = false,
-	selectedRows = [],
+	selectedRows = {},
 	onRowSelectionChange,
-	showBreadcrumbs = true,
-	breadcrumbRootLabel = 'Documents',
 	adminMode = false,
 	emptyRootText = 'No folders or documents yet. Click "Add Folder" or "Add Document" to get started.',
 	emptyFolderText = 'No documents in this folder yet. Click "Add Document" to upload.',
-	hiddenBreadcrumbFolderId,
 }: DocumentNavigationTableProps) {
-	// Get current folder for breadcrumbs
-	const currentFolder = useMemo(() => {
-		return currentFolderId ? groups.find((g) => g.id === currentFolderId) : null;
-	}, [currentFolderId, groups]);
-
-	// Get parent folder for breadcrumbs (for two-level navigation)
-	const parentFolder = useMemo(() => {
-		if (!currentFolder?.parent_group_id) return null;
-		return groups.find((g) => g.id === currentFolder.parent_group_id) || null;
-	}, [currentFolder, groups]);
 
 	// Memoized overlay to avoid remounting on every render
 	const noRowsOverlay = useCallback(
 		() => (
 			<CustomNoRowsOverlay
 				text={currentFolderId === null ? emptyRootText : emptyFolderText}
-				icon={<InsertDriveFileIcon style={{ fontSize: 40, color: BASE_COLOR_LIGHT }} />}
+				icon={<IconFile style={{ fontSize: 40, color: 'var(--text-muted)' }} />}
 			/>
 		),
 		[currentFolderId, emptyRootText, emptyFolderText]
@@ -98,24 +78,23 @@ export default function DocumentNavigationTable({
 		return result;
 	}, [currentFolderId, groups, docs]);
 
-	const handleRowDoubleClick = (params: GridRowParams<GridRow>) => {
+	const handleRowDoubleClick = (row: GridRow) => {
 		if (editMode) return; // Don't navigate in edit mode
 
-		if (params.row.type === 'folder') {
-			onNavigate(params.row.data.id);
+		if (row.type === 'folder') {
+			onNavigate(row.data.id);
 		} else {
-			onDocumentPreview(params.row.data);
+			onDocumentPreview(row.data);
 		}
 	};
 
 	// Create columns with system indicator support
-	const columns: GridColDef<GridRow>[] = useMemo(
+	const columns: ColumnDef<GridRow, any>[] = useMemo(
 		() => [
 			{
-				headerName: 'Name',
-				field: 'name',
-				flex: 1,
-				renderCell: ({ row }) => {
+				header: 'Name',
+				accessorKey: 'name',
+				cell: ({ row: { original: row } }) => {
 					// For user folders, display user's full name and email
 					if (
 						row.type === 'folder' &&
@@ -125,15 +104,15 @@ export default function DocumentNavigationTable({
 					) {
 						return (
 							<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-								<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+								<IconFolder style={{ color: 'var(--text-muted)' }} />
 								<div>
-									<Typography variant="body2">
+									<span>
 										{row.data.user_first} {row.data.user_last}
-									</Typography>
+									</span>
 									{row.data.user_email && (
-										<Typography variant="caption" color="text.secondary" display="block">
+										<span style={{ color: 'var(--text-secondary)' }}>
 											{row.data.user_email}
-										</Typography>
+										</span>
 									)}
 								</div>
 							</div>
@@ -144,10 +123,10 @@ export default function DocumentNavigationTable({
 					if (adminMode && row.type === 'folder' && row.data.system) {
 						return (
 							<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-								<SettingsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-								<Typography variant="body2" color="primary">
+								<IconSettings size={20} style={{ color: 'var(--text-accent)' }} />
+								<span style={{ color: 'var(--text-accent)' }}>
 									{row.data.name}
-								</Typography>
+								</span>
 							</div>
 						);
 					}
@@ -156,85 +135,79 @@ export default function DocumentNavigationTable({
 					return (
 						<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 							{row.type === 'folder' ? (
-								<FolderIcon style={{ color: BASE_COLOR_LIGHT }} />
+								<IconFolder style={{ color: 'var(--text-muted)' }} />
 							) : (
-								<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />
+								<IconFile style={{ color: 'var(--text-muted)' }} />
 							)}
-							<Typography variant="body2">
+							<span>
 								{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
-							</Typography>
+							</span>
 						</div>
 					);
 				},
-				renderHeader: (params) => (
-					<IconHeaderCell
-						{...(params as any)}
-						icon={<InsertDriveFileIcon style={{ color: BASE_COLOR_LIGHT }} />}
-					/>
-				),
 			},
 			{
-				headerName: 'Type',
-				field: 'type',
-				width: 150,
-				renderCell: ({ row }) => {
+				header: 'Type',
+				accessorKey: 'type',
+				size: 150,
+				cell: ({ row: { original: row } }) => {
 					if (row.type === 'folder') {
 						// Show "User Folder" for user-specific folders
 						if (row.data.group_type === 'user') {
 							return (
-								<Typography variant="body2" color="text.secondary">
+								<span style={{ color: 'var(--text-secondary)' }}>
 									User Folder
-								</Typography>
+								</span>
 							);
 						}
 						// Show "System Folder" for system folders in admin mode
 						if (adminMode && row.data.system) {
 							return (
-								<Typography variant="body2" color="primary">
+								<span style={{ color: 'var(--text-accent)' }}>
 									System Folder
-								</Typography>
+								</span>
 							);
 						}
 						return (
-							<Typography variant="body2" color="text.secondary">
+							<span style={{ color: 'var(--text-secondary)' }}>
 								Folder
-							</Typography>
+							</span>
 						);
 					}
 					return (
-						<Typography variant="body2" color="text.secondary">
+						<span style={{ color: 'var(--text-secondary)' }}>
 							{capitalize(row.data.doc_type.replace('_', ' '))}
-						</Typography>
+						</span>
 					);
 				},
 			},
 			{
-				headerName: 'Date',
-				field: 'date',
-				width: 150,
-				renderCell: ({ row }) => (
-					<Typography variant="body2" color="text.secondary">
+				header: 'Date',
+				accessorKey: 'date',
+				size: 150,
+				cell: ({ row: { original: row } }) => (
+					<span style={{ color: 'var(--text-secondary)' }}>
 						{formatMDY(row.data.created_at)}
-					</Typography>
+					</span>
 				),
 			},
 			{
-				headerName: 'Size',
-				field: 'size',
-				width: 120,
-				renderCell: ({ row }) => {
+				header: 'Size',
+				accessorKey: 'size',
+				size: 120,
+				cell: ({ row: { original: row } }) => {
 					if (row.type === 'document' && row.data.file_size) {
 						const sizeInKB = Number(row.data.file_size) / 1024;
 						return (
-							<Typography variant="body2" color="text.secondary">
+							<span style={{ color: 'var(--text-secondary)' }}>
 								{sizeInKB.toFixed(1)} KB
-							</Typography>
+							</span>
 						);
 					}
 					return (
-						<Typography variant="body2" color="text.secondary">
+						<span style={{ color: 'var(--text-secondary)' }}>
 							—
-						</Typography>
+						</span>
 					);
 				},
 			},
@@ -243,66 +216,18 @@ export default function DocumentNavigationTable({
 	);
 
 	return (
-		<>
-			{/* Breadcrumbs for navigation */}
-			{showBreadcrumbs && (
-				<Breadcrumbs sx={{ p: 2, pb: 1 }}>
-					<Link
-						component="button"
-						underline="hover"
-						color={currentFolderId === null ? 'text.primary' : 'inherit'}
-						onClick={() => onNavigate(null)}
-						sx={{ cursor: 'pointer' }}
-					>
-						{breadcrumbRootLabel}
-					</Link>
-					{parentFolder && parentFolder.id !== hiddenBreadcrumbFolderId && (
-						<Link
-							component="button"
-							underline="hover"
-							color="inherit"
-							onClick={() => onNavigate(parentFolder.id)}
-							sx={{ cursor: 'pointer' }}
-						>
-							{parentFolder.name}
-						</Link>
-					)}
-					{currentFolder && currentFolder.id !== hiddenBreadcrumbFolderId && (
-					<Typography color="text.primary">{currentFolder.name}</Typography>
-				)}
-				</Breadcrumbs>
-			)}
-
-			<DataGridPro
-				rows={rows}
-				loading={loading}
-				columns={columns}
-				getRowId={(row) => `${row.type}-${row.data.id}`}
-				onRowDoubleClick={handleRowDoubleClick}
-				checkboxSelection={editMode}
-				rowSelectionModel={selectedRows}
-				onRowSelectionModelChange={onRowSelectionChange}
-				slots={{
-					noRowsOverlay,
-				}}
-				sx={styles.dataGrid}
-				hideFooter
-			/>
-		</>
+		<div style={{ flex: 1, minHeight: 0 }}>
+			<DataTable
+					rows={rows}
+					loading={loading}
+					columns={columns}
+					getRowId={(row) => `${row.type}-${row.data.id}`}
+					onRowDoubleClick={handleRowDoubleClick}
+					checkboxSelection={editMode}
+					rowSelection={selectedRows}
+					onRowSelectionChange={onRowSelectionChange}
+					hideFooter
+				/>
+		</div>
 	);
 }
-
-const styles = {
-	dataGrid: {
-		flex: 1,
-		border: 'none',
-		'& .MuiDataGrid-row': {
-			cursor: 'pointer',
-		},
-		'& .MuiDataGrid-cell': {
-			display: 'flex',
-			alignItems: 'center',
-		},
-		...dataGridFocusStyles,
-	},
-};

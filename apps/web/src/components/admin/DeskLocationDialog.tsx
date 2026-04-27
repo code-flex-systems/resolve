@@ -1,7 +1,8 @@
 'use client';
 
-import { Stack, TextField, Switch, FormControlLabel } from '@mui/material';
-import Send from '@mui/icons-material/Send';
+import { IconSend } from '@tabler/icons-react';
+import Input from '@/components/ui/Input';
+import Switch from '@/components/ui/Switch';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -11,8 +12,9 @@ import DeskLocationTypeSelect from '../common/DeskLocationTypeSelect';
 
 interface DeskLocationFormInputs {
 	name: string;
-	desk_location_type_id: number | null;
+	desk_location_type_id: string | null;
 	is_active: boolean;
+	capacity_threshold: number;
 }
 
 interface DeskLocationDialogProps {
@@ -40,13 +42,15 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 		defaultValues: deskLocation
 			? {
 					name: deskLocation.name,
-					desk_location_type_id: deskLocation.desk_location_type_id,
+					desk_location_type_id: deskLocation.desk_location_type_id as string,
 					is_active: Boolean(deskLocation.is_active),
+					capacity_threshold: Number(deskLocation.capacity_threshold),
 				}
 			: {
 					name: '',
 					desk_location_type_id: selectedDeskLocationTypeId,
 					is_active: true,
+					capacity_threshold: 100,
 				},
 		mode: 'onChange',
 	});
@@ -65,11 +69,12 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 		try {
 			if (isEditMode) {
 				await updateLocation({
-					id: deskLocation.id as unknown as number,
+					id: String(deskLocation.id),
 					params: {
 						name: data.name,
 						desk_location_type_id: data.desk_location_type_id!,
 						is_active: data.is_active,
+						capacity_threshold: data.capacity_threshold,
 					},
 				});
 			} else {
@@ -77,6 +82,7 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					name: data.name,
 					desk_location_type_id: data.desk_location_type_id!,
 					is_active: data.is_active,
+					capacity_threshold: data.capacity_threshold,
 				});
 			}
 
@@ -92,13 +98,13 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 			primaryAction={{
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: onSubmit,
-				icon: isEditMode ? undefined : <Send />,
+				icon: isEditMode ? undefined : <IconSend size={20} />,
 				disabled: isSubmitting || isPending || !isValid || (isEditMode && !isDirty) || !deskLocationTypeId,
 			}}
 			onClose={handleClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
 				<DeskLocationTypeSelect
 					value={deskLocationTypeId}
 					onChange={(newValue) => setValue('desk_location_type_id', newValue, { shouldDirty: true })}
@@ -111,15 +117,33 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					control={control}
 					rules={{ required: 'Name is required', minLength: 2, maxLength: 255 }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							label="Name"
-							
 							placeholder="Desk location name"
 							error={!!errors.name}
-							helperText={errors.name?.message}
+							errorText={errors.name?.message}
 							{...field}
 							disabled={isSubmitting}
-							sx={styles.textFieldOverrides}
+							style={styles.textFieldOverrides}
+						/>
+					)}
+				/>
+
+				<Controller
+					name="capacity_threshold"
+					control={control}
+					rules={{ required: 'Capacity threshold is required', min: { value: 1, message: 'Must be at least 1' } }}
+					render={({ field }) => (
+						<Input
+							label="Capacity Threshold (work units)"
+							type="number"
+							placeholder="100"
+							error={!!errors.capacity_threshold}
+							errorText={errors.capacity_threshold?.message}
+							{...field}
+							onChange={(e) => field.onChange(Number(e.target.value))}
+							disabled={isSubmitting}
+							style={styles.textFieldOverrides}
 						/>
 					)}
 				/>
@@ -128,14 +152,12 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					name="is_active"
 					control={control}
 					render={({ field }) => (
-						<FormControlLabel
-							control={<Switch {...field} checked={field.value} disabled={isSubmitting} />}
-							label="Active"
-							sx={{ width: 400, fontSize: 13 }}
-						/>
+						<div style={{ width: 400 }}>
+							<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} label="Active" />
+						</div>
 					)}
 				/>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }
@@ -144,13 +166,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		'& .MuiInputBase-root': {
-			fontSize: 14,
-			padding: '2px 5px',
 		},
-		'& .MuiOutlinedInput-input': {
-			fontSize: 14,
-			padding: '5px',
-		},
-	},
 };

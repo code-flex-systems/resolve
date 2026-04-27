@@ -1,8 +1,8 @@
 'use client';
 
-import { Stack, Typography, IconButton, Divider, Box } from '@mui/material';
-import Save from '@mui/icons-material/Save';
-import Delete from '@mui/icons-material/Delete';
+import { IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Divider from '@/components/ui/Divider';
 import BasicDialog from '../common/BasicDialog';
 import { useState, useEffect } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -16,10 +16,10 @@ interface EditUserDeskAssignmentsDialogProps {
 }
 
 interface DeskAssignment {
-	id: number | null; // null for new assignments
-	deskLocationTypeId: number | null;
-	deskLocationId: number | null;
-	originalDeskLocationId: number | null; // Track the original location for change detection
+	id: string | null; // null for new assignments
+	deskLocationTypeId: string | null;
+	deskLocationId: string | null;
+	originalDeskLocationId: string | null; // Track the original location for change detection
 	originalPriority: number | null; // Track the original priority for change detection
 	priority: number;
 }
@@ -183,7 +183,7 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 			primaryAction={{
 				label: 'Save',
 				onClick: handleSave,
-				icon: <Save />,
+				icon: <IconDeviceFloppy size={20} />,
 				disabled: isSaving || isLoading,
 			}}
 			secondaryActions={[
@@ -195,10 +195,10 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 			onClose={onClose}
 			width={600}
 		>
-			<Stack width="100%" spacing={2}>
-				<Typography variant="body2" color="text.secondary">
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
+				<span style={{ color: 'var(--text-secondary)' }}>
 					Assign up to 5 desk locations with priority ordering (1 = highest priority)
-				</Typography>
+				</span>
 
 				{assignments.map((assignment, index) => {
 					// Get list of desk locations already selected at other priorities
@@ -207,22 +207,21 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 						.map((a) => a.deskLocationId!);
 
 					return (
-						<Box key={assignment.priority}>
-							<Stack spacing={1}>
-								<Box display="flex" alignItems="center" justifyContent="space-between">
-									<Typography variant="subtitle2" color="primary">
+						<div key={assignment.priority}>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+								<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+									<span style={{ color: 'var(--text-accent)' }}>
 										Priority {assignment.priority}
-									</Typography>
+									</span>
 									{assignment.deskLocationId && (
-										<IconButton
-											size="small"
+										<Button variant="icon" size="sm"
 											onClick={() => removeAssignmentSlot(assignment.priority)}
 											disabled={isSaving}
 										>
-											<Delete sx={{ fontSize: 18 }} />
-										</IconButton>
+											<IconTrash size={18} />
+										</Button>
 									)}
-								</Box>
+								</div>
 
 								<DeskLocationTypeSelect
 									value={assignment.deskLocationTypeId}
@@ -239,12 +238,12 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 									disabled={!assignment.deskLocationTypeId || isSaving}
 									excludedLocationIds={excludedLocationIds}
 								/>
-							</Stack>
-							{index < assignments.length - 1 && <Divider sx={{ marginTop: 2 }} />}
-						</Box>
+							</div>
+							{index < assignments.length - 1 && <Divider />}
+						</div>
 					);
 				})}
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

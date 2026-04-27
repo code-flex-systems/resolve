@@ -1,72 +1,54 @@
 'use client';
-import { Box, Divider, Stack, Typography } from '@mui/material';
-import { BG_TERTIARY } from '@/styles/theme';
-import ArrowBack from '@mui/icons-material/ArrowBack';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Toolbar from '@/components/common/Toolbar';
-import SummaryChart from '@/components//summary/SummaryChart';
+import SummaryChart from '@/components/summary/SummaryChart';
 import ClaimInfo from '@/components/checklist/ClaimInfo';
 import SummaryDetails from '@/components/summary/SummaryDetails';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import ChecklistInfo from '../checklist/ChecklistInfo';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import ChecklistIcon from '@mui/icons-material/Checklist';
+import { useBreadcrumbs } from '@/components/common/BreadcrumbContext';
+import { IconArrowLeft } from '@tabler/icons-react';
+import Divider from '@/components/ui/Divider';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function Summary() {
 	const router = useRouter();
-	const { checklistId } = useChecklistParams();
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: checklistId !== -1 });
+	const { checklistId, claimId } = useChecklistParams();
+	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
+	const { setSegments } = useBreadcrumbs();
+
+	// Breadcrumbs: Checklist > [name] (clickable) > Summary
+	// Clicking [name] navigates back to checklist, preserving any open claim
+	useEffect(() => {
+		const checklistUrl = claimId
+			? `/checklists/${checklistId}/claim/${claimId}`
+			: `/checklists/${checklistId}`;
+		setSegments([
+			{ label: 'Checklists', href: '/checklists' },
+			{ label: checklist?.name ?? 'Loading...', href: checklistUrl },
+			{ label: 'Summary' },
+		]);
+	}, [checklist?.name, checklistId, claimId, setSegments]);
 
 	return (
-		<Stack flex={1} width="100%" display="flex" justifyContent="flex-start" alignItems="flex-start" padding="10px">
-			<Toolbar
-				left={
-					<>
-						<Box marginRight="5px">
-							<BasicButtonStyled
-								icon={<ArrowBack />}
-								buttonProps={{ onClick: () => router.back() }}
-								tooltipProps={{ title: 'Back to checklist' }}
-							/>
-						</Box>
-						<ChecklistIcon />
-						<Typography variant="h6" ml={0.5} mr={1}>
-							{checklist?.name}
-						</Typography>
-						<ClaimInfo />
-					</>
-				}
-				padding={0}
-			/>
-			<Box sx={styles.divider} mt={1}>
-				<Divider />
-			</Box>
-			<Box sx={styles.containerInner} className="flex-row-left">
-				<SummaryChart />
-				<SummaryDetails />
-			</Box>
-		</Stack>
+		<div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+			<div style={{ display: 'flex', alignItems: 'center', padding: '10px 20px', gap: 8, flexShrink: 0 }}>
+				<Tooltip content="Back to checklist">
+					<Button variant="icon" size="sm" color="neutral" onClick={() => router.back()}>
+						<IconArrowLeft size={16} />
+					</Button>
+				</Tooltip>
+				<ClaimInfo />
+			</div>
+			<div style={{ display: 'flex', flex: 1, minHeight: 0, padding: '0px 20px 20px', gap: 20 }}>
+				<div style={{ width: 380, flexShrink: 0 }}>
+					<SummaryChart />
+				</div>
+				<div style={{ flex: 1, minWidth: 0 }}>
+					<SummaryDetails />
+				</div>
+			</div>
+		</div>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100%',
-		height: '100%',
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		padding: '0px 10px',
-	},
-	containerInner: {
-		width: '100%',
-		height: 'calc(100vh - 65px)',
-		bgcolor: BG_TERTIARY,
-		p: '20px',
-	},
-	divider: {
-		width: '100%',
-	},
-};

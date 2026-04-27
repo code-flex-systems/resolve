@@ -93,7 +93,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -243,13 +243,13 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 			const task2 = await createTestTask(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			// Create deadlines for task1
@@ -307,7 +307,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			await createTestDeadline(db, {
@@ -342,7 +342,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			const laterDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
@@ -396,7 +396,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client1.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user1.id,
+				assigned_to: user1.id,
 			});
 
 			await createTestDeadline(db, {
@@ -570,7 +570,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			// Task-linked deadline
@@ -771,7 +771,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim1.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			const today = new Date();
@@ -1344,7 +1344,7 @@ describe('deadlineQueries integration', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				assigned_by: user.id,
+				assigned_to: user.id,
 			});
 
 			const deadline = await createTestDeadline(db, {

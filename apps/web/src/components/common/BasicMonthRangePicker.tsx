@@ -2,14 +2,19 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import { Box, Button, Chip, MenuItem, Paper, PopperProps, Select, Stack, Typography } from '@mui/material';
-import { DateRange } from '@mui/x-date-pickers-pro';
-import WatchLater from '@mui/icons-material/WatchLater';
-import theme, { BASE_COLOR } from '@/styles/theme';
+import CustomChip from '@/components/ui/Chip';
+import CustomButton from '@/components/ui/Button';
+import type { DateRange } from '@/types/dateTypes';
+import { IconClock } from '@tabler/icons-react';
 import dayjs, { Dayjs } from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
+import utc from 'dayjs/plugin/utc';
+import Dropdown from '@/components/ui/Dropdown';
+import Button from '@/components/ui/Button';
+import Divider from '../ui/Divider';
 
 dayjs.extend(quarterOfYear);
+dayjs.extend(utc);
 
 const MONTHS = [
 	'January',
@@ -38,8 +43,12 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 				year = year - 1;
 			}
 			const startMonth = (quarter - 1) * 3;
-			const start = dayjs().year(year).month(startMonth).startOf('month');
-			const end = dayjs().year(year).month(startMonth + 2).endOf('month');
+			const start = dayjs.utc().year(year).month(startMonth).startOf('month');
+			const end = dayjs
+				.utc()
+				.year(year)
+				.month(startMonth + 2)
+				.endOf('month');
 			return [start, end];
 		},
 	},
@@ -49,36 +58,39 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 			const now = dayjs();
 			const quarter = now.quarter();
 			const startMonth = (quarter - 1) * 3;
-			const start = dayjs().month(startMonth).startOf('month');
-			const end = dayjs().month(startMonth + 2).endOf('month');
+			const start = dayjs.utc().month(startMonth).startOf('month');
+			const end = dayjs
+				.utc()
+				.month(startMonth + 2)
+				.endOf('month');
 			return [start, end];
 		},
 	},
 	{
 		label: 'Last 3 Months',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.subtract(3, 'month').startOf('month'), today.endOf('month')];
 		},
 	},
 	{
 		label: 'Last 6 Months',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.subtract(6, 'month').startOf('month'), today.endOf('month')];
 		},
 	},
 	{
 		label: 'This Month',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.startOf('month'), today.endOf('month')];
 		},
 	},
 	{
 		label: 'This Year',
 		getValue: () => {
-			const today = dayjs();
+			const today = dayjs.utc();
 			return [today.startOf('year'), today.endOf('year')];
 		},
 	},
@@ -110,10 +122,9 @@ export default function BasicMonthRangePicker({
 	const [label, setLabel] = useState(defaultLabel);
 	const [labelConfirmed, setLabelConfirmed] = useState(defaultLabel);
 	const [range, setRange] = useState<DateRange<Dayjs>>(defaultValue);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const isEmpty = labelConfirmed === EMPTY_LABEL;
 
-	// Dropdown state - using month (0-11) and year as numbers
 	const [startMonth, setStartMonth] = useState<number>(range[0]?.month() ?? dayjs().month());
 	const [startYear, setStartYear] = useState<number>(range[0]?.year() ?? dayjs().year());
 	const [endMonth, setEndMonth] = useState<number>(range[1]?.month() ?? dayjs().month());
@@ -121,7 +132,6 @@ export default function BasicMonthRangePicker({
 
 	const shortcuts = useMemo(() => shortcutItems, []);
 
-	// Generate year options (last 5 years and next 2 years)
 	const yearOptions = useMemo(() => {
 		const currentYear = dayjs().year();
 		const years = [];
@@ -131,11 +141,20 @@ export default function BasicMonthRangePicker({
 		return years;
 	}, []);
 
+	const monthDropdownOptions = MONTHS.map((month, idx) => ({
+		value: idx,
+		label: month,
+	}));
+
+	const yearDropdownOptions = yearOptions.map((year) => ({
+		value: year,
+		label: String(year),
+	}));
+
 	useEffect(() => {
 		if (range.every((r) => r === null)) {
 			setLabel(EMPTY_LABEL);
 		} else {
-			// Update dropdown values when range changes
 			if (range[0]) {
 				setStartMonth(range[0].month());
 				setStartYear(range[0].year());
@@ -147,18 +166,16 @@ export default function BasicMonthRangePicker({
 		}
 	}, [range]);
 
-	// Update range when dropdowns change
 	useEffect(() => {
-		const start = dayjs().year(startYear).month(startMonth).startOf('month');
-		const end = dayjs().year(endYear).month(endMonth).endOf('month');
+		const start = dayjs.utc().year(startYear).month(startMonth).startOf('month');
+		const end = dayjs.utc().year(endYear).month(endMonth).endOf('month');
 		setRange([start, end]);
 		setLabel(formatMonthLabel([start, end]));
 	}, [startMonth, startYear, endMonth, endYear]);
 
-	const onClose = (newAnchor: PopperProps['anchorEl'] = null) => {
+	const onClose = (newAnchor: HTMLElement | null = null) => {
 		setLabel(defaultLabel);
 		setRange(defaultValue);
-		// Reset dropdowns to default values
 		if (defaultValue[0]) {
 			setStartMonth(defaultValue[0].month());
 			setStartYear(defaultValue[0].year());
@@ -176,7 +193,6 @@ export default function BasicMonthRangePicker({
 			setLabel(shortcut.label);
 		}
 		setRange(value);
-		// Update dropdowns
 		if (value[0]) {
 			setStartMonth(value[0].month());
 			setStartYear(value[0].year());
@@ -189,185 +205,209 @@ export default function BasicMonthRangePicker({
 
 	return (
 		<>
-			<Chip
-				label={labelConfirmed}
-				icon={<WatchLater />}
+			<span
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				onDelete={
-					isEmpty || !clearable
-						? undefined
-						: () => {
-								setRange([null, null]);
-								setLabelConfirmed(EMPTY_LABEL);
-								onConfirm(range);
-							}
-				}
-				sx={{
-					...styles.chip,
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: 4,
+					cursor: 'pointer',
+					margin: '5px 0px',
 					height,
-					'& .MuiChip-icon': {
-						color: isEmpty ? undefined : theme.palette.secondary.main,
-					},
-					'& .MuiChip-label': {
-						color: isEmpty ? undefined : theme.palette.secondary.main,
-						fontStyle: isEmpty ? 'italic' : undefined,
-					},
 				}}
-			/>
+			>
+				{/* <CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
+					<span
+						style={{
+							color: isEmpty ? undefined : 'var(--text-accent)',
+							fontStyle: isEmpty ? 'italic' : undefined,
+						}}
+					>
+						{labelConfirmed}
+					</span>
+				</CustomChip> */}
+				<Button variant="ghost" color="neutral" startIcon={<IconClock size={16} />}>
+					{labelConfirmed}
+				</Button>
+				{!isEmpty && clearable && (
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							setRange([null, null]);
+							setLabelConfirmed(EMPTY_LABEL);
+							onConfirm(range);
+						}}
+						style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}
+					>
+						x
+					</button>
+				)}
+			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						<Stack display="flex" justifyContent="center" alignItems="flex-start">
-							<Box width="100%" display="flex" justifyContent="center" alignItems="flex-start">
-								<Stack
-									width={150}
-									display="flex"
-									justifyContent="flex-start"
-									alignItems="flex-start"
-									padding="10px"
+					<div
+						style={{
+							background: 'var(--bg-white)',
+							border: '1px solid var(--border)',
+							borderRadius: 'var(--radius-lg)',
+							boxShadow: 'var(--shadow-lg)',
+							padding: 8,
+							marginTop: 5,
+						}}
+					>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								justifyContent: 'center',
+								alignItems: 'flex-start',
+							}}
+						>
+							<div
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'center',
+									alignItems: 'flex-start',
+								}}
+							>
+								<div
+									style={{
+										width: 150,
+										display: 'flex',
+										flexDirection: 'column',
+										justifyContent: 'flex-start',
+										alignItems: 'flex-start',
+										padding: 10,
+									}}
 								>
 									{shortcuts.map((s, i) => (
-										<Chip
-											key={i}
-											label={s.label}
-											onClick={() => handleShortcut(s)}
-											sx={{
-												margin: '5px 0px',
-												'& .MuiChip-icon': {
-													color:
-														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
-												},
-												'& .MuiChip-label': {
-													color:
-														s.label === label ? theme.palette.secondary.main : BASE_COLOR,
-												},
-											}}
-										/>
+										<span key={i} style={{ margin: '5px 0px', cursor: 'pointer' }}>
+											<CustomChip
+												color={s.label === label ? 'info' : 'neutral'}
+												size="sm"
+												onClick={() => handleShortcut(s)}
+											>
+												{s.label}
+											</CustomChip>
+										</span>
 									))}
-								</Stack>
-								<Box padding="20px" width={320}>
-									<Stack spacing={2}>
+								</div>
+								<div style={{ padding: 20, width: 320 }}>
+									<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 										{/* Start Date */}
-										<Box>
-											<Typography variant="caption" fontSize={11} color="text.secondary" mb={0.5}>
+										<div>
+											<span
+												style={{
+													fontSize: 11,
+													color: 'var(--text-secondary)',
+													marginBottom: 4,
+													display: 'block',
+												}}
+											>
 												Start Month
-											</Typography>
-											<Box display="flex" gap={1}>
-												<Select
-													value={startMonth}
-													onChange={(e) => setStartMonth(e.target.value as number)}
-													size="small"
-													sx={{ flex: 2 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{MONTHS.map((month, idx) => (
-														<MenuItem key={idx} value={idx}>
-															{month}
-														</MenuItem>
-													))}
-												</Select>
-												<Select
-													value={startYear}
-													onChange={(e) => setStartYear(e.target.value as number)}
-													size="small"
-													sx={{ flex: 1 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{yearOptions.map((year) => (
-														<MenuItem key={year} value={year}>
-															{year}
-														</MenuItem>
-													))}
-												</Select>
-											</Box>
-										</Box>
+											</span>
+											<div style={{ display: 'flex', gap: 8 }}>
+												<div style={{ flex: 2 }}>
+													<Dropdown
+														options={monthDropdownOptions}
+														value={startMonth}
+														onChange={(v) => setStartMonth(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
+												<div style={{ flex: 1 }}>
+													<Dropdown
+														options={yearDropdownOptions}
+														value={startYear}
+														onChange={(v) => setStartYear(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
+											</div>
+										</div>
 
 										{/* End Date */}
-										<Box>
-											<Typography variant="caption" fontSize={11} color="text.secondary" mb={0.5}>
+										<div>
+											<span
+												style={{
+													fontSize: 11,
+													color: 'var(--text-secondary)',
+													marginBottom: 4,
+													display: 'block',
+												}}
+											>
 												End Month
-											</Typography>
-											<Box display="flex" gap={1}>
-												<Select
-													value={endMonth}
-													onChange={(e) => setEndMonth(e.target.value as number)}
-													size="small"
-													sx={{ flex: 2 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{MONTHS.map((month, idx) => (
-														<MenuItem key={idx} value={idx}>
-															{month}
-														</MenuItem>
-													))}
-												</Select>
-												<Select
-													value={endYear}
-													onChange={(e) => setEndYear(e.target.value as number)}
-													size="small"
-													sx={{ flex: 1 }}
-													MenuProps={{ sx: { zIndex: 9999 } }}
-												>
-													{yearOptions.map((year) => (
-														<MenuItem key={year} value={year}>
-															{year}
-														</MenuItem>
-													))}
-												</Select>
-											</Box>
-										</Box>
-									</Stack>
-								</Box>
-							</Box>
+											</span>
+											<div style={{ display: 'flex', gap: 8 }}>
+												<div style={{ flex: 2 }}>
+													<Dropdown
+														options={monthDropdownOptions}
+														value={endMonth}
+														onChange={(v) => setEndMonth(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
+												<div style={{ flex: 1 }}>
+													<Dropdown
+														options={yearDropdownOptions}
+														value={endYear}
+														onChange={(v) => setEndYear(Number(v))}
+														size="sm"
+														fullWidth
+													/>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
 
-							<Box
-								width="100%"
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-								padding="10px"
+							<div
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+									padding: 10,
+								}}
 							>
-								<Box></Box>
-								<Box>
-									<Button
+								<div></div>
+								<div>
+									<CustomButton
 										onClick={() => onClose()}
 										variant="outlined"
-										sx={{ height: 30, marginRight: '10px' }}
+										color="neutral"
+										size="sm"
+										style={{ marginRight: '10px' }}
 									>
 										Cancel
-									</Button>
-									<Button
+									</CustomButton>
+									<CustomButton
 										onClick={() => {
 											setLabelConfirmed(label);
 											onConfirm(range);
 											setAnchorEl(null);
 										}}
-										variant="contained"
-										color="secondary"
-										sx={{ height: 30 }}
+										variant="outlined"
+										size="sm"
 										disabled={!clearable && range.some((r) => !r)}
 									>
 										Apply
-									</Button>
-								</Box>
-							</Box>
-						</Stack>
-					</Paper>
+									</CustomButton>
+								</div>
+							</div>
+						</div>
+					</div>
 				</BasicPopper>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-	},
-};

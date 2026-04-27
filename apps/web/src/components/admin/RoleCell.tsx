@@ -1,13 +1,11 @@
 'use client';
 
-import { Box } from '@mui/material';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
 import RoleValue from './RoleValue';
 
-export default function RoleCell(params: GridRenderCellParams) {
+export default function RoleCell(params: { row: any; value?: any; id?: string | number }) {
 	return (
-		<Box width="100%" height="100%" display="flex" justifyContent="flex-start" alignItems="center">
+		<div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 			<RoleValue role={params.row.role} />
-		</Box>
+		</div>
 	);
 }

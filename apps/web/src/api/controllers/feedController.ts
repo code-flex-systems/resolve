@@ -1,7 +1,8 @@
 import * as feedQueries from '@/api/queries/feedQueries';
 import { FeedStatus, FeedType } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Retrieve all feeds for the current client.
@@ -22,7 +23,7 @@ export async function getFeedCount(ctx: ProtectedContext, { clientId }: { client
  * @param ctx - request context
  * @param input - feed id
  */
-export async function getFeed(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getFeed(ctx: ProtectedContext, { id }: { id: string }) {
 	return await feedQueries.getFeed(ctx, id);
 }
 
@@ -91,7 +92,7 @@ export async function updateFeed(
 		id,
 		params,
 	}: {
-		id: number;
+		id: string;
 		params: Partial<{
 			name: string;
 			schedule: number;
@@ -126,23 +127,18 @@ export async function updateFeed(
  * @param ctx - request context
  * @param input - feed id
  */
-export async function deleteFeed(ctx: ProtectedContext, { id }: { id: number }) {
+export async function deleteFeed(ctx: ProtectedContext, { id }: { id: string }) {
 	// Delete feed and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch feed data BEFORE deletion for logging
-		const feed = await feedQueries.getFeedForDeletion({ ...ctx, db: trx }, id);
-
-		// Delete the feed
-		await feedQueries.deleteFeed({ ...ctx, db: trx }, id);
+		// Delete the feed (uses RETURNING to get fields for logging)
+		const deleted = await feedQueries.deleteFeed({ ...ctx, db: trx }, id);
 
 		// Log admin action for feed deletion
-		if (feed) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: id,
-				entityName: EntityName.FEED,
-				action: AdminAction.DELETE,
-				value: { name: feed.name, feed_type: feed.feed_type, status: feed.status },
-			});
-		}
+		await logAdminAction({ ...ctx, db: trx }, {
+			entityId: id,
+			entityName: EntityName.FEED,
+			action: AdminAction.DELETE,
+			value: { name: deleted.name, feed_type: deleted.feed_type, status: deleted.status },
+		});
 	});
 }

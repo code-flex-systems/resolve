@@ -39,6 +39,8 @@ export function useClaimTrpc() {
 			},
 		}),
 
+		statusBreakdown: trpc.claim.getClaimStatusBreakdown.useQuery,
+
 		update: trpc.claim.updateClaim.useMutation({
 			onSuccess(_data, variables) {
 				// Invalidate claim queries
@@ -55,3 +57,4 @@ export function useClaimTrpc() {
 export type Claim = ClaimOutput['getClaim'];
 export type MyClaimListItem = ClaimOutput['listMyClaims']['rows'][number];
 export type MyClaimsMetrics = ClaimOutput['listMyClaims']['metrics'];
+export type MyDeskClaimListItem = ClaimOutput['listMyDeskClaims']['rows'][number];

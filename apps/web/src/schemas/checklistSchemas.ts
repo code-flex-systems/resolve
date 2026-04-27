@@ -12,17 +12,17 @@ export type ChecklistParams = z.infer<typeof checklistParams>;
 
 export const createChecklistInput = z.object({
 	name: z.string(),
-	existingChecklistId: z.number().optional(),
+	existingChecklistId: z.string().uuid().optional(),
 });
 export type CreateChecklistInput = z.infer<typeof createChecklistInput>;
 
 export const deleteChecklistInput = z.object({
-	id: z.number().int(),
+	id: z.string().uuid(),
 });
 export type DeleteChecklistInput = z.infer<typeof deleteChecklistInput>;
 
 export const getChecklistInput = z.object({
-	id: z.number().int(),
+	id: z.string().uuid(),
 });
 export type GetChecklistInput = z.infer<typeof getChecklistInput>;
 
@@ -37,30 +37,30 @@ export const getChecklistCountInput = z.object({
 export type GetChecklistCountInput = z.infer<typeof getChecklistCountInput>;
 
 export const getChecklistClaimInput = z.object({
-	checklistId: z.number().int(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
 });
 export type GetChecklistClaimInput = z.infer<typeof getChecklistClaimInput>;
 
 export const getChecklistClaimProgressInput = z.object({
-	checklistId: z.number().int(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
 });
 
 export const getChecklistSummaryInput = z.object({
-	checklistId: z.number().int(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
 });
 export type GetChecklistSummaryInput = z.infer<typeof getChecklistSummaryInput>;
 
 export const getChecklistClaimStatsInput = z.object({
-	checklistId: z.number().optional(),
+	checklistId: z.string().uuid().optional(),
 	users: z.array(z.string()).optional(),
 });
 
 export const getChecklistClaimsInput = z.object({
 	filters: z.object({
-		checklistId: z.number().int().optional(),
+		checklistId: z.string().uuid().optional(),
 		users: z.array(z.string()).optional(),
 		range: z.tuple([parseDate(), parseDate()]),
 		claimStatus: z.nativeEnum(ClaimStatus).optional(),
@@ -71,7 +71,7 @@ export const getChecklistClaimsInput = z.object({
 
 export const exportChecklistClaimsInput = z.object({
 	filters: z.object({
-		checklistId: z.number().int().optional(),
+		checklistId: z.string().uuid().optional(),
 		users: z.array(z.string()).optional(),
 		range: z.tuple([parseDate(), parseDate()]),
 		claimStatus: z.nativeEnum(ClaimStatus).optional(),
@@ -79,8 +79,8 @@ export const exportChecklistClaimsInput = z.object({
 });
 
 export const getChecklistSummaryDetailInput = z.object({
-	checklistId: z.number().int(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
 	segment: z.nativeEnum(SummarySegment),
 	limit: z.number().int().optional(),
 	offset: z.number().int().optional(),
@@ -88,14 +88,14 @@ export const getChecklistSummaryDetailInput = z.object({
 export type GetChecklistSummaryDetailInput = z.infer<typeof getChecklistSummaryDetailInput>;
 
 export const modifyChecklistInput = z.object({
-	id: z.number().int(),
+	id: z.string().uuid(),
 	params: checklistParams,
 });
 export type ModifyChecklistInput = z.infer<typeof modifyChecklistInput>;
 
 export const modifyChecklistClaimInput = z.object({
-	checklistId: z.number().int(),
-	claimId: z.number().int(),
+	checklistId: z.string().uuid(),
+	claimId: z.string().uuid(),
 	status: z.nativeEnum(ClaimStatus).optional(),
 	assignee: z.string().optional(),
 });

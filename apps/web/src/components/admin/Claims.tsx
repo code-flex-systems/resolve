@@ -1,162 +1,149 @@
 'use client';
 
-import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro';
+import { IconEye, IconFileSearch, IconFilter, IconSquarePlus, IconUpload, IconUserSearch } from '@tabler/icons-react';
+import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
+import Card from '@/components/ui/Card';
+import Collapse from '@/components/ui/Collapse';
+import Switch from '@/components/ui/Switch';
+import Button from '@/components/ui/Button';
 import { useAdminStore } from '@/stores/useAdminStore';
-import { formatMDYAbv } from '@/lib/utils/utils';
-import ClaimAmountCell from './ClaimAmountCell';
+import { formatAmount, formatMDYAbv } from '@/lib/utils/utils';
+import { formatLineOfBusiness, formatLabel } from '@/lib/utils/claimUtils';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { formatCityState } from '@/schemas/addressSchemas';
-import {
-	Autocomplete,
-	Box,
-	Button,
-	Collapse,
-	Paper,
-	PopperProps,
-	Switch,
-	TextField,
-	Typography,
-} from '@mui/material';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
-import AddBox from '@mui/icons-material/AddBox';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
-import PersonSearch from '@mui/icons-material/PersonSearch';
-import Upload from '@mui/icons-material/Upload';
-import FilterList from '@mui/icons-material/FilterList';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
-import CustomPagination from '../common/CustomPagination';
 import Toolbar from '../common/Toolbar';
-import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
-import theme, { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import Visibility from '@mui/icons-material/Visibility';
-import { LineOfBusinessSelect, LossTypeSelect, LineOfBusinessValue, LossTypeValue } from '../common/ReferenceDataSelect';
+import { LineOfBusinessSelect } from '../common/ReferenceDataSelect';
 import RecoveryStatusSelect from '../common/RecoveryStatusSelect';
-import BasicButtonStyled from '../common/BasicButtonStyled';
+import SubstatusSelect from '../common/SubstatusSelect';
 import BasicPopper from '../common/BasicPopper';
-import { RecoveryStatus, ClaimSearch } from '@/config/enums';
+import { RecoveryStatus, ClaimSearch, ClaimSubstatus } from '@/config/enums';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ClaimDetailPanel from './ClaimDetailPanel';
 import useDebounce from '@/lib/utils/useDebounce';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const COLUMNS: GridColDef[] = [
+const COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Claim',
-		field: 'claim_number',
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<ContentPasteSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+		accessorKey: 'claim_number',
+		header: (params) => (
+			<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
 		),
-		width: 150,
+		size: 150,
 	},
 	{
-		headerName: 'Client',
-		field: 'client',
-		renderHeader: (params) => (
-			<IconHeaderCell {...params} icon={<PersonSearch sx={{ color: BASE_COLOR_LIGHT }} />} />
+		accessorKey: 'client',
+		header: (params) => (
+			<IconHeaderCell {...params} icon={<IconUserSearch style={{ color: 'var(--text-muted)' }} />} />
 		),
-		width: 150,
+		size: 150,
 	},
 	{
-		headerName: 'Client Adjuster',
-		field: 'client_adjuster',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'client_adjuster',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 150,
 	},
 	{
-		headerName: 'Insured',
-		field: 'insured',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'insured',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 150,
 	},
 	{
-		headerName: 'Claim Amount',
-		field: 'claim_amount',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
+		accessorKey: 'date_of_loss',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return formatMDYAbv(value);
+		},
+		size: 150,
 	},
 	{
-		headerName: 'Total Incurred',
-		field: 'total_incurred',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
+		accessorKey: 'loss_city',
+		header: (ctx) => <IconHeaderCell {...ctx} headerName="Loss Location" />,
+		size: 150,
 	},
 	{
-		headerName: 'Date of Loss',
-		field: 'date_of_loss',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => formatMDYAbv(value),
-		align: 'right',
-		width: 150,
+		accessorKey: 'line_of_business',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const v = getValue();
+			return formatLineOfBusiness(v);
+		},
+		size: 150,
 	},
 	{
-		headerName: 'Loss Location',
-		field: 'loss_city',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueGetter: (_value: any, row: any) => formatCityState(row.loss_city, row.loss_state),
-		width: 150,
+		accessorKey: 'recovery_status',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const v = getValue();
+			return formatRecoveryStatus(v);
+		},
+		size: 150,
 	},
 	{
-		headerName: 'Last Updated By',
-		field: 'last_updated_by',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'substatus',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const v = getValue();
+			return formatLabel(v);
+		},
+		size: 150,
+	},
+	// Amount fields grouped at end (ClaimHeader order)
+	{
+		accessorKey: 'claim_amount',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
+		size: 130,
 	},
 	{
-		headerName: 'Last Update',
-		field: 'last_update',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (value: any) => formatMDYAbv(value),
-		align: 'right',
-		width: 150,
+		accessorKey: 'total_incurred',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
+		size: 130,
 	},
 	{
-		headerName: 'Expected Recovery',
-		field: 'expected_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
+		accessorKey: 'expected_recovery',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
+		size: 140,
 	},
 	{
-		headerName: 'Actual Recovery',
-		field: 'actual_recovery',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <ClaimAmountCell {...params} />,
-		width: 150,
-	},
-	{
-		headerName: 'Line of Business',
-		field: 'line_of_business',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <LineOfBusinessValue value={params.value} showEmoji={false} />,
-		width: 150,
-	},
-	{
-		headerName: 'Loss Type',
-		field: 'loss_type',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		renderCell: (params) => <LossTypeValue value={params.value} showEmoji={false} />,
-		width: 150,
-	},
-	{
-		headerName: 'Recovery Status',
-		field: 'recovery_status',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		valueFormatter: (v) => formatRecoveryStatus(v),
-		width: 150,
+		accessorKey: 'actual_recovery',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return value ? `$${formatAmount(value)}` : '$0.00';
+		},
+		size: 130,
 	},
 ];
+
+const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
+	left: ['claim_number'],
+};
 
 function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No claims found"
-			icon={<ContentPasteSearch sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconFileSearch size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -176,16 +163,16 @@ export default function Claims() {
 
 	// Applied filter states (read from URL params)
 	const appliedLob = getParam('lob');
-	const appliedLossType = getParam('loss_type');
 	const appliedRecoveryStatus = getParam('recovery_status');
+	const appliedSubstatus = getParam('substatus');
 	const appliedInsured = getParam('insured');
 	const appliedClient = getParam('client');
 	const appliedManualOnly = getBoolParam('manual_only');
 
 	// Draft filter states (in the popper, not yet applied)
 	const [draftLob, setDraftLob] = useState<string | null>(null);
-	const [draftLossType, setDraftLossType] = useState<string | null>(null);
 	const [draftRecoveryStatus, setDraftRecoveryStatus] = useState<string | null>(null);
+	const [draftSubstatus, setDraftSubstatus] = useState<ClaimSubstatus | null>(null);
 	const [draftInsured, setDraftInsured] = useState<string | null>(null);
 	const [draftClient, setDraftClient] = useState<string | null>(null);
 	const [draftManualOnly, setDraftManualOnly] = useState(false);
@@ -200,8 +187,8 @@ export default function Claims() {
 	const [debouncedInsuredSearch, setDebouncedInsuredSearch] = useState('');
 	const [debouncedClientSearch, setDebouncedClientSearch] = useState('');
 
-	const [selectedClaimId, setSelectedClaimId] = useState<number | null>(null);
-	const [filtersAnchorEl, setFiltersAnchorEl] = useState<PopperProps['anchorEl']>();
+	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 
 	const { data: feeds = [] } = useFeedTrpc().list();
 	const trpcUtils = useClaimTrpc();
@@ -213,21 +200,13 @@ export default function Claims() {
 		feedId: effectiveFeedId,
 		searchTerm: appliedClaimNumber ? { value: appliedClaimNumber, type: ClaimSearch.CLAIM_NUMBER } : undefined,
 		line_of_business: appliedLob ?? undefined,
-		loss_type: appliedLossType ?? undefined,
 		recovery_status: (appliedRecoveryStatus as RecoveryStatus) ?? undefined,
+		substatus: (appliedSubstatus as ClaimSubstatus) ?? undefined,
 		insured: appliedInsured ?? undefined,
 		client: appliedClient ?? undefined,
 		limit: claimConstraints.pageSize,
 		offset: claimConstraints.page * claimConstraints.pageSize,
 	});
-	const rowCountRef = useRef(typeof data.count === 'number' ? data.count : 0);
-
-	const rowCount = useMemo(() => {
-		if (typeof data.count === 'number') {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// Derive unique insureds/clients once (sorted)
 	const uniqueInsureds = useMemo(
@@ -292,18 +271,15 @@ export default function Claims() {
 	useEffect(() => {
 		const selected = searchParams.get('selected');
 		if (selected) {
-			const claimId = parseInt(selected, 10);
-			if (!isNaN(claimId)) {
-				setSelectedClaimId(claimId);
-			}
+			setSelectedClaimId(selected);
 		} else {
 			setSelectedClaimId(null);
 		}
 	}, [searchParams]);
 
 	// Handle row click - update URL with selected claim ID
-	const handleRowClick = (params: any) => {
-		const claimId = params.row.id;
+	const handleRowClick = (row: any) => {
+		const claimId = row.id;
 		const newParams = new URLSearchParams(searchParams.toString());
 		newParams.set('selected', claimId.toString());
 		router.push(`${pathname}?${newParams.toString()}`);
@@ -319,23 +295,23 @@ export default function Claims() {
 	// Handle opening filters popper - sync draft states with applied states
 	const handleOpenFilters = (e: React.MouseEvent) => {
 		setDraftLob(appliedLob);
-		setDraftLossType(appliedLossType);
 		setDraftRecoveryStatus(appliedRecoveryStatus);
+		setDraftSubstatus((appliedSubstatus as ClaimSubstatus) ?? null);
 		setDraftInsured(appliedInsured);
 		setDraftClient(appliedClient);
 		setDraftManualOnly(appliedManualOnly);
 		// Initialize search terms with current values
 		setInsuredSearchTerm(appliedInsured ?? '');
 		setClientSearchTerm(appliedClient ?? '');
-		setFiltersAnchorEl(e.currentTarget);
+		setFiltersAnchorEl(e.currentTarget as HTMLElement);
 	};
 
 	// Apply filters from draft to URL params
 	const handleApplyFilters = () => {
 		setParams({
 			lob: draftLob,
-			loss_type: draftLossType,
 			recovery_status: draftRecoveryStatus,
+			substatus: draftSubstatus,
 			insured: draftInsured,
 			client: draftClient,
 			manual_only: draftManualOnly,
@@ -355,8 +331,8 @@ export default function Claims() {
 		clearParams(['selected']);
 		// Reset draft states
 		setDraftLob(null);
-		setDraftLossType(null);
 		setDraftRecoveryStatus(null);
+		setDraftSubstatus(null);
 		setDraftInsured(null);
 		setDraftClient(null);
 		setDraftManualOnly(false);
@@ -375,69 +351,51 @@ export default function Claims() {
 
 	const hasActiveFilters =
 		appliedLob ||
-		appliedLossType ||
 		appliedRecoveryStatus ||
+		appliedSubstatus ||
 		appliedInsured ||
 		appliedClient ||
 		appliedManualOnly ||
 		appliedClaimNumber;
 
+	// Map string options to ComboboxOption for insured/client
+	const insuredComboboxOptions: ComboboxOption[] = insuredOptions.map((s) => ({ value: s, label: s }));
+	const clientComboboxOptions: ComboboxOption[] = clientOptions.map((s) => ({ value: s, label: s }));
+
+	const selectedInsuredOption: ComboboxOption | null = draftInsured
+		? { value: draftInsured, label: draftInsured }
+		: null;
+	const selectedClientOption: ComboboxOption | null = draftClient ? { value: draftClient, label: draftClient } : null;
+
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
-				<Paper sx={styles.paper} className="flex-col-start">
-					{/* Main Toolbar: Title and Actions */}
-					<Toolbar
-						left={<Typography variant="h6">Claims</Typography>}
-						right={
-							<>
-								<Button
-									variant="contained"
-									color="secondary"
-									startIcon={<Upload />}
-									onClick={toggleImportClaimsDialog}
-									sx={{ marginRight: '10px' }}
-								>
-									Import
-								</Button>
-								<Button
-									variant="contained"
-									startIcon={<AddBox />}
-									onClick={() => router.push('/admin/claims/edit')}
-								>
-									Claim
-								</Button>
-							</>
-						}
-						leftWidth="70%"
-						rightWidth="30%"
-						height={50}
-						padding={'0px 10px'}
-					/>
+				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						View and manage all claims across the organization. Click a claim to see its full details.
+					</p>
 
 					{/* Search and Filters Toolbar */}
 					<Toolbar
 						left={
-							<Box display="flex" gap={1} alignItems="center">
+							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 								<SearchInput
 									value={claimNumberSearch}
 									onChange={(value) => setClaimNumberSearch(value)}
 									placeholder="Search by claim number..."
 									width={280}
 								/>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: handleOpenFilters,
-										endIcon: <FilterList />,
-									}}
+								<Button
+									variant="outlined"
+									onClick={handleOpenFilters}
+									endIcon={<IconFilter size={16} />}
 								>
 									Filters...
 									{hasActiveFilters && (
-										<Box
-											component="span"
-											sx={{
-												ml: 0.5,
-												bgcolor: 'primary.main',
+										<div
+											style={{
+												marginLeft: 4,
+												backgroundColor: 'primary.main',
 												color: 'white',
 												borderRadius: '50%',
 												width: 18,
@@ -452,44 +410,59 @@ export default function Claims() {
 											{
 												[
 													appliedLob,
-													appliedLossType,
 													appliedRecoveryStatus,
+													appliedSubstatus,
 													appliedInsured,
 													appliedClient,
 													appliedManualOnly,
 													appliedClaimNumber,
 												].filter(Boolean).length
 											}
-										</Box>
+										</div>
 									)}
-								</BasicButtonStyled>
+								</Button>
 								{hasActiveFilters && (
-									<BasicButtonStyled
-										buttonProps={{
-											onClick: handleClearAllFilters,
-											size: 'small',
-										}}
-									>
+									<Button variant="outlined" onClick={handleClearAllFilters} size="sm">
 										Clear all filters
-									</BasicButtonStyled>
+									</Button>
 								)}
-								<Collapse in={!!selectedFeed} orientation="horizontal">
-									<Box display="flex" alignItems="center" marginLeft="5px">
-										<Visibility sx={{ color: 'text.secondary', fontSize: 18 }} />
-										<Typography fontSize={14} lineHeight="18px" marginLeft="8px" noWrap>
+								<Collapse open={!!selectedFeed}>
+									<div style={{ display: 'flex', alignItems: 'center', marginLeft: '5px' }}>
+										<IconEye size={18} style={{ color: 'var(--text-secondary)' }} />
+										<span style={{ fontSize: 14, lineHeight: '18px', marginLeft: '8px' }}>
 											Viewing{' '}
-											<span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>
+											<span style={{ color: 'var(--text-accent)', fontWeight: 600 }}>
 												{selectedFeed?.name ?? ''}
 											</span>
-										</Typography>
-									</Box>
+										</span>
+									</div>
 								</Collapse>
-							</Box>
+							</div>
+						}
+						right={
+							<>
+								<Button
+									variant="contained"
+									color="neutral"
+									startIcon={<IconUpload size={20} />}
+									onClick={toggleImportClaimsDialog}
+									style={{ marginRight: '10px' }}
+								>
+									Import
+								</Button>
+								<Button
+									variant="contained"
+									startIcon={<IconSquarePlus size={20} />}
+									onClick={() => router.push('/admin/claims/edit')}
+								>
+									Claim
+								</Button>
+							</>
 						}
 						leftWidth="100%"
 						rightWidth="0%"
-						height={45}
-						padding={'0px 10px'}
+						height={55}
+						padding="0px"
 					/>
 
 					{/* Filters Popper */}
@@ -499,170 +472,129 @@ export default function Claims() {
 							setAnchorEl={handleCloseFilters}
 							placement="bottom-start"
 						>
-							<Paper sx={styles.filtersPaper}>
-								<Typography fontSize={14} fontWeight={600} marginBottom={2}>
-									Filter Claims
-								</Typography>
-								<Box display="flex" flexDirection="column" gap={2}>
-									<Box display="flex" alignItems="center" gap={1}>
+							<div style={styles.filtersPaper}>
+								<span style={{ fontSize: 14, fontWeight: 600 }}>Filter Claims</span>
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+									<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 										<Switch
-											size="small"
+											size="sm"
 											checked={draftManualOnly}
-											onChange={(_, checked) => setDraftManualOnly(checked)}
+											onChange={(checked) => setDraftManualOnly(checked)}
 										/>
-										<Typography fontSize={13}>Only Manual Claims</Typography>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+										<span style={{ fontSize: 13 }}>Only Manual Claims</span>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Line of Business
-										</Typography>
+										</span>
 										<LineOfBusinessSelect
 											lineOfBusiness={draftLob}
 											setLineOfBusiness={setDraftLob}
 											clearable={true}
-											height={32}
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
-											Loss Type
-										</Typography>
-										<LossTypeSelect
-											lossType={draftLossType}
-											setLossType={setDraftLossType}
-											clearable={true}
-											height={32}
-										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Recovery Status
-										</Typography>
+										</span>
 										<RecoveryStatusSelect
 											recoveryStatus={draftRecoveryStatus}
 											setRecoveryStatus={setDraftRecoveryStatus}
 											clearable={true}
 											height={32}
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+											Substatus
+										</span>
+										<SubstatusSelect
+											substatus={draftSubstatus}
+											setSubstatus={setDraftSubstatus}
+											clearable={true}
+											height={32}
+										/>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Insured
-										</Typography>
-										<Autocomplete
+										</span>
+										<Combobox
 											freeSolo
-											options={insuredOptions}
-											value={draftInsured ?? ''}
-											onInputChange={(_, value) => {
+											options={insuredComboboxOptions}
+											value={selectedInsuredOption}
+											onChange={(opt) => {
+												setDraftInsured(opt ? String(opt.value) : null);
+											}}
+											onInputChange={(value) => {
 												setInsuredSearchTerm(value);
 											}}
-											onChange={(_, newValue) => {
-												setDraftInsured(typeof newValue === 'string' ? newValue : null);
-											}}
-											renderInput={(params) => (
-												<TextField
-													{...params}
-													variant="outlined"
-													placeholder={
-														insuredOptions.length === 0 && !insuredSearchTerm
-															? 'Type to search...'
-															: 'Search insured...'
-													}
-													size="small"
-												/>
-											)}
 											noOptionsText={insuredSearchTerm ? 'No matches' : 'Type to search'}
-											sx={styles.autocomplete}
+											placeholder={
+												insuredOptions.length === 0 && !insuredSearchTerm
+													? 'Type to search...'
+													: 'Search insured...'
+											}
+											fullWidth
 										/>
-									</Box>
-									<Box>
-										<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={1}>
+									</div>
+									<div>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 											Client
-										</Typography>
-										<Autocomplete
+										</span>
+										<Combobox
 											freeSolo
-											options={clientOptions}
-											value={draftClient ?? ''}
-											onInputChange={(_, value) => {
+											options={clientComboboxOptions}
+											value={selectedClientOption}
+											onChange={(opt) => {
+												setDraftClient(opt ? String(opt.value) : null);
+											}}
+											onInputChange={(value) => {
 												setClientSearchTerm(value);
 											}}
-											onChange={(_, newValue) => {
-												setDraftClient(typeof newValue === 'string' ? newValue : null);
-											}}
-											renderInput={(params) => (
-												<TextField
-													{...params}
-													variant="outlined"
-													placeholder={
-														clientOptions.length === 0 && !clientSearchTerm
-															? 'Type to search...'
-															: 'Search client...'
-													}
-													size="small"
-												/>
-											)}
 											noOptionsText={clientSearchTerm ? 'No matches' : 'Type to search'}
-											sx={styles.autocomplete}
+											placeholder={
+												clientOptions.length === 0 && !clientSearchTerm
+													? 'Type to search...'
+													: 'Search client...'
+											}
+											fullWidth
 										/>
-									</Box>
-								</Box>
-								<Box
-									display="flex"
-									justifyContent="flex-end"
-									marginTop={2}
-									paddingTop={2}
-									borderTop="1px solid #e0e0e0"
+									</div>
+								</div>
+								<div
+									style={{
+										display: 'flex',
+										justifyContent: 'flex-end',
+										marginTop: 16,
+										paddingTop: 16,
+										borderTop: '1px solid #e0e0e0',
+									}}
 								>
-									<Button variant="contained" onClick={handleApplyFilters} size="small">
+									<Button variant="contained" onClick={handleApplyFilters} size="sm">
 										Apply
 									</Button>
-								</Box>
-							</Paper>
+								</div>
+							</div>
 						</BasicPopper>
 					)}
 
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={COLUMNS}
-							columnHeaderHeight={45}
+							pinnedLeft={['claim_number']}
+							headerHeight={45}
 							loading={isFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoRows,
-								noResultsOverlay: NoRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'skeleton',
-									variant: 'skeleton',
-								},
-							}}
-							initialState={{
-								pagination: { paginationModel: { pageSize: 20 } },
-							}}
 							rows={Array.isArray(data.rows) ? data.rows : []}
-							rowCount={rowCount}
+							rowCount={data?.count ?? 0}
 							rowHeight={40}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={claimConstraints}
 							onPaginationModelChange={updateClaimConstraints}
 							onRowClick={handleRowClick}
-							getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'striped' : '')}
-							disableColumnSelector
-							disableColumnMenu
-							sx={{
-								...styles.tableOverrides,
-								...dataGridFocusStyles,
-								'& .MuiDataGrid-row': {
-									cursor: 'pointer',
-								},
-							}}
 						/>
 					</div>
-				</Paper>
+				</Card>
 				<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
 			</div>
 		</PageTransitionWrapper>
@@ -671,34 +603,23 @@ export default function Claims() {
 
 const styles = {
 	container: {
-		flex: 1,
-		minWidth: 0,
+		minSize: 0,
 		height: '100%',
 	},
 	paper: {
 		width: '100%',
 		height: '100%',
-		padding: '15px 15px 0px',
+		display: 'flex',
+		flexDirection: 'column' as const,
 	},
 	table: {
 		width: '100%',
 		height: 'calc(100% - 95px)', // Account for two toolbars (50px + 45px)
 	},
-	tableOverrides: {
-		border: 'none',
-	},
 	filtersPaper: {
-		mt: 0.625,
+		marginTop: 5,
 		padding: '15px',
-		minWidth: 300,
+		minSize: 300,
 		maxWidth: 400,
-	},
-	autocomplete: {
-		'& .MuiOutlinedInput-root': {
-			padding: '3px 9px',
-		},
-		'& .MuiInputBase-input': {
-			fontSize: 13,
-		},
 	},
 };

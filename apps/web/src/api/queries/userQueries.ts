@@ -4,6 +4,19 @@ import { DateRangeStrict } from '@/types/types';
 import { CompiledQuery, sql } from 'kysely';
 import { sqlFilters } from '@/api/utils/utils';
 
+/** Build a user name/email search filter for prefix matching */
+function buildUserSearchFilter(eb: any, searchTerm: string, tablePrefix: string = 'users') {
+	const term = searchTerm.toLowerCase();
+	return eb.or([
+		eb(
+			sql`concat(lower(${eb.ref(`${tablePrefix}.first`)}), ' ', lower(${eb.ref(`${tablePrefix}.last`)}))`,
+			'like',
+			`${term}%`
+		),
+		eb(sql`lower(${eb.ref(`${tablePrefix}.email`)})`, 'like', `${term}%`),
+	]);
+}
+
 /**
  * Retrieve users for the current client with optional pagination.
  *
@@ -35,7 +48,7 @@ export async function getUsersPaginated(
 					eb(
 						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
 						'like',
-						`%${searchTerm.toLowerCase()}%`
+						`${searchTerm.toLowerCase()}%`
 					)
 				);
 			}
@@ -72,8 +85,8 @@ export async function getUsersWithDeskAssignments(
 		limit?: number;
 		offset?: number;
 		searchTerm?: string;
-		deskLocationTypeId?: number;
-		deskLocationId?: number;
+		deskLocationTypeId?: string;
+		deskLocationId?: string;
 	}
 ) {
 	// Base query - all users with assignment counts
@@ -94,21 +107,13 @@ export async function getUsersWithDeskAssignments(
 		)
 		.selectAll('users')
 		.select(sql<number>`MAX(COALESCE(assignment_counts.assignment_count, 0))`.as('assignment_count'))
+		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
 		.where('users.client_id', '=', ctx.session.user.client_id)
 		.where('users.disabled', '=', false);
 
 	// Apply search filter
 	if (searchTerm) {
-		query = query.where((eb) =>
-			eb.or([
-				eb(
-					sql`concat(lower(${eb.ref('users.first')}), ' ', lower(${eb.ref('users.last')}))`,
-					'like',
-					`%${searchTerm.toLowerCase()}%`
-				),
-				eb(sql`lower(${eb.ref('users.email')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-			])
-		);
+		query = query.where((eb) => buildUserSearchFilter(eb, searchTerm));
 	}
 
 	// If desk filters are provided, filter to users with at least one matching assignment
@@ -135,58 +140,6 @@ export async function getUsersWithDeskAssignments(
 		}
 	}
 
-	// Build count query using subquery to count distinct users matching filters
-	// This avoids TypeScript issues with changing query types when adding joins
-	const buildCountQuery = async () => {
-		// Build a subquery to find matching user IDs
-		let userIdsQuery = ctx.db
-			.selectFrom('users')
-			.select('users.id')
-			.where('users.client_id', '=', ctx.session.user.client_id)
-			.where('users.disabled', '=', false);
-
-		if (searchTerm) {
-			userIdsQuery = userIdsQuery.where((eb) =>
-				eb.or([
-					eb(
-						sql`concat(lower(${eb.ref('users.first')}), ' ', lower(${eb.ref('users.last')}))`,
-						'like',
-						`%${searchTerm.toLowerCase()}%`
-					),
-					eb(sql`lower(${eb.ref('users.email')})`, 'like', `%${searchTerm.toLowerCase()}%`),
-				])
-			);
-		}
-
-		if (deskLocationId !== undefined) {
-			userIdsQuery = userIdsQuery.innerJoin('user_desk_location', (join) =>
-				join
-					.onRef('users.id', '=', 'user_desk_location.user_id')
-					.on('user_desk_location.removed_at', 'is', null)
-					.on('user_desk_location.desk_location_id', '=', deskLocationId)
-			) as typeof userIdsQuery;
-		} else if (deskLocationTypeId !== undefined) {
-			userIdsQuery = userIdsQuery
-				.innerJoin('user_desk_location', (join) =>
-					join.onRef('users.id', '=', 'user_desk_location.user_id').on('user_desk_location.removed_at', 'is', null)
-				)
-				.innerJoin('desk_location', (join) =>
-					join
-						.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
-						.on('desk_location.deleted_at', 'is', null)
-						.on('desk_location.desk_location_type_id', '=', deskLocationTypeId)
-				) as typeof userIdsQuery;
-		}
-
-		// Count distinct user IDs
-		const result = await ctx.db
-			.selectFrom(userIdsQuery.distinct().as('filtered_users'))
-			.select(({ fn }) => fn.countAll<number>().as('count'))
-			.executeTakeFirst();
-
-		return result;
-	};
-
 	// Always group by user columns to support assignment count aggregation
 	query = query.groupBy([
 		'users.id',
@@ -208,19 +161,17 @@ export async function getUsersWithDeskAssignments(
 	]);
 
 	// Data query with pagination
-	const rowsQuery = query
+	const results = await query
 		.orderBy(['users.last', 'users.first'])
 		.$if(limit !== undefined, (qb) => qb.limit(limit!))
 		.$if(offset !== undefined, (qb) => qb.offset(offset!))
 		.execute();
 
-	// Execute in parallel
-	const [countResult, rows] = await Promise.all([buildCountQuery(), rowsQuery]);
+	// Extract total count from window function, then strip it from rows
+	const count = results.length > 0 ? Number(results[0].total_count) : 0;
+	const rows = results.map(({ total_count, ...row }) => row);
 
-	return {
-		rows,
-		count: countResult?.count ? Number(countResult.count) : 0,
-	};
+	return { rows, count };
 }
 
 export async function getUsers(ctx: ProtectedContext, searchTerm?: string, role?: string) {
@@ -265,27 +216,26 @@ export async function getInactiveUserCount(ctx: ProtectedContext) {
 
 export async function getUserActivity(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: number; claimId?: number; users?: string[]; searchTerm?: string }
+	filters: { range: DateRangeStrict; users?: string[] }
 ) {
-	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
+	// Count login sessions per day from auth_events (populated by Clerk webhooks).
+	// Join through users table for client scoping since auth_events has no client_id.
 	const startDate = filters.range[0].toISOString().split('T')[0];
 	const endDate = filters.range[1].toISOString().split('T')[0];
 
 	const query: CompiledQuery<{ activity_date: string; active_users: string }> = sql`
         select
             gs.day::date as activity_date,
-            coalesce(count(distinct r.user_id), 0) as active_users
+            coalesce(count(distinct ae.user_id), 0) as active_users
         from generate_series(
             ${startDate}::date,
             ${endDate}::date,
             interval '1 day'
         ) as gs(day)
-        left join response_audit_logs r on date(r.created_at) = gs.day::date
-            and r.client_id = ${ctx.session.user.client_id}
-            ${sqlFilters.eq('r.checklist_id', filters.checklistId)}
-            ${sqlFilters.eq('r.claim_id', filters.claimId)}
-            ${sqlFilters.inArray('r.user_id', filters.users)}
-            ${sqlFilters.ilike('r.question_text', filters.searchTerm)}
+        left join auth_events ae on date(ae.created_at) = gs.day::date
+            and ae.event_type = 'login'
+            and ae.user_id in (select id from users where client_id = ${ctx.session.user.client_id})
+            ${sqlFilters.inArray('ae.user_id', filters.users)}
         group by gs.day
         order by gs.day
     `.compile(ctx.db);
@@ -330,7 +280,7 @@ export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, in
 					eb(
 						sql`concat(lower(${eb.ref('first')}), ' ', lower(${eb.ref('last')}))`,
 						'like',
-						`%${searchTerm.toLowerCase()}%`
+						`${searchTerm.toLowerCase()}%`
 					)
 				);
 			}
@@ -483,4 +433,44 @@ export async function upsertUserFromClerk(
 		.onConflict((oc) => oc.column('email').doUpdateSet(updateSet))
 		.returningAll()
 		.executeTakeFirst();
+}
+
+/**
+ * Get user management overview stats in a single DB round-trip.
+ * Returns totals, role breakdown, and recent signup count.
+ */
+export async function getUserManagementStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Single table scan with FILTER clauses + role breakdown in parallel
+	const [counts, byRole] = await Promise.all([
+		ctx.db
+			.selectFrom('users')
+			.where('client_id', '=', clientId)
+			.select(({ fn }) => [
+				fn.countAll<number>().as('total'),
+				sql<number>`count(*) filter (where not disabled)`.as('active'),
+				sql<number>`count(*) filter (where disabled)`.as('disabled'),
+				sql<number>`count(*) filter (where created_at >= now() - interval '30 days')`.as('recent_signups'),
+			])
+			.executeTakeFirstOrThrow(),
+		ctx.db
+			.selectFrom('users')
+			.where('client_id', '=', clientId)
+			.where('disabled', '=', false)
+			.groupBy('role')
+			.select(({ fn }) => [
+				'role',
+				fn.countAll<number>().as('count'),
+			])
+			.execute(),
+	]);
+
+	return {
+		total: Number(counts.total),
+		active: Number(counts.active),
+		disabled: Number(counts.disabled),
+		recentSignups: Number(counts.recent_signups),
+		byRole: byRole.map(r => ({ role: r.role ?? 'unknown', count: Number(r.count) })),
+	};
 }

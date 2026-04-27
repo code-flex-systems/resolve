@@ -1,29 +1,27 @@
 'use client';
 
-import { Box, Button, Chip, IconButton, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import AttachMoney from '@mui/icons-material/AttachMoney';
-import Settings from '@mui/icons-material/Settings';
+import { IconArchive, IconCurrencyDollar, IconEdit, IconSettings } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useCallback, useMemo, useState } from 'react';
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { trpc } from '@/lib/trpc';
 import BasicDialog from '@/components/common/BasicDialog';
 import PaymentFormDialog, { PaymentFormData } from './PaymentFormDialog';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { dateSortComparator, numericSortComparator, stringSortComparator } from '@/lib/utils/utils';
-import { BASE_COLOR_LIGHT, containerStyles, dataGridFocusStyles } from '@/styles/theme';
 import { useAlertStore } from '@/stores/useAlertStore';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import BasicIconButton from '@/components/common/BasicIconButton';
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 dayjs.extend(utc);
 
 interface PaymentsTabProps {
-	claimId: number;
+	claimId: string;
 }
 
 const initialPaymentForm: PaymentFormData = {
@@ -37,14 +35,14 @@ const initialPaymentForm: PaymentFormData = {
 };
 
 interface PaymentRow {
-	id: number;
-	coverage_id: number;
+	id: string;
+	coverage_id: string;
 	payment_date: Date;
 	payment_amount: string;
 	is_subrogable: boolean;
 	is_expense: boolean;
 	loss_type: string;
-	payee_claim_party_id: number | null;
+	payee_claim_party_id: string | null;
 	payee_name: string | null;
 	description: string | null;
 }
@@ -144,13 +142,13 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 		try {
 			// Build params object (shared between create and update)
 			const params = {
-				coverage_id: Number(paymentForm.coverage_id),
+				coverage_id: paymentForm.coverage_id,
 				payment_date: paymentForm.payment_date,
 				payment_amount: paymentForm.payment_amount,
 				is_subrogable: paymentForm.is_subrogable,
 				is_expense: paymentForm.is_expense,
-				// Convert empty string to null for optional payee, otherwise convert to number
-				payee_claim_party_id: paymentForm.payee_claim_party_id === '' || paymentForm.payee_claim_party_id === null ? null : Number(paymentForm.payee_claim_party_id),
+				// Convert empty string to null for optional payee
+				payee_claim_party_id: paymentForm.payee_claim_party_id === '' || paymentForm.payee_claim_party_id === null ? null : paymentForm.payee_claim_party_id,
 				description: paymentForm.description || undefined,
 			};
 
@@ -185,108 +183,84 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	};
 
 	// Table columns
-	const columns = useMemo<GridColDef<PaymentRow>[]>(
+	const columns = useMemo<ColumnDef<PaymentRow, any>[]>(
 		() => [
 			{
-				field: 'payment_date',
-				headerName: 'Date',
-				width: 100,
-				valueFormatter: (value) => (value ? dayjs(value).format('MMM D, YYYY') : ''),
-				sortComparator: dateSortComparator,
+				accessorKey: 'payment_date',
+				header: 'Date',
+				size: 100,
+				cell: ({ getValue }) => { const value = getValue(); return value ? dayjs(value).format('MMM D, YYYY') : ''; },
 			},
 			{
-				field: 'loss_type',
-				headerName: 'Coverage',
-				width: 120,
-				valueFormatter: (value) => (value ? formatCoverageType(value) : ''),
-				sortComparator: (v1, v2) => {
-					const a = v1 ? formatCoverageType(v1).toLowerCase() : '';
-					const b = v2 ? formatCoverageType(v2).toLowerCase() : '';
-					return a.localeCompare(b);
-				},
+				accessorKey: 'loss_type',
+				header: 'Coverage',
+				size: 120,
+				cell: ({ getValue }) => { const value = getValue(); return value ? formatCoverageType(value as string) : ''; },
 			},
 			{
-				field: 'payment_amount',
-				headerName: 'Amount',
-				width: 120,
-				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
+				accessorKey: 'payment_amount',
+				header: 'Amount',
+				size: 120,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const amount = parseFloat(params.value?.toString() || '0');
 					return (
-						<Typography fontSize={13} color={amount < 0 ? 'error.main' : 'text.primary'}>
+						<span style={{ fontSize: 13, color: amount < 0 ? 'error.main' : 'text.primary' }}>
 							{formatCurrencyExact(amount)}
-						</Typography>
+						</span>
 					);
 				},
-				sortComparator: numericSortComparator,
 			},
 			{
-				field: 'type',
-				headerName: 'Type',
-				width: 180,
-				valueGetter: (value, row) => {
-					const isCredit = parseFloat(row.payment_amount?.toString() || '0') < 0;
-					// Create a consistent sortable key from the three boolean flags
-					return `${isCredit ? '1' : '0'}-${row.is_subrogable ? '1' : '0'}-${row.is_expense ? '1' : '0'}`;
-				},
-				sortComparator: stringSortComparator,
-				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
+				accessorKey: 'type',
+				header: 'Type',
+				size: 180,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					const amount = parseFloat(params.row.payment_amount?.toString() || '0');
 					return (
-						<Box display="flex" gap={0.5}>
-							{amount < 0 && <Chip label="Credit" size="small" color="error" variant="outlined" />}
+						<div style={{ display: 'flex', gap: 4 }}>
+							{amount < 0 && <Chip  size="sm" color="error" variant="outlined">Credit</Chip>}
 							{params.row.is_subrogable && (
-								<Chip label="Subrogable" size="small" color="primary" variant="outlined" />
+								<Chip  size="sm" color="info" variant="outlined">Subrogable</Chip>
 							)}
 							{params.row.is_expense && (
-								<Chip label="Expense" size="small" color="warning" variant="outlined" />
+								<Chip  size="sm" color="warning" variant="outlined">Expense</Chip>
 							)}
-						</Box>
+						</div>
 					);
 				},
 			},
 			{
-				field: 'payee_name',
-				headerName: 'Payee',
-				width: 150,
-				valueFormatter: (value) => value || '—',
-				sortComparator: stringSortComparator,
+				accessorKey: 'payee_name',
+				header: 'Payee',
+				size: 150,
+				cell: ({ getValue }) => { const value = getValue(); return value || '—'; },
 			},
 			{
-				field: 'description',
-				headerName: 'Description',
-				flex: 1,
-				minWidth: 150,
-				valueFormatter: (value) => value || '—',
-				sortComparator: stringSortComparator,
+				accessorKey: 'description',
+				header: 'Description',
+				minSize: 150,
+				cell: ({ getValue }) => { const value = getValue(); return value || '—'; },
 			},
 			{
-				field: 'actions',
-				headerName: '',
-				width: 80,
-				sortable: false,
-				renderCell: (params: GridRenderCellParams<PaymentRow>) => {
+				accessorKey: 'actions',
+				header: '',
+				size: 80,
+				enableSorting: false,
+				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
 					if (!isManageMode) return null;
 					return (
-						<Box display="flex" gap={0.5}>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => handleOpenPaymentDialog(params.row),
-									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
-								}}
-								tooltipProps={{ title: 'Edit payment' }}
-								icon={<Edit />}
-								compact
-							/>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => setArchivingPayment(params.row),
-									sx: { padding: '3px', '& .MuiSvgIcon-root': { fontSize: 16 } },
-								}}
-								tooltipProps={{ title: 'Archive payment' }}
-								icon={<Archive sx={{ color: 'error.main' }} />}
-								compact
-							/>
-						</Box>
+						<div style={{ display: 'flex', gap: 4 }}>
+							<Tooltip content="Edit payment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => handleOpenPaymentDialog(params.row)}>
+							<IconEdit size={16} />
+						</Button>
+						</Tooltip>
+							<Tooltip content="Archive payment">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setArchivingPayment(params.row)}>
+							<IconArchive style={{ color: 'var(--status-error)' }} />
+						</Button>
+						</Tooltip>
+						</div>
 					);
 				},
 			},
@@ -295,76 +269,72 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 	);
 
 	return (
-		<Box p={3}>
-			<Stack spacing={3} maxWidth={1000} mx="auto">
+		<div style={{ padding: 24 }}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
 				{/* Summary */}
-				<Paper elevation={0} sx={styles.gradientPaper}>
-					<Typography fontSize={13} color={BASE_COLOR_LIGHT} marginBottom={2}>
+				<Card variant="float" padding="lg">
+					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
 						Payments Summary
-					</Typography>
-					<Box
-						display="grid"
-						gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }}
-						gap={3}
-					>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+					</span>
+					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Payments
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+							</span>
+							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 								Sum of all payments
-							</Typography>
-							<Typography variant="h6" fontSize={18}>
+							</span>
+							<span style={{ fontSize: 18 }}>
 								{formatCurrencyExact(summaryValues.totalPayments)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+							</span>
+						</div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Subrogable Amount
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+							</span>
+							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 								Amount eligible for recovery
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="primary.main">
+							</span>
+							<span style={{ fontSize: 18,  color: 'var(--text-accent)'  }}>
 								{formatCurrencyExact(summaryValues.subrogableAmount)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+							</span>
+						</div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Expenses
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+							</span>
+							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 								Adjustment & investigation
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="warning.main">
+							</span>
+							<span style={{ fontSize: 18,  color: 'var(--status-warning)'  }}>
 								{formatCurrencyExact(summaryValues.expenseAmount)}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginBottom={0.5}>
+							</span>
+						</div>
+						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Credits
-							</Typography>
-							<Typography variant="body2" fontSize={11} color="text.secondary" marginBottom={1}>
+							</span>
+							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
 								Salvage, refunds, reversals
-							</Typography>
-							<Typography variant="h6" fontSize={18} color="error.main">
+							</span>
+							<span style={{ fontSize: 18,  color: 'var(--status-error)'  }}>
 								{formatCurrencyExact(summaryValues.creditAmount)}
-							</Typography>
-						</Box>
-					</Box>
-				</Paper>
+							</span>
+						</div>
+					</div>
+				</Card>
 
 				{/* Payments List */}
-				<Paper elevation={0} sx={styles.beveledPaper}>
+				<Card variant="beveled" padding="lg">
 					{/* Header */}
-					<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
-						<Typography fontSize={13} color={BASE_COLOR_LIGHT}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							Payments ({payments.length})
-						</Typography>
-						<Box display="flex" gap={1} alignItems="center">
+						</span>
+						<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 							<Button
-								size="small"
-								startIcon={<AttachMoney />}
+								size="sm"
+								startIcon={<IconCurrencyDollar size={20} />}
 								variant="contained"
 								onClick={() => handleOpenPaymentDialog()}
 								disabled={coverages.length === 0}
@@ -372,62 +342,43 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 							>
 								Add Payment
 							</Button>
-							<Tooltip title="Manage">
-								<IconButton
-									size="small"
+							<Tooltip content="Manage">
+								<Button variant="icon" size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
-									sx={{ bgcolor: isManageMode ? 'action.selected' : undefined }}
+									style={{ backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 								>
-									<Settings
-										fontSize="small"
-										sx={{ color: isManageMode ? 'primary.main' : undefined }}
-									/>
-								</IconButton>
+									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+								</Button>
 							</Tooltip>
-						</Box>
-					</Box>
+						</div>
+					</div>
 
 					{isLoading && (
-						<Stack spacing={2}>
-							<Skeleton variant="rectangular" height={60} />
-							<Skeleton variant="rectangular" height={60} />
-						</Stack>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<Skeleton variant="rect" height={60} />
+							<Skeleton variant="rect" height={60} />
+						</div>
 					)}
 
 					{!isLoading && payments.length === 0 && (
-						<Box
-							display="flex"
-							flexDirection="column"
-							alignItems="center"
-							justifyContent="center"
-							padding={4}
-						>
-							<AttachMoney sx={{ fontSize: 48, color: BASE_COLOR_LIGHT, marginBottom: 1 }} />
-							<Typography fontSize={13} color={BASE_COLOR_LIGHT} fontStyle="italic">
+						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+							<IconCurrencyDollar size={48} style={{ color: 'var(--text-muted)', marginBottom: 1 }} />
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								No payments recorded yet
-							</Typography>
-						</Box>
+							</span>
+						</div>
 					)}
 
 					{!isLoading && payments.length > 0 && (
-						<DataGridPro
+						<DataTable
 							rows={payments as PaymentRow[]}
 							columns={columns}
-							autoHeight
 							hideFooter
-							disableRowSelectionOnClick
-							sx={{
-								border: 'none',
-								'& .MuiDataGrid-cell': {
-									display: 'flex',
-									alignItems: 'center',
-								},
-								...dataGridFocusStyles,
-							}}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					)}
-				</Paper>
-			</Stack>
+				</Card>
+			</div>
 
 			{/* Dialogs */}
 			<PaymentFormDialog
@@ -455,38 +406,27 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 					onClose={() => setArchivingPayment(null)}
 					width={450}
 				>
-					<Box>
-						<Typography fontSize={14} marginBottom={2}>
+					<div>
+						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this payment?
-						</Typography>
-						<Box bgcolor="info.lighter" padding={2} borderRadius={1} marginBottom={2}>
-							<Typography fontSize={13} fontWeight={600}>
+						</span>
+						<div style={{ backgroundColor: 'info.lighter', padding: 16, borderRadius: 4, marginBottom: 16 }}>
+							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								{formatCurrencyExact(parseFloat(archivingPayment.payment_amount?.toString() || '0'))}
-							</Typography>
-							<Typography fontSize={12} color="text.secondary">
+							</span>
+							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 								{dayjs(archivingPayment.payment_date).format('MMM D, YYYY')} ·{' '}
 								{archivingPayment.loss_type ? formatCoverageType(archivingPayment.loss_type) : ''}
 								{archivingPayment.payee_name && ` · ${archivingPayment.payee_name}`}
-							</Typography>
-						</Box>
-						<Typography fontSize={12} color="text.secondary">
+							</span>
+						</div>
+						<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 							The payment will be archived and hidden from view, but the record will be preserved for
 							historical purposes.
-						</Typography>
-					</Box>
+						</span>
+					</div>
 				</BasicDialog>
 			)}
-		</Box>
+		</div>
 	);
 }
-
-const styles = {
-	gradientPaper: {
-		...containerStyles.gradientCard,
-		padding: '24px',
-	},
-	beveledPaper: {
-		...containerStyles.beveledCard,
-		padding: '24px',
-	},
-};

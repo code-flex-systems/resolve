@@ -1,65 +1,55 @@
 'use client';
 
-import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
-import { Box, Paper, Typography } from '@mui/material';
 import { useRecoveryTrpc, RecoveryEventWithDetails } from '@/hooks/trpc/useRecoveryTrpc';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
 import { formatCurrency, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import CustomPagination from '@/components/common/CustomPagination';
 import IconHeaderCell from '@/components/common/IconHeaderCell';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
-import { containerStyles, dataGridFocusStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const columns: GridColDef<RecoveryEventWithDetails>[] = [
+const columns: ColumnDef<RecoveryEventWithDetails, any>[] = [
 	{
-		field: 'recovery_date',
-		headerName: 'Date',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 120,
-		valueFormatter: (value: string) => dayjs(value).format('MMM DD, YYYY'),
+		accessorKey: 'recovery_date',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 120,
+		cell: ({ getValue }) => dayjs(getValue()).format('MMM DD, YYYY'),
 	},
 	{
-		field: 'claim_number',
-		headerName: 'Claim #',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'claim_number',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 150,
 	},
 	{
-		field: 'insured',
-		headerName: 'Insured',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'insured',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 200,
 	},
 	{
-		field: 'recovery_amount',
-		headerName: 'Amount',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 130,
-		valueFormatter: (value: string) => formatCurrency(parseFloat(value)),
+		accessorKey: 'recovery_amount',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 130,
+		cell: ({ getValue }) => { const value = getValue(); return formatCurrency(parseFloat(value)); },
 	},
 	{
-		field: 'recovery_source',
-		headerName: 'Source',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 180,
+		accessorKey: 'recovery_source',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 180,
 	},
 	{
-		field: 'recovery_status',
-		headerName: 'Status',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
-		valueFormatter: (value: string) => formatRecoveryStatus(value),
+		accessorKey: 'recovery_status',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 150,
+		cell: ({ getValue }) => { const value = getValue(); return formatRecoveryStatus(value); },
 	},
 	{
-		field: 'notes',
-		headerName: 'Notes',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		flex: 1,
-		minWidth: 200,
+		accessorKey: 'notes',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		minSize: 200,
 	},
 ];
 
@@ -68,15 +58,13 @@ export default function RecoveryEventsTable({
 	recoveryStatus,
 	recoverySource,
 	checklistId,
-	userId,
 }: {
 	range: DateRange<Dayjs>;
-	recoveryStatus: string | null;
-	recoverySource: string;
-	checklistId?: number;
-	userId?: string;
+	recoveryStatus?: string | null;
+	recoverySource?: string;
+	checklistId?: string;
 }) {
-	const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
+	const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
 	const trpcUtils = trpc.useUtils();
 
 	// Convert DateRange to ISO strings for tRPC
@@ -92,9 +80,8 @@ export default function RecoveryEventsTable({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		}),
-		[rangeISO, recoverySource, recoveryStatus, checklistId, userId]
+		[rangeISO, recoverySource, recoveryStatus, checklistId]
 	);
 
 	const { data = { rows: [], count: undefined }, isFetching } = useRecoveryTrpc().listRecoveryEventsWithFilters(
@@ -108,14 +95,6 @@ export default function RecoveryEventsTable({
 		}
 	);
 
-	const rowCountRef = useRef(0);
-
-	const rowCount = useMemo(() => {
-		if (typeof data.count === 'number') {
-			rowCountRef.current = data.count;
-		}
-		return rowCountRef.current;
-	}, [data.count]);
 
 	// CSV column configuration
 	const csvColumns: CsvColumn<RecoveryEventWithDetails>[] = useMemo(
@@ -156,63 +135,39 @@ export default function RecoveryEventsTable({
 	);
 
 	return (
-		<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard }}>
-			<Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-				<Typography variant="h6" fontSize={18} fontWeight={600}>
+		<Card variant="beveled" padding="lg" style={styles.paper}>
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+				<span style={{ fontSize: 18, fontWeight: 600 }}>
 					Recovery Events
-				</Typography>
-				<Box display="flex" alignItems="center" gap={2}>
-					<Typography variant="caption" fontSize={12} color="text.secondary">
-						{rowCount.toLocaleString()} event{rowCount !== 1 ? 's' : ''}
-					</Typography>
+				</span>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+					<span style={{ fontSize: 12, color: 'text.secondary' }}>
+						{(data?.count ?? 0).toLocaleString()} event{(data?.count ?? 0) !== 1 ? 's' : ''}
+					</span>
 					<ExportButton
-						onExport={async () => {
+						onExport={(async () => {
 							const result = await trpcUtils.recovery.exportRecoveryEvents.fetch({ filters });
 							return result;
-						}}
+						}) as any}
 						columns={csvColumns}
 						filename="recovery_events"
-						size="small"
+						size="sm"
 					/>
-				</Box>
-			</Box>
+				</div>
+			</div>
 
-			<Box width="100%" height={400}>
-				<DataGridPro
+			<div style={{ width: '100%', height: 400 }}>
+				<DataTable
 					rows={data.rows}
 					columns={columns}
 					loading={isFetching}
-					rowCount={rowCount}
-					pagination
+					rowCount={data?.count ?? 0}
 					paginationMode="server"
 					paginationModel={paginationModel}
 					onPaginationModelChange={setPaginationModel}
-					pageSizeOptions={[25, 50, 100]}
-					slots={{
-						pagination: CustomPagination,
-					}}
-					slotProps={{
-						loadingOverlay: {
-							noRowsVariant: 'skeleton',
-							variant: 'skeleton',
-						},
-					}}
-					sx={{
-						border: 'none',
-						'& .MuiDataGrid-cell': {
-							fontSize: 13,
-						},
-						'& .MuiDataGrid-columnHeaders': {
-							fontSize: 13,
-							fontWeight: 600,
-						},
-						...dataGridFocusStyles,
-					}}
-					disableColumnSelector
-					disableColumnMenu
 				/>
-			</Box>
-		</Paper>
+			</div>
+		</Card>
 	);
 }
 

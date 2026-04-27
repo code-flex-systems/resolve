@@ -38,6 +38,8 @@ export function useChecklistTrpc() {
 
 		stats: trpc.checklist.getChecklistClaimStats.useQuery,
 
+		recentActivity: trpc.checklist.getChecklistRecentActivity.useQuery,
+
 		create: trpc.checklist.createChecklist.useMutation({
 			onSuccess() {
 				utils.checklist.getChecklists.invalidate();

@@ -1,20 +1,24 @@
 'use client';
 
-import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import Archive from '@mui/icons-material/Archive';
-import OpenInNew from '@mui/icons-material/OpenInNew';
-import Unarchive from '@mui/icons-material/Unarchive';
-import Leaderboard from '@mui/icons-material/Leaderboard';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { IconArchive, IconArchiveOff, IconChartBar, IconExternalLink } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 import { useRouter } from 'next/navigation';
-import theme from '@/styles/theme';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
 
-export default function ChecklistActionsCell(params: GridRenderCellParams) {
+interface ChecklistActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
+	isManageMode?: boolean;
+}
+
+export default function ChecklistActionsCell(params: ChecklistActionsCellProps) {
+	const { isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const router = useRouter();
 	const [updating, setUpdating] = useState(false);
 	const { mutate: updateChecklist, isPending } = useChecklistTrpc().update;
@@ -24,44 +28,29 @@ export default function ChecklistActionsCell(params: GridRenderCellParams) {
 	return (
 		<>
 			<div style={styles.container} className="flex-row-right">
-				<BasicButtonStyled
-					buttonProps={{
-						disabled: isPending,
-						onClick: () => setUpdating(true),
-					}}
-					tooltipProps={{
-						title: `${published ? 'Unpublish' : 'Publish'}`,
-					}}
-					icon={
-						published ? (
-							<Archive sx={{ ...styles.icon, color: theme.palette.error.main }} />
+				<Tooltip content={published ? 'Unpublish' : 'Publish'}>
+							<Button variant="icon" size="sm" color="neutral" disabled={isPending}>
+							published ? (
+							<IconArchive style={{ ...styles.icon, color: 'var(--status-error)' }} />
 						) : (
-							<Unarchive sx={{ ...styles.icon, color: theme.palette.success.main }} />
+							<IconArchiveOff style={{ ...styles.icon, color: 'var(--status-success)' }} />
 						)
-					}
-				/>
-				<Box marginLeft="10px">
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => router.push(`/checklist/${params.id}/breakdown`),
-						}}
-						tooltipProps={{
-							title: 'Go to breakdown...',
-						}}
-						icon={<Leaderboard sx={{ ...styles.icon, transform: 'rotate(90deg)' }} />}
-					/>
-				</Box>
-				<Box marginLeft="10px">
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => router.push(`/checklist/${params.id}`),
-						}}
-						tooltipProps={{
-							title: 'Open checklist...',
-						}}
-						icon={<OpenInNew sx={styles.icon} />}
-					/>
-				</Box>
+						</Button>
+						</Tooltip>
+				<div style={{ marginLeft: '10px' }}>
+					<Tooltip content="Go to breakdown...">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconChartBar style={{ ...styles.icon, transform: 'rotate(90deg)' }} />
+						</Button>
+						</Tooltip>
+				</div>
+				<div style={{ marginLeft: '10px' }}>
+					<Tooltip content="Open checklist...">
+							<Button variant="icon" size="sm" color="neutral">
+							<IconExternalLink style={styles.icon} />
+						</Button>
+						</Tooltip>
+				</div>
 			</div>
 
 			{updating && (
@@ -92,14 +81,14 @@ export default function ChecklistActionsCell(params: GridRenderCellParams) {
 					onClose={() => setUpdating(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {published ? 'unpublish' : 'publish'} this checklist?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						{published
 							? 'Users will no longer have access to this checklist or be able to open it with new or associated claims.'
 							: 'Users will now have access to this checklist and be able to open it with new or associated claims.'}
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 		</>

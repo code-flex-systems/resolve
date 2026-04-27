@@ -19,8 +19,8 @@ Functions:
 - `logAdminActions(ctx, logs[], trx?)` - Log multiple actions in bulk
 
 Enums:
-- `AdminAction` - Action types
-- `EntityName` - Entity types (USER, PAGE, QUESTION, ANSWER, etc.)
+- `AdminAction` - Action types (from `adminActionLogger.ts`)
+- `EntityName` - Entity types (from `activityLogger.ts` - the single source of truth)
 
 ### 3. Migrations
 - `/Users/owenfarthing/Desktop/code/manifest/apps/web/src/api/sql/update_admin_action_logs.sql` - Apply to existing databases
@@ -31,7 +31,8 @@ Enums:
 ### Step 1: Add Import to Controller
 
 ```typescript
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 ```
 
 ### Step 2: Add Logging to Controller Functions

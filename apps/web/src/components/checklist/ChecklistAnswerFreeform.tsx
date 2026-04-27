@@ -1,5 +1,5 @@
 'use client';
-import { TextField } from '@mui/material';
+import { Textarea } from '@/components/ui/Input';
 import { Answer } from '@/types/types';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 
@@ -15,24 +15,16 @@ export default function ChecklistAnswerFreeform(props: {
 	if (!isFreeformQuestion && !answer) return <></>;
 
 	return (
-		<TextField
-			variant="outlined"
+		<Textarea
 			placeholder={answer?.additional_info_placeholder ?? 'Type your response here'}
-			multiline
 			rows={answer?.additional_info_num_lines ?? 2}
 			{...field}
 			disabled={disabled}
-			sx={{
+			style={{
 				width: 500,
-				marginTop: '5px',
+				marginTop: 5,
 				padding: '0px 10px',
-				'& .MuiInputBase-root': {
-					padding: '2px 5px',
-				},
-				'& .MuiOutlinedInput-input': {
-					fontSize: 13,
-					padding: '2px 5px',
-				},
+				fontSize: 13,
 			}}
 		/>
 	);

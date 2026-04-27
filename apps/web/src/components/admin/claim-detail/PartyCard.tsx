@@ -1,21 +1,17 @@
 'use client';
 
+import { IconArchive, IconChevronDown, IconChevronUp, IconEdit, IconUserPlus } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
+import Chip from '@/components/ui/Chip';
+import Button from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Box, Button, Chip, Collapse, IconButton, Stack, Typography } from '@mui/material';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import ExpandLess from '@mui/icons-material/ExpandLess';
 import Highlight from '@/components/common/Highlight';
-import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import { capitalize } from '@/lib/utils/utils';
 import { formatCoverageType } from '@/lib/utils/claimUtils';
 import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import { formatAddressInline } from '@/schemas/addressSchemas';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import BasicButtonStyled from '@/components/common/BasicButtonStyled';
 
 dayjs.extend(relativeTime);
 
@@ -25,27 +21,17 @@ interface PartyCardProps {
 	facilitators?: any[];
 	onEditParty: (claimParty: any) => void;
 	onArchiveParty?: (claimParty: any) => void;
-	onAddFacilitator?: (parentClaimPartyId: number) => void;
-	onEditFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
-	onArchiveFacilitator?: (parentClaimPartyId: number, facilitator: any) => void;
-	/** Callback when clicking the party name to view details */
+	onAddFacilitator?: (parentClaimPartyId: string) => void;
+	onEditFacilitator?: (parentClaimPartyId: string, facilitator: any) => void;
+	onArchiveFacilitator?: (parentClaimPartyId: string, facilitator: any) => void;
 	onViewDetails?: (claimParty: any) => void;
-	/** Render function for tab-specific content (e.g., coverages) */
 	renderTabContent?: (claimParty: any) => React.ReactNode;
-	/** Whether to show liability percentage chip (for adverse parties tab) */
 	showLiabilityPercentage?: boolean;
-	/** Controlled expanded state (optional - if not provided, uses internal state) */
 	expanded?: boolean;
-	/** Default expanded state when uncontrolled */
 	defaultExpanded?: boolean;
-	/** Whether manage mode is active (shows edit/archive buttons) */
 	isManageMode?: boolean;
 }
 
-/**
- * Shared component for rendering a party card in claim detail tabs.
- * Used by both ClaimantsCoverageTab and PartyLiabilityTab.
- */
 export default function PartyCard({
 	claimParty,
 	isNested = false,
@@ -62,35 +48,31 @@ export default function PartyCard({
 	defaultExpanded = true,
 	isManageMode = true,
 }: PartyCardProps) {
-	// Internal expanded state - always used for actual display
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-	// Sync with controlled state when it changes (for expand all/collapse all)
 	useEffect(() => {
 		if (controlledExpanded !== undefined) {
 			setIsExpanded(controlledExpanded);
 		}
 	}, [controlledExpanded]);
 
-	// Determine if this card has nested content that needs a connecting line
 	const hasNestedContent = !isNested && (renderTabContent || onAddFacilitator);
 
-	// Toggle expand/collapse - always works with internal state
 	const handleToggleExpand = () => {
 		setIsExpanded(!isExpanded);
 	};
 
 	return (
-		<Box key={claimParty.id}>
-			<Box display="flex" gap={2} position="relative">
+		<div key={claimParty.id}>
+			<div style={{ display: 'flex', gap: 16, position: 'relative' }}>
 				{/* Primary indicator dot */}
-				<Box
-					sx={{
+				<div
+					style={{
 						width: 8,
 						height: 8,
 						borderRadius: '50%',
-						bgcolor: isNested ? 'secondary.main' : 'primary.main',
-						marginTop: '8px',
+						backgroundColor: isNested ? 'var(--text-secondary)' : 'var(--text-accent)',
+						marginTop: 8,
 						flexShrink: 0,
 						position: 'relative',
 						zIndex: 1,
@@ -99,141 +81,114 @@ export default function PartyCard({
 
 				{/* Vertical dotted line connecting indicator to nested content */}
 				{hasNestedContent && isExpanded && (
-					<Box
-						sx={{
+					<div
+						style={{
 							position: 'absolute',
-							left: 3.5, // Center under the 8px dot
-							top: 28, // Start with gap below the dot
-							bottom: 12, // End near the bottom with some padding
+							left: 3.5,
+							top: 28,
+							bottom: 12,
 							width: 0,
-							borderLeft: `1px dashed ${BORDER_COLOR}`,
+							borderLeft: '1px dashed var(--border)',
 						}}
 					/>
 				)}
 
-				<Box flex={1}>
-					<Box display="flex" justifyContent="space-between" alignItems="flex-start">
-						<Box flex={1}>
+				<div style={{ flex: 1 }}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+						<div style={{ flex: 1 }}>
 							{/* Party Name and Role */}
-							<Box
-								display="flex"
-								alignItems="center"
-								justifyContent="space-between"
-								height={20}
-								marginBottom={0.5}
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'space-between',
+									height: 20,
+									marginBottom: 4,
+								}}
 							>
-								{/* Expand/Collapse toggle for entities with nested content */}
-								<Box display="flex" alignItems="center" gap={1}>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 									{hasNestedContent && (
-										<IconButton
-											size="small"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={handleToggleExpand}
-											sx={{ ml: -1, mr: -0.5, p: 0.25 }}
+											style={{ marginLeft: -8, marginRight: -4, padding: 2 }}
 										>
 											{isExpanded ? (
-												<ExpandLess sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+												<IconChevronUp size={20} style={{ color: 'var(--text-muted)' }} />
 											) : (
-												<ExpandMore sx={{ fontSize: 20, color: BASE_COLOR_LIGHT }} />
+												<IconChevronDown size={20} style={{ color: 'var(--text-muted)' }} />
 											)}
-										</IconButton>
+										</Button>
 									)}
-									<Typography
-										fontSize={isNested ? 14 : 16}
-										fontWeight={600}
-										sx={
-											onViewDetails
-												? {
-														cursor: 'pointer',
-														'&:hover': {
-															textDecoration: 'underline',
-															color: 'primary.main',
-														},
-													}
-												: undefined
-										}
+									<span
+										style={{
+											fontSize: isNested ? 14 : 16,
+											fontWeight: 600,
+											cursor: onViewDetails ? 'pointer' : undefined,
+										}}
 										onClick={onViewDetails ? () => onViewDetails(claimParty) : undefined}
 									>
 										{claimParty.party?.name || 'Unknown Party'}
-									</Typography>
-									{/* Display multiple roles as chips */}
+									</span>
 									{Array.isArray(claimParty.role) &&
 										claimParty.role.map((r: string) => (
-											<Chip
-												key={r}
-												label={capitalize(r.replace(/_/g, ' '))}
-												size="small"
-												color="primary"
-												sx={{ height: 20, fontSize: 11 }}
-											/>
+											<Chip key={r} size="sm" color="info" style={{ height: 20, fontSize: 11 }}>
+												{capitalize(r.replace(/_/g, ' '))}
+											</Chip>
 										))}
-									{/* For facilitators: show loss type and policy limit chips */}
 									{isNested && claimParty.loss_type && (
-										<Chip
-											label={formatCoverageType(claimParty.loss_type)}
-											size="small"
-											color="secondary"
-											sx={{ height: 20, fontSize: 11 }}
-										/>
+										<Chip size="sm" color="neutral" style={{ height: 20, fontSize: 11 }}>
+											{formatCoverageType(claimParty.loss_type)}
+										</Chip>
 									)}
 									{isNested && claimParty.policy_limit != null && (
-										<Chip
-											label={`Policy Limit: ${formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}`}
-											size="small"
-											variant="outlined"
-											sx={{ height: 20, fontSize: 11 }}
-										/>
+										<Chip size="sm" variant="outlined" style={{ height: 20, fontSize: 11 }}>
+											{`Policy Limit: ${formatCurrencyExact(parseFloat(claimParty.policy_limit.toString()))}`}
+										</Chip>
 									)}
-								</Box>
-								{/* Action Buttons - only visible in manage mode */}
+								</div>
 								{isManageMode && (
-									<Box display="flex" alignItems="center" gap={0.5}>
-										<BasicButtonStyled
-											buttonProps={{
-												onClick: () => onEditParty(claimParty),
-											}}
-											icon={<Edit sx={{ fontSize: 20 }} />}
-											compact
-										/>
+									<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+										<Button variant="icon" size="sm" color="neutral">
+							<IconEdit size={16} />
+						</Button>
 										{onArchiveParty && (
-											<BasicButtonStyled
-												buttonProps={{
-													onClick: () => onArchiveParty(claimParty),
-												}}
-												icon={<Archive sx={{ fontSize: 20 }} />}
-												compact
-											/>
+											<Button variant="icon" size="sm" color="neutral">
+							<IconArchive size={16} />
+						</Button>
 										)}
-									</Box>
+									</div>
 								)}
-							</Box>
+							</div>
 
 							{/* Party Organization */}
 							{claimParty.party?.organization && (
-								<Typography fontSize={13} marginBottom={0.5} color="text.secondary">
+								<span style={{ fontSize: 13, marginBottom: 4, color: 'var(--text-secondary)', display: 'block' }}>
 									Organization: <Highlight>{claimParty.party.organization}</Highlight>
-								</Typography>
+								</span>
 							)}
 
 							{/* Party Contact Info */}
 							{(claimParty.party?.email || claimParty.party?.phone) && (
-								<Box display="flex" gap={2} marginBottom={0.5}>
+								<div style={{ display: 'flex', gap: 16, marginBottom: 4 }}>
 									{claimParty.party?.email && (
-										<Typography fontSize={12} color="text.secondary">
+										<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 											✉️ {claimParty.party.email}
-										</Typography>
+										</span>
 									)}
 									{claimParty.party?.phone && (
-										<Typography fontSize={12} color="text.secondary">
+										<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 											📞 {claimParty.party.phone}
-										</Typography>
+										</span>
 									)}
-								</Box>
+								</div>
 							)}
 
 							{/* Representative - Facilitators (structured) */}
 							{claimParty.party?.party_type === 'facilitator' && claimParty.representative && (
-								<Box marginBottom={0.5}>
-									<Typography fontSize={13} display="inline">
+								<div style={{ marginBottom: 4 }}>
+									<span style={{ fontSize: 13, display: 'inline' }}>
 										Representative:{' '}
 										<Highlight>
 											{claimParty.representative.first_name} {claimParty.representative.last_name}
@@ -242,7 +197,7 @@ export default function PartyCard({
 										{(claimParty.representative.email || claimParty.representative.phone) && (
 											<>
 												{' '}
-												<Typography component="span" fontSize={12} color="text.secondary">
+												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 													(
 													{claimParty.representative.email && (
 														<>✉️ {claimParty.representative.email}</>
@@ -254,87 +209,87 @@ export default function PartyCard({
 														<>📞 {claimParty.representative.phone}</>
 													)}
 													)
-												</Typography>
+												</span>
 											</>
 										)}
-									</Typography>
-								</Box>
+									</span>
+								</div>
 							)}
 
 							{/* Representative - Entities (free-form) */}
 							{claimParty.party?.party_type === 'entity' && claimParty.representative_name && (
-								<Box marginBottom={0.5}>
-									<Typography fontSize={13} display="inline">
+								<div style={{ marginBottom: 4 }}>
+									<span style={{ fontSize: 13, display: 'inline' }}>
 										Representative: <Highlight>{claimParty.representative_name}</Highlight>
-									</Typography>
-								</Box>
+									</span>
+								</div>
 							)}
 
 							{/* Address */}
 							{claimParty.address && (
-								<Typography fontSize={12} color="text.secondary" marginBottom={0.5}>
+								<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
 									📍{' '}
 									{claimParty.address.name && (
-										<Typography component="span" fontWeight={500}>
+										<span style={{ fontWeight: 500 }}>
 											{claimParty.address.name}:{' '}
-										</Typography>
+										</span>
 									)}
 									{formatAddressInline(claimParty.address)}
-								</Typography>
+								</span>
 							)}
 
 							{/* Collapsible secondary content (coverages, facilitators) */}
 							{hasNestedContent && (
-								<Collapse in={isExpanded} timeout="auto">
-									{/* Liability Percentage (for adverse parties tab) - only for entities */}
+								<Collapse open={isExpanded}>
 									{showLiabilityPercentage && claimParty.liability_percentage != null && (
-										<Box marginTop={1} marginBottom={0.5}>
-											<Chip
-												label={`Liability: ${parseFloat(claimParty.liability_percentage.toString()).toFixed(2)}%`}
-												size="small"
-												color="warning"
-											/>
-										</Box>
+										<div style={{ marginTop: 8, marginBottom: 4 }}>
+											<Chip size="sm" color="warning">
+												{`Liability: ${parseFloat(claimParty.liability_percentage.toString()).toFixed(2)}%`}
+											</Chip>
+										</div>
 									)}
 
-									{/* Tab-specific content (coverages or liabilities) */}
 									{renderTabContent && renderTabContent(claimParty)}
 
-									{/* Facilitators Section */}
 									{onAddFacilitator && (
-										<Box marginTop={2}>
-											<Box
-												display="flex"
-												justifyContent="space-between"
-												alignItems="center"
-												marginBottom={2}
+										<div style={{ marginTop: 16 }}>
+											<div
+												style={{
+													display: 'flex',
+													justifyContent: 'space-between',
+													alignItems: 'center',
+													marginBottom: 16,
+												}}
 											>
-												<Typography fontSize={13} fontWeight={600} color={BASE_COLOR_LIGHT}>
+												<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
 													Facilitators ({facilitators.length})
-												</Typography>
+												</span>
 												<Button
-													size="small"
-													startIcon={<PersonAdd />}
+													size="sm"
+													startIcon={<IconUserPlus size={20} />}
 													variant="outlined"
 													onClick={() => onAddFacilitator(claimParty.id)}
 												>
 													Add Facilitator
 												</Button>
-											</Box>
+											</div>
 
 											{facilitators.length === 0 && (
-												<Typography
-													fontSize={12}
-													color="text.secondary"
-													fontStyle="italic"
-													marginY={1}
+												<span
+													style={{
+														fontSize: 12,
+														color: 'var(--text-secondary)',
+														fontStyle: 'italic',
+														margin: '8px 0',
+														display: 'block',
+													}}
 												>
 													No facilitators linked yet
-												</Typography>
+												</span>
 											)}
 
 											{facilitators.length > 0 && (
-												<Stack spacing={1.5} marginTop={1} sx={{ ml: 2 }}>
+												<div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8, marginLeft: 16 }}>
 													{facilitators.map((facilitator: any) => (
 														<PartyCard
 															key={facilitator.id}
@@ -354,29 +309,29 @@ export default function PartyCard({
 															isManageMode={isManageMode}
 														/>
 													))}
-												</Stack>
+												</div>
 											)}
-										</Box>
+										</div>
 									)}
 								</Collapse>
 							)}
 
 							{/* Notes */}
 							{claimParty.notes && (
-								<Typography fontSize={13} color="text.secondary" marginTop={1}>
+								<span style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8, display: 'block' }}>
 									Notes: {claimParty.notes}
-								</Typography>
+								</span>
 							)}
 
 							{/* Metadata */}
-							<Typography fontSize={12} color={BASE_COLOR_LIGHT} marginTop={1}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, display: 'block' }}>
 								Linked {dayjs(claimParty.created_at).format('MMM D, YYYY')} (
 								{dayjs(claimParty.created_at).fromNow()})
-							</Typography>
-						</Box>
-					</Box>
-				</Box>
-			</Box>
-		</Box>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }

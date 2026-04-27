@@ -21,13 +21,13 @@ export function useCommentTrpc() {
 				if (data.instance_id != null && data.question_id != null) {
 					utils.comment.getCommentsForPage.setData(
 						{ checklistId: data.checklist_id, claimId: data.claim_id, instanceId: data.instance_id },
-						(prev) => {
+						((prev: any) => {
 							if (!prev) {
 								return { [data.question_id!]: { ...data } };
 							} else {
 								return { ...prev, [data.question_id!]: { ...data } };
 							}
-						}
+						}) as any
 					);
 				}
 			},

@@ -3,7 +3,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import { sql } from 'kysely';
 
 export interface Feed {
-	id: number;
+	id: string;
 	name: string;
 	schedule: number;
 	feed_type: FeedType;
@@ -67,7 +67,7 @@ export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
  * @param id - feed identifier
  * @returns the feed if found
  */
-export async function getFeed(ctx: ProtectedContext, id: number): Promise<Feed | undefined> {
+export async function getFeed(ctx: ProtectedContext, id: string): Promise<Feed | undefined> {
         return await ctx.db
                 .selectFrom('feeds')
                 .selectAll()
@@ -147,7 +147,7 @@ export async function createFeed(ctx: ProtectedContext, params: NewFeedParams): 
  * @param params - fields to update
  * @returns updated feed
  */
-export async function updateFeed(ctx: ProtectedContext, id: number, params: UpdateFeedParams): Promise<Feed> {
+export async function updateFeed(ctx: ProtectedContext, id: string, params: UpdateFeedParams): Promise<Feed> {
 	const [feed] = await ctx.db
 		.updateTable('feeds')
 		.set({
@@ -174,7 +174,7 @@ export async function updateFeed(ctx: ProtectedContext, id: number, params: Upda
  * @param id - feed identifier
  * @returns the feed details
  */
-export async function getFeedForDeletion(ctx: ProtectedContext, id: number) {
+export async function getFeedForDeletion(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('feeds')
 		.select(['id', 'name', 'feed_type', 'status'])
@@ -189,10 +189,11 @@ export async function getFeedForDeletion(ctx: ProtectedContext, id: number) {
  * @param ctx - request context
  * @param id - feed identifier
  */
-export async function deleteFeed(ctx: ProtectedContext, id: number): Promise<void> {
-	await ctx.db
+export async function deleteFeed(ctx: ProtectedContext, id: string) {
+	return await ctx.db
 		.deleteFrom('feeds')
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.returning(['id', 'name', 'feed_type', 'status'])
+		.executeTakeFirstOrThrow();
 }

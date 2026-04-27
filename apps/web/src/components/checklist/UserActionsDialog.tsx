@@ -1,10 +1,7 @@
 'use client';
 
-import { Box, Fade, FormControl, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
-import AssignmentTurnedIn from '@mui/icons-material/AssignmentTurnedIn';
-import Email from '@mui/icons-material/Email';
-import Event from '@mui/icons-material/Event';
-import MarkunreadMailbox from '@mui/icons-material/MarkunreadMailbox';
+import Input, { Textarea } from '@/components/ui/Input';
+import Dropdown from '@/components/ui/Dropdown';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { ActionType } from '@/config/enums';
@@ -18,22 +15,23 @@ import { useActionTrpc } from '@/hooks/trpc/useActionTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { ActionInput } from '@/schemas/actionSchemas';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconCalendar, IconClipboardCheck, IconMail, IconMailbox } from '@tabler/icons-react';
 
 const actionTypeOptions: { icon: JSX.Element; value: ActionType }[] = [
 	{
-		icon: <Email />,
+		icon: <IconMail size={20} />,
 		value: ActionType.EMAIL,
 	},
 	{
-		icon: <Event />,
+		icon: <IconCalendar size={20} />,
 		value: ActionType.EVENT,
 	},
 	{
-		icon: <MarkunreadMailbox />,
+		icon: <IconMailbox size={20} />,
 		value: ActionType.LETTER,
 	},
 	{
-		icon: <AssignmentTurnedIn />,
+		icon: <IconClipboardCheck size={20} />,
 		value: ActionType.TASK,
 	},
 ];
@@ -74,9 +72,8 @@ export default function UserActionsDialog() {
 		watch,
 	} = useForm<
 		{
-			recipients: GetUserOutput[]; // Pull recipients out of def to handle user mapping
-		} & ActionInput
-	>({ mode: 'onChange' });
+			recipients: { email: string; first: string; last: string; id?: string; phone?: string | null }[];
+		} & ActionInput>({ mode: 'onChange' });
 	const recipients = watch('recipients');
 	const actionType = watch('type');
 
@@ -92,7 +89,7 @@ export default function UserActionsDialog() {
 				definition: {
 					...data.definition,
 					recipients: data.recipients.map((r) => r.email),
-				},
+				} as any,
 			});
 			showSuccess('update', 'Action saved');
 			toggleActionDialog();
@@ -112,56 +109,36 @@ export default function UserActionsDialog() {
 			onClose={toggleActionDialog}
 			closeDisabled={isCreating}
 			width={800}
-			height={600}
-		>
-			<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
+			height={600}>
+			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
 				<Controller
 					name="type"
 					control={control}
 					rules={{ required: true }}
 					render={({ field }) => (
-						<FormControl>
-							<Select
-								displayEmpty
-								variant="outlined"
-								error={!!errors.type}
-								{...field}
-								value={field.value ?? ''}
-								renderValue={(value) => (
-									<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-										{actionTypeOptions.find((o) => o.value === value)?.icon ?? <></>}
-										<Typography paddingLeft="5px">{capitalize(value)}</Typography>
-									</Box>
-								)}
-								sx={{ ...styles.textFieldOverrides, width: 120 }}
-							>
-								{actionTypeOptions.map((o) => (
-									<MenuItem key={o.value} value={o.value}>
-										<Box
-											width="100%"
-											display="flex"
-											justifyContent="flex-start"
-											alignItems="center"
-										>
-											{o.icon}
-											<Typography paddingLeft="5px">{capitalize(o.value)}</Typography>
-										</Box>
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
+						<Dropdown
+							options={actionTypeOptions.map((o) => ({
+								value: o.value,
+								label: capitalize(o.value),
+								icon: o.icon,
+							}))}
+							value={field.value ?? ''}
+							onChange={(v) => field.onChange(v)}
+							error={!!errors.type}
+							name={field.name}
+							renderValue={(val) => (
+								<div style={{ display: 'flex', alignItems: 'center' }}>
+									{actionTypeOptions.find((o) => o.value === val)?.icon ?? <></>}
+									<span style={{ paddingLeft: '5px' }}>{capitalize(String(val))}</span>
+								</div>
+							)}
+						/>
 					)}
 				/>
-			</Box>
-			<Fade in={!!actionType} key={actionType}>
-				<Stack
-					width="100%"
-					display="flex"
-					justifyContent="flex-start"
-					alignItems="flex-start"
-					paddingTop="20px"
-					height="fit-content"
-				>
+			</div>
+			{!!actionType && (
+				<div
+style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingTop: '20px', height: 'fit-content' }}>
 					{actionType === ActionType.EMAIL && (
 						<>
 							<BasicAutocomplete
@@ -194,13 +171,12 @@ export default function UserActionsDialog() {
 								control={control}
 								rules={{ required: true }}
 								render={({ field }) => (
-									<TextField
+									<Input
 										label="Subject"
 										placeholder="Important Announcement"
-										variant="outlined"
 										{...field}
 										value={field.value ?? ''}
-										sx={{ ...styles.textFieldOverrides, marginTop: '20px' }}
+										style={{ width: 300, marginTop: 20 }}
 									/>
 								)}
 							/>
@@ -209,38 +185,20 @@ export default function UserActionsDialog() {
 								control={control}
 								rules={{ required: true }}
 								render={({ field }) => (
-									<TextField
+									<Textarea
 										label="Body"
 										placeholder={`Hello, ${config.APP_NAME} users...`}
-										variant="outlined"
 										{...field}
 										value={field.value ?? ''}
 										rows={10}
-										multiline
-										sx={{ ...styles.textFieldOverrides, width: '100%', marginTop: '20px' }}
+										style={{ width: '100%', marginTop: 20 }}
 									/>
 								)}
 							/>
 						</>
 					)}
-				</Stack>
-			</Fade>
+				</div>
+			)}
 		</BasicDialog>
 	);
 }
-
-const styles = {
-	formLabel: {
-		paddingLeft: '10px',
-		fontSize: 12,
-	},
-	textFieldOverrides: {
-		width: 300,
-		'& .MuiInputBase-root': {
-			padding: '3px 5px',
-		},
-		'& .MuiOutlinedInput-input': {
-			padding: '3px 5px',
-		},
-	},
-};

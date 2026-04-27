@@ -3,7 +3,8 @@ import { ClaimStatus, SummarySegment } from '@/config/enums';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRangeStrict } from '@/types/types';
 import type { ChecklistParams } from '@/schemas/checklistSchemas';
-import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 
 /**
  * Create a checklist optionally copying another.
@@ -14,7 +15,7 @@ import { logAdminAction, AdminAction, EntityName } from '@/api/utils/adminAction
  */
 export async function createChecklist(
 	ctx: ProtectedContext,
-	{ name, existingChecklistId }: { name: string; existingChecklistId?: number }
+	{ name, existingChecklistId }: { name: string; existingChecklistId?: string }
 ) {
 	// Create checklist and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
@@ -41,7 +42,7 @@ export async function modifyChecklistClaim(
 		claimId,
 		status,
 		assignee,
-	}: { checklistId: number; claimId: number; status?: ClaimStatus; assignee?: string }
+	}: { checklistId: string; claimId: string; status?: ClaimStatus; assignee?: string }
 ) {
 	await checklistQueries.modifyChecklistClaim(ctx, checklistId, claimId, status, assignee);
 }
@@ -52,7 +53,7 @@ export async function modifyChecklistClaim(
  * @param ctx - request context
  * @param input - checklist id
  */
-export async function deleteChecklist(ctx: ProtectedContext, { id }: { id: number }) {
+export async function deleteChecklist(ctx: ProtectedContext, { id }: { id: string }) {
 	// Delete checklist and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Fetch checklist data BEFORE deletion for logging
@@ -79,7 +80,7 @@ export async function deleteChecklist(ctx: ProtectedContext, { id }: { id: numbe
  * @param ctx - request context
  * @param input - checklist id
  */
-export async function getChecklist(ctx: ProtectedContext, { id }: { id: number }) {
+export async function getChecklist(ctx: ProtectedContext, { id }: { id: string }) {
 	const results = await checklistQueries.getChecklist(ctx, id);
 	return results;
 }
@@ -114,7 +115,7 @@ export async function getChecklistCount(ctx: ProtectedContext, { clientId }: { c
  */
 export async function getChecklistClaim(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { checklistId: number; claimId: number }
+	{ checklistId, claimId }: { checklistId: string; claimId: string }
 ) {
 	const results = await checklistQueries.getChecklistClaim(ctx, checklistId, claimId);
 	return results;
@@ -122,7 +123,7 @@ export async function getChecklistClaim(
 
 export async function getChecklistClaimProgress(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { checklistId: number; claimId: number }
+	{ checklistId, claimId }: { checklistId: string; claimId: string }
 ) {
 	const results = await checklistQueries.getChecklistClaimProgress(ctx, checklistId, claimId);
 	return results;
@@ -130,7 +131,7 @@ export async function getChecklistClaimProgress(
 
 export async function getChecklistClaimStats(
 	ctx: ProtectedContext,
-	{ checklistId, users }: { checklistId?: number; users?: string[] }
+	{ checklistId, users }: { checklistId?: string; users?: string[] }
 ) {
 	const results = await checklistQueries.getChecklistClaimStats(ctx, checklistId, users);
 	const formattedResults: Record<ClaimStatus, number> = {
@@ -154,7 +155,7 @@ export async function getChecklistClaimStats(
  */
 export async function getChecklistSummary(
 	ctx: ProtectedContext,
-	{ checklistId, claimId }: { checklistId: number; claimId: number }
+	{ checklistId, claimId }: { checklistId: string; claimId: string }
 ) {
 	const results = await checklistQueries.getChecklistSummary(ctx, checklistId, claimId);
 	return results;
@@ -171,8 +172,8 @@ export async function getChecklistSummary(
 export async function getChecklistSummaryDetail(
 	ctx: ProtectedContext,
 	input: {
-		checklistId: number;
-		claimId: number;
+		checklistId: string;
+		claimId: string;
 		segment: SummarySegment;
 		limit?: number;
 		offset?: number;
@@ -188,7 +189,7 @@ export async function getChecklistClaims(
 		limit,
 		offset,
 	}: {
-		filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus };
+		filters: { range: DateRangeStrict; checklistId?: string; users?: string[]; claimStatus?: ClaimStatus };
 		limit: number;
 		offset: number;
 	}
@@ -206,7 +207,7 @@ export async function getChecklistClaims(
  */
 export async function exportChecklistClaims(
 	ctx: ProtectedContext,
-	{ filters }: { filters: { range: DateRangeStrict; checklistId?: number; users?: string[]; claimStatus?: ClaimStatus } }
+	{ filters }: { filters: { range: DateRangeStrict; checklistId?: string; users?: string[]; claimStatus?: ClaimStatus } }
 ) {
 	return await checklistQueries.exportChecklistClaims(ctx, filters);
 }
@@ -221,6 +222,10 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
 	return results;
 }
 
+export async function getChecklistRecentActivity(ctx: ProtectedContext) {
+	return await checklistQueries.getChecklistRecentActivity(ctx);
+}
+
 /**
  * Update checklist properties.
  *
@@ -230,7 +235,7 @@ export async function getRecentChecklistClaims(ctx: ProtectedContext) {
  */
 export async function modifyChecklist(
 	ctx: ProtectedContext,
-	{ id, params }: { id: number; params: ChecklistParams }
+	{ id, params }: { id: string; params: ChecklistParams }
 ) {
 	// Update checklist and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {

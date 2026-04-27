@@ -1,10 +1,12 @@
-import { MenuItem, Select, SelectProps, Box, Typography, FormControl, InputLabel, Skeleton } from '@mui/material';
+import Skeleton from '@/components/ui/Skeleton';
 import { trpc } from '@/lib/trpc';
+import Dropdown from '@/components/ui/Dropdown';
 
-interface CoverageTypeSelectProps extends Omit<SelectProps, 'children' | 'onChange'> {
+interface CoverageTypeSelectProps {
 	value: string;
 	onChange: (value: string) => void;
 	label?: string;
+	fullWidth?: boolean;
 }
 
 export default function CoverageTypeSelect({
@@ -12,7 +14,6 @@ export default function CoverageTypeSelect({
 	onChange,
 	label = 'Coverage Type',
 	fullWidth,
-	...selectProps
 }: CoverageTypeSelectProps) {
 	const { data: options = [], isLoading } = trpc.referenceData.getReferenceOptions.useQuery(
 		{ entity: 'loss_type' },
@@ -23,50 +24,37 @@ export default function CoverageTypeSelect({
 	);
 
 	if (isLoading) {
-		return <Skeleton variant="rounded" width="100%" height={40} />;
+		return <Skeleton variant="rect" width="100%" height={40} />;
 	}
 
 	return (
-		<FormControl fullWidth={fullWidth} size="small">
-			<InputLabel shrink>{label}</InputLabel>
-			<Select
-				notched
-				value={value}
-				onChange={(e) => onChange(e.target.value as string)}
-				label={label}
-				displayEmpty
-				renderValue={(selected) => {
-					if (!selected) {
-						return <Typography color="text.secondary">Select coverage type</Typography>;
-					}
-					const option = options.find((o) => o.value === selected);
-					if (!option) return selected;
-					return (
-						<Box display="flex" alignItems="center">
-							{option.icon_emoji && (
-								<Typography component="span" fontSize={14} sx={{ mr: 1 }}>
-									{option.icon_emoji}
-								</Typography>
-							)}
-							<Typography component="span">{option.display_label}</Typography>
-						</Box>
-					);
-				}}
-				{...selectProps}
-			>
-				{options.map((option) => (
-					<MenuItem key={option.value} value={option.value}>
-						<Box display="flex" alignItems="center">
-							{option.icon_emoji && (
-								<Typography fontSize={14} sx={{ mr: 1 }}>
-									{option.icon_emoji}
-								</Typography>
-							)}
-							<Typography>{option.display_label}</Typography>
-						</Box>
-					</MenuItem>
-				))}
-			</Select>
-		</FormControl>
+		<Dropdown inlineLabel
+			label={label}
+			options={options.map((option) => ({
+				value: option.value,
+				label: option.display_label,
+				icon: option.icon_emoji ? (
+					<span style={{ fontSize: 14 }}>{option.icon_emoji}</span>
+				) : undefined,
+			}))}
+			value={value}
+			onChange={(v) => onChange(String(v))}
+			fullWidth={fullWidth}
+			placeholder="Select coverage type"
+			renderValue={(val) => {
+				const option = options.find((o) => o.value === val);
+				if (!option) return <span>{String(val)}</span>;
+				return (
+					<span style={{ display: 'flex', alignItems: 'center' }}>
+						{option.icon_emoji && (
+							<span style={{ fontSize: 14, marginRight: 8 }}>
+								{option.icon_emoji}
+							</span>
+						)}
+						<span>{option.display_label}</span>
+					</span>
+				);
+			}}
+		/>
 	);
 }

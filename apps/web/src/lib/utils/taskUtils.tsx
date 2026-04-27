@@ -1,12 +1,14 @@
-import Phone from '@mui/icons-material/Phone';
-import PhoneCallback from '@mui/icons-material/PhoneCallback';
-import Send from '@mui/icons-material/Send';
-import RequestPage from '@mui/icons-material/RequestPage';
-import Gavel from '@mui/icons-material/Gavel';
-import RateReview from '@mui/icons-material/RateReview';
-import EventRepeat from '@mui/icons-material/EventRepeat';
-import Mail from '@mui/icons-material/Mail';
-import Task from '@mui/icons-material/Task';
+import {
+	IconPhone,
+	IconPhoneIncoming,
+	IconSend,
+	IconFileText,
+	IconGavel,
+	IconEye,
+	IconCalendarRepeat,
+	IconMail,
+	IconChecklist,
+} from '@tabler/icons-react';
 import { TaskType } from '@/config/enums';
 
 /**
@@ -23,47 +25,47 @@ export const TASK_TYPE_CONFIG: Record<
 > = {
 	[TaskType.GENERIC]: {
 		label: 'Generic',
-		icon: <Task fontSize="small" />,
+		icon: <IconChecklist size={18} />,
 		description: 'General task',
 	},
 	[TaskType.OUTBOUND_CALL]: {
 		label: 'Outbound Call',
-		icon: <Phone fontSize="small" />,
+		icon: <IconPhone size={18} />,
 		description: 'Make an outbound phone call',
 	},
 	[TaskType.INBOUND_CALL]: {
 		label: 'Inbound Call',
-		icon: <PhoneCallback fontSize="small" />,
+		icon: <IconPhoneIncoming size={18} />,
 		description: 'Handle an inbound phone call',
 	},
 	[TaskType.SEND_DOCUMENT]: {
 		label: 'Send Document',
-		icon: <Send fontSize="small" />,
+		icon: <IconSend size={18} />,
 		description: 'Send a document to a party',
 	},
 	[TaskType.REQUEST_DOCUMENT]: {
 		label: 'Request Document',
-		icon: <RequestPage fontSize="small" />,
+		icon: <IconFileText size={18} />,
 		description: 'Request a document from a party',
 	},
 	[TaskType.SEND_DEMAND]: {
 		label: 'Send Demand',
-		icon: <Gavel fontSize="small" />,
+		icon: <IconGavel size={18} />,
 		description: 'Send a demand package',
 	},
 	[TaskType.REVIEW]: {
 		label: 'Review',
-		icon: <RateReview fontSize="small" />,
+		icon: <IconEye size={18} />,
 		description: 'Review claim or documentation',
 	},
 	[TaskType.FOLLOW_UP]: {
 		label: 'Follow Up',
-		icon: <EventRepeat fontSize="small" />,
+		icon: <IconCalendarRepeat size={18} />,
 		description: 'Follow up on previous action',
 	},
 	[TaskType.LETTER]: {
 		label: 'Letter',
-		icon: <Mail fontSize="small" />,
+		icon: <IconMail size={18} />,
 		description: 'Generate or send a letter',
 	},
 };
@@ -79,5 +81,5 @@ export function getTaskTypeLabel(taskType: TaskType): string {
  * Get the icon for a task type
  */
 export function getTaskTypeIcon(taskType: TaskType): React.ReactElement {
-	return TASK_TYPE_CONFIG[taskType]?.icon ?? <Task fontSize="small" />;
+	return TASK_TYPE_CONFIG[taskType]?.icon ?? <IconChecklist size={18} />;
 }

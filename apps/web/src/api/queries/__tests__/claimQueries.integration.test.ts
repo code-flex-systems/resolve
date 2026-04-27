@@ -1038,9 +1038,9 @@ describe('claimQueries integration', () => {
 
 			// Act
 			const result = await createClaims(ctx, [
-				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
-				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
-				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
+				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
 			]);
 
 			// Assert
@@ -1065,7 +1065,7 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - Insert with same claim_number should update
-			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured', client: null, client_adjuster: null, claim_amount: null, date_of_loss: null, last_update: null, last_updated_by: null }]);
+			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null }]);
 
 			// Assert
 			expect(result).toHaveLength(1);

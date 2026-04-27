@@ -3,31 +3,33 @@ import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChe
 import BasicDialog from '../common/BasicDialog';
 import QuestionStatItem from './QuestionStatItem';
 import { useState } from 'react';
-import { Collapse, Skeleton, Stack, Typography } from '@mui/material';
-import Warning from '@mui/icons-material/Warning';
 import BasicButton from '../common/BasicButton';
 import { useRouter } from 'next/navigation';
-import { OFFWHITE_COLOR } from '@/styles/theme';
-import { IconChartDonutFilled } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChartDonutFilled } from '@tabler/icons-react';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
+import Skeleton from '@/components/ui/Skeleton';
+import Collapse from '@/components/ui/Collapse';
 
 export default function QuestionStatsDialog() {
 	const router = useRouter();
 	const { checklistId = -1 } = useChecklistParams();
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const toggleStatsDialog = useChecklistStore((state) => state.toggleStatsDialog);
-	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({ pageId: selectedPageInfo.pageId });
+	const { isPending: loading, data = [] } = useQuestionTrpc().getStats({
+		pageId: selectedPageInfo.pageId,
+		filters: { range: ['01/01/2020', new Date().toLocaleDateString('en-US')] as [string, string] },
+	});
 	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 	return (
 		<BasicDialog
-			title={`Breakdown for ${selectedPageInfo.title} (p${selectedPageInfo.pageId})`}
+			title={`Breakdown for ${selectedPageInfo.title} (p${selectedPageInfo.position + 1})`}
 			iconActions={[
 				<BasicButton
 					buttonProps={{
 						onClick: () => {
 							router.push(
-								`/checklist/${checklistId}/pages/${selectedPageInfo.pageId}/page-instances/${selectedPageInfo.instanceId}`
+								`/checklists/${checklistId}/pages/${selectedPageInfo.pageId}/page-instances/${selectedPageInfo.instanceId}`
 							);
 						},
 					}}
@@ -39,21 +41,20 @@ export default function QuestionStatsDialog() {
 			]}
 			onClose={toggleStatsDialog}
 			width={600}
-			maxHeight={600}
-		>
+			maxHeight={600}>
 			{loading && (
-				<Stack spacing={2} p={2}>
+				<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, padding: 16 }}>
 					{[1, 2, 3].map((i) => (
-						<Skeleton key={i} variant="rounded" height={60} />
+						<Skeleton key={i} variant="rect" height={60} />
 					))}
-				</Stack>
+				</div>
 			)}
-			<Collapse in={!loading}>
-				<div style={styles.row} className="flex-row-left">
-					<Warning sx={{ color: 'warning.main' }} />
-					<Typography color="warning" fontStyle="italic" marginLeft="5px">
+			<Collapse open={!loading}>
+				<div className="flex-row-left" style={styles.row}>
+					<IconAlertTriangle size={20} style={{ color: 'warning.main' }} />
+					<span style={{ color: 'warning', fontStyle: 'italic', marginLeft: '5px' }}>
 						This summary only shows responses for the last <b>30</b> days.
-					</Typography>
+					</span>
 				</div>
 				{data.map((stat, i) => (
 					<QuestionStatItem
@@ -61,10 +62,10 @@ export default function QuestionStatsDialog() {
 						expandedIdx={expandedIdx}
 						idx={i}
 						item={stat}
-						pageId={selectedPageInfo.pageId}
+						pagePosition={selectedPageInfo.position + 1}
 						onAnswerClick={() => {}}
 						setExpandedIdx={setExpandedIdx}
-						bgColor={OFFWHITE_COLOR}
+						bgColor={'var(--bg-primary)'}
 					/>
 				))}
 			</Collapse>

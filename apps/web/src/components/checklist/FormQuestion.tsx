@@ -1,46 +1,25 @@
 'use client';
 import { Controller, Form, useForm } from 'react-hook-form';
-import {
-	Box,
-	Button,
-	Divider,
-	Fade,
-	FormControlLabel,
-	IconButton,
-	InputAdornment,
-	MenuItem,
-	Radio,
-	RadioGroup,
-	TextField,
-	Typography,
-} from '@mui/material';
-import Check from '@mui/icons-material/Check';
-import Clear from '@mui/icons-material/Clear';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import Delete from '@mui/icons-material/Delete';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import TaskAlt from '@mui/icons-material/TaskAlt';
-import HelpOutline from '@mui/icons-material/HelpOutline';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import Close from '@mui/icons-material/Close';
-
 import { QuestionType } from '@/config/enums';
 import { useEffect, useMemo, useState } from 'react';
-import Toolbar from '../common/Toolbar';
 import ConfirmationDialog from '../common/ConfirmationDialog';
 import { useChecklistStore, getSelectedPageInfoOrDefault } from '@/stores/useChecklistStore';
 import { Question } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
-import BasicButtonStyled from '../common/BasicButtonStyled';
-import theme, { BASE_COLOR_LIGHT, BG_TERTIARY, BORDER_COLOR, TEXT_MUTED, containerStyles } from '@/styles/theme';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconCheck, IconCircleCheck, IconCopy, IconPaperclip, IconTrash, IconX } from '@tabler/icons-react';
+import Input from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Input';
+import Dropdown from '../ui/Dropdown';
 
 function getDefaults(question: Question): Omit<Question, 'answers'> {
 	const formattedQuestion = JSON.parse(JSON.stringify(question));
@@ -66,12 +45,9 @@ export default function FormQuestion() {
 	const { isPending: deleting, mutateAsync: deleteQuestion } = remove;
 	const { data: questions, isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
 
-	// Fetch attached document for current question
 	const { data: attachedDocsResult } = useDocTrpc().listDocs(
-		{
-			filters: { question_id: selectedQuestionData.id },
-		},
-		{ enabled: selectedQuestionData.id !== -1 }
+		{ filters: { question_id: selectedQuestionData.id } },
+		{ enabled: !!selectedQuestionData.id }
 	);
 	const attachedDocs = attachedDocsResult?.rows ?? [];
 
@@ -84,22 +60,18 @@ export default function FormQuestion() {
 		formState: { errors, isDirty, isValid, isSubmitting },
 		watch,
 	} = useForm<Omit<Question, 'answers'>>({
-		defaultValues: {
-			...getDefaults(selectedQuestionData),
-		},
+		defaultValues: { ...getDefaults(selectedQuestionData as Question) },
 		mode: 'onChange',
 	});
 	const questionText = watch('text');
 
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
-	const isPlaceholder = selectedQuestionData.id === -1;
+	const isPlaceholder = !selectedQuestionData.id;
 	const inTransition = isSubmitting || adding || copying || updating || deleting || refetchingQuestions;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
-			// Extract only the fields needed for QuestionParams/QuestionUpdateParams
-			// Note: type needs to be cast to QuestionType enum
 			const params = {
 				text: data.text,
 				type: data.type as QuestionType,
@@ -111,22 +83,21 @@ export default function FormQuestion() {
 				hidden: data.hidden,
 				id: data.id,
 			};
-			const newQuestion =
-				selectedQuestionData.id === -1
-					? await addQuestion({ pageId: selectedPageInfo.pageId, params })
-					: await updateQuestion({
-							questionId: selectedQuestionData.id,
-							pageId: selectedPageInfo.pageId,
-							params,
-						});
+			const newQuestion = !selectedQuestionData.id
+				? await addQuestion({ pageId: selectedPageInfo.pageId, params })
+				: await updateQuestion({
+						questionId: selectedQuestionData.id,
+						pageId: selectedPageInfo.pageId,
+						params,
+					});
 			if (newQuestion.page_id === selectedPageInfo.pageId) {
 				updateSelectedQuestion(newQuestion.id);
 			}
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
-			showSuccess(selectedQuestionData.id === -1 ? 'create' : 'update');
+			showSuccess(!selectedQuestionData.id ? 'create' : 'update');
 		} catch (e) {
-			showError(selectedQuestionData.id === -1 ? 'create' : 'update', e, 'Failed to save question');
+			showError(!selectedQuestionData.id ? 'create' : 'update', e, 'Failed to save question');
 		}
 	});
 
@@ -145,10 +116,7 @@ export default function FormQuestion() {
 
 	const onDelete = async () => {
 		try {
-			await deleteQuestion({
-				questionId: selectedQuestionData.id,
-				pageId: selectedPageInfo.pageId,
-			});
+			await deleteQuestion({ questionId: selectedQuestionData.id, pageId: selectedPageInfo.pageId });
 			updateSelectedQuestion(null);
 			showSuccess('delete', 'Question deleted');
 		} catch (e) {
@@ -163,16 +131,11 @@ export default function FormQuestion() {
 	};
 
 	const handleSelectDocument = async (doc: DocListItem) => {
-		// Unlink the previous document first if there is one
 		if (attachedDoc && attachedDoc.id !== doc.id) {
 			try {
-				await updateDoc({
-					docId: attachedDoc.id,
-					params: { question_id: null },
-				});
+				await updateDoc({ docId: attachedDoc.id, params: { question_id: null } });
 			} catch (e) {
 				console.error('Failed to unlink previous document:', e);
-				// Continue anyway - the new document will be linked
 			}
 		}
 		setAttachedDoc(doc);
@@ -182,11 +145,7 @@ export default function FormQuestion() {
 	const handleRemoveDocument = async () => {
 		if (!attachedDoc) return;
 		try {
-			// Unlink the document instead of deleting it
-			await updateDoc({
-				docId: attachedDoc.id,
-				params: { question_id: null },
-			});
+			await updateDoc({ docId: attachedDoc.id, params: { question_id: null } });
 			setAttachedDoc(null);
 			showSuccess('update', 'Attachment removed from question');
 		} catch (e) {
@@ -195,13 +154,12 @@ export default function FormQuestion() {
 	};
 
 	useEffect(() => {
-		reset({ ...getDefaults(selectedQuestionData) });
+		reset({ ...getDefaults(selectedQuestionData as Question) });
 	}, [selectedQuestionData, selectedPageInfo.pageId]);
 
-	// Sync attached document when docs are fetched
 	useEffect(() => {
 		if (attachedDocs.length > 0) {
-			setAttachedDoc(attachedDocs[0]); // Only support one document per question
+			setAttachedDoc(attachedDocs[0]);
 		} else {
 			setAttachedDoc(null);
 		}
@@ -217,243 +175,275 @@ export default function FormQuestion() {
 		return options;
 	}, [questions, isPlaceholder]);
 
+	const radioOptions = [
+		{ value: QuestionType.SINGLE, label: 'Single select' },
+		{ value: QuestionType.MULTI, label: 'Multi select' },
+		{ value: QuestionType.DROPDOWN, label: 'Dropdown' },
+		{ value: QuestionType.FREEFORM, label: 'Free-form text' },
+	];
+
 	return (
-		<Box sx={styles.container}>
-			<Toolbar
-				left={
+		<div
+			style={{
+				width: '100%',
+				height: '100%',
+				display: 'flex',
+				flexDirection: 'column',
+				padding: 20,
+				minWidth: 500,
+				overflow: 'auto',
+			}}
+		>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'flex-end',
+					gap: 8,
+					marginBottom: 16,
+					flexShrink: 0,
+				}}
+			>
+				{showUpdateMsg && (
+					<span style={{ marginRight: 'auto' }} className="flex-row-left">
+						<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+						<span style={{ color: 'var(--status-success)' }}>Saved!</span>
+					</span>
+				)}
+				{!isPlaceholder && (
 					<>
-						<HelpOutline sx={{ color: theme.palette.secondary.main, marginRight: '10px' }} />
-						<Typography color="secondary" lineHeight={'21px'} fontSize={17}>
-							{questionText === '' && isPlaceholder ? 'New question' : questionText}
-						</Typography>
-						<Typography sx={styles.entityId}>
-							p{selectedPageInfo.pageId}.q{isPlaceholder ? '?' : selectedQuestionData.id}
-						</Typography>
-						<Fade in={showUpdateMsg} timeout={500}>
-							<Box sx={{ ml: 1.25 }} className="flex-row-left">
-								<TaskAlt sx={{ color: theme.palette.success.light, marginRight: '5px' }} />
-								<Typography color={theme.palette.success.light}>Saved!</Typography>
-							</Box>
-						</Fade>
-					</>
-				}
-				leftWidth="60%"
-				right={
-					<>
-						{!isPlaceholder && (
-							<>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: () => {
-											if (selectedQuestionData.answers?.length) {
-												setShowDeleteDialog(true);
-											} else {
-												onDelete();
-											}
-										},
-										disabled: inTransition,
-										sx: { height: 25, marginRight: '10px' },
-										startIcon: <Delete />,
-									}}
-								>
-									Delete
-								</BasicButtonStyled>
-								<BasicButtonStyled
-									buttonProps={{
-										onClick: onCopy,
-										disabled: inTransition,
-										sx: { height: 25, marginRight: '10px' },
-										startIcon: <ContentCopy />,
-									}}
-								>
-									Copy
-								</BasicButtonStyled>
-							</>
-						)}
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: onSubmit,
-								disabled: inTransition || (isPlaceholder ? !isValid : !isDirty),
-								color: 'primary',
-								sx: { height: 25 },
-								startIcon: <CheckCircle />,
+						<Button
+							variant="outlined"
+							onClick={() => {
+								if (selectedQuestionData.answers?.length) {
+									setShowDeleteDialog(true);
+								} else {
+									onDelete();
+								}
 							}}
+							disabled={inTransition}
+							startIcon={<IconTrash size={16} />}
 						>
-							{isPlaceholder ? 'Add' : 'Save'}
-						</BasicButtonStyled>
+							Delete
+						</Button>
+						<Button
+							variant="outlined"
+							onClick={onCopy}
+							disabled={inTransition}
+							startIcon={<IconCopy size={16} />}
+						>
+							Copy
+						</Button>
 					</>
-				}
-				rightWidth="40%"
-				height={60}
-				padding={'10px 0px'}
-			/>
-			<Box sx={styles.divider}>
-				<Divider />
-			</Box>
-			<Fade key={selectedQuestionData.id} in={!!selectedQuestionData.id} timeout={500} unmountOnExit>
+				)}
+				<Button
+					variant="outlined"
+					onClick={onSubmit}
+					disabled={inTransition || (isPlaceholder ? !isValid : !isDirty)}
+					startIcon={<IconCircleCheck size={16} />}
+				>
+					{isPlaceholder ? 'Add' : 'Save'}
+				</Button>
+			</div>
+			{!!selectedQuestionData.id && (
 				<Form control={control} style={{ width: '100%' }}>
-					<Box sx={styles.formContainer}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
 						{/* Basic Information Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Basic Information</Typography>
-							<Box sx={styles.sectionContent}>
-								<Box sx={styles.fieldRow}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Basic Information
+							</div>
+							<div style={{ padding: 16 }}>
+								<div style={{ marginBottom: 16 }}>
 									<Controller
 										name="text"
 										control={control}
 										rules={{ required: true }}
 										render={({ field }) => (
-											<TextField
+											<Input
 												label="Question text"
 												placeholder="What is the cause of loss?"
-												variant="outlined"
 												fullWidth
-												{...field}
-												slotProps={{
-													input: {
-														endAdornment: (
-															<InputAdornment position="end">
-																<IconButton
-																	disableRipple
-																	onClick={() => onCopyText(field.name, field.value)}
-																>
-																	{copiedField === field.name ? (
-																		<Check
-																			sx={{ color: theme.palette.success.light }}
-																		/>
-																	) : (
-																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
-																	)}
-																</IconButton>
-																<IconButton
-																	disableRipple
-																	onClick={() => field.onChange('')}
-																	disabled={!field.value}
-																>
-																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
-																</IconButton>
-															</InputAdornment>
-														),
-													},
-												}}
 												error={!!errors.text}
+												{...field}
+												endAdornment={
+													<>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => onCopyText(field.name, field.value)}
+														>
+															{copiedField === field.name ? (
+																<IconCheck
+																	size={20}
+																	style={{ color: 'var(--status-success)' }}
+																/>
+															) : (
+																<IconCopy
+																	size={20}
+																	style={{ color: 'var(--text-muted)' }}
+																/>
+															)}
+														</Button>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => field.onChange('')}
+															disabled={!field.value}
+														>
+															<IconX size={20} style={{ color: 'var(--text-muted)' }} />
+														</Button>
+													</>
+												}
 											/>
 										)}
 									/>
-								</Box>
-								<Box sx={styles.fieldRow}>
+								</div>
+								<div>
 									<Controller
 										name="description_text"
 										control={control}
 										render={({ field }) => (
-											<TextField
+											<Textarea
 												label="Description (optional)"
 												placeholder="Describe how the damage occurred"
-												variant="outlined"
 												fullWidth
 												{...field}
-												slotProps={{
-													input: {
-														endAdornment: (
-															<InputAdornment position="end">
-																<IconButton
-																	disableRipple
-																	onClick={() =>
-																		onCopyText(field.name, field.value ?? '')
-																	}
-																>
-																	{copiedField === field.name ? (
-																		<Check
-																			sx={{ color: theme.palette.success.light }}
-																		/>
-																	) : (
-																		<ContentCopy sx={{ color: BASE_COLOR_LIGHT }} />
-																	)}
-																</IconButton>
-																<IconButton
-																	disableRipple
-																	onClick={() => field.onChange('')}
-																	disabled={!field.value}
-																>
-																	<Clear sx={{ color: BASE_COLOR_LIGHT }} />
-																</IconButton>
-															</InputAdornment>
-														),
-													},
-												}}
 												value={field.value ?? ''}
-												multiline
 												minRows={3}
+												endAdornment={
+													<>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => onCopyText(field.name, field.value ?? '')}
+														>
+															{copiedField === field.name ? (
+																<IconCheck
+																	size={20}
+																	style={{ color: 'var(--status-success)' }}
+																/>
+															) : (
+																<IconCopy
+																	size={20}
+																	style={{ color: 'var(--text-muted)' }}
+																/>
+															)}
+														</Button>
+														<Button
+															variant="icon"
+															size="sm"
+															color="neutral"
+															onClick={() => field.onChange('')}
+															disabled={!field.value}
+														>
+															<IconX size={20} style={{ color: 'var(--text-muted)' }} />
+														</Button>
+													</>
+												}
 											/>
 										)}
 									/>
-								</Box>
-							</Box>
-						</Box>
+								</div>
+							</div>
+						</Card>
 
 						{/* Question Type Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Response Type</Typography>
-							<Box sx={styles.sectionContent}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Response Type
+							</div>
+							<div style={{ padding: 16 }}>
 								<Controller
 									name="type"
 									control={control}
 									rules={{ required: true }}
 									render={({ field }) => (
-										<RadioGroup {...field} row sx={{ gap: 2 }}>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Single select</Typography>}
-												value={QuestionType.SINGLE}
-												sx={styles.radioLabel}
-											/>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Multi select</Typography>}
-												value={QuestionType.MULTI}
-												sx={styles.radioLabel}
-											/>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Dropdown</Typography>}
-												value={QuestionType.DROPDOWN}
-												sx={styles.radioLabel}
-											/>
-											<FormControlLabel
-												control={<Radio size="small" />}
-												label={<Typography fontSize={13}>Free-form text</Typography>}
-												value={QuestionType.FREEFORM}
-												sx={styles.radioLabel}
-											/>
-										</RadioGroup>
+										<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+											{radioOptions.map((option) => (
+												<label
+													key={option.value}
+													style={{
+														display: 'flex',
+														alignItems: 'center',
+														gap: 6,
+														cursor: 'pointer',
+														fontSize: 13,
+													}}
+												>
+													<input
+														type="radio"
+														name={field.name}
+														value={option.value}
+														checked={field.value === option.value}
+														onChange={() => field.onChange(option.value)}
+													/>
+													{option.label}
+												</label>
+											))}
+										</div>
 									)}
 								/>
-							</Box>
-						</Box>
+							</div>
+						</Card>
 
 						{/* Organization Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Organization</Typography>
-							<Box sx={styles.sectionContent}>
-								<Box sx={{ display: 'flex', gap: 2 }}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Organization
+							</div>
+							<div style={{ padding: 16 }}>
+								<div style={{ display: 'flex', gap: 16 }}>
 									<Controller
 										name="page_id"
 										control={control}
 										rules={{ required: true }}
 										render={({ field }) => (
-											<TextField
-												select
-												label="Assigned page"
-												error={!!errors.page_id}
+											<Dropdown
 												{...field}
-												sx={{ minWidth: 200 }}
-											>
-												{pageTemplates.map((o) => (
-													<MenuItem key={o.id} value={o.id}>
-														{o.title} (p{o.id})
-													</MenuItem>
-												))}
-											</TextField>
+												label="Assigned page"
+												onChange={(v) => field.onChange(v)}
+												options={pageTemplates.map((o, i) => ({
+													value: o.id,
+													label: `${o.title} (p${i + 1})`,
+												}))}
+											/>
 										)}
 									/>
 									<Controller
@@ -461,44 +451,68 @@ export default function FormQuestion() {
 										control={control}
 										rules={{ required: true }}
 										render={({ field }) => (
-											<TextField
-												select
-												label="Display order"
-												error={!!errors.position}
+											<Dropdown
 												{...field}
-												sx={{ width: 100 }}
-											>
-												{positionOptions.map((o) => (
-													<MenuItem key={o} value={o}>
-														{o}
-													</MenuItem>
-												))}
-											</TextField>
+												label="Display order"
+												renderValue={(v) =>
+													isNaN(parseInt(v.toString()))
+														? ''
+														: (parseInt(v.toString()) + 1).toString()
+												}
+												onChange={(v) => field.onChange(Number(v))}
+												options={positionOptions.map((o) => ({
+													value: o.toString(),
+													label: o.toString(),
+												}))}
+											/>
 										)}
 									/>
-								</Box>
-							</Box>
-						</Box>
+								</div>
+							</div>
+						</Card>
 
 						{/* Attachments Section */}
-						<Box sx={styles.section}>
-							<Typography sx={styles.sectionTitle}>Attachments</Typography>
-							<Box sx={styles.sectionContent}>
-								<Box display="flex" alignItems="center" gap={1.5}>
+						<Card variant="beveled" padding="none" style={{ maxWidth: 600, overflow: 'hidden' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									padding: '12px 16px',
+									fontSize: 13,
+									fontWeight: 600,
+									color: 'var(--text-primary)',
+									backgroundColor: 'var(--bg-secondary)',
+									borderBottom: '1px solid var(--border)',
+								}}
+							>
+								Attachments
+							</div>
+							<div style={{ padding: 16 }}>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
 									<Button
 										variant="outlined"
-										size="small"
-										startIcon={<AttachFileIcon />}
+										size="sm"
+										startIcon={<IconPaperclip size={20} />}
 										onClick={() => setShowDocSelector(true)}
 										disabled={inTransition || isPlaceholder}
 									>
 										{attachedDoc ? 'Change Document' : 'Add Document'}
 									</Button>
 									{attachedDoc && (
-										<Box sx={styles.attachmentChip}>
-											<Typography fontSize={12} color="text.secondary">
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: 8,
+												backgroundColor: 'var(--bg-secondary)',
+												border: '1px solid var(--border-strong)',
+												borderRadius: 8,
+												padding: '6px 12px',
+											}}
+										>
+											<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 												{attachedDoc.title || attachedDoc.alias}
-											</Typography>
+											</span>
 											{attachedDoc.mime_type?.startsWith('image/') ? (
 												<ImageTooltip
 													imageUrl={`/api/download?docId=${attachedDoc.id}`}
@@ -507,22 +521,23 @@ export default function FormQuestion() {
 											) : (
 												<DocumentIconWithPreview document={attachedDoc} />
 											)}
-											<IconButton
-												size="small"
+											<Button
+												variant="icon"
+												size="sm"
+												color="neutral"
 												onClick={handleRemoveDocument}
 												disabled={inTransition}
-												sx={{ padding: '2px' }}
 											>
-												<Close sx={{ fontSize: 14 }} />
-											</IconButton>
-										</Box>
+												<IconX size={14} />
+											</Button>
+										</div>
 									)}
-								</Box>
-							</Box>
-						</Box>
-					</Box>
+								</div>
+							</div>
+						</Card>
+					</div>
 				</Form>
-			</Fade>
+			)}
 
 			{showDeleteDialog && (
 				<ConfirmationDialog
@@ -533,10 +548,10 @@ export default function FormQuestion() {
 					onClose={() => setShowDeleteDialog(false)}
 					negative
 				>
-					<Typography>
+					<span>
 						Deleting this question will also delete its <b>{selectedQuestionData.answers.length}</b>{' '}
 						answers.
-					</Typography>
+					</span>
 				</ConfirmationDialog>
 			)}
 
@@ -549,64 +564,6 @@ export default function FormQuestion() {
 					relationshipData={{ question_id: selectedQuestionData.id }}
 				/>
 			)}
-		</Box>
+		</div>
 	);
 }
-
-const styles = {
-	container: {
-		width: '100%',
-		height: '100%',
-		display: 'flex',
-		flexDirection: 'column',
-		p: 2.5,
-		minWidth: 500,
-		overflow: 'auto',
-	},
-	divider: {
-		width: '100%',
-		mb: 3,
-	},
-	entityId: {
-		fontSize: 13,
-		color: TEXT_MUTED,
-		bgcolor: BG_TERTIARY,
-		px: 1,
-		py: 0.25,
-		borderRadius: '4px',
-		ml: 1.5,
-	},
-	formContainer: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: 2.5,
-		width: '100%',
-	},
-	section: {
-		...containerStyles.section,
-		maxWidth: 600,
-	},
-	sectionTitle: containerStyles.sectionTitle,
-	sectionContent: containerStyles.sectionContent,
-	fieldRow: {
-		mb: 2,
-		'&:last-child': {
-			mb: 0,
-		},
-	},
-	radioLabel: {
-		'& .MuiFormControlLabel-label': {
-			fontSize: 13,
-		},
-	},
-	attachmentChip: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 1,
-		bgcolor: BG_TERTIARY,
-		border: `1px solid ${BORDER_COLOR}`,
-		borderRadius: '8px',
-		px: 1.5,
-		py: 0.75,
-	},
-};

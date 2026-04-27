@@ -1,15 +1,15 @@
 'use client';
 
-import { Box, Chip, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import Chip from '@/components/ui/Chip';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { ClaimStatus } from '@/config/enums';
-import theme, { ORANGE } from '@/styles/theme';
-import { useMemo } from 'react';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function MyClaimsMetric() {
 	const { data: session } = useClerkSession();
-	const { data: stats = [], isLoading } = useChecklistTrpc().stats(
+	const { data: stats = {} as Record<ClaimStatus, number>, isLoading } = useChecklistTrpc().stats(
 		{ users: session?.user?.id ? [session.user.id] : [] },
 		{ enabled: !!session?.user?.id }
 	);
@@ -18,76 +18,33 @@ export default function MyClaimsMetric() {
 		(stats[ClaimStatus.IN_PROGRESS] ?? 0) + (stats[ClaimStatus.BLOCKED] ?? 0) + (stats[ClaimStatus.UNWORKED] ?? 0);
 
 	return (
-		<Paper elevation={0} sx={styles.container}>
-			{isLoading ? (
-				<Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: 4 }} />
-			) : (
-				<Stack width="100%" height="100%" spacing={2}>
-					{/* Header */}
-					<Box>
-						<Typography variant="subtitle1" fontSize={14} fontWeight={600}>
-							My Open Claims
-						</Typography>
-					</Box>
+		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
+			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>My Open Claims</div>
+			<div style={{ ...styles.contentContainer, padding: 16 }}>
+				{isLoading ? (
+					<Skeleton variant="rect" width="100%" height="100%" />
+				) : (
+					<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', height: '100%', gap: 16 }}>
+						{/* Main Count */}
+						<div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+							<span style={{ fontSize: 48, fontWeight: 700, color: 'primary' }}>
+								{totalOpen}
+							</span>
+							<span style={{ color: 'text.secondary' }}>
+								open {totalOpen === 1 ? 'claim' : 'claims'}
+							</span>
+						</div>
 
-					{/* Main Count */}
-					<Box display="flex" alignItems="baseline" gap={1}>
-						<Typography variant="h2" fontSize={48} fontWeight={700} color="primary">
-							{totalOpen}
-						</Typography>
-						<Typography variant="body2" color="text.secondary">
-							open {totalOpen === 1 ? 'claim' : 'claims'}
-						</Typography>
-					</Box>
-
-					{/* Status Breakdown */}
-					<Box display="flex" gap={1} flexWrap="wrap">
-						<Chip
-							label={`${stats[ClaimStatus.IN_PROGRESS] ?? 0} In Progress`}
-							size="small"
-							sx={{
-								border: 'none',
-								backgroundColor: theme.palette.warning.light,
-								color: 'white',
-								// fontWeight: 600,
-								fontSize: 12,
-								'& .MuiChip-label': {
-									color: 'white',
-								},
-							}}
-						/>
-						<Chip
-							label={`${stats[ClaimStatus.BLOCKED] ?? 0} Blocked`}
-							size="small"
-							sx={{
-								border: 'none',
-								backgroundColor: ORANGE,
-								color: 'white',
-								// fontWeight: 600,
-								fontSize: 12,
-								'& .MuiChip-label': {
-									color: 'white',
-								},
-							}}
-						/>
-						<Chip
-							label={`${stats[ClaimStatus.UNWORKED] ?? 0} Unworked`}
-							size="small"
-							sx={{
-								border: 'none',
-								backgroundColor: theme.palette.error.light,
-								color: 'white',
-								// fontWeight: 600,
-								fontSize: 12,
-								'& .MuiChip-label': {
-									color: 'white',
-								},
-							}}
-						/>
-					</Box>
-				</Stack>
-			)}
-		</Paper>
+						{/* Status Breakdown */}
+						<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+							<Chip color="warning" size="sm">{`${stats[ClaimStatus.IN_PROGRESS] ?? 0} In Progress`}</Chip>
+							<Chip color="warning" size="sm">{`${stats[ClaimStatus.BLOCKED] ?? 0} Blocked`}</Chip>
+							<Chip color="error" size="sm">{`${stats[ClaimStatus.UNWORKED] ?? 0} Unworked`}</Chip>
+						</div>
+					</div>
+				)}
+			</div>
+		</Card>
 	);
 }
 
@@ -96,10 +53,10 @@ const styles = {
 		width: 400,
 		minWidth: 400,
 		height: 180,
-		padding: '24px',
-		borderRadius: 4,
 		margin: '15px',
+	},
+	contentContainer: {
+		height: 'calc(100% - 45px)',
 		background: 'linear-gradient(135deg, rgba(50, 174, 153, 0.03) 0%, rgba(255, 255, 255, 1) 100%)',
-		border: `1px solid ${theme.palette.primary.main}`,
 	},
 };

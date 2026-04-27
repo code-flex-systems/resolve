@@ -48,3 +48,33 @@ export function formatLossType(lossType: string | null): string {
 export function formatCoverageType(coverageType: string | null): string {
 	return formatLabel(coverageType);
 }
+
+/**
+ * Format claim status from recovery_status and substatus into a single display string.
+ * Returns combined text like "In Progress - Negotiation" or "Recovered".
+ *
+ * @param recoveryStatus - The recovery_status field from claim table
+ * @param substatus - The substatus field from claim table
+ * @returns Formatted status string
+ */
+export function formatClaimStatus(
+	recoveryStatus: string | null | undefined,
+	substatus: string | null | undefined
+): string {
+	if (!recoveryStatus) return 'Unknown';
+
+	const formattedRecoveryStatus = formatLabel(recoveryStatus);
+
+	// For closed statuses, don't show substatus (it's redundant)
+	if (recoveryStatus === 'recovered' || recoveryStatus === 'closed_no_recovery') {
+		return formattedRecoveryStatus;
+	}
+
+	// If substatus exists and is meaningful, show combined format
+	if (substatus) {
+		const formattedSubstatus = formatLabel(substatus);
+		return `${formattedRecoveryStatus} - ${formattedSubstatus}`;
+	}
+
+	return formattedRecoveryStatus;
+}

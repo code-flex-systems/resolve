@@ -61,7 +61,7 @@ export const dbOptions = z.object({
 	query: z.string().min(1),
 });
 
-export const getFeedOptions = z.object({ id: z.number().int() });
+export const getFeedOptions = z.object({ id: z.string().uuid() });
 
 export const getFeedCountInput = z.object({ clientId: z.string().optional() });
 
@@ -91,7 +91,7 @@ export const createFeedInput = z.discriminatedUnion('feed_type', [
  */
 export const updateFeedInput = z
 	.object({
-		id: z.number().int(),
+		id: z.string().uuid(),
 		params: z
 			.object({
 				name: z.string().min(3).optional(),
@@ -132,4 +132,4 @@ export const updateFeedInput = z
 	.required();
 
 /** Input for deleting a feed */
-export const deleteFeedInput = z.object({ id: z.number().int() });
+export const deleteFeedInput = z.object({ id: z.string().uuid() });

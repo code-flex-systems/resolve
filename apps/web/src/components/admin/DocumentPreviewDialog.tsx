@@ -1,11 +1,12 @@
 'use client';
 
-import { Box, IconButton, Typography, Paper, Divider } from '@mui/material';
+import { IconCloudDownload } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Divider from '@/components/ui/Divider';
 import BasicDialog from '../common/BasicDialog';
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { formatMDY } from '@/lib/utils/utils';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
-import { HOVERED_COLOR } from '@/styles/theme';
 
 interface DocumentPreviewDialogProps {
 	onClose: () => void;
@@ -32,14 +33,14 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 	return (
 		<BasicDialog
 			title={
-				<Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
+				<span style={{ maxWidth: '80%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
 					{document.title || document.alias}
-				</Typography>
+				</span>
 			}
 			iconActions={[
-				<IconButton onClick={handleDownload} sx={{ mr: 0.5 }}>
-					<CloudDownloadIcon />
-				</IconButton>,
+				<Button variant="icon" onClick={handleDownload} style={{ marginRight: 4 }}>
+					<IconCloudDownload size={20} />
+				</Button>,
 			]}
 			onClose={onClose}
 			width={900}
@@ -47,50 +48,49 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 			showOverflow={false}
 		>
 			{/* Document metadata */}
-			<Box mb={2}>
-				<Typography fontSize={12} color="text.secondary">
+			<div style={{ marginBottom: 16 }}>
+				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 					<strong>Filename:</strong> {document.filename}
-				</Typography>
-				<Typography fontSize={12} color="text.secondary">
+				</span>
+				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 					<strong>Type:</strong> {document.doc_type.replace(/_/g, ' ')}
-				</Typography>
-				<Typography fontSize={12} color="text.secondary">
+				</span>
+				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 					<strong>Size:</strong>{' '}
 					{document.file_size ? `${(Number(document.file_size) / 1024).toFixed(1)} KB` : 'Unknown'}
-				</Typography>
-				<Typography fontSize={12} color="text.secondary">
+				</span>
+				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 					<strong>Uploaded:</strong> {formatMDY(document.created_at)}
-				</Typography>
-				{document.description && (
-					<Typography fontSize={12} color="text.secondary">
-						<strong>Description:</strong> {document.description}
-					</Typography>
+				</span>
+				{(document as any).description && (
+					<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+						<strong>Description:</strong> {(document as any).description}
+					</span>
 				)}
-			</Box>
+			</div>
 
-			<Divider sx={{ mb: 2 }} />
+			<Divider />
 
 			{/* File preview */}
 			{canPreview ? (
-				<Box
-					sx={{
+				<div
+					style={{
 						width: '100%',
 						minHeight: 400,
 						maxHeight: 600,
 						display: 'flex',
 						justifyContent: 'center',
 						alignItems: 'center',
-						bgcolor: HOVERED_COLOR,
-						borderRadius: 1,
+						backgroundColor: 'var(--bg-tertiary)',
+						borderRadius: 4,
 						overflow: 'hidden',
 					}}
 				>
 					{isImage && (
-						<Box
-							component="img"
+						<img
 							src={previewUrl}
 							alt={document.title || document.alias}
-							sx={{
+							style={{
 								maxWidth: '100%',
 								maxHeight: '100%',
 								objectFit: 'contain',
@@ -98,25 +98,23 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						/>
 					)}
 					{isPdf && (
-						<Box
-							component="iframe"
+						<iframe
 							src={previewUrl}
 							title={document.title || document.alias}
-							sx={{
+							style={{
 								width: '100%',
 								height: 600,
 								border: 'none',
 							}}
 						/>
 					)}
-				</Box>
+				</div>
 			) : (
-				<Paper
-					elevation={0}
-					sx={{
-						p: 4,
+				<div
+					style={{
+						padding: 32,
 						textAlign: 'center',
-						bgcolor: HOVERED_COLOR,
+						backgroundColor: 'var(--bg-tertiary)',
 						minHeight: 200,
 						display: 'flex',
 						flexDirection: 'column',
@@ -124,26 +122,25 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						alignItems: 'center',
 					}}
 				>
-					<Typography fontSize={13} color="text.secondary" mb={2}>
+					<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
 						Preview not available for this file type.
-					</Typography>
-					<Typography fontSize={12} color="text.secondary" mb={3}>
+					</span>
+					<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
 						MIME Type: {document.mime_type || 'Unknown'}
-					</Typography>
-					<IconButton
+					</span>
+					<Button variant="icon"
 						onClick={handleDownload}
-						sx={{
-							bgcolor: 'primary.main',
+						style={{
+							backgroundColor: 'primary.main',
 							color: 'white',
-							'&:hover': { bgcolor: 'primary.dark' },
-						}}
+							}}
 					>
-						<CloudDownloadIcon />
-					</IconButton>
-					<Typography fontSize={12} color="text.secondary" mt={1}>
+						<IconCloudDownload size={20} />
+					</Button>
+					<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
 						Click to download
-					</Typography>
-				</Paper>
+					</span>
+				</div>
 			)}
 		</BasicDialog>
 	);

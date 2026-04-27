@@ -1,33 +1,30 @@
 'use client';
 
+import { IconClipboard, IconEdit, IconSettings, IconUserCircle } from '@tabler/icons-react';
+import Tooltip from '@/components/ui/Tooltip';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { Box, Button, Paper, Typography } from '@mui/material';
-import { DataGridPro, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid-pro';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import Assignment from '@mui/icons-material/Assignment';
-import Edit from '@mui/icons-material/Edit';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
+import { useEffect, useMemo, useState } from 'react';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BulkDeskAssignmentDialog from './BulkDeskAssignmentDialog';
 import EditUserDeskAssignmentsDialog from './EditUserDeskAssignmentsDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import useDebounce from '@/lib/utils/useDebounce';
-import CustomPagination from '../common/CustomPagination';
 import DeskLocationTypeFilter from '../common/DeskLocationTypeFilter';
 import DeskLocationFilter from '../common/DeskLocationFilter';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 function NoUsersRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="No users found"
-			icon={<AccountCircle sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconUserCircle size={35} style={{ color: 'var(--text-muted)' }} />}
 		/>
 	);
 }
@@ -35,7 +32,7 @@ function NoUsersRows() {
 export default function DeskAssignmentTab() {
 	const userConstraints = useAdminStore((state) => state.userConstraints);
 	const updateUserConstraints = useAdminStore((state) => state.updateUserConstraints);
-	const [selectedUserIds, setSelectedUserIds] = useState<GridRowSelectionModel>([]);
+	const [selectedUserIds, setSelectedUserIds] = useState<Record<string, boolean>>({});
 	const [showBulkAssignDialog, setShowBulkAssignDialog] = useState(false);
 	const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
@@ -45,12 +42,13 @@ export default function DeskAssignmentTab() {
 	// Filter states from URL params
 	const userSearchTerm = getParam('search') ?? '';
 	const deskLocationTypeIdStr = getParam('desk_type');
-	const deskLocationTypeId = deskLocationTypeIdStr ? Number(deskLocationTypeIdStr) : null;
+	const deskLocationTypeId = deskLocationTypeIdStr ?? null;
 	const deskLocationIdStr = getParam('desk_location');
-	const deskLocationId = deskLocationIdStr ? Number(deskLocationIdStr) : null;
+	const deskLocationId = deskLocationIdStr ?? null;
 
 	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
+	const [isManageMode, setIsManageMode] = useState(false);
 
 	// Fetch users with desk assignments
 	const { data: usersData = { rows: [], count: undefined }, isFetching: usersFetching } =
@@ -62,14 +60,6 @@ export default function DeskAssignmentTab() {
 			deskLocationId: deskLocationId ?? undefined,
 		});
 
-	const rowCountRef = useRef(usersData.count ?? 0);
-	const rowCount = useMemo(() => {
-		if (usersData.count !== undefined) {
-			rowCountRef.current = usersData.count;
-		}
-		return rowCountRef.current;
-	}, [usersData.count]);
-
 	// Sync local search state with URL param changes
 	useEffect(() => {
 		setSearchTerm(userSearchTerm);
@@ -79,85 +69,69 @@ export default function DeskAssignmentTab() {
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
 	// Memoized columns - setEditingUserId is stable (useState setter)
-	const columns: GridColDef[] = useMemo(
+	const columns: ColumnDef<any, any>[] = useMemo(
 		() => [
 			{
-				headerName: 'User',
-				field: 'user',
-				renderCell: ({ row }) => (
+				accessorKey: 'user',
+				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
 				),
-				renderHeader: (params) => (
-					<IconHeaderCell {...params} icon={<AccountCircle style={{ color: BASE_COLOR_LIGHT }} />} />
+				header: (params) => (
+					<IconHeaderCell {...params} icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />} />
 				),
-				flex: 1,
 			},
 			{
-				headerName: 'Desk Assignments',
-				field: 'desk_assignments',
-				renderCell: ({ row }) => {
+				header: 'Desk Assignments',
+				accessorKey: 'desk_assignments',
+				cell: ({ row: { original: row } }) => {
 					const count = row.assignment_count || 0;
 					return count === 1 ? '1 desk' : `${count} desks`;
 				},
-				width: 150,
+				size: 150,
 			},
 			{
-				headerName: 'Actions',
-				field: 'actions',
-				renderCell: ({ row }) => (
-					<div style={styles.actionsContainer}>
-						<BasicButtonStyled
-							buttonProps={{
-								onClick: () => setEditingUserId(row.id),
-							}}
-							tooltipProps={{ title: 'Edit desk assignments' }}
-							icon={<Edit sx={{ fontSize: 15 }} />}
-						/>
-					</div>
-				),
-				width: 100,
-				sortable: false,
-				filterable: false,
-				disableColumnMenu: true,
+				header: 'Actions',
+				accessorKey: 'actions',
+				cell: ({ row: { original: row } }) => {
+					if (!isManageMode) return null;
+					return (
+						<div style={styles.actionsContainer}>
+							<Tooltip content="Edit desk assignments">
+								<Button variant="icon" size="sm" color="neutral">
+									<IconEdit size={15} />
+								</Button>
+							</Tooltip>
+						</div>
+					);
+				},
+				size: 100,
+				enableSorting: false,
 			},
 		],
-		[]
+		[isManageMode]
 	);
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
 			<div style={styles.container}>
-				<Paper sx={styles.paper} className="flex-col-start">
-					<Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
-						<Box display="flex" alignItems="center">
-							<Typography variant="h6" marginRight="20px">
-								Desk Assignments
-							</Typography>
-						</Box>
-						<Box display="flex" justifyContent="flex-end" alignItems="center">
-							<Button
-								variant="contained"
-								startIcon={<Assignment />}
-								onClick={() => setShowBulkAssignDialog(true)}
-								disabled={selectedUserIds.length === 0}
-								sx={{ marginLeft: '10px' }}
-							>
-								Assign to Desk ({selectedUserIds.length})
-							</Button>
-						</Box>
-					</Box>
-					<Box
-						width="100%"
-						display="flex"
-						justifyContent="space-between"
-						alignItems="center"
-						paddingTop="5px"
+				<Card variant="beveled" padding="md" style={styles.paper}>
+					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+						Assign users to desk locations with priority levels. Lower priority numbers mean the user is
+						assigned to that location first.
+					</p>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							padding: '5px 0px',
+						}}
 					>
-						<Box></Box>
-						<Box display="flex" justifyContent="flex-end" alignItems="center" gap={1}>
+						<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
 							<DeskLocationTypeFilter
 								value={deskLocationTypeId}
-								onChange={(id: number | null) => {
+								onChange={(id: string | null) => {
 									setParams({
 										desk_type: id?.toString() ?? null,
 										desk_location: null, // Clear desk location when type changes
@@ -167,7 +141,7 @@ export default function DeskAssignmentTab() {
 							/>
 							<DeskLocationFilter
 								value={deskLocationId}
-								onChange={(id: number | null) => setParam('desk_location', id?.toString() ?? null)}
+								onChange={(id: string | null) => setParam('desk_location', id ?? null)}
 								deskLocationTypeId={deskLocationTypeId ?? undefined}
 								label="Desk Location"
 							/>
@@ -183,51 +157,62 @@ export default function DeskAssignmentTab() {
 								}}
 								placeholder="Search users..."
 							/>
-						</Box>
-					</Box>
+						</div>
+						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+							<Button
+								variant="contained"
+								startIcon={<IconClipboard size={20} />}
+								onClick={() => setShowBulkAssignDialog(true)}
+								disabled={Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length === 0}
+								style={{ marginLeft: '10px' }}
+							>
+								Assign to Desk ({Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length})
+							</Button>
+							<Tooltip content="Manage">
+								<Button
+									variant="icon"
+									size="sm"
+									onClick={() => setIsManageMode(!isManageMode)}
+									style={{
+										marginLeft: 8,
+										backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+									}}
+								>
+									<IconSettings
+										size={20}
+										style={{ color: isManageMode ? 'primary.main' : undefined }}
+									/>
+								</Button>
+							</Tooltip>
+						</div>
+					</div>
 					<div style={styles.table}>
-						<DataGridPro
+						<DataTable
 							columns={columns}
-							columnHeaderHeight={45}
+							headerHeight={45}
 							loading={usersFetching}
-							slots={{
-								pagination: CustomPagination,
-								noRowsOverlay: NoUsersRows,
-								noResultsOverlay: NoUsersRows,
-							}}
-							slotProps={{
-								loadingOverlay: {
-									noRowsVariant: 'linear-progress',
-									variant: 'linear-progress',
-								},
-							}}
 							rows={usersData.rows}
-							rowCount={rowCount}
+							rowCount={usersData?.count ?? 0}
 							rowHeight={60}
 							checkboxSelection
-							rowSelectionModel={selectedUserIds}
-							onRowSelectionModelChange={(newSelection) => {
+							rowSelection={selectedUserIds}
+							onRowSelectionChange={(newSelection) => {
 								setSelectedUserIds(newSelection);
 							}}
-							hideFooterSelectedRowCount
-							pageSizeOptions={[]}
-							pagination
 							paginationMode="server"
 							paginationModel={userConstraints}
 							onPaginationModelChange={updateUserConstraints}
-							disableColumnSelector
-							disableColumnMenu
-							sx={styles.tableOverrides}
+							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
-				</Paper>
+				</Card>
 
 				{showBulkAssignDialog && (
 					<BulkDeskAssignmentDialog
-						selectedUserIds={selectedUserIds as string[]}
+						selectedUserIds={Object.keys(selectedUserIds).filter((k) => selectedUserIds[k])}
 						onClose={() => {
 							setShowBulkAssignDialog(false);
-							setSelectedUserIds([]);
+							setSelectedUserIds({});
 						}}
 					/>
 				)}
@@ -250,16 +235,13 @@ const styles = {
 	paper: {
 		width: '100%',
 		height: '100%',
+		display: 'flex',
+		flexDirection: 'column' as const,
 		minHeight: 0,
-		padding: '24px',
 	},
 	table: {
 		width: '100%',
 		height: 'calc(100% - 50px)',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 	actionsContainer: {
 		width: '100%',

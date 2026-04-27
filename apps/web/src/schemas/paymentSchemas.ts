@@ -7,12 +7,12 @@ import { parseDate, parseNumber } from '@/lib/parsers/zodParsers';
 
 export const paymentParams = z
 	.object({
-		coverage_id: z.number().int(),
+		coverage_id: z.string().uuid(),
 		payment_date: parseDate(),
 		payment_amount: parseNumber(), // Allow negative for credits/reversals
 		is_subrogable: z.boolean(),
 		is_expense: z.boolean(),
-		payee_claim_party_id: z.number().int().nullable().optional(),
+		payee_claim_party_id: z.string().uuid().nullable().optional(),
 		description: z.string().nullable().optional(),
 	})
 	.strict();
@@ -24,20 +24,20 @@ export const paymentUpdateParams = paymentParams.partial();
 export type PaymentUpdateParams = z.infer<typeof paymentUpdateParams>;
 
 export const createPaymentInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 	params: paymentParams,
 });
 
 export const updatePaymentInput = z.object({
-	paymentId: z.number().int(),
+	paymentId: z.string().uuid(),
 	params: paymentUpdateParams,
 });
 
 export const archivePaymentInput = z.object({
-	paymentId: z.number().int(),
-	claimId: z.number().int(),
+	paymentId: z.string().uuid(),
+	claimId: z.string().uuid(),
 });
 
 export const listPaymentsInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 });

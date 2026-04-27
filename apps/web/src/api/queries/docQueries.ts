@@ -53,7 +53,7 @@ export async function createDoc(ctx: ProtectedContext, params: DocParams, storag
  * @param docId - document identifier
  * @returns the document
  */
-export async function getDoc(ctx: ProtectedContext, docId: number) {
+export async function getDoc(ctx: ProtectedContext, docId: string) {
 	return await ctx.db
 		.selectFrom('doc')
 		.selectAll()
@@ -75,13 +75,13 @@ export async function getDoc(ctx: ProtectedContext, docId: number) {
 export async function getDocs(
 	ctx: ProtectedContext,
 	filters?: {
-		claim_id?: number;
-		doc_group_id?: number | null;
+		claim_id?: string;
+		doc_group_id?: string | null;
 		doc_type?: string;
 		doc_status?: string;
 		is_current_version?: boolean;
-		question_id?: number;
-		answer_id?: number;
+		question_id?: string;
+		answer_id?: string;
 	},
 	limit: number = 100,
 	offset: number = 0
@@ -143,13 +143,13 @@ export async function getDocs(
 export async function listDocsWithCount(
 	ctx: ProtectedContext,
 	filters?: {
-		claim_id?: number;
-		doc_group_id?: number | null;
+		claim_id?: string;
+		doc_group_id?: string | null;
 		doc_type?: string;
 		doc_status?: string;
 		is_current_version?: boolean;
-		question_id?: number;
-		answer_id?: number;
+		question_id?: string;
+		answer_id?: string;
 	},
 	limit: number = 100,
 	offset: number = 0
@@ -233,7 +233,7 @@ export async function listDocsWithCount(
  * @param claimId - claim identifier
  * @returns array of documents
  */
-export async function getDocsByClaimId(ctx: ProtectedContext, claimId: number) {
+export async function getDocsByClaimId(ctx: ProtectedContext, claimId: string) {
 	return await ctx.db
 		.selectFrom('doc')
 		.selectAll()
@@ -252,7 +252,7 @@ export async function getDocsByClaimId(ctx: ProtectedContext, claimId: number) {
  * @param params - fields to update
  * @returns updated document
  */
-export async function updateDoc(ctx: ProtectedContext, docId: number, params: UpdateDocParams) {
+export async function updateDoc(ctx: ProtectedContext, docId: string, params: UpdateDocParams) {
 	return await ctx.db
 		.updateTable('doc')
 		.set({
@@ -273,7 +273,7 @@ export async function updateDoc(ctx: ProtectedContext, docId: number, params: Up
  * @param docId - document identifier
  * @returns document details for logging
  */
-export async function getDocForDeletion(ctx: ProtectedContext, docId: number) {
+export async function getDocForDeletion(ctx: ProtectedContext, docId: string) {
 	return await ctx.db
 		.selectFrom('doc')
 		.select(['id', 'filename', 'alias', 'doc_type', 'storage_key', 'claim_id'])
@@ -290,8 +290,17 @@ export async function getDocForDeletion(ctx: ProtectedContext, docId: number) {
  * @param ctx - request context
  * @param docId - document identifier
  */
-export async function deleteDoc(ctx: ProtectedContext, docId: number) {
-	await ctx.db.deleteFrom('doc').where('id', '=', docId).where('client_id', '=', ctx.session.user.client_id).execute();
+export async function deleteDoc(ctx: ProtectedContext, docId: string) {
+	await ctx.db
+		.updateTable('doc')
+		.set({
+			deleted_at: new Date(),
+			deleted_by: ctx.session.user.id,
+		})
+		.where('id', '=', docId)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.where('deleted_at', 'is', null)
+		.execute();
 }
 
 // =====================================================================
@@ -354,7 +363,7 @@ export async function createDocGroup(ctx: ProtectedContext, params: DocGroupPara
  * @param groupId - group identifier
  * @returns the group
  */
-export async function getDocGroup(ctx: ProtectedContext, groupId: number) {
+export async function getDocGroup(ctx: ProtectedContext, groupId: string) {
 	return await ctx.db
 		.selectFrom('doc_group')
 		.selectAll()
@@ -407,25 +416,14 @@ export async function getDocGroupHierarchy(ctx: ProtectedContext) {
  * @param params - fields to update
  * @returns updated group
  */
-export async function updateDocGroup(ctx: ProtectedContext, groupId: number, params: UpdateDocGroupParams) {
-	// Check if this is a system folder
-	const group = await ctx.db
-		.selectFrom('doc_group')
-		.select(['system'])
-		.where('id', '=', groupId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (group?.system) {
-		throw new Error('Cannot update system folders');
-	}
-
+export async function updateDocGroup(ctx: ProtectedContext, groupId: string, params: UpdateDocGroupParams) {
 	// Validate new name if being changed
 	if (params.name) {
 		validateFolderName(params.name);
 	}
 
-	return await ctx.db
+	// Combine system check with update — WHERE system = false ensures system folders can't be updated
+	const updated = await ctx.db
 		.updateTable('doc_group')
 		.set({
 			...params,
@@ -434,8 +432,15 @@ export async function updateDocGroup(ctx: ProtectedContext, groupId: number, par
 		})
 		.where('id', '=', groupId)
 		.where('client_id', '=', ctx.session.user.client_id)
+		.where('system', '=', false)
 		.returningAll()
-		.executeTakeFirstOrThrow();
+		.executeTakeFirst();
+
+	if (!updated) {
+		throw new Error('Document group not found or cannot update system folders');
+	}
+
+	return updated;
 }
 
 /**
@@ -445,7 +450,7 @@ export async function updateDocGroup(ctx: ProtectedContext, groupId: number, par
  * @param groupId - group identifier
  * @returns group details for logging
  */
-export async function getDocGroupForDeletion(ctx: ProtectedContext, groupId: number) {
+export async function getDocGroupForDeletion(ctx: ProtectedContext, groupId: string) {
 	return await ctx.db
 		.selectFrom('doc_group')
 		.select(['id', 'name', 'group_type', 'parent_group_id', 'system'])
@@ -462,24 +467,19 @@ export async function getDocGroupForDeletion(ctx: ProtectedContext, groupId: num
  * @param ctx - request context
  * @param groupId - group identifier
  */
-export async function deleteDocGroup(ctx: ProtectedContext, groupId: number) {
-	// Check if this is a system folder
-	const group = await ctx.db
-		.selectFrom('doc_group')
-		.select(['system'])
-		.where('id', '=', groupId)
-		.where('client_id', '=', ctx.session.user.client_id)
-		.executeTakeFirst();
-
-	if (group?.system) {
-		throw new Error('Cannot delete system folders');
-	}
-
-	await ctx.db
+export async function deleteDocGroup(ctx: ProtectedContext, groupId: string) {
+	// Combine system check with delete — WHERE system = false ensures system folders can't be deleted
+	const deleted = await ctx.db
 		.deleteFrom('doc_group')
 		.where('id', '=', groupId)
 		.where('client_id', '=', ctx.session.user.client_id)
-		.execute();
+		.where('system', '=', false)
+		.returning('id')
+		.executeTakeFirst();
+
+	if (!deleted) {
+		throw new Error('Document group not found or cannot delete system folders');
+	}
 }
 
 /**
@@ -490,7 +490,7 @@ export async function deleteDocGroup(ctx: ProtectedContext, groupId: number) {
  * @param groupId - parent group id
  * @returns array of all documents in this group and its descendants
  */
-export async function getDocsInGroupRecursive(ctx: ProtectedContext, groupId: number) {
+export async function getDocsInGroupRecursive(ctx: ProtectedContext, groupId: string) {
 	// Use recursive CTE to get all child groups (non-deleted)
 	const result = await ctx.db
 		.withRecursive('group_tree', (db) =>
@@ -527,7 +527,7 @@ export async function getDocsInGroupRecursive(ctx: ProtectedContext, groupId: nu
  * @param groupId - parent group id
  * @returns array of archived documents with fields needed for logging
  */
-export async function archiveDocsInGroupRecursive(ctx: ProtectedContext, groupId: number) {
+export async function archiveDocsInGroupRecursive(ctx: ProtectedContext, groupId: string) {
 	const clientId = ctx.session.user.client_id!;
 
 	// Use recursive CTE to get all group IDs, then batch UPDATE all docs
@@ -568,7 +568,7 @@ export async function archiveDocsInGroupRecursive(ctx: ProtectedContext, groupId
  * @param groupId - parent group id
  * @returns array of archived groups with fields needed for logging
  */
-export async function archiveDocGroupRecursive(ctx: ProtectedContext, groupId: number) {
+export async function archiveDocGroupRecursive(ctx: ProtectedContext, groupId: string) {
 	const clientId = ctx.session.user.client_id!;
 
 	// Use recursive CTE to get all group IDs, then batch UPDATE all groups
@@ -608,7 +608,7 @@ export async function archiveDocGroupRecursive(ctx: ProtectedContext, groupId: n
  * @param docId - document identifier
  * @returns archived document with fields needed for logging
  */
-export async function archiveDoc(ctx: ProtectedContext, docId: number) {
+export async function archiveDoc(ctx: ProtectedContext, docId: string) {
 	return await ctx.db
 		.updateTable('doc')
 		.set({
@@ -633,7 +633,7 @@ export async function archiveDoc(ctx: ProtectedContext, docId: number) {
  * @param claimId - claim identifier
  * @returns document count
  */
-export async function getDocCountByClaimId(ctx: ProtectedContext, claimId: number): Promise<number> {
+export async function getDocCountByClaimId(ctx: ProtectedContext, claimId: string): Promise<number> {
 	const result = await ctx.db
 		.selectFrom('doc')
 		.select((eb) => eb.fn.count<string>('id').as('count'))
@@ -652,7 +652,7 @@ export async function getDocCountByClaimId(ctx: ProtectedContext, claimId: numbe
  * @param groupId - group identifier
  * @returns document count
  */
-export async function getDocCountByGroupId(ctx: ProtectedContext, groupId: number): Promise<number> {
+export async function getDocCountByGroupId(ctx: ProtectedContext, groupId: string): Promise<number> {
 	const result = await ctx.db
 		.selectFrom('doc')
 		.select((eb) => eb.fn.count<string>('id').as('count'))
@@ -671,7 +671,7 @@ export async function getDocCountByGroupId(ctx: ProtectedContext, groupId: numbe
  * @param docId - document identifier
  * @returns true if exists, false otherwise
  */
-export async function docExists(ctx: ProtectedContext, docId: number): Promise<boolean> {
+export async function docExists(ctx: ProtectedContext, docId: string): Promise<boolean> {
 	const result = await ctx.db
 		.selectFrom('doc')
 		.select('id')
@@ -690,7 +690,7 @@ export async function docExists(ctx: ProtectedContext, docId: number): Promise<b
  * @param ctx - request context
  * @returns the Users folder id
  */
-export async function getOrCreateUsersFolder(ctx: ProtectedContext): Promise<number> {
+export async function getOrCreateUsersFolder(ctx: ProtectedContext): Promise<string> {
 	// Always attempt to create Users folder (unique constraint prevents duplicates)
 	const result = await ctx.db
 		.insertInto('doc_group')
@@ -732,7 +732,7 @@ export async function getOrCreateUsersFolder(ctx: ProtectedContext): Promise<num
  * @param userId - user identifier
  * @returns the user folder id
  */
-export async function getOrCreateUserFolder(ctx: ProtectedContext, userId: string): Promise<number> {
+export async function getOrCreateUserFolder(ctx: ProtectedContext, userId: string): Promise<string> {
 	// Ensure parent Users folder exists
 	const usersRootFolderId = await getOrCreateUsersFolder(ctx);
 
@@ -774,7 +774,7 @@ export async function getOrCreateUserFolder(ctx: ProtectedContext, userId: strin
  * @param ctx - request context
  * @returns the Shared folder id
  */
-export async function getOrCreateSharedFolder(ctx: ProtectedContext): Promise<number> {
+export async function getOrCreateSharedFolder(ctx: ProtectedContext): Promise<string> {
 	// Always attempt to create Shared folder (unique constraint prevents duplicates)
 	const result = await ctx.db
 		.insertInto('doc_group')
@@ -867,7 +867,7 @@ export async function getSharedFolderContents(ctx: ProtectedContext) {
  * @param groupIds - array of group IDs to get counts for
  * @returns array of {doc_group_id, count} objects
  */
-export async function getDocCountsByGroupIds(ctx: ProtectedContext, groupIds: number[]) {
+export async function getDocCountsByGroupIds(ctx: ProtectedContext, groupIds: string[]) {
 	if (groupIds.length === 0) return [];
 
 	const results = await ctx.db
@@ -883,4 +883,41 @@ export async function getDocCountsByGroupIds(ctx: ProtectedContext, groupIds: nu
 		.execute();
 
 	return results;
+}
+
+/**
+ * Get document overview stats in a single DB round-trip.
+ * Returns total count, breakdown by type, and recent upload count.
+ */
+export async function getDocumentStats(ctx: ProtectedContext) {
+	const clientId = ctx.session.user.client_id!;
+
+	// Single scan for totals + type breakdown in parallel (type breakdown needs GROUP BY)
+	const [counts, byType] = await Promise.all([
+		ctx.db
+			.selectFrom('doc')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.select(({ fn }) => [
+				fn.countAll<number>().as('total'),
+				sql<number>`count(*) filter (where created_at >= now() - interval '7 days')`.as('recent_uploads'),
+			])
+			.executeTakeFirstOrThrow(),
+		ctx.db
+			.selectFrom('doc')
+			.where('client_id', '=', clientId)
+			.where('deleted_at', 'is', null)
+			.groupBy('doc_type')
+			.select(({ fn }) => [
+				'doc_type',
+				fn.countAll<number>().as('count'),
+			])
+			.execute(),
+	]);
+
+	return {
+		total: Number(counts.total),
+		recentUploads: Number(counts.recent_uploads),
+		byType: byType.map(r => ({ type: r.doc_type, count: Number(r.count) })),
+	};
 }

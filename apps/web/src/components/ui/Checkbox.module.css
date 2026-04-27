@@ -1,0 +1,73 @@
+/* =========================================================================
+   CHECKBOX
+   ========================================================================= */
+
+.wrapper {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	cursor: pointer;
+	user-select: none;
+}
+
+.wrapper.disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* =========================================================================
+   BOX
+   ========================================================================= */
+
+.box {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	transition:
+		background var(--transition-fast),
+		border-color var(--transition-fast);
+	flex-shrink: 0;
+}
+
+.box.checked,
+.box.indeterminate {
+	background: var(--text-accent);
+	border-color: var(--text-accent);
+}
+
+/* =========================================================================
+   ICON
+   ========================================================================= */
+
+.icon {
+	width: 12px;
+	height: 12px;
+}
+
+/* =========================================================================
+   LABEL
+   ========================================================================= */
+
+.label {
+	font-family: var(--font-sans);
+	font-size: var(--text-base);
+	color: var(--text-primary);
+	line-height: var(--leading-normal);
+}

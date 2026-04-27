@@ -1,9 +1,8 @@
 'use client';
 
-import theme, { containerStyles } from '@/styles/theme';
-import { Box, Paper, Typography } from '@mui/material';
 import { Cardio } from 'ldrs/react';
 import 'ldrs/react/Cardio.css';
+import styles from './CardioLoadingIndicator.module.css';
 
 interface CardioLoadingIndicatorProps {
 	message?: string;
@@ -25,40 +24,31 @@ export default function CardioLoadingIndicator({
 	const content = (
 		<>
 			{message && (
-				<Typography fontStyle="italic" color="primary" mb={2}>
+				<p className={styles.message}>
 					{message}
-				</Typography>
+				</p>
 			)}
-			<Cardio size={size.toString()} stroke={stroke.toString()} speed={speed.toString()} color={theme.palette.primary.main} />
+			<Cardio size={size.toString()} stroke={stroke.toString()} speed={speed.toString()} color="var(--text-accent)" />
 		</>
 	);
 
 	const cardContent = showCard ? (
-		<Paper sx={{ ...containerStyles.beveledCard, padding: '40px 60px' }}>
-			<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+		<div className={styles.card}>
+			<div className={styles.center}>
 				{content}
-			</Box>
-		</Paper>
+			</div>
+		</div>
 	) : (
-		<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+		<div className={styles.center}>
 			{content}
-		</Box>
+		</div>
 	);
 
 	if (fullScreen) {
 		return (
-			<Box
-				sx={{
-					width: '100%',
-					height: '100%',
-					display: 'flex',
-					flexDirection: 'column',
-					justifyContent: 'center',
-					alignItems: 'center',
-				}}
-			>
+			<div className={styles.fullScreen}>
 				{cardContent}
-			</Box>
+			</div>
 		);
 	}
 

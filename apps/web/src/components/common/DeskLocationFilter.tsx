@@ -1,16 +1,14 @@
-import { Box, Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
-import { useState } from 'react';
-import BasicPopper from './BasicPopper';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import React from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import LocationOn from '@mui/icons-material/LocationOn';
+import { IconMapPin } from '@tabler/icons-react';
+import Dropdown from '@/components/ui/Dropdown';
 
 interface DeskLocationFilterProps {
-	value: number | null;
-	onChange: (value: number | null) => void;
-	deskLocationTypeId?: number | null;
+	value: string | null;
+	onChange: (value: string | null) => void;
+	deskLocationTypeId?: string | null;
 	showInactive?: boolean;
-	excludedLocationIds?: number[];
+	excludedLocationIds?: string[];
 	clearable?: boolean;
 	height?: number;
 	label?: string;
@@ -28,7 +26,6 @@ export default function DeskLocationFilter({
 	label = 'Filter by desk location',
 	disabled = false,
 }: DeskLocationFilterProps) {
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
 	const { data = { rows: [], count: 0 }, isFetching } = useDeskTrpc().listLocations(
 		{
 			deskLocationTypeId: deskLocationTypeId ?? undefined,
@@ -43,79 +40,31 @@ export default function DeskLocationFilter({
 
 	// Filter out excluded locations (but keep the currently selected one)
 	if (excludedLocationIds.length > 0) {
-		filteredLocations = filteredLocations.filter((loc) => loc.id === value || !excludedLocationIds.includes(loc.id));
+		filteredLocations = filteredLocations.filter(
+			(loc) => loc.id === value || !excludedLocationIds.includes(loc.id)
+		);
 	}
 
-	const selectedLocation = filteredLocations.find((loc) => loc.id === value);
-	const displayLabel = selectedLocation ? selectedLocation.name : label;
 	const isDisabled = disabled || isFetching || !deskLocationTypeId;
 
+	const dropdownOptions = [
+		...(clearable ? [{ value: '', label: 'All' }] : []),
+		...filteredLocations.map((location) => ({
+			value: location.id,
+			label: `${location.name}${!location.is_active ? ' (Inactive)' : ''}`,
+			icon: <IconMapPin size={16} style={{ color: 'var(--text-muted)' }} />,
+		})),
+	];
+
 	return (
-		<>
-			<Chip
-				label={displayLabel}
-				icon={<LocationOn sx={{ color: value ? undefined : BASE_COLOR_LIGHT }} />}
-				onClick={(e) => {
-					if (!isDisabled) {
-						setAnchorEl(e.currentTarget);
-						e.preventDefault();
-						e.stopPropagation();
-					}
-				}}
-				onDelete={value && clearable ? () => onChange(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: value ? undefined : BASE_COLOR_LIGHT,
-					},
-				}}
-				disabled={isDisabled}
-			/>
-			{!!anchorEl && (
-				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						{filteredLocations.length === 0 ? (
-							<MenuItem disabled>
-								<Typography fontSize={13} color="text.secondary">
-									No locations available
-								</Typography>
-							</MenuItem>
-						) : (
-							filteredLocations.map((location) => (
-								<MenuItem
-									key={location.id}
-									selected={value === location.id}
-									value={location.id}
-									onClick={() => {
-										onChange(location.id);
-										setAnchorEl(null);
-									}}
-								>
-									<Box width="100%" display="flex" justifyContent="flex-start" alignItems="center">
-										<LocationOn sx={{ fontSize: 16, color: BASE_COLOR_LIGHT, mr: 1 }} />
-										<Typography fontSize={13}>
-											{location.name} {!location.is_active && '(Inactive)'}
-										</Typography>
-									</Box>
-								</MenuItem>
-							))
-						)}
-					</Paper>
-				</BasicPopper>
-			)}
-		</>
+		<Dropdown inlineLabel
+			label="Desk Location"
+			options={dropdownOptions}
+			value={value ?? ''}
+			onChange={(val) => onChange(val === '' ? null : String(val))}
+			placeholder={label}
+			size="sm"
+			disabled={isDisabled}
+		/>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 220,
-		maxHeight: 300,
-		overflowY: 'auto',
-	},
-};

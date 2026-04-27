@@ -1,0 +1,10 @@
+.table {
+	flex: 1;
+	height: 100%;
+	overflow: auto;
+	margin-left: 20px;
+	border-radius: var(--radius-lg);
+	padding: 24px 30px 12px;
+	background: var(--bg-white);
+	box-shadow: var(--shadow-sm);
+}

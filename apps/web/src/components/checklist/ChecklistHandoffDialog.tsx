@@ -3,16 +3,15 @@
 import BasicDialog from '../common/BasicDialog';
 import UserSearch from './UserSearch';
 import { useChecklistStore } from '@/stores/useChecklistStore';
-import { Box, Chip, Collapse, Paper, Stack, Typography } from '@mui/material';
+import Chip from '@/components/ui/Chip';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import Handshake from '@mui/icons-material/Handshake';
-import Warning from '@mui/icons-material/Warning';
-import theme, { BASE_COLOR } from '@/styles/theme';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
+import { IconAlertTriangle, IconHandStop } from '@tabler/icons-react';
+import Collapse from '@/components/ui/Collapse';
 
 export default function ChecklistHandoffDialog() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const selectedAssignee = useChecklistStore((state) => state.selectedAssignee);
 	const formattedAssignee = `${selectedAssignee?.first ?? ''} ${selectedAssignee?.last ?? ''}`.trim();
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
@@ -27,14 +26,14 @@ export default function ChecklistHandoffDialog() {
 		<BasicDialog
 			primaryAction={{
 				label: selectedAssignee ? `Hand off to ${formattedAssignee}` : 'Hand off',
-				icon: <Handshake />,
+				icon: <IconHandStop size={20} />,
 				disabled: !selectedAssignee || isPending,
 				onClick: async () => {
 					try {
 						await updateChecklistClaim({ assignee: selectedAssignee?.email, checklistId, claimId });
 						showSuccess(
 							'assign',
-							`Checklist handed off to ${formattedAssignee || selectedAssignee?.email ?? 'new assignee'}`
+							`Checklist handed off to ${formattedAssignee || (selectedAssignee?.email ?? 'new assignee')}`
 						);
 					} catch (e) {
 						showError('assign', e, 'Failed to hand off checklist');
@@ -54,39 +53,37 @@ export default function ChecklistHandoffDialog() {
 			closeDisabled={isPending}
 			width={550}
 			showCloseButton={false}
-			showOverflow
-		>
-			<Stack display="flex" justifyContent="center" alignItems="center">
-				<Paper elevation={0} sx={styles.paper}>
-					{/* <Paper elevation={0} sx={styles.warning}> */}
-					<Box display="flex" justifyContent="flex-start" alignItems="center">
-						<Warning sx={{ color: BASE_COLOR, marginLeft: '5px' }} />
-						<Stack display="flex" justifyContent="flex-start" alignItems="flex-start" marginLeft="10px">
-							<Typography fontSize={15}>
+			showOverflow>
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+				<div style={styles.paper}>
+					{/* <div style={styles.warning}> */}
+					<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+						<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)', marginLeft: '5px' }} />
+						<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}>
+							<span style={{ fontSize: 15 }}>
 								This action will transfer the claim to the selected assignee.
-							</Typography>
-							<Typography fontSize={15}>
+							</span>
+							<span style={{ fontSize: 15 }}>
 								You will no longer be able to make edits to the checklist.
-							</Typography>
-						</Stack>
-					</Box>
-					{/* </Paper> */}
+							</span>
+						</div>
+					</div>
+					{/* </div> */}
 
-					<Stack width="100%" display="flex" justifyContent="center" alignItems="center">
-						<Box bgcolor="white" margin="10px" borderRadius={4}>
+					<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+						<div style={{ margin: '10px' }}>
 							<UserSearch selectedUser={selectedAssignee} setSelectedUser={(user) => useChecklistStore.getState().updateSelectedAssignee(user)} />
-						</Box>
+						</div>
 
-						<Collapse in={!!selectedAssignee}>
-							<Chip
-								label={`${formattedAssignee} <${selectedAssignee?.email}>`}
-								onDelete={() => useChecklistStore.getState().updateSelectedAssignee(null)}
-								color="primary"
-							/>
+						<Collapse open={!!selectedAssignee}>
+							<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+								<Chip color="info">{`${formattedAssignee} <${selectedAssignee?.email}>`}</Chip>
+								<button onClick={() => useChecklistStore.getState().updateSelectedAssignee(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+							</span>
 						</Collapse>
-					</Stack>
-				</Paper>
-			</Stack>
+					</div>
+				</div>
+			</div>
 		</BasicDialog>
 	);
 }
@@ -94,11 +91,9 @@ export default function ChecklistHandoffDialog() {
 const styles = {
 	paper: {
 		borderRadius: 4,
-		bgcolor: '#F7F8FA',
 		padding: '20px 10px',
 	},
 	warning: {
-		bgcolor: theme.palette.warning.light,
 		padding: '5px',
 		borderRadius: 4,
 		marginBottom: '10px',

@@ -1,34 +1,39 @@
 'use client';
 
-import { Box, Chip, Icon, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material';
-import ArrowBack from '@mui/icons-material/ArrowBack';
-import Edit from '@mui/icons-material/Edit';
-import Assignment from '@mui/icons-material/Assignment';
-import Archive from '@mui/icons-material/Archive';
-import Print from '@mui/icons-material/Print';
-import { useRouter } from 'next/navigation';
+import { IconArchive, IconArrowLeft, IconClipboard, IconEdit, IconPrinter } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Skeleton from '@/components/ui/Skeleton';
+import Chip from '@/components/ui/Chip';
+import { usePathname, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
-import { formatCurrencyExact, formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
-import { BASE_COLOR_LIGHT } from '@/styles/theme';
+import { formatCurrencyExact } from '@/lib/utils/recoveryUtils';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { LineOfBusinessChip, LossTypeChip } from '@/components/common/ReferenceDataSelect';
+import ClaimStatusChip from '@/components/common/ClaimStatusChip';
 
-export default function ClaimHeader({ claimId }: { claimId: number }) {
+export default function ClaimHeader({ claimId, onEdit }: { claimId: string; onEdit?: () => void }) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
-	const canEditClaim = isAdmin || isSuperAdmin;
 	const { data: claimDetail, isLoading } = trpc.claim.getClaimDetail.useQuery({ claimId });
+
+	const handleEditClaim = () => {
+		if (onEdit) {
+			onEdit();
+		}
+	};
 
 	if (isLoading) {
 		return (
-			<Paper elevation={0} sx={styles.container}>
-				<Stack spacing={1}>
+			<div style={styles.container}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<Skeleton variant="text" width={200} />
-					<Skeleton variant="rectangular" height={80} />
-				</Stack>
-			</Paper>
+					<Skeleton variant="rect" height={80} />
+				</div>
+			</div>
 		);
 	}
 
@@ -37,107 +42,97 @@ export default function ClaimHeader({ claimId }: { claimId: number }) {
 	}
 
 	return (
-		<Paper elevation={0} sx={styles.container}>
+		<div style={styles.container}>
 			{/* Main Header Content */}
-			<Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap">
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
 				{/* Left: Claim Number and Insured */}
-				<Box>
-					<Box display="flex" alignItems="center" gap={1} marginBottom={1}>
-						<IconButton onClick={() => router.back()}>
-							<ArrowBack />
-						</IconButton>
-						<Typography variant="h4" color="primary">
+				<div>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+						<Button variant="icon" onClick={() => router.back()}>
+							<IconArrowLeft size={20} />
+						</Button>
+						<span style={{ color: 'var(--text-accent)' }}>
 							{claimDetail.claim_number}
-						</Typography>
-					</Box>
-					<Typography variant="body1" color="text.secondary">
+						</span>
+					</div>
+					<span style={{ color: 'var(--text-secondary)' }}>
 						{claimDetail.insured || 'N/A'}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 
 				{/* Right: Key Metrics */}
-				<Box display="flex" gap={3} alignItems="center" flexWrap="wrap">
-					<Box>
-						<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+				<div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Claim Amount
-						</Typography>
-						<Typography variant="h6" fontSize={18}>
+						</span>
+						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
-						</Typography>
-					</Box>
-					<Box>
-						<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+						</span>
+					</div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Total Incurred
-						</Typography>
-						<Typography variant="h6" fontSize={18}>
+						</span>
+						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
-						</Typography>
-					</Box>
-					<Box>
-						<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+						</span>
+					</div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Expected Recovery
-						</Typography>
-						<Typography variant="h6" fontSize={18}>
+						</span>
+						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
-						</Typography>
-					</Box>
-					<Box>
-						<Typography fontSize={12} color={BASE_COLOR_LIGHT}>
+						</span>
+					</div>
+					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 							Actual Recovery
-						</Typography>
-						<Typography variant="h6" fontSize={18}>
+						</span>
+						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.actual_recovery) || 0)}
-						</Typography>
-					</Box>
-				</Box>
-			</Box>
+						</span>
+					</div>
+				</div>
+			</div>
 
 			{/* Action Toolbar */}
-			<Box display="flex" justifyContent="space-between" gap={1} marginTop={2}>
-				<Box display="flex" flexWrap="wrap" gap={1} justifyContent="flex-start" alignItems="center">
-					{claimDetail.aggregated_line_of_business &&
-						claimDetail.aggregated_line_of_business.length > 0 &&
-						claimDetail.aggregated_line_of_business.map((lob: string) => (
-							<LineOfBusinessChip key={lob} value={lob} />
-						))}
+			<div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16 }}>
+				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', alignItems: 'center' }}>
+					{claimDetail.line_of_business && (
+						<LineOfBusinessChip value={claimDetail.line_of_business} />
+					)}
 					{claimDetail.aggregated_loss_type &&
 						claimDetail.aggregated_loss_type.length > 0 &&
 						claimDetail.aggregated_loss_type.map((lt: string) => (
 							<LossTypeChip key={lt} value={lt} />
 						))}
-					{claimDetail.recovery_status && (
-						<Chip
-							label={`Recovery: ${formatRecoveryStatus(claimDetail.recovery_status)}`}
-							size="small"
-							variant="outlined"
-						/>
-					)}
+					<ClaimStatusChip recoveryStatus={claimDetail.recovery_status} substatus={claimDetail.substatus} />
 					{claimDetail.feed_name && (
-						<Chip label={`Feed: ${claimDetail.feed_name}`} size="small" variant="outlined" />
+						<Chip size="sm" variant="outlined">{`Feed: ${claimDetail.feed_name}`}</Chip>
 					)}
-				</Box>
-				<Box display="flex" gap={1} justifyContent="flex-end" alignItems="center">
-					{canEditClaim && (
-						<IconButton
-							size="small"
-							title="Edit Claim"
-							onClick={() => router.push(`/admin/claims/edit/${claimId}`)}
-						>
-							<Edit />
-						</IconButton>
+				</div>
+				<div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+					<Button variant="icon" size="sm" title="Edit Claim" onClick={handleEditClaim}>
+						<IconEdit size={20} />
+					</Button>
+					{(isAdmin || isSuperAdmin) && (
+						<>
+							<Button variant="icon" size="sm" title="Assign Claim" disabled>
+								<IconClipboard size={20} />
+							</Button>
+							<Button variant="icon" size="sm" title="Archive Claim" disabled>
+								<IconArchive size={20} />
+							</Button>
+						</>
 					)}
-					<IconButton size="small" title="Assign Claim" disabled>
-						<Assignment />
-					</IconButton>
-					<IconButton size="small" title="Archive Claim" disabled>
-						<Archive />
-					</IconButton>
-					<IconButton size="small" title="Print" disabled>
-						<Print />
-					</IconButton>
-				</Box>
-			</Box>
-		</Paper>
+					<Button variant="icon" size="sm" title="Print" disabled>
+						<IconPrinter size={20} />
+					</Button>
+				</div>
+			</div>
+		</div>
 	);
 }
 

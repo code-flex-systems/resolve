@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
-import Assignment from '@mui/icons-material/Assignment';
+import { IconClipboard } from '@tabler/icons-react';
+import Dropdown from '@/components/ui/Dropdown';
 import BasicDialog from '../common/BasicDialog';
 import { useState } from 'react';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
@@ -15,8 +15,8 @@ interface BulkDeskAssignmentDialogProps {
 }
 
 export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: BulkDeskAssignmentDialogProps) {
-	const [deskLocationTypeId, setDeskLocationTypeId] = useState<number | null>(null);
-	const [deskLocationId, setDeskLocationId] = useState<number | null>(null);
+	const [deskLocationTypeId, setDeskLocationTypeId] = useState<string | null>(null);
+	const [deskLocationId, setDeskLocationId] = useState<string | null>(null);
 	const [priority, setPriority] = useState<number>(1);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
@@ -53,7 +53,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 			primaryAction={{
 				label: 'Assign',
 				onClick: handleAssign,
-				icon: <Assignment />,
+				icon: <IconClipboard size={20} />,
 				disabled: isPending || !deskLocationId,
 			}}
 			secondaryActions={[
@@ -65,10 +65,10 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 			onClose={onClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
-				<Typography variant="body2" color="text.secondary" sx={{ width: 400, marginBottom: 1 }}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+				<span style={{  color: 'var(--text-secondary)' ,  width: 400, marginBottom: 1  }}>
 					Assigning {selectedUserIds.length} user(s) to a desk location
-				</Typography>
+				</span>
 
 				<DeskLocationTypeSelect
 					value={deskLocationTypeId}
@@ -87,21 +87,20 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					required
 				/>
 
-				<FormControl sx={{ width: 400, margin: '5px 0px' }}>
-					<InputLabel>Priority</InputLabel>
-					<Select
-						value={priority}
-						onChange={(e) => setPriority(e.target.value as number)}
-						disabled={isPending}
-					>
-						<MenuItem value={1}>Priority 1 (Highest)</MenuItem>
-						<MenuItem value={2}>Priority 2</MenuItem>
-						<MenuItem value={3}>Priority 3</MenuItem>
-						<MenuItem value={4}>Priority 4</MenuItem>
-						<MenuItem value={5}>Priority 5 (Lowest)</MenuItem>
-					</Select>
-				</FormControl>
-			</Stack>
+				<Dropdown
+					label="Priority"
+					options={[
+						{ value: 1, label: 'Priority 1 (Highest)' },
+						{ value: 2, label: 'Priority 2' },
+						{ value: 3, label: 'Priority 3' },
+						{ value: 4, label: 'Priority 4' },
+						{ value: 5, label: 'Priority 5 (Lowest)' },
+					]}
+					value={priority}
+					onChange={(v) => setPriority(Number(v))}
+					disabled={isPending}
+				/>
+			</div>
 		</BasicDialog>
 	);
 }

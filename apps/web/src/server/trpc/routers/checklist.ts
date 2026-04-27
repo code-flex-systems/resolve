@@ -5,6 +5,7 @@ import {
 	getChecklist,
 	getChecklistClaim,
 	getRecentChecklistClaims,
+	getChecklistRecentActivity,
 	getChecklistSummary,
 	getChecklistSummaryDetail,
 	createChecklist,
@@ -88,6 +89,11 @@ export const checklistRouter = router({
 
 	getRecentChecklistClaims: protectedProcedure.query(async ({ ctx }) => {
 		return await getRecentChecklistClaims(ctx);
+	}),
+
+	getChecklistRecentActivity: protectedProcedure.query(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getChecklistRecentActivity(ctx);
 	}),
 
 	getChecklistSummary: protectedProcedure.input(getChecklistSummaryInput).query(async ({ input, ctx }) => {

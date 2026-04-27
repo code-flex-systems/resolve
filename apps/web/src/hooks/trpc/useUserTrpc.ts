@@ -18,6 +18,14 @@ export function useUserTrpc() {
 		get: trpc.user.getUser.useQuery,
 		activity: trpc.user.getUserActivity.useQuery,
 		activityDetail: trpc.user.getUserActivityDetail.useQuery,
+		managementStats: trpc.user.getManagementStats.useQuery,
+
+		trackResourceVisit: trpc.user.trackResourceVisit.useMutation({
+			onSuccess() {
+				utils.user.getRecentResources.invalidate();
+			},
+		}),
+		recentResources: trpc.user.getRecentResources.useQuery,
 
 		create: trpc.user.createUsers.useMutation({
 			onSuccess() {

@@ -1,9 +1,10 @@
 'use client';
 
-import { Stack, TextField, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import AddTask from '@mui/icons-material/AddTask';
+import Dropdown from '@/components/ui/Dropdown';
+import Input, { Textarea } from '@/components/ui/Input';
+import { IconSubtask } from '@tabler/icons-react';
 import BasicDialog from './BasicDialog';
+import DateField from './DateField';
 import { Controller, useForm } from 'react-hook-form';
 import { useTaskTrpc } from '@/hooks/trpc/useTaskTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -11,20 +12,19 @@ import DeskLocationTypeSelect from './DeskLocationTypeSelect';
 import DeskLocationSelect from './DeskLocationSelect';
 import TaskTypeSelect from './TaskTypeSelect';
 import { TaskType } from '@/config/enums';
-import dayjs, { Dayjs } from 'dayjs';
 
 interface TaskFormInputs {
 	title: string;
 	description: string;
 	taskType: TaskType;
-	deskLocationTypeId: number | null;
-	deskLocationId: number | null;
-	dueDate: Dayjs | null;
+	deskLocationTypeId: string | null;
+	deskLocationId: string | null;
+	dueDate: string | null;
 	workUnits: number;
 }
 
 interface TaskCreationDialogProps {
-	claimId: number;
+	claimId: string;
 	claimNumber?: string;
 	onClose: () => void;
 	onCreated?: () => void;
@@ -75,7 +75,7 @@ export default function TaskCreationDialog({
 				taskType: data.taskType,
 				title: data.title,
 				description: data.description || undefined,
-				deadlineDate: data.dueDate ? data.dueDate.format('YYYY-MM-DD') : undefined,
+				deadlineDate: data.dueDate || undefined,
 				workUnits: data.workUnits,
 			});
 
@@ -94,7 +94,7 @@ export default function TaskCreationDialog({
 			primaryAction={{
 				label: 'Create Task',
 				onClick: onSubmit,
-				icon: <AddTask />,
+				icon: <IconSubtask size={18} />,
 				disabled: isPending || !deskLocationId || !watch('title'),
 			}}
 			secondaryActions={[
@@ -106,11 +106,11 @@ export default function TaskCreationDialog({
 			onClose={onClose}
 			width={500}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
 				{claimNumber && (
-					<Typography variant="body2" color="text.secondary" sx={{ width: 400, marginBottom: 1 }}>
+					<p style={{ fontSize: 14, color: 'var(--text-secondary)', width: 400, marginBottom: 8 }}>
 						Creating task for claim: {claimNumber}
-					</Typography>
+					</p>
 				)}
 
 				<Controller
@@ -118,14 +118,13 @@ export default function TaskCreationDialog({
 					control={control}
 					rules={{ required: 'Title is required', minLength: 1 }}
 					render={({ field }) => (
-						<TextField
+						<Input
 							{...field}
 							label="Task Title"
-							
 							required
 							error={!!errors.title}
-							helperText={errors.title?.message}
-							sx={{ width: 400 }}
+							errorText={errors.title?.message}
+							style={{ width: 400 }}
 							disabled={isPending}
 						/>
 					)}
@@ -135,13 +134,11 @@ export default function TaskCreationDialog({
 					name="description"
 					control={control}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							{...field}
 							label="Description (optional)"
-							
-							multiline
 							rows={2}
-							sx={{ width: 400 }}
+							style={{ width: 400 }}
 							disabled={isPending}
 						/>
 					)}
@@ -174,42 +171,41 @@ export default function TaskCreationDialog({
 					name="dueDate"
 					control={control}
 					render={({ field }) => (
-						<DatePicker
+						<DateField
 							label="Due Date (optional)"
 							value={field.value}
-							onChange={(newValue) => field.onChange(newValue)}
+							onChange={field.onChange}
 							disabled={isPending}
-							slotProps={{
-								textField: {
-									variant: 'standard',
-									sx: { width: 400 },
-								},
-							}}
+							sx={{ width: 400 }}
 						/>
 					)}
 				/>
 
-				<FormControl sx={{ width: 400 }}>
-					<InputLabel>Work Units (1 unit = 5 min)</InputLabel>
-					<Controller
-						name="workUnits"
-						control={control}
-						render={({ field }) => (
-							<Select {...field} disabled={isPending}>
-								<MenuItem value={1}>1 unit (5 min)</MenuItem>
-								<MenuItem value={2}>2 units (10 min)</MenuItem>
-								<MenuItem value={3}>3 units (15 min)</MenuItem>
-								<MenuItem value={4}>4 units (20 min)</MenuItem>
-								<MenuItem value={5}>5 units (25 min)</MenuItem>
-								<MenuItem value={6}>6 units (30 min)</MenuItem>
-								<MenuItem value={8}>8 units (40 min)</MenuItem>
-								<MenuItem value={10}>10 units (50 min)</MenuItem>
-								<MenuItem value={12}>12 units (1 hour)</MenuItem>
-							</Select>
-						)}
-					/>
-				</FormControl>
-			</Stack>
+				<Controller
+					name="workUnits"
+					control={control}
+					render={({ field }) => (
+						<Dropdown
+							label="Work Units (1 unit = 5 min)"
+							options={[
+								{ value: 1, label: '1 unit (5 min)' },
+								{ value: 2, label: '2 units (10 min)' },
+								{ value: 3, label: '3 units (15 min)' },
+								{ value: 4, label: '4 units (20 min)' },
+								{ value: 5, label: '5 units (25 min)' },
+								{ value: 6, label: '6 units (30 min)' },
+								{ value: 8, label: '8 units (40 min)' },
+								{ value: 10, label: '10 units (50 min)' },
+								{ value: 12, label: '12 units (1 hour)' },
+							]}
+							value={field.value}
+							onChange={(v) => field.onChange(Number(v))}
+							disabled={isPending}
+							name={field.name}
+						/>
+					)}
+				/>
+			</div>
 		</BasicDialog>
 	);
 }

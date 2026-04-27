@@ -1,38 +1,37 @@
 'use client';
-import { Box } from '@mui/material';
-import ContentPasteSearch from '@mui/icons-material/ContentPasteSearch';
 import { useState } from 'react';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import ClaimSummaryDialog from '../admin/ClaimSummaryDialog';
+import { IconFileText } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 
 export default function ClaimInfo() {
-	const { checklistId = -1, claimId = -1 } = useChecklistParams();
+	const { checklistId, claimId } = useChecklistParams();
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const { data: claim } = useClaimTrpc().get(
-		{ checklistId, claimId },
-		{ enabled: checklistId !== -1 && claimId !== -1 }
+		{ checklistId: checklistId!, claimId: claimId! },
+		{ enabled: !!checklistId && !!claimId }
 	);
 
 	if (!claim) return <></>;
 	return (
-		<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<BasicButtonStyled
-				buttonProps={{
-					onClick: () => setDialogOpen(true),
-					startIcon: <ContentPasteSearch sx={{ color: 'primary.main' }} />,
-					sx: { mr: 0.5 },
-				}}
+		<>
+			<Button
+				variant="ghost"
+				color="neutral"
+				size="sm"
+				startIcon={<IconFileText size={14} />}
+				onClick={() => setDialogOpen(true)}
 			>
 				{claim.claim_number}
-			</BasicButtonStyled>
+			</Button>
 			<ClaimSummaryDialog
-				claimId={claimId}
+				claimId={claimId ?? null}
 				open={dialogOpen}
 				onClose={() => setDialogOpen(false)}
 				showChecklistProgress={false}
 			/>
-		</Box>
+		</>
 	);
 }

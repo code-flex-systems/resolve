@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, TextField, Typography } from '@mui/material';
-import Cancel from '@mui/icons-material/Cancel';
+import { IconCircleX } from '@tabler/icons-react';
+import { Textarea } from '@/components/ui/Input';
 import BasicDialog from '../common/BasicDialog';
 import { Controller, useForm } from 'react-hook-form';
 import { useTaskTrpc } from '@/hooks/trpc/useTaskTrpc';
@@ -12,7 +12,7 @@ interface TaskBulkCancellationFormInputs {
 }
 
 interface TaskBulkCancellationDialogProps {
-	taskIds: number[];
+	taskIds: string[];
 	onClose: () => void;
 	onCancelled?: () => void;
 }
@@ -60,7 +60,7 @@ export default function TaskBulkCancellationDialog({
 			primaryAction={{
 				label: `Cancel ${taskIds.length} Task${taskIds.length === 1 ? '' : 's'}`,
 				onClick: onSubmit,
-				icon: <Cancel />,
+				icon: <IconCircleX size={20} />,
 				color: 'error',
 				disabled: isPending || !cancellationReason.trim(),
 			}}
@@ -73,33 +73,32 @@ export default function TaskBulkCancellationDialog({
 			onClose={onClose}
 			width={450}
 		>
-			<Stack width="100%" display="flex" alignItems="center" spacing={2}>
-				<Typography variant="body2" sx={{ width: 380, marginBottom: 1 }}>
+			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+				<span style={{ width: 380, marginBottom: 1 }}>
 					You are about to cancel <strong>{taskIds.length}</strong> task
 					{taskIds.length === 1 ? '' : 's'}. This action cannot be undone.
-				</Typography>
+				</span>
 
 				<Controller
 					name="cancellationReason"
 					control={control}
 					rules={{ required: 'Cancellation reason is required' }}
 					render={({ field }) => (
-						<TextField
+						<Textarea
 							{...field}
 							label="Cancellation Reason"
-							
-							multiline
 							rows={3}
-							sx={{ width: 380 }}
+							style={{ width: 380 }}
 							disabled={isPending}
 							required
 							error={!!errors.cancellationReason}
-							helperText={errors.cancellationReason?.message || 'This reason will be applied to all selected tasks'}
+							errorText={errors.cancellationReason?.message}
+							helperText={!errors.cancellationReason ? 'This reason will be applied to all selected tasks' : undefined}
 							placeholder="Explain why these tasks are being cancelled..."
 						/>
 					)}
 				/>
-			</Stack>
+			</div>
 		</BasicDialog>
 	);
 }

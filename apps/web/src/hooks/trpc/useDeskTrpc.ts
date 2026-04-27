@@ -38,6 +38,7 @@ export function useDeskTrpc() {
 			onSuccess() {
 				utils.desk.getDeskLocationTypes.invalidate();
 				utils.desk.getDeskLocations.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -50,6 +51,7 @@ export function useDeskTrpc() {
 				utils.desk.getDeskLocationTypes.invalidate();
 				utils.desk.getDeskLocationType.invalidate({ id });
 				utils.desk.getDeskLocations.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -62,6 +64,7 @@ export function useDeskTrpc() {
 			onSuccess() {
 				utils.desk.getDeskLocationTypes.invalidate();
 				utils.desk.getDeskLocations.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -73,6 +76,7 @@ export function useDeskTrpc() {
 			onSuccess() {
 				utils.desk.getDeskLocationTypes.invalidate();
 				utils.desk.getDeskLocations.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -101,6 +105,7 @@ export function useDeskTrpc() {
 				utils.desk.getDeskLocationType.invalidate({
 					id: data.desk_location_type_id,
 				});
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -116,6 +121,7 @@ export function useDeskTrpc() {
 				utils.desk.getDeskLocationType.invalidate({
 					id: desk_location_type_id,
 				});
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -130,6 +136,7 @@ export function useDeskTrpc() {
 				utils.desk.getDeskLocationType.invalidate({
 					id: data.desk_location_type_id,
 				});
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -143,6 +150,7 @@ export function useDeskTrpc() {
 				utils.desk.getDeskLocationType.invalidate({
 					id: data.desk_location_type_id,
 				});
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -169,6 +177,7 @@ export function useDeskTrpc() {
 				utils.desk.getUserDeskLocations.invalidate();
 				utils.desk.getDeskLocationUsers.invalidate();
 				utils.user.getUsersWithDeskAssignments.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -182,6 +191,7 @@ export function useDeskTrpc() {
 				utils.desk.getUserDeskLocations.invalidate();
 				utils.desk.getDeskLocationUsers.invalidate();
 				utils.user.getUsersWithDeskAssignments.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -192,6 +202,7 @@ export function useDeskTrpc() {
 		updateAssignmentPriority: trpc.desk.updateUserDeskLocationPriority.useMutation({
 			onSuccess() {
 				utils.desk.getUserDeskLocations.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -204,6 +215,7 @@ export function useDeskTrpc() {
 				utils.desk.getUserDeskLocations.invalidate();
 				utils.desk.getDeskLocationUsers.invalidate();
 				utils.user.getUsersWithDeskAssignments.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -215,6 +227,7 @@ export function useDeskTrpc() {
 		updateAssignmentPriorities: trpc.desk.updateUserDeskLocationPriorities.useMutation({
 			onSuccess() {
 				utils.desk.getUserDeskLocations.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
 
@@ -229,8 +242,19 @@ export function useDeskTrpc() {
 				utils.desk.getUserDeskLocations.invalidate();
 				utils.desk.getDeskLocationUsers.invalidate();
 				utils.user.getUsersWithDeskAssignments.invalidate();
+				utils.workflowAnalytics.getWorkflowSuggestions.invalidate();
 			},
 		}),
+
+		// ====================================================================
+		// DASHBOARD METRIC OPERATIONS
+		// ====================================================================
+
+		/**
+		 * Get current user's desk assignments with claim counts
+		 * Used for the My Desk Assignments dashboard metric
+		 */
+		getMyDeskAssignments: trpc.desk.getMyDeskAssignments.useQuery,
 	};
 }
 

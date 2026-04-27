@@ -66,7 +66,7 @@ export function isAllowedMimeType(mimeType: string): boolean {
 export function isAllowedExtension(extension: string): boolean {
 	const lowerExt = extension.toLowerCase();
 	return Object.values(ALLOWED_FILE_TYPES).some((extensions) =>
-		extensions.includes(lowerExt as any)
+		(extensions as readonly string[]).includes(lowerExt)
 	);
 }
 
@@ -111,7 +111,7 @@ export function validateFileType(filename: string, mimeType: string): {
 
 	// Verify MIME type matches extension
 	const expectedExtensions = ALLOWED_FILE_TYPES[mimeType as keyof typeof ALLOWED_FILE_TYPES];
-	if (!expectedExtensions.includes(extension as any)) {
+	if (!(expectedExtensions as readonly string[]).includes(extension)) {
 		return {
 			valid: false,
 			reason: `File extension "${extension}" does not match the file type "${mimeType}".`,

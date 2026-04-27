@@ -8,7 +8,8 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import config from '@/config/config';
 import { DateRangeStrict } from '@/types/types';
-import { logAdminAction, logAdminActions, AdminAction, EntityName } from '@/api/utils/adminActionLogger';
+import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
+import { EntityName } from '@/api/utils/activityLogger';
 import {
 	updateClerkUser,
 	updateUserRole,
@@ -68,8 +69,8 @@ export async function getUsersWithDeskAssignments(
 		limit?: number;
 		offset?: number;
 		searchTerm?: string;
-		deskLocationTypeId?: number;
-		deskLocationId?: number;
+		deskLocationTypeId?: string;
+		deskLocationId?: string;
 	}
 ) {
 	return await userQueries.getUsersWithDeskAssignments(ctx, {
@@ -88,10 +89,7 @@ export async function getUserActivity(
 	}: {
 		filters: {
 			range: DateRangeStrict;
-			checklistId?: number;
-			claimId?: number;
 			users?: string[];
-			searchTerm?: string;
 		};
 	}
 ) {
@@ -350,6 +348,10 @@ export async function deleteUser(ctx: ProtectedContext, { id }: { id: string }) 
 export function getOnboardingTemplate(): string {
 	const filePath = path.join(process.cwd(), 'src/api/email-templates', 'onboarding-template.html');
 	return readFileSync(filePath, 'utf-8');
+}
+
+export async function getManagementStats(ctx: ProtectedContext) {
+	return userQueries.getUserManagementStats(ctx);
 }
 
 export function getAccountActivationTemplate(type: 'deactivation' | 'reactivation', email: string): string {

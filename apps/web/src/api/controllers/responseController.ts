@@ -22,9 +22,9 @@ export async function evaluateResponses(
 		claimId,
 		instanceId,
 	}: {
-		checklistId: number;
-		claimId: number;
-		instanceId: number;
+		checklistId: string;
+		claimId: string;
+		instanceId: string;
 	}
 ) {
 	const pageInstance = await pageQueries.getPageInstance(ctx, instanceId);
@@ -58,8 +58,8 @@ export async function getResponsesForAnswer(
 		limit,
 		offset,
 	}: {
-		answerId: number;
-		filters: { claimId?: number; range: DateRangeStrict; users?: string[] };
+		answerId: string;
+		filters: { claimId?: string; range: DateRangeStrict; users?: string[] };
 		limit: number;
 		offset: number;
 	}
@@ -81,9 +81,9 @@ export async function getResponsesForPageInstance(
 		claimId,
 		instanceId,
 	}: {
-		checklistId: number;
-		claimId: number;
-		instanceId: number;
+		checklistId: string;
+		claimId: string;
+		instanceId: string;
 	}
 ) {
 	const results = await responseQueries.getResponsesForPageInstance(ctx, checklistId, claimId, instanceId);
@@ -97,7 +97,7 @@ export async function getResponseAuditLogs(
 		limit,
 		offset,
 	}: {
-		filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string };
+		filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string };
 		limit: number;
 		offset: number;
 	}
@@ -113,8 +113,8 @@ export async function getResponseAuditLogStats(
 	}: {
 		filters: {
 			range: DateRangeStrict;
-			checklistId?: number;
-			claimId?: number;
+			checklistId?: string;
+			claimId?: string;
 			users?: string[];
 			searchTerm?: string;
 		};
@@ -146,7 +146,7 @@ export async function getResponseAuditLogStats(
  */
 export async function exportResponseAuditLogs(
 	ctx: ProtectedContext,
-	{ filters }: { filters: { checklistId?: number; claimId?: number; emails?: string[]; range?: DateRange; searchTerm?: string } }
+	{ filters }: { filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string } }
 ) {
 	return await responseQueries.exportResponseAuditLogs(ctx, filters);
 }
@@ -184,14 +184,14 @@ export async function upsertQuestionResponses(
 			);
 		}
 	});
-	const visibleIds: number[] = await pageQueries.getVisiblePageInstances(
+	const visibleIds: string[] = await pageQueries.getVisiblePageInstances(
 		ctx,
 		sampleResponse.checklist_id,
 		sampleResponse.claim_id
 	);
 
 	// Kick off related actions asynchronously (dedupe to avoid redundant work)
-	const answerIds: number[] = [];
+	const answerIds: string[] = [];
 	parsedResponses.forEach((r) => {
 		answerIds.push(...r.selected_answers.map((sa) => sa.answer_id));
 	});

@@ -1,15 +1,16 @@
 'use client';
-import { LineChart } from '@mui/x-charts-pro';
-import theme, { containerStyles } from '@/styles/theme';
-import { Box, Card, CardContent, Grid, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Card from '@/components/ui/Card';
+import KpiCard from '@/components/ui/KpiCard';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import BasicButtonStyled from '../../common/BasicButtonStyled';
-import Troubleshoot from '@mui/icons-material/Troubleshoot';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, getQuarterRanges } from '@/lib/utils/recoveryUtils';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import type { DateRange } from '@/types/dateTypes';
+import Skeleton from '@/components/ui/Skeleton';
+import { IconBug } from '@tabler/icons-react';
+import Button from '@/components/ui/Button';
 
 export default function RecoveryMetricsChart({
 	range,
@@ -17,14 +18,12 @@ export default function RecoveryMetricsChart({
 	recoveryStatus,
 	recoverySource,
 	checklistId,
-	userId,
 }: {
 	range?: DateRange<Dayjs>;
 	isBreakdown?: boolean;
 	recoveryStatus?: string | null;
 	recoverySource?: string;
-	checklistId?: number;
-	userId?: string;
+	checklistId?: string;
 }) {
 	const router = useRouter();
 	const quarters = useMemo(() => getQuarterRanges(), []);
@@ -45,9 +44,8 @@ export default function RecoveryMetricsChart({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		}),
-		[rangeISO, recoverySource, recoveryStatus, checklistId, userId]
+		[rangeISO, recoverySource, recoveryStatus, checklistId]
 	);
 
 	// Fetch time series data for selected range
@@ -67,7 +65,6 @@ export default function RecoveryMetricsChart({
 			...(recoverySource && { recoverySource }),
 			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
 			...(checklistId && { checklistId }),
-			...(userId && { userId }),
 		},
 		{ enabled: true }
 	);
@@ -75,9 +72,11 @@ export default function RecoveryMetricsChart({
 	const isLoading = isFetchingTimeSeries || isFetchingCurrentSummary || isFetchingLastSummary;
 
 	// Format data for chart
-	const xLabels = timeSeriesData.map((d) => dayjs(d.month_start).format('MMM YYYY'));
-	const expectedData = timeSeriesData.map((d) => d.expected_recovery);
-	const actualData = timeSeriesData.map((d) => d.actual_recovery);
+	const chartData = timeSeriesData.map((d: any) => ({
+		name: dayjs(d.month_start).format('MMM YYYY'),
+		expected: d.expected_recovery,
+		actual: d.actual_recovery,
+	}));
 
 	// Calculate summary metrics
 	const currentExpected = currentSummary?.total_expected ?? 0;
@@ -93,220 +92,146 @@ export default function RecoveryMetricsChart({
 
 	const containerWidth = isBreakdown ? '100%' : 600;
 	const chartHeight = isBreakdown ? 400 : 260;
-	const chartMargin = isBreakdown ? { left: 80, right: 20, top: 20, bottom: 60 } : { left: 60, right: 10, top: 10 };
 	const padding = isBreakdown ? '30px' : '20px';
 	const titleFontSize = isBreakdown ? 18 : 14;
-	const cardPadding = isBreakdown ? 2 : 1;
+	const cardPadding = isBreakdown ? 16 : 8;
 	const cardLabelSize = isBreakdown ? 13 : 12;
 	const cardValueSize = isBreakdown ? 24 : 16;
 	const cardSubtextSize = isBreakdown ? 13 : 12;
-	const spacing = isBreakdown ? 2 : 1;
-	const marginBottom = isBreakdown ? 3 : 1.5;
+	const spacing = isBreakdown ? 16 : 8;
+	const marginBottom = isBreakdown ? 24 : 12;
+
+	const formatTooltipValue = (value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 	return (
-		<Box width={containerWidth}>
-			<Paper elevation={0} sx={{ ...styles.paper, ...containerStyles.beveledCard, padding }}>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="space-between"
-					alignItems="center"
-					mb={isBreakdown ? 2 : 1}
+		<div style={{ width: containerWidth }}>
+			<Card variant="beveled" padding="none" style={{ ...styles.paper, padding }}>
+				<div
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						marginBottom,
+					}}
 				>
-					<Typography variant={isBreakdown ? 'h6' : 'subtitle1'} fontSize={titleFontSize} fontWeight={600}>
+					<span style={{ fontSize: titleFontSize, fontWeight: 600 }}>
 						{isBreakdown
 							? 'Recovery Metrics'
 							: `Recovery Metrics - Q${quarters.currentQuarter} ${quarters.currentYear}`}
-					</Typography>
+					</span>
 					{isBreakdown ? (
-						<Typography variant="caption" fontSize={14} color="#d9d9d9">
+						<span style={{ fontSize: 14, color: '#d9d9d9' }}>
 							vs Q{quarters.lastQuarter} {quarters.lastYear}
-						</Typography>
+						</span>
 					) : (
-						<Box>
-							<Typography variant="caption" fontSize={13} color="#d9d9d9" marginRight="15px">
+						<div>
+							<span style={{ fontSize: 13, color: '#d9d9d9', marginRight: '15px' }}>
 								vs Q{quarters.lastQuarter} {quarters.lastYear}
-							</Typography>
-							<BasicButtonStyled
-								buttonProps={{
-									onClick: () => router.push('/admin/financial/recovery'),
-								}}
-								icon={
-									<Troubleshoot
-										sx={{
+							</span>
+							<Tooltip content="Open in Inspector">
+								<Button variant="icon" size="sm" color="neutral">
+									<IconBug
+										style={{
 											transform: 'scaleX(-1)',
-											color: theme.palette.primary.main,
+											color: 'var(--text-accent)',
 										}}
 									/>
-								}
-								tooltipProps={{ title: 'Open in Inspector' }}
-							/>
-						</Box>
+								</Button>
+							</Tooltip>
+						</div>
 					)}
-				</Box>
+				</div>
 
 				{isLoading && (
-					<Stack width="100%" spacing={2}>
-						<Stack direction="row" spacing={spacing}>
-							<Skeleton variant="rounded" width="33%" height={80} />
-							<Skeleton variant="rounded" width="33%" height={80} />
-							<Skeleton variant="rounded" width="33%" height={80} />
-						</Stack>
-						<Skeleton variant="rounded" width="100%" height={chartHeight} />
-					</Stack>
+					<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 16 }}>
+						<div style={{ display: 'flex', flexDirection: 'row', gap: spacing }}>
+							<Skeleton variant="rect" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
+							<Skeleton variant="rect" width="33%" height={80} />
+						</div>
+						<Skeleton variant="rect" width="100%" height={chartHeight} />
+					</div>
 				)}
 
 				{!isLoading && (
 					<>
 						{/* Summary Cards */}
-						<Grid container spacing={spacing} mb={marginBottom}>
-							<Grid>
-								<Card variant="outlined" sx={{ height: '100%' }}>
-									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-											Total Expected
-										</Typography>
-										<Typography
-											variant={isBreakdown ? 'h5' : 'h6'}
-											fontSize={cardValueSize}
-											component="div"
-										>
-											{formatCurrency(currentExpected)}
-										</Typography>
-										<Typography
-											variant="body2"
-											fontSize={cardSubtextSize}
-											color={expectedChange >= 0 ? 'success.main' : 'error.main'}
-										>
-											{expectedChange >= 0 ? '+' : ''}
-											{expectedChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-										</Typography>
-									</CardContent>
-								</Card>
-							</Grid>
-							<Grid>
-								<Card variant="outlined" sx={{ height: '100%' }}>
-									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-											Total Actual
-										</Typography>
-										<Typography
-											variant={isBreakdown ? 'h5' : 'h6'}
-											fontSize={cardValueSize}
-											component="div"
-										>
-											{formatCurrency(currentActual)}
-										</Typography>
-										<Typography
-											variant="body2"
-											fontSize={cardSubtextSize}
-											color={actualChange >= 0 ? 'success.main' : 'error.main'}
-										>
-											{actualChange >= 0 ? '+' : ''}
-											{actualChange.toFixed(1)}%{isBreakdown ? ' vs last quarter' : ''}
-										</Typography>
-									</CardContent>
-								</Card>
-							</Grid>
-							<Grid>
-								<Card variant="outlined" sx={{ height: '100%' }}>
-									<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-										<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-											Variance
-										</Typography>
-										<Typography
-											variant={isBreakdown ? 'h5' : 'h6'}
-											fontSize={cardValueSize}
-											component="div"
-										>
-											{formatCurrency(currentVariance)}
-										</Typography>
-										<Typography variant="body2" fontSize={cardSubtextSize} color="text.secondary">
-											{currentRate.toFixed(1)}% rate
-										</Typography>
-									</CardContent>
-								</Card>
-							</Grid>
+						<div style={{ display: 'flex', gap: spacing, marginBottom, width: '100%' }}>
+							<KpiCard
+								size="sm"
+								value={formatCurrency(currentExpected)}
+								label="Total Expected"
+								subtitle={`${expectedChange >= 0 ? '+' : ''}${expectedChange.toFixed(1)}%${isBreakdown ? ' vs last quarter' : ''}`}
+								subtitleColor={expectedChange >= 0 ? 'positive' : 'negative'}
+							/>
+							<KpiCard
+								size="sm"
+								value={formatCurrency(currentActual)}
+								label="Total Actual"
+								subtitle={`${actualChange >= 0 ? '+' : ''}${actualChange.toFixed(1)}%${isBreakdown ? ' vs last quarter' : ''}`}
+								subtitleColor={actualChange >= 0 ? 'positive' : 'negative'}
+							/>
+							<KpiCard
+								size="sm"
+								value={formatCurrency(currentVariance)}
+								label="Variance"
+								subtitle={`${currentRate.toFixed(1)}% rate`}
+							/>
 							{isBreakdown && (
-								<Grid>
-									<Card variant="outlined" sx={{ height: '100%' }}>
-										<CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding } }}>
-											<Typography color="#d9d9d9" fontSize={cardLabelSize} gutterBottom>
-												Recovery Rate
-											</Typography>
-											<Typography variant="h5" fontSize={cardValueSize} component="div">
-												{currentRate.toFixed(1)}%
-											</Typography>
-											<Typography
-												variant="body2"
-												fontSize={cardSubtextSize}
-												color="text.secondary"
-											>
-												actual / expected
-											</Typography>
-										</CardContent>
-									</Card>
-								</Grid>
+								<KpiCard
+									size="sm"
+									value={`${currentRate.toFixed(1)}%`}
+									label="Recovery Rate"
+									subtitle="actual / expected"
+								/>
 							)}
-						</Grid>
+						</div>
 
 						{/* Line Chart */}
-						<Box width="100%" height={chartHeight}>
-							<LineChart
-								xAxis={[
-									{
-										scaleType: 'band',
-										data: xLabels,
-										tickLabelStyle: {
-											angle: 0,
-											textAnchor: 'middle',
-											fontSize: isBreakdown ? 11 : 10,
-										},
-									},
-								]}
-								yAxis={[
-									{
-										valueFormatter: (value: number) => formatCurrency(value),
-										tickLabelStyle: {
-											fontSize: isBreakdown ? 11 : 10,
-										},
-									},
-								]}
-								series={[
-									{
-										data: expectedData,
-										label: 'Expected',
-										color: theme.palette.primary.main,
-										curve: 'linear',
-										valueFormatter: (value: number | null) =>
-											value !== null
-												? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-												: 'N/A',
-									},
-									{
-										data: actualData,
-										label: 'Actual',
-										color: theme.palette.success.main,
-										curve: 'linear',
-										valueFormatter: (value: number | null) =>
-											value !== null
-												? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-												: 'N/A',
-									},
-								]}
-								margin={chartMargin}
-								slotProps={{
-									legend: {
-										direction: 'horizontal',
-										position: { vertical: 'bottom', horizontal: 'center' },
-									},
-								}}
-							/>
-						</Box>
+						<div style={{ width: '100%', height: chartHeight }}>
+							<ResponsiveContainer width="100%" height={chartHeight}>
+								<LineChart data={chartData}>
+									<XAxis
+										dataKey="name"
+										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
+										stroke="var(--border)"
+									/>
+									<YAxis
+										tickFormatter={(value: number) => formatCurrency(value)}
+										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
+										stroke="var(--border)"
+									/>
+									<Tooltip
+										formatter={(value: any, name: any) => [
+											formatTooltipValue(value as number),
+											name,
+										]}
+									/>
+									<Legend verticalAlign="bottom" align="center" layout="horizontal" />
+									<Line
+										type="linear"
+										dataKey="expected"
+										name="Expected"
+										stroke="var(--text-accent)"
+										strokeWidth={2}
+										dot={false}
+									/>
+									<Line
+										type="linear"
+										dataKey="actual"
+										name="Actual"
+										stroke="var(--status-success)"
+										strokeWidth={2}
+										dot={false}
+									/>
+								</LineChart>
+							</ResponsiveContainer>
+						</div>
 					</>
 				)}
-			</Paper>
-		</Box>
+			</Card>
+		</div>
 	);
 }
 

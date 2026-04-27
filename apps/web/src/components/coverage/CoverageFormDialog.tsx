@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, TextField, InputAdornment, Typography, MenuItem } from '@mui/material';
+import Input from '@/components/ui/Input';
+import Dropdown from '@/components/ui/Dropdown';
 import { CoverageListItem } from '@/hooks/trpc/useCoverageTrpc';
 import CoverageTypeSelect from '../common/CoverageTypeSelect';
 import BasicDialog from '../common/BasicDialog';
@@ -97,15 +98,15 @@ export default function CoverageFormDialog({
 
 	const isValidCoverageAmount =
 		!formData.coverage_amount ||
-		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount) > 0);
+		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount)> 0);
 
 	const isValidReservedAmount =
 		!formData.amount_reserved ||
-		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved) >= 0);
+		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved)>= 0);
 
 	const isValidDeductibleAmount =
 		!formData.deductible_amount ||
-		(!isNaN(parseFloat(formData.deductible_amount)) && parseFloat(formData.deductible_amount) >= 0);
+		(!isNaN(parseFloat(formData.deductible_amount)) && parseFloat(formData.deductible_amount)>= 0);
 
 	if (!open) return null;
 
@@ -129,77 +130,66 @@ export default function CoverageFormDialog({
 				},
 			]}
 			onClose={onClose}
-			width={600}
-		>
-			<Box display="flex" flexDirection="column" gap={2} paddingTop={1}>
+			width={600}>
+			<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, paddingTop: 1 }}>
 				<CoverageTypeSelect
 					value={formData.loss_type}
 					onChange={(type) => setFormData({ ...formData, loss_type: type })}
 					fullWidth
 				/>
-				<TextField
+				<Input
 					label="Coverage Amount"
 					type="number"
 					value={formData.coverage_amount}
 					onChange={(e) => setFormData({ ...formData, coverage_amount: e.target.value })}
 					fullWidth
 					placeholder="Enter coverage limit"
-					inputProps={{ step: '0.01', min: '0' }}
-					slotProps={{
-						input: {
-							startAdornment: <InputAdornment position="start">$</InputAdornment>,
-						},
-					}}
+					step="0.01"
+					min="0"
+					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					error={!isValidCoverageAmount}
-					helperText={!isValidCoverageAmount ? 'Must be greater than 0' : 'Policy coverage limit'}
+					errorText={!isValidCoverageAmount ? 'Must be greater than 0' : undefined}
+					helperText={isValidCoverageAmount ? 'Policy coverage limit' : undefined}
 				/>
-				<TextField
+				<Input
 					label="Amount Reserved"
 					type="number"
 					value={formData.amount_reserved}
 					onChange={(e) => setFormData({ ...formData, amount_reserved: e.target.value })}
 					fullWidth
 					placeholder="Enter reserved amount"
-					inputProps={{ step: '0.01', min: '0' }}
-					slotProps={{
-						input: {
-							startAdornment: <InputAdornment position="start">$</InputAdornment>,
-						},
-					}}
+					step="0.01"
+					min="0"
+					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					error={!isValidReservedAmount}
-					helperText={
-						!isValidReservedAmount
-							? 'Must be 0 or greater'
-							: 'Amount reserved for potential claim payments'
-					}
+					errorText={!isValidReservedAmount ? 'Must be 0 or greater' : undefined}
+					helperText={isValidReservedAmount ? 'Amount reserved for potential claim payments' : undefined}
 				/>
 
 				{/* Deductible Section */}
-				<Typography variant="subtitle2" sx={{ mt: 1, mb: -1 }}>
+				<span style={{ marginTop: 8, marginBottom: -8 }}>
 					Deductible Information
-				</Typography>
+				</span>
 
-				<TextField
+				<Input
 					label="Deductible Amount"
 					type="number"
 					value={formData.deductible_amount}
 					onChange={(e) => setFormData({ ...formData, deductible_amount: e.target.value })}
 					fullWidth
 					placeholder="Enter deductible amount"
-					inputProps={{ step: '0.01', min: '0' }}
-					slotProps={{
-						input: {
-							startAdornment: <InputAdornment position="start">$</InputAdornment>,
-						},
-					}}
+					step="0.01"
+					min="0"
+					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					disabled={formData.deductible_status === DeductibleStatus.NO_DEDUCTIBLE}
 					error={!isValidDeductibleAmount}
+					errorText={!isValidDeductibleAmount ? 'Must be 0 or greater' : undefined}
 					helperText={
 						formData.deductible_status === DeductibleStatus.NO_DEDUCTIBLE
 							? 'Amount locked at $0 for No Deductible status'
-							: !isValidDeductibleAmount
-								? 'Must be 0 or greater'
-								: 'Optional - defaults to $0'
+							: isValidDeductibleAmount
+								? 'Optional - defaults to $0'
+								: undefined
 					}
 				/>
 
@@ -210,24 +200,24 @@ export default function CoverageFormDialog({
 				/>
 
 				{/* Subrogation & Statute Section */}
-				<Typography variant="subtitle2" sx={{ mt: 1, mb: -1 }}>
+				<span style={{ marginTop: 8, marginBottom: -8 }}>
 					Subrogation & Statute Tracking
-				</Typography>
+				</span>
 
-				<TextField
-					select
+				<Dropdown
 					label="Subrogation Applicable"
+					options={[
+						{ value: 'yes', label: 'Yes' },
+						{ value: 'no', label: 'No' },
+					]}
 					value={formData.subro_applicable ? 'yes' : 'no'}
-					onChange={(e) => setFormData({ ...formData, subro_applicable: e.target.value === 'yes' })}
+					onChange={(v) => setFormData({ ...formData, subro_applicable: v === 'yes' })}
 					fullWidth
-				>
-					<MenuItem value="yes">Yes</MenuItem>
-					<MenuItem value="no">No</MenuItem>
-				</TextField>
+				/>
 
 				{/* Show statute_date read-only if editing existing coverage */}
 				{editingCoverage?.statute_date && (
-					<TextField
+					<Input
 						label="Statute Date"
 						value={new Date(editingCoverage.statute_date).toLocaleDateString()}
 						fullWidth
@@ -236,17 +226,17 @@ export default function CoverageFormDialog({
 					/>
 				)}
 
-				<TextField
-					select
+				<Dropdown
 					label="Statute Preserved"
+					options={[
+						{ value: 'yes', label: 'Yes' },
+						{ value: 'no', label: 'No' },
+					]}
 					value={formData.statute_preserved ? 'yes' : 'no'}
-					onChange={(e) => setFormData({ ...formData, statute_preserved: e.target.value === 'yes' })}
+					onChange={(v) => setFormData({ ...formData, statute_preserved: v === 'yes' })}
 					fullWidth
-				>
-					<MenuItem value="yes">Yes</MenuItem>
-					<MenuItem value="no">No</MenuItem>
-				</TextField>
-			</Box>
+				/>
+			</div>
 		</BasicDialog>
 	);
 }

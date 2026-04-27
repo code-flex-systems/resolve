@@ -1,10 +1,6 @@
-import { GetChecklistOutput } from '@/hooks/trpc/useChecklistTrpc';
-import { Chip, MenuItem, Paper, PopperProps, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import BasicPopper from './BasicPopper';
-import Description from '@mui/icons-material/Description';
-import theme from '@/styles/theme';
+import React, { useEffect } from 'react';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
+import Dropdown from '@/components/ui/Dropdown';
 
 export default function PageInstanceSelect({
 	checklistId,
@@ -15,9 +11,9 @@ export default function PageInstanceSelect({
 	text = 'Filter by page',
 	disabled = false,
 }: {
-	checklistId: number;
-	instanceId: number | null;
-	setInstanceId: (newInstanceId: number | null) => void;
+	checklistId: string;
+	instanceId: string | null;
+	setInstanceId: (newInstanceId: string | null) => void;
 	clearable?: boolean;
 	height?: number;
 	text?: string;
@@ -25,10 +21,8 @@ export default function PageInstanceSelect({
 }) {
 	const { data: options = [], isFetching } = usePageTrpc().listInstances(
 		{ checklistId },
-		{ enabled: checklistId !== -1 }
+		{ enabled: !!checklistId }
 	);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>();
-	const selectedOption = options.find((o) => o.instance_id === instanceId);
 
 	useEffect(() => {
 		if (!clearable && options.length > 0) {
@@ -36,66 +30,22 @@ export default function PageInstanceSelect({
 		}
 	}, [options, clearable]);
 
+	const dropdownOptions = [
+		...(clearable ? [{ value: '', label: 'All' }] : []),
+		...options.map((o) => ({
+			value: o.instance_id,
+			label: `${o.title} (p${o.position + 1})`,
+		})),
+	];
+
 	return (
-		<>
-			<Chip
-				label={
-					selectedOption
-						? `${selectedOption.title} (p${selectedOption.id}.i${selectedOption.instance_id})`
-						: text
-				}
-				icon={<Description />}
-				onClick={(e) => {
-					setAnchorEl(e.currentTarget);
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				onDelete={instanceId && clearable ? () => setInstanceId(null) : undefined}
-				sx={{
-					...styles.chip,
-					height,
-					'& .MuiChip-icon': {
-						color: instanceId ? theme.palette.primary.main : undefined,
-					},
-					'& .MuiChip-label': {
-						color: instanceId ? theme.palette.primary.main : undefined,
-					},
-				}}
-				disabled={disabled}
-			/>
-			{!!anchorEl && (
-				<BasicPopper anchorEl={anchorEl} setAnchorEl={() => setAnchorEl(null)} placement="bottom-start">
-					<Paper sx={styles.paper}>
-						{options.map((o) => (
-							<MenuItem
-								key={o.instance_id}
-								selected={o.instance_id === instanceId}
-								value={o.instance_id}
-								onClick={() => {
-									setInstanceId(o.instance_id);
-									setAnchorEl(null);
-								}}
-							>
-								<Typography fontSize={13}>
-									{o.title} (p{o.id}.i{o.instance_id})
-								</Typography>
-							</MenuItem>
-						))}
-					</Paper>
-				</BasicPopper>
-			)}
-		</>
+		<Dropdown inlineLabel
+			options={dropdownOptions}
+			value={instanceId ?? ''}
+			onChange={(val) => setInstanceId(val === '' ? null : String(val))}
+			placeholder={text}
+			size="sm"
+			disabled={disabled}
+		/>
 	);
 }
-
-const styles = {
-	chip: {
-		margin: '5px 0px',
-	},
-	paper: {
-		mt: 0.625,
-		minWidth: 200,
-		maxHeight: 300,
-		overflow: 'auto',
-	},
-};

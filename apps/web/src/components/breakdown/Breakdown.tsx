@@ -1,22 +1,20 @@
+const BASE_COLOR_LIGHT = '#9394a1';
 'use client';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
-import { Box, Paper } from '@mui/material';
-import { DataGridPro, GridColDef, GridPaginationModel } from '@mui/x-data-grid-pro';
-import FormatQuote from '@mui/icons-material/FormatQuote';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import dayjs from 'dayjs';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import CustomPagination from '../common/CustomPagination';
+import { useEffect, useState } from 'react';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
-import { BASE_COLOR_LIGHT, dataGridFocusStyles } from '@/styles/theme';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
+import { IconQuote } from '@tabler/icons-react';
+import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 function NoRows() {
 	return (
 		<CustomNoRowsOverlay
 			text="Select an answer to see responses"
-			icon={<FormatQuote sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconQuote size={35} style={{ color: BASE_COLOR_LIGHT }} />}
 		/>
 	);
 }
@@ -24,50 +22,42 @@ function NoResults() {
 	return (
 		<CustomNoRowsOverlay
 			text="No responses found"
-			icon={<FormatQuote sx={{ fontSize: 35, color: BASE_COLOR_LIGHT }} />}
+			icon={<IconQuote size={35} style={{ color: BASE_COLOR_LIGHT }} />}
 		/>
 	);
 }
 
-const COLUMNS: GridColDef[] = [
+const COLUMNS: ColumnDef<any, any>[] = [
 	{
-		headerName: 'Claim',
-		field: 'claim_number',
-		cellClassName: 'cell-bold',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 150,
+		accessorKey: 'claim_number',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 150,
 	},
 	{
-		headerName: 'Client',
-		field: 'client',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'client',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 200,
 	},
 	{
-		headerName: 'Responder',
-		field: 'responder',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		width: 200,
+		accessorKey: 'responder',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 200,
 	},
 	{
-		headerName: 'Response Date',
-		field: 'created_at',
-		valueFormatter: (value: any) => dayjs(value).format('hh:mm A MMM D, YYYY'),
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		align: 'right',
-		width: 200,
+		accessorKey: 'created_at',
+		cell: ({ getValue }) => dayjs(getValue()).format('hh:mm A MMM D, YYYY'),
+		header: (ctx) => <IconHeaderCell {...ctx} />,
+		size: 200,
 	},
 	{
-		headerName: 'Additional Info',
-		field: 'additional_info',
-		renderHeader: (params) => <IconHeaderCell {...params} />,
-		flex: 1,
+		accessorKey: 'additional_info',
+		header: (ctx) => <IconHeaderCell {...ctx} />,
 	},
 ];
 
 export default function Breakdown() {
-	const [constraints, setContraints] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? -1;
+	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
+	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? '';
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
 	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
@@ -87,60 +77,31 @@ export default function Breakdown() {
 			limit: constraints.pageSize,
 			offset: constraints.page * constraints.pageSize,
 		},
-		{ enabled: selectedAnswerId !== -1 }
+		{ enabled: !!selectedAnswerId }
 	);
-
-	const rowCountRef = useRef(answerData?.answer_count ?? 0);
-	const rowCount = useMemo(() => {
-		if (answerData?.answer_count !== undefined) {
-			rowCountRef.current = answerData.answer_count;
-		}
-		return rowCountRef.current;
-	}, [answerData?.answer_count]);
 
 	useEffect(() => {
 		setContraints({ page: 0, pageSize: 25 });
 	}, [selectedAnswerId]);
 
 	return (
-		<Box flex={1} height="100%" flexShrink={1} minWidth={0}>
-			<Paper sx={styles.paper} className="flex-col-start">
-				<Box sx={styles.table}>
-					<DataGridPro
+		<div     style={{ flex: 1, height: '100%', flexShrink: 1, minWidth: 0 }}>
+			<div  className="flex-col-start" style={styles.paper}>
+				<div style={styles.table}>
+					<DataTable
 						columns={COLUMNS}
-						columnHeaderHeight={45}
+						headerHeight={45}
 						loading={loadingBreakdown}
-						slotProps={{
-							loadingOverlay: {
-								noRowsVariant: 'linear-progress',
-								variant: 'linear-progress',
-							},
-						}}
-						slots={{
-							pagination: CustomPagination,
-							noRowsOverlay: NoRows,
-							noResultsOverlay: NoResults,
-						}}
 						rows={breakdown}
-						rowCount={rowCount}
+						rowCount={answerData?.answer_count ?? 0}
 						rowHeight={40}
-						hideFooterSelectedRowCount
-						getRowClassName={(params) =>
-							params.indexRelativeToCurrentPage % 2 === 0 ? 'striped hovered-row' : 'hovered-row'
-						}
-						pageSizeOptions={[]}
-						pagination
 						paginationMode="server"
 						paginationModel={constraints}
 						onPaginationModelChange={setContraints}
-						disableColumnSelector
-						disableRowSelectionOnClick
-						disableColumnMenu
-						sx={styles.tableOverrides}
 					/>
-				</Box>
-			</Paper>
-		</Box>
+				</div>
+			</div>
+		</div>
 	);
 }
 
@@ -153,9 +114,5 @@ const styles = {
 	table: {
 		width: '100%',
 		height: '100%',
-	},
-	tableOverrides: {
-		border: 'none',
-		...dataGridFocusStyles,
 	},
 };

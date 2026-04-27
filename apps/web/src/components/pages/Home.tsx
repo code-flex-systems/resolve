@@ -1,6 +1,5 @@
 'use client';
 
-import { Box, Grid, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import MyQueue from '@/components/home/MyQueue';
 import { useChecklistsStore } from '@/stores/useChecklistsStore';
@@ -8,14 +7,15 @@ import ProfileAvatar from '../home/ProfileAvatar';
 import RecentComments from '../home/RecentComments';
 import MyClaimsMetric from '../home/MyClaimsMetric';
 import MyDeadlinesMetric from '../home/MyDeadlinesMetric';
-import MyRecoveryMetric from '../home/MyRecoveryMetric';
-import Calendar from '../home/Calendar';
+import TeamRecoveryMetric from '../home/TeamRecoveryMetric';
+import MyDeskAssignments from '../home/MyDeskAssignments';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import { BG_TERTIARY } from '@/styles/theme';
+import { useBreadcrumbs } from '../common/BreadcrumbContext';
 
 export default function Home() {
 	const { data: session } = useClerkSession();
 	const resetChecklistsStore = useChecklistsStore((state) => state.reset);
+	const { setDynamicSegments } = useBreadcrumbs();
 
 	useEffect(() => {
 		return () => {
@@ -23,57 +23,52 @@ export default function Home() {
 		};
 	}, []);
 
-	return (
-		<Box sx={styles.container}>
-			{/* Toolbar */}
-			<Box
-				width="100%"
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				marginBottom="10px"
-			>
-				<Typography fontSize={20} fontWeight="bold">
-					Welcome back, {session?.user?.name?.split(' ')?.[0] ?? ''}!
-				</Typography>
-				<ProfileAvatar />
-			</Box>
+	useEffect(() => {
+		if (session?.user?.name) setDynamicSegments([{ label: `Welcome, ${session.user.name.split(' ')[0]}!` }]);
+	}, [session?.user]);
 
+	return (
+		<div style={styles.container}>
 			{/* Dashboard Content */}
-			<Box
-				width="100%"
-				height="100%"
-				display="flex"
-				justifyContent="space-between"
-				alignItems="flex-start"
-				overflow="auto"
+			<div
+				style={{
+					width: '100%',
+					height: '100%',
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+					overflow: 'auto',
+				}}
 			>
-				<Grid container>
-					<Grid container>
-						<Grid>
+				<div style={{ display: 'flex', flexWrap: 'wrap' }}>
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						{/* <div>
 							<MyClaimsMetric />
-						</Grid>
-						<Grid>
-							<MyDeadlinesMetric />
-						</Grid>
-						<Grid>
-							<MyRecoveryMetric />
-						</Grid>
-					</Grid>
-					<Grid container>
-						<Grid>
-							<MyQueue />
-						</Grid>
-						<Grid>
-							<Calendar />
-						</Grid>
-						<Grid>
+						</div> */}
+						<div>
+							<MyDeskAssignments />
+						</div>
+						<div>
+							<TeamRecoveryMetric />
+						</div>
+						{/* <div>
 							<RecentComments />
-						</Grid>
-					</Grid>
-				</Grid>
-			</Box>
-		</Box>
+						</div> */}
+					</div>
+
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						<div>
+							<MyQueue />
+						</div>
+					</div>
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						<div>
+							<MyDeadlinesMetric />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 
@@ -86,7 +81,6 @@ const styles = {
 		flexDirection: 'column' as const,
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		bgcolor: BG_TERTIARY,
 		p: 2.5,
 	},
 };

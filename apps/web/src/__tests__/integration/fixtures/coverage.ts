@@ -15,9 +15,9 @@ export async function createTestCoverage(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		claim_id: number;
+		claim_id: string;
 		created_by: string;
-		claim_party_id?: number | null;
+		claim_party_id?: string | null;
 		loss_type?: string;
 		coverage_amount?: string | number | null;
 		amount_reserved?: string | number | null;
@@ -47,22 +47,24 @@ export async function createTestCoverage(
 		deleted_by: overrides.deleted_by ?? null,
 	};
 
-	const coverage = await db
-		.insertInto('claim_coverage')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	const coverage = await db.insertInto('claim_coverage').values(data).returningAll().executeTakeFirstOrThrow();
 
 	// Update claim.total_incurred via delta increment (matches production behavior)
 	// Includes both reserves and deductible (if applicable based on status)
 	if (!overrides.deleted_at) {
-		const reserveAmount = overrides.amount_reserved !== null && overrides.amount_reserved !== undefined
-			? (typeof overrides.amount_reserved === 'string' ? parseFloat(overrides.amount_reserved) : overrides.amount_reserved)
-			: 0;
+		const reserveAmount =
+			overrides.amount_reserved !== null && overrides.amount_reserved !== undefined
+				? typeof overrides.amount_reserved === 'string'
+					? parseFloat(overrides.amount_reserved)
+					: overrides.amount_reserved
+				: 0;
 
-		const deductibleAmount = overrides.deductible_amount !== null && overrides.deductible_amount !== undefined
-			? (typeof overrides.deductible_amount === 'string' ? parseFloat(overrides.deductible_amount) : overrides.deductible_amount)
-			: 0;
+		const deductibleAmount =
+			overrides.deductible_amount !== null && overrides.deductible_amount !== undefined
+				? typeof overrides.deductible_amount === 'string'
+					? parseFloat(overrides.deductible_amount)
+					: overrides.deductible_amount
+				: 0;
 
 		const deductibleStatus = overrides.deductible_status ?? DeductibleStatus.NOT_CONFIRMED;
 		const shouldIncludeDeductible = shouldIncludeDeductibleInClaimAmount(deductibleStatus);

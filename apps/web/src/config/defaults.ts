@@ -2,8 +2,8 @@ import { Answer, Question, TreeNode } from '@/types/types';
 import { PageInstanceStatus, QuestionType } from '@/config/enums';
 
 export const DEFAULT_ANSWER: Answer = {
-	id: -1,
-	question_id: -1,
+	id: '',
+	question_id: '',
 	text: '',
 	position: -1,
 	grade: null,
@@ -19,9 +19,9 @@ export const DEFAULT_ANSWER: Answer = {
 };
 
 export const DEFAULT_TREE_NODE: TreeNode = {
-	instanceId: -1,
+	instanceId: '',
 	parentInstanceId: null,
-	pageId: -1,
+	pageId: '',
 	position: -1,
 	title: '',
 	status: PageInstanceStatus.UNSTARTED,
@@ -33,10 +33,10 @@ export const DEFAULT_QUESTION: Question = {
 	description_image_url: null,
 	description_text: '',
 	hidden: false,
-	id: -1,
+	id: '',
 	text: '',
 	position: 1,
-	page_id: -1,
+	page_id: '',
 	placeholder: '',
 	type: QuestionType.SINGLE,
 };

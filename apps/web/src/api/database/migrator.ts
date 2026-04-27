@@ -16,6 +16,6 @@ export const migrator = new Migrator({
 	provider: new FileMigrationProvider({
 		fs,
 		path,
-		migrationFolder: path.resolve(process.cwd(), 'migrator-migrations'),
+		migrationFolder: path.resolve(__dirname, 'migrations'),
 	}),
 });

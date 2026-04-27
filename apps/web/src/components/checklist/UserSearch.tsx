@@ -1,28 +1,14 @@
 'use client';
-import React, { useState, useRef } from 'react';
-import {
-	TextField,
-	IconButton,
-	MenuItem,
-	Popper,
-	InputAdornment,
-	Collapse,
-	PopperProps,
-	TextFieldProps,
-	ClickAwayListener,
-	Typography,
-	Paper,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
-import { TransitionGroup } from 'react-transition-group';
+import React, { useState, useRef, useEffect } from 'react';
 import useDebounce from '@/lib/utils/useDebounce';
 import { Orbit } from 'ldrs/react';
 import 'ldrs/react/Orbit.css';
-import theme from '@/styles/theme';
 import { trpc } from '@/lib/trpc';
 import { StackedRow } from '../common/StackedRow';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
+import { IconSearch, IconX } from '@tabler/icons-react';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 
 export default function UserSearch({
 	selectedUser,
@@ -39,11 +25,23 @@ export default function UserSearch({
 	const [query, setQuery] = useState<string>('');
 	const [searching, setSearching] = useState(false);
 	const [results, setResults] = useState<GetUserOutput[]>([]);
-	const [anchorEl, setAnchorEl] = useState<PopperProps['anchorEl']>(null);
-	const spanRef = useRef<HTMLElement | null>(null);
+	const [showResults, setShowResults] = useState(false);
+	const containerRef = useRef<HTMLSpanElement | null>(null);
 
-	const onFocus: TextFieldProps['onFocus'] = () => setAnchorEl(spanRef?.current);
-	const onClose = () => setAnchorEl(null);
+	const onFocus = () => setShowResults(true);
+	const onClose = () => setShowResults(false);
+
+	// Click-away handler
+	useEffect(() => {
+		if (!showResults) return;
+		const handleClickOutside = (e: MouseEvent) => {
+			if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+				onClose();
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [showResults]);
 
 	const debouncedSearch = useDebounce(async (query: string) => {
 		trpcUtils.user.getUsers
@@ -72,113 +70,88 @@ export default function UserSearch({
 	};
 
 	return (
-		<div style={styles.container} className="flex-col-center">
-			<ClickAwayListener onClickAway={onClose}>
-				<span ref={spanRef}>
-					<TextField
-						placeholder="Start typing a user's name..."
-						fullWidth
-						value={query}
-						onChange={handleInputChange}
-						onFocus={onFocus}
-						sx={{
-							...styles.textField,
-							'& .MuiOutlinedInput-input': {
-								padding: '5px',
-								fontSize,
-							},
-						}}
-						slotProps={{
-							input: {
-								startAdornment: (
-									<InputAdornment position="start">
-										<SearchIcon sx={{ fontSize: fontSize + 2 }} />
-									</InputAdornment>
-								),
-								endAdornment: query && (
-									<InputAdornment position="end">
-										{searching ? (
-											<Orbit size="30" speed="1.5" color={theme.palette.primary.main} />
-										) : (
-											<IconButton size="small" onClick={handleClearInput}>
-												<ClearIcon sx={{ fontSize: fontSize + 2 }} />
-											</IconButton>
-										)}
-									</InputAdornment>
-								),
-							},
-						}}
-						autoComplete="off"
-						variant="outlined"
-						disabled={disabled}
-					/>
+		<div style={{ width: 'fit-content' }} className="flex-col-center">
+			<span ref={containerRef} style={{ position: 'relative' }}>
+				<Input
+					placeholder="Start typing a user's name..."
+					value={query}
+					onChange={handleInputChange}
+					onFocus={onFocus}
+					style={{ width: 300, fontSize }}
+					autoComplete="off"
+					disabled={disabled}
+					startAdornment={<IconSearch size={fontSize + 2} />}
+					endAdornment={
+						query ? (
+							searching ? (
+								<Orbit size="30" speed="1.5" color={'var(--text-accent)'} />
+							) : (
+								<Button variant="icon" size="sm" color="neutral" onClick={handleClearInput}>
+									<IconX size={fontSize + 2} />
+								</Button>
+							)
+						) : undefined
+					}
+				/>
 
-					<Popper open={Boolean(anchorEl)} sx={{ zIndex: 100000 }} anchorEl={anchorEl} placement="bottom">
-						<Paper sx={styles.popper}>
-							{searching && (
-								<MenuItem key="searching" disabled style={styles.menuItem}>
-									<Typography fontSize={fontSize} fontStyle="italic">
-										Searching...
-									</Typography>
-								</MenuItem>
-							)}
-							{!searching && results.length === 0 && (
-								<MenuItem key="no-results" disabled style={styles.menuItem}>
-									<Typography fontSize={fontSize} fontStyle="italic">
-										No users found
-									</Typography>
-								</MenuItem>
-							)}
-							<TransitionGroup>
-								{!searching &&
-									results.length > 0 &&
-									results.map((u, i) => (
-										<Collapse key={i}>
-											<MenuItem
-												onClick={() => {
-													setSelectedUser(u);
-													onClose();
-												}}
-												selected={selectedUser?.email === u.email}
-											>
-												<StackedRow
-													primary={`${u.first} ${u.last}`}
-													secondary={u.email}
-													fontSize={fontSize}
-												/>
-											</MenuItem>
-										</Collapse>
-									))}
-							</TransitionGroup>
-						</Paper>
-					</Popper>
-				</span>
-			</ClickAwayListener>
+				{showResults && (
+					<div
+						style={{
+							position: 'absolute',
+							top: '100%',
+							left: 0,
+							zIndex: 100000,
+							maxHeight: 300,
+							overflowY: 'auto',
+							width: 300,
+							marginTop: 5,
+							border: '1px solid var(--border)',
+							borderRadius: 8,
+							boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+							backgroundColor: 'var(--bg-white)',
+						}}
+					>
+						{searching && (
+							<div style={{ width: 300, padding: '8px 16px', opacity: 0.6 }}>
+								<span style={{ fontSize, fontStyle: 'italic' }}>
+									Searching...
+								</span>
+							</div>
+						)}
+						{!searching && results.length === 0 && (
+							<div style={{ width: 300, padding: '8px 16px', opacity: 0.6 }}>
+								<span style={{ fontSize, fontStyle: 'italic' }}>
+									No users found
+								</span>
+							</div>
+						)}
+						{!searching &&
+							results.length > 0 &&
+							results.map((u, i) => (
+								<div
+									key={i}
+									onClick={() => {
+										setSelectedUser(u);
+										onClose();
+									}}
+									style={{
+										padding: '8px 16px',
+										cursor: 'pointer',
+										backgroundColor: selectedUser?.email === u.email ? 'var(--bg-tertiary)' : undefined,
+									}}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--bg-secondary)'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = selectedUser?.email === u.email ? 'var(--bg-tertiary)' : ''; }}
+								>
+									<StackedRow
+										primary={`${u.first} ${u.last}`}
+										secondary={u.email}
+										fontSize={fontSize}
+									/>
+								</div>
+							))}
+					</div>
+				)}
+			</span>
 		</div>
 	);
 }
-
-const styles = {
-	container: {
-		width: 'fit-content',
-	},
-	horizontalDiv: {
-		height: 1,
-		width: '100%',
-	},
-	icon: {
-		marginRight: '5px',
-	},
-	menuItem: {
-		width: 300,
-	},
-	popper: {
-		maxHeight: 300,
-		overflowY: 'auto' as const,
-		width: 300,
-		mt: 0.625,
-	},
-	textField: {
-		width: 300,
-	},
-};

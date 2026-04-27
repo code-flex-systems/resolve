@@ -1,14 +1,15 @@
-import { ButtonOwnProps } from '@mui/material';
 import { JSX } from 'react';
 import config from '@/config/config';
 import { PageInstanceStatus } from '@/config/enums';
 
+type ButtonColor = 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
+
 // Plain Answer interface for runtime use (matches query output)
 export interface Answer {
-	id: number;
+	id: string;
 	text: string;
 	position: number;
-	question_id?: number;
+	question_id?: string;
 	description_text: string | null;
 	description_image_url: string | null;
 	grade: string | null;
@@ -16,7 +17,7 @@ export interface Answer {
 	additional_info_placeholder: string | null;
 	has_additional_info: boolean | null;
 	hidden?: boolean | null;
-	calls_instance_id: number | null;
+	calls_instance_id: string | null;
 	requires_upload: boolean | null;
 	allowed_extensions: string | null;
 	has_action?: boolean;
@@ -44,17 +45,17 @@ export interface AnswerResponse {
 	additional_info: string | null;
 	claim_number: string | null;
 	client: string | null;
-	id: number;
+	id: string;
 }
 
 export interface AnswerStat {
 	answer_count: number;
-	answer_id: number;
+	answer_id: string;
 	answer_text: string;
 }
 
 export interface Claim {
-	id: number;
+	id: string;
 	claim_number: string | null;
 	client: string | null;
 	client_adjuster: string | null;
@@ -71,10 +72,12 @@ export interface Claim {
 	actual_recovery: number | null; // Team's meaningful payments (calculated from recovery events)
 	line_of_business: string | null;
 	loss_type: string | null;
+	recovery_status: string | null;
+	substatus: string | null;
 }
 
 export interface Checklist {
-	id: number;
+	id: string;
 	created_at: string;
 	created_by: string;
 	name: string;
@@ -83,9 +86,9 @@ export interface Checklist {
 }
 
 export interface ChecklistClaim {
-	checklist_id: number;
+	checklist_id: string;
 	checklist_name: string;
-	claim_id: number;
+	claim_id: string;
 	claim_number: string;
 	client: string;
 	last_opened: Date;
@@ -105,29 +108,29 @@ export interface ChecklistSummaryCache {
 }
 
 export interface ChecklistSummaryRow {
-	answer_id: number;
-	page_id: number;
+	answer_id: string;
+	page_id: string;
 	page_title: string;
-	question_id: number;
+	question_id: string;
 	question_text: string;
 	response_text?: string;
 	answer_texts?: string;
 }
 
 export interface Comment {
-	checklistId: number;
-	claimId: number;
-	instanceId?: number;
-	questionId?: number;
+	checklistId: string;
+	claimId: string;
+	instanceId?: string;
+	questionId?: string;
 	body: string;
 }
 
 export interface CommentFilters {
 	userId?: string;
-	checklistId?: number;
-	claimId?: number;
-	instanceId?: number;
-	questionId?: number;
+	checklistId?: string;
+	claimId?: string;
+	instanceId?: string;
+	questionId?: string;
 }
 
 export type DateRange = [Date | null, Date | null];
@@ -139,14 +142,15 @@ export interface DialogAction {
 	onClick: () => void;
 	disabled?: boolean;
 	hidden?: boolean;
-	color?: ButtonOwnProps['color'];
+	color?: ButtonColor;
 	icon?: JSX.Element;
 }
 
 export interface InstanceListItem {
 	title: string;
-	instanceId: number;
-	pageId: number;
+	instanceId: string;
+	pageId: string;
+	position: number;
 }
 
 export type Interval<T> = {
@@ -162,15 +166,15 @@ export interface NavListItem {
 }
 
 export interface PageInstance {
-	id: number;
+	id: string;
 	title: string;
-	parent_id: number | null;
-	instance_id: number;
+	parent_id: string | null;
+	instance_id: string;
 }
 
 export interface PageTemplate {
 	hidden: boolean;
-	id: number;
+	id: string;
 	title: string;
 	version: number;
 }
@@ -180,31 +184,31 @@ export interface Question {
 	description_image_url: string | null;
 	description_text: string | null;
 	hidden: boolean | null;
-	id: number;
+	id: string;
 	text: string;
 	position: number;
-	page_id: number;
+	page_id: string;
 	placeholder: string | null;
 	type: string;
 }
 
 export interface QuestionResponse {
-	checklist_id: number;
-	instance_id: number;
-	claim_id: number;
-	question_id: number;
+	checklist_id: string;
+	instance_id: string;
+	claim_id: string;
+	question_id: string;
 	response_text?: string | null;
-	response_doc_id?: number | null;
+	response_doc_id?: string | null;
 	selected_answers: QuestionResponseAnswer[];
 }
 
 export interface QuestionResponseAnswer {
-	answer_id: number;
+	answer_id: string;
 	additional_info?: string;
 }
 
 export interface QuestionStat {
-	question_id: number;
+	question_id: string;
 	question_text: string;
 	answers: AnswerStat[];
 }
@@ -212,9 +216,9 @@ export interface QuestionStat {
 export type Role = (typeof config.ROLES)[keyof typeof config.ROLES];
 
 export interface TreeNode {
-	instanceId: number;
-	parentInstanceId: number | null;
-	pageId: number;
+	instanceId: string;
+	parentInstanceId: string | null;
+	pageId: string;
 	position: number;
 	title: string;
 	children?: TreeNode[];
@@ -225,7 +229,7 @@ export interface TreeNode {
 export interface User {
 	email: string;
 	roles: UserRole[];
-	userid: number;
+	userid: string;
 	username: string;
 }
 

@@ -1,9 +1,8 @@
 'use client';
-
-import { Box, Chip, Divider, Typography } from '@mui/material';
+import Divider from '@/components/ui/Divider';
+import Chip from '@/components/ui/Chip';
 import BasicDialog from '@/components/common/BasicDialog';
 import { formatAddressInline } from '@/schemas/addressSchemas';
-import { BASE_COLOR_LIGHT, BORDER_COLOR } from '@/styles/theme';
 import { capitalize } from '@/lib/utils/utils';
 import { useState, useMemo } from 'react';
 import PartyDialog from '../PartyDialog';
@@ -83,7 +82,7 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 			width={600}
 			secondaryActions={[{ label: 'Close', onClick: onClose }]}
 		>
-			<Box display="flex" flexDirection="column" gap={3} paddingTop={1}>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingTop: 8 }}>
 				{/* Party Information Section */}
 				{party && (
 					<Section
@@ -99,17 +98,15 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 						<DetailRow
 							label="Role"
 							value={
-								<Box display="flex" gap={0.5} flexWrap="wrap">
+								<div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
 									{Array.isArray(freshClaimParty.role) && freshClaimParty.role.map((r: string) => (
-										<Chip
-											key={r}
-											label={capitalize(r.replace(/_/g, ' '))}
-											size="small"
-											color="primary"
-											sx={{ height: 20, fontSize: 11 }}
-										/>
+										<Chip key={r}
+											
+											size="sm"
+											color="info"
+											style={{ height: 20, fontSize: 11 }}>{capitalize(r.replace(/_/g, ' '))}</Chip>
 									))}
-								</Box>
+								</div>
 							}
 						/>
 						{party.organization && <DetailRow label="Organization" value={party.organization} />}
@@ -163,12 +160,12 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 				{/* Claim Party Notes */}
 				{freshClaimParty.notes && (
 					<Section title="Linking Notes">
-						<Typography fontSize={13} color="text.secondary">
+						<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
 							{freshClaimParty.notes}
-						</Typography>
+						</span>
 					</Section>
 				)}
-			</Box>
+			</div>
 
 			{/* Second-level Edit Dialogs */}
 			{editingParty && party && (
@@ -220,30 +217,24 @@ interface SectionProps {
 
 function Section({ title, editLabel, onEdit, children }: SectionProps) {
 	return (
-		<Box>
-			<Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={1}>
-				<Typography fontSize={12} fontWeight={600} color={BASE_COLOR_LIGHT} textTransform="uppercase">
+		<div>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+				<span style={{ fontSize: 12, fontWeight: 600 }}>
 					{title}
-				</Typography>
+				</span>
 				{editLabel && onEdit && (
-					<Typography
-						fontSize={12}
-						sx={{
-							color: 'primary.main',
-							cursor: 'pointer',
-							'&:hover': { textDecoration: 'underline' },
-						}}
-						onClick={onEdit}
-					>
+					<span
+						onClick={onEdit} style={{ fontSize: 12, color: 'var(--text-accent)',
+							cursor: 'pointer', }}>
 						{editLabel}
-					</Typography>
+					</span>
 				)}
-			</Box>
-			<Divider sx={{ marginBottom: 1.5, borderColor: BORDER_COLOR }} />
-			<Box display="flex" flexDirection="column" gap={0.75}>
+			</div>
+			<Divider />
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 				{children}
-			</Box>
-		</Box>
+			</div>
+		</div>
 	);
 }
 
@@ -254,15 +245,15 @@ interface DetailRowProps {
 
 function DetailRow({ label, value }: DetailRowProps) {
 	return (
-		<Box display="flex" alignItems="flex-start" gap={1}>
-			<Typography fontSize={13} color="text.secondary" minWidth={100}>
+		<div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+			<span style={{ fontSize: 13,  color: 'var(--text-secondary)', minWidth: 100  }}>
 				{label}:
-			</Typography>
+			</span>
 			{typeof value === 'string' ? (
-				<Typography fontSize={13}>{value}</Typography>
+				<span style={{ fontSize: 13 }}>{value}</span>
 			) : (
 				value
 			)}
-		</Box>
+		</div>
 	);
 }

@@ -8,8 +8,8 @@ import { SettlementStatus, SettlementStructure, PaymentFrequency } from '@/confi
 
 // Base object schema (without refinements) for reuse
 const settlementParamsBase = z.object({
-	claim_party_id: z.number().int(),
-	coverage_id: z.number().int(),
+	claim_party_id: z.string().uuid(),
+	coverage_id: z.string().uuid(),
 	demand_amount: parseNumber(),
 	demand_date: parseDate(),
 	agreed_liability_percentage: parseNumber().nullable().optional(),
@@ -65,24 +65,24 @@ export const settlementUpdateParams = settlementParamsBase
 export type SettlementUpdateParams = z.infer<typeof settlementUpdateParams>;
 
 export const createSettlementInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 	params: settlementParams,
 });
 
 export const updateSettlementInput = z.object({
-	settlementId: z.number().int(),
+	settlementId: z.string().uuid(),
 	params: settlementUpdateParams,
 });
 
 export const deleteSettlementInput = z.object({
-	settlementId: z.number().int(),
-	claimId: z.number().int(),
+	settlementId: z.string().uuid(),
+	claimId: z.string().uuid(),
 });
 
 export const listSettlementsInput = z.object({
-	claimId: z.number().int(),
+	claimId: z.string().uuid(),
 });
 
 export const getSettlementInput = z.object({
-	settlementId: z.number().int(),
+	settlementId: z.string().uuid(),
 });

@@ -1,24 +1,25 @@
 'use client';
 
-import Edit from '@mui/icons-material/Edit';
-import Archive from '@mui/icons-material/Archive';
-import Unarchive from '@mui/icons-material/Unarchive';
-import { GridRenderCellParams } from '@mui/x-data-grid-pro';
+import { IconArchive, IconArchiveOff, IconEdit } from '@tabler/icons-react';
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import BasicButtonStyled from '../common/BasicButtonStyled';
 import BasicDialog from '../common/BasicDialog';
 import PartyDialog from './PartyDialog';
 import { usePartyTrpc } from '@/hooks/trpc/usePartyTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
-import theme from '@/styles/theme';
+import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
-interface PartyActionsCellProps extends GridRenderCellParams {
+interface PartyActionsCellProps {
+	row: any;
+	value?: any;
+	id?: string | number;
 	isAdminContext?: boolean;
+	isManageMode?: boolean;
 }
 
 export default function PartyActionsCell(params: PartyActionsCellProps) {
-	const { isAdminContext = true } = params;
+	const { isAdminContext = true, isManageMode = true } = params;
+	if (!isManageMode) return null;
 	const { row } = params;
 	const [editing, setEditing] = useState(false);
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
@@ -33,10 +34,10 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 	const handleAction = async () => {
 		try {
 			if (isArchived) {
-				await restoreParty({ id: row.id as unknown as number });
+				await restoreParty({ id: row.id });
 				showAlert('Party restored successfully', 'success');
 			} else {
-				await archiveParty({ id: row.id as unknown as number });
+				await archiveParty({ id: row.id });
 				showAlert('Party archived successfully', 'success');
 			}
 			setShowActionConfirm(false);
@@ -68,43 +69,35 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<Typography fontStyle="italic" fontWeight="bold">
+					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this party?
-					</Typography>
-					<Typography paddingTop="10px" fontStyle="italic">
+					</span>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						{isArchived
 							? 'The party and all associated addresses and representatives will be restored.'
 							: 'The party and all associated addresses and representatives will be archived.'}
-					</Typography>
+					</span>
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
-				<Box marginRight={isAdminContext ? '10px' : undefined}>
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setEditing(true),
-							disabled: isArchived,
-						}}
-						tooltipProps={{ title: isArchived ? 'Cannot edit archived party' : 'Make changes' }}
-						icon={<Edit sx={{ fontSize: 15 }} />}
-					/>
-				</Box>
+				<div style={{ marginRight: isAdminContext ? '10px' : undefined }}>
+					<Tooltip content="isArchived ? 'Cannot edit archived party' : 'Make changes'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived}>
+							<IconEdit size={15} />
+						</Button>
+						</Tooltip>
+				</div>
 				{isAdminContext && (
-					<BasicButtonStyled
-						buttonProps={{
-							onClick: () => setShowActionConfirm(true),
-							disabled: isPending,
-						}}
-						tooltipProps={{ title: isArchived ? 'Restore party' : 'Archive party' }}
-						icon={
+					<Tooltip content="isArchived ? 'Restore party' : 'Archive party'">
+							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending}>
 							isArchived ? (
-								<Unarchive sx={{ fontSize: 15, color: theme.palette.success.main }} />
+								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<Archive sx={{ fontSize: 15, color: theme.palette.error.main }} />
+								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
 							)
-						}
-					/>
+						</Button>
+						</Tooltip>
 				)}
 			</div>
 		</>
