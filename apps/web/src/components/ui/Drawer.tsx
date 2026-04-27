@@ -55,7 +55,7 @@ export default function Drawer({
 	const drawerClassNames = [
 		styles.drawer,
 		styles[anchor],
-		open && styles.open,
+		styles.open,
 		className,
 	]
 		.filter(Boolean)
