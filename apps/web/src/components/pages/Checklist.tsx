@@ -218,7 +218,7 @@ export default function Checklist() {
 									size={11}
 									style={{
 										transition: 'transform 200ms ease',
-										transform: modeHandleOpen ? 'rotate(180deg)' : undefined,
+										transform: undefined,
 									}}
 								/>
 							</button>
