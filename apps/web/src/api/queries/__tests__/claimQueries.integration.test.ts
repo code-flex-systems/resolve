@@ -665,7 +665,7 @@ describe('claimQueries integration', () => {
 				insured: 'First',
 				created_at: new Date('2024-01-01T00:00:00Z'),
 			});
-			const claim2 = await createTestClaim(db, {
+			await createTestClaim(db, {
 				client_id: client.id,
 				feed_id: feed.id,
 				insured: 'Second',
